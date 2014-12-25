@@ -561,7 +561,7 @@ class BitcoinTestFramework():
         config = configparser.ConfigParser()
         config.read_file(open(self.options.configfile, encoding='utf-8'))
 
-        return config["components"].getboolean("ENABLE_UTILS")
+        return config["components"].getboolean("ENABLE_CLI")
 
     def is_wallet_compiled(self):
         """Checks whether the wallet module was compiled."""
