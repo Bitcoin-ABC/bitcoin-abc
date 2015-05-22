@@ -79,12 +79,10 @@ bool TestSequenceLocks(const CTransaction &tx, int flags) {
 // Implemented as an additional function, rather than a separate test case, to
 // allow reusing the blockchain created in CreateNewBlock_validity.
 // Note that this test assumes blockprioritypercentage is 0.
-void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
+void TestPackageSelection(Config &config, CScript scriptPubKey,
                           std::vector<CTransactionRef> &txFirst) {
     // Test the ancestor feerate transaction selection.
     TestMemPoolEntryHelper entry;
-
-    GlobalConfig config;
 
     // these 3 tests assume blockprioritypercentage is 0.
     config.SetBlockPriorityPercentage(0);
@@ -273,7 +271,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // blocks :)
     int baseheight = 0;
     std::vector<CTransactionRef> txFirst;
-    for (unsigned int i = 0; i < sizeof(blockinfo) / sizeof(*blockinfo); ++i) {
+    for (size_t i = 0; i < sizeof(blockinfo) / sizeof(*blockinfo); ++i) {
         // pointer for convenience.
         CBlock *pblock = &pblocktemplate->block;
         pblock->nVersion = 1;
@@ -691,8 +689,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     SetMockTime(0);
     mempool.clear();
 
-    const CChainParams &chainparams = Params(CBaseChainParams::MAIN);
-    TestPackageSelection(chainparams, scriptPubKey, txFirst);
+    TestPackageSelection(config, scriptPubKey, txFirst);
 
     fCheckpointsEnabled = true;
 }

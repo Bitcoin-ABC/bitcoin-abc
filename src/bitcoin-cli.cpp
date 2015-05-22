@@ -30,6 +30,10 @@ static const bool DEFAULT_NAMED = false;
 static const int CONTINUE_EXECUTION = -1;
 
 std::string HelpMessageCli() {
+    const auto defaultBaseParams =
+        CreateBaseChainParams(CBaseChainParams::MAIN);
+    const auto testnetBaseParams =
+        CreateBaseChainParams(CBaseChainParams::TESTNET);
     std::string strUsage;
     strUsage += HelpMessageGroup(_("Options:"));
     strUsage += HelpMessageOpt("-?", _("This help message"));
@@ -50,8 +54,7 @@ std::string HelpMessageCli() {
         "-rpcport=<port>",
         strprintf(
             _("Connect to JSON-RPC on <port> (default: %u or testnet: %u)"),
-            BaseParams(CBaseChainParams::MAIN).RPCPort(),
-            BaseParams(CBaseChainParams::TESTNET).RPCPort()));
+            defaultBaseParams->RPCPort(), testnetBaseParams->RPCPort()));
     strUsage += HelpMessageOpt("-rpcwait", _("Wait for RPC server to start"));
     strUsage += HelpMessageOpt("-rpcuser=<user>",
                                _("Username for JSON-RPC connections"));

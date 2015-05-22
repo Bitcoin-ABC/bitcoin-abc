@@ -11,14 +11,12 @@
 
 namespace {
 
-class DstCfgDummy : public DummyConfig {
+class DummyCashAddrConfig : public DummyConfig {
 public:
-    DstCfgDummy() : useCashAddr(false) {}
+    DummyCashAddrConfig()
+        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(false) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
-    const CChainParams &GetChainParams() const override {
-        return Params(CBaseChainParams::MAIN);
-    }
 
 private:
     bool useCashAddr;
@@ -43,7 +41,7 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
     std::string base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
     std::string base58_script = "3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC";
 
-    DstCfgDummy config;
+    DummyCashAddrConfig config;
 
     // Check encoding
     config.SetCashAddrEncoding(true);

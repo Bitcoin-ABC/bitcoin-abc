@@ -78,6 +78,12 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce,
                               nBits, nVersion, genesisReward);
 }
 
+void CChainParams::UpdateBIP9Parameters(Consensus::DeploymentPos d,
+                                        int64_t nStartTime, int64_t nTimeout) {
+    consensus.vDeployments[d].nStartTime = nStartTime;
+    consensus.vDeployments[d].nTimeout = nTimeout;
+}
+
 /**
  * Main network
  */
@@ -257,7 +263,6 @@ public:
             3.2};
     }
 };
-static CMainParams mainParams;
 
 /**
  * Testnet (v3)
@@ -392,7 +397,6 @@ public:
         chainTxData = ChainTxData{1483546230, 12834668, 0.15};
     }
 };
-static CTestNetParams testNetParams;
 
 /**
  * Regression test
@@ -489,34 +493,26 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         cashaddrPrefix = "bchreg";
     }
-
-    void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
-                              int64_t nTimeout) {
-        consensus.vDeployments[d].nStartTime = nStartTime;
-        consensus.vDeployments[d].nTimeout = nTimeout;
-    }
 };
 
-static CRegTestParams regTestParams;
-
-static CChainParams *pCurrentParams = 0;
+static std::unique_ptr<CChainParams> globalChainParams;
 
 const CChainParams &Params() {
-    assert(pCurrentParams);
-    return *pCurrentParams;
+    assert(globalChainParams);
+    return *globalChainParams;
 }
 
-CChainParams &Params(const std::string &chain) {
+std::unique_ptr<CChainParams> CreateChainParams(const std::string &chain) {
     if (chain == CBaseChainParams::MAIN) {
-        return mainParams;
+        return std::unique_ptr<CChainParams>(new CMainParams());
     }
 
     if (chain == CBaseChainParams::TESTNET) {
-        return testNetParams;
+        return std::unique_ptr<CChainParams>(new CTestNetParams());
     }
 
     if (chain == CBaseChainParams::REGTEST) {
-        return regTestParams;
+        return std::unique_ptr<CChainParams>(new CRegTestParams());
     }
 
     throw std::runtime_error(
@@ -525,10 +521,10 @@ CChainParams &Params(const std::string &chain) {
 
 void SelectParams(const std::string &network) {
     SelectBaseParams(network);
-    pCurrentParams = &Params(network);
+    globalChainParams = CreateChainParams(network);
 }
 
-void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
-                                 int64_t nTimeout) {
-    regTestParams.UpdateBIP9Parameters(d, nStartTime, nTimeout);
+void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
+                          int64_t nTimeout) {
+    globalChainParams->UpdateBIP9Parameters(d, nStartTime, nTimeout);
 }

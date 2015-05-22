@@ -12,12 +12,10 @@ namespace {
 
 class GUIUtilTestConfig : public DummyConfig {
 public:
-    GUIUtilTestConfig() : useCashAddr(false) {}
+    GUIUtilTestConfig()
+        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(false) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
-    const CChainParams &GetChainParams() const override {
-        return Params(CBaseChainParams::MAIN);
-    }
 
 private:
     bool useCashAddr;

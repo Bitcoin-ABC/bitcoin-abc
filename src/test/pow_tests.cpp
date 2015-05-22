@@ -16,8 +16,7 @@ BOOST_FIXTURE_TEST_SUITE(pow_tests, BasicTestingSetup)
 
 /* Test calculation of next difficulty target with no constraints applying */
 BOOST_AUTO_TEST_CASE(get_next_work) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     int64_t nLastRetargetTime = 1261130161; // Block #30240
     CBlockIndex pindexLast;
@@ -31,8 +30,7 @@ BOOST_AUTO_TEST_CASE(get_next_work) {
 
 /* Test the constraint on the upper bound for next work */
 BOOST_AUTO_TEST_CASE(get_next_work_pow_limit) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     int64_t nLastRetargetTime = 1231006505; // Block #0
     CBlockIndex pindexLast;
@@ -46,8 +44,7 @@ BOOST_AUTO_TEST_CASE(get_next_work_pow_limit) {
 
 /* Test the constraint on the lower bound for actual time taken */
 BOOST_AUTO_TEST_CASE(get_next_work_lower_limit_actual) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     int64_t nLastRetargetTime = 1279008237; // Block #66528
     CBlockIndex pindexLast;
@@ -61,8 +58,7 @@ BOOST_AUTO_TEST_CASE(get_next_work_lower_limit_actual) {
 
 /* Test the constraint on the upper bound for actual time taken */
 BOOST_AUTO_TEST_CASE(get_next_work_upper_limit_actual) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     int64_t nLastRetargetTime = 1263163443; // NOTE: Not an actual block time
     CBlockIndex pindexLast;
@@ -75,14 +71,15 @@ BOOST_AUTO_TEST_CASE(get_next_work_upper_limit_actual) {
 }
 
 BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test) {
-    SelectParams(CBaseChainParams::MAIN);
-    const Consensus::Params &params = Params().GetConsensus();
+    DummyConfig config(CBaseChainParams::MAIN);
 
     std::vector<CBlockIndex> blocks(10000);
     for (int i = 0; i < 10000; i++) {
         blocks[i].pprev = i ? &blocks[i - 1] : nullptr;
         blocks[i].nHeight = i;
-        blocks[i].nTime = 1269211443 + i * params.nPowTargetSpacing;
+        blocks[i].nTime =
+            1269211443 +
+            i * config.GetChainParams().GetConsensus().nPowTargetSpacing;
         blocks[i].nBits = 0x207fffff; /* target 0x7fffff000... */
         blocks[i].nChainWork =
             i ? blocks[i - 1].nChainWork + GetBlockProof(blocks[i])
@@ -94,7 +91,8 @@ BOOST_AUTO_TEST_CASE(GetBlockProofEquivalentTime_test) {
         CBlockIndex *p2 = &blocks[InsecureRandRange(10000)];
         CBlockIndex *p3 = &blocks[InsecureRandRange(10000)];
 
-        int64_t tdiff = GetBlockProofEquivalentTime(*p1, *p2, *p3, params);
+        int64_t tdiff = GetBlockProofEquivalentTime(
+            *p1, *p2, *p3, config.GetChainParams().GetConsensus());
         BOOST_CHECK_EQUAL(tdiff, p1->GetBlockTime() - p2->GetBlockTime());
     }
 }
@@ -112,8 +110,7 @@ static CBlockIndex GetBlockIndex(CBlockIndex *pindexPrev, int64_t nTimeInterval,
 }
 
 BOOST_AUTO_TEST_CASE(retargeting_test) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     std::vector<CBlockIndex> blocks(115);
 
@@ -193,8 +190,7 @@ BOOST_AUTO_TEST_CASE(retargeting_test) {
 }
 
 BOOST_AUTO_TEST_CASE(cash_difficulty_test) {
-    SelectParams(CBaseChainParams::MAIN);
-    GlobalConfig config;
+    DummyConfig config(CBaseChainParams::MAIN);
 
     std::vector<CBlockIndex> blocks(3000);
 

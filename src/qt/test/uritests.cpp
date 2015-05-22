@@ -13,9 +13,10 @@
 #include <QUrl>
 
 void URITests::uriTestsBase58() {
+    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+
     SendCoinsRecipient rv;
-    QString scheme =
-        QString::fromStdString(Params(CBaseChainParams::MAIN).CashAddrPrefix());
+    QString scheme = QString::fromStdString(params->CashAddrPrefix());
     QUrl uri;
     uri.setUrl(QString("175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?req-dontexist="));
     QVERIFY(!GUIUtil::parseBitcoinURI(scheme, uri, &rv));
@@ -87,10 +88,11 @@ void URITests::uriTestsBase58() {
 }
 
 void URITests::uriTestsCashAddr() {
+    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+
     SendCoinsRecipient rv;
     QUrl uri;
-    QString scheme =
-        QString::fromStdString(Params(CBaseChainParams::MAIN).CashAddrPrefix());
+    QString scheme = QString::fromStdString(params->CashAddrPrefix());
     uri.setUrl(QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
                        "req-dontexist="));
     QVERIFY(!GUIUtil::parseBitcoinURI(scheme, uri, &rv));
@@ -174,14 +176,11 @@ namespace {
 class UriTestConfig : public DummyConfig {
 public:
     UriTestConfig(bool useCashAddr)
-        : useCashAddr(useCashAddr), net(CBaseChainParams::MAIN) {}
+        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(useCashAddr) {}
     bool UseCashAddrEncoding() const override { return useCashAddr; }
-    const CChainParams &GetChainParams() const override { return Params(net); }
-    void SetChainParams(const std::string &n) { net = n; }
 
 private:
     bool useCashAddr;
-    std::string net;
 };
 
 } // namespace
