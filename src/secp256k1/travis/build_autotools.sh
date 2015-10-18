@@ -25,6 +25,7 @@ pushd buildautotools
   --with-asm=$ASM \
   --with-scalar=$SCALAR \
   --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION \
+  --with-ecmult-gen-precision=$ECMULTGENPRECISION \
   --enable-module-ecdh=$ECDH \
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \
