@@ -898,6 +898,7 @@ public:
                                   bool fUpdate);
     int64_t RescanFromTime(int64_t startTime, bool update);
     CBlockIndex *ScanForWalletTransactions(CBlockIndex *pindexStart,
+                                           CBlockIndex *pindexStop,
                                            bool fUpdate = false);
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,

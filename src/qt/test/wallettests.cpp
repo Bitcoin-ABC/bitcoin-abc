@@ -103,7 +103,7 @@ void WalletTests::walletTests() {
     }
     {
         LOCK(cs_main);
-        wallet.ScanForWalletTransactions(chainActive.Genesis(), true);
+        wallet.ScanForWalletTransactions(chainActive.Genesis(), nullptr, true);
     }
     wallet.SetBroadcastTransactions(true);
 

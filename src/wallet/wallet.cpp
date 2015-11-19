@@ -1721,7 +1721,7 @@ int64_t CWallet::RescanFromTime(int64_t startTime, bool update) {
 
     if (startBlock) {
         const CBlockIndex *const failedBlock =
-            ScanForWalletTransactions(startBlock, update);
+            ScanForWalletTransactions(startBlock, nullptr, update);
         if (failedBlock) {
             return failedBlock->GetBlockTimeMax() + TIMESTAMP_WINDOW + 1;
         }
@@ -1737,10 +1737,18 @@ int64_t CWallet::RescanFromTime(int64_t startTime, bool update) {
  * Returns null if scan was successful. Otherwise, if a complete rescan was not
  * possible (due to pruning or corruption), returns pointer to the most recent
  * block that could not be scanned.
+ *
+ * If pindexStop is not a nullptr, the scan will stop at the block-index defined
+ * by pindexStop.
  */
 CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
+                                                CBlockIndex *pindexStop,
                                                 bool fUpdate) {
     int64_t nNow = GetTime();
+
+    if (pindexStop) {
+        assert(pindexStop->nHeight >= pindexStart->nHeight);
+    }
 
     CBlockIndex *pindex = pindexStart;
     CBlockIndex *ret = nullptr;
@@ -1777,6 +1785,9 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
             }
         } else {
             ret = pindex;
+        }
+        if (pindex == pindexStop) {
+            break;
         }
 
         pindex = chainActive.Next(pindex);
@@ -4298,7 +4309,7 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         }
 
         nStart = GetTimeMillis();
-        walletInstance->ScanForWalletTransactions(pindexRescan, true);
+        walletInstance->ScanForWalletTransactions(pindexRescan, nullptr, true);
         LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
         walletInstance->SetBestChain(chainActive.GetLocator());
         walletInstance->dbw->IncrementUpdateCounter();

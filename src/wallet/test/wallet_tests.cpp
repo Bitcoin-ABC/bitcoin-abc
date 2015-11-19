@@ -469,7 +469,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         CWallet wallet(Params());
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-        BOOST_CHECK_EQUAL(nullBlock, wallet.ScanForWalletTransactions(oldTip));
+        BOOST_CHECK_EQUAL(nullBlock,
+                          wallet.ScanForWalletTransactions(oldTip, nullptr));
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
     }
 
@@ -483,7 +484,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         CWallet wallet(Params());
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-        BOOST_CHECK_EQUAL(oldTip, wallet.ScanForWalletTransactions(oldTip));
+        BOOST_CHECK_EQUAL(oldTip,
+                          wallet.ScanForWalletTransactions(oldTip, nullptr));
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
     }
 
