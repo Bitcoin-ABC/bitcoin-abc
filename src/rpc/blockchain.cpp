@@ -1826,8 +1826,8 @@ static UniValue reconsiderblock(const Config &config,
                                 const JSONRPCRequest &request) {
     RPCHelpMan{
         "reconsiderblock",
-        "Removes invalidity status of a block and its descendants, "
-        "reconsider them for activation.\n"
+        "Removes invalidity status of a block, its ancestors and its"
+        "descendants, reconsider them for activation.\n"
         "This can be used to undo the effects of invalidateblock.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
