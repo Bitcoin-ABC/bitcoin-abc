@@ -531,65 +531,34 @@ bool CWallet::Verify() {
         return true;
     }
 
-    LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
+    uiInterface.InitMessage(_("Verifying wallet..."));
     std::string walletFile = GetArg("-wallet", DEFAULT_WALLET_DAT);
 
-    LogPrintf("Using wallet %s\n", walletFile);
-    uiInterface.InitMessage(_("Verifying wallet..."));
-
-    // Wallet file must be a plain filename without a directory.
-    if (walletFile != fs::basename(walletFile) + fs::extension(walletFile)) {
-        return InitError(
-            strprintf(_("Wallet %s resides outside data directory %s"),
-                      walletFile, GetDataDir().string()));
-    }
-
-    if (!bitdb.Open(GetDataDir())) {
-        // Try moving the database env out of the way.
-        fs::path pathDatabase = GetDataDir() / "database";
-        fs::path pathDatabaseBak =
-            GetDataDir() / strprintf("database.%d.bak", GetTime());
-        try {
-            fs::rename(pathDatabase, pathDatabaseBak);
-            LogPrintf("Moved old %s to %s. Retrying.\n", pathDatabase.string(),
-                      pathDatabaseBak.string());
-        } catch (const fs::filesystem_error &) {
-            // Failure is ok (well, not really, but it's not worse than what we
-            // started with)
-        }
-
-        // try again
-        if (!bitdb.Open(GetDataDir())) {
-            // If it still fails, it probably means we can't even create the
-            // database env.
-            return InitError(strprintf(
-                _("Error initializing wallet database environment %s!"),
-                GetDataDir()));
-        }
+    std::string strError;
+    if (!CWalletDB::VerifyEnvironment(walletFile, GetDataDir().string(),
+                                      strError)) {
+        return InitError(strError);
     }
 
     if (GetBoolArg("-salvagewallet", false)) {
         // Recover readable keypairs:
-        if (!CWalletDB::Recover(bitdb, walletFile, true)) return false;
-    }
-
-    if (fs::exists(GetDataDir() / walletFile)) {
-        CDBEnv::VerifyResult r = bitdb.Verify(walletFile, CWalletDB::Recover);
-        if (r == CDBEnv::RECOVER_OK) {
-            InitWarning(strprintf(
-                _("Warning: Wallet file corrupt, data salvaged!"
-                  " Original %s saved as %s in %s; if"
-                  " your balance or transactions are incorrect you should"
-                  " restore from a backup."),
-                walletFile, "wallet.{timestamp}.bak", GetDataDir()));
-        }
-
-        if (r == CDBEnv::RECOVER_FAIL) {
-            return InitError(
-                strprintf(_("%s corrupt, salvage failed"), walletFile));
+        CWallet dummyWallet;
+        if (!CWalletDB::Recover(walletFile, (void *)&dummyWallet,
+                                CWalletDB::RecoverKeysOnlyFilter)) {
+            return false;
         }
     }
 
+    std::string strWarning;
+    bool dbV = CWalletDB::VerifyDatabaseFile(walletFile, GetDataDir().string(),
+                                             strWarning, strError);
+    if (!strWarning.empty()) {
+        InitWarning(strWarning);
+    }
+    if (!dbV) {
+        InitError(strError);
+        return false;
+    }
     return true;
 }
 
