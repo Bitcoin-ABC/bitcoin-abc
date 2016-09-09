@@ -25,6 +25,8 @@ enum SafeChars {
     SAFE_CHARS_DEFAULT,
     //!< BIP-0014 subset
     SAFE_CHARS_UA_COMMENT,
+    //!< Chars allowed in filenames
+    SAFE_CHARS_FILENAME,
 };
 
 /**

@@ -782,6 +782,11 @@ public:
     //! by LoadWallet)
     bool LoadWatchOnly(const CScript &dest);
 
+    //! Holds a timestamp at which point the wallet is scheduled (externally) to
+    //! be relocked. Caller must arrange for actual relocking to occur via
+    //! Lock().
+    int64_t nRelockTime;
+
     bool Unlock(const SecureString &strWalletPassphrase);
     bool ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
                                 const SecureString &strNewWalletPassphrase);

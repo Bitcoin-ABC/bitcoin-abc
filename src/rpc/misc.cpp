@@ -18,6 +18,7 @@
 #include "utilstrencodings.h"
 #include "validation.h"
 #ifdef ENABLE_WALLET
+#include "wallet/rpcwallet.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #endif
@@ -119,8 +120,9 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
         obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
         obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
     }
-    if (pwallet && pwallet->IsCrypted())
-        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+    if (pwallet && pwallet->IsCrypted()) {
+        obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
+    }
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
 #endif
     obj.push_back(
@@ -273,6 +275,9 @@ static UniValue validateaddress(const Config &config,
     }
     return ret;
 }
+
+// Needed even with !ENABLE_WALLET, to pass (ignored) pointers around
+class CWallet;
 
 /**
  * Used by addmultisigaddress / createmultisig:

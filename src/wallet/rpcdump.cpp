@@ -9,6 +9,7 @@
 #include "init.h"
 #include "merkleblock.h"
 #include "rpc/server.h"
+#include "rpcwallet.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "sync.h"

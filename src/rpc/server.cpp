@@ -168,8 +168,8 @@ std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey) {
 /**
  * Note: This interface may still be subject to change.
  */
-std::string CRPCTable::help(Config &config,
-                            const std::string &strCommand) const {
+std::string CRPCTable::help(Config &config, const std::string &strCommand,
+                            const JSONRPCRequest &helpreq) const {
     std::string strRet;
     std::string category;
     std::set<rpcfn_type> setDone;
@@ -182,16 +182,25 @@ std::string CRPCTable::help(Config &config,
             std::make_pair(mi->second->category + mi->first, mi->second));
     sort(vCommands.begin(), vCommands.end());
 
+    JSONRPCRequest jreq(helpreq);
+    jreq.fHelp = true;
+    jreq.params = UniValue();
+
     for (const std::pair<std::string, const CRPCCommand *> &command :
          vCommands) {
         const CRPCCommand *pcmd = command.second;
         std::string strMethod = pcmd->name;
         // We already filter duplicates, but these deprecated screw up the sort
         // order
-        if (strMethod.find("label") != std::string::npos) continue;
-        if ((strCommand != "" || pcmd->category == "hidden") &&
-            strMethod != strCommand)
+        if (strMethod.find("label") != std::string::npos) {
             continue;
+        }
+        if ((strCommand != "" || pcmd->category == "hidden") &&
+            strMethod != strCommand) {
+            continue;
+        }
+
+        jreq.strMethod = strMethod;
         try {
             JSONRPCRequest jreq;
             jreq.fHelp = true;
@@ -233,10 +242,11 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
             "\"text\"     (string) The help text\n");
 
     std::string strCommand;
-    if (jsonRequest.params.size() > 0)
+    if (jsonRequest.params.size() > 0) {
         strCommand = jsonRequest.params[0].get_str();
+    }
 
-    return tableRPC.help(config, strCommand);
+    return tableRPC.help(config, strCommand, jsonRequest);
 }
 
 static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {

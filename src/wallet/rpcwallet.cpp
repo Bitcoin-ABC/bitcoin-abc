@@ -25,9 +25,6 @@
 
 #include <cstdint>
 
-int64_t nWalletUnlockTime;
-static CCriticalSection cs_nWalletUnlockTime;
-
 CWallet *GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     return pwalletMain;
 }
@@ -713,9 +710,8 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     // Tally
     Amount nAmount(0);
-    for (std::map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin();
-         it != pwallet->mapWallet.end(); ++it) {
-        const CWalletTx &wtx = (*it).second;
+    for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
+        const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
@@ -785,9 +781,8 @@ static UniValue getreceivedbyaccount(const Config &config,
 
     // Tally
     Amount nAmount(0);
-    for (std::map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin();
-         it != pwallet->mapWallet.end(); ++it) {
-        const CWalletTx &wtx = (*it).second;
+    for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
+        const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
         if (wtx.IsCoinBase() ||
             !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
@@ -889,10 +884,9 @@ static UniValue getbalance(const Config &config,
         // TxIns spending from the wallet. This also has fewer restrictions on
         // which unconfirmed transactions are considered trusted.
         Amount nBalance(0);
-        for (std::map<uint256, CWalletTx>::iterator it =
-                 pwallet->mapWallet.begin();
-             it != pwallet->mapWallet.end(); ++it) {
-            const CWalletTx &wtx = (*it).second;
+        for (const std::pair<uint256, CWalletTx> &pairWtx :
+             pwallet->mapWallet) {
+            const CWalletTx &wtx = pairWtx.second;
             CValidationState state;
             if (!ContextualCheckTransactionForCurrentBlock(config, wtx,
                                                            state) ||
@@ -1004,6 +998,7 @@ static UniValue movecmd(const Config &config, const JSONRPCRequest &request) {
     if (request.params.size() > 4) {
         strComment = request.params[4].get_str();
     }
+
     if (!pwallet->AccountMove(strFrom, strTo, nAmount, strComment)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "database error");
     }
@@ -1389,9 +1384,8 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
 
     // Tally
     std::map<CTxDestination, tallyitem> mapTally;
-    for (std::map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin();
-         it != pwallet->mapWallet.end(); ++it) {
-        const CWalletTx &wtx = (*it).second;
+    for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
+        const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
@@ -1948,9 +1942,8 @@ static UniValue listaccounts(const Config &config,
         }
     }
 
-    for (std::map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin();
-         it != pwallet->mapWallet.end(); ++it) {
-        const CWalletTx &wtx = (*it).second;
+    for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
+        const CWalletTx &wtx = pairWtx.second;
         Amount nFee;
         std::string strSentAccount;
         std::list<COutputEntry> listReceived;
@@ -2117,9 +2110,8 @@ static UniValue listsinceblock(const Config &config,
 
     UniValue transactions(UniValue::VARR);
 
-    for (std::map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin();
-         it != pwallet->mapWallet.end(); it++) {
-        CWalletTx tx = (*it).second;
+    for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
+        CWalletTx tx = pairWtx.second;
 
         if (depth == -1 || tx.GetDepthInMainChain() < depth) {
             ListTransactions(pwallet, tx, "*", 0, true, transactions, filter);
@@ -2393,8 +2385,8 @@ static UniValue keypoolrefill(const Config &config,
 }
 
 static void LockWallet(CWallet *pWallet) {
-    LOCK(cs_nWalletUnlockTime);
-    nWalletUnlockTime = 0;
+    LOCK(pWallet->cs_wallet);
+    pWallet->nRelockTime = 0;
     pWallet->Lock();
 }
 
@@ -2466,9 +2458,9 @@ static UniValue walletpassphrase(const Config &config,
     pwallet->TopUpKeyPool();
 
     int64_t nSleepTime = request.params[1].get_int64();
-    LOCK(cs_nWalletUnlockTime);
-    nWalletUnlockTime = GetTime() + nSleepTime;
-    RPCRunLater("lockwallet", boost::bind(LockWallet, pwallet), nSleepTime);
+    pwallet->nRelockTime = GetTime() + nSleepTime;
+    RPCRunLater(strprintf("lockwallet(%s)", pwallet->strWalletFile),
+                boost::bind(LockWallet, pwallet), nSleepTime);
 
     return NullUniValue;
 }
@@ -2573,11 +2565,8 @@ static UniValue walletlock(const Config &config,
                            "walletlock was called.");
     }
 
-    {
-        LOCK(cs_nWalletUnlockTime);
-        pwallet->Lock();
-        nWalletUnlockTime = 0;
-    }
+    pwallet->Lock();
+    pwallet->nRelockTime = 0;
 
     return NullUniValue;
 }
@@ -2933,7 +2922,7 @@ static UniValue getwalletinfo(const Config &config,
     obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
     obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
     if (pwallet->IsCrypted()) {
-        obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+        obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
     }
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
     CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
