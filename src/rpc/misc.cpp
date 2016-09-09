@@ -83,7 +83,9 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     }
 
 #ifdef ENABLE_WALLET
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : nullptr);
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+
+    LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
 #else
     LOCK(cs_main);
 #endif
@@ -95,10 +97,9 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.push_back(Pair("version", CLIENT_VERSION));
     obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
 #ifdef ENABLE_WALLET
-    if (pwalletMain) {
-        obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-        obj.push_back(
-            Pair("balance", ValueFromAmount(pwalletMain->GetBalance())));
+    if (pwallet) {
+        obj.push_back(Pair("walletversion", pwallet->GetVersion()));
+        obj.push_back(Pair("balance", ValueFromAmount(pwallet->GetBalance())));
     }
 #endif
     obj.push_back(Pair("blocks", (int)chainActive.Height()));
@@ -114,12 +115,11 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.push_back(Pair(
         "testnet", Params().NetworkIDString() == CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
-    if (pwalletMain) {
-        obj.push_back(
-            Pair("keypoololdest", pwalletMain->GetOldestKeyPoolTime()));
-        obj.push_back(Pair("keypoolsize", (int)pwalletMain->GetKeyPoolSize()));
+    if (pwallet) {
+        obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
+        obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
     }
-    if (pwalletMain && pwalletMain->IsCrypted())
+    if (pwallet && pwallet->IsCrypted())
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
 #endif
@@ -132,6 +132,10 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
 public:
+    CWallet *const pwallet;
+
+    DescribeAddressVisitor(CWallet *_pwallet) : pwallet(_pwallet) {}
+
     UniValue operator()(const CNoDestination &dest) const {
         return UniValue(UniValue::VOBJ);
     }
@@ -140,7 +144,7 @@ public:
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
         obj.push_back(Pair("isscript", false));
-        if (pwalletMain && pwalletMain->GetPubKey(keyID, vchPubKey)) {
+        if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
             obj.push_back(Pair("pubkey", HexStr(vchPubKey)));
             obj.push_back(Pair("iscompressed", vchPubKey.IsCompressed()));
         }
@@ -151,7 +155,7 @@ public:
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
         obj.push_back(Pair("isscript", true));
-        if (pwalletMain && pwalletMain->GetCScript(scriptID, subscript)) {
+        if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
             std::vector<CTxDestination> addresses;
             txnouttype whichType;
             int nRequired;
@@ -218,7 +222,9 @@ static UniValue validateaddress(const Config &config,
     }
 
 #ifdef ENABLE_WALLET
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : nullptr);
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+
+    LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
 #else
     LOCK(cs_main);
 #endif
@@ -237,18 +243,18 @@ static UniValue validateaddress(const Config &config,
                            HexStr(scriptPubKey.begin(), scriptPubKey.end())));
 
 #ifdef ENABLE_WALLET
-        isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
+        isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
         ret.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false));
         ret.push_back(
             Pair("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false));
-        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(), dest);
+        UniValue detail =
+            boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
         ret.pushKVs(detail);
-        if (pwalletMain && pwalletMain->mapAddressBook.count(dest)) {
-            ret.push_back(
-                Pair("account", pwalletMain->mapAddressBook[dest].name));
+        if (pwallet && pwallet->mapAddressBook.count(dest)) {
+            ret.push_back(Pair("account", pwallet->mapAddressBook[dest].name));
         }
-        if (pwalletMain) {
-            const auto &meta = pwalletMain->mapKeyMetadata;
+        if (pwallet) {
+            const auto &meta = pwallet->mapKeyMetadata;
             const CKeyID *keyID = boost::get<CKeyID>(&dest);
             auto it = keyID ? meta.find(*keyID) : meta.end();
             if (it == meta.end()) {
@@ -271,7 +277,8 @@ static UniValue validateaddress(const Config &config,
 /**
  * Used by addmultisigaddress / createmultisig:
  */
-CScript createmultisig_redeemScript(const UniValue &params) {
+CScript createmultisig_redeemScript(CWallet *const pwallet,
+                                    const UniValue &params) {
     int nRequired = params[0].get_int();
     const UniValue &keys = params[1].get_array();
 
@@ -299,14 +306,14 @@ CScript createmultisig_redeemScript(const UniValue &params) {
 #ifdef ENABLE_WALLET
         // Case 1: Bitcoin address and we have full public key:
         CTxDestination dest = DecodeDestination(ks);
-        if (pwalletMain && IsValidDestination(dest)) {
+        if (pwallet && IsValidDestination(dest)) {
             const CKeyID *keyID = boost::get<CKeyID>(&dest);
             if (!keyID) {
                 throw std::runtime_error(
                     strprintf("%s does not refer to a key", ks));
             }
             CPubKey vchPubKey;
-            if (!pwalletMain->GetPubKey(*keyID, vchPubKey)) {
+            if (!pwallet->GetPubKey(*keyID, vchPubKey)) {
                 throw std::runtime_error(
                     strprintf("no full public key for address %s", ks));
             }
@@ -341,6 +348,12 @@ CScript createmultisig_redeemScript(const UniValue &params) {
 
 static UniValue createmultisig(const Config &config,
                                const JSONRPCRequest &request) {
+#ifdef ENABLE_WALLET
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+#else
+    CWallet *const pwallet = nullptr;
+#endif
+
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 2) {
         std::string msg =
@@ -383,7 +396,7 @@ static UniValue createmultisig(const Config &config,
     }
 
     // Construct using pay-to-script-hash:
-    CScript inner = createmultisig_redeemScript(request.params);
+    CScript inner = createmultisig_redeemScript(pwallet, request.params);
     CScriptID innerID(inner);
 
     UniValue result(UniValue::VOBJ);

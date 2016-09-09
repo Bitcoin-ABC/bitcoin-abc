@@ -7,8 +7,10 @@
 
 #include "script/script.h"
 
+class CWallet;
 class UniValue;
 
-CScript createmultisig_redeemScript(const UniValue &params);
+CScript createmultisig_redeemScript(CWallet *const pwallet,
+                                    const UniValue &params);
 
 #endif // BITCOIN_RPCBLOCKCHAIN_H
