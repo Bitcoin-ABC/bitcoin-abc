@@ -607,7 +607,7 @@ def check_script_prefixes(all_scripts):
     LEEWAY = 10
 
     good_prefixes_re = re.compile(
-        "(example|feature|interface|mempool|mining|p2p|rpc|wallet)_")
+        "(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool)_")
     bad_script_names = [
         script for script in all_scripts if good_prefixes_re.match(script) is None]
 

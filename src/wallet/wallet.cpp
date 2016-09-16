@@ -477,26 +477,28 @@ bool CWallet::LoadWatchOnly(const CScript &dest) {
     return CCryptoKeyStore::AddWatchOnly(dest);
 }
 
-bool CWallet::Unlock(const SecureString &strWalletPassphrase) {
+bool CWallet::Unlock(const SecureString &strWalletPassphrase,
+                     bool accept_no_keys) {
     CCrypter crypter;
     CKeyingMaterial _vMasterKey;
 
-    LOCK(cs_wallet);
-    for (const MasterKeyMap::value_type &pMasterKey : mapMasterKeys) {
-        if (!crypter.SetKeyFromPassphrase(
-                strWalletPassphrase, pMasterKey.second.vchSalt,
-                pMasterKey.second.nDeriveIterations,
-                pMasterKey.second.nDerivationMethod)) {
-            return false;
-        }
-
-        if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, _vMasterKey)) {
-            // try another master key
-            continue;
-        }
-
-        if (CCryptoKeyStore::Unlock(_vMasterKey)) {
-            return true;
+    {
+        LOCK(cs_wallet);
+        for (const MasterKeyMap::value_type &pMasterKey : mapMasterKeys) {
+            if (!crypter.SetKeyFromPassphrase(
+                    strWalletPassphrase, pMasterKey.second.vchSalt,
+                    pMasterKey.second.nDeriveIterations,
+                    pMasterKey.second.nDerivationMethod)) {
+                return false;
+            }
+            if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey,
+                                 _vMasterKey)) {
+                // try another master key
+                continue;
+            }
+            if (CCryptoKeyStore::Unlock(_vMasterKey, accept_no_keys)) {
+                return true;
+            }
         }
     }
 

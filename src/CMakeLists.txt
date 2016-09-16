@@ -10,10 +10,10 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
-option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
+option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_LIBBITCOINCONSENSUS "Build the bitcoinconsenus shared library" ON)
 option(ENABLE_BIP70 "Enable BIP70 (payment protocol) support in GUI" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
@@ -553,6 +553,8 @@ add_subdirectory(test)
 # Benchmark suite.
 add_subdirectory(bench)
 
+include(BinaryTest)
+
 # Wallet
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
@@ -560,6 +562,19 @@ if(BUILD_BITCOIN_WALLET)
 	# There is a circular dependency between wallet and server, see:
 	# https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
 	target_link_libraries(wallet server)
+
+	# bitcoin-wallet
+	add_executable(bitcoin-wallet bitcoin-wallet.cpp)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		target_sources(bitcoin-wallet PRIVATE bitcoin-wallet-res.rc)
+	endif()
+
+	target_link_libraries(bitcoin-wallet wallet-tool server common bitcoinconsensus util)
+
+	add_to_symbols_check(bitcoin-wallet)
+	add_to_security_check(bitcoin-wallet)
+
+	install_target(bitcoin-wallet)
 else()
 	target_sources(server PRIVATE dummywallet.cpp)
 endif()
@@ -578,8 +593,6 @@ target_link_libraries(rpcclient univalue util)
 if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
 endif()
-
-include(BinaryTest)
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)

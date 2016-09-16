@@ -1027,7 +1027,8 @@ public:
     //! Lock().
     int64_t nRelockTime = 0;
 
-    bool Unlock(const SecureString &strWalletPassphrase);
+    bool Unlock(const SecureString &strWalletPassphrase,
+                bool accept_no_keys = false);
     bool ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
                                 const SecureString &strNewWalletPassphrase);
     bool EncryptWallet(const SecureString &strWalletPassphrase);

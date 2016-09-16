@@ -134,7 +134,8 @@ protected:
     //! will encrypt previously unencrypted keys
     bool EncryptKeys(CKeyingMaterial &vMasterKeyIn);
 
-    bool Unlock(const CKeyingMaterial &vMasterKeyIn);
+    bool Unlock(const CKeyingMaterial &vMasterKeyIn,
+                bool accept_no_keys = false);
     CryptedKeyMap mapCryptedKeys GUARDED_BY(cs_KeyStore);
 
 public:

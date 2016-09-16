@@ -199,7 +199,8 @@ bool CCryptoKeyStore::Lock() {
     return true;
 }
 
-bool CCryptoKeyStore::Unlock(const CKeyingMaterial &vMasterKeyIn) {
+bool CCryptoKeyStore::Unlock(const CKeyingMaterial &vMasterKeyIn,
+                             bool accept_no_keys) {
     {
         LOCK(cs_KeyStore);
         if (!SetCrypted()) {
@@ -228,7 +229,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial &vMasterKeyIn) {
                       "not all.\n");
             assert(false);
         }
-        if (keyFail || !keyPass) {
+        if (keyFail || (!keyPass && !accept_no_keys)) {
             return false;
         }
         vMasterKey = vMasterKeyIn;
