@@ -101,8 +101,8 @@ void AppTests::appTests() {
 
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
-    QScopedPointer<const NetworkStyle> style(NetworkStyle::instantiate(
-        QString::fromStdString(Params().NetworkIDString())));
+    QScopedPointer<const NetworkStyle> style(
+        NetworkStyle::instantiate(Params().NetworkIDString()));
     m_app.setupPlatformStyle();
     m_app.createWindow(&config, style.data());
     connect(&m_app, &BitcoinApplication::windowShown, this,

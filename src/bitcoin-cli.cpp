@@ -193,8 +193,8 @@ static int AppInitRPC(int argc, char *argv[]) {
                     error.c_str());
         return EXIT_FAILURE;
     }
-    // Check for -testnet or -regtest parameter (BaseParams() calls are only
-    // valid after this clause)
+    // Check for -chain, -testnet or -regtest parameter (BaseParams() calls are
+    // only valid after this clause)
     try {
         SelectBaseParams(gArgs.GetChainName());
     } catch (const std::exception &e) {

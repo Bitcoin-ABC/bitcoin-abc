@@ -1108,12 +1108,13 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
 
 std::string ArgsManager::GetChainName() const {
     LOCK(cs_args);
-    bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
-    bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
+    const bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
+    const bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
+    const bool is_chain_arg_set = IsArgSet("-chain");
 
-    if (fTestNet && fRegTest) {
-        throw std::runtime_error(
-            "Invalid combination of -regtest and -testnet.");
+    if (int(is_chain_arg_set) + int(fRegTest) + int(fTestNet) > 1) {
+        throw std::runtime_error("Invalid combination of -regtest, -testnet "
+                                 "and -chain. Can use at most one.");
     }
     if (fRegTest) {
         return CBaseChainParams::REGTEST;
@@ -1121,7 +1122,7 @@ std::string ArgsManager::GetChainName() const {
     if (fTestNet) {
         return CBaseChainParams::TESTNET;
     }
-    return CBaseChainParams::MAIN;
+    return GetArg("-chain", CBaseChainParams::MAIN);
 }
 
 bool RenameOver(fs::path src, fs::path dest) {

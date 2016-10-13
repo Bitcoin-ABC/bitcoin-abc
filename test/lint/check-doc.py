@@ -25,10 +25,14 @@ REGEX_ARG = r'(?:ForceSet|SoftSet|Get|Is)(?:Bool)?Args?(?:Set)?\(\s*"(-[^"]+)"'
 REGEX_DOC = r'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list false positive unknows arguments
-SET_FALSE_POSITIVE_UNKNOWNS = set(['-zmqpubhashblock',
-                                   '-zmqpubhashtx',
-                                   '-zmqpubrawblock',
-                                   '-zmqpubrawtx'])
+SET_FALSE_POSITIVE_UNKNOWNS = set([
+    '-regtest',
+    '-testnet',
+    '-zmqpubhashblock',
+    '-zmqpubhashtx',
+    '-zmqpubrawblock',
+    '-zmqpubrawtx',
+])
 
 # list false positive undocumented arguments
 SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
