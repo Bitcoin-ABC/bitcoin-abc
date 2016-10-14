@@ -14,7 +14,7 @@
 #include <utilstrencodings.h>
 #include <validation.h>
 
-Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee) {
+Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
     /**
      * "Dust" is defined in terms of dustRelayFee, which has units
      * satoshis-per-kilobyte. If you'd pay more than 1/3 in fees to spend
@@ -31,11 +31,11 @@ Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee) {
     // the 148 mentioned above
     nSize += (32 + 4 + 1 + 107 + 4);
 
-    return 3 * dustRelayFee.GetFee(nSize);
+    return 3 * dustRelayFeeIn.GetFee(nSize);
 }
 
-bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFee) {
-    return (txout.nValue < GetDustThreshold(txout, dustRelayFee));
+bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
+    return (txout.nValue < GetDustThreshold(txout, dustRelayFeeIn));
 }
 
 /**
