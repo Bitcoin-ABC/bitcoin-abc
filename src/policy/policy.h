@@ -14,6 +14,7 @@
 
 class CCoinsViewCache;
 class CTransaction;
+class CTxOut;
 
 /**
  * Default for -blockmaxsize, which controls the maximum size of block the
@@ -99,6 +100,10 @@ static const uint32_t STANDARD_NOT_MANDATORY_VERIFY_FLAGS =
  */
 static const uint32_t STANDARD_LOCKTIME_VERIFY_FLAGS =
     LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
+
+Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee);
+
+bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
 /**
  * Used as the flags parameters to check for sigops as if OP_CHECKDATASIG is

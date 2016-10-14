@@ -161,34 +161,6 @@ public:
 
     bool IsNull() const { return nValue == -SATOSHI; }
 
-    Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
-        /**
-         * "Dust" is defined in terms of CTransaction::minRelayTxFee, which has
-         * units satoshis-per-kilobyte. If you'd pay more than 1/3 in fees to
-         * spend something, then we consider it dust. A typical spendable
-         * non-segwit txout is 34 bytes big, and will need a CTxIn of at least
-         * 148 bytes to spend: so dust is a spendable txout less than
-         * 546*minRelayTxFee/1000 (in satoshis). A typical spendable segwit
-         * txout is 31 bytes big, and will need a CTxIn of at least 67 bytes to
-         * spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
-         * (in satoshis).
-         */
-        if (scriptPubKey.IsUnspendable()) {
-            return Amount::zero();
-        }
-
-        size_t nSize = GetSerializeSize(*this, SER_DISK, 0);
-
-        // the 148 mentioned above
-        nSize += (32 + 4 + 1 + 107 + 4);
-
-        return 3 * minRelayTxFee.GetFee(nSize);
-    }
-
-    bool IsDust(const CFeeRate &minRelayTxFee) const {
-        return (nValue < GetDustThreshold(minRelayTxFee));
-    }
-
     friend bool operator==(const CTxOut &a, const CTxOut &b) {
         return (a.nValue == b.nValue && a.scriptPubKey == b.scriptPubKey);
     }
