@@ -33,7 +33,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
       lockPoints(lp) {
     nTxSize = GetTransactionSize(*tx);
     nModSize = tx->CalculateModifiedSize(GetTxSize());
-    nUsageSize = RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx);
+    nUsageSize = RecursiveDynamicUsage(tx);
 
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
