@@ -394,10 +394,10 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     // get the last item that the scriptSig
     // pushes onto the stack:
     const_iterator pc = scriptSig.begin();
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> vData;
     while (pc < scriptSig.end()) {
         opcodetype opcode;
-        if (!scriptSig.GetOp(pc, opcode, data)) {
+        if (!scriptSig.GetOp(pc, opcode, vData)) {
             return 0;
         }
         if (opcode > OP_16) {
@@ -406,7 +406,7 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     }
 
     /// ... and return its opcount:
-    CScript subscript(data.begin(), data.end());
+    CScript subscript(vData.begin(), vData.end());
     return subscript.GetSigOpCount(flags, true);
 }
 

@@ -348,8 +348,8 @@ LockedPool::LockedPageArena::~LockedPageArena() {
 // Implementation: LockedPoolManager
 //
 LockedPoolManager::LockedPoolManager(
-    std::unique_ptr<LockedPageAllocator> allocator)
-    : LockedPool(std::move(allocator), &LockedPoolManager::LockingFailed) {}
+    std::unique_ptr<LockedPageAllocator> allocator_in)
+    : LockedPool(std::move(allocator_in), &LockedPoolManager::LockingFailed) {}
 
 bool LockedPoolManager::LockingFailed() {
     // TODO: log something but how? without including util.h

@@ -76,7 +76,7 @@ public:
 
 class CCoinsViewCacheTest : public CCoinsViewCache {
 public:
-    CCoinsViewCacheTest(CCoinsView *base) : CCoinsViewCache(base) {}
+    CCoinsViewCacheTest(CCoinsView *_base) : CCoinsViewCache(_base) {}
 
     void SelfTest() const {
         // Manually recompute the dynamic usage of the whole data, and compare
