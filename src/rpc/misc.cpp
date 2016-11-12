@@ -40,7 +40,7 @@
  * Or alternatively, create a specific query method for the information.
  **/
 static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0)
+    if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getinfo\n"
             "\nDEPRECATED. Returns an object containing various state info.\n"
@@ -80,6 +80,7 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getinfo", "") + HelpExampleRpc("getinfo", ""));
+    }
 
 #ifdef ENABLE_WALLET
     LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : nullptr);
@@ -102,10 +103,11 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
 #endif
     obj.push_back(Pair("blocks", (int)chainActive.Height()));
     obj.push_back(Pair("timeoffset", GetTimeOffset()));
-    if (g_connman)
+    if (g_connman) {
         obj.push_back(
             Pair("connections",
                  (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
+    }
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                                  : std::string())));
     obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
@@ -162,8 +164,9 @@ public:
                 a.push_back(EncodeDestination(addr));
             }
             obj.push_back(Pair("addresses", a));
-            if (whichType == TX_MULTISIG)
+            if (whichType == TX_MULTISIG) {
                 obj.push_back(Pair("sigsrequired", nRequired));
+            }
         }
         return obj;
     }
@@ -172,7 +175,7 @@ public:
 
 static UniValue validateaddress(const Config &config,
                                 const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "validateaddress \"address\"\n"
             "\nReturn information about the given bitcoin address.\n"
@@ -212,6 +215,7 @@ static UniValue validateaddress(const Config &config,
                            "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"") +
             HelpExampleRpc("validateaddress",
                            "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\""));
+    }
 
 #ifdef ENABLE_WALLET
     LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : nullptr);
@@ -272,22 +276,25 @@ CScript createmultisig_redeemScript(const UniValue &params) {
     const UniValue &keys = params[1].get_array();
 
     // Gather public keys
-    if (nRequired < 1)
+    if (nRequired < 1) {
         throw std::runtime_error(
             "a multisignature address must require at least one key to redeem");
-    if ((int)keys.size() < nRequired)
+    }
+    if ((int)keys.size() < nRequired) {
         throw std::runtime_error(
             strprintf("not enough keys supplied "
                       "(got %u keys, but need at least %d to redeem)",
                       keys.size(), nRequired));
-    if (keys.size() > 16)
+    }
+    if (keys.size() > 16) {
         throw std::runtime_error(
             "Number of addresses involved in the "
             "multisignature address creation > 16\nReduce the "
             "number");
+    }
     std::vector<CPubKey> pubkeys;
     pubkeys.resize(keys.size());
-    for (unsigned int i = 0; i < keys.size(); i++) {
+    for (size_t i = 0; i < keys.size(); i++) {
         const std::string &ks = keys[i].get_str();
 #ifdef ENABLE_WALLET
         // Case 1: Bitcoin address and we have full public key:
@@ -303,29 +310,31 @@ CScript createmultisig_redeemScript(const UniValue &params) {
                 throw std::runtime_error(
                     strprintf("no full public key for address %s", ks));
             }
-            if (!vchPubKey.IsFullyValid())
+            if (!vchPubKey.IsFullyValid()) {
                 throw std::runtime_error(" Invalid public key: " + ks);
+            }
             pubkeys[i] = vchPubKey;
+            continue;
         }
-
-        // Case 2: hex public key
-        else
 #endif
-            if (IsHex(ks)) {
+        // Case 2: hex public key
+        if (IsHex(ks)) {
             CPubKey vchPubKey(ParseHex(ks));
-            if (!vchPubKey.IsFullyValid())
+            if (!vchPubKey.IsFullyValid()) {
                 throw std::runtime_error(" Invalid public key: " + ks);
+            }
             pubkeys[i] = vchPubKey;
         } else {
             throw std::runtime_error(" Invalid public key: " + ks);
         }
     }
-    CScript result = GetScriptForMultisig(nRequired, pubkeys);
 
-    if (result.size() > MAX_SCRIPT_ELEMENT_SIZE)
+    CScript result = GetScriptForMultisig(nRequired, pubkeys);
+    if (result.size() > MAX_SCRIPT_ELEMENT_SIZE) {
         throw std::runtime_error(
             strprintf("redeemScript exceeds size limit: %d > %d", result.size(),
                       MAX_SCRIPT_ELEMENT_SIZE));
+    }
 
     return result;
 }
@@ -386,7 +395,7 @@ static UniValue createmultisig(const Config &config,
 
 static UniValue verifymessage(const Config &config,
                               const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 3)
+    if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
             "verifymessage \"address\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
@@ -414,6 +423,7 @@ static UniValue verifymessage(const Config &config,
             HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
                                             "XX\", \"signature\", \"my "
                                             "message\""));
+    }
 
     LOCK(cs_main);
 
@@ -434,23 +444,26 @@ static UniValue verifymessage(const Config &config,
     bool fInvalid = false;
     std::vector<uint8_t> vchSig = DecodeBase64(strSign.c_str(), &fInvalid);
 
-    if (fInvalid)
+    if (fInvalid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Malformed base64 encoding");
+    }
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
 
     CPubKey pubkey;
-    if (!pubkey.RecoverCompact(ss.GetHash(), vchSig)) return false;
+    if (!pubkey.RecoverCompact(ss.GetHash(), vchSig)) {
+        return false;
+    }
 
     return (pubkey.GetID() == *keyID);
 }
 
 static UniValue signmessagewithprivkey(const Config &config,
                                        const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 2)
+    if (request.fHelp || request.params.size() != 2) {
         throw std::runtime_error(
             "signmessagewithprivkey \"privkey\" \"message\"\n"
             "\nSign a message with the private key of an address\n"
@@ -472,33 +485,37 @@ static UniValue signmessagewithprivkey(const Config &config,
                                             "message\"") +
             "\nAs json rpc\n" + HelpExampleRpc("signmessagewithprivkey",
                                                "\"privkey\", \"my message\""));
+    }
 
     std::string strPrivkey = request.params[0].get_str();
     std::string strMessage = request.params[1].get_str();
 
     CBitcoinSecret vchSecret;
     bool fGood = vchSecret.SetString(strPrivkey);
-    if (!fGood)
+    if (!fGood) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
+    }
     CKey key = vchSecret.GetKey();
-    if (!key.IsValid())
+    if (!key.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Private key outside allowed range");
+    }
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
 
     std::vector<uint8_t> vchSig;
-    if (!key.SignCompact(ss.GetHash(), vchSig))
+    if (!key.SignCompact(ss.GetHash(), vchSig)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
+    }
 
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
 static UniValue setmocktime(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "setmocktime timestamp\n"
             "\nSet the local time to given timestamp (-regtest only)\n"
@@ -506,10 +523,12 @@ static UniValue setmocktime(const Config &config,
             "1. timestamp  (integer, required) Unix seconds-since-epoch "
             "timestamp\n"
             "   Pass 0 to go back to using the system time.");
+    }
 
-    if (!Params().MineBlocksOnDemand())
+    if (!Params().MineBlocksOnDemand()) {
         throw std::runtime_error(
             "setmocktime for regression testing (-regtest mode) only");
+    }
 
     // For now, don't change mocktime if we're in the middle of validation, as
     // this could have an effect on mempool time-based eviction, as well as
@@ -541,7 +560,7 @@ static UniValue getmemoryinfo(const Config &config,
     /* Please, avoid using the word "pool" here in the RPC interface or help,
      * as users will undoubtedly confuse it with the other "memory pool"
      */
-    if (request.fHelp || request.params.size() != 0)
+    if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getmemoryinfo\n"
             "Returns an object containing information about memory usage.\n"
@@ -565,13 +584,15 @@ static UniValue getmemoryinfo(const Config &config,
             "\nExamples:\n" +
             HelpExampleCli("getmemoryinfo", "") +
             HelpExampleRpc("getmemoryinfo", ""));
+    }
+
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("locked", RPCLockedMemoryInfo()));
     return obj;
 }
 
 static UniValue echo(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp)
+    if (request.fHelp) {
         throw std::runtime_error(
             "echo|echojson \"message\" ...\n"
             "\nSimply echo back the input arguments. This command is for "
@@ -579,6 +600,7 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
             "\nThe difference between echo and echojson is that echojson has "
             "argument conversion enabled in the client-side table in"
             "bitcoin-cli and the GUI. There is no server-side difference.");
+    }
 
     return request.params;
 }
@@ -602,6 +624,7 @@ static const CRPCCommand commands[] = {
 // clang-format on
 
 void RegisterMiscRPCCommands(CRPCTable &t) {
-    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
+    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
+    }
 }
