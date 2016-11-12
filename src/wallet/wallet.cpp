@@ -3166,11 +3166,16 @@ DBErrors CWallet::ZapSelectTx(std::vector<uint256> &vHashIn,
         return DB_LOAD_OK;
     }
 
+    AssertLockHeld(cs_wallet); // mapWallet
+    vchDefaultKey = CPubKey();
     DBErrors nZapSelectTxRet =
-        CWalletDB(strWalletFile, "cr+").ZapSelectTx(this, vHashIn, vHashOut);
+        CWalletDB(strWalletFile, "cr+").ZapSelectTx(vHashIn, vHashOut);
+    for (uint256 hash : vHashOut) {
+        mapWallet.erase(hash);
+    }
+
     if (nZapSelectTxRet == DB_NEED_REWRITE) {
         if (CDB::Rewrite(strWalletFile, "\x04pool")) {
-            LOCK(cs_wallet);
             setKeyPool.clear();
             // Note: can't top-up keypool here, because wallet is locked. User
             // will be prompted to unlock wallet the next operation that
@@ -3192,8 +3197,9 @@ DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
         return DB_LOAD_OK;
     }
 
+    vchDefaultKey = CPubKey();
     DBErrors nZapWalletTxRet =
-        CWalletDB(strWalletFile, "cr+").ZapWalletTx(this, vWtx);
+        CWalletDB(strWalletFile, "cr+").ZapWalletTx(vWtx);
     if (nZapWalletTxRet == DB_NEED_REWRITE) {
         if (CDB::Rewrite(strWalletFile, "\x04pool")) {
             LOCK(cs_wallet);

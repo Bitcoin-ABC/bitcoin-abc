@@ -169,10 +169,10 @@ public:
                                 std::list<CAccountingEntry> &acentries);
 
     DBErrors LoadWallet(CWallet *pwallet);
-    DBErrors FindWalletTx(CWallet *pwallet, std::vector<uint256> &vTxHash,
+    DBErrors FindWalletTx(std::vector<uint256> &vTxHash,
                           std::vector<CWalletTx> &vWtx);
-    DBErrors ZapWalletTx(CWallet *pwallet, std::vector<CWalletTx> &vWtx);
-    DBErrors ZapSelectTx(CWallet *pwallet, std::vector<uint256> &vHashIn,
+    DBErrors ZapWalletTx(std::vector<CWalletTx> &vWtx);
+    DBErrors ZapSelectTx(std::vector<uint256> &vHashIn,
                          std::vector<uint256> &vHashOut);
     static bool Recover(CDBEnv &dbenv, const std::string &filename,
                         bool fOnlyKeys);
