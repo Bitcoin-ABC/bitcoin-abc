@@ -30,8 +30,6 @@ BOOST_FIXTURE_TEST_SUITE(coinselector_tests, WalletTestingSetup)
 // the test fail
 #define RANDOM_REPEATS 5
 
-std::vector<std::unique_ptr<CWalletTx>> wtxn;
-
 typedef std::set<CInputCoin> CoinSet;
 
 static std::vector<COutput> vCoins;
@@ -81,22 +79,19 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
         // fake out IsFromMe()
         tx.vin.resize(1);
     }
-    auto wtx =
-        std::make_unique<CWalletTx>(&wallet, MakeTransactionRef(std::move(tx)));
+    CWalletTx *wtx = wallet.AddToWallet(MakeTransactionRef(std::move(tx)),
+                                        /* confirm= */ {});
     if (fIsFromMe) {
         wtx->m_amounts[CWalletTx::DEBIT].Set(ISMINE_SPENDABLE, SATOSHI);
         wtx->m_is_cache_empty = false;
     }
-    COutput output(wtx.get(), nInput, nAge, true /* spendable */,
-                   true /* solvable */, true /* safe */);
+    COutput output(wtx, nInput, nAge, true /* spendable */, true /* solvable */,
+                   true /* safe */);
     vCoins.push_back(output);
-    wallet.AddToWallet(*wtx.get());
-    wtxn.emplace_back(std::move(wtx));
 }
 
 static void empty_wallet() {
     vCoins.clear();
-    wtxn.clear();
     balance = Amount::zero();
 }
 
