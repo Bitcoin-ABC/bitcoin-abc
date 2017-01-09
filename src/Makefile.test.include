@@ -44,6 +44,7 @@ BITCOIN_TESTS =\
   test/cashaddrenc_tests.cpp \
   test/checkdatasig_tests.cpp \
   test/checkpoints_tests.cpp \
+  test/checkqueue_tests.cpp \
   test/coins_tests.cpp \
   test/compress_tests.cpp \
   test/config_tests.cpp \

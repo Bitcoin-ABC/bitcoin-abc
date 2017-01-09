@@ -62,6 +62,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	cashaddrenc_tests.cpp
 	checkdatasig_tests.cpp
 	checkpoints_tests.cpp
+	checkqueue_tests.cpp
 	coins_tests.cpp
 	compress_tests.cpp
 	config_tests.cpp
