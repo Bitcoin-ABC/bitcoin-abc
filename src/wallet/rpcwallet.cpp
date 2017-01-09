@@ -1411,6 +1411,19 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
         filter = filter | ISMINE_WATCH_ONLY;
     }
 
+    bool has_filtered_address = false;
+    CTxDestination filtered_address = CNoDestination();
+    if (!fByAccounts && params.size() > 3) {
+        if (!IsValidDestinationString(params[3].get_str(),
+                                      config.GetChainParams())) {
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "address_filter parameter was invalid");
+        }
+        filtered_address =
+            DecodeDestination(params[3].get_str(), config.GetChainParams());
+        has_filtered_address = true;
+    }
+
     // Tally
     std::map<CTxDestination, tallyitem> mapTally;
     for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
@@ -1434,6 +1447,10 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
                 continue;
             }
 
+            if (has_filtered_address && !(filtered_address == address)) {
+                continue;
+            }
+
             isminefilter mine = IsMine(*pwallet, address);
             if (!(mine & filter)) {
                 continue;
@@ -1452,11 +1469,24 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
     // Reply
     UniValue ret(UniValue::VARR);
     std::map<std::string, tallyitem> mapAccountTally;
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
-         pwallet->mapAddressBook) {
-        const CTxDestination &dest = item.first;
-        const std::string &strAccount = item.second.name;
-        std::map<CTxDestination, tallyitem>::iterator it = mapTally.find(dest);
+
+    // Create mapAddressBook iterator
+    // If we aren't filtering, go from begin() to end()
+    auto start = pwallet->mapAddressBook.begin();
+    auto end = pwallet->mapAddressBook.end();
+    // If we are filtering, find() the applicable entry
+    if (has_filtered_address) {
+        start = pwallet->mapAddressBook.find(filtered_address);
+        if (start != end) {
+            end = std::next(start);
+        }
+    }
+
+    for (auto item_it = start; item_it != end; ++item_it) {
+        const CTxDestination &address = item_it->first;
+        const std::string &strAccount = item_it->second.name;
+        std::map<CTxDestination, tallyitem>::iterator it =
+            mapTally.find(address);
         if (it == mapTally.end() && !fIncludeEmpty) {
             continue;
         }
@@ -1480,7 +1510,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
             if (fIsWatchonly) {
                 obj.push_back(Pair("involvesWatchonly", true));
             }
-            obj.push_back(Pair("address", EncodeDestination(dest)));
+            obj.push_back(Pair("address", EncodeDestination(address)));
             obj.push_back(Pair("account", strAccount));
             obj.push_back(Pair("amount", ValueFromAmount(nAmount)));
             obj.push_back(
@@ -1529,9 +1559,10 @@ static UniValue listreceivedbyaddress(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() > 3) {
+    if (request.fHelp || request.params.size() > 4) {
         throw std::runtime_error(
-            "listreceivedbyaddress ( minconf include_empty include_watchonly)\n"
+            "listreceivedbyaddress ( minconf include_empty include_watchonly "
+            "address_filter )\n"
             "\nList balances by receiving address.\n"
             "\nArguments:\n"
             "1. minconf           (numeric, optional, default=1) The minimum "
@@ -1540,7 +1571,8 @@ static UniValue listreceivedbyaddress(const Config &config,
             "include addresses that haven't received any payments.\n"
             "3. include_watchonly (bool, optional, default=false) Whether to "
             "include watch-only addresses (see 'importaddress').\n"
-
+            "4. address_filter    (string, optional) If present, only return "
+            "information on this address.\n"
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -1570,7 +1602,10 @@ static UniValue listreceivedbyaddress(const Config &config,
             "\nExamples:\n" +
             HelpExampleCli("listreceivedbyaddress", "") +
             HelpExampleCli("listreceivedbyaddress", "6 true") +
-            HelpExampleRpc("listreceivedbyaddress", "6, true, true"));
+            HelpExampleRpc("listreceivedbyaddress", "6, true, true") +
+            HelpExampleRpc(
+                "listreceivedbyaddress",
+                "6, true, true, \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\""));
     }
 
     ObserveSafeMode();
@@ -3652,7 +3687,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "listaddressgroupings",     listaddressgroupings,     {} },
     { "wallet",             "listlockunspent",          listlockunspent,          {} },
     { "wallet",             "listreceivedbyaccount",    listreceivedbyaccount,    {"minconf","include_empty","include_watchonly"} },
-    { "wallet",             "listreceivedbyaddress",    listreceivedbyaddress,    {"minconf","include_empty","include_watchonly"} },
+    { "wallet",             "listreceivedbyaddress",    listreceivedbyaddress,    {"minconf","include_empty","include_watchonly","address_filter"} },
     { "wallet",             "listsinceblock",           listsinceblock,           {"blockhash","target_confirmations","include_watchonly"} },
     { "wallet",             "listtransactions",         listtransactions,         {"account","count","skip","include_watchonly"} },
     { "wallet",             "listunspent",              listunspent,              {"minconf","maxconf","addresses","include_unsafe","query_options"} },

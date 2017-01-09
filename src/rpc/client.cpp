@@ -44,6 +44,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"listreceivedbyaccount", 0, "minconf"},
     {"listreceivedbyaccount", 1, "include_empty"},
     {"listreceivedbyaccount", 2, "include_watchonly"},
+    {"listreceivedbyaddress", 3, "address_filter"},
     {"getbalance", 1, "minconf"},
     {"getbalance", 2, "include_watchonly"},
     {"getblockhash", 0, "height"},
