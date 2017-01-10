@@ -226,7 +226,7 @@ static UniValue getrawchangeaddress(const Config &config,
 
     CReserveKey reservekey(pwallet);
     CPubKey vchPubKey;
-    if (!reservekey.GetReservedKey(vchPubKey)) {
+    if (!reservekey.GetReservedKey(vchPubKey, true)) {
         throw JSONRPCError(
             RPC_WALLET_KEYPOOL_RAN_OUT,
             "Error: Keypool ran out, please call keypoolrefill first");
@@ -2185,14 +2185,14 @@ static UniValue gettransaction(const Config &config,
             "either 'send' or 'receive'\n"
             "      \"amount\" : x.xxx,                 (numeric) The amount "
             "in " +
-            CURRENCY_UNIT +
-            "\n"
-            "      \"label\" : \"label\",              "
-            "(string) A comment for the address/transaction, if any\n"
-            "      \"vout\" : n,                       "
-            "(numeric) the vout value\n"
-            "      \"fee\": x.xxx,                     "
-            "(numeric) The amount of the fee in " +
+            CURRENCY_UNIT + "\n"
+                            "      \"label\" : \"label\",              "
+                            "(string) A comment for the address/transaction, "
+                            "if any\n"
+                            "      \"vout\" : n,                       "
+                            "(numeric) the vout value\n"
+                            "      \"fee\": x.xxx,                     "
+                            "(numeric) The amount of the fee in " +
             CURRENCY_UNIT +
             ". This is negative and only available for the \n"
             "                                           'send' category of "
@@ -2876,32 +2876,37 @@ static UniValue getwalletinfo(const Config &config,
             "Returns an object containing various wallet state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"walletversion\": xxxxx,       (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,           (numeric) the total confirmed "
-            "balance of the wallet in " +
+            "  \"walletversion\": xxxxx,          (numeric) the wallet "
+            "version\n"
+            "  \"balance\": xxxxxxx,              (numeric) the total "
+            "confirmed balance of the wallet in " +
             CURRENCY_UNIT + "\n"
-                            "  \"unconfirmed_balance\": xxx,   (numeric) the "
-                            "total unconfirmed balance of the wallet in " +
+                            "  \"unconfirmed_balance\": xxx,      (numeric) "
+                            "the total unconfirmed balance of the wallet in " +
             CURRENCY_UNIT + "\n"
-                            "  \"immature_balance\": xxxxxx,   (numeric) the "
-                            "total immature balance of the wallet in " +
-            CURRENCY_UNIT + "\n"
-                            "  \"txcount\": xxxxxxx,           (numeric) the "
-                            "total number of transactions in the wallet\n"
-                            "  \"keypoololdest\": xxxxxx,      (numeric) the "
-                            "timestamp (seconds since Unix epoch) of the "
-                            "oldest pre-generated key in the key pool\n"
-                            "  \"keypoolsize\": xxxx,          (numeric) how "
-                            "many new keys are pre-generated\n"
-                            "  \"unlocked_until\": ttt,        (numeric) the "
-                            "timestamp in seconds since epoch (midnight Jan 1 "
-                            "1970 GMT) that the wallet is unlocked for "
-                            "transfers, or 0 if the wallet is locked\n"
-                            "  \"paytxfee\": x.xxxx,           (numeric) the "
-                            "transaction fee configuration, set in " +
+                            "  \"immature_balance\": xxxxxx,      (numeric) "
+                            "the total immature balance of the wallet in " +
+            CURRENCY_UNIT +
+            "\n"
+            "  \"txcount\": xxxxxxx,              (numeric) the total number "
+            "of transactions in the wallet\n"
+            "  \"keypoololdest\": xxxxxx,         (numeric) the timestamp "
+            "(seconds since Unix epoch) of the oldest pre-generated key in the "
+            "key pool\n"
+            "  \"keypoolsize\": xxxx,             (numeric) how many new keys "
+            "are pre-generated (only counts external keys)\n"
+            "  \"keypoolsize_hd_internal\": xxxx, (numeric) how many new keys "
+            "are pre-generated for internal use (used for change outputs, only "
+            "appears if the wallet is using this feature, otherwise external "
+            "keys are used)\n"
+            "  \"unlocked_until\": ttt,           (numeric) the timestamp in "
+            "seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is "
+            "unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"paytxfee\": x.xxxx,              (numeric) the transaction "
+            "fee configuration, set in " +
             CURRENCY_UNIT + "/kB\n"
-                            "  \"hdmasterkeyid\": \"<hash160>\" (string) the "
-                            "Hash160 of the HD master pubkey\n"
+                            "  \"hdmasterkeyid\": \"<hash160>\"     (string) "
+                            "the Hash160 of the HD master pubkey\n"
                             "}\n"
                             "\nExamples:\n" +
             HelpExampleCli("getwalletinfo", "") +
@@ -2912,6 +2917,7 @@ static UniValue getwalletinfo(const Config &config,
 
     UniValue obj(UniValue::VOBJ);
 
+    size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
     obj.push_back(Pair("walletversion", pwallet->GetVersion()));
     obj.push_back(Pair("balance", ValueFromAmount(pwallet->GetBalance())));
     obj.push_back(Pair("unconfirmed_balance",
@@ -2920,12 +2926,17 @@ static UniValue getwalletinfo(const Config &config,
                        ValueFromAmount(pwallet->GetImmatureBalance())));
     obj.push_back(Pair("txcount", (int)pwallet->mapWallet.size()));
     obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
-    obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
+    obj.push_back(Pair("keypoolsize", (int64_t)kpExternalSize));
+    CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
+    if (!masterKeyID.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
+        obj.push_back(
+            Pair("keypoolsize_hd_internal",
+                 int64_t(pwallet->GetKeyPoolSize() - kpExternalSize)));
+    }
     if (pwallet->IsCrypted()) {
         obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
     }
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
-    CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
     if (!masterKeyID.IsNull()) {
         obj.push_back(Pair("hdmasterkeyid", masterKeyID.GetHex()));
     }

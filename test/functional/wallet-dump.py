@@ -91,8 +91,8 @@ class WalletDumpTest(BitcoinTestFramework):
         assert_equal(found_addr, test_addr_count)
         # all keys must be in the dump
         assert_equal(found_addr_chg, 50)  # 50 blocks where mined
-        assert_equal(found_addr_rsv, 90 + 1)
-        # keypool size (TODO: fix off-by-one)
+        # 90 keys plus 100% internal keys
+        assert_equal(found_addr_rsv, 90 * 2)
 
         # encrypt wallet, restart, unlock and dump
         self.nodes[0].encryptwallet('test')
@@ -107,10 +107,9 @@ class WalletDumpTest(BitcoinTestFramework):
             read_dump(
                 tmpdir + "/node0/wallet.encrypted.dump", addrs, hd_master_addr_unenc)
         assert_equal(found_addr, test_addr_count)
-        assert_equal(found_addr_chg, 90 + 1 + 50)
         # old reserve keys are marked as change now
-        assert_equal(found_addr_rsv, 90 + 1)
-        # keypool size (TODO: fix off-by-one)
+        assert_equal(found_addr_chg, 90 * 2 + 50)
+        assert_equal(found_addr_rsv, 90 * 2)
 
 
 if __name__ == '__main__':
