@@ -706,9 +706,12 @@ void RPCConsole::setClientModel(ClientModel *model) {
         std::vector<std::string> commandList = tableRPC.listCommands();
         for (size_t i = 0; i < commandList.size(); ++i) {
             wordList << commandList[i].c_str();
+            wordList << ("help " + commandList[i]).c_str();
         }
 
+        wordList.sort();
         autoCompleter = new QCompleter(wordList, this);
+        autoCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
         ui->lineEdit->setCompleter(autoCompleter);
         autoCompleter->popup()->installEventFilter(this);
         // Start thread to execute RPC commands.
