@@ -2467,6 +2467,9 @@ bool CConnman::Start(CScheduler &scheduler, std::string &strNodeError,
                     std::function<void()>(
                         std::bind(&CConnman::ThreadMessageHandler, this)));
 
+    // Validate blocks
+    threadValidation = std::thread(&TraceThread<boost::function<void()> >, "validate", std::function<void()>(boost::bind(&CConnman::ThreadValidation, this)));
+
     // Dump network addresses
     scheduler.scheduleEvery(boost::bind(&CConnman::DumpData, this),
                             DUMP_ADDRESSES_INTERVAL);
@@ -2510,6 +2513,9 @@ void CConnman::Interrupt() {
 }
 
 void CConnman::Stop() {
+    if (threadValidation.joinable()) {
+        threadValidation.join();
+    }
     if (threadMessageHandler.joinable()) {
         threadMessageHandler.join();
     }
