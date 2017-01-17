@@ -36,6 +36,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <cassert>
+#include <future>
 
 std::vector<CWalletRef> vpwallets;
 
@@ -1287,6 +1288,8 @@ void CWallet::BlockConnected(
     for (size_t i = 0; i < pblock->vtx.size(); i++) {
         SyncTransaction(pblock->vtx[i], pindex, i);
     }
+
+    m_last_block_processed = pindex;
 }
 
 void CWallet::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) {
@@ -1295,6 +1298,34 @@ void CWallet::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) {
     for (const CTransactionRef &ptx : pblock->vtx) {
         SyncTransaction(ptx);
     }
+}
+
+void CWallet::BlockUntilSyncedToCurrentChain() {
+    AssertLockNotHeld(cs_main);
+    AssertLockNotHeld(cs_wallet);
+
+    {
+        // Skip the queue-draining stuff if we know we're caught up with
+        // chainActive.Tip()...
+        // We could also take cs_wallet here, and call m_last_block_processed
+        // protected by cs_wallet instead of cs_main, but as long as we need
+        // cs_main here anyway, its easier to just call it cs_main-protected.
+        LOCK(cs_main);
+        const CBlockIndex *initialChainTip = chainActive.Tip();
+
+        if (m_last_block_processed->GetAncestor(initialChainTip->nHeight) ==
+            initialChainTip) {
+            return;
+        }
+    }
+
+    // ...otherwise put a callback in the validation interface queue and wait
+    // for the queue to drain enough to execute it (indicating we are caught up
+    // at least with the time we entered this function).
+
+    std::promise<void> promise;
+    CallFunctionInValidationInterfaceQueue([&promise] { promise.set_value(); });
+    promise.get_future().wait();
 }
 
 isminetype CWallet::IsMine(const CTxIn &txin) const {
@@ -4087,8 +4118,6 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
-    RegisterValidationInterface(walletInstance);
-
     // Try to top up keypool. No-op if the wallet is locked.
     walletInstance->TopUpKeyPool();
 
@@ -4100,6 +4129,9 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
             pindexRescan = FindForkInGlobalIndex(chainActive, locator);
         }
     }
+
+    walletInstance->m_last_block_processed = chainActive.Tip();
+    RegisterValidationInterface(walletInstance);
 
     if (chainActive.Tip() && chainActive.Tip() != pindexRescan) {
         // We can't rescan beyond non-pruned blocks, stop and throw an error.
