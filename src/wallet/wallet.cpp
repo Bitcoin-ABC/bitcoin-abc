@@ -4174,16 +4174,12 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
 
     RegisterValidationInterface(walletInstance);
 
-    CBlockIndex *pindexRescan = chainActive.Tip();
-    if (gArgs.GetBoolArg("-rescan", false)) {
-        pindexRescan = chainActive.Genesis();
-    } else {
+    CBlockIndex *pindexRescan = chainActive.Genesis();
+    if (!gArgs.GetBoolArg("-rescan", false)) {
         CWalletDB walletdb(*walletInstance->dbw);
         CBlockLocator locator;
         if (walletdb.ReadBestBlock(locator)) {
             pindexRescan = FindForkInGlobalIndex(chainActive, locator);
-        } else {
-            pindexRescan = chainActive.Genesis();
         }
     }
 
