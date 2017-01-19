@@ -2370,7 +2370,7 @@ static UniValue gettransaction(const Config &config,
                            "Invalid or non-wallet transaction id");
     }
 
-    const CWalletTx &wtx = pwallet->mapWallet[txid];
+    const CWalletTx &wtx = pwallet->mapWallet.at(txid);
 
     Amount nCredit = wtx.GetCredit(filter);
     Amount nDebit = wtx.GetDebit(filter);

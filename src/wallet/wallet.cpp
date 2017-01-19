@@ -584,7 +584,7 @@ void CWallet::SyncMetaData(
     int nMinOrderPos = std::numeric_limits<int>::max();
     const CWalletTx *copyFrom = nullptr;
     for (TxSpends::iterator it = range.first; it != range.second; ++it) {
-        const CWalletTx *wtx = &mapWallet[it->second];
+        const CWalletTx *wtx = &mapWallet.at(it->second);
         if (wtx->nOrderPos < nMinOrderPos) {
             nMinOrderPos = wtx->nOrderPos;
             copyFrom = wtx;
@@ -594,7 +594,7 @@ void CWallet::SyncMetaData(
     // Now copy data from copyFrom to rest:
     for (TxSpends::iterator it = range.first; it != range.second; ++it) {
         const TxId &txid = it->second;
-        CWalletTx *copyTo = &mapWallet[txid];
+        CWalletTx *copyTo = &mapWallet.at(txid);
         if (copyFrom == copyTo) {
             continue;
         }
@@ -651,7 +651,7 @@ void CWallet::AddToSpends(const COutPoint &outpoint, const TxId &wtxid) {
 
 void CWallet::AddToSpends(const TxId &wtxid) {
     assert(mapWallet.count(wtxid));
-    CWalletTx &thisTx = mapWallet[wtxid];
+    CWalletTx &thisTx = mapWallet.at(wtxid);
     // Coinbases don't spend anything!
     if (thisTx.IsCoinBase()) {
         return;
@@ -1024,7 +1024,7 @@ bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
     AddToSpends(txid);
     for (const CTxIn &txin : wtx.tx->vin) {
         if (mapWallet.count(txin.prevout.GetTxId())) {
-            CWalletTx &prevtx = mapWallet[txin.prevout.GetTxId()];
+            CWalletTx &prevtx = mapWallet.at(txin.prevout.GetTxId());
             if (prevtx.nIndex == -1 && !prevtx.hashUnset()) {
                 MarkConflicted(prevtx.hashBlock, wtx.GetId());
             }
@@ -1140,7 +1140,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
 
     // Can't mark abandoned if confirmed or in mempool.
     assert(mapWallet.count(txid));
-    CWalletTx &origtx = mapWallet[txid];
+    CWalletTx &origtx = mapWallet.at(txid);
     if (origtx.GetDepthInMainChain() > 0 || origtx.InMempool()) {
         return false;
     }
@@ -1152,7 +1152,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
         todo.erase(now);
         done.insert(now);
         assert(mapWallet.count(now));
-        CWalletTx &wtx = mapWallet[now];
+        CWalletTx &wtx = mapWallet.at(now);
         int currentconfirm = wtx.GetDepthInMainChain();
         // If the orig tx was not in block, none of its spends can be.
         assert(currentconfirm <= 0);
@@ -1183,7 +1183,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
             // recomputed.
             for (const CTxIn &txin : wtx.tx->vin) {
                 if (mapWallet.count(txin.prevout.GetTxId())) {
-                    mapWallet[txin.prevout.GetTxId()].MarkDirty();
+                    mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
                 }
             }
         }
@@ -1223,7 +1223,7 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
         todo.erase(now);
         done.insert(now);
         assert(mapWallet.count(now));
-        CWalletTx &wtx = mapWallet[now];
+        CWalletTx &wtx = mapWallet.at(now);
         int currentconfirm = wtx.GetDepthInMainChain();
         if (conflictconfirms < currentconfirm) {
             // Block is 'more conflicted' than current confirm; update.
@@ -1248,7 +1248,7 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
             // recomputed.
             for (const CTxIn &txin : wtx.tx->vin) {
                 if (mapWallet.count(txin.prevout.GetTxId())) {
-                    mapWallet[txin.prevout.GetTxId()].MarkDirty();
+                    mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
                 }
             }
         }
@@ -1269,7 +1269,7 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
     // also:
     for (const CTxIn &txin : tx.vin) {
         if (mapWallet.count(txin.prevout.GetTxId())) {
-            mapWallet[txin.prevout.GetTxId()].MarkDirty();
+            mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
         }
     }
 }
@@ -3253,7 +3253,7 @@ bool CWallet::CommitTransaction(
 
     // Notify that old coins are spent.
     for (const CTxIn &txin : wtxNew.tx->vin) {
-        CWalletTx &coin = mapWallet[txin.prevout.GetTxId()];
+        CWalletTx &coin = mapWallet.at(txin.prevout.GetTxId());
         coin.BindWallet(this);
         NotifyTransactionChanged(this, coin.GetId(), CT_UPDATED);
     }
@@ -3263,7 +3263,7 @@ bool CWallet::CommitTransaction(
 
     // Get the inserted-CWalletTx from mapWallet so that the
     // fInMempool flag is cached properly
-    CWalletTx &wtx = mapWallet[wtxNew.GetId()];
+    CWalletTx &wtx = mapWallet.at(wtxNew.GetId());
 
     if (fBroadcastTransactions) {
         // Broadcast
@@ -3747,7 +3747,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
                     continue;
                 }
 
-                if (!ExtractDestination(mapWallet[txin.prevout.GetTxId()]
+                if (!ExtractDestination(mapWallet.at(txin.prevout.GetTxId())
                                             .tx->vout[txin.prevout.GetN()]
                                             .scriptPubKey,
                                         address)) {

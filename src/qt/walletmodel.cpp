@@ -558,11 +558,11 @@ void WalletModel::getOutputs(const std::vector<COutPoint> &vOutpoints,
             continue;
         }
         int nDepth =
-            wallet->mapWallet[outpoint.GetTxId()].GetDepthInMainChain();
+            wallet->mapWallet.at(outpoint.GetTxId()).GetDepthInMainChain();
         if (nDepth < 0) {
             continue;
         }
-        COutput out(&wallet->mapWallet[outpoint.GetTxId()], outpoint.GetN(),
+        COutput out(&wallet->mapWallet.at(outpoint.GetTxId()), outpoint.GetN(),
                     nDepth, true /* spendable */, true /* solvable */,
                     true /* safe */);
         vOutputs.push_back(out);

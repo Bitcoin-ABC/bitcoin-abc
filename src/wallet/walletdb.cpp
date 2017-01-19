@@ -298,7 +298,7 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
         } else if (strType == "tx") {
             TxId txid;
             ssKey >> txid;
-            CWalletTx wtx;
+            CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
             ssValue >> wtx;
             CValidationState state;
             bool isValid = wtx.IsCoinBase()
@@ -611,7 +611,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     }
 
     for (const TxId &txid : wss.vWalletUpgrade) {
-        WriteTx(pwallet->mapWallet[txid]);
+        WriteTx(pwallet->mapWallet.at(txid));
     }
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
@@ -679,7 +679,7 @@ DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
                 TxId txid;
                 ssKey >> txid;
 
-                CWalletTx wtx;
+                CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
                 ssValue >> wtx;
 
                 txIds.push_back(txid);
