@@ -18,6 +18,7 @@
 #include "policy/policy.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#include "scheduler.h"
 #include "script/script.h"
 #include "script/sighashtype.h"
 #include "script/sign.h"
@@ -4200,16 +4201,16 @@ bool CWallet::InitLoadWallet() {
     return true;
 }
 
-std::atomic<bool> CWallet::fFlushThreadRunning(false);
+std::atomic<bool> CWallet::fFlushScheduled(false);
 
-void CWallet::postInitProcess(boost::thread_group &threadGroup) {
+void CWallet::postInitProcess(CScheduler &scheduler) {
     // Add wallet transactions that aren't already in a block to mempool.
     // Do this here as mempool requires genesis block to be loaded.
     ReacceptWalletTransactions();
 
     // Run a thread to flush wallet periodically.
-    if (!CWallet::fFlushThreadRunning.exchange(true)) {
-        threadGroup.create_thread(ThreadFlushWalletDB);
+    if (!CWallet::fFlushScheduled.exchange(true)) {
+        scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
     }
 }
 

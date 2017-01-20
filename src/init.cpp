@@ -2193,7 +2193,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-        pwalletMain->postInitProcess(threadGroup);
+        pwalletMain->postInitProcess(scheduler);
     }
 #endif
 
