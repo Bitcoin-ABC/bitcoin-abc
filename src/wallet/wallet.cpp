@@ -1265,6 +1265,19 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
 void CWallet::TransactionAddedToMempool(const CTransactionRef &ptx) {
     LOCK2(cs_main, cs_wallet);
     SyncTransaction(ptx);
+
+    auto it = mapWallet.find(ptx->GetId());
+    if (it != mapWallet.end()) {
+        it->second.fInMempool = true;
+    }
+}
+
+void CWallet::TransactionRemovedFromMempool(const CTransactionRef &ptx) {
+    LOCK(cs_wallet);
+    auto it = mapWallet.find(ptx->GetId());
+    if (it != mapWallet.end()) {
+        it->second.fInMempool = false;
+    }
 }
 
 void CWallet::BlockConnected(
@@ -1281,10 +1294,12 @@ void CWallet::BlockConnected(
     // that the conflicted transaction was evicted.
     for (const CTransactionRef &ptx : vtxConflicted) {
         SyncTransaction(ptx);
+        TransactionRemovedFromMempool(ptx);
     }
 
     for (size_t i = 0; i < pblock->vtx.size(); i++) {
         SyncTransaction(pblock->vtx[i], pindex, i);
+        TransactionRemovedFromMempool(pblock->vtx[i]);
     }
 
     m_last_block_processed = pindex;
@@ -1993,12 +2008,7 @@ Amount CWalletTx::GetChange() const {
 }
 
 bool CWalletTx::InMempool() const {
-    LOCK(g_mempool.cs);
-    if (g_mempool.exists(GetId())) {
-        return true;
-    }
-
-    return false;
+    return fInMempool;
 }
 
 bool CWalletTx::IsTrusted() const {
@@ -3123,16 +3133,20 @@ bool CWallet::CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
     // Track how many getdata requests our transaction gets.
     mapRequestCount[wtxNew.GetId()] = 0;
 
+    // Get the inserted-CWalletTx from mapWallet so that the
+    // fInMempool flag is cached properly
+    CWalletTx &wtx = mapWallet[wtxNew.GetId()];
+
     if (fBroadcastTransactions) {
         // Broadcast
-        if (!wtxNew.AcceptToMemoryPool(maxTxFee, state)) {
-            LogPrintf("CommitTransaction(): Transaction cannot be "
-                      "broadcast immediately, %s\n",
+        if (!wtx.AcceptToMemoryPool(maxTxFee, state)) {
+            LogPrintf("CommitTransaction(): Transaction cannot be broadcast "
+                      "immediately, %s\n",
                       state.GetRejectReason());
             // TODO: if we expect the failure to be long term or permanent,
             // instead delete wtx from the wallet and return failure.
         } else {
-            wtxNew.RelayWalletTransaction(connman);
+            wtx.RelayWalletTransaction(connman);
         }
     }
 
@@ -4289,8 +4303,17 @@ bool CMerkleTx::IsImmatureCoinBase() const {
     return GetBlocksToMaturity() > 0;
 }
 
-bool CMerkleTx::AcceptToMemoryPool(const Amount nAbsurdFee,
+bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
                                    CValidationState &state) {
-    return ::AcceptToMemoryPool(GetConfig(), g_mempool, state, tx, true,
-                                nullptr, false, nAbsurdFee);
+    // We must set fInMempool here - while it will be re-set to true by the
+    // entered-mempool callback, if we did not there would be a race where a
+    // user could call sendmoney in a loop and hit spurious out of funds errors
+    // because we think that the transaction they just generated's change is
+    // unavailable as we're not yet aware its in mempool.
+    bool ret = ::AcceptToMemoryPool(
+        GetConfig(), g_mempool, state, tx, true /* fLimitFree */,
+        nullptr /* pfMissingInputs */, false /* fOverrideMempoolLimit */,
+        nAbsurdFee);
+    fInMempool = ret;
+    return ret;
 }
