@@ -265,6 +265,7 @@ void Shutdown() {
 #endif
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
+    GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
     g_wallet_init_interface->Close();
     g_wallet_init_interface.reset();
     globalVerifyHandle.reset();
@@ -1785,6 +1786,7 @@ bool AppInitMain(Config &config,
                                           "scheduler", serviceLoop));
 
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
+    GetMainSignals().RegisterWithMempoolSignals(g_mempool);
 
     /**
      * Start the RPC server.  It will be started in "warmup" mode and not
