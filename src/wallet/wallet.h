@@ -258,11 +258,6 @@ public:
      * >0 : is a coinbase transaction which matures in this many blocks
      */
     int GetBlocksToMaturity() const;
-    /**
-     * Pass this transaction to the mempool. Fails if absolute fee exceeds
-     * absurd fee.
-     */
-    bool AcceptToMemoryPool(const Amount nAbsurdFee, CValidationState &state);
     bool hashUnset() const {
         return (hashBlock.IsNull() || hashBlock == ABANDON_HASH);
     }
@@ -319,6 +314,7 @@ public:
     mutable bool fImmatureWatchCreditCached;
     mutable bool fAvailableWatchCreditCached;
     mutable bool fChangeCached;
+    mutable bool fInMempool;
     mutable Amount nDebitCached;
     mutable Amount nCreditCached;
     mutable Amount nImmatureCreditCached;
@@ -354,6 +350,7 @@ public:
         fImmatureWatchCreditCached = false;
         fAvailableWatchCreditCached = false;
         fChangeCached = false;
+        fInMempool = false;
         nDebitCached = Amount::zero();
         nCreditCached = Amount::zero();
         nImmatureCreditCached = Amount::zero();
@@ -457,6 +454,12 @@ public:
 
     // RelayWalletTransaction may only be called if fBroadcastTransactions!
     bool RelayWalletTransaction(CConnman *connman);
+
+    /**
+     * Pass this transaction to the mempool. Fails if absolute fee exceeds
+     * absurd fee.
+     */
+    bool AcceptToMemoryPool(const Amount nAbsurdFee, CValidationState &state);
 
     std::set<TxId> GetConflicts() const;
 };
@@ -922,6 +925,7 @@ public:
     CBlockIndex *ScanForWalletTransactions(CBlockIndex *pindexStart,
                                            CBlockIndex *pindexStop,
                                            bool fUpdate = false);
+    void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
                                   CConnman *connman) override;
