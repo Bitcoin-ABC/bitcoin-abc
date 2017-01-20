@@ -1095,9 +1095,10 @@ bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
  * Abandoned state should probably be more carefuly tracked via different
  * posInBlock signals or by checking mempool presence when necessary.
  */
-bool CWallet::AddToWalletIfInvolvingMe(const CTransaction &tx,
+bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
                                        const CBlockIndex *pIndex,
                                        int posInBlock, bool fUpdate) {
+    const CTransaction &tx = *ptx;
     AssertLockHeld(cs_wallet);
 
     if (posInBlock != -1) {
@@ -1124,9 +1125,8 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction &tx,
     if (fExisted && !fUpdate) {
         return false;
     }
-
     if (fExisted || IsMine(tx) || IsFromMe(tx)) {
-        CWalletTx wtx(this, MakeTransactionRef(tx));
+        CWalletTx wtx(this, ptx);
 
         // Get merkle branch if transaction was found in a block.
         if (posInBlock != -1) {
@@ -1191,8 +1191,9 @@ bool CWallet::AbandonTransaction(const uint256 &hashTx) {
             // balance available of the outputs it spends. So force those to be
             // recomputed.
             for (const CTxIn &txin : wtx.tx->vin) {
-                if (mapWallet.count(txin.prevout.hash))
+                if (mapWallet.count(txin.prevout.hash)) {
                     mapWallet[txin.prevout.hash].MarkDirty();
+                }
             }
         }
     }
@@ -1218,7 +1219,7 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) {
         return;
     }
 
-    // Do not flush the wallet here for performance reasons
+    // Do not flush the wallet here for performance reasons.
     CWalletDB walletdb(strWalletFile, "r+", false);
 
     std::set<uint256> todo;
@@ -1263,11 +1264,13 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) {
     }
 }
 
-void CWallet::SyncTransaction(const CTransaction &tx, const CBlockIndex *pindex,
+void CWallet::SyncTransaction(const CTransactionRef &ptx,
+                              const CBlockIndex *pindexBlockConnected,
                               int posInBlock) {
-    LOCK2(cs_main, cs_wallet);
+    const CTransaction &tx = *ptx;
 
-    if (!AddToWalletIfInvolvingMe(tx, pindex, posInBlock, true)) {
+    if (!AddToWalletIfInvolvingMe(ptx, pindexBlockConnected, posInBlock,
+                                  true)) {
         // Not one of ours
         return;
     }
@@ -1276,8 +1279,71 @@ void CWallet::SyncTransaction(const CTransaction &tx, const CBlockIndex *pindex,
     // available of the outputs it spends. So force those to be recomputed,
     // also:
     for (const CTxIn &txin : tx.vin) {
-        if (mapWallet.count(txin.prevout.hash))
+        if (mapWallet.count(txin.prevout.hash)) {
             mapWallet[txin.prevout.hash].MarkDirty();
+        }
+    }
+}
+
+void CWallet::TransactionAddedToMempool(const CTransactionRef &ptx) {
+    LOCK2(cs_main, cs_wallet);
+    SyncTransaction(ptx, nullptr, -1);
+}
+
+void CWallet::BlockConnected(
+    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex,
+    const std::vector<CTransactionRef> &vtxConflicted) {
+    LOCK2(cs_main, cs_wallet);
+    // TODO: Tempoarily ensure that mempool removals are notified before
+    // connected transactions. This shouldn't matter, but the abandoned state of
+    // transactions in our wallet is currently cleared when we receive another
+    // notification and there is a race condition where notification of a
+    // connected conflict might cause an outside process to abandon a
+    // transaction and then have it inadvertantly cleared by the notification
+    // that the conflicted transaction was evicted.
+
+    for (const CTransactionRef &ptx : vtxConflicted) {
+        SyncTransaction(ptx, nullptr, -1);
+    }
+    for (size_t i = 0; i < pblock->vtx.size(); i++) {
+        SyncTransaction(pblock->vtx[i], pindex, i);
+    }
+
+    // The GUI expects a NotifyTransactionChanged when a coinbase tx
+    // which is in our wallet moves from in-the-best-block to
+    // 2-confirmations (as it only displays them at that time).
+    // We do that here.
+    if (hashPrevBestCoinbase.IsNull()) {
+        // Immediately after restart we have no idea what the coinbase
+        // transaction from the previous block is.
+        // For correctness we scan over the entire wallet, looking for
+        // the previous block's coinbase, just in case it is ours, so
+        // that we can notify the UI that it should now be displayed.
+        if (pindex->pprev) {
+            for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
+                if (p.second.IsCoinBase() &&
+                    p.second.hashBlock == pindex->pprev->GetBlockHash()) {
+                    NotifyTransactionChanged(this, p.first, CT_UPDATED);
+                    break;
+                }
+            }
+        }
+    } else {
+        std::map<uint256, CWalletTx>::const_iterator mi =
+            mapWallet.find(hashPrevBestCoinbase);
+        if (mi != mapWallet.end()) {
+            NotifyTransactionChanged(this, hashPrevBestCoinbase, CT_UPDATED);
+        }
+    }
+
+    hashPrevBestCoinbase = pblock->vtx[0]->GetHash();
+}
+
+void CWallet::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) {
+    LOCK2(cs_main, cs_wallet);
+
+    for (const CTransactionRef &ptx : pblock->vtx) {
+        SyncTransaction(ptx, nullptr, -1);
     }
 }
 
@@ -1689,10 +1755,9 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
         if (ReadBlockFromDisk(block, pindex, GetConfig())) {
             for (size_t posInBlock = 0; posInBlock < block.vtx.size();
                  ++posInBlock) {
-                AddToWalletIfInvolvingMe(*block.vtx[posInBlock], pindex,
+                AddToWalletIfInvolvingMe(block.vtx[posInBlock], pindex,
                                          posInBlock, fUpdate);
             }
-
             if (!ret) {
                 ret = pindex;
             }
@@ -3702,15 +3767,6 @@ void CWallet::GetAllReserveKeys(std::set<CKeyID> &setAddress) const {
         }
 
         setAddress.insert(keyID);
-    }
-}
-
-void CWallet::UpdatedTransaction(const uint256 &hashTx) {
-    LOCK(cs_wallet);
-    // Only notify UI if this transaction is in this wallet.
-    std::map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(hashTx);
-    if (mi != mapWallet.end()) {
-        NotifyTransactionChanged(this, hashTx, CT_UPDATED);
     }
 }
 

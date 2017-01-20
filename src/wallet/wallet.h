@@ -625,6 +625,11 @@ private:
 
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>);
 
+    /* Used by TransactionAddedToMemorypool/BlockConnected/Disconnected */
+    void SyncTransaction(const CTransactionRef &tx,
+                         const CBlockIndex *pindexBlockConnected,
+                         int posInBlock);
+
     /* the HD chain data model (external chain counters) */
     CHDChain hdChain;
 
@@ -648,6 +653,10 @@ private:
      * intelligently for more efficient rescans.
      */
     bool AddWatchOnly(const CScript &dest) override;
+
+    // Used to NotifyTransactionChanged of the previous block's coinbase when
+    // the next block comes in
+    uint256 hashPrevBestCoinbase;
 
 public:
     /*
@@ -840,9 +849,14 @@ public:
     void MarkDirty();
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
     bool LoadToWallet(const CWalletTx &wtxIn);
-    void SyncTransaction(const CTransaction &tx, const CBlockIndex *pindex,
-                         int posInBlock) override;
-    bool AddToWalletIfInvolvingMe(const CTransaction &tx,
+    void TransactionAddedToMempool(const CTransactionRef &tx) override;
+    void
+    BlockConnected(const std::shared_ptr<const CBlock> &pblock,
+                   const CBlockIndex *pindex,
+                   const std::vector<CTransactionRef> &vtxConflicted) override;
+    void
+    BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) override;
+    bool AddToWalletIfInvolvingMe(const CTransactionRef &tx,
                                   const CBlockIndex *pIndex, int posInBlock,
                                   bool fUpdate);
     CBlockIndex *ScanForWalletTransactions(CBlockIndex *pindexStart,
@@ -967,8 +981,6 @@ public:
 
     bool DelAddressBook(const CTxDestination &address);
 
-    void UpdatedTransaction(const uint256 &hashTx) override;
-
     void Inventory(const uint256 &hash) override {
         LOCK(cs_wallet);
         std::map<uint256, int>::iterator mi = mapRequestCount.find(hash);
@@ -978,10 +990,6 @@ public:
     }
 
     void GetScriptForMining(std::shared_ptr<CReserveScript> &script) override;
-    void ResetRequestCount(const uint256 &hash) override {
-        LOCK(cs_wallet);
-        mapRequestCount[hash] = 0;
-    };
 
     unsigned int GetKeyPoolSize() {
         // setKeyPool
