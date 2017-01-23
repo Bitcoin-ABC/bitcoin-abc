@@ -436,10 +436,6 @@ public:
                     std::string &strSentAccount,
                     const isminefilter &filter) const;
 
-    void GetAccountAmounts(const std::string &strAccount, Amount &nReceived,
-                           Amount &nSent, Amount &nFee,
-                           const isminefilter &filter) const;
-
     bool IsFromMe(const isminefilter &filter) const {
         return (GetDebit(filter) > Amount(0));
     }
@@ -899,6 +895,8 @@ public:
     Amount GetWatchOnlyBalance() const;
     Amount GetUnconfirmedWatchOnlyBalance() const;
     Amount GetImmatureWatchOnlyBalance() const;
+    Amount GetLegacyBalance(const isminefilter &filter, int minDepth,
+                            const std::string *account) const;
 
     /**
      * Insert additional inputs into the transaction by calling
@@ -979,10 +977,6 @@ public:
     std::set<std::set<CTxDestination>> GetAddressGroupings();
     std::map<CTxDestination, Amount> GetAddressBalances();
 
-    Amount GetAccountBalance(const std::string &strAccount, int nMinDepth,
-                             const isminefilter &filter);
-    Amount GetAccountBalance(CWalletDB &walletdb, const std::string &strAccount,
-                             int nMinDepth, const isminefilter &filter);
     std::set<CTxDestination>
     GetAccountAddresses(const std::string &strAccount) const;
 
@@ -1015,6 +1009,8 @@ public:
                         const std::string &strName, const std::string &purpose);
 
     bool DelAddressBook(const CTxDestination &address);
+
+    const std::string &GetAccountName(const CScript &scriptPubKey) const;
 
     void Inventory(const uint256 &hash) override {
         LOCK(cs_wallet);

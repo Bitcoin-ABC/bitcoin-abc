@@ -911,6 +911,10 @@ static UniValue getbalance(const Config &config,
         return ValueFromAmount(pwallet->GetBalance());
     }
 
+    const std::string *account = request.params[0].get_str() != "*"
+                                     ? &request.params[0].get_str()
+                                     : nullptr;
+
     int nMinDepth = 1;
     if (request.params.size() > 1) {
         nMinDepth = request.params[1].get_int();
@@ -921,49 +925,8 @@ static UniValue getbalance(const Config &config,
         filter = filter | ISMINE_WATCH_ONLY;
     }
 
-    if (request.params[0].get_str() == "*") {
-        // Calculate total balance in a very different way from GetBalance().
-        // The biggest difference is that GetBalance() sums up all unspent
-        // TxOuts paying to the wallet, while this sums up both spent and
-        // unspent TxOuts paying to the wallet, and then subtracts the values of
-        // TxIns spending from the wallet. This also has fewer restrictions on
-        // which unconfirmed transactions are considered trusted.
-        Amount nBalance(0);
-        for (const std::pair<uint256, CWalletTx> &pairWtx :
-             pwallet->mapWallet) {
-            const CWalletTx &wtx = pairWtx.second;
-            CValidationState state;
-            if (!ContextualCheckTransactionForCurrentBlock(config, wtx,
-                                                           state) ||
-                wtx.GetBlocksToMaturity() > 0 ||
-                wtx.GetDepthInMainChain() < 0) {
-                continue;
-            }
-
-            Amount allFee;
-            std::string strSentAccount;
-            std::list<COutputEntry> listReceived;
-            std::list<COutputEntry> listSent;
-            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount,
-                           filter);
-            if (wtx.GetDepthInMainChain() >= nMinDepth) {
-                for (const COutputEntry &r : listReceived) {
-                    nBalance += r.amount;
-                }
-            }
-            for (const COutputEntry &s : listSent) {
-                nBalance -= s.amount;
-            }
-            nBalance -= allFee;
-        }
-        return ValueFromAmount(nBalance);
-    }
-
-    std::string strAccount = AccountFromValue(request.params[0]);
-
-    Amount nBalance = pwallet->GetAccountBalance(strAccount, nMinDepth, filter);
-
-    return ValueFromAmount(nBalance);
+    return ValueFromAmount(
+        pwallet->GetLegacyBalance(filter, nMinDepth, account));
 }
 
 static UniValue getunconfirmedbalance(const Config &config,
@@ -1147,7 +1110,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
 
     // Check funds
     Amount nBalance =
-        pwallet->GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
+        pwallet->GetLegacyBalance(ISMINE_SPENDABLE, nMinDepth, &strAccount);
     if (nAmount > nBalance) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
                            "Account has insufficient funds");
@@ -1307,7 +1270,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     // Check funds
     Amount nBalance =
-        pwallet->GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
+        pwallet->GetLegacyBalance(ISMINE_SPENDABLE, nMinDepth, &strAccount);
     if (totalAmount > nBalance) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
                            "Account has insufficient funds");
