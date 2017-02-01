@@ -1016,6 +1016,8 @@ void PeerLogicValidation::BlockConnected(
     g_last_tip_update = GetTime();
 }
 
+// All of the following cache a recent block, and are protected by
+// cs_most_recent_block
 static CCriticalSection cs_most_recent_block;
 static std::shared_ptr<const CBlock>
     most_recent_block GUARDED_BY(cs_most_recent_block);
@@ -1270,6 +1272,14 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 inv.type == MSG_CMPCT_BLOCK) {
                 bool send = false;
                 BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
+                std::shared_ptr<const CBlock> a_recent_block;
+                std::shared_ptr<const CBlockHeaderAndShortTxIDs>
+                    a_recent_compact_block;
+                {
+                    LOCK(cs_most_recent_block);
+                    a_recent_block = most_recent_block;
+                    a_recent_compact_block = most_recent_compact_block;
+                }
                 if (mi != mapBlockIndex.end()) {
                     if (mi->second->nChainTx &&
                         !mi->second->IsValid(BlockValidity::SCRIPTS) &&
@@ -1280,11 +1290,6 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         // ActivateBestChain but after AcceptBlock). In this
                         // case, we need to run ActivateBestChain prior to
                         // checking the relay conditions below.
-                        std::shared_ptr<const CBlock> a_recent_block;
-                        {
-                            LOCK(cs_most_recent_block);
-                            a_recent_block = most_recent_block;
-                        }
                         CValidationState dummy;
                         ActivateBestChain(config, dummy, a_recent_block);
                     }
@@ -1339,15 +1344,23 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 // Pruned nodes may have deleted the block, so check whether
                 // it's available before trying to send.
                 if (send && (mi->second->nStatus.hasData())) {
-                    // Send block from disk
-                    CBlock block;
-                    if (!ReadBlockFromDisk(block, (*mi).second, config)) {
-                        assert(!"cannot load block from disk");
+                    std::shared_ptr<const CBlock> pblock;
+                    if (a_recent_block && a_recent_block->GetHash() ==
+                                              (*mi).second->GetBlockHash()) {
+                        pblock = a_recent_block;
+                    } else {
+                        // Send block from disk
+                        std::shared_ptr<CBlock> pblockRead =
+                            std::make_shared<CBlock>();
+                        if (!ReadBlockFromDisk(*pblockRead, (*mi).second,
+                                               config))
+                            assert(!"cannot load block from disk");
+                        pblock = pblockRead;
                     }
 
                     if (inv.type == MSG_BLOCK) {
                         connman->PushMessage(
-                            pfrom, msgMaker.Make(NetMsgType::BLOCK, block));
+                            pfrom, msgMaker.Make(NetMsgType::BLOCK, *pblock));
                     } else if (inv.type == MSG_FILTERED_BLOCK) {
                         bool sendMerkleBlock = false;
                         CMerkleBlock merkleBlock;
@@ -1356,7 +1369,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                             if (pfrom->pfilter) {
                                 sendMerkleBlock = true;
                                 merkleBlock =
-                                    CMerkleBlock(block, *pfrom->pfilter);
+                                    CMerkleBlock(*pblock, *pfrom->pfilter);
                             }
                         }
                         if (sendMerkleBlock) {
@@ -1379,7 +1392,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                                 connman->PushMessage(
                                     pfrom,
                                     msgMaker.Make(NetMsgType::TX,
-                                                  *block.vtx[pair.first]));
+                                                  *pblock->vtx[pair.first]));
                             }
                         }
                         // else
@@ -1394,15 +1407,16 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         if (CanDirectFetch(consensusParams) &&
                             mi->second->nHeight >=
                                 chainActive.Height() - MAX_CMPCTBLOCK_DEPTH) {
-                            CBlockHeaderAndShortTxIDs cmpctblock(block);
+                            CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
                             connman->PushMessage(
                                 pfrom, msgMaker.Make(nSendFlags,
                                                      NetMsgType::CMPCTBLOCK,
                                                      cmpctblock));
                         } else {
                             connman->PushMessage(
-                                pfrom, msgMaker.Make(nSendFlags,
-                                                     NetMsgType::BLOCK, block));
+                                pfrom,
+                                msgMaker.Make(nSendFlags, NetMsgType::BLOCK,
+                                              *pblock));
                         }
                     }
 
