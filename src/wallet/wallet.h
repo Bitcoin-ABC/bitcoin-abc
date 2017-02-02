@@ -1006,12 +1006,15 @@ public:
      * position
      */
     bool CreateTransaction(const std::vector<CRecipient> &vecSend,
-                           CWalletTx &wtxNew, CReserveKey &reservekey,
+                           CTransactionRef &tx, CReserveKey &reservekey,
                            Amount &nFeeRet, int &nChangePosInOut,
                            std::string &strFailReason,
                            const CCoinControl &coinControl, bool sign = true);
-    bool CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
-                           CConnman *connman, CValidationState &state);
+    bool CommitTransaction(
+        CTransactionRef tx, mapValue_t mapValue,
+        std::vector<std::pair<std::string, std::string>> orderForm,
+        std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
+        CValidationState &state);
 
     void ListAccountCreditDebit(const std::string &strAccount,
                                 std::list<CAccountingEntry> &entries);
