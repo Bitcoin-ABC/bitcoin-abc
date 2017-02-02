@@ -3481,20 +3481,22 @@ static UniValue fundrawtransaction(const Config &config,
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    CTxDestination changeAddress = CNoDestination();
+    CCoinControl coinControl;
+    coinControl.destChange = CNoDestination();
     int changePosition = -1;
-    bool includeWatching = false;
+    // include watching
+    coinControl.fAllowWatchOnly = false;
     bool lockUnspents = false;
     bool reserveChangeKey = true;
-    CFeeRate feeRate = CFeeRate(Amount::zero());
-    bool overrideEstimatedFeerate = false;
+    coinControl.nFeeRate = CFeeRate(Amount::zero());
+    coinControl.fOverrideFeeRate = false;
     UniValue subtractFeeFromOutputs;
     std::set<int> setSubtractFeeFromOutputs;
 
     if (request.params.size() > 1) {
         if (request.params[1].type() == UniValue::VBOOL) {
             // backward compatibility bool only fallback
-            includeWatching = request.params[1].get_bool();
+            coinControl.fAllowWatchOnly = request.params[1].get_bool();
         } else {
             RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ});
 
@@ -3525,7 +3527,7 @@ static UniValue fundrawtransaction(const Config &config,
                         "changeAddress must be a valid bitcoin address");
                 }
 
-                changeAddress = dest;
+                coinControl.destChange = dest;
             }
 
             if (options.exists("changePosition")) {
@@ -3533,7 +3535,8 @@ static UniValue fundrawtransaction(const Config &config,
             }
 
             if (options.exists("includeWatching")) {
-                includeWatching = options["includeWatching"].get_bool();
+                coinControl.fAllowWatchOnly =
+                    options["includeWatching"].get_bool();
             }
 
             if (options.exists("lockUnspents")) {
@@ -3545,8 +3548,9 @@ static UniValue fundrawtransaction(const Config &config,
             }
 
             if (options.exists("feeRate")) {
-                feeRate = CFeeRate(AmountFromValue(options["feeRate"]));
-                overrideEstimatedFeerate = true;
+                coinControl.nFeeRate =
+                    CFeeRate(AmountFromValue(options["feeRate"]));
+                coinControl.fOverrideFeeRate = true;
             }
 
             if (options.exists("subtractFeeFromOutputs")) {
@@ -3596,10 +3600,9 @@ static UniValue fundrawtransaction(const Config &config,
     Amount nFeeOut;
     std::string strFailReason;
 
-    if (!pwallet->FundTransaction(
-            tx, nFeeOut, overrideEstimatedFeerate, feeRate, changePosition,
-            strFailReason, includeWatching, lockUnspents,
-            setSubtractFeeFromOutputs, reserveChangeKey, changeAddress)) {
+    if (!pwallet->FundTransaction(tx, nFeeOut, changePosition, strFailReason,
+                                  lockUnspents, setSubtractFeeFromOutputs,
+                                  coinControl, reserveChangeKey)) {
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
     }
 
