@@ -2775,25 +2775,25 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     }
 
     CReserveKey reservekey(this);
-    CWalletTx wtx;
-    if (!CreateTransaction(vecSend, wtx, reservekey, nFeeRet, nChangePosInOut,
+    CTransactionRef tx_new;
+    if (!CreateTransaction(vecSend, tx_new, reservekey, nFeeRet, nChangePosInOut,
                            strFailReason, coinControl, false)) {
         return false;
     }
 
     if (nChangePosInOut != -1) {
         tx.vout.insert(tx.vout.begin() + nChangePosInOut,
-                       wtx.tx->vout[nChangePosInOut]);
+                       tx_new->vout[nChangePosInOut]);
     }
 
     // Copy output sizes from new transaction; they may have had the fee
     // subtracted from them.
     for (size_t idx = 0; idx < tx.vout.size(); idx++) {
-        tx.vout[idx].nValue = wtx.tx->vout[idx].nValue;
+        tx.vout[idx].nValue = tx_new->vout[idx].nValue;
     }
 
     // Add new txins (keeping original txin scriptSig/order)
-    for (const CTxIn &txin : wtx.tx->vin) {
+    for (const CTxIn &txin : tx_new->vin) {
         if (!coinControl.IsSelected(txin.prevout)) {
             tx.vin.push_back(txin);
 
@@ -2813,7 +2813,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
 }
 
 bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
-                                CWalletTx &wtxNew, CReserveKey &reservekey,
+                                CTransactionRef &tx, CReserveKey &reservekey,
                                 Amount &nFeeRet, int &nChangePosInOut,
                                 std::string &strFailReason,
                                 const CCoinControl &coinControl, bool sign) {
@@ -2838,8 +2838,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         return false;
     }
 
-    wtxNew.fTimeReceivedIsTxTime = true;
-    wtxNew.BindWallet(this);
     CMutableTransaction txNew;
 
     // Discourage fee sniping.
@@ -2926,7 +2924,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             nChangePosInOut = nChangePosRequest;
             txNew.vin.clear();
             txNew.vout.clear();
-            wtxNew.fFromMe = true;
             bool fFirst = true;
 
             Amount nValueToSelect = nValue;
@@ -3188,11 +3185,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
         }
 
-        // Embed the constructed transaction data in wtxNew.
-        wtxNew.SetTx(MakeTransactionRef(std::move(txNew)));
+        // Return the constructed transaction data.
+        tx = MakeTransactionRef(std::move(txNew));
 
         // Limit size.
-        if (CTransaction(wtxNew).GetTotalSize() >= MAX_STANDARD_TX_SIZE) {
+        if (tx->GetTotalSize() >= MAX_STANDARD_TX_SIZE) {
             strFailReason = _("Transaction too large");
             return false;
         }
@@ -3202,8 +3199,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                          DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
         // Lastly, ensure this tx will pass the mempool's chain limits.
         LockPoints lp;
-        CTxMemPoolEntry entry(wtxNew.tx, Amount::zero(), 0, 0, 0,
-                              Amount::zero(), false, 0, lp);
+        CTxMemPoolEntry entry(tx, Amount::zero(), 0, 0, 0, Amount::zero(),
+                              false, 0, lp);
         CTxMemPool::setEntries setAncestors;
         size_t nLimitAncestors =
             gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
@@ -3231,9 +3228,20 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 /**
  * Call after CreateTransaction unless you want to abort
  */
-bool CWallet::CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
-                                CConnman *connman, CValidationState &state) {
+bool CWallet::CommitTransaction(
+    CTransactionRef tx, mapValue_t mapValue,
+    std::vector<std::pair<std::string, std::string>> orderForm,
+    std::string fromAccount, CReserveKey &reservekey, CConnman *connman,
+    CValidationState &state) {
     LOCK2(cs_main, cs_wallet);
+
+    CWalletTx wtxNew(this, std::move(tx));
+    wtxNew.mapValue = std::move(mapValue);
+    wtxNew.vOrderForm = std::move(orderForm);
+    wtxNew.strFromAccount = std::move(fromAccount);
+    wtxNew.fTimeReceivedIsTxTime = true;
+    wtxNew.fFromMe = true;
+
     LogPrintf("CommitTransaction:\n%s", wtxNew.tx->ToString());
 
     // Take key pair from key pool so it won't be used again.

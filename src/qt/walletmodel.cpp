@@ -261,9 +261,9 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         int nChangePosRet = -1;
         std::string strFailReason;
 
-        CWalletTx *newTx = transaction.getTransaction();
+        CTransactionRef &newTx = transaction.getTransaction();
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
-        bool fCreated = wallet->CreateTransaction(vecSend, *newTx, *keyChange,
+        bool fCreated = wallet->CreateTransaction(vecSend, newTx, *keyChange,
                                                   nFeeRequired, nChangePosRet,
                                                   strFailReason, coinControl);
         transaction.setTransactionFee(nFeeRequired);
@@ -299,8 +299,8 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
 
     {
         LOCK2(cs_main, wallet->cs_wallet);
-        CWalletTx *newTx = transaction.getTransaction();
 
+        std::vector<std::pair<std::string, std::string>> vOrderForm;
         for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
             if (rcp.paymentRequest.IsInitialized()) {
                 // Make sure any payment requests involved are still valid.
@@ -310,29 +310,29 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
                 }
 
                 // Store PaymentRequests in wtx.vOrderForm in wallet.
-                std::string key("PaymentRequest");
                 std::string value;
                 rcp.paymentRequest.SerializeToString(&value);
-                newTx->vOrderForm.push_back(make_pair(key, value));
+                vOrderForm.emplace_back("PaymentRequest", std::move(value));
             } else if (!rcp.message.isEmpty()) {
                 // Message from normal bitcoincash:URI
                 // (bitcoincash:123...?message=example)
-                newTx->vOrderForm.push_back(
-                    make_pair("Message", rcp.message.toStdString()));
+                vOrderForm.emplace_back("Message", rcp.message.toStdString());
             }
         }
 
+        CTransactionRef &newTx = transaction.getTransaction();
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
         CValidationState state;
-        if (!wallet->CommitTransaction(*newTx, *keyChange, g_connman.get(),
-                                       state)) {
+        if (!wallet->CommitTransaction(
+                newTx, {} /* mapValue */, std::move(vOrderForm),
+                {} /* fromAccount */, *keyChange, g_connman.get(), state)) {
             return SendCoinsReturn(
                 TransactionCommitFailed,
                 QString::fromStdString(state.GetRejectReason()));
         }
 
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-        ssTx << *newTx->tx;
+        ssTx << newTx;
         transaction_array.append(&(ssTx[0]), ssTx.size());
     }
 
