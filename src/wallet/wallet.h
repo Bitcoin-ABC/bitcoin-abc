@@ -993,13 +993,10 @@ public:
      * CreateTransaction();
      */
     bool FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
-                         bool overrideEstimatedFeeRate,
-                         const CFeeRate &specificFeeRate, int &nChangePosInOut,
-                         std::string &strFailReason, bool includeWatching,
+                         int &nChangePosInOut, std::string &strFailReason,
                          bool lockUnspents,
                          const std::set<int> &setSubtractFeeFromOutputs,
-                         bool keepReserveKey = true,
-                         const CTxDestination &destChange = CNoDestination());
+                         CCoinControl coinControl, bool keepReserveKey = true);
     bool SignTransaction(CMutableTransaction &tx);
 
     /**
