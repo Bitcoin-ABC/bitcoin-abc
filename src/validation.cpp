@@ -1235,8 +1235,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         pvChecks->reserve(tx.vin.size());
     }
 
-    // Skip script verification when connecting blocks under the assumedvalid
-    // block. Assuming the assumedvalid block is valid this is safe because
+    // Skip script verification when connecting blocks under the assumevalid
+    // block. Assuming the assumevalid block is valid this is safe because
     // block merkle hashes are still computed and checked, of course, if an
     // assumed valid block is invalid due to false scriptSigs this optimization
     // would allow an invalid chain to be accepted.
@@ -1764,7 +1764,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
                 pindexBestHeader->nChainWork >= nMinimumChainWork) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header. The equivalent time check
-                // discourages hashpower from extorting the network via DOS
+                // discourages hash power from extorting the network via DOS
                 // attack into accepting an invalid block through telling users
                 // they must manually set assumevalid. Requiring a software
                 // change or burying the invalid block, regardless of the
