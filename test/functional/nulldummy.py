@@ -66,10 +66,12 @@ class NULLDUMMYTest(BitcoinTestFramework):
             "Test 1: NULLDUMMY compliant base transactions should be accepted to mempool and mined before activation [430]")
         test1txs = [self.create_transaction(
             self.nodes[0], coinbase_txid[0], self.ms_address, 49)]
-        txid1 = self.tx_submit(self.nodes[0], test1txs[0])
+        txid1 = self.nodes[0].sendrawtransaction(
+            bytes_to_hex_str(test1txs[0].serialize_with_witness()), True)
         test1txs.append(self.create_transaction(
             self.nodes[0], txid1, self.ms_address, 48))
-        txid2 = self.tx_submit(self.nodes[0], test1txs[1])
+        txid2 = self.nodes[0].sendrawtransaction(
+            bytes_to_hex_str(test1txs[1].serialize_with_witness()), True)
         self.block_submit(self.nodes[0], test1txs, False, True)
 
         self.log.info(
@@ -77,7 +79,8 @@ class NULLDUMMYTest(BitcoinTestFramework):
         test2tx = self.create_transaction(
             self.nodes[0], txid2, self.ms_address, 48)
         trueDummy(test2tx)
-        txid4 = self.tx_submit(self.nodes[0], test2tx, NULLDUMMY_ERROR)
+        assert_raises_jsonrpc(-26, NULLDUMMY_ERROR, self.nodes[0].sendrawtransaction, bytes_to_hex_str(
+            test2tx.serialize_with_witness()), True)
 
         self.log.info(
             "Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
@@ -92,17 +95,6 @@ class NULLDUMMYTest(BitcoinTestFramework):
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
         return tx
-
-    def tx_submit(self, node, tx, msg=""):
-        tx.rehash()
-        try:
-            node.sendrawtransaction(
-                bytes_to_hex_str(tx.serialize_with_witness()), True)
-        except JSONRPCException as exp:
-            assert_equal(exp.error["message"], msg)
-        else:
-            assert_equal('', msg)
-        return tx.hash
 
     def block_submit(self, node, txs, witness=False, accept=False):
         block = create_block(self.tip, create_coinbase(
