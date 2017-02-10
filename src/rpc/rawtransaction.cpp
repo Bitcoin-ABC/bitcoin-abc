@@ -318,10 +318,14 @@ static UniValue gettxoutproof(const Config &config,
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         pblockindex = mapBlockIndex[hashBlock];
     } else {
-        const Coin &coin = AccessByTxid(*pcoinsTip, oneTxid);
-        if (!coin.IsSpent() && coin.GetHeight() > 0 &&
-            int64_t(coin.GetHeight()) <= chainActive.Height()) {
-            pblockindex = chainActive[coin.GetHeight()];
+        // Loop through txids and try to find which block they're in. Exit loop
+        // once a block is found.
+        for (const auto &tx : setTxids) {
+            const Coin &coin = AccessByTxid(*pcoinsTip, tx);
+            if (!coin.IsSpent()) {
+                pblockindex = chainActive[coin.GetHeight()];
+                break;
+            }
         }
     }
 
@@ -355,7 +359,7 @@ static UniValue gettxoutproof(const Config &config,
     if (ntxFound != setTxids.size()) {
         throw JSONRPCError(
             RPC_INVALID_ADDRESS_OR_KEY,
-            "(Not all) transactions not found in specified block");
+            "Not all transactions found in specified or retrieved block");
     }
 
     CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION);
