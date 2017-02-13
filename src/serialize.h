@@ -350,7 +350,32 @@ template <typename Stream> uint64_t ReadCompactSize(Stream &is) {
  * 255:  [0x80 0x7F]  65535: [0x82 0xFE 0x7F]
  * 2^32:           [0x8E 0xFE 0xFE 0xFF 0x00]
  */
-template <typename I> inline unsigned int GetSizeOfVarInt(I n) {
+
+/**
+ * Mode for encoding VarInts.
+ *
+ * Currently there is no support for signed encodings. The default mode will not
+ * compile with signed values, and the legacy "nonnegative signed" mode will
+ * accept signed values, but improperly encode and decode them if they are
+ * negative. In the future, the DEFAULT mode could be extended to support
+ * negative numbers in a backwards compatible way, and additional modes could be
+ * added to support different varint formats (e.g. zigzag encoding).
+ */
+enum class VarIntMode { DEFAULT, NONNEGATIVE_SIGNED };
+
+template <VarIntMode Mode, typename I> struct CheckVarIntMode {
+    constexpr CheckVarIntMode() {
+        static_assert(Mode != VarIntMode::DEFAULT || std::is_unsigned<I>::value,
+                      "Unsigned type required with mode DEFAULT.");
+        static_assert(Mode != VarIntMode::NONNEGATIVE_SIGNED ||
+                          std::is_signed<I>::value,
+                      "Signed type required with mode NONNEGATIVE_SIGNED.");
+    }
+};
+
+template <VarIntMode Mode, typename I>
+inline unsigned int GetSizeOfVarInt(I n) {
+    CheckVarIntMode<Mode, I>();
     int nRet = 0;
     while (true) {
         nRet++;
@@ -363,7 +388,9 @@ template <typename I> inline unsigned int GetSizeOfVarInt(I n) {
 
 template <typename I> inline void WriteVarInt(CSizeComputer &os, I n);
 
-template <typename Stream, typename I> void WriteVarInt(Stream &os, I n) {
+template <typename Stream, VarIntMode Mode, typename I>
+void WriteVarInt(Stream &os, I n) {
+    CheckVarIntMode<Mode, I>();
     uint8_t tmp[(sizeof(n) * 8 + 6) / 7];
     int len = 0;
     while (true) {
@@ -379,7 +406,9 @@ template <typename Stream, typename I> void WriteVarInt(Stream &os, I n) {
     } while (len--);
 }
 
-template <typename Stream, typename I> I ReadVarInt(Stream &is) {
+template <typename Stream, VarIntMode Mode, typename I>
+I ReadVarInt(Stream &is) {
+    CheckVarIntMode<Mode, I>();
     I n = 0;
     while (true) {
         uint8_t chData = ser_readdata8(is);
@@ -398,7 +427,7 @@ template <typename Stream, typename I> I ReadVarInt(Stream &is) {
 }
 
 #define FLATDATA(obj) CFlatData((char *)&(obj), (char *)&(obj) + sizeof(obj))
-#define VARINT(obj) WrapVarInt(REF(obj))
+#define VARINT(obj, ...) WrapVarInt<__VA_ARGS__>(REF(obj))
 #define COMPACTSIZE(obj) CCompactSize(REF(obj))
 #define LIMITED_STRING(obj, n) LimitedString<n>(REF(obj))
 
@@ -436,7 +465,7 @@ public:
     }
 };
 
-template <typename I> class CVarInt {
+template <VarIntMode Mode, typename I> class CVarInt {
 protected:
     I &n;
 
@@ -444,11 +473,11 @@ public:
     explicit CVarInt(I &nIn) : n(nIn) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
-        WriteVarInt<Stream, I>(s, n);
+        WriteVarInt<Stream, Mode, I>(s, n);
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        n = ReadVarInt<Stream, I>(s);
+        n = ReadVarInt<Stream, Mode, I>(s);
     }
 };
 
@@ -494,8 +523,9 @@ public:
     }
 };
 
-template <typename I> CVarInt<I> WrapVarInt(I &n) {
-    return CVarInt<I>(n);
+template <VarIntMode Mode = VarIntMode::DEFAULT, typename I>
+CVarInt<Mode, I> WrapVarInt(I &n) {
+    return CVarInt<Mode, I>{n};
 }
 
 /**

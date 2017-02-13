@@ -58,7 +58,7 @@ public:
             // Old versions stored the version number for the last spend of a
             // transaction's outputs. Non-final spends were indicated with
             // height = 0.
-            int nVersionDummy;
+            unsigned int nVersionDummy;
             ::Unserialize(s, VARINT(nVersionDummy));
         }
 

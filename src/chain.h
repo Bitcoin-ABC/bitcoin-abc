@@ -295,14 +295,14 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(VARINT(_nVersion));
+            READWRITE(VARINT(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
         }
 
-        READWRITE(VARINT(nHeight));
+        READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));
         READWRITE(nStatus);
         READWRITE(VARINT(nTx));
         if (nStatus.hasData() || nStatus.hasUndo()) {
-            READWRITE(VARINT(nFile));
+            READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));
         }
         if (nStatus.hasData()) {
             READWRITE(VARINT(nDataPos));

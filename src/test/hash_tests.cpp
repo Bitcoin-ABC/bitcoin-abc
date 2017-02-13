@@ -171,13 +171,13 @@ public:
     uint32_t GetValue() { return value; }
 
     template <typename Stream> void Serialize(Stream &s) const {
-        int nVersionDummy = 0;
+        unsigned int nVersionDummy = 0;
         ::Serialize(s, VARINT(nVersionDummy));
         ::Serialize(s, VARINT(value));
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        int nVersionDummy;
+        unsigned int nVersionDummy;
         ::Unserialize(s, VARINT(nVersionDummy));
         ::Unserialize(s, VARINT(value));
     }
