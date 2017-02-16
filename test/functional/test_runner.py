@@ -25,6 +25,7 @@ import sys
 import subprocess
 import tempfile
 import re
+import logging
 
 BOLD = ("", "")
 RED = ("", "")
@@ -165,6 +166,8 @@ def main():
                         action='store_true', help='print help text and exit')
     parser.add_argument('--jobs', '-j', type=int, default=4,
                         help='how many test scripts to run in parallel. Default=4.')
+    parser.add_argument('--quiet', '-q', action='store_true',
+                        help='only print results summary and failure logs')
     args, unknown_args = parser.parse_known_args()
 
     # Create a set to store arguments and create the passon string
@@ -177,6 +180,10 @@ def main():
     config.read_file(open(configfile))
 
     passon_args.append("--configfile=%s" % configfile)
+
+    # Set up logging
+    logging_level = logging.INFO if args.quiet else logging.DEBUG
+    logging.basicConfig(format='%(message)s', level=logging_level)
 
     enable_wallet = config["components"].getboolean("ENABLE_WALLET")
     enable_utils = config["components"].getboolean("ENABLE_UTILS")
@@ -250,8 +257,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     if enable_coverage:
         coverage = RPCCoverage()
         flags.append(coverage.flag)
-        print("Initializing coverage directory at {dir}\n".format(
-            dir=coverage.dir))
+        logging.debug("Initializing coverage directory at %s" % coverage.dir)
     else:
         coverage = None
 
@@ -267,24 +273,26 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     job_queue = TestHandler(jobs, tests_dir, test_list, flags)
 
     max_len_name = len(max(test_list, key=len))
-    results = BOLD[1] + "%s | %s | %s\n\n" % (
+    results = "\n" + BOLD[1] + "%s | %s | %s\n\n" % (
         "TEST".ljust(max_len_name), "STATUS ", "DURATION") + BOLD[0]
     for _ in range(len(test_list)):
         (name, stdout, stderr, status, duration) = job_queue.get_next()
         all_passed = all_passed and status != "Failed"
         time_sum += duration
 
-        print('\n' + BOLD[1] + name + BOLD[0] + ":")
-        print('' if status == "Passed" else stdout + '\n', end='')
-        print('' if stderr == '' else 'stderr:\n' + stderr + '\n', end='')
-        print("Pass: {bold}{result}{unbold}, Duration: {duration}s\n".format(
-            bold=BOLD[1], result=status, unbold=BOLD[0], duration=duration))
-        result = "{name} | {passed} | {duration}s\n".format(name=name.ljust(
-            max_len_name), passed=str(status).ljust(6), duration=duration)
         if status == "Passed":
-            results += GREEN[1] + result + GREEN[0]
+            logging.debug("\n%s%s%s passed, Duration: %s s" %
+                          (BOLD[1], name, BOLD[0], duration))
+        elif status == "Skipped":
+            logging.debug("\n%s%s%s skipped" % (BOLD[1], name, BOLD[0]))
         else:
-            results += RED[1] + result + RED[0]
+            print("\n%s%s%s failed, Duration: %s s\n" %
+                  (BOLD[1], name, BOLD[0], duration))
+            print(BOLD[1] + 'stdout:\n' + BOLD[0] + stdout + '\n')
+            print(BOLD[1] + 'stderr:\n' + BOLD[0] + stderr + '\n')
+
+        results += "%s | %s | %s s\n" % (name.ljust(max_len_name),
+                                         status.ljust(7), duration)
 
     results += BOLD[1] + "\n{name} | {passed} | {duration}s (accumulated)".format(
         name="ALL".ljust(max_len_name), passed=str(all_passed).ljust(6), duration=time_sum) + BOLD[0]
@@ -294,7 +302,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     if coverage:
         coverage.report_rpc_coverage()
 
-        print("Cleaning up coverage data")
+        logging.debug("Cleaning up coverage data")
         coverage.cleanup()
 
     sys.exit(not all_passed)
