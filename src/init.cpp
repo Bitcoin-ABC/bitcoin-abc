@@ -1865,6 +1865,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         }
     }
 
+    // Check for host lookup allowed before parsing any network related
+    // parameters
+    fNameLookup = gArgs.GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
+
     bool proxyRandomize =
         gArgs.GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE);
     // -proxy sets a proxy for all outgoing network traffic
@@ -1873,11 +1877,16 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     std::string proxyArg = gArgs.GetArg("-proxy", "");
     SetLimited(NET_TOR);
     if (proxyArg != "" && proxyArg != "0") {
-        CService resolved(LookupNumeric(proxyArg.c_str(), 9050));
-        proxyType addrProxy = proxyType(resolved, proxyRandomize);
+        CService proxyAddr;
+        if (!Lookup(proxyArg.c_str(), proxyAddr, 9050, fNameLookup)) {
+            return InitError(strprintf(
+                _("Invalid -proxy address or hostname: '%s'"), proxyArg));
+        }
+
+        proxyType addrProxy = proxyType(proxyAddr, proxyRandomize);
         if (!addrProxy.IsValid()) {
-            return InitError(
-                strprintf(_("Invalid -proxy address: '%s'"), proxyArg));
+            return InitError(strprintf(
+                _("Invalid -proxy address or hostname: '%s'"), proxyArg));
         }
 
         SetProxy(NET_IPV4, addrProxy);
@@ -1898,11 +1907,15 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         if (onionArg == "0") {   // Handle -noonion/-onion=0
             SetLimited(NET_TOR); // set onions as unreachable
         } else {
-            CService resolved(LookupNumeric(onionArg.c_str(), 9050));
-            proxyType addrOnion = proxyType(resolved, proxyRandomize);
+            CService onionProxy;
+            if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
+                return InitError(strprintf(
+                    _("Invalid -onion address or hostname: '%s'"), onionArg));
+            }
+            proxyType addrOnion = proxyType(onionProxy, proxyRandomize);
             if (!addrOnion.IsValid()) {
-                return InitError(
-                    strprintf(_("Invalid -onion address: '%s'"), onionArg));
+                return InitError(strprintf(
+                    _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
             SetProxy(NET_TOR, addrOnion);
             SetLimited(NET_TOR, false);
@@ -1912,7 +1925,6 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     // see Step 2: parameter interactions for more information about these
     fListen = gArgs.GetBoolArg("-listen", DEFAULT_LISTEN);
     fDiscover = gArgs.GetBoolArg("-discover", true);
-    fNameLookup = gArgs.GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
     fRelayTxes = !gArgs.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY);
 
     if (fListen) {
