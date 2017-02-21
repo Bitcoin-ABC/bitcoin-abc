@@ -873,8 +873,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
             pwallet->MarkDirty();
 
-            if (!pwallet->HaveWatchOnly(redeemScript) &&
-                !pwallet->AddWatchOnly(redeemScript, timestamp)) {
+            if (!pwallet->AddWatchOnly(redeemScript, timestamp)) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
                                    "Error adding address to wallet");
             }
@@ -896,8 +895,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
             pwallet->MarkDirty();
 
-            if (!pwallet->HaveWatchOnly(redeemDestination) &&
-                !pwallet->AddWatchOnly(redeemDestination, timestamp)) {
+            if (!pwallet->AddWatchOnly(redeemDestination, timestamp)) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
                                    "Error adding address to wallet");
             }
@@ -1000,8 +998,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
                 pwallet->MarkDirty();
 
-                if (!pwallet->HaveWatchOnly(pubKeyScript) &&
-                    !pwallet->AddWatchOnly(pubKeyScript, timestamp)) {
+                if (!pwallet->AddWatchOnly(pubKeyScript, timestamp)) {
                     throw JSONRPCError(RPC_WALLET_ERROR,
                                        "Error adding address to wallet");
                 }
@@ -1023,8 +1020,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
                 pwallet->MarkDirty();
 
-                if (!pwallet->HaveWatchOnly(scriptRawPubKey) &&
-                    !pwallet->AddWatchOnly(scriptRawPubKey, timestamp)) {
+                if (!pwallet->AddWatchOnly(scriptRawPubKey, timestamp)) {
                     throw JSONRPCError(RPC_WALLET_ERROR,
                                        "Error adding address to wallet");
                 }
@@ -1079,7 +1075,10 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                 pwallet->SetAddressBook(vchAddress, label, "receive");
 
                 if (pwallet->HaveKey(vchAddress)) {
-                    return false;
+                    throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already "
+                                                         "contains the private "
+                                                         "key for this address "
+                                                         "or script");
                 }
 
                 pwallet->mapKeyMetadata[vchAddress].nCreateTime = timestamp;
@@ -1105,8 +1104,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
                 pwallet->MarkDirty();
 
-                if (!pwallet->HaveWatchOnly(script) &&
-                    !pwallet->AddWatchOnly(script, timestamp)) {
+                if (!pwallet->AddWatchOnly(script, timestamp)) {
                     throw JSONRPCError(RPC_WALLET_ERROR,
                                        "Error adding address to wallet");
                 }

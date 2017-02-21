@@ -176,6 +176,20 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['ismine'], True)
         assert_equal(address_assert['timestamp'], timestamp)
 
+        self.log.info(
+            "Should not import an address with private key if is already imported")
+        result = self.nodes[1].importmulti([{
+            "scriptPubKey": {
+                "address": address['address']
+            },
+            "timestamp": "now",
+            "keys": [self.nodes[0].dumpprivkey(address['address'])]
+        }])
+        assert_equal(result[0]['success'], False)
+        assert_equal(result[0]['error']['code'], -4)
+        assert_equal(result[0]['error']['message'],
+                     'The wallet already contains the private key for this address or script')
+
         # Address + Private key + watchonly
         self.log.info(
             "Should not import an address with private key and with watchonly")
@@ -351,6 +365,8 @@ class ImportMultiTest (BitcoinTestFramework):
         transactionid = self.nodes[1].sendtoaddress(
             multi_sig_script['address'], 10.00)
         self.nodes[1].generate(1)
+        timestamp = self.nodes[1].getblock(
+            self.nodes[1].getbestblockhash())['mediantime']
         transaction = self.nodes[1].gettransaction(transactionid)
 
         self.log.info(
@@ -445,6 +461,22 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['iswatchonly'], False)
         assert_equal(address_assert['ismine'], False)
         assert_equal('timestamp' in address_assert, False)
+
+        # Importing existing watch only address with new timestamp should replace saved timestamp.
+        assert_greater_than(timestamp, watchonly_timestamp)
+        self.log.info("Should replace previously saved watch only timestamp.")
+        result = self.nodes[1].importmulti([{
+            "scriptPubKey": {
+                "address": watchonly_address,
+            },
+            "timestamp": "now",
+        }])
+        assert_equal(result[0]['success'], True)
+        address_assert = self.nodes[1].validateaddress(watchonly_address)
+        assert_equal(address_assert['iswatchonly'], True)
+        assert_equal(address_assert['ismine'], False)
+        assert_equal(address_assert['timestamp'], timestamp)
+        watchonly_timestamp = timestamp
 
         # restart nodes to check for proper serialization/deserialization of
         # watch only address
