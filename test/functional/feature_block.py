@@ -3,6 +3,14 @@
 # Copyright (c) 2017 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test block processing.
+
+This reimplements tests from the bitcoinj/FullBlockTestGenerator used
+by the pull-tester.
+
+We use the testing framework in which we expect a particular answer from
+each test.
+"""
 
 import copy
 import struct
@@ -62,15 +70,6 @@ class PreviousSpendableOutput():
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
-
-
-'''
-This reimplements tests from the bitcoinj/FullBlockTestGenerator used
-by the pull-tester.
-
-We use the testing framework in which we expect a particular answer from
-each test.
-'''
 
 #  Use this class for tests that require behavior other than normal "mininode" behavior.
 #  For now, it is used to serialize a bloated varint (b64).

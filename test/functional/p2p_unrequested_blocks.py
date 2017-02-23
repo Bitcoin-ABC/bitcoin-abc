@@ -2,37 +2,7 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-import time
-
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-    create_transaction,
-)
-from test_framework.messages import (
-    CBlockHeader,
-    CInv,
-    msg_block,
-    msg_headers,
-    msg_inv,
-)
-from test_framework.mininode import (
-    mininode_lock,
-    network_thread_join,
-    network_thread_start,
-    P2PInterface,
-)
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-    connect_nodes,
-    sync_blocks,
-)
-
-'''
-AcceptBlockTest -- test processing of unrequested blocks.
+"""Test processing of unrequested blocks.
 
 Setup: two nodes, node0+node1, not connected to each other. Node1 will have
 nMinimumChainWork set to 0x10, so it won't process low-work unrequested blocks.
@@ -79,7 +49,35 @@ Node1 is unused in tests 3-7:
 
 9. Test Node1 is able to sync when connected to node0 (which should have sufficient
    work on its chain).
-'''
+"""
+
+import time
+
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+)
+from test_framework.messages import (
+    CBlockHeader,
+    CInv,
+    msg_block,
+    msg_headers,
+    msg_inv,
+)
+from test_framework.mininode import (
+    mininode_lock,
+    network_thread_join,
+    network_thread_start,
+    P2PInterface,
+)
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    connect_nodes,
+    sync_blocks,
+)
 
 
 class AcceptBlockTest(BitcoinTestFramework):

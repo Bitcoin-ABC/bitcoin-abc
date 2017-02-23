@@ -3,6 +3,10 @@
 # Copyright (c) 2017 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test compact blocks (BIP 152).
+
+Only testing Version 1 compact blocks (txids)
+"""
 
 import random
 
@@ -45,12 +49,6 @@ from test_framework.script import CScript, OP_TRUE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, sync_blocks, wait_until
-
-'''
-CompactBlocksTest -- test compact blocks (BIP 152)
-
-Only testing Version 1 compact blocks (txids)
-'''
 
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
 

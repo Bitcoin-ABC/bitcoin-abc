@@ -2,15 +2,16 @@
 # Copyright (c) 2014-2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""rawtranscation RPCs QA test.
+"""Test the rawtranscation RPCs.
 
-# Tests the following RPCs:
-#    - createrawtransaction
-#    - signrawtransactionwithwallet
-#    - sendrawtransaction
-#    - decoderawtransaction
-#    - getrawtransaction
+Test the following RPCs:
+   - createrawtransaction
+   - signrawtransactionwithwallet
+   - sendrawtransaction
+   - decoderawtransaction
+   - getrawtransaction
 """
+
 from decimal import Decimal
 
 from collections import OrderedDict

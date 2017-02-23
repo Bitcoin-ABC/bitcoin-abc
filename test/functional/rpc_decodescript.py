@@ -2,6 +2,7 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test decoding scripts via decodescript RPC command."""
 
 from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
@@ -117,7 +118,7 @@ class DecodeScriptTest(BitcoinTestFramework):
                      public_key + ' OP_CHECKSIG', rpc_result['asm'])
 
     def decoderawtransaction_asm_sighashtype(self):
-        """Tests decoding scripts via RPC command "decoderawtransaction".
+        """Test decoding scripts via RPC command "decoderawtransaction".
 
         This test is in with the "decodescript" tests because they are testing the same "asm" script decodes.
         """

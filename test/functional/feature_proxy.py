@@ -2,8 +2,8 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test bitcoind with different proxy configuration.
 
-'''
 Test plan:
 - Start bitcoind's with different proxy configurations
 - Use addnode to initiate connections
@@ -25,7 +25,7 @@ addnode connect to IPv4
 addnode connect to IPv6
 addnode connect to onion
 addnode connect to generic DNS name
-'''
+"""
 
 import os
 import socket

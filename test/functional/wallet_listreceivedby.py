@@ -2,8 +2,8 @@
 # Copyright (c) 2014-2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 """Test the listreceivedbyaddress RPC."""
+
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework

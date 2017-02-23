@@ -2,6 +2,10 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test node responses to invalid transactions.
+
+In this test we connect to one node over p2p, and test tx requests.
+"""
 
 import time
 
@@ -15,10 +19,6 @@ from test_framework.messages import COIN
 from test_framework.mininode import network_thread_start
 from test_framework.test_framework import ComparisonTestFramework
 
-
-'''
-In this test we connect to one node over p2p, and test tx requests.
-'''
 
 # Use the ComparisonTestFramework with 1 node: only use --testbinary.
 
