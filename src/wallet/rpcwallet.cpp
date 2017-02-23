@@ -3108,21 +3108,27 @@ static UniValue listunspent(const Config &config,
             "    \"scriptPubKey\" : \"key\",   (string) the script key\n"
             "    \"amount\" : x.xxx,         (numeric) the transaction output "
             "amount in " +
-            CURRENCY_UNIT + "\n"
-                            "    \"confirmations\" : n,      (numeric) The "
-                            "number of confirmations\n"
-                            "    \"redeemScript\" : n        (string) The "
-                            "redeemScript if scriptPubKey is P2SH\n"
-                            "    \"spendable\" : xxx,        (bool) Whether we "
-                            "have the private keys to spend this output\n"
-                            "    \"solvable\" : xxx          (bool) Whether we "
-                            "know how to spend this output, ignoring the lack "
-                            "of keys\n"
-                            "  }\n"
-                            "  ,...\n"
-                            "]\n"
+            CURRENCY_UNIT +
+            "\n"
+            "    \"confirmations\" : n,      (numeric) The number of "
+            "confirmations\n"
+            "    \"redeemScript\" : n        (string) The redeemScript if "
+            "scriptPubKey is P2SH\n"
+            "    \"spendable\" : xxx,        (bool) Whether we have the "
+            "private keys to spend this output\n"
+            "    \"solvable\" : xxx,         (bool) Whether we know how to "
+            "spend this output, ignoring the lack of keys\n"
+            "    \"safe\" : xxx              (bool) Whether this output is "
+            "considered safe to spend. Unconfirmed transactions\n"
+            "                              from outside keys are considered "
+            "unsafe and are not eligible for spending by\n"
+            "                              fundrawtransaction and "
+            "sendtoaddress.\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"
 
-                            "\nExamples\n" +
+            "\nExamples\n" +
             HelpExampleCli("listunspent", "") +
             HelpExampleCli("listunspent",
                            "6 9999999 "
@@ -3222,6 +3228,7 @@ static UniValue listunspent(const Config &config,
         entry.push_back(Pair("confirmations", out.nDepth));
         entry.push_back(Pair("spendable", out.fSpendable));
         entry.push_back(Pair("solvable", out.fSolvable));
+        entry.push_back(Pair("safe", out.fSafe));
         results.push_back(entry);
     }
 

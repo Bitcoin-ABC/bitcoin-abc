@@ -2251,7 +2251,7 @@ Amount CWallet::GetImmatureWatchOnlyBalance() const {
     return nTotal;
 }
 
-void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
+void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                              const CCoinControl *coinControl,
                              bool fIncludeZeroValue) const {
     vCoins.clear();
@@ -2263,10 +2263,6 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
         const CWalletTx *pcoin = &(*it).second;
 
         if (!CheckFinalTx(*pcoin)) {
-            continue;
-        }
-
-        if (fOnlyConfirmed && !pcoin->IsTrusted()) {
             continue;
         }
 
@@ -2286,6 +2282,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
             continue;
         }
 
+        bool safeTx = pcoin->IsTrusted();
+
         // Bitcoin-ABC: Removed check that prevents consideration of coins from
         // transactions that are replacing other transactions. This check based
         // on pcoin->mapValue.count("replaces_txid") which was not being set
@@ -2302,8 +2300,11 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
 
         // Bitcoin-ABC: retained this check as 'replaced_by_txid' is still set
         // in the wallet code.
-        if (nDepth == 0 && fOnlyConfirmed &&
-            pcoin->mapValue.count("replaced_by_txid")) {
+        if (nDepth == 0 && pcoin->mapValue.count("replaced_by_txid")) {
+            safeTx = false;
+        }
+
+        if (fOnlySafe && !safeTx) {
             continue;
         }
 
@@ -2321,7 +2322,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
                         (coinControl && coinControl->fAllowWatchOnly &&
                          (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO),
                     (mine & (ISMINE_SPENDABLE | ISMINE_WATCH_SOLVABLE)) !=
-                        ISMINE_NO));
+                        ISMINE_NO,
+                    safeTx));
             }
         }
     }
