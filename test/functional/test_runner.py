@@ -120,6 +120,7 @@ EXTENDED_SCRIPTS = [
     'p2p-feefilter.py',
     'rpcbind_test.py',
     # vv Tests less than 30s vv
+    'assumevalid.py',
     'bip65-cltv.py',
     'bip65-cltv-p2p.py',
     'bipdersig-p2p.py',
