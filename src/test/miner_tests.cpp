@@ -228,7 +228,8 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
 
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
     unsigned int extraNonce = 0;
-    IncrementExtraNonce(config, pblock, chainActive.Tip(), extraNonce);
+    IncrementExtraNonce(pblock, chainActive.Tip(), config.GetMaxBlockSize(),
+                        extraNonce);
     unsigned int nHeight = chainActive.Tip()->nHeight + 1;
     std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
     BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==

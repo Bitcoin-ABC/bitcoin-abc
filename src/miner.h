@@ -155,15 +155,27 @@ private:
     int nHeight;
     int64_t nLockTimeCutoff;
     int64_t nMedianTimePast;
+    const CChainParams &chainparams;
+    uint8_t nBlockPriorityPercentage;
 
-    const Config *config;
     const CTxMemPool *mempool;
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
 
 public:
-    BlockAssembler(const Config &_config, const CTxMemPool &mempool);
+    struct Options {
+        Options();
+        uint64_t nExcessiveBlockSize;
+        uint64_t nMaxGeneratedBlockSize;
+        CFeeRate blockMinFeeRate;
+        uint8_t nBlockPriorityPercentage;
+    };
+
+    BlockAssembler(const Config &config, const CTxMemPool &_mempool);
+    BlockAssembler(const CChainParams &params, const CTxMemPool &_mempool,
+                   const Options &options);
+
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
@@ -236,8 +248,8 @@ private:
 };
 
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(const Config &config, CBlock *pblock,
-                         const CBlockIndex *pindexPrev,
+void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
+                         uint64_t nExcessiveBlockSize,
                          unsigned int &nExtraNonce);
 int64_t UpdateTime(CBlockHeader *pblock, const Consensus::Params &params,
                    const CBlockIndex *pindexPrev);

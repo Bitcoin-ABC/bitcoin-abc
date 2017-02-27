@@ -141,7 +141,8 @@ UniValue generateBlocks(const Config &config,
 
         {
             LOCK(cs_main);
-            IncrementExtraNonce(config, pblock, chainActive.Tip(), nExtraNonce);
+            IncrementExtraNonce(pblock, chainActive.Tip(),
+                                config.GetMaxBlockSize(), nExtraNonce);
         }
 
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&

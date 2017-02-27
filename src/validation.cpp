@@ -297,8 +297,8 @@ std::set<int> setDirtyFileInfo;
 } // namespace
 
 BlockValidationOptions::BlockValidationOptions(const Config &config)
-    : checkPoW(true), checkMerkleRoot(true),
-      excessiveBlockSize(config.GetMaxBlockSize()) {}
+    : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
+      checkMerkleRoot(true) {}
 
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator) {
