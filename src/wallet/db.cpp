@@ -6,12 +6,12 @@
 #include "db.h"
 
 #include "addrman.h"
+#include "fs.h"
 #include "hash.h"
 #include "protocol.h"
 #include "util.h"
 #include "utilstrencodings.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <boost/version.hpp>
 
@@ -66,7 +66,7 @@ void CDBEnv::Close() {
     EnvShutdown();
 }
 
-bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
+bool CDBEnv::Open(const fs::path &pathIn) {
     if (fDbEnvInit) {
         return true;
     }
@@ -74,9 +74,9 @@ bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
     boost::this_thread::interruption_point();
 
     strPath = pathIn.string();
-    boost::filesystem::path pathLogDir = pathIn / "database";
+    fs::path pathLogDir = pathIn / "database";
     TryCreateDirectory(pathLogDir);
-    boost::filesystem::path pathErrorFile = pathIn / "db.log";
+    fs::path pathErrorFile = pathIn / "db.log";
     LogPrintf("CDBEnv::Open: LogDir=%s ErrorFile=%s\n", pathLogDir.string(),
               pathErrorFile.string());
 
@@ -93,7 +93,7 @@ bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
     dbenv->set_lk_max_locks(40000);
     dbenv->set_lk_max_objects(40000);
     /// debug
-    dbenv->set_errfile(fopen(pathErrorFile.string().c_str(), "a"));
+    dbenv->set_errfile(fsbridge::fopen(pathErrorFile, "a"));
     dbenv->set_flags(DB_AUTO_COMMIT, 1);
     dbenv->set_flags(DB_TXN_WRITE_NOSYNC, 1);
     dbenv->log_set_config(DB_LOG_AUTO_REMOVE, 1);
@@ -480,8 +480,7 @@ void CDBEnv::Flush(bool fShutdown) {
                 dbenv->log_archive(&listp, DB_ARCH_REMOVE);
                 Close();
                 if (!fMockDb) {
-                    boost::filesystem::remove_all(
-                        boost::filesystem::path(strPath) / "database");
+                    fs::remove_all(fs::path(strPath) / "database");
                 }
             }
         }

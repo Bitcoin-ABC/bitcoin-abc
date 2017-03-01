@@ -9,6 +9,7 @@
 #include "base58.h"
 #include "consensus/validation.h"
 #include "dstencode.h"
+#include "fs.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "sync.h"
@@ -17,7 +18,6 @@
 #include "validation.h" // For CheckRegularTransaction
 #include "wallet/wallet.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <boost/version.hpp>
 

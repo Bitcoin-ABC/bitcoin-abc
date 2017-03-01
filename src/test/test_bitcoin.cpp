@@ -10,6 +10,7 @@
 #include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
+#include "fs.h"
 #include "key.h"
 #include "miner.h"
 #include "net_processing.h"
@@ -26,7 +27,6 @@
 
 #include "test/testutil.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 
@@ -80,7 +80,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i",
                                          (unsigned long)GetTime(),
                                          (int)(InsecureRandRange(100000)));
-    boost::filesystem::create_directories(pathTemp);
+    fs::create_directories(pathTemp);
     ForceSetArg("-datadir", pathTemp.string());
     mempool.setSanityCheck(1.0);
     pblocktree = new CBlockTreeDB(1 << 20, true);
@@ -111,7 +111,7 @@ TestingSetup::~TestingSetup() {
     delete pcoinsTip;
     delete pcoinsdbview;
     delete pblocktree;
-    boost::filesystem::remove_all(pathTemp);
+    fs::remove_all(pathTemp);
 }
 
 TestChain100Setup::TestChain100Setup()

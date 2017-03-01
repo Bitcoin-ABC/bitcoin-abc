@@ -7,6 +7,7 @@
 
 #include "base58.h"
 #include "config.h"
+#include "fs.h"
 #include "init.h"
 #include "random.h"
 #include "sync.h"
@@ -18,7 +19,6 @@
 
 #include <boost/algorithm/string/case_conv.hpp> // for to_upper()
 #include <boost/bind.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/signals2/signal.hpp>
 #include <boost/thread.hpp>
 

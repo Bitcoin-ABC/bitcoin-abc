@@ -6,9 +6,9 @@
 #ifndef BITCOIN_ADDRDB_H
 #define BITCOIN_ADDRDB_H
 
+#include "fs.h"
 #include "serialize.h"
 
-#include <boost/filesystem/path.hpp>
 #include <map>
 #include <string>
 
@@ -71,7 +71,7 @@ typedef std::map<CSubNet, CBanEntry> banmap_t;
 /** Access to the (IP) address database (peers.dat) */
 class CAddrDB {
 private:
-    boost::filesystem::path pathAddr;
+    fs::path pathAddr;
 
 public:
     CAddrDB();
@@ -83,7 +83,7 @@ public:
 /** Access to the banlist database (banlist.dat) */
 class CBanDB {
 private:
-    boost::filesystem::path pathBanlist;
+    fs::path pathBanlist;
 
 public:
     CBanDB();

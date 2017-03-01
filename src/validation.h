@@ -14,12 +14,11 @@
 #include "amount.h"
 #include "chain.h"
 #include "coins.h"
+#include "fs.h"
 #include "protocol.h" // For CMessageHeader::MessageMagic
 #include "script/script_error.h"
 #include "sync.h"
 #include "versionbits.h"
-
-#include <boost/filesystem/path.hpp>
 
 #include <algorithm>
 #include <atomic>
@@ -279,8 +278,7 @@ FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Open an undo file (rev?????.dat) */
 FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /** Translation to a filesystem path */
-boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos,
-                                            const char *prefix);
+fs::path GetBlockPosFilename(const CDiskBlockPos &pos, const char *prefix);
 /** Import blocks from an external file */
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CDiskBlockPos *dbp = nullptr);

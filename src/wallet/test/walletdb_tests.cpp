@@ -22,12 +22,12 @@ struct WalletDBTestingSetup : public TestingSetup {
     }
 };
 
-static std::unique_ptr<CWalletDB> TmpDB(const boost::filesystem::path &pathTemp,
+static std::unique_ptr<CWalletDB> TmpDB(const fs::path &pathTemp,
                                         const std::string &testname) {
-    boost::filesystem::path dir = pathTemp / testname;
-    BOOST_CHECK_MESSAGE(boost::filesystem::create_directory(dir),
+    fs::path dir = pathTemp / testname;
+    BOOST_CHECK_MESSAGE(fs::create_directory(dir),
                         "Unable to create a directory for test " + testname);
-    boost::filesystem::path path =
+    fs::path path =
         dir / strprintf("testwallet%i", static_cast<int>(GetRand(1000000)));
     return std::unique_ptr<CWalletDB>(new CWalletDB(path.string(), "cr+"));
 }

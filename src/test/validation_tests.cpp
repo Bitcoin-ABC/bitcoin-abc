@@ -35,7 +35,7 @@ below the size of a large block. Currently, LoadExternalBlockFile has the
 buffer size for CBufferedFile set to 2 * MAX_TX_SIZE. Test with a value
 of 10 * MAX_TX_SIZE. */
 BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
-    boost::filesystem::path tmpfile_name =
+    fs::path tmpfile_name =
         pathTemp / strprintf("vlebf_test_%lu_%i", (unsigned long)GetTime(),
                              (int)(InsecureRandRange(100000)));
 

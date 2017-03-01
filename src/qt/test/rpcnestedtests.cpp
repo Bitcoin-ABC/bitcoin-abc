@@ -8,6 +8,7 @@
 #include "config.h"
 #include "config.h"
 #include "consensus/validation.h"
+#include "fs.h"
 #include "rpc/register.h"
 #include "rpc/server.h"
 #include "rpcconsole.h"
@@ -18,8 +19,6 @@
 
 #include <QDir>
 #include <QtGlobal>
-
-#include <boost/filesystem.hpp>
 
 static UniValue rpcNestedTest_rpc(const Config &config,
                                   const JSONRPCRequest &request) {
@@ -215,5 +214,5 @@ void RPCNestedTests::rpcNestedTests() {
     delete pcoinsdbview;
     delete pblocktree;
 
-    boost::filesystem::remove_all(boost::filesystem::path(path));
+    fs::remove_all(fs::path(path));
 }

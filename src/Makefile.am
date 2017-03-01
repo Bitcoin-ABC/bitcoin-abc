@@ -112,6 +112,7 @@ BITCOIN_CORE_H = \
   core_memusage.h \
   cuckoocache.h \
   dstencode.h \
+  fs.h \
   globals.h \
   httprpc.h \
   httpserver.h \
@@ -357,6 +358,7 @@ libbitcoin_util_a_SOURCES = \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
+  fs.cpp \
   random.cpp \
   rpc/protocol.cpp \
   support/cleanse.cpp \
