@@ -329,10 +329,12 @@ ParseTorReplyMapping(const std::string &s) {
  *         (with len > maxsize) will be returned.
  */
 static std::pair<bool, std::string>
-ReadBinaryFile(const std::string &filename,
+ReadBinaryFile(const fs::path &filename,
                size_t maxsize = std::numeric_limits<size_t>::max()) {
-    FILE *f = fopen(filename.c_str(), "rb");
-    if (f == nullptr) return std::make_pair(false, "");
+    FILE *f = fsbridge::fopen(filename, "rb");
+    if (f == nullptr) {
+        return std::make_pair(false, "");
+    }
     std::string retval;
     char buffer[128];
     size_t n;
@@ -348,9 +350,8 @@ ReadBinaryFile(const std::string &filename,
  * Write contents of std::string to a file.
  * @return true on success.
  */
-static bool WriteBinaryFile(const std::string &filename,
-                            const std::string &data) {
-    FILE *f = fopen(filename.c_str(), "wb");
+static bool WriteBinaryFile(const fs::path &filename, const std::string &data) {
+    FILE *f = fsbridge::fopen(filename, "wb");
     if (f == nullptr) return false;
     if (fwrite(data.data(), 1, data.size(), f) != data.size()) {
         fclose(f);
@@ -372,7 +373,7 @@ public:
     ~TorController();
 
     /** Get name fo file to store private key in */
-    std::string GetPrivateKeyFile();
+    fs::path GetPrivateKeyFile();
 
     /** Reconnect, after getting disconnected */
     void Reconnect();
@@ -714,8 +715,8 @@ void TorController::Reconnect() {
     }
 }
 
-std::string TorController::GetPrivateKeyFile() {
-    return (GetDataDir() / "onion_private_key").string();
+fs::path TorController::GetPrivateKeyFile() {
+    return GetDataDir() / "onion_private_key";
 }
 
 void TorController::reconnect_cb(evutil_socket_t fd, short what, void *arg) {
