@@ -3863,7 +3863,7 @@ void CWallet::GetKeyBirthTimes(
              mapKeyFirstBlock.begin();
          it != mapKeyFirstBlock.end(); it++) {
         // Block times can be 2h off.
-        mapKeyBirth[it->first] = it->second->GetBlockTime() - 7200;
+        mapKeyBirth[it->first] = it->second->GetBlockTime() - TIMESTAMP_WINDOW;
     }
 }
 

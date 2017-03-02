@@ -958,7 +958,7 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
         // Add a 2 hour buffer to include blocks which might have had old
         // timestamps
         CBlockIndex *pindex =
-            chainActive.FindEarliestAtLeast(heightParam - 7200);
+            chainActive.FindEarliestAtLeast(heightParam - TIMESTAMP_WINDOW);
         if (!pindex) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,

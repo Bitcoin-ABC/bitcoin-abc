@@ -604,7 +604,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
     CBlockIndex *pindex = chainActive.Tip();
     while (pindex && pindex->pprev &&
-           pindex->GetBlockTime() > nTimeBegin - 7200) {
+           pindex->GetBlockTime() > nTimeBegin - TIMESTAMP_WINDOW) {
         pindex = pindex->pprev;
     }
 
@@ -1268,7 +1268,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
         CBlockIndex *pindex =
             nLowestTimestamp > minimumTimestamp
                 ? chainActive.FindEarliestAtLeast(
-                      std::max<int64_t>(nLowestTimestamp - 7200, 0))
+                      std::max<int64_t>(nLowestTimestamp - TIMESTAMP_WINDOW, 0))
                 : chainActive.Genesis();
         CBlockIndex *scannedRange = nullptr;
         if (pindex) {
@@ -1286,7 +1286,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                 // range, or if the import result already has an error set, let
                 // the result stand unmodified. Otherwise replace the result
                 // with an error message.
-                if (GetImportTimestamp(request, now) - 7200 >=
+                if (GetImportTimestamp(request, now) - TIMESTAMP_WINDOW >=
                         scannedRange->GetBlockTimeMax() ||
                     results.at(i).exists("error")) {
                     response.push_back(results.at(i));

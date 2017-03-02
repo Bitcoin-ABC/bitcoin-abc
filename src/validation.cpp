@@ -3378,7 +3378,7 @@ static bool ContextualCheckBlockHeader(const Config &config,
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > nAdjustedTime + 2 * 60 * 60) {
+    if (block.GetBlockTime() > nAdjustedTime + MAX_FUTURE_BLOCK_TIME) {
         return state.Invalid(false, REJECT_INVALID, "time-too-new",
                              "block timestamp too far in the future");
     }
