@@ -88,11 +88,11 @@ TestingSetup::TestingSetup(const std::string &chainName)
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-    InitBlockIndex(config);
+    BOOST_REQUIRE(InitBlockIndex(config));
     {
         CValidationState state;
         bool ok = ActivateBestChain(config, state);
-        BOOST_CHECK(ok);
+        BOOST_REQUIRE(ok);
     }
     nScriptCheckThreads = 3;
     for (int i = 0; i < nScriptCheckThreads - 1; i++) {
