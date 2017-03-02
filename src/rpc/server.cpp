@@ -228,11 +228,6 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
          vCommands) {
         const ContextFreeRPCCommand *pcmd = command.second;
         std::string strMethod = pcmd->name;
-        // We already filter duplicates, but these deprecated screw up the sort
-        // order
-        if (strMethod.find("label") != std::string::npos) {
-            continue;
-        }
         if ((strCommand != "" || pcmd->category == "hidden") &&
             strMethod != strCommand) {
             continue;
