@@ -2593,9 +2593,7 @@ public:
  * Connect a new block to m_chain. pblock is either nullptr or a pointer to
  * a CBlock corresponding to pindexNew, to bypass loading it again from disk.
  *
- * The block is always added to connectTrace (either after loading from disk or
- * by copying pblock) - if that is not intended, care must be taken to remove
- * the last entry in blocksConnected in case of failure.
+ * The block is added to connectTrace if connection succeeds.
  */
 bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
                              CBlockIndex *pindexNew,
