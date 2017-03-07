@@ -773,7 +773,12 @@ public:
      */
     void AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe = true,
                         const CCoinControl *coinControl = nullptr,
-                        bool fIncludeZeroValue = false) const;
+                        const Amount nMinimumAmount = SATOSHI,
+                        const Amount nMaximumAmount = MAX_MONEY,
+                        const Amount nMinimumSumAmount = MAX_MONEY,
+                        const uint64_t &nMaximumCount = 0,
+                        const int &nMinDepth = 0,
+                        const int &nMaxDepth = 9999999) const;
 
     /**
      * Shuffle and select coins until nTargetValue is reached while avoiding
