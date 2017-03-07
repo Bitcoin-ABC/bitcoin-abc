@@ -570,7 +570,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
         JSONRPCRequest request;
         request.params.setArray();
-        request.params.push_back("wallet.backup");
+        request.params.push_back((pathTemp / "wallet.backup").string());
         vpwallets.insert(vpwallets.begin(), &wallet);
         ::dumpwallet(GetConfig(), request);
     }
@@ -582,7 +582,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
         JSONRPCRequest request;
         request.params.setArray();
-        request.params.push_back("wallet.backup");
+        request.params.push_back((pathTemp / "wallet.backup").string());
         vpwallets[0] = &wallet;
         ::importwallet(GetConfig(), request);
 
