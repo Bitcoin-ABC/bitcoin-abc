@@ -103,6 +103,7 @@ linux-coverage-build
 linux-build
 win32-build
 test/functional/config.ini
+test/util/buildenv.py
 test/cache/*
 
 !src/leveldb*/Makefile
