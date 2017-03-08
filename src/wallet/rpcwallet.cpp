@@ -2459,7 +2459,7 @@ static UniValue walletpassphrase(const Config &config,
 
     int64_t nSleepTime = request.params[1].get_int64();
     pwallet->nRelockTime = GetTime() + nSleepTime;
-    RPCRunLater(strprintf("lockwallet(%s)", pwallet->strWalletFile),
+    RPCRunLater(strprintf("lockwallet(%s)", pwallet->GetName()),
                 boost::bind(LockWallet, pwallet), nSleepTime);
 
     return NullUniValue;

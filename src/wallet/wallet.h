@@ -637,8 +637,6 @@ private:
     void DeriveNewChildKey(CKeyMetadata &metadata, CKey &secret,
                            bool internal = false);
 
-    bool fFileBacked;
-
     std::set<int64_t> setKeyPool;
 
     int64_t nTimeFirstKey;
@@ -654,17 +652,35 @@ private:
      */
     bool AddWatchOnly(const CScript &dest) override;
 
+    std::unique_ptr<CWalletDBWrapper> dbw;
+
+    // Used to NotifyTransactionChanged of the previous block's coinbase when
+    // the next block comes in
+    uint256 hashPrevBestCoinbase;
+
 public:
     /*
      * Main wallet lock.
-     * This lock protects all the fields added by CWallet
-     *   except for:
-     *      fFileBacked (immutable after instantiation)
-     *      strWalletFile (immutable after instantiation)
+     * This lock protects all the fields added by CWallet.
      */
     mutable CCriticalSection cs_wallet;
 
-    const std::string strWalletFile;
+    /**
+     * Get database handle used by this wallet. Ideally this function would not
+     * be necessary.
+     */
+    CWalletDBWrapper &GetDBHandle() { return *dbw; }
+
+    /**
+     * Get a name for this wallet for logging/debugging purposes.
+     */
+    std::string GetName() const {
+        if (dbw) {
+            return dbw->GetName();
+        } else {
+            return "dummy";
+        }
+    }
 
     void LoadKeyPool(int nIndex, const CKeyPool &keypool) {
         setKeyPool.insert(nIndex);
@@ -685,12 +701,12 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
-    CWallet() { SetNull(); }
+    // Create wallet with dummy database handle
+    CWallet() : dbw(new CWalletDBWrapper()) { SetNull(); }
 
-    CWallet(const std::string &strWalletFileIn)
-        : strWalletFile(strWalletFileIn) {
+    // Create wallet with passed-in database handle
+    CWallet(std::unique_ptr<CWalletDBWrapper> dbw_in) : dbw(std::move(dbw_in)) {
         SetNull();
-        fFileBacked = true;
     }
 
     ~CWallet() {
@@ -701,7 +717,6 @@ public:
     void SetNull() {
         nWalletVersion = FEATURE_BASE;
         nWalletMaxVersion = FEATURE_BASE;
-        fFileBacked = false;
         nMasterKeyMaxID = 0;
         pwalletdbEncryption = nullptr;
         nOrderPosNext = 0;
