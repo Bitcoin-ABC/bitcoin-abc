@@ -83,7 +83,7 @@ public:
                         int role) const override;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const override;
-    bool processingQueuedTransactions() {
+    bool processingQueuedTransactions() const {
         return fProcessingQueuedTransactions;
     }
 

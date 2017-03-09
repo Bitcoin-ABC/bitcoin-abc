@@ -413,7 +413,7 @@ public:
         return array;
     }
 
-    std::string GetComment() { return comment; }
+    std::string GetComment() const { return comment; }
 };
 
 std::string JSONPrettyPrint(const UniValue &univalue) {
