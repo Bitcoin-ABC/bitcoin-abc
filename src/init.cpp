@@ -203,7 +203,10 @@ void Shutdown() {
 
     StopTorControl();
     UnregisterNodeSignals(GetNodeSignals());
-    if (fDumpMempoolLater) DumpMempool();
+    if (fDumpMempoolLater &&
+        GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
+        DumpMempool();
+    }
 
     if (fFeeEstimatesInitialized) {
         fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
@@ -372,6 +375,11 @@ std::string HelpMessage(HelpMessageMode mode) {
                        strprintf(_("Do not keep transactions in the mempool "
                                    "longer than <n> hours (default: %u)"),
                                  DEFAULT_MEMPOOL_EXPIRY));
+    strUsage +=
+        HelpMessageOpt("-persistmempool",
+                       strprintf(_("Whether to save the mempool on shutdown "
+                                   "and load on restart (default: %u)"),
+                                 DEFAULT_PERSIST_MEMPOOL));
     strUsage += HelpMessageOpt(
         "-blockreconstructionextratxn=<n>",
         strprintf(_("Extra transactions to keep in memory for compact block "
@@ -1043,8 +1051,10 @@ void ThreadImport(const Config &config, std::vector<fs::path> vImportFiles) {
             StartShutdown();
         }
     } // End scope of CImportingNow
-    LoadMempool(config);
-    fDumpMempoolLater = !fRequestShutdown;
+    if (GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
+        LoadMempool(config);
+        fDumpMempoolLater = !fRequestShutdown;
+    }
 }
 
 /** Sanity checks
