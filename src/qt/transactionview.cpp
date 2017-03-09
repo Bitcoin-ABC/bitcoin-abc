@@ -415,7 +415,7 @@ void TransactionView::contextualMenu(const QPoint &point) {
     abandonAction->setEnabled(model->transactionCanBeAbandoned(txid));
 
     if (index.isValid()) {
-        contextMenu->exec(QCursor::pos());
+        contextMenu->popup(transactionView->viewport()->mapToGlobal(point));
     }
 }
 
