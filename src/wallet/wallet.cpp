@@ -36,7 +36,7 @@
 
 #include <cassert>
 
-CWallet *pwalletMain = nullptr;
+std::vector<CWalletRef> vpwallets;
 
 /** Transaction fee set by the user */
 CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
@@ -520,34 +520,46 @@ bool CWallet::Verify() {
         return true;
     }
 
-    uiInterface.InitMessage(_("Verifying wallet..."));
-    std::string walletFile = GetArg("-wallet", DEFAULT_WALLET_DAT);
+    uiInterface.InitMessage(_("Verifying wallet(s)..."));
 
-    std::string strError;
-    if (!CWalletDB::VerifyEnvironment(walletFile, GetDataDir().string(),
-                                      strError)) {
-        return InitError(strError);
-    }
+    for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
+        if (fs::path(walletFile).filename() != walletFile) {
+            return InitError(_(
+                "-wallet parameter must only specify a filename (not a path)"));
+        } else if (SanitizeString(walletFile, SAFE_CHARS_FILENAME) !=
+                   walletFile) {
+            return InitError(_("Invalid characters in -wallet filename"));
+        }
 
-    if (GetBoolArg("-salvagewallet", false)) {
-        // Recover readable keypairs:
-        CWallet dummyWallet;
-        if (!CWalletDB::Recover(walletFile, (void *)&dummyWallet,
-                                CWalletDB::RecoverKeysOnlyFilter)) {
+        std::string strError;
+        if (!CWalletDB::VerifyEnvironment(walletFile, GetDataDir().string(),
+                                          strError)) {
+            return InitError(strError);
+        }
+
+        if (GetBoolArg("-salvagewallet", false)) {
+            // Recover readable keypairs:
+            CWallet dummyWallet;
+            std::string backup_filename;
+            if (!CWalletDB::Recover(walletFile, (void *)&dummyWallet,
+                                    CWalletDB::RecoverKeysOnlyFilter,
+                                    backup_filename)) {
+                return false;
+            }
+        }
+
+        std::string strWarning;
+        bool dbV = CWalletDB::VerifyDatabaseFile(
+            walletFile, GetDataDir().string(), strWarning, strError);
+        if (!strWarning.empty()) {
+            InitWarning(strWarning);
+        }
+        if (!dbV) {
+            InitError(strError);
             return false;
         }
     }
 
-    std::string strWarning;
-    bool dbV = CWalletDB::VerifyDatabaseFile(walletFile, GetDataDir().string(),
-                                             strWarning, strError);
-    if (!strWarning.empty()) {
-        InitWarning(strWarning);
-    }
-    if (!dbV) {
-        InitError(strError);
-        return false;
-    }
     return true;
 }
 
@@ -3018,7 +3030,7 @@ bool CWallet::AddAccountingEntry(const CAccountingEntry &acentry) {
 
 bool CWallet::AddAccountingEntry(const CAccountingEntry &acentry,
                                  CWalletDB *pwalletdb) {
-    if (!pwalletdb->WriteAccountingEntry_Backend(acentry)) {
+    if (!pwalletdb->WriteAccountingEntry(++nAccountingEntryNumber, acentry)) {
         return false;
     }
 
@@ -4209,7 +4221,7 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
         walletInstance->ScanForWalletTransactions(pindexRescan, true);
         LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
         walletInstance->SetBestChain(chainActive.GetLocator());
-        CWalletDB::IncrementUpdateCounter();
+        walletInstance->dbw->IncrementUpdateCounter();
 
         // Restore wallet transaction metadata after -zapwallettxes=1
         if (GetBoolArg("-zapwallettxes", false) &&
@@ -4250,26 +4262,18 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
 
 bool CWallet::InitLoadWallet() {
     if (GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
-        pwalletMain = nullptr;
         LogPrintf("Wallet disabled!\n");
         return true;
     }
 
-    std::string walletFile = GetArg("-wallet", DEFAULT_WALLET_DAT);
-
-    if (walletFile.find_first_of("/\\") != std::string::npos) {
-        return InitError(
-            _("-wallet parameter must only specify a filename (not a path)"));
-    } else if (SanitizeString(walletFile, SAFE_CHARS_FILENAME) != walletFile) {
-        return InitError(_("Invalid characters in -wallet filename"));
+    for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
+        CWallet *const pwallet = CreateWalletFromFile(walletFile);
+        if (!pwallet) {
+            return false;
+        }
+        vpwallets.push_back(pwallet);
     }
 
-    CWallet *const pwallet = CreateWalletFromFile(walletFile);
-    if (!pwallet) {
-        return false;
-    }
-
-    pwalletMain = pwallet;
     return true;
 }
 
@@ -4287,6 +4291,9 @@ void CWallet::postInitProcess(CScheduler &scheduler) {
 }
 
 bool CWallet::ParameterInteraction() {
+    SoftSetArg("-wallet", DEFAULT_WALLET_DAT);
+    const bool is_multiwallet = gArgs.GetArgs("-wallet").size() > 1;
+
     if (GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         return true;
     }
@@ -4300,6 +4307,11 @@ bool CWallet::ParameterInteraction() {
 
     if (GetBoolArg("-salvagewallet", false) &&
         SoftSetBoolArg("-rescan", true)) {
+        if (is_multiwallet) {
+            return InitError(
+                strprintf("%s is only allowed with a single wallet file",
+                          "-salvagewallet"));
+        }
         // Rewrite just private keys: rescan to find transactions
         LogPrintf("%s: parameter interaction: -salvagewallet=1 -> setting "
                   "-rescan=1\n",
@@ -4309,9 +4321,22 @@ bool CWallet::ParameterInteraction() {
     // -zapwallettx implies a rescan
     if (GetBoolArg("-zapwallettxes", false) &&
         SoftSetBoolArg("-rescan", true)) {
+        if (is_multiwallet) {
+            return InitError(
+                strprintf("%s is only allowed with a single wallet file",
+                          "-zapwallettxes"));
+        }
         LogPrintf("%s: parameter interaction: -zapwallettxes=<mode> -> setting "
                   "-rescan=1\n",
                   __func__);
+    }
+
+    if (is_multiwallet) {
+        if (GetBoolArg("-upgradewallet", false)) {
+            return InitError(
+                strprintf("%s is only allowed with a single wallet file",
+                          "-upgradewallet"));
+        }
     }
 
     if (GetBoolArg("-sysperms", false)) {

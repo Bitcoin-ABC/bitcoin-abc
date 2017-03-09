@@ -20,6 +20,8 @@
 #include <utility>
 #include <vector>
 
+extern CWallet *pwalletMain;
+
 // how many times to run all the tests to have a chance to catch errors that
 // only show up with particular random shuffles
 #define RUN_TESTS 100
@@ -476,8 +478,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // after.
     {
         CWallet wallet;
-        CWallet *backup = ::pwalletMain;
-        ::pwalletMain = &wallet;
+        vpwallets.insert(vpwallets.begin(), &wallet);
         UniValue keys;
         keys.setArray();
         UniValue key;
@@ -507,7 +508,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
                       "\"Failed to rescan before time %d, transactions may be "
                       "missing.\"}},{\"success\":true}]",
                       newTip->GetBlockTimeMax()));
-        ::pwalletMain = backup;
+        vpwallets.erase(vpwallets.begin());
     }
 
     // Verify ScanForWalletTransactions does not return null when the scan is
@@ -527,7 +528,6 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
 // importwallet RPC would start the scan at the latest block with timestamp less
 // than or equal to key birthday.
 BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
-    CWallet *pwalletMainBackup = ::pwalletMain;
     LOCK(cs_main);
 
     // Create two blocks with same timestamp to verify that importwallet rescan
@@ -563,7 +563,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back("wallet.backup");
-        ::pwalletMain = &wallet;
+        vpwallets.insert(vpwallets.begin(), &wallet);
         ::dumpwallet(GetConfig(), request);
     }
 
@@ -575,7 +575,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back("wallet.backup");
-        ::pwalletMain = &wallet;
+        vpwallets[0] = &wallet;
         ::importwallet(GetConfig(), request);
 
         BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3);
@@ -588,7 +588,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     }
 
     SetMockTime(0);
-    ::pwalletMain = pwalletMainBackup;
+    vpwallets.erase(vpwallets.begin());
 }
 
 // Check that GetImmatureCredit() returns a newly calculated value instead of

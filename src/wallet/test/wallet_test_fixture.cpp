@@ -9,6 +9,8 @@
 #include "wallet/rpcdump.h"
 #include "wallet/wallet.h"
 
+CWallet *pwalletMain;
+
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName) {
     bitdb.MakeMock();

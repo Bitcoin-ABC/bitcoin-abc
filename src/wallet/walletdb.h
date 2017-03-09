@@ -140,10 +140,28 @@ public:
  * Optionally (on by default) it will flush to disk as well.
  */
 class CWalletDB {
+private:
+    template <typename K, typename T>
+    bool WriteIC(const K &key, const T &value, bool fOverwrite = true) {
+        if (!batch.Write(key, value, fOverwrite)) {
+            return false;
+        }
+        m_dbw.IncrementUpdateCounter();
+        return true;
+    }
+
+    template <typename K> bool EraseIC(const K &key) {
+        if (!batch.Erase(key)) {
+            return false;
+        }
+        m_dbw.IncrementUpdateCounter();
+        return true;
+    }
+
 public:
     CWalletDB(CWalletDBWrapper &dbw, const char *pszMode = "r+",
               bool _fFlushOnClose = true)
-        : batch(dbw, pszMode, _fFlushOnClose) {}
+        : batch(dbw, pszMode, _fFlushOnClose), m_dbw(dbw) {}
 
     bool WriteName(const CTxDestination &address, const std::string &strName);
     bool EraseName(const CTxDestination &address);
@@ -185,7 +203,6 @@ public:
     /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
     bool WriteAccountingEntry(const uint64_t nAccEntryNum,
                               const CAccountingEntry &acentry);
-    bool WriteAccountingEntry_Backend(const CAccountingEntry &acentry);
     bool ReadAccount(const std::string &strAccount, CAccount &account);
     bool WriteAccount(const std::string &strAccount, const CAccount &account);
 
@@ -210,10 +227,12 @@ public:
     static bool Recover(const std::string &filename, void *callbackDataIn,
                         bool (*recoverKVcallback)(void *callbackData,
                                                   CDataStream ssKey,
-                                                  CDataStream ssValue));
+                                                  CDataStream ssValue),
+                        std::string &out_backup_filename);
     /* Recover convenience-function to bypass the key filter callback, called
      * when verify fails, recovers everything */
-    static bool Recover(const std::string &filename);
+    static bool Recover(const std::string &filename,
+                        std::string &out_backup_filename);
     /* Recover filter (used as callback), will only let keys (cryptographical
      * keys) as KV/key-type pass through */
     static bool RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
@@ -234,9 +253,6 @@ public:
     //! write the hdchain model (external chain child index counter)
     bool WriteHDChain(const CHDChain &chain);
 
-    static void IncrementUpdateCounter();
-    static unsigned int GetUpdateCounter();
-
     //! Begin a new transaction
     bool TxnBegin();
     //! Commit current transaction
@@ -250,6 +266,7 @@ public:
 
 private:
     CDB batch;
+    CWalletDBWrapper &m_dbw;
 
     CWalletDB(const CWalletDB &);
     void operator=(const CWalletDB &);
