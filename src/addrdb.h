@@ -55,7 +55,7 @@ public:
         banReason = BanReasonUnknown;
     }
 
-    std::string banReasonToString() {
+    std::string banReasonToString() const {
         switch (banReason) {
             case BanReasonNodeMisbehaving:
                 return "node misbehaving";

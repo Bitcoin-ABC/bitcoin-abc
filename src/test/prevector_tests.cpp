@@ -148,9 +148,9 @@ public:
         pre_vector.assign(n, value);
     }
 
-    Size size() { return real_vector.size(); }
+    Size size() const { return real_vector.size(); }
 
-    Size capacity() { return pre_vector.capacity(); }
+    Size capacity() const { return pre_vector.capacity(); }
 
     void shrink_to_fit() {
         pre_vector.shrink_to_fit();
