@@ -17,27 +17,40 @@
 
 #ifdef ENABLE_WALLET
 #include "paymentservertests.h"
+#include "wallettests.h"
 #endif
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QObject>
 #include <QTest>
 
 #include <openssl/ssl.h>
 
-#if defined(QT_STATICPLUGIN) && QT_VERSION < 0x050000
+#if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
+#if QT_VERSION < 0x050000
 Q_IMPORT_PLUGIN(qcncodecs)
 Q_IMPORT_PLUGIN(qjpcodecs)
 Q_IMPORT_PLUGIN(qtwcodecs)
 Q_IMPORT_PLUGIN(qkrcodecs)
+#else
+#if defined(QT_QPA_PLATFORM_MINIMAL)
+Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin);
+#endif
+#if defined(QT_QPA_PLATFORM_XCB)
+Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
+#elif defined(QT_QPA_PLATFORM_WINDOWS)
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+#elif defined(QT_QPA_PLATFORM_COCOA)
+Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
+#endif
+#endif
 #endif
 
 extern void noui_connect();
 
 // This is all you need to run all the tests
 int main(int argc, char *argv[]) {
-    ECC_Start();
     SetupEnvironment();
     SetupNetworking();
     SelectParams(CBaseChainParams::MAIN);
@@ -45,9 +58,14 @@ int main(int argc, char *argv[]) {
 
     bool fInvalid = false;
 
+    // Prefer the "minimal" platform for the test instead of the normal default
+    // platform ("xcb", "windows", or "cocoa") so tests can't unintentially
+    // interfere with any background GUIs and don't require extra resources.
+    setenv("QT_QPA_PLATFORM", "minimal", 0);
+
     // Don't remove this, it's needed to access
-    // QCoreApplication:: in the tests
-    QCoreApplication app(argc, argv);
+    // QApplication:: and QCoreApplication:: in the tests
+    QApplication app(argc, argv);
     app.setApplicationName("BitcoinABC-Qt-test");
 
     // This is necessary to initialize openssl on the test framework
@@ -80,7 +98,12 @@ int main(int argc, char *argv[]) {
     if (QTest::qExec(&test6) != 0) {
         fInvalid = true;
     }
+#ifdef ENABLE_WALLET
+    WalletTests test7;
+    if (QTest::qExec(&test7) != 0) {
+        fInvalid = true;
+    }
+#endif
 
-    ECC_Stop();
     return fInvalid;
 }

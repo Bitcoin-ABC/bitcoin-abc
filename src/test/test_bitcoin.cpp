@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#define BOOST_TEST_MODULE Bitcoin Test Suite
-
 #include "test_bitcoin.h"
 
 #include "chainparams.h"
@@ -28,9 +26,6 @@
 
 #include "test/testutil.h"
 
-#include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
-
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -40,7 +35,6 @@
 #include <memory>
 #include <thread>
 
-std::unique_ptr<CConnman> g_connman;
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
@@ -88,11 +82,14 @@ TestingSetup::TestingSetup(const std::string &chainName)
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-    BOOST_REQUIRE(InitBlockIndex(config));
+    if (!InitBlockIndex(config)) {
+        throw std::runtime_error("InitBlockIndex failed.");
+    }
     {
         CValidationState state;
-        bool ok = ActivateBestChain(config, state);
-        BOOST_REQUIRE(ok);
+        if (!ActivateBestChain(config, state)) {
+            throw std::runtime_error("ActivateBestChain failed.");
+        }
     }
     nScriptCheckThreads = 3;
     for (int i = 0; i < nScriptCheckThreads - 1; i++) {
@@ -182,18 +179,6 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn,
                            lp);
 }
 
-void Shutdown(void *parg) {
-    exit(0);
-}
-
-void StartShutdown() {
-    exit(0);
-}
-
-bool ShutdownRequested() {
-    return false;
-}
-
 namespace {
 // A place to put misc. setup code eg "the travis workaround" that needs to run
 // at program startup and exit
@@ -207,7 +192,6 @@ struct Init {
 Init init;
 
 Init::Init() {
-
     if (getenv("TRAVIS_NOHANG_WORKAROUND")) {
         // This is a workaround for MinGW/Win32 builds on Travis sometimes
         // hanging due to no output received by Travis after a 10-minute

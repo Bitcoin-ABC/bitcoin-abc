@@ -209,9 +209,13 @@ void RPCNestedTests::rpcNestedTests() {
         std::runtime_error);
 #endif
 
+    UnloadBlockIndex();
     delete pcoinsTip;
+    pcoinsTip = nullptr;
     delete pcoinsdbview;
+    pcoinsdbview = nullptr;
     delete pblocktree;
+    pblocktree = nullptr;
 
     fs::remove_all(fs::path(path));
 }
