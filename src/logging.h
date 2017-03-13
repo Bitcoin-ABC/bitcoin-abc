@@ -135,6 +135,10 @@ static inline void MarkUsed(const T &t, const Args &... args) {
     (void)t;
     MarkUsed(args...);
 }
+template <typename... Args>
+std::string FormatStringFromLogArgs(const char *fmt, const Args &... args) {
+    return fmt;
+}
 
 #ifdef USE_COVERAGE
 #define LogPrintf(...)                                                         \
@@ -146,16 +150,27 @@ static inline void MarkUsed(const T &t, const Args &... args) {
         MarkUsed(__VA_ARGS__);                                                 \
     } while (0)
 #else
+#define LogPrintf(...)                                                         \
+    do {                                                                       \
+        /* Unlikely name to avoid shadowing variables */                       \
+        std::string _log_msg_;                                                 \
+        try {                                                                  \
+            _log_msg_ = tfm::format(__VA_ARGS__);                              \
+        } catch (tinyformat::format_error & fmterr) {                          \
+            /**                                                                \
+             * Original format string will have newline so don't add one here  \
+             */                                                                \
+            _log_msg_ = "Error \"" + std::string(fmterr.what()) +              \
+                        "\" while formatting log message: " +                  \
+                        FormatStringFromLogArgs(__VA_ARGS__);                  \
+        }                                                                      \
+        LogInstance().LogPrintStr(_log_msg_);                                  \
+    } while (0)
 #define LogPrint(category, ...)                                                \
     do {                                                                       \
         if (LogAcceptCategory((category))) {                                   \
-            LogInstance().LogPrintStr(tfm::format(__VA_ARGS__));               \
+            LogPrintf(__VA_ARGS__);                                            \
         }                                                                      \
-    } while (0)
-
-#define LogPrintf(...)                                                         \
-    do {                                                                       \
-        LogInstance().LogPrintStr(tfm::format(__VA_ARGS__));                   \
     } while (0)
 #endif
 
