@@ -96,10 +96,8 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
                              const CBlockHeader *pblock, const Config &config) {
     const Consensus::Params &params = config.GetChainParams().GetConsensus();
 
-    // Genesis block
-    if (pindexPrev == nullptr) {
-        return UintToArith256(params.powLimit).GetCompact();
-    }
+    // GetNextWorkRequired should never be called on the genesis block
+    assert(pindexPrev != nullptr);
 
     // Special rule for regtest: we never retarget.
     if (params.fPowNoRetargeting) {
