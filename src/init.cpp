@@ -658,10 +658,11 @@ std::string HelpMessage(HelpMessageMode mode) {
                                    "Use given start/end times for specified "
                                    "BIP9 deployment (regtest-only)");
     }
-    std::string debugCategories =
-        "addrman, alert, bench, cmpctblock, coindb, db, http, libevent, lock, "
-        "mempool, mempoolrej, net, proxy, prune, rand, reindex, rpc, "
-        "selectcoins, tor, zmq"; // Don't translate these and qt below
+    // Don't translate these and qt below
+    std::string debugCategories = "addrman, alert, bench, cmpctblock, coindb, "
+                                  "db, http, leveldb, libevent, lock, mempool, "
+                                  "mempoolrej, net, proxy, prune, rand, "
+                                  "reindex, rpc, selectcoins, tor, zmq";
     if (mode == HMM_BITCOIN_QT) debugCategories += ", qt";
     strUsage += HelpMessageOpt(
         "-debug=<category>",
