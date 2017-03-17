@@ -69,7 +69,7 @@ class ProxyTest(BitcoinTestFramework):
             self.conf3.unauth = True
             self.conf3.auth = True
         else:
-            self.log.info("Warning: testing without local IPv6 support")
+            self.log.warning("Testing without local IPv6 support")
 
         self.serv1 = Socks5Server(self.conf1)
         self.serv1.start()
