@@ -414,8 +414,6 @@ public:
     }
 
     std::string GetComment() { return comment; }
-
-    const CScript &GetScriptPubKey() { return creditTx->vout[0].scriptPubKey; }
 };
 
 std::string JSONPrettyPrint(const UniValue &univalue) {

@@ -45,8 +45,6 @@ struct CLockLocation {
                (fTry ? " (TRY)" : "");
     }
 
-    std::string MutexName() const { return mutexName; }
-
     bool fTry;
 
 private:

@@ -29,7 +29,6 @@ namespace RPCServerSignals {
 void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
 void OnPreCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
-void OnPostCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
 } // namespace RPCServerSignals
 
 class CBlockIndex;
