@@ -468,6 +468,7 @@ void StopHTTPServer() {
         }
         g_thread_http_workers.clear();
         delete workQueue;
+        workQueue = nullptr;
     }
     if (eventBase) {
         LogPrint(BCLog::HTTP, "Waiting for HTTP event thread to exit\n");
