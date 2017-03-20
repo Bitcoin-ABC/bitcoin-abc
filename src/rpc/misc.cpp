@@ -26,6 +26,9 @@
 #include <univalue.h>
 
 #include <cstdint>
+#ifdef HAVE_MALLOC_INFO
+#include <malloc.h>
+#endif
 
 /**
  * @note Do not add or change anything in the information returned by this
@@ -578,16 +581,41 @@ static UniValue RPCLockedMemoryInfo() {
     return obj;
 }
 
+#ifdef HAVE_MALLOC_INFO
+static std::string RPCMallocInfo() {
+    char *ptr = nullptr;
+    size_t size = 0;
+    FILE *f = open_memstream(&ptr, &size);
+    if (f) {
+        malloc_info(0, f);
+        fclose(f);
+        if (ptr) {
+            std::string rv(ptr, size);
+            free(ptr);
+            return rv;
+        }
+    }
+    return "";
+}
+#endif
+
 static UniValue getmemoryinfo(const Config &config,
                               const JSONRPCRequest &request) {
     /* Please, avoid using the word "pool" here in the RPC interface or help,
      * as users will undoubtedly confuse it with the other "memory pool"
      */
-    if (request.fHelp || request.params.size() != 0) {
+    if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
-            "getmemoryinfo\n"
+            "getmemoryinfo (\"mode\")\n"
             "Returns an object containing information about memory usage.\n"
-            "\nResult:\n"
+            "Arguments:\n"
+            "1. \"mode\" determines what kind of information is returned. This "
+            "argument is optional, the default mode is \"stats\".\n"
+            "  - \"stats\" returns general statistics about memory usage in "
+            "the daemon.\n"
+            "  - \"mallocinfo\" returns an XML string describing low-level "
+            "heap state (only available if compiled with glibc 2.10+).\n"
+            "\nResult (mode \"stats\"):\n"
             "{\n"
             "  \"locked\": {               (json object) Information about "
             "locked memory manager\n"
@@ -604,14 +632,31 @@ static UniValue getmemoryinfo(const Config &config,
             "    \"chunks_free\": xxxxx,   (numeric) Number unused chunks\n"
             "  }\n"
             "}\n"
+            "\nResult (mode \"mallocinfo\"):\n"
+            "\"<malloc version=\"1\">...\"\n"
             "\nExamples:\n" +
             HelpExampleCli("getmemoryinfo", "") +
             HelpExampleRpc("getmemoryinfo", ""));
     }
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("locked", RPCLockedMemoryInfo()));
-    return obj;
+    std::string mode = (request.params.size() < 1 || request.params[0].isNull())
+                           ? "stats"
+                           : request.params[0].get_str();
+    if (mode == "stats") {
+        UniValue obj(UniValue::VOBJ);
+        obj.push_back(Pair("locked", RPCLockedMemoryInfo()));
+        return obj;
+    } else if (mode == "mallocinfo") {
+#ifdef HAVE_MALLOC_INFO
+        return RPCMallocInfo();
+#else
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            "mallocinfo is only available when compiled with glibc 2.10+");
+#endif
+    } else {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "unknown mode " + mode);
+    }
 }
 
 static UniValue echo(const Config &config, const JSONRPCRequest &request) {
@@ -633,12 +678,11 @@ static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        okSafeMode
     //  ------------------- ------------------------  ----------------------  ----------
     { "control",            "getinfo",                getinfo,                true,  {} }, /* uses wallet if enabled */
-    { "control",            "getmemoryinfo",          getmemoryinfo,          true,  {} },
+    { "control",            "getmemoryinfo",          getmemoryinfo,          true,  {"mode"} },
     { "util",               "validateaddress",        validateaddress,        true,  {"address"} }, /* uses wallet if enabled */
     { "util",               "createmultisig",         createmultisig,         true,  {"nrequired","keys"} },
     { "util",               "verifymessage",          verifymessage,          true,  {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, true,  {"privkey","message"} },
-
     /* Not shown in help */
     { "hidden",             "setmocktime",            setmocktime,            true,  {"timestamp"}},
     { "hidden",             "echo",                   echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},

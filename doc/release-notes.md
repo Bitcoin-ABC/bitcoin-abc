@@ -6,4 +6,5 @@ This release includes the following features and fixes:
  - Remove support for Qt4
  - Upgrade reproducible build to us Qt 5.9.6
  - Improve SHA256 performance using SSE4.1, AVX2 and/or SHA if available.
+ - Add a mode argument to the `getmemoryinfo` RPC call to query `malloc_info` from the system if available.
 
