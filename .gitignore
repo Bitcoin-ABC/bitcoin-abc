@@ -81,7 +81,6 @@ Bitcoin-Qt.app
 # Unit-tests
 Makefile.test
 bitcoin-qt_test
-src/test/buildenv.py
 
 # Resources cpp
 qrc_*.cpp
@@ -102,8 +101,7 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-test/functional/config.ini
-test/util/buildenv.py
+test/config.ini
 test/cache/*
 
 !src/leveldb*/Makefile
