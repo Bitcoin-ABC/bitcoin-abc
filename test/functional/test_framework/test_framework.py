@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 
 from .util import (
@@ -263,6 +264,7 @@ class BitcoinTestFramework(object):
         # log files can be concatenated and sorted)
         formatter = logging.Formatter(
             fmt='%(asctime)s.%(msecs)03d000 %(name)s (%(levelname)s): %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter.converter = time.gmtime
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 
