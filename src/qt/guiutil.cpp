@@ -459,7 +459,7 @@ void SubstituteFonts(const QString &language) {
                 QFont::insertSubstitution(".Helvetica Neue DeskInterface",
                                           "Heiti SC");
             } else if (language == "ja") {
-                // Japanesee
+                // Japanese
                 QFont::insertSubstitution(".Helvetica Neue DeskInterface",
                                           "Songti SC");
             } else {

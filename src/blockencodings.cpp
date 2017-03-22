@@ -176,7 +176,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
                 // If we find two mempool/extra txn that match the short id,
                 // just request it. This should be rare enough that the extra
                 // bandwidth doesn't matter, but eating a round-trip due to
-                // FillBlock failure would be annoying. Note that we dont want
+                // FillBlock failure would be annoying. Note that we don't want
                 // duplication between extra_txns and mempool to trigger this
                 // case, so we compare hashes first.
                 if (txns_available[idit->second] &&
