@@ -61,6 +61,10 @@ class BitcoinTestFramework(object):
 
     # Methods to override in subclass test scripts.
 
+    TEST_EXIT_PASSED = 0
+    TEST_EXIT_FAILED = 1
+    TEST_EXIT_SKIPPED = 77
+
     def __init__(self):
         self.num_nodes = 4
         self.setup_clean_chain = False
@@ -199,12 +203,12 @@ class BitcoinTestFramework(object):
                     print("".join(deque(open(f), MAX_LINES_TO_PRINT)))
         if success:
             self.log.info("Tests successful")
-            sys.exit(0)
+            sys.exit(self.TEST_EXIT_PASSED)
         else:
             self.log.error(
                 "Test failed. Test logging available at %s/test_framework.log", self.options.tmpdir)
             logging.shutdown()
-            sys.exit(1)
+            sys.exit(self.TEST_EXIT_FAILED)
 
     # Public helper methods. These can be accessed by the subclass test scripts.
 

@@ -36,6 +36,9 @@ if os.name == 'posix':
     RED = ("\033[0m", "\033[31m")
     GREEN = ("\033[0m", "\033[32m")
 
+TEST_EXIT_PASSED = 0
+TEST_EXIT_SKIPPED = 77
+
 BASE_SCRIPTS = [
     # Longest test should go first, to favor running tests in parallel
     'wallet-hd.py',
@@ -259,18 +262,18 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     results = BOLD[1] + "%s | %s | %s\n\n" % (
         "TEST".ljust(max_len_name), "PASSED", "DURATION") + BOLD[0]
     for _ in range(len(test_list)):
-        (name, stdout, stderr, passed, duration) = job_queue.get_next()
-        all_passed = all_passed and passed
+        (name, stdout, stderr, status, duration) = job_queue.get_next()
+        all_passed = all_passed and status != "Failed"
         time_sum += duration
 
         print('\n' + BOLD[1] + name + BOLD[0] + ":")
-        print('' if passed else stdout + '\n', end='')
+        print('' if status == "Passed" else stdout + '\n', end='')
         print('' if stderr == '' else 'stderr:\n' + stderr + '\n', end='')
         print("Pass: {bold}{result}{unbold}, Duration: {duration}s\n".format(
-            bold=BOLD[1], result=passed, unbold=BOLD[0], duration=duration))
+            bold=BOLD[1], result=status, unbold=BOLD[0], duration=duration))
         result = "{name} | {passed} | {duration}s\n".format(name=name.ljust(
-            max_len_name), passed=str(passed).ljust(6), duration=duration)
-        if passed:
+            max_len_name), passed=str(status).ljust(6), duration=duration)
+        if status == "Passed":
             results += GREEN[1] + result + GREEN[0]
         else:
             results += RED[1] + result + RED[0]
@@ -343,10 +346,15 @@ class TestHandler:
                     [stdout, stderr] = [l.read().decode('utf-8')
                                         for l in (log_out, log_err)]
                     log_out.close(), log_err.close()
-                    passed = stderr == "" and proc.returncode == 0
+                    if proc.returncode == TEST_EXIT_PASSED and stderr == "":
+                        status = "Passed"
+                    elif proc.returncode == TEST_EXIT_SKIPPED:
+                        status = "Skipped"
+                    else:
+                        status = "Failed"
                     self.num_running -= 1
                     self.jobs.remove(j)
-                    return name, stdout, stderr, passed, int(
+                    return name, stdout, stderr, status, int(
                         time.time() - time0)
             print('.', end='', flush=True)
 
