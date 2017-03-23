@@ -152,8 +152,8 @@ std::string ScriptToAsmStr(const CScript &script,
     return str;
 }
 
-std::string EncodeHexTx(const CTransaction &tx, const int serialFlags) {
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | serialFlags);
+std::string EncodeHexTx(const CTransaction &tx, const int serializeFlags) {
+    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | serializeFlags);
     ssTx << tx;
     return HexStr(ssTx.begin(), ssTx.end());
 }
