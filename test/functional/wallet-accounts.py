@@ -4,12 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    start_nodes,
-    start_node,
-    assert_equal,
-    connect_nodes_bi,
-)
+from test_framework.util import assert_equal
 
 
 class WalletAccountsTest(BitcoinTestFramework):

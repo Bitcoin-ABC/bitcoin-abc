@@ -171,9 +171,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         '''
         self.nodes = []
         # Use node0 to mine blocks for input splitting
-        self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-maxorphantx=1000",
-                                                "-whitelist=127.0.0.1"]))
+        self.nodes.append(self.start_node(0, self.options.tmpdir, ["-maxorphantx=1000",
+                                                                   "-whitelist=127.0.0.1"]))
 
         self.log.info("This test is time consuming, please be patient")
         self.log.info(
@@ -212,9 +211,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         # and allows free transactions.
         # NOTE: the CreateNewBlock code starts counting block size at 1,000 bytes,
         # (17k is room enough for 110 or so transactions)
-        self.nodes.append(start_node(1, self.options.tmpdir,
-                                     ["-blockprioritypercentage=9", "-blockmaxsize=17000",
-                                      "-maxorphantx=1000"]))
+        self.nodes.append(self.start_node(1, self.options.tmpdir,
+                                          ["-blockmaxsize=17000", "-maxorphantx=1000"]))
         connect_nodes(self.nodes[1], 0)
 
         # Node2 is a stingy miner, that
@@ -222,7 +220,7 @@ class EstimateFeeTest(BitcoinTestFramework):
         node2args = ["-blockprioritypercentage=0",
                      "-blockmaxsize=8000", "-maxorphantx=1000"]
 
-        self.nodes.append(start_node(2, self.options.tmpdir, node2args))
+        self.nodes.append(self.start_node(2, self.options.tmpdir, node2args))
         connect_nodes(self.nodes[0], 2)
         connect_nodes(self.nodes[2], 1)
 

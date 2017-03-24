@@ -29,7 +29,6 @@ from test_framework.util import (
     assert_raises_jsonrpc,
     assert_is_hex_string,
     assert_is_hash_string,
-    start_node,
     bitcoind_processes,
     BITCOIND_PROC_WAIT_TIMEOUT,
 )
@@ -176,7 +175,7 @@ class BlockchainTest(BitcoinTestFramework):
             pass  # The node already shut down before response
         self.log.debug('Node should stop at this height...')
         bitcoind_processes[0].wait(timeout=BITCOIND_PROC_WAIT_TIMEOUT)
-        self.nodes[0] = start_node(0, self.options.tmpdir)
+        self.nodes[0] = self.start_node(0, self.options.tmpdir)
         assert_equal(self.nodes[0].getblockcount(), 207)
 
 
