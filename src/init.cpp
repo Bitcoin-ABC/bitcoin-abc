@@ -284,15 +284,27 @@ void Shutdown() {
 }
 
 /**
- * Signal handlers are very limited in what they are allowed to do, so:
+ * Signal handlers are very limited in what they are allowed to do.
+ * The execution context the handler is invoked in is not guaranteed,
+ * so we restrict handler operations to just touching variables:
  */
-void HandleSIGTERM(int) {
+static void HandleSIGTERM(int) {
     fRequestShutdown = true;
 }
 
-void HandleSIGHUP(int) {
+static void HandleSIGHUP(int) {
     GetLogger().m_reopen_file = true;
 }
+
+#ifndef WIN32
+static void registerSignalHandler(int signal, void (*handler)(int)) {
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(signal, &sa, NULL);
+}
+#endif
 
 void OnRPCStarted() {
     uiInterface.NotifyBlockTip.connect(&RPCNotifyBlockChange);
@@ -1338,19 +1350,11 @@ bool AppInitBasicSetup() {
     }
 
     // Clean shutdown on SIGTERM
-    struct sigaction sa;
-    sa.sa_handler = HandleSIGTERM;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sigaction(SIGTERM, &sa, nullptr);
-    sigaction(SIGINT, &sa, nullptr);
+    registerSignalHandler(SIGTERM, HandleSIGTERM);
+    registerSignalHandler(SIGINT, HandleSIGTERM);
 
     // Reopen debug.log on SIGHUP
-    struct sigaction sa_hup;
-    sa_hup.sa_handler = HandleSIGHUP;
-    sigemptyset(&sa_hup.sa_mask);
-    sa_hup.sa_flags = 0;
-    sigaction(SIGHUP, &sa_hup, nullptr);
+    registerSignalHandler(SIGHUP, HandleSIGHUP);
 
     // Ignore SIGPIPE, otherwise it will bring the daemon down if the client
     // closes unexpectedly
