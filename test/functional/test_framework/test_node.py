@@ -13,14 +13,15 @@ import os
 import subprocess
 import time
 
-from .mininode import COIN, ToHex, FromHex, CTransaction
+from .authproxy import JSONRPCException
+from .mininode import COIN, ToHex, FromHex, CTransaction, NodeConn
 from .util import (
     assert_equal,
     get_rpc_proxy,
     rpc_url,
     wait_until,
+    p2p_port,
 )
-from .authproxy import JSONRPCException
 
 BITCOIND_PROC_WAIT_TIMEOUT = 60
 
@@ -33,9 +34,10 @@ class TestNode():
     - state about the node (whether it's running, etc)
     - a Python subprocess.Popen object representing the running process
     - an RPC connection to the node
+    - one or more P2P connections to the node
 
-    To make things easier for the test writer, a bit of magic is happening under the covers.
-    Any unrecognised messages will be dispatched to the RPC connection."""
+    To make things easier for the test writer, any unrecognised messages will
+    be dispatched to the RPC connection."""
 
     def __init__(self, i, dirname, extra_args, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir):
         self.index = i
@@ -71,11 +73,13 @@ class TestNode():
         self.relay_fee_cache = None
         self.log = logging.getLogger('TestFramework.node%d' % i)
 
-    def __getattr__(self, *args, **kwargs):
+        self.p2ps = []
+
+    def __getattr__(self, name):
         """Dispatches any unrecognised messages to the RPC connection."""
         assert self.rpc is not None, "Error: RPC not initialized"
         assert self.rpc_connected, "Error: No RPC connection"
-        return self.rpc.__getattr__(*args, **kwargs)
+        return getattr(self.rpc, name)
 
     def start(self, extra_args=None, stderr=None):
         """Start the node."""
@@ -130,6 +134,7 @@ class TestNode():
             self.stop()
         except http.client.CannotSendRequest:
             self.log.exception("Unable to stop node.")
+        del self.p2ps[:]
 
     def is_node_stopped(self):
         """Checks whether the node has stopped.
@@ -182,6 +187,38 @@ class TestNode():
     def calculate_fee_from_txid(self, txid):
         ctx = FromHex(CTransaction(), self.getrawtransaction(txid))
         return self.calculate_fee(ctx)
+
+    def add_p2p_connection(self, p2p_conn, **kwargs):
+        """Add a p2p connection to the node.
+
+        This method adds the p2p connection to the self.p2ps list and also
+        returns the connection to the caller."""
+        if 'dstport' not in kwargs:
+            kwargs['dstport'] = p2p_port(self.index)
+        if 'dstaddr' not in kwargs:
+            kwargs['dstaddr'] = '127.0.0.1'
+        self.p2ps.append(p2p_conn)
+        kwargs.update({'rpc': self.rpc, 'callback': p2p_conn})
+        p2p_conn.add_connection(NodeConn(**kwargs))
+
+        return p2p_conn
+
+    @property
+    def p2p(self):
+        """Return the first p2p connection
+
+        Convenience property - most tests only use a single p2p connection to each
+        node, so this saves having to write node.p2ps[0] many times."""
+        assert self.p2ps, "No p2p connection"
+        return self.p2ps[0]
+
+    def disconnect_p2p(self, index=0):
+        """Close the p2p connection to the node."""
+        # Connection could have already been closed by other end. Calling disconnect_p2p()
+        # on an already disconnected p2p connection is not an error.
+        if self.p2ps[index].connection is not None:
+            self.p2ps[index].connection.disconnect_node()
+        del self.p2ps[index]
 
 
 class TestNodeCLI():
