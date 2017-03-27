@@ -137,6 +137,14 @@ EXTENDED_SCRIPTS = [
 ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS
 
 
+NON_SCRIPTS = [
+    # These are python files that live in the functional tests directory, but are not test scripts.
+    "combine_logs.py",
+    "create_cache.py",
+    "test_runner.py",
+]
+
+
 def main():
     # Parse arguments and pass through unrecognised args
     parser = argparse.ArgumentParser(add_help=False,
@@ -224,10 +232,10 @@ def main():
             (config["environment"]["SRCDIR"] + '/test/functional/' + test_list[0]).split() + ['-h'])
         sys.exit(0)
 
-    run_tests(
-        test_list, config["environment"][
-            "SRCDIR"], config["environment"]["BUILDDIR"],
-        config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
+    check_script_list(config["environment"]["SRCDIR"])
+
+    run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
+              config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
 
 
 def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=False, args=[]):
@@ -357,6 +365,21 @@ class TestHandler:
                     return name, stdout, stderr, status, int(
                         time.time() - time0)
             print('.', end='', flush=True)
+
+
+def check_script_list(src_dir):
+    """Check scripts directory.
+
+    Check that there are no scripts in the functional tests directory which are
+    not being run by pull-tester.py."""
+    script_dir = src_dir + '/test/functional/'
+    python_files = set([t for t in os.listdir(script_dir) if t[-3:] == ".py"])
+    missed_tests = list(
+        python_files - set(map(lambda x: x.split()[0], ALL_SCRIPTS + NON_SCRIPTS)))
+    if len(missed_tests) != 0:
+        print("The following scripts are not being run:" + str(missed_tests))
+        print("Check the test lists in test_runner.py")
+        sys.exit(1)
 
 
 class RPCCoverage(object):
