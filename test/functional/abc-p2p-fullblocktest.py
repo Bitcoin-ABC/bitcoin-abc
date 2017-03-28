@@ -30,14 +30,14 @@ class PreviousSpendableOutput(object):
 
 
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
-class TestNode(SingleNodeConnCB):
+class TestNode(NodeConnCB):
 
     def __init__(self):
         self.last_sendcmpct = None
         self.last_cmpctblock = None
         self.last_getheaders = None
         self.last_headers = None
-        SingleNodeConnCB.__init__(self)
+        super().__init__()
 
     def on_sendcmpct(self, conn, message):
         self.last_sendcmpct = message

@@ -20,10 +20,9 @@ Only testing Version 1 compact blocks (txids)
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
 
 
-class TestNode(SingleNodeConnCB):
-
+class TestNode(NodeConnCB):
     def __init__(self):
-        SingleNodeConnCB.__init__(self)
+        super().__init__()
         self.last_sendcmpct = []
         self.last_headers = None
         self.last_inv = None

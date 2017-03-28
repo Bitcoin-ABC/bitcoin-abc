@@ -32,10 +32,9 @@ def allInvsMatch(invsExpected, testnode):
 # and to send the node feefilter messages.
 
 
-class TestNode(SingleNodeConnCB):
-
+class TestNode(NodeConnCB):
     def __init__(self):
-        SingleNodeConnCB.__init__(self)
+        super().__init__()
         self.txinvs = []
 
     def on_inv(self, conn, message):
