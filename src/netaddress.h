@@ -82,7 +82,6 @@ public:
     bool IsLocal() const;
     bool IsRoutable() const;
     bool IsValid() const;
-    bool IsMulticast() const;
     enum Network GetNetwork() const;
     std::string ToString() const;
     std::string ToStringIP() const;
