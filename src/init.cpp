@@ -655,18 +655,6 @@ void SetupServerArgs() {
                        "already in the mempool, useful e.g. for a gateway"),
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg(
-        "-whitelistrelay",
-        strprintf(_("Accept relayed transactions received from whitelisted "
-                    "peers even when not relaying transactions (default: %d)"),
-                  DEFAULT_WHITELISTRELAY),
-        false, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
-        "-whitelistforcerelay",
-        strprintf(_("Force relay of transactions from whitelisted peers even "
-                    "if they violate local relay policy (default: %d)"),
-                  DEFAULT_WHITELISTFORCERELAY),
-        false, OptionsCategory::CONNECTION);
-    gArgs.AddArg(
         "-maxuploadtarget=<n>",
         strprintf(_("Tries to keep outbound traffic under the given target (in "
                     "MiB per 24h), 0 = no limit (default: %d)"),
@@ -883,6 +871,18 @@ void SetupServerArgs() {
             _("Fees (in %s/kB) smaller than this are considered zero fee for "
               "relaying, mining and transaction creation (default: %s)"),
             CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE_PER_KB)),
+        false, OptionsCategory::NODE_RELAY);
+    gArgs.AddArg(
+        "-whitelistrelay",
+        strprintf(_("Accept relayed transactions received from whitelisted "
+                    "peers even when not relaying transactions (default: %d)"),
+                  DEFAULT_WHITELISTRELAY),
+        false, OptionsCategory::NODE_RELAY);
+    gArgs.AddArg(
+        "-whitelistforcerelay",
+        strprintf(_("Force relay of transactions from whitelisted peers even "
+                    "if they violate local relay policy (default: %d)"),
+                  DEFAULT_WHITELISTFORCERELAY),
         false, OptionsCategory::NODE_RELAY);
 
     // Not sure this really belongs here, but it will do for now.
