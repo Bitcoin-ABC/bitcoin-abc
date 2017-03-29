@@ -1767,7 +1767,7 @@ void CConnman::ProcessOneShot() {
 
 void CConnman::ThreadOpenConnections() {
     // Connect to specific addresses
-    if (gArgs.IsArgSet("-connect") && gArgs.GetArgs("-connect").size() > 0) {
+    if (gArgs.IsArgSet("-connect")) {
         for (int64_t nLoop = 0;; nLoop++) {
             ProcessOneShot();
             for (const std::string &strAddr : gArgs.GetArgs("-connect")) {
@@ -2007,9 +2007,7 @@ std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo() {
 void CConnman::ThreadOpenAddedConnections() {
     {
         LOCK(cs_vAddedNodes);
-        if (gArgs.IsArgSet("-addnode")) {
-            vAddedNodes = gArgs.GetArgs("-addnode");
-        }
+        vAddedNodes = gArgs.GetArgs("-addnode");
     }
 
     while (true) {
@@ -3081,16 +3079,14 @@ std::string userAgent(const Config &config) {
     uacomments.push_back("EB" + eb);
 
     // sanitize comments per BIP-0014, format user agent and check total size
-    if (gArgs.IsArgSet("-uacomment")) {
-        for (const std::string &cmt : gArgs.GetArgs("-uacomment")) {
-            if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) {
-                LogPrintf(
-                    "User Agent comment (%s) contains unsafe characters. "
-                    "We are going to use a sanitize version of the comment.\n",
-                    cmt);
-            }
-            uacomments.push_back(cmt);
+    for (const std::string &cmt : gArgs.GetArgs("-uacomment")) {
+        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) {
+            LogPrintf(
+                "User Agent comment (%s) contains unsafe characters. "
+                "We are going to use a sanitize version of the comment.\n",
+                cmt);
         }
+        uacomments.push_back(cmt);
     }
 
     std::string subversion =
