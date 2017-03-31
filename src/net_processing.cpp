@@ -721,7 +721,7 @@ void AddToCompactExtraTransactions(const CTransactionRef &tx) {
     }
 
     vExtraTxnForCompact[vExtraTxnForCompactIt] =
-        std::make_pair(tx->GetHash(), tx);
+        std::make_pair(tx->GetId(), tx);
     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;
 }
 
@@ -1018,9 +1018,10 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
 
     int nDoS = 0;
     if (state.IsInvalid(nDoS)) {
-        if (it != mapBlockSource.end() && State(it->second.first)) {
-            // Blocks are never rejected with internal reject codes.
-            assert(state.GetRejectCode() < REJECT_INTERNAL);
+        // Don't send reject message with code 0 or an internal reject code.
+        if (it != mapBlockSource.end() && State(it->second.first) &&
+            state.GetRejectCode() > 0 &&
+            state.GetRejectCode() < REJECT_INTERNAL) {
             CBlockReject reject = {
                 uint8_t(state.GetRejectCode()),
                 state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
@@ -2255,9 +2256,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         if (state.IsInvalid(nDoS)) {
             LogPrint(
                 BCLog::MEMPOOLREJ, "%s from peer=%d was not accepted: %s\n",
-                tx.GetId().ToString(), pfrom->id, FormatStateMessage(state));
+                tx.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
             // Never send AcceptToMemoryPool's internal codes over P2P.
-            if (state.GetRejectCode() < REJECT_INTERNAL) {
+            if (state.GetRejectCode() > 0 &&
+                state.GetRejectCode() < REJECT_INTERNAL) {
                 connman.PushMessage(
                     pfrom,
                     msgMaker.Make(NetMsgType::REJECT, strCommand,
