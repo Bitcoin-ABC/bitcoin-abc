@@ -671,6 +671,11 @@ std::string HelpMessage(HelpMessageMode mode) {
             ". " + _("If <category> is not supplied or if <category> = 1, "
                      "output all debugging information.") +
             _("<category> can be:") + " " + ListLogCategories() + ".");
+    strUsage += HelpMessageOpt(
+        "-debugexclude=<category>",
+        strprintf(_("Exclude debugging information for a category. Can be used "
+                    "in conjunction with -debug=1 to output debug logs for all "
+                    "categories except one or more specified categories.")));
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-nodebug", "Turn off debugging messages, same as -debug=0");
@@ -1327,11 +1332,24 @@ bool AppInitParameterInteraction(Config &config) {
             for (const auto &cat : categories) {
                 uint32_t flag = 0;
                 if (!GetLogCategory(&flag, &cat)) {
-                    InitWarning(strprintf(
-                        _("Unsupported logging category %s.\n"), cat));
+                    InitWarning(
+                        strprintf(_("Unsupported logging category %s=%s."),
+                                  "-debug", cat));
                 }
                 logCategories |= flag;
             }
+        }
+    }
+
+    // Now remove the logging categories which were explicitly excluded
+    if (gArgs.IsArgSet("-debugexclude")) {
+        for (const std::string &cat : gArgs.GetArgs("-debugexclude")) {
+            uint32_t flag;
+            if (!GetLogCategory(&flag, &cat)) {
+                InitWarning(strprintf(_("Unsupported logging category %s=%s."),
+                                      "-debugexclude", cat));
+            }
+            logCategories &= ~flag;
         }
     }
 
