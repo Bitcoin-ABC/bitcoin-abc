@@ -125,6 +125,21 @@ std::string ListLogCategories() {
     return ret;
 }
 
+std::vector<CLogCategoryActive> ListActiveLogCategories() {
+    std::vector<CLogCategoryActive> ret;
+    for (const CLogCategoryDesc &category_desc : LogCategories) {
+        // Omit the special cases.
+        if (category_desc.flag != BCLog::NONE &&
+            category_desc.flag != BCLog::ALL) {
+            CLogCategoryActive catActive;
+            catActive.category = category_desc.category;
+            catActive.active = LogAcceptCategory(category_desc.flag);
+            ret.push_back(catActive);
+        }
+    }
+    return ret;
+}
+
 BCLog::Logger::~Logger() {
     if (m_fileout) {
         fclose(m_fileout);

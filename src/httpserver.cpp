@@ -8,6 +8,7 @@
 #include <chainparamsbase.h>
 #include <compat.h>
 #include <config.h>
+#include <logging.h>
 #include <netbase.h>
 #include <rpc/protocol.h> // For HTTP status codes
 #include <sync.h>
@@ -379,15 +380,14 @@ bool InitHTTPServer(Config &config) {
 
     // Redirect libevent's logging to our own log
     event_set_log_callback(&libevent_log_cb);
-#if LIBEVENT_VERSION_NUMBER >= 0x02010100
-    // If -debug=libevent, set full libevent debugging.
-    // Otherwise, disable all libevent debugging.
-    if (LogAcceptCategory(BCLog::LIBEVENT)) {
-        event_enable_debug_logging(EVENT_DBG_ALL);
-    } else {
-        event_enable_debug_logging(EVENT_DBG_NONE);
+    // Update libevent's log handling. Returns false if our version of
+    // libevent doesn't support debug logging, in which case we should
+    // clear the BCLog::LIBEVENT flag.
+    if (!UpdateHTTPServerLogging(
+            GetLogger().WillLogCategory(BCLog::LIBEVENT))) {
+        GetLogger().DisableCategory(BCLog::LIBEVENT);
     }
-#endif
+
 #ifdef WIN32
     evthread_use_windows_threads();
 #else
@@ -432,6 +432,20 @@ bool InitHTTPServer(Config &config) {
     eventBase = base_ctr.release();
     eventHTTP = http_ctr.release();
     return true;
+}
+
+bool UpdateHTTPServerLogging(bool enable) {
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+    if (enable) {
+        event_enable_debug_logging(EVENT_DBG_ALL);
+    } else {
+        event_enable_debug_logging(EVENT_DBG_NONE);
+    }
+    return true;
+#else
+    // Can't update libevent logging if version < 02010100
+    return false;
+#endif
 }
 
 std::thread threadHTTP;

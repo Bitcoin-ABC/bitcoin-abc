@@ -7,8 +7,10 @@
 #include <clientversion.h>
 #include <config.h>
 #include <core_io.h>
+#include <httpserver.h>
 #include <init.h>
 #include <key_io.h>
+#include <logging.h>
 #include <net.h>
 #include <netbase.h>
 #include <rpc/blockchain.h>
@@ -396,6 +398,93 @@ static UniValue getmemoryinfo(const Config &config,
     }
 }
 
+static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
+    cats = cats.get_array();
+    for (size_t i = 0; i < cats.size(); ++i) {
+        std::string cat = cats[i].get_str();
+
+        bool success;
+        if (enable) {
+            success = GetLogger().EnableCategory(cat);
+        } else {
+            success = GetLogger().DisableCategory(cat);
+        }
+
+        if (!success) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "unknown logging category " + cat);
+        }
+    }
+}
+
+static UniValue logging(const Config &config, const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() > 2) {
+        throw std::runtime_error(
+            "logging [include,...] <exclude>\n"
+            "Gets and sets the logging configuration.\n"
+            "When called without an argument, returns the list of categories "
+            "that are currently being debug logged.\n"
+            "When called with arguments, adds or removes categories from debug "
+            "logging.\n"
+            "The valid logging categories are: " +
+            ListLogCategories() +
+            "\n"
+            "libevent logging is configured on startup and cannot be modified "
+            "by this RPC during runtime.\n"
+            "Arguments:\n"
+            "1. \"include\" (array of strings) add debug logging for these "
+            "categories.\n"
+            "2. \"exclude\" (array of strings) remove debug logging for these "
+            "categories.\n"
+            "\nResult:\n"
+            "<categories>  (string): a list of the logging categories that are "
+            "active.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("logging", "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"") +
+            HelpExampleRpc("logging", "[\"all\"], \"[libevent]\""));
+    }
+
+    uint32_t original_log_categories = GetLogger().GetCategoryMask();
+    if (request.params.size() > 0 && request.params[0].isArray()) {
+        EnableOrDisableLogCategories(request.params[0], true);
+    }
+
+    if (request.params.size() > 1 && request.params[1].isArray()) {
+        EnableOrDisableLogCategories(request.params[1], false);
+    }
+
+    uint32_t updated_log_categories = GetLogger().GetCategoryMask();
+    uint32_t changed_log_categories =
+        original_log_categories ^ updated_log_categories;
+
+    /**
+     * Update libevent logging if BCLog::LIBEVENT has changed.
+     * If the library version doesn't allow it, UpdateHTTPServerLogging()
+     * returns false, in which case we should clear the BCLog::LIBEVENT flag.
+     * Throw an error if the user has explicitly asked to change only the
+     * libevent flag and it failed.
+     */
+    if (changed_log_categories & BCLog::LIBEVENT) {
+        if (!UpdateHTTPServerLogging(
+                GetLogger().WillLogCategory(BCLog::LIBEVENT))) {
+            GetLogger().DisableCategory(BCLog::LIBEVENT);
+            if (changed_log_categories == BCLog::LIBEVENT) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "libevent logging cannot be updated when "
+                                   "using libevent before v2.1.1.");
+            }
+        }
+    }
+
+    UniValue result(UniValue::VOBJ);
+    std::vector<CLogCategoryActive> vLogCatActive = ListActiveLogCategories();
+    for (const auto &logCatActive : vLogCatActive) {
+        result.pushKV(logCatActive.category, logCatActive.active);
+    }
+
+    return result;
+}
+
 static UniValue echo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp) {
         throw std::runtime_error(
@@ -439,6 +528,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "hidden",             "echo",                   echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "echojson",               echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     { "hidden",             "getinfo",                getinfo_deprecated,     {}},
+    { "hidden",             "logging",                logging,                {"include", "exclude"}},
 };
 // clang-format on
 

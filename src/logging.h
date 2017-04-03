@@ -23,6 +23,11 @@ static const bool DEFAULT_LOGTIMESTAMPS = true;
 extern bool fLogIPs;
 extern const char *const DEFAULT_DEBUGLOGFILE;
 
+struct CLogCategoryActive {
+    std::string category;
+    bool active;
+};
+
 namespace BCLog {
 
 enum LogFlags : uint32_t {
@@ -64,8 +69,7 @@ private:
     std::atomic_bool m_started_new_line{true};
 
     /**
-     * Log categories bitfield. Leveldb/libevent need special handling if their
-     * flags are changed at runtime.
+     * Log categories bitfield.
      */
     std::atomic<uint32_t> m_categories{0};
 
@@ -89,6 +93,8 @@ public:
     bool OpenDebugLog();
     void ShrinkDebugFile();
 
+    uint32_t GetCategoryMask() const { return m_categories.load(); }
+
     void EnableCategory(LogFlags category);
     bool EnableCategory(const std::string &str);
     void DisableCategory(LogFlags category);
@@ -110,8 +116,11 @@ static inline bool LogAcceptCategory(BCLog::LogFlags category) {
     return GetLogger().WillLogCategory(category);
 }
 
-/** Returns a string with the supported log categories */
+/** Returns a string with the log categories. */
 std::string ListLogCategories();
+
+/** Returns a vector of the active log categories. */
+std::vector<CLogCategoryActive> ListActiveLogCategories();
 
 /** Return true if str parses as a log category and set the flag */
 bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);

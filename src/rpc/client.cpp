@@ -127,6 +127,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"getmempoolancestors", 1, "verbose"},
     {"getmempooldescendants", 1, "verbose"},
     {"disconnectnode", 1, "nodeid"},
+    {"logging", 0, "include"},
+    {"logging", 1, "exclude"},
     // Echo with conversion (For testing only)
     {"echojson", 0, "arg0"},
     {"echojson", 1, "arg1"},
