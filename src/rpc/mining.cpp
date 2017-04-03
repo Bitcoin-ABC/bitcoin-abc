@@ -550,9 +550,6 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     UpdateTime(pblock, consensusParams, pindexPrev);
     pblock->nNonce = 0;
 
-    // NOTE: If at some point we support pre-segwit miners post-segwit-activation, this needs to take segwit support into consideration
-    const bool fPreSegWit = (THRESHOLD_ACTIVE != VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache));
-
     UniValue aCaps(UniValue::VARR); aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
@@ -583,10 +580,8 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
         int index_in_template = i - 1;
         entry.push_back(Pair("fee", pblocktemplate->vTxFees[index_in_template]));
         int64_t nTxSigOps = pblocktemplate->vTxSigOpsCost[index_in_template];
-        if (fPreSegWit) {
-            assert(nTxSigOps % WITNESS_SCALE_FACTOR == 0);
-            nTxSigOps /= WITNESS_SCALE_FACTOR;
-        }
+        assert(nTxSigOps % WITNESS_SCALE_FACTOR == 0);
+        nTxSigOps /= WITNESS_SCALE_FACTOR;
         entry.push_back(Pair("sigops", nTxSigOps));
         entry.push_back(Pair("weight", GetTransactionWeight(tx)));
 
@@ -671,17 +666,10 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
     int64_t nSigOpLimit = MAX_BLOCK_SIGOPS_COST;
-    if (fPreSegWit) {
-        assert(nSigOpLimit % WITNESS_SCALE_FACTOR == 0);
-        nSigOpLimit /= WITNESS_SCALE_FACTOR;
-    }
+    assert(nSigOpLimit % WITNESS_SCALE_FACTOR == 0);
+    nSigOpLimit /= WITNESS_SCALE_FACTOR;
     result.push_back(Pair("sigoplimit", nSigOpLimit));
-    if (fPreSegWit) {
-        result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_BASE_SIZE));
-    } else {
-        result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SERIALIZED_SIZE));
-        result.push_back(Pair("weightlimit", (int64_t)MAX_BLOCK_WEIGHT));
-    }
+    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_BASE_SIZE));
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
