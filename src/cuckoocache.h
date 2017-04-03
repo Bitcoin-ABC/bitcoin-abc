@@ -151,7 +151,7 @@ public:
  * @tparam Element should be a movable and copyable type
  * @tparam Hash should be a function/callable which takes a template parameter
  * hash_select and an Element and extracts a hash from it. Should return
- * high-entropy hashes for `Hash h; h<0>(e) ... h<7>(e)`.
+ * high-entropy uint32_t hashes for `Hash h; h<0>(e) ... h<7>(e)`.
  */
 template <typename Element, typename Hash> class cache {
 private:
@@ -194,13 +194,6 @@ private:
     uint32_t epoch_size;
 
     /**
-     * hash_mask should be set to appropriately mask out a hash such that every
-     * masked hash is [0,size), eg, if floor(log2(size)) == 20, then hash_mask
-     * should be (1<<20)-1
-     */
-    uint32_t hash_mask;
-
-    /**
      * depth_limit determines how many elements insert should try to replace.
      * Should be set to log2(n)
      */
@@ -221,14 +214,31 @@ private:
      * @returns std::array<uint32_t, 8> of deterministic hashes derived from e
      */
     inline std::array<uint32_t, 8> compute_hashes(const Element &e) const {
-        return {{hash_function.template operator()<0>(e) & hash_mask,
-                 hash_function.template operator()<1>(e) & hash_mask,
-                 hash_function.template operator()<2>(e) & hash_mask,
-                 hash_function.template operator()<3>(e) & hash_mask,
-                 hash_function.template operator()<4>(e) & hash_mask,
-                 hash_function.template operator()<5>(e) & hash_mask,
-                 hash_function.template operator()<6>(e) & hash_mask,
-                 hash_function.template operator()<7>(e) & hash_mask}};
+        return {
+            {uint32_t(
+                 (hash_function.template operator()<0>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<1>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<2>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<3>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<4>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<5>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<6>(e) * uint64_t(size)) >>
+                 32),
+             uint32_t(
+                 (hash_function.template operator()<7>(e) * uint64_t(size)) >>
+                 32)}};
     }
 
     /* end
@@ -304,8 +314,8 @@ public:
           hash_function() {}
 
     /**
-     * setup initializes the container to store no more than new_size elements.
-     * setup rounds down to a power of two size.
+     * setup initializes the container to store no more than new_size
+     * elements.
      *
      * setup should only be called once.
      *
@@ -316,8 +326,7 @@ public:
         // depth_limit must be at least one otherwise errors can occur.
         depth_limit = static_cast<uint8_t>(
             std::log2(static_cast<float>(std::max((uint32_t)2, new_size))));
-        size = 1 << depth_limit;
-        hash_mask = size - 1;
+        size = std::max<uint32_t>(2, new_size);
         table.resize(size);
         collection_flags.setup(size);
         epoch_flags.resize(size);
