@@ -221,7 +221,6 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps)
 
 // Perform transaction-level checks before adding to block:
 // - transaction finality (locktime)
-// - premature witness (in case segwit transactions are added to mempool before
 //   segwit activation)
 // - serialized size (in case -blockmaxsize is in use)
 bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries& package)
@@ -229,8 +228,6 @@ bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries& packa
     uint64_t nPotentialBlockSize = nBlockSize;
     BOOST_FOREACH (const CTxMemPool::txiter it, package) {
         if (!IsFinalTx(it->GetTx(), nHeight, nLockTimeCutoff))
-            return false;
-        if (it->GetTx().HasWitness())
             return false;
         uint64_t nTxSize = ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
         if (nPotentialBlockSize + nTxSize >= nBlockMaxSize) {
@@ -534,10 +531,6 @@ void BlockAssembler::addPriorityTxs()
             assert(false); // shouldn't happen for priority txs
             continue;
         }
-
-        // cannot accept witness transactions into a non-witness block
-        if (iter->GetTx().HasWitness())
-            continue;
 
         // If tx is dependent on other mempool txs which haven't yet been included
         // then put it in the waitSet
