@@ -148,7 +148,7 @@ public:
     // Dummy for deserialization
     CBlockHeaderAndShortTxIDs() {}
 
-    CBlockHeaderAndShortTxIDs(const CBlock& block, bool fUseWTXID);
+    CBlockHeaderAndShortTxIDs(const CBlock& block);
 
     uint64_t GetShortID(const uint256& txhash) const;
 
