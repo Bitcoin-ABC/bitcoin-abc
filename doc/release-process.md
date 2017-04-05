@@ -51,7 +51,6 @@ Bitcoin ABC Release Process
 9. Notify maintainers of Ubuntu PPA, AUR, and Docker images to build their packages.
 
 10. Increment version number in:
-    - doc/Doxyfile
     - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
     - configure.ac
     - src/config/CMakeLists.txt

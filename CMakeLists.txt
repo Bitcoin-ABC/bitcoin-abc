@@ -31,3 +31,4 @@ add_custom_target(check)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(doc)

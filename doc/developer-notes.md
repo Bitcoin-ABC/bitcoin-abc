@@ -158,7 +158,7 @@ but if possible use one of the above styles.
 
 To build doxygen locally to test changes to the Doxyfile or visualize your comments before landing changes:
 ```
-# at the project root, call:
+# In the build directory, call:
 doxygen doc/Doxyfile
 # output goes to doc/doxygen/html/
 ```
