@@ -1493,11 +1493,12 @@ bool AppInitParameterInteraction(Config &config) {
         if (find(categories.begin(), categories.end(), std::string("0")) ==
             categories.end()) {
             for (const auto &cat : categories) {
-                BCLog::LogFlags flag;
+                BCLog::LogFlags flag = BCLog::NONE;
                 if (!GetLogCategory(flag, cat)) {
                     InitWarning(
                         strprintf(_("Unsupported logging category %s=%s."),
                                   "-debug", cat));
+                    continue;
                 }
                 GetLogger().EnableCategory(flag);
             }
@@ -1506,10 +1507,11 @@ bool AppInitParameterInteraction(Config &config) {
 
     // Now remove the logging categories which were explicitly excluded
     for (const std::string &cat : gArgs.GetArgs("-debugexclude")) {
-        BCLog::LogFlags flag;
+        BCLog::LogFlags flag = BCLog::NONE;
         if (!GetLogCategory(flag, cat)) {
             InitWarning(strprintf(_("Unsupported logging category %s=%s."),
                                   "-debugexclude", cat));
+            continue;
         }
         GetLogger().DisableCategory(flag);
     }
