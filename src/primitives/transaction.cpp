@@ -67,12 +67,9 @@ uint256 CTransaction::ComputeHash() const
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
-uint256 CTransaction::GetWitnessHash() const
+uint256 CTransaction::GetHash() const
 {
-    if (!HasWitness()) {
-        return GetId();
-    }
-    return SerializeHash(*this, SER_GETHASH, 0);
+    return GetId();
 }
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
