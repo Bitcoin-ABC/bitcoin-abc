@@ -45,8 +45,7 @@ SET_DOC_OPTIONAL = set(['-benchmark',
                         '-whitelistalwaysrelay'])
 
 # list false positive unknows arguments
-SET_FALSE_POSITIVE_UNKNOWNS = set(['-nodebug',
-                                   '-zmqpubhashblock',
+SET_FALSE_POSITIVE_UNKNOWNS = set(['-zmqpubhashblock',
                                    '-zmqpubhashtx',
                                    '-zmqpubrawblock',
                                    '-zmqpubrawtx'])

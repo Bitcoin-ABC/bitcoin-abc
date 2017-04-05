@@ -726,10 +726,6 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(_("Exclude debugging information for a category. Can be used "
                     "in conjunction with -debug=1 to output debug logs for all "
                     "categories except one or more specified categories.")));
-    if (showDebug) {
-        strUsage += HelpMessageOpt(
-            "-nodebug", "Turn off debugging messages, same as -debug=0");
-    }
     strUsage += HelpMessageOpt(
         "-help-debug",
         _("Show all debugging options (usage: --help -help-debug)"));
