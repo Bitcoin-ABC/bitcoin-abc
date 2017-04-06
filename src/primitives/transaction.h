@@ -63,7 +63,6 @@ public:
     COutPoint prevout;
     CScript scriptSig;
     uint32_t nSequence;
-    CScriptWitness scriptWitness; //! Only serialized through CTransaction
 
     /* Setting nSequence to this value for every input in a transaction
      * disables nLockTime. */
@@ -210,69 +209,24 @@ struct CMutableTransaction;
  * - std::vector<CTxIn> vin
  * - std::vector<CTxOut> vout
  * - uint32_t nLockTime
- *
- * Extended transaction serialization format:
- * - int32_t nVersion
- * - unsigned char dummy = 0x00
- * - unsigned char flags (!= 0)
- * - std::vector<CTxIn> vin
- * - std::vector<CTxOut> vout
- * - if (flags & 1):
- *   - CTxWitness wit;
- * - uint32_t nLockTime
  */
 template<typename Stream, typename TxType>
 inline void UnserializeTransaction(TxType& tx, Stream& s) {
-    const bool fAllowWitness = !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
-
     s >> tx.nVersion;
-    unsigned char flags = 0;
     tx.vin.clear();
     tx.vout.clear();
     /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
     s >> tx.vin;
-    if (tx.vin.size() == 0 && fAllowWitness) {
-        /* We read a dummy or an empty vin. */
-        s >> flags;
-        if (flags != 0) {
-            s >> tx.vin;
-            s >> tx.vout;
-        }
-    } else {
-        /* We read a non-empty vin. Assume a normal vout follows. */
-        s >> tx.vout;
-    }
-    if ((flags & 1) && fAllowWitness) {
-        /* The witness flag is present, and we support witnesses. */
-        flags ^= 1;
-        for (size_t i = 0; i < tx.vin.size(); i++) {
-            s >> tx.vin[i].scriptWitness.stack;
-        }
-    }
-    if (flags) {
-        /* Unknown flag in the serialization */
-        throw std::ios_base::failure("Unknown transaction optional data");
-    }
+    /* We read a non-empty vin. Assume a normal vout follows. */
+    s >> tx.vout;
     s >> tx.nLockTime;
 }
 
 template<typename Stream, typename TxType>
 inline void SerializeTransaction(const TxType& tx, Stream& s) {
     s << tx.nVersion;
-    unsigned char flags = 0;
-    if (flags) {
-        /* Use extended format in case witnesses are to be serialized. */
-        std::vector<CTxIn> vinDummy;
-        s << vinDummy;
-        s << flags;
-    }
     s << tx.vin;
     s << tx.vout;
-    if (flags & 1) {
-        for (size_t i = 0; i < tx.vin.size(); i++) {
-            s << tx.vin[i].scriptWitness.stack;
-        }
-    }
     s << tx.nLockTime;
 }
 

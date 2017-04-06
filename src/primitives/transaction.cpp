@@ -131,8 +131,6 @@ std::string CTransaction::ToString() const
         nLockTime);
     for (unsigned int i = 0; i < vin.size(); i++)
         str += "    " + vin[i].ToString() + "\n";
-    for (unsigned int i = 0; i < vin.size(); i++)
-        str += "    " + vin[i].scriptWitness.ToString() + "\n";
     for (unsigned int i = 0; i < vout.size(); i++)
         str += "    " + vout[i].ToString() + "\n";
     return str;

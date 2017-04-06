@@ -82,7 +82,7 @@ ScriptError VerifyWithFlag(const CTransaction& output, const CMutableTransaction
  * and witness such that spendingTx spends output zero of creationTx.
  * Also inserts creationTx's output into the coins view.
  */
-void BuildTxs(CMutableTransaction& spendingTx, CCoinsViewCache& coins, CMutableTransaction& creationTx, const CScript& scriptPubKey, const CScript& scriptSig, const CScriptWitness& witness)
+void BuildTxs(CMutableTransaction& spendingTx, CCoinsViewCache& coins, CMutableTransaction& creationTx, const CScript& scriptPubKey, const CScript& scriptSig)
 {
     creationTx.nVersion = 1;
     creationTx.vin.resize(1);
@@ -97,7 +97,6 @@ void BuildTxs(CMutableTransaction& spendingTx, CCoinsViewCache& coins, CMutableT
     spendingTx.vin[0].prevout.hash = creationTx.GetId();
     spendingTx.vin[0].prevout.n = 0;
     spendingTx.vin[0].scriptSig = scriptSig;
-    spendingTx.vin[0].scriptWitness = witness;
     spendingTx.vout.resize(1);
     spendingTx.vout[0].nValue = 1;
     spendingTx.vout[0].scriptPubKey = CScript();
@@ -129,7 +128,7 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost)
         // Do not use a valid signature to avoid using wallet operations.
         CScript scriptSig = CScript() << OP_0 << OP_0;
 
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, CScriptWitness());
+        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig);
         // Legacy counting only includes signature operations in scriptSigs and scriptPubKeys
         // of a transaction and does not take the actual executed sig operations into account.
         // spendingTx in itself does not contain a signature operation.
@@ -147,7 +146,7 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost)
         CScript scriptPubKey = GetScriptForDestination(CScriptID(redeemScript));
         CScript scriptSig = CScript() << OP_0 << OP_0 << ToByteVector(redeemScript);
 
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, CScriptWitness());
+        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig);
         assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 2);
         assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_CHECKMULTISIGVERIFY);
     }

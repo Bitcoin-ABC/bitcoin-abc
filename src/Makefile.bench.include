@@ -21,7 +21,6 @@ bench_bench_bitcoin_SOURCES = \
   bench/crypto_hash.cpp \
   bench/ccoins_caching.cpp \
   bench/mempool_eviction.cpp \
-  bench/verify_script.cpp \
   bench/base58.cpp \
   bench/lockedpool.cpp \
   bench/perf.cpp \
