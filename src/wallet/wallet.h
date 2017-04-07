@@ -464,6 +464,37 @@ public:
     std::set<TxId> GetConflicts() const;
 };
 
+class CInputCoin {
+public:
+    CInputCoin(const CWalletTx *walletTx, unsigned int i) : wtx(walletTx) {
+        if (!walletTx) {
+            throw std::invalid_argument("walletTx should not be null");
+        }
+        if (i >= walletTx->tx->vout.size()) {
+            throw std::out_of_range("The output index is out of range");
+        }
+
+        outpoint = COutPoint(walletTx->GetId(), i);
+        txout = walletTx->tx->vout[i];
+    }
+
+    COutPoint outpoint;
+    CTxOut txout;
+    const CWalletTx *wtx;
+
+    bool operator<(const CInputCoin &rhs) const {
+        return outpoint < rhs.outpoint;
+    }
+
+    bool operator!=(const CInputCoin &rhs) const {
+        return outpoint != rhs.outpoint;
+    }
+
+    bool operator==(const CInputCoin &rhs) const {
+        return outpoint == rhs.outpoint;
+    }
+};
+
 class COutput {
 public:
     const CWalletTx *tx;
@@ -612,10 +643,10 @@ private:
      * all coins from coinControl are selected; Never select unconfirmed coins
      * if they are not ours.
      */
-    bool SelectCoins(
-        const std::vector<COutput> &vAvailableCoins, const Amount nTargetValue,
-        std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-        Amount &nValueRet, const CCoinControl *coinControl = nullptr) const;
+    bool SelectCoins(const std::vector<COutput> &vAvailableCoins,
+                     const Amount nTargetValue,
+                     std::set<CInputCoin> &setCoinsRet, Amount &nValueRet,
+                     const CCoinControl *coinControl = nullptr) const;
 
     CWalletDB *pwalletdbEncryption;
 
@@ -807,11 +838,11 @@ public:
      * completion the coin set and corresponding actual target value is
      * assembled.
      */
-    bool SelectCoinsMinConf(
-        const Amount nTargetValue, int nConfMine, int nConfTheirs,
-        uint64_t nMaxAncestors, std::vector<COutput> vCoins,
-        std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-        Amount &nValueRet) const;
+    bool SelectCoinsMinConf(const Amount nTargetValue, int nConfMine,
+                            int nConfTheirs, uint64_t nMaxAncestors,
+                            std::vector<COutput> vCoins,
+                            std::set<CInputCoin> &setCoinsRet,
+                            Amount &nValueRet) const;
 
     bool IsSpent(const TxId &txid, uint32_t n) const;
 
@@ -1215,8 +1246,7 @@ bool CWallet::DummySignTx(CMutableTransaction &txNew,
     // Fill in dummy signatures for fee calculation.
     int nIn = 0;
     for (const auto &coin : coins) {
-        const CScript &scriptPubKey =
-            coin.first->tx->vout[coin.second].scriptPubKey;
+        const CScript &scriptPubKey = coin.txout.scriptPubKey;
         SignatureData sigdata;
 
         if (!ProduceSignature(DummySignatureCreator(this), scriptPubKey,
