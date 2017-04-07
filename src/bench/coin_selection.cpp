@@ -52,7 +52,7 @@ static void CoinSelection(benchmark::State &state) {
             addCoin(1000 * COIN, wallet, vCoins);
         addCoin(3 * COIN, wallet, vCoins);
 
-        std::set<std::pair<const CWalletTx *, unsigned int>> setCoinsRet;
+        std::set<CInputCoin> setCoinsRet;
         Amount nValueRet;
         bool success = wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
                                                  setCoinsRet, nValueRet);
