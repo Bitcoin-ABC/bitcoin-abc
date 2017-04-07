@@ -71,7 +71,7 @@ ScriptError VerifyWithFlag(const CTransaction& output, const CMutableTransaction
 {
     ScriptError error;
     CTransaction inputi(input);
-    bool ret = VerifyScript(inputi.vin[0].scriptSig, output.vout[0].scriptPubKey, &inputi.vin[0].scriptWitness, flags, TransactionSignatureChecker(&inputi, 0, output.vout[0].nValue), &error);
+    bool ret = VerifyScript(inputi.vin[0].scriptSig, output.vout[0].scriptPubKey, flags, TransactionSignatureChecker(&inputi, 0, output.vout[0].nValue), &error);
     BOOST_CHECK((ret == true) == (error == SCRIPT_ERR_OK));
 
     return error;
@@ -149,85 +149,6 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost)
 
         BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, CScriptWitness());
         assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 2);
-        assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_CHECKMULTISIGVERIFY);
-    }
-
-    // P2WPKH witness program
-    {
-        CScript p2pk = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
-        CScript scriptPubKey = GetScriptForWitness(p2pk);
-        CScript scriptSig = CScript();
-        CScriptWitness scriptWitness;
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-
-        // We do not count sigops as they'll go in the extension block.
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
-        // No signature operations if we don't verify the witness.
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags & ~SCRIPT_VERIFY_WITNESS) == 0);
-        assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_EQUALVERIFY);
-
-        // The sig op cost for witness version != 0 is zero.
-        assert(scriptPubKey[0] == 0x00);
-        scriptPubKey[0] = 0x51;
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
-        scriptPubKey[0] = 0x00;
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-
-        // The witness of a coinbase transaction is not taken into account.
-        spendingTx.vin[0].prevout.SetNull();
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
-    }
-
-    // P2WPKH nested in P2SH
-    {
-        CScript p2pk = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
-        CScript scriptSig = GetScriptForWitness(p2pk);
-        CScript scriptPubKey = GetScriptForDestination(CScriptID(scriptSig));
-        scriptSig = CScript() << ToByteVector(scriptSig);
-        CScriptWitness scriptWitness;
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-
-        // We do not count sigops as they'll go in the extension block.
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
-        assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_EQUALVERIFY);
-    }
-
-    // Not sure we still want to do that with extension blocks.
-    // P2WSH witness program
-    {
-        CScript witnessScript = CScript() << 1 << ToByteVector(pubkey) << ToByteVector(pubkey) << 2 << OP_CHECKMULTISIGVERIFY;
-        CScript scriptPubKey = GetScriptForWitness(witnessScript);
-        CScript scriptSig = CScript();
-        CScriptWitness scriptWitness;
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(witnessScript.begin(), witnessScript.end()));
-
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags & ~SCRIPT_VERIFY_WITNESS) == 0);
-        assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_CHECKMULTISIGVERIFY);
-    }
-
-    // Not sure we still want to do that with extension blocks.
-    // P2WSH nested in P2SH
-    {
-        CScript witnessScript = CScript() << 1 << ToByteVector(pubkey) << ToByteVector(pubkey) << 2 << OP_CHECKMULTISIGVERIFY;
-        CScript redeemScript = GetScriptForWitness(witnessScript);
-        CScript scriptPubKey = GetScriptForDestination(CScriptID(redeemScript));
-        CScript scriptSig = CScript() << ToByteVector(redeemScript);
-        CScriptWitness scriptWitness;
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(0));
-        scriptWitness.stack.push_back(std::vector<unsigned char>(witnessScript.begin(), witnessScript.end()));
-
-        BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig, scriptWitness);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags) == 0);
         assert(VerifyWithFlag(creationTx, spendingTx, flags) == SCRIPT_ERR_CHECKMULTISIGVERIFY);
     }
 }

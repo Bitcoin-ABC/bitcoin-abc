@@ -1406,12 +1406,11 @@ static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, 
     return true;
 }
 
-bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
+bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
     static const CScriptWitness emptyWitness;
-    if (witness == NULL) {
-        witness = &emptyWitness;
-    }
+    const CScriptWitness* witness = &emptyWitness;
+
     bool hadWitness = false;
 
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);

@@ -1253,12 +1253,6 @@
 ["0x17 0x3014021077777777777777777777777777777777020001", "0 CHECKSIG NOT", "DERSIG", "SIG_DER", "Zero-length S is incorrectly encoded for DERSIG"],
 ["0x27 0x302402107777777777777777777777777777777702108777777777777777777777777777777701", "0 CHECKSIG NOT", "DERSIG", "SIG_DER", "Negative S is incorrectly encoded for DERSIG"],
 
-["Some basic segwit checks"],
-[["00", 0.00000000 ], "", "0 0x206e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d", "P2SH,WITNESS", "EVAL_FALSE", "Invalid witness script"],
-[["51", 0.00000000 ], "", "0 0x206e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d", "P2SH,WITNESS", "WITNESS_PROGRAM_MISMATCH", "Witness script hash mismatch"],
-[["00", 0.00000000 ], "", "0 0x206e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d", "", "OK", "Invalid witness script without WITNESS"],
-[["51", 0.00000000 ], "", "0 0x206e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d", "", "OK", "Witness script hash mismatch without WITNESS"],
-
 ["Automatically generated test cases"],
 [
     "0x47 0x304402200a5c6163f07b8d3b013c4d1d6dba25e780b39658d79ba37af7057a3b7f15ffa102201fd9b4eaa9943f734928b99a83592c2e7bf342ea2680f6a2bb705167966b742001",
