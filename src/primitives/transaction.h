@@ -303,8 +303,7 @@ public:
     unsigned int CalculateModifiedSize(unsigned int nTxSize=0) const;
 
     /**
-     * Get the total transaction size in bytes, including witness data.
-     * "Total Size" defined in BIP141 and BIP144.
+     * Get the total transaction size in bytes.
      * @return Total transaction size in bytes
      */
     unsigned int GetTotalSize() const;

@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-/** The maximum allowed size for a block excluding witness data, in bytes (network rule) */
+/** The maximum allowed size for a block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_BASE_SIZE = 1000000;
 /** The maximum allowed number of signature check operations in a block (network rule) */
 static const int64_t MAX_BLOCK_SIGOPS = 20000;
