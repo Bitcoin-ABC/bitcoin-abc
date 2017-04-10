@@ -94,7 +94,7 @@ void BuildTxs(CMutableTransaction& spendingTx, CCoinsViewCache& coins, CMutableT
 
     spendingTx.nVersion = 1;
     spendingTx.vin.resize(1);
-    spendingTx.vin[0].prevout.hash = creationTx.GetHash();
+    spendingTx.vin[0].prevout.hash = creationTx.GetId();
     spendingTx.vin[0].prevout.n = 0;
     spendingTx.vin[0].scriptSig = scriptSig;
     spendingTx.vin[0].scriptWitness = witness;
@@ -102,7 +102,7 @@ void BuildTxs(CMutableTransaction& spendingTx, CCoinsViewCache& coins, CMutableT
     spendingTx.vout[0].nValue = 1;
     spendingTx.vout[0].scriptPubKey = CScript();
 
-    coins.ModifyCoins(creationTx.GetHash())->FromTx(creationTx, 0);
+    coins.ModifyCoins(creationTx.GetId())->FromTx(creationTx, 0);
 }
 
 BOOST_AUTO_TEST_CASE(GetTxSigOpCost)

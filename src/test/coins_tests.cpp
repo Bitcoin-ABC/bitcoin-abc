@@ -275,12 +275,12 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
                     // Reuse the exact same coinbase
                     tx = std::get<0>(txd);
                     // shouldn't be available for reconnection if its been duplicated
-                    disconnectedids.erase(tx.GetHash());
+                    disconnectedids.erase(tx.GetId());
 
-                    duplicateids.insert(tx.GetHash());
+                    duplicateids.insert(tx.GetId());
                 }
                 else {
-                    coinbaseids.insert(tx.GetHash());
+                    coinbaseids.insert(tx.GetId());
                 }
                 assert(CTransaction(tx).IsCoinBase());
             }
@@ -295,22 +295,22 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
                     tx = std::get<0>(txd);
                     prevouthash = tx.vin[0].prevout.hash;
                     if (!CTransaction(tx).IsCoinBase() && !utxoset.count(prevouthash)) {
-                        disconnectedids.erase(tx.GetHash());
+                        disconnectedids.erase(tx.GetId());
                         continue;
                     }
 
                     // If this tx is already IN the UTXO, then it must be a coinbase, and it must be a duplicate
-                    if (utxoset.count(tx.GetHash())) {
+                    if (utxoset.count(tx.GetId())) {
                         assert(CTransaction(tx).IsCoinBase());
-                        assert(duplicateids.count(tx.GetHash()));
+                        assert(duplicateids.count(tx.GetId()));
                     }
-                    disconnectedids.erase(tx.GetHash());
+                    disconnectedids.erase(tx.GetId());
                 }
 
                 // 16/20 times create a regular tx
                 else {
                     TxData &txd = FindRandomFrom(utxoset);
-                    prevouthash = std::get<0>(txd).GetHash();
+                    prevouthash = std::get<0>(txd).GetId();
 
                     // Construct the tx to spend the coins of prevouthash
                     tx.vin[0].prevout.hash = prevouthash;
@@ -331,17 +331,17 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
 
             }
             // Update the expected result to know about the new output coins
-            result[tx.GetHash()].FromTx(tx, height);
+            result[tx.GetId()].FromTx(tx, height);
 
             // Call UpdateCoins on the top cache
             CTxUndo undo;
             UpdateCoins(tx, *(stack.back()), undo, height);
 
             // Update the utxo set for future spends
-            utxoset.insert(tx.GetHash());
+            utxoset.insert(tx.GetId());
 
             // Track this tx and undo info to use later
-            alltxs.insert(std::make_pair(tx.GetHash(),std::make_tuple(tx,undo,oldcoins)));
+            alltxs.insert(std::make_pair(tx.GetId(),std::make_tuple(tx,undo,oldcoins)));
         }
 
         //1/20 times undo a previous transaction
@@ -352,7 +352,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
             CTxUndo &undo = std::get<1>(txd);
             CCoins &origcoins = std::get<2>(txd);
 
-            uint256 undohash = tx.GetHash();
+            uint256 undohash = tx.GetId();
 
             // Update the expected result
             // Remove new outputs

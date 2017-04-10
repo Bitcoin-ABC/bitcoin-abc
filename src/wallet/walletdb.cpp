@@ -61,7 +61,7 @@ bool CWalletDB::ErasePurpose(const string& strPurpose)
 bool CWalletDB::WriteTx(const CWalletTx& wtx)
 {
     nWalletDBUpdateCounter++;
-    return Write(std::make_pair(std::string("tx"), wtx.GetHash()), wtx);
+    return Write(std::make_pair(std::string("tx"), wtx.GetId()), wtx);
 }
 
 bool CWalletDB::EraseTx(uint256 hash)
@@ -306,7 +306,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
-            if (!(CheckTransaction(wtx, state) && (wtx.GetHash() == hash) && state.IsValid()))
+            if (!(CheckTransaction(wtx, state) && (wtx.GetId() == hash) && state.IsValid()))
                 return false;
 
             // Undo serialize changes in 31600

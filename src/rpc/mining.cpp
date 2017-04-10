@@ -571,8 +571,8 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     int i = 0;
     for (const auto& it : pblock->vtx) {
         const CTransaction& tx = *it;
-        uint256 txHash = tx.GetHash();
-        setTxIndex[txHash] = i++;
+        uint256 txId = tx.GetId();
+        setTxIndex[txId] = i++;
 
         if (tx.IsCoinBase())
             continue;
@@ -580,7 +580,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
         UniValue entry(UniValue::VOBJ);
 
         entry.push_back(Pair("data", EncodeHexTx(tx)));
-        entry.push_back(Pair("txid", txHash.GetHex()));
+        entry.push_back(Pair("txid", txId.GetHex()));
         entry.push_back(Pair("hash", tx.GetWitnessHash().GetHex()));
 
         UniValue deps(UniValue::VARR);

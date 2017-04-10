@@ -349,7 +349,7 @@ public:
         return vin.empty() && vout.empty();
     }
 
-    const uint256& GetHash() const {
+    const uint256& GetId() const {
         return hash;
     }
 
@@ -430,13 +430,13 @@ struct CMutableTransaction
     }
 
     /** Compute the hash of this CMutableTransaction. This is computed on the
-     * fly, as opposed to GetHash() in CTransaction, which uses a cached result.
+     * fly, as opposed to GetId() in CTransaction, which uses a cached result.
      */
-    uint256 GetHash() const;
+    uint256 GetId() const;
 
     friend bool operator==(const CMutableTransaction& a, const CMutableTransaction& b)
     {
-        return a.GetHash() == b.GetHash();
+        return a.GetId() == b.GetId();
     }
 
     bool HasWitness() const

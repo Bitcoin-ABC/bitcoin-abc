@@ -57,7 +57,7 @@ std::string CTxOut::ToString() const
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
 CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
 
-uint256 CMutableTransaction::GetHash() const
+uint256 CMutableTransaction::GetId() const
 {
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
@@ -70,7 +70,7 @@ uint256 CTransaction::ComputeHash() const
 uint256 CTransaction::GetWitnessHash() const
 {
     if (!HasWitness()) {
-        return GetHash();
+        return GetId();
     }
     return SerializeHash(*this, SER_GETHASH, 0);
 }
@@ -126,8 +126,8 @@ unsigned int CTransaction::GetTotalSize() const
 std::string CTransaction::ToString() const
 {
     std::string str;
-    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
-        GetHash().ToString().substr(0,10),
+    str += strprintf("CTransaction(txid=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
+        GetId().ToString().substr(0,10),
         nVersion,
         vin.size(),
         vout.size(),

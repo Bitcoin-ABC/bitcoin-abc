@@ -68,7 +68,7 @@ void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
     } else {
         entry.push_back(Pair("trusted", wtx.IsTrusted()));
     }
-    uint256 hash = wtx.GetHash();
+    uint256 hash = wtx.GetId();
     entry.push_back(Pair("txid", hash.GetHex()));
     UniValue conflicts(UniValue::VARR);
     BOOST_FOREACH(const uint256& conflict, wtx.GetConflicts())
@@ -415,7 +415,7 @@ UniValue sendtoaddress(const JSONRPCRequest& request)
 
     SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx);
 
-    return wtx.GetHash().GetHex();
+    return wtx.GetId().GetHex();
 }
 
 UniValue listaddressgroupings(const JSONRPCRequest& request)
@@ -855,7 +855,7 @@ UniValue sendfrom(const JSONRPCRequest& request)
 
     SendMoney(address.Get(), nAmount, false, wtx);
 
-    return wtx.GetHash().GetHex();
+    return wtx.GetId().GetHex();
 }
 
 
@@ -973,7 +973,7 @@ UniValue sendmany(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
     }
 
-    return wtx.GetHash().GetHex();
+    return wtx.GetId().GetHex();
 }
 
 // Defined in rpc/misc.cpp
@@ -1173,7 +1173,7 @@ UniValue ListReceived(const UniValue& params, bool fByAccounts)
             tallyitem& item = mapTally[address];
             item.nAmount += txout.nValue;
             item.nConf = min(item.nConf, nDepth);
-            item.txids.push_back(wtx.GetHash());
+            item.txids.push_back(wtx.GetId());
             if (mine & ISMINE_WATCH_ONLY)
                 item.fIsWatchonly = true;
         }
@@ -2465,7 +2465,7 @@ UniValue listunspent(const JSONRPCRequest& request)
             continue;
 
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));
+        entry.push_back(Pair("txid", out.tx->GetId().GetHex()));
         entry.push_back(Pair("vout", out.i));
 
         if (fValidAddress) {

@@ -218,7 +218,7 @@ struct mempoolentry_txid
     typedef uint256 result_type;
     result_type operator() (const CTxMemPoolEntry &entry) const
     {
-        return entry.GetTx().GetHash();
+        return entry.GetTx().GetId();
     }
 };
 
@@ -271,7 +271,7 @@ public:
         double f1 = (double)a.GetModifiedFee() * b.GetTxSize();
         double f2 = (double)b.GetModifiedFee() * a.GetTxSize();
         if (f1 == f2) {
-            return b.GetTx().GetHash() < a.GetTx().GetHash();
+            return b.GetTx().GetId() < a.GetTx().GetId();
         }
         return f1 > f2;
     }
@@ -302,7 +302,7 @@ public:
         double f2 = aSize * bFees;
 
         if (f1 == f2) {
-            return a.GetTx().GetHash() < b.GetTx().GetHash();
+            return a.GetTx().GetId() < b.GetTx().GetId();
         }
 
         return f1 > f2;
@@ -488,7 +488,7 @@ public:
 
     struct CompareIteratorByHash {
         bool operator()(const txiter &a, const txiter &b) const {
-            return a->GetTx().GetHash() < b->GetTx().GetHash();
+            return a->GetTx().GetId() < b->GetTx().GetId();
         }
     };
     typedef std::set<txiter, CompareIteratorByHash> setEntries;

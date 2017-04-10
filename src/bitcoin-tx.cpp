@@ -708,7 +708,8 @@ static void OutputTxJSON(const CTransaction& tx)
 
 static void OutputTxHash(const CTransaction& tx)
 {
-    std::string strHexHash = tx.GetHash().GetHex(); // the hex-encoded transaction hash (aka the transaction id)
+    // the hex-encoded transaction id.
+    std::string strHexHash = tx.GetId().GetHex();
 
     fprintf(stdout, "%s\n", strHexHash.c_str());
 }

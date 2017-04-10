@@ -140,8 +140,8 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction& tx)
         return true;
     if (isEmpty)
         return false;
-    const uint256& hash = tx.GetHash();
-    if (contains(hash))
+    const uint256& txid = tx.GetId();
+    if (contains(txid))
         fFound = true;
 
     for (unsigned int i = 0; i < tx.vout.size(); i++)
@@ -162,14 +162,14 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction& tx)
             {
                 fFound = true;
                 if ((nFlags & BLOOM_UPDATE_MASK) == BLOOM_UPDATE_ALL)
-                    insert(COutPoint(hash, i));
+                    insert(COutPoint(txid, i));
                 else if ((nFlags & BLOOM_UPDATE_MASK) == BLOOM_UPDATE_P2PUBKEY_ONLY)
                 {
                     txnouttype type;
                     std::vector<std::vector<unsigned char> > vSolutions;
                     if (Solver(txout.scriptPubKey, type, vSolutions) &&
                             (type == TX_PUBKEY || type == TX_MULTISIG))
-                        insert(COutPoint(hash, i));
+                        insert(COutPoint(txid, i));
                 }
                 break;
             }

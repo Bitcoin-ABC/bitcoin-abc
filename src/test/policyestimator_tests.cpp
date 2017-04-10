@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates)
         for (int j = 0; j < 10; j++) { // For each fee
             for (int k = 0; k < 4; k++) { // add 4 fee txs
                 tx.vin[0].prevout.n = 10000*blocknum+100*j+k; // make transaction unique
-                uint256 hash = tx.GetHash();
+                uint256 hash = tx.GetId();
                 mpool.addUnchecked(hash, entry.Fee(feeV[j]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
                 txHashes[j].push_back(hash);
             }
@@ -131,9 +131,9 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates)
         for (int j = 0; j < 10; j++) { // For each fee multiple
             for (int k = 0; k < 4; k++) { // add 4 fee txs
                 tx.vin[0].prevout.n = 10000*blocknum+100*j+k;
-                uint256 hash = tx.GetHash();
-                mpool.addUnchecked(hash, entry.Fee(feeV[j]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
-                txHashes[j].push_back(hash);
+                uint256 txid = tx.GetId();
+                mpool.addUnchecked(txid, entry.Fee(feeV[j]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
+                txHashes[j].push_back(txid);
             }
         }
         mpool.removeForBlock(block, ++blocknum);
@@ -168,9 +168,9 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates)
         for (int j = 0; j < 10; j++) { // For each fee multiple
             for (int k = 0; k < 4; k++) { // add 4 fee txs
                 tx.vin[0].prevout.n = 10000*blocknum+100*j+k;
-                uint256 hash = tx.GetHash();
-                mpool.addUnchecked(hash, entry.Fee(feeV[j]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
-                CTransactionRef ptx = mpool.get(hash);
+                uint256 txid = tx.GetId();
+                mpool.addUnchecked(txid, entry.Fee(feeV[j]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
+                CTransactionRef ptx = mpool.get(txid);
                 if (ptx)
                     block.push_back(ptx);
 
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates)
 
     // Test that if the mempool is limited, estimateSmartFee won't return a value below the mempool min fee
     // and that estimateSmartPriority returns essentially an infinite value
-    mpool.addUnchecked(tx.GetHash(),  entry.Fee(feeV[5]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
+    mpool.addUnchecked(tx.GetId(), entry.Fee(feeV[5]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(tx, &mpool));
     // evict that transaction which should set a mempool min fee of minRelayTxFee + feeV[5]
     mpool.TrimToSize(1);
     BOOST_CHECK(mpool.GetMinFee(1).GetFeePerK() > feeV[5]);

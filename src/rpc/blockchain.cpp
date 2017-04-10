@@ -128,7 +128,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
             txs.push_back(objTx);
         }
         else
-            txs.push_back(tx->GetHash().GetHex());
+            txs.push_back(tx->GetId().GetHex());
     }
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
@@ -391,21 +391,21 @@ UniValue mempoolToJSON(bool fVerbose = false)
         UniValue o(UniValue::VOBJ);
         BOOST_FOREACH(const CTxMemPoolEntry& e, mempool.mapTx)
         {
-            const uint256& hash = e.GetTx().GetHash();
+            const uint256& txid = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
-            o.push_back(Pair(hash.ToString(), info));
+            o.push_back(Pair(txid.ToString(), info));
         }
         return o;
     }
     else
     {
-        vector<uint256> vtxid;
-        mempool.queryHashes(vtxid);
+        vector<uint256> vtxids;
+        mempool.queryHashes(vtxids);
 
         UniValue a(UniValue::VARR);
-        BOOST_FOREACH(const uint256& hash, vtxid)
-            a.push_back(hash.ToString());
+        BOOST_FOREACH(const uint256& txid, vtxids)
+            a.push_back(txid.ToString());
 
         return a;
     }
@@ -489,7 +489,7 @@ UniValue getmempoolancestors(const JSONRPCRequest& request)
     if (!fVerbose) {
         UniValue o(UniValue::VARR);
         BOOST_FOREACH(CTxMemPool::txiter ancestorIt, setAncestors) {
-            o.push_back(ancestorIt->GetTx().GetHash().ToString());
+            o.push_back(ancestorIt->GetTx().GetId().ToString());
         }
 
         return o;
@@ -497,7 +497,7 @@ UniValue getmempoolancestors(const JSONRPCRequest& request)
         UniValue o(UniValue::VOBJ);
         BOOST_FOREACH(CTxMemPool::txiter ancestorIt, setAncestors) {
             const CTxMemPoolEntry &e = *ancestorIt;
-            const uint256& _hash = e.GetTx().GetHash();
+            const uint256& _hash = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
             o.push_back(Pair(_hash.ToString(), info));
@@ -553,7 +553,7 @@ UniValue getmempooldescendants(const JSONRPCRequest& request)
     if (!fVerbose) {
         UniValue o(UniValue::VARR);
         BOOST_FOREACH(CTxMemPool::txiter descendantIt, setDescendants) {
-            o.push_back(descendantIt->GetTx().GetHash().ToString());
+            o.push_back(descendantIt->GetTx().GetId().ToString());
         }
 
         return o;
@@ -561,7 +561,7 @@ UniValue getmempooldescendants(const JSONRPCRequest& request)
         UniValue o(UniValue::VOBJ);
         BOOST_FOREACH(CTxMemPool::txiter descendantIt, setDescendants) {
             const CTxMemPoolEntry &e = *descendantIt;
-            const uint256& _hash = e.GetTx().GetHash();
+            const uint256& _hash = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
             o.push_back(Pair(_hash.ToString(), info));

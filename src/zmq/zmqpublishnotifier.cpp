@@ -154,11 +154,11 @@ bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex)
 
 bool CZMQPublishHashTransactionNotifier::NotifyTransaction(const CTransaction &transaction)
 {
-    uint256 hash = transaction.GetHash();
-    LogPrint("zmq", "zmq: Publish hashtx %s\n", hash.GetHex());
+    uint256 txid = transaction.GetId();
+    LogPrint("zmq", "zmq: Publish hashtx %s\n", txid.GetHex());
     char data[32];
     for (unsigned int i = 0; i < 32; i++)
-        data[31 - i] = hash.begin()[i];
+        data[31 - i] = txid.begin()[i];
     return SendMessage(MSG_HASHTX, data, 32);
 }
 
@@ -185,8 +185,8 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex)
 
 bool CZMQPublishRawTransactionNotifier::NotifyTransaction(const CTransaction &transaction)
 {
-    uint256 hash = transaction.GetHash();
-    LogPrint("zmq", "zmq: Publish rawtx %s\n", hash.GetHex());
+    uint256 txid = transaction.GetId();
+    LogPrint("zmq", "zmq: Publish rawtx %s\n", txid.GetHex());
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ss << transaction;
     return SendMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
