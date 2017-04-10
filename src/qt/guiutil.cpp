@@ -426,6 +426,23 @@ void openDebugLogfile() {
     }
 }
 
+bool openBitcoinConf() {
+    fs::path pathConfig = GetConfigFile(BITCOIN_CONF_FILENAME);
+
+    /* Create the file */
+    fs::ofstream configFile(pathConfig, std::ios_base::app);
+
+    if (!configFile.good()) {
+        return false;
+    }
+
+    configFile.close();
+
+    /* Open bitcoin.conf with the associated application */
+    return QDesktopServices::openUrl(
+        QUrl::fromLocalFile(boostPathToQString(pathConfig)));
+}
+
 void SubstituteFonts(const QString &language) {
 #if defined(Q_OS_MAC)
 // Background:
