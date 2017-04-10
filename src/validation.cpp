@@ -570,12 +570,12 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
-    if (!CheckTransaction(tx, state))
-        return false; // state filled in by CheckTransaction
-
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
+
+    if (!CheckTransaction(tx, state))
+        return false; // state filled in by CheckTransaction
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
