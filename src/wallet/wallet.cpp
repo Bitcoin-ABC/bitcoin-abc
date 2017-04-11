@@ -1107,12 +1107,12 @@ bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
 }
 
 /**
- * Add a transaction to the wallet, or update it. pIndex and posInBlock should
- * be set when the transaction was known to be included in a block. When
- * posInBlock = SYNC_TRANSACTION_NOT_IN_BLOCK (-1), then wallet state is not
- * updated in AddToWallet, but notifications happen and cached balances are
- * marked dirty. If fUpdate is true, existing transactions will be updated.
+ * Add a transaction to the wallet, or update it.  pIndex and posInBlock should
+ * be set when the transaction was known to be included in a block. When pIndex
+ * == nullptr, then wallet state is not updated in AddToWallet, but
+ * notifications happen and cached balances are marked dirty.
  *
+ * If fUpdate is true, existing transactions will be updated.
  * TODO: One exception to this is that the abandoned state is cleared under the
  * assumption that any further notification of a transaction that was considered
  * abandoned is an indication that it is not safe to be considered abandoned.
@@ -1125,7 +1125,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
     const CTransaction &tx = *ptx;
     AssertLockHeld(cs_wallet);
 
-    if (posInBlock != -1) {
+    if (pIndex != nullptr) {
         for (const CTxIn &txin : tx.vin) {
             std::pair<TxSpends::const_iterator, TxSpends::const_iterator>
                 range = mapTxSpends.equal_range(txin.prevout);
@@ -1184,8 +1184,8 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
 
         CWalletTx wtx(this, ptx);
 
-        // Get merkle branch if transaction was found in a block.
-        if (posInBlock != -1) {
+        // Get merkle branch if transaction was found in a block
+        if (pIndex != nullptr) {
             wtx.SetMerkleBranch(pIndex, posInBlock);
         }
 
@@ -1321,12 +1321,10 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) {
 }
 
 void CWallet::SyncTransaction(const CTransactionRef &ptx,
-                              const CBlockIndex *pindexBlockConnected,
-                              int posInBlock) {
+                              const CBlockIndex *pindex, int posInBlock) {
     const CTransaction &tx = *ptx;
 
-    if (!AddToWalletIfInvolvingMe(ptx, pindexBlockConnected, posInBlock,
-                                  true)) {
+    if (!AddToWalletIfInvolvingMe(ptx, pindex, posInBlock, true)) {
         // Not one of ours
         return;
     }
@@ -1343,7 +1341,7 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
 
 void CWallet::TransactionAddedToMempool(const CTransactionRef &ptx) {
     LOCK2(cs_main, cs_wallet);
-    SyncTransaction(ptx, nullptr, -1);
+    SyncTransaction(ptx);
 }
 
 void CWallet::BlockConnected(
@@ -1359,7 +1357,7 @@ void CWallet::BlockConnected(
     // that the conflicted transaction was evicted.
 
     for (const CTransactionRef &ptx : vtxConflicted) {
-        SyncTransaction(ptx, nullptr, -1);
+        SyncTransaction(ptx);
     }
     for (size_t i = 0; i < pblock->vtx.size(); i++) {
         SyncTransaction(pblock->vtx[i], pindex, i);
@@ -1370,7 +1368,7 @@ void CWallet::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) {
     LOCK2(cs_main, cs_wallet);
 
     for (const CTransactionRef &ptx : pblock->vtx) {
-        SyncTransaction(ptx, nullptr, -1);
+        SyncTransaction(ptx);
     }
 }
 
