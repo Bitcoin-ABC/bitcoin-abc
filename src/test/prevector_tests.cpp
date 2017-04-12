@@ -5,12 +5,12 @@
 #include "prevector.h"
 #include <vector>
 
+#include "reverse_iterator.h"
 #include "serialize.h"
 #include "streams.h"
 
 #include "test/test_bitcoin.h"
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(prevector_tests, TestingSetup)
@@ -53,15 +53,13 @@ template <unsigned int N, typename T> class prevector_tester {
         for (const T &v : pre_vector) {
             local_check(v == real_vector[pos++]);
         }
-        // FIXME: For some reason, the prevector iterrator doesn't conform to
-        // what boost::adaptors::reverse expect.
-        for (const T &v : boost::adaptors::reverse(pre_vector)) {
+        for (const T &v : reverse_iterate(pre_vector)) {
             local_check(v == real_vector[--pos]);
         }
         for (const T &v : const_pre_vector) {
             local_check(v == real_vector[pos++]);
         }
-        for (const T &v : boost::adaptors::reverse(const_pre_vector)) {
+        for (const T &v : reverse_iterate(const_pre_vector)) {
             local_check(v == real_vector[--pos]);
         }
         CDataStream ss1(SER_DISK, 0);

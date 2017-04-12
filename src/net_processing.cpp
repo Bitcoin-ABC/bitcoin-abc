@@ -23,6 +23,7 @@
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 #include "random.h"
+#include "reverse_iterator.h"
 #include "scheduler.h"
 #include "tinyformat.h"
 #include "txmempool.h"
@@ -32,8 +33,6 @@
 #include "utilstrencodings.h"
 #include "validation.h"
 #include "validationinterface.h"
-
-#include <boost/range/adaptor/reversed.hpp>
 
 #if defined(NDEBUG)
 #error "Bitcoin cannot be compiled without assertions."
@@ -1067,7 +1066,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
             if (nNewHeight > (pnode->nStartingHeight != -1
                                   ? pnode->nStartingHeight - 2000
                                   : 0)) {
-                for (const uint256 &hash : boost::adaptors::reverse(vHashes)) {
+                for (const uint256 &hash : reverse_iterate(vHashes)) {
                     pnode->PushBlockHash(hash);
                 }
             }
@@ -1651,8 +1650,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
             } else {
                 std::vector<CInv> vGetData;
                 // Download as much as possible, from earliest to latest.
-                for (const CBlockIndex *pindex :
-                     boost::adaptors::reverse(vToFetch)) {
+                for (const CBlockIndex *pindex : reverse_iterate(vToFetch)) {
                     if (nodestate->nBlocksInFlight >=
                         MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
                         // Can't download any more from this peer

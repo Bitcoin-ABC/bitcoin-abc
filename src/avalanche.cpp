@@ -7,10 +7,9 @@
 #include "chain.h"
 #include "config/bitcoin-config.h"
 #include "netmessagemaker.h"
+#include "reverse_iterator.h"
 #include "scheduler.h"
 #include "validation.h"
-
-#include <boost/range/adaptor/reversed.hpp>
 
 #include <tuple>
 
@@ -315,7 +314,7 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
 
     auto r = vote_records.getReadView();
     for (const std::pair<const CBlockIndex *, VoteRecord> &p :
-         boost::adaptors::reverse(r)) {
+         reverse_iterate(r)) {
         const CBlockIndex *pindex = p.first;
         if (!IsWorthPolling(pindex)) {
             // Obviously do not poll if the block is not worth polling.

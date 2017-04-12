@@ -12,6 +12,7 @@
 #include "consensus/validation.h"
 #include "policy/fees.h"
 #include "policy/policy.h"
+#include "reverse_iterator.h"
 #include "streams.h"
 #include "timedata.h"
 #include "util.h"
@@ -19,8 +20,6 @@
 #include "utiltime.h"
 #include "validation.h"
 #include "version.h"
-
-#include <boost/range/adaptor/reversed.hpp>
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
                                  int64_t _nTime, double _entryPriority,
@@ -156,7 +155,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(
     // This maximizes the benefit of the descendant cache and guarantees that
     // setMemPoolChildren will be updated, an assumption made in
     // UpdateForDescendants.
-    for (const TxId &txid : boost::adaptors::reverse(txidsToUpdate)) {
+    for (const TxId &txid : reverse_iterate(txidsToUpdate)) {
         // we cache the in-mempool children to avoid duplicate updates
         setEntries setChildren;
         // calculate children from mapNextTx
@@ -664,8 +663,8 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
     disconnectpool.addForBlock(vtx);
 
     std::vector<const CTxMemPoolEntry *> entries;
-    for (const CTransactionRef &tx : boost::adaptors::reverse(
-             disconnectpool.GetQueuedTx().get<insertion_order>())) {
+    for (const CTransactionRef &tx :
+         reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
         uint256 txid = tx->GetId();
 
         indexed_transaction_set::iterator i = mapTx.find(txid);
@@ -677,8 +676,8 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
     // Before the txs in the new block have been removed from the mempool,
     // update policy estimates
     minerPolicyEstimator->processBlock(nBlockHeight, entries);
-    for (const CTransactionRef &tx : boost::adaptors::reverse(
-             disconnectpool.GetQueuedTx().get<insertion_order>())) {
+    for (const CTransactionRef &tx :
+         reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
         txiter it = mapTx.find(tx->GetId());
         if (it != mapTx.end()) {
             setEntries stage;
@@ -1302,7 +1301,7 @@ static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
 
 void DisconnectedBlockTransactions::addForBlock(
     const std::vector<CTransactionRef> &vtx) {
-    for (const auto &tx : boost::adaptors::reverse(vtx)) {
+    for (const auto &tx : reverse_iterate(vtx)) {
         // If we already added it, just skip.
         auto it = queuedTx.find(tx->GetId());
         if (it != queuedTx.end()) {
@@ -1369,7 +1368,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     // the mempool starting with the earliest transaction that had been
     // previously seen in a block.
     for (const CTransactionRef &tx :
-         boost::adaptors::reverse(queuedTx.get<insertion_order>())) {
+         reverse_iterate(queuedTx.get<insertion_order>())) {
         // ignore validation errors in resurrected transactions
         CValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
