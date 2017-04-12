@@ -1075,7 +1075,7 @@ Note:  Since the fee is calculated on a per-byte basis, a fee of "100 satoshis p
         <bool>false</bool>
        </property>
        <property name="default">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
