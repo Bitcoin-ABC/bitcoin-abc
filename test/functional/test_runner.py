@@ -177,6 +177,8 @@ def main():
                         action='store_true', help='print help text and exit')
     parser.add_argument('--jobs', '-j', type=int, default=4,
                         help='how many test scripts to run in parallel. Default=4.')
+    parser.add_argument('--keepcache', '-k', action='store_true',
+                        help='the default behavior is to flush the cache directory on startup. --keepcache retains the cache from the previous testrun.')
     parser.add_argument('--quiet', '-q', action='store_true',
                         help='only print results summary and failure logs')
     args, unknown_args = parser.parse_known_args()
@@ -252,18 +254,37 @@ def main():
 
     check_script_list(config["environment"]["SRCDIR"])
 
+    if not args.keepcache:
+        shutil.rmtree("%s/test/cache" %
+                      config["environment"]["BUILDDIR"], ignore_errors=True)
+
     run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
               config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
 
 
 def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=False, args=[]):
+    # Warn if bitcoind is already running (unix only)
+    try:
+        if subprocess.check_output(["pidof", "bitcoind"]) is not None:
+            print("%sWARNING!%s There is already a bitcoind process running on this system. Tests may fail unexpectedly due to resource contention!" % (
+                BOLD[1], BOLD[0]))
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+    # Warn if there is a cache directory
+    cache_dir = "%s/test/cache" % build_dir
+    if os.path.isdir(cache_dir):
+        print("%sWARNING!%s There is a cache directory here: %s. If tests fail unexpectedly, try deleting the cache directory." % (
+            BOLD[1], BOLD[0], cache_dir))
+
     # Set env vars
     if "BITCOIND" not in os.environ:
         os.environ["BITCOIND"] = build_dir + '/src/bitcoind' + exeext
 
     tests_dir = src_dir + '/test/functional/'
-    flags = ["--srcdir={}".format(src_dir)] + args
-    flags.append("--cachedir=%s/test/cache" % build_dir)
+
+    flags = ["--srcdir={}/src".format(build_dir)] + args
+    flags.append("--cachedir=%s" % cache_dir)
 
     if enable_coverage:
         coverage = RPCCoverage()
@@ -432,9 +453,11 @@ def check_script_list(src_dir):
     missed_tests = list(
         python_files - set(map(lambda x: x.split()[0], ALL_SCRIPTS + NON_SCRIPTS)))
     if len(missed_tests) != 0:
-        print("The following scripts are not being run:" + str(missed_tests))
-        print("Check the test lists in test_runner.py")
-        sys.exit(1)
+        print("%sWARNING!%s The following scripts are not being run: %s. Check the test lists in test_runner.py." % (
+            BOLD[1], BOLD[0], str(missed_tests)))
+        if os.getenv('TRAVIS') == 'true':
+            # On travis this warning is an error to prevent merging incomplete commits into master
+            sys.exit(1)
 
 
 class RPCCoverage(object):
