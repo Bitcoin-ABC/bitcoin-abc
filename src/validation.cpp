@@ -27,6 +27,7 @@
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 #include "random.h"
+#include "reverse_iterator.h"
 #include "script/script.h"
 #include "script/scriptcache.h"
 #include "script/sigcache.h"
@@ -49,7 +50,6 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/range/adaptor/reversed.hpp>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -2711,8 +2711,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
         nHeight = nTargetHeight;
 
         // Connect new blocks.
-        for (CBlockIndex *pindexConnect :
-             boost::adaptors::reverse(vpindexToConnect)) {
+        for (CBlockIndex *pindexConnect : reverse_iterate(vpindexToConnect)) {
             if (!ConnectTip(config, state, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock

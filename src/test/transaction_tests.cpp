@@ -29,7 +29,6 @@
 #include <map>
 #include <string>
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>

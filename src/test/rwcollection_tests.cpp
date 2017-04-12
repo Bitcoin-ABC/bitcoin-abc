@@ -2,11 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "reverse_iterator.h"
 #include "rwcollection.h"
 
 #include "test/test_bitcoin.h"
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <set>
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(vector) {
         }
 
         e = 0;
-        for (int &i : boost::adaptors::reverse(w)) {
+        for (int &i : reverse_iterate(w)) {
             BOOST_CHECK_EQUAL(i, 198 - 2 * e);
             i = e++;
         }
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(vector) {
         }
 
         e = 0;
-        for (const int &i : boost::adaptors::reverse(r)) {
+        for (const int &i : reverse_iterate(r)) {
             BOOST_CHECK_EQUAL(i, e++);
         }
     }
