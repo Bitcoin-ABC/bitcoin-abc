@@ -130,7 +130,6 @@ EXTENDED_SCRIPTS = [
     'txn_clone.py --mineblock',
     'forknotify.py',
     'invalidateblock.py',
-    'maxblocksinflight.py',
     'p2p-acceptblock.py',
 ]
 
