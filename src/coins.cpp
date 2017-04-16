@@ -19,6 +19,9 @@ bool CCoinsView::HaveCoin(const COutPoint &outpoint) const {
 uint256 CCoinsView::GetBestBlock() const {
     return uint256();
 }
+std::vector<uint256> CCoinsView::GetHeadBlocks() const {
+    return std::vector<uint256>();
+}
 bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     return false;
 }
@@ -35,6 +38,9 @@ bool CCoinsViewBacked::HaveCoin(const COutPoint &outpoint) const {
 }
 uint256 CCoinsViewBacked::GetBestBlock() const {
     return base->GetBestBlock();
+}
+std::vector<uint256> CCoinsViewBacked::GetHeadBlocks() const {
+    return base->GetHeadBlocks();
 }
 void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) {
     base = &viewIn;
@@ -122,15 +128,17 @@ void CCoinsViewCache::AddCoin(const COutPoint &outpoint, Coin coin,
     cachedCoinsUsage += it->second.coin.DynamicMemoryUsage();
 }
 
-void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight) {
+void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight,
+              bool check) {
     bool fCoinbase = tx.IsCoinBase();
     const uint256 &txid = tx.GetHash();
     for (size_t i = 0; i < tx.vout.size(); ++i) {
-        // Pass fCoinbase as the possible_overwrite flag to AddCoin, in order to
-        // correctly deal with the pre-BIP30 occurrances of duplicate coinbase
-        // transactions.
+        bool overwrite = check ? cache.HaveCoin(COutPoint(txid, i)) : fCoinbase;
+        // Always set the possible_overwrite flag to AddCoin for coinbase txn,
+        // in order to correctly deal with the pre-BIP30 occurrences of
+        // duplicate coinbase transactions.
         cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase),
-                      fCoinbase);
+                      overwrite);
     }
 }
 

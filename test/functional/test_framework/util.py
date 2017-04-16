@@ -511,7 +511,10 @@ def random_transaction(nodes, amount, min_fee, fee_increment, fee_variants):
 
 
 def create_confirmed_utxos(fee, node, count, age=101):
-    node.generate(int(0.5 * count) + age)
+    to_generate = int(0.5 * count) + age
+    while to_generate > 0:
+        node.generate(min(25, to_generate))
+        to_generate -= 25
     utxos = node.listunspent()
     iterations = count - len(utxos)
     addr1 = node.getnewaddress()

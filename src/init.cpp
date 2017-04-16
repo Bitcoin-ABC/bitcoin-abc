@@ -355,6 +355,13 @@ std::string HelpMessage(HelpMessageMode mode) {
 #endif
     }
     strUsage += HelpMessageOpt("-datadir=<dir>", _("Specify data directory"));
+    if (showDebug) {
+        strUsage += HelpMessageOpt(
+            "-dbbatchsize",
+            strprintf(
+                "Maximum database write batch size in bytes (default: %u)",
+                nDefaultDbBatchSize));
+    }
     strUsage += HelpMessageOpt(
         "-dbcache=<n>",
         strprintf(
@@ -1971,7 +1978,6 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false,
                                                 fReindex || fReindexChainState);
                 pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
-                pcoinsTip = new CCoinsViewCache(pcoinscatcher);
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
@@ -2025,6 +2031,16 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                           "entire blockchain");
                     break;
                 }
+
+                if (!ReplayBlocks(config, pcoinsdbview)) {
+                    strLoadError =
+                        _("Unable to replay blocks. You will need to rebuild "
+                          "the database using -reindex-chainstate.");
+                    break;
+                }
+
+                pcoinsTip = new CCoinsViewCache(pcoinscatcher);
+                LoadChainTip(chainparams);
 
                 if (!fReindex && chainActive.Tip() != nullptr) {
                     uiInterface.InitMessage(_("Rewinding blocks..."));

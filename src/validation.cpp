@@ -97,7 +97,7 @@ const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 namespace {
 
 struct CBlockIndexWorkComparator {
-    bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
+    bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
         // First sort by most total work, ...
         if (pa->nChainWork > pb->nChainWork) return false;
         if (pa->nChainWork < pb->nChainWork) return true;
@@ -1641,20 +1641,22 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
                                         alternate.IsCoinBase());
     }
 
-    view.AddCoin(out, undo, undo.IsCoinBase());
+    // The potential_overwrite parameter to AddCoin is only allowed to be false
+    // if we know for sure that the coin did not already exist in the cache. As
+    // we have queried for that above using HaveCoin, we don't need to guess.
+    // When fClean is false, a coin already existed and it is an overwrite.
+    view.AddCoin(out, std::move(undo), !fClean);
+
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
 /**
  * Undo the effects of this block (with given index) on the UTXO set represented
- * by coins. When UNCLEAN or FAILED is returned, view is left in an
- * indeterminate state.
+ * by coins. When FAILED is returned, view is left in an indeterminate state.
  */
 static DisconnectResult DisconnectBlock(const CBlock &block,
                                         const CBlockIndex *pindex,
                                         CCoinsViewCache &view) {
-    assert(pindex->GetBlockHash() == view.GetBestBlock());
-
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
     if (pos.IsNull()) {
@@ -2244,23 +2246,17 @@ static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
         }
         int64_t nMempoolSizeMax =
             GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-        int64_t cacheSize =
-            pcoinsTip->DynamicMemoryUsage() * DB_PEAK_USAGE_FACTOR;
+        int64_t cacheSize = pcoinsTip->DynamicMemoryUsage();
         int64_t nTotalSpace =
             nCoinCacheUsage +
             std::max<int64_t>(nMempoolSizeMax - nMempoolUsage, 0);
-        // The cache is large and we're within 10% and 200 MiB or 50% and 50MiB
-        // of the limit, but we have time now (not in the middle of a block
-        // processing).
+        // The cache is large and we're within 10% and 10 MiB of the limit, but
+        // we have time now (not in the middle of a block processing).
         bool fCacheLarge =
             mode == FLUSH_STATE_PERIODIC &&
             cacheSize >
-                std::min(std::max(nTotalSpace / 2,
-                                  nTotalSpace -
-                                      MIN_BLOCK_COINSDB_USAGE * 1024 * 1024),
-                         std::max((9 * nTotalSpace) / 10,
-                                  nTotalSpace -
-                                      MAX_BLOCK_COINSDB_USAGE * 1024 * 1024));
+                std::max((9 * nTotalSpace) / 10,
+                         nTotalSpace - MAX_BLOCK_COINSDB_USAGE * 1024 * 1024);
         // The cache is over the limit, we have to write now.
         bool fCacheCritical =
             mode == FLUSH_STATE_IF_NEEDED && cacheSize > nTotalSpace;
@@ -2465,6 +2461,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
+        assert(view.GetBestBlock() == pindexDelete->GetBlockHash());
         if (DisconnectBlock(block, pindexDelete, view) != DISCONNECT_OK) {
             return error("DisconnectTip(): DisconnectBlock %s failed",
                          pindexDelete->GetBlockHash().ToString());
@@ -4183,23 +4180,31 @@ static bool LoadBlockIndexDB(const CChainParams &chainparams) {
     LogPrintf("%s: transaction index %s\n", __func__,
               fTxIndex ? "enabled" : "disabled");
 
+    return true;
+}
+
+void LoadChainTip(const CChainParams &chainparams) {
+    if (chainActive.Tip() &&
+        chainActive.Tip()->GetBlockHash() == pcoinsTip->GetBestBlock()) {
+        return;
+    }
+
     // Load pointer to end of best chain
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
     if (it == mapBlockIndex.end()) {
-        return true;
+        return;
     }
+
     chainActive.SetTip(it->second);
 
     PruneBlockIndexCandidates();
 
     LogPrintf(
-        "%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
+        "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
         DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
                           chainActive.Tip()->GetBlockTime()),
         GuessVerificationProgress(chainparams.TxData(), chainActive.Tip()));
-
-    return true;
 }
 
 CVerifyDB::CVerifyDB() {
@@ -4302,6 +4307,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
         if (nCheckLevel >= 3 && pindex == pindexState &&
             (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
+            assert(coins.GetBestBlock() == pindex->GetBlockHash());
             DisconnectResult res = DisconnectBlock(block, pindex, coins);
             if (res == DISCONNECT_FAILED) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
@@ -4362,6 +4368,122 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
               "transactions)\n",
               chainActive.Height() - pindexState->nHeight, nGoodTransactions);
 
+    return true;
+}
+
+/**
+ * Apply the effects of a block on the utxo cache, ignoring that it may already
+ * have been applied.
+ */
+static bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
+                             const Config &config) {
+    // TODO: merge with ConnectBlock
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pindex, config)) {
+        return error("ReplayBlock(): ReadBlockFromDisk failed at %d, hash=%s",
+                     pindex->nHeight, pindex->GetBlockHash().ToString());
+    }
+
+    for (const CTransactionRef &tx : block.vtx) {
+        if (!tx->IsCoinBase()) {
+            for (const CTxIn &txin : tx->vin) {
+                inputs.SpendCoin(txin.prevout);
+            }
+        }
+
+        // Pass check = true as every addition may be an overwrite.
+        AddCoins(inputs, *tx, pindex->nHeight, true);
+    }
+
+    return true;
+}
+
+bool ReplayBlocks(const Config &config, CCoinsView *view) {
+    LOCK(cs_main);
+
+    CCoinsViewCache cache(view);
+
+    std::vector<uint256> hashHeads = view->GetHeadBlocks();
+    if (hashHeads.empty()) {
+        // We're already in a consistent state.
+        return true;
+    }
+    if (hashHeads.size() != 2) {
+        return error("ReplayBlocks(): unknown inconsistent state");
+    }
+
+    uiInterface.ShowProgress(_("Replaying blocks..."), 0);
+    LogPrintf("Replaying blocks\n");
+
+    // Old tip during the interrupted flush.
+    const CBlockIndex *pindexOld = nullptr;
+    // New tip during the interrupted flush.
+    const CBlockIndex *pindexNew;
+    // Latest block common to both the old and the new tip.
+    const CBlockIndex *pindexFork = nullptr;
+
+    if (mapBlockIndex.count(hashHeads[0]) == 0) {
+        return error(
+            "ReplayBlocks(): reorganization to unknown block requested");
+    }
+    pindexNew = mapBlockIndex[hashHeads[0]];
+
+    if (!hashHeads[1].IsNull()) {
+        // The old tip is allowed to be 0, indicating it's the first flush.
+        if (mapBlockIndex.count(hashHeads[1]) == 0) {
+            return error(
+                "ReplayBlocks(): reorganization from unknown block requested");
+        }
+        pindexOld = mapBlockIndex[hashHeads[1]];
+        pindexFork = LastCommonAncestor(pindexOld, pindexNew);
+        assert(pindexFork != nullptr);
+    }
+
+    // Rollback along the old branch.
+    while (pindexOld != pindexFork) {
+        if (pindexOld->nHeight > 0) {
+            // Never disconnect the genesis block.
+            CBlock block;
+            if (!ReadBlockFromDisk(block, pindexOld, config)) {
+                return error("RollbackBlock(): ReadBlockFromDisk() failed at "
+                             "%d, hash=%s",
+                             pindexOld->nHeight,
+                             pindexOld->GetBlockHash().ToString());
+            }
+            LogPrintf("Rolling back %s (%i)\n",
+                      pindexOld->GetBlockHash().ToString(), pindexOld->nHeight);
+            DisconnectResult res = DisconnectBlock(block, pindexOld, cache);
+            if (res == DISCONNECT_FAILED) {
+                return error(
+                    "RollbackBlock(): DisconnectBlock failed at %d, hash=%s",
+                    pindexOld->nHeight, pindexOld->GetBlockHash().ToString());
+            }
+            // If DISCONNECT_UNCLEAN is returned, it means a non-existing UTXO
+            // was deleted, or an existing UTXO was overwritten. It corresponds
+            // to cases where the block-to-be-disconnect never had all its
+            // operations applied to the UTXO set. However, as both writing a
+            // UTXO and deleting a UTXO are idempotent operations, the result is
+            // still a version of the UTXO set with the effects of that block
+            // undone.
+        }
+        pindexOld = pindexOld->pprev;
+    }
+
+    // Roll forward from the forking point to the new tip.
+    int nForkHeight = pindexFork ? pindexFork->nHeight : 0;
+    for (int nHeight = nForkHeight + 1; nHeight <= pindexNew->nHeight;
+         ++nHeight) {
+        const CBlockIndex *pindex = pindexNew->GetAncestor(nHeight);
+        LogPrintf("Rolling forward %s (%i)\n",
+                  pindex->GetBlockHash().ToString(), nHeight);
+        if (!RollforwardBlock(pindex, cache, config)) {
+            return false;
+        }
+    }
+
+    cache.SetBestBlock(pindexNew->GetBlockHash());
+    cache.Flush();
+    uiInterface.ShowProgress("", 100);
     return true;
 }
 
@@ -4489,9 +4611,6 @@ bool InitBlockIndex(const Config &config) {
             if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
                 return error("LoadBlockIndex(): genesis block not accepted");
             }
-            // Force a chainstate write so that when we VerifyDB in a moment, it
-            // doesn't check stale data
-            return FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
         } catch (const std::runtime_error &e) {
             return error(
                 "LoadBlockIndex(): failed to initialize block database: %s",
