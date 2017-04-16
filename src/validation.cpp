@@ -479,7 +479,7 @@ int64_t GetTransactionSigOpCount(const CTransaction& tx, const CCoinsViewCache& 
     return nSigOps;
 }
 
-bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
+static bool CheckTransactionCommon(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs)
 {
     // Basic checks that don't depend on any context
     if (tx.vin.empty())
@@ -513,16 +513,40 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
         }
     }
 
-    if (tx.IsCoinBase())
-    {
-        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+    return true;
+}
+
+bool CheckCoinbase(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs) {
+    if (!tx.IsCoinBase()) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
     }
-    else
-    {
-        for (const auto& txin : tx.vin)
-            if (txin.prevout.IsNull())
-                return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
+
+    if (!CheckTransactionCommon(tx, state, fCheckDuplicateInputs)) {
+        // CheckTransactionCommon fill in the state.
+        return false;
+    }
+
+    if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+    }
+
+    return true;
+}
+
+bool CheckRegularTransaction(const CTransaction& tx, CValidationState &state, bool fCheckDuplicateInputs) {
+    if (tx.IsCoinBase()) {
+        return state.DoS(100, false, REJECT_INVALID, "coinbase");
+    }
+
+    if (!CheckTransactionCommon(tx, state, fCheckDuplicateInputs)) {
+        // CheckTransactionCommon fill in the state.
+        return false;
+    }
+
+    for (const auto& txin : tx.vin) {
+        if (txin.prevout.IsNull()) {
+            return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
+        }
     }
 
     return true;
@@ -571,11 +595,8 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
         *pfMissingInputs = false;
 
     // Coinbase is only valid in a block, not as a loose transaction
-    if (tx.IsCoinBase())
-        return state.DoS(100, false, REJECT_INVALID, "coinbase");
-
-    if (!CheckTransaction(tx, state))
-        return false; // state filled in by CheckTransaction
+    if (!CheckRegularTransaction(tx, state, true))
+        return false; // state filled in by CheckRegularTransaction
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
@@ -879,10 +900,6 @@ bool GetTransaction(const uint256 &txid, CTransactionRef &txOut, const Consensus
 
     return false;
 }
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2640,22 +2657,29 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_BASE_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_BASE_SIZE)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
-    // First transaction must be coinbase, the rest must not be
-    if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
+    // First transaction must be coinbase.
+    if (block.vtx.empty()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
-    for (unsigned int i = 1; i < block.vtx.size(); i++)
-        if (block.vtx[i]->IsCoinBase())
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+    }
+
+    // And a valid coinbase.
+    if (!CheckCoinbase(*block.vtx[0], state, false)) {
+        return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
+                             strprintf("Coinbase check failed (txid %s) %s", block.vtx[0]->GetId().ToString(), state.GetDebugMessage()));
+    }
 
     // Check transactions
-    for (const auto& tx : block.vtx)
-        if (!CheckTransaction(*tx, state, false))
+    auto txCount = block.vtx.size();
+    for (unsigned int i = 1; i < txCount; i++) {
+        auto &tx = *block.vtx[i];
+        if (!CheckRegularTransaction(tx, state, false)) {
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
-                                 strprintf("Transaction check failed (txid %s) %s", tx->GetId().ToString(), state.GetDebugMessage()));
+                                 strprintf("Transaction check failed (txid %s) %s", tx.GetId().ToString(), state.GetDebugMessage()));
+        }
+    }
 
     unsigned int nSigOps = 0;
-    for (const auto& tx : block.vtx)
-    {
+    for (const auto& tx : block.vtx) {
         nSigOps += GetLegacySigOpCount(*tx);
     }
     if (nSigOps > MAX_BLOCK_SIGOPS)

@@ -11,7 +11,7 @@
 #include "core_io.h"
 #include "key.h"
 #include "keystore.h"
-#include "validation.h" // For CheckTransaction
+#include "validation.h" // For CheckRegularTransaction
 #include "policy/policy.h"
 #include "script/script.h"
 #include "script/sign.h"
@@ -150,7 +150,12 @@ BOOST_AUTO_TEST_CASE(tx_valid)
             CTransaction tx(deserialize, stream);
 
             CValidationState state;
-            BOOST_CHECK_MESSAGE(CheckTransaction(tx, state), strTest);
+            BOOST_CHECK_MESSAGE(
+                tx.IsCoinBase()
+                    ? CheckCoinbase(tx, state)
+                    : CheckRegularTransaction(tx, state),
+                strTest
+            );
             BOOST_CHECK(state.IsValid());
 
             PrecomputedTransactionData txdata(tx);
@@ -234,7 +239,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
             CTransaction tx(deserialize, stream);
 
             CValidationState state;
-            fValid = CheckTransaction(tx, state) && state.IsValid();
+            fValid = CheckRegularTransaction(tx, state) && state.IsValid();
 
             PrecomputedTransactionData txdata(tx);
             for (unsigned int i = 0; i < tx.vin.size() && fValid; i++)
@@ -268,11 +273,11 @@ BOOST_AUTO_TEST_CASE(basic_transaction_tests)
     CMutableTransaction tx;
     stream >> tx;
     CValidationState state;
-    BOOST_CHECK_MESSAGE(CheckTransaction(tx, state) && state.IsValid(), "Simple deserialized transaction should be valid.");
+    BOOST_CHECK_MESSAGE(CheckRegularTransaction(tx, state) && state.IsValid(), "Simple deserialized transaction should be valid.");
 
     // Check that duplicate txins fail
     tx.vin.push_back(tx.vin[0]);
-    BOOST_CHECK_MESSAGE(!CheckTransaction(tx, state) || !state.IsValid(), "Transaction with duplicate txins should be invalid.");
+    BOOST_CHECK_MESSAGE(!CheckRegularTransaction(tx, state) || !state.IsValid(), "Transaction with duplicate txins should be invalid.");
 }
 
 //

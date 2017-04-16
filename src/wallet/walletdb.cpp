@@ -7,7 +7,7 @@
 
 #include "base58.h"
 #include "consensus/validation.h"
-#include "validation.h" // For CheckTransaction
+#include "validation.h" // For CheckRegularTransaction
 #include "protocol.h"
 #include "serialize.h"
 #include "sync.h"
@@ -306,7 +306,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
-            if (!(CheckTransaction(wtx, state) && (wtx.GetId() == hash) && state.IsValid()))
+            if (!(CheckRegularTransaction(wtx, state) && (wtx.GetId() == hash) && state.IsValid()))
                 return false;
 
             // Undo serialize changes in 31600
