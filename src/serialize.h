@@ -368,9 +368,15 @@ template <typename Stream, typename I> I ReadVarInt(Stream &is) {
     I n = 0;
     while (true) {
         uint8_t chData = ser_readdata8(is);
+        if (n > (std::numeric_limits<I>::max() >> 7)) {
+            throw std::ios_base::failure("ReadVarInt(): size too large");
+        }
         n = (n << 7) | (chData & 0x7F);
         if ((chData & 0x80) == 0) {
             return n;
+        }
+        if (n == std::numeric_limits<I>::max()) {
+            throw std::ios_base::failure("ReadVarInt(): size too large");
         }
         n++;
     }
