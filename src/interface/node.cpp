@@ -60,6 +60,7 @@ namespace {
             Shutdown();
         }
         void startShutdown() override { StartShutdown(); }
+        bool shutdownRequested() override { return ShutdownRequested(); }
         void mapPort(bool use_upnp) override {
             if (use_upnp) {
                 StartMapPort();
@@ -73,6 +74,12 @@ namespace {
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage.connect(fn));
+        }
+        std::unique_ptr<Handler> handleMessageBox(MessageBoxFn fn) override {
+            return MakeHandler(::uiInterface.ThreadSafeMessageBox.connect(fn));
+        }
+        std::unique_ptr<Handler> handleQuestion(QuestionFn fn) override {
+            return MakeHandler(::uiInterface.ThreadSafeQuestion.connect(fn));
         }
     };
 

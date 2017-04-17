@@ -350,7 +350,7 @@ void BitcoinApplication::createOptionsModel(bool resetSettings) {
 
 void BitcoinApplication::createWindow(const Config *config,
                                       const NetworkStyle *networkStyle) {
-    window = new BitcoinGUI(config, platformStyle, networkStyle, 0);
+    window = new BitcoinGUI(m_node, config, platformStyle, networkStyle, 0);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window,
