@@ -16,6 +16,7 @@
 #include <netaddress.h>
 #include <netbase.h>
 #include <primitives/block.h>
+#include <rpc/server.h>
 #include <scheduler.h>
 #include <sync.h>
 #include <txmempool.h>
@@ -35,6 +36,7 @@
 #endif
 
 #include <boost/thread/thread.hpp>
+#include <univalue.h>
 
 #include <atomic>
 
@@ -132,6 +134,27 @@ namespace {
             }
             return false;
         }
+        bool ban(const CNetAddr &net_addr, BanReason reason,
+                 int64_t ban_time_offset) override {
+            if (g_connman) {
+                g_connman->Ban(net_addr, reason, ban_time_offset);
+                return true;
+            }
+            return false;
+        }
+        bool unban(const CSubNet &ip) override {
+            if (g_connman) {
+                g_connman->Unban(ip);
+                return true;
+            }
+            return false;
+        }
+        bool disconnect(NodeId id) override {
+            if (g_connman) {
+                return g_connman->DisconnectNode(id);
+            }
+            return false;
+        }
         int64_t getTotalBytesRecv() override {
             return g_connman ? g_connman->GetTotalBytesRecv() : 0;
         }
@@ -183,6 +206,24 @@ namespace {
         }
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
+        }
+        UniValue executeRpc(Config &config, const std::string &command,
+                            const UniValue &params,
+                            const std::string &uri) override {
+            JSONRPCRequest req;
+            req.params = params;
+            req.strMethod = command;
+            req.URI = uri;
+            return ::tableRPC.execute(config, req);
+        }
+        std::vector<std::string> listRpcCommands() override {
+            return ::tableRPC.listCommands();
+        }
+        void rpcSetTimerInterfaceIfUnset(RPCTimerInterface *iface) override {
+            RPCSetTimerInterfaceIfUnset(iface);
+        }
+        void rpcUnsetTimerInterface(RPCTimerInterface *iface) override {
+            RPCUnsetTimerInterface(iface);
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage.connect(fn));

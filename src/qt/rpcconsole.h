@@ -5,10 +5,10 @@
 #ifndef BITCOIN_QT_RPCCONSOLE_H
 #define BITCOIN_QT_RPCCONSOLE_H
 
-#include "guiutil.h"
-#include "peertablemodel.h"
+#include <qt/guiutil.h>
+#include <qt/peertablemodel.h>
 
-#include "net.h"
+#include <net.h>
 
 #include <QCompleter>
 #include <QThread>
@@ -18,6 +18,10 @@ class ClientModel;
 class PlatformStyle;
 class RPCTimerInterface;
 class WalletModel;
+
+namespace interfaces {
+class Node;
+}
 
 namespace Ui {
 class RPCConsole;
@@ -33,20 +37,22 @@ class RPCConsole : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RPCConsole(const PlatformStyle *platformStyle, QWidget *parent);
+    explicit RPCConsole(interfaces::Node &node,
+                        const PlatformStyle *platformStyle, QWidget *parent);
     ~RPCConsole();
 
     static bool
-    RPCParseCommandLine(std::string &strResult, const std::string &strCommand,
-                        bool fExecute,
+    RPCParseCommandLine(interfaces::Node *node, std::string &strResult,
+                        const std::string &strCommand, bool fExecute,
                         std::string *const pstrFilteredOut = nullptr,
                         const std::string *walletID = nullptr);
     static bool
-    RPCExecuteCommandLine(std::string &strResult, const std::string &strCommand,
+    RPCExecuteCommandLine(interfaces::Node &node, std::string &strResult,
+                          const std::string &strCommand,
                           std::string *const pstrFilteredOut = nullptr,
                           const std::string *walletID = nullptr) {
-        return RPCParseCommandLine(strResult, strCommand, true, pstrFilteredOut,
-                                   walletID);
+        return RPCParseCommandLine(&node, strResult, strCommand, true,
+                                   pstrFilteredOut, walletID);
     }
 
     void setClientModel(ClientModel *model);
@@ -143,6 +149,7 @@ private:
 
     };
 
+    interfaces::Node &m_node;
     Ui::RPCConsole *ui;
     ClientModel *clientModel;
     QStringList history;
