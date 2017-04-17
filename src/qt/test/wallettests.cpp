@@ -3,6 +3,7 @@
 #include "chainparams.h"
 #include "config.h"
 #include "dstencode.h"
+#include "interface/node.h"
 #include "qt/bitcoinamountfield.h"
 #include "qt/optionsmodel.h"
 #include "qt/overviewpage.h"
@@ -139,7 +140,8 @@ void TestGUI() {
     std::unique_ptr<const PlatformStyle> platformStyle(
         PlatformStyle::instantiate("other"));
     SendCoinsDialog sendCoinsDialog(platformStyle.get());
-    OptionsModel optionsModel;
+    auto node = interface::MakeNode();
+    OptionsModel optionsModel(*node);
     WalletModel walletModel(platformStyle.get(), &wallet, &optionsModel);
     sendCoinsDialog.setModel(&walletModel);
 
