@@ -656,7 +656,7 @@ int main(int argc, char *argv[]) {
 
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.
-    if (!Intro::pickDataDirectory()) {
+    if (!Intro::pickDataDirectory(*node)) {
         return EXIT_SUCCESS;
     }
 
