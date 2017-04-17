@@ -5,13 +5,17 @@
 #ifndef BITCOIN_QT_BANTABLEMODEL_H
 #define BITCOIN_QT_BANTABLEMODEL_H
 
-#include "net.h"
+#include <net.h>
 
 #include <QAbstractTableModel>
 #include <QStringList>
 
 class ClientModel;
 class BanTablePriv;
+
+namespace interfaces {
+class Node;
+}
 
 struct CCombinedBan {
     CSubNet subnet;
@@ -37,7 +41,7 @@ class BanTableModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
-    explicit BanTableModel(ClientModel *parent = 0);
+    explicit BanTableModel(interfaces::Node &node, ClientModel *parent = 0);
     ~BanTableModel();
     void startAutoRefresh();
     void stopAutoRefresh();
@@ -62,6 +66,7 @@ public Q_SLOTS:
     void refresh();
 
 private:
+    interfaces::Node &m_node;
     ClientModel *clientModel;
     QStringList columns;
     std::unique_ptr<BanTablePriv> priv;

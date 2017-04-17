@@ -40,7 +40,7 @@ ClientModel::ClientModel(interfaces::Node &node, OptionsModel *_optionsModel,
     cachedBestHeaderHeight = -1;
     cachedBestHeaderTime = -1;
     peerTableModel = new PeerTableModel(m_node, this);
-    banTableModel = new BanTableModel(this);
+    banTableModel = new BanTableModel(m_node, this);
     pollTimer = new QTimer(this);
     connect(pollTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
     pollTimer->start(MODEL_UPDATE_DELAY);
