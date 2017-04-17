@@ -132,6 +132,8 @@ add_library(util
 	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
 	fs.cpp
+	interface/handler.cpp
+	interface/node.cpp
 	logging.cpp
 	random.cpp
 	rcu.cpp
