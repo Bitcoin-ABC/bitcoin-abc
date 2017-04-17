@@ -168,6 +168,33 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
+UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() > 0) {
+        throw std::runtime_error("abortrescan\n"
+                                 "\nStops current wallet rescan triggered e.g. "
+                                 "by an importprivkey call.\n"
+                                 "\nExamples:\n"
+                                 "\nImport a private key\n" +
+                                 HelpExampleCli("importprivkey", "\"mykey\"") +
+                                 "\nAbort the running wallet rescan\n" +
+                                 HelpExampleCli("abortrescan", "") +
+                                 "\nAs a JSON-RPC call\n" +
+                                 HelpExampleRpc("abortrescan", ""));
+    }
+
+    if (!pwallet->IsScanning() || pwallet->IsAbortingRescan()) {
+        return false;
+    }
+
+    pwallet->AbortRescan();
+    return true;
+}
+
 void ImportAddress(CWallet *, const CTxDestination &dest,
                    const std::string &strLabel);
 void ImportScript(CWallet *const pwallet, const CScript &script,
@@ -1351,6 +1378,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 static const ContextFreeRPCCommand commands[] = {
     //  category            name                        actor (function)          okSafeMode
     //  ------------------- ------------------------    ----------------------    ----------
+    { "wallet",             "abortrescan",              abortrescan,              false,  {} },
     { "wallet",             "dumpprivkey",              dumpprivkey,              true,   {"address"}  },
     { "wallet",             "dumpwallet",               dumpwallet,               true,   {"filename"} },
     { "wallet",             "importmulti",              importmulti,              true,   {"requests","options"} },

@@ -1712,6 +1712,8 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
     CBlockIndex *ret = nullptr;
 
     LOCK2(cs_main, cs_wallet);
+    fAbortRescan = false;
+    fScanningWallet = true;
 
     // No need to read and scan block, if block was created before our wallet
     // birthday (as adjusted for block time variability)
@@ -1727,16 +1729,16 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
         GuessVerificationProgress(chainParams.TxData(), pindex);
     double dProgressTip =
         GuessVerificationProgress(chainParams.TxData(), chainActive.Tip());
-    while (pindex) {
+    while (pindex && !fAbortRescan) {
         if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) {
             ShowProgress(
                 _("Rescanning..."),
-                std::max(1,
-                         std::min(99, (int)((GuessVerificationProgress(
-                                                 chainParams.TxData(), pindex) -
-                                             dProgressStart) /
-                                            (dProgressTip - dProgressStart) *
-                                            100))));
+                std::max(1, std::min<int>(99,
+                                          (GuessVerificationProgress(
+                                               chainParams.TxData(), pindex) -
+                                           dProgressStart) /
+                                              (dProgressTip - dProgressStart) *
+                                              100)));
         }
 
         CBlock block;
@@ -1759,8 +1761,14 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
         }
     }
 
+    if (pindex && fAbortRescan) {
+        LogPrintf("Rescan aborted at block %d. Progress=%f\n", pindex->nHeight,
+                  GuessVerificationProgress(chainParams.TxData(), pindex));
+    }
+
     // Hide progress dialog in GUI.
     ShowProgress(_("Rescanning..."), 100);
+    fScanningWallet = false;
 
     return ret;
 }
