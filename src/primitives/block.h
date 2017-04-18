@@ -17,8 +17,7 @@
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-class CBlockHeader
-{
+class CBlockHeader {
 public:
     // header
     int32_t nVersion;
@@ -28,15 +27,12 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
-    CBlockHeader()
-    {
-        SetNull();
-    }
+    CBlockHeader() { SetNull(); }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
@@ -45,8 +41,7 @@ public:
         READWRITE(nNonce);
     }
 
-    void SetNull()
-    {
+    void SetNull() {
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
@@ -55,22 +50,14 @@ public:
         nNonce = 0;
     }
 
-    bool IsNull() const
-    {
-        return (nBits == 0);
-    }
+    bool IsNull() const { return (nBits == 0); }
 
     uint256 GetHash() const;
 
-    int64_t GetBlockTime() const
-    {
-        return (int64_t)nTime;
-    }
+    int64_t GetBlockTime() const { return (int64_t)nTime; }
 };
 
-
-class CBlock : public CBlockHeader
-{
+class CBlock : public CBlockHeader {
 public:
     // network and disk
     std::vector<CTransactionRef> vtx;
@@ -78,41 +65,35 @@ public:
     // memory only
     mutable bool fChecked;
 
-    CBlock()
-    {
-        SetNull();
-    }
+    CBlock() { SetNull(); }
 
-    CBlock(const CBlockHeader &header)
-    {
+    CBlock(const CBlockHeader &header) {
         SetNull();
-        *((CBlockHeader*)this) = header;
+        *((CBlockHeader *)this) = header;
     }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(*(CBlockHeader*)this);
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(*(CBlockHeader *)this);
         READWRITE(vtx);
     }
 
-    void SetNull()
-    {
+    void SetNull() {
         CBlockHeader::SetNull();
         vtx.clear();
         fChecked = false;
     }
 
-    CBlockHeader GetBlockHeader() const
-    {
+    CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
-        block.nVersion       = nVersion;
-        block.hashPrevBlock  = hashPrevBlock;
+        block.nVersion = nVersion;
+        block.hashPrevBlock = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
         return block;
     }
 
@@ -123,36 +104,25 @@ public:
  * other node doesn't have the same branch, it can find a recent common trunk.
  * The further back it is, the further before the fork it may be.
  */
-struct CBlockLocator
-{
+struct CBlockLocator {
     std::vector<uint256> vHave;
 
     CBlockLocator() {}
 
-    CBlockLocator(const std::vector<uint256>& vHaveIn)
-    {
-        vHave = vHaveIn;
-    }
+    CBlockLocator(const std::vector<uint256> &vHaveIn) { vHave = vHaveIn; }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH))
-            READWRITE(nVersion);
+        if (!(s.GetType() & SER_GETHASH)) READWRITE(nVersion);
         READWRITE(vHave);
     }
 
-    void SetNull()
-    {
-        vHave.clear();
-    }
+    void SetNull() { vHave.clear(); }
 
-    bool IsNull() const
-    {
-        return vHave.empty();
-    }
+    bool IsNull() const { return vHave.empty(); }
 };
 
 #endif // BITCOIN_PRIMITIVES_BLOCK_H
