@@ -2668,6 +2668,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
                              strprintf("Coinbase check failed (txid %s) %s", block.vtx[0]->GetId().ToString(), state.GetDebugMessage()));
     }
 
+    unsigned int nSigOps = GetLegacySigOpCount(*block.vtx[0]);
+    if (nSigOps > MAX_BLOCK_SIGOPS)
+        return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
+
     // Check transactions
     auto txCount = block.vtx.size();
     for (unsigned int i = 1; i < txCount; i++) {
@@ -2676,14 +2680,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (txid %s) %s", tx.GetId().ToString(), state.GetDebugMessage()));
         }
-    }
 
-    unsigned int nSigOps = 0;
-    for (const auto& tx : block.vtx) {
-        nSigOps += GetLegacySigOpCount(*tx);
+        nSigOps += GetLegacySigOpCount(tx);
+        if (nSigOps > MAX_BLOCK_SIGOPS)
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
     }
-    if (nSigOps > MAX_BLOCK_SIGOPS)
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false, "out-of-bounds SigOpCount");
 
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
