@@ -9,3 +9,4 @@ IndentCaseLabels: true
 BreakBeforeBraces: Attach
 AllowShortIfStatementsOnASingleLine: true
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, BOOST_REVERSE_FOREACH ]
+CommentPragmas:  '@DISABLE FORMATING FOR THIS COMMENT@'
