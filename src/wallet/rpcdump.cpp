@@ -692,9 +692,8 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     }
 
     std::map<CTxDestination, int64_t> mapKeyBirth;
-    std::set<CKeyID> setKeyPool;
+    const std::map<CKeyID, int64_t> &mapKeyPool = pwallet->GetAllReserveKeys();
     pwallet->GetKeyBirthTimes(mapKeyBirth);
-    pwallet->GetAllReserveKeys(setKeyPool);
 
     // sort time/key pairs
     std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
@@ -748,7 +747,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                     EncodeDumpString(pwallet->mapAddressBook[keyid].name));
             } else if (keyid == masterKeyID) {
                 file << "hdmaster=1";
-            } else if (setKeyPool.count(keyid)) {
+            } else if (mapKeyPool.count(keyid)) {
                 file << "reserve=1";
             } else if (pwallet->mapKeyMetadata[keyid].hdKeypath == "m") {
                 file << "inactivehdmaster=1";

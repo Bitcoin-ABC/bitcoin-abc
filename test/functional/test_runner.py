@@ -77,6 +77,7 @@ BASE_SCRIPTS = [
     'rawtransactions.py',
     'reindex.py',
     # vv Tests less than 30s vv
+    'keypool-topup.py',
     'zmq_test.py',
     'bitcoin_cli.py',
     'mempool_resurrect_test.py',
