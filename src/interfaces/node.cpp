@@ -212,6 +212,11 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
+        Amount getMinimumFee(unsigned int tx_bytes) override {
+            Amount result;
+            CHECK_WALLET(result = GetMinimumFee(tx_bytes, g_mempool));
+            return result;
+        }
         Amount getMinimumFee(unsigned int tx_bytes,
                              const CCoinControl &coin_control) override {
             Amount result;
@@ -220,8 +225,15 @@ namespace {
             return result;
         }
         Amount getMaxTxFee() override { return ::maxTxFee; }
+        CFeeRate estimateSmartFee() override { return g_mempool.estimateFee(); }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
+        CFeeRate getFallbackFee() override {
+            CHECK_WALLET(return CWallet::fallbackFee);
+        }
         CFeeRate getPayTxFee() override { CHECK_WALLET(return ::payTxFee); }
+        void setPayTxFee(CFeeRate rate) override {
+            CHECK_WALLET(::payTxFee = rate);
+        }
         UniValue executeRpc(Config &config, const std::string &command,
                             const UniValue &params,
                             const std::string &uri) override {
