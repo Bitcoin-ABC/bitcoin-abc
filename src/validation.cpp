@@ -186,10 +186,14 @@ enum FlushStateMode {
 };
 
 // See definition for documentation
-static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
+static bool FlushStateToDisk(const CChainParams &chainParams,
+                             CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight = 0);
 static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight);
+static void FindFilesToPrune(std::set<int> &setFilesToPrune,
+                             uint64_t nPruneAfterHeight);
+static FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
                                     const Config &config);
 
@@ -532,7 +536,8 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
     return true;
 }
 
-void LimitMempoolSize(CTxMemPool &pool, size_t limit, unsigned long age) {
+static void LimitMempoolSize(CTxMemPool &pool, size_t limit,
+                             unsigned long age) {
     int expired = pool.Expire(GetTime() - age);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
@@ -938,7 +943,7 @@ static bool AcceptToMemoryPoolWorker(
         }
 
         uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
-        if (!Params().RequireStandard()) {
+        if (!config.GetChainParams().RequireStandard()) {
             scriptVerifyFlags =
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
@@ -1021,6 +1026,9 @@ static bool AcceptToMemoryPoolWorker(
     return true;
 }
 
+/**
+ * (try to) add transaction to memory pool with a specified acceptance time.
+ */
 static bool AcceptToMemoryPoolWithTime(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
@@ -1039,7 +1047,7 @@ static bool AcceptToMemoryPoolWithTime(
     // After we've (potentially) uncached entries, ensure our coins cache is
     // still within its size limits
     CValidationState stateDummy;
-    FlushStateToDisk(stateDummy, FLUSH_STATE_PERIODIC);
+    FlushStateToDisk(config.GetChainParams(), stateDummy, FLUSH_STATE_PERIODIC);
     return res;
 }
 
@@ -1120,8 +1128,8 @@ bool GetTransaction(const Config &config, const uint256 &txid,
 // CBlock and CBlockIndex
 //
 
-bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
-                      const CMessageHeader::MessageMagic &messageStart) {
+static bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
+                             const CMessageHeader::MessageMagic &messageStart) {
     // Open history file to append
     CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull()) {
@@ -1238,7 +1246,7 @@ static void AlertNotify(const std::string &strMessage) {
     boost::thread t(runCommand, strCmd); // thread runs free
 }
 
-void CheckForkWarningConditions() {
+static void CheckForkWarningConditions() {
     AssertLockHeld(cs_main);
     // Before we get past initial download, we cannot reliably alert about forks
     // (we assume we don't get stuck on a fork before finishing our initial
@@ -1285,7 +1293,7 @@ void CheckForkWarningConditions() {
     }
 }
 
-void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
+static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     AssertLockHeld(cs_main);
     // If we are on a fork that is sufficiently large, set a warning flag
     CBlockIndex *pfork = pindexNewForkTip;
@@ -1755,8 +1763,8 @@ static void FlushBlockFile(bool fFinalize = false) {
     }
 }
 
-bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
-                 unsigned int nAddSize);
+static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
+                        unsigned int nAddSize);
 
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
@@ -1927,8 +1935,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             if (it->second->GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->nChainWork >=
-                    UintToArith256(
-                        consensusParams.nMinimumChainWork)) {
+                    UintToArith256(consensusParams.nMinimumChainWork)) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header. The equivalent time check
                 // discourages hashpower from extorting the network via DOS
@@ -1993,9 +2000,10 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         pindex->pprev->GetAncestor(consensusParams.BIP34Height);
     // Only continue to enforce if we're below BIP34 activation height or the
     // block hash at that height doesn't correspond.
-    fEnforceBIP30 = fEnforceBIP30 && (!pindexBIP34height ||
-                                      !(pindexBIP34height->GetBlockHash() ==
-                                        consensusParams.BIP34Hash));
+    fEnforceBIP30 =
+        fEnforceBIP30 &&
+        (!pindexBIP34height ||
+         !(pindexBIP34height->GetBlockHash() == consensusParams.BIP34Hash));
 
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
@@ -2205,10 +2213,10 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
  * they're too large, if it's been a while since the last write, or always and
  * in all cases if we're in prune mode and are deleting files.
  */
-static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
+static bool FlushStateToDisk(const CChainParams &chainparams,
+                             CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight) {
     int64_t nMempoolUsage = mempool.DynamicMemoryUsage();
-    const CChainParams &chainparams = Params();
     LOCK2(cs_main, cs_LastBlockFile);
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
@@ -2341,13 +2349,15 @@ static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
 
 void FlushStateToDisk() {
     CValidationState state;
-    FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
+    const CChainParams &chainparams = Params();
+    FlushStateToDisk(chainparams, state, FLUSH_STATE_ALWAYS);
 }
 
 void PruneAndFlush() {
     CValidationState state;
     fCheckForPruning = true;
-    FlushStateToDisk(state, FLUSH_STATE_NONE);
+    const CChainParams &chainparams = Params();
+    FlushStateToDisk(chainparams, state, FLUSH_STATE_NONE);
 }
 
 /** Update chainActive and related internal data structures. */
@@ -2369,8 +2379,8 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         const CBlockIndex *pindex = chainActive.Tip();
         for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
             WarningBitsConditionChecker checker(bit);
-            ThresholdState state = checker.GetStateFor(
-                pindex, consensusParams, warningcache[bit]);
+            ThresholdState state =
+                checker.GetStateFor(pindex, consensusParams, warningcache[bit]);
             if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
                 if (state == THRESHOLD_ACTIVE) {
                     std::string strWarning =
@@ -2416,18 +2426,18 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
             }
         }
     }
-    LogPrintf(
-        "%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-        "date='%s' progress=%f cache=%.1fMiB(%utxo)",
-        __func__, chainActive.Tip()->GetBlockHash().ToString(),
-        chainActive.Height(), chainActive.Tip()->nVersion,
-        log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
-        (unsigned long)chainActive.Tip()->nChainTx,
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
-                          chainActive.Tip()->GetBlockTime()),
-        GuessVerificationProgress(config.GetChainParams().TxData(), chainActive.Tip()),
-        pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
-        pcoinsTip->GetCacheSize());
+    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
+              "date='%s' progress=%f cache=%.1fMiB(%utxo)",
+              __func__, chainActive.Tip()->GetBlockHash().ToString(),
+              chainActive.Height(), chainActive.Tip()->nVersion,
+              log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
+              (unsigned long)chainActive.Tip()->nChainTx,
+              DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
+                                chainActive.Tip()->GetBlockTime()),
+              GuessVerificationProgress(config.GetChainParams().TxData(),
+                                        chainActive.Tip()),
+              pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
+              pcoinsTip->GetCacheSize());
     if (!warningMessages.empty())
         LogPrintf(" warning='%s'",
                   boost::algorithm::join(warningMessages, ", "));
@@ -2475,7 +2485,8 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
              (GetTimeMicros() - nStart) * 0.001);
 
     // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) {
+    if (!FlushStateToDisk(config.GetChainParams(), state,
+                          FLUSH_STATE_IF_NEEDED)) {
         return false;
     }
 
@@ -2638,7 +2649,10 @@ static bool ConnectTip(const Config &config, CValidationState &state,
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs]\n",
              (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
     // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) return false;
+    if (!FlushStateToDisk(config.GetChainParams(), state,
+                          FLUSH_STATE_IF_NEEDED)) {
+        return false;
+    }
     int64_t nTime5 = GetTimeMicros();
     nTimeChainState += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "  - Writing chainstate: %.2fms [%.2fs]\n",
@@ -2936,10 +2950,12 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
             uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
         }
     } while (pindexNewTip != pindexMostWork);
-    CheckBlockIndex(config.GetChainParams().GetConsensus());
+
+    const CChainParams &params = config.GetChainParams();
+    CheckBlockIndex(params.GetConsensus());
 
     // Write changes periodically to disk, after relay.
-    if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
+    if (!FlushStateToDisk(params, state, FLUSH_STATE_PERIODIC)) {
         return false;
     }
 
@@ -3067,7 +3083,7 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
     return true;
 }
 
-CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {
+static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {
     // Check for duplicate
     uint256 hash = block.GetHash();
     BlockMap::iterator it = mapBlockIndex.find(hash);
@@ -3166,9 +3182,9 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
     return true;
 }
 
-bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
-                  unsigned int nAddSize, unsigned int nHeight, uint64_t nTime,
-                  bool fKnown = false) {
+static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
+                         unsigned int nAddSize, unsigned int nHeight,
+                         uint64_t nTime, bool fKnown = false) {
     LOCK(cs_LastBlockFile);
 
     unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
@@ -3231,8 +3247,8 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
     return true;
 }
 
-bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
-                 unsigned int nAddSize) {
+static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
+                        unsigned int nAddSize) {
     pos.nFile = nFile;
 
     LOCK(cs_LastBlockFile);
@@ -3518,9 +3534,9 @@ bool ContextualCheckTransactionForCurrentBlock(const Config &config,
                                       nLockTimeCutoff);
 }
 
-bool ContextualCheckBlock(const Config &config, const CBlock &block,
-                          CValidationState &state,
-                          const CBlockIndex *pindexPrev) {
+static bool ContextualCheckBlock(const Config &config, const CBlock &block,
+                                 CValidationState &state,
+                                 const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -3606,8 +3622,9 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         assert(pindexPrev);
-        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
-                                       pindexPrev, state, chainparams, hash)) {
+        if (fCheckpointsEnabled &&
+            !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
+                                         hash)) {
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
                          state.GetRejectReason().c_str());
         }
@@ -3772,7 +3789,7 @@ static bool AcceptBlock(const Config &config,
 
     if (fCheckForPruning) {
         // we just allocated more disk space for block files.
-        FlushStateToDisk(state, FLUSH_STATE_NONE);
+        FlushStateToDisk(config.GetChainParams(), state, FLUSH_STATE_NONE);
     }
 
     return true;
@@ -3862,7 +3879,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
  */
 
 /* Calculate the amount of disk space the block & undo files currently use */
-uint64_t CalculateCurrentUsage() {
+static uint64_t CalculateCurrentUsage() {
     uint64_t retval = 0;
     for (const CBlockFileInfo &file : vinfoBlockFile) {
         retval += file.nSize + file.nUndoSize;
@@ -3917,7 +3934,7 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
 
 /**
  * Calculate the block/rev files to delete based on height specified by user
- * with RPC command pruneblockchain.
+ * with RPC command pruneblockchain
  */
 static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight) {
@@ -3950,12 +3967,33 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 /* This function is called from the RPC code for pruneblockchain */
 void PruneBlockFilesManual(int nManualPruneHeight) {
     CValidationState state;
-    FlushStateToDisk(state, FLUSH_STATE_NONE, nManualPruneHeight);
+    const CChainParams &chainparams = Params();
+    FlushStateToDisk(chainparams, state, FLUSH_STATE_NONE, nManualPruneHeight);
 }
 
-/* Calculate the block/rev files that should be deleted to remain under target*/
-void FindFilesToPrune(std::set<int> &setFilesToPrune,
-                      uint64_t nPruneAfterHeight) {
+/**
+ * Prune block and undo files (blk???.dat and undo???.dat) so that the disk
+ * space used is less than a user-defined target. The user sets the target (in
+ * MB) on the command line or in config file.  This will be run on startup and
+ * whenever new space is allocated in a block or undo file, staying below the
+ * target. Changing back to unpruned requires a reindex (which in this case
+ * means the blockchain must be re-downloaded.)
+ *
+ * Pruning functions are called from FlushStateToDisk when the global
+ * fCheckForPruning flag has been set. Block and undo files are deleted in
+ * lock-step (when blk00003.dat is deleted, so is rev00003.dat.). Pruning cannot
+ * take place until the longest chain is at least a certain length (100000 on
+ * mainnet, 1000 on testnet, 1000 on regtest). Pruning will never delete a block
+ * within a defined distance (currently 288) from the active chain's tip. The
+ * block index is updated by unsetting HAVE_DATA and HAVE_UNDO for any blocks
+ * that were stored in the deleted files. A db flag records the fact that at
+ * least some block files have been pruned.
+ *
+ * @param[out]   setFilesToPrune   The set of file indices that can be unlinked
+ * will be returned
+ */
+static void FindFilesToPrune(std::set<int> &setFilesToPrune,
+                             uint64_t nPruneAfterHeight) {
     LOCK2(cs_main, cs_LastBlockFile);
     if (chainActive.Tip() == nullptr || nPruneTarget == 0) {
         return;
@@ -4019,9 +4057,12 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
     return true;
 }
 
-FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix,
-                   bool fReadOnly) {
-    if (pos.IsNull()) return nullptr;
+static FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix,
+                          bool fReadOnly) {
+    if (pos.IsNull()) {
+        return nullptr;
+    }
+
     fs::path path = GetBlockPosFilename(pos, prefix);
     fs::create_directories(path.parent_path());
     FILE *file = fsbridge::fopen(path, "rb+");
@@ -4047,7 +4088,8 @@ FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
     return OpenDiskFile(pos, "blk", fReadOnly);
 }
 
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
+/** Open an undo file (rev?????.dat) */
+static FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
     return OpenDiskFile(pos, "rev", fReadOnly);
 }
 
@@ -4490,6 +4532,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
 bool RewindBlockIndex(const Config &config) {
     LOCK(cs_main);
 
+    const CChainParams &params = config.GetChainParams();
     int nHeight = chainActive.Height() + 1;
 
     // nHeight is now the height of the first insufficiently-validated block, or
@@ -4510,7 +4553,7 @@ bool RewindBlockIndex(const Config &config) {
                 pindex->nHeight);
         }
         // Occasionally flush state to disk.
-        if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
+        if (!FlushStateToDisk(params, state, FLUSH_STATE_PERIODIC)) {
             return false;
         }
     }
@@ -4531,9 +4574,9 @@ bool RewindBlockIndex(const Config &config) {
 
     PruneBlockIndexCandidates();
 
-    CheckBlockIndex(config.GetChainParams().GetConsensus());
+    CheckBlockIndex(params.GetConsensus());
 
-    if (!FlushStateToDisk(state, FLUSH_STATE_ALWAYS)) {
+    if (!FlushStateToDisk(params, state, FLUSH_STATE_ALWAYS)) {
         return false;
     }
 
