@@ -186,39 +186,36 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         std::pair<char, uint256> key;
-        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
-            CDiskBlockIndex diskindex;
-            if (pcursor->GetValue(diskindex)) {
-                // Construct block index object
-                CBlockIndex *pindexNew =
-                    insertBlockIndex(diskindex.GetBlockHash());
-                pindexNew->pprev = insertBlockIndex(diskindex.hashPrev);
-                pindexNew->nHeight = diskindex.nHeight;
-                pindexNew->nFile = diskindex.nFile;
-                pindexNew->nDataPos = diskindex.nDataPos;
-                pindexNew->nUndoPos = diskindex.nUndoPos;
-                pindexNew->nVersion = diskindex.nVersion;
-                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
-                pindexNew->nTime = diskindex.nTime;
-                pindexNew->nBits = diskindex.nBits;
-                pindexNew->nNonce = diskindex.nNonce;
-                pindexNew->nStatus = diskindex.nStatus;
-                pindexNew->nTx = diskindex.nTx;
-
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(),
-                                      pindexNew->nBits,
-                                      Params().GetConsensus()))
-                    return error(
-                        "LoadBlockIndex(): CheckProofOfWork failed: %s",
-                        pindexNew->ToString());
-
-                pcursor->Next();
-            } else {
-                return error("LoadBlockIndex() : failed to read value");
-            }
-        } else {
+        if (!pcursor->GetKey(key) || key.first != DB_BLOCK_INDEX) {
             break;
         }
+
+        CDiskBlockIndex diskindex;
+        if (!pcursor->GetValue(diskindex)) {
+            return error("LoadBlockIndex() : failed to read value");
+        }
+
+        // Construct block index object
+        CBlockIndex *pindexNew = insertBlockIndex(diskindex.GetBlockHash());
+        pindexNew->pprev = insertBlockIndex(diskindex.hashPrev);
+        pindexNew->nHeight = diskindex.nHeight;
+        pindexNew->nFile = diskindex.nFile;
+        pindexNew->nDataPos = diskindex.nDataPos;
+        pindexNew->nUndoPos = diskindex.nUndoPos;
+        pindexNew->nVersion = diskindex.nVersion;
+        pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
+        pindexNew->nTime = diskindex.nTime;
+        pindexNew->nBits = diskindex.nBits;
+        pindexNew->nNonce = diskindex.nNonce;
+        pindexNew->nStatus = diskindex.nStatus;
+        pindexNew->nTx = diskindex.nTx;
+
+        if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits,
+                              Params().GetConsensus()))
+            return error("LoadBlockIndex(): CheckProofOfWork failed: %s",
+                         pindexNew->ToString());
+
+        pcursor->Next();
     }
 
     return true;
