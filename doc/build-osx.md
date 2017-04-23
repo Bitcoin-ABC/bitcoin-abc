@@ -16,16 +16,16 @@ Preparation
 
 When the popup appears, click `Install`.
 
-3.  Install [Homebrew](http://brew.sh).
+3.  Install [Homebrew](https://brew.sh).
 
 Dependencies
 ----------------------
 
 Install dependencies:
 
-    brew install automake berkeley-db libtool boost --c++11 miniupnpc openssl pkg-config protobuf --c++11 qt5 libevent
+    brew install automake berkeley-db libtool boost --c++11 miniupnpc openssl pkg-config protobuf qt libevent
 
-In case you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
+If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
 
     brew install librsvg
 
