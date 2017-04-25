@@ -1757,6 +1757,13 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
                                             (dProgressTip - dProgressStart) *
                                             100)));
             }
+            if (GetTime() >= nNow + 60) {
+                nNow = GetTime();
+                LogPrintf(
+                    "Still rescanning. At block %d. Progress=%f\n",
+                    pindex->nHeight,
+                    GuessVerificationProgress(chainParams.TxData(), pindex));
+            }
 
             CBlock block;
             if (ReadBlockFromDisk(block, pindex, GetConfig())) {
@@ -1773,13 +1780,6 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
             }
 
             pindex = chainActive.Next(pindex);
-            if (GetTime() >= nNow + 60) {
-                nNow = GetTime();
-                LogPrintf(
-                    "Still rescanning. At block %d. Progress=%f\n",
-                    pindex->nHeight,
-                    GuessVerificationProgress(chainParams.TxData(), pindex));
-            }
         }
 
         if (pindex && fAbortRescan) {
