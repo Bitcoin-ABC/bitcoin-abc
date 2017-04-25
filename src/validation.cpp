@@ -3249,14 +3249,23 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
 
     // TODO: deal better with return value and error conditions for duplicate
     // and unrequested blocks.
-    if (fAlreadyHave) return true;
-    if (!fRequested) { // If we didn't ask for it:
-        if (pindex->nTx != 0)
-            return true; // This is a previously-processed block that was pruned
-        if (!fHasMoreWork) return true; // Don't process less-work chains
-        if (fTooFarAhead) return true;  // Block height is too high
+    if (fAlreadyHave) {
+        return true;
     }
-    if (fNewBlock) *fNewBlock = true;
+
+    // If we didn't ask for it:
+    if (!fRequested) {
+        // This is a previously-processed block that was pruned.
+        if (pindex->nTx != 0) return true;
+        // Don't process less-work chains.
+        if (!fHasMoreWork) return true;
+        // Block height is too high.
+        if (fTooFarAhead) return true;
+    }
+
+    if (fNewBlock) {
+        *fNewBlock = true;
+    }
 
     if (!CheckBlock(block, state, chainparams.GetConsensus()) ||
         !ContextualCheckBlock(block, state, chainparams.GetConsensus(),
@@ -3294,9 +3303,10 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    if (fCheckForPruning)
-        FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more
-                                                   // disk space for block files
+    if (fCheckForPruning) {
+        // we just allocated more disk space for block files.
+        FlushStateToDisk(state, FLUSH_STATE_NONE);
+    }
 
     return true;
 }
