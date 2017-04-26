@@ -276,12 +276,6 @@ unsigned int CCoinsViewCache::GetCacheSize() const {
     return cacheCoins.size();
 }
 
-const CTxOut &CCoinsViewCache::GetOutputFor(const CTxIn &input) const {
-    const Coin &coin = AccessCoin(input.prevout);
-    assert(!coin.IsSpent());
-    return coin.GetTxOut();
-}
-
 Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
     if (tx.IsCoinBase()) {
         return Amount::zero();
@@ -289,7 +283,7 @@ Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
 
     Amount nResult = Amount::zero();
     for (size_t i = 0; i < tx.vin.size(); i++) {
-        nResult += GetOutputFor(tx.vin[i]).nValue;
+        nResult += AccessCoin(tx.vin[i].prevout).GetTxOut().nValue;
     }
 
     return nResult;

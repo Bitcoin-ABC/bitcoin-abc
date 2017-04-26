@@ -146,7 +146,7 @@ bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
     }
 
     for (const CTxIn &in : tx.vin) {
-        const CTxOut &prev = mapInputs.GetOutputFor(in);
+        const CTxOut &prev = mapInputs.AccessCoin(in.prevout).GetTxOut();
 
         std::vector<std::vector<uint8_t>> vSolutions;
         txnouttype whichType = Solver(prev.scriptPubKey, vSolutions);
