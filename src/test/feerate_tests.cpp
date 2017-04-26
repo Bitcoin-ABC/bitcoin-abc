@@ -13,7 +13,7 @@
 BOOST_FIXTURE_TEST_SUITE(feerate_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(GetFeeTest) {
-    CFeeRate feeRate;
+    CFeeRate feeRate, altFeeRate;
 
     feeRate = CFeeRate(Amount::zero());
     // Must always return 0
@@ -64,6 +64,11 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(100), 2 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(200), 4 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(1000), 18 * SATOSHI);
+
+    // Check alternate constructor
+    feeRate = CFeeRate(1000 * SATOSHI);
+    altFeeRate = CFeeRate(feeRate);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(100), altFeeRate.GetFee(100));
 
     // Check full constructor
     // default value

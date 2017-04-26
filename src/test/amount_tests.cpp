@@ -102,4 +102,32 @@ BOOST_AUTO_TEST_CASE(AmountTests) {
     BOOST_CHECK_EQUAL(COIN - 2 * COIN, -1 * COIN);
 }
 
+BOOST_AUTO_TEST_CASE(MoneyRangeTest) {
+    BOOST_CHECK_EQUAL(MoneyRange(Amount(-1 * SATOSHI)), false);
+    BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY + Amount(1 * SATOSHI)), false);
+    BOOST_CHECK_EQUAL(MoneyRange(Amount(1 * SATOSHI)), true);
+}
+
+BOOST_AUTO_TEST_CASE(BinaryOperatorTest) {
+    CFeeRate a, b;
+    a = CFeeRate(1 * SATOSHI);
+    b = CFeeRate(2 * SATOSHI);
+    BOOST_CHECK(a < b);
+    BOOST_CHECK(b > a);
+    BOOST_CHECK(a == a);
+    BOOST_CHECK(a <= b);
+    BOOST_CHECK(a <= a);
+    BOOST_CHECK(b >= a);
+    BOOST_CHECK(b >= b);
+    // a should be 0.00000002 BTC/kB now
+    a += a;
+    BOOST_CHECK(a == b);
+}
+
+BOOST_AUTO_TEST_CASE(ToStringTest) {
+    CFeeRate feeRate;
+    feeRate = CFeeRate(1 * SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.ToString(), "0.00000001 BCH/kB");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
