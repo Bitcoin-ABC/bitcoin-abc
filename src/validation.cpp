@@ -2885,6 +2885,12 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
         return false;
     }
 
+    int nStopAtHeight = GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
+    if (nStopAtHeight && pindexNewTip &&
+        pindexNewTip->nHeight >= nStopAtHeight) {
+        StartShutdown();
+    }
+
     return true;
 }
 

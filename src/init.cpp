@@ -634,6 +634,10 @@ std::string HelpMessage(HelpMessageMode mode) {
                 "Stop running after importing blocks from disk (default: %d)",
                 DEFAULT_STOPAFTERBLOCKIMPORT));
         strUsage += HelpMessageOpt(
+            "-stopatheight", strprintf("Stop running after reaching the given "
+                                       "height in the main chain (default: %u)",
+                                       DEFAULT_STOPATHEIGHT));
+        strUsage += HelpMessageOpt(
             "-limitancestorcount=<n>",
             strprintf("Do not accept transactions if number of in-mempool "
                       "ancestors is <n> or more (default: %u)",
@@ -667,9 +671,10 @@ std::string HelpMessage(HelpMessageMode mode) {
             ". " + _("If <category> is not supplied or if <category> = 1, "
                      "output all debugging information.") +
             _("<category> can be:") + " " + ListLogCategories() + ".");
-    if (showDebug)
+    if (showDebug) {
         strUsage += HelpMessageOpt(
             "-nodebug", "Turn off debugging messages, same as -debug=0");
+    }
     strUsage += HelpMessageOpt(
         "-help-debug",
         _("Show all debugging options (usage: --help -help-debug)"));
