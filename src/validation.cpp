@@ -1808,11 +1808,6 @@ bool ConnectBlock(const CBlock &block, CValidationState &state,
     std::vector<std::pair<uint256, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
-    std::vector<PrecomputedTransactionData> txdata;
-
-    // Required so that pointers to individual PrecomputedTransactionData don't
-    // get invalidated.
-    txdata.reserve(block.vtx.size());
 
     for (unsigned int i = 0; i < block.vtx.size(); i++) {
         const CTransaction &tx = *(block.vtx[i]);
@@ -1850,7 +1845,7 @@ bool ConnectBlock(const CBlock &block, CValidationState &state,
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
 
-        txdata.emplace_back(tx);
+        PrecomputedTransactionData txdata(tx);
         if (!tx.IsCoinBase()) {
             nFees += view.GetValueIn(tx) - tx.GetValueOut();
 
@@ -1860,8 +1855,8 @@ bool ConnectBlock(const CBlock &block, CValidationState &state,
 
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
-                             fCacheResults, txdata[i],
-                             nScriptCheckThreads ? &vChecks : NULL))
+                             fCacheResults, txdata,
+                             nScriptCheckThreads ? &vChecks : nullptr))
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
             control.Add(vChecks);
