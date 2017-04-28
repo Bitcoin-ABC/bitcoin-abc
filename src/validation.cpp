@@ -604,35 +604,44 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
                               bool fOverrideMempoolLimit,
                               const CAmount &nAbsurdFee,
                               std::vector<uint256> &vHashTxnToUncache) {
+    AssertLockHeld(cs_main);
+
     const CTransaction &tx = *ptx;
     const uint256 txid = tx.GetId();
-    AssertLockHeld(cs_main);
-    if (pfMissingInputs) *pfMissingInputs = false;
+    if (pfMissingInputs) {
+        *pfMissingInputs = false;
+    }
 
-    // Coinbase is only valid in a block, not as a loose transaction
-    if (!CheckRegularTransaction(tx, state, true))
-        return false; // state filled in by CheckRegularTransaction
+    // Coinbase is only valid in a block, not as a loose transaction.
+    if (!CheckRegularTransaction(tx, state, true)) {
+        // state filled in by CheckRegularTransaction.
+        return false;
+    }
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason))
+    if (fRequireStandard && !IsStandardTx(tx, reason)) {
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
+    }
 
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
     // be mined yet.
-    if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS))
+    if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         return state.DoS(0, false, REJECT_NONSTANDARD, "non-final");
+    }
 
-    // is it already in the memory pool?
-    if (pool.exists(txid))
+    // Is it already in the memory pool?
+    if (pool.exists(txid)) {
         return state.Invalid(false, REJECT_ALREADY_KNOWN,
                              "txn-already-in-mempool");
+    }
 
     // Check for conflicts with in-memory transactions
     {
-        LOCK(pool.cs); // protect pool.mapNextTx
-        BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+        // Protect pool.mapNextTx
+        LOCK(pool.cs);
+        for (const CTxIn &txin : tx.vin) {
             auto itConflicting = pool.mapNextTx.find(txin.prevout);
             if (itConflicting != pool.mapNextTx.end()) {
                 // Disable replacement feature for good
@@ -653,61 +662,68 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
             CCoinsViewMemPool viewMemPool(pcoinsTip, pool);
             view.SetBackend(viewMemPool);
 
-            // do we already have it?
+            // Do we already have it?
             bool fHadTxInCache = pcoinsTip->HaveCoinsInCache(txid);
             if (view.HaveCoins(txid)) {
-                if (!fHadTxInCache) vHashTxnToUncache.push_back(txid);
+                if (!fHadTxInCache) {
+                    vHashTxnToUncache.push_back(txid);
+                }
+
                 return state.Invalid(false, REJECT_ALREADY_KNOWN,
                                      "txn-already-known");
             }
 
-            // do all inputs exist?
-            // Note that this does not check for the presence of actual outputs
-            // (see the next check for that),
-            // and only helps with filling in pfMissingInputs (to determine
-            // missing vs spent).
-            BOOST_FOREACH (const CTxIn txin, tx.vin) {
-                if (!pcoinsTip->HaveCoinsInCache(txin.prevout.hash))
+            // Do all inputs exist? Note that this does not check for the
+            // presence of actual outputs (see the next check for that), and
+            // only helps with filling in pfMissingInputs (to determine missing
+            // vs spent).
+            for (const CTxIn txin : tx.vin) {
+                if (!pcoinsTip->HaveCoinsInCache(txin.prevout.hash)) {
                     vHashTxnToUncache.push_back(txin.prevout.hash);
+                }
+
                 if (!view.HaveCoins(txin.prevout.hash)) {
-                    if (pfMissingInputs) *pfMissingInputs = true;
-                    return false; // fMissingInputs and !state.IsInvalid() is
-                                  // used to detect this condition, don't set
-                                  // state.Invalid()
+                    if (pfMissingInputs) {
+                        *pfMissingInputs = true;
+                    }
+
+                    // fMissingInputs and !state.IsInvalid() is used to detect
+                    // this condition, don't set state.Invalid()
+                    return false;
                 }
             }
 
-            // are the actual inputs available?
-            if (!view.HaveInputs(tx))
+            // Are the actual inputs available?
+            if (!view.HaveInputs(tx)) {
                 return state.Invalid(false, REJECT_DUPLICATE,
                                      "bad-txns-inputs-spent");
+            }
 
-            // Bring the best block into scope
+            // Bring the best block into scope.
             view.GetBestBlock();
 
             nValueIn = view.GetValueIn(tx);
 
-            // we have all inputs cached now, so switch back to dummy, so we
-            // don't need to keep lock on mempool
+            // We have all inputs cached now, so switch back to dummy, so we
+            // don't need to keep lock on mempool.
             view.SetBackend(dummy);
 
             // Only accept BIP68 sequence locked transactions that can be mined
-            // in the next
-            // block; we don't want our mempool filled up with transactions that
-            // can't
-            // be mined yet.
-            // Must keep pool.cs for this unless we change CheckSequenceLocks to
-            // take a
-            // CoinsViewCache instead of create its own
-            if (!CheckSequenceLocks(tx, STANDARD_LOCKTIME_VERIFY_FLAGS, &lp))
+            // in the next block; we don't want our mempool filled up with
+            // transactions that can't be mined yet. Must keep pool.cs for this
+            // unless we change CheckSequenceLocks to take a CoinsViewCache
+            // instead of create its own.
+            if (!CheckSequenceLocks(tx, STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
                 return state.DoS(0, false, REJECT_NONSTANDARD,
                                  "non-BIP68-final");
+            }
         }
 
         // Check for non-standard pay-to-script-hash in inputs
-        if (fRequireStandard && !AreInputsStandard(tx, view))
+        if (fRequireStandard && !AreInputsStandard(tx, view)) {
             return state.Invalid(false, REJECT_NONSTANDARD,
                                  "bad-txns-nonstandard-inputs");
+        }
 
         int64_t nSigOpsCount =
             GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
@@ -726,7 +742,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
         // Keep track of transactions that spend a coinbase, which we re-scan
         // during reorgs to ensure COINBASE_MATURITY is still met.
         bool fSpendsCoinbase = false;
-        BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+        for (const CTxIn &txin : tx.vin) {
             const CCoins *coins = view.AccessCoins(txin.prevout.hash);
             if (coins->IsCoinBase()) {
                 fSpendsCoinbase = true;
@@ -744,10 +760,11 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
         // itself can contain sigops MAX_STANDARD_TX_SIGOPS is less than
         // MAX_BLOCK_SIGOPS; we still consider this an invalid rather than
         // merely non-standard transaction.
-        if (nSigOpsCount > MAX_STANDARD_TX_SIGOPS)
+        if (nSigOpsCount > MAX_STANDARD_TX_SIGOPS) {
             return state.DoS(0, false, REJECT_NONSTANDARD,
                              "bad-txns-too-many-sigops", false,
                              strprintf("%d", nSigOpsCount));
+        }
 
         CAmount mempoolRejectFee =
             pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
@@ -766,10 +783,10 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
                              "insufficient priority");
         }
 
-        // Continuously rate-limit free (really, very-low-fee) transactions
+        // Continuously rate-limit free (really, very-low-fee) transactions.
         // This mitigates 'penny-flooding' -- sending thousands of free
-        // transactions just to
-        // be annoying or make others' transactions take longer to confirm.
+        // transactions just to be annoying or make others' transactions take
+        // longer to confirm.
         if (fLimitFree && nModifiedFees < ::minRelayTxFee.GetFee(nSize)) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
@@ -784,17 +801,20 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount + nSize >=
-                GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 * 1000)
+                GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 * 1000) {
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                                  "rate limited free transaction");
+            }
+
             LogPrint("mempool", "Rate limit dFreeCount: %g => %g\n", dFreeCount,
                      dFreeCount + nSize);
             dFreeCount += nSize;
         }
 
-        if (nAbsurdFee && nFees > nAbsurdFee)
+        if (nAbsurdFee && nFees > nAbsurdFee) {
             return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
                                  strprintf("%d > %d", nFees, nAbsurdFee));
+        }
 
         // Calculate in-mempool ancestors, up to a limit.
         CTxMemPool::setEntries setAncestors;
@@ -821,13 +841,13 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
-        // Check against previous transactions
-        // This is done last to help prevent CPU exhaustion denial-of-service
-        // attacks.
+        // Check against previous transactions. This is done last to help
+        // prevent CPU exhaustion denial-of-service attacks.
         PrecomputedTransactionData txdata(tx);
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true,
                          txdata)) {
-            return false; // state filled in by CheckInputs
+            // State filled in by CheckInputs.
+            return false;
         }
 
         // Check again against just the consensus-critical mandatory script
@@ -848,14 +868,14 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
 
         // This transaction should only count for fee estimation if
         // the node is not behind and it is not dependent on any other
-        // transactions in the mempool
+        // transactions in the mempool.
         bool validForFeeEstimation =
             IsCurrentForFeeEstimation() && pool.HasNoInputsOf(tx);
 
-        // Store transaction in memory
+        // Store transaction in memory.
         pool.addUnchecked(txid, entry, setAncestors, validForFeeEstimation);
 
-        // trim mempool and check if tx was trimmed
+        // Trim mempool and check if tx was trimmed.
         if (!fOverrideMempoolLimit) {
             LimitMempoolSize(
                 pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
