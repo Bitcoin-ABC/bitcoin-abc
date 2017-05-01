@@ -3034,6 +3034,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 }
             } else {
                 reservekey.ReturnKey();
+                nChangePosInOut = -1;
             }
 
             // Fill vin
