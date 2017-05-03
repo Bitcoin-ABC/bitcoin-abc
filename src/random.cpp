@@ -32,6 +32,8 @@
 #include <sys/sysctl.h>
 #endif
 
+#include <mutex>
+
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
@@ -195,6 +197,10 @@ void GetRandBytes(uint8_t *buf, int num) {
     }
 }
 
+static std::mutex cs_rng_state;
+static uint8_t rng_state[32] = {0};
+static uint64_t rng_counter = 0;
+
 void GetStrongRandBytes(uint8_t *out, int num) {
     assert(num <= 32);
     CSHA512 hasher;
@@ -209,8 +215,17 @@ void GetStrongRandBytes(uint8_t *out, int num) {
     GetOSRand(buf);
     hasher.Write(buf, 32);
 
+    // Combine with and update state
+    {
+        std::unique_lock<std::mutex> lock(cs_rng_state);
+        hasher.Write(rng_state, sizeof(rng_state));
+        hasher.Write((const uint8_t *)&rng_counter, sizeof(rng_counter));
+        ++rng_counter;
+        hasher.Finalize(buf);
+        memcpy(rng_state, buf + 32, 32);
+    }
+
     // Produce output
-    hasher.Finalize(buf);
     memcpy(out, buf, num);
     memory_cleanse(buf, 64);
 }
