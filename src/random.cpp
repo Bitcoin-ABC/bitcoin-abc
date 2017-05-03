@@ -14,8 +14,10 @@
 #include "util.h"             // for LogPrint()
 #include "utilstrencodings.h" // for GetTime()
 
+#include <chrono>
 #include <cstdlib>
 #include <limits>
+#include <thread>
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -38,6 +40,10 @@
 
 #include <mutex>
 
+#if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
+#include <cpuid.h>
+#endif
+
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
@@ -47,15 +53,27 @@ static void RandFailure() {
 }
 
 static inline int64_t GetPerformanceCounter() {
-    int64_t nCounter = 0;
-#ifdef WIN32
-    QueryPerformanceCounter((LARGE_INTEGER *)&nCounter);
+// Read the hardware time stamp counter when available.
+// See https://en.wikipedia.org/wiki/Time_Stamp_Counter for more information.
+#if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+    return __rdtsc();
+#elif !defined(_MSC_VER) && defined(__i386__)
+    uint64_t r = 0;
+    __asm__ volatile(
+        "rdtsc"
+        : "=A"(r)); // Constrain the r variable to the eax:edx pair.
+    return r;
+#elif !defined(_MSC_VER) && (defined(__x86_64__) || defined(__amd64__))
+    uint64_t r1 = 0, r2 = 0;
+    __asm__ volatile("rdtsc"
+                     : "=a"(r1),
+                       "=d"(r2)); // Constrain r1 to rax and r2 to rdx.
+    return (r2 << 32) | r1;
 #else
-    timeval t;
-    gettimeofday(&t, nullptr);
-    nCounter = t.tv_sec * 1000000LL + t.tv_usec;
+    // Fall back to using C++11 clock (usually microsecond or nanosecond
+    // precision)
+    return std::chrono::high_resolution_clock::now().time_since_epoch().count();
 #endif
-    return nCounter;
 }
 
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
@@ -63,15 +81,9 @@ static std::atomic<bool> hwrand_initialized{false};
 static bool rdrand_supported = false;
 static constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
 static void RDRandInit() {
-    //! When calling cpuid function #1, ecx register will have this set if
-    //! RDRAND is available.
-    // Avoid clobbering ebx, as that is used for PIC on x86.
-    uint32_t eax, tmp, ecx, edx;
-    __asm__("mov %%ebx, %1; cpuid; mov %1, %%ebx"
-            : "=a"(eax), "=g"(tmp), "=c"(ecx), "=d"(edx)
-            : "a"(1));
-    if (ecx & CPUID_F1_ECX_RDRAND) {
-        LogPrintf("Using RdRand as entropy source\n");
+    uint32_t eax, ebx, ecx, edx;
+    if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) && (ecx & CPUID_F1_ECX_RDRAND)) {
+        LogPrintf("Using RdRand as an additional entropy source\n");
         rdrand_supported = true;
     }
     hwrand_initialized.store(true);
@@ -365,6 +377,8 @@ FastRandomContext::FastRandomContext(const uint256 &seed)
 }
 
 bool Random_SanityCheck() {
+    uint64_t start = GetPerformanceCounter();
+
     /* This does not measure the quality of randomness, but it does test that
      * OSRandom() overwrites all 32 bytes of the output given a maximum number
      * of tries.
@@ -394,7 +408,21 @@ bool Random_SanityCheck() {
         tries += 1;
     } while (num_overwritten < NUM_OS_RANDOM_BYTES && tries < MAX_TRIES);
     /* If this failed, bailed out after too many tries */
-    return (num_overwritten == NUM_OS_RANDOM_BYTES);
+    if (num_overwritten != NUM_OS_RANDOM_BYTES) {
+        return false;
+    }
+
+    // Check that GetPerformanceCounter increases at least during a GetOSRand()
+    // call + 1ms sleep.
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    uint64_t stop = GetPerformanceCounter();
+    if (stop == start) return false;
+
+    // We called GetPerformanceCounter. Use it as entropy.
+    RAND_add((const uint8_t *)&start, sizeof(start), 1);
+    RAND_add((const uint8_t *)&stop, sizeof(stop), 1);
+
+    return true;
 }
 
 FastRandomContext::FastRandomContext(bool fDeterministic)
