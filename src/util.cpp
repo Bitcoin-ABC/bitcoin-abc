@@ -13,7 +13,6 @@
 #include "fs.h"
 #include "random.h"
 #include "serialize.h"
-#include "sync.h"
 #include "utilstrencodings.h"
 #include "utiltime.h"
 
@@ -91,11 +90,7 @@
 const char *const BITCOIN_CONF_FILENAME = "bitcoin.conf";
 const char *const BITCOIN_PID_FILENAME = "bitcoind.pid";
 
-CCriticalSection cs_args;
-std::map<std::string, std::string> mapArgs;
-static std::map<std::string, std::vector<std::string>> _mapMultiArgs;
-const std::map<std::string, std::vector<std::string>> &mapMultiArgs =
-    _mapMultiArgs;
+ArgsManager gArgs;
 bool fPrintToConsole = false;
 bool fPrintToDebugLog = true;
 
@@ -362,10 +357,10 @@ static void InterpretNegativeSetting(std::string &strKey,
     }
 }
 
-void ParseParameters(int argc, const char *const argv[]) {
+void ArgsManager::ParseParameters(int argc, const char *const argv[]) {
     LOCK(cs_args);
     mapArgs.clear();
-    _mapMultiArgs.clear();
+    mapMultiArgs.clear();
 
     for (int i = 1; i < argc; i++) {
         std::string str(argv[i]);
@@ -388,50 +383,61 @@ void ParseParameters(int argc, const char *const argv[]) {
         InterpretNegativeSetting(str, strValue);
 
         mapArgs[str] = strValue;
-        _mapMultiArgs[str].push_back(strValue);
+        mapMultiArgs[str].push_back(strValue);
     }
 }
 
-bool IsArgSet(const std::string &strArg) {
+std::vector<std::string> ArgsManager::GetArgs(const std::string &strArg) {
+    LOCK(cs_args);
+    return mapMultiArgs.at(strArg);
+}
+
+bool ArgsManager::IsArgSet(const std::string &strArg) {
     LOCK(cs_args);
     return mapArgs.count(strArg);
 }
 
-std::string GetArg(const std::string &strArg, const std::string &strDefault) {
+std::string ArgsManager::GetArg(const std::string &strArg,
+                                const std::string &strDefault) {
     LOCK(cs_args);
     if (mapArgs.count(strArg)) return mapArgs[strArg];
     return strDefault;
 }
 
-int64_t GetArg(const std::string &strArg, int64_t nDefault) {
+int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) {
     LOCK(cs_args);
     if (mapArgs.count(strArg)) return atoi64(mapArgs[strArg]);
     return nDefault;
 }
 
-bool GetBoolArg(const std::string &strArg, bool fDefault) {
+bool ArgsManager::GetBoolArg(const std::string &strArg, bool fDefault) {
     LOCK(cs_args);
     if (mapArgs.count(strArg)) return InterpretBool(mapArgs[strArg]);
     return fDefault;
 }
 
-bool SoftSetArg(const std::string &strArg, const std::string &strValue) {
+bool ArgsManager::SoftSetArg(const std::string &strArg,
+                             const std::string &strValue) {
     LOCK(cs_args);
-    if (mapArgs.count(strArg)) return false;
-    mapArgs[strArg] = strValue;
+    if (mapArgs.count(strArg)) {
+        return false;
+    }
+    ForceSetArg(strArg, strValue);
     return true;
 }
 
-bool SoftSetBoolArg(const std::string &strArg, bool fValue) {
+bool ArgsManager::SoftSetBoolArg(const std::string &strArg, bool fValue) {
     if (fValue)
         return SoftSetArg(strArg, std::string("1"));
     else
         return SoftSetArg(strArg, std::string("0"));
 }
 
-void ForceSetArg(const std::string &strArg, const std::string &strValue) {
+void ArgsManager::ForceSetArg(const std::string &strArg,
+                              const std::string &strValue) {
     LOCK(cs_args);
     mapArgs[strArg] = strValue;
+    mapMultiArgs[strArg].push_back(strValue);
 }
 
 /**
@@ -439,12 +445,16 @@ void ForceSetArg(const std::string &strArg, const std::string &strValue) {
  * so we should not worry about element uniqueness and
  * integrity of mapMultiArgs data structure
  */
-void ForceSetMultiArg(const std::string &strArg, const std::string &strValue) {
+void ArgsManager::ForceSetMultiArg(const std::string &strArg,
+                                   const std::string &strValue) {
     LOCK(cs_args);
-    _mapMultiArgs[strArg].push_back(strValue);
+    if (mapArgs.count(strArg) == 0) {
+        mapArgs[strArg] = strValue;
+    }
+    mapMultiArgs[strArg].push_back(strValue);
 }
 
-void ClearArg(const std::string &strArg) {
+void ArgsManager::ClearArg(const std::string &strArg) {
     LOCK(cs_args);
     mapArgs.erase(strArg);
 }
@@ -557,7 +567,7 @@ fs::path GetConfigFile(const std::string &confPath) {
     return pathConfigFile;
 }
 
-void ReadConfigFile(const std::string &confPath) {
+void ArgsManager::ReadConfigFile(const std::string &confPath) {
     fs::ifstream streamConfig(GetConfigFile(confPath));
 
     // No bitcoin.conf file is OK
@@ -577,8 +587,10 @@ void ReadConfigFile(const std::string &confPath) {
             std::string strKey = std::string("-") + it->string_key;
             std::string strValue = it->value[0];
             InterpretNegativeSetting(strKey, strValue);
-            if (mapArgs.count(strKey) == 0) mapArgs[strKey] = strValue;
-            _mapMultiArgs[strKey].push_back(strValue);
+            if (mapArgs.count(strKey) == 0) {
+                mapArgs[strKey] = strValue;
+            }
+            mapMultiArgs[strKey].push_back(strValue);
         }
     }
     // If datadir is changed in .conf file:
