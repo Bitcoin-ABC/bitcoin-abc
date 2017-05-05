@@ -25,6 +25,14 @@ static const int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
  * reconstruction.
  */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
+/**
+ * Headers download timeout expressed in microseconds.
+ * Timeout = base + per_header * (expected number of headers)
+ */
+// 15 minutes
+static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_BASE = 15 * 60 * 1000000;
+// 1ms/header
+static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER = 1000;
 
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
