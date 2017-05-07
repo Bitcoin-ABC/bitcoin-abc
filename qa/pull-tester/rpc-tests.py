@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-2016 The Bitcoin Core developers
+# Copyright (c) 2017 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -106,11 +107,9 @@ testScripts = [
     'p2p-fullblocktest.py',
     'fundrawtransaction.py',
     'p2p-compactblocks.py',
-    'segwit.py',
     # vv Tests less than 2m vv
     'wallet.py',
     'wallet-accounts.py',
-    'p2p-segwit.py',
     'wallet-dump.py',
     'listtransactions.py',
     # vv Tests less than 60s vv
