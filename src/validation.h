@@ -201,12 +201,20 @@ extern Amount maxTxFee;
  * initial block download. */
 extern int64_t nMaxTipAge;
 
-/** Block hash whose ancestors we will assume to have valid scripts without
- * checking them. */
+/**
+ * Block hash whose ancestors we will assume to have valid scripts without
+ * checking them.
+ */
 extern uint256 hashAssumeValid;
 
-/** Best header we've seen so far (used for getheaders queries' starting
- * points). */
+/**
+ * Minimum work we will assume exists on some valid chain.
+ */
+extern arith_uint256 nMinimumChainWork;
+
+/**
+ * Best header we've seen so far (used for getheaders queries' starting points).
+ */
 extern CBlockIndex *pindexBestHeader;
 
 /** Minimum disk space required - used in CheckDiskSpace() */

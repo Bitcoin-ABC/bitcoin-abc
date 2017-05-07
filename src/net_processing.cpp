@@ -564,7 +564,8 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
     if (state->pindexBestKnownBlock == nullptr ||
         state->pindexBestKnownBlock->nChainWork <
-            chainActive.Tip()->nChainWork) {
+            chainActive.Tip()->nChainWork ||
+        state->pindexBestKnownBlock->nChainWork < nMinimumChainWork) {
         // This peer has nothing interesting.
         return;
     }

@@ -371,11 +371,13 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(
             _("Set database cache size in megabytes (%d to %d, default: %d)"),
             nMinDbCache, nMaxDbCache, nDefaultDbCache));
-    if (showDebug)
+    if (showDebug) {
         strUsage += HelpMessageOpt(
             "-feefilter", strprintf("Tell other nodes to filter invs to us by "
                                     "our mempool min fee (default: %d)",
                                     DEFAULT_FEEFILTER));
+    }
+
     strUsage += HelpMessageOpt(
         "-loadblock=<file>",
         _("Imports blocks from external blk000??.dat file on startup"));
@@ -392,6 +394,15 @@ std::string HelpMessage(HelpMessageMode mode) {
                        strprintf(_("Do not keep transactions in the mempool "
                                    "longer than <n> hours (default: %u)"),
                                  DEFAULT_MEMPOOL_EXPIRY));
+    if (showDebug) {
+        strUsage += HelpMessageOpt(
+            "-minimumchainwork=<hex>",
+            strprintf(
+                "Minimum work assumed to exist on a valid chain in hex "
+                "(default: %s, testnet: %s)",
+                defaultChainParams->GetConsensus().nMinimumChainWork.GetHex(),
+                testnetChainParams->GetConsensus().nMinimumChainWork.GetHex()));
+    }
     strUsage +=
         HelpMessageOpt("-persistmempool",
                        strprintf(_("Whether to save the mempool on shutdown "
@@ -1433,6 +1444,26 @@ bool AppInitParameterInteraction(Config &config) {
                   hashAssumeValid.GetHex());
     else
         LogPrintf("Validating signatures for all blocks.\n");
+
+    if (gArgs.IsArgSet("-minimumchainwork")) {
+        const std::string minChainWorkStr =
+            gArgs.GetArg("-minimumchainwork", "");
+        if (!IsHexNumber(minChainWorkStr)) {
+            return InitError(strprintf(
+                "Invalid non-hex (%s) minimum chain work value specified",
+                minChainWorkStr));
+        }
+        nMinimumChainWork = UintToArith256(uint256S(minChainWorkStr));
+    } else {
+        nMinimumChainWork =
+            UintToArith256(chainparams.GetConsensus().nMinimumChainWork);
+    }
+    LogPrintf("Setting nMinimumChainWork=%s\n", nMinimumChainWork.GetHex());
+    if (nMinimumChainWork <
+        UintToArith256(chainparams.GetConsensus().nMinimumChainWork)) {
+        LogPrintf("Warning: nMinimumChainWork set below default value of %s\n",
+                  chainparams.GetConsensus().nMinimumChainWork.GetHex());
+    }
 
     // mempool limits
     int64_t nMempoolSizeMax =

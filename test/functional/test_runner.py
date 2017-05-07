@@ -124,6 +124,7 @@ BASE_SCRIPTS = [
     'bip65-cltv-p2p.py',
     'uptime.py',
     'resendwallettransactions.py',
+    'minchainwork.py',
 ]
 
 EXTENDED_SCRIPTS = [
