@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -45,7 +46,6 @@ typedef enum ScriptError_t
     SCRIPT_ERR_MINIMALDATA,
     SCRIPT_ERR_SIG_PUSHONLY,
     SCRIPT_ERR_SIG_HIGH_S,
-    SCRIPT_ERR_SIG_NULLDUMMY,
     SCRIPT_ERR_PUBKEYTYPE,
     SCRIPT_ERR_CLEANSTACK,
     SCRIPT_ERR_MINIMALIF,
