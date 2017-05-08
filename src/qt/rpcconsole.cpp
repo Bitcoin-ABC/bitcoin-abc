@@ -807,10 +807,18 @@ void RPCConsole::clear(bool clearHistory) {
                 "b { color: #006060; } ")
             .arg(fixedFontInfo.family(), QString("%1pt").arg(consoleFontSize)));
 
+#ifdef Q_OS_MAC
+    QString clsKey = "(⌘)-L";
+#else
+    QString clsKey = "Ctrl-L";
+#endif
+
     message(CMD_REPLY,
             (tr("Welcome to the %1 RPC console.").arg(tr(PACKAGE_NAME)) +
-             "<br>" + tr("Use up and down arrows to navigate history, and "
-                         "<b>Ctrl-L</b> to clear screen.") +
+             "<br>" +
+             tr("Use up and down arrows to navigate history, and "
+                "%1 to clear screen.")
+                 .arg("<b>" + clsKey + "</b>") +
              "<br>" +
              tr("Type <b>help</b> for an overview of available commands.")) +
                 "<br><span class=\"secwarning\">" +
