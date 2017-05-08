@@ -498,6 +498,8 @@ static UniValue getrawmempool(const Config &config,
             "getrawmempool ( verbose )\n"
             "\nReturns all transaction ids in memory pool as a json array of "
             "string transaction ids.\n"
+            "\nHint: use getmempoolentry to fetch a specific transaction from "
+            "the mempool.\n"
             "\nArguments:\n"
             "1. verbose (boolean, optional, default=false) True for a json "
             "object, false for array of transaction ids\n"
