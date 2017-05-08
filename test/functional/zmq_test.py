@@ -13,7 +13,6 @@ from test_framework.test_framework import BitcoinTestFramework, SkipTest
 from test_framework.util import (
     assert_equal,
     bytes_to_hex_str,
-    start_nodes,
 )
 
 

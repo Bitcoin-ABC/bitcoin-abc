@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Copyright (c) 2015-2016 The Bitcoin Core developers
 # Copyright (c) 2017 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -50,9 +49,9 @@ class FullBlockTest(ComparisonTestFramework):
 
     def setup_network(self):
         self.extra_args = [['-norelaypriority']]
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 self.extra_args,
-                                 binary=[self.options.testbinary])
+        self.nodes = self.start_nodes(self.num_nodes, self.options.tmpdir,
+                                      self.extra_args,
+                                      binary=[self.options.testbinary])
 
     def add_options(self, parser):
         super().add_options(parser)

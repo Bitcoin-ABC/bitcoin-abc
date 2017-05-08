@@ -79,9 +79,9 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getmempoolinfo()['bytes'], mempool_size_pre)
 
         # restart with default blockprioritypercentage
-        stop_nodes(self.nodes)
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 [["-limitfreerelay=2"]])
+        self.stop_nodes()
+        self.nodes = self.start_nodes(self.num_nodes, self.options.tmpdir,
+                                      [["-limitfreerelay=2"]])
 
         # second test step: default reserved prio space in block (100K).
         # the mempool size is about 25K this means that all txns will be

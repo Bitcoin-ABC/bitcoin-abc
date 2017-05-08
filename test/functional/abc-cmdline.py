@@ -12,8 +12,6 @@ Currently:
 import re
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
-    start_node,
-    stop_node,
     assert_equal,
     assert_start_raises_init_error
 )
@@ -48,16 +46,16 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
 
         self.log.info("  Set to twice the default, i.e. %d bytes" %
                       (2 * LEGACY_MAX_BLOCK_SIZE))
-        stop_node(self.nodes[0], 0)
-        self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-excessiveblocksize=%d" % (2 * LEGACY_MAX_BLOCK_SIZE)])
+        self.stop_node(0)
+        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
+                                        "-excessiveblocksize=%d" % (2 * LEGACY_MAX_BLOCK_SIZE)])
         self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
         # Check for EB correctness in the subver string
         self.check_subversion("/Bitcoin ABC:.*\(EB2\.0; .*\)/")
 
         self.log.info("  Attempt to set below legacy limit of 1MB - try %d bytes" %
                       LEGACY_MAX_BLOCK_SIZE)
-        stop_node(self.nodes[0], 0)
+        self.stop_node(0)
         assert_start_raises_init_error(0, self.options.tmpdir, [
                                        "-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE], 'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
@@ -66,7 +64,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
 
         # Make sure we leave the test with a node running as this is what thee
         # framework expects.
-        self.nodes[0] = start_node(0, self.options.tmpdir, [])
+        self.nodes[0] = self.start_node(0, self.options.tmpdir, [])
 
     def run_test(self):
         # Run tests on -excessiveblocksize option
