@@ -138,4 +138,7 @@ void GetOSRand(uint8_t *ent32);
  */
 bool Random_SanityCheck();
 
+/** Initialize the RNG. */
+void RandomInit();
+
 #endif // BITCOIN_RANDOM_H
