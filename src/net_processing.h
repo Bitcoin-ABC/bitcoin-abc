@@ -9,31 +9,38 @@
 #include "net.h"
 #include "validationinterface.h"
 
-/** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
+/** Default for -maxorphantx, maximum number of orphan transactions kept in
+ * memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
 /** Expiration time for orphan transactions in seconds */
 static const int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
 /** Minimum time between orphan transactions expire time checks in seconds */
 static const int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
-/** Default number of orphan+recently-replaced txn to keep around for block reconstruction */
+/** Default number of orphan+recently-replaced txn to keep around for block
+ * reconstruction */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
 
 /** Register with a network node to receive its signals */
-void RegisterNodeSignals(CNodeSignals& nodeSignals);
+void RegisterNodeSignals(CNodeSignals &nodeSignals);
 /** Unregister a network node */
-void UnregisterNodeSignals(CNodeSignals& nodeSignals);
+void UnregisterNodeSignals(CNodeSignals &nodeSignals);
 
 class PeerLogicValidation : public CValidationInterface {
 private:
-    CConnman* connman;
+    CConnman *connman;
 
 public:
-    PeerLogicValidation(CConnman* connmanIn);
+    PeerLogicValidation(CConnman *connmanIn);
 
-    virtual void SyncTransaction(const CTransaction& tx, const CBlockIndex* pindex, int nPosInBlock);
-    virtual void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload);
-    virtual void BlockChecked(const CBlock& block, const CValidationState& state);
-    virtual void NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& pblock);
+    virtual void SyncTransaction(const CTransaction &tx,
+                                 const CBlockIndex *pindex, int nPosInBlock);
+    virtual void UpdatedBlockTip(const CBlockIndex *pindexNew,
+                                 const CBlockIndex *pindexFork,
+                                 bool fInitialDownload);
+    virtual void BlockChecked(const CBlock &block,
+                              const CValidationState &state);
+    virtual void NewPoWValidBlock(const CBlockIndex *pindex,
+                                  const std::shared_ptr<const CBlock> &pblock);
 };
 
 struct CNodeStateStats {
@@ -49,7 +56,8 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 void Misbehaving(NodeId nodeid, int howmuch);
 
 /** Process protocol messages received from a given node */
-bool ProcessMessages(CNode* pfrom, CConnman& connman, const std::atomic<bool>& interrupt);
+bool ProcessMessages(CNode *pfrom, CConnman &connman,
+                     const std::atomic<bool> &interrupt);
 /**
  * Send queued protocol messages to be sent to a give node.
  *
@@ -58,6 +66,7 @@ bool ProcessMessages(CNode* pfrom, CConnman& connman, const std::atomic<bool>& i
  * @param[in]   interrupt       Interrupt condition for processing threads
  * @return                      True if there is more work to be done
  */
-bool SendMessages(CNode* pto, CConnman& connman, const std::atomic<bool>& interrupt);
+bool SendMessages(CNode *pto, CConnman &connman,
+                  const std::atomic<bool> &interrupt);
 
 #endif // BITCOIN_NET_PROCESSING_H
