@@ -306,7 +306,8 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
-            if (!(CheckRegularTransaction(wtx, state) && (wtx.GetId() == hash) && state.IsValid()))
+            bool isValid = wtx.IsCoinBase() ? CheckCoinbase(wtx, state) : CheckRegularTransaction(wtx, state);
+            if (wtx.GetId() != hash || !isValid)
                 return false;
 
             // Undo serialize changes in 31600
