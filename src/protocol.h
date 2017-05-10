@@ -310,7 +310,8 @@ public:
 };
 
 /** getdata message type flags */
-const uint32_t MSG_TYPE_MASK = 0xffffffff >> 2;
+const uint32_t MSG_EXT_FLAG = 1 << 29;
+const uint32_t MSG_TYPE_MASK = 0xffffffff >> 3;
 
 /** getdata / inv message types.
  * These numbers are defined by the protocol. When adding a new value, be sure
@@ -325,6 +326,10 @@ enum GetDataMsg {
     MSG_FILTERED_BLOCK = 3,
     //!< Defined in BIP152
     MSG_CMPCT_BLOCK = 4,
+
+    //!< Extension block
+    MSG_EXT_TX = MSG_TX | MSG_EXT_FLAG,
+    MSG_EXT_BLOCK = MSG_BLOCK | MSG_EXT_FLAG,
 };
 
 /** inv message data */
@@ -345,6 +350,19 @@ public:
 
     std::string GetCommand() const;
     std::string ToString() const;
+
+    uint32_t GetKind() const { return type & MSG_TYPE_MASK; }
+
+    bool IsTx() const {
+        auto k = GetKind();
+        return k == MSG_TX;
+    }
+
+    bool IsSomeBlock() const {
+        auto k = GetKind();
+        return k == MSG_BLOCK || k == MSG_FILTERED_BLOCK ||
+               k == MSG_CMPCT_BLOCK;
+    }
 
     // TODO: make private (improves encapsulation)
 public:

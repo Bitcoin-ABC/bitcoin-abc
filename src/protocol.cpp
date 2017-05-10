@@ -135,8 +135,7 @@ bool operator<(const CInv &a, const CInv &b) {
 
 std::string CInv::GetCommand() const {
     std::string cmd;
-    int masked = type & MSG_TYPE_MASK;
-    switch (masked) {
+    switch (GetKind()) {
         case MSG_TX:
             return cmd.append(NetMsgType::TX);
         case MSG_BLOCK:
