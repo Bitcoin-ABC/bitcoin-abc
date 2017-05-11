@@ -938,9 +938,9 @@ static UniValue getbalance(const Config &config,
         return ValueFromAmount(pwallet->GetBalance());
     }
 
-    const std::string *account = request.params[0].get_str() != "*"
-                                     ? &request.params[0].get_str()
-                                     : nullptr;
+    const std::string &account_param = request.params[0].get_str();
+    const std::string *account =
+        account_param != "*" ? &account_param : nullptr;
 
     int nMinDepth = 1;
     if (!request.params[1].isNull()) {
