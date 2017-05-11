@@ -693,7 +693,7 @@ class FullBlockTest(ComparisonTestFramework):
         b51 = block(51)
         cb2 = create_coinbase(51, self.coinbase_pubkey)
         b51 = update_block(51, [cb2])
-        yield rejected(RejectResult(16, b'bad-cb-multiple'))
+        yield rejected(RejectResult(16, b'bad-tx-coinbase'))
 
         # A block w/ duplicate txns
         # Note: txns have to be in the right position in the merkle tree to trigger this error

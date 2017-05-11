@@ -549,7 +549,7 @@ bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
 bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
                              bool fCheckDuplicateInputs) {
     if (tx.IsCoinBase()) {
-        return state.DoS(100, false, REJECT_INVALID, "coinbase");
+        return state.DoS(100, false, REJECT_INVALID, "bad-tx-coinbase");
     }
 
     if (!CheckTransactionCommon(tx, state, fCheckDuplicateInputs)) {
