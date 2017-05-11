@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,6 +10,11 @@
 #include "compressor.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
+
+class CBlock;
+class CBlockIndex;
+class CCoinsViewCache;
+class CValidationState;
 
 /** Undo information for a CTxIn
  *
@@ -76,5 +82,15 @@ public:
         READWRITE(vtxundo);
     }
 };
+
+/** Apply the undo operation of a CTxInUndo to the given chain state. */
+bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+                   const COutPoint &out);
+
+/** Undo a block from the block and the undoblock data.
+ * See DisconnectBlock for more details. */
+bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
+                    const CBlockIndex *pindex, CCoinsViewCache &coins,
+                    const CBlockUndo &blockUndo, bool *pfClean = nullptr);
 
 #endif // BITCOIN_UNDO_H

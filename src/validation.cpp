@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1221,7 +1222,7 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
     // mark inputs spent
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
-        BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+        for (const CTxIn &txin : tx.vin) {
             CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
             unsigned nPos = txin.prevout.n;
 
@@ -1506,61 +1507,69 @@ bool DisconnectBlock(const CBlock &block, CValidationState &state,
 
     if (pfClean) *pfClean = false;
 
-    bool fClean = true;
-
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
     if (pos.IsNull()) return error("DisconnectBlock(): no undo data available");
     if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
         return error("DisconnectBlock(): failure reading undo data");
 
+    return ApplyBlockUndo(block, state, pindex, view, blockUndo, pfClean);
+}
+
+bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
+                    const CBlockIndex *pindex, CCoinsViewCache &view,
+                    const CBlockUndo &blockUndo, bool *pfClean) {
+    if (pfClean) *pfClean = false;
+    bool fClean = true;
+
     if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
         return error("DisconnectBlock(): block and undo data inconsistent");
 
-    // undo transactions in reverse order
-    for (int i = block.vtx.size() - 1; i >= 0; i--) {
+    // Undo transactions in reverse order.
+    size_t i = block.vtx.size();
+    while (i-- > 0) {
         const CTransaction &tx = *(block.vtx[i]);
         uint256 txid = tx.GetId();
 
         // Check that all outputs are available and match the outputs in the
-        // block itself
-        // exactly.
+        // block itself exactly.
         {
             CCoinsModifier outs = view.ModifyCoins(txid);
             outs->ClearUnspendable();
 
             CCoins outsBlock(tx, pindex->nHeight);
-            // The CCoins serialization does not serialize negative numbers.
-            // No network rules currently depend on the version here, so an
-            // inconsistency is harmless
-            // but it must be corrected before txout nversion ever influences a
-            // network rule.
+            // The CCoins serialization does not serialize negative numbers. No
+            // network rules currently depend on the version here, so an
+            // inconsistency is harmless but it must be corrected before txout
+            // nversion ever influences a network rule.
             if (outsBlock.nVersion < 0) outs->nVersion = outsBlock.nVersion;
             if (*outs != outsBlock)
                 fClean = fClean && error("DisconnectBlock(): added transaction "
                                          "mismatch? database corrupted");
 
-            // remove outputs
+            // Remove outputs.
             outs->Clear();
         }
 
-        // restore inputs
-        if (i > 0) { // not coinbases
-            const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
-            if (txundo.vprevout.size() != tx.vin.size())
-                return error("DisconnectBlock(): transaction and undo data "
-                             "inconsistent");
-            for (unsigned int j = tx.vin.size(); j-- > 0;) {
-                const COutPoint &out = tx.vin[j].prevout;
-                const CTxInUndo &undo = txundo.vprevout[j];
-                if (!ApplyTxInUndo(undo, view, out)) fClean = false;
-            }
+        // Restore inputs.
+        if (i < 1) {
+            // Skip the coinbase.
+            continue;
+        }
+
+        const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
+        if (txundo.vprevout.size() != tx.vin.size())
+            return error("DisconnectBlock(): transaction and undo data "
+                         "inconsistent");
+        for (unsigned int j = tx.vin.size(); j-- > 0;) {
+            const COutPoint &out = tx.vin[j].prevout;
+            const CTxInUndo &undo = txundo.vprevout[j];
+            if (!ApplyTxInUndo(undo, view, out)) fClean = false;
         }
     }
 
-    // move best block pointer to prevout block
-    view.SetBestBlock(pindex->pprev->GetBlockHash());
-
+    // Move best block pointer to previous block.
+    view.SetBestBlock(block.hashPrevBlock);
     if (pfClean) {
         *pfClean = fClean;
         return true;

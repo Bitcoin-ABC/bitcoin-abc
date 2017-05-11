@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -40,6 +41,7 @@ class CInv;
 class CConnman;
 class CScriptCheck;
 class CTxMemPool;
+class CTxUndo;
 class CValidationInterface;
 class CValidationState;
 struct ChainTxData;
@@ -436,6 +438,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
+                 CTxUndo &txundo, int nHeight);
 
 /** Transaction validation functions */
 
@@ -590,7 +594,7 @@ bool ConnectBlock(const CBlock &block, CValidationState &state,
  * any case, coins may be modified. */
 bool DisconnectBlock(const CBlock &block, CValidationState &state,
                      const CBlockIndex *pindex, CCoinsViewCache &coins,
-                     bool *pfClean = NULL);
+                     bool *pfClean = nullptr);
 
 /** Check a block is completely valid from start to finish (only works on top of
  * our current best block, with cs_main held) */
