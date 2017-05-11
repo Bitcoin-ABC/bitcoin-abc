@@ -3063,11 +3063,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
             Amount nFeeNeeded =
                 GetMinimumFee(nBytes, currentConfirmationTarget, g_mempool);
-            if (coinControl && nFeeNeeded > Amount::zero() &&
-                coinControl->nMinimumTotalFee > nFeeNeeded) {
-                nFeeNeeded = coinControl->nMinimumTotalFee;
-            }
-
             if (coinControl && coinControl->fOverrideFeeRate) {
                 nFeeNeeded = coinControl->nFeeRate.GetFeeCeiling(nBytes);
             }

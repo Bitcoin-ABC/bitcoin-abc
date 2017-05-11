@@ -158,7 +158,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
             std::max<int>(0, std::min(1, settings.value("nFeeRadio").toInt())))
         ->setChecked(true);
     ui->groupCustomFee->setId(ui->radioCustomPerKilobyte, 0);
-    ui->groupCustomFee->setId(ui->radioCustomAtLeast, 1);
     ui->groupCustomFee
         ->button(std::max<int>(
             0, std::min(1, settings.value("nCustomFeeRadio").toInt())))
@@ -742,10 +741,6 @@ void SendCoinsDialog::updateFeeSectionControls() {
     ui->radioCustomPerKilobyte->setEnabled(
         ui->radioCustomFee->isChecked() &&
         !ui->checkBoxMinimumFee->isChecked());
-    ui->radioCustomAtLeast->setEnabled(
-        ui->radioCustomFee->isChecked() &&
-        !ui->checkBoxMinimumFee->isChecked() &&
-        CoinControlDialog::coinControl->HasSelected());
     ui->customFee->setEnabled(ui->radioCustomFee->isChecked() &&
                               !ui->checkBoxMinimumFee->isChecked());
 }
@@ -753,19 +748,8 @@ void SendCoinsDialog::updateFeeSectionControls() {
 void SendCoinsDialog::updateGlobalFeeVariables() {
     if (ui->radioSmartFee->isChecked()) {
         payTxFee = CFeeRate(Amount::zero());
-
-        // set nMinimumTotalFee to 0 to not accidentally pay a custom fee
-        CoinControlDialog::coinControl->nMinimumTotalFee = Amount::zero();
     } else {
         payTxFee = CFeeRate(Amount(ui->customFee->value()));
-
-        // if user has selected to set a minimum absolute fee, pass the value to
-        // coincontrol
-        // set nMinimumTotalFee to 0 in case of user has selected that the fee
-        // is per KB
-        CoinControlDialog::coinControl->nMinimumTotalFee =
-            ui->radioCustomAtLeast->isChecked() ? ui->customFee->value()
-                                                : Amount::zero();
     }
 }
 
@@ -977,22 +961,6 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
 // Coin Control: update labels
 void SendCoinsDialog::coinControlUpdateLabels() {
     if (!model || !model->getOptionsModel()) {
-        return;
-    }
-
-    if (model->getOptionsModel()->getCoinControlFeatures()) {
-        // enable minimum absolute fee UI controls
-        ui->radioCustomAtLeast->setVisible(true);
-
-        // only enable the feature if inputs are selected
-        ui->radioCustomAtLeast->setEnabled(
-            ui->radioCustomFee->isChecked() &&
-            !ui->checkBoxMinimumFee->isChecked() &&
-            CoinControlDialog::coinControl->HasSelected());
-    } else {
-        // in case coin control is disabled (=default), hide minimum absolute
-        // fee UI controls
-        ui->radioCustomAtLeast->setVisible(false);
         return;
     }
 
