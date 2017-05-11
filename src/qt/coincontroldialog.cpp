@@ -547,10 +547,6 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
         // Fee
         nPayFee = GetMinimumFee(nBytes, nTxConfirmTarget, g_mempool);
-        if (nPayFee > Amount::zero() &&
-            coinControl->nMinimumTotalFee > nPayFee) {
-            nPayFee = coinControl->nMinimumTotalFee;
-        }
 
         if (nPayAmount > Amount::zero()) {
             nChange = nAmount - nPayAmount;
@@ -622,7 +618,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     l7->setText(fDust ? tr("yes") : tr("no"));
     // Change
     l8->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nChange));
-    if (nPayFee > Amount::zero() && (coinControl->nMinimumTotalFee < nPayFee)) {
+    if (nPayFee > Amount::zero()) {
         l3->setText(ASYMP_UTF8 + l3->text());
         l4->setText(ASYMP_UTF8 + l4->text());
         if (nChange > Amount::zero() &&
