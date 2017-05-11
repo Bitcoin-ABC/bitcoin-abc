@@ -723,6 +723,8 @@ std::string HelpMessage(HelpMessageMode mode) {
                       "more than <n> kilobytes of in-mempool descendants "
                       "(default: %u).",
                       DEFAULT_DESCENDANT_SIZE_LIMIT));
+        strUsage += HelpMessageOpt("-addrmantest",
+                                   "Allows to test address relay on localhost");
     }
     strUsage += HelpMessageOpt(
         "-debug=<category>",
