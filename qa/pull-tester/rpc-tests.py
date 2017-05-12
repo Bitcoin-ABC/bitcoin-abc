@@ -184,7 +184,6 @@ testScriptsExt = [
     'invalidateblock.py',
     'maxblocksinflight.py',
     'p2p-acceptblock.py',
-    'replace-by-fee.py',
 ]
 
 
