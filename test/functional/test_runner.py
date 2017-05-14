@@ -116,6 +116,7 @@ BASE_SCRIPTS = [
     'abc-rpc.py',
     'mempool-accept-txn.py',
     'wallet-encryption.py',
+    'uptime.py',
 ]
 
 EXTENDED_SCRIPTS = [
