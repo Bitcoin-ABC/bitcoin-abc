@@ -44,7 +44,8 @@ MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
 MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
 
 MAX_INV_SZ = 50000
-MAX_BLOCK_BASE_SIZE = 1000000
+MAX_BLOCK_BASE_SIZE = 2000000
+#MAX_SIGOPS_PER_MB = 20000   # not used yet
 
 COIN = 100000000 # 1 btc in satoshis
 
@@ -1574,7 +1575,7 @@ class SingleNodeConnCB(NodeConnCB):
         self.last_pong = message
 
     # Sync up with the node
-    def sync_with_ping(self, timeout=30):
+    def sync_with_ping(self, timeout=60):
         def received_pong():
             return (self.last_pong.nonce == self.ping_counter)
         self.send_message(msg_ping(nonce=self.ping_counter))

@@ -41,6 +41,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         assert(templat2['longpollid'] == longpollid)
 
         # Test 1: test that the longpolling wait if we do nothing
+        print("Test 1")
         thr = LongpollThread(self.nodes[0])
         thr.start()
         # check that thread still lives
@@ -48,12 +49,14 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         assert(thr.is_alive())
 
         # Test 2: test that longpoll will terminate if another node generates a block
+        print("Test 2")
         self.nodes[1].generate(1)  # generate a block on another node
         # check that thread will exit now that new transaction entered mempool
         thr.join(5)  # wait 5 seconds or until thread exits
         assert(not thr.is_alive())
 
         # Test 3: test that longpoll will terminate if we generate a block ourselves
+        print("Test 3")
         thr = LongpollThread(self.nodes[0])
         thr.start()
         self.nodes[0].generate(1)  # generate a block on another node
@@ -61,6 +64,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         assert(not thr.is_alive())
 
         # Test 4: test that introducing a new transaction into the mempool will terminate the longpoll
+        print("Test 4")
         thr = LongpollThread(self.nodes[0])
         thr.start()
         # generate a random transaction and submit it

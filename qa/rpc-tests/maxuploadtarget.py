@@ -90,9 +90,9 @@ class MaxUploadTest(BitcoinTestFramework):
         self.utxo_cache = []
 
     def setup_network(self):
-        # Start a node with maxuploadtarget of 200 MB (/24h)
+        # Start a node with maxuploadtarget of 400 MB (/24h)
         self.nodes = []
-        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug", "-maxuploadtarget=200", "-blockmaxsize=999000"]))
+        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug", "-maxuploadtarget=400", "-blockmaxsize=1999000"]))
 
     def run_test(self):
         # Before we connect anything, we first set the time on the node
@@ -144,13 +144,13 @@ class MaxUploadTest(BitcoinTestFramework):
         getdata_request = msg_getdata()
         getdata_request.inv.append(CInv(2, big_old_block))
 
-        max_bytes_per_day = 200*1024*1024
-        daily_buffer = 144 * 1000000
+        max_bytes_per_day = 400*1024*1024
+        daily_buffer = 144 * MAX_BLOCK_BASE_SIZE
         max_bytes_available = max_bytes_per_day - daily_buffer
         success_count = max_bytes_available // old_block_size
 
-        # 144MB will be reserved for relaying new blocks, so expect this to
-        # succeed for ~70 tries.
+        # 288MB will be reserved for relaying new blocks, so expect this to
+        # succeed for ~140 tries.
         for i in range(success_count):
             test_nodes[0].send_message(getdata_request)
             test_nodes[0].sync_with_ping()
@@ -201,7 +201,7 @@ class MaxUploadTest(BitcoinTestFramework):
         #stop and start node 0 with 1MB maxuploadtarget, whitelist 127.0.0.1
         print("Restarting nodes with -whitelist=127.0.0.1")
         stop_node(self.nodes[0], 0)
-        self.nodes[0] = start_node(0, self.options.tmpdir, ["-debug", "-whitelist=127.0.0.1", "-maxuploadtarget=1", "-blockmaxsize=999000"])
+        self.nodes[0] = start_node(0, self.options.tmpdir, ["-debug", "-whitelist=127.0.0.1", "-maxuploadtarget=1", "-blockmaxsize=1999000"])
 
         #recreate/reconnect 3 test nodes
         test_nodes = []

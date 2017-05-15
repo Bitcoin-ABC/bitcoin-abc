@@ -176,7 +176,7 @@ class FullBlockTest(ComparisonTestFramework):
         create_and_sign_tx = self.create_and_sign_transaction
 
         # these must be updated if consensus changes
-        MAX_BLOCK_SIGOPS = 20000
+        MAX_BLOCK_SIGOPS = 40000
 
 
         # Create a new block
