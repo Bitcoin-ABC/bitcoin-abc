@@ -1575,7 +1575,7 @@ class SingleNodeConnCB(NodeConnCB):
         self.last_pong = message
 
     # Sync up with the node
-    def sync_with_ping(self, timeout=30):
+    def sync_with_ping(self, timeout=60):
         def received_pong():
             return (self.last_pong.nonce == self.ping_counter)
         self.send_message(msg_ping(nonce=self.ping_counter))
