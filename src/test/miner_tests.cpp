@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     const CAmount HIGHFEE = COIN;
     const CAmount HIGHERFEE = 4*COIN;
 
-    // block sigops > limit: 1000 CHECKMULTISIG + 1
+    // block sigops > limit: (MAX_BLOCK_SIGOPS/20) CHECKMULTISIG + 1
     tx.vin.resize(1);
     // NOTE: OP_NOP is used to force 20 SigOps for the CHECKMULTISIG
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_0 << OP_0 << OP_NOP << OP_CHECKMULTISIG << OP_1;
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 1001; ++i)
+    for (unsigned int i = 0; i < MAX_BLOCK_SIGOPS / 20 + 1; ++i)
     {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetId();
