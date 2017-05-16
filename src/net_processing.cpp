@@ -342,6 +342,7 @@ static void PushNodeVersion(const Config &config, CNode *pnode,
             "send version message: version %d, blocks=%d, us=%s, peer=%d\n",
             PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
     }
+    LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
 
 // Returns a bool indicating whether we requested this block.
