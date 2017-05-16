@@ -601,14 +601,10 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
 
     // hide progress dialog in GUI
     pwallet->ShowProgress("", 100);
-
-    CBlockIndex *pindex = chainActive.Tip();
-    while (pindex && pindex->pprev &&
-           pindex->GetBlockTime() > nTimeBegin - TIMESTAMP_WINDOW) {
-        pindex = pindex->pprev;
-    }
-
     pwallet->UpdateTimeFirstKey(nTimeBegin);
+
+    CBlockIndex *pindex =
+        chainActive.FindEarliestAtLeast(nTimeBegin - TIMESTAMP_WINDOW);
 
     LogPrintf("Rescanning last %i blocks\n",
               chainActive.Height() - pindex->nHeight + 1);

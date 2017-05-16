@@ -14,5 +14,7 @@ class JSONRPCRequest;
 void RegisterDumpRPCCommands(CRPCTable &t);
 
 UniValue importmulti(const Config &config, const JSONRPCRequest &request);
+UniValue dumpwallet(const Config &config, const JSONRPCRequest &request);
+UniValue importwallet(const Config &config, const JSONRPCRequest &request);
 
 #endif // BITCOIN_WALLET_RPCDUMP_H

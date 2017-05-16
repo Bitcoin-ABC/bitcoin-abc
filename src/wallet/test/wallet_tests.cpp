@@ -522,6 +522,75 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     }
 }
 
+// Verify importwallet RPC starts rescan at earliest block with timestamp
+// greater or equal than key birthday. Previously there was a bug where
+// importwallet RPC would start the scan at the latest block with timestamp less
+// than or equal to key birthday.
+BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
+    CWallet *pwalletMainBackup = ::pwalletMain;
+    LOCK(cs_main);
+
+    // Create two blocks with same timestamp to verify that importwallet rescan
+    // will pick up both blocks, not just the first.
+    const int64_t BLOCK_TIME = chainActive.Tip()->GetBlockTimeMax() + 5;
+    SetMockTime(BLOCK_TIME);
+    coinbaseTxns.emplace_back(
+        *CreateAndProcessBlock({},
+                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+             .vtx[0]);
+    coinbaseTxns.emplace_back(
+        *CreateAndProcessBlock({},
+                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+             .vtx[0]);
+
+    // Set key birthday to block time increased by the timestamp window, so
+    // rescan will start at the block time.
+    const int64_t KEY_TIME = BLOCK_TIME + TIMESTAMP_WINDOW;
+    SetMockTime(KEY_TIME);
+    coinbaseTxns.emplace_back(
+        *CreateAndProcessBlock({},
+                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+             .vtx[0]);
+
+    // Import key into wallet and call dumpwallet to create backup file.
+    {
+        CWallet wallet;
+        LOCK(wallet.cs_wallet);
+        wallet.mapKeyMetadata[coinbaseKey.GetPubKey().GetID()].nCreateTime =
+            KEY_TIME;
+        wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
+
+        JSONRPCRequest request;
+        request.params.setArray();
+        request.params.push_back("wallet.backup");
+        ::pwalletMain = &wallet;
+        ::dumpwallet(GetConfig(), request);
+    }
+
+    // Call importwallet RPC and verify all blocks with timestamps >= BLOCK_TIME
+    // were scanned, and no prior blocks were scanned.
+    {
+        CWallet wallet;
+
+        JSONRPCRequest request;
+        request.params.setArray();
+        request.params.push_back("wallet.backup");
+        ::pwalletMain = &wallet;
+        ::importwallet(GetConfig(), request);
+
+        BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3);
+        BOOST_CHECK_EQUAL(coinbaseTxns.size(), 103);
+        for (size_t i = 0; i < coinbaseTxns.size(); ++i) {
+            bool found = wallet.GetWalletTx(coinbaseTxns[i].GetHash());
+            bool expected = i >= 100;
+            BOOST_CHECK_EQUAL(found, expected);
+        }
+    }
+
+    SetMockTime(0);
+    ::pwalletMain = pwalletMainBackup;
+}
+
 // Check that GetImmatureCredit() returns a newly calculated value instead of
 // the cached value after a MarkDirty() call.
 //
