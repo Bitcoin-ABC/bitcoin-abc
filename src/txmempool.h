@@ -471,6 +471,7 @@ class CTxMemPool {
 private:
     //!< Value n means that n times in 2^32 we check.
     uint32_t nCheckFrequency GUARDED_BY(cs);
+    //!< Used by getblocktemplate to trigger CreateNewBlock() invocation
     unsigned int nTransactionsUpdated;
 
     //!< sum of all mempool tx's virtual sizes.

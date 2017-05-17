@@ -15,14 +15,14 @@ from test_framework.blocktools import (
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal, assert_raises_rpc_error, time
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 1
-        self.extra_args = [["-printpriority=1"]]
+        self.num_nodes = 2
+        self.extra_args = [["-printpriority=1"], ["-printpriority=1"]]
 
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()['relayfee']
@@ -149,6 +149,17 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             "Assert that prioritised free transaction is accepted to mempool")
         assert_equal(self.nodes[0].sendrawtransaction(tx2_hex), tx2_id)
         assert(tx2_id in self.nodes[0].getrawmempool())
+
+        # Test that calling prioritisetransaction is sufficient to trigger
+        # getblocktemplate to (eventually) return a new block.
+        mock_time = int(time.time())
+        self.nodes[0].setmocktime(mock_time)
+        template = self.nodes[0].getblocktemplate()
+        self.nodes[0].prioritisetransaction(txid, 0, -int(self.relayfee*COIN))
+        self.nodes[0].setmocktime(mock_time+10)
+        new_template = self.nodes[0].getblocktemplate()
+
+        assert(template != new_template)
 
 
 if __name__ == '__main__':
