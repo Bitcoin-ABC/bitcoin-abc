@@ -426,6 +426,7 @@ ReadBinaryFile(const fs::path &filename,
         // Check for reading errors so we don't return any data if we couldn't
         // read the entire file (or up to maxsize)
         if (ferror(f)) {
+            fclose(f);
             return std::make_pair(false, "");
         }
         retval.append(buffer, buffer + n);
