@@ -8,9 +8,8 @@
 import configparser
 import os
 import struct
-import sys
 
-from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_framework import BitcoinTestFramework, SkipTest
 from test_framework.util import (
     assert_equal,
     bytes_to_hex_str,
@@ -29,9 +28,7 @@ class ZMQTest (BitcoinTestFramework):
         try:
             import zmq
         except ImportError:
-            self.log.warning(
-                "python3-zmq module not available. Skipping zmq tests!")
-            sys.exit(self.TEST_EXIT_SKIPPED)
+            raise SkipTest("python3-zmq module not available.")
 
         # Check that bitcoin has been built with ZMQ enabled
         config = configparser.ConfigParser()
@@ -41,9 +38,7 @@ class ZMQTest (BitcoinTestFramework):
         config.read_file(open(self.options.configfile))
 
         if not config["components"].getboolean("ENABLE_ZMQ"):
-            self.log.warning(
-                "bitcoind has not been built with zmq enabled. Skipping zmq tests!")
-            sys.exit(self.TEST_EXIT_SKIPPED)
+            raise SkipTest("bitcoind has not been built with zmq enabled.")
 
         self.zmqContext = zmq.Context()
         self.zmqSubSocket = self.zmqContext.socket(zmq.SUB)

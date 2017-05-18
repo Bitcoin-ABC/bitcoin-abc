@@ -5,6 +5,8 @@
 
 # Base class for RPC testing
 
+from collections import deque
+from enum import Enum
 import logging
 import optparse
 import os
@@ -44,6 +46,17 @@ from .authproxy import JSONRPCException
 from .outputchecker import OutputChecker
 
 
+class TestStatus(Enum):
+    PASSED = 1
+    FAILED = 2
+    SKIPPED = 3
+
+
+TEST_EXIT_PASSED = 0
+TEST_EXIT_FAILED = 1
+TEST_EXIT_SKIPPED = 77
+
+
 class BitcoinTestFramework(object):
     """Base class for a bitcoin test script.
 
@@ -60,11 +73,6 @@ class BitcoinTestFramework(object):
     This class also contains various public and private helper methods."""
 
     # Methods to override in subclass test scripts.
-
-    TEST_EXIT_PASSED = 0
-    TEST_EXIT_FAILED = 1
-    TEST_EXIT_SKIPPED = 77
-
     def __init__(self):
         self.num_nodes = 4
         self.setup_clean_chain = False
@@ -158,15 +166,18 @@ class BitcoinTestFramework(object):
         os.makedirs(self.options.tmpdir, exist_ok=False)
         self._start_logging()
 
-        success = False
+        success = TestStatus.FAILED
 
         try:
             self.setup_chain()
             self.setup_network()
             self.run_test()
-            success = True
+            success = TestStatus.PASSED
         except JSONRPCException as e:
             self.log.exception("JSONRPC error")
+        except SkipTest as e:
+            self.log.warning("Test Skipped: %s" % e.message)
+            success = TestStatus.SKIPPED
         except AssertionError as e:
             self.log.exception("Assertion failed")
         except KeyError as e:
@@ -178,12 +189,13 @@ class BitcoinTestFramework(object):
 
         if not self.options.noshutdown:
             self.log.info("Stopping nodes")
-            self.stop_nodes()
+            if self.nodes:
+                self.stop_nodes()
         else:
             self.log.info(
                 "Note: bitcoinds were not stopped and may still be running")
 
-        if not self.options.nocleanup and not self.options.noshutdown and success:
+        if not self.options.nocleanup and not self.options.noshutdown and success != TestStatus.FAILED:
             self.log.info("Cleaning up")
             shutil.rmtree(self.options.tmpdir)
             if not os.listdir(self.options.root):
@@ -197,18 +209,26 @@ class BitcoinTestFramework(object):
                 filenames = glob.glob(
                     self.options.tmpdir + "/node*/regtest/debug.log")
                 MAX_LINES_TO_PRINT = 1000
-                for f in filenames:
-                    print("From", f, ":")
-                    from collections import deque
-                    print("".join(deque(open(f), MAX_LINES_TO_PRINT)))
-        if success:
+                for fn in filenames:
+                    try:
+                        with open(fn, 'r') as f:
+                            print("From", fn, ":")
+                            print("".join(deque(f, MAX_LINES_TO_PRINT)))
+                    except OSError:
+                        print("Opening file %s failed." % fn)
+                        traceback.print_exc()
+
+        if success == TestStatus.PASSED:
             self.log.info("Tests successful")
-            sys.exit(self.TEST_EXIT_PASSED)
+            sys.exit(TEST_EXIT_PASSED)
+        elif success == TestStatus.SKIPPED:
+            self.log.info("Test skipped")
+            sys.exit(TEST_EXIT_SKIPPED)
         else:
             self.log.error(
                 "Test failed. Test logging available at %s/test_framework.log", self.options.tmpdir)
             logging.shutdown()
-            sys.exit(self.TEST_EXIT_FAILED)
+            sys.exit(TEST_EXIT_FAILED)
 
     # Public helper methods. These can be accessed by the subclass test scripts.
 
@@ -373,6 +393,13 @@ class BitcoinTestFramework(object):
 # 1 binary: test binary
 # 2 binaries: 1 test binary, 1 ref binary
 # n>2 binaries: 1 test binary, n-1 ref binaries
+
+
+class SkipTest(Exception):
+    """This exception is raised to skip a test"""
+
+    def __init__(self, message):
+        self.message = message
 
 
 class ComparisonTestFramework(BitcoinTestFramework):
