@@ -4001,7 +4001,7 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
     int nLoaded = 0;
     try {
         // This takes over fileIn and calls fclose() on it in the CBufferedFile
-        // destructor
+        // destructor.
         CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_BASE_SIZE,
                              MAX_BLOCK_BASE_SIZE + 8, SER_DISK, CLIENT_VERSION);
         uint64_t nRewind = blkdat.GetPos();
@@ -4013,7 +4013,7 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
             blkdat.SetLimit(); // remove former limit
             unsigned int nSize = 0;
             try {
-                // locate a header
+                // Locate a header.
                 unsigned char buf[CMessageHeader::MESSAGE_START_SIZE];
                 blkdat.FindByte(chainparams.MessageStart()[0]);
                 nRewind = blkdat.GetPos() + 1;
@@ -4021,11 +4021,11 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
                 if (memcmp(buf, chainparams.MessageStart(),
                            CMessageHeader::MESSAGE_START_SIZE))
                     continue;
-                // read size
+                // Read size.
                 blkdat >> nSize;
                 if (nSize < 80 || nSize > MAX_BLOCK_BASE_SIZE) continue;
             } catch (const std::exception &) {
-                // no valid block header found; don't complain
+                // No valid block header found; don't complain.
                 break;
             }
             try {
