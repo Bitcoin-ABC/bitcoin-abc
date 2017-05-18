@@ -60,8 +60,7 @@ static bool read_stdin(std::vector<char> &data) {
     return length == 0;
 }
 
-int main(int argc, char **argv) {
-    ECCVerifyHandle globalVerifyHandle;
+int do_fuzz() {
     std::vector<char> buffer;
     if (!read_stdin(buffer)) return 0;
 
@@ -257,4 +256,24 @@ int main(int argc, char **argv) {
             return 0;
     }
     return 0;
+}
+
+int main(int argc, char **argv) {
+    ECCVerifyHandle globalVerifyHandle;
+#ifdef __AFL_INIT
+    // Enable AFL deferred forkserver mode. Requires compilation using
+    // afl-clang-fast++. See fuzzing.md for details.
+    __AFL_INIT();
+#endif
+
+#ifdef __AFL_LOOP
+    // Enable AFL persistent mode. Requires compilation using afl-clang-fast++.
+    // See fuzzing.md for details.
+    while (__AFL_LOOP(1000)) {
+        do_fuzz();
+    }
+    return 0;
+#else
+    return do_fuzz();
+#endif
 }
