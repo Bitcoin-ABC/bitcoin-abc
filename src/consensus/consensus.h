@@ -6,10 +6,12 @@
 #ifndef BITCOIN_CONSENSUS_CONSENSUS_H
 #define BITCOIN_CONSENSUS_CONSENSUS_H
 
-#include <stdint.h>
+#include <cstdint>
 
-/** The maximum allowed size for a block, in bytes (network rule) */
-static const unsigned int MAX_BLOCK_BASE_SIZE = 1000000;
+/** The maximum allowed size for a transaction, in bytes */
+static const unsigned int MAX_TX_SIZE = 1000000;
+/** Default setting for maximum allowed size for a block, in bytes */
+static const unsigned int DEFAULT_MAX_BLOCK_SIZE = MAX_TX_SIZE;
 /** The maximum allowed number of signature check operations in a block (network
  * rule) */
 static const int64_t MAX_BLOCK_SIGOPS = 20000;

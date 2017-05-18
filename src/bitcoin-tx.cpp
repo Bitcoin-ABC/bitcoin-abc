@@ -231,7 +231,7 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     uint256 txid(uint256S(strTxid));
 
     static const unsigned int minTxOutSz = 9;
-    static const unsigned int maxVout = MAX_BLOCK_BASE_SIZE / minTxOutSz;
+    static const unsigned int maxVout = MAX_TX_SIZE / minTxOutSz;
 
     // extract and validate vout
     std::string strVout = vStrInputParts[1];

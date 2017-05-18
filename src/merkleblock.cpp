@@ -165,10 +165,7 @@ uint256 CPartialMerkleTree::ExtractMatches(std::vector<uint256> &vMatch,
     // An empty set will not work
     if (nTransactions == 0) return uint256();
     // Check for excessively high numbers of transactions.
-    // 60 is the lower bound for the size of a serialized CTransaction.
-    if (nTransactions > MAX_BLOCK_BASE_SIZE / 60) {
-        return uint256();
-    }
+    // FIXME: Track the maximum block size we've seen and use it here.
 
     // There can never be more hashes provided than one for every txid.
     if (vHash.size() > nTransactions) return uint256();

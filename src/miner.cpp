@@ -78,9 +78,10 @@ BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
     // If -blockmaxsize is not given, limit to DEFAULT_BLOCK_MAX_SIZE
     // If only one is given, only restrict the specified resource.
     // If both are given, restrict both.
-    nBlockMaxSize = DEFAULT_BLOCK_MAX_SIZE;
+    nMaxGeneratedBlockSize = DEFAULT_BLOCK_MAX_SIZE;
     if (IsArgSet("-blockmaxsize")) {
-        nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+        nMaxGeneratedBlockSize =
+            GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     }
     if (IsArgSet("-blockmintxfee")) {
         CAmount n = 0;
@@ -90,10 +91,11 @@ BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
         blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
-    // Limit size to between 1K and MAX_BLOCK_BASE_SIZE-1K for sanity:
-    nBlockMaxSize = std::max(
-        (unsigned int)1000,
-        std::min((unsigned int)(MAX_BLOCK_BASE_SIZE - 1000), nBlockMaxSize));
+    // Limit size to between 1K and DEFAULT_MAX_BLOCK_SIZE-1K for sanity.
+    nMaxGeneratedBlockSize =
+        std::max((unsigned int)1000,
+                 std::min((unsigned int)(nMaxGeneratedBlockSize - 1000),
+                          nMaxGeneratedBlockSize));
 }
 
 void BlockAssembler::resetBlock() {
@@ -223,7 +225,7 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
 }
 
 bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps) {
-    if (nBlockSize + packageSize >= nBlockMaxSize) return false;
+    if (nBlockSize + packageSize >= nMaxGeneratedBlockSize) return false;
     if (nBlockSigOps + packageSigOps >= MAX_BLOCK_SIGOPS) return false;
     return true;
 }
@@ -239,7 +241,7 @@ bool BlockAssembler::TestPackageTransactions(
         if (!IsFinalTx(it->GetTx(), nHeight, nLockTimeCutoff)) return false;
         uint64_t nTxSize =
             ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
-        if (nPotentialBlockSize + nTxSize >= nBlockMaxSize) {
+        if (nPotentialBlockSize + nTxSize >= nMaxGeneratedBlockSize) {
             return false;
         }
         nPotentialBlockSize += nTxSize;
@@ -250,12 +252,12 @@ bool BlockAssembler::TestPackageTransactions(
 bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
     if (nBlockSize +
             ::GetSerializeSize(iter->GetTx(), SER_NETWORK, PROTOCOL_VERSION) >=
-        nBlockMaxSize) {
-        if (nBlockSize > nBlockMaxSize - 100 || lastFewTxs > 50) {
+        nMaxGeneratedBlockSize) {
+        if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
             blockFinished = true;
             return false;
         }
-        if (nBlockSize > nBlockMaxSize - 1000) {
+        if (nBlockSize > nMaxGeneratedBlockSize - 1000) {
             lastFewTxs++;
         }
         return false;
@@ -453,7 +455,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
             ++nConsecutiveFailed;
 
             if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES &&
-                nBlockSize > nBlockMaxSize - 1000) {
+                nBlockSize > nMaxGeneratedBlockSize - 1000) {
                 // Give up if we're close to full and haven't succeeded in a
                 // while.
                 break;
@@ -504,7 +506,7 @@ void BlockAssembler::addPriorityTxs() {
     // included regardless of the fees they pay.
     unsigned int nBlockPrioritySize =
         GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize = std::min(nMaxGeneratedBlockSize, nBlockPrioritySize);
 
     if (nBlockPrioritySize == 0) {
         return;

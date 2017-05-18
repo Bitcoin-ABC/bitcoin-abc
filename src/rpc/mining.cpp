@@ -767,7 +767,8 @@ UniValue getblocktemplate(const JSONRPCRequest &request) {
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
     result.push_back(Pair("sigoplimit", MAX_BLOCK_SIGOPS));
-    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_BASE_SIZE));
+    // FIXME: Allow for mining block greater than 1M.
+    result.push_back(Pair("sizelimit", (int64_t)DEFAULT_MAX_BLOCK_SIZE));
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight + 1)));

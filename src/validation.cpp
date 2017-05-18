@@ -13,6 +13,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "globals.h"
 #include "hash.h"
 #include "init.h"
 #include "policy/fees.h"
@@ -490,28 +491,37 @@ static bool CheckTransactionCommon(const CTransaction &tx,
                                    CValidationState &state,
                                    bool fCheckDuplicateInputs) {
     // Basic checks that don't depend on any context
-    if (tx.vin.empty())
+    if (tx.vin.empty()) {
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
-    if (tx.vout.empty())
+    }
+
+    if (tx.vout.empty()) {
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
+    }
+
     // Size limit
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) >
-        MAX_BLOCK_BASE_SIZE)
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_TX_SIZE) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
+    }
 
     // Check for negative or overflow output values
     CAmount nValueOut = 0;
     for (const auto &txout : tx.vout) {
-        if (txout.nValue < 0)
+        if (txout.nValue < 0) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-vout-negative");
-        if (txout.nValue > MAX_MONEY)
+        }
+
+        if (txout.nValue > MAX_MONEY) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-vout-toolarge");
+        }
+
         nValueOut += txout.nValue;
-        if (!MoneyRange(nValueOut))
+        if (!MoneyRange(nValueOut)) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-txouttotal-toolarge");
+        }
     }
 
     // Check for duplicate inputs - note that this check is slow so we skip it
@@ -519,9 +529,10 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     if (fCheckDuplicateInputs) {
         std::set<COutPoint> vInOutPoints;
         for (const auto &txin : tx.vin) {
-            if (!vInOutPoints.insert(txin.prevout).second)
+            if (!vInOutPoints.insert(txin.prevout).second) {
                 return state.DoS(100, false, REJECT_INVALID,
                                  "bad-txns-inputs-duplicate");
+            }
         }
     }
 
@@ -3012,11 +3023,14 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
     // because we receive the wrong transactions for it.
 
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_BASE_SIZE ||
+    // TODO: compare the number of tx time minimal tx size rather than just
+    // the number of txs.
+    if (block.vtx.empty() || block.vtx.size() > nMaxBlockSize ||
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
-            MAX_BLOCK_BASE_SIZE)
+            nMaxBlockSize) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
                          "size limits failed");
+    }
 
     // First transaction must be coinbase.
     if (block.vtx.empty()) {
@@ -4001,16 +4015,19 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
     int nLoaded = 0;
     try {
         // This takes over fileIn and calls fclose() on it in the CBufferedFile
-        // destructor.
-        CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_BASE_SIZE,
-                             MAX_BLOCK_BASE_SIZE + 8, SER_DISK, CLIENT_VERSION);
+        // destructor. Make sure we have at least 2*MAX_TX_SIZE space in there
+        // so any transaction can fit in the buffer.
+        CBufferedFile blkdat(fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8, SER_DISK,
+                             CLIENT_VERSION);
         uint64_t nRewind = blkdat.GetPos();
         while (!blkdat.eof()) {
             boost::this_thread::interruption_point();
 
             blkdat.SetPos(nRewind);
-            nRewind++; // start one byte further next time, in case of failure
-            blkdat.SetLimit(); // remove former limit
+            // Start one byte further next time, in case of failure.
+            nRewind++;
+            // Remove former limit.
+            blkdat.SetLimit();
             unsigned int nSize = 0;
             try {
                 // Locate a header.
@@ -4023,7 +4040,7 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
                     continue;
                 // Read size.
                 blkdat >> nSize;
-                if (nSize < 80 || nSize > MAX_BLOCK_BASE_SIZE) continue;
+                if (nSize < 80) continue;
             } catch (const std::exception &) {
                 // No valid block header found; don't complain.
                 break;

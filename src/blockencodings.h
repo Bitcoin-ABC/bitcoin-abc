@@ -128,9 +128,10 @@ struct PrefilledTransaction {
 
 typedef enum ReadStatus_t {
     READ_STATUS_OK,
-    // Invalid object, peer is sending bogus crap
+    // Invalid object, peer is sending bogus crap.
+    // FIXME: differenciate bogus crap from crap that do not fit our policy.
     READ_STATUS_INVALID,
-    // Failed to process object
+    // Failed to process object.
     READ_STATUS_FAILED,
     // Used only by FillBlock to indicate a failure in CheckBlock.
     READ_STATUS_CHECKBLOCK_FAILED,

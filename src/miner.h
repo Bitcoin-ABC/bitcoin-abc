@@ -132,7 +132,7 @@ private:
     CBlock *pblock;
 
     // Configuration parameters for the block size
-    unsigned int nBlockMaxSize;
+    unsigned int nMaxGeneratedBlockSize;
     CFeeRate blockMinFeeRate;
 
     // Information on the current status of the block
