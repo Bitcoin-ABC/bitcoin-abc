@@ -11,7 +11,11 @@ import struct
 import sys
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import (
+    assert_equal,
+    bytes_to_hex_str,
+    start_nodes,
+)
 
 
 class ZMQTest (BitcoinTestFramework):
@@ -48,8 +52,8 @@ class ZMQTest (BitcoinTestFramework):
         self.zmqSubSocket.setsockopt(zmq.SUBSCRIBE, b"hashtx")
         ip_address = "tcp://127.0.0.1:28332"
         self.zmqSubSocket.connect(ip_address)
-        extra_args = [
-            ['-zmqpubhashtx=%s' % ip_address, '-zmqpubhashblock=%s' % ip_address], []]
+        extra_args = [['-zmqpubhashtx=%s' %
+                       ip_address, '-zmqpubhashblock=%s' % ip_address], []]
         self.nodes = start_nodes(
             self.num_nodes, self.options.tmpdir, extra_args)
 
@@ -65,7 +69,7 @@ class ZMQTest (BitcoinTestFramework):
         genhashes = self.nodes[0].generate(1)
         self.sync_all()
 
-        self.log.info("listen...")
+        self.log.info("Wait for tx")
         msg = self.zmqSubSocket.recv_multipart()
         topic = msg[0]
         assert_equal(topic, b"hashtx")
@@ -74,10 +78,12 @@ class ZMQTest (BitcoinTestFramework):
         # Must be sequence 0 on hashtx
         assert_equal(msgSequence, 0)
 
+        self.log.info("Wait for block")
         msg = self.zmqSubSocket.recv_multipart()
         topic = msg[0]
         body = msg[1]
         msgSequence = struct.unpack('<I', msg[-1])[-1]
+
         # Must be sequence 0 on hashblock
         assert_equal(msgSequence, 0)
         blkhash = bytes_to_hex_str(body)
@@ -85,6 +91,7 @@ class ZMQTest (BitcoinTestFramework):
         # blockhash from generate must be equal to the hash received over zmq
         assert_equal(genhashes[0], blkhash)
 
+        self.log.info("Generate 10 blocks (and 10 coinbase txes)")
         n = 10
         genhashes = self.nodes[1].generate(n)
         self.sync_all()
@@ -119,6 +126,7 @@ class ZMQTest (BitcoinTestFramework):
         hashZMQ = bytes_to_hex_str(body)
         msgSequence = struct.unpack('<I', msg[-1])[-1]
         assert_equal(msgSequence, blockcount + 1)
+
         # txid from sendtoaddress must be equal to the hash received over zmq
         assert_equal(hashRPC, hashZMQ)
 
