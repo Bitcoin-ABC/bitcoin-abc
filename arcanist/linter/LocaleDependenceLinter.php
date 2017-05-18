@@ -29,7 +29,10 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "split",
       "is_space",
     ],
-    "src/torcontrol.cpp" => ["atoi"],
+    "src/torcontrol.cpp" => [
+      "atoi",
+      "strtol",
+    ],
     "src/uint256.cpp" => ["tolower"],
     "src/util.cpp" => ["atoi", "tolower"],
     "src/utilmoneystr.cpp" => ["isdigit"],
