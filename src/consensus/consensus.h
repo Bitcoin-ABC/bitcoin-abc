@@ -10,9 +10,11 @@
 
 /** The maximum allowed size for a block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_BASE_SIZE = 1000000;
-/** The maximum allowed number of signature check operations in a block (network rule) */
+/** The maximum allowed number of signature check operations in a block (network
+ * rule) */
 static const int64_t MAX_BLOCK_SIGOPS = 20000;
-/** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
+/** Coinbase transaction outputs can only be spent after this number of new
+ * blocks (network rule) */
 static const int COINBASE_MATURITY = 100;
 
 /** Flags for nSequence and nLockTime locks */
