@@ -17,6 +17,7 @@ For a description of arguments recognized by test scripts, see
 
 import argparse
 import configparser
+import datetime
 import os
 import time
 import shutil
@@ -181,6 +182,8 @@ def main():
                         help='the default behavior is to flush the cache directory on startup. --keepcache retains the cache from the previous testrun.')
     parser.add_argument('--quiet', '-q', action='store_true',
                         help='only print results summary and failure logs')
+    parser.add_argument('--tmpdirprefix', '-t',
+                        default=tempfile.gettempdir(), help="Root directory for datadirs")
     args, unknown_args = parser.parse_known_args()
 
     # Create a set to store arguments and create the passon string
@@ -197,6 +200,13 @@ def main():
     # Set up logging
     logging_level = logging.INFO if args.quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
+
+    # Create base test directory
+    tmpdir = "%s/bitcoin_test_runner_%s" % (
+        args.tmpdirprefix, datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+    os.makedirs(tmpdir)
+
+    logging.debug("Temporary test directory at %s" % tmpdir)
 
     enable_wallet = config["components"].getboolean("ENABLE_WALLET")
     enable_utils = config["components"].getboolean("ENABLE_UTILS")
@@ -259,10 +269,10 @@ def main():
                       config["environment"]["BUILDDIR"], ignore_errors=True)
 
     run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
-              config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
+              config["environment"]["EXEEXT"], tmpdir, args.jobs, args.coverage, passon_args)
 
 
-def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=False, args=[]):
+def run_tests(test_list, src_dir, build_dir, exeext, tmpdir, jobs=1, enable_coverage=False, args=[]):
     # Warn if bitcoind is already running (unix only)
     try:
         if subprocess.check_output(["pidof", "bitcoind"]) is not None:
@@ -295,10 +305,11 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
 
     if len(test_list) > 1 and jobs > 1:
         # Populate cache
-        subprocess.check_output([tests_dir + 'create_cache.py'] + flags)
+        subprocess.check_output(
+            [tests_dir + 'create_cache.py'] + flags + ["--tmpdir=%s/cache" % tmpdir])
 
     # Run Tests
-    job_queue = TestHandler(jobs, tests_dir, test_list, flags)
+    job_queue = TestHandler(jobs, tests_dir, tmpdir, test_list, flags)
     time0 = time.time()
     test_results = []
 
@@ -327,6 +338,10 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
 
         logging.debug("Cleaning up coverage data")
         coverage.cleanup()
+
+    # Clear up the temp directory if all subdirectories are gone
+    if not os.listdir(tmpdir):
+        os.rmdir(tmpdir)
 
     all_passed = all(
         map(lambda test_result: test_result.status == "Passed", test_results))
@@ -361,10 +376,11 @@ class TestHandler:
     Trigger the testscrips passed in via the list.
     """
 
-    def __init__(self, num_tests_parallel, tests_dir, test_list=None, flags=None):
+    def __init__(self, num_tests_parallel, tests_dir, tmpdir, test_list=None, flags=None):
         assert(num_tests_parallel >= 1)
         self.num_jobs = num_tests_parallel
         self.tests_dir = tests_dir
+        self.tmpdir = tmpdir
         self.test_list = test_list
         self.flags = flags
         self.num_running = 0
@@ -379,18 +395,19 @@ class TestHandler:
             # Add tests
             self.num_running += 1
             t = self.test_list.pop(0)
-            port_seed = ["--portseed={}".format(
-                len(self.test_list) + self.portseed_offset)]
+            portseed = len(self.test_list) + self.portseed_offset
+            portseed_arg = ["--portseed={}".format(portseed)]
             log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
             log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
+            test_argv = t.split()
+            tmpdir = ["--tmpdir=%s/%s_%s" %
+                      (self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)]
             self.jobs.append((t,
                               time.time(),
-                              subprocess.Popen(
-                                  (self.tests_dir + t).split() +
-                                  self.flags + port_seed,
-                                  universal_newlines=True,
-                                  stdout=log_stdout,
-                                  stderr=log_stderr),
+                              subprocess.Popen([self.tests_dir + test_argv[0]] + test_argv[1:] + self.flags + portseed_arg + tmpdir,
+                                               universal_newlines=True,
+                                               stdout=log_stdout,
+                                               stderr=log_stderr),
                               log_stdout,
                               log_stderr))
         if not self.jobs:
