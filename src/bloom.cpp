@@ -30,8 +30,8 @@
  * See https://en.wikipedia.org/wiki/Bloom_filter for an explanation of these
  * formulas.
  */
-CBloomFilter::CBloomFilter(uint32_t nElements, double nFPRate,
-                           uint32_t nTweakIn, uint8_t nFlagsIn)
+CBloomFilter::CBloomFilter(const uint32_t nElements, const double nFPRate,
+                           const uint32_t nTweakIn, uint8_t nFlagsIn)
     : vData(std::min<uint32_t>(-1 / LN2SQUARED * nElements * log(nFPRate),
                                MAX_BLOOM_FILTER_SIZE * 8) /
             8),
@@ -41,8 +41,8 @@ CBloomFilter::CBloomFilter(uint32_t nElements, double nFPRate,
       nTweak(nTweakIn), nFlags(nFlagsIn) {}
 
 // Private constructor used by CRollingBloomFilter
-CBloomFilter::CBloomFilter(uint32_t nElements, double nFPRate,
-                           uint32_t nTweakIn)
+CBloomFilter::CBloomFilter(const uint32_t nElements, const double nFPRate,
+                           const uint32_t nTweakIn)
     : vData(uint32_t(-1 / LN2SQUARED * nElements * log(nFPRate)) / 8),
       isFull(false), isEmpty(true),
       nHashFuncs(uint32_t(vData.size() * 8 / nElements * LN2)),
@@ -117,7 +117,7 @@ void CBloomFilter::clear() {
     isEmpty = true;
 }
 
-void CBloomFilter::reset(uint32_t nNewTweak) {
+void CBloomFilter::reset(const uint32_t nNewTweak) {
     clear();
     nTweak = nNewTweak;
 }
@@ -219,7 +219,8 @@ void CBloomFilter::UpdateEmptyFull() {
     isEmpty = empty;
 }
 
-CRollingBloomFilter::CRollingBloomFilter(uint32_t nElements, double fpRate) {
+CRollingBloomFilter::CRollingBloomFilter(const uint32_t nElements,
+                                         const double fpRate) {
     double logFpRate = log(fpRate);
     /* The optimal number of hash functions is log(fpRate) / log(0.5), but
      * restrict it to the range 1-50. */
