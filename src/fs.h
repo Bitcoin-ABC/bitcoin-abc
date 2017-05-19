@@ -20,4 +20,4 @@ FILE *fopen(const fs::path &p, const char *mode);
 FILE *freopen(const fs::path &p, const char *mode, FILE *stream);
 };
 
-#endif
+#endif // BITCOIN_FS_H
