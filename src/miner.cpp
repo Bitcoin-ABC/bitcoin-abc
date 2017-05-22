@@ -76,13 +76,13 @@ int64_t UpdateTime(CBlockHeader *pblock,
 BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
     : chainparams(_chainparams) {
     // Block resource limits
-    // If -blockmaxsize is not given, limit to DEFAULT_BLOCK_MAX_SIZE
+    // If -blockmaxsize is not given, limit to DEFAULT_MAX_GENERATED_BLOCK_SIZE
     // If only one is given, only restrict the specified resource.
     // If both are given, restrict both.
-    nMaxGeneratedBlockSize = DEFAULT_BLOCK_MAX_SIZE;
+    nMaxGeneratedBlockSize = DEFAULT_MAX_GENERATED_BLOCK_SIZE;
     if (IsArgSet("-blockmaxsize")) {
         nMaxGeneratedBlockSize =
-            GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+            GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }
     if (IsArgSet("-blockmintxfee")) {
         CAmount n = 0;

@@ -623,7 +623,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
 
     ClearArg("-blockmaxsize");
     BlockAssembler ba(chainparams);
-    BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), DEFAULT_BLOCK_MAX_SIZE);
+    BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
+                      DEFAULT_MAX_GENERATED_BLOCK_SIZE);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
