@@ -12,6 +12,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "globals.h"
 #include "hash.h"
 #include "net.h"
 #include "policy/policy.h"
@@ -91,11 +92,10 @@ BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
         blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
-    // Limit size to between 1K and DEFAULT_MAX_BLOCK_SIZE-1K for sanity.
-    nMaxGeneratedBlockSize =
-        std::max((unsigned int)1000,
-                 std::min((unsigned int)(nMaxGeneratedBlockSize - 1000),
-                          nMaxGeneratedBlockSize));
+    // Limit size to between 1K and nMaxBlockSize-1K for sanity:
+    nMaxGeneratedBlockSize = std::max(
+        (unsigned int)1000,
+        std::min((unsigned int)(nMaxBlockSize - 1000), nMaxGeneratedBlockSize));
 }
 
 void BlockAssembler::resetBlock() {

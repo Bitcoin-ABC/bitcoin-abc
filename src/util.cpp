@@ -413,6 +413,11 @@ void ForceSetArg(const std::string &strArg, const std::string &strValue) {
     mapArgs[strArg] = strValue;
 }
 
+void ClearArg(const std::string &strArg) {
+    LOCK(cs_args);
+    mapArgs.erase(strArg);
+}
+
 static const int screenWidth = 79;
 static const int optIndent = 2;
 static const int msgIndent = 7;

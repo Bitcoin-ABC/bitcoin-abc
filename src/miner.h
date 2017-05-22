@@ -157,6 +157,10 @@ public:
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
 
+    unsigned int GetMaxGeneratedBlockSize() const {
+        return nMaxGeneratedBlockSize;
+    }
+
 private:
     // utility functions
     /** Clear the block's state and prepare for assembling a new block */

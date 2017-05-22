@@ -8,6 +8,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "globals.h"
 #include "policy/policy.h"
 #include "pubkey.h"
 #include "script/standard.h"
@@ -592,6 +593,37 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     TestPackageSelection(chainparams, scriptPubKey, txFirst);
 
     fCheckpointsEnabled = true;
+}
+
+void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
+                       uint64_t expected) {
+    ForceSetArg("-blockmaxsize", std::to_string(size));
+
+    BlockAssembler ba(chainparams);
+    BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);
+}
+
+BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
+    nMaxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
+
+    const CChainParams &chainparams = Params(CBaseChainParams::MAIN);
+    CheckBlockMaxSize(chainparams, 0, 1000);
+    CheckBlockMaxSize(chainparams, 1000, 1000);
+    CheckBlockMaxSize(chainparams, 1001, 1001);
+
+    CheckBlockMaxSize(chainparams, 12345, 12345);
+    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1001,
+                      DEFAULT_MAX_BLOCK_SIZE - 1001);
+    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1000,
+                      DEFAULT_MAX_BLOCK_SIZE - 1000);
+    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 999,
+                      DEFAULT_MAX_BLOCK_SIZE - 1000);
+    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE,
+                      DEFAULT_MAX_BLOCK_SIZE - 1000);
+
+    ClearArg("-blockmaxsize");
+    BlockAssembler ba(chainparams);
+    BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), DEFAULT_BLOCK_MAX_SIZE);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
