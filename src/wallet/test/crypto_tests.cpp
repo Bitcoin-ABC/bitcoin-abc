@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "test/test_bitcoin.h"
-#include "test/test_random.h"
 #include "utilstrencodings.h"
 #include "wallet/crypter.h"
 
