@@ -2157,12 +2157,12 @@ bool CWalletTx::IsTrusted() const {
 bool CWalletTx::IsEquivalentTo(const CWalletTx &_tx) const {
     CMutableTransaction tx1{*this->tx};
     CMutableTransaction tx2{*_tx.tx};
-    for (CTxIn &in : tx1.vin) {
-        in.scriptSig = CScript();
+    for (auto &txin : tx1.vin) {
+        txin.scriptSig = CScript();
     }
 
-    for (CTxIn &in : tx2.vin) {
-        in.scriptSig = CScript();
+    for (auto &txin : tx2.vin) {
+        txin.scriptSig = CScript();
     }
 
     return CTransaction(tx1) == CTransaction(tx2);
@@ -2787,7 +2787,7 @@ bool CWallet::SignTransaction(CMutableTransaction &tx) {
     // sign the new tx
     CTransaction txNewConst(tx);
     int nIn = 0;
-    for (auto &input : tx.vin) {
+    for (const auto &input : tx.vin) {
         auto mi = mapWallet.find(input.prevout.GetTxId());
         if (mi == mapWallet.end() ||
             input.prevout.GetN() >= mi->second.tx->vout.size()) {
@@ -3809,7 +3809,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
         if (pcoin->tx->vin.size() > 0) {
             bool any_mine = false;
             // Group all input addresses with each other.
-            for (CTxIn txin : pcoin->tx->vin) {
+            for (const auto txin : pcoin->tx->vin) {
                 CTxDestination address;
                 // If this input isn't mine, ignore it.
                 if (!IsMine(txin)) {
@@ -3829,7 +3829,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
 
             // Group change with input addresses.
             if (any_mine) {
-                for (CTxOut txout : pcoin->tx->vout) {
+                for (const auto txout : pcoin->tx->vout) {
                     if (IsChange(txout)) {
                         CTxDestination txoutAddr;
                         if (!ExtractDestination(txout.scriptPubKey,
@@ -3849,11 +3849,10 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
         }
 
         // Group lone addrs by themselves.
-        for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++)
-            if (IsMine(pcoin->tx->vout[i])) {
+        for (const auto &txout : pcoin->tx->vout) {
+            if (IsMine(txout)) {
                 CTxDestination address;
-                if (!ExtractDestination(pcoin->tx->vout[i].scriptPubKey,
-                                        address)) {
+                if (!ExtractDestination(txout.scriptPubKey, address)) {
                     continue;
                 }
 
@@ -3861,6 +3860,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
                 groupings.insert(grouping);
                 grouping.clear();
             }
+        }
     }
 
     // A set of pointers to groups of addresses.

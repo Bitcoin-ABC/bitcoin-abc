@@ -990,8 +990,8 @@ void PeerLogicValidation::BlockConnected(
         const CTransaction &tx = *ptx;
 
         // Which orphan pool entries must we evict?
-        for (size_t j = 0; j < tx.vin.size(); j++) {
-            auto itByPrev = mapOrphanTransactionsByPrev.find(tx.vin[j].prevout);
+        for (const auto &txin : tx.vin) {
+            auto itByPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
             if (itByPrev == mapOrphanTransactionsByPrev.end()) {
                 continue;
             }
@@ -2191,7 +2191,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         LOCK(cs_main);
 
-        for (CInv &inv : vInv) {
+        for (auto &inv : vInv) {
             if (interruptMsgProc) {
                 return true;
             }
