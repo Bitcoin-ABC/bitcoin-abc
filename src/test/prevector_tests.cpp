@@ -207,11 +207,10 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt) {
             }
             if (insecure_randbits(3) == 3) {
                 test.insert(insecure_randrange(test.size() + 1),
-                            1 + insecure_randrange(2), insecure_rand());
+                            1 + insecure_randbool(), insecure_rand());
             }
             if (insecure_randbits(3) == 4) {
-                int del =
-                    std::min<int>(test.size(), 1 + (insecure_randrange(2)));
+                int del = std::min<int>(test.size(), 1 + (insecure_randbool()));
                 int beg = insecure_randrange(test.size() + 1 - del);
                 test.erase(beg, beg + del);
             }
@@ -223,7 +222,7 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt) {
             }
             if (insecure_randbits(5) == 7) {
                 int values[4];
-                int num = 1 + (insecure_randrange(4));
+                int num = 1 + (insecure_randbits(2));
                 for (int k = 0; k < num; k++) {
                     values[k] = insecure_rand();
                 }
@@ -232,12 +231,12 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt) {
             }
             if (insecure_randbits(5) == 8) {
                 int del =
-                    std::min<int>(test.size(), 1 + (insecure_randrange(4)));
+                    std::min<int>(test.size(), 1 + (insecure_randbits(2)));
                 int beg = insecure_randrange(test.size() + 1 - del);
                 test.erase(beg, beg + del);
             }
             if (insecure_randbits(5) == 9) {
-                test.reserve(insecure_randrange(32));
+                test.reserve(insecure_randbits(5));
             }
             if (insecure_randbits(6) == 10) {
                 test.shrink_to_fit();
@@ -249,7 +248,7 @@ BOOST_AUTO_TEST_CASE(PrevectorTestInt) {
                 test.clear();
             }
             if (insecure_randbits(9) == 12) {
-                test.assign(insecure_randrange(32), insecure_rand());
+                test.assign(insecure_randbits(5), insecure_rand());
             }
             if (insecure_randbits(3) == 3) {
                 test.swap();
