@@ -1210,7 +1210,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
             }
 
             // Size limits
-            if (stack.size() + altstack.size() > 1000) {
+            if (stack.size() + altstack.size() > MAX_STACK_SIZE) {
                 return set_error(serror, SCRIPT_ERR_STACK_SIZE);
             }
         }
