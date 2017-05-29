@@ -11,19 +11,18 @@
 class CScheduler;
 class CWallet;
 
-namespace boost
-{
+namespace boost {
 class thread_group;
 } // namespace boost
 
 void StartShutdown();
 bool ShutdownRequested();
 /** Interrupt threads */
-void Interrupt(boost::thread_group& threadGroup);
+void Interrupt(boost::thread_group &threadGroup);
 void Shutdown();
-//!Initialize the logging infrastructure
+//! Initialize the logging infrastructure
 void InitLogging();
-//!Parameter interaction: change current parameters depending on various rules
+//! Parameter interaction: change current parameters depending on various rules
 void InitParameterInteraction();
 
 /** Initialize bitcoin core: Basic context setup.
@@ -34,27 +33,27 @@ bool AppInitBasicSetup();
 /**
  * Initialization: parameter interaction.
  * @note This can be done before daemonization.
- * @pre Parameters should be parsed and config file should be read, AppInitBasicSetup should have been called.
+ * @pre Parameters should be parsed and config file should be read,
+ * AppInitBasicSetup should have been called.
  */
 bool AppInitParameterInteraction();
 /**
  * Initialization sanity checks: ecc init, sanity checks, dir lock.
  * @note This can be done before daemonization.
- * @pre Parameters should be parsed and config file should be read, AppInitParameterInteraction should have been called.
+ * @pre Parameters should be parsed and config file should be read,
+ * AppInitParameterInteraction should have been called.
  */
 bool AppInitSanityChecks();
 /**
  * Bitcoin core main initialization.
  * @note This should only be done after daemonization.
- * @pre Parameters should be parsed and config file should be read, AppInitSanityChecks should have been called.
+ * @pre Parameters should be parsed and config file should be read,
+ * AppInitSanityChecks should have been called.
  */
-bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler);
+bool AppInitMain(boost::thread_group &threadGroup, CScheduler &scheduler);
 
 /** The help message mode determines what help message to show */
-enum HelpMessageMode {
-    HMM_BITCOIND,
-    HMM_BITCOIN_QT
-};
+enum HelpMessageMode { HMM_BITCOIND, HMM_BITCOIN_QT };
 
 /** Help for options shared between UI and daemon (for -help) */
 std::string HelpMessage(HelpMessageMode mode);
