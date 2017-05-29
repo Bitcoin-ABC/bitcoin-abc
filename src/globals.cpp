@@ -6,4 +6,4 @@
 
 #include "consensus/consensus.h"
 
-unsigned int nMaxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
+uint64_t nMaxBlockSize = DEFAULT_MAX_BLOCK_SIZE;

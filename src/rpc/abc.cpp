@@ -1,0 +1,82 @@
+// Copyright (c) 2017 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include "consensus/consensus.h"
+#include "globals.h"
+#include "rpc/server.h"
+#include "utilstrencodings.h"
+
+#include <univalue.h>
+
+#include <boost/lexical_cast.hpp>
+
+UniValue getexcessiveblock(const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 0) {
+        throw std::runtime_error(
+            "getexcessiveblock\n"
+            "\nReturn the excessive block size."
+            "\nResult\n"
+            "  excessiveBlockSize (integer) block size in bytes\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getexcessiveblock", "") +
+            HelpExampleRpc("getexcessiveblock", ""));
+    }
+
+    UniValue ret(UniValue::VOBJ);
+    ret.push_back(Pair("excessiveBlockSize", (uint64_t)nMaxBlockSize));
+    return ret;
+}
+
+UniValue setexcessiveblock(const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "setexcessiveblock blockSize\n"
+            "\nSet the excessive block size. Excessive blocks will not be used "
+            "in the active chain or relayed. This  discourages the propagation "
+            "of blocks that you consider excessively large."
+            "\nResult\n"
+            "  blockSize (integer) excessive block size in bytes\n"
+            "\nExamples:\n" +
+            HelpExampleCli("setexcessiveblock", "") +
+            HelpExampleRpc("setexcessiveblock", ""));
+    }
+
+    uint64_t ebs = 0;
+    if (request.params[0].isNum()) {
+        ebs = request.params[0].get_int64();
+    } else {
+        std::string temp = request.params[0].get_str();
+        if (temp[0] == '-') boost::throw_exception(boost::bad_lexical_cast());
+        ebs = boost::lexical_cast<uint64_t>(temp);
+    }
+
+    if (ebs < DEFAULT_MAX_BLOCK_SIZE)
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            std::string(
+                "Invalid parameter, excessiveblock must be larger than ") +
+                std::to_string(DEFAULT_MAX_BLOCK_SIZE));
+
+    // Set the new max block size.
+    nMaxBlockSize = ebs;
+
+    // settingsToUserAgentString();
+    std::ostringstream ret;
+    ret << "Excessive Block set to " << nMaxBlockSize << " bytes.";
+    return UniValue(ret.str());
+}
+
+/* clang-format off */
+static const CRPCCommand commands[] = {
+    //  category            name                      actor (function)         okSafeMode
+    //  ------------------- ------------------------  -----------------------  ----------
+    { "network",            "getexcessiveblock",      &getexcessiveblock,      true, {}},
+    { "network",            "setexcessiveblock",      &setexcessiveblock,      true, {"maxBlockSize"}},
+};
+/* clang-format on */
+
+void RegisterABCRPCCommands(CRPCTable &tableRPC) {
+    for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
+        tableRPC.appendCommand(commands[vcidx].name, &commands[vcidx]);
+}
