@@ -984,7 +984,7 @@ bool AppInitParameterInteraction()
         fPruneMode = true;
     }
 
-    RegisterAllCoreRPCCommands(tableRPC);
+    RegisterAllRPCCommands(tableRPC);
 #ifdef ENABLE_WALLET
     RegisterWalletRPCCommands(tableRPC);
 #endif

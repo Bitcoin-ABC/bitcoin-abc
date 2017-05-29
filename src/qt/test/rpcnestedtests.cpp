@@ -36,7 +36,7 @@ void RPCNestedTests::rpcNestedTests() {
     // Do some test setup could be moved to a more generic place when we add
     // more tests on QT level
     const CChainParams &chainparams = Params();
-    RegisterAllCoreRPCCommands(tableRPC);
+    RegisterAllRPCCommands(tableRPC);
     tableRPC.appendCommand("rpcNestedTest", &vRPCCommands[0]);
     ClearDatadirCache();
     std::string path =
