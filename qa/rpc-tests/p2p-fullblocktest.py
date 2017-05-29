@@ -656,7 +656,7 @@ class FullBlockTest(ComparisonTestFramework):
         assert 46 not in self.blocks
         self.blocks[46] = b46
         s = ser_uint256(b46.hashMerkleRoot)
-        yield rejected(RejectResult(16, b'bad-blk-length'))
+        yield rejected(RejectResult(16, b'bad-cb-missing'))
 
         # A block with invalid work
         tip(44)

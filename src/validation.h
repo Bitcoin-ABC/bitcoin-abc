@@ -49,6 +49,9 @@ struct ChainTxData;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
+#define MIN_TRANSACTION_SIZE                                                   \
+    (::GetSerializeSize(CTransaction(), SER_NETWORK, PROTOCOL_VERSION))
+
 /** Default for DEFAULT_WHITELISTRELAY. */
 static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */

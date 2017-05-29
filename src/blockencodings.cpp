@@ -16,9 +16,6 @@
 
 #include <unordered_map>
 
-#define MIN_TRANSACTION_BASE_SIZE                                              \
-    (::GetSerializeSize(CTransaction(), SER_NETWORK, PROTOCOL_VERSION))
-
 CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock &block)
     : nonce(GetRand(std::numeric_limits<uint64_t>::max())),
       shorttxids(block.vtx.size() - 1), prefilledtxn(1), header(block) {
@@ -57,7 +54,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty()))
         return READ_STATUS_INVALID;
     if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() >
-        nMaxBlockSize / MIN_TRANSACTION_BASE_SIZE)
+        nMaxBlockSize / MIN_TRANSACTION_SIZE)
         return READ_STATUS_INVALID;
 
     assert(header.IsNull() && txn_available.empty());

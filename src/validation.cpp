@@ -2994,7 +2994,6 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
                 const Consensus::Params &consensusParams, bool fCheckPOW,
                 bool fCheckMerkleRoot) {
     // These are checks that are independent of context.
-
     if (block.fChecked) return true;
 
     // Check that the header is valid (particularly PoW).  This is mostly
@@ -3022,20 +3021,18 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
     // transaction validation, as otherwise we may mark the header as invalid
     // because we receive the wrong transactions for it.
 
-    // Size limits
-    // TODO: compare the number of tx time minimal tx size rather than just
-    // the number of txs.
-    if (block.vtx.empty() || block.vtx.size() > nMaxBlockSize ||
-        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
-            nMaxBlockSize) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
-                         "size limits failed");
-    }
-
     // First transaction must be coinbase.
     if (block.vtx.empty()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
                          "first tx is not coinbase");
+    }
+
+    // Size limits
+    if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize ||
+        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
+            nMaxBlockSize) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
+                         "size limits failed");
     }
 
     // And a valid coinbase.
