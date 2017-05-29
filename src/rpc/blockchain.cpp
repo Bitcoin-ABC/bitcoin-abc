@@ -1526,8 +1526,9 @@ static UniValue getmempoolinfo(const Config &config,
             "the mempool\n"
             "  \"maxmempool\": xxxxx,         (numeric) Maximum memory usage "
             "for the mempool\n"
-            "  \"mempoolminfee\": xxxxx       (numeric) Minimum fee for tx to "
-            "be accepted\n"
+            "  \"mempoolminfee\": xxxxx       (numeric) Minimum feerate (" +
+            CURRENCY_UNIT +
+            " per KB) for tx to be accepted\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getmempoolinfo", "") +
