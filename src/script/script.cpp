@@ -346,7 +346,9 @@ bool CScript::IsPushOnly(const_iterator pc) const {
     return true;
 }
 
-bool CScript::IsPushOnly() const { return this->IsPushOnly(begin()); }
+bool CScript::IsPushOnly() const {
+    return this->IsPushOnly(begin());
+}
 
 std::string CScriptWitness::ToString() const {
     std::string ret = "CScriptWitness(";

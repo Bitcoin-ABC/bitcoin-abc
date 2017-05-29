@@ -160,8 +160,14 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn,
                            lp);
 }
 
-void Shutdown(void *parg) { exit(0); }
+void Shutdown(void *parg) {
+    exit(0);
+}
 
-void StartShutdown() { exit(0); }
+void StartShutdown() {
+    exit(0);
+}
 
-bool ShutdownRequested() { return false; }
+bool ShutdownRequested() {
+    return false;
+}

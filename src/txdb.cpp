@@ -122,7 +122,9 @@ unsigned int CCoinsViewDBCursor::GetValueSize() const {
     return pcursor->GetValueSize();
 }
 
-bool CCoinsViewDBCursor::Valid() const { return keyTmp.first == DB_COINS; }
+bool CCoinsViewDBCursor::Valid() const {
+    return keyTmp.first == DB_COINS;
+}
 
 void CCoinsViewDBCursor::Next() {
     pcursor->Next();

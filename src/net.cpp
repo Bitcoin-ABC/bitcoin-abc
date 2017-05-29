@@ -82,7 +82,9 @@ limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
 // Signals for message handling
 static CNodeSignals g_signals;
-CNodeSignals &GetNodeSignals() { return g_signals; }
+CNodeSignals &GetNodeSignals() {
+    return g_signals;
+}
 
 void CConnman::AddOneShot(const std::string &strDest) {
     LOCK(cs_vOneShots);
@@ -233,7 +235,9 @@ bool IsLimited(enum Network net) {
     return vfLimited[net];
 }
 
-bool IsLimited(const CNetAddr &addr) { return IsLimited(addr.GetNetwork()); }
+bool IsLimited(const CNetAddr &addr) {
+    return IsLimited(addr.GetNetwork());
+}
 
 /** vote for a local address */
 bool SeenLocal(const CService &addr) {
@@ -2366,13 +2370,17 @@ CConnman::~CConnman() {
     Stop();
 }
 
-size_t CConnman::GetAddressCount() const { return addrman.size(); }
+size_t CConnman::GetAddressCount() const {
+    return addrman.size();
+}
 
 void CConnman::SetServices(const CService &addr, ServiceFlags nServices) {
     addrman.SetServices(addr, nServices);
 }
 
-void CConnman::MarkAddressGood(const CAddress &addr) { addrman.Good(addr); }
+void CConnman::MarkAddressGood(const CAddress &addr) {
+    addrman.Good(addr);
+}
 
 void CConnman::AddNewAddress(const CAddress &addr, const CAddress &addrFrom,
                              int64_t nTimePenalty) {
@@ -2384,7 +2392,9 @@ void CConnman::AddNewAddresses(const std::vector<CAddress> &vAddr,
     addrman.Add(vAddr, addrFrom, nTimePenalty);
 }
 
-std::vector<CAddress> CConnman::GetAddresses() { return addrman.GetAddr(); }
+std::vector<CAddress> CConnman::GetAddresses() {
+    return addrman.GetAddr();
+}
 
 bool CConnman::AddNode(const std::string &strNode) {
     LOCK(cs_vAddedNodes);
@@ -2545,7 +2555,9 @@ uint64_t CConnman::GetTotalBytesSent() {
     return nTotalBytesSent;
 }
 
-ServiceFlags CConnman::GetLocalServices() const { return nLocalServices; }
+ServiceFlags CConnman::GetLocalServices() const {
+    return nLocalServices;
+}
 
 void CConnman::SetBestHeight(int height) {
     nBestHeight.store(height, std::memory_order_release);
@@ -2555,8 +2567,12 @@ int CConnman::GetBestHeight() const {
     return nBestHeight.load(std::memory_order_acquire);
 }
 
-unsigned int CConnman::GetReceiveFloodSize() const { return nReceiveFloodSize; }
-unsigned int CConnman::GetSendBufferSize() const { return nSendBufferMaxSize; }
+unsigned int CConnman::GetReceiveFloodSize() const {
+    return nReceiveFloodSize;
+}
+unsigned int CConnman::GetSendBufferSize() const {
+    return nSendBufferMaxSize;
+}
 
 CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,

@@ -3751,7 +3751,9 @@ CVerifyDB::CVerifyDB() {
     uiInterface.ShowProgress(_("Verifying blocks..."), 0);
 }
 
-CVerifyDB::~CVerifyDB() { uiInterface.ShowProgress("", 100); }
+CVerifyDB::~CVerifyDB() {
+    uiInterface.ShowProgress("", 100);
+}
 
 bool CVerifyDB::VerifyDB(const CChainParams &chainparams, CCoinsView *coinsview,
                          int nCheckLevel, int nCheckDepth) {
@@ -4439,7 +4441,9 @@ std::string CBlockFileInfo::ToString() const {
         DateTimeStrFormat("%Y-%m-%d", nTimeLast));
 }
 
-CBlockFileInfo *GetBlockFileInfo(size_t n) { return &vinfoBlockFile.at(n); }
+CBlockFileInfo *GetBlockFileInfo(size_t n) {
+    return &vinfoBlockFile.at(n);
+}
 
 ThresholdState VersionBitsTipState(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos) {

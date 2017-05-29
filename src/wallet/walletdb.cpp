@@ -869,6 +869,10 @@ bool CWalletDB::WriteHDChain(const CHDChain &chain) {
     return Write(std::string("hdchain"), chain);
 }
 
-void CWalletDB::IncrementUpdateCounter() { nWalletDBUpdateCounter++; }
+void CWalletDB::IncrementUpdateCounter() {
+    nWalletDBUpdateCounter++;
+}
 
-unsigned int CWalletDB::GetUpdateCounter() { return nWalletDBUpdateCounter; }
+unsigned int CWalletDB::GetUpdateCounter() {
+    return nWalletDBUpdateCounter;
+}
