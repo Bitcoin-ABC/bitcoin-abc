@@ -9,6 +9,7 @@
 
 #include <memory>
 
+class Config;
 class CTxMemPool;
 
 // Dumb helper to handle CTransaction compression at serialize-time
@@ -211,10 +212,12 @@ protected:
     std::vector<CTransactionRef> txn_available;
     size_t prefilled_count = 0, mempool_count = 0, extra_count = 0;
     CTxMemPool *pool;
+    const Config *config;
 
 public:
     CBlockHeader header;
-    PartiallyDownloadedBlock(CTxMemPool *poolIn) : pool(poolIn) {}
+    PartiallyDownloadedBlock(const Config &configIn, CTxMemPool *poolIn)
+        : pool(poolIn), config(&configIn) {}
 
     // extra_txn is a list of extra transactions to look at, in <txhash,
     // reference> form.

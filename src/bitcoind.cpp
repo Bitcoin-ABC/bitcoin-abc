@@ -10,6 +10,7 @@
 #include "chainparams.h"
 #include "clientversion.h"
 #include "compat.h"
+#include "config.h"
 #include "httprpc.h"
 #include "httpserver.h"
 #include "init.h"
@@ -65,6 +66,11 @@ void WaitForShutdown(boost::thread_group *threadGroup) {
 bool AppInit(int argc, char *argv[]) {
     boost::thread_group threadGroup;
     CScheduler scheduler;
+
+    // FIXME: Ideally, we'd like to build the config here, but that's currently
+    // not possible as the whole application has too many global state. However,
+    // this is a first step.
+    auto &config = const_cast<Config &>(GetConfig());
 
     bool fRet = false;
 
@@ -171,7 +177,7 @@ bool AppInit(int argc, char *argv[]) {
 #endif // HAVE_DECL_DAEMON
         }
 
-        fRet = AppInitMain(threadGroup, scheduler);
+        fRet = AppInitMain(config, threadGroup, scheduler);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {

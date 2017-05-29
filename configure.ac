@@ -21,9 +21,9 @@ BITCOIN_TX_NAME=bitcoin-tx
 
 AC_CANONICAL_HOST
 
-AH_TOP([#ifndef BITCOIN_CONFIG_H])
-AH_TOP([#define BITCOIN_CONFIG_H])
-AH_BOTTOM([#endif //BITCOIN_CONFIG_H])
+AH_TOP([#ifndef BITCOIN_BITCOIN_CONFIG_H])
+AH_TOP([#define BITCOIN_BITCOIN_CONFIG_H])
+AH_BOTTOM([#endif // BITCOIN_BITCOIN_CONFIG_H])
 
 dnl faketime breaks configure and is only needed for make. Disable it here.
 unset FAKETIME

@@ -358,10 +358,11 @@ bool MarkBlockAsReceived(const uint256 &hash) {
 // returns false, still setting pit, if the block was already in flight from the
 // same peer pit will only be valid as long as the same cs_main lock is being
 // held.
-bool MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash,
-                         const Consensus::Params &consensusParams,
-                         const CBlockIndex *pindex = NULL,
-                         std::list<QueuedBlock>::iterator **pit = NULL) {
+static bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
+                                const uint256 &hash,
+                                const Consensus::Params &consensusParams,
+                                const CBlockIndex *pindex = NULL,
+                                std::list<QueuedBlock>::iterator **pit = NULL) {
     CNodeState *state = State(nodeid);
     assert(state != NULL);
 
@@ -382,7 +383,7 @@ bool MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash,
         state->vBlocksInFlight.end(),
         {hash, pindex, pindex != NULL,
          std::unique_ptr<PartiallyDownloadedBlock>(
-             pit ? new PartiallyDownloadedBlock(&mempool) : NULL)});
+             pit ? new PartiallyDownloadedBlock(config, &mempool) : NULL)});
     state->nBlocksInFlight++;
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
@@ -1032,7 +1033,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
 }
 
-void static ProcessGetData(CNode *pfrom,
+void static ProcessGetData(const Config &config, CNode *pfrom,
                            const Consensus::Params &consensusParams,
                            CConnman &connman,
                            const std::atomic<bool> &interruptMsgProc) {
@@ -1071,7 +1072,8 @@ void static ProcessGetData(CNode *pfrom,
                             a_recent_block = most_recent_block;
                         }
                         CValidationState dummy;
-                        ActivateBestChain(dummy, Params(), a_recent_block);
+                        ActivateBestChain(config, dummy, Params(),
+                                          a_recent_block);
                     }
                     if (chainActive.Contains(mi->second)) {
                         send = true;
@@ -1283,8 +1285,9 @@ inline void static SendBlockTransactions(const CBlock &block,
                         msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
-bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
-                           CDataStream &vRecv, int64_t nTimeReceived,
+bool static ProcessMessage(const Config &config, CNode *pfrom,
+                           const std::string &strCommand, CDataStream &vRecv,
+                           int64_t nTimeReceived,
                            const CChainParams &chainparams, CConnman &connman,
                            const std::atomic<bool> &interruptMsgProc) {
     LogPrint("net", "received: %s (%u bytes) peer=%d\n",
@@ -1725,7 +1728,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(),
                                    vInv.end());
-        ProcessGetData(pfrom, chainparams.GetConsensus(), connman,
+        ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
                        interruptMsgProc);
     }
 
@@ -1748,7 +1751,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                 a_recent_block = most_recent_block;
             }
             CValidationState dummy;
-            ActivateBestChain(dummy, Params(), a_recent_block);
+            ActivateBestChain(config, dummy, Params(), a_recent_block);
         }
 
         LOCK(cs_main);
@@ -1838,7 +1841,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
             inv.type = MSG_BLOCK;
             inv.hash = req.blockhash;
             pfrom->vRecvGetData.push_back(inv);
-            ProcessGetData(pfrom, chainparams.GetConsensus(), connman,
+            ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
                            interruptMsgProc);
             return true;
         }
@@ -2222,14 +2225,15 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom->GetId())) {
                     std::list<QueuedBlock>::iterator *queuedBlockIt = NULL;
-                    if (!MarkBlockAsInFlight(pfrom->GetId(),
+                    if (!MarkBlockAsInFlight(config, pfrom->GetId(),
                                              pindex->GetBlockHash(),
                                              chainparams.GetConsensus(), pindex,
                                              &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock)
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
-                                    new PartiallyDownloadedBlock(&mempool));
+                                    new PartiallyDownloadedBlock(config,
+                                                                 &mempool));
                         else {
                             // The block was already in flight using compact
                             // blocks from the same peer.
@@ -2287,7 +2291,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                     // peer, or this peer has too many blocks outstanding to
                     // download from. Optimistically try to reconstruct anyway
                     // since we might be able to without any round trips.
-                    PartiallyDownloadedBlock tempBlock(&mempool);
+                    PartiallyDownloadedBlock tempBlock(config, &mempool);
                     ReadStatus status =
                         tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                     if (status != READ_STATUS_OK) {
@@ -2327,14 +2331,14 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
         } // cs_main
 
         if (fProcessBLOCKTXN)
-            return ProcessMessage(pfrom, NetMsgType::BLOCKTXN, blockTxnMsg,
-                                  nTimeReceived, chainparams, connman,
-                                  interruptMsgProc);
+            return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
+                                  blockTxnMsg, nTimeReceived, chainparams,
+                                  connman, interruptMsgProc);
 
         if (fRevertToHeaderProcessing)
-            return ProcessMessage(pfrom, NetMsgType::HEADERS, vHeadersMsg,
-                                  nTimeReceived, chainparams, connman,
-                                  interruptMsgProc);
+            return ProcessMessage(config, pfrom, NetMsgType::HEADERS,
+                                  vHeadersMsg, nTimeReceived, chainparams,
+                                  connman, interruptMsgProc);
 
         if (fBlockReconstructed) {
             // If we got here, we were able to optimistically reconstruct a
@@ -2345,7 +2349,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                                        std::make_pair(pfrom->GetId(), false));
             }
             bool fNewBlock = false;
-            ProcessNewBlock(chainparams, pblock, true, &fNewBlock);
+            ProcessNewBlock(config, chainparams, pblock, true, &fNewBlock);
             if (fNewBlock) pfrom->nLastBlockTime = GetTime();
 
             LOCK(cs_main); // hold cs_main for CBlockIndex::IsValid()
@@ -2422,8 +2426,9 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                 // though the block was successfully read, and rely on the
                 // handling in ProcessNewBlock to ensure the block index is
                 // updated, reject messages go out, etc.
-                MarkBlockAsReceived(
-                    resp.blockhash); // it is now an empty pointer
+
+                // it is now an empty pointer
+                MarkBlockAsReceived(resp.blockhash);
                 fBlockRead = true;
                 // mapBlockSource is only used for sending reject messages and
                 // DoS scores, so the race between here and cs_main in
@@ -2439,7 +2444,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
             // Since we requested this block (it was in mapBlocksInFlight),
             // force it to be processed, even if it would not be a candidate for
             // new tip (missing previous block, chain not long enough, etc)
-            ProcessNewBlock(chainparams, pblock, true, &fNewBlock);
+            ProcessNewBlock(config, chainparams, pblock, true, &fNewBlock);
             if (fNewBlock) pfrom->nLastBlockTime = GetTime();
         }
     }
@@ -2608,7 +2613,7 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
                             pfrom, pindex->pprev, chainparams.GetConsensus());
                         vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags,
                                                 pindex->GetBlockHash()));
-                        MarkBlockAsInFlight(pfrom->GetId(),
+                        MarkBlockAsInFlight(config, pfrom->GetId(),
                                             pindex->GetBlockHash(),
                                             chainparams.GetConsensus(), pindex);
                         LogPrint("net", "Requesting block %s from  peer=%d\n",
@@ -2665,7 +2670,8 @@ bool static ProcessMessage(CNode *pfrom, const std::string &strCommand,
             mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
         }
         bool fNewBlock = false;
-        ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock);
+        ProcessNewBlock(config, chainparams, pblock, forceProcessing,
+                        &fNewBlock);
         if (fNewBlock) pfrom->nLastBlockTime = GetTime();
     }
 
@@ -2911,7 +2917,7 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman &connman) {
     return false;
 }
 
-bool ProcessMessages(CNode *pfrom, CConnman &connman,
+bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
                      const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = Params();
     //
@@ -2925,7 +2931,7 @@ bool ProcessMessages(CNode *pfrom, CConnman &connman,
     bool fMoreWork = false;
 
     if (!pfrom->vRecvGetData.empty())
-        ProcessGetData(pfrom, chainparams.GetConsensus(), connman,
+        ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
                        interruptMsgProc);
 
     if (pfrom->fDisconnect) return false;
@@ -2990,8 +2996,8 @@ bool ProcessMessages(CNode *pfrom, CConnman &connman,
     // Process message
     bool fRet = false;
     try {
-        fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime, chainparams,
-                              connman, interruptMsgProc);
+        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
+                              chainparams, connman, interruptMsgProc);
         if (interruptMsgProc) return false;
         if (!pfrom->vRecvGetData.empty()) fMoreWork = true;
     } catch (const std::ios_base::failure &e) {
@@ -3047,7 +3053,7 @@ public:
     }
 };
 
-bool SendMessages(CNode *pto, CConnman &connman,
+bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                   const std::atomic<bool> &interruptMsgProc) {
     const Consensus::Params &consensusParams = Params().GetConsensus();
     {
@@ -3547,8 +3553,9 @@ bool SendMessages(CNode *pto, CConnman &connman,
                     GetFetchFlags(pto, pindex->pprev, consensusParams);
                 vGetData.push_back(
                     CInv(MSG_BLOCK | nFetchFlags, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(pto->GetId(), pindex->GetBlockHash(),
-                                    consensusParams, pindex);
+                MarkBlockAsInFlight(config, pto->GetId(),
+                                    pindex->GetBlockHash(), consensusParams,
+                                    pindex);
                 LogPrint("net", "Requesting block %s (%d) peer=%d\n",
                          pindex->GetBlockHash().ToString(), pindex->nHeight,
                          pto->id);

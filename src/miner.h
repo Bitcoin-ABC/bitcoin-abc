@@ -16,6 +16,7 @@
 
 class CBlockIndex;
 class CChainParams;
+class Config;
 class CReserveKey;
 class CScript;
 class CWallet;
@@ -147,12 +148,14 @@ private:
     int64_t nLockTimeCutoff;
     const CChainParams &chainparams;
 
+    const Config *config;
+
     // Variables used for addPriorityTxs
     int lastFewTxs;
     bool blockFinished;
 
 public:
-    BlockAssembler(const CChainParams &chainparams);
+    BlockAssembler(const Config &_config, const CChainParams &chainparams);
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);

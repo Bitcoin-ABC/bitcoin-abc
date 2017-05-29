@@ -37,8 +37,9 @@
 #include <boost/signals2/signal.hpp>
 
 class CAddrMan;
-class CScheduler;
+class Config;
 class CNode;
+class CScheduler;
 
 namespace boost {
 class thread_group;
@@ -423,10 +424,12 @@ struct CombinerAll {
 
 // Signals for message handling
 struct CNodeSignals {
-    boost::signals2::signal<bool(CNode *, CConnman &, std::atomic<bool> &),
+    boost::signals2::signal<bool(const Config &, CNode *, CConnman &,
+                                 std::atomic<bool> &),
                             CombinerAll>
         ProcessMessages;
-    boost::signals2::signal<bool(CNode *, CConnman &, std::atomic<bool> &),
+    boost::signals2::signal<bool(const Config &, CNode *, CConnman &,
+                                 std::atomic<bool> &),
                             CombinerAll>
         SendMessages;
     boost::signals2::signal<void(CNode *, CConnman &)> InitializeNode;

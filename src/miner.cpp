@@ -9,10 +9,10 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "coins.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
-#include "globals.h"
 #include "hash.h"
 #include "net.h"
 #include "policy/policy.h"
@@ -73,8 +73,9 @@ int64_t UpdateTime(CBlockHeader *pblock,
     return nNewTime - nOldTime;
 }
 
-BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
-    : chainparams(_chainparams) {
+BlockAssembler::BlockAssembler(const Config &_config,
+                               const CChainParams &_chainparams)
+    : chainparams(_chainparams), config(&_config) {
     // Block resource limits
     // If -blockmaxsize is not given, limit to DEFAULT_MAX_GENERATED_BLOCK_SIZE
     // If only one is given, only restrict the specified resource.
@@ -92,10 +93,11 @@ BlockAssembler::BlockAssembler(const CChainParams &_chainparams)
         blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
-    // Limit size to between 1K and nMaxBlockSize-1K for sanity:
-    nMaxGeneratedBlockSize = std::max(
-        (unsigned int)1000,
-        std::min((unsigned int)(nMaxBlockSize - 1000), nMaxGeneratedBlockSize));
+    // Limit size to between 1K and MaxBlockSize-1K for sanity:
+    nMaxGeneratedBlockSize =
+        std::max((unsigned int)1000,
+                 std::min((unsigned int)(config->GetMaxBlockSize() - 1000),
+                          nMaxGeneratedBlockSize));
 }
 
 void BlockAssembler::resetBlock() {
@@ -186,8 +188,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->vTxSigOpsCount[0] = GetLegacySigOpCount(*pblock->vtx[0]);
 
     CValidationState state;
-    if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false,
-                           false)) {
+    if (!TestBlockValidity(*config, state, chainparams, *pblock, pindexPrev,
+                           false, false)) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
                                            __func__,
                                            FormatStateMessage(state)));

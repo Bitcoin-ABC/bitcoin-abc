@@ -10,10 +10,10 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
-#include "globals.h"
 #include "hash.h"
 #include "init.h"
 #include "policy/fees.h"
@@ -1682,16 +1682,17 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 
-bool ConnectBlock(const CBlock &block, CValidationState &state,
-                  CBlockIndex *pindex, CCoinsViewCache &view,
-                  const CChainParams &chainparams, bool fJustCheck) {
+bool ConnectBlock(const Config &config, const CBlock &block,
+                  CValidationState &state, CBlockIndex *pindex,
+                  CCoinsViewCache &view, const CChainParams &chainparams,
+                  bool fJustCheck) {
     AssertLockHeld(cs_main);
 
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
-    if (!CheckBlock(block, state, chainparams.GetConsensus(), !fJustCheck,
-                    !fJustCheck))
+    if (!CheckBlock(config, block, state, chainparams.GetConsensus(),
+                    !fJustCheck, !fJustCheck))
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
 
@@ -2309,8 +2310,8 @@ struct ConnectTrace {
  * by copying pblock) - if that is not intended, care must be taken to remove
  * the last entry in blocksConnected in case of failure.
  */
-bool static ConnectTip(CValidationState &state, const CChainParams &chainparams,
-                       CBlockIndex *pindexNew,
+bool static ConnectTip(const Config &config, CValidationState &state,
+                       const CChainParams &chainparams, CBlockIndex *pindexNew,
                        const std::shared_ptr<const CBlock> &pblock,
                        ConnectTrace &connectTrace) {
     assert(pindexNew->pprev == chainActive.Tip());
@@ -2334,8 +2335,8 @@ bool static ConnectTip(CValidationState &state, const CChainParams &chainparams,
              (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
     {
         CCoinsViewCache view(pcoinsTip);
-        bool rv =
-            ConnectBlock(blockConnecting, state, pindexNew, view, chainparams);
+        bool rv = ConnectBlock(config, blockConnecting, state, pindexNew, view,
+                               chainparams);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid()) InvalidBlockFound(pindexNew, state);
@@ -2458,7 +2459,7 @@ static void PruneBlockIndexCandidates() {
  * pblock is either NULL or a pointer to a CBlock corresponding to
  * pindexMostWork.
  */
-static bool ActivateBestChainStep(CValidationState &state,
+static bool ActivateBestChainStep(const Config &config, CValidationState &state,
                                   const CChainParams &chainparams,
                                   CBlockIndex *pindexMostWork,
                                   const std::shared_ptr<const CBlock> &pblock,
@@ -2494,7 +2495,7 @@ static bool ActivateBestChainStep(CValidationState &state,
 
         // Connect new blocks.
         BOOST_REVERSE_FOREACH (CBlockIndex *pindexConnect, vpindexToConnect) {
-            if (!ConnectTip(state, chainparams, pindexConnect,
+            if (!ConnectTip(config, state, chainparams, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
@@ -2572,7 +2573,8 @@ static void NotifyHeaderTip() {
  * or an activated best chain. pblock is either NULL or a pointer to a block
  * that is already loaded (to avoid loading it again from disk).
  */
-bool ActivateBestChain(CValidationState &state, const CChainParams &chainparams,
+bool ActivateBestChain(const Config &config, CValidationState &state,
+                       const CChainParams &chainparams,
                        std::shared_ptr<const CBlock> pblock) {
     // Note that while we're often called here from ProcessNewBlock, this is
     // far from a guarantee. Things in the P2P/RPC will often end up calling
@@ -2613,7 +2615,7 @@ bool ActivateBestChain(CValidationState &state, const CChainParams &chainparams,
                 bool fInvalidFound = false;
                 std::shared_ptr<const CBlock> nullBlockPtr;
                 if (!ActivateBestChainStep(
-                        state, chainparams, pindexMostWork,
+                        config, state, chainparams, pindexMostWork,
                         pblock &&
                                 pblock->GetHash() ==
                                     pindexMostWork->GetBlockHash()
@@ -2668,8 +2670,8 @@ bool ActivateBestChain(CValidationState &state, const CChainParams &chainparams,
     return true;
 }
 
-bool PreciousBlock(CValidationState &state, const CChainParams &params,
-                   CBlockIndex *pindex) {
+bool PreciousBlock(const Config &config, CValidationState &state,
+                   const CChainParams &params, CBlockIndex *pindex) {
     {
         LOCK(cs_main);
         if (pindex->nChainWork < chainActive.Tip()->nChainWork) {
@@ -2695,7 +2697,7 @@ bool PreciousBlock(CValidationState &state, const CChainParams &params,
         }
     }
 
-    return ActivateBestChain(state, params);
+    return ActivateBestChain(config, state, params);
 }
 
 bool InvalidateBlock(CValidationState &state, const CChainParams &chainparams,
@@ -2990,7 +2992,8 @@ bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state,
+bool CheckBlock(const Config &config, const CBlock &block,
+                CValidationState &state,
                 const Consensus::Params &consensusParams, bool fCheckPOW,
                 bool fCheckMerkleRoot) {
     // These are checks that are independent of context.
@@ -3027,7 +3030,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
                          "first tx is not coinbase");
     }
 
-    // Size limits
+    // Size limits.
+    auto nMaxBlockSize = config.GetMaxBlockSize();
+
+    // TODO: compare the number of tx time minimal tx size rather than just
+    // the number of txs.
     if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize ||
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
             nMaxBlockSize) {
@@ -3246,7 +3253,8 @@ bool ProcessNewBlockHeaders(const std::vector<CBlockHeader> &headers,
 
 /** Store block on disk. If dbp is non-NULL, the file is known to already reside
  * on disk */
-static bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
+static bool AcceptBlock(const Config &config,
+                        const std::shared_ptr<const CBlock> &pblock,
                         CValidationState &state,
                         const CChainParams &chainparams, CBlockIndex **ppindex,
                         bool fRequested, const CDiskBlockPos *dbp,
@@ -3302,7 +3310,7 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         *fNewBlock = true;
     }
 
-    if (!CheckBlock(block, state, chainparams.GetConsensus()) ||
+    if (!CheckBlock(config, block, state, chainparams.GetConsensus()) ||
         !ContextualCheckBlock(block, state, chainparams.GetConsensus(),
                               pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
@@ -3346,7 +3354,7 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     return true;
 }
 
-bool ProcessNewBlock(const CChainParams &chainparams,
+bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock) {
     {
@@ -3355,13 +3363,14 @@ bool ProcessNewBlock(const CChainParams &chainparams,
         CValidationState state;
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
         // belt-and-suspenders.
-        bool ret = CheckBlock(*pblock, state, chainparams.GetConsensus());
+        bool ret =
+            CheckBlock(config, *pblock, state, chainparams.GetConsensus());
 
         LOCK(cs_main);
 
         if (ret) {
             // Store to disk
-            ret = AcceptBlock(pblock, state, chainparams, &pindex,
+            ret = AcceptBlock(config, pblock, state, chainparams, &pindex,
                               fForceProcessing, NULL, fNewBlock);
         }
         CheckBlockIndex(chainparams.GetConsensus());
@@ -3375,15 +3384,16 @@ bool ProcessNewBlock(const CChainParams &chainparams,
 
     CValidationState
         state; // Only used to report errors, not invalidity - ignore it
-    if (!ActivateBestChain(state, chainparams, pblock))
+    if (!ActivateBestChain(config, state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
     return true;
 }
 
-bool TestBlockValidity(CValidationState &state, const CChainParams &chainparams,
-                       const CBlock &block, CBlockIndex *pindexPrev,
-                       bool fCheckPOW, bool fCheckMerkleRoot) {
+bool TestBlockValidity(const Config &config, CValidationState &state,
+                       const CChainParams &chainparams, const CBlock &block,
+                       CBlockIndex *pindexPrev, bool fCheckPOW,
+                       bool fCheckMerkleRoot) {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
     if (fCheckpointsEnabled &&
@@ -3402,7 +3412,7 @@ bool TestBlockValidity(CValidationState &state, const CChainParams &chainparams,
                                     pindexPrev, GetAdjustedTime()))
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
-    if (!CheckBlock(block, state, chainparams.GetConsensus(), fCheckPOW,
+    if (!CheckBlock(config, block, state, chainparams.GetConsensus(), fCheckPOW,
                     fCheckMerkleRoot))
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
@@ -3410,7 +3420,8 @@ bool TestBlockValidity(CValidationState &state, const CChainParams &chainparams,
                               pindexPrev))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
-    if (!ConnectBlock(block, state, &indexDummy, viewNew, chainparams, true))
+    if (!ConnectBlock(config, block, state, &indexDummy, viewNew, chainparams,
+                      true))
         return false;
     assert(state.IsValid());
 
@@ -3752,8 +3763,9 @@ CVerifyDB::~CVerifyDB() {
     uiInterface.ShowProgress("", 100);
 }
 
-bool CVerifyDB::VerifyDB(const CChainParams &chainparams, CCoinsView *coinsview,
-                         int nCheckLevel, int nCheckDepth) {
+bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
+                         CCoinsView *coinsview, int nCheckLevel,
+                         int nCheckDepth) {
     LOCK(cs_main);
     if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
         return true;
@@ -3802,7 +3814,7 @@ bool CVerifyDB::VerifyDB(const CChainParams &chainparams, CCoinsView *coinsview,
                 pindex->nHeight, pindex->GetBlockHash().ToString());
         // check level 1: verify block validity
         if (nCheckLevel >= 1 &&
-            !CheckBlock(block, state, chainparams.GetConsensus()))
+            !CheckBlock(config, block, state, chainparams.GetConsensus()))
             return error("%s: *** found bad block at %d, hash=%s (%s)\n",
                          __func__, pindex->nHeight,
                          pindex->GetBlockHash().ToString(),
@@ -3861,7 +3873,7 @@ bool CVerifyDB::VerifyDB(const CChainParams &chainparams, CCoinsView *coinsview,
                 return error(
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
-            if (!ConnectBlock(block, state, pindex, coins, chainparams))
+            if (!ConnectBlock(config, block, state, pindex, coins, chainparams))
                 return error(
                     "VerifyDB(): *** found unconnectable block at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
@@ -4004,7 +4016,8 @@ bool InitBlockIndex(const CChainParams &chainparams) {
     return true;
 }
 
-bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
+bool LoadExternalBlockFile(const Config &config,
+                           const CChainParams &chainparams, FILE *fileIn,
                            CDiskBlockPos *dbp) {
     // Map of disk positions for blocks with unknown parent (only used for
     // reindex)
@@ -4075,8 +4088,8 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
                     (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
                     LOCK(cs_main);
                     CValidationState state;
-                    if (AcceptBlock(pblock, state, chainparams, NULL, true, dbp,
-                                    NULL))
+                    if (AcceptBlock(config, pblock, state, chainparams, NULL,
+                                    true, dbp, NULL))
                         nLoaded++;
                     if (state.IsError()) break;
                 } else if (hash !=
@@ -4092,7 +4105,7 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
                 // continue
                 if (hash == chainparams.GetConsensus().hashGenesisBlock) {
                     CValidationState state;
-                    if (!ActivateBestChain(state, chainparams)) {
+                    if (!ActivateBestChain(config, state, chainparams)) {
                         break;
                     }
                 }
@@ -4123,8 +4136,9 @@ bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
                                 head.ToString());
                             LOCK(cs_main);
                             CValidationState dummy;
-                            if (AcceptBlock(pblockrecursive, dummy, chainparams,
-                                            NULL, true, &it->second, NULL)) {
+                            if (AcceptBlock(config, pblockrecursive, dummy,
+                                            chainparams, NULL, true,
+                                            &it->second, NULL)) {
                                 nLoaded++;
                                 queue.push_back(pblockrecursive->GetHash());
                             }

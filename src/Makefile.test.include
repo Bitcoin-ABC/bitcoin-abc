@@ -80,6 +80,7 @@ BITCOIN_TESTS =\
   test/bswap_tests.cpp \
   test/coins_tests.cpp \
   test/compress_tests.cpp \
+  test/config_tests.cpp \
   test/crypto_tests.cpp \
   test/cuckoocache_tests.cpp \
   test/DoS_tests.cpp \

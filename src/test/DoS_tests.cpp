@@ -5,6 +5,7 @@
 // Unit tests for denial-of-service detection/prevention code
 
 #include "chainparams.h"
+#include "config.h"
 #include "keystore.h"
 #include "net.h"
 #include "net_processing.h"
@@ -57,7 +58,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     dummyNode1.fSuccessfullyConnected = true;
     // Should get banned.
     Misbehaving(dummyNode1.GetId(), 100);
-    SendMessages(&dummyNode1, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
     // Different IP, not banned.
     BOOST_CHECK(!connman->IsBanned(ip(0xa0b0c001 | 0x0000ff00)));
@@ -70,13 +71,13 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     dummyNode2.nVersion = 1;
     dummyNode2.fSuccessfullyConnected = true;
     Misbehaving(dummyNode2.GetId(), 50);
-    SendMessages(&dummyNode2, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode2, *connman, interruptDummy);
     // 2 not banned yet...
     BOOST_CHECK(!connman->IsBanned(addr2));
     // ... but 1 still should be.
     BOOST_CHECK(connman->IsBanned(addr1));
     Misbehaving(dummyNode2.GetId(), 50);
-    SendMessages(&dummyNode2, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode2, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr2));
 }
 
@@ -94,13 +95,13 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     dummyNode1.nVersion = 1;
     dummyNode1.fSuccessfullyConnected = true;
     Misbehaving(dummyNode1.GetId(), 100);
-    SendMessages(&dummyNode1, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(!connman->IsBanned(addr1));
     Misbehaving(dummyNode1.GetId(), 10);
-    SendMessages(&dummyNode1, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(!connman->IsBanned(addr1));
     Misbehaving(dummyNode1.GetId(), 1);
-    SendMessages(&dummyNode1, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
     ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
 }
@@ -122,7 +123,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     dummyNode.fSuccessfullyConnected = true;
 
     Misbehaving(dummyNode.GetId(), 100);
-    SendMessages(&dummyNode, *connman, interruptDummy);
+    SendMessages(GetConfig(), &dummyNode, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr));
 
     SetMockTime(nStartTime + 60 * 60);

@@ -37,8 +37,9 @@ class CBlockIndex;
 class CBlockTreeDB;
 class CBloomFilter;
 class CChainParams;
-class CInv;
 class CConnman;
+class CInv;
+class Config;
 class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
@@ -258,7 +259,7 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  * first received via this call
  * @return True if state.IsValid()
  */
-bool ProcessNewBlock(const CChainParams &chainparams,
+bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock);
 
@@ -289,7 +290,8 @@ FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos,
                                             const char *prefix);
 /** Import blocks from an external file */
-bool LoadExternalBlockFile(const CChainParams &chainparams, FILE *fileIn,
+bool LoadExternalBlockFile(const Config &config,
+                           const CChainParams &chainparams, FILE *fileIn,
                            CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex(const CChainParams &chainparams);
@@ -319,7 +321,8 @@ bool GetTransaction(const uint256 &hash, CTransactionRef &tx,
                     bool fAllowSlow = false);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(
-    CValidationState &state, const CChainParams &chainparams,
+    const Config &config, CValidationState &state,
+    const CChainParams &chainparams,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
@@ -567,7 +570,8 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
                       const Consensus::Params &consensusParams,
                       bool fCheckPOW = true);
-bool CheckBlock(const CBlock &block, CValidationState &state,
+bool CheckBlock(const Config &Config, const CBlock &block,
+                CValidationState &state,
                 const Consensus::Params &consensusParams, bool fCheckPOW = true,
                 bool fCheckMerkleRoot = true);
 
@@ -587,9 +591,10 @@ bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
  * represented by coins.
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
  *  can fail if those validity checks fail (among other reasons). */
-bool ConnectBlock(const CBlock &block, CValidationState &state,
-                  CBlockIndex *pindex, CCoinsViewCache &coins,
-                  const CChainParams &chainparams, bool fJustCheck = false);
+bool ConnectBlock(const Config &config, const CBlock &block,
+                  CValidationState &state, CBlockIndex *pindex,
+                  CCoinsViewCache &coins, const CChainParams &chainparams,
+                  bool fJustCheck = false);
 
 /** Undo the effects of this block (with given index) on the UTXO set
  * represented by coins. In case pfClean is provided, operation will try to be
@@ -602,9 +607,10 @@ bool DisconnectBlock(const CBlock &block, CValidationState &state,
 
 /** Check a block is completely valid from start to finish (only works on top of
  * our current best block, with cs_main held) */
-bool TestBlockValidity(CValidationState &state, const CChainParams &chainparams,
-                       const CBlock &block, CBlockIndex *pindexPrev,
-                       bool fCheckPOW = true, bool fCheckMerkleRoot = true);
+bool TestBlockValidity(const Config &config, CValidationState &state,
+                       const CChainParams &chainparams, const CBlock &block,
+                       CBlockIndex *pindexPrev, bool fCheckPOW = true,
+                       bool fCheckMerkleRoot = true);
 
 /** When there are blocks in the active chain with missing data, rewind the
  * chainstate and remove them from the block index */
@@ -616,8 +622,8 @@ class CVerifyDB {
 public:
     CVerifyDB();
     ~CVerifyDB();
-    bool VerifyDB(const CChainParams &chainparams, CCoinsView *coinsview,
-                  int nCheckLevel, int nCheckDepth);
+    bool VerifyDB(const Config &config, const CChainParams &chainparams,
+                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
 };
 
 /** Find the last common block between the parameter chain and a locator. */
@@ -625,8 +631,8 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator);
 
 /** Mark a block as precious and reorganize. */
-bool PreciousBlock(CValidationState &state, const CChainParams &params,
-                   CBlockIndex *pindex);
+bool PreciousBlock(const Config &config, CValidationState &state,
+                   const CChainParams &params, CBlockIndex *pindex);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, const CChainParams &chainparams,

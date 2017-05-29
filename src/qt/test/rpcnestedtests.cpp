@@ -5,6 +5,7 @@
 #include "rpcnestedtests.h"
 
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "rpc/register.h"
 #include "rpc/server.h"
@@ -53,7 +54,7 @@ void RPCNestedTests::rpcNestedTests() {
     InitBlockIndex(chainparams);
     {
         CValidationState state;
-        bool ok = ActivateBestChain(state, chainparams);
+        bool ok = ActivateBestChain(GetConfig(), state, chainparams);
         QVERIFY(ok);
     }
 

@@ -956,7 +956,8 @@ void CleanupBlockRevFiles() {
     }
 }
 
-void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) {
+void ThreadImport(const Config &config,
+                  std::vector<boost::filesystem::path> vImportFiles) {
     const CChainParams &chainparams = Params();
     RenameThread("bitcoin-loadblk");
 
@@ -974,7 +975,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) {
                 if (!file) break; // This error is logged in OpenBlockFile
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
-                LoadExternalBlockFile(chainparams, file, &pos);
+                LoadExternalBlockFile(config, chainparams, file, &pos);
                 nFile++;
             }
             pblocktree->WriteReindexing(false);
@@ -993,7 +994,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) {
                 boost::filesystem::path pathBootstrapOld =
                     GetDataDir() / "bootstrap.dat.old";
                 LogPrintf("Importing bootstrap.dat...\n");
-                LoadExternalBlockFile(chainparams, file);
+                LoadExternalBlockFile(config, chainparams, file);
                 RenameOver(pathBootstrap, pathBootstrapOld);
             } else {
                 LogPrintf("Warning: Could not open bootstrap file %s\n",
@@ -1006,7 +1007,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) {
             FILE *file = fopen(path.string().c_str(), "rb");
             if (file) {
                 LogPrintf("Importing blocks file %s...\n", path.string());
-                LoadExternalBlockFile(chainparams, file);
+                LoadExternalBlockFile(config, chainparams, file);
             } else {
                 LogPrintf("Warning: Could not open blocks file %s\n",
                           path.string());
@@ -1016,7 +1017,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles) {
         // scan for better chains in the block chain database, that are not yet
         // connected in the active best chain
         CValidationState state;
-        if (!ActivateBestChain(state, chainparams)) {
+        if (!ActivateBestChain(config, state, chainparams)) {
             LogPrintf("Failed to connect best block");
             StartShutdown();
         }
@@ -1569,7 +1570,8 @@ bool AppInitSanityChecks() {
     return LockDataDirectory(true);
 }
 
-bool AppInitMain(boost::thread_group &threadGroup, CScheduler &scheduler) {
+bool AppInitMain(const Config &config, boost::thread_group &threadGroup,
+                 CScheduler &scheduler) {
     const CChainParams &chainparams = Params();
     // Step 4a: application initialization
 
@@ -1990,7 +1992,7 @@ bool AppInitMain(boost::thread_group &threadGroup, CScheduler &scheduler) {
                 }
 
                 if (!CVerifyDB().VerifyDB(
-                        chainparams, pcoinsdbview,
+                        config, chainparams, pcoinsdbview,
                         GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                         GetArg("-checkblocks", DEFAULT_CHECKBLOCKS))) {
                     strLoadError = _("Corrupted block database detected");
@@ -2088,7 +2090,8 @@ bool AppInitMain(boost::thread_group &threadGroup, CScheduler &scheduler) {
             vImportFiles.push_back(strFile);
     }
 
-    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
+    threadGroup.create_thread(
+        boost::bind(&ThreadImport, boost::ref(config), vImportFiles));
 
     // Wait for genesis block to be processed
     {

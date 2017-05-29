@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "validation.h"
@@ -18,7 +19,8 @@ static void RunCheckOnBlockImpl(const CBlock &block, CValidationState &state,
                                 bool expected) {
     block.fChecked = false;
 
-    bool fValid = CheckBlock(block, state, params, false, false);
+    GlobalConfig config;
+    bool fValid = CheckBlock(config, block, state, params, false, false);
 
     BOOST_CHECK_EQUAL(fValid, expected);
     BOOST_CHECK_EQUAL(fValid, state.IsValid());

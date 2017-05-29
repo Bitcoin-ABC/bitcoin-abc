@@ -10,6 +10,7 @@
 
 #include "chainparams.h"
 #include "clientmodel.h"
+#include "config.h"
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "intro.h"
@@ -280,7 +281,13 @@ void BitcoinCore::initialize() {
             Q_EMIT initializeResult(false);
             return;
         }
-        int rv = AppInitMain(threadGroup, scheduler);
+
+        // FIXME: Ideally, we'd like to build the config here, but that's
+        // currently not possible as the whole application has too many global
+        // state. However, this is a first step.
+        auto &config = const_cast<Config &>(GetConfig());
+
+        int rv = AppInitMain(config, threadGroup, scheduler);
         Q_EMIT initializeResult(rv);
     } catch (const std::exception &e) {
         handleRunawayException(&e);

@@ -8,6 +8,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "coins.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "hash.h"
 #include "policy/policy.h"
@@ -1056,7 +1057,8 @@ UniValue verifychain(const JSONRPCRequest &request) {
     if (request.params.size() > 0) nCheckLevel = request.params[0].get_int();
     if (request.params.size() > 1) nCheckDepth = request.params[1].get_int();
 
-    return CVerifyDB().VerifyDB(Params(), pcoinsTip, nCheckLevel, nCheckDepth);
+    return CVerifyDB().VerifyDB(GetConfig(), Params(), pcoinsTip, nCheckLevel,
+                                nCheckDepth);
 }
 
 /** Implementation of IsSuperMajority with better feedback */
@@ -1433,7 +1435,7 @@ UniValue preciousblock(const JSONRPCRequest &request) {
     }
 
     CValidationState state;
-    PreciousBlock(state, Params(), pblockindex);
+    PreciousBlock(GetConfig(), state, Params(), pblockindex);
 
     if (!state.IsValid()) {
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
@@ -1469,7 +1471,7 @@ UniValue invalidateblock(const JSONRPCRequest &request) {
     }
 
     if (state.IsValid()) {
-        ActivateBestChain(state, Params());
+        ActivateBestChain(GetConfig(), state, Params());
     }
 
     if (!state.IsValid()) {
@@ -1507,7 +1509,7 @@ UniValue reconsiderblock(const JSONRPCRequest &request) {
     }
 
     CValidationState state;
-    ActivateBestChain(state, Params());
+    ActivateBestChain(GetConfig(), state, Params());
 
     if (!state.IsValid()) {
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());

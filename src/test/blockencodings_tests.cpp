@@ -4,6 +4,7 @@
 
 #include "blockencodings.h"
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/merkle.h"
 #include "random.h"
 
@@ -77,7 +78,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(&pool);
+        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
@@ -194,7 +195,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(&pool);
+        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(!partialBlock.IsTxAvailable(0));
@@ -276,7 +277,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(&pool);
+        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
@@ -341,7 +342,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(&pool);
+        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));

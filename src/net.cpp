@@ -12,6 +12,7 @@
 #include "addrman.h"
 #include "chainparams.h"
 #include "clientversion.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "crypto/common.h"
 #include "crypto/sha256.h"
@@ -1928,15 +1929,16 @@ void CConnman::ThreadMessageHandler() {
             if (pnode->fDisconnect) continue;
 
             // Receive messages
+            // FIXME: Pass the config down here.
             bool fMoreNodeWork = GetNodeSignals().ProcessMessages(
-                pnode, *this, flagInterruptMsgProc);
+                GetConfig(), pnode, *this, flagInterruptMsgProc);
             fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
             if (flagInterruptMsgProc) return;
 
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                GetNodeSignals().SendMessages(pnode, *this,
+                GetNodeSignals().SendMessages(GetConfig(), pnode, *this,
                                               flagInterruptMsgProc);
             }
             if (flagInterruptMsgProc) return;
@@ -2526,6 +2528,7 @@ bool CConnman::OutboundTargetReached(bool historicalBlockServingLimit) {
     if (historicalBlockServingLimit) {
         // keep a large enough buffer to at least relay each block once.
         uint64_t timeLeftInCycle = GetMaxOutboundTimeLeftInCycle();
+        // FIXME: Pass the config down there instead of using nMaxBlockSize.
         uint64_t buffer = timeLeftInCycle / 600 * nMaxBlockSize;
         if (buffer >= nMaxOutboundLimit ||
             nMaxOutboundTotalBytesSentInCycle >= nMaxOutboundLimit - buffer)

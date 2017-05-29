@@ -9,6 +9,8 @@
 #include "net.h"
 #include "validationinterface.h"
 
+class Config;
+
 /** Default for -maxorphantx, maximum number of orphan transactions kept in
  * memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
@@ -56,7 +58,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 void Misbehaving(NodeId nodeid, int howmuch);
 
 /** Process protocol messages received from a given node */
-bool ProcessMessages(CNode *pfrom, CConnman &connman,
+bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
                      const std::atomic<bool> &interrupt);
 /**
  * Send queued protocol messages to be sent to a give node.
@@ -66,7 +68,7 @@ bool ProcessMessages(CNode *pfrom, CConnman &connman,
  * @param[in]   interrupt       Interrupt condition for processing threads
  * @return                      True if there is more work to be done
  */
-bool SendMessages(CNode *pto, CConnman &connman,
+bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                   const std::atomic<bool> &interrupt);
 
 #endif // BITCOIN_NET_PROCESSING_H

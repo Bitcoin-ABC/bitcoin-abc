@@ -7,6 +7,7 @@
 #include "base58.h"
 #include "chain.h"
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/params.h"
 #include "consensus/validation.h"
@@ -121,8 +122,8 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(Params()).CreateNewBlock(
-                coinbaseScript->reserveScript));
+            BlockAssembler(GetConfig(), Params())
+                .CreateNewBlock(coinbaseScript->reserveScript));
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
         CBlock *pblock = &pblocktemplate->block;
@@ -144,7 +145,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
         }
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(Params(), shared_pblock, true, NULL))
+        if (!ProcessNewBlock(GetConfig(), Params(), shared_pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "ProcessNewBlock, block not accepted");
         ++nHeight;
@@ -520,7 +521,8 @@ UniValue getblocktemplate(const JSONRPCRequest &request) {
             if (block.hashPrevBlock != pindexPrev->GetBlockHash())
                 return "inconclusive-not-best-prevblk";
             CValidationState state;
-            TestBlockValidity(state, Params(), block, pindexPrev, false, true);
+            TestBlockValidity(GetConfig(), state, Params(), block, pindexPrev,
+                              false, true);
             return BIP22ValidationResult(state);
         }
 
@@ -622,7 +624,8 @@ UniValue getblocktemplate(const JSONRPCRequest &request) {
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy);
+        pblocktemplate =
+            BlockAssembler(GetConfig(), Params()).CreateNewBlock(scriptDummy);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -845,7 +848,8 @@ UniValue submitblock(const JSONRPCRequest &request) {
 
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(Params(), blockptr, true, NULL);
+    bool fAccepted =
+        ProcessNewBlock(GetConfig(), Params(), blockptr, true, NULL);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
         if (fAccepted && !sc.found) return "duplicate-inconclusive";

@@ -4,9 +4,9 @@
 
 #include "blockencodings.h"
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
-#include "globals.h"
 #include "hash.h"
 #include "random.h"
 #include "streams.h"
@@ -54,7 +54,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty()))
         return READ_STATUS_INVALID;
     if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() >
-        nMaxBlockSize / MIN_TRANSACTION_SIZE)
+        config->GetMaxBlockSize() / MIN_TRANSACTION_SIZE)
         return READ_STATUS_INVALID;
 
     assert(header.IsNull() && txn_available.empty());
@@ -218,7 +218,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
     if (vtx_missing.size() != tx_missing_offset) return READ_STATUS_INVALID;
 
     CValidationState state;
-    if (!CheckBlock(block, state, Params().GetConsensus())) {
+    if (!CheckBlock(*config, block, state, Params().GetConsensus())) {
         // TODO: We really want to just check merkle tree manually here, but
         // that is expensive, and CheckBlock caches a block's "checked-status"
         // (in the CBlock?). CBlock should be able to check its own merkle root
