@@ -35,6 +35,10 @@
 #include <utility>
 #include <vector>
 
+namespace interfaces {
+class Chain;
+} // namespace interfaces
+
 bool AddWallet(const std::shared_ptr<CWallet> &wallet);
 bool RemoveWallet(const std::shared_ptr<CWallet> &wallet);
 bool HasWallets();
@@ -839,6 +843,9 @@ private:
     bool AddWatchOnly(const CScript &dest) override
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
+    /** Interface for accessing chain state. */
+    interfaces::Chain &m_chain;
+
     /**
      * Wallet location which includes wallet name (see WalletLocation).
      */
@@ -907,9 +914,10 @@ public:
     unsigned int nMasterKeyMaxID = 0;
 
     /** Construct wallet with specified name and database implementation. */
-    CWallet(const CChainParams &chainParamsIn, const WalletLocation &location,
+    CWallet(const CChainParams &chainParamsIn, interfaces::Chain &chain,
+            const WalletLocation &location,
             std::unique_ptr<WalletDatabase> databaseIn)
-        : m_location(location), database(std::move(databaseIn)),
+        : m_chain(chain), m_location(location), database(std::move(databaseIn)),
           chainParams(chainParamsIn) {}
 
     ~CWallet() {
@@ -930,6 +938,9 @@ public:
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
     std::set<COutPoint> setLockedCoins GUARDED_BY(cs_wallet);
+
+    /** Interface for accessing chain state. */
+    interfaces::Chain &chain() const { return m_chain; }
 
     const CWalletTx *GetWalletTx(const TxId &txid) const;
 
@@ -1357,17 +1368,17 @@ public:
 
     //! Verify wallet naming and perform salvage on the wallet if required
     static bool Verify(const CChainParams &chainParams,
-                       const WalletLocation &location, bool salvage_wallet,
-                       std::string &error_string, std::string &warning_string);
+                       interfaces::Chain &chain, const WalletLocation &location,
+                       bool salvage_wallet, std::string &error_string,
+                       std::string &warning_string);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer
      * in case of an error.
      */
-    static std::shared_ptr<CWallet>
-    CreateWalletFromFile(const CChainParams &chainParams,
-                         const WalletLocation &location,
-                         uint64_t wallet_creation_flags = 0);
+    static std::shared_ptr<CWallet> CreateWalletFromFile(
+        const CChainParams &chainParams, interfaces::Chain &chain,
+        const WalletLocation &location, uint64_t wallet_creation_flags = 0);
 
     /**
      * Wallet post-init setup

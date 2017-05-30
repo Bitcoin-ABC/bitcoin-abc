@@ -5,6 +5,7 @@
 #include <wallet/walletdb.h>
 
 #include <chainparams.h>
+#include <interfaces/chain.h>
 #include <wallet/wallet.h>
 
 #include <test/test_bitcoin.h>
@@ -16,8 +17,9 @@
 
 namespace {
 static std::unique_ptr<CWallet> LoadWallet(WalletBatch &batch) {
+    auto chain = interfaces::MakeChain();
     std::unique_ptr<CWallet> wallet = std::make_unique<CWallet>(
-        Params(), WalletLocation(), WalletDatabase::CreateDummy());
+        Params(), *chain, WalletLocation(), WalletDatabase::CreateDummy());
     DBErrors res = batch.LoadWallet(wallet.get());
     BOOST_CHECK(res == DBErrors::LOAD_OK);
     return wallet;

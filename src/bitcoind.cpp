@@ -15,6 +15,7 @@
 #include <httprpc.h>
 #include <httpserver.h>
 #include <init.h>
+#include <interfaces/chain.h>
 #include <noui.h>
 #include <rpc/server.h>
 #include <shutdown.h>
@@ -65,6 +66,9 @@ static bool AppInit(int argc, char *argv[]) {
     auto &config = const_cast<Config &>(GetConfig());
     RPCServer rpcServer;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
+
+    InitInterfaces interfaces;
+    interfaces.chain = interfaces::MakeChain();
 
     bool fRet = false;
 
@@ -194,7 +198,8 @@ static bool AppInit(int argc, char *argv[]) {
             // If locking the data directory failed, exit immediately
             return false;
         }
-        fRet = AppInitMain(config, rpcServer, httpRPCRequestProcessor);
+        fRet =
+            AppInitMain(config, rpcServer, httpRPCRequestProcessor, interfaces);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {
@@ -206,7 +211,7 @@ static bool AppInit(int argc, char *argv[]) {
     } else {
         WaitForShutdown();
     }
-    Shutdown();
+    Shutdown(interfaces);
 
     return fRet;
 }

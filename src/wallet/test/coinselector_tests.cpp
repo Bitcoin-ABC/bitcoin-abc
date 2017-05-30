@@ -300,7 +300,8 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
 }
 
 BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
-    CWallet testWallet(Params(), WalletLocation(),
+    auto testChain = interfaces::MakeChain();
+    CWallet testWallet(Params(), *testChain, WalletLocation(),
                        WalletDatabase::CreateDummy());
 
     CoinSet setCoinsRet, setCoinsRet2;
@@ -728,7 +729,8 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
 // Tests that with the ideal conditions, the coin selector will always be able
 // to find a solution that can pay the target value
 BOOST_AUTO_TEST_CASE(SelectCoins_test) {
-    CWallet testWallet(Params(), WalletLocation(),
+    auto testChain = interfaces::MakeChain();
+    CWallet testWallet(Params(), *testChain, WalletLocation(),
                        WalletDatabase::CreateDummy());
 
     // Random generator stuff

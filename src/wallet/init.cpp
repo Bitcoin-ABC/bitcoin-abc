@@ -36,10 +36,12 @@ public:
     //  This function will perform salvage on the wallet if requested, as long
     //  as only one wallet is being loaded (WalletParameterInteraction forbids
     //  -salvagewallet, -zapwallettxes or -upgradewallet with multiwallet).
-    bool Verify(const CChainParams &chainParams) const override;
+    bool Verify(const CChainParams &chainParams,
+                interfaces::Chain &chain) const override;
 
     //! Load wallet databases.
-    bool Open(const CChainParams &chainParams) const override;
+    bool Open(const CChainParams &chainParams,
+              interfaces::Chain &chain) const override;
 
     //! Complete startup of wallets.
     void Start(CScheduler &scheduler) const override;
@@ -279,7 +281,8 @@ void WalletInit::RegisterRPC(CRPCTable &t) const {
     RegisterDumpRPCCommands(t);
 }
 
-bool WalletInit::Verify(const CChainParams &chainParams) const {
+bool WalletInit::Verify(const CChainParams &chainParams,
+                        interfaces::Chain &chain) const {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         return true;
     }
@@ -335,8 +338,8 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
         std::string error_string;
         std::string warning_string;
         bool verify_success =
-            CWallet::Verify(chainParams, location, salvage_wallet, error_string,
-                            warning_string);
+            CWallet::Verify(chainParams, chain, location, salvage_wallet,
+                            error_string, warning_string);
         if (!error_string.empty()) {
             InitError(error_string);
         }
@@ -351,7 +354,8 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
     return true;
 }
 
-bool WalletInit::Open(const CChainParams &chainParams) const {
+bool WalletInit::Open(const CChainParams &chainParams,
+                      interfaces::Chain &chain) const {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         LogPrintf("Wallet disabled!\n");
         return true;
@@ -359,7 +363,7 @@ bool WalletInit::Open(const CChainParams &chainParams) const {
 
     for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
         std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-            chainParams, WalletLocation(walletFile));
+            chainParams, chain, WalletLocation(walletFile));
         if (!pwallet) {
             return false;
         }

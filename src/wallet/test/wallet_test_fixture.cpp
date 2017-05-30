@@ -12,8 +12,8 @@
 #include <wallet/wallet.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
-    : TestingSetup(chainName),
-      m_wallet(Params(), WalletLocation(), WalletDatabase::CreateMock()) {
+    : TestingSetup(chainName), m_wallet(Params(), *m_chain, WalletLocation(),
+                                        WalletDatabase::CreateMock()) {
     bool fFirstRun;
     m_wallet.LoadWallet(fFirstRun);
     RegisterValidationInterface(&m_wallet);

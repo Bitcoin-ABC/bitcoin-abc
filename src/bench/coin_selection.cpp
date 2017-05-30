@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 #include <chainparams.h>
+#include <interfaces/chain.h>
 #include <wallet/coinselection.h>
 #include <wallet/wallet.h>
 
@@ -37,8 +38,11 @@ static void addCoin(const Amount nValue, const CWallet &wallet,
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
 static void CoinSelection(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
-    const CWallet wallet(Params(), WalletLocation(),
+
+    auto chain = interfaces::MakeChain();
+    const CWallet wallet(Params(), *chain, WalletLocation(),
                          WalletDatabase::CreateDummy());
+
     LOCK(wallet.cs_wallet);
 
     // Add coins.
@@ -98,8 +102,11 @@ static Amount make_hard_case(const CWallet &wallet, int utxos,
 
 static void BnBExhaustion(benchmark::State &state) {
     SelectParams(CBaseChainParams::REGTEST);
-    const CWallet wallet(Params(), WalletLocation(),
+
+    auto chain = interfaces::MakeChain();
+    const CWallet wallet(Params(), *chain, WalletLocation(),
                          WalletDatabase::CreateDummy());
+
     LOCK(wallet.cs_wallet);
 
     // Setup

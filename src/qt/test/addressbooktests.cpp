@@ -1,6 +1,7 @@
 #include <qt/test/addressbooktests.h>
 #include <test/test_bitcoin.h>
 
+#include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <qt/addressbookpage.h>
 #include <qt/addresstablemodel.h>
@@ -58,8 +59,11 @@ void EditAddressAndSubmit(EditAddressDialog *dialog, const QString &label,
  */
 void TestAddAddressesToSendBook() {
     TestChain100Setup test;
+
+    auto chain = interfaces::MakeChain();
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), WalletLocation(), WalletDatabase::CreateMock());
+        Params(), *chain, WalletLocation(), WalletDatabase::CreateMock());
+
     bool firstRun;
     wallet->LoadWallet(firstRun);
 

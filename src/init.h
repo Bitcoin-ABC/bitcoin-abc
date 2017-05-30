@@ -18,13 +18,24 @@ class CWallet;
 class HTTPRPCRequestProcessor;
 class RPCServer;
 
+namespace interfaces {
+class Chain;
+class ChainClient;
+} // namespace interfaces
+
+//! Pointers to interfaces used during init and destroyed on shutdown.
+struct InitInterfaces {
+    std::unique_ptr<interfaces::Chain> chain;
+    std::vector<std::unique_ptr<interfaces::ChainClient>> chain_clients;
+};
+
 namespace boost {
 class thread_group;
 } // namespace boost
 
 /** Interrupt threads */
 void Interrupt();
-void Shutdown();
+void Shutdown(InitInterfaces &interfaces);
 //! Initialize the logging infrastructure
 void InitLogging();
 //! Parameter interaction: change current parameters depending on various rules
@@ -68,7 +79,8 @@ bool AppInitLockDataDirectory();
  * AppInitLockDataDirectory should have been called.
  */
 bool AppInitMain(Config &config, RPCServer &rpcServer,
-                 HTTPRPCRequestProcessor &httpRPCRequestProcessor);
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                 InitInterfaces &interfaces);
 
 /**
  * Setup the arguments for gArgs.

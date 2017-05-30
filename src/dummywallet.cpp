@@ -12,8 +12,12 @@ public:
     void AddWalletOptions() const override;
     bool ParameterInteraction() const override { return true; }
     void RegisterRPC(CRPCTable &) const override {}
-    bool Verify(const CChainParams &chainParams) const override { return true; }
-    bool Open(const CChainParams &chainParams) const override {
+    bool Verify(const CChainParams &chainParams,
+                interfaces::Chain &chain) const override {
+        return true;
+    }
+    bool Open(const CChainParams &chainParams,
+              interfaces::Chain &chain) const override {
         LogPrintf("No wallet support compiled in!\n");
         return true;
     }

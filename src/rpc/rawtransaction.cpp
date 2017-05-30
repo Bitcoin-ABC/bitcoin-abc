@@ -10,6 +10,7 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <index/txindex.h>
+#include <init.h>
 #include <key_io.h>
 #include <keystore.h>
 #include <merkleblock.h>
@@ -18,6 +19,7 @@
 #include <primitives/transaction.h>
 #include <rpc/rawtransaction.h>
 #include <rpc/server.h>
+#include <rpc/util.h>
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/sign.h>
@@ -834,7 +836,7 @@ static UniValue combinerawtransaction(const Config &config,
     return EncodeHexTx(CTransaction(mergedTx));
 }
 
-UniValue SignTransaction(CMutableTransaction &mtx,
+UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
                          const UniValue &prevTxsUnival,
                          CBasicKeyStore *keystore, bool is_temp_keystore,
                          const UniValue &hashType) {
@@ -1110,8 +1112,8 @@ static UniValue signrawtransactionwithkey(const Config &config,
         keystore.AddKey(key);
     }
 
-    return SignTransaction(mtx, request.params[2], &keystore, true,
-                           request.params[3]);
+    return SignTransaction(*g_rpc_interfaces->chain, mtx, request.params[2],
+                           &keystore, true, request.params[3]);
 }
 
 static UniValue sendrawtransaction(const Config &config,

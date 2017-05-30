@@ -4344,7 +4344,7 @@ CWallet::GetDestValues(const std::string &prefix) const {
     return values;
 }
 
-bool CWallet::Verify(const CChainParams &chainParams,
+bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
                      const WalletLocation &location, bool salvage_wallet,
                      std::string &error_string, std::string &warning_string) {
     // Do some checking on wallet path. It should be either a:
@@ -4396,7 +4396,7 @@ bool CWallet::Verify(const CChainParams &chainParams,
 
     if (salvage_wallet) {
         // Recover readable keypairs:
-        CWallet dummyWallet(chainParams, WalletLocation(),
+        CWallet dummyWallet(chainParams, chain, WalletLocation(),
                             WalletDatabase::CreateDummy());
         std::string backup_filename;
         if (!WalletBatch::Recover(
@@ -4430,10 +4430,9 @@ void CWallet::MarkPreSplitKeys() {
     }
 }
 
-std::shared_ptr<CWallet>
-CWallet::CreateWalletFromFile(const CChainParams &chainParams,
-                              const WalletLocation &location,
-                              uint64_t wallet_creation_flags) {
+std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
+    const CChainParams &chainParams, interfaces::Chain &chain,
+    const WalletLocation &location, uint64_t wallet_creation_flags) {
     const std::string &walletFile = location.GetName();
 
     // Needed to restore wallet transaction meta data after -zapwallettxes
@@ -4443,7 +4442,8 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
         std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
-            chainParams, location, WalletDatabase::Create(location.GetPath()));
+            chainParams, chain, location,
+            WalletDatabase::Create(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             InitError(
@@ -4459,7 +4459,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(chainParams, location,
+        new CWallet(chainParams, chain, location,
                     WalletDatabase::Create(location.GetPath())),
         ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);

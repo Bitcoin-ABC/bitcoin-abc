@@ -4,9 +4,12 @@
 
 #include <rpc/client.h>
 #include <rpc/server.h>
+#include <rpc/util.h>
 
 #include <config.h>
 #include <core_io.h>
+#include <init.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <netbase.h>
 
@@ -132,12 +135,16 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign) {
         "\"KzsXybp9jX64P5ekX1KUxRQ79Jht9uzW7LorgwE65i5rWACL6LQe\"";
     std::string privkey2 =
         "\"Kyhdf5LuKTRx4ge69ybABsiUAWjVRK4XGxAKk2FQLp2HjGMy87Z4\"";
+    InitInterfaces interfaces;
+    interfaces.chain = interfaces::MakeChain();
+    g_rpc_interfaces = &interfaces;
     r = CallRPC(std::string("signrawtransactionwithkey ") + notsigned + " [] " +
                 prevout);
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == false);
     r = CallRPC(std::string("signrawtransactionwithkey ") + notsigned + " [" +
                 privkey1 + "," + privkey2 + "] " + prevout);
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == true);
+    g_rpc_interfaces = nullptr;
 }
 
 BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
@@ -164,8 +171,14 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
         "\"KzsXybp9jX64P5ekX1KUxRQ79Jht9uzW7LorgwE65i5rWACL6LQe\"";
     std::string privkey2 =
         "\"Kyhdf5LuKTRx4ge69ybABsiUAWjVRK4XGxAKk2FQLp2HjGMy87Z4\"";
+
     bool exceptionThrownDueToMissingAmount = false,
          errorWasMissingAmount = false;
+
+    InitInterfaces interfaces;
+    interfaces.chain = interfaces::MakeChain();
+    g_rpc_interfaces = &interfaces;
+
     try {
         r = CallRPC(std::string("signrawtransactionwithkey ") + notsigned +
                     " [" + privkey1 + "," + privkey2 + "] " + prevout);
@@ -177,6 +190,8 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
     }
     BOOST_CHECK(exceptionThrownDueToMissingAmount == true);
     BOOST_CHECK(errorWasMissingAmount == true);
+
+    g_rpc_interfaces = nullptr;
 }
 
 BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
