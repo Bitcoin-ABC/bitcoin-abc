@@ -1,0 +1,1 @@
+{"__symbol_cache_version__":11,"21dded7bc13561b46b1b39ecbfaa6a3f":{"have":{"class":{"ClangFormatLinter":79}},"need":{"function":{"pht":302,"id":1342},"class":{"ArcanistExternalLinter":105,"ArcanistLintMessage":1349,"Filesystem":1193,"ArcanistLinter":1456,"ArcanistLintSeverity":1534}},"xmap":{"ClangFormatLinter":["ArcanistExternalLinter"]}}}

@@ -1,0 +1,8 @@
+{
+    "linters": {
+        "clang-format": {
+            "type": "clang-format",
+            "include": "(^src/.*\\.(h|cpp)$)"
+        }
+    }
+}
