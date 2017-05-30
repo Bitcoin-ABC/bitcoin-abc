@@ -426,6 +426,7 @@ add_library(server
 	index/base.cpp
 	index/txindex.cpp
 	init.cpp
+	interfaces/chain.cpp
 	interfaces/handler.cpp
 	interfaces/node.cpp
 	merkleblock.cpp
