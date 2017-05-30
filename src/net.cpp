@@ -326,6 +326,22 @@ bool CConnman::CheckIncomingNonce(uint64_t nonce) {
     return true;
 }
 
+/** Get the bind address for a socket as CAddress */
+static CAddress GetBindAddress(SOCKET sock) {
+    CAddress addr_bind;
+    struct sockaddr_storage sockaddr_bind;
+    socklen_t sockaddr_bind_len = sizeof(sockaddr_bind);
+    if (sock != INVALID_SOCKET) {
+        if (!getsockname(sock, (struct sockaddr *)&sockaddr_bind,
+                         &sockaddr_bind_len)) {
+            addr_bind.SetSockAddr((const struct sockaddr *)&sockaddr_bind);
+        } else {
+            LogPrint(BCLog::NET, "Warning: getsockname failed\n");
+        }
+    }
+    return addr_bind;
+}
+
 CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
                              bool fCountFailure) {
     if (pszDest == nullptr) {
@@ -387,9 +403,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             GetDeterministicRandomizer(RANDOMIZER_ID_LOCALHOSTNONCE)
                 .Write(id)
                 .Finalize();
+        CAddress addr_bind = GetBindAddress(hSocket);
         CNode *pnode =
             new CNode(id, nLocalServices, GetBestHeight(), hSocket, addrConnect,
-                      CalculateKeyedNetGroup(addrConnect), nonce,
+                      CalculateKeyedNetGroup(addrConnect), nonce, addr_bind,
                       pszDest ? pszDest : "", false);
         pnode->nServicesExpected =
             ServiceFlags(addrConnect.nServices & nRelevantServices);
@@ -638,6 +655,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.nodeid = this->GetId();
     stats.nServices = nServices;
     stats.addr = addr;
+    stats.addrBind = addrBind;
     {
         LOCK(cs_filter);
         stats.fRelayTxes = fRelayTxes;
@@ -1192,9 +1210,11 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     uint64_t nonce = GetDeterministicRandomizer(RANDOMIZER_ID_LOCALHOSTNONCE)
                          .Write(id)
                          .Finalize();
+    CAddress addr_bind = GetBindAddress(hSocket);
 
-    CNode *pnode = new CNode(id, nLocalServices, GetBestHeight(), hSocket, addr,
-                             CalculateKeyedNetGroup(addr), nonce, "", true);
+    CNode *pnode =
+        new CNode(id, nLocalServices, GetBestHeight(), hSocket, addr,
+                  CalculateKeyedNetGroup(addr), nonce, addr_bind, "", true);
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
 
@@ -2811,10 +2831,12 @@ unsigned int CConnman::GetSendBufferSize() const {
 CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
-             const std::string &addrNameIn, bool fInboundIn)
+             const CAddress &addrBindIn, const std::string &addrNameIn,
+             bool fInboundIn)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      fInbound(fInboundIn), nKeyedNetGroup(nKeyedNetGroupIn),
-      addrKnown(5000, 0.001), filterInventoryKnown(50000, 0.000001), id(idIn),
+      addrBind(addrBindIn), fInbound(fInboundIn),
+      nKeyedNetGroup(nKeyedNetGroupIn), addrKnown(5000, 0.001),
+      filterInventoryKnown(50000, 0.000001), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn), nLocalServices(nLocalServicesIn),
       nMyStartingHeight(nMyStartingHeightIn), nSendVersion(0) {
     nServices = NODE_NONE;

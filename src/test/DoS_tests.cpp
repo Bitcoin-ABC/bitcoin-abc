@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
 
     connman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
-    CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 0, 0, "",
-                     true);
+    CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 0, 0,
+                     CAddress(), "", true);
     dummyNode1.SetSendVersion(PROTOCOL_VERSION);
     GetNodeSignals().InitializeNode(config, &dummyNode1, connman);
     dummyNode1.nVersion = 1;
@@ -63,8 +63,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     BOOST_CHECK(!connman->IsBanned(ip(0xa0b0c001 | 0x0000ff00)));
 
     CAddress addr2(ip(0xa0b0c002), NODE_NONE);
-    CNode dummyNode2(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr2, 1, 1, "",
-                     true);
+    CNode dummyNode2(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr2, 1, 1,
+                     CAddress(), "", true);
     dummyNode2.SetSendVersion(PROTOCOL_VERSION);
     GetNodeSignals().InitializeNode(config, &dummyNode2, connman);
     dummyNode2.nVersion = 1;
@@ -88,8 +88,8 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     // because 11 is my favorite number.
     gArgs.ForceSetArg("-banscore", "111");
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
-    CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 3, 1, "",
-                     true);
+    CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 3, 1,
+                     CAddress(), "", true);
     dummyNode1.SetSendVersion(PROTOCOL_VERSION);
     GetNodeSignals().InitializeNode(config, &dummyNode1, connman);
     dummyNode1.nVersion = 1;
@@ -116,8 +116,8 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     SetMockTime(nStartTime);
 
     CAddress addr(ip(0xa0b0c001), NODE_NONE);
-    CNode dummyNode(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr, 4, 4, "",
-                    true);
+    CNode dummyNode(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr, 4, 4,
+                    CAddress(), "", true);
     dummyNode.SetSendVersion(PROTOCOL_VERSION);
     GetNodeSignals().InitializeNode(config, &dummyNode, connman);
     dummyNode.nVersion = 1;

@@ -28,6 +28,7 @@ class NetTest(BitcoinTestFramework):
         self._test_getnettotals()
         self._test_getnetworkinginfo()
         self._test_getaddednodeinfo()
+        self._test_getpeerinfo()
 
     def _test_connection_count(self):
         # connect_nodes_bi connects each node to the other
@@ -90,6 +91,13 @@ class NetTest(BitcoinTestFramework):
         # check that a non-existant node returns an error
         assert_raises_rpc_error(-24, "Node has not been added",
                                 self.nodes[0].getaddednodeinfo, '1.1.1.1')
+
+    def _test_getpeerinfo(self):
+        peer_info = [x.getpeerinfo() for x in self.nodes]
+        # check both sides of bidirectional connection between nodes
+        # the address bound to on one side will be the source address for the other node
+        assert_equal(peer_info[0][0]['addrbind'], peer_info[1][0]['addr'])
+        assert_equal(peer_info[1][0]['addrbind'], peer_info[0][0]['addr'])
 
 
 if __name__ == '__main__':
