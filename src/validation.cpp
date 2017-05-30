@@ -2111,6 +2111,15 @@ void PruneAndFlush() {
     FlushStateToDisk(chainparams, state, FlushStateMode::NONE);
 }
 
+static void DoWarning(const std::string &strWarning) {
+    static bool fWarned = false;
+    SetMiscWarning(strWarning);
+    if (!fWarned) {
+        AlertNotify(strWarning);
+        fWarned = true;
+    }
+}
+
 /**
  * Update chainActive and related internal data structures when adding a new
  * block to the chain tip.
@@ -2130,7 +2139,6 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    static bool fWarned = false;
     std::vector<std::string> warningMessages;
     if (!IsInitialBlockDownload()) {
         int nUpgraded = 0;
@@ -2149,7 +2157,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         }
         if (nUpgraded > 0) {
             warningMessages.push_back(strprintf(
-                "%d of last 100 blocks have unexpected version", nUpgraded));
+                _("%d of last 100 blocks have unexpected version"), nUpgraded));
         }
         if (nUpgraded > 100 / 2) {
             std::string strWarning =
@@ -2157,11 +2165,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
                   "unknown rules are in effect");
             // notify GetWarnings(), called by Qt and the JSON-RPC code to warn
             // the user:
-            SetMiscWarning(strWarning);
-            if (!fWarned) {
-                AlertNotify(strWarning);
-                fWarned = true;
-            }
+            DoWarning(strWarning);
         }
     }
     LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
