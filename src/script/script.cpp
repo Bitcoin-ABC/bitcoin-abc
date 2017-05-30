@@ -562,3 +562,16 @@ bool GetScriptOp(CScriptBase::const_iterator &pc,
     opcodeRet = static_cast<opcodetype>(opcode);
     return true;
 }
+
+bool CScript::HasValidOps() const {
+    CScript::const_iterator it = begin();
+    while (it < end()) {
+        opcodetype opcode;
+        std::vector<uint8_t> item;
+        if (!GetOp(it, opcode, item) || opcode > MAX_OPCODE ||
+            item.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+            return false;
+        }
+    }
+    return true;
+}

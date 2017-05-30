@@ -3026,6 +3026,34 @@ BOOST_AUTO_TEST_CASE(IsWitnessProgram) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(script_HasValidOps) {
+    // Exercise the HasValidOps functionality
+    CScript script;
+    // Normal script
+    script =
+        ScriptFromHex("76a9141234567890abcdefa1a2a3a4a5a6a7a8a9a0aaab88ac");
+    BOOST_CHECK(script.HasValidOps());
+    script =
+        ScriptFromHex("76a914ff34567890abcdefa1a2a3a4a5a6a7a8a9a0aaab88ac");
+    BOOST_CHECK(script.HasValidOps());
+    // Script with OP_INVALIDOPCODE explicit
+    script = ScriptFromHex("ff88ac");
+    BOOST_CHECK(!script.HasValidOps());
+    // Script with undefined opcode
+    script = ScriptFromHex("88acc0");
+    BOOST_CHECK(!script.HasValidOps());
+
+    // Check all non push opcodes.
+    for (uint8_t opcode = OP_1NEGATE; opcode < FIRST_UNDEFINED_OP_VALUE;
+         opcode++) {
+        script = CScript() << opcode;
+        BOOST_CHECK(script.HasValidOps());
+    }
+
+    script = CScript() << FIRST_UNDEFINED_OP_VALUE;
+    BOOST_CHECK(!script.HasValidOps());
+}
+
 BOOST_AUTO_TEST_CASE(script_can_append_self) {
     CScript s, d;
 

@@ -192,6 +192,9 @@ enum opcodetype {
     OP_INVALIDOPCODE = 0xff,
 };
 
+// Maximum value that an opcode can be
+static const unsigned int MAX_OPCODE = FIRST_UNDEFINED_OP_VALUE - 1;
+
 const char *GetOpName(opcodetype opcode);
 
 /**
@@ -565,6 +568,9 @@ public:
      */
     bool IsPushOnly(const_iterator pc) const;
     bool IsPushOnly() const;
+
+    /** Check if the script contains valid OP_CODES */
+    bool HasValidOps() const;
 
     /**
      * Returns whether the script is guaranteed to fail at execution, regardless
