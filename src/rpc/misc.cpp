@@ -3,8 +3,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "rpc/misc.h"
+
 #include "base58.h"
 #include "clientversion.h"
+#include "config.h"
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
@@ -39,7 +42,7 @@ using namespace std;
  *
  * Or alternatively, create a specific query method for the information.
  **/
-UniValue getinfo(const JSONRPCRequest &request) {
+static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getinfo\n"
@@ -168,7 +171,8 @@ public:
 };
 #endif
 
-UniValue validateaddress(const JSONRPCRequest &request) {
+static UniValue validateaddress(const Config &config,
+                                const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "validateaddress \"address\"\n"
@@ -264,7 +268,7 @@ UniValue validateaddress(const JSONRPCRequest &request) {
 /**
  * Used by addmultisigaddress / createmultisig:
  */
-CScript _createmultisig_redeemScript(const UniValue &params) {
+CScript createmultisig_redeemScript(const UniValue &params) {
     int nRequired = params[0].get_int();
     const UniValue &keys = params[1].get_array();
 
@@ -324,7 +328,8 @@ CScript _createmultisig_redeemScript(const UniValue &params) {
     return result;
 }
 
-UniValue createmultisig(const JSONRPCRequest &request) {
+static UniValue createmultisig(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 2) {
         string msg =
@@ -367,7 +372,7 @@ UniValue createmultisig(const JSONRPCRequest &request) {
     }
 
     // Construct using pay-to-script-hash:
-    CScript inner = _createmultisig_redeemScript(request.params);
+    CScript inner = createmultisig_redeemScript(request.params);
     CScriptID innerID(inner);
     CBitcoinAddress address(innerID);
 
@@ -378,7 +383,8 @@ UniValue createmultisig(const JSONRPCRequest &request) {
     return result;
 }
 
-UniValue verifymessage(const JSONRPCRequest &request) {
+static UniValue verifymessage(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
             "verifymessage \"address\" \"signature\" \"message\"\n"
@@ -438,7 +444,8 @@ UniValue verifymessage(const JSONRPCRequest &request) {
     return (pubkey.GetID() == keyID);
 }
 
-UniValue signmessagewithprivkey(const JSONRPCRequest &request) {
+static UniValue signmessagewithprivkey(const Config &config,
+                                       const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
             "signmessagewithprivkey \"privkey\" \"message\"\n"
@@ -485,7 +492,8 @@ UniValue signmessagewithprivkey(const JSONRPCRequest &request) {
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-UniValue setmocktime(const JSONRPCRequest &request) {
+static UniValue setmocktime(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "setmocktime timestamp\n"
@@ -524,7 +532,8 @@ static UniValue RPCLockedMemoryInfo() {
     return obj;
 }
 
-UniValue getmemoryinfo(const JSONRPCRequest &request) {
+static UniValue getmemoryinfo(const Config &config,
+                              const JSONRPCRequest &request) {
     /* Please, avoid using the word "pool" here in the RPC interface or help,
      * as users will undoubtedly confuse it with the other "memory pool"
      */
@@ -557,7 +566,7 @@ UniValue getmemoryinfo(const JSONRPCRequest &request) {
     return obj;
 }
 
-UniValue echo(const JSONRPCRequest &request) {
+static UniValue echo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp)
         throw runtime_error(
             "echo|echojson \"message\" ...\n"
@@ -572,19 +581,19 @@ UniValue echo(const JSONRPCRequest &request) {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)         okSafeMode
-    //  ------------------- ------------------------  -----------------------  ----------
-    { "control",            "getinfo",                &getinfo,                true,  {} }, /* uses wallet if enabled */
-    { "control",            "getmemoryinfo",          &getmemoryinfo,          true,  {} },
-    { "util",               "validateaddress",        &validateaddress,        true,  {"address"} }, /* uses wallet if enabled */
-    { "util",               "createmultisig",         &createmultisig,         true,  {"nrequired","keys"} },
-    { "util",               "verifymessage",          &verifymessage,          true,  {"address","signature","message"} },
-    { "util",               "signmessagewithprivkey", &signmessagewithprivkey, true,  {"privkey","message"} },
+    //  category            name                      actor (function)        okSafeMode
+    //  ------------------- ------------------------  ----------------------  ----------
+    { "control",            "getinfo",                getinfo,                true,  {} }, /* uses wallet if enabled */
+    { "control",            "getmemoryinfo",          getmemoryinfo,          true,  {} },
+    { "util",               "validateaddress",        validateaddress,        true,  {"address"} }, /* uses wallet if enabled */
+    { "util",               "createmultisig",         createmultisig,         true,  {"nrequired","keys"} },
+    { "util",               "verifymessage",          verifymessage,          true,  {"address","signature","message"} },
+    { "util",               "signmessagewithprivkey", signmessagewithprivkey, true,  {"privkey","message"} },
 
     /* Not shown in help */
-    { "hidden",             "setmocktime",            &setmocktime,            true,  {"timestamp"}},
-    { "hidden",             "echo",                   &echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "echojson",               &echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+    { "hidden",             "setmocktime",            setmocktime,            true,  {"timestamp"}},
+    { "hidden",             "echo",                   echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+    { "hidden",             "echojson",               echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
 };
 // clang-format on
 

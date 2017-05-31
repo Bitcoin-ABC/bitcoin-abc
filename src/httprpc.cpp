@@ -6,6 +6,7 @@
 
 #include "base58.h"
 #include "chainparams.h"
+#include "config.h"
 #include "crypto/hmac_sha256.h"
 #include "httpserver.h"
 #include "random.h"
@@ -149,7 +150,8 @@ static bool RPCAuthorized(const std::string &strAuth,
     return multiUserAuthorized(strUserPass);
 }
 
-static bool HTTPReq_JSONRPC(HTTPRequest *req, const std::string &) {
+static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
+                            const std::string &) {
     // JSONRPC handles only POST
     if (req->GetRequestMethod() != HTTPRequest::POST) {
         req->WriteReply(HTTP_BAD_METHOD,
@@ -193,14 +195,14 @@ static bool HTTPReq_JSONRPC(HTTPRequest *req, const std::string &) {
         if (valRequest.isObject()) {
             jreq.parse(valRequest);
 
-            UniValue result = tableRPC.execute(jreq);
+            UniValue result = tableRPC.execute(config, jreq);
 
             // Send reply
             strReply = JSONRPCReply(result, NullUniValue, jreq.id);
 
             // array of requests
         } else if (valRequest.isArray()) {
-            strReply = JSONRPCExecBatch(valRequest.get_array());
+            strReply = JSONRPCExecBatch(config, valRequest.get_array());
         } else {
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
         }

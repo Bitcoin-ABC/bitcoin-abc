@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "config.h"
 #include "consensus/consensus.h"
-#include "globals.h"
 #include "rpc/server.h"
 #include "utilstrencodings.h"
 
@@ -11,7 +11,8 @@
 
 #include <boost/lexical_cast.hpp>
 
-UniValue getexcessiveblock(const JSONRPCRequest &request) {
+static UniValue getexcessiveblock(const Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getexcessiveblock\n"
@@ -24,11 +25,12 @@ UniValue getexcessiveblock(const JSONRPCRequest &request) {
     }
 
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("excessiveBlockSize", (uint64_t)nMaxBlockSize));
+    ret.push_back(Pair("excessiveBlockSize", config.GetMaxBlockSize()));
     return ret;
 }
 
-UniValue setexcessiveblock(const JSONRPCRequest &request) {
+static UniValue setexcessiveblock(Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "setexcessiveblock blockSize\n"
@@ -59,22 +61,24 @@ UniValue setexcessiveblock(const JSONRPCRequest &request) {
                 std::to_string(DEFAULT_MAX_BLOCK_SIZE));
 
     // Set the new max block size.
-    nMaxBlockSize = ebs;
+    if (!config.SetMaxBlockSize(ebs)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Unexpected error");
+    }
 
     // settingsToUserAgentString();
     std::ostringstream ret;
-    ret << "Excessive Block set to " << nMaxBlockSize << " bytes.";
+    ret << "Excessive Block set to " << ebs << " bytes.";
     return UniValue(ret.str());
 }
 
-/* clang-format off */
+// clang-format off
 static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)         okSafeMode
-    //  ------------------- ------------------------  -----------------------  ----------
-    { "network",            "getexcessiveblock",      &getexcessiveblock,      true, {}},
-    { "network",            "setexcessiveblock",      &setexcessiveblock,      true, {"maxBlockSize"}},
+    //  category            name                      actor (function)        okSafeMode
+    //  ------------------- ------------------------  ----------------------  ----------
+    { "network",            "getexcessiveblock",      getexcessiveblock,      true, {}},
+    { "network",            "setexcessiveblock",      setexcessiveblock,      true, {"maxBlockSize"}},
 };
-/* clang-format on */
+// clang-format on
 
 void RegisterABCRPCCommands(CRPCTable &tableRPC) {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)

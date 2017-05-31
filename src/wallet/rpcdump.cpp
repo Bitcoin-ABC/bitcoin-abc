@@ -76,7 +76,7 @@ std::string DecodeDumpString(const std::string &str) {
     return ret.str();
 }
 
-UniValue importprivkey(const JSONRPCRequest &request) {
+UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
@@ -195,7 +195,7 @@ void ImportAddress(const CBitcoinAddress &address, const string &strLabel) {
         pwalletMain->SetAddressBook(address.Get(), strLabel, "receive");
 }
 
-UniValue importaddress(const JSONRPCRequest &request) {
+UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 4)
@@ -268,7 +268,8 @@ UniValue importaddress(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue importprunedfunds(const JSONRPCRequest &request) {
+UniValue importprunedfunds(const Config &config,
+                           const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() != 2)
@@ -340,7 +341,8 @@ UniValue importprunedfunds(const JSONRPCRequest &request) {
         "No addresses in wallet correspond to included transaction");
 }
 
-UniValue removeprunedfunds(const JSONRPCRequest &request) {
+UniValue removeprunedfunds(const Config &config,
+                           const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() != 1)
@@ -382,7 +384,7 @@ UniValue removeprunedfunds(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue importpubkey(const JSONRPCRequest &request) {
+UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 4)
@@ -440,7 +442,7 @@ UniValue importpubkey(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue importwallet(const JSONRPCRequest &request) {
+UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() != 1)
@@ -546,7 +548,7 @@ UniValue importwallet(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue dumpprivkey(const JSONRPCRequest &request) {
+UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() != 1)
@@ -583,7 +585,7 @@ UniValue dumpprivkey(const JSONRPCRequest &request) {
     return CBitcoinSecret(vchSecret).ToString();
 }
 
-UniValue dumpwallet(const JSONRPCRequest &request) {
+UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
 
     if (request.fHelp || request.params.size() != 1)
@@ -1081,7 +1083,7 @@ int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
                        "Missing required timestamp field for key");
 }
 
-UniValue importmulti(const JSONRPCRequest &mainRequest) {
+UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     // clang-format off
     if (mainRequest.fHelp || mainRequest.params.size() < 1 || mainRequest.params.size() > 2)
         throw runtime_error(

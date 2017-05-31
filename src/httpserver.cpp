@@ -41,16 +41,18 @@ static const size_t MAX_HEADERS_SIZE = 8192;
 /** HTTP request work item */
 class HTTPWorkItem : public HTTPClosure {
 public:
-    HTTPWorkItem(std::unique_ptr<HTTPRequest> _req, const std::string &_path,
-                 const HTTPRequestHandler &_func)
-        : req(std::move(_req)), path(_path), func(_func) {}
-    void operator()() { func(req.get(), path); }
+    HTTPWorkItem(Config &_config, std::unique_ptr<HTTPRequest> _req,
+                 const std::string &_path, const HTTPRequestHandler &_func)
+        : req(std::move(_req)), path(_path), func(_func), config(&_config) {}
+
+    void operator()() { func(*config, req.get(), path); }
 
     std::unique_ptr<HTTPRequest> req;
 
 private:
     std::string path;
     HTTPRequestHandler func;
+    Config *config;
 };
 
 /** Simple work queue for distributing work over multiple threads.
@@ -225,6 +227,8 @@ static std::string RequestMethodString(HTTPRequest::RequestMethod m) {
 
 /** HTTP request callback */
 static void http_request_cb(struct evhttp_request *req, void *arg) {
+    Config &config = *reinterpret_cast<Config *>(arg);
+
     std::unique_ptr<HTTPRequest> hreq(new HTTPRequest(req));
 
     LogPrint("http", "Received a %s request for %s from %s\n",
@@ -264,7 +268,7 @@ static void http_request_cb(struct evhttp_request *req, void *arg) {
     // Dispatch to worker thread.
     if (i != iend) {
         std::unique_ptr<HTTPWorkItem> item(
-            new HTTPWorkItem(std::move(hreq), path, i->handler));
+            new HTTPWorkItem(config, std::move(hreq), path, i->handler));
         assert(workQueue);
         if (workQueue->Enqueue(item.get())) {
             /* if true, queue took ownership */
@@ -365,7 +369,7 @@ static void libevent_log_cb(int severity, const char *msg) {
     }
 }
 
-bool InitHTTPServer() {
+bool InitHTTPServer(Config &config) {
     struct evhttp *http = 0;
     struct event_base *base = 0;
 
@@ -414,7 +418,7 @@ bool InitHTTPServer() {
         http, GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT));
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE);
     evhttp_set_max_body_size(http, MAX_SIZE);
-    evhttp_set_gencb(http, http_request_cb, NULL);
+    evhttp_set_gencb(http, http_request_cb, &config);
 
     if (!HTTPBindAddresses(http)) {
         LogPrintf("Unable to bind any endpoint for RPC server\n");

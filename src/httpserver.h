@@ -15,13 +15,15 @@ static const int DEFAULT_HTTP_SERVER_TIMEOUT = 30;
 
 struct evhttp_request;
 struct event_base;
+
+class Config;
 class CService;
 class HTTPRequest;
 
 /** Initialize HTTP server.
  * Call this before RegisterHTTPHandler or EventBase().
  */
-bool InitHTTPServer();
+bool InitHTTPServer(Config &config);
 /** Start HTTP server.
  * This is separate from InitHTTPServer to give users race-condition-free time
  * to register their handlers between InitHTTPServer and StartHTTPServer.
@@ -33,7 +35,8 @@ void InterruptHTTPServer();
 void StopHTTPServer();
 
 /** Handler for requests to a certain HTTP path */
-typedef std::function<bool(HTTPRequest *req, const std::string &)>
+typedef std::function<bool(Config &config, HTTPRequest *req,
+                           const std::string &)>
     HTTPRequestHandler;
 /** Register handler for prefix.
  * If multiple handlers match a prefix, the first-registered one will

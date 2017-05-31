@@ -10,9 +10,10 @@
 #include "rpc/protocol.h"
 #include "uint256.h"
 
+#include <cstdint>
+#include <functional>
 #include <list>
 #include <map>
-#include <stdint.h>
 #include <string>
 
 #include <boost/function.hpp>
@@ -31,6 +32,7 @@ void OnPostCommand(boost::function<void(const CRPCCommand &)> slot);
 }
 
 class CBlockIndex;
+class Config;
 class CNetAddr;
 
 /** Wrapper for UniValue::VType, which includes typeAny:
@@ -56,6 +58,7 @@ public:
         params = NullUniValue;
         fHelp = false;
     }
+
     void parse(const UniValue &valRequest);
 };
 
@@ -138,7 +141,10 @@ void RPCUnsetTimerInterface(RPCTimerInterface *iface);
 void RPCRunLater(const std::string &name, boost::function<void(void)> func,
                  int64_t nSeconds);
 
-typedef UniValue (*rpcfn_type)(const JSONRPCRequest &jsonRequest);
+typedef UniValue (*rpcfn_type)(Config &config,
+                               const JSONRPCRequest &jsonRequest);
+typedef UniValue (*const_rpcfn_type)(const Config &config,
+                                     const JSONRPCRequest &jsonRequest);
 
 class CRPCCommand {
 public:
@@ -147,6 +153,23 @@ public:
     rpcfn_type actor;
     bool okSafeMode;
     std::vector<std::string> argNames;
+
+    CRPCCommand(std::string _category, std::string _name, rpcfn_type _actor,
+                bool _okSafeMode, std::vector<std::string> _argNames)
+        : category{std::move(_category)}, name{std::move(_name)}, actor{_actor},
+          okSafeMode{_okSafeMode}, argNames{std::move(_argNames)} {}
+
+    /**
+     * It is safe to cast from void(const int*) to void(int*) but C++ do not
+     * understand type variance. As a result, we need to do the dirty job
+     * ourselves.
+     */
+    CRPCCommand(std::string _category, std::string _name,
+                const_rpcfn_type _actor, bool _okSafeMode,
+                std::vector<std::string> _argNames)
+        : category{std::move(_category)}, name{std::move(_name)},
+          actor{reinterpret_cast<rpcfn_type>(_actor)}, okSafeMode{_okSafeMode},
+          argNames{std::move(_argNames)} {}
 };
 
 /**
@@ -159,7 +182,7 @@ private:
 public:
     CRPCTable();
     const CRPCCommand *operator[](const std::string &name) const;
-    std::string help(const std::string &name) const;
+    std::string help(Config &config, const std::string &name) const;
 
     /**
      * Execute a method.
@@ -167,7 +190,7 @@ public:
      * @returns Result of the call.
      * @throws an exception (UniValue) when an error happens.
      */
-    UniValue execute(const JSONRPCRequest &request) const;
+    UniValue execute(Config &config, const JSONRPCRequest &request) const;
 
     /**
     * Returns a list of registered commands
@@ -212,7 +235,7 @@ extern void EnsureWalletIsUnlocked();
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(const UniValue &vReq);
+std::string JSONRPCExecBatch(Config &config, const UniValue &vReq);
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);
 
 // Retrieves any serialization flags requested in command line argument

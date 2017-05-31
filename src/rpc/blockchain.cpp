@@ -3,6 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "rpc/blockchain.h"
+
 #include "amount.h"
 #include "chain.h"
 #include "chainparams.h"
@@ -21,9 +23,7 @@
 #include "utilstrencodings.h"
 #include "validation.h"
 
-#include <stdint.h>
-
-#include <univalue.h>
+#include <cstdint>
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
@@ -144,7 +144,7 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *blockindex,
     return result;
 }
 
-UniValue getblockcount(const JSONRPCRequest &request) {
+UniValue getblockcount(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getblockcount\n"
@@ -159,7 +159,7 @@ UniValue getblockcount(const JSONRPCRequest &request) {
     return chainActive.Height();
 }
 
-UniValue getbestblockhash(const JSONRPCRequest &request) {
+UniValue getbestblockhash(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error("getbestblockhash\n"
                             "\nReturns the hash of the best (tip) block in the "
@@ -183,7 +183,7 @@ void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex) {
     cond_blockchange.notify_all();
 }
 
-UniValue waitfornewblock(const JSONRPCRequest &request) {
+UniValue waitfornewblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1)
         throw runtime_error("waitfornewblock (timeout)\n"
                             "\nWaits for a specific new block and returns "
@@ -227,7 +227,7 @@ UniValue waitfornewblock(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue waitforblock(const JSONRPCRequest &request) {
+UniValue waitforblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "waitforblock <blockhash> (timeout)\n"
@@ -277,7 +277,8 @@ UniValue waitforblock(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue waitforblockheight(const JSONRPCRequest &request) {
+UniValue waitforblockheight(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "waitforblockheight <height> (timeout)\n"
@@ -323,7 +324,7 @@ UniValue waitforblockheight(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue getdifficulty(const JSONRPCRequest &request) {
+UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error("getdifficulty\n"
                             "\nReturns the proof-of-work difficulty as a "
@@ -426,7 +427,7 @@ UniValue mempoolToJSON(bool fVerbose = false) {
     }
 }
 
-UniValue getrawmempool(const JSONRPCRequest &request) {
+UniValue getrawmempool(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1)
         throw runtime_error(
             "getrawmempool ( verbose )\n"
@@ -455,7 +456,8 @@ UniValue getrawmempool(const JSONRPCRequest &request) {
     return mempoolToJSON(fVerbose);
 }
 
-UniValue getmempoolancestors(const JSONRPCRequest &request) {
+UniValue getmempoolancestors(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw runtime_error(
@@ -521,7 +523,8 @@ UniValue getmempoolancestors(const JSONRPCRequest &request) {
     }
 }
 
-UniValue getmempooldescendants(const JSONRPCRequest &request) {
+UniValue getmempooldescendants(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw runtime_error(
@@ -586,7 +589,7 @@ UniValue getmempooldescendants(const JSONRPCRequest &request) {
     }
 }
 
-UniValue getmempoolentry(const JSONRPCRequest &request) {
+UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw runtime_error("getmempoolentry txid\n"
                             "\nReturns mempool data for given transaction\n"
@@ -617,7 +620,7 @@ UniValue getmempoolentry(const JSONRPCRequest &request) {
     return info;
 }
 
-UniValue getblockhash(const JSONRPCRequest &request) {
+UniValue getblockhash(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "getblockhash height\n"
@@ -640,7 +643,7 @@ UniValue getblockhash(const JSONRPCRequest &request) {
     return pblockindex->GetBlockHash().GetHex();
 }
 
-UniValue getblockheader(const JSONRPCRequest &request) {
+UniValue getblockheader(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "getblockheader \"hash\" ( verbose )\n"
@@ -711,7 +714,7 @@ UniValue getblockheader(const JSONRPCRequest &request) {
     return blockheaderToJSON(pblockindex);
 }
 
-UniValue getblock(const JSONRPCRequest &request) {
+UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "getblock \"blockhash\" ( verbose )\n"
@@ -849,7 +852,7 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
     return true;
 }
 
-UniValue pruneblockchain(const JSONRPCRequest &request) {
+UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "pruneblockchain\n"
@@ -909,7 +912,7 @@ UniValue pruneblockchain(const JSONRPCRequest &request) {
     return uint64_t(height);
 }
 
-UniValue gettxoutsetinfo(const JSONRPCRequest &request) {
+UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "gettxoutsetinfo\n"
@@ -949,7 +952,7 @@ UniValue gettxoutsetinfo(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue gettxout(const JSONRPCRequest &request) {
+UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
         throw runtime_error(
             "gettxout \"txid\" n ( include_mempool )\n"
@@ -1032,7 +1035,7 @@ UniValue gettxout(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue verifychain(const JSONRPCRequest &request) {
+UniValue verifychain(const Config &config, const JSONRPCRequest &request) {
     int nCheckLevel = GetArg("-checklevel", DEFAULT_CHECKLEVEL);
     int nCheckDepth = GetArg("-checkblocks", DEFAULT_CHECKBLOCKS);
     if (request.fHelp || request.params.size() > 2)
@@ -1057,7 +1060,7 @@ UniValue verifychain(const JSONRPCRequest &request) {
     if (request.params.size() > 0) nCheckLevel = request.params[0].get_int();
     if (request.params.size() > 1) nCheckDepth = request.params[1].get_int();
 
-    return CVerifyDB().VerifyDB(GetConfig(), Params(), pcoinsTip, nCheckLevel,
+    return CVerifyDB().VerifyDB(config, Params(), pcoinsTip, nCheckLevel,
                                 nCheckDepth);
 }
 
@@ -1137,7 +1140,8 @@ void BIP9SoftForkDescPushBack(UniValue &bip9_softforks, const std::string &name,
             Pair(name, BIP9SoftForkDesc(consensusParams, id)));
 }
 
-UniValue getblockchaininfo(const JSONRPCRequest &request) {
+UniValue getblockchaininfo(const Config &config,
+                           const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getblockchaininfo\n"
@@ -1251,7 +1255,7 @@ struct CompareBlocksByHeight {
     }
 };
 
-UniValue getchaintips(const JSONRPCRequest &request) {
+UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getchaintips\n"
@@ -1382,7 +1386,7 @@ UniValue mempoolInfoToJSON() {
     return ret;
 }
 
-UniValue getmempoolinfo(const JSONRPCRequest &request) {
+UniValue getmempoolinfo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getmempoolinfo\n"
@@ -1405,7 +1409,7 @@ UniValue getmempoolinfo(const JSONRPCRequest &request) {
     return mempoolInfoToJSON();
 }
 
-UniValue preciousblock(const JSONRPCRequest &request) {
+UniValue preciousblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "preciousblock \"blockhash\"\n"
@@ -1435,7 +1439,7 @@ UniValue preciousblock(const JSONRPCRequest &request) {
     }
 
     CValidationState state;
-    PreciousBlock(GetConfig(), state, Params(), pblockindex);
+    PreciousBlock(config, state, Params(), pblockindex);
 
     if (!state.IsValid()) {
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
@@ -1444,7 +1448,7 @@ UniValue preciousblock(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue invalidateblock(const JSONRPCRequest &request) {
+UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error("invalidateblock \"blockhash\"\n"
                             "\nPermanently marks a block as invalid, as if it "
@@ -1471,7 +1475,7 @@ UniValue invalidateblock(const JSONRPCRequest &request) {
     }
 
     if (state.IsValid()) {
-        ActivateBestChain(GetConfig(), state, Params());
+        ActivateBestChain(config, state, Params());
     }
 
     if (!state.IsValid()) {
@@ -1481,7 +1485,7 @@ UniValue invalidateblock(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue reconsiderblock(const JSONRPCRequest &request) {
+UniValue reconsiderblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "reconsiderblock \"blockhash\"\n"
@@ -1509,7 +1513,7 @@ UniValue reconsiderblock(const JSONRPCRequest &request) {
     }
 
     CValidationState state;
-    ActivateBestChain(GetConfig(), state, Params());
+    ActivateBestChain(config, state, Params());
 
     if (!state.IsValid()) {
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
@@ -1520,34 +1524,33 @@ UniValue reconsiderblock(const JSONRPCRequest &request) {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)         okSafe argNames
-    //  ------------------- ------------------------  -----------------------  ------ ----------
-    { "blockchain",         "getblockchaininfo",      &getblockchaininfo,      true,  {} },
-    { "blockchain",         "getbestblockhash",       &getbestblockhash,       true,  {} },
-    { "blockchain",         "getblockcount",          &getblockcount,          true,  {} },
-    { "blockchain",         "getblock",               &getblock,               true,  {"blockhash","verbose"} },
-    { "blockchain",         "getblockhash",           &getblockhash,           true,  {"height"} },
-    { "blockchain",         "getblockheader",         &getblockheader,         true,  {"blockhash","verbose"} },
-    { "blockchain",         "getchaintips",           &getchaintips,           true,  {} },
-    { "blockchain",         "getdifficulty",          &getdifficulty,          true,  {} },
-    { "blockchain",         "getmempoolancestors",    &getmempoolancestors,    true,  {"txid","verbose"} },
-    { "blockchain",         "getmempooldescendants",  &getmempooldescendants,  true,  {"txid","verbose"} },
-    { "blockchain",         "getmempoolentry",        &getmempoolentry,        true,  {"txid"} },
-    { "blockchain",         "getmempoolinfo",         &getmempoolinfo,         true,  {} },
-    { "blockchain",         "getrawmempool",          &getrawmempool,          true,  {"verbose"} },
-    { "blockchain",         "gettxout",               &gettxout,               true,  {"txid","n","include_mempool"} },
-    { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true,  {} },
-    { "blockchain",         "pruneblockchain",        &pruneblockchain,        true,  {"height"} },
-    { "blockchain",         "verifychain",            &verifychain,            true,  {"checklevel","nblocks"} },
-
-    { "blockchain",         "preciousblock",          &preciousblock,          true,  {"blockhash"} },
+    //  category            name                      actor (function)        okSafe argNames
+    //  ------------------- ------------------------  ----------------------  ------ ----------
+    { "blockchain",         "getblockchaininfo",      getblockchaininfo,      true,  {} },
+    { "blockchain",         "getbestblockhash",       getbestblockhash,       true,  {} },
+    { "blockchain",         "getblockcount",          getblockcount,          true,  {} },
+    { "blockchain",         "getblock",               getblock,               true,  {"blockhash","verbose"} },
+    { "blockchain",         "getblockhash",           getblockhash,           true,  {"height"} },
+    { "blockchain",         "getblockheader",         getblockheader,         true,  {"blockhash","verbose"} },
+    { "blockchain",         "getchaintips",           getchaintips,           true,  {} },
+    { "blockchain",         "getdifficulty",          getdifficulty,          true,  {} },
+    { "blockchain",         "getmempoolancestors",    getmempoolancestors,    true,  {"txid","verbose"} },
+    { "blockchain",         "getmempooldescendants",  getmempooldescendants,  true,  {"txid","verbose"} },
+    { "blockchain",         "getmempoolentry",        getmempoolentry,        true,  {"txid"} },
+    { "blockchain",         "getmempoolinfo",         getmempoolinfo,         true,  {} },
+    { "blockchain",         "getrawmempool",          getrawmempool,          true,  {"verbose"} },
+    { "blockchain",         "gettxout",               gettxout,               true,  {"txid","n","include_mempool"} },
+    { "blockchain",         "gettxoutsetinfo",        gettxoutsetinfo,        true,  {} },
+    { "blockchain",         "pruneblockchain",        pruneblockchain,        true,  {"height"} },
+    { "blockchain",         "verifychain",            verifychain,            true,  {"checklevel","nblocks"} },
+    { "blockchain",         "preciousblock",          preciousblock,          true,  {"blockhash"} },
 
     /* Not shown in help */
-    { "hidden",             "invalidateblock",        &invalidateblock,        true,  {"blockhash"} },
-    { "hidden",             "reconsiderblock",        &reconsiderblock,        true,  {"blockhash"} },
-    { "hidden",             "waitfornewblock",        &waitfornewblock,        true,  {"timeout"} },
-    { "hidden",             "waitforblock",           &waitforblock,           true,  {"blockhash","timeout"} },
-    { "hidden",             "waitforblockheight",     &waitforblockheight,     true,  {"height","timeout"} },
+    { "hidden",             "invalidateblock",        invalidateblock,        true,  {"blockhash"} },
+    { "hidden",             "reconsiderblock",        reconsiderblock,        true,  {"blockhash"} },
+    { "hidden",             "waitfornewblock",        waitfornewblock,        true,  {"timeout"} },
+    { "hidden",             "waitforblock",           waitforblock,           true,  {"blockhash","timeout"} },
+    { "hidden",             "waitforblockheight",     waitforblockheight,     true,  {"height","timeout"} },
 };
 // clang-format on
 

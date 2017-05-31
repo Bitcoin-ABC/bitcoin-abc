@@ -16,6 +16,7 @@
 #include "platformstyle.h"
 
 #include "chainparams.h"
+#include "config.h"
 #include "netbase.h"
 #include "rpc/client.h"
 #include "rpc/server.h"
@@ -318,7 +319,8 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                                         stack.back().begin() + 1,
                                         stack.back().end()));
                                 req.strMethod = stack.back()[0];
-                                lastResult = tableRPC.execute(req);
+                                GlobalConfig config;
+                                lastResult = tableRPC.execute(config, req);
                             }
 
                             state = STATE_COMMAND_EXECUTED;

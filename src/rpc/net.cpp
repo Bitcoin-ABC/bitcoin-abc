@@ -6,6 +6,7 @@
 
 #include "chainparams.h"
 #include "clientversion.h"
+#include "config.h"
 #include "net.h"
 #include "net_processing.h"
 #include "netbase.h"
@@ -25,7 +26,8 @@
 
 using namespace std;
 
-UniValue getconnectioncount(const JSONRPCRequest &request) {
+static UniValue getconnectioncount(const Config &config,
+                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getconnectioncount\n"
@@ -44,7 +46,7 @@ UniValue getconnectioncount(const JSONRPCRequest &request) {
     return (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL);
 }
 
-UniValue ping(const JSONRPCRequest &request) {
+static UniValue ping(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "ping\n"
@@ -67,7 +69,8 @@ UniValue ping(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue getpeerinfo(const JSONRPCRequest &request) {
+static UniValue getpeerinfo(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getpeerinfo\n"
@@ -212,7 +215,7 @@ UniValue getpeerinfo(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue addnode(const JSONRPCRequest &request) {
+static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
     string strCommand;
     if (request.params.size() == 2) strCommand = request.params[1].get_str();
     if (request.fHelp || request.params.size() != 2 ||
@@ -258,7 +261,8 @@ UniValue addnode(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue disconnectnode(const JSONRPCRequest &request) {
+static UniValue disconnectnode(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw std::runtime_error(
             "disconnectnode \"address\" \n"
@@ -283,7 +287,8 @@ UniValue disconnectnode(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue getaddednodeinfo(const JSONRPCRequest &request) {
+static UniValue getaddednodeinfo(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1)
         throw runtime_error(
             "getaddednodeinfo ( \"node\" )\n"
@@ -359,7 +364,8 @@ UniValue getaddednodeinfo(const JSONRPCRequest &request) {
     return ret;
 }
 
-UniValue getnettotals(const JSONRPCRequest &request) {
+static UniValue getnettotals(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 0)
         throw runtime_error(
             "getnettotals\n"
@@ -438,7 +444,8 @@ static UniValue GetNetworksInfo() {
     return networks;
 }
 
-UniValue getnetworkinfo(const JSONRPCRequest &request) {
+static UniValue getnetworkinfo(const Config &config,
+                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
             "getnetworkinfo\n"
@@ -541,7 +548,7 @@ UniValue getnetworkinfo(const JSONRPCRequest &request) {
     return obj;
 }
 
-UniValue setban(const JSONRPCRequest &request) {
+static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     string strCommand;
     if (request.params.size() >= 2) strCommand = request.params[1].get_str();
     if (request.fHelp || request.params.size() < 2 ||
@@ -612,7 +619,8 @@ UniValue setban(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue listbanned(const JSONRPCRequest &request) {
+static UniValue listbanned(const Config &config,
+                           const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error("listbanned\n"
                             "\nList all banned IPs/Subnets.\n"
@@ -643,7 +651,8 @@ UniValue listbanned(const JSONRPCRequest &request) {
     return bannedAddresses;
 }
 
-UniValue clearbanned(const JSONRPCRequest &request) {
+static UniValue clearbanned(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error("clearbanned\n"
                             "\nClear all banned IPs.\n"
@@ -660,7 +669,8 @@ UniValue clearbanned(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue setnetworkactive(const JSONRPCRequest &request) {
+static UniValue setnetworkactive(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw runtime_error("setnetworkactive true|false\n"
                             "\nDisable/enable all p2p network activity.\n"
@@ -682,20 +692,20 @@ UniValue setnetworkactive(const JSONRPCRequest &request) {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)         okSafeMode
-    //  ------------------- ------------------------  -----------------------  ----------
-    { "network",            "getconnectioncount",     &getconnectioncount,     true,  {} },
-    { "network",            "ping",                   &ping,                   true,  {} },
-    { "network",            "getpeerinfo",            &getpeerinfo,            true,  {} },
-    { "network",            "addnode",                &addnode,                true,  {"node","command"} },
-    { "network",            "disconnectnode",         &disconnectnode,         true,  {"address"} },
-    { "network",            "getaddednodeinfo",       &getaddednodeinfo,       true,  {"node"} },
-    { "network",            "getnettotals",           &getnettotals,           true,  {} },
-    { "network",            "getnetworkinfo",         &getnetworkinfo,         true,  {} },
-    { "network",            "setban",                 &setban,                 true,  {"subnet", "command", "bantime", "absolute"} },
-    { "network",            "listbanned",             &listbanned,             true,  {} },
-    { "network",            "clearbanned",            &clearbanned,            true,  {} },
-    { "network",            "setnetworkactive",       &setnetworkactive,       true,  {"state"} },
+    //  category            name                      actor (function)        okSafeMode
+    //  ------------------- ------------------------  ----------------------  ----------
+    { "network",            "getconnectioncount",     getconnectioncount,     true,  {} },
+    { "network",            "ping",                   ping,                   true,  {} },
+    { "network",            "getpeerinfo",            getpeerinfo,            true,  {} },
+    { "network",            "addnode",                addnode,                true,  {"node","command"} },
+    { "network",            "disconnectnode",         disconnectnode,         true,  {"address"} },
+    { "network",            "getaddednodeinfo",       getaddednodeinfo,       true,  {"node"} },
+    { "network",            "getnettotals",           getnettotals,           true,  {} },
+    { "network",            "getnetworkinfo",         getnetworkinfo,         true,  {} },
+    { "network",            "setban",                 setban,                 true,  {"subnet", "command", "bantime", "absolute"} },
+    { "network",            "listbanned",             listbanned,             true,  {} },
+    { "network",            "clearbanned",            clearbanned,            true,  {} },
+    { "network",            "setnetworkactive",       setnetworkactive,       true,  {"state"} },
 };
 // clang-format on
 

@@ -6,6 +6,7 @@
 #include "rpc/server.h"
 
 #include "base58.h"
+#include "config.h"
 #include "netbase.h"
 
 #include "test/test_bitcoin.h"
@@ -21,6 +22,7 @@ UniValue CallRPC(std::string args) {
     boost::split(vArgs, args, boost::is_any_of(" \t"));
     std::string strMethod = vArgs[0];
     vArgs.erase(vArgs.begin());
+    GlobalConfig config;
     JSONRPCRequest request;
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
@@ -28,7 +30,7 @@ UniValue CallRPC(std::string args) {
     BOOST_CHECK(tableRPC[strMethod]);
     rpcfn_type method = tableRPC[strMethod]->actor;
     try {
-        UniValue result = (*method)(request);
+        UniValue result = (*method)(config, request);
         return result;
     } catch (const UniValue &objError) {
         throw std::runtime_error(find_value(objError, "message").get_str());

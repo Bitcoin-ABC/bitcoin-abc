@@ -73,7 +73,8 @@ static UniValue GetNetworkHashPS(int lookup, int height) {
     return workDiff.getdouble() / timeDiff;
 }
 
-static UniValue getnetworkhashps(const JSONRPCRequest &request) {
+static UniValue getnetworkhashps(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
             "getnetworkhashps ( nblocks height )\n"
@@ -101,7 +102,8 @@ static UniValue getnetworkhashps(const JSONRPCRequest &request) {
         request.params.size() > 1 ? request.params[1].get_int() : -1);
 }
 
-static UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
+static UniValue generateBlocks(const Config &config,
+                               boost::shared_ptr<CReserveScript> coinbaseScript,
                                int nGenerate, uint64_t nMaxTries,
                                bool keepScript) {
     static const int nInnerLoopCount = 0x10000;
@@ -121,7 +123,7 @@ static UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(GetConfig(), Params())
+            BlockAssembler(config, Params())
                 .CreateNewBlock(coinbaseScript->reserveScript));
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -144,7 +146,7 @@ static UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
         }
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(GetConfig(), Params(), shared_pblock, true, NULL))
+        if (!ProcessNewBlock(config, Params(), shared_pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "ProcessNewBlock, block not accepted");
         ++nHeight;
@@ -159,7 +161,7 @@ static UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript,
     return blockHashes;
 }
 
-static UniValue generate(const JSONRPCRequest &request) {
+static UniValue generate(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -201,10 +203,11 @@ static UniValue generate(const JSONRPCRequest &request) {
             "No coinbase script available (mining requires a wallet)");
     }
 
-    return generateBlocks(coinbaseScript, nGenerate, nMaxTries, true);
+    return generateBlocks(config, coinbaseScript, nGenerate, nMaxTries, true);
 }
 
-static UniValue generatetoaddress(const JSONRPCRequest &request) {
+static UniValue generatetoaddress(const Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 2 ||
         request.params.size() > 3) {
         throw std::runtime_error(
@@ -239,10 +242,11 @@ static UniValue generatetoaddress(const JSONRPCRequest &request) {
     boost::shared_ptr<CReserveScript> coinbaseScript(new CReserveScript());
     coinbaseScript->reserveScript = GetScriptForDestination(address.Get());
 
-    return generateBlocks(coinbaseScript, nGenerate, nMaxTries, false);
+    return generateBlocks(config, coinbaseScript, nGenerate, nMaxTries, false);
 }
 
-static UniValue getmininginfo(const JSONRPCRequest &request) {
+static UniValue getmininginfo(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getmininginfo\n"
@@ -274,7 +278,7 @@ static UniValue getmininginfo(const JSONRPCRequest &request) {
     obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
     obj.push_back(Pair("difficulty", (double)GetDifficulty()));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
-    obj.push_back(Pair("networkhashps", getnetworkhashps(request)));
+    obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
     obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
     obj.push_back(Pair("chain", Params().NetworkIDString()));
     return obj;
@@ -282,7 +286,8 @@ static UniValue getmininginfo(const JSONRPCRequest &request) {
 
 // NOTE: Unlike wallet RPC (which use BTC values), mining RPCs follow GBT (BIP
 // 22) in using satoshi amounts
-static UniValue prioritisetransaction(const JSONRPCRequest &request) {
+static UniValue prioritisetransaction(const Config &config,
+                                      const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
             "prioritisetransaction <txid> <priority delta> <fee delta>\n"
@@ -321,7 +326,8 @@ static UniValue prioritisetransaction(const JSONRPCRequest &request) {
 
 // NOTE: Assumes a conclusive result; if result is inconclusive, it must be
 // handled by caller
-static UniValue BIP22ValidationResult(const CValidationState &state) {
+static UniValue BIP22ValidationResult(const Config &config,
+                                      const CValidationState &state) {
     if (state.IsValid()) return NullUniValue;
 
     std::string strRejectReason = state.GetRejectReason();
@@ -347,7 +353,8 @@ std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
     return s;
 }
 
-static UniValue getblocktemplate(const JSONRPCRequest &request) {
+static UniValue getblocktemplate(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
             "getblocktemplate ( TemplateRequest )\n"
@@ -520,9 +527,9 @@ static UniValue getblocktemplate(const JSONRPCRequest &request) {
             if (block.hashPrevBlock != pindexPrev->GetBlockHash())
                 return "inconclusive-not-best-prevblk";
             CValidationState state;
-            TestBlockValidity(GetConfig(), state, Params(), block, pindexPrev,
-                              false, true);
-            return BIP22ValidationResult(state);
+            TestBlockValidity(config, state, Params(), block, pindexPrev, false,
+                              true);
+            return BIP22ValidationResult(config, state);
         }
 
         const UniValue &aClientRules = find_value(oparam, "rules");
@@ -624,7 +631,7 @@ static UniValue getblocktemplate(const JSONRPCRequest &request) {
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
         pblocktemplate =
-            BlockAssembler(GetConfig(), Params()).CreateNewBlock(scriptDummy);
+            BlockAssembler(config, Params()).CreateNewBlock(scriptDummy);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -796,7 +803,8 @@ protected:
     }
 };
 
-static UniValue submitblock(const JSONRPCRequest &request) {
+static UniValue submitblock(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
@@ -847,18 +855,18 @@ static UniValue submitblock(const JSONRPCRequest &request) {
 
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted =
-        ProcessNewBlock(GetConfig(), Params(), blockptr, true, NULL);
+    bool fAccepted = ProcessNewBlock(config, Params(), blockptr, true, NULL);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
         if (fAccepted && !sc.found) return "duplicate-inconclusive";
         return "duplicate";
     }
     if (!sc.found) return "inconclusive";
-    return BIP22ValidationResult(sc.state);
+    return BIP22ValidationResult(config, sc.state);
 }
 
-static UniValue estimatefee(const JSONRPCRequest &request) {
+static UniValue estimatefee(const Config &config,
+                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "estimatefee nblocks\n"
@@ -892,7 +900,8 @@ static UniValue estimatefee(const JSONRPCRequest &request) {
     return ValueFromAmount(feeRate.GetFeePerK());
 }
 
-static UniValue estimatepriority(const JSONRPCRequest &request) {
+static UniValue estimatepriority(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "estimatepriority nblocks\n"
@@ -919,7 +928,8 @@ static UniValue estimatepriority(const JSONRPCRequest &request) {
     return mempool.estimatePriority(nBlocks);
 }
 
-static UniValue estimatesmartfee(const JSONRPCRequest &request) {
+static UniValue estimatesmartfee(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "estimatesmartfee nblocks\n"
@@ -962,7 +972,8 @@ static UniValue estimatesmartfee(const JSONRPCRequest &request) {
     return result;
 }
 
-static UniValue estimatesmartpriority(const JSONRPCRequest &request) {
+static UniValue estimatesmartpriority(const Config &config,
+                                      const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "estimatesmartpriority nblocks\n"
@@ -1005,21 +1016,21 @@ static UniValue estimatesmartpriority(const JSONRPCRequest &request) {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category   name                     actor (function)        okSafeMode
-    //  ---------- ------------------------ ----------------------- ----------
-    {"mining",     "getnetworkhashps",      &getnetworkhashps,      true, {"nblocks", "height"}},
-    {"mining",     "getmininginfo",         &getmininginfo,         true, {}},
-    {"mining",     "prioritisetransaction", &prioritisetransaction, true, {"txid", "priority_delta", "fee_delta"}},
-    {"mining",     "getblocktemplate",      &getblocktemplate,      true, {"template_request"}},
-    {"mining",     "submitblock",           &submitblock,           true, {"hexdata", "parameters"}},
+    //  category   name                     actor (function)       okSafeMode
+    //  ---------- ------------------------ ---------------------- ----------
+    {"mining",     "getnetworkhashps",      getnetworkhashps,      true, {"nblocks", "height"}},
+    {"mining",     "getmininginfo",         getmininginfo,         true, {}},
+    {"mining",     "prioritisetransaction", prioritisetransaction, true, {"txid", "priority_delta", "fee_delta"}},
+    {"mining",     "getblocktemplate",      getblocktemplate,      true, {"template_request"}},
+    {"mining",     "submitblock",           submitblock,           true, {"hexdata", "parameters"}},
 
-    {"generating", "generate",              &generate,              true, {"nblocks", "maxtries"}},
-    {"generating", "generatetoaddress",     &generatetoaddress,     true, {"nblocks", "address", "maxtries"}},
+    {"generating", "generate",              generate,              true, {"nblocks", "maxtries"}},
+    {"generating", "generatetoaddress",     generatetoaddress,     true, {"nblocks", "address", "maxtries"}},
 
-    {"util",       "estimatefee",           &estimatefee,           true, {"nblocks"}},
-    {"util",       "estimatepriority",      &estimatepriority,      true, {"nblocks"}},
-    {"util",       "estimatesmartfee",      &estimatesmartfee,      true, {"nblocks"}},
-    {"util",       "estimatesmartpriority", &estimatesmartpriority, true, {"nblocks"}},
+    {"util",       "estimatefee",           estimatefee,           true, {"nblocks"}},
+    {"util",       "estimatepriority",      estimatepriority,      true, {"nblocks"}},
+    {"util",       "estimatesmartfee",      estimatesmartfee,      true, {"nblocks"}},
+    {"util",       "estimatesmartpriority", estimatesmartpriority, true, {"nblocks"}},
 };
 // clang-format on
 

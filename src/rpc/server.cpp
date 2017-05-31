@@ -6,6 +6,7 @@
 #include "rpc/server.h"
 
 #include "base58.h"
+#include "config.h"
 #include "init.h"
 #include "random.h"
 #include "sync.h"
@@ -24,6 +25,7 @@
 #include <boost/thread.hpp>
 
 #include <memory> // for unique_ptr
+#include <set>
 #include <unordered_map>
 
 using namespace RPCServer;
@@ -166,11 +168,11 @@ vector<unsigned char> ParseHexO(const UniValue &o, string strKey) {
 /**
  * Note: This interface may still be subject to change.
  */
-
-std::string CRPCTable::help(const std::string &strCommand) const {
+std::string CRPCTable::help(Config &config,
+                            const std::string &strCommand) const {
     string strRet;
     string category;
-    set<rpcfn_type> setDone;
+    std::set<rpcfn_type> setDone;
     vector<pair<string, const CRPCCommand *>> vCommands;
 
     for (map<string, const CRPCCommand *>::const_iterator mi =
@@ -180,8 +182,7 @@ std::string CRPCTable::help(const std::string &strCommand) const {
             make_pair(mi->second->category + mi->first, mi->second));
     sort(vCommands.begin(), vCommands.end());
 
-    BOOST_FOREACH (const PAIRTYPE(string, const CRPCCommand *) & command,
-                   vCommands) {
+    for (const PAIRTYPE(string, const CRPCCommand *) & command : vCommands) {
         const CRPCCommand *pcmd = command.second;
         string strMethod = pcmd->name;
         // We already filter duplicates, but these deprecated screw up the sort
@@ -194,7 +195,7 @@ std::string CRPCTable::help(const std::string &strCommand) const {
             JSONRPCRequest jreq;
             jreq.fHelp = true;
             rpcfn_type pfn = pcmd->actor;
-            if (setDone.insert(pfn).second) (*pfn)(jreq);
+            if (setDone.insert(pfn).second) pfn(config, jreq);
         } catch (const std::exception &e) {
             // Help text is returned in an exception
             string strHelp = string(e.what());
@@ -220,7 +221,7 @@ std::string CRPCTable::help(const std::string &strCommand) const {
     return strRet;
 }
 
-UniValue help(const JSONRPCRequest &jsonRequest) {
+static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1)
         throw runtime_error(
             "help ( \"command\" )\n"
@@ -234,10 +235,10 @@ UniValue help(const JSONRPCRequest &jsonRequest) {
     if (jsonRequest.params.size() > 0)
         strCommand = jsonRequest.params[0].get_str();
 
-    return tableRPC.help(strCommand);
+    return tableRPC.help(config, strCommand);
 }
 
-UniValue stop(const JSONRPCRequest &jsonRequest) {
+static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     // Accept the deprecated and ignored 'detach' boolean argument
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1)
         throw runtime_error("stop\n"
@@ -253,11 +254,11 @@ UniValue stop(const JSONRPCRequest &jsonRequest) {
  */
 // clang-format off
 static const CRPCCommand vRPCCommands[] = {
-    //  category            name                      actor (function)         okSafe argNames
-    //  ------------------- ------------------------  -----------------------  ------ ----------
+    //  category            name                      actor (function)        okSafe argNames
+    //  ------------------- ------------------------  ----------------------  ------ ----------
     /* Overall control/query calls */
-    { "control",            "help",                   &help,                   true,  {"command"}  },
-    { "control",            "stop",                   &stop,                   true,  {}  },
+    { "control",            "help",                   help,                   true,  {"command"}  },
+    { "control",            "stop",                   stop,                   true,  {}  },
 };
 // clang-format on
 
@@ -364,14 +365,14 @@ void JSONRPCRequest::parse(const UniValue &valRequest) {
                            "Params must be an array or object");
 }
 
-static UniValue JSONRPCExecOne(const UniValue &req) {
+static UniValue JSONRPCExecOne(Config &config, const UniValue &req) {
     UniValue rpc_result(UniValue::VOBJ);
 
     JSONRPCRequest jreq;
     try {
         jreq.parse(req);
 
-        UniValue result = tableRPC.execute(jreq);
+        UniValue result = tableRPC.execute(config, jreq);
         rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id);
     } catch (const UniValue &objError) {
         rpc_result = JSONRPCReplyObj(NullUniValue, objError, jreq.id);
@@ -383,10 +384,11 @@ static UniValue JSONRPCExecOne(const UniValue &req) {
     return rpc_result;
 }
 
-std::string JSONRPCExecBatch(const UniValue &vReq) {
+std::string JSONRPCExecBatch(Config &config, const UniValue &vReq) {
     UniValue ret(UniValue::VARR);
-    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
-        ret.push_back(JSONRPCExecOne(vReq[reqIdx]));
+    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++) {
+        ret.push_back(JSONRPCExecOne(config, vReq[reqIdx]));
+    }
 
     return ret.write() + "\n";
 }
@@ -435,7 +437,8 @@ transformNamedArguments(const JSONRPCRequest &in,
     return out;
 }
 
-UniValue CRPCTable::execute(const JSONRPCRequest &request) const {
+UniValue CRPCTable::execute(Config &config,
+                            const JSONRPCRequest &request) const {
     // Return immediately if in warmup
     {
         LOCK(cs_rpcWarmup);
@@ -452,9 +455,9 @@ UniValue CRPCTable::execute(const JSONRPCRequest &request) const {
         // Execute, convert arguments to array if necessary
         if (request.params.isObject()) {
             return pcmd->actor(
-                transformNamedArguments(request, pcmd->argNames));
+                config, transformNamedArguments(request, pcmd->argNames));
         } else {
-            return pcmd->actor(request);
+            return pcmd->actor(config, request);
         }
     } catch (const std::exception &e) {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());

@@ -4,6 +4,7 @@
 
 #include "wallet/wallet.h"
 
+#include "config.h"
 #include "rpc/server.h"
 #include "test/test_bitcoin.h"
 #include "validation.h"
@@ -19,7 +20,9 @@
 #include <utility>
 #include <vector>
 
-extern UniValue importmulti(const JSONRPCRequest &request);
+// FIXME: This needs to be in rpcdump.h but it doesn't exists (yet).
+extern UniValue importmulti(const Config &config,
+                            const JSONRPCRequest &request);
 
 // how many times to run all the tests to have a chance to catch errors that
 // only show up with particular random shuffles
@@ -497,7 +500,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         request.params.setArray();
         request.params.push_back(keys);
 
-        UniValue response = importmulti(request);
+        UniValue response = importmulti(GetConfig(), request);
         BOOST_CHECK_EQUAL(
             response.write(),
             strprintf("[{\"success\":false,\"error\":{\"code\":-1,\"message\":"

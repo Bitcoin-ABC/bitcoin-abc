@@ -8,6 +8,7 @@
 #include "httpserver.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#include "rpc/blockchain.h"
 #include "rpc/server.h"
 #include "streams.h"
 #include "sync.h"
@@ -119,7 +120,8 @@ static bool CheckWarmup(HTTPRequest *req) {
     return true;
 }
 
-static bool rest_headers(HTTPRequest *req, const std::string &strURIPart) {
+static bool rest_headers(Config &config, HTTPRequest *req,
+                         const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
@@ -262,20 +264,18 @@ static bool rest_block(HTTPRequest *req, const std::string &strURIPart,
     return true;
 }
 
-static bool rest_block_extended(HTTPRequest *req,
+static bool rest_block_extended(Config &config, HTTPRequest *req,
                                 const std::string &strURIPart) {
     return rest_block(req, strURIPart, true);
 }
 
-static bool rest_block_notxdetails(HTTPRequest *req,
+static bool rest_block_notxdetails(Config &config, HTTPRequest *req,
                                    const std::string &strURIPart) {
     return rest_block(req, strURIPart, false);
 }
 
-// A bit of a hack - dependency on a function defined in rpc/blockchain.cpp
-UniValue getblockchaininfo(const JSONRPCRequest &request);
-
-static bool rest_chaininfo(HTTPRequest *req, const std::string &strURIPart) {
+static bool rest_chaininfo(Config &config, HTTPRequest *req,
+                           const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
@@ -284,7 +284,7 @@ static bool rest_chaininfo(HTTPRequest *req, const std::string &strURIPart) {
         case RF_JSON: {
             JSONRPCRequest jsonRequest;
             jsonRequest.params = UniValue(UniValue::VARR);
-            UniValue chainInfoObject = getblockchaininfo(jsonRequest);
+            UniValue chainInfoObject = getblockchaininfo(config, jsonRequest);
             std::string strJSON = chainInfoObject.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
             req->WriteReply(HTTP_OK, strJSON);
@@ -301,7 +301,8 @@ static bool rest_chaininfo(HTTPRequest *req, const std::string &strURIPart) {
     return true;
 }
 
-static bool rest_mempool_info(HTTPRequest *req, const std::string &strURIPart) {
+static bool rest_mempool_info(Config &config, HTTPRequest *req,
+                              const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
@@ -326,7 +327,7 @@ static bool rest_mempool_info(HTTPRequest *req, const std::string &strURIPart) {
     return true;
 }
 
-static bool rest_mempool_contents(HTTPRequest *req,
+static bool rest_mempool_contents(Config &config, HTTPRequest *req,
                                   const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string param;
@@ -352,7 +353,8 @@ static bool rest_mempool_contents(HTTPRequest *req,
     return true;
 }
 
-static bool rest_tx(HTTPRequest *req, const std::string &strURIPart) {
+static bool rest_tx(Config &config, HTTPRequest *req,
+                    const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
@@ -405,7 +407,8 @@ static bool rest_tx(HTTPRequest *req, const std::string &strURIPart) {
     return true;
 }
 
-static bool rest_getutxos(HTTPRequest *req, const std::string &strURIPart) {
+static bool rest_getutxos(Config &config, HTTPRequest *req,
+                          const std::string &strURIPart) {
     if (!CheckWarmup(req)) return false;
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
@@ -634,7 +637,8 @@ static bool rest_getutxos(HTTPRequest *req, const std::string &strURIPart) {
 
 static const struct {
     const char *prefix;
-    bool (*handler)(HTTPRequest *req, const std::string &strReq);
+    bool (*handler)(Config &config, HTTPRequest *req,
+                    const std::string &strReq);
 } uri_prefixes[] = {
     {"/rest/tx/", rest_tx},
     {"/rest/block/notxdetails/", rest_block_notxdetails},

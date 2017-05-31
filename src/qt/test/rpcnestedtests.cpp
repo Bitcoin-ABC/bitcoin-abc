@@ -6,6 +6,7 @@
 
 #include "chainparams.h"
 #include "config.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "rpc/register.h"
 #include "rpc/server.h"
@@ -20,7 +21,8 @@
 
 #include <boost/filesystem.hpp>
 
-static UniValue rpcNestedTest_rpc(const JSONRPCRequest &request) {
+static UniValue rpcNestedTest_rpc(const Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp) {
         return "help message";
     }
@@ -28,7 +30,7 @@ static UniValue rpcNestedTest_rpc(const JSONRPCRequest &request) {
 }
 
 static const CRPCCommand vRPCCommands[] = {
-    {"test", "rpcNestedTest", &rpcNestedTest_rpc, true, {}},
+    {"test", "rpcNestedTest", rpcNestedTest_rpc, true, {}},
 };
 
 void RPCNestedTests::rpcNestedTests() {

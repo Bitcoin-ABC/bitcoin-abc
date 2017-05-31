@@ -6,6 +6,7 @@
 #include "base58.h"
 #include "chain.h"
 #include "coins.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "init.h"
@@ -118,7 +119,8 @@ void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
     }
 }
 
-UniValue getrawtransaction(const JSONRPCRequest &request) {
+static UniValue getrawtransaction(const Config &config,
+                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "getrawtransaction \"txid\" ( verbose )\n"
@@ -243,7 +245,8 @@ UniValue getrawtransaction(const JSONRPCRequest &request) {
     return result;
 }
 
-UniValue gettxoutproof(const JSONRPCRequest &request) {
+static UniValue gettxoutproof(const Config &config,
+                              const JSONRPCRequest &request) {
     if (request.fHelp ||
         (request.params.size() != 1 && request.params.size() != 2))
         throw runtime_error(
@@ -335,7 +338,8 @@ UniValue gettxoutproof(const JSONRPCRequest &request) {
     return strHex;
 }
 
-UniValue verifytxoutproof(const JSONRPCRequest &request) {
+static UniValue verifytxoutproof(const Config &config,
+                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "verifytxoutproof \"proof\"\n"
@@ -374,7 +378,8 @@ UniValue verifytxoutproof(const JSONRPCRequest &request) {
     return res;
 }
 
-UniValue createrawtransaction(const JSONRPCRequest &request) {
+static UniValue createrawtransaction(const Config &config,
+                                     const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
         throw runtime_error(
             "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] "
@@ -522,7 +527,8 @@ UniValue createrawtransaction(const JSONRPCRequest &request) {
     return EncodeHexTx(rawTx);
 }
 
-UniValue decoderawtransaction(const JSONRPCRequest &request) {
+static UniValue decoderawtransaction(const Config &config,
+                                     const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "decoderawtransaction \"hexstring\"\n"
@@ -594,7 +600,8 @@ UniValue decoderawtransaction(const JSONRPCRequest &request) {
     return result;
 }
 
-UniValue decodescript(const JSONRPCRequest &request) {
+static UniValue decodescript(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "decodescript \"hexstring\"\n"
@@ -659,7 +666,8 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     vErrorsRet.push_back(entry);
 }
 
-UniValue signrawtransaction(const JSONRPCRequest &request) {
+static UniValue signrawtransaction(const Config &config,
+                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 4)
         throw runtime_error(
             "signrawtransaction \"hexstring\" ( "
@@ -971,7 +979,8 @@ UniValue signrawtransaction(const JSONRPCRequest &request) {
     return result;
 }
 
-UniValue sendrawtransaction(const JSONRPCRequest &request) {
+static UniValue sendrawtransaction(const Config &config,
+                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
             "sendrawtransaction \"hexstring\" ( allowhighfees )\n"
@@ -1052,17 +1061,17 @@ UniValue sendrawtransaction(const JSONRPCRequest &request) {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category            name                      actor (function)         okSafeMode
-    //  ------------------- ------------------------  -----------------------  ----------
-    { "rawtransactions",    "getrawtransaction",      &getrawtransaction,      true,  {"txid","verbose"} },
-    { "rawtransactions",    "createrawtransaction",   &createrawtransaction,   true,  {"inputs","outputs","locktime"} },
-    { "rawtransactions",    "decoderawtransaction",   &decoderawtransaction,   true,  {"hexstring"} },
-    { "rawtransactions",    "decodescript",           &decodescript,           true,  {"hexstring"} },
-    { "rawtransactions",    "sendrawtransaction",     &sendrawtransaction,     false, {"hexstring","allowhighfees"} },
-    { "rawtransactions",    "signrawtransaction",     &signrawtransaction,     false, {"hexstring","prevtxs","privkeys","sighashtype"} }, /* uses wallet if enabled */
+    //  category            name                      actor (function)        okSafeMode
+    //  ------------------- ------------------------  ----------------------  ----------
+    { "rawtransactions",    "getrawtransaction",      getrawtransaction,      true,  {"txid","verbose"} },
+    { "rawtransactions",    "createrawtransaction",   createrawtransaction,   true,  {"inputs","outputs","locktime"} },
+    { "rawtransactions",    "decoderawtransaction",   decoderawtransaction,   true,  {"hexstring"} },
+    { "rawtransactions",    "decodescript",           decodescript,           true,  {"hexstring"} },
+    { "rawtransactions",    "sendrawtransaction",     sendrawtransaction,     false, {"hexstring","allowhighfees"} },
+    { "rawtransactions",    "signrawtransaction",     signrawtransaction,     false, {"hexstring","prevtxs","privkeys","sighashtype"} }, /* uses wallet if enabled */
 
-    { "blockchain",         "gettxoutproof",          &gettxoutproof,          true,  {"txids", "blockhash"} },
-    { "blockchain",         "verifytxoutproof",       &verifytxoutproof,       true,  {"proof"} },
+    { "blockchain",         "gettxoutproof",          gettxoutproof,          true,  {"txids", "blockhash"} },
+    { "blockchain",         "verifytxoutproof",       verifytxoutproof,       true,  {"proof"} },
 };
 // clang-format on
 
