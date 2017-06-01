@@ -464,7 +464,6 @@ clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C univalue clean
 	-rm -f leveldb/*/*.gcda leveldb/*/*.gcno leveldb/helpers/memenv/*.gcda leveldb/helpers/memenv/*.gcno
-	-rm -f config.h
 	-rm -rf test/__pycache__
 
 .rc.o:
