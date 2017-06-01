@@ -13,7 +13,6 @@ void SetMiscWarning(const std::string &strWarning);
 void SetfLargeWorkForkFound(bool flag);
 bool GetfLargeWorkForkFound();
 void SetfLargeWorkInvalidChainFound(bool flag);
-bool GetfLargeWorkInvalidChainFound();
 std::string GetWarnings(const std::string &strFor);
 
 static const bool DEFAULT_TESTSAFEMODE = false;
