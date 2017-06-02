@@ -120,6 +120,23 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
 // unconditionally log to debug.log! It should not be the case that an inbound
 // peer can fill up a users disk with debug.log entries.
 
+static inline void MarkUsed() {}
+template <typename T, typename... Args>
+static inline void MarkUsed(const T &t, const Args &... args) {
+    (void)t;
+    MarkUsed(args...);
+}
+
+#ifdef USE_COVERAGE
+#define LogPrintf(...)                                                         \
+    do {                                                                       \
+        MarkUsed(__VA_ARGS__);                                                 \
+    } while (0)
+#define LogPrint(category, ...)                                                \
+    do {                                                                       \
+        MarkUsed(__VA_ARGS__);                                                 \
+    } while (0)
+#else
 #define LogPrint(category, ...)                                                \
     do {                                                                       \
         if (LogAcceptCategory((category))) {                                   \
@@ -131,5 +148,6 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
     do {                                                                       \
         GetLogger().LogPrintStr(tfm::format(__VA_ARGS__));                     \
     } while (0)
+#endif
 
 #endif // BITCOIN_LOGGING_H
