@@ -36,7 +36,7 @@ class RPCBindTest(BitcoinTestFramework):
         binds = ['-rpcbind=' + addr for addr in addresses]
         self.nodes = self.start_nodes(self.num_nodes, self.options.tmpdir, [
                                       base_args + binds], connect_to)
-        pid = self.bitcoind_processes[0].pid
+        pid = self.nodes[0].process.pid
         assert_equal(set(get_bind_addrs(pid)), set(expected))
         self.stop_nodes()
 
@@ -50,8 +50,8 @@ class RPCBindTest(BitcoinTestFramework):
         self.nodes = self.start_nodes(
             self.num_nodes, self.options.tmpdir, [base_args])
         # connect to node through non-loopback interface
-        node = get_rpc_proxy(rpc_url(get_datadir_path(
-            self.options.tmpdir, 0), 0, "%s:%d" % (rpchost, rpcport)), 0)
+        node = get_rpc_proxy(rpc_url(get_datadir_path(self.options.tmpdir, 0), 0, "%s:%d" % (
+            rpchost, rpcport)), 0, coveragedir=self.options.coveragedir)
         node.getnetworkinfo()
         self.stop_nodes()
 

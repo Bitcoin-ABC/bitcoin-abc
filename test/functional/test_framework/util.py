@@ -9,7 +9,6 @@ from decimal import Decimal, ROUND_DOWN
 import json
 import logging
 import os
-import sys
 import random
 import re
 import time
@@ -235,7 +234,7 @@ def rpc_port(n):
 
 
 def rpc_url(datadir, i, rpchost=None):
-    rpc_u, rpc_p = get_auth_cookie(datadir, i)
+    rpc_u, rpc_p = get_auth_cookie(datadir)
     host = '127.0.0.1'
     port = rpc_port(i)
     if rpchost:
@@ -267,7 +266,7 @@ def get_datadir_path(dirname, n):
     return os.path.join(dirname, "node" + str(n))
 
 
-def get_auth_cookie(datadir, n):
+def get_auth_cookie(datadir):
     user = None
     password = None
     if os.path.isfile(os.path.join(datadir, "bitcoin.conf")):
@@ -642,6 +641,7 @@ def get_srcdir(calling_script=None):
     # Try to work it based out on main module
     # We might expect the caller to be rpc-tests.py or a test script
     # itself.
+    import sys
     mainmod = sys.modules['__main__']
     mainmod_path = getattr(mainmod, '__file__', '')
     if mainmod_path and mainmod_path.endswith('.py'):

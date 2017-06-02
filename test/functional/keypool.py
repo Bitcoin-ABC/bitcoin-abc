@@ -21,8 +21,7 @@ class KeyPoolTest(BitcoinTestFramework):
                'hdmasterkeyid'] == wallet_info_old['hdmasterkeyid'])
 
         # Encrypt wallet and wait to terminate
-        nodes[0].encryptwallet('test')
-        self.bitcoind_processes[0].wait()
+        nodes[0].node_encrypt_wallet('test')
         # Restart node 0
         nodes[0] = self.start_node(0, self.options.tmpdir)
         # Keep creating keys
