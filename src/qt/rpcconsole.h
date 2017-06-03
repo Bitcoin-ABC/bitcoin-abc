@@ -10,16 +10,16 @@
 
 #include "net.h"
 
-#include <QWidget>
 #include <QCompleter>
 #include <QThread>
+#include <QWidget>
 
 class ClientModel;
 class PlatformStyle;
 class RPCTimerInterface;
 
 namespace Ui {
-    class RPCConsole;
+class RPCConsole;
 }
 
 QT_BEGIN_NAMESPACE
@@ -28,28 +28,27 @@ class QItemSelection;
 QT_END_NAMESPACE
 
 /** Local Bitcoin RPC console. */
-class RPCConsole: public QWidget
-{
+class RPCConsole : public QWidget {
     Q_OBJECT
 
 public:
     explicit RPCConsole(const PlatformStyle *platformStyle, QWidget *parent);
     ~RPCConsole();
 
-    static bool RPCParseCommandLine(std::string &strResult, const std::string &strCommand, bool fExecute, std::string * const pstrFilteredOut = NULL);
-    static bool RPCExecuteCommandLine(std::string &strResult, const std::string &strCommand, std::string * const pstrFilteredOut = NULL) {
-        return RPCParseCommandLine(strResult, strCommand, true, pstrFilteredOut);
+    static bool RPCParseCommandLine(std::string &strResult,
+                                    const std::string &strCommand,
+                                    bool fExecute,
+                                    std::string *const pstrFilteredOut = NULL);
+    static bool
+    RPCExecuteCommandLine(std::string &strResult, const std::string &strCommand,
+                          std::string *const pstrFilteredOut = NULL) {
+        return RPCParseCommandLine(strResult, strCommand, true,
+                                   pstrFilteredOut);
     }
 
     void setClientModel(ClientModel *model);
 
-    enum MessageClass {
-        MC_ERROR,
-        MC_DEBUG,
-        CMD_REQUEST,
-        CMD_REPLY,
-        CMD_ERROR
-    };
+    enum MessageClass { MC_ERROR, MC_DEBUG, CMD_REQUEST, CMD_REPLY, CMD_ERROR };
 
     enum TabTypes {
         TAB_INFO = 0,
@@ -59,7 +58,7 @@ public:
     };
 
 protected:
-    virtual bool eventFilter(QObject* obj, QEvent *event);
+    virtual bool eventFilter(QObject *obj, QEvent *event);
     void keyPressEvent(QKeyEvent *);
 
 private Q_SLOTS:
@@ -75,9 +74,9 @@ private Q_SLOTS:
     void showEvent(QShowEvent *event);
     void hideEvent(QHideEvent *event);
     /** Show custom context menu on Peers tab */
-    void showPeersTableContextMenu(const QPoint& point);
+    void showPeersTableContextMenu(const QPoint &point);
     /** Show custom context menu on Bans tab */
-    void showBanTableContextMenu(const QPoint& point);
+    void showBanTableContextMenu(const QPoint &point);
     /** Hides ban table if no bans are present */
     void showOrHideBanTableIfRequired();
     /** clear the selected node */
@@ -95,15 +94,18 @@ public Q_SLOTS:
     /** Set network state shown in the UI */
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
-    void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
-    /** Set size (number of transactions and memory usage) of the mempool in the UI */
+    void setNumBlocks(int count, const QDateTime &blockDate,
+                      double nVerificationProgress, bool headers);
+    /** Set size (number of transactions and memory usage) of the mempool in the
+     * UI */
     void setMempoolSize(long numberOfTxs, size_t dynUsage);
     /** Go forward or back in history */
     void browseHistory(int offset);
     /** Scroll console view to end */
     void scrollToEnd();
     /** Handle selection of peer in peers list */
-    void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
+    void peerSelected(const QItemSelection &selected,
+                      const QItemSelection &deselected);
     /** Handle selection caching before update */
     void peerLayoutAboutToChange();
     /** Handle updated peer information */
@@ -129,8 +131,7 @@ private:
     /** show detailed information on ui about selected node */
     void updateNodeDetail(const CNodeCombinedStats *stats);
 
-    enum ColumnWidths
-    {
+    enum ColumnWidths {
         ADDRESS_COLUMN_WIDTH = 200,
         SUBVERSION_COLUMN_WIDTH = 150,
         PING_COLUMN_WIDTH = 80,
