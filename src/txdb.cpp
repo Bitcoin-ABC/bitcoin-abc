@@ -343,13 +343,14 @@ bool CCoinsViewDB::Upgrade() {
     CDBBatch batch(db);
     uiInterface.SetProgressBreakAction(StartShutdown);
     int reportDone = 0;
+    std::pair<uint8_t, uint256> key;
+    std::pair<uint8_t, uint256> prev_key = {DB_COINS, uint256()};
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         if (ShutdownRequested()) {
             break;
         }
 
-        std::pair<uint8_t, uint256> key;
         if (!pcursor->GetKey(key) || key.first != DB_COINS) {
             break;
         }
@@ -390,12 +391,15 @@ bool CCoinsViewDB::Upgrade() {
         if (batch.SizeEstimate() > batch_size) {
             db.WriteBatch(batch);
             batch.Clear();
+            db.CompactRange(prev_key, key);
+            prev_key = key;
         }
 
         pcursor->Next();
     }
 
     db.WriteBatch(batch);
+    db.CompactRange({DB_COINS, uint256()}, key);
     uiInterface.SetProgressBreakAction(std::function<void(void)>());
     LogPrintf("[%s].\n", ShutdownRequested() ? "CANCELLED" : "DONE");
     return !ShutdownRequested();
