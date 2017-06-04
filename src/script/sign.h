@@ -28,8 +28,8 @@ public:
 
     /** Create a singular (non-script) signature. */
     virtual bool CreateSig(std::vector<unsigned char> &vchSig,
-                           const CKeyID &keyid, const CScript &scriptCode,
-                           SigVersion sigversion) const = 0;
+                           const CKeyID &keyid,
+                           const CScript &scriptCode) const = 0;
 };
 
 /** A signature creator for transactions. */
@@ -47,7 +47,7 @@ public:
                                 int nHashTypeIn = SIGHASH_ALL);
     const BaseSignatureChecker &Checker() const { return checker; }
     bool CreateSig(std::vector<unsigned char> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode, SigVersion sigversion) const;
+                   const CScript &scriptCode) const;
 };
 
 class MutableTransactionSignatureCreator : public TransactionSignatureCreator {
@@ -70,7 +70,7 @@ public:
         : BaseSignatureCreator(keystoreIn) {}
     const BaseSignatureChecker &Checker() const;
     bool CreateSig(std::vector<unsigned char> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode, SigVersion sigversion) const;
+                   const CScript &scriptCode) const;
 };
 
 struct SignatureData {

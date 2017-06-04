@@ -27,26 +27,24 @@ unsigned int HaveKeys(const vector<valtype> &pubkeys,
     return nResult;
 }
 
-isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
-                  SigVersion sigversion) {
+isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey) {
     bool isInvalid = false;
-    return IsMine(keystore, scriptPubKey, isInvalid, sigversion);
+    return IsMine(keystore, scriptPubKey, isInvalid);
+}
+
+isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest) {
+    bool isInvalid = false;
+    return IsMine(keystore, dest, isInvalid);
 }
 
 isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest,
-                  SigVersion sigversion) {
-    bool isInvalid = false;
-    return IsMine(keystore, dest, isInvalid, sigversion);
-}
-
-isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest,
-                  bool &isInvalid, SigVersion sigversion) {
+                  bool &isInvalid) {
     CScript script = GetScriptForDestination(dest);
-    return IsMine(keystore, script, isInvalid, sigversion);
+    return IsMine(keystore, script, isInvalid);
 }
 
 isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
-                  bool &isInvalid, SigVersion sigversion) {
+                  bool &isInvalid) {
     vector<valtype> vSolutions;
     txnouttype whichType;
     if (!Solver(scriptPubKey, whichType, vSolutions)) {
@@ -62,22 +60,10 @@ isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
             break;
         case TX_PUBKEY:
             keyID = CPubKey(vSolutions[0]).GetID();
-            if (sigversion != SIGVERSION_BASE && vSolutions[0].size() != 33) {
-                isInvalid = true;
-                return ISMINE_NO;
-            }
             if (keystore.HaveKey(keyID)) return ISMINE_SPENDABLE;
             break;
         case TX_PUBKEYHASH:
             keyID = CKeyID(uint160(vSolutions[0]));
-            if (sigversion != SIGVERSION_BASE) {
-                CPubKey pubkey;
-                if (keystore.GetPubKey(keyID, pubkey) &&
-                    !pubkey.IsCompressed()) {
-                    isInvalid = true;
-                    return ISMINE_NO;
-                }
-            }
             if (keystore.HaveKey(keyID)) return ISMINE_SPENDABLE;
             break;
         case TX_SCRIPTHASH: {
@@ -99,14 +85,6 @@ isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
             // situations.
             vector<valtype> keys(vSolutions.begin() + 1,
                                  vSolutions.begin() + vSolutions.size() - 1);
-            if (sigversion != SIGVERSION_BASE) {
-                for (size_t i = 0; i < keys.size(); i++) {
-                    if (keys[i].size() != 33) {
-                        isInvalid = true;
-                        return ISMINE_NO;
-                    }
-                }
-            }
             if (HaveKeys(keys, keystore) == keys.size())
                 return ISMINE_SPENDABLE;
             break;

@@ -123,11 +123,6 @@ struct PrecomputedTransactionData {
     PrecomputedTransactionData(const CTransaction &tx);
 };
 
-enum SigVersion {
-    SIGVERSION_BASE = 0,
-    SIGVERSION_WITNESS_V0 = 1,
-};
-
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
                       const CAmount &amount,
@@ -137,8 +132,7 @@ class BaseSignatureChecker {
 public:
     virtual bool CheckSig(const std::vector<unsigned char> &scriptSig,
                           const std::vector<unsigned char> &vchPubKey,
-                          const CScript &scriptCode,
-                          SigVersion sigversion) const {
+                          const CScript &scriptCode) const {
         return false;
     }
 
@@ -175,7 +169,7 @@ public:
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
     bool CheckSig(const std::vector<unsigned char> &scriptSig,
                   const std::vector<unsigned char> &vchPubKey,
-                  const CScript &scriptCode, SigVersion sigversion) const;
+                  const CScript &scriptCode) const;
     bool CheckLockTime(const CScriptNum &nLockTime) const;
     bool CheckSequence(const CScriptNum &nSequence) const;
 };
@@ -193,8 +187,7 @@ public:
 
 bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
                 const CScript &script, unsigned int flags,
-                const BaseSignatureChecker &checker, SigVersion sigversion,
-                ScriptError *error = NULL);
+                const BaseSignatureChecker &checker, ScriptError *error = NULL);
 bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
                   unsigned int flags, const BaseSignatureChecker &checker,
                   ScriptError *serror = NULL);

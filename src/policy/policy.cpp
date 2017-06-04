@@ -29,7 +29,6 @@
  * expensive-to-check-upon-redemption script like:
  *   DUP CHECKSIG DROP ... repeated 100 times... OP_1
  */
-
 bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
     std::vector<std::vector<unsigned char>> vSolutions;
     if (!Solver(scriptPubKey, whichType, vSolutions)) return false;
@@ -130,7 +129,7 @@ bool AreInputsStandard(const CTransaction &tx,
             // convert the scriptSig into a stack, so we can inspect the
             // redeemScript
             if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE,
-                            BaseSignatureChecker(), SIGVERSION_BASE))
+                            BaseSignatureChecker()))
                 return false;
             if (stack.empty()) return false;
             CScript subscript(stack.back().begin(), stack.back().end());

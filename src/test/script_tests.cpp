@@ -1131,29 +1131,29 @@ BOOST_AUTO_TEST_CASE(script_PushData) {
 
     ScriptError err;
     std::vector<std::vector<unsigned char>> directStack;
-    BOOST_CHECK(EvalScript(
-        directStack, CScript(&direct[0], &direct[sizeof(direct)]),
-        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SIGVERSION_BASE, &err));
+    BOOST_CHECK(EvalScript(directStack,
+                           CScript(&direct[0], &direct[sizeof(direct)]),
+                           SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
     std::vector<std::vector<unsigned char>> pushdata1Stack;
     BOOST_CHECK(EvalScript(
         pushdata1Stack, CScript(&pushdata1[0], &pushdata1[sizeof(pushdata1)]),
-        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SIGVERSION_BASE, &err));
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata1Stack == directStack);
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
     std::vector<std::vector<unsigned char>> pushdata2Stack;
     BOOST_CHECK(EvalScript(
         pushdata2Stack, CScript(&pushdata2[0], &pushdata2[sizeof(pushdata2)]),
-        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SIGVERSION_BASE, &err));
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata2Stack == directStack);
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
     std::vector<std::vector<unsigned char>> pushdata4Stack;
     BOOST_CHECK(EvalScript(
         pushdata4Stack, CScript(&pushdata4[0], &pushdata4[sizeof(pushdata4)]),
-        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), SIGVERSION_BASE, &err));
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata4Stack == directStack);
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 }

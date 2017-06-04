@@ -211,8 +211,7 @@ bool CheckSignatureEncoding(const vector<unsigned char> &vchSig,
     return true;
 }
 
-bool static CheckPubKeyEncoding(const valtype &vchPubKey, unsigned int flags,
-                                const SigVersion &sigversion,
+static bool CheckPubKeyEncoding(const valtype &vchPubKey, unsigned int flags,
                                 ScriptError *serror) {
     if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 &&
         !IsCompressedOrUncompressedPubKey(vchPubKey)) {
@@ -253,7 +252,7 @@ bool static CheckMinimalPush(const valtype &data, opcodetype opcode) {
 
 bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                 unsigned int flags, const BaseSignatureChecker &checker,
-                SigVersion sigversion, ScriptError *serror) {
+                ScriptError *serror) {
     static const CScriptNum bnZero(0);
     static const CScriptNum bnOne(1);
     static const CScriptNum bnFalse(0);
@@ -921,20 +920,18 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                         // codeseparator
                         CScript scriptCode(pbegincodehash, pend);
 
-                        // Drop the signature in pre-segwit scripts but not
-                        // segwit scripts
-                        if (sigversion == SIGVERSION_BASE) {
-                            scriptCode.FindAndDelete(CScript(vchSig));
-                        }
+                        // Drop the signature in scripts.
+                        // TODO: Do not do this when using SIGHASH_FORKID
+                        scriptCode.FindAndDelete(CScript(vchSig));
 
                         if (!CheckSignatureEncoding(vchSig, flags, serror) ||
-                            !CheckPubKeyEncoding(vchPubKey, flags, sigversion,
-                                                 serror)) {
+                            !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             // serror is set
                             return false;
                         }
-                        bool fSuccess = checker.CheckSig(
-                            vchSig, vchPubKey, scriptCode, sigversion);
+
+                        bool fSuccess =
+                            checker.CheckSig(vchSig, vchPubKey, scriptCode);
 
                         if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
                             vchSig.size())
@@ -999,9 +996,8 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                         // segwit scripts
                         for (int k = 0; k < nSigsCount; k++) {
                             valtype &vchSig = stacktop(-isig - k);
-                            if (sigversion == SIGVERSION_BASE) {
-                                scriptCode.FindAndDelete(CScript(vchSig));
-                            }
+                            // TODO: Do not do this when using SIGHASH_FORKID
+                            scriptCode.FindAndDelete(CScript(vchSig));
                         }
 
                         bool fSuccess = true;
@@ -1016,14 +1012,14 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                             if (!CheckSignatureEncoding(vchSig, flags,
                                                         serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
-                                                     sigversion, serror)) {
+                                                     serror)) {
                                 // serror is set
                                 return false;
                             }
 
                             // Check signature
-                            bool fOk = checker.CheckSig(vchSig, vchPubKey,
-                                                        scriptCode, sigversion);
+                            bool fOk =
+                                checker.CheckSig(vchSig, vchPubKey, scriptCode);
 
                             if (fOk) {
                                 isig++;
@@ -1313,8 +1309,7 @@ bool TransactionSignatureChecker::VerifySignature(
 
 bool TransactionSignatureChecker::CheckSig(
     const vector<unsigned char> &vchSigIn,
-    const vector<unsigned char> &vchPubKey, const CScript &scriptCode,
-    SigVersion sigversion) const {
+    const vector<unsigned char> &vchPubKey, const CScript &scriptCode) const {
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid()) return false;
 
@@ -1419,12 +1414,11 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
     }
 
     vector<vector<unsigned char>> stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, flags, checker, SIGVERSION_BASE, serror))
+    if (!EvalScript(stack, scriptSig, flags, checker, serror))
         // serror is set
         return false;
     if (flags & SCRIPT_VERIFY_P2SH) stackCopy = stack;
-    if (!EvalScript(stack, scriptPubKey, flags, checker, SIGVERSION_BASE,
-                    serror))
+    if (!EvalScript(stack, scriptPubKey, flags, checker, serror))
         // serror is set
         return false;
     if (stack.empty()) return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
@@ -1449,8 +1443,7 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stack);
 
-        if (!EvalScript(stack, pubKey2, flags, checker, SIGVERSION_BASE,
-                        serror))
+        if (!EvalScript(stack, pubKey2, flags, checker, serror))
             // serror is set
             return false;
         if (stack.empty()) return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
