@@ -112,9 +112,9 @@ enum {
     //
     SCRIPT_VERIFY_NULLFAIL = (1U << 14),
 
-    // Public keys in segregated witness scripts must be compressed
+    // Public keys in scripts must be compressed
     //
-    SCRIPT_VERIFY_WITNESS_PUBKEYTYPE = (1U << 15),
+    SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE = (1U << 15),
 };
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
