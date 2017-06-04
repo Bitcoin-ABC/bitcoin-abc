@@ -49,9 +49,8 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index,
                                         int role) const {
     if (!index.isValid() || index.row() >= list.length()) return QVariant();
 
-    const RecentRequestEntry *rec = &list[index.row()];
-
     if (role == Qt::DisplayRole || role == Qt::EditRole) {
+        const RecentRequestEntry *rec = &list[index.row()];
         switch (index.column()) {
             case Date:
                 return GUIUtil::dateTimeStr(rec->date);

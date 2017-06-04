@@ -142,10 +142,9 @@ static CScript PushAll(const std::vector<valtype> &values) {
 bool ProduceSignature(const BaseSignatureCreator &creator,
                       const CScript &fromPubKey, SignatureData &sigdata) {
     CScript script = fromPubKey;
-    bool solved = true;
     std::vector<valtype> result;
     txnouttype whichType;
-    solved = SignStep(creator, script, result, whichType);
+    bool solved = SignStep(creator, script, result, whichType);
     CScript subscript;
 
     if (solved && whichType == TX_SCRIPTHASH) {

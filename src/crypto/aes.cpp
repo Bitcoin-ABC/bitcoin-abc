@@ -101,7 +101,6 @@ static int CBCEncrypt(const T &enc, const uint8_t iv[AES_BLOCKSIZE],
 template <typename T>
 static int CBCDecrypt(const T &dec, const uint8_t iv[AES_BLOCKSIZE],
                       const uint8_t *data, int size, bool pad, uint8_t *out) {
-    uint8_t padsize = 0;
     int written = 0;
     bool fail = false;
     const uint8_t *prev = iv;
@@ -123,7 +122,7 @@ static int CBCDecrypt(const T &dec, const uint8_t iv[AES_BLOCKSIZE],
     if (pad) {
         // If used, padding size is the value of the last decrypted byte. For
         // it to be valid, It must be between 1 and AES_BLOCKSIZE.
-        padsize = *--out;
+        uint8_t padsize = *--out;
         fail = !padsize | (padsize > AES_BLOCKSIZE);
 
         // If not well-formed, treat it as though there's no padding.

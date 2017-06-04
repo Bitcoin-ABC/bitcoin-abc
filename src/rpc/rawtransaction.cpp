@@ -1316,7 +1316,6 @@ static UniValue sendrawtransaction(const Config &config,
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
     const uint256 &txid = tx->GetId();
 
-    bool fLimitFree = false;
     Amount nMaxRawTxFee = maxTxFee;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
         nMaxRawTxFee = Amount::zero();
@@ -1336,6 +1335,7 @@ static UniValue sendrawtransaction(const Config &config,
             // Push to local node and sync with wallets.
             CValidationState state;
             bool fMissingInputs;
+            bool fLimitFree = false;
             if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
                                     fLimitFree, &fMissingInputs, false,
                                     nMaxRawTxFee)) {
