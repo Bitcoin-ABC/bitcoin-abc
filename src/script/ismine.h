@@ -35,8 +35,9 @@ typedef uint8_t isminefilter;
  * policy. This will terminate the recursion and return a ISMINE_NO immediately,
  * as an invalid script should never be considered as "mine". This is needed as
  * different SIGVERSION may have different network rules. Currently the only use
- * of isInvalid is indicate uncompressed keys in SIGVERSION_WITNESS_V0 script,
- * but could also be used in similar cases in the future.
+ * of isInvalid is indicate uncompressed keys when
+ * SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is specified, but could also be used in
+ * similar cases in the future.
  */
 isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
                   bool &isInvalid, SigVersion = SIGVERSION_BASE);
