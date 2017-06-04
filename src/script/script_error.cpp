@@ -5,14 +5,13 @@
 
 #include "script_error.h"
 
-const char* ScriptErrorString(const ScriptError serror)
-{
-    switch (serror)
-    {
+const char *ScriptErrorString(const ScriptError serror) {
+    switch (serror) {
         case SCRIPT_ERR_OK:
             return "No error";
         case SCRIPT_ERR_EVAL_FALSE:
-            return "Script evaluated without error but finished with a false/empty top stack element";
+            return "Script evaluated without error but finished with a "
+                   "false/empty top stack element";
         case SCRIPT_ERR_VERIFY:
             return "Script failed an OP_VERIFY operation";
         case SCRIPT_ERR_EQUALVERIFY:
@@ -66,7 +65,8 @@ const char* ScriptErrorString(const ScriptError serror)
         case SCRIPT_ERR_MINIMALIF:
             return "OP_IF/NOTIF argument must be minimal";
         case SCRIPT_ERR_SIG_NULLFAIL:
-            return "Signature must be zero for failed CHECK(MULTI)SIG operation";
+            return "Signature must be zero for failed CHECK(MULTI)SIG "
+                   "operation";
         case SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS:
             return "NOPx reserved for soft-fork upgrades";
         case SCRIPT_ERR_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM:
@@ -89,7 +89,8 @@ const char* ScriptErrorString(const ScriptError serror)
             return "Using non-compressed keys in segwit";
         case SCRIPT_ERR_UNKNOWN_ERROR:
         case SCRIPT_ERR_ERROR_COUNT:
-        default: break;
+        default:
+            break;
     }
     return "unknown error";
 }
