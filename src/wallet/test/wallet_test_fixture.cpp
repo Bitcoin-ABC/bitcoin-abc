@@ -6,11 +6,11 @@
 
 #include "rpc/server.h"
 #include "wallet/db.h"
+#include "wallet/rpcdump.h"
 #include "wallet/wallet.h"
 
-WalletTestingSetup::WalletTestingSetup(const std::string& chainName):
-    TestingSetup(chainName)
-{
+WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
+    : TestingSetup(chainName) {
     bitdb.MakeMock();
 
     bool fFirstRun;
@@ -19,10 +19,10 @@ WalletTestingSetup::WalletTestingSetup(const std::string& chainName):
     RegisterValidationInterface(pwalletMain);
 
     RegisterWalletRPCCommands(tableRPC);
+    RegisterDumpRPCCommands(tableRPC);
 }
 
-WalletTestingSetup::~WalletTestingSetup()
-{
+WalletTestingSetup::~WalletTestingSetup() {
     UnregisterValidationInterface(pwalletMain);
     delete pwalletMain;
     pwalletMain = NULL;

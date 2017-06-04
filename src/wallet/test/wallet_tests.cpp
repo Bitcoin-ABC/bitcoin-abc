@@ -8,6 +8,7 @@
 #include "rpc/server.h"
 #include "test/test_bitcoin.h"
 #include "validation.h"
+#include "wallet/rpcdump.h"
 #include "wallet/test/wallet_test_fixture.h"
 
 #include <boost/foreach.hpp>
@@ -19,10 +20,6 @@
 #include <stdint.h>
 #include <utility>
 #include <vector>
-
-// FIXME: This needs to be in rpcdump.h but it doesn't exists (yet).
-extern UniValue importmulti(const Config &config,
-                            const JSONRPCRequest &request);
 
 // how many times to run all the tests to have a chance to catch errors that
 // only show up with particular random shuffles

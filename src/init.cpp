@@ -39,6 +39,7 @@
 #include "validation.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
+#include "wallet/rpcdump.h"
 #include "wallet/wallet.h"
 #endif
 #include "warnings.h"
@@ -1407,6 +1408,7 @@ bool AppInitParameterInteraction() {
     RegisterAllRPCCommands(tableRPC);
 #ifdef ENABLE_WALLET
     RegisterWalletRPCCommands(tableRPC);
+    RegisterDumpRPCCommands(tableRPC);
 #endif
 
     nConnectTimeout = GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);

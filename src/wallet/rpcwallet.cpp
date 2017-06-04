@@ -2967,26 +2967,6 @@ static UniValue fundrawtransaction(const Config &config,
     return result;
 }
 
-// in rpcdump.cpp
-// FIXME: Register these there.
-extern UniValue dumpprivkey(const Config &config,
-                            const JSONRPCRequest &request);
-extern UniValue importprivkey(const Config &config,
-                              const JSONRPCRequest &request);
-extern UniValue importaddress(const Config &config,
-                              const JSONRPCRequest &request);
-extern UniValue importpubkey(const Config &config,
-                             const JSONRPCRequest &request);
-extern UniValue dumpwallet(const Config &config, const JSONRPCRequest &request);
-extern UniValue importwallet(const Config &config,
-                             const JSONRPCRequest &request);
-extern UniValue importprunedfunds(const Config &config,
-                                  const JSONRPCRequest &request);
-extern UniValue removeprunedfunds(const Config &config,
-                                  const JSONRPCRequest &request);
-extern UniValue importmulti(const Config &config,
-                            const JSONRPCRequest &request);
-
 // clang-format off
 static const CRPCCommand commands[] = {
     //  category            name                        actor (function)          okSafeMode
@@ -2996,8 +2976,6 @@ static const CRPCCommand commands[] = {
     { "wallet",             "abandontransaction",       abandontransaction,       false,  {"txid"} },
     { "wallet",             "addmultisigaddress",       addmultisigaddress,       true,   {"nrequired","keys","account"} },
     { "wallet",             "backupwallet",             backupwallet,             true,   {"destination"} },
-    { "wallet",             "dumpprivkey",              dumpprivkey,              true,   {"address"}  },
-    { "wallet",             "dumpwallet",               dumpwallet,               true,   {"filename"} },
     { "wallet",             "encryptwallet",            encryptwallet,            true,   {"passphrase"} },
     { "wallet",             "getaccountaddress",        getaccountaddress,        true,   {"account"} },
     { "wallet",             "getaccount",               getaccount,               true,   {"address"} },
@@ -3010,12 +2988,6 @@ static const CRPCCommand commands[] = {
     { "wallet",             "gettransaction",           gettransaction,           false,  {"txid","include_watchonly"} },
     { "wallet",             "getunconfirmedbalance",    getunconfirmedbalance,    false,  {} },
     { "wallet",             "getwalletinfo",            getwalletinfo,            false,  {} },
-    { "wallet",             "importmulti",              importmulti,              true,   {"requests","options"} },
-    { "wallet",             "importprivkey",            importprivkey,            true,   {"privkey","label","rescan"} },
-    { "wallet",             "importwallet",             importwallet,             true,   {"filename"} },
-    { "wallet",             "importaddress",            importaddress,            true,   {"address","label","rescan","p2sh"} },
-    { "wallet",             "importprunedfunds",        importprunedfunds,        true,   {"rawtransaction","txoutproof"} },
-    { "wallet",             "importpubkey",             importpubkey,             true,   {"pubkey","label","rescan"} },
     { "wallet",             "keypoolrefill",            keypoolrefill,            true,   {"newsize"} },
     { "wallet",             "listaccounts",             listaccounts,             false,  {"minconf","include_watchonly"} },
     { "wallet",             "listaddressgroupings",     listaddressgroupings,     false,  {} },
@@ -3036,7 +3008,6 @@ static const CRPCCommand commands[] = {
     { "wallet",             "walletlock",               walletlock,               true,   {} },
     { "wallet",             "walletpassphrasechange",   walletpassphrasechange,   true,   {"oldpassphrase","newpassphrase"} },
     { "wallet",             "walletpassphrase",         walletpassphrase,         true,   {"passphrase","timeout"} },
-    { "wallet",             "removeprunedfunds",        removeprunedfunds,        true,   {"txid"} },
 };
 // clang-format on
 
