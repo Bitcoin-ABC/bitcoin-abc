@@ -11,6 +11,7 @@
 #include "script/script.h"
 #include "script/script_error.h"
 #include "script/sign.h"
+#include "test/scriptflags.h"
 #include "test/test_bitcoin.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -33,9 +34,6 @@
 // #define UPDATE_JSON_TESTS
 
 static const unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
-
-unsigned int ParseScriptFlags(std::string strFlags);
-std::string FormatScriptFlags(unsigned int flags);
 
 UniValue read_json(const std::string &jsondata) {
     UniValue v;
@@ -153,7 +151,6 @@ void DoTest(const CScript &scriptPubKey, const CScript &scriptSig, int flags,
     bool expect = (scriptError == SCRIPT_ERR_OK);
     if (flags & SCRIPT_VERIFY_CLEANSTACK) {
         flags |= SCRIPT_VERIFY_P2SH;
-        flags |= SCRIPT_VERIFY_WITNESS;
     }
     ScriptError err;
     CMutableTransaction txCredit =

@@ -95,10 +95,6 @@ enum {
     // See BIP112 for details
     SCRIPT_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10),
 
-    // Support segregated witness
-    //
-    SCRIPT_VERIFY_WITNESS = (1U << 11),
-
     // Making v1-v16 witness program non-standard
     //
     SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM = (1U << 12),
