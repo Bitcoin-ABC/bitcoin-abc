@@ -110,21 +110,6 @@ static bool SignStep(const BaseSignatureCreator &creator,
             ret.push_back(valtype());
             return (SignN(vSolutions, creator, scriptPubKey, ret, sigversion));
 
-        case TX_WITNESS_V0_KEYHASH:
-            ret.push_back(vSolutions[0]);
-            return true;
-
-        case TX_WITNESS_V0_SCRIPTHASH:
-            CRIPEMD160()
-                .Write(&vSolutions[0][0], vSolutions[0].size())
-                .Finalize(h160.begin());
-            if (creator.KeyStore().GetCScript(h160, scriptRet)) {
-                ret.push_back(std::vector<unsigned char>(scriptRet.begin(),
-                                                         scriptRet.end()));
-                return true;
-            }
-            return false;
-
         default:
             return false;
     }
@@ -298,8 +283,6 @@ static Stacks CombineSignatures(const CScript &scriptPubKey,
             // Signatures are bigger than placeholders or empty scripts:
             if (sigs1.script.empty() || sigs1.script[0].empty()) return sigs2;
             return sigs1;
-        case TX_WITNESS_V0_KEYHASH:
-            return sigs2;
         case TX_SCRIPTHASH:
             if (sigs1.script.empty() || sigs1.script.back().empty())
                 return sigs2;
@@ -325,8 +308,6 @@ static Stacks CombineSignatures(const CScript &scriptPubKey,
             return Stacks(CombineMultisig(scriptPubKey, checker, vSolutions,
                                           sigs1.script, sigs2.script,
                                           sigversion));
-        case TX_WITNESS_V0_SCRIPTHASH:
-            return sigs2;
         default:
             return Stacks();
     }

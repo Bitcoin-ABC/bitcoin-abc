@@ -45,10 +45,6 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
                 scriptPubKey.size() > nMaxDatacarrierBytes))
         return false;
 
-    else if (whichType == TX_WITNESS_V0_KEYHASH ||
-             whichType == TX_WITNESS_V0_SCRIPTHASH)
-        return false;
-
     return whichType != TX_NONSTANDARD;
 }
 

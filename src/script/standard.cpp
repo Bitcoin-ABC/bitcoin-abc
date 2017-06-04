@@ -36,10 +36,6 @@ const char *GetTxnOutputType(txnouttype t) {
             return "multisig";
         case TX_NULL_DATA:
             return "nulldata";
-        case TX_WITNESS_V0_KEYHASH:
-            return "witness_v0_keyhash";
-        case TX_WITNESS_V0_SCRIPTHASH:
-            return "witness_v0_scripthash";
     }
     return NULL;
 }
