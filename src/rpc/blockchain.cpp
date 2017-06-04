@@ -816,6 +816,25 @@ static UniValue getblockheader(const Config &config,
     return blockheaderToJSON(chainActive.Tip(), pblockindex);
 }
 
+static CBlock GetBlockChecked(const Config &config,
+                              const CBlockIndex *pblockindex) {
+    CBlock block;
+    if (fHavePruned && !pblockindex->nStatus.hasData() &&
+        pblockindex->nTx > 0) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not available (pruned data)");
+    }
+
+    if (!ReadBlockFromDisk(block, pblockindex, config)) {
+        // Block not found on disk. This could be because we have the block
+        // header in our index but don't have the block (for example if a
+        // non-whitelisted node sends us an unrequested long chain of valid
+        // blocks, we add the headers to our index, but don't accept the block).
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
+    }
+
+    return block;
+}
+
 static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
@@ -901,19 +920,7 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
     }
 
-    CBlock block;
-    if (fHavePruned && !pblockindex->nStatus.hasData() &&
-        pblockindex->nTx > 0) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Block not available (pruned data)");
-    }
-
-    if (!ReadBlockFromDisk(block, pblockindex, config)) {
-        // Block not found on disk. This could be because we have the block
-        // header in our index but don't have the block (for example if a
-        // non-whitelisted node sends us an unrequested long chain of valid
-        // blocks, we add the headers to our index, but don't accept the block).
-        throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
-    }
+    const CBlock block = GetBlockChecked(config, pblockindex);
 
     if (verbosity <= 0) {
         CDataStream ssBlock(SER_NETWORK,
