@@ -4,52 +4,51 @@
 
 #include "consensus/validation.h"
 #include "key.h"
-#include "validation.h"
 #include "miner.h"
 #include "pubkey.h"
-#include "txmempool.h"
 #include "random.h"
 #include "script/standard.h"
 #include "test/test_bitcoin.h"
+#include "txmempool.h"
 #include "utiltime.h"
+#include "validation.h"
 
 #include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(tx_validationcache_tests)
 
-static bool
-ToMemPool(CMutableTransaction& tx)
-{
+static bool ToMemPool(CMutableTransaction &tx) {
     LOCK(cs_main);
 
     CValidationState state;
-    return AcceptToMemoryPool(mempool, state, MakeTransactionRef(tx), false, NULL, NULL, true, 0);
+    return AcceptToMemoryPool(mempool, state, MakeTransactionRef(tx), false,
+                              NULL, NULL, true, 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup)
-{
-    // Make sure skipping validation of transctions that were
-    // validated going into the memory pool does not allow
-    // double-spends in blocks to pass validation when they should not.
+BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
+    // Make sure skipping validation of transctions that were validated going
+    // into the memory pool does not allow double-spends in blocks to pass
+    // validation when they should not.
 
-    CScript scriptPubKey = CScript() <<  ToByteVector(coinbaseKey.GetPubKey()) << OP_CHECKSIG;
+    CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey())
+                                     << OP_CHECKSIG;
 
     // Create a double-spend of mature coinbase txn:
     std::vector<CMutableTransaction> spends;
     spends.resize(2);
-    for (int i = 0; i < 2; i++)
-    {
+    for (int i = 0; i < 2; i++) {
         spends[i].nVersion = 1;
         spends[i].vin.resize(1);
         spends[i].vin[0].prevout.hash = coinbaseTxns[0].GetId();
         spends[i].vin[0].prevout.n = 0;
         spends[i].vout.resize(1);
-        spends[i].vout[0].nValue = 11*CENT;
+        spends[i].vout[0].nValue = 11 * CENT;
         spends[i].vout[0].scriptPubKey = scriptPubKey;
 
         // Sign:
         std::vector<unsigned char> vchSig;
-        uint256 hash = SignatureHash(scriptPubKey, spends[i], 0, SIGHASH_ALL, 0, SIGVERSION_BASE);
+        uint256 hash = SignatureHash(scriptPubKey, spends[i], 0, SIGHASH_ALL, 0,
+                                     SIGVERSION_BASE);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);
         spends[i].vin[0].scriptSig << vchSig;
@@ -79,8 +78,8 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup)
     BOOST_CHECK(ToMemPool(spends[1]));
     block = CreateAndProcessBlock(oneSpend, scriptPubKey);
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
-    // spends[1] should have been removed from the mempool when the
-    // block with spends[0] is accepted:
+    // spends[1] should have been removed from the mempool when the block with
+    // spends[0] is accepted:
     BOOST_CHECK_EQUAL(mempool.size(), 0);
 }
 
