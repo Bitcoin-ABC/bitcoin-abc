@@ -1229,10 +1229,10 @@ PrecomputedTransactionData::PrecomputedTransactionData(
 }
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
-                      unsigned int nIn, int nHashType, const CAmount &amount,
-                      SigVersion sigversion,
+                      unsigned int nIn, uint32_t nHashType,
+                      const CAmount &amount,
                       const PrecomputedTransactionData *cache) {
-    if (sigversion == SIGVERSION_WITNESS_V0) {
+    if (nHashType & SIGHASH_FORKID) {
         uint256 hashPrevouts;
         uint256 hashSequence;
         uint256 hashOutputs;
@@ -1324,8 +1324,8 @@ bool TransactionSignatureChecker::CheckSig(
     int nHashType = vchSig.back();
     vchSig.pop_back();
 
-    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount,
-                                    sigversion, this->txdata);
+    uint256 sighash =
+        SignatureHash(scriptCode, *txTo, nIn, nHashType, amount, this->txdata);
 
     if (!VerifySignature(vchSig, pubkey, sighash)) return false;
 

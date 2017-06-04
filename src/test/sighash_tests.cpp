@@ -133,6 +133,10 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
 #endif
     for (int i = 0; i < nRandomTests; i++) {
         int nHashType = insecure_rand();
+
+        // Clear forkid
+        nHashType &= ~SIGHASH_FORKID;
+
         CMutableTransaction txTo;
         RandomTransaction(txTo, (nHashType & 0x1f) == SIGHASH_SINGLE);
         CScript scriptCode;
@@ -141,8 +145,7 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
 
         uint256 sh, sho;
         sho = SignatureHashOld(scriptCode, txTo, nIn, nHashType);
-        sh =
-            SignatureHash(scriptCode, txTo, nIn, nHashType, 0, SIGVERSION_BASE);
+        sh = SignatureHash(scriptCode, txTo, nIn, nHashType, 0);
 #if defined(PRINT_SIGHASH_JSON)
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         ss << txTo;
@@ -209,7 +212,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data) {
             continue;
         }
 
-        sh = SignatureHash(scriptCode, *tx, nIn, nHashType, 0, SIGVERSION_BASE);
+        sh = SignatureHash(scriptCode, *tx, nIn, nHashType, 0);
         BOOST_CHECK_MESSAGE(sh.GetHex() == sigHashHex, strTest);
     }
 }
