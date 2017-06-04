@@ -393,10 +393,10 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     CDataStream ssout(SER_NETWORK, PROTOCOL_VERSION);
     ssout << outputm;
     ssout >> output;
-    assert(output->vin.size() == 1);
-    assert(output->vin[0] == outputm.vin[0]);
-    assert(output->vout.size() == 1);
-    assert(output->vout[0] == outputm.vout[0]);
+    BOOST_CHECK_EQUAL(output->vin.size(), 1);
+    BOOST_CHECK(output->vin[0] == outputm.vin[0]);
+    BOOST_CHECK_EQUAL(output->vout.size(), 1);
+    BOOST_CHECK(output->vout[0] == outputm.vout[0]);
 
     CMutableTransaction inputm;
     inputm.nVersion = 1;
@@ -407,14 +407,14 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     inputm.vout[0].nValue = 1;
     inputm.vout[0].scriptPubKey = CScript();
     bool ret = SignSignature(keystore, *output, inputm, 0, SIGHASH_ALL);
-    assert(ret == success);
+    BOOST_CHECK_EQUAL(ret, success);
     CDataStream ssin(SER_NETWORK, PROTOCOL_VERSION);
     ssin << inputm;
     ssin >> input;
-    assert(input.vin.size() == 1);
-    assert(input.vin[0] == inputm.vin[0]);
-    assert(input.vout.size() == 1);
-    assert(input.vout[0] == inputm.vout[0]);
+    BOOST_CHECK_EQUAL(input.vin.size(), 1);
+    BOOST_CHECK(input.vin[0] == inputm.vin[0]);
+    BOOST_CHECK_EQUAL(input.vout.size(), 1);
+    BOOST_CHECK(input.vout[0] == inputm.vout[0]);
 }
 
 void CheckWithFlag(const CTransactionRef &output,
@@ -425,7 +425,7 @@ void CheckWithFlag(const CTransactionRef &output,
         inputi.vin[0].scriptSig, output->vout[0].scriptPubKey, flags,
         TransactionSignatureChecker(&inputi, 0, output->vout[0].nValue),
         &error);
-    assert(ret == success);
+    BOOST_CHECK_EQUAL(ret, success);
 }
 
 static CScript PushAll(const std::vector<valtype> &values) {
@@ -446,7 +446,7 @@ void ReplaceRedeemScript(CScript &script, const CScript &redeemScript) {
     std::vector<valtype> stack;
     EvalScript(stack, script, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker(),
                SIGVERSION_BASE);
-    assert(stack.size() > 0);
+    BOOST_CHECK(stack.size() > 0);
     stack.back() =
         std::vector<unsigned char>(redeemScript.begin(), redeemScript.end());
     script = PushAll(stack);
