@@ -102,6 +102,7 @@ if(EXTRA_WARNINGS)
 	add_cxx_compiler_flag(-Wsuggest-override)
 else()
 	add_compiler_flag(-Wno-unused-parameter)
+	add_compiler_flag(-Wno-implicit-fallthrough)
 endif()
 
 # Create a target for OpenSSL
