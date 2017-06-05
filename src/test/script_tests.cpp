@@ -276,8 +276,6 @@ struct KeyData {
     }
 };
 
-enum WitnessMode { WITNESS_NONE, WITNESS_PKH, WITNESS_SH };
-
 class TestBuilder {
 private:
     //! Actually executed script
@@ -310,27 +308,10 @@ private:
 
 public:
     TestBuilder(const CScript &script_, const std::string &comment_, int flags_,
-                bool P2SH = false, WitnessMode wm = WITNESS_NONE,
-                int witnessversion = 0, CAmount nValue_ = 0)
+                bool P2SH = false, CAmount nValue_ = 0)
         : script(script_), havePush(false), comment(comment_), flags(flags_),
           scriptError(SCRIPT_ERR_OK), nValue(nValue_) {
         CScript scriptPubKey = script;
-        if (wm == WITNESS_PKH) {
-            uint160 hash;
-            CHash160()
-                .Write(&script[1], script.size() - 1)
-                .Finalize(hash.begin());
-            script = CScript() << OP_DUP << OP_HASH160 << ToByteVector(hash)
-                               << OP_EQUALVERIFY << OP_CHECKSIG;
-            scriptPubKey = CScript() << witnessversion << ToByteVector(hash);
-        } else if (wm == WITNESS_SH) {
-            witscript = scriptPubKey;
-            uint256 hash;
-            CSHA256()
-                .Write(&witscript[0], witscript.size())
-                .Finalize(hash.begin());
-            scriptPubKey = CScript() << witnessversion << ToByteVector(hash);
-        }
         if (P2SH) {
             redeemscript = scriptPubKey;
             scriptPubKey = CScript() << OP_HASH160
@@ -1122,9 +1103,9 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
             nValue = AmountFromValue(test[pos][0]);
             pos++;
         }
-        if (test.size() < 4 + pos) // Allow size > 3; extra stuff ignored
-                                   // (useful for comments)
-        {
+
+        // Allow size > 3; extra stuff ignored (useful for comments)
+        if (test.size() < 4 + pos) {
             if (test.size() != 1) {
                 BOOST_ERROR("Bad test: " << strTest);
             }
