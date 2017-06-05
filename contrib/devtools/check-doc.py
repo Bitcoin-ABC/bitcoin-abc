@@ -10,6 +10,11 @@ Return value is 0 to indicate no error.
 Author: @MarcoFalke
 '''
 
+# FIXME: the script makes assumptions on how to find documented
+#        options - these have been broken by clang-format
+#        reformatting of the sources.
+#        The script likely needs major rework.
+
 from subprocess import check_output
 import re
 
