@@ -178,12 +178,20 @@ bool static IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
     return true;
 }
 
-bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
+static uint32_t GetHashType(const valtype &vchSig) {
+    if (vchSig.size() == 0) {
+        return 0;
+    }
+
+    return vchSig[vchSig.size() - 1];
+}
+
+static bool IsDefinedHashtypeSignature(const valtype &vchSig) {
     if (vchSig.size() == 0) {
         return false;
     }
-    unsigned char nHashType =
-        vchSig[vchSig.size() - 1] & (~(SIGHASH_ANYONECANPAY));
+    uint32_t nHashType =
+        GetHashType(vchSig) & ~(SIGHASH_ANYONECANPAY | SIGHASH_FORKID);
     if (nHashType < SIGHASH_ALL || nHashType > SIGHASH_SINGLE) return false;
 
     return true;
@@ -916,18 +924,25 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                         valtype &vchSig = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        // Subset of script starting at the most recent
-                        // codeseparator
-                        CScript scriptCode(pbegincodehash, pend);
-
-                        // Drop the signature in scripts.
-                        // TODO: Do not do this when using SIGHASH_FORKID
-                        scriptCode.FindAndDelete(CScript(vchSig));
-
                         if (!CheckSignatureEncoding(vchSig, flags, serror) ||
                             !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             // serror is set
                             return false;
+                        }
+
+                        // Subset of script starting at the most recent
+                        // codeseparator
+                        CScript scriptCode(pbegincodehash, pend);
+
+                        // Drop the signature in scripts when SIGHASH_FORKID is
+                        // not used.
+                        uint32_t nHashType = GetHashType(vchSig);
+                        if (nHashType & SIGHASH_FORKID) {
+                            if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID))
+                                return set_error(serror,
+                                                 SCRIPT_ERR_ILLEGAL_FORKID);
+                        } else {
+                            scriptCode.FindAndDelete(CScript(vchSig));
                         }
 
                         bool fSuccess =
@@ -996,8 +1011,17 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                         // segwit scripts
                         for (int k = 0; k < nSigsCount; k++) {
                             valtype &vchSig = stacktop(-isig - k);
-                            // TODO: Do not do this when using SIGHASH_FORKID
-                            scriptCode.FindAndDelete(CScript(vchSig));
+
+                            // Drop the signature in scripts when SIGHASH_FORKID
+                            // is not used.
+                            uint32_t nHashType = GetHashType(vchSig);
+                            if (nHashType & SIGHASH_FORKID) {
+                                if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID))
+                                    return set_error(serror,
+                                                     SCRIPT_ERR_ILLEGAL_FORKID);
+                            } else {
+                                scriptCode.FindAndDelete(CScript(vchSig));
+                            }
                         }
 
                         bool fSuccess = true;
@@ -1113,7 +1137,7 @@ private:
 public:
     CTransactionSignatureSerializer(const CTransaction &txToIn,
                                     const CScript &scriptCodeIn,
-                                    unsigned int nInIn, int nHashTypeIn)
+                                    unsigned int nInIn, uint32_t nHashTypeIn)
         : txTo(txToIn), scriptCode(scriptCodeIn), nIn(nInIn),
           fAnyoneCanPay(!!(nHashTypeIn & SIGHASH_ANYONECANPAY)),
           fHashSingle((nHashTypeIn & 0x1f) == SIGHASH_SINGLE),
@@ -1316,7 +1340,7 @@ bool TransactionSignatureChecker::CheckSig(
     // Hash type is one byte tacked on to the end of the signature
     vector<unsigned char> vchSig(vchSigIn);
     if (vchSig.empty()) return false;
-    int nHashType = vchSig.back();
+    uint32_t nHashType = vchSig.back();
     vchSig.pop_back();
 
     uint256 sighash =

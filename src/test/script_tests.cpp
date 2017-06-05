@@ -20,8 +20,8 @@
 #include "script/bitcoinconsensus.h"
 #endif
 
+#include <cstdint>
 #include <fstream>
-#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -93,6 +93,7 @@ static ScriptErrorDesc script_errors[] = {
     {SCRIPT_ERR_WITNESS_MALLEATED_P2SH, "WITNESS_MALLEATED_P2SH"},
     {SCRIPT_ERR_WITNESS_UNEXPECTED, "WITNESS_UNEXPECTED"},
     {SCRIPT_ERR_NONCOMPRESSED_PUBKEY, "NONCOMPRESSED_PUBKEY"},
+    {SCRIPT_ERR_ILLEGAL_FORKID, "ILLEGAL_FORKID"},
 };
 
 const char *FormatScriptError(ScriptError_t err) {
@@ -112,8 +113,8 @@ ScriptError_t ParseScriptError(const std::string &name) {
 
 BOOST_FIXTURE_TEST_SUITE(script_tests, BasicTestingSetup)
 
-CMutableTransaction BuildCreditingTransaction(const CScript &scriptPubKey,
-                                              int nValue = 0) {
+static CMutableTransaction
+BuildCreditingTransaction(const CScript &scriptPubKey, CAmount nValue) {
     CMutableTransaction txCredit;
     txCredit.nVersion = 1;
     txCredit.nLockTime = 0;
@@ -128,7 +129,7 @@ CMutableTransaction BuildCreditingTransaction(const CScript &scriptPubKey,
     return txCredit;
 }
 
-CMutableTransaction
+static CMutableTransaction
 BuildSpendingTransaction(const CScript &scriptSig,
                          const CMutableTransaction &txCredit) {
     CMutableTransaction txSpend;
@@ -146,12 +147,14 @@ BuildSpendingTransaction(const CScript &scriptSig,
     return txSpend;
 }
 
-void DoTest(const CScript &scriptPubKey, const CScript &scriptSig, int flags,
-            const std::string &message, int scriptError, CAmount nValue = 0) {
+static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
+                   int flags, const std::string &message, int scriptError,
+                   CAmount nValue) {
     bool expect = (scriptError == SCRIPT_ERR_OK);
     if (flags & SCRIPT_VERIFY_CLEANSTACK) {
         flags |= SCRIPT_VERIFY_P2SH;
     }
+
     ScriptError err;
     CMutableTransaction txCredit =
         BuildCreditingTransaction(scriptPubKey, nValue);
@@ -197,7 +200,7 @@ void DoTest(const CScript &scriptPubKey, const CScript &scriptSig, int flags,
 #endif
 }
 
-void static NegateSignatureS(std::vector<unsigned char> &vchSig) {
+static void NegateSignatureS(std::vector<unsigned char> &vchSig) {
     // Parse the signature.
     std::vector<unsigned char> r, s;
     r = std::vector<unsigned char>(vchSig.begin() + 4,
@@ -418,6 +421,11 @@ public:
     UniValue GetJSON() {
         DoPush();
         UniValue array(UniValue::VARR);
+        if (nValue != 0) {
+            UniValue amount(UniValue::VARR);
+            amount.push_back(ValueFromAmount(nValue));
+            array.push_back(amount);
+        }
         array.push_back(FormatScript(spendTx.vin[0].scriptSig));
         array.push_back(FormatScript(creditTx->vout[0].scriptPubKey));
         array.push_back(FormatScriptFlags(flags));
@@ -1047,6 +1055,28 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .PushSig(keys.key0)
             .PushRedeem());
 
+    static const CAmount TEST_AMOUNT = 12345000000000;
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
+                    "P2PK FORKID", SCRIPT_ENABLE_SIGHASH_FORKID, false,
+                    TEST_AMOUNT)
+            .PushSig(keys.key0, SIGHASH_ALL | SIGHASH_FORKID, 32, 32,
+                     TEST_AMOUNT));
+
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
+                    "P2PK INVALID AMOUNT", SCRIPT_ENABLE_SIGHASH_FORKID, false,
+                    TEST_AMOUNT)
+            .PushSig(keys.key0, SIGHASH_ALL | SIGHASH_FORKID, 32, 32,
+                     TEST_AMOUNT + 1)
+            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
+                    "P2PK INVALID FORKID", 0, false, TEST_AMOUNT)
+            .PushSig(keys.key0, SIGHASH_ALL | SIGHASH_FORKID, 32, 32,
+                     TEST_AMOUNT)
+            .ScriptError(SCRIPT_ERR_ILLEGAL_FORKID));
+
     std::set<std::string> tests_set;
 
     {
@@ -1062,7 +1092,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
 
     std::string strGen;
 
-    BOOST_FOREACH (TestBuilder &test, tests) {
+    for (TestBuilder &test : tests) {
         test.Test();
         std::string str = JSONPrettyPrint(test.GetJSON());
 #ifndef UPDATE_JSON_TESTS
@@ -1198,7 +1228,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12) {
                    << ToByteVector(key2.GetPubKey()) << OP_2
                    << OP_CHECKMULTISIG;
 
-    CMutableTransaction txFrom12 = BuildCreditingTransaction(scriptPubKey12);
+    CMutableTransaction txFrom12 = BuildCreditingTransaction(scriptPubKey12, 0);
     CMutableTransaction txTo12 = BuildSpendingTransaction(CScript(), txFrom12);
 
     CScript goodsig1 = sign_multisig(scriptPubKey12, key1, txTo12);
@@ -1243,7 +1273,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23) {
                    << ToByteVector(key3.GetPubKey()) << OP_3
                    << OP_CHECKMULTISIG;
 
-    CMutableTransaction txFrom23 = BuildCreditingTransaction(scriptPubKey23);
+    CMutableTransaction txFrom23 = BuildCreditingTransaction(scriptPubKey23, 0);
     CMutableTransaction txTo23 = BuildSpendingTransaction(CScript(), txFrom23);
 
     std::vector<CKey> keys;
@@ -1351,7 +1381,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     }
 
     CMutableTransaction txFrom = BuildCreditingTransaction(
-        GetScriptForDestination(keys[0].GetPubKey().GetID()));
+        GetScriptForDestination(keys[0].GetPubKey().GetID()), 0);
     CMutableTransaction txTo = BuildSpendingTransaction(CScript(), txFrom);
     CScript &scriptPubKey = txFrom.vout[0].scriptPubKey;
     CScript &scriptSig = txTo.vin[0].scriptSig;

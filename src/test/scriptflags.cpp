@@ -36,7 +36,9 @@ static std::map<std::string, unsigned int> mapFlagNames =
         std::string("DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM"),
         (unsigned int)SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM)(
         std::string("COMPRESSED_PUBKEYTYPE"),
-        (unsigned int)SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE);
+        (unsigned int)SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE)(
+        std::string("SIGHASH_FORKID"),
+        (unsigned int)SCRIPT_ENABLE_SIGHASH_FORKID);
 
 unsigned int ParseScriptFlags(std::string strFlags) {
     if (strFlags.empty()) {

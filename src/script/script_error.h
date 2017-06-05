@@ -65,6 +65,9 @@ typedef enum ScriptError_t {
     SCRIPT_ERR_WITNESS_MALLEATED_P2SH,
     SCRIPT_ERR_WITNESS_UNEXPECTED,
 
+    /* anti replay */
+    SCRIPT_ERR_ILLEGAL_FORKID,
+
     SCRIPT_ERR_ERROR_COUNT
 } ScriptError;
 

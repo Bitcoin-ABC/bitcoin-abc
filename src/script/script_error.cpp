@@ -87,6 +87,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Witness provided for non-witness script";
         case SCRIPT_ERR_NONCOMPRESSED_PUBKEY:
             return "Using non-compressed public key";
+        case SCRIPT_ERR_ILLEGAL_FORKID:
+            return "Illegal use of SIGHASH_FORKID";
         case SCRIPT_ERR_UNKNOWN_ERROR:
         case SCRIPT_ERR_ERROR_COUNT:
         default:

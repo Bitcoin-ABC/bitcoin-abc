@@ -25,7 +25,7 @@
 extern UniValue read_json(const std::string &jsondata);
 
 // Old script.cpp SignatureHash function
-uint256 static SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
+static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
                                 unsigned int nIn, int nHashType) {
     static const uint256 one(uint256S(
         "0000000000000000000000000000000000000000000000000000000000000001"));
@@ -80,7 +80,7 @@ uint256 static SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
     return ss.GetHash();
 }
 
-void static RandomScript(CScript &script) {
+static void RandomScript(CScript &script) {
     static const opcodetype oplist[] = {
         OP_FALSE, OP_1,        OP_2,
         OP_3,     OP_CHECKSIG, OP_IF,
@@ -92,7 +92,7 @@ void static RandomScript(CScript &script) {
             << oplist[insecure_rand() % (sizeof(oplist) / sizeof(oplist[0]))];
 }
 
-void static RandomTransaction(CMutableTransaction &tx, bool fSingle) {
+static void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
     tx.nVersion = insecure_rand();
     tx.vin.clear();
     tx.vout.clear();
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
         std::cout << HexStr(scriptCode) << "\", ";
         std::cout << nIn << ", ";
         std::cout << nHashType << ", \"";
-        std::cout << sho.GetHex() << "\"]";
+        std::cout << sh.GetHex() << "\"]";
         if (i + 1 != nRandomTests) {
             std::cout << ",";
         }
