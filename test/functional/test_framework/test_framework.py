@@ -30,6 +30,7 @@ from .util import (
     get_mocktime,
     get_rpc_proxy,
     initialize_datadir,
+    get_datadir_path,
     log_filename,
     p2p_port,
     rpc_url,
@@ -43,6 +44,7 @@ from .util import (
     wait_for_bitcoind_start,
 )
 from .authproxy import JSONRPCException
+
 
 class TestStatus(Enum):
     PASSED = 1
@@ -332,13 +334,14 @@ class BitcoinTestFramework(object):
                 bitcoind_processes[i] = subprocess.Popen(args)
                 self.log.debug(
                     "initialize_chain: bitcoind started, waiting for RPC to come up")
-                wait_for_bitcoind_start(bitcoind_processes[i], rpc_url(i), i)
+                wait_for_bitcoind_start(bitcoind_processes[i], datadir, i)
                 self.log.debug("initialize_chain: RPC successfully started")
 
             self.nodes = []
             for i in range(MAX_NODES):
                 try:
-                    self.nodes.append(get_rpc_proxy(rpc_url(i), i))
+                    self.nodes.append(get_rpc_proxy(
+                        rpc_url(get_datadir_path(cachedir, i), i), i))
                 except:
                     self.log.exception("Error connecting to node %d" % i)
                     sys.exit(1)

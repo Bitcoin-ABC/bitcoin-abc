@@ -50,7 +50,8 @@ class RPCBindTest(BitcoinTestFramework):
         self.nodes = self.start_nodes(
             self.num_nodes, self.options.tmpdir, [base_args])
         # connect to node through non-loopback interface
-        node = get_rpc_proxy(rpc_url(0, "%s:%d" % (rpchost, rpcport)), 0)
+        node = get_rpc_proxy(rpc_url(get_datadir_path(
+            self.options.tmpdir, 0), 0, "%s:%d" % (rpchost, rpcport)), 0)
         node.getnetworkinfo()
         self.stop_nodes()
 
