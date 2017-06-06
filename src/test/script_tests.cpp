@@ -285,8 +285,6 @@ private:
     CScript script;
     //! The P2SH redeemscript
     CScript redeemscript;
-    //! The Witness embedded script
-    CScript witscript;
     CTransactionRef creditTx;
     CMutableTransaction spendTx;
     bool havePush;
