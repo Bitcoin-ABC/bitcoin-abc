@@ -8,16 +8,17 @@
 #include <boost/foreach.hpp>
 #include <set>
 
-static void addCoin(const CAmount& nValue, const CWallet& wallet, std::vector<COutput>& vCoins)
-{
+static void addCoin(const CAmount &nValue, const CWallet &wallet,
+                    std::vector<COutput> &vCoins) {
     int nInput = 0;
 
     static int nextLockTime = 0;
     CMutableTransaction tx;
-    tx.nLockTime = nextLockTime++; // so all transactions get different hashes
+    // so all transactions get different hashes
+    tx.nLockTime = nextLockTime++;
     tx.vout.resize(nInput + 1);
     tx.vout[nInput].nValue = nValue;
-    CWalletTx* wtx = new CWalletTx(&wallet, MakeTransactionRef(std::move(tx)));
+    CWalletTx *wtx = new CWalletTx(&wallet, MakeTransactionRef(std::move(tx)));
 
     int nAge = 6 * 24;
     COutput output(wtx, nInput, nAge, true, true);
@@ -31,8 +32,7 @@ static void addCoin(const CAmount& nValue, const CWallet& wallet, std::vector<CO
 // same one over and over isn't too useful. Generating random isn't useful
 // either for measurements."
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
-static void CoinSelection(benchmark::State& state)
-{
+static void CoinSelection(benchmark::State &state) {
     const CWallet wallet;
     std::vector<COutput> vCoins;
     LOCK(wallet.cs_wallet);
@@ -48,9 +48,10 @@ static void CoinSelection(benchmark::State& state)
             addCoin(1000 * COIN, wallet, vCoins);
         addCoin(3 * COIN, wallet, vCoins);
 
-        std::set<std::pair<const CWalletTx*, unsigned int> > setCoinsRet;
+        std::set<std::pair<const CWalletTx *, unsigned int>> setCoinsRet;
         CAmount nValueRet;
-        bool success = wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins, setCoinsRet, nValueRet);
+        bool success = wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
+                                                 setCoinsRet, nValueRet);
         assert(success);
         assert(nValueRet == 1003 * COIN);
         assert(setCoinsRet.size() == 2);
