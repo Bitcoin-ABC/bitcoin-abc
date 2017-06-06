@@ -25,7 +25,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
@@ -1198,7 +1197,7 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
     // clients would not accept new CHECKMULTISIG transactions, and vice-versa)
     //
     result << OP_0;
-    BOOST_FOREACH (const CKey &key, keys) {
+    for (const CKey &key : keys) {
         std::vector<unsigned char> vchSig;
         BOOST_CHECK(key.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);

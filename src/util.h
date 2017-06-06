@@ -19,9 +19,9 @@
 #include "utiltime.h"
 
 #include <atomic>
+#include <cstdint>
 #include <exception>
 #include <map>
-#include <stdint.h>
 #include <string>
 #include <vector>
 

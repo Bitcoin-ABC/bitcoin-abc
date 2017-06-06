@@ -27,10 +27,11 @@
 #include "validationinterface.h"
 
 #include <algorithm>
-#include <boost/thread.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <queue>
 #include <utility>
+
+#include <boost/thread.hpp>
+#include <boost/tuple/tuple.hpp>
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -206,7 +207,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 }
 
 bool BlockAssembler::isStillDependent(CTxMemPool::txiter iter) {
-    BOOST_FOREACH (CTxMemPool::txiter parent, mempool.GetMemPoolParents(iter)) {
+    for (CTxMemPool::txiter parent : mempool.GetMemPoolParents(iter)) {
         if (!inBlock.count(parent)) {
             return true;
         }
@@ -239,7 +240,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps) {
 bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
     uint64_t nPotentialBlockSize = nBlockSize;
-    BOOST_FOREACH (const CTxMemPool::txiter it, package) {
+    for (const CTxMemPool::txiter it : package) {
         if (!IsFinalTx(it->GetTx(), nHeight, nLockTimeCutoff)) return false;
         uint64_t nTxSize =
             ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
@@ -310,11 +311,11 @@ int BlockAssembler::UpdatePackagesForAdded(
     const CTxMemPool::setEntries &alreadyAdded,
     indexed_modified_transaction_set &mapModifiedTx) {
     int nDescendantsUpdated = 0;
-    BOOST_FOREACH (const CTxMemPool::txiter it, alreadyAdded) {
+    for (const CTxMemPool::txiter it : alreadyAdded) {
         CTxMemPool::setEntries descendants;
         mempool.CalculateDescendants(it, descendants);
         // Insert all descendants (not yet in block) into the modified set.
-        BOOST_FOREACH (CTxMemPool::txiter desc, descendants) {
+        for (CTxMemPool::txiter desc : descendants) {
             if (alreadyAdded.count(desc)) continue;
             ++nDescendantsUpdated;
             modtxiter mit = mapModifiedTx.find(desc);
@@ -571,8 +572,7 @@ void BlockAssembler::addPriorityTxs() {
 
             // This tx was successfully added, so add transactions that depend
             // on this one to the priority queue to try again.
-            BOOST_FOREACH (CTxMemPool::txiter child,
-                           mempool.GetMemPoolChildren(iter)) {
+            for (CTxMemPool::txiter child : mempool.GetMemPoolChildren(iter)) {
                 waitPriIter wpiter = waitPriMap.find(child);
                 if (wpiter != waitPriMap.end()) {
                     vecPriority.push_back(

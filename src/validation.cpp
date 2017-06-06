@@ -46,6 +46,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/math/distributions/poisson.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -194,7 +195,7 @@ public:
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator) {
     // Find the first block the caller has in the main chain
-    BOOST_FOREACH (const uint256 &hash, locator.vHave) {
+    for (const uint256 &hash : locator.vHave) {
         BlockMap::iterator mi = mapBlockIndex.find(hash);
         if (mi != mapBlockIndex.end()) {
             CBlockIndex *pindex = (*mi).second;
@@ -437,7 +438,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
             // lock on a mempool input, so we can use the return value of
             // CheckSequenceLocks to indicate the LockPoints validity
             int maxInputHeight = 0;
-            BOOST_FOREACH (int height, prevheights) {
+            for (int height : prevheights) {
                 // Can ignore mempool inputs since we'll fail if they had
                 // non-zero locks
                 if (height != tip->nHeight + 1) {
@@ -587,8 +588,9 @@ void LimitMempoolSize(CTxMemPool &pool, size_t limit, unsigned long age) {
 
     std::vector<uint256> vNoSpendsRemaining;
     pool.TrimToSize(limit, &vNoSpendsRemaining);
-    BOOST_FOREACH (const uint256 &removed, vNoSpendsRemaining)
+    for (const uint256 &removed : vNoSpendsRemaining) {
         pcoinsTip->Uncache(removed);
+    }
 }
 
 /** Convert CValidationState to a human-readable message for logging */
@@ -915,8 +917,9 @@ bool AcceptToMemoryPoolWithTime(CTxMemPool &pool, CValidationState &state,
         pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
         plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, vHashTxToUncache);
     if (!res) {
-        BOOST_FOREACH (const uint256 &txid, vHashTxToUncache)
+        for (const uint256 &txid : vHashTxToUncache) {
             pcoinsTip->Uncache(txid);
+        }
     }
     // After we've (potentially) uncached entries, ensure our coins cache is
     // still within its size limits
@@ -2494,7 +2497,8 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
         nHeight = nTargetHeight;
 
         // Connect new blocks.
-        BOOST_REVERSE_FOREACH (CBlockIndex *pindexConnect, vpindexToConnect) {
+        for (CBlockIndex *pindexConnect :
+             boost::adaptors::reverse(vpindexToConnect)) {
             if (!ConnectTip(config, state, chainparams, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock
@@ -3435,7 +3439,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
 /* Calculate the amount of disk space the block & undo files currently use */
 uint64_t CalculateCurrentUsage() {
     uint64_t retval = 0;
-    BOOST_FOREACH (const CBlockFileInfo &file, vinfoBlockFile) {
+    for (const CBlockFileInfo &file : vinfoBlockFile) {
         retval += file.nSize + file.nUndoSize;
     }
     return retval;
@@ -3643,13 +3647,12 @@ bool static LoadBlockIndexDB(const CChainParams &chainparams) {
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    BOOST_FOREACH (const PAIRTYPE(uint256, CBlockIndex *) & item,
-                   mapBlockIndex) {
+    for (const PAIRTYPE(uint256, CBlockIndex *) & item : mapBlockIndex) {
         CBlockIndex *pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
     }
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    BOOST_FOREACH (const PAIRTYPE(int, CBlockIndex *) & item, vSortedByHeight) {
+    for (const PAIRTYPE(int, CBlockIndex *) & item : vSortedByHeight) {
         CBlockIndex *pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) +
                              GetBlockProof(*pindex);
@@ -3706,8 +3709,7 @@ bool static LoadBlockIndexDB(const CChainParams &chainparams) {
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
-    BOOST_FOREACH (const PAIRTYPE(uint256, CBlockIndex *) & item,
-                   mapBlockIndex) {
+    for (const PAIRTYPE(uint256, CBlockIndex *) & item : mapBlockIndex) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus & BLOCK_HAVE_DATA) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -3960,7 +3962,7 @@ void UnloadBlockIndex() {
         warningcache[b].clear();
     }
 
-    BOOST_FOREACH (BlockMap::value_type &entry, mapBlockIndex) {
+    for (BlockMap::value_type &entry : mapBlockIndex) {
         delete entry.second;
     }
     mapBlockIndex.clear();

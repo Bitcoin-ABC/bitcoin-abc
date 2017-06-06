@@ -11,13 +11,12 @@
 #include "wallet/rpcdump.h"
 #include "wallet/test/wallet_test_fixture.h"
 
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
 
+#include <cstdint>
 #include <set>
-#include <stdint.h>
 #include <utility>
 #include <vector>
 

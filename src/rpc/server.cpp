@@ -19,7 +19,6 @@
 #include <boost/algorithm/string/case_conv.hpp> // for to_upper()
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2/signal.hpp>
 #include <boost/thread.hpp>
@@ -66,7 +65,7 @@ void RPCServer::OnPostCommand(boost::function<void(const CRPCCommand &)> slot) {
 void RPCTypeCheck(const UniValue &params,
                   const list<UniValue::VType> &typesExpected, bool fAllowNull) {
     unsigned int i = 0;
-    BOOST_FOREACH (UniValue::VType t, typesExpected) {
+    for (UniValue::VType t : typesExpected) {
         if (params.size() <= i) break;
 
         const UniValue &v = params[i];
@@ -104,7 +103,7 @@ void RPCTypeCheckObj(const UniValue &o,
     }
 
     if (fStrict) {
-        BOOST_FOREACH (const string &k, o.getKeys()) {
+        for (const string &k : o.getKeys()) {
             if (typesExpected.count(k) == 0) {
                 string err = strprintf("Unexpected key %s", k);
                 throw JSONRPCError(RPC_TYPE_ERROR, err);

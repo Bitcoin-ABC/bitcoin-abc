@@ -5,7 +5,6 @@
 #include "bench.h"
 #include "wallet/wallet.h"
 
-#include <boost/foreach.hpp>
 #include <set>
 
 static void addCoin(const CAmount &nValue, const CWallet &wallet,
@@ -39,8 +38,10 @@ static void CoinSelection(benchmark::State &state) {
 
     while (state.KeepRunning()) {
         // Empty wallet.
-        BOOST_FOREACH (COutput output, vCoins)
+        for (COutput output : vCoins) {
             delete output.tx;
+        }
+
         vCoins.clear();
 
         // Add coins.

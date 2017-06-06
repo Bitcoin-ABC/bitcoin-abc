@@ -30,6 +30,7 @@
 #include "validation.h"
 #include "validationinterface.h"
 
+#include <boost/range/adaptor/reversed.hpp>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -304,7 +305,7 @@ void FinalizeNode(NodeId nodeid, bool &fUpdateConnectionTime) {
         fUpdateConnectionTime = true;
     }
 
-    BOOST_FOREACH (const QueuedBlock &entry, state->vBlocksInFlight) {
+    for (const QueuedBlock &entry : state->vBlocksInFlight) {
         mapBlocksInFlight.erase(entry.hash);
     }
     EraseOrphansFor(nodeid);
@@ -584,7 +585,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
         // the mean time, update pindexLastCommonBlock as long as all ancestors
         // are already downloaded, or if it's already part of our chain (and
         // therefore don't need it even if pruned).
-        BOOST_FOREACH (const CBlockIndex *pindex, vToFetch) {
+        for (const CBlockIndex *pindex : vToFetch) {
             if (!pindex->IsValid(BLOCK_VALID_TREE)) {
                 // We consider the chain that this peer is on invalid.
                 return;
@@ -627,7 +628,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     stats.nCommonHeight = state->pindexLastCommonBlock
                               ? state->pindexLastCommonBlock->nHeight
                               : -1;
-    BOOST_FOREACH (const QueuedBlock &queue, state->vBlocksInFlight) {
+    for (const QueuedBlock &queue : state->vBlocksInFlight) {
         if (queue.pindex)
             stats.vHeightInFlight.push_back(queue.pindex->nHeight);
     }
@@ -684,7 +685,7 @@ bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
     auto ret = mapOrphanTransactions.emplace(
         txid, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME});
     assert(ret.second);
-    BOOST_FOREACH (const CTxIn &txin, tx->vin) {
+    for (const CTxIn &txin : tx->vin) {
         mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);
     }
 
@@ -700,7 +701,7 @@ int static EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<uint256, COrphanTx>::iterator it =
         mapOrphanTransactions.find(hash);
     if (it == mapOrphanTransactions.end()) return 0;
-    BOOST_FOREACH (const CTxIn &txin, it->second.tx->vin) {
+    for (const CTxIn &txin : it->second.tx->vin) {
         auto itPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
         if (itPrev == mapOrphanTransactionsByPrev.end()) continue;
         itPrev->second.erase(it);
@@ -820,7 +821,7 @@ void PeerLogicValidation::SyncTransaction(const CTransaction &tx,
     // Erase orphan transactions include or precluded by this block
     if (vOrphanErase.size()) {
         int nErased = 0;
-        BOOST_FOREACH (uint256 &orphanId, vOrphanErase) {
+        for (uint256 &orphanId : vOrphanErase) {
             nErased += EraseOrphanTx(orphanId);
         }
         LogPrint("mempool",
@@ -904,7 +905,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
             if (nNewHeight > (pnode->nStartingHeight != -1
                                   ? pnode->nStartingHeight - 2000
                                   : 0)) {
-                BOOST_REVERSE_FOREACH (const uint256 &hash, vHashes) {
+                for (const uint256 &hash : boost::adaptors::reverse(vHashes)) {
                     pnode->PushBlockHash(hash);
                 }
             }
@@ -1160,12 +1161,12 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                             // however we MUST always provide at least what the
                             // remote peer needs.
                             typedef std::pair<unsigned int, uint256> PairType;
-                            BOOST_FOREACH (PairType &pair,
-                                           merkleBlock.vMatchedTxn)
+                            for (PairType &pair : merkleBlock.vMatchedTxn) {
                                 connman.PushMessage(
                                     pfrom,
                                     msgMaker.Make(NetMsgType::TX,
                                                   *block.vtx[pair.first]));
+                            }
                         }
                         // else
                         // no response
@@ -1583,7 +1584,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         std::vector<CAddress> vAddrOk;
         int64_t nNow = GetAdjustedTime();
         int64_t nSince = nNow - 10 * 60;
-        BOOST_FOREACH (CAddress &addr, vAddr) {
+        for (CAddress &addr : vAddr) {
             if (interruptMsgProc) return true;
 
             if ((addr.nServices & REQUIRED_SERVICES) != REQUIRED_SERVICES)
@@ -2016,13 +2017,14 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 }
             }
 
-            BOOST_FOREACH (uint256 hash, vEraseQueue)
+            for (uint256 hash : vEraseQueue) {
                 EraseOrphanTx(hash);
+            }
         } else if (fMissingInputs) {
             // It may be the case that the orphans parents have all been
             // rejected.
             bool fRejectedParents = false;
-            BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+            for (const CTxIn &txin : tx.vin) {
                 if (recentRejects->contains(txin.prevout.hash)) {
                     fRejectedParents = true;
                     break;
@@ -2031,7 +2033,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (!fRejectedParents) {
                 uint32_t nFetchFlags = GetFetchFlags(
                     pfrom, chainActive.Tip(), chainparams.GetConsensus());
-                BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+                for (const CTxIn &txin : tx.vin) {
                     CInv _inv(MSG_TX | nFetchFlags, txin.prevout.hash);
                     pfrom->AddInventoryKnown(_inv);
                     if (!AlreadyHave(_inv)) pfrom->AskFor(_inv);
@@ -2602,8 +2604,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 } else {
                     std::vector<CInv> vGetData;
                     // Download as much as possible, from earliest to latest.
-                    BOOST_REVERSE_FOREACH (const CBlockIndex *pindex,
-                                           vToFetch) {
+                    for (const CBlockIndex *pindex :
+                         boost::adaptors::reverse(vToFetch)) {
                         if (nodestate->nBlocksInFlight >=
                             MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
                             // Can't download any more from this peer
@@ -2701,8 +2703,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->vAddrToSend.clear();
         std::vector<CAddress> vAddr = connman.GetAddresses();
         FastRandomContext insecure_rand;
-        BOOST_FOREACH (const CAddress &addr, vAddr)
+        for (const CAddress &addr : vAddr) {
             pfrom->PushAddress(addr, insecure_rand);
+        }
     }
 
     else if (strCommand == NetMsgType::MEMPOOL) {
@@ -2886,7 +2889,7 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman &connman) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode->GetId());
 
-    BOOST_FOREACH (const CBlockReject &reject, state.rejects) {
+    for (const CBlockReject &reject : state.rejects) {
         connman.PushMessage(
             pnode, CNetMsgMaker(INIT_PROTO_VERSION)
                        .Make(NetMsgType::REJECT, (std::string)NetMsgType::BLOCK,
@@ -3119,7 +3122,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 PoissonNextSend(nNow, AVG_ADDRESS_BROADCAST_INTERVAL);
             std::vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
-            BOOST_FOREACH (const CAddress &addr, pto->vAddrToSend) {
+            for (const CAddress &addr : pto->vAddrToSend) {
                 if (!pto->addrKnown.contains(addr.GetKey())) {
                     pto->addrKnown.insert(addr.GetKey());
                     vAddr.push_back(addr);
@@ -3210,8 +3213,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 // Try to find first header that our peer doesn't have, and
                 // then send all headers past that one.  If we come across any
                 // headers that aren't on chainActive, give up.
-                BOOST_FOREACH (const uint256 &hash,
-                               pto->vBlockHashesToAnnounce) {
+                for (const uint256 &hash : pto->vBlockHashesToAnnounce) {
                     BlockMap::iterator mi = mapBlockIndex.find(hash);
                     assert(mi != mapBlockIndex.end());
                     const CBlockIndex *pindex = mi->second;
@@ -3355,7 +3357,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                                           INVENTORY_BROADCAST_MAX));
 
             // Add blocks
-            BOOST_FOREACH (const uint256 &hash, pto->vInventoryBlockToSend) {
+            for (const uint256 &hash : pto->vInventoryBlockToSend) {
                 vInv.push_back(CInv(MSG_BLOCK, hash));
                 if (vInv.size() == MAX_INV_SZ) {
                     connman.PushMessage(pto,
@@ -3548,7 +3550,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                                      MAX_BLOCKS_IN_TRANSIT_PER_PEER -
                                          state.nBlocksInFlight,
                                      vToDownload, staller, consensusParams);
-            BOOST_FOREACH (const CBlockIndex *pindex, vToDownload) {
+            for (const CBlockIndex *pindex : vToDownload) {
                 uint32_t nFetchFlags =
                     GetFetchFlags(pto, pindex->pprev, consensusParams);
                 vGetData.push_back(

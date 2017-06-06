@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 
+#include <boost/range/adaptor/reversed.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
@@ -368,7 +369,7 @@ void CheckWithFlag(const CTransactionRef &output,
 
 static CScript PushAll(const std::vector<valtype> &values) {
     CScript result;
-    BOOST_FOREACH (const valtype &v, values) {
+    for (const valtype &v : values) {
         if (v.size() == 0) {
             result << OP_0;
         } else if (v.size() == 1 && v[0] >= 1 && v[0] <= 16) {

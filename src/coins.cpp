@@ -7,7 +7,7 @@
 #include "memusage.h"
 #include "random.h"
 
-#include <assert.h>
+#include <cassert>
 
 /**
  * calculate number of bytes for the bitmask, and its number of non-zero bytes
@@ -334,7 +334,7 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
     inChainInputValue = 0;
     if (tx.IsCoinBase()) return 0.0;
     double dResult = 0.0;
-    BOOST_FOREACH (const CTxIn &txin, tx.vin) {
+    for (const CTxIn &txin : tx.vin) {
         const CCoins *coins = AccessCoins(txin.prevout.hash);
         assert(coins);
         if (!coins->IsAvailable(txin.prevout.n)) continue;
