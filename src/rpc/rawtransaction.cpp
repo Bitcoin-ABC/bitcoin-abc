@@ -779,8 +779,8 @@ static UniValue signrawtransaction(const Config &config,
     if (txVariants.empty())
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Missing transaction");
 
-    // mergedTx will end up with all the signatures; it
-    // starts as a clone of the rawtx:
+    // mergedTx will end up with all the signatures; it starts as a clone of the
+    // rawtx:
     CMutableTransaction mergedTx(txVariants[0]);
 
     // Fetch previous transactions (inputs):
@@ -790,17 +790,18 @@ static UniValue signrawtransaction(const Config &config,
         LOCK(mempool.cs);
         CCoinsViewCache &viewChain = *pcoinsTip;
         CCoinsViewMemPool viewMempool(&viewChain, mempool);
-        view.SetBackend(
-            viewMempool); // temporarily switch cache backend to db+mempool view
+        // temporarily switch cache backend to db+mempool view
+        view.SetBackend(viewMempool);
 
         BOOST_FOREACH (const CTxIn &txin, mergedTx.vin) {
             const uint256 &prevHash = txin.prevout.hash;
             CCoins coins;
-            view.AccessCoins(prevHash); // this is certainly allowed to fail
+            // this is certainly allowed to fail
+            view.AccessCoins(prevHash);
         }
 
-        view.SetBackend(
-            viewDummy); // switch back to avoid locking mempool for too long
+        // switch back to avoid locking mempool for too long
+        view.SetBackend(viewDummy);
     }
 
     bool fGivenKeys = false;
@@ -876,8 +877,8 @@ static UniValue signrawtransaction(const Config &config,
             }
 
             // if redeemScript given and not using the local wallet (private
-            // keys
-            // given), add redeemScript to the tempKeystore so it can be signed:
+            // keys given), add redeemScript to the tempKeystore so it can be
+            // signed:
             if (fGivenKeys && scriptPubKey.IsPayToScriptHash()) {
                 RPCTypeCheckObj(
                     prevOut, {
