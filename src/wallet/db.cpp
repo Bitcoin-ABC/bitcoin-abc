@@ -316,7 +316,6 @@ bool CDB::Recover(const fs::path &file_path, void *callbackDataIn,
         if (recoverKVcallback) {
             CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
             CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
-            std::string strType, strErr;
             if (!(*recoverKVcallback)(callbackDataIn, ssKey, ssValue)) {
                 continue;
             }
