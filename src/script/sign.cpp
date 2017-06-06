@@ -18,9 +18,9 @@ typedef std::vector<unsigned char> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
     const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
-    const CAmount &amountIn, int nHashTypeIn)
+    const CAmount &amountIn, uint32_t nHashTypeIn)
     : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
-      nHashType(nHashTypeIn), amount(amountIn), checker(txTo, nIn, amountIn) {}
+      amount(amountIn), nHashType(nHashTypeIn), checker(txTo, nIn, amountIn) {}
 
 bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
                                             const CKeyID &address,
@@ -168,7 +168,7 @@ void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
 
 bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
-                   const CAmount &amount, int nHashType) {
+                   const CAmount &amount, uint32_t nHashType) {
     assert(nIn < txTo.vin.size());
 
     CTransaction txToConst(txTo);
@@ -182,7 +182,8 @@ bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
 }
 
 bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
-                   CMutableTransaction &txTo, unsigned int nIn, int nHashType) {
+                   CMutableTransaction &txTo, unsigned int nIn,
+                   uint32_t nHashType) {
     assert(nIn < txTo.vin.size());
     CTxIn &txin = txTo.vin[nIn];
     assert(txin.prevout.n < txFrom.vout.size());
