@@ -8,15 +8,15 @@
 #include "walletmodel.h"
 
 #include <QAbstractTableModel>
-#include <QStringList>
 #include <QDateTime>
+#include <QStringList>
 
 class CWallet;
 
-class RecentRequestEntry
-{
+class RecentRequestEntry {
 public:
-    RecentRequestEntry() : nVersion(RecentRequestEntry::CURRENT_VERSION), id(0) { }
+    RecentRequestEntry()
+        : nVersion(RecentRequestEntry::CURRENT_VERSION), id(0) {}
 
     static const int CURRENT_VERSION = 1;
     int nVersion;
@@ -27,7 +27,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream &s, Operation ser_action) {
         unsigned int nDate = date.toTime_t();
 
         READWRITE(this->nVersion);
@@ -35,16 +35,14 @@ public:
         READWRITE(nDate);
         READWRITE(recipient);
 
-        if (ser_action.ForRead())
-            date = QDateTime::fromTime_t(nDate);
+        if (ser_action.ForRead()) date = QDateTime::fromTime_t(nDate);
     }
 };
 
-class RecentRequestEntryLessThan
-{
+class RecentRequestEntryLessThan {
 public:
-    RecentRequestEntryLessThan(int nColumn, Qt::SortOrder fOrder):
-        column(nColumn), order(fOrder) {}
+    RecentRequestEntryLessThan(int nColumn, Qt::SortOrder fOrder)
+        : column(nColumn), order(fOrder) {}
     bool operator()(RecentRequestEntry &left, RecentRequestEntry &right) const;
 
 private:
@@ -52,11 +50,11 @@ private:
     Qt::SortOrder order;
 };
 
-/** Model for list of recently generated payment requests / bitcoin: URIs.
+/**
+ * Model for list of recently generated payment requests / bitcoin: URIs.
  * Part of wallet model.
  */
-class RecentRequestsTableModel: public QAbstractTableModel
-{
+class RecentRequestsTableModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
@@ -77,9 +75,11 @@ public:
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role) const;
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    bool removeRows(int row, int count,
+                    const QModelIndex &parent = QModelIndex());
     Qt::ItemFlags flags(const QModelIndex &index) const;
     /*@}*/
 
@@ -98,9 +98,11 @@ private:
     QList<RecentRequestEntry> list;
     int64_t nReceiveRequestsMaxId;
 
-    /** Updates the column title to "Amount (DisplayUnit)" and emits headerDataChanged() signal for table headers to react. */
+    /** Updates the column title to "Amount (DisplayUnit)" and emits
+     * headerDataChanged() signal for table headers to react. */
     void updateAmountColumnTitle();
-    /** Gets title for amount column including current display unit if optionsModel reference available. */
+    /** Gets title for amount column including current display unit if
+     * optionsModel reference available. */
     QString getAmountTitle();
 };
 
