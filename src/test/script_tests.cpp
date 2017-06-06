@@ -175,7 +175,7 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
     stream << tx2;
     int libconsensus_flags = flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
     if (libconsensus_flags == flags) {
-        if (flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS) {
+        if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
             BOOST_CHECK_MESSAGE(
                 bitcoinconsensus_verify_script_with_amount(
                     scriptPubKey.data(), scriptPubKey.size(),

@@ -58,14 +58,15 @@ enum {
     // enable CHECKSEQUENCEVERIFY (BIP112)
     bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10),
     // enable WITNESS (BIP141)
-    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS = (1U << 11),
+    bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS_DEPRECATED = (1U << 11),
+    // enable SIGHASH_FORKID replay protection
+    bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
     bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL =
         bitcoinconsensus_SCRIPT_FLAGS_VERIFY_P2SH |
         bitcoinconsensus_SCRIPT_FLAGS_VERIFY_DERSIG |
         bitcoinconsensus_SCRIPT_FLAGS_VERIFY_NULLDUMMY |
         bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY |
-        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS
+        bitcoinconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY,
 };
 
 /// Returns 1 if the input nIn of the serialized transaction pointed to by txTo
