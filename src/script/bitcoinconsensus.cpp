@@ -13,57 +13,53 @@
 namespace {
 
 /** A class that deserializes a single CTransaction one time. */
-class TxInputStream
-{
+class TxInputStream {
 public:
-    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen) :
-    m_type(nTypeIn),
-    m_version(nVersionIn),
-    m_data(txTo),
-    m_remaining(txToLen)
-    {}
+    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo,
+                  size_t txToLen)
+        : m_type(nTypeIn), m_version(nVersionIn), m_data(txTo),
+          m_remaining(txToLen) {}
 
-    void read(char* pch, size_t nSize)
-    {
+    void read(char *pch, size_t nSize) {
         if (nSize > m_remaining)
-            throw std::ios_base::failure(std::string(__func__) + ": end of data");
+            throw std::ios_base::failure(std::string(__func__) +
+                                         ": end of data");
 
         if (pch == NULL)
-            throw std::ios_base::failure(std::string(__func__) + ": bad destination buffer");
+            throw std::ios_base::failure(std::string(__func__) +
+                                         ": bad destination buffer");
 
         if (m_data == NULL)
-            throw std::ios_base::failure(std::string(__func__) + ": bad source buffer");
+            throw std::ios_base::failure(std::string(__func__) +
+                                         ": bad source buffer");
 
         memcpy(pch, m_data, nSize);
         m_remaining -= nSize;
         m_data += nSize;
     }
 
-    template<typename T>
-    TxInputStream& operator>>(T& obj)
-    {
+    template <typename T> TxInputStream &operator>>(T &obj) {
         ::Unserialize(*this, obj);
         return *this;
     }
 
     int GetVersion() const { return m_version; }
     int GetType() const { return m_type; }
+
 private:
     const int m_type;
     const int m_version;
-    const unsigned char* m_data;
+    const unsigned char *m_data;
     size_t m_remaining;
 };
 
-inline int set_error(bitcoinconsensus_error* ret, bitcoinconsensus_error serror)
-{
-    if (ret)
-        *ret = serror;
+inline int set_error(bitcoinconsensus_error *ret,
+                     bitcoinconsensus_error serror) {
+    if (ret) *ret = serror;
     return 0;
 }
 
-struct ECCryptoClosure
-{
+struct ECCryptoClosure {
     ECCVerifyHandle handle;
 };
 
@@ -71,15 +67,15 @@ ECCryptoClosure instance_of_eccryptoclosure;
 }
 
 /** Check that all specified flags are part of the libconsensus interface. */
-static bool verify_flags(unsigned int flags)
-{
+static bool verify_flags(unsigned int flags) {
     return (flags & ~(bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL)) == 0;
 }
 
-static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen, CAmount amount,
-                                    const unsigned char *txTo        , unsigned int txToLen,
-                                    unsigned int nIn, unsigned int flags, bitcoinconsensus_error* err)
-{
+static int verify_script(const unsigned char *scriptPubKey,
+                         unsigned int scriptPubKeyLen, CAmount amount,
+                         const unsigned char *txTo, unsigned int txToLen,
+                         unsigned int nIn, unsigned int flags,
+                         bitcoinconsensus_error *err) {
     if (!verify_flags(flags)) {
         return bitcoinconsensus_ERR_INVALID_FLAGS;
     }
@@ -95,35 +91,41 @@ static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptP
         set_error(err, bitcoinconsensus_ERR_OK);
 
         PrecomputedTransactionData txdata(tx);
-        return VerifyScript(tx.vin[nIn].scriptSig, CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), flags, TransactionSignatureChecker(&tx, nIn, amount, txdata), NULL);
-    } catch (const std::exception&) {
-        return set_error(err, bitcoinconsensus_ERR_TX_DESERIALIZE); // Error deserializing
+        return VerifyScript(
+            tx.vin[nIn].scriptSig,
+            CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), flags,
+            TransactionSignatureChecker(&tx, nIn, amount, txdata), NULL);
+    } catch (const std::exception &) {
+        // Error deserializing
+        return set_error(err, bitcoinconsensus_ERR_TX_DESERIALIZE);
     }
 }
 
-int bitcoinconsensus_verify_script_with_amount(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen, int64_t amount,
-                                    const unsigned char *txTo        , unsigned int txToLen,
-                                    unsigned int nIn, unsigned int flags, bitcoinconsensus_error* err)
-{
+int bitcoinconsensus_verify_script_with_amount(
+    const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen,
+    int64_t amount, const unsigned char *txTo, unsigned int txToLen,
+    unsigned int nIn, unsigned int flags, bitcoinconsensus_error *err) {
     CAmount am(amount);
-    return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen, nIn, flags, err);
+    return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
+                           nIn, flags, err);
 }
 
-
-int bitcoinconsensus_verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen,
-                                   const unsigned char *txTo        , unsigned int txToLen,
-                                   unsigned int nIn, unsigned int flags, bitcoinconsensus_error* err)
-{
+int bitcoinconsensus_verify_script(const unsigned char *scriptPubKey,
+                                   unsigned int scriptPubKeyLen,
+                                   const unsigned char *txTo,
+                                   unsigned int txToLen, unsigned int nIn,
+                                   unsigned int flags,
+                                   bitcoinconsensus_error *err) {
     if (flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS) {
         return set_error(err, bitcoinconsensus_ERR_AMOUNT_REQUIRED);
     }
 
     CAmount am(0);
-    return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen, nIn, flags, err);
+    return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
+                           nIn, flags, err);
 }
 
-unsigned int bitcoinconsensus_version()
-{
+unsigned int bitcoinconsensus_version() {
     // Just use the API version for now
     return BITCOINCONSENSUS_API_VER;
 }
