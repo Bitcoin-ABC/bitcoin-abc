@@ -6,32 +6,26 @@
 
 #include "wallet/test/wallet_test_fixture.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
-extern CWallet* pwalletMain;
+extern CWallet *pwalletMain;
 
 BOOST_FIXTURE_TEST_SUITE(accounting_tests, WalletTestingSetup)
 
-static void
-GetResults(std::map<CAmount, CAccountingEntry>& results)
-{
+static void GetResults(std::map<CAmount, CAccountingEntry> &results) {
     std::list<CAccountingEntry> aes;
 
     results.clear();
     BOOST_CHECK(pwalletMain->ReorderTransactions() == DB_LOAD_OK);
     pwalletMain->ListAccountCreditDebit("", aes);
-    BOOST_FOREACH(CAccountingEntry& ae, aes)
-    {
-        results[ae.nOrderPos] = ae;
-    }
+    BOOST_FOREACH (CAccountingEntry &ae, aes) { results[ae.nOrderPos] = ae; }
 }
 
-BOOST_AUTO_TEST_CASE(acc_orderupgrade)
-{
-    std::vector<CWalletTx*> vpwtx;
+BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
+    std::vector<CWalletTx *> vpwtx;
     CWalletTx wtx;
     CAccountingEntry ae;
     std::map<CAmount, CAccountingEntry> results;
@@ -65,7 +59,6 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade)
     BOOST_CHECK(results[2].nTime == 1333333336);
     BOOST_CHECK(results[2].strOtherAccount == "c");
 
-
     ae.nTime = 1333333330;
     ae.strOtherAccount = "d";
     ae.nOrderPos = pwalletMain->IncOrderPosNext();
@@ -81,11 +74,11 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade)
     BOOST_CHECK(results[3].nTime == 1333333330);
     BOOST_CHECK(results[3].strComment.empty());
 
-
     wtx.mapValue["comment"] = "y";
     {
         CMutableTransaction tx(wtx);
-        --tx.nLockTime;  // Just to change the hash :)
+        // Just to change the hash :)
+        --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
     pwalletMain->AddToWallet(wtx);
@@ -95,7 +88,8 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade)
     wtx.mapValue["comment"] = "x";
     {
         CMutableTransaction tx(wtx);
-        --tx.nLockTime;  // Just to change the hash :)
+        // Just to change the hash :)
+        --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
     pwalletMain->AddToWallet(wtx);
@@ -114,7 +108,6 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade)
     BOOST_CHECK(results[4].nTime == 1333333330);
     BOOST_CHECK(results[4].strComment.empty());
     BOOST_CHECK(5 == vpwtx[1]->nOrderPos);
-
 
     ae.nTime = 1333333334;
     ae.strOtherAccount = "e";
