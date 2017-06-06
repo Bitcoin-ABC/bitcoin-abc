@@ -23,34 +23,34 @@ class CCoinControl;
 class CTxMemPool;
 
 namespace Ui {
-    class CoinControlDialog;
+class CoinControlDialog;
 }
 
 #define ASYMP_UTF8 "\xE2\x89\x88"
 
-class CCoinControlWidgetItem : public QTreeWidgetItem
-{
+class CCoinControlWidgetItem : public QTreeWidgetItem {
 public:
-    CCoinControlWidgetItem(QTreeWidget *parent, int type = Type) : QTreeWidgetItem(parent, type) {}
+    CCoinControlWidgetItem(QTreeWidget *parent, int type = Type)
+        : QTreeWidgetItem(parent, type) {}
     CCoinControlWidgetItem(int type = Type) : QTreeWidgetItem(type) {}
-    CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type) : QTreeWidgetItem(parent, type) {}
+    CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type)
+        : QTreeWidgetItem(parent, type) {}
 
     bool operator<(const QTreeWidgetItem &other) const;
 };
 
-
-class CoinControlDialog : public QDialog
-{
+class CoinControlDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit CoinControlDialog(const PlatformStyle *platformStyle, QWidget *parent = 0);
+    explicit CoinControlDialog(const PlatformStyle *platformStyle,
+                               QWidget *parent = 0);
     ~CoinControlDialog();
 
     void setModel(WalletModel *model);
 
     // static because also called from sendcoinsdialog
-    static void updateLabels(WalletModel*, QDialog*);
+    static void updateLabels(WalletModel *, QDialog *);
 
     static QList<CAmount> payAmounts;
     static CCoinControl *coinControl;
@@ -73,8 +73,7 @@ private:
     void sortView(int, Qt::SortOrder);
     void updateView();
 
-    enum
-    {
+    enum {
         COLUMN_CHECKBOX = 0,
         COLUMN_AMOUNT,
         COLUMN_LABEL,
@@ -103,9 +102,9 @@ private Q_SLOTS:
     void clipboardChange();
     void radioTreeMode(bool);
     void radioListMode(bool);
-    void viewItemChanged(QTreeWidgetItem*, int);
+    void viewItemChanged(QTreeWidgetItem *, int);
     void headerSectionClicked(int);
-    void buttonBoxClicked(QAbstractButton*);
+    void buttonBoxClicked(QAbstractButton *);
     void buttonSelectAllClicked();
     void updateLabelLocked();
 };
