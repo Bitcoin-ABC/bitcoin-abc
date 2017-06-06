@@ -11,8 +11,8 @@
 #include "primitives/transaction.h"
 #include "wallet/db.h"
 
+#include <cstdint>
 #include <list>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -44,7 +44,8 @@ enum DBErrors {
 class CHDChain {
 public:
     uint32_t nExternalChainCounter;
-    CKeyID masterKeyID; //!< master key hash160
+    //!< master key hash160
+    CKeyID masterKeyID;
 
     static const int CURRENT_VERSION = 1;
     int nVersion;
