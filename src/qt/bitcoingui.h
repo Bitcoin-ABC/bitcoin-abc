@@ -40,32 +40,36 @@ class QProgressDialog;
 QT_END_NAMESPACE
 
 /**
-  Bitcoin GUI main class. This class represents the main window of the Bitcoin UI. It communicates with both the client and
-  wallet models to give the user an up-to-date view of the current core state.
-*/
-class BitcoinGUI : public QMainWindow
-{
+ * Bitcoin GUI main class. This class represents the main window of the Bitcoin
+ * UI. It communicates with both the client and wallet models to give the user
+ * an up-to-date view of the current core state.
+ */
+class BitcoinGUI : public QMainWindow {
     Q_OBJECT
 
 public:
     static const QString DEFAULT_WALLET;
     static const std::string DEFAULT_UIPLATFORM;
 
-    explicit BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *networkStyle, QWidget *parent = 0);
+    explicit BitcoinGUI(const PlatformStyle *platformStyle,
+                        const NetworkStyle *networkStyle, QWidget *parent = 0);
     ~BitcoinGUI();
 
-    /** Set the client model.
-        The client model represents the part of the core that communicates with the P2P network, and is wallet-agnostic.
-    */
+    /**
+     * Set the client model.
+     * The client model represents the part of the core that communicates with
+     * the P2P network, and is wallet-agnostic.
+     */
     void setClientModel(ClientModel *clientModel);
 
 #ifdef ENABLE_WALLET
-    /** Set the wallet model.
-        The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
-        functionality.
-    */
-    bool addWallet(const QString& name, WalletModel *walletModel);
-    bool setCurrentWallet(const QString& name);
+    /**
+     * Set the wallet model.
+     * The wallet model represents a bitcoin wallet, and offers access to the
+     * list of transactions, address book and sending functionality.
+     */
+    bool addWallet(const QString &name, WalletModel *walletModel);
+    bool setCurrentWallet(const QString &name);
     void removeAllWallets();
 #endif // ENABLE_WALLET
     bool enableWallet;
@@ -161,22 +165,27 @@ public Q_SLOTS:
     /** Set network state shown in the UI */
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
-    void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
+    void setNumBlocks(int count, const QDateTime &blockDate,
+                      double nVerificationProgress, bool headers);
 
-    /** Notify the user of an event from the core network or transaction handling code.
+    /** Notify the user of an event from the core network or transaction
+       handling code.
        @param[in] title     the message box / notification title
        @param[in] message   the displayed text
-       @param[in] style     modality and style definitions (icon and used buttons - buttons only for message boxes)
+       @param[in] style     modality and style definitions (icon and used
+       buttons - buttons only for message boxes)
                             @see CClientUIInterface::MessageBoxFlags
-       @param[in] ret       pointer to a bool that will be modified to whether Ok was clicked (modal only)
-    */
-    void message(const QString &title, const QString &message, unsigned int style, bool *ret = NULL);
+       @param[in] ret       pointer to a bool that will be modified to whether
+       Ok was clicked (modal only)
+     */
+    void message(const QString &title, const QString &message,
+                 unsigned int style, bool *ret = NULL);
 
 #ifdef ENABLE_WALLET
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
        @see WalletModel::EncryptionStatus
-    */
+     */
     void setEncryptionStatus(int status);
 
     /** Set the hd-enabled status as shown in the UI.
@@ -185,10 +194,12 @@ public Q_SLOTS:
      */
     void setHDStatus(int hdEnabled);
 
-    bool handlePaymentRequest(const SendCoinsRecipient& recipient);
+    bool handlePaymentRequest(const SendCoinsRecipient &recipient);
 
     /** Show incoming transaction notification for new transactions. */
-    void incomingTransaction(const QString& date, int unit, const CAmount& amount, const QString& type, const QString& address, const QString& label);
+    void incomingTransaction(const QString &date, int unit,
+                             const CAmount &amount, const QString &type,
+                             const QString &address, const QString &label);
 #endif // ENABLE_WALLET
 
 private Q_SLOTS:
@@ -225,7 +236,8 @@ private Q_SLOTS:
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
 
-    /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
+    /** Show window if hidden, unminimize when minimized, rise when obscured or
+     * show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);
     /** Simply calls showNormalIfMinimized(true) for use in SLOT() macro */
     void toggleHidden();
@@ -235,8 +247,9 @@ private Q_SLOTS:
 
     /** Show progress dialog e.g. for verifychain */
     void showProgress(const QString &title, int nProgress);
-    
-    /** When hideTrayIcon setting is changed in OptionsModel hide or show the icon accordingly. */
+
+    /** When hideTrayIcon setting is changed in OptionsModel hide or show the
+     * icon accordingly. */
     void setTrayIconVisible(bool);
 
     /** Toggle networking */
@@ -245,8 +258,7 @@ private Q_SLOTS:
     void showModalOverlay();
 };
 
-class UnitDisplayStatusBarControl : public QLabel
-{
+class UnitDisplayStatusBarControl : public QLabel {
     Q_OBJECT
 
 public:
@@ -260,18 +272,20 @@ protected:
 
 private:
     OptionsModel *optionsModel;
-    QMenu* menu;
+    QMenu *menu;
 
     /** Shows context menu with Display Unit options by the mouse coordinates */
-    void onDisplayUnitsClicked(const QPoint& point);
-    /** Creates context menu, its actions, and wires up all the relevant signals for mouse events. */
+    void onDisplayUnitsClicked(const QPoint &point);
+    /** Creates context menu, its actions, and wires up all the relevant signals
+     * for mouse events. */
     void createContextMenu();
 
 private Q_SLOTS:
-    /** When Display Units are changed on OptionsModel it will refresh the display text of the control on the status bar */
+    /** When Display Units are changed on OptionsModel it will refresh the
+     * display text of the control on the status bar */
     void updateDisplayUnit(int newUnits);
     /** Tells underlying optionsModel to update its current display unit. */
-    void onMenuSelection(QAction* action);
+    void onMenuSelection(QAction *action);
 };
 
 #endif // BITCOIN_QT_BITCOINGUI_H
