@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(merkle_test) {
                     // ones.
                     int mtx = loop;
                     if (ntx > 16) {
-                        mtx = insecure_rand() % ntx;
+                        mtx = insecure_randrange(ntx);
                     }
                     std::vector<uint256> newBranch =
                         BlockMerkleBranch(block, mtx);
