@@ -12,7 +12,7 @@ class OptionsModel;
 class PlatformStyle;
 
 namespace Ui {
-    class AddressBookPage;
+class AddressBookPage;
 }
 
 QT_BEGIN_NAMESPACE
@@ -23,24 +23,20 @@ class QSortFilterProxyModel;
 class QTableView;
 QT_END_NAMESPACE
 
-/** Widget that shows a list of sending or receiving addresses.
-  */
-class AddressBookPage : public QDialog
-{
+/** Widget that shows a list of sending or receiving addresses. */
+class AddressBookPage : public QDialog {
     Q_OBJECT
 
 public:
-    enum Tabs {
-        SendingTab = 0,
-        ReceivingTab = 1
-    };
+    enum Tabs { SendingTab = 0, ReceivingTab = 1 };
 
     enum Mode {
         ForSelection, /**< Open address book to pick address */
-        ForEditing  /**< Open address book for editing */
+        ForEditing    /**< Open address book for editing */
     };
 
-    explicit AddressBookPage(const PlatformStyle *platformStyle, Mode mode, Tabs tab, QWidget *parent);
+    explicit AddressBookPage(const PlatformStyle *platformStyle, Mode mode,
+                             Tabs tab, QWidget *parent);
     ~AddressBookPage();
 
     void setModel(AddressTableModel *model);
@@ -57,17 +53,20 @@ private:
     QString returnValue;
     QSortFilterProxyModel *proxyModel;
     QMenu *contextMenu;
-    QAction *deleteAction; // to be able to explicitly disable it
+    // to be able to explicitly disable it
+    QAction *deleteAction;
     QString newAddressToSelect;
 
 private Q_SLOTS:
     /** Delete currently selected address entry */
     void on_deleteAddress_clicked();
-    /** Create a new address for receiving coins and / or add a new address book entry */
+    /** Create a new address for receiving coins and / or add a new address book
+     * entry */
     void on_newAddress_clicked();
     /** Copy address of currently selected address entry to clipboard */
     void on_copyAddress_clicked();
-    /** Copy label of currently selected address entry to clipboard (no button) */
+    /** Copy label of currently selected address entry to clipboard (no button)
+     */
     void onCopyLabelAction();
     /** Edit currently selected address entry (no button) */
     void onEditAction();
