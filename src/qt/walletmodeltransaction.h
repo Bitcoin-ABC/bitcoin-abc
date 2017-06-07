@@ -16,10 +16,10 @@ class CWallet;
 class CWalletTx;
 
 /** Data model for a walletmodel transaction. */
-class WalletModelTransaction
-{
+class WalletModelTransaction {
 public:
-    explicit WalletModelTransaction(const QList<SendCoinsRecipient> &recipients);
+    explicit WalletModelTransaction(
+        const QList<SendCoinsRecipient> &recipients);
     ~WalletModelTransaction();
 
     QList<SendCoinsRecipient> getRecipients();
@@ -27,7 +27,7 @@ public:
     CWalletTx *getTransaction();
     unsigned int getTransactionSize();
 
-    void setTransactionFee(const CAmount& newFee);
+    void setTransactionFee(const CAmount &newFee);
     CAmount getTransactionFee();
 
     CAmount getTotalTransactionAmount();
@@ -35,7 +35,8 @@ public:
     void newPossibleKeyChange(CWallet *wallet);
     CReserveKey *getPossibleKeyChange();
 
-    void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
+    // needed for the subtract-fee-from-amount feature
+    void reassignAmounts(int nChangePosRet);
 
 private:
     QList<SendCoinsRecipient> recipients;
