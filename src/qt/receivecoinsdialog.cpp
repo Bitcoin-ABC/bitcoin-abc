@@ -197,7 +197,7 @@ void ReceiveCoinsDialog::on_showRequestButton_clicked() {
     QModelIndexList selection =
         ui->recentRequestsView->selectionModel()->selectedRows();
 
-    Q_FOREACH (const QModelIndex &index, selection) {
+    for (const QModelIndex &index : selection) {
         on_recentRequestsView_doubleClicked(index);
     }
 }

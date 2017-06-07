@@ -40,10 +40,7 @@ void WalletModelTransaction::setTransactionFee(const CAmount &newFee) {
 
 void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
     int i = 0;
-    for (QList<SendCoinsRecipient>::iterator it = recipients.begin();
-         it != recipients.end(); ++it) {
-        SendCoinsRecipient &rcp = (*it);
-
+    for (SendCoinsRecipient &rcp : recipients) {
         if (rcp.paymentRequest.IsInitialized()) {
             CAmount subtotal = 0;
             const payments::PaymentDetails &details =
@@ -67,7 +64,7 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
 
 CAmount WalletModelTransaction::getTotalTransactionAmount() {
     CAmount totalTransactionAmount = 0;
-    Q_FOREACH (const SendCoinsRecipient &rcp, recipients) {
+    for (const SendCoinsRecipient &rcp : recipients) {
         totalTransactionAmount += rcp.amount;
     }
     return totalTransactionAmount;

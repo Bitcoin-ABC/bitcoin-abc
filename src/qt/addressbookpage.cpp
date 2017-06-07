@@ -252,7 +252,7 @@ void AddressBookPage::done(int retval) {
     QModelIndexList indexes =
         table->selectionModel()->selectedRows(AddressTableModel::Address);
 
-    Q_FOREACH (const QModelIndex &index, indexes) {
+    for (const QModelIndex &index : indexes) {
         QVariant address = table->model()->data(index);
         returnValue = address.toString();
     }

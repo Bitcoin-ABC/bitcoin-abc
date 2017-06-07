@@ -29,8 +29,8 @@ static const unsigned platform_styles_count =
     sizeof(platform_styles) / sizeof(*platform_styles);
 
 namespace {
-/* Local functions for colorizing single-color images */
 
+/* Local functions for colorizing single-color images */
 void MakeSingleColorImage(QImage &img, const QColor &colorbase) {
     img = img.convertToFormat(QImage::Format_ARGB32);
     for (int x = img.width(); x--;) {
@@ -44,8 +44,7 @@ void MakeSingleColorImage(QImage &img, const QColor &colorbase) {
 
 QIcon ColorizeIcon(const QIcon &ico, const QColor &colorbase) {
     QIcon new_ico;
-    QSize sz;
-    Q_FOREACH (sz, ico.availableSizes()) {
+    for (QSize sz : ico.availableSizes()) {
         QImage img(ico.pixmap(sz).toImage());
         MakeSingleColorImage(img, colorbase);
         new_ico.addPixmap(QPixmap::fromImage(img));

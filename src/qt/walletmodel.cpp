@@ -191,7 +191,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
     int nAddresses = 0;
 
     // Pre-check input data for validity
-    Q_FOREACH (const SendCoinsRecipient &rcp, recipients) {
+    for (const SendCoinsRecipient &rcp : recipients) {
         if (rcp.fSubtractFeeFromAmount) fSubtractFeeFromAmount = true;
 
         // PaymentRequest...
@@ -291,7 +291,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
         LOCK2(cs_main, wallet->cs_wallet);
         CWalletTx *newTx = transaction.getTransaction();
 
-        Q_FOREACH (const SendCoinsRecipient &rcp, transaction.getRecipients()) {
+        for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
             if (rcp.paymentRequest.IsInitialized()) {
                 // Make sure any payment requests involved are still valid.
                 if (PaymentServer::verifyExpired(
@@ -327,7 +327,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
 
     // Add addresses / update labels that we've sent to to the address book, and
     // emit coinsSent signal for each recipient
-    Q_FOREACH (const SendCoinsRecipient &rcp, transaction.getRecipients()) {
+    for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
         // Don't touch the address book when we have a payment request
         if (!rcp.paymentRequest.IsInitialized()) {
             std::string strAddress = rcp.address.toStdString();

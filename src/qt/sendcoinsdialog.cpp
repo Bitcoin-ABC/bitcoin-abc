@@ -310,8 +310,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
 
     // Format confirmation message
     QStringList formatted;
-    Q_FOREACH (const SendCoinsRecipient &rcp,
-               currentTransaction.getRecipients()) {
+    for (const SendCoinsRecipient &rcp : currentTransaction.getRecipients()) {
         // generate bold amount string
         QString amount =
             "<b>" + BitcoinUnits::formatHtmlWithUnit(
@@ -372,7 +371,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     CAmount totalAmount =
         currentTransaction.getTotalTransactionAmount() + txFee;
     QStringList alternativeUnits;
-    Q_FOREACH (BitcoinUnits::Unit u, BitcoinUnits::availableUnits()) {
+    for (BitcoinUnits::Unit u : BitcoinUnits::availableUnits()) {
         if (u != model->getOptionsModel()->getDisplayUnit())
             alternativeUnits.append(
                 BitcoinUnits::formatHtmlWithUnit(u, totalAmount));
