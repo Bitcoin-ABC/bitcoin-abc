@@ -844,7 +844,7 @@ bool CWallet::GetAccountPubkey(CPubKey &pubKey, std::string strAccount,
 void CWallet::MarkDirty() {
     {
         LOCK(cs_wallet);
-        for (PAIRTYPE(const uint256, CWalletTx) & item : mapWallet) {
+        for (std::pair<const uint256, CWalletTx> &item : mapWallet) {
             item.second.MarkDirty();
         }
     }
@@ -1602,7 +1602,7 @@ void CWallet::ReacceptWalletTransactions() {
 
     // Sort pending wallet transactions based on their initial wallet insertion
     // order
-    for (PAIRTYPE(const uint256, CWalletTx) & item : mapWallet) {
+    for (std::pair<const uint256, CWalletTx> &item : mapWallet) {
         const uint256 &wtxid = item.first;
         CWalletTx &wtx = item.second;
         assert(wtx.GetId() == wtxid);
@@ -1615,7 +1615,7 @@ void CWallet::ReacceptWalletTransactions() {
     }
 
     // Try to add wallet transactions to memory pool
-    for (PAIRTYPE(const int64_t, CWalletTx *) & item : mapSorted) {
+    for (std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
 
         LOCK(mempool.cs);
@@ -1837,13 +1837,13 @@ CWallet::ResendWalletTransactionsBefore(int64_t nTime, CConnman *connman) {
     LOCK(cs_wallet);
     // Sort them in chronological order
     multimap<unsigned int, CWalletTx *> mapSorted;
-    for (PAIRTYPE(const uint256, CWalletTx) & item : mapWallet) {
+    for (std::pair<const uint256, CWalletTx> &item : mapWallet) {
         CWalletTx &wtx = item.second;
         // Don't rebroadcast if newer than nTime:
         if (wtx.nTimeReceived > nTime) continue;
         mapSorted.insert(make_pair(wtx.nTimeReceived, &wtx));
     }
-    for (PAIRTYPE(const unsigned int, CWalletTx *) & item : mapSorted) {
+    for (std::pair<const unsigned int, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *item.second;
         if (wtx.RelayWalletTransaction(connman)) result.push_back(wtx.GetId());
     }
@@ -2904,7 +2904,7 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
         if (fFileBacked) {
             // Delete destdata tuples associated with address
             std::string strAddress = CBitcoinAddress(address).ToString();
-            for (const PAIRTYPE(string, string) & item :
+            for (const std::pair<string, string> &item :
                  mapAddressBook[address].destdata) {
                 CWalletDB(strWalletFile).EraseDestData(strAddress, item.first);
             }
@@ -3061,7 +3061,7 @@ std::map<CTxDestination, CAmount> CWallet::GetAddressBalances() {
 
     {
         LOCK(cs_wallet);
-        for (PAIRTYPE(uint256, CWalletTx) walletEntry : mapWallet) {
+        for (std::pair<uint256, CWalletTx> walletEntry : mapWallet) {
             CWalletTx *pcoin = &walletEntry.second;
 
             if (!pcoin->IsTrusted()) continue;
@@ -3097,7 +3097,7 @@ set<set<CTxDestination>> CWallet::GetAddressGroupings() {
     set<set<CTxDestination>> groupings;
     set<CTxDestination> grouping;
 
-    for (PAIRTYPE(uint256, CWalletTx) walletEntry : mapWallet) {
+    for (std::pair<uint256, CWalletTx> walletEntry : mapWallet) {
         CWalletTx *pcoin = &walletEntry.second;
 
         if (pcoin->tx->vin.size() > 0) {
@@ -3220,7 +3220,7 @@ std::set<CTxDestination>
 CWallet::GetAccountAddresses(const std::string &strAccount) const {
     LOCK(cs_wallet);
     set<CTxDestination> result;
-    for (const PAIRTYPE(CTxDestination, CAddressBookData) & item :
+    for (const std::pair<CTxDestination, CAddressBookData> &item :
          mapAddressBook) {
         const CTxDestination &address = item.first;
         const string &strName = item.second.name;

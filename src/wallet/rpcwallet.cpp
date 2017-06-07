@@ -78,7 +78,7 @@ void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
     entry.push_back(Pair("time", wtx.GetTxTime()));
     entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived));
 
-    for (const PAIRTYPE(string, string) & item : wtx.mapValue) {
+    for (const std::pair<string, string> &item : wtx.mapValue) {
         entry.push_back(Pair(item.first, item.second));
     }
 }
@@ -328,7 +328,7 @@ static UniValue getaddressesbyaccount(const Config &config,
 
     // Find all addresses that have the given account
     UniValue ret(UniValue::VARR);
-    for (const PAIRTYPE(CBitcoinAddress, CAddressBookData) & item :
+    for (const std::pair<CBitcoinAddress, CAddressBookData> &item :
          pwalletMain->mapAddressBook) {
         const CBitcoinAddress &address = item.first;
         const string &strName = item.second.name;
@@ -1241,7 +1241,7 @@ static UniValue ListReceived(const UniValue &params, bool fByAccounts) {
     // Reply
     UniValue ret(UniValue::VARR);
     map<string, tallyitem> mapAccountTally;
-    for (const PAIRTYPE(CBitcoinAddress, CAddressBookData) & item :
+    for (const std::pair<CBitcoinAddress, CAddressBookData> &item :
          pwalletMain->mapAddressBook) {
         const CBitcoinAddress &address = item.first;
         const string &strAccount = item.second.name;
@@ -1687,7 +1687,7 @@ static UniValue listaccounts(const Config &config,
             includeWatchonly = includeWatchonly | ISMINE_WATCH_ONLY;
 
     map<string, CAmount> mapAccountBalances;
-    for (const PAIRTYPE(CTxDestination, CAddressBookData) & entry :
+    for (const std::pair<CTxDestination, CAddressBookData> &entry :
          pwalletMain->mapAddressBook) {
         // This address belongs to me
         if (IsMine(*pwalletMain, entry.first) & includeWatchonly)
@@ -1727,7 +1727,7 @@ static UniValue listaccounts(const Config &config,
     }
 
     UniValue ret(UniValue::VOBJ);
-    for (const PAIRTYPE(string, CAmount) & accountBalance :
+    for (const std::pair<string, CAmount> &accountBalance :
          mapAccountBalances) {
         ret.push_back(
             Pair(accountBalance.first, ValueFromAmount(accountBalance.second)));

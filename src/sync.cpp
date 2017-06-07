@@ -80,7 +80,7 @@ potential_deadlock_detected(const std::pair<void *, void *> &mismatch,
                             const LockStack &s1, const LockStack &s2) {
     LogPrintf("POTENTIAL DEADLOCK DETECTED\n");
     LogPrintf("Previous lock order was:\n");
-    for (const PAIRTYPE(void *, CLockLocation) & i : s2) {
+    for (const std::pair<void *, CLockLocation> &i : s2) {
         if (i.first == mismatch.first) {
             LogPrintf(" (1)");
         }
@@ -90,7 +90,7 @@ potential_deadlock_detected(const std::pair<void *, void *> &mismatch,
         LogPrintf(" %s\n", i.second.ToString());
     }
     LogPrintf("Current lock order is:\n");
-    for (const PAIRTYPE(void *, CLockLocation) & i : s1) {
+    for (const std::pair<void *, CLockLocation> &i : s1) {
         if (i.first == mismatch.first) {
             LogPrintf(" (1)");
         }
@@ -109,7 +109,7 @@ static void push_lock(void *c, const CLockLocation &locklocation, bool fTry) {
 
     (*lockstack).push_back(std::make_pair(c, locklocation));
 
-    for (const PAIRTYPE(void *, CLockLocation) & i : (*lockstack)) {
+    for (const std::pair<void *, CLockLocation> &i : (*lockstack)) {
         if (i.first == c) break;
 
         std::pair<void *, void *> p1 = std::make_pair(i.first, c);
@@ -139,7 +139,7 @@ void LeaveCritical() {
 
 std::string LocksHeld() {
     std::string result;
-    for (const PAIRTYPE(void *, CLockLocation) & i : *lockstack) {
+    for (const std::pair<void *, CLockLocation> &i : *lockstack) {
         result += i.second.ToString() + std::string("\n");
     }
     return result;
@@ -147,7 +147,7 @@ std::string LocksHeld() {
 
 void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
                             void *cs) {
-    for (const PAIRTYPE(void *, CLockLocation) & i : *lockstack) {
+    for (const std::pair<void *, CLockLocation> &i : *lockstack) {
         if (i.first == cs) return;
     }
     fprintf(stderr,
