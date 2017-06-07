@@ -114,6 +114,7 @@ BASE_SCRIPTS = [
     'abc-p2p-fullblocktest.py',
     'abc-rpc.py',
     'mempool-accept-txn.py',
+    'wallet-encryption.py',
 ]
 
 EXTENDED_SCRIPTS = [
