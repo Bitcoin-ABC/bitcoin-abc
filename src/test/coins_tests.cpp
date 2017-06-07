@@ -157,13 +157,13 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
                 CTxOut txout;
                 txout.nValue = Amount(int64_t(insecure_rand()));
                 if (insecure_randrange(16) == 0 && coin.IsSpent()) {
-                    txout.scriptPubKey.assign(1 + (insecure_rand() & 0x3F),
+                    txout.scriptPubKey.assign(1 + insecure_randbits(6),
                                               OP_RETURN);
                     BOOST_CHECK(txout.scriptPubKey.IsUnspendable());
                     added_an_unspendable_entry = true;
                 } else {
                     // Random sizes so we can test memory usage accounting
-                    txout.scriptPubKey.assign(insecure_rand() & 0x3F, 0);
+                    txout.scriptPubKey.assign(insecure_randbits(6), 0);
                     (coin.IsSpent() ? added_an_entry : updated_an_entry) = true;
                     coin = Coin(txout, 1, false);
                 }
