@@ -158,6 +158,7 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
     return chain.Genesis();
 }
 
+CCoinsViewDB *pcoinsdbview = nullptr;
 CCoinsViewCache *pcoinsTip = nullptr;
 CBlockTreeDB *pblocktree = nullptr;
 

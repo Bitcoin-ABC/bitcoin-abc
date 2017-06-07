@@ -155,7 +155,6 @@ public:
     // the caller.
 };
 
-static CCoinsViewDB *pcoinsdbview = nullptr;
 static CCoinsViewErrorCatcher *pcoinscatcher = nullptr;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
