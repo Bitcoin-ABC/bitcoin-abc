@@ -11,10 +11,7 @@ Currently:
 
 import re
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_start_raises_init_error
-)
+from test_framework.util import assert_equal
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE
 
 MAX_GENERATED_BLOCK_SIZE_ERROR = (
@@ -56,11 +53,11 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.log.info("  Attempt to set below legacy limit of 1MB - try %d bytes" %
                       LEGACY_MAX_BLOCK_SIZE)
         self.stop_node(0)
-        assert_start_raises_init_error(0, self.options.tmpdir, [
-                                       "-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE], 'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+        self.assert_start_raises_init_error(0, self.options.tmpdir, [
+                                            "-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE], 'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
-        assert_start_raises_init_error(0, self.options.tmpdir, [
-                                       '-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
+        self.assert_start_raises_init_error(0, self.options.tmpdir, [
+                                            '-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
 
         # Make sure we leave the test with a node running as this is what thee
         # framework expects.

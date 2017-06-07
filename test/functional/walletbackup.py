@@ -36,6 +36,7 @@ and confirm again balances are correct.
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from random import randint
+import shutil
 
 
 class WalletBackupTest(BitcoinTestFramework):
