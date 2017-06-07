@@ -19,10 +19,8 @@ namespace Ui {
 class OptionsDialog;
 }
 
-/** Proxy address widget validator, checks for a valid proxy address.
- */
-class ProxyAddressValidator : public QValidator
-{
+/** Proxy address widget validator, checks for a valid proxy address. */
+class ProxyAddressValidator : public QValidator {
     Q_OBJECT
 
 public:
@@ -32,8 +30,7 @@ public:
 };
 
 /** Preferences dialog. */
-class OptionsDialog : public QDialog
-{
+class OptionsDialog : public QDialog {
     Q_OBJECT
 
 public:
@@ -49,7 +46,7 @@ private Q_SLOTS:
     void on_resetButton_clicked();
     void on_okButton_clicked();
     void on_cancelButton_clicked();
-    
+
     void on_hideTrayIcon_stateChanged(int fState);
 
     void showRestartWarning(bool fPersistent = false);
