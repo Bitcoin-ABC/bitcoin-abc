@@ -37,8 +37,8 @@ private:
 };
 
 /**
-   Qt model providing information about connected peers, similar to the
-   "getpeerinfo" RPC call. Used by the rpc console UI.
+ * Qt model providing information about connected peers, similar to the
+ * "getpeerinfo" RPC call. Used by the rpc console UI.
  */
 class PeerTableModel : public QAbstractTableModel {
     Q_OBJECT

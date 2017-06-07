@@ -12,12 +12,11 @@ class BitcoinGUI;
 class ClientModel;
 
 namespace Ui {
-    class HelpMessageDialog;
+class HelpMessageDialog;
 }
 
 /** "Help message" dialog box */
-class HelpMessageDialog : public QDialog
-{
+class HelpMessageDialog : public QDialog {
     Q_OBJECT
 
 public:
@@ -35,14 +34,12 @@ private Q_SLOTS:
     void on_okButton_accepted();
 };
 
-
 /** "Shutdown" window */
-class ShutdownWindow : public QWidget
-{
+class ShutdownWindow : public QWidget {
     Q_OBJECT
 
 public:
-    ShutdownWindow(QWidget *parent=0, Qt::WindowFlags f=0);
+    ShutdownWindow(QWidget *parent = 0, Qt::WindowFlags f = 0);
     static QWidget *showShutdownWindow(BitcoinGUI *window);
 
 protected:
