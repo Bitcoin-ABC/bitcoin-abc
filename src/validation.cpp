@@ -3037,8 +3037,6 @@ bool CheckBlock(const Config &config, const CBlock &block,
     // Size limits.
     auto nMaxBlockSize = config.GetMaxBlockSize();
 
-    // TODO: compare the number of tx time minimal tx size rather than just
-    // the number of txs.
     if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize ||
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
             nMaxBlockSize) {
