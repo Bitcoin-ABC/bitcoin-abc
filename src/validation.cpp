@@ -721,20 +721,6 @@ static bool AcceptToMemoryPoolWorker(
         CCoinsViewMemPool viewMemPool(pcoinsTip, pool);
         view.SetBackend(viewMemPool);
 
-        // Do we already have it?
-        for (size_t out = 0; out < tx.vout.size(); out++) {
-            COutPoint outpoint(txid, out);
-            bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
-            if (view.HaveCoin(outpoint)) {
-                if (!had_coin_in_cache) {
-                    coins_to_uncache.push_back(outpoint);
-                }
-
-                return state.Invalid(false, REJECT_ALREADY_KNOWN,
-                                     "txn-already-known");
-            }
-        }
-
         // Do all inputs exist?
         for (const CTxIn txin : tx.vin) {
             if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
@@ -742,6 +728,18 @@ static bool AcceptToMemoryPoolWorker(
             }
 
             if (!view.HaveCoin(txin.prevout)) {
+                // Are inputs missing because we already have the tx?
+                for (size_t out = 0; out < tx.vout.size(); out++) {
+                    // Optimistically just do efficient check of cache for
+                    // outputs.
+                    if (pcoinsTip->HaveCoinInCache(COutPoint(txid, out))) {
+                        return state.Invalid(false, REJECT_DUPLICATE,
+                                             "txn-already-known");
+                    }
+                }
+
+                // Otherwise assume this might be an orphan tx for which we just
+                // haven't seen parents yet.
                 if (pfMissingInputs) {
                     *pfMissingInputs = true;
                 }
