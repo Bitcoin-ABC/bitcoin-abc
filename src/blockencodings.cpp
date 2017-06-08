@@ -209,7 +209,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {
     assert(!header.IsNull());
     assert(index < txns_available.size());
-    return txns_available[index] ? true : false;
+    return txns_available[index] != nullptr;
 }
 
 ReadStatus PartiallyDownloadedBlock::FillBlock(

@@ -314,8 +314,8 @@ static UniValue validateaddress(const Config &config,
 
 #ifdef ENABLE_WALLET
         isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
-        ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
-        ret.pushKV("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false);
+        ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
+        ret.pushKV("iswatchonly", bool(mine & ISMINE_WATCH_ONLY));
         UniValue detail =
             boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
         ret.pushKVs(detail);

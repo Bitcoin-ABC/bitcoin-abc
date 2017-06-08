@@ -49,9 +49,6 @@ static inline uint64_t InsecureRandRange(uint64_t range) {
 static inline bool InsecureRandBool() {
     return insecure_rand_ctx.randbool();
 }
-static inline std::vector<uint8_t> InsecureRandBytes(size_t len) {
-    return insecure_rand_ctx.randbytes(len);
-}
 
 /**
  * Basic testing setup.
