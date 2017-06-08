@@ -3055,29 +3055,44 @@ bool CheckBlock(const Config &config, const CBlock &block,
                                        state.GetDebugMessage()));
     }
 
-    unsigned int nSigOps = GetLegacySigOpCount(*block.vtx[0]);
-    if (nSigOps > MAX_BLOCK_SIGOPS)
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops", false,
-                         "out-of-bounds SigOpCount");
+    // Keep track of the sigops count.
+    uint64_t nSigOps = 0;
 
     // Check transactions
     auto txCount = block.vtx.size();
-    for (unsigned int i = 1; i < txCount; i++) {
-        auto &tx = *block.vtx[i];
-        if (!CheckRegularTransaction(tx, state, false)) {
+    auto *tx = block.vtx[0].get();
+
+    size_t i = 0;
+    while (true) {
+        // Count the sigops for the current transaction. If the total sigops
+        // count is too high, the the block is invalid.
+        nSigOps += GetLegacySigOpCount(*tx);
+        if (nSigOps > MAX_BLOCK_SIGOPS) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
+                             false, "out-of-bounds SigOpCount");
+        }
+
+        // Go to the next transaction.
+        i++;
+
+        // We reached the end of the block, success.
+        if (i >= txCount) break;
+
+        // Check that the transaction is valid. because this check differs for
+        // the coinbase, the loos is arranged such as this only runs after at
+        // least one increment.
+        tx = block.vtx[i].get();
+        if (!CheckRegularTransaction(*tx, state, false)) {
             return state.Invalid(
                 false, state.GetRejectCode(), state.GetRejectReason(),
                 strprintf("Transaction check failed (txid %s) %s",
-                          tx.GetId().ToString(), state.GetDebugMessage()));
+                          tx->GetId().ToString(), state.GetDebugMessage()));
         }
-
-        nSigOps += GetLegacySigOpCount(tx);
-        if (nSigOps > MAX_BLOCK_SIGOPS)
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
-                             false, "out-of-bounds SigOpCount");
     }
 
-    if (fCheckPOW && fCheckMerkleRoot) block.fChecked = true;
+    if (fCheckPOW && fCheckMerkleRoot) {
+        block.fChecked = true;
+    }
 
     return true;
 }
