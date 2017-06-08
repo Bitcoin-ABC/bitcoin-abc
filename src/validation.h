@@ -407,7 +407,7 @@ int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
  * @return number of sigops this transaction's outputs will produce when spent
  * @see CTransaction::FetchInputs
  */
-unsigned int GetLegacySigOpCount(const CTransaction &tx);
+uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx);
 
 /**
  * Count ECDSA signature operations in pay-to-script-hash inputs.
@@ -418,8 +418,8 @@ unsigned int GetLegacySigOpCount(const CTransaction &tx);
  * inputs
  * @see CTransaction::FetchInputs
  */
-unsigned int GetP2SHSigOpCount(const CTransaction &tx,
-                               const CCoinsViewCache &mapInputs);
+uint64_t GetP2SHSigOpCount(const CTransaction &tx,
+                           const CCoinsViewCache &mapInputs);
 
 /**
  * Compute total signature operation of a transaction.
@@ -429,8 +429,8 @@ unsigned int GetP2SHSigOpCount(const CTransaction &tx,
  * @param[out] flags Script verification flags
  * @return Total signature operation cost of tx
  */
-int64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                 const CCoinsViewCache &inputs, int flags);
+uint64_t GetTransactionSigOpCount(const CTransaction &tx,
+                                  const CCoinsViewCache &inputs, int flags);
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends,

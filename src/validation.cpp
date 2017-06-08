@@ -451,8 +451,8 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
     return EvaluateSequenceLocks(index, lockPair);
 }
 
-unsigned int GetLegacySigOpCount(const CTransaction &tx) {
-    unsigned int nSigOps = 0;
+uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx) {
+    uint64_t nSigOps = 0;
     for (const auto &txin : tx.vin) {
         nSigOps += txin.scriptSig.GetSigOpCount(false);
     }
@@ -462,11 +462,11 @@ unsigned int GetLegacySigOpCount(const CTransaction &tx) {
     return nSigOps;
 }
 
-unsigned int GetP2SHSigOpCount(const CTransaction &tx,
-                               const CCoinsViewCache &inputs) {
+uint64_t GetP2SHSigOpCount(const CTransaction &tx,
+                           const CCoinsViewCache &inputs) {
     if (tx.IsCoinBase()) return 0;
 
-    unsigned int nSigOps = 0;
+    uint64_t nSigOps = 0;
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxOut &prevout = inputs.GetOutputFor(tx.vin[i]);
         if (prevout.scriptPubKey.IsPayToScriptHash())
@@ -475,9 +475,9 @@ unsigned int GetP2SHSigOpCount(const CTransaction &tx,
     return nSigOps;
 }
 
-int64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                 const CCoinsViewCache &inputs, int flags) {
-    int64_t nSigOps = GetLegacySigOpCount(tx);
+uint64_t GetTransactionSigOpCount(const CTransaction &tx,
+                                  const CCoinsViewCache &inputs, int flags) {
+    uint64_t nSigOps = GetSigOpCountWithoutP2SH(tx);
 
     if (tx.IsCoinBase()) return nSigOps;
 
@@ -3064,7 +3064,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
     while (true) {
         // Count the sigops for the current transaction. If the total sigops
         // count is too high, the the block is invalid.
-        nSigOps += GetLegacySigOpCount(*tx);
+        nSigOps += GetSigOpCountWithoutP2SH(*tx);
         if (nSigOps > MAX_BLOCK_SIGOPS) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
                              false, "out-of-bounds SigOpCount");
