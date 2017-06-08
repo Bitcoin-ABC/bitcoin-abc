@@ -229,14 +229,19 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
 }
 
 bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps) {
-    if (nBlockSize + packageSize >= nMaxGeneratedBlockSize) return false;
-    if (nBlockSigOps + packageSigOps >= MAX_BLOCK_SIGOPS) return false;
+    auto blockSizeWithPackage = nBlockSize + packageSize;
+    if (blockSizeWithPackage >= nMaxGeneratedBlockSize) {
+        return false;
+    }
+    if (nBlockSigOps + packageSigOps >=
+        GetMaxBlockSigOpsCount(blockSizeWithPackage)) {
+        return false;
+    }
     return true;
 }
 
 // Perform transaction-level checks before adding to block:
 // - transaction finality (locktime)
-//   segwit activation)
 // - serialized size (in case -blockmaxsize is in use)
 bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
@@ -254,9 +259,10 @@ bool BlockAssembler::TestPackageTransactions(
 }
 
 bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
-    if (nBlockSize +
-            ::GetSerializeSize(iter->GetTx(), SER_NETWORK, PROTOCOL_VERSION) >=
-        nMaxGeneratedBlockSize) {
+    auto blockSizeWithTx =
+        nBlockSize +
+        ::GetSerializeSize(iter->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
+    if (blockSizeWithTx >= nMaxGeneratedBlockSize) {
         if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
             blockFinished = true;
             return false;
@@ -267,10 +273,13 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
         return false;
     }
 
-    if (nBlockSigOps + iter->GetSigOpCount() >= MAX_BLOCK_SIGOPS) {
+    auto maxBlockSigOps = GetMaxBlockSigOpsCount(blockSizeWithTx);
+    if (nBlockSigOps + iter->GetSigOpCount() >= maxBlockSigOps) {
         // If the block has room for no more sig ops then flag that the block is
         // finished.
-        if (nBlockSigOps > MAX_BLOCK_SIGOPS - 2) {
+        // TODO: We should consider adding another transaction that isn't very
+        // dense in sigops instead of bailing out so easily.
+        if (nBlockSigOps > maxBlockSigOps - 2) {
             blockFinished = true;
             return false;
         }

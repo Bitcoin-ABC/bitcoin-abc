@@ -772,8 +772,8 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
         // Check that the transaction doesn't have an excessive number of
         // sigops, making it impossible to mine. Since the coinbase transaction
         // itself can contain sigops MAX_STANDARD_TX_SIGOPS is less than
-        // MAX_BLOCK_SIGOPS; we still consider this an invalid rather than
-        // merely non-standard transaction.
+        // MAX_BLOCK_SIGOPS_PER_MB; we still consider this an invalid rather
+        // than merely non-standard transaction.
         if (nSigOpsCount > MAX_STANDARD_TX_SIGOPS) {
             return state.DoS(0, false, REJECT_NONSTANDARD,
                              "bad-txns-too-many-sigops", false,
@@ -1846,7 +1846,13 @@ bool ConnectBlock(const Config &config, const CBlock &block,
     std::vector<int> prevheights;
     CAmount nFees = 0;
     int nInputs = 0;
-    int64_t nSigOpsCount = 0;
+
+    // Sigops counting. We need to do it again because of P2SH.
+    uint64_t nSigOpsCount = 0;
+    auto currentBlockSize =
+        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+    auto nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
+
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
     std::vector<std::pair<uint256, CDiskTxPos>> vPos;
@@ -1885,9 +1891,10 @@ bool ConnectBlock(const Config &config, const CBlock &block,
         // * legacy (always)
         // * p2sh (when P2SH enabled in flags and excludes coinbase)
         nSigOpsCount += GetTransactionSigOpCount(tx, view, flags);
-        if (nSigOpsCount > MAX_BLOCK_SIGOPS)
+        if (nSigOpsCount > nMaxSigOpsCount) {
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
+        }
 
         PrecomputedTransactionData txdata(tx);
         if (!tx.IsCoinBase()) {
@@ -3037,9 +3044,15 @@ bool CheckBlock(const Config &config, const CBlock &block,
     // Size limits.
     auto nMaxBlockSize = config.GetMaxBlockSize();
 
-    if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize ||
-        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) >
-            nMaxBlockSize) {
+    // Bail early if there is no way this block is of reasonable size.
+    if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
+                         "size limits failed");
+    }
+
+    auto currentBlockSize =
+        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+    if (currentBlockSize > nMaxBlockSize) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
                          "size limits failed");
     }
@@ -3055,6 +3068,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
 
     // Keep track of the sigops count.
     uint64_t nSigOps = 0;
+    auto nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
 
     // Check transactions
     auto txCount = block.vtx.size();
@@ -3065,7 +3079,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
         // Count the sigops for the current transaction. If the total sigops
         // count is too high, the the block is invalid.
         nSigOps += GetSigOpCountWithoutP2SH(*tx);
-        if (nSigOps > MAX_BLOCK_SIGOPS) {
+        if (nSigOps > nMaxSigOpsCount) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
                              false, "out-of-bounds SigOpCount");
         }
