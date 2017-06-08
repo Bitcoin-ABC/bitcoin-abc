@@ -525,6 +525,10 @@ static bool CheckTransactionCommon(const CTransaction &tx,
         }
     }
 
+    if (GetSigOpCountWithoutP2SH(tx) > MAX_TX_SIGOPS_COUNT) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
+    }
+
     // Check for duplicate inputs - note that this check is slow so we skip it
     // in CheckBlock
     if (fCheckDuplicateInputs) {
@@ -1890,7 +1894,12 @@ bool ConnectBlock(const Config &config, const CBlock &block,
         // GetTransactionSigOpCount counts 2 types of sigops:
         // * legacy (always)
         // * p2sh (when P2SH enabled in flags and excludes coinbase)
-        nSigOpsCount += GetTransactionSigOpCount(tx, view, flags);
+        auto txSigOpsCount = GetTransactionSigOpCount(tx, view, flags);
+        if (txSigOpsCount > MAX_TX_SIGOPS_COUNT) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
+        }
+
+        nSigOpsCount += txSigOpsCount;
         if (nSigOpsCount > nMaxSigOpsCount) {
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");

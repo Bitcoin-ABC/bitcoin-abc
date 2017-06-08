@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "consensus/consensus.h"
+#include "consensus/validation.h"
 #include "key.h"
 #include "pubkey.h"
 #include "script/script.h"
@@ -182,6 +183,42 @@ BOOST_AUTO_TEST_CASE(test_consensus_sigops_limit) {
     BOOST_CHECK_EQUAL(
         GetMaxBlockSigOpsCount(std::numeric_limits<uint32_t>::max()),
         4295 * MAX_BLOCK_SIGOPS_PER_MB);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_sigops_per_tx) {
+    CMutableTransaction tx;
+    tx.nVersion = 1;
+    tx.vin.resize(1);
+    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.n = 0;
+    tx.vin[0].scriptSig = CScript();
+    tx.vout.resize(1);
+    tx.vout[0].nValue = 1;
+    tx.vout[0].scriptPubKey = CScript();
+
+    {
+        CValidationState state;
+        BOOST_CHECK(CheckRegularTransaction(tx, state, false));
+    }
+
+    // Get just before the limit.
+    for (size_t i = 0; i < MAX_TX_SIGOPS_COUNT; i++) {
+        tx.vout[0].scriptPubKey << OP_CHECKSIG;
+    }
+
+    {
+        CValidationState state;
+        BOOST_CHECK(CheckRegularTransaction(tx, state, false));
+    }
+
+    // And go over.
+    tx.vout[0].scriptPubKey << OP_CHECKSIG;
+
+    {
+        CValidationState state;
+        BOOST_CHECK(!CheckRegularTransaction(tx, state, false));
+        BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txn-sigops");
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
