@@ -2909,7 +2909,7 @@ bool CChainState::ActivateBestChain(const Config &config,
                  connectTrace.GetBlocksConnected()) {
                 assert(trace.pblock && trace.pindex);
                 GetMainSignals().BlockConnected(trace.pblock, trace.pindex,
-                                                *trace.conflictedTxs);
+                                                trace.conflictedTxs);
             }
         }
 

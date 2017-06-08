@@ -104,12 +104,18 @@ protected:
     /**
      * Notifies listeners of a block being connected.
      * Provides a vector of transactions evicted from the mempool as a result.
+     *
+     * Called on a background thread.
      */
     virtual void
     BlockConnected(const std::shared_ptr<const CBlock> &block,
                    const CBlockIndex *pindex,
                    const std::vector<CTransactionRef> &txnConflicted) {}
-    /** Notifies listeners of a block being disconnected */
+    /**
+     * Notifies listeners of a block being disconnected
+     *
+     * Called on a background thread.
+     */
     virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block) {
     }
     /**
@@ -129,7 +135,11 @@ protected:
      * Called on a background thread.
      */
     virtual void ChainStateFlushed(const CBlockLocator &locator) {}
-    /** Notifies listeners about an inventory item being seen on the network. */
+    /**
+     * Notifies listeners about an inventory item being seen on the network.
+     *
+     * Called on a background thread.
+     */
     virtual void Inventory(const uint256 &hash) {}
     /** Tells listeners to broadcast their data. */
     virtual void ResendWalletTransactions(int64_t nBestBlockTime,
@@ -190,9 +200,10 @@ public:
     void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *,
                          bool fInitialDownload);
     void TransactionAddedToMempool(const CTransactionRef &);
-    void BlockConnected(const std::shared_ptr<const CBlock> &,
-                        const CBlockIndex *pindex,
-                        const std::vector<CTransactionRef> &);
+    void
+    BlockConnected(const std::shared_ptr<const CBlock> &,
+                   const CBlockIndex *pindex,
+                   const std::shared_ptr<const std::vector<CTransactionRef>> &);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &);
     void ChainStateFlushed(const CBlockLocator &);
     void Inventory(const uint256 &);
