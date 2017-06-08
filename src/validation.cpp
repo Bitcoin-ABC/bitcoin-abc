@@ -1396,6 +1396,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
         const TxId &txid = tx.GetId();
+        const bool is_coinbase = tx.IsCoinBase();
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
@@ -1407,7 +1408,9 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
             COutPoint out(txid, o);
             Coin coin;
             bool is_spent = view.SpendCoin(out, &coin);
-            if (!is_spent || tx.vout[o] != coin.GetTxOut()) {
+            if (!is_spent || tx.vout[o] != coin.GetTxOut() ||
+                uint32_t(pindex->nHeight) != coin.GetHeight() ||
+                is_coinbase != coin.IsCoinBase()) {
                 // transaction output mismatch
                 fClean = false;
             }
