@@ -140,7 +140,8 @@ void CMainSignals::MempoolEntryRemoved(CTransactionRef ptx,
                                        MemPoolRemovalReason reason) {
     if (reason != MemPoolRemovalReason::BLOCK &&
         reason != MemPoolRemovalReason::CONFLICT) {
-        m_internals->TransactionRemovedFromMempool(ptx);
+        m_internals->m_schedulerClient.AddToProcessQueue(
+            [ptx, this] { m_internals->TransactionRemovedFromMempool(ptx); });
     }
 }
 
