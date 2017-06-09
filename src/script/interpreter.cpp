@@ -13,9 +13,7 @@
 #include "script/script.h"
 #include "uint256.h"
 
-using namespace std;
-
-typedef vector<unsigned char> valtype;
+typedef std::vector<unsigned char> valtype;
 
 namespace {
 
@@ -48,8 +46,8 @@ bool CastToBool(const valtype &vch) {
  */
 #define stacktop(i) (stack.at(stack.size() + (i)))
 #define altstacktop(i) (altstack.at(altstack.size() + (i)))
-static inline void popstack(vector<valtype> &stack) {
-    if (stack.empty()) throw runtime_error("popstack(): stack empty");
+static inline void popstack(std::vector<valtype> &stack) {
+    if (stack.empty()) throw std::runtime_error("popstack(): stack empty");
     stack.pop_back();
 }
 
@@ -197,7 +195,7 @@ static bool IsDefinedHashtypeSignature(const valtype &vchSig) {
     return true;
 }
 
-bool CheckSignatureEncoding(const vector<unsigned char> &vchSig,
+bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
                             unsigned int flags, ScriptError *serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
@@ -258,7 +256,7 @@ bool static CheckMinimalPush(const valtype &data, opcodetype opcode) {
     return true;
 }
 
-bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
+bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 unsigned int flags, const BaseSignatureChecker &checker,
                 ScriptError *serror) {
     static const CScriptNum bnZero(0);
@@ -274,8 +272,8 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
     CScript::const_iterator pbegincodehash = script.begin();
     opcodetype opcode;
     valtype vchPushValue;
-    vector<bool> vfExec;
-    vector<valtype> altstack;
+    std::vector<bool> vfExec;
+    std::vector<valtype> altstack;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
     if (script.size() > MAX_SCRIPT_SIZE)
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
@@ -302,9 +300,11 @@ bool EvalScript(vector<vector<unsigned char>> &stack, const CScript &script,
                 opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_AND ||
                 opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL ||
                 opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
-                opcode == OP_MOD || opcode == OP_LSHIFT || opcode == OP_RSHIFT)
-                return set_error(
-                    serror, SCRIPT_ERR_DISABLED_OPCODE); // Disabled opcodes.
+                opcode == OP_MOD || opcode == OP_LSHIFT ||
+                opcode == OP_RSHIFT) {
+                // Disabled opcodes.
+                return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
+            }
 
             if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) {
                 if (fRequireMinimal &&
@@ -1332,13 +1332,14 @@ bool TransactionSignatureChecker::VerifySignature(
 }
 
 bool TransactionSignatureChecker::CheckSig(
-    const vector<unsigned char> &vchSigIn,
-    const vector<unsigned char> &vchPubKey, const CScript &scriptCode) const {
+    const std::vector<unsigned char> &vchSigIn,
+    const std::vector<unsigned char> &vchPubKey,
+    const CScript &scriptCode) const {
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid()) return false;
 
     // Hash type is one byte tacked on to the end of the signature
-    vector<unsigned char> vchSig(vchSigIn);
+    std::vector<unsigned char> vchSig(vchSigIn);
     if (vchSig.empty()) return false;
     uint32_t nHashType = vchSig.back();
     vchSig.pop_back();
@@ -1437,7 +1438,7 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
         return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
     }
 
-    vector<vector<unsigned char>> stack, stackCopy;
+    std::vector<valtype> stack, stackCopy;
     if (!EvalScript(stack, scriptSig, flags, checker, serror))
         // serror is set
         return false;
