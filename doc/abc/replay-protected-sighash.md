@@ -1,0 +1,191 @@
+# BUIP-HF Digest for replay protected signature verification across hard forks
+
+## Abstract
+
+This document describes proposed requirements and design for a reusable signing mechanism ensuring replay protection in the event of a hard fork. It provides a way for users to create transactions which are only valid on one branch of the fork.
+
+The proposed digest algorithm is similar to [BIP143](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki) as it is recognized as a superior solution to the currently used algorithm [1] and is already implemented in a wide variety of applications.
+
+The proposed digest algorithm is used when the `SIGHASH_FORKID` bit is set in the signature's sighash type. The way signatures which do not set this is bit are verified is not affected.
+
+## Specification
+
+### Activation
+
+The proposed digest algorithm is only used when the `SIGHASH_FORKID` bit in the signature sighash's type is set. It is defined as follow:
+
+````cpp
+  // ...
+  SIGHASH_SINGLE = 3,
+  SIGHASH_FORKID = 0x40,
+  SIGHASH_ANYONECANPAY = 0x80,
+  // ...
+````
+
+In presence of the `SIGHASH_FORKID` flag in the signature's sighash type, the proposed algorithm is used.
+
+Signatures using SIGHASH_FORKID must be rejected before [BUIP-HF](https://github.com/BitcoinUnlimited/BUIP/blob/master/BUIP-HF/buip-hf-technical-spec.md) is activated.
+
+In order to ensure proper activation, the reference implementation uses the `SCRIPT_ENABLE_SIGHASH_FORKID` flag when executing `EvalScript` .
+
+### Digest algorithm
+
+The proposed digest algorithm computes the double SHA256 of the serialization of:
+1. nVersion of the transaction (4-byte little endian)
+2. hashPrevouts (32-byte hash)
+3. hashSequence (32-byte hash)
+4. outpoint (32-byte hash + 4-byte little endian)
+5. scriptCode of the input (serialized as scripts inside CTxOuts)
+6. value of the output spent by this input (8-byte little endian)
+7. nSequence of the input (4-byte little endian)
+8. hashOutputs (32-byte hash)
+9. nLocktime of the transaction (4-byte little endian)
+10. sighash type of the signature (4-byte little endian)
+
+Items 1, 4, 7 and 9 have the same meaning as in [the original algorithm](https://en.bitcoin.it/wiki/OP_CHECKSIG).
+
+#### hashPrevouts
+
+* If the `ANYONECANPAY` flag is not set, `hashPrevouts` is the double SHA256 of the serialization of all input outpoints;
+* Otherwise, `hashPrevouts` is a `uint256` of `0x0000......0000`.
+
+#### hashSequence
+
+* If none of the `ANYONECANPAY`, `SINGLE`, `NONE` sighash type is set, `hashSequence` is the double SHA256 of the serialization of `nSequence` of all inputs;
+* Otherwise, `hashSequence` is a `uint256` of `0x0000......0000`.
+
+#### scriptCode
+
+In this section, we call `script` the script being currently executed. This means `redeemScript` in case of P2SH, or the `scriptPubKey` in the general case.
+
+* If the `script` does not contain any `OP_CODESEPARATOR`, the `script` is the `script` serialized as scripts inside `CTxOut`.
+* If the `script` contains any `OP_CODESEPARATOR`, the `scriptCode` is the `script` but removing everything up to and including the last executed `OP_CODESEPARATOR` before the signature checking opcode being executed, serialized as scripts inside `CTxOut`.
+
+Notes:
+1. Contrary to the original algorithm, this one do not use `FindAndDelete` to remove the signature from the script.
+2. Because of 1. it is not possible to create a valid signature within `redeemScript` or `scriptPubkey` as the signature would be part of the digest. This enforce that the signature is in `sigScript` .
+3. In case an opcode require signature checking is present in `sigScript`, `script` is effectively `sigScript`. However, for reason similar to 2. , it is not possible to provide a valid signature in that case.
+
+#### value
+
+The 8-byte value of the amount of bitcoin spent in this input.
+
+#### hashOutputs
+
+* If the sighash type is neither `SINGLE` nor `NONE`, `hashOutputs` is the double SHA256 of the serialization of all output amount (8-byte little endian) with `scriptPubKey` (serialized as scripts inside CTxOuts);
+* If sighash type is `SINGLE` and the input index is smaller than the number of outputs, `hashOutputs` is the double SHA256 of the output amount with `scriptPubKey` of the same index as the input;
+* Otherwise, `hashOutputs` is a `uint256` of `0x0000......0000`.
+
+Notes:
+1. In the [original algorithm](https://en.bitcoin.it/wiki/OP_CHECKSIG), a `uint256` of `0x0000......0001` is committed if the input index for a `SINGLE` signature is greater than or equal to the number of outputs. In this BIP a `0x0000......0000` is committed, without changing the semantics.
+
+#### sighash type
+
+The sighash type is altered to include a 24bits fork id in its most significant bits.
+
+````cpp
+  ss << ((GetForkID() << 8) | nHashType);
+````
+
+This ensure that the proposed digest algorithm will generate different results on forks using different forkids.
+
+## Implementation
+
+Addition to `SignatureHash` :
+
+````cpp
+  if (nHashType & SIGHASH_FORKID) {
+    uint256 hashPrevouts;
+    uint256 hashSequence;
+    uint256 hashOutputs;
+
+    if (!(nHashType & SIGHASH_ANYONECANPAY)) {
+      hashPrevouts = GetPrevoutHash(txTo);
+    }
+
+    if (!(nHashType & SIGHASH_ANYONECANPAY) &&
+        (nHashType & 0x1f) != SIGHASH_SINGLE &&
+        (nHashType & 0x1f) != SIGHASH_NONE) {
+      hashSequence = GetSequenceHash(txTo);
+    }
+
+    if ((nHashType & 0x1f) != SIGHASH_SINGLE &&
+        (nHashType & 0x1f) != SIGHASH_NONE) {
+      hashOutputs = GetOutputsHash(txTo);
+    } else if ((nHashType & 0x1f) == SIGHASH_SINGLE &&
+               nIn < txTo.vout.size()) {
+      CHashWriter ss(SER_GETHASH, 0);
+      ss << txTo.vout[nIn];
+      hashOutputs = ss.GetHash();
+    }
+
+    CHashWriter ss(SER_GETHASH, 0);
+    // Version
+    ss << txTo.nVersion;
+    // Input prevouts/nSequence (none/all, depending on flags)
+    ss << hashPrevouts;
+    ss << hashSequence;
+    // The input being signed (replacing the scriptSig with scriptCode +
+    // amount). The prevout may already be contained in hashPrevout, and the
+    // nSequence may already be contain in hashSequence.
+    ss << txTo.vin[nIn].prevout;
+    ss << static_cast<const CScriptBase &>(scriptCode);
+    ss << amount;
+    ss << txTo.vin[nIn].nSequence;
+    // Outputs (none/one/all, depending on flags)
+    ss << hashOutputs;
+    // Locktime
+    ss << txTo.nLockTime;
+    // Sighash type
+    ss << ((GetForkId() << 8) | nHashType);
+    return ss.GetHash();
+  }
+````
+
+Computation of midstates:
+
+````cpp
+uint256 GetPrevoutHash(const CTransaction &txTo) {
+  CHashWriter ss(SER_GETHASH, 0);
+  for (unsigned int n = 0; n < txTo.vin.size(); n++) {
+    ss << txTo.vin[n].prevout;
+  }
+
+  return ss.GetHash();
+}
+
+uint256 GetSequenceHash(const CTransaction &txTo) {
+  CHashWriter ss(SER_GETHASH, 0);
+  for (unsigned int n = 0; n < txTo.vin.size(); n++) {
+    ss << txTo.vin[n].nSequence;
+  }
+
+  return ss.GetHash();
+}
+
+uint256 GetOutputsHash(const CTransaction &txTo) {
+  CHashWriter ss(SER_GETHASH, 0);
+  for (unsigned int n = 0; n < txTo.vout.size(); n++) {
+    ss << txTo.vout[n];
+  }
+
+  return ss.GetHash();
+}
+````
+
+Gating code:
+
+````cpp
+  uint32_t nHashType = GetHashType(vchSig);
+  if (nHashType & SIGHASH_FORKID) {
+    if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID))
+      return set_error(serror, SCRIPT_ERR_ILLEGAL_FORKID);
+  } else {
+    // Drop the signature in scripts when SIGHASH_FORKID is not used.
+    scriptCode.FindAndDelete(CScript(vchSig));
+  }
+````
+
+## References
+
+[1] https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#Motivation
