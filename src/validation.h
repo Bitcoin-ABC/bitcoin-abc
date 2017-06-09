@@ -470,15 +470,10 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 } // namespace Consensus
 
 /**
- * Check if transaction is final and can be included in a block with the
- * specified height and time. Consensus critical.
- */
-bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
-
-/**
  * Check if transaction will be final in the next block to be created.
  *
- * Calls IsFinalTx() with current block height and appropriate block time.
+ * Check if transaction is final and can be included in the next block given its
+ * height and time.
  *
  * See consensus/consensus.h for flag definitions.
  */
@@ -575,6 +570,17 @@ bool CheckBlock(const Config &Config, const CBlock &block,
                 const Consensus::Params &consensusParams, bool fCheckPOW = true,
                 bool fCheckMerkleRoot = true);
 
+/**
+ * Context dependent validity checks for non coinbase transactions. This
+ * doesn't check the validity of the transaction against the UTXO set, but
+ * simply characteristic that are suceptible to change over time such as feature
+ * activation/deactivation and CLTV.
+ */
+bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
+                                CValidationState &state,
+                                const Consensus::Params &consensusParams,
+                                int nHeight, int64_t nLockTimeCutoff);
+
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO
  *  set; UTXO-related validity checks are done in ConnectBlock(). */
@@ -583,7 +589,8 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
                                 const Consensus::Params &consensusParams,
                                 const CBlockIndex *pindexPrev,
                                 int64_t nAdjustedTime);
-bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
+bool ContextualCheckBlock(const Config &config, const CBlock &block,
+                          CValidationState &state,
                           const Consensus::Params &consensusParams,
                           const CBlockIndex *pindexPrev);
 

@@ -226,7 +226,8 @@ bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode,
 void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                             int nManualPruneHeight);
 
-bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime) {
+static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
+                      int64_t nBlockTime) {
     if (tx.nLockTime == 0) {
         return true;
     }
@@ -3183,7 +3184,20 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
     return true;
 }
 
-bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
+bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
+                                CValidationState &state,
+                                const Consensus::Params &consensusParams,
+                                int nHeight, int64_t nLockTimeCutoff) {
+    if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
+        return state.DoS(10, false, REJECT_INVALID, "bad-txn-nonfinal", false,
+                         "non-final transaction");
+    }
+
+    return true;
+}
+
+bool ContextualCheckBlock(const Config &config, const CBlock &block,
+                          CValidationState &state,
                           const Consensus::Params &consensusParams,
                           const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
@@ -3201,9 +3215,10 @@ bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
 
     // Check that all transactions are finalized
     for (const auto &tx : block.vtx) {
-        if (!IsFinalTx(*tx, nHeight, nLockTimeCutoff)) {
-            return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal",
-                             false, "non-final transaction");
+        if (!ContextualCheckTransaction(config, *tx, state, consensusParams,
+                                        nHeight, nLockTimeCutoff)) {
+            // state set by ContextualCheckTransaction.
+            return false;
         }
     }
 
@@ -3361,7 +3376,7 @@ static bool AcceptBlock(const Config &config,
     }
 
     if (!CheckBlock(config, block, state, chainparams.GetConsensus()) ||
-        !ContextualCheckBlock(block, state, chainparams.GetConsensus(),
+        !ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
                               pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus |= BLOCK_FAILED_VALID;
@@ -3466,7 +3481,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
                     fCheckMerkleRoot))
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
-    if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(),
+    if (!ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
                               pindexPrev))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));

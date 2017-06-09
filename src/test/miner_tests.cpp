@@ -547,9 +547,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK(!CheckFinalTx(tx, flags));
     // Sequence locks pass.
     BOOST_CHECK(TestSequenceLocks(tx, flags));
-    // Locktime passes on 2nd block.
-    BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2,
-                          chainActive.Tip()->GetMedianTimePast()));
+
+    {
+        // Locktime passes on 2nd block.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(
+            config, tx, state, chainparams.GetConsensus(),
+            chainActive.Tip()->nHeight + 2,
+            chainActive.Tip()->GetMedianTimePast()));
+    }
 
     // Absolute time locked.
     tx.vin[0].prevout.hash = txFirst[3]->GetId();
@@ -562,9 +569,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK(!CheckFinalTx(tx, flags));
     // Sequence locks pass.
     BOOST_CHECK(TestSequenceLocks(tx, flags));
-    // Locktime passes 1 second later.
-    BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2,
-                          chainActive.Tip()->GetMedianTimePast() + 1));
+
+    {
+        // Locktime passes 1 second later.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(
+            config, tx, state, chainparams.GetConsensus(),
+            chainActive.Tip()->nHeight + 1,
+            chainActive.Tip()->GetMedianTimePast() + 1));
+    }
 
     // mempool-dependent transactions (not added)
     tx.vin[0].prevout.hash = hash;

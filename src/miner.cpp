@@ -247,21 +247,29 @@ bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
     uint64_t nPotentialBlockSize = nBlockSize;
     for (const CTxMemPool::txiter it : package) {
-        if (!IsFinalTx(it->GetTx(), nHeight, nLockTimeCutoff)) return false;
+        CValidationState state;
+        if (!ContextualCheckTransaction(*config, it->GetTx(), state,
+                                        chainparams.GetConsensus(), nHeight,
+                                        nLockTimeCutoff)) {
+            return false;
+        }
+
         uint64_t nTxSize =
             ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
         if (nPotentialBlockSize + nTxSize >= nMaxGeneratedBlockSize) {
             return false;
         }
+
         nPotentialBlockSize += nTxSize;
     }
+
     return true;
 }
 
-bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
+bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     auto blockSizeWithTx =
         nBlockSize +
-        ::GetSerializeSize(iter->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
+        ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
     if (blockSizeWithTx >= nMaxGeneratedBlockSize) {
         if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
             blockFinished = true;
@@ -274,7 +282,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
     }
 
     auto maxBlockSigOps = GetMaxBlockSigOpsCount(blockSizeWithTx);
-    if (nBlockSigOps + iter->GetSigOpCount() >= maxBlockSigOps) {
+    if (nBlockSigOps + it->GetSigOpCount() >= maxBlockSigOps) {
         // If the block has room for no more sig ops then flag that the block is
         // finished.
         // TODO: We should consider adding another transaction that isn't very
@@ -290,7 +298,12 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter) {
 
     // Must check that lock times are still valid. This can be removed once MTP
     // is always enforced as long as reorgs keep the mempool consistent.
-    if (!IsFinalTx(iter->GetTx(), nHeight, nLockTimeCutoff)) return false;
+    CValidationState state;
+    if (!ContextualCheckTransaction(*config, it->GetTx(), state,
+                                    chainparams.GetConsensus(), nHeight,
+                                    nLockTimeCutoff)) {
+        return false;
+    }
 
     return true;
 }

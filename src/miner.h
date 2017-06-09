@@ -11,8 +11,9 @@
 
 #include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index_container.hpp"
+
+#include <cstdint>
 #include <memory>
-#include <stdint.h>
 
 class CBlockIndex;
 class CChainParams;
