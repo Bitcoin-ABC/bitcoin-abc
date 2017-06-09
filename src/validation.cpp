@@ -3158,12 +3158,23 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state,
                                 const Consensus::Params &consensusParams,
-                                int nHeight, int64_t nLockTimeCutoff) {
-    if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
+                                int nHeight, int64_t nBlockTime) {
+    if (!IsFinalTx(tx, nHeight, nBlockTime)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
+    }
+
+    if (nBlockTime >= consensusParams.hfStartTime &&
+        nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
+        for (const CTxOut &o : tx.vout) {
+            if (o.scriptPubKey.IsCommitment(
+                    consensusParams.antiReplayOpReturnCommitment)) {
+                return state.DoS(10, false, REJECT_INVALID, "bad-txn-replay",
+                                 false, "non playable transaction");
+            }
+        }
     }
 
     return true;

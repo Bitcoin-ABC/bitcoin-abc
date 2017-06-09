@@ -16,6 +16,15 @@
 
 #include "chainparamsseeds.h"
 
+static const int64_t HF_START_TIME = 10000;
+static const std::string ANTI_REPLAY_COMMITMENT =
+    "Placeholder for the anti replay commitment";
+
+static std::vector<unsigned char> GetAntiReplayCommitment() {
+    return std::vector<unsigned char>(std::begin(ANTI_REPLAY_COMMITMENT),
+                                      std::end(ANTI_REPLAY_COMMITMENT));
+}
+
 static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                  const CScript &genesisOutputScript,
                                  uint32_t nTime, uint32_t nNonce,
@@ -94,6 +103,9 @@ public:
         consensus.BIP65Height = 388381;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.BIP66Height = 363725;
+        consensus.hfStartTime = HF_START_TIME;
+        consensus.antiReplayOpReturnSunsetHeight = 530000;
+        consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -249,6 +261,9 @@ public:
         consensus.BIP65Height = 581885;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
         consensus.BIP66Height = 330776;
+        consensus.hfStartTime = HF_START_TIME;
+        consensus.antiReplayOpReturnSunsetHeight = 530000;
+        consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -366,6 +381,9 @@ public:
         consensus.BIP65Height = 1351;
         // BIP66 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251;
+        consensus.hfStartTime = HF_START_TIME;
+        consensus.antiReplayOpReturnSunsetHeight = 530000;
+        consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks

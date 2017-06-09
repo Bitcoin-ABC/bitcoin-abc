@@ -47,6 +47,12 @@ struct Params {
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
     int BIP66Height;
+    /** Time at which HF starts */
+    int64_t hfStartTime;
+    /** Block height at which OP_RETURN replay protection stops */
+    int antiReplayOpReturnSunsetHeight;
+    /** Committed OP_RETURN value for replay protection */
+    std::vector<unsigned char> antiReplayOpReturnCommitment;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

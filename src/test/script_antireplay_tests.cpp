@@ -5,6 +5,11 @@
 #include "script/script.h"
 #include "test/test_bitcoin.h"
 
+#include "chainparams.h"
+#include "config.h"
+#include "consensus/validation.h"
+#include "validation.h"
+
 #include <boost/test/unit_test.hpp>
 
 #include <string>
@@ -52,6 +57,89 @@ BOOST_AUTO_TEST_CASE(test_is_commitment) {
     data.push_back(23);
     s = CScript() << OP_RETURN << data;
     BOOST_CHECK(!s.IsCommitment(data));
+
+    // Check with the actual replay commitment we are going to use.
+    SelectParams(CBaseChainParams::MAIN);
+    const Consensus::Params &params = Params().GetConsensus();
+    s = CScript() << OP_RETURN << params.antiReplayOpReturnCommitment;
+    BOOST_CHECK(s.IsCommitment(params.antiReplayOpReturnCommitment));
+}
+
+BOOST_AUTO_TEST_CASE(test_antireplay) {
+    SelectParams(CBaseChainParams::MAIN);
+
+    GlobalConfig config;
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
+    // The anti replay rule start at hfStartTime and stops at
+    // antiReplayOpReturnSunsetHeight.
+    const int nBlockHeight = params.antiReplayOpReturnSunsetHeight;
+    const int64_t nBlockTime = params.hfStartTime;
+
+    CMutableTransaction tx;
+    tx.nVersion = 1;
+    tx.vin.resize(1);
+    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.n = 0;
+    tx.vin[0].scriptSig = CScript();
+    tx.vout.resize(1);
+    tx.vout[0].nValue = 1;
+    tx.vout[0].scriptPubKey = CScript();
+
+    {
+        // Base transaction is valid.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight, nBlockTime));
+    }
+
+    {
+        // Base transaction is still valid after sunset.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight + 1, nBlockTime));
+    }
+
+    {
+        // Base transaction is valid before the fork.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight, nBlockTime - 1));
+    }
+
+    tx.vout[0].scriptPubKey = CScript() << OP_RETURN << OP_0;
+
+    {
+        // Wrong commitment, still valid.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight, nBlockTime));
+    }
+
+    tx.vout[0].scriptPubKey = CScript() << OP_RETURN
+                                        << params.antiReplayOpReturnCommitment;
+
+    {
+        // Anti replay commitment, not valid anymore.
+        CValidationState state;
+        BOOST_CHECK(!ContextualCheckTransaction(config, tx, state, params,
+                                                nBlockHeight, nBlockTime));
+        BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txn-replay");
+    }
+
+    {
+        // Anti replay commitment, disabled before start time.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight, nBlockTime - 1));
+    }
+
+    {
+        // Anti replay commitment, disabled after sunset.
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransaction(config, tx, state, params,
+                                               nBlockHeight + 1, nBlockTime));
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
