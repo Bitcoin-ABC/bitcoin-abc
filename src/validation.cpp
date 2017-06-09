@@ -225,13 +225,21 @@ void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                             int nManualPruneHeight);
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime) {
-    if (tx.nLockTime == 0) return true;
-    if ((int64_t)tx.nLockTime < ((int64_t)tx.nLockTime < LOCKTIME_THRESHOLD
-                                     ? (int64_t)nBlockHeight
-                                     : nBlockTime))
+    if (tx.nLockTime == 0) {
         return true;
+    }
+
+    int64_t lockTime = tx.nLockTime;
+    int64_t lockTimeLimit =
+        (lockTime < LOCKTIME_THRESHOLD) ? nBlockHeight : nBlockTime;
+    if (lockTime < lockTimeLimit) {
+        return true;
+    }
+
     for (const auto &txin : tx.vin) {
-        if (!(txin.nSequence == CTxIn::SEQUENCE_FINAL)) return false;
+        if (txin.nSequence != CTxIn::SEQUENCE_FINAL) {
+            return false;
+        }
     }
     return true;
 }
