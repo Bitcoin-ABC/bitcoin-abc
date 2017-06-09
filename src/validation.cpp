@@ -3173,6 +3173,11 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
     return true;
 }
 
+bool IsMAHFEnabled(const CBlockIndex *pindexPrev,
+                   const Consensus::Params &params) {
+    return false;
+}
+
 bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
                           const Consensus::Params &consensusParams,
                           const CBlockIndex *pindexPrev) {
@@ -3206,6 +3211,13 @@ bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false,
                              "block height mismatch in coinbase");
         }
+    }
+
+    // Implement REQ-6-1 anti replay feature. Any transaction with an specific
+    // value in OP_RETURN is considered invalid on that chain.
+    if (nHeight <= consensusParams.antiReplayOpReturnSunsetHeight &&
+        IsMAHFEnabled(pindexPrev, consensusParams)) {
+        // Do nothing for now.
     }
 
     return true;

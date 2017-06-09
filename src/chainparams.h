@@ -16,7 +16,10 @@
 struct CDNSSeedData {
     std::string name, host;
     bool supportsServiceBitsFiltering;
-    CDNSSeedData(const std::string &strName, const std::string &strHost, bool supportsServiceBitsFilteringIn = false) : name(strName), host(strHost), supportsServiceBitsFiltering(supportsServiceBitsFilteringIn) {}
+    CDNSSeedData(const std::string &strName, const std::string &strHost,
+                 bool supportsServiceBitsFilteringIn = false)
+        : name(strName), host(strHost),
+          supportsServiceBitsFiltering(supportsServiceBitsFilteringIn) {}
 };
 
 struct SeedSpec6 {
@@ -43,8 +46,7 @@ struct ChainTxData {
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
  */
-class CChainParams
-{
+class CChainParams {
 public:
     enum Base58Type {
         PUBKEY_ADDRESS,
@@ -56,11 +58,13 @@ public:
         MAX_BASE58_TYPES
     };
 
-    const Consensus::Params& GetConsensus() const { return consensus; }
-    const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
+    const Consensus::Params &GetConsensus() const { return consensus; }
+    const CMessageHeader::MessageStartChars &MessageStart() const {
+        return pchMessageStart;
+    }
     int GetDefaultPort() const { return nDefaultPort; }
 
-    const CBlock& GenesisBlock() const { return genesis; }
+    const CBlock &GenesisBlock() const { return genesis; }
     /** Make miner wait to have peers to avoid wasting work */
     bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
     /** Default value for -checkmempool and -checkblockindex argument */
@@ -68,15 +72,19 @@ public:
     /** Policy: Filter transactions that do not match well-defined patterns */
     bool RequireStandard() const { return fRequireStandard; }
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
-    /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
+    /** Make miner stop after a block is found. In RPC, don't return until
+     * nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
-    const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
-    const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
-    const CCheckpointData& Checkpoints() const { return checkpointData; }
-    const ChainTxData& TxData() const { return chainTxData; }
+    const std::vector<CDNSSeedData> &DNSSeeds() const { return vSeeds; }
+    const std::vector<unsigned char> &Base58Prefix(Base58Type type) const {
+        return base58Prefixes[type];
+    }
+    const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
+    const CCheckpointData &Checkpoints() const { return checkpointData; }
+    const ChainTxData &TxData() const { return chainTxData; }
+
 protected:
     CChainParams() {}
 
@@ -106,17 +114,18 @@ const CChainParams &Params();
 /**
  * @returns CChainParams for the given BIP70 chain name.
  */
-CChainParams& Params(const std::string& chain);
+CChainParams &Params(const std::string &chain);
 
 /**
  * Sets the params returned by Params() to those for the given BIP70 chain name.
  * @throws std::runtime_error when the chain is not supported.
  */
-void SelectParams(const std::string& chain);
+void SelectParams(const std::string &chain);
 
 /**
  * Allows modifying the BIP9 regtest parameters.
  */
-void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout);
+void UpdateRegtestBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
+                                 int64_t nTimeout);
 
 #endif // BITCOIN_CHAINPARAMS_H
