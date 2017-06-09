@@ -575,9 +575,6 @@ bool CheckBlock(const Config &Config, const CBlock &block,
                 const Consensus::Params &consensusParams, bool fCheckPOW = true,
                 bool fCheckMerkleRoot = true);
 
-bool IsMAHFEnabled(const CBlockIndex *pindexPrev,
-                   const Consensus::Params &params);
-
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO
  *  set; UTXO-related validity checks are done in ConnectBlock(). */
