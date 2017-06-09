@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "config.h"
+#include "chainparams.h"
 #include "consensus/consensus.h"
 #include "test/test_bitcoin.h"
 
@@ -39,6 +40,20 @@ BOOST_AUTO_TEST_CASE(max_block_size) {
     BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 7 * ONE_MEGABYTE);
     BOOST_CHECK(config.SetMaxBlockSize(ONE_MEGABYTE));
     BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), ONE_MEGABYTE);
+}
+
+BOOST_AUTO_TEST_CASE(chain_params) {
+    GlobalConfig config;
+
+    // Global config is consistent with params.
+    SelectParams(CBaseChainParams::MAIN);
+    BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
+
+    SelectParams(CBaseChainParams::TESTNET);
+    BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
+
+    SelectParams(CBaseChainParams::REGTEST);
+    BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -442,6 +442,7 @@ public:
         consensus.vDeployments[d].nTimeout = nTimeout;
     }
 };
+
 static CRegTestParams regTestParams;
 
 static CChainParams *pCurrentParams = 0;

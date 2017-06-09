@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "config.h"
+#include "chainparams.h"
 #include "consensus/consensus.h"
 #include "globals.h"
 
@@ -18,6 +19,10 @@ bool GlobalConfig::SetMaxBlockSize(uint64_t maxBlockSize) {
 
 uint64_t GlobalConfig::GetMaxBlockSize() const {
     return nMaxBlockSize;
+}
+
+const CChainParams &GlobalConfig::GetChainParams() const {
+    return Params();
 }
 
 static GlobalConfig gConfig;
