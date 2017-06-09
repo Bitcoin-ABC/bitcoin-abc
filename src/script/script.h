@@ -590,6 +590,7 @@ public:
 
     bool IsPayToScriptHash() const;
     bool IsPayToWitnessScriptHash() const;
+    bool IsCommitment(const std::vector<unsigned char> &data) const;
     bool IsWitnessProgram(int &version,
                           std::vector<unsigned char> &program) const;
 
