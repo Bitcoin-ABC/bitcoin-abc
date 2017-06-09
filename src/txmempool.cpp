@@ -5,7 +5,9 @@
 
 #include "txmempool.h"
 
+#include "chainparams.h" // for GetConsensus.
 #include "clientversion.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "policy/fees.h"
@@ -569,12 +571,16 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins,
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
         bool validLP = TestLockPointValidity(&lp);
-        if (!CheckFinalTx(tx, flags) ||
+
+        auto &config = GetConfig();
+        CValidationState state;
+        if (!ContextualCheckTransactionForCurrentBlock(
+                config, tx, state, config.GetChainParams().GetConsensus(),
+                flags) ||
             !CheckSequenceLocks(tx, flags, &lp, validLP)) {
             // Note if CheckSequenceLocks fails the LockPoints may still be
-            // invalid.
-            // So it's critical that we remove the tx and not depend on the
-            // LockPoints.
+            // invalid. So it's critical that we remove the tx and not depend on
+            // the LockPoints.
             txToRemove.insert(it);
         } else if (it->GetSpendsCoinbase()) {
             for (const CTxIn &txin : tx.vin) {

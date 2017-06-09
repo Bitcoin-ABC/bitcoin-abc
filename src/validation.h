@@ -470,16 +470,6 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 } // namespace Consensus
 
 /**
- * Check if transaction will be final in the next block to be created.
- *
- * Check if transaction is final and can be included in the next block given its
- * height and time.
- *
- * See consensus/consensus.h for flag definitions.
- */
-bool CheckFinalTx(const CTransaction &tx, int flags = -1);
-
-/**
  * Test whether the LockPoints height and time are still valid on the current
  * chain.
  */
@@ -580,6 +570,16 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state,
                                 const Consensus::Params &consensusParams,
                                 int nHeight, int64_t nLockTimeCutoff);
+
+/**
+ * This is a variant of ContextualCheckTransaction which computes the contextual
+ * check for a transaction based on the chain tip.
+ *
+ * See consensus/consensus.h for flag definitions.
+ */
+bool ContextualCheckTransactionForCurrentBlock(
+    const Config &config, const CTransaction &tx, CValidationState &state,
+    const Consensus::Params &consensusParams, int flags = -1);
 
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO

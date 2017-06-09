@@ -496,8 +496,15 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     mempool.addUnchecked(
         hash,
         entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    // Locktime passes.
-    BOOST_CHECK(CheckFinalTx(tx, flags));
+
+    {
+        // Locktime passes.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, chainparams.GetConsensus(), flags));
+    }
+
     // Sequence locks fail.
     BOOST_CHECK(!TestSequenceLocks(tx, flags));
     // Sequence locks pass on 2nd block.
@@ -516,8 +523,15 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     prevheights[0] = baseheight + 2;
     hash = tx.GetId();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    // Locktime passes.
-    BOOST_CHECK(CheckFinalTx(tx, flags));
+
+    {
+        // Locktime passes.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, chainparams.GetConsensus(), flags));
+    }
+
     // Sequence locks fail.
     BOOST_CHECK(!TestSequenceLocks(tx, flags));
 
@@ -543,8 +557,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.nLockTime = chainActive.Tip()->nHeight + 1;
     hash = tx.GetId();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    // Locktime fails.
-    BOOST_CHECK(!CheckFinalTx(tx, flags));
+
+    {
+        // Locktime fails.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, chainparams.GetConsensus(), flags));
+        BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
+    }
+
     // Sequence locks pass.
     BOOST_CHECK(TestSequenceLocks(tx, flags));
 
@@ -565,8 +587,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     prevheights[0] = baseheight + 4;
     hash = tx.GetId();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    // Locktime fails.
-    BOOST_CHECK(!CheckFinalTx(tx, flags));
+
+    {
+        // Locktime fails.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, chainparams.GetConsensus(), flags));
+        BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
+    }
+
     // Sequence locks pass.
     BOOST_CHECK(TestSequenceLocks(tx, flags));
 
@@ -585,8 +615,15 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     prevheights[0] = chainActive.Tip()->nHeight + 1;
     tx.nLockTime = 0;
     tx.vin[0].nSequence = 0;
-    // Locktime passes.
-    BOOST_CHECK(CheckFinalTx(tx, flags));
+
+    {
+        // Locktime passes.
+        GlobalConfig config;
+        CValidationState state;
+        BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, chainparams.GetConsensus(), flags));
+    }
+
     // Sequence locks pass.
     BOOST_CHECK(TestSequenceLocks(tx, flags));
     tx.vin[0].nSequence = 1;

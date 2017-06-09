@@ -26,6 +26,7 @@
 #include "utilmoneystr.h"
 #include "validation.h"
 #include "wallet/coincontrol.h"
+#include "wallet/finaltx.h"
 
 #include <assert.h>
 

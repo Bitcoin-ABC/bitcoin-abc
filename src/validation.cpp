@@ -247,37 +247,6 @@ static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
     return true;
 }
 
-bool CheckFinalTx(const CTransaction &tx, int flags) {
-    AssertLockHeld(cs_main);
-
-    // By convention a negative value for flags indicates that the
-    // current network-enforced consensus rules should be used. In
-    // a future soft-fork scenario that would mean checking which
-    // rules would be enforced for the next block and setting the
-    // appropriate flags. At the present time no soft-forks are
-    // scheduled, so no flags are set.
-    flags = std::max(flags, 0);
-
-    // CheckFinalTx() uses chainActive.Height()+1 to evaluate
-    // nLockTime because when IsFinalTx() is called within
-    // CBlock::AcceptBlock(), the height of the block *being*
-    // evaluated is what is used. Thus if we want to know if a
-    // transaction can be part of the *next* block, we need to call
-    // IsFinalTx() with one more than chainActive.Height().
-    const int nBlockHeight = chainActive.Height() + 1;
-
-    // BIP113 will require that time-locked transactions have nLockTime set to
-    // less than the median time of the previous block they're contained in.
-    // When the next block is created its previous block will be the current
-    // chain tip, so we use that to calculate the median time passed to
-    // IsFinalTx() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nBlockTime = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                   ? chainActive.Tip()->GetMedianTimePast()
-                                   : GetAdjustedTime();
-
-    return IsFinalTx(tx, nBlockHeight, nBlockTime);
-}
-
 /**
  * Calculates the block height and previous block's median time past at
  * which the transaction will be considered final in the context of BIP 68.
@@ -655,7 +624,9 @@ static bool AcceptToMemoryPoolWorker(
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
     // be mined yet.
-    if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS)) {
+    if (!ContextualCheckTransactionForCurrentBlock(
+            config, tx, state, config.GetChainParams().GetConsensus(),
+            STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         return state.DoS(0, false, REJECT_NONSTANDARD, "non-final");
     }
 
@@ -3196,6 +3167,39 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
     }
 
     return true;
+}
+
+bool ContextualCheckTransactionForCurrentBlock(
+    const Config &config, const CTransaction &tx, CValidationState &state,
+    const Consensus::Params &consensusParams, int flags) {
+    AssertLockHeld(cs_main);
+
+    // By convention a negative value for flags indicates that the current
+    // network-enforced consensus rules should be used. In a future soft-fork
+    // scenario that would mean checking which rules would be enforced for the
+    // next block and setting the appropriate flags. At the present time no
+    // soft-forks are scheduled, so no flags are set.
+    flags = std::max(flags, 0);
+
+    // ContextualCheckTransactionForCurrentBlock() uses chainActive.Height()+1
+    // to evaluate nLockTime because when IsFinalTx() is called within
+    // CBlock::AcceptBlock(), the height of the block *being* evaluated is what
+    // is used. Thus if we want to know if a transaction can be part of the
+    // *next* block, we need to call ContextualCheckTransaction() with one more
+    // than chainActive.Height().
+    const int nBlockHeight = chainActive.Height() + 1;
+
+    // BIP113 will require that time-locked transactions have nLockTime set to
+    // less than the median time of the previous block they're contained in.
+    // When the next block is created its previous block will be the current
+    // chain tip, so we use that to calculate the median time passed to
+    // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
+    const int64_t nBlockTime = (flags & LOCKTIME_MEDIAN_TIME_PAST)
+                                   ? chainActive.Tip()->GetMedianTimePast()
+                                   : GetAdjustedTime();
+
+    return ContextualCheckTransaction(config, tx, state, consensusParams,
+                                      nBlockHeight, nBlockTime);
 }
 
 bool ContextualCheckBlock(const Config &config, const CBlock &block,

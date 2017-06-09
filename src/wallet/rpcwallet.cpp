@@ -6,6 +6,7 @@
 #include "amount.h"
 #include "base58.h"
 #include "chain.h"
+#include "chainparams.h" // for GetConsensus.
 #include "config.h"
 #include "consensus/validation.h"
 #include "core_io.h"
@@ -631,7 +632,14 @@ static UniValue getreceivedbyaddress(const Config &config,
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
-        if (wtx.IsCoinBase() || !CheckFinalTx(*wtx.tx)) continue;
+
+        CValidationState state;
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config, *wtx.tx, state,
+                config.GetChainParams().GetConsensus())) {
+            continue;
+        }
 
         for (const CTxOut &txout : wtx.tx->vout) {
             if (txout.scriptPubKey == scriptPubKey)
@@ -688,7 +696,13 @@ static UniValue getreceivedbyaccount(const Config &config,
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
-        if (wtx.IsCoinBase() || !CheckFinalTx(*wtx.tx)) continue;
+        CValidationState state;
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config, *wtx.tx, state,
+                config.GetChainParams().GetConsensus())) {
+            continue;
+        }
 
         for (const CTxOut &txout : wtx.tx->vout) {
             CTxDestination address;
@@ -777,9 +791,14 @@ static UniValue getbalance(const Config &config,
                  pwalletMain->mapWallet.begin();
              it != pwalletMain->mapWallet.end(); ++it) {
             const CWalletTx &wtx = (*it).second;
-            if (!CheckFinalTx(wtx) || wtx.GetBlocksToMaturity() > 0 ||
-                wtx.GetDepthInMainChain() < 0)
+            CValidationState state;
+            if (!ContextualCheckTransactionForCurrentBlock(
+                    config, wtx, state,
+                    config.GetChainParams().GetConsensus()) ||
+                wtx.GetBlocksToMaturity() > 0 ||
+                wtx.GetDepthInMainChain() < 0) {
                 continue;
+            }
 
             CAmount allFee;
             string strSentAccount;
@@ -1199,7 +1218,8 @@ struct tallyitem {
     }
 };
 
-static UniValue ListReceived(const UniValue &params, bool fByAccounts) {
+static UniValue ListReceived(const Config &config, const UniValue &params,
+                             bool fByAccounts) {
     // Minimum confirmations
     int nMinDepth = 1;
     if (params.size() > 0) nMinDepth = params[0].get_int();
@@ -1218,7 +1238,13 @@ static UniValue ListReceived(const UniValue &params, bool fByAccounts) {
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
 
-        if (wtx.IsCoinBase() || !CheckFinalTx(*wtx.tx)) continue;
+        CValidationState state;
+        if (wtx.IsCoinBase() ||
+            !ContextualCheckTransactionForCurrentBlock(
+                config, *wtx.tx, state,
+                config.GetChainParams().GetConsensus())) {
+            continue;
+        }
 
         int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < nMinDepth) continue;
@@ -1352,7 +1378,7 @@ static UniValue listreceivedbyaddress(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    return ListReceived(request.params, false);
+    return ListReceived(config, request.params, false);
 }
 
 static UniValue listreceivedbyaccount(const Config &config,
@@ -1395,7 +1421,7 @@ static UniValue listreceivedbyaccount(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    return ListReceived(request.params, true);
+    return ListReceived(config, request.params, true);
 }
 
 static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
