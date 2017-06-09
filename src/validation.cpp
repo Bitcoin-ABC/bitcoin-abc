@@ -3189,7 +3189,9 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 const Consensus::Params &consensusParams,
                                 int nHeight, int64_t nLockTimeCutoff) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
-        return state.DoS(10, false, REJECT_INVALID, "bad-txn-nonfinal", false,
+        // While this is only one transaction, we use txns in the error to
+        // ensure continuity with other clients.
+        return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
     }
 
