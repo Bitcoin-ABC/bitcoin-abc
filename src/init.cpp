@@ -1028,7 +1028,7 @@ void ThreadImport(const Config &config,
             StartShutdown();
         }
     } // End scope of CImportingNow
-    LoadMempool();
+    LoadMempool(config);
     fDumpMempoolLater = !fRequestShutdown;
 }
 
@@ -1958,7 +1958,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
                 if (!fReindex && chainActive.Tip() != NULL) {
                     uiInterface.InitMessage(_("Rewinding blocks..."));
-                    if (!RewindBlockIndex(chainparams)) {
+                    if (!RewindBlockIndex(config, chainparams)) {
                         strLoadError = _("Unable to rewind the database to a "
                                          "pre-fork state. You will need to "
                                          "redownload the blockchain");

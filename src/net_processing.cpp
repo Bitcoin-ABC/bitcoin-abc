@@ -1942,8 +1942,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         std::list<CTransactionRef> lRemovedTxn;
 
         if (!AlreadyHave(inv) &&
-            AcceptToMemoryPool(mempool, state, ptx, true, &fMissingInputs,
-                               &lRemovedTxn)) {
+            AcceptToMemoryPool(config, mempool, state, ptx, true,
+                               &fMissingInputs, &lRemovedTxn)) {
             mempool.check(pcoinsTip);
             RelayTransaction(tx, connman);
             for (unsigned int i = 0; i < tx.vout.size(); i++) {
@@ -1979,8 +1979,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     CValidationState stateDummy;
 
                     if (setMisbehaving.count(fromPeer)) continue;
-                    if (AcceptToMemoryPool(mempool, stateDummy, porphanTx, true,
-                                           &fMissingInputs2, &lRemovedTxn)) {
+                    if (AcceptToMemoryPool(config, mempool, stateDummy,
+                                           porphanTx, true, &fMissingInputs2,
+                                           &lRemovedTxn)) {
                         LogPrint("mempool", "   accepted orphan tx %s\n",
                                  orphanId.ToString());
                         RelayTransaction(orphanTx, connman);

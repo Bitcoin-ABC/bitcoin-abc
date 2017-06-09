@@ -8,6 +8,7 @@
 #include "base58.h"
 #include "chain.h"
 #include "checkpoints.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "key.h"
@@ -3976,6 +3977,6 @@ int CMerkleTx::GetBlocksToMaturity() const {
 
 bool CMerkleTx::AcceptToMemoryPool(const CAmount &nAbsurdFee,
                                    CValidationState &state) {
-    return ::AcceptToMemoryPool(mempool, state, tx, true, NULL, NULL, false,
-                                nAbsurdFee);
+    return ::AcceptToMemoryPool(GetConfig(), mempool, state, tx, true, NULL,
+                                NULL, false, nAbsurdFee);
 }

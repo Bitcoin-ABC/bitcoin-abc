@@ -376,18 +376,18 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
 /** (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from mempool
  * **/
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state,
-                        const CTransactionRef &tx, bool fLimitFree,
-                        bool *pfMissingInputs,
+bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
+                        CValidationState &state, const CTransactionRef &tx,
+                        bool fLimitFree, bool *pfMissingInputs,
                         std::list<CTransactionRef> *plTxnReplaced = NULL,
                         bool fOverrideMempoolLimit = false,
                         const CAmount nAbsurdFee = 0);
 
 /** (try to) add transaction to memory pool with a specified acceptance time **/
 bool AcceptToMemoryPoolWithTime(
-    CTxMemPool &pool, CValidationState &state, const CTransactionRef &tx,
-    bool fLimitFree, bool *pfMissingInputs, int64_t nAcceptTime,
-    std::list<CTransactionRef> *plTxnReplaced = NULL,
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
+    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = NULL,
     bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
 /** Convert CValidationState to a human-readable message for logging */
@@ -621,7 +621,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
 
 /** When there are blocks in the active chain with missing data, rewind the
  * chainstate and remove them from the block index */
-bool RewindBlockIndex(const CChainParams &params);
+bool RewindBlockIndex(const Config &config, const CChainParams &params);
 
 /** RAII wrapper for VerifyDB: Verify consistency of the block and coin
  * databases */
@@ -642,8 +642,8 @@ bool PreciousBlock(const Config &config, CValidationState &state,
                    const CChainParams &params, CBlockIndex *pindex);
 
 /** Mark a block as invalid. */
-bool InvalidateBlock(CValidationState &state, const CChainParams &chainparams,
-                     CBlockIndex *pindex);
+bool InvalidateBlock(const Config &config, CValidationState &state,
+                     const CChainParams &chainparams, CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */
 bool ResetBlockFailureFlags(CBlockIndex *pindex);
@@ -694,6 +694,6 @@ CBlockFileInfo *GetBlockFileInfo(size_t n);
 void DumpMempool();
 
 /** Load the mempool from disk. */
-bool LoadMempool();
+bool LoadMempool(const Config &config);
 
 #endif // BITCOIN_VALIDATION_H

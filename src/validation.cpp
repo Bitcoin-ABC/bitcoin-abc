@@ -626,13 +626,12 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
-bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
-                              const CTransactionRef &ptx, bool fLimitFree,
-                              bool *pfMissingInputs, int64_t nAcceptTime,
-                              std::list<CTransactionRef> *plTxnReplaced,
-                              bool fOverrideMempoolLimit,
-                              const CAmount &nAbsurdFee,
-                              std::vector<uint256> &vHashTxnToUncache) {
+static bool AcceptToMemoryPoolWorker(
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
+    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced,
+    bool fOverrideMempoolLimit, const CAmount &nAbsurdFee,
+    std::vector<uint256> &vHashTxnToUncache) {
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
@@ -921,7 +920,8 @@ bool AcceptToMemoryPoolWorker(CTxMemPool &pool, CValidationState &state,
     return true;
 }
 
-bool AcceptToMemoryPoolWithTime(CTxMemPool &pool, CValidationState &state,
+bool AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
+                                CValidationState &state,
                                 const CTransactionRef &tx, bool fLimitFree,
                                 bool *pfMissingInputs, int64_t nAcceptTime,
                                 std::list<CTransactionRef> *plTxnReplaced,
@@ -929,7 +929,7 @@ bool AcceptToMemoryPoolWithTime(CTxMemPool &pool, CValidationState &state,
                                 const CAmount nAbsurdFee) {
     std::vector<uint256> vHashTxToUncache;
     bool res = AcceptToMemoryPoolWorker(
-        pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
+        config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
         plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, vHashTxToUncache);
     if (!res) {
         for (const uint256 &txid : vHashTxToUncache) {
@@ -943,12 +943,12 @@ bool AcceptToMemoryPoolWithTime(CTxMemPool &pool, CValidationState &state,
     return res;
 }
 
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state,
-                        const CTransactionRef &tx, bool fLimitFree,
-                        bool *pfMissingInputs,
+bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
+                        CValidationState &state, const CTransactionRef &tx,
+                        bool fLimitFree, bool *pfMissingInputs,
                         std::list<CTransactionRef> *plTxnReplaced,
                         bool fOverrideMempoolLimit, const CAmount nAbsurdFee) {
-    return AcceptToMemoryPoolWithTime(pool, state, tx, fLimitFree,
+    return AcceptToMemoryPoolWithTime(config, pool, state, tx, fLimitFree,
                                       pfMissingInputs, GetTime(), plTxnReplaced,
                                       fOverrideMempoolLimit, nAbsurdFee);
 }
@@ -2257,7 +2257,7 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams &chainParams) {
 /** Disconnect chainActive's tip. You probably want to call
  * mempool.removeForReorg and manually re-limit mempool size after this, with
  * cs_main held. */
-bool static DisconnectTip(CValidationState &state,
+bool static DisconnectTip(const Config &config, CValidationState &state,
                           const CChainParams &chainparams, bool fBare = false) {
     CBlockIndex *pindexDelete = chainActive.Tip();
     assert(pindexDelete);
@@ -2288,8 +2288,8 @@ bool static DisconnectTip(CValidationState &state,
             // ignore validation errors in resurrected transactions
             CValidationState stateDummy;
             if (tx.IsCoinBase() ||
-                !AcceptToMemoryPool(mempool, stateDummy, it, false, NULL, NULL,
-                                    true)) {
+                !AcceptToMemoryPool(config, mempool, stateDummy, it, false,
+                                    NULL, NULL, true)) {
                 mempool.removeRecursive(tx, MemPoolRemovalReason::REORG);
             } else if (mempool.exists(tx.GetId())) {
                 vHashUpdate.push_back(tx.GetId());
@@ -2502,7 +2502,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
     while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
-        if (!DisconnectTip(state, chainparams)) return false;
+        if (!DisconnectTip(config, state, chainparams)) return false;
         fBlocksDisconnected = true;
     }
 
@@ -2731,8 +2731,8 @@ bool PreciousBlock(const Config &config, CValidationState &state,
     return ActivateBestChain(config, state, params);
 }
 
-bool InvalidateBlock(CValidationState &state, const CChainParams &chainparams,
-                     CBlockIndex *pindex) {
+bool InvalidateBlock(const Config &config, CValidationState &state,
+                     const CChainParams &chainparams, CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     // Mark the block itself as invalid.
@@ -2747,7 +2747,7 @@ bool InvalidateBlock(CValidationState &state, const CChainParams &chainparams,
         setBlockIndexCandidates.erase(pindexWalk);
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
-        if (!DisconnectTip(state, chainparams)) {
+        if (!DisconnectTip(config, state, chainparams)) {
             mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1,
                                    STANDARD_LOCKTIME_VERIFY_FLAGS);
             return false;
@@ -3953,7 +3953,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
     return true;
 }
 
-bool RewindBlockIndex(const CChainParams &params) {
+bool RewindBlockIndex(const Config &config, const CChainParams &params) {
     LOCK(cs_main);
 
     int nHeight = chainActive.Height() + 1;
@@ -3971,7 +3971,7 @@ bool RewindBlockIndex(const CChainParams &params) {
             // of the blockchain).
             break;
         }
-        if (!DisconnectTip(state, params, true)) {
+        if (!DisconnectTip(config, state, params, true)) {
             return error(
                 "RewindBlockIndex: unable to disconnect block at height %i",
                 pindex->nHeight);
@@ -4533,7 +4533,7 @@ int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
 
 static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
-bool LoadMempool(void) {
+bool LoadMempool(const Config &config) {
     int64_t nExpiryTimeout =
         GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
     FILE *filestr =
@@ -4576,8 +4576,8 @@ bool LoadMempool(void) {
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(mempool, state, tx, true, NULL,
-                                           nTime);
+                AcceptToMemoryPoolWithTime(config, mempool, state, tx, true,
+                                           NULL, nTime);
                 if (state.IsValid()) {
                     ++count;
                 } else {

@@ -1033,8 +1033,9 @@ static UniValue sendrawtransaction(const Config &config,
         // push to local node and sync with wallets
         CValidationState state;
         bool fMissingInputs;
-        if (!AcceptToMemoryPool(mempool, state, std::move(tx), fLimitFree,
-                                &fMissingInputs, NULL, false, nMaxRawTxFee)) {
+        if (!AcceptToMemoryPool(config, mempool, state, std::move(tx),
+                                fLimitFree, &fMissingInputs, NULL, false,
+                                nMaxRawTxFee)) {
             if (state.IsInvalid()) {
                 throw JSONRPCError(RPC_TRANSACTION_REJECTED,
                                    strprintf("%i: %s", state.GetRejectCode(),
