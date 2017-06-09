@@ -13,7 +13,8 @@
  * client versioning and copyright year
  */
 
-//! These need to be macros, as clientversion.cpp's and bitcoin*-res.rc's voodoo requires it
+//! These need to be macros, as clientversion.cpp's and bitcoin*-res.rc's voodoo
+//! requires it
 #define CLIENT_VERSION_MAJOR 0
 #define CLIENT_VERSION_MINOR 14
 #define CLIENT_VERSION_REVISION 1
@@ -28,17 +29,19 @@
  */
 #define COPYRIGHT_YEAR 2017
 
-#endif //HAVE_CONFIG_H
+#endif // HAVE_CONFIG_H
 
 /**
- * Converts the parameter X to a string after macro replacement on X has been performed.
+ * Converts the parameter X to a string after macro replacement on X has been
+ * performed.
  * Don't merge these into one macro!
  */
 #define STRINGIZE(X) DO_STRINGIZE(X)
 #define DO_STRINGIZE(X) #X
 
 //! Copyright string used in Windows .rc files
-#define COPYRIGHT_STR "2009-" STRINGIZE(COPYRIGHT_YEAR) " " COPYRIGHT_HOLDERS_FINAL
+#define COPYRIGHT_STR                                                          \
+    "2009-" STRINGIZE(COPYRIGHT_YEAR) " " COPYRIGHT_HOLDERS_FINAL
 
 /**
  * bitcoind-res.rc includes this file, but it cannot cope with real c++ code.
@@ -52,17 +55,15 @@
 #include <vector>
 
 static const int CLIENT_VERSION =
-                           1000000 * CLIENT_VERSION_MAJOR
-                         +   10000 * CLIENT_VERSION_MINOR
-                         +     100 * CLIENT_VERSION_REVISION
-                         +       1 * CLIENT_VERSION_BUILD;
+    1000000 * CLIENT_VERSION_MAJOR + 10000 * CLIENT_VERSION_MINOR +
+    100 * CLIENT_VERSION_REVISION + 1 * CLIENT_VERSION_BUILD;
 
 extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
 
-
 std::string FormatFullVersion();
-std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
+std::string FormatSubVersion(const std::string &name, int nClientVersion,
+                             const std::vector<std::string> &comments);
 
 #endif // WINDRES_PREPROC
 
