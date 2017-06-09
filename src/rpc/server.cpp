@@ -65,11 +65,6 @@ void RPCServerSignals::OnStopped(std::function<void()> slot) {
     g_rpcSignals.Stopped.connect(slot);
 }
 
-void RPCServerSignals::OnPreCommand(
-    std::function<void(const ContextFreeRPCCommand &)> slot) {
-    g_rpcSignals.PreCommand.connect(boost::bind(slot, _1));
-}
-
 void RPCTypeCheck(const UniValue &params,
                   const std::list<UniValue::VType> &typesExpected,
                   bool fAllowNull) {
@@ -319,12 +314,12 @@ static UniValue uptime(const Config &config,
  */
 // clang-format off
 static const ContextFreeRPCCommand vRPCCommands[] = {
-    //  category            name                      actor (function)        okSafe argNames
-    //  ------------------- ------------------------  ----------------------  ------ ----------
+    //  category            name                      actor (function)        argNames
+    //  ------------------- ------------------------  ----------------------  ----------
     /* Overall control/query calls */
-    { "control",            "help",                   help,                   true,  {"command"}  },
-    { "control",            "stop",                   stop,                   true,  {}  },
-    { "control",            "uptime",                 uptime,                 true,  {}  },
+    { "control",            "help",                   help,                   {"command"}  },
+    { "control",            "stop",                   stop,                   {}  },
+    { "control",            "uptime",                 uptime,                 {}  },
 };
 // clang-format on
 

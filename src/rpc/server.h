@@ -28,7 +28,6 @@ class ContextFreeRPCCommand;
 namespace RPCServerSignals {
 void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
-void OnPreCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
 } // namespace RPCServerSignals
 
 class CBlockIndex;
@@ -170,7 +169,6 @@ class ContextFreeRPCCommand {
 public:
     std::string category;
     std::string name;
-    bool okSafeMode;
 
 private:
     union {
@@ -183,11 +181,9 @@ public:
     std::vector<std::string> argNames;
 
     ContextFreeRPCCommand(std::string _category, std::string _name,
-                          rpcfn_type _actor, bool _okSafeMode,
-                          std::vector<std::string> _argNames)
+                          rpcfn_type _actor, std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
-          okSafeMode{_okSafeMode}, useConstConfig{false}, argNames{std::move(
-                                                              _argNames)} {
+          useConstConfig{false}, argNames{std::move(_argNames)} {
         actor.fn = _actor;
     }
 
@@ -197,11 +193,10 @@ public:
      * on parameters of function is undefined behavior.
      */
     ContextFreeRPCCommand(std::string _category, std::string _name,
-                          const_rpcfn_type _actor, bool _okSafeMode,
+                          const_rpcfn_type _actor,
                           std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
-          okSafeMode{_okSafeMode}, useConstConfig{true}, argNames{std::move(
-                                                             _argNames)} {
+          useConstConfig{true}, argNames{std::move(_argNames)} {
         actor.cfn = _actor;
     }
 

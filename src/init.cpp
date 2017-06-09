@@ -28,6 +28,7 @@
 #include "netbase.h"
 #include "policy/policy.h"
 #include "rpc/register.h"
+#include "rpc/safemode.h"
 #include "rpc/server.h"
 #include "scheduler.h"
 #include "script/scriptcache.h"
@@ -71,7 +72,6 @@
 bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
-static const bool DEFAULT_DISABLE_SAFEMODE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
@@ -290,17 +290,6 @@ void OnRPCStopped() {
     RPCNotifyBlockChange(false, nullptr);
     g_best_block_cv.notify_all();
     LogPrint(BCLog::RPC, "RPC stopped.\n");
-}
-
-void OnRPCPreCommand(const ContextFreeRPCCommand &cmd) {
-    // Observe safe mode.
-    std::string strWarning = GetWarnings("rpc");
-    if (strWarning != "" &&
-        !gArgs.GetBoolArg("-disablesafemode", DEFAULT_DISABLE_SAFEMODE) &&
-        !cmd.okSafeMode) {
-        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE,
-                           std::string("Safe mode: ") + strWarning);
-    }
 }
 
 std::string HelpMessage(HelpMessageMode mode) {
@@ -1118,7 +1107,6 @@ static bool AppInitServers(Config &config,
                            boost::thread_group &threadGroup) {
     RPCServerSignals::OnStarted(&OnRPCStarted);
     RPCServerSignals::OnStopped(&OnRPCStopped);
-    RPCServerSignals::OnPreCommand(&OnRPCPreCommand);
     if (!InitHTTPServer(config)) {
         return false;
     }

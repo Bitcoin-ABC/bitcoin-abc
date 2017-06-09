@@ -16,6 +16,7 @@
 #include "net.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"
+#include "rpc/safemode.h"
 #include "rpc/server.h"
 #include "rpc/tojson.h"
 #include "script/script.h"
@@ -822,6 +823,7 @@ static UniValue signrawtransaction(const Config &config,
             HelpExampleRpc("signrawtransaction", "\"myhex\""));
     }
 
+    ObserveSafeMode();
 #ifdef ENABLE_WALLET
     LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
 #else
@@ -1117,6 +1119,7 @@ static UniValue sendrawtransaction(const Config &config,
             HelpExampleRpc("sendrawtransaction", "\"signedhex\""));
     }
 
+    ObserveSafeMode();
     LOCK(cs_main);
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL});
 
@@ -1181,17 +1184,17 @@ static UniValue sendrawtransaction(const Config &config,
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
-    //  category            name                      actor (function)        okSafeMode
+    //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
-    { "rawtransactions",    "getrawtransaction",      getrawtransaction,      true,  {"txid","verbose"} },
-    { "rawtransactions",    "createrawtransaction",   createrawtransaction,   true,  {"inputs","outputs","locktime"} },
-    { "rawtransactions",    "decoderawtransaction",   decoderawtransaction,   true,  {"hexstring"} },
-    { "rawtransactions",    "decodescript",           decodescript,           true,  {"hexstring"} },
-    { "rawtransactions",    "sendrawtransaction",     sendrawtransaction,     false, {"hexstring","allowhighfees"} },
-    { "rawtransactions",    "signrawtransaction",     signrawtransaction,     false, {"hexstring","prevtxs","privkeys","sighashtype"} }, /* uses wallet if enabled */
+    { "rawtransactions",    "getrawtransaction",      getrawtransaction,      {"txid","verbose"} },
+    { "rawtransactions",    "createrawtransaction",   createrawtransaction,   {"inputs","outputs","locktime"} },
+    { "rawtransactions",    "decoderawtransaction",   decoderawtransaction,   {"hexstring"} },
+    { "rawtransactions",    "decodescript",           decodescript,           {"hexstring"} },
+    { "rawtransactions",    "sendrawtransaction",     sendrawtransaction,     {"hexstring","allowhighfees"} },
+    { "rawtransactions",    "signrawtransaction",     signrawtransaction,     {"hexstring","prevtxs","privkeys","sighashtype"} }, /* uses wallet if enabled */
 
-    { "blockchain",         "gettxoutproof",          gettxoutproof,          true,  {"txids", "blockhash"} },
-    { "blockchain",         "verifytxoutproof",       verifytxoutproof,       true,  {"proof"} },
+    { "blockchain",         "gettxoutproof",          gettxoutproof,          {"txids", "blockhash"} },
+    { "blockchain",         "verifytxoutproof",       verifytxoutproof,       {"proof"} },
 };
 // clang-format on
 

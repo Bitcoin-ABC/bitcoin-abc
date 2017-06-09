@@ -815,17 +815,17 @@ static UniValue estimatefee(const Config &config,
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
-    //  category   name                     actor (function)       okSafeMode
+    //  category   name                     actor (function)       argNames
     //  ---------- ------------------------ ---------------------- ----------
-    {"mining",     "getnetworkhashps",      getnetworkhashps,      true, {"nblocks", "height"}},
-    {"mining",     "getmininginfo",         getmininginfo,         true, {}},
-    {"mining",     "prioritisetransaction", prioritisetransaction, true, {"txid", "priority_delta", "fee_delta"}},
-    {"mining",     "getblocktemplate",      getblocktemplate,      true, {"template_request"}},
-    {"mining",     "submitblock",           submitblock,           true, {"hexdata", "parameters"}},
+    {"mining",     "getnetworkhashps",      getnetworkhashps,      {"nblocks", "height"}},
+    {"mining",     "getmininginfo",         getmininginfo,         {}},
+    {"mining",     "prioritisetransaction", prioritisetransaction, {"txid", "priority_delta", "fee_delta"}},
+    {"mining",     "getblocktemplate",      getblocktemplate,      {"template_request"}},
+    {"mining",     "submitblock",           submitblock,           {"hexdata", "parameters"}},
 
-    {"generating", "generatetoaddress",     generatetoaddress,     true, {"nblocks", "address", "maxtries"}},
+    {"generating", "generatetoaddress",     generatetoaddress,     {"nblocks", "address", "maxtries"}},
 
-    {"util",       "estimatefee",           estimatefee,           true, {"nblocks"}},
+    {"util",       "estimatefee",           estimatefee,           {"nblocks"}},
 };
 // clang-format on
 

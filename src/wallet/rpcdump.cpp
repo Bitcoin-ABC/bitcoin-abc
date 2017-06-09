@@ -9,6 +9,7 @@
 #include "dstencode.h"
 #include "init.h"
 #include "merkleblock.h"
+#include "rpc/safemode.h"
 #include "rpc/server.h"
 #include "rpcwallet.h"
 #include "script/script.h"
@@ -187,10 +188,10 @@ UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
                                  HelpExampleRpc("abortrescan", ""));
     }
 
+    ObserveSafeMode();
     if (!pwallet->IsScanning() || pwallet->IsAbortingRescan()) {
         return false;
     }
-
     pwallet->AbortRescan();
     return true;
 }
@@ -1363,18 +1364,18 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
-    //  category            name                        actor (function)          okSafeMode
+    //  category            name                        actor (function)          argNames
     //  ------------------- ------------------------    ----------------------    ----------
-    { "wallet",             "abortrescan",              abortrescan,              false,  {} },
-    { "wallet",             "dumpprivkey",              dumpprivkey,              true,   {"address"}  },
-    { "wallet",             "dumpwallet",               dumpwallet,               true,   {"filename"} },
-    { "wallet",             "importmulti",              importmulti,              true,   {"requests","options"} },
-    { "wallet",             "importprivkey",            importprivkey,            true,   {"privkey","label","rescan"} },
-    { "wallet",             "importwallet",             importwallet,             true,   {"filename"} },
-    { "wallet",             "importaddress",            importaddress,            true,   {"address","label","rescan","p2sh"} },
-    { "wallet",             "importprunedfunds",        importprunedfunds,        true,   {"rawtransaction","txoutproof"} },
-    { "wallet",             "importpubkey",             importpubkey,             true,   {"pubkey","label","rescan"} },
-    { "wallet",             "removeprunedfunds",        removeprunedfunds,        true,   {"txid"} },
+    { "wallet",             "abortrescan",              abortrescan,              {} },
+    { "wallet",             "dumpprivkey",              dumpprivkey,              {"address"}  },
+    { "wallet",             "dumpwallet",               dumpwallet,               {"filename"} },
+    { "wallet",             "importmulti",              importmulti,              {"requests","options"} },
+    { "wallet",             "importprivkey",            importprivkey,            {"privkey","label","rescan"} },
+    { "wallet",             "importwallet",             importwallet,             {"filename"} },
+    { "wallet",             "importaddress",            importaddress,            {"address","label","rescan","p2sh"} },
+    { "wallet",             "importprunedfunds",        importprunedfunds,        {"rawtransaction","txoutproof"} },
+    { "wallet",             "importpubkey",             importpubkey,             {"pubkey","label","rescan"} },
+    { "wallet",             "removeprunedfunds",        removeprunedfunds,        {"txid"} },
 };
 // clang-format on
 

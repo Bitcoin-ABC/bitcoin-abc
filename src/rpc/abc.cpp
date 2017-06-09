@@ -78,10 +78,10 @@ static UniValue setexcessiveblock(Config &config,
 
 // clang-format off
 static const ContextFreeRPCCommand commands[] = {
-    //  category            name                      actor (function)        okSafeMode
+    //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
-    { "network",            "getexcessiveblock",      getexcessiveblock,      true, {}},
-    { "network",            "setexcessiveblock",      setexcessiveblock,      true, {"maxBlockSize"}},
+    { "network",            "getexcessiveblock",      getexcessiveblock,      {}},
+    { "network",            "setexcessiveblock",      setexcessiveblock,      {"maxBlockSize"}},
 };
 // clang-format on
 
