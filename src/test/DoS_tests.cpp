@@ -19,7 +19,6 @@
 
 #include <cstdint>
 
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/test/unit_test.hpp>
 
 // Tests these internal-to-net_processing.cpp methods:

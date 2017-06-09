@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <set>
 
-#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
 #include <univalue.h>
 
 class CRPCConvertParam {

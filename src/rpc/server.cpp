@@ -20,7 +20,6 @@
 #include <boost/algorithm/string/case_conv.hpp> // for to_upper()
 #include <boost/bind.hpp>
 #include <boost/signals2/signal.hpp>
-#include <boost/thread.hpp>
 
 #include <memory> // for unique_ptr
 #include <set>

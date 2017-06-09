@@ -29,7 +29,6 @@
 #include <vector>
 
 #include <boost/signals2/signal.hpp>
-#include <boost/thread/exceptions.hpp>
 
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();

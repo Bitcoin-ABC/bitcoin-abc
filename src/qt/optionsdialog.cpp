@@ -17,8 +17,6 @@
 #include "txdb.h"       // for -dbcache defaults
 #include "validation.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
-#include <boost/thread.hpp>
-
 #include <QDataWidgetMapper>
 #include <QDir>
 #include <QIntValidator>
