@@ -23,16 +23,22 @@ BOOST_AUTO_TEST_CASE(max_block_size) {
     BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), DEFAULT_MAX_BLOCK_SIZE);
 
     // 2MB
-    BOOST_CHECK(config.SetMaxBlockSize(2 * 1000 * 1000));
-    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 2 * 1000 * 1000);
+    BOOST_CHECK(config.SetMaxBlockSize(2 * ONE_MEGABYTE));
+    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 2 * ONE_MEGABYTE);
 
     // 8MB
-    BOOST_CHECK(config.SetMaxBlockSize(8 * 1000 * 1000));
-    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 8 * 1000 * 1000);
+    BOOST_CHECK(config.SetMaxBlockSize(8 * ONE_MEGABYTE));
+    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 8 * ONE_MEGABYTE);
 
     // Invalid size keep config.
     BOOST_CHECK(!config.SetMaxBlockSize(54321));
-    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 8 * 1000 * 1000);
+    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 8 * ONE_MEGABYTE);
+
+    // Setting it back down
+    BOOST_CHECK(config.SetMaxBlockSize(7 * ONE_MEGABYTE));
+    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), 7 * ONE_MEGABYTE);
+    BOOST_CHECK(config.SetMaxBlockSize(ONE_MEGABYTE));
+    BOOST_CHECK_EQUAL(config.GetMaxBlockSize(), ONE_MEGABYTE);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -630,14 +630,33 @@ void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
 
 BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     GlobalConfig config;
-    config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 
+    // Test around historical 1MB
+    config.SetMaxBlockSize(ONE_MEGABYTE);
     const CChainParams &chainparams = Params(CBaseChainParams::MAIN);
     CheckBlockMaxSize(chainparams, 0, 1000);
     CheckBlockMaxSize(chainparams, 1000, 1000);
     CheckBlockMaxSize(chainparams, 1001, 1001);
-
     CheckBlockMaxSize(chainparams, 12345, 12345);
+
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 1000);
+
+    // Test around higher limit, e.g 8MB
+    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
+    config.SetMaxBlockSize(EIGHT_MEGABYTES);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001,
+                      EIGHT_MEGABYTES - 1001);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000,
+                      EIGHT_MEGABYTES - 1000);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999,
+                      EIGHT_MEGABYTES - 1000);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, EIGHT_MEGABYTES - 1000);
+
+    // Test around default cap
+    config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1001,
                       DEFAULT_MAX_BLOCK_SIZE - 1001);
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1000,

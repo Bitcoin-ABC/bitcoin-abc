@@ -7,7 +7,8 @@
 #include "globals.h"
 
 bool GlobalConfig::SetMaxBlockSize(uint64_t maxBlockSize) {
-    if (maxBlockSize < DEFAULT_MAX_BLOCK_SIZE) {
+    // Do not allow maxBlockSize to be set below historic 1MB limit
+    if (maxBlockSize < ONE_MEGABYTE) {
         return false;
     }
 
