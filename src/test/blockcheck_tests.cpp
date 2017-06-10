@@ -14,29 +14,25 @@
 
 BOOST_FIXTURE_TEST_SUITE(blockcheck_tests, BasicTestingSetup)
 
-static void RunCheckOnBlockImpl(const CBlock &block, CValidationState &state,
-                                const Consensus::Params &params,
-                                bool expected) {
+static void RunCheckOnBlockImpl(const GlobalConfig &config, const CBlock &block,
+                                CValidationState &state, bool expected) {
     block.fChecked = false;
-
-    GlobalConfig config;
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
     bool fValid = CheckBlock(config, block, state, params, false, false);
 
     BOOST_CHECK_EQUAL(fValid, expected);
     BOOST_CHECK_EQUAL(fValid, state.IsValid());
 }
 
-static void RunCheckOnBlock(const CBlock &block,
-                            const Consensus::Params &params) {
+static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block) {
     CValidationState state;
-    RunCheckOnBlockImpl(block, state, params, true);
+    RunCheckOnBlockImpl(config, block, state, true);
 }
 
-static void RunCheckOnBlock(const CBlock &block,
-                            const Consensus::Params &params,
+static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block,
                             const std::string &reason) {
     CValidationState state;
-    RunCheckOnBlockImpl(block, state, params, false);
+    RunCheckOnBlockImpl(config, block, state, false);
 
     BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
     BOOST_CHECK_EQUAL(state.GetRejectReason(), reason);
@@ -44,10 +40,13 @@ static void RunCheckOnBlock(const CBlock &block,
 
 BOOST_AUTO_TEST_CASE(blockfail) {
     SelectParams(CBaseChainParams::MAIN);
-    const Consensus::Params &params = Params().GetConsensus();
+
+    // Set max blocksize to default in case other tests left it dirty
+    GlobalConfig config;
+    config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 
     CBlock block;
-    RunCheckOnBlock(block, params, "bad-cb-missing");
+    RunCheckOnBlock(config, block, "bad-cb-missing");
 
     CMutableTransaction tx;
 
@@ -60,21 +59,21 @@ BOOST_AUTO_TEST_CASE(blockfail) {
 
     block.vtx.resize(1);
     block.vtx[0] = MakeTransactionRef(tx);
-    RunCheckOnBlock(block, params);
+    RunCheckOnBlock(config, block);
 
     // No coinbase
     tx.vin[0].prevout.hash = GetRandHash();
     tx.vin[0].prevout.n = 0;
     block.vtx[0] = MakeTransactionRef(tx);
 
-    RunCheckOnBlock(block, params, "bad-cb-missing");
+    RunCheckOnBlock(config, block, "bad-cb-missing");
 
     // Invalid coinbase
     tx = CMutableTransaction(coinbaseTx);
     tx.vin[0].scriptSig.resize(0);
     block.vtx[0] = MakeTransactionRef(tx);
 
-    RunCheckOnBlock(block, params, "bad-cb-length");
+    RunCheckOnBlock(config, block, "bad-cb-length");
 
     // Oversize block.
     tx = CMutableTransaction(coinbaseTx);
@@ -86,12 +85,12 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     for (size_t i = 1; i < maxTxCount; i++) {
         tx.vin[0].prevout.hash = GetRandHash();
         block.vtx.push_back(MakeTransactionRef(tx));
-        RunCheckOnBlock(block, params);
+        RunCheckOnBlock(config, block);
     }
 
     tx.vin[0].prevout.hash = GetRandHash();
     block.vtx.push_back(MakeTransactionRef(tx));
-    RunCheckOnBlock(block, params, "bad-blk-length");
+    RunCheckOnBlock(config, block, "bad-blk-length");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
