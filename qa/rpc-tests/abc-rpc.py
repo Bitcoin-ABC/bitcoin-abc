@@ -10,7 +10,7 @@ import random
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.util import *
-from test_framework.mininode import MAX_BLOCK_BASE_SIZE as LEGACY_MAX_BLOCK_BASE_SIZE
+from test_framework.mininode import LEGACY_MAX_BLOCK_BASE_SIZE
 
 
 class ABC_RPC_Test (BitcoinTestFramework):
