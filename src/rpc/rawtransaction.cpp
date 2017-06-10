@@ -724,6 +724,105 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     vErrorsRet.push_back(entry);
 }
 
+UniValue combinerawtransaction(const Config &config,
+                               const JSONRPCRequest &request) {
+
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "combinerawtransaction [\"hexstring\",...]\n"
+            "\nCombine multiple partially signed transactions into one "
+            "transaction.\n"
+            "The combined transaction may be another partially signed "
+            "transaction or a \n"
+            "fully signed transaction."
+
+            "\nArguments:\n"
+            "1. \"txs\"         (string) A json array of hex strings of "
+            "partially signed transactions\n"
+            "    [\n"
+            "      \"hexstring\"     (string) A transaction hash\n"
+            "      ,...\n"
+            "    ]\n"
+
+            "\nResult:\n"
+            "\"hex\" : \"value\",           (string) The hex-encoded raw "
+            "transaction with signature(s)\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("combinerawtransaction",
+                           "[\"myhex1\", \"myhex2\", \"myhex3\"]"));
+    }
+
+    UniValue txs = request.params[0].get_array();
+    std::vector<CMutableTransaction> txVariants(txs.size());
+
+    for (unsigned int idx = 0; idx < txs.size(); idx++) {
+        if (!DecodeHexTx(txVariants[idx], txs[idx].get_str())) {
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                               strprintf("TX decode failed for tx %d", idx));
+        }
+    }
+
+    if (txVariants.empty()) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Missing transactions");
+    }
+
+    // mergedTx will end up with all the signatures; it
+    // starts as a clone of the rawtx:
+    CMutableTransaction mergedTx(txVariants[0]);
+
+    // Fetch previous transactions (inputs):
+    CCoinsView viewDummy;
+    CCoinsViewCache view(&viewDummy);
+    {
+        LOCK(cs_main);
+        LOCK(mempool.cs);
+        CCoinsViewCache &viewChain = *pcoinsTip;
+        CCoinsViewMemPool viewMempool(&viewChain, mempool);
+        // temporarily switch cache backend to db+mempool view
+        view.SetBackend(viewMempool);
+
+        for (const CTxIn &txin : mergedTx.vin) {
+            // Load entries from viewChain into view; can fail.
+            view.AccessCoin(txin.prevout);
+        }
+
+        // switch back to avoid locking mempool for too long
+        view.SetBackend(viewDummy);
+    }
+
+    // Use CTransaction for the constant parts of the
+    // transaction to avoid rehashing.
+    const CTransaction txConst(mergedTx);
+    // Sign what we can:
+    for (size_t i = 0; i < mergedTx.vin.size(); i++) {
+        CTxIn &txin = mergedTx.vin[i];
+        const Coin &coin = view.AccessCoin(txin.prevout);
+        if (coin.IsSpent()) {
+            throw JSONRPCError(RPC_VERIFY_ERROR,
+                               "Input not found or already spent");
+        }
+        const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
+        const Amount &amount = coin.GetTxOut().nValue;
+
+        SignatureData sigdata;
+
+        // ... and merge in other signatures:
+        for (const CMutableTransaction &txv : txVariants) {
+            if (txv.vin.size() > i) {
+                sigdata = CombineSignatures(
+                    prevPubKey,
+                    TransactionSignatureChecker(&txConst, i, amount), sigdata,
+                    DataFromTransaction(txv, i));
+            }
+        }
+
+        UpdateTransaction(mergedTx, i, sigdata);
+    }
+
+    return EncodeHexTx(CTransaction(mergedTx));
+}
+
 static UniValue signrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
 #ifdef ENABLE_WALLET
@@ -833,26 +932,10 @@ static UniValue signrawtransaction(const Config &config,
         request.params,
         {UniValue::VSTR, UniValue::VARR, UniValue::VARR, UniValue::VSTR}, true);
 
-    std::vector<uint8_t> txData(ParseHexV(request.params[0], "argument 1"));
-    CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
-    std::vector<CMutableTransaction> txVariants;
-    while (!ssData.empty()) {
-        try {
-            CMutableTransaction tx;
-            ssData >> tx;
-            txVariants.push_back(tx);
-        } catch (const std::exception &) {
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
-        }
+    CMutableTransaction mtx;
+    if (!DecodeHexTx(mtx, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
     }
-
-    if (txVariants.empty()) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Missing transaction");
-    }
-
-    // mergedTx will end up with all the signatures; it starts as a clone of the
-    // rawtx:
-    CMutableTransaction mergedTx(txVariants[0]);
 
     // Fetch previous transactions (inputs):
     CCoinsView viewDummy;
@@ -864,7 +947,7 @@ static UniValue signrawtransaction(const Config &config,
         // Temporarily switch cache backend to db+mempool view.
         view.SetBackend(viewMempool);
 
-        for (const CTxIn &txin : mergedTx.vin) {
+        for (const CTxIn &txin : mtx.vin) {
             // Load entries from viewChain into view; can fail.
             view.AccessCoin(txin.prevout);
         }
@@ -1035,10 +1118,10 @@ static UniValue signrawtransaction(const Config &config,
 
     // Use CTransaction for the constant parts of the transaction to avoid
     // rehashing.
-    const CTransaction txConst(mergedTx);
+    const CTransaction txConst(mtx);
     // Sign what we can:
-    for (size_t i = 0; i < mergedTx.vin.size(); i++) {
-        CTxIn &txin = mergedTx.vin[i];
+    for (size_t i = 0; i < mtx.vin.size(); i++) {
+        CTxIn &txin = mtx.vin[i];
         const Coin &coin = view.AccessCoin(txin.prevout);
         if (coin.IsSpent()) {
             TxInErrorToJSON(txin, vErrors, "Input not found or already spent");
@@ -1051,23 +1134,16 @@ static UniValue signrawtransaction(const Config &config,
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
-            (i < mergedTx.vout.size())) {
+            (i < mtx.vout.size())) {
             ProduceSignature(MutableTransactionSignatureCreator(
-                                 &keystore, &mergedTx, i, amount, sigHashType),
+                                 &keystore, &mtx, i, amount, sigHashType),
                              prevPubKey, sigdata);
         }
+        sigdata = CombineSignatures(
+            prevPubKey, TransactionSignatureChecker(&txConst, i, amount),
+            sigdata, DataFromTransaction(mtx, i));
 
-        // ... and merge in other signatures:
-        for (const CMutableTransaction &txv : txVariants) {
-            if (txv.vin.size() > i) {
-                sigdata = CombineSignatures(
-                    prevPubKey,
-                    TransactionSignatureChecker(&txConst, i, amount), sigdata,
-                    DataFromTransaction(txv, i));
-            }
-        }
-
-        UpdateTransaction(mergedTx, i, sigdata);
+        UpdateTransaction(mtx, i, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(
@@ -1080,7 +1156,7 @@ static UniValue signrawtransaction(const Config &config,
     bool fComplete = vErrors.empty();
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("hex", EncodeHexTx(CTransaction(mergedTx)));
+    result.pushKV("hex", EncodeHexTx(CTransaction(mtx)));
     result.pushKV("complete", fComplete);
     if (!vErrors.empty()) {
         result.pushKV("errors", vErrors);
@@ -1191,6 +1267,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "rawtransactions",    "decoderawtransaction",   decoderawtransaction,   {"hexstring"} },
     { "rawtransactions",    "decodescript",           decodescript,           {"hexstring"} },
     { "rawtransactions",    "sendrawtransaction",     sendrawtransaction,     {"hexstring","allowhighfees"} },
+    { "rawtransactions",    "combinerawtransaction",  combinerawtransaction,  {"txs"} },
     { "rawtransactions",    "signrawtransaction",     signrawtransaction,     {"hexstring","prevtxs","privkeys","sighashtype"} }, /* uses wallet if enabled */
 
     { "blockchain",         "gettxoutproof",          gettxoutproof,          {"txids", "blockhash"} },

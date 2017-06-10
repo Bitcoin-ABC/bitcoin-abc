@@ -16,3 +16,4 @@ This release includes the following features and fixes:
  - Backport getblock RPC's new verbosity mode from bitcoin core for retrieving all transactions of a given block in full.
  - Added 'parked' state to getchaintips RPC
  - RPC `listreceivedbyaddress` now accepts an address filter
+ - Backport combinerawtransaction RPC from bitcoin core to combine multiple partially signed transactions into one transaction.
