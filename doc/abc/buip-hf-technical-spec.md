@@ -122,7 +122,7 @@ produce immediately after the fork.
 NOTE 1: The DEFAULT_MAX_GENERATED_BLOCK_SIZE in the released client needs
 to remain 1,000,000 bytes so that the client will not generate invalid
 blocks before the fork activates. At activation time, however, the "fork MG"
-specified by the user (default: 8MB) will take effect.
+specified by the user (default: 2MB) will take effect.
 
 
 ### REQ-5 (max tx / max block sigops rules for blocks > 1 MB)
