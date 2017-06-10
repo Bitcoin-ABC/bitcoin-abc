@@ -11,6 +11,7 @@ import time
 from test_framework.key import CECKey
 from test_framework.script import *
 import struct
+from test_framework.mininode import MAX_BLOCK_SIGOPS_PER_MB
 
 class PreviousSpendableOutput(object):
     def __init__(self, tx = CTransaction(), n = -1):
@@ -175,9 +176,6 @@ class FullBlockTest(ComparisonTestFramework):
         create_tx = self.create_tx
         create_and_sign_tx = self.create_and_sign_transaction
 
-        # these must be updated if consensus changes
-        MAX_BLOCK_SIGOPS = 20000
-
 
         # Create a new block
         block(0)
@@ -292,13 +290,13 @@ class FullBlockTest(ComparisonTestFramework):
 
         yield TestInstance([[b12, True, b13.sha256]]) # New tip should be b13.
 
-        # Add a block with MAX_BLOCK_SIGOPS and one with one more sigop
+        # Add a block with MAX_BLOCK_SIGOPS_PER_MB and one with one more sigop
         #     genesis -> b1 (0) -> b2 (1) -> b5 (2) -> b6  (3)
         #                                          \-> b12 (3) -> b13 (4) -> b15 (5) -> b16 (6)
         #                      \-> b3 (1) -> b4 (2)
 
         # Test that a block with a lot of checksigs is okay
-        lots_of_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS - 1))
+        lots_of_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
         tip(13)
         block(15, spend=out[5], script=lots_of_checksigs)
         yield accepted()
@@ -306,7 +304,7 @@ class FullBlockTest(ComparisonTestFramework):
 
 
         # Test that a block with too many checksigs is rejected
-        too_many_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS))
+        too_many_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB))
         block(16, spend=out[6], script=too_many_checksigs)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
@@ -430,39 +428,39 @@ class FullBlockTest(ComparisonTestFramework):
         #
 
         # MULTISIG: each op code counts as 20 sigops.  To create the edge case, pack another 19 sigops at the end.
-        lots_of_multisigs = CScript([OP_CHECKMULTISIG] * ((MAX_BLOCK_SIGOPS-1) // 20) + [OP_CHECKSIG] * 19)
+        lots_of_multisigs = CScript([OP_CHECKMULTISIG] * ((MAX_BLOCK_SIGOPS_PER_MB-1) // 20) + [OP_CHECKSIG] * 19)
         b31 = block(31, spend=out[8], script=lots_of_multisigs)
-        assert_equal(get_legacy_sigopcount_block(b31), MAX_BLOCK_SIGOPS)
+        assert_equal(get_legacy_sigopcount_block(b31), MAX_BLOCK_SIGOPS_PER_MB)
         yield accepted()
         save_spendable_output()
 
         # this goes over the limit because the coinbase has one sigop
-        too_many_multisigs = CScript([OP_CHECKMULTISIG] * (MAX_BLOCK_SIGOPS // 20))
+        too_many_multisigs = CScript([OP_CHECKMULTISIG] * (MAX_BLOCK_SIGOPS_PER_MB // 20))
         b32 = block(32, spend=out[9], script=too_many_multisigs)
-        assert_equal(get_legacy_sigopcount_block(b32), MAX_BLOCK_SIGOPS + 1)
+        assert_equal(get_legacy_sigopcount_block(b32), MAX_BLOCK_SIGOPS_PER_MB + 1)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
 
         # CHECKMULTISIGVERIFY
         tip(31)
-        lots_of_multisigs = CScript([OP_CHECKMULTISIGVERIFY] * ((MAX_BLOCK_SIGOPS-1) // 20) + [OP_CHECKSIG] * 19)
+        lots_of_multisigs = CScript([OP_CHECKMULTISIGVERIFY] * ((MAX_BLOCK_SIGOPS_PER_MB-1) // 20) + [OP_CHECKSIG] * 19)
         block(33, spend=out[9], script=lots_of_multisigs)
         yield accepted()
         save_spendable_output()
 
-        too_many_multisigs = CScript([OP_CHECKMULTISIGVERIFY] * (MAX_BLOCK_SIGOPS // 20))
+        too_many_multisigs = CScript([OP_CHECKMULTISIGVERIFY] * (MAX_BLOCK_SIGOPS_PER_MB // 20))
         block(34, spend=out[10], script=too_many_multisigs)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
 
         # CHECKSIGVERIFY
         tip(33)
-        lots_of_checksigs = CScript([OP_CHECKSIGVERIFY] * (MAX_BLOCK_SIGOPS - 1))
+        lots_of_checksigs = CScript([OP_CHECKSIGVERIFY] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
         b35 = block(35, spend=out[10], script=lots_of_checksigs)
         yield accepted()
         save_spendable_output()
 
-        too_many_checksigs = CScript([OP_CHECKSIGVERIFY] * (MAX_BLOCK_SIGOPS))
+        too_many_checksigs = CScript([OP_CHECKSIGVERIFY] * (MAX_BLOCK_SIGOPS_PER_MB))
         block(36, spend=out[11], script=too_many_checksigs)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
@@ -549,7 +547,7 @@ class FullBlockTest(ComparisonTestFramework):
         tip(39)
         b40 = block(40, spend=out[12])
         sigops = get_legacy_sigopcount_block(b40)
-        numTxes = (MAX_BLOCK_SIGOPS - sigops) // b39_sigops_per_output
+        numTxes = (MAX_BLOCK_SIGOPS_PER_MB - sigops) // b39_sigops_per_output
         assert_equal(numTxes <= b39_outputs, True)
 
         lastOutpoint = COutPoint(b40.vtx[1].sha256, 0)
@@ -570,7 +568,7 @@ class FullBlockTest(ComparisonTestFramework):
             new_txs.append(tx)
             lastOutpoint = COutPoint(tx.sha256, 0)
 
-        b40_sigops_to_fill = MAX_BLOCK_SIGOPS - (numTxes * b39_sigops_per_output + sigops) + 1
+        b40_sigops_to_fill = MAX_BLOCK_SIGOPS_PER_MB - (numTxes * b39_sigops_per_output + sigops) + 1
         tx = CTransaction()
         tx.vin.append(CTxIn(lastOutpoint, b''))
         tx.vout.append(CTxOut(1, CScript([OP_CHECKSIG] * b40_sigops_to_fill)))
@@ -1029,7 +1027,7 @@ class FullBlockTest(ComparisonTestFramework):
         save_spendable_output()
 
 
-        # Test some invalid scripts and MAX_BLOCK_SIGOPS
+        # Test some invalid scripts and MAX_BLOCK_SIGOPS_PER_MB
         #
         # -> b55 (15) -> b57 (16) -> b60 (17) -> b64 (18) -> b65 (19) -> b69 (20) -> b72 (21)
         #                                                                                    \-> b** (22)
@@ -1048,19 +1046,19 @@ class FullBlockTest(ComparisonTestFramework):
         #
         tip(72)
         b73 = block(73)
-        size = MAX_BLOCK_SIGOPS - 1 + MAX_SCRIPT_ELEMENT_SIZE + 1 + 5 + 1
+        size = MAX_BLOCK_SIGOPS_PER_MB - 1 + MAX_SCRIPT_ELEMENT_SIZE + 1 + 5 + 1
         a = bytearray([OP_CHECKSIG] * size)
-        a[MAX_BLOCK_SIGOPS - 1] = int("4e",16) # OP_PUSHDATA4
+        a[MAX_BLOCK_SIGOPS_PER_MB - 1] = int("4e",16) # OP_PUSHDATA4
 
         element_size = MAX_SCRIPT_ELEMENT_SIZE + 1
-        a[MAX_BLOCK_SIGOPS] = element_size % 256
-        a[MAX_BLOCK_SIGOPS+1] = element_size // 256
-        a[MAX_BLOCK_SIGOPS+2] = 0
-        a[MAX_BLOCK_SIGOPS+3] = 0
+        a[MAX_BLOCK_SIGOPS_PER_MB] = element_size % 256
+        a[MAX_BLOCK_SIGOPS_PER_MB+1] = element_size // 256
+        a[MAX_BLOCK_SIGOPS_PER_MB+2] = 0
+        a[MAX_BLOCK_SIGOPS_PER_MB+3] = 0
 
         tx = create_and_sign_tx(out[22].tx, 0, 1, CScript(a))
         b73 = update_block(73, [tx])
-        assert_equal(get_legacy_sigopcount_block(b73), MAX_BLOCK_SIGOPS+1)
+        assert_equal(get_legacy_sigopcount_block(b73), MAX_BLOCK_SIGOPS_PER_MB+1)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # b74/75 - if we push an invalid script element, all prevous sigops are counted,
@@ -1071,32 +1069,32 @@ class FullBlockTest(ComparisonTestFramework):
         #       provide a much smaller number.  These bytes are CHECKSIGS so they would
         #       cause b75 to fail for excessive sigops, if those bytes were counted.
         #
-        #       b74 fails because we put MAX_BLOCK_SIGOPS+1 before the element
-        #       b75 succeeds because we put MAX_BLOCK_SIGOPS before the element
+        #       b74 fails because we put MAX_BLOCK_SIGOPS_PER_MB+1 before the element
+        #       b75 succeeds because we put MAX_BLOCK_SIGOPS_PER_MB before the element
         #
         #
         tip(72)
         b74 = block(74)
-        size = MAX_BLOCK_SIGOPS - 1 + MAX_SCRIPT_ELEMENT_SIZE + 42 # total = 20,561
+        size = MAX_BLOCK_SIGOPS_PER_MB - 1 + MAX_SCRIPT_ELEMENT_SIZE + 42 # total = 20,561
         a = bytearray([OP_CHECKSIG] * size)
-        a[MAX_BLOCK_SIGOPS] = 0x4e
-        a[MAX_BLOCK_SIGOPS+1] = 0xfe
-        a[MAX_BLOCK_SIGOPS+2] = 0xff
-        a[MAX_BLOCK_SIGOPS+3] = 0xff
-        a[MAX_BLOCK_SIGOPS+4] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB] = 0x4e
+        a[MAX_BLOCK_SIGOPS_PER_MB+1] = 0xfe
+        a[MAX_BLOCK_SIGOPS_PER_MB+2] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB+3] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB+4] = 0xff
         tx = create_and_sign_tx(out[22].tx, 0, 1, CScript(a))
         b74 = update_block(74, [tx])
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         tip(72)
         b75 = block(75)
-        size = MAX_BLOCK_SIGOPS - 1 + MAX_SCRIPT_ELEMENT_SIZE + 42
+        size = MAX_BLOCK_SIGOPS_PER_MB - 1 + MAX_SCRIPT_ELEMENT_SIZE + 42
         a = bytearray([OP_CHECKSIG] * size)
-        a[MAX_BLOCK_SIGOPS-1] = 0x4e
-        a[MAX_BLOCK_SIGOPS] = 0xff
-        a[MAX_BLOCK_SIGOPS+1] = 0xff
-        a[MAX_BLOCK_SIGOPS+2] = 0xff
-        a[MAX_BLOCK_SIGOPS+3] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB-1] = 0x4e
+        a[MAX_BLOCK_SIGOPS_PER_MB] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB+1] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB+2] = 0xff
+        a[MAX_BLOCK_SIGOPS_PER_MB+3] = 0xff
         tx = create_and_sign_tx(out[22].tx, 0, 1, CScript(a))
         b75 = update_block(75, [tx])
         yield accepted()
@@ -1105,9 +1103,9 @@ class FullBlockTest(ComparisonTestFramework):
         # Check that if we push an element filled with CHECKSIGs, they are not counted
         tip(75)
         b76 = block(76)
-        size = MAX_BLOCK_SIGOPS - 1 + MAX_SCRIPT_ELEMENT_SIZE + 1 + 5
+        size = MAX_BLOCK_SIGOPS_PER_MB - 1 + MAX_SCRIPT_ELEMENT_SIZE + 1 + 5
         a = bytearray([OP_CHECKSIG] * size)
-        a[MAX_BLOCK_SIGOPS-1] = 0x4e # PUSHDATA4, but leave the following bytes as just checksigs
+        a[MAX_BLOCK_SIGOPS_PER_MB-1] = 0x4e # PUSHDATA4, but leave the following bytes as just checksigs
         tx = create_and_sign_tx(out[23].tx, 0, 1, CScript(a))
         b76 = update_block(76, [tx])
         yield accepted()
