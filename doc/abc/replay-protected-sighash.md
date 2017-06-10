@@ -1,18 +1,18 @@
-# BUIP-HF Digest for replay protected signature verification across hard forks
+# BUIP-HF Digest for replay protected signature verification accross hard forks
 
 ## Abstract
 
-This document describes proposed requirements and design for a reusable signing mechanism ensuring replay protection in the event of a hard fork. It provides a way for users to create transactions which are only valid on one branch of the fork.
+This document describes proposed requirements and design for a reusable signing mechanism ensuring replay protection in the event of a hard fork. It provides a way for users to create transactions which are invalid on forks lacking support for the mechanism and a fork-specific ID.
 
-The proposed digest algorithm is similar to [BIP143](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki) as it is recognized as a superior solution to the currently used algorithm [1] and is already implemented in a wide variety of applications.
+The proposed digest algorithm is adapted from [BIP143](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki) as it minimizes redundant data hashing in verification, covers the input value by the signature [1] and is already implemented in a wide variety of applications.
 
-The proposed digest algorithm is used when the `SIGHASH_FORKID` bit is set in the signature's sighash type. The way signatures which do not set this is bit are verified is not affected.
+The proposed digest algorithm is used when the `SIGHASH_FORKID` bit is set in the signature's sighash type. The verification of signatures which do not set this is bit is not affected.
 
 ## Specification
 
 ### Activation
 
-The proposed digest algorithm is only used when the `SIGHASH_FORKID` bit in the signature sighash's type is set. It is defined as follow:
+The proposed digest algorithm is only used when the `SIGHASH_FORKID` bit in the signature sighash's type is set. It is defined as follows:
 
 ````cpp
   // ...
@@ -58,13 +58,13 @@ Items 1, 4, 7 and 9 have the same meaning as in [the original algorithm](https:/
 
 In this section, we call `script` the script being currently executed. This means `redeemScript` in case of P2SH, or the `scriptPubKey` in the general case.
 
-* If the `script` does not contain any `OP_CODESEPARATOR`, the `script` is the `script` serialized as scripts inside `CTxOut`.
+* If the `script` does not contain any `OP_CODESEPARATOR`, the `scriptCode` is the `script` serialized as scripts inside `CTxOut`.
 * If the `script` contains any `OP_CODESEPARATOR`, the `scriptCode` is the `script` but removing everything up to and including the last executed `OP_CODESEPARATOR` before the signature checking opcode being executed, serialized as scripts inside `CTxOut`.
 
 Notes:
-1. Contrary to the original algorithm, this one do not use `FindAndDelete` to remove the signature from the script.
-2. Because of 1. it is not possible to create a valid signature within `redeemScript` or `scriptPubkey` as the signature would be part of the digest. This enforce that the signature is in `sigScript` .
-3. In case an opcode require signature checking is present in `sigScript`, `script` is effectively `sigScript`. However, for reason similar to 2. , it is not possible to provide a valid signature in that case.
+1. Contrary to the original algorithm, this one does not use `FindAndDelete` to remove the signature from the script.
+2. Because of 1, it is not possible to create a valid signature within `redeemScript` or `scriptPubkey` as the signature would be part of the digest. This enforces that the signature is in `sigScript` .
+3. In case an opcode that requires signature checking is present in `sigScript`, `script` is effectively `sigScript`. However, for reason similar to 2. , it is not possible to provide a valid signature in that case.
 
 #### value
 
@@ -81,13 +81,13 @@ Notes:
 
 #### sighash type
 
-The sighash type is altered to include a 24bits fork id in its most significant bits.
+The sighash type is altered to include a 24-bit *fork id* in its most significant bits.
 
 ````cpp
   ss << ((GetForkID() << 8) | nHashType);
 ````
 
-This ensure that the proposed digest algorithm will generate different results on forks using different forkids.
+This ensure that the proposed digest algorithm will generate different results on forks using different *fork ids*.
 
 ## Implementation
 
