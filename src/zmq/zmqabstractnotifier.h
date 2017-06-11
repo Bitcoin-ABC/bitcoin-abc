@@ -10,17 +10,14 @@
 class CBlockIndex;
 class CZMQAbstractNotifier;
 
-typedef CZMQAbstractNotifier* (*CZMQNotifierFactory)();
+typedef CZMQAbstractNotifier *(*CZMQNotifierFactory)();
 
-class CZMQAbstractNotifier
-{
+class CZMQAbstractNotifier {
 public:
-    CZMQAbstractNotifier() : psocket(0) { }
+    CZMQAbstractNotifier() : psocket(0) {}
     virtual ~CZMQAbstractNotifier();
 
-    template <typename T>
-    static CZMQAbstractNotifier* Create()
-    {
+    template <typename T> static CZMQAbstractNotifier *Create() {
         return new T();
     }
 

@@ -9,7 +9,6 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include <stdarg.h>
 #include <string>
 
 #if ENABLE_ZMQ
