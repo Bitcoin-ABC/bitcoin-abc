@@ -926,9 +926,9 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 
 /** Return transaction in txOut, and if it was found inside a block, its hash is
  * placed in hashBlock */
-bool GetTransaction(const uint256 &txid, CTransactionRef &txOut,
-                    const Consensus::Params &consensusParams,
-                    uint256 &hashBlock, bool fAllowSlow) {
+bool GetTransaction(const Config &config, const uint256 &txid,
+                    CTransactionRef &txOut, uint256 &hashBlock,
+                    bool fAllowSlow) {
     CBlockIndex *pindexSlow = NULL;
 
     LOCK(cs_main);
@@ -962,8 +962,8 @@ bool GetTransaction(const uint256 &txid, CTransactionRef &txOut,
         }
     }
 
-    if (fAllowSlow) { // use coin database to locate block that contains
-                      // transaction, and scan it
+    // use coin database to locate block that contains transaction, and scan it
+    if (fAllowSlow) {
         int nHeight = -1;
         {
             const CCoinsViewCache &view = *pcoinsTip;
@@ -974,8 +974,10 @@ bool GetTransaction(const uint256 &txid, CTransactionRef &txOut,
     }
 
     if (pindexSlow) {
+        auto &params = config.GetChainParams().GetConsensus();
+
         CBlock block;
-        if (ReadBlockFromDisk(block, pindexSlow, consensusParams)) {
+        if (ReadBlockFromDisk(block, pindexSlow, params)) {
             for (const auto &tx : block.vtx) {
                 if (tx->GetId() == txid) {
                     txOut = tx;

@@ -365,8 +365,9 @@ static bool rest_tx(Config &config, HTTPRequest *req,
 
     CTransactionRef tx;
     uint256 hashBlock = uint256();
-    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true))
+    if (!GetTransaction(config, hash, tx, hashBlock, true)) {
         return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
+    }
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ssTx << tx;
