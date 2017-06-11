@@ -593,6 +593,11 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
+static bool IsUAHFenabled(const Consensus::Params &consensusParams,
+                          int64_t nMedianTimePast) {
+    return nMedianTimePast >= consensusParams.hfStartTime;
+}
+
 static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
@@ -1838,9 +1843,9 @@ bool ConnectBlock(const Config &config, const CBlock &block,
 
     // Sigops counting. We need to do it again because of P2SH.
     uint64_t nSigOpsCount = 0;
-    auto currentBlockSize =
+    const uint64_t currentBlockSize =
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-    auto nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
+    const uint64_t nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
 
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
@@ -3169,7 +3174,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (nMedianTimePast >= consensusParams.hfStartTime &&
+    if (IsUAHFenabled(consensusParams, nMedianTimePast) &&
         nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
         for (const CTxOut &o : tx.vout) {
             if (o.scriptPubKey.IsCommitment(
@@ -3231,9 +3236,23 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
+    // Check if UAHF is enabled and act accordingly.
     const int64_t nMedianTimePast = pindexPrev == nullptr
                                         ? block.GetBlockTime()
                                         : pindexPrev->GetMedianTimePast();
+    bool uahfEnabled = IsUAHFenabled(consensusParams, nMedianTimePast);
+
+    // When UAHF is not enabled, block cannot be bigger than
+    // LEGACY_MAX_BLOCK_SIZE .
+    if (!uahfEnabled) {
+        const uint64_t currentBlockSize =
+            ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+        if (currentBlockSize > LEGACY_MAX_BLOCK_SIZE) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length",
+                             false, "size limits failed");
+        }
+    }
+
     const int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
                                         ? nMedianTimePast
                                         : block.GetBlockTime();

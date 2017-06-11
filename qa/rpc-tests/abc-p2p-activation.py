@@ -4,11 +4,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-This test checks simple acceptance of bigger blocks via p2p.
+This test checks activation of UAHF and the different consensus
+related to this activation.
 It is derived from the much more complex p2p-fullblocktest.
-The intention is that small tests can be derived from this one, or
-this one can be extended, to cover the checks done for bigger blocks
-(e.g. sigops limits).
 """
 
 from test_framework.test_framework import ComparisonTestFramework
@@ -98,7 +96,7 @@ class FullBlockTest(ComparisonTestFramework):
         """
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = HF_START_TIME
+            block_time = int(time.time())+1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -230,83 +228,47 @@ class FullBlockTest(ComparisonTestFramework):
         for i in range(100):
             out.append(get_spendable_output())
 
-        # Let's build some blocks and test them.
-        for i in range(16):
-            n = i + 1
-            block(n, spend=out[i], block_size=n*ONE_MEGABYTE)
-            yield accepted()
-
-        # block of maximal size
-        block(17, spend=out[16], block_size=self.excessive_block_size)
+        # block up to LEGACY_MAX_BLOCK_SIZE are accepted.
+        block(1, spend=out[0], block_size=LEGACY_MAX_BLOCK_SIZE)
         yield accepted()
 
-        # Reject oversized blocks with bad-blk-length error
-        block(18, spend=out[17], block_size=self.excessive_block_size + 1)
+        # bigger block are reject as the fork isn't activated yet.
+        block(2, spend=out[1], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
         yield rejected(RejectResult(16, b'bad-blk-length'))
-        
-        # Rewind bad block.
-        tip(17)
-
-        # Accept many sigops
-        lots_of_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
-        block(19, spend=out[17], script=lots_of_checksigs, block_size=ONE_MEGABYTE)
-        yield accepted()
-        
-        too_many_blk_checksigs = CScript([OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
-        block(20, spend=out[18], script=too_many_blk_checksigs, block_size=ONE_MEGABYTE)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
-        tip(19)
+        tip(1)
 
-        # Accept 40k sigops per block > 1MB and <= 2MB
-        block(21, spend=out[18], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
+        # Put a block at the HF time to start the HF activation process.
+        b03 = block(3, spend=out[1])
+        b03.nTime = HF_START_TIME
+        update_block(3, [])
         yield accepted()
 
-        # Accept 40k sigops per block > 1MB and <= 2MB
-        block(22, spend=out[19], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE)
+        # Pile up 4 blocks on top to get to the point just before activation.
+        block(4, spend=out[2])
+        yield accepted()
+        block(5, spend=out[3])
+        yield accepted()
+        block(6, spend=out[4])
+        yield accepted()
+        block(7, spend=out[5])
         yield accepted()
 
-        # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(23, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+        # bigger block are still rejected as the fork isn't activated yet.
+        block(8, spend=out[6], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        yield rejected(RejectResult(16, b'bad-blk-length'))
 
         # Rewind bad block
-        tip(22)
+        tip(7)
 
-        # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(24, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
-
-        # Rewind bad block
-        tip(22)
-
-        # Accept 60k sigops per block > 2MB and <= 3MB
-        block(25, spend=out[20], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE + 1)
+        # Pile up another block, to activate.
+        block(9, spend=out[6])
         yield accepted()
 
-        # Accept 60k sigops per block > 2MB and <= 3MB
-        block(26, spend=out[21], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=3*ONE_MEGABYTE)
+        # HF is active, now we can create bigger blocks.
+        block(10, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
         yield accepted()
-
-        # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(27, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
-
-        # Rewind bad block
-        tip(26)
-
-        # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(28, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3*ONE_MEGABYTE)
-        yield rejected(RejectResult(16, b'bad-blk-sigops'))
-
-        # Rewind bad block
-        tip(26)
-
-        # Too many sigops in one txn
-        too_many_tx_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
-        block(29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
-        yield rejected(RejectResult(16, b'bad-txn-sigops'))
 
 
 if __name__ == '__main__':

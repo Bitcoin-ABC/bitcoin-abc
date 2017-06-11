@@ -154,6 +154,7 @@ testScripts = [
     'listsinceblock.py',
     'p2p-leaktests.py',
     #'abc-cmdline.py',  # FIXME: produces stderr output - run manually until we fix test framework
+    'abc-p2p-activation.py',
     'abc-p2p-fullblocktest.py',
     'abc-rpc.py',
 ]

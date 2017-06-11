@@ -16,7 +16,8 @@
 
 #include "chainparamsseeds.h"
 
-static const int64_t HF_START_TIME = 10000;
+// Far into the future.
+static const int64_t HF_START_TIME = 2000000000;
 static const std::string ANTI_REPLAY_COMMITMENT =
     "Placeholder for the anti replay commitment";
 

@@ -9,7 +9,7 @@
 
 bool GlobalConfig::SetMaxBlockSize(uint64_t maxBlockSize) {
     // Do not allow maxBlockSize to be set below historic 1MB limit
-    if (maxBlockSize < ONE_MEGABYTE) {
+    if (maxBlockSize < LEGACY_MAX_BLOCK_SIZE) {
         return false;
     }
 

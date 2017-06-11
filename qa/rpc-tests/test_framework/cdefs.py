@@ -43,6 +43,8 @@ MAX_TX_SIGOPS_COUNT = 20000
 # blocks (network rule)
 COINBASE_MATURITY = 100
 
+# Time at which the HF starts.
+HF_START_TIME = 2000000000
 
 if __name__ == "__main__":
     # Output values if run standalone to verify
