@@ -8,6 +8,7 @@
 #include "test/test_bitcoin.h"
 
 #include <cstdint>
+#include <limits>
 
 #include <boost/test/unit_test.hpp>
 
@@ -257,6 +258,17 @@ BOOST_AUTO_TEST_CASE(varints_bitpatterns) {
     ss.clear();
 }
 
+static bool isTooLargeException(const std::ios_base::failure &ex) {
+    std::ios_base::failure expectedException(
+        "ReadCompactSize(): size too large");
+
+    // The string returned by what() can be different for different platforms.
+    // Instead of directly comparing the ex.what() with an expected string,
+    // create an instance of exception to see if ex.what() matches  the expected
+    // explanatory string returned by the exception instance.
+    return strcmp(expectedException.what(), ex.what()) == 0;
+}
+
 BOOST_AUTO_TEST_CASE(compactsize) {
     CDataStream ss(SER_DISK, 0);
     std::vector<char>::size_type i, j;
@@ -272,6 +284,21 @@ BOOST_AUTO_TEST_CASE(compactsize) {
         j = ReadCompactSize(ss);
         BOOST_CHECK_MESSAGE(i == j, "decoded:" << j << " expected:" << i);
     }
+
+    WriteCompactSize(ss, MAX_SIZE);
+    BOOST_CHECK_EQUAL(ReadCompactSize(ss), MAX_SIZE);
+
+    WriteCompactSize(ss, MAX_SIZE + 1);
+    BOOST_CHECK_EXCEPTION(ReadCompactSize(ss), std::ios_base::failure,
+                          isTooLargeException);
+
+    WriteCompactSize(ss, std::numeric_limits<int64_t>::max());
+    BOOST_CHECK_EXCEPTION(ReadCompactSize(ss), std::ios_base::failure,
+                          isTooLargeException);
+
+    WriteCompactSize(ss, std::numeric_limits<uint64_t>::max());
+    BOOST_CHECK_EXCEPTION(ReadCompactSize(ss), std::ios_base::failure,
+                          isTooLargeException);
 }
 
 static bool isCanonicalException(const std::ios_base::failure &ex) {
