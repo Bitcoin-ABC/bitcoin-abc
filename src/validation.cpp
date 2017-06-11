@@ -2675,7 +2675,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
 }
 
 bool PreciousBlock(const Config &config, CValidationState &state,
-                   const CChainParams &params, CBlockIndex *pindex) {
+                   CBlockIndex *pindex) {
     {
         LOCK(cs_main);
         if (pindex->nChainWork < chainActive.Tip()->nChainWork) {
@@ -2705,7 +2705,7 @@ bool PreciousBlock(const Config &config, CValidationState &state,
 }
 
 bool InvalidateBlock(const Config &config, CValidationState &state,
-                     const CChainParams &chainparams, CBlockIndex *pindex) {
+                     CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     // Mark the block itself as invalid.
@@ -2732,8 +2732,7 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
         GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
 
     // The resulting new best tip may not be in setBlockIndexCandidates anymore,
-    // so
-    // add it again.
+    // so add it again.
     BlockMap::iterator it = mapBlockIndex.begin();
     while (it != mapBlockIndex.end()) {
         if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) &&

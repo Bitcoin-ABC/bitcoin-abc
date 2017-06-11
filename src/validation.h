@@ -637,11 +637,11 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
 
 /** Mark a block as precious and reorganize. */
 bool PreciousBlock(const Config &config, CValidationState &state,
-                   const CChainParams &params, CBlockIndex *pindex);
+                   CBlockIndex *pindex);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,
-                     const CChainParams &chainparams, CBlockIndex *pindex);
+                     CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */
 bool ResetBlockFailureFlags(CBlockIndex *pindex);
