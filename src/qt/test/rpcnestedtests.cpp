@@ -38,7 +38,7 @@ void RPCNestedTests::rpcNestedTests() {
 
     // Do some test setup could be moved to a more generic place when we add
     // more tests on QT level
-    const CChainParams &chainparams = Params();
+    const Config &config = GetConfig();
     RegisterAllRPCCommands(tableRPC);
     tableRPC.appendCommand("rpcNestedTest", &vRPCCommands[0]);
     ClearDatadirCache();
@@ -53,10 +53,10 @@ void RPCNestedTests::rpcNestedTests() {
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-    InitBlockIndex(chainparams);
+    InitBlockIndex(config);
     {
         CValidationState state;
-        bool ok = ActivateBestChain(GetConfig(), state, chainparams);
+        bool ok = ActivateBestChain(config, state);
         QVERIFY(ok);
     }
 

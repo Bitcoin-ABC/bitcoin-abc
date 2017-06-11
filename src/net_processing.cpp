@@ -1073,8 +1073,7 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                             a_recent_block = most_recent_block;
                         }
                         CValidationState dummy;
-                        ActivateBestChain(config, dummy, Params(),
-                                          a_recent_block);
+                        ActivateBestChain(config, dummy, a_recent_block);
                     }
                     if (chainActive.Contains(mi->second)) {
                         send = true;
@@ -1752,7 +1751,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 a_recent_block = most_recent_block;
             }
             CValidationState dummy;
-            ActivateBestChain(config, dummy, Params(), a_recent_block);
+            ActivateBestChain(config, dummy, a_recent_block);
         }
 
         LOCK(cs_main);

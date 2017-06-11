@@ -1477,7 +1477,7 @@ UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (state.IsValid()) {
-        ActivateBestChain(config, state, Params());
+        ActivateBestChain(config, state);
     }
 
     if (!state.IsValid()) {
@@ -1515,7 +1515,7 @@ UniValue reconsiderblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     CValidationState state;
-    ActivateBestChain(config, state, Params());
+    ActivateBestChain(config, state);
 
     if (!state.IsValid()) {
         throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());

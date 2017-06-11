@@ -294,7 +294,7 @@ bool LoadExternalBlockFile(const Config &config,
                            const CChainParams &chainparams, FILE *fileIn,
                            CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
-bool InitBlockIndex(const CChainParams &chainparams);
+bool InitBlockIndex(const Config &config);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex(const CChainParams &chainparams);
 /** Unload database information */
@@ -322,7 +322,6 @@ bool GetTransaction(const Config &config, const uint256 &hash,
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
-    const CChainParams &chainparams,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 

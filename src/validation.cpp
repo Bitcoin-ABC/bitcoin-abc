@@ -2147,7 +2147,9 @@ void PruneAndFlush() {
 }
 
 /** Update chainActive and related internal data structures. */
-void static UpdateTip(CBlockIndex *pindexNew, const CChainParams &chainParams) {
+static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
+    auto &chainParams = config.GetChainParams();
+
     chainActive.SetTip(pindexNew);
 
     // New best block
@@ -2230,8 +2232,9 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams &chainParams) {
 /** Disconnect chainActive's tip. You probably want to call
  * mempool.removeForReorg and manually re-limit mempool size after this, with
  * cs_main held. */
-bool static DisconnectTip(const Config &config, CValidationState &state,
-                          const CChainParams &chainparams, bool fBare = false) {
+static bool DisconnectTip(const Config &config, CValidationState &state,
+                          bool fBare = false) {
+    auto &chainparams = config.GetChainParams();
     CBlockIndex *pindexDelete = chainActive.Tip();
     assert(pindexDelete);
     // Read block from disk.
@@ -2277,7 +2280,7 @@ bool static DisconnectTip(const Config &config, CValidationState &state,
     }
 
     // Update chainActive and related variables.
-    UpdateTip(pindexDelete->pprev, chainparams);
+    UpdateTip(config, pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
     for (const auto &tx : block.vtx) {
@@ -2311,10 +2314,11 @@ struct ConnectTrace {
  * by copying pblock) - if that is not intended, care must be taken to remove
  * the last entry in blocksConnected in case of failure.
  */
-bool static ConnectTip(const Config &config, CValidationState &state,
-                       const CChainParams &chainparams, CBlockIndex *pindexNew,
+static bool ConnectTip(const Config &config, CValidationState &state,
+                       CBlockIndex *pindexNew,
                        const std::shared_ptr<const CBlock> &pblock,
                        ConnectTrace &connectTrace) {
+    auto &chainparams = config.GetChainParams();
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
@@ -2364,7 +2368,7 @@ bool static ConnectTip(const Config &config, CValidationState &state,
     // Remove conflicting transactions from the mempool.;
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     // Update chainActive & related variables.
-    UpdateTip(pindexNew, chainparams);
+    UpdateTip(config, pindexNew);
 
     int64_t nTime6 = GetTimeMicros();
     nTimePostConnect += nTime6 - nTime5;
@@ -2461,7 +2465,6 @@ static void PruneBlockIndexCandidates() {
  * pindexMostWork.
  */
 static bool ActivateBestChainStep(const Config &config, CValidationState &state,
-                                  const CChainParams &chainparams,
                                   CBlockIndex *pindexMostWork,
                                   const std::shared_ptr<const CBlock> &pblock,
                                   bool &fInvalidFound,
@@ -2473,7 +2476,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
     while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
-        if (!DisconnectTip(config, state, chainparams)) return false;
+        if (!DisconnectTip(config, state)) return false;
         fBlocksDisconnected = true;
     }
 
@@ -2497,7 +2500,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
         // Connect new blocks.
         for (CBlockIndex *pindexConnect :
              boost::adaptors::reverse(vpindexToConnect)) {
-            if (!ConnectTip(config, state, chainparams, pindexConnect,
+            if (!ConnectTip(config, state, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
@@ -2576,7 +2579,6 @@ static void NotifyHeaderTip() {
  * that is already loaded (to avoid loading it again from disk).
  */
 bool ActivateBestChain(const Config &config, CValidationState &state,
-                       const CChainParams &chainparams,
                        std::shared_ptr<const CBlock> pblock) {
     // Note that while we're often called here from ProcessNewBlock, this is
     // far from a guarantee. Things in the P2P/RPC will often end up calling
@@ -2617,7 +2619,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                 bool fInvalidFound = false;
                 std::shared_ptr<const CBlock> nullBlockPtr;
                 if (!ActivateBestChainStep(
-                        config, state, chainparams, pindexMostWork,
+                        config, state, pindexMostWork,
                         pblock &&
                                 pblock->GetHash() ==
                                     pindexMostWork->GetBlockHash()
@@ -2662,7 +2664,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
             uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
         }
     } while (pindexNewTip != pindexMostWork);
-    CheckBlockIndex(chainparams.GetConsensus());
+    CheckBlockIndex(config.GetChainParams().GetConsensus());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
@@ -2699,7 +2701,7 @@ bool PreciousBlock(const Config &config, CValidationState &state,
         }
     }
 
-    return ActivateBestChain(config, state, params);
+    return ActivateBestChain(config, state);
 }
 
 bool InvalidateBlock(const Config &config, CValidationState &state,
@@ -2718,7 +2720,7 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
         setBlockIndexCandidates.erase(pindexWalk);
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
-        if (!DisconnectTip(config, state, chainparams)) {
+        if (!DisconnectTip(config, state)) {
             mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1,
                                    STANDARD_LOCKTIME_VERIFY_FLAGS);
             return false;
@@ -3464,9 +3466,9 @@ bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
 
     NotifyHeaderTip();
 
-    CValidationState
-        state; // Only used to report errors, not invalidity - ignore it
-    if (!ActivateBestChain(config, state, chainparams, pblock))
+    // Only used to report errors, not invalidity - ignore it
+    CValidationState state;
+    if (!ActivateBestChain(config, state, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
     return true;
@@ -3986,7 +3988,7 @@ bool RewindBlockIndex(const Config &config, const CChainParams &params) {
             // of the blockchain).
             break;
         }
-        if (!DisconnectTip(config, state, params, true)) {
+        if (!DisconnectTip(config, state, true)) {
             return error(
                 "RewindBlockIndex: unable to disconnect block at height %i",
                 pindex->nHeight);
@@ -4053,7 +4055,7 @@ bool LoadBlockIndex(const CChainParams &chainparams) {
     return true;
 }
 
-bool InitBlockIndex(const CChainParams &chainparams) {
+bool InitBlockIndex(const Config &config) {
     LOCK(cs_main);
 
     // Check whether we're already initialized
@@ -4068,6 +4070,7 @@ bool InitBlockIndex(const CChainParams &chainparams) {
     // one already on disk)
     if (!fReindex) {
         try {
+            auto &chainparams = config.GetChainParams();
             CBlock &block = const_cast<CBlock &>(chainparams.GenesisBlock());
             // Start new block file
             unsigned int nBlockSize =
@@ -4185,7 +4188,7 @@ bool LoadExternalBlockFile(const Config &config,
                 // continue
                 if (hash == chainparams.GetConsensus().hashGenesisBlock) {
                     CValidationState state;
-                    if (!ActivateBestChain(config, state, chainparams)) {
+                    if (!ActivateBestChain(config, state)) {
                         break;
                     }
                 }

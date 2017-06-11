@@ -56,10 +56,10 @@ BasicTestingSetup::~BasicTestingSetup() {
 
 TestingSetup::TestingSetup(const std::string &chainName)
     : BasicTestingSetup(chainName) {
-    const CChainParams &chainparams = Params();
+
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
-
+    const Config &config = GetConfig();
     RegisterAllRPCCommands(tableRPC);
     ClearDatadirCache();
     pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i",
@@ -71,10 +71,10 @@ TestingSetup::TestingSetup(const std::string &chainName)
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-    InitBlockIndex(chainparams);
+    InitBlockIndex(config);
     {
         CValidationState state;
-        bool ok = ActivateBestChain(GetConfig(), state, chainparams);
+        bool ok = ActivateBestChain(config, state);
         BOOST_CHECK(ok);
     }
     nScriptCheckThreads = 3;

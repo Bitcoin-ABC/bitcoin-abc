@@ -990,7 +990,7 @@ void ThreadImport(const Config &config,
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            InitBlockIndex(chainparams);
+            InitBlockIndex(config);
         }
 
         // hardcoded $DATADIR/bootstrap.dat
@@ -1024,7 +1024,7 @@ void ThreadImport(const Config &config,
         // scan for better chains in the block chain database, that are not yet
         // connected in the active best chain
         CValidationState state;
-        if (!ActivateBestChain(config, state, chainparams)) {
+        if (!ActivateBestChain(config, state)) {
             LogPrintf("Failed to connect best block");
             StartShutdown();
         }
@@ -1963,7 +1963,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
                 // Initialize the block index (no-op if non-empty database was
                 // already loaded)
-                if (!InitBlockIndex(chainparams)) {
+                if (!InitBlockIndex(config)) {
                     strLoadError = _("Error initializing block database");
                     break;
                 }
