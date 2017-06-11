@@ -2267,12 +2267,10 @@ bool static DisconnectTip(const Config &config, CValidationState &state,
             }
         }
         // AcceptToMemoryPool/addUnchecked all assume that new mempool entries
-        // have
-        // no in-mempool children, which is generally not true when adding
+        // have no in-mempool children, which is generally not true when adding
         // previously-confirmed transactions back to the mempool.
         // UpdateTransactionsFromBlock finds descendants of any transactions in
-        // this
-        // block that were added back and cleans up the mempool state.
+        // this block that were added back and cleans up the mempool state.
         mempool.UpdateTransactionsFromBlock(vHashUpdate);
     }
 
