@@ -2144,7 +2144,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
 
         const CBlockIndex *pindex = NULL;
         CValidationState state;
-        if (!ProcessNewBlockHeaders({cmpctblock.header}, state, chainparams,
+        if (!ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
                                     &pindex)) {
             int nDoS;
             if (state.IsInvalid(nDoS)) {
@@ -2351,7 +2351,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                                        std::make_pair(pfrom->GetId(), false));
             }
             bool fNewBlock = false;
-            ProcessNewBlock(config, chainparams, pblock, true, &fNewBlock);
+            ProcessNewBlock(config, pblock, true, &fNewBlock);
             if (fNewBlock) pfrom->nLastBlockTime = GetTime();
 
             LOCK(cs_main); // hold cs_main for CBlockIndex::IsValid()
@@ -2446,7 +2446,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             // Since we requested this block (it was in mapBlocksInFlight),
             // force it to be processed, even if it would not be a candidate for
             // new tip (missing previous block, chain not long enough, etc)
-            ProcessNewBlock(config, chainparams, pblock, true, &fNewBlock);
+            ProcessNewBlock(config, pblock, true, &fNewBlock);
             if (fNewBlock) pfrom->nLastBlockTime = GetTime();
         }
     }
@@ -2533,7 +2533,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         CValidationState state;
-        if (!ProcessNewBlockHeaders(headers, state, chainparams, &pindexLast)) {
+        if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
             int nDoS;
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
@@ -2672,8 +2672,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             mapBlockSource.emplace(hash, std::make_pair(pfrom->GetId(), true));
         }
         bool fNewBlock = false;
-        ProcessNewBlock(config, chainparams, pblock, forceProcessing,
-                        &fNewBlock);
+        ProcessNewBlock(config, pblock, forceProcessing, &fNewBlock);
         if (fNewBlock) pfrom->nLastBlockTime = GetTime();
     }
 

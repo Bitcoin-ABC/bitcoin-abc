@@ -146,7 +146,7 @@ static UniValue generateBlocks(const Config &config,
         }
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(config, Params(), shared_pblock, true, NULL))
+        if (!ProcessNewBlock(config, shared_pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "ProcessNewBlock, block not accepted");
         ++nHeight;
@@ -856,7 +856,7 @@ static UniValue submitblock(const Config &config,
 
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(config, Params(), blockptr, true, NULL);
+    bool fAccepted = ProcessNewBlock(config, blockptr, true, NULL);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
         if (fAccepted && !sc.found) return "duplicate-inconclusive";

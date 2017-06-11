@@ -259,7 +259,7 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  * first received via this call
  * @return True if state.IsValid()
  */
-bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
+bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock);
 
@@ -275,9 +275,9 @@ bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
  * @param[out] ppindex If set, the pointer will be set to point to the last new
  * block index object for the given headers
  */
-bool ProcessNewBlockHeaders(const std::vector<CBlockHeader> &block,
+bool ProcessNewBlockHeaders(const Config &config,
+                            const std::vector<CBlockHeader> &block,
                             CValidationState &state,
-                            const CChainParams &chainparams,
                             const CBlockIndex **ppindex = NULL);
 
 /** Check whether enough disk space is available for an incoming block */

@@ -2148,7 +2148,7 @@ void PruneAndFlush() {
 
 /** Update chainActive and related internal data structures. */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
-    auto &chainParams = config.GetChainParams();
+    const CChainParams &chainParams = config.GetChainParams();
 
     chainActive.SetTip(pindexNew);
 
@@ -2234,7 +2234,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
  * cs_main held. */
 static bool DisconnectTip(const Config &config, CValidationState &state,
                           bool fBare = false) {
-    auto &chainparams = config.GetChainParams();
+    const CChainParams &chainparams = config.GetChainParams();
     CBlockIndex *pindexDelete = chainActive.Tip();
     assert(pindexDelete);
     // Read block from disk.
@@ -2318,7 +2318,7 @@ static bool ConnectTip(const Config &config, CValidationState &state,
                        CBlockIndex *pindexNew,
                        const std::shared_ptr<const CBlock> &pblock,
                        ConnectTrace &connectTrace) {
-    auto &chainparams = config.GetChainParams();
+    const CChainParams &chainparams = config.GetChainParams();
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
@@ -3314,16 +3314,17 @@ static bool AcceptBlockHeader(const CBlockHeader &block,
 }
 
 // Exposed wrapper for AcceptBlockHeader
-bool ProcessNewBlockHeaders(const std::vector<CBlockHeader> &headers,
+bool ProcessNewBlockHeaders(const Config &config,
+                            const std::vector<CBlockHeader> &headers,
                             CValidationState &state,
-                            const CChainParams &chainparams,
                             const CBlockIndex **ppindex) {
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
-            CBlockIndex *pindex = NULL; // Use a temp pindex instead of ppindex
-                                        // to avoid a const_cast
-            if (!AcceptBlockHeader(header, state, chainparams, &pindex)) {
+            // Use a temp pindex instead of ppindex to avoid a const_cast
+            CBlockIndex *pindex = NULL;
+            if (!AcceptBlockHeader(header, state, config.GetChainParams(),
+                                   &pindex)) {
                 return false;
             }
             if (ppindex) {
@@ -3438,12 +3439,15 @@ static bool AcceptBlock(const Config &config,
     return true;
 }
 
-bool ProcessNewBlock(const Config &config, const CChainParams &chainparams,
+bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock) {
     {
         CBlockIndex *pindex = NULL;
         if (fNewBlock) *fNewBlock = false;
+
+        const CChainParams &chainparams = config.GetChainParams();
+
         CValidationState state;
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
         // belt-and-suspenders.
@@ -4070,7 +4074,7 @@ bool InitBlockIndex(const Config &config) {
     // one already on disk)
     if (!fReindex) {
         try {
-            auto &chainparams = config.GetChainParams();
+            const CChainParams &chainparams = config.GetChainParams();
             CBlock &block = const_cast<CBlock &>(chainparams.GenesisBlock());
             // Start new block file
             unsigned int nBlockSize =
