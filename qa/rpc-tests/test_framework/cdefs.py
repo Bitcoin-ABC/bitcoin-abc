@@ -11,9 +11,10 @@ framework.
 import re
 
 # Slurp in consensus.h contents
-_consensus_h_fh = open('src/consensus/consensus.h', 'rt')
-_consensus_h_contents = _consensus_h_fh.read()
-_consensus_h_fh.close()
+# FIXME: this breaks when tests are not called from top level
+#_consensus_h_fh = open('src/consensus/consensus.h', 'rt')
+#_consensus_h_contents = _consensus_h_fh.read()
+#_consensus_h_fh.close()
 
 # This constant is currently needed to evaluate some that are formulas
 ONE_MEGABYTE = 1000000
@@ -21,9 +22,10 @@ ONE_MEGABYTE = 1000000
 # Extract relevant default values parameters
 
 # Default setting for maximum allowed size for a block, in bytes
-DEFAULT_MAX_BLOCK_SIZE = eval(
-    re.search(r'DEFAULT_MAX_BLOCK_SIZE = (.+);',
-              _consensus_h_contents).group(1))
+
+# FIXME: re-enable evaluation of consensus.h once that can be read from
+# subfolder of top level
+DEFAULT_MAX_BLOCK_SIZE = 1000000
 
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
