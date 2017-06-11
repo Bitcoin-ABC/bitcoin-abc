@@ -965,7 +965,6 @@ void CleanupBlockRevFiles() {
 
 void ThreadImport(const Config &config,
                   std::vector<boost::filesystem::path> vImportFiles) {
-    const CChainParams &chainparams = Params();
     RenameThread("bitcoin-loadblk");
 
     {
@@ -982,7 +981,7 @@ void ThreadImport(const Config &config,
                 if (!file) break; // This error is logged in OpenBlockFile
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
-                LoadExternalBlockFile(config, chainparams, file, &pos);
+                LoadExternalBlockFile(config, file, &pos);
                 nFile++;
             }
             pblocktree->WriteReindexing(false);
@@ -1001,7 +1000,7 @@ void ThreadImport(const Config &config,
                 boost::filesystem::path pathBootstrapOld =
                     GetDataDir() / "bootstrap.dat.old";
                 LogPrintf("Importing bootstrap.dat...\n");
-                LoadExternalBlockFile(config, chainparams, file);
+                LoadExternalBlockFile(config, file);
                 RenameOver(pathBootstrap, pathBootstrapOld);
             } else {
                 LogPrintf("Warning: Could not open bootstrap file %s\n",
@@ -1014,7 +1013,7 @@ void ThreadImport(const Config &config,
             FILE *file = fopen(path.string().c_str(), "rb");
             if (file) {
                 LogPrintf("Importing blocks file %s...\n", path.string());
-                LoadExternalBlockFile(config, chainparams, file);
+                LoadExternalBlockFile(config, file);
             } else {
                 LogPrintf("Warning: Could not open blocks file %s\n",
                           path.string());

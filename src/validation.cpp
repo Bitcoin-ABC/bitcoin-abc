@@ -4099,13 +4099,14 @@ bool InitBlockIndex(const Config &config) {
     return true;
 }
 
-bool LoadExternalBlockFile(const Config &config,
-                           const CChainParams &chainparams, FILE *fileIn,
+bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CDiskBlockPos *dbp) {
     // Map of disk positions for blocks with unknown parent (only used for
     // reindex)
     static std::multimap<uint256, CDiskBlockPos> mapBlocksUnknownParent;
     int64_t nStart = GetTimeMillis();
+
+    const CChainParams &chainparams = config.GetChainParams();
 
     int nLoaded = 0;
     try {

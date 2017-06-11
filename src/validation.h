@@ -290,8 +290,7 @@ FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos,
                                             const char *prefix);
 /** Import blocks from an external file */
-bool LoadExternalBlockFile(const Config &config,
-                           const CChainParams &chainparams, FILE *fileIn,
+bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex(const Config &config);
