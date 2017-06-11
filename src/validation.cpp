@@ -3254,11 +3254,11 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
     return true;
 }
 
-static bool AcceptBlockHeader(const CBlockHeader &block,
-                              CValidationState &state,
-                              const CChainParams &chainparams,
-                              CBlockIndex **ppindex) {
+static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
+                              CValidationState &state, CBlockIndex **ppindex) {
     AssertLockHeld(cs_main);
+    const CChainParams &chainparams = config.GetChainParams();
+
     // Check for duplicate
     uint256 hash = block.GetHash();
     BlockMap::iterator miSelf = mapBlockIndex.find(hash);
@@ -3322,8 +3322,7 @@ bool ProcessNewBlockHeaders(const Config &config,
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = NULL;
-            if (!AcceptBlockHeader(header, state, config.GetChainParams(),
-                                   &pindex)) {
+            if (!AcceptBlockHeader(config, header, state, &pindex)) {
                 return false;
             }
             if (ppindex) {
@@ -3339,8 +3338,7 @@ bool ProcessNewBlockHeaders(const Config &config,
  * on disk */
 static bool AcceptBlock(const Config &config,
                         const std::shared_ptr<const CBlock> &pblock,
-                        CValidationState &state,
-                        const CChainParams &chainparams, CBlockIndex **ppindex,
+                        CValidationState &state, CBlockIndex **ppindex,
                         bool fRequested, const CDiskBlockPos *dbp,
                         bool *fNewBlock) {
     const CBlock &block = *pblock;
@@ -3351,7 +3349,7 @@ static bool AcceptBlock(const Config &config,
     CBlockIndex *pindexDummy = NULL;
     CBlockIndex *&pindex = ppindex ? *ppindex : pindexDummy;
 
-    if (!AcceptBlockHeader(block, state, chainparams, &pindex)) return false;
+    if (!AcceptBlockHeader(config, block, state, &pindex)) return false;
 
     // Try to process all requested blocks that we don't have, but only
     // process an unrequested block if it's new and has enough work to
@@ -3394,6 +3392,7 @@ static bool AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
 
+    const CChainParams &chainparams = config.GetChainParams();
     if (!CheckBlock(config, block, state, chainparams.GetConsensus()) ||
         !ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
                               pindex->pprev)) {
@@ -3457,8 +3456,8 @@ bool ProcessNewBlock(const Config &config,
 
         if (ret) {
             // Store to disk
-            ret = AcceptBlock(config, pblock, state, chainparams, &pindex,
-                              fForceProcessing, NULL, fNewBlock);
+            ret = AcceptBlock(config, pblock, state, &pindex, fForceProcessing,
+                              NULL, fNewBlock);
         }
         CheckBlockIndex(chainparams.GetConsensus());
         if (!ret) {
@@ -4175,8 +4174,8 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
                     LOCK(cs_main);
                     CValidationState state;
-                    if (AcceptBlock(config, pblock, state, chainparams, NULL,
-                                    true, dbp, NULL))
+                    if (AcceptBlock(config, pblock, state, NULL, true, dbp,
+                                    NULL))
                         nLoaded++;
                     if (state.IsError()) break;
                 } else if (hash !=
@@ -4224,8 +4223,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                             LOCK(cs_main);
                             CValidationState dummy;
                             if (AcceptBlock(config, pblockrecursive, dummy,
-                                            chainparams, NULL, true,
-                                            &it->second, NULL)) {
+                                            NULL, true, &it->second, NULL)) {
                                 nLoaded++;
                                 queue.push_back(pblockrecursive->GetHash());
                             }
