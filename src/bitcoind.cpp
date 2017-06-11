@@ -148,7 +148,7 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             exit(1);
         }
-        if (!AppInitParameterInteraction()) {
+        if (!AppInitParameterInteraction(config)) {
             // InitError will have been called with detailed error, which ends
             // up on console
             exit(1);

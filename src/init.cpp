@@ -15,6 +15,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "compat/sanity.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "httprpc.h"
 #include "httpserver.h"
@@ -746,6 +747,11 @@ std::string HelpMessage(HelpMessageMode mode) {
                 "Relay and mine \"non-standard\" transactions (%sdefault: %u)",
                 "testnet/regtest only; ",
                 !Params(CBaseChainParams::TESTNET).RequireStandard()));
+        strUsage +=
+            HelpMessageOpt("-excessiveblocksize=<n>",
+                           strprintf(_("Do not accept blocks larger than this "
+                                       "limit, in bytes (default: %d)"),
+                                     DEFAULT_MAX_BLOCK_SIZE));
         strUsage += HelpMessageOpt(
             "-incrementalrelayfee=<amt>",
             strprintf(
@@ -1249,7 +1255,7 @@ bool AppInitBasicSetup() {
     return true;
 }
 
-bool AppInitParameterInteraction() {
+bool AppInitParameterInteraction(Config &config) {
     const CChainParams &chainparams = Params();
     // Step 2: parameter interactions
 
@@ -1377,6 +1383,30 @@ bool AppInitParameterInteraction() {
         nScriptCheckThreads = 0;
     else if (nScriptCheckThreads > MAX_SCRIPTCHECK_THREADS)
         nScriptCheckThreads = MAX_SCRIPTCHECK_THREADS;
+
+    // Configure excessive block size.
+    const auto nProposedExcessiveBlockSize =
+        GetArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
+    if (nProposedExcessiveBlockSize < ONE_MEGABYTE) {
+        return InitError(
+            _("Excessive block size must be >= 1,000,000 bytes (1MB)"));
+    } else {
+        if (!config.SetMaxBlockSize(nProposedExcessiveBlockSize)) {
+            return InitError(strprintf(
+                _("Unable to validate excessive block size value (%d)"),
+                nProposedExcessiveBlockSize));
+        }
+        assert(nProposedExcessiveBlockSize == config.GetMaxBlockSize());
+    }
+
+    // Check blockmaxsize does not exceed maximum accepted block size.
+    const auto nProposedMaxGeneratedBlockSize =
+        GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+    if (nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize()) {
+        return InitError(
+            _("Max generated block size (blockmaxsize) cannot exceed the "
+              "excessive block size (excessiveblocksize)"));
+    }
 
     // block pruning; get the amount of disk space (in MiB) to allot for block &
     // undo files

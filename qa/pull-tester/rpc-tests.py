@@ -153,6 +153,7 @@ testScripts = [
     'rpcnamedargs.py',
     'listsinceblock.py',
     'p2p-leaktests.py',
+    'abc-cmdline.py',
     'abc-rpc.py',
 ]
 if ENABLE_ZMQ:

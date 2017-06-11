@@ -37,7 +37,7 @@ bool AppInitBasicSetup();
  * @pre Parameters should be parsed and config file should be read,
  * AppInitBasicSetup should have been called.
  */
-bool AppInitParameterInteraction();
+bool AppInitParameterInteraction(Config &config);
 /**
  * Initialization sanity checks: ecc init, sanity checks, dir lock.
  * @note This can be done before daemonization.
