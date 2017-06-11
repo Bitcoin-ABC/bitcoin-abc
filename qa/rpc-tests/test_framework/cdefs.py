@@ -34,7 +34,7 @@ DEFAULT_MAX_BLOCK_SIZE = eval(
 MAX_BLOCK_SIGOPS_PER_MB = 20000
 
 # Allowed number of signature check operations per transaction
-MAX_TX_SIGOPS_COUNT 20000
+MAX_TX_SIGOPS_COUNT = 20000
 
 # Coinbase transaction outputs can only be spent after this number of new 
 # blocks (network rule)
