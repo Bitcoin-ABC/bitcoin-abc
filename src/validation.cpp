@@ -2923,6 +2923,7 @@ bool CChainState::ActivateBestChain(const Config &config,
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
+    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     do {
         boost::this_thread::interruption_point();
 
@@ -2998,6 +2999,11 @@ bool CChainState::ActivateBestChain(const Config &config,
         if (pindexFork != pindexNewTip) {
             uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
         }
+
+        if (nStopAtHeight && pindexNewTip &&
+            pindexNewTip->nHeight >= nStopAtHeight) {
+            StartShutdown();
+        }
     } while (pindexNewTip != pindexMostWork);
 
     const CChainParams &params = config.GetChainParams();
@@ -3006,12 +3012,6 @@ bool CChainState::ActivateBestChain(const Config &config,
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(params, state, FlushStateMode::PERIODIC)) {
         return false;
-    }
-
-    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
-    if (nStopAtHeight && pindexNewTip &&
-        pindexNewTip->nHeight >= nStopAtHeight) {
-        StartShutdown();
     }
 
     return true;
