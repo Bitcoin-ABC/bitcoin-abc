@@ -18,6 +18,7 @@ from test_framework.blocktools import *
 import time
 from test_framework.key import CECKey
 from test_framework.script import *
+from test_framework.cdefs import MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT
 
 
 class PreviousSpendableOutput(object):
@@ -88,7 +89,7 @@ class FullBlockTest(ComparisonTestFramework):
         tx.rehash()
         return tx
 
-    def next_block(self, number, spend=None, additional_coinbase_value=0, script=None, block_size=0, solve=True):
+    def next_block(self, number, spend=None, additional_coinbase_value=0, script=None, extra_sigops=0, block_size=0, solve=True):
         """
         Create a block on top of self.tip, and advance self.tip to point to the new block
         if spend is specified, then 1 satoshi will be spent from that to an anyone-can-spend
@@ -141,7 +142,10 @@ class FullBlockTest(ComparisonTestFramework):
                 script_length = block_size - len(block.serialize()) - 79
                 if script_length > 510000:
                     script_length = 500000
-                script_output = CScript([b'\x00' * script_length])
+                tx_sigops = min(extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
+                extra_sigops -= tx_sigops
+                script_pad_len = script_length - tx_sigops
+                script_output = CScript([b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
                 tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                 tx.vout.append(CTxOut(0, script_output))
                 tx.vin.append(CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
@@ -151,6 +155,8 @@ class FullBlockTest(ComparisonTestFramework):
             # Make sure the math above worked out to produce the correct block size
             # (the math will fail if there are too many transactions in the block)
             assert_equal(len(block.serialize()), block_size)
+            # Make sure all the requested sigops have been included
+            assert_equal(extra_sigops, 0)
         if solve:
             block.solve()
         self.tip = block
@@ -236,6 +242,70 @@ class FullBlockTest(ComparisonTestFramework):
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
         yield rejected(RejectResult(16, b'bad-blk-length'))
+        
+        # Rewind bad block.
+        tip(17)
+
+        # Accept many sigops
+        lots_of_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
+        block(19, spend=out[17], script=lots_of_checksigs, block_size=ONE_MEGABYTE)
+        yield accepted()
+        
+        too_many_blk_checksigs = CScript([OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
+        block(20, spend=out[18], script=too_many_blk_checksigs, block_size=ONE_MEGABYTE)
+        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+
+        # Rewind bad block
+        tip(19)
+
+        # Accept 40k sigops per block > 1MB and <= 2MB
+        block(21, spend=out[18], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
+        yield accepted()
+
+        # Accept 40k sigops per block > 1MB and <= 2MB
+        block(22, spend=out[19], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE)
+        yield accepted()
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(23, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
+        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+
+        # Rewind bad block
+        tip(22)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(24, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE)
+        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+
+        # Rewind bad block
+        tip(22)
+
+        # Accept 60k sigops per block > 2MB and <= 3MB
+        block(25, spend=out[20], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE + 1)
+        yield accepted()
+
+        # Accept 60k sigops per block > 2MB and <= 3MB
+        block(26, spend=out[21], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=3*ONE_MEGABYTE)
+        yield accepted()
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(27, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE + 1)
+        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+
+        # Rewind bad block
+        tip(26)
+
+        # Reject more than 40k sigops per block > 1MB and <= 2MB.
+        block(28, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3*ONE_MEGABYTE)
+        yield rejected(RejectResult(16, b'bad-blk-sigops'))
+
+        # Rewind bad block
+        tip(26)
+
+        # Too many sigops in one txn
+        too_many_tx_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
+        block(29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
+        yield rejected(RejectResult(16, b'bad-txn-sigops'))
 
 
 if __name__ == '__main__':
