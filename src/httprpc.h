@@ -12,7 +12,6 @@
 #include <string>
 
 class Config;
-class HTTPRequest;
 
 class HTTPRPCRequestProcessor {
 private:

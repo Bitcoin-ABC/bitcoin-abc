@@ -11,13 +11,10 @@
 #include <atomic>
 #include <memory>
 
-class AddressTableModel;
 class BanTableModel;
 class OptionsModel;
 class PeerTableModel;
-class TransactionTableModel;
 
-class CWallet;
 class CBlockIndex;
 
 namespace interfaces {

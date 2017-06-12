@@ -34,7 +34,6 @@ class HelpMessageDialog;
 class ModalOverlay;
 
 class Config;
-class CWallet;
 
 namespace interfaces {
 class Handler;

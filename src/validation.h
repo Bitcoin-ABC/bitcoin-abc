@@ -37,7 +37,6 @@ class arith_uint256;
 
 class CBlockIndex;
 class CBlockTreeDB;
-class CBloomFilter;
 class CChainParams;
 class CChain;
 class CCoinsViewDB;
@@ -47,7 +46,6 @@ class Config;
 class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
-class CValidationInterface;
 class CValidationState;
 
 struct CDiskBlockPos;

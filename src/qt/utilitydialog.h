@@ -9,7 +9,6 @@
 #include <QObject>
 
 class BitcoinGUI;
-class ClientModel;
 
 namespace interfaces {
 class Node;

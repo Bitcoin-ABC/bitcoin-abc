@@ -16,7 +16,6 @@
 #include <QVariant>
 
 class Config;
-class OptionsModel;
 class PlatformStyle;
 class WalletModel;
 

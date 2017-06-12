@@ -33,9 +33,7 @@ void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
 } // namespace RPCServerSignals
 
-class CBlockIndex;
 class Config;
-class CNetAddr;
 
 /**
  * Wrapper for UniValue::VType, which includes typeAny: used to denote don't
