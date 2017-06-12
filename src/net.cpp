@@ -624,13 +624,11 @@ void CNode::copyStats(CNodeStats &stats) {
     X(fWhitelisted);
 
     // It is common for nodes with good ping times to suddenly become lagged,
-    // due to a new block arriving or other large transfer.
-    // Merely reporting pingtime might fool the caller into thinking the node
-    // was still responsive,
-    // since pingtime does not update until the ping is complete, which might
-    // take a while.
-    // So, if a ping is taking an unusually long time in flight,
-    // the caller can immediately detect that this is happening.
+    // due to a new block arriving or other large transfer. Merely reporting
+    // pingtime might fool the caller into thinking the node was still
+    // responsive, since pingtime does not update until the ping is complete,
+    // which might take a while. So, if a ping is taking an unusually long time
+    // in flight, the caller can immediately detect that this is happening.
     int64_t nPingUsecWait = 0;
     if ((0 != nPingNonceSent) && (0 != nPingUsecStart)) {
         nPingUsecWait = GetTimeMicros() - nPingUsecStart;
@@ -658,7 +656,6 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes,
     nLastRecv = nTimeMicros / 1000000;
     nRecvBytes += nBytes;
     while (nBytes > 0) {
-
         // get current incomplete message, or create a new one
         if (vRecvMsg.empty() || vRecvMsg.back().complete())
             vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK,
@@ -1458,14 +1455,16 @@ void ThreadMapPort() {
                                         strDesc.c_str(), "TCP", 0, "0");
 #endif
 
-                if (r != UPNPCOMMAND_SUCCESS)
+                if (r != UPNPCOMMAND_SUCCESS) {
                     LogPrintf(
                         "AddPortMapping(%s, %s, %s) failed with code %d (%s)\n",
                         port, port, lanaddr, r, strupnperror(r));
-                else
+                } else {
                     LogPrintf("UPnP Port Mapping successful.\n");
+                }
 
-                MilliSleep(20 * 60 * 1000); // Refresh every 20 minutes
+                // Refresh every 20 minutes
+                MilliSleep(20 * 60 * 1000);
             }
         } catch (const boost::thread_interrupted &) {
             r = UPNP_DeletePortMapping(urls.controlURL, data.first.servicetype,
@@ -2195,12 +2194,12 @@ bool CConnman::Start(CScheduler &scheduler, std::string &strNodeError,
     int64_t nStart = GetTimeMillis();
     {
         CAddrDB adb;
-        if (adb.Read(addrman))
+        if (adb.Read(addrman)) {
             LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
                       addrman.size(), GetTimeMillis() - nStart);
-        else {
-            addrman.Clear(); // Addrman can be in an inconsistent state after
-                             // failure, reset it
+        } else {
+            // Addrman can be in an inconsistent state after failure, reset it
+            addrman.Clear();
             LogPrintf("Invalid or missing peers.dat; recreating\n");
             DumpAddresses();
         }
@@ -2434,8 +2433,8 @@ bool CConnman::RemoveAddedNode(const std::string &strNode) {
 
 size_t CConnman::GetNodeCount(NumConnections flags) {
     LOCK(cs_vNodes);
-    if (flags == CConnman::CONNECTIONS_ALL) // Shortcut if we want total
-        return vNodes.size();
+    // Shortcut if we want total
+    if (flags == CConnman::CONNECTIONS_ALL) return vNodes.size();
 
     int nNum = 0;
     for (std::vector<CNode *>::const_iterator it = vNodes.begin();
@@ -2664,8 +2663,10 @@ CNode::~CNode() {
 
 void CNode::AskFor(const CInv &inv) {
     if (mapAskFor.size() > MAPASKFOR_MAX_SZ ||
-        setAskFor.size() > SETASKFOR_MAX_SZ)
+        setAskFor.size() > SETASKFOR_MAX_SZ) {
         return;
+    }
+
     // a peer may not have multiple non-responded queue positions for a single
     // inv item.
     if (!setAskFor.insert(inv.hash).second) return;
