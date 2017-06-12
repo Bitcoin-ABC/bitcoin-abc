@@ -46,7 +46,8 @@ MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version 
 
 MAX_INV_SZ = 50000
 # Keep this around in case some tests specifically want to test legacy size
-LEGACY_MAX_BLOCK_SIZE = 1000000
+ONE_MEGABYTE = 1000000
+LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE
 
 COIN = 100000000 # 1 btc in satoshis
 

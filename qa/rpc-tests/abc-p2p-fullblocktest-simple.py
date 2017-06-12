@@ -32,7 +32,7 @@ class FullBlockTest(ComparisonTestFramework):
     # Change the "outcome" variable from each TestInstance object to only do the comparison.
     def __init__(self):
         super().__init__()
-        self.excessive_block_size = 2 * LEGACY_MAX_BLOCK_SIZE
+        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.num_nodes = 1
         self.block_heights = {}
         self.coinbase_key = CECKey()
@@ -224,18 +224,17 @@ class FullBlockTest(ComparisonTestFramework):
             out.append(get_spendable_output())
 
         # Let's build some blocks and test them.
+        for i in range(16):
+            n = i + 1
+            block(n, spend=out[i], block_size=n*ONE_MEGABYTE)
+            yield accepted()
 
-        # 1MB block
-        block(1, spend=out[0], block_size=LEGACY_MAX_BLOCK_SIZE)
-        yield accepted()
-
-        # 2MB block
-        assert(2 * LEGACY_MAX_BLOCK_SIZE <= self.excessive_block_size)
-        block(2, spend=out[1], block_size=(2 * LEGACY_MAX_BLOCK_SIZE))
+        # block of maximal size
+        block(17, spend=out[16], block_size=self.excessive_block_size)
         yield accepted()
 
         # Reject oversized blocks with bad-blk-length error
-        block(3, spend=out[2], block_size=self.excessive_block_size + 1)
+        block(18, spend=out[17], block_size=self.excessive_block_size + 1)
         yield rejected(RejectResult(16, b'bad-blk-length'))
 
 
