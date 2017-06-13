@@ -10,10 +10,10 @@
 #include <QString>
 
 /* Coin network-specific GUI style information */
-class NetworkStyle
-{
+class NetworkStyle {
 public:
-    /** Get style associated with provided BIP70 network id, or 0 if not known */
+    /** Get style associated with provided BIP70 network id, or 0 if not known
+     */
     static const NetworkStyle *instantiate(const QString &networkId);
 
     const QString &getAppName() const { return appName; }
@@ -22,7 +22,9 @@ public:
     const QString &getTitleAddText() const { return titleAddText; }
 
 private:
-    NetworkStyle(const QString &appName, const int iconColorHueShift, const int iconColorSaturationReduction, const char *titleAddText);
+    NetworkStyle(const QString &appName, const int iconColorHueShift,
+                 const int iconColorSaturationReduction,
+                 const char *titleAddText);
 
     QString appName;
     QIcon appIcon;
