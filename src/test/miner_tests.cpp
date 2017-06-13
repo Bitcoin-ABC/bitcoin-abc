@@ -576,6 +576,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 2,
+            chainActive.Tip()->GetMedianTimePast(),
             chainActive.Tip()->GetMedianTimePast()));
     }
 
@@ -606,7 +607,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 1,
-            chainActive.Tip()->GetMedianTimePast() + 1));
+            chainActive.Tip()->GetMedianTimePast() + 1,
+            chainActive.Tip()->GetMedianTimePast()));
     }
 
     // mempool-dependent transactions (not added)

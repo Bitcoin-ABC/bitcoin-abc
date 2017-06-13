@@ -146,7 +146,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
     pblock->nTime = GetAdjustedTime();
-    const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
+    nMedianTimePast = pindexPrev->GetMedianTimePast();
 
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
@@ -250,7 +250,7 @@ bool BlockAssembler::TestPackageTransactions(
         CValidationState state;
         if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                         chainparams.GetConsensus(), nHeight,
-                                        nLockTimeCutoff)) {
+                                        nLockTimeCutoff, nMedianTimePast)) {
             return false;
         }
 
@@ -301,7 +301,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     CValidationState state;
     if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                     chainparams.GetConsensus(), nHeight,
-                                    nLockTimeCutoff)) {
+                                    nLockTimeCutoff, nMedianTimePast)) {
         return false;
     }
 

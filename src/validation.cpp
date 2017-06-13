@@ -3160,15 +3160,16 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state,
                                 const Consensus::Params &consensusParams,
-                                int nHeight, int64_t nBlockTime) {
-    if (!IsFinalTx(tx, nHeight, nBlockTime)) {
+                                int nHeight, int64_t nLockTimeCutoff,
+                                int64_t nMedianTimePast) {
+    if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
     }
 
-    if (nBlockTime >= consensusParams.hfStartTime &&
+    if (nMedianTimePast >= consensusParams.hfStartTime &&
         nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
         for (const CTxOut &o : tx.vout) {
             if (o.scriptPubKey.IsCommitment(
@@ -3207,12 +3208,14 @@ bool ContextualCheckTransactionForCurrentBlock(
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nBlockTime = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                   ? chainActive.Tip()->GetMedianTimePast()
-                                   : GetAdjustedTime();
+    const int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast();
+    const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
+                                        ? nMedianTimePast
+                                        : GetAdjustedTime();
 
     return ContextualCheckTransaction(config, tx, state, consensusParams,
-                                      nBlockHeight, nBlockTime);
+                                      nBlockHeight, nLockTimeCutoff,
+                                      nMedianTimePast);
 }
 
 bool ContextualCheckBlock(const Config &config, const CBlock &block,
@@ -3228,14 +3231,18 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
-    int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
-                                  ? pindexPrev->GetMedianTimePast()
-                                  : block.GetBlockTime();
+    const int64_t nMedianTimePast = pindexPrev == nullptr
+                                        ? block.GetBlockTime()
+                                        : pindexPrev->GetMedianTimePast();
+    const int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
+                                        ? nMedianTimePast
+                                        : block.GetBlockTime();
 
     // Check that all transactions are finalized
     for (const auto &tx : block.vtx) {
         if (!ContextualCheckTransaction(config, *tx, state, consensusParams,
-                                        nHeight, nLockTimeCutoff)) {
+                                        nHeight, nLockTimeCutoff,
+                                        nMedianTimePast)) {
             // state set by ContextualCheckTransaction.
             return false;
         }

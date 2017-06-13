@@ -12,5 +12,5 @@ bool CheckFinalTx(const CTransaction &tx, int flags = -1) {
     auto &config = GetConfig();
     CValidationState state;
     return ContextualCheckTransactionForCurrentBlock(
-        config, tx, state, config.GetChainParams().GetConsensus());
+        config, tx, state, config.GetChainParams().GetConsensus(), flags);
 }
