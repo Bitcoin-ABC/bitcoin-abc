@@ -46,6 +46,9 @@ COINBASE_MATURITY = 100
 # Time at which the HF starts.
 HF_START_TIME = 2000000000
 
+# Anti replay OP_RETURN commitment.
+ANTI_REPLAY_COMMITMENT = b"Placeholder for the anti replay commitment"
+
 if __name__ == "__main__":
     # Output values if run standalone to verify
     print("DEFAULT_MAX_BLOCK_SIZE = %d (bytes)" % DEFAULT_MAX_BLOCK_SIZE)

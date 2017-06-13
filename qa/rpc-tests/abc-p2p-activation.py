@@ -16,7 +16,7 @@ from test_framework.blocktools import *
 import time
 from test_framework.key import CECKey
 from test_framework.script import *
-from test_framework.cdefs import MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT, HF_START_TIME
+from test_framework.cdefs import *
 
 
 class PreviousSpendableOutput(object):
@@ -262,13 +262,19 @@ class FullBlockTest(ComparisonTestFramework):
         # Rewind bad block
         tip(7)
 
-        # Pile up another block, to activate.
-        block(9, spend=out[6])
+        # Pile up another block, to activate. OP_RETURN anti replay
+        # outputs are still considered valid.
+        antireplay_script=CScript([OP_RETURN, ANTI_REPLAY_COMMITMENT])
+        block(9, spend=out[6], script=antireplay_script)
         yield accepted()
 
         # HF is active, now we can create bigger blocks.
         block(10, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
         yield accepted()
+
+        # Test OP_RETURN replay protection
+        block(11, spend=out[8], script=antireplay_script)
+        yield rejected(RejectResult(16, b'bad-txn-replay'))
 
 
 if __name__ == '__main__':
