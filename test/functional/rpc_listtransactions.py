@@ -78,7 +78,7 @@ class ListTransactionsTest(BitcoinTestFramework):
                             {"category": "receive", "amount": Decimal("0.44")},
                             {"txid": txid, "account": "toself"})
 
-        pubkey = self.nodes[1].validateaddress(
+        pubkey = self.nodes[1].getaddressinfo(
             self.nodes[1].getnewaddress())['pubkey']
         multisig = self.nodes[1].createmultisig(1, [pubkey])
         self.nodes[0].importaddress(

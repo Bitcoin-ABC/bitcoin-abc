@@ -30,4 +30,6 @@ bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
 
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request);
+UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request);
+
 #endif // BITCOIN_WALLET_RPCWALLET_H

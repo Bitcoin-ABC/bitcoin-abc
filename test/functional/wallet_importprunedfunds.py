@@ -30,7 +30,7 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         address3_privkey = self.nodes[0].dumpprivkey(address3)
 
         # Check only one address
-        address_info = self.nodes[0].validateaddress(address1)
+        address_info = self.nodes[0].getaddressinfo(address1)
         assert_equal(address_info['ismine'], True)
 
         self.sync_all()
@@ -39,15 +39,15 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         assert_equal(self.nodes[1].getblockcount(), 101)
 
         # Address Test - before import
-        address_info = self.nodes[1].validateaddress(address1)
+        address_info = self.nodes[1].getaddressinfo(address1)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
 
-        address_info = self.nodes[1].validateaddress(address2)
+        address_info = self.nodes[1].getaddressinfo(address2)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
 
-        address_info = self.nodes[1].validateaddress(address3)
+        address_info = self.nodes[1].getaddressinfo(address3)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
 
@@ -91,13 +91,13 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         assert_equal(balance3, Decimal('0.075'))
 
         # Addresses Test - after import
-        address_info = self.nodes[1].validateaddress(address1)
+        address_info = self.nodes[1].getaddressinfo(address1)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
-        address_info = self.nodes[1].validateaddress(address2)
+        address_info = self.nodes[1].getaddressinfo(address2)
         assert_equal(address_info['iswatchonly'], True)
         assert_equal(address_info['ismine'], False)
-        address_info = self.nodes[1].validateaddress(address3)
+        address_info = self.nodes[1].getaddressinfo(address3)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], True)
 

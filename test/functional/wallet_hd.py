@@ -33,7 +33,7 @@ class WalletHDTest(BitcoinTestFramework):
 
         # create an internal key
         change_addr = self.nodes[1].getrawchangeaddress()
-        change_addrV = self.nodes[1].validateaddress(change_addr)
+        change_addrV = self.nodes[1].getaddressinfo(change_addr)
         # first internal child key
         assert_equal(change_addrV["hdkeypath"], "m/0'/1'/0'")
 
@@ -53,7 +53,7 @@ class WalletHDTest(BitcoinTestFramework):
         num_hd_adds = 300
         for i in range(num_hd_adds):
             hd_add = self.nodes[1].getnewaddress()
-            hd_info = self.nodes[1].validateaddress(hd_add)
+            hd_info = self.nodes[1].getaddressinfo(hd_add)
             assert_equal(hd_info["hdkeypath"], "m/0'/0'/" + str(i) + "'")
             assert_equal(hd_info["hdmasterkeyid"], masterkeyid)
             self.nodes[0].sendtoaddress(hd_add, 1)
@@ -63,7 +63,7 @@ class WalletHDTest(BitcoinTestFramework):
 
         # create an internal key (again)
         change_addr = self.nodes[1].getrawchangeaddress()
-        change_addrV = self.nodes[1].validateaddress(change_addr)
+        change_addrV = self.nodes[1].getaddressinfo(change_addr)
         # second internal child key
         assert_equal(change_addrV["hdkeypath"], "m/0'/1'/1'")
 
@@ -85,7 +85,7 @@ class WalletHDTest(BitcoinTestFramework):
         hd_add_2 = None
         for _ in range(num_hd_adds):
             hd_add_2 = self.nodes[1].getnewaddress()
-            hd_info_2 = self.nodes[1].validateaddress(hd_add_2)
+            hd_info_2 = self.nodes[1].getaddressinfo(hd_add_2)
             assert_equal(hd_info_2["hdkeypath"], "m/0'/0'/" + str(_) + "'")
             assert_equal(hd_info_2["hdmasterkeyid"], masterkeyid)
         assert_equal(hd_add, hd_add_2)
@@ -128,7 +128,7 @@ class WalletHDTest(BitcoinTestFramework):
         keypath = ""
         for out in outs:
             if out['value'] != 1:
-                keypath = self.nodes[1].validateaddress(
+                keypath = self.nodes[1].getaddressinfo(
                     out['scriptPubKey']['addresses'][0])['hdkeypath']
 
         assert_equal(keypath[0:7], "m/0'/1'")

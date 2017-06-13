@@ -293,6 +293,7 @@ add_library(common
 	primitives/block.cpp
 	protocol.cpp
 	scheduler.cpp
+	script/ismine.cpp
 	script/sign.cpp
 	script/standard.cpp
 	warnings.cpp
@@ -357,10 +358,8 @@ add_library(server
 	rpc/net.cpp
 	rpc/rawtransaction.cpp
 	rpc/server.cpp
-	rpc/util.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp
-	script/ismine.cpp
 	timedata.cpp
 	torcontrol.cpp
 	txdb.cpp
