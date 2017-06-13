@@ -67,8 +67,7 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     }
 
     fseek(fp, 0, SEEK_SET);
-    BOOST_CHECK_NO_THROW(
-        { LoadExternalBlockFile(config, chainparams, fp, 0); });
+    BOOST_CHECK_NO_THROW({ LoadExternalBlockFile(config, fp, 0); });
 }
 
 BOOST_AUTO_TEST_SUITE_END()
