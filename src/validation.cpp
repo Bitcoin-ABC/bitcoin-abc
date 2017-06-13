@@ -858,7 +858,12 @@ static bool AcceptToMemoryPoolWorker(
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks, however allowing such transactions into the mempool
         // can be exploited as a DoS attack.
-        if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS,
+        //
+        // SCRIPT_ENABLE_SIGHASH_FORKID is also added as to ensure we do not
+        // filter out transactions using the antireplay feature.
+        if (!CheckInputs(tx, state, view, true,
+                         MANDATORY_SCRIPT_VERIFY_FLAGS |
+                             SCRIPT_ENABLE_SIGHASH_FORKID,
                          true, txdata)) {
             return error("%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
                          "against MANDATORY but not STANDARD flags %s, %s",

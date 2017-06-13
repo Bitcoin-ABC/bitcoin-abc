@@ -51,6 +51,7 @@ static const unsigned int MAX_STANDARD_P2WSH_SCRIPT_SIZE = 3600;
  * outputs below the new threshold.
  */
 static const unsigned int DUST_RELAY_TX_FEE = 1000;
+
 /**
  * Standard script verification flags that standard transactions will comply
  * with. However scripts violating these flags may still be present in valid
