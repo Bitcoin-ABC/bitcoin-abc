@@ -43,8 +43,8 @@ class FullBlockTest(ComparisonTestFramework):
     def setup_network(self):
         self.extra_args = [['-debug',
                             '-whitelist=127.0.0.1',
-                            "-excessiveblocksize=%d"
-                            % self.excessive_block_size ]]
+                            "-excessiveblocksize=%d" % self.excessive_block_size,
+                            "-par=1" ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
                                  binary=[self.options.testbinary])
@@ -277,7 +277,7 @@ class FullBlockTest(ComparisonTestFramework):
         # check that SIGHASH_FORKID transaction are still rejected
         b09 = block(9)
         update_block(9, [tx_spend])
-        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+        yield rejected(RejectResult(16, b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'))
 
         # Rewind bad block
         tip(7)
