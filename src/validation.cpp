@@ -3248,14 +3248,26 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
     }
 
     // Check if UAHF is enabled and act accordingly.
-    const int64_t nMedianTimePast = pindexPrev == nullptr
-                                        ? block.GetBlockTime()
-                                        : pindexPrev->GetMedianTimePast();
-    bool uahfEnabled = IsUAHFenabled(consensusParams, nMedianTimePast);
+    const int64_t nMedianTimePast =
+        pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();
 
-    // When UAHF is not enabled, block cannot be bigger than
-    // LEGACY_MAX_BLOCK_SIZE .
-    if (!uahfEnabled) {
+    if (pindexPrev && IsUAHFenabled(consensusParams, nMedianTimePast)) {
+        // If UAHF is enabled for the curent block, but not for the previous
+        // block, we must check that the block is larger than 1MB.
+        if (pindexPrev->pprev == nullptr ||
+            !IsUAHFenabled(consensusParams,
+                           pindexPrev->pprev->GetMedianTimePast())) {
+            const uint64_t currentBlockSize =
+                ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+            if (currentBlockSize <= LEGACY_MAX_BLOCK_SIZE) {
+                return state.DoS(100, false, REJECT_INVALID,
+                                 "bad-blk-too-small", false,
+                                 "size limits failed");
+            }
+        }
+    } else {
+        // When UAHF is not enabled, block cannot be bigger than
+        // LEGACY_MAX_BLOCK_SIZE .
         const uint64_t currentBlockSize =
             ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
         if (currentBlockSize > LEGACY_MAX_BLOCK_SIZE) {

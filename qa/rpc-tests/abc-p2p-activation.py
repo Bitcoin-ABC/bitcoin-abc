@@ -268,12 +268,19 @@ class FullBlockTest(ComparisonTestFramework):
         block(9, spend=out[6], script=antireplay_script)
         yield accepted()
 
+        # HF is active now, we MUST create a big block.
+        block(10, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);
+        yield rejected(RejectResult(16, b'bad-blk-too-small'))
+
+        # Rewind bad block
+        tip(9)
+
         # HF is active, now we can create bigger blocks.
-        block(10, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
         yield accepted()
 
         # Test OP_RETURN replay protection
-        block(11, spend=out[8], script=antireplay_script)
+        block(12, spend=out[8], script=antireplay_script)
         yield rejected(RejectResult(16, b'bad-txn-replay'))
 
 

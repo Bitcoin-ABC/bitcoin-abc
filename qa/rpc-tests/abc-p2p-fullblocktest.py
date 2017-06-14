@@ -98,7 +98,7 @@ class FullBlockTest(ComparisonTestFramework):
         """
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = HF_START_TIME
+            block_time = int(time.time())+1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -213,7 +213,7 @@ class FullBlockTest(ComparisonTestFramework):
         block = self.next_block
 
         # Create a new block
-        block(0, block_size=LEGACY_MAX_BLOCK_SIZE)
+        block(0)
         save_spendable_output()
         yield accepted()
 
@@ -224,6 +224,26 @@ class FullBlockTest(ComparisonTestFramework):
             test.blocks_and_transactions.append([self.tip, True])
             save_spendable_output()
         yield test
+
+        # In order to trigger the HF, we need one block past activation time
+        bfork = block(5555)
+        bfork.nTime = HF_START_TIME
+        update_block(5555, [])
+        save_spendable_output()
+        yield accepted()
+
+        # Then we pile 5 blocks to move MTP forward and trigger the HF
+        for i in range(5):
+            block(5100 + i)
+            test.blocks_and_transactions.append([self.tip, True])
+            save_spendable_output()
+        yield test
+
+        # Create a new block and activate the fork, the block needs
+        # to be > 1MB . For more specific tests about the fork activation,
+        # check abc-p2p-activation.py
+        block(5556, spend=get_spendable_output(), block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        yield accepted()
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
