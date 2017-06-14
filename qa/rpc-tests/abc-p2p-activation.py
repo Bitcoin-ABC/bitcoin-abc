@@ -239,10 +239,16 @@ class FullBlockTest(ComparisonTestFramework):
         # Rewind bad block
         tip(1)
 
-        # Put a block at the HF time to start the HF activation process.
-        b03 = block(3, spend=out[1])
+        # Create a transaction that we will use to test SIGHASH_FORID
+        pubkey_forkid = hex_str_to_bytes('02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0')
+        script_forkid = CScript([pubkey_forkid, OP_CHECKSIG, OP_NOT])
+        tx_forkid = self.create_and_sign_transaction(out[1].tx, out[1].n, 1, script_forkid)
+
+        # Create a block that would activate the HF. We also add the
+        # transaction that will allow us to test SIGHASH_FORKID
+        b03 = block(3)
         b03.nTime = HF_START_TIME
-        update_block(3, [])
+        update_block(3, [tx_forkid])
         yield accepted()
 
         # Pile up 4 blocks on top to get to the point just before activation.
@@ -262,25 +268,41 @@ class FullBlockTest(ComparisonTestFramework):
         # Rewind bad block
         tip(7)
 
+        # build a transaction using SIGHASH_FORKID
+        tx_spend = CTransaction()
+        tx_spend.vout.append(CTxOut(0, CScript([OP_TRUE])))
+        tx_spend.vin.append(CTxIn(COutPoint(tx_forkid.sha256, 0)))
+        tx_spend.vin[0].scriptSig = CScript([0x40])
+
+        # check that SIGHASH_FORKID transaction are still rejected
+        b09 = block(9)
+        update_block(9, [tx_spend])
+        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+
+        # Rewind bad block
+        tip(7)
+
         # Pile up another block, to activate. OP_RETURN anti replay
         # outputs are still considered valid.
         antireplay_script=CScript([OP_RETURN, ANTI_REPLAY_COMMITMENT])
-        block(9, spend=out[6], script=antireplay_script)
+        block(10, spend=out[6], script=antireplay_script)
         yield accepted()
 
         # HF is active now, we MUST create a big block.
-        block(10, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);
+        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);
         yield rejected(RejectResult(16, b'bad-blk-too-small'))
 
         # Rewind bad block
-        tip(9)
+        tip(10)
 
-        # HF is active, now we can create bigger blocks.
-        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        # HF is active, now we can create bigger blocks and use
+        # SIGHASH_FORKID replay protection.
+        block(12, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        update_block(12, [tx_spend])
         yield accepted()
 
         # Test OP_RETURN replay protection
-        block(12, spend=out[8], script=antireplay_script)
+        block(13, spend=out[8], script=antireplay_script)
         yield rejected(RejectResult(16, b'bad-txn-replay'))
 
 

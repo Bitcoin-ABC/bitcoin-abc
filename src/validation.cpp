@@ -1827,6 +1827,12 @@ bool ConnectBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
+    // If the UAHF is enabled, we start accepting replay protected txns
+    if (IsUAHFenabled(chainparams.GetConsensus(),
+                      pindex->pprev->GetMedianTimePast())) {
+        flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
+    }
+
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n",
@@ -1944,7 +1950,8 @@ bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     if (!control.Wait()) {
-        return state.DoS(100, false);
+        return state.DoS(100, false, REJECT_INVALID, "blk-bad-inputs", false,
+                         "parallel script check failed");
     }
 
     int64_t nTime4 = GetTimeMicros();
