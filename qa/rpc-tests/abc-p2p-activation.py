@@ -18,6 +18,9 @@ from test_framework.key import CECKey
 from test_framework.script import *
 from test_framework.cdefs import *
 
+# Rrror for illegal use of SIGHASH_FORKID
+SIGHASH_FORKID_ERROR = b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'
+RPC_SIGHASH_FORKID_ERROR = "16: " + SIGHASH_FORKID_ERROR.decode("utf-8")
 
 class PreviousSpendableOutput(object):
     def __init__(self, tx = CTransaction(), n = -1):
@@ -36,13 +39,17 @@ class FullBlockTest(ComparisonTestFramework):
         self.coinbase_key = CECKey()
         self.coinbase_key.set_secretbytes(b"fatstacks")
         self.coinbase_pubkey = self.coinbase_key.get_pubkey()
+        self.forkid_key = CECKey()
+        self.forkid_key.set_secretbytes(b"forkid")
+        self.forkid_pubkey = self.forkid_key.get_pubkey()
         self.tip = None
         self.blocks = {}
 
     def setup_network(self):
         self.extra_args = [['-debug',
+                            '-norelaypriority',
                             '-whitelist=127.0.0.1',
-                            "-par=1" ]]
+                            '-par=1' ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
                                  binary=[self.options.testbinary])
@@ -206,6 +213,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # shorthand for functions
         block = self.next_block
+        node = self.nodes[0]
 
         # Create a new block
         block(0, block_size=LEGACY_MAX_BLOCK_SIZE)
@@ -237,8 +245,7 @@ class FullBlockTest(ComparisonTestFramework):
         tip(1)
 
         # Create a transaction that we will use to test SIGHASH_FORID
-        pubkey_forkid = hex_str_to_bytes('02865c40293a680cb9c020e7b1e106d8c1916d3cef99aa431a56d253e69256dac0')
-        script_forkid = CScript([pubkey_forkid, OP_CHECKSIG, OP_NOT])
+        script_forkid = CScript([self.forkid_pubkey, OP_CHECKSIG])
         tx_forkid = self.create_and_sign_transaction(out[1].tx, out[1].n, 1, script_forkid)
 
         # Create a block that would activate the HF. We also add the
@@ -266,15 +273,27 @@ class FullBlockTest(ComparisonTestFramework):
         tip(7)
 
         # build a transaction using SIGHASH_FORKID
-        tx_spend = CTransaction()
-        tx_spend.vout.append(CTxOut(0, CScript([OP_TRUE])))
-        tx_spend.vin.append(CTxIn(COutPoint(tx_forkid.sha256, 0)))
-        tx_spend.vin[0].scriptSig = CScript([0x40])
+        tx_spend = self.create_tx(tx_forkid, 0, 1, CScript([OP_TRUE]))
+        sighash_spend = SignatureHashForkId(script_forkid, tx_spend, 0, SIGHASH_FORKID | SIGHASH_ALL, 1)
+        sig_forkid = self.forkid_key.sign(sighash_spend)
+        tx_spend.vin[0].scriptSig = CScript([sig_forkid + bytes(bytearray([SIGHASH_FORKID | SIGHASH_ALL]))])
+        tx_spend.rehash()
+
+        # This transaction can't get into the mempool yet
+        try:
+            node.sendrawtransaction(ToHex(tx_spend))
+        except JSONRPCException as exp:
+            assert_equal(exp.error["message"], RPC_SIGHASH_FORKID_ERROR)
+        else:
+            assert(False)
+
+        # The transaction is rejected, so the mempool should still be empty
+        assert_equal(set(node.getrawmempool()), set())
 
         # check that SIGHASH_FORKID transaction are still rejected
         b09 = block(9)
         update_block(9, [tx_spend])
-        yield rejected(RejectResult(16, b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'))
+        yield rejected(RejectResult(16, SIGHASH_FORKID_ERROR))
 
         # Rewind bad block
         tip(7)
@@ -284,6 +303,11 @@ class FullBlockTest(ComparisonTestFramework):
         antireplay_script=CScript([OP_RETURN, ANTI_REPLAY_COMMITMENT])
         block(10, spend=out[6], script=antireplay_script)
         yield accepted()
+
+        # Now that the HF is activated, replay protected tx are
+        # accepted in the mempool
+        tx_spend_id = node.sendrawtransaction(ToHex(tx_spend))
+        assert_equal(set(node.getrawmempool()), {tx_spend_id})
 
         # HF is active now, we MUST create a big block.
         block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);

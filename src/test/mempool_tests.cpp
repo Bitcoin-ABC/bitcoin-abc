@@ -401,10 +401,11 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     pool.addUnchecked(tx6.GetId(), entry.Fee(0LL).FromTx(tx6));
     BOOST_CHECK_EQUAL(pool.size(), 6);
     // Ties are broken by hash
-    if (tx3.GetId() < tx6.GetId())
+    if (tx3.GetId() < tx6.GetId()) {
         sortedOrder.push_back(tx6.GetId().ToString());
-    else
+    } else {
         sortedOrder.insert(sortedOrder.end() - 1, tx6.GetId().ToString());
+    }
 
     CheckSort<ancestor_score>(pool, sortedOrder);
 

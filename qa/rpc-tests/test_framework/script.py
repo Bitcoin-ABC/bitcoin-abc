@@ -831,6 +831,7 @@ class CScript(bytes):
 SIGHASH_ALL = 1
 SIGHASH_NONE = 2
 SIGHASH_SINGLE = 3
+SIGHASH_FORKID = 0x40
 SIGHASH_ANYONECANPAY = 0x80
 
 def FindAndDelete(script, sig):
@@ -905,7 +906,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
 # Performance optimization probably not necessary for python tests, however.
 # Note that this corresponds to sigversion == 1 in EvalScript, which is used
 # for version 0 witnesses.
-def SegwitVersion1SignatureHash(script, txTo, inIdx, hashtype, amount):
+def SignatureHashForkId(script, txTo, inIdx, hashtype, amount):
 
     hashPrevouts = 0
     hashSequence = 0

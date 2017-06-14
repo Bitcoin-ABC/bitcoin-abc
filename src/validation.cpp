@@ -593,6 +593,13 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
+static bool
+IsUAHFenabledForCurrentBlock(const Consensus::Params &consensusParams) {
+    AssertLockHeld(cs_main);
+    return IsUAHFenabled(consensusParams,
+                         chainActive.Tip()->GetMedianTimePast());
+}
+
 static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
@@ -836,6 +843,11 @@ static bool AcceptToMemoryPoolWorker(
         if (!Params().RequireStandard()) {
             scriptVerifyFlags =
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
+        }
+
+        if (IsUAHFenabledForCurrentBlock(
+                config.GetChainParams().GetConsensus())) {
+            scriptVerifyFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
         }
 
         // Check against previous transactions. This is done last to help
