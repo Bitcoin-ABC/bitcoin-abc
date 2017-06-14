@@ -1906,9 +1906,11 @@ bool ConnectBlock(const Config &config, const CBlock &block,
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
                              fCacheResults, txdata,
-                             nScriptCheckThreads ? &vChecks : nullptr))
+                             nScriptCheckThreads ? &vChecks : nullptr)) {
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
+            }
+
             control.Add(vChecks);
         }
 
@@ -1922,6 +1924,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
         vPos.push_back(std::make_pair(tx.GetId(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
     }
+
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, "
@@ -1933,13 +1936,17 @@ bool ConnectBlock(const Config &config, const CBlock &block,
 
     CAmount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
-    if (block.vtx[0]->GetValueOut() > blockReward)
+    if (block.vtx[0]->GetValueOut() > blockReward) {
         return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
                                     "(actual=%d vs limit=%d)",
                                     block.vtx[0]->GetValueOut(), blockReward),
                          REJECT_INVALID, "bad-cb-amount");
+    }
 
-    if (!control.Wait()) return state.DoS(100, false);
+    if (!control.Wait()) {
+        return state.DoS(100, false);
+    }
+
     int64_t nTime4 = GetTimeMicros();
     nTimeVerify += nTime4 - nTime2;
     LogPrint("bench", "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs]\n",
@@ -1947,7 +1954,9 @@ bool ConnectBlock(const Config &config, const CBlock &block,
              nInputs <= 1 ? 0 : 0.001 * (nTime4 - nTime2) / (nInputs - 1),
              nTimeVerify * 0.000001);
 
-    if (fJustCheck) return true;
+    if (fJustCheck) {
+        return true;
+    }
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() ||
@@ -1957,11 +1966,13 @@ bool ConnectBlock(const Config &config, const CBlock &block,
             if (!FindUndoPos(
                     state, pindex->nFile, _pos,
                     ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) +
-                        40))
+                        40)) {
                 return error("ConnectBlock(): FindUndoPos failed");
+            }
             if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
-                                 chainparams.MessageStart()))
+                                 chainparams.MessageStart())) {
                 return AbortNode(state, "Failed to write undo data");
+            }
 
             // update nUndoPos in block index
             pindex->nUndoPos = _pos.nPos;
@@ -1972,9 +1983,9 @@ bool ConnectBlock(const Config &config, const CBlock &block,
         setDirtyBlockIndex.insert(pindex);
     }
 
-    if (fTxIndex)
-        if (!pblocktree->WriteTxIndex(vPos))
-            return AbortNode(state, "Failed to write transaction index");
+    if (fTxIndex && !pblocktree->WriteTxIndex(vPos)) {
+        return AbortNode(state, "Failed to write transaction index");
+    }
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
