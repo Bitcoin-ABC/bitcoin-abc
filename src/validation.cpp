@@ -296,19 +296,17 @@ CalculateSequenceLocks(const CTransaction &tx, int flags,
         if (txin.nSequence & CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG) {
             int64_t nCoinTime = block.GetAncestor(std::max(nCoinHeight - 1, 0))
                                     ->GetMedianTimePast();
-            // NOTE: Subtract 1 to maintain nLockTime semantics
-            // BIP 68 relative lock times have the semantics of calculating
-            // the first block or time at which the transaction would be
-            // valid. When calculating the effective block time or height
-            // for the entire transaction, we switch to using the
-            // semantics of nLockTime which is the last invalid block
-            // time or height.  Thus we subtract 1 from the calculated
-            // time or height.
+            // NOTE: Subtract 1 to maintain nLockTime semantics.
+            // BIP 68 relative lock times have the semantics of calculating the
+            // first block or time at which the transaction would be valid. When
+            // calculating the effective block time or height for the entire
+            // transaction, we switch to using the semantics of nLockTime which
+            // is the last invalid block time or height. Thus we subtract 1 from
+            // the calculated time or height.
 
-            // Time-based relative lock-times are measured from the
-            // smallest allowed timestamp of the block containing the
-            // txout being spent, which is the median time past of the
-            // block prior.
+            // Time-based relative lock-times are measured from the smallest
+            // allowed timestamp of the block containing the txout being spent,
+            // which is the median time past of the block prior.
             nMinTime = std::max(
                 nMinTime,
                 nCoinTime +
@@ -1098,10 +1096,9 @@ static void AlertNotify(const std::string &strMessage) {
     std::string strCmd = GetArg("-alertnotify", "");
     if (strCmd.empty()) return;
 
-    // Alert text should be plain ascii coming from a trusted source, but to
-    // be safe we first strip anything not in safeChars, then add single quotes
-    // around
-    // the whole string before passing it to the shell:
+    // Alert text should be plain ascii coming from a trusted source, but to be
+    // safe we first strip anything not in safeChars, then add single quotes
+    // around the whole string before passing it to the shell:
     std::string singleQuote("'");
     std::string safeStatus = SanitizeString(strMessage);
     safeStatus = singleQuote + safeStatus + singleQuote;
@@ -1118,8 +1115,7 @@ void CheckForkWarningConditions() {
     if (IsInitialBlockDownload()) return;
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one
-    // mines it)
-    // of our head, drop it
+    // mines it) of our head, drop it
     if (pindexBestForkTip &&
         chainActive.Height() - pindexBestForkTip->nHeight >= 72)
         pindexBestForkTip = NULL;

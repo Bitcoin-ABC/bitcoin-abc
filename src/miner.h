@@ -50,10 +50,11 @@ struct CTxMemPoolModifiedEntry {
     int64_t nSigOpCountWithAncestors;
 };
 
-/** Comparator for CTxMemPool::txiter objects.
- *  It simply compares the internal memory address of the CTxMemPoolEntry object
- *  pointed to. This means it has no meaning, and is only useful for using them
- *  as key in other indexes.
+/**
+ * Comparator for CTxMemPool::txiter objects.
+ * It simply compares the internal memory address of the CTxMemPoolEntry object
+ * pointed to. This means it has no meaning, and is only useful for using them
+ * as key in other indexes.
  */
 struct CompareCTxMemPoolIter {
     bool operator()(const CTxMemPool::txiter &a,
