@@ -24,15 +24,15 @@ In case you want to build the disk image with `make deploy` (.dmg / optional), y
 
 NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
 
-Build Bitcoin Core
-------------------------
+Build Bitcoin ABC
+-----------------
 
-1. Clone the bitcoin source code and cd into `bitcoin`
+1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
 
-        git clone https://github.com/bitcoin/bitcoin
-        cd bitcoin
+        git clone github.com/Bitcoin-ABC/bitcoin-abc
+        cd bitcoin-abc
 
-2.  Build bitcoin-core:
+2.  Build bitcoin-abc:
 
     Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
 
@@ -53,7 +53,7 @@ Build Bitcoin Core
 Running
 -------
 
-Bitcoin Core is now available at `./src/bitcoind`
+Bitcoin ABC is now available at `./src/bitcoind`
 
 Before running, it's recommended you create an RPC configuration file.
 
