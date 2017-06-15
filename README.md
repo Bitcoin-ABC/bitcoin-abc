@@ -29,4 +29,4 @@ information or see https://opensource.org/licenses/MIT.
 Development Process
 -------------------
 
-Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/source/bitcoin-abc/
+Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/
