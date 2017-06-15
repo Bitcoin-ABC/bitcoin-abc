@@ -9,7 +9,7 @@ Verify that a bitcoind node can load multiple wallet files
 import os
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import assert_equal, assert_raises_jsonrpc
 
 
 class MultiWalletTest(BitcoinTestFramework):
@@ -25,18 +25,18 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # should not initialize if there are duplicate wallets
         self.assert_start_raises_init_error(0, self.options.tmpdir, [
-            '-wallet=w1', '-wallet=w1'], 'Error loading wallet w1. Duplicate -wallet filename specified.')
+                                            '-wallet=w1', '-wallet=w1'], 'Error loading wallet w1. Duplicate -wallet filename specified.')
 
         # should not initialize if wallet file is a directory
         os.mkdir(os.path.join(self.options.tmpdir, 'node0', 'regtest', 'w11'))
         self.assert_start_raises_init_error(0, self.options.tmpdir, [
-            '-wallet=w11'], 'Error loading wallet w11. -wallet filename must be a regular file.')
+                                            '-wallet=w11'], 'Error loading wallet w11. -wallet filename must be a regular file.')
 
         # should not initialize if wallet file is a symlink
         os.symlink(os.path.join(self.options.tmpdir, 'node0', 'regtest', 'w1'),
                    os.path.join(self.options.tmpdir, 'node0', 'regtest', 'w12'))
         self.assert_start_raises_init_error(0, self.options.tmpdir, [
-            '-wallet=w12'], 'Error loading wallet w12. -wallet filename must be a regular file.')
+                                            '-wallet=w12'], 'Error loading wallet w12. -wallet filename must be a regular file.')
 
         self.nodes[0] = self.start_node(
             0, self.options.tmpdir, self.extra_args[0])
@@ -49,19 +49,27 @@ class MultiWalletTest(BitcoinTestFramework):
                               (self.nodes[0] / "wallet/bad").getwalletinfo)
 
         # accessing wallet RPC without using wallet endpoint fails
-        assert_raises_jsonrpc(-19, "Method not found",
+        assert_raises_jsonrpc(-19, "Wallet file not specified",
                               self.nodes[0].getwalletinfo)
 
         # check w1 wallet balance
-        walletinfo = w1.getwalletinfo()
-        assert_equal(walletinfo['immature_balance'], 50)
+        w1_info = w1.getwalletinfo()
+        assert_equal(w1_info['immature_balance'], 50)
+        w1_name = w1_info['walletname']
+        assert_equal(w1_name, "w1")
 
         # check w1 wallet balance
         w2 = self.nodes[0] / "wallet/w2"
-        walletinfo = w2.getwalletinfo()
-        assert_equal(walletinfo['immature_balance'], 0)
+        w2_info = w2.getwalletinfo()
+        assert_equal(w2_info['immature_balance'], 0)
+        w2_name = w2_info['walletname']
+        assert_equal(w2_name, "w2")
 
         w3 = self.nodes[0] / "wallet/w3"
+        w3_name = w3.getwalletinfo()['walletname']
+        assert_equal(w3_name, "w3")
+
+        assert_equal({"w1", "w2", "w3"}, {w1_name, w2_name, w3_name})
 
         w1.generate(101)
         assert_equal(w1.getbalance(), 100)
