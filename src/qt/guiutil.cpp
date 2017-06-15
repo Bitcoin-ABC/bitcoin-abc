@@ -673,8 +673,8 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
             QString strArgs = "-min";
             // Set -testnet /-regtest options
             strArgs += QString::fromStdString(strprintf(
-                " -testnet=%d -regtest=%d", GetBoolArg("-testnet", false),
-                GetBoolArg("-regtest", false)));
+                " -testnet=%d -regtest=%d", gArgs.GetBoolArg("-testnet", false),
+                gArgs.GetBoolArg("-regtest", false)));
 
 #ifdef UNICODE
             boost::scoped_array<TCHAR> args(new TCHAR[strArgs.length() + 1]);
@@ -781,8 +781,8 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
             optionFile << strprintf("Name=Bitcoin (%s)\n", chain);
         optionFile << "Exec=" << pszExePath
                    << strprintf(" -min -testnet=%d -regtest=%d\n",
-                                GetBoolArg("-testnet", false),
-                                GetBoolArg("-regtest", false));
+                                gArgs.GetBoolArg("-testnet", false),
+                                gArgs.GetBoolArg("-regtest", false));
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";
         optionFile.close();

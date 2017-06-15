@@ -127,7 +127,7 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
     // -rootcertificates="" and get 'I don't like X.509 certificates, don't
     // trust anybody' behavior:
     QString certFile =
-        QString::fromStdString(GetArg("-rootcertificates", "-system-"));
+        QString::fromStdString(gArgs.GetArg("-rootcertificates", "-system-"));
 
     // Empty store
     if (certFile.isEmpty()) {

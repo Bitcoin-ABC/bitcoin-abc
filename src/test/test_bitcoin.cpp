@@ -77,7 +77,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
                                          (unsigned long)GetTime(),
                                          (int)(InsecureRandRange(100000)));
     fs::create_directories(pathTemp);
-    ForceSetArg("-datadir", pathTemp.string());
+    gArgs.ForceSetArg("-datadir", pathTemp.string());
     mempool.setSanityCheck(1.0);
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);

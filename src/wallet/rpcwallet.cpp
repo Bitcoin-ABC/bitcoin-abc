@@ -3536,7 +3536,7 @@ static const CRPCCommand commands[] = {
 // clang-format on
 
 void RegisterWalletRPCCommands(CRPCTable &t) {
-    if (GetBoolArg("-disablewallet", false)) {
+    if (gArgs.GetBoolArg("-disablewallet", false)) {
         return;
     }
 

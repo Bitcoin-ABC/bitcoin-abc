@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
 
     connman->ClearBanned();
     // because 11 is my favorite number.
-    ForceSetArg("-banscore", "111");
+    gArgs.ForceSetArg("-banscore", "111");
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 3, 1, "",
                      true);
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     Misbehaving(dummyNode1.GetId(), 1, "");
     SendMessages(config, &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
-    ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
+    gArgs.ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
 }
 
 BOOST_AUTO_TEST_CASE(DoS_bantime) {

@@ -81,7 +81,7 @@ bool CDBEnv::Open(const fs::path &pathIn) {
               pathErrorFile.string());
 
     unsigned int nEnvFlags = 0;
-    if (GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) {
+    if (gArgs.GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) {
         nEnvFlags |= DB_PRIVATE;
     }
 
@@ -457,7 +457,8 @@ void CDB::Flush() {
     }
 
     env->dbenv->txn_checkpoint(
-        nMinutes ? GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024 : 0,
+        nMinutes ? gArgs.GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024
+                 : 0,
         nMinutes, 0);
 }
 

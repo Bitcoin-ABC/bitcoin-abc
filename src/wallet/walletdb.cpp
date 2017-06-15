@@ -569,7 +569,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
                     fNoncriticalErrors = true;
                     if (strType == "tx") {
                         // Rescan if there is a bad transaction record:
-                        SoftSetBoolArg("-rescan", true);
+                        gArgs.SoftSetBoolArg("-rescan", true);
                     }
                 }
             }
@@ -758,7 +758,7 @@ void MaybeCompactWalletDB() {
     if (fOneThread.exchange(true)) {
         return;
     }
-    if (!GetBoolArg("-flushwallet", DEFAULT_FLUSHWALLET)) {
+    if (!gArgs.GetBoolArg("-flushwallet", DEFAULT_FLUSHWALLET)) {
         return;
     }
 

@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(test_userAgentLength) {
                                  "very very very very very very very very very "
                                  "very very very very very very very very very "
                                  "very very very very very very long comment";
-    ForceSetMultiArg("-uacomment", long_uacomment);
+    gArgs.ForceSetMultiArg("-uacomment", long_uacomment);
 
     BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
     BOOST_CHECK_EQUAL(userAgent(config),

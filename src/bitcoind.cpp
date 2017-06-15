@@ -79,16 +79,16 @@ bool AppInit(int argc, char *argv[]) {
     //
     // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's
     // main()
-    ParseParameters(argc, argv);
+    gArgs.ParseParameters(argc, argv);
 
     // Process help and version before taking care about datadir
-    if (IsArgSet("-?") || IsArgSet("-h") || IsArgSet("-help") ||
-        IsArgSet("-version")) {
+    if (gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") ||
+        gArgs.IsArgSet("-help") || gArgs.IsArgSet("-version")) {
         std::string strUsage = strprintf(_("%s Daemon"), _(PACKAGE_NAME)) +
                                " " + _("version") + " " + FormatFullVersion() +
                                "\n";
 
-        if (IsArgSet("-version")) {
+        if (gArgs.IsArgSet("-version")) {
             strUsage += FormatParagraph(LicenseInfo());
         } else {
             strUsage += "\n" + _("Usage:") + "\n" +
@@ -106,11 +106,11 @@ bool AppInit(int argc, char *argv[]) {
         if (!fs::is_directory(GetDataDir(false))) {
             fprintf(stderr,
                     "Error: Specified data directory \"%s\" does not exist.\n",
-                    GetArg("-datadir", "").c_str());
+                    gArgs.GetArg("-datadir", "").c_str());
             return false;
         }
         try {
-            ReadConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME));
+            gArgs.ReadConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
         } catch (const std::exception &e) {
             fprintf(stderr, "Error reading configuration file: %s\n", e.what());
             return false;
@@ -139,7 +139,7 @@ bool AppInit(int argc, char *argv[]) {
         }
         // -server defaults to true for bitcoind but not for the GUI so do this
         // here
-        SoftSetBoolArg("-server", true);
+        gArgs.SoftSetBoolArg("-server", true);
         // Set this early so that parameter interactions go to console
         InitLogging();
         InitParameterInteraction();
@@ -158,7 +158,7 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             exit(1);
         }
-        if (GetBoolArg("-daemon", false)) {
+        if (gArgs.GetBoolArg("-daemon", false)) {
 #if HAVE_DECL_DAEMON
             fprintf(stdout, "Bitcoin server starting\n");
 

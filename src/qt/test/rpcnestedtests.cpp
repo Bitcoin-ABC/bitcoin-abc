@@ -46,7 +46,7 @@ void RPCNestedTests::rpcNestedTests() {
                   (int)(GetRand(100000)));
     QDir dir(QString::fromStdString(path));
     dir.mkpath(".");
-    ForceSetArg("-datadir", path);
+    gArgs.ForceSetArg("-datadir", path);
     // mempool.setSanityCheck(1.0);
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);

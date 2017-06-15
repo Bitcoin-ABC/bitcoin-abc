@@ -150,8 +150,8 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
             // This option is just shown in the UI options, if -help-debug is
             // enabled.
             if (!(error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT &&
-                  GetBoolArg("-allowselfsignedrootcertificates",
-                             DEFAULT_SELFSIGNED_ROOTCERTS))) {
+                  gArgs.GetBoolArg("-allowselfsignedrootcertificates",
+                                   DEFAULT_SELFSIGNED_ROOTCERTS))) {
                 throw SSLVerifyError(X509_verify_cert_error_string(error));
             } else {
                 qDebug() << "PaymentRequestPlus::getMerchant: Allowing self "

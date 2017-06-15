@@ -650,8 +650,9 @@ void UpdateMempoolForReorg(const Config &config,
                            STANDARD_LOCKTIME_VERIFY_FLAGS);
     // Re-limit mempool size, in case we added any transactions
     LimitMempoolSize(
-        mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
-        GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+        mempool,
+        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
+        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
 }
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
@@ -872,8 +873,9 @@ static bool AcceptToMemoryPoolWorker(
         }
 
         Amount mempoolRejectFee =
-            pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
-                           1000000)
+            pool.GetMinFee(
+                    gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+                    1000000)
                 .GetFee(nSize);
         if (mempoolRejectFee > Amount(0) && nModifiedFees < mempoolRejectFee) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
@@ -881,7 +883,7 @@ static bool AcceptToMemoryPoolWorker(
                              strprintf("%d < %d", nFees, mempoolRejectFee));
         }
 
-        if (GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
+        if (gArgs.GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
             nModifiedFees < ::minRelayTxFee.GetFee(nSize) &&
             !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
             // Require that free transactions have sufficient priority to be
@@ -908,7 +910,8 @@ static bool AcceptToMemoryPoolWorker(
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
             if (dFreeCount + nSize >=
-                GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 * 1000) {
+                gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 *
+                    1000) {
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                                  "rate limited free transaction");
             }
@@ -926,13 +929,15 @@ static bool AcceptToMemoryPoolWorker(
         // Calculate in-mempool ancestors, up to a limit.
         CTxMemPool::setEntries setAncestors;
         size_t nLimitAncestors =
-            GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
+            gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
         size_t nLimitAncestorSize =
-            GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) * 1000;
+            gArgs.GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) *
+            1000;
         size_t nLimitDescendants =
-            GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
+            gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
         size_t nLimitDescendantSize =
-            GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) *
+            gArgs.GetArg("-limitdescendantsize",
+                         DEFAULT_DESCENDANT_SIZE_LIMIT) *
             1000;
         std::string errString;
         if (!pool.CalculateMemPoolAncestors(
@@ -945,7 +950,7 @@ static bool AcceptToMemoryPoolWorker(
         uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!config.GetChainParams().RequireStandard()) {
             scriptVerifyFlags =
-                GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
+                gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
         // Check against previous transactions. This is done last to help
@@ -1013,8 +1018,10 @@ static bool AcceptToMemoryPoolWorker(
         // Trim mempool and check if tx was trimmed.
         if (!fOverrideMempoolLimit) {
             LimitMempoolSize(
-                pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
-                GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+                pool,
+                gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
+                gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 *
+                    60);
             if (!pool.exists(txid)) {
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                                  "mempool full");
@@ -1232,7 +1239,7 @@ CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 
 static void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
-    std::string strCmd = GetArg("-alertnotify", "");
+    std::string strCmd = gArgs.GetArg("-alertnotify", "");
     if (strCmd.empty()) return;
 
     // Alert text should be plain ascii coming from a trusted source, but to be
@@ -2253,7 +2260,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
             nLastSetChain = nNow;
         }
         int64_t nMempoolSizeMax =
-            GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+            gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
         int64_t cacheSize = pcoinsTip->DynamicMemoryUsage();
         int64_t nTotalSpace =
             nCoinCacheUsage +
@@ -2959,7 +2966,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
         return false;
     }
 
-    int nStopAtHeight = GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
+    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     if (nStopAtHeight && pindexNewTip &&
         pindexNewTip->nHeight >= nStopAtHeight) {
         StartShutdown();
@@ -4627,7 +4634,7 @@ bool InitBlockIndex(const Config &config) {
     }
 
     // Use the provided setting for -txindex in the new database
-    fTxIndex = GetBoolArg("-txindex", DEFAULT_TXINDEX);
+    fTxIndex = gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX);
     pblocktree->WriteFlag("txindex", fTxIndex);
     LogPrintf("Initializing databases...\n");
 
@@ -5153,7 +5160,7 @@ static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
 bool LoadMempool(const Config &config) {
     int64_t nExpiryTimeout =
-        GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
+        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
     FILE *filestr = fsbridge::fopen(GetDataDir() / "mempool.dat", "rb");
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {

@@ -701,7 +701,7 @@ void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
                        uint64_t expected) {
     GlobalConfig config;
 
-    ForceSetArg("-blockmaxsize", std::to_string(size));
+    gArgs.ForceSetArg("-blockmaxsize", std::to_string(size));
 
     BlockAssembler ba(config);
     BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);
@@ -760,7 +760,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // If the parameter is not specified, we use
     // DEFAULT_MAX_GENERATED_BLOCK_SIZE
     {
-        ClearArg("-blockmaxsize");
+        gArgs.ClearArg("-blockmaxsize");
         BlockAssembler ba(config);
         BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
                           DEFAULT_MAX_GENERATED_BLOCK_SIZE);

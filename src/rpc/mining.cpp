@@ -250,9 +250,10 @@ static UniValue getmininginfo(const Config &config,
     obj.push_back(Pair("currentblocksize", uint64_t(nLastBlockSize)));
     obj.push_back(Pair("currentblocktx", uint64_t(nLastBlockTx)));
     obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
-    obj.push_back(Pair("blockprioritypercentage",
-                       uint8_t(GetArg("-blockprioritypercentage",
-                                      DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));
+    obj.push_back(
+        Pair("blockprioritypercentage",
+             uint8_t(gArgs.GetArg("-blockprioritypercentage",
+                                  DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
     obj.push_back(Pair("pooledtx", uint64_t(mempool.size())));

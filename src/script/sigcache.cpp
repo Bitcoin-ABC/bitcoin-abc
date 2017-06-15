@@ -70,8 +70,9 @@ void InitSignatureCache() {
     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).
     size_t nMaxCacheSize =
-        std::min(std::max(int64_t(0), GetArg("-maxsigcachesize",
-                                             DEFAULT_MAX_SIG_CACHE_SIZE)),
+        std::min(std::max(int64_t(0),
+                          gArgs.GetArg("-maxsigcachesize",
+                                       DEFAULT_MAX_SIG_CACHE_SIZE)),
                  MAX_MAX_SIG_CACHE_SIZE) *
         (size_t(1) << 20);
     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);
