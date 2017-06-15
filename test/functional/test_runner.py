@@ -144,6 +144,7 @@ EXTENDED_SCRIPTS = [
     'rpcbind_test.py',
     # vv Tests less than 30s vv
     'assumevalid.py',
+    'example_test.py',
     'txn_doublespend.py',
     'txn_clone.py --mineblock',
     'forknotify.py',
