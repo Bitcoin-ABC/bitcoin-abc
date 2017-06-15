@@ -10,7 +10,7 @@ import random
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.util import *
-from test_framework.mininode import LEGACY_MAX_BLOCK_SIZE
+from test_framework.cdefs import ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE
 
 
 class ABC_RPC_Test (BitcoinTestFramework):
@@ -24,18 +24,18 @@ class ABC_RPC_Test (BitcoinTestFramework):
         self.nodes = self.setup_nodes()
 
     def run_test (self):
-        # check that we start with legacy size
+        # Check that we start with DEFAULT_MAX_BLOCK_SIZE
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
-        assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE)
+        assert_equal(ebs, DEFAULT_MAX_BLOCK_SIZE)
 
-        # check that setting to legacy size is ok
+        # Check that setting to legacy size is ok
         self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE)
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE)
 
-        # check that going below legacy size is not accepted
+        # Check that going below legacy size is not accepted
         try:
             self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE - 1)
         except JSONRPCException as e:
@@ -47,11 +47,17 @@ class ABC_RPC_Test (BitcoinTestFramework):
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE)
 
-        # check setting to 8 times legacy size
-        self.nodes[0].setexcessiveblock(8 * LEGACY_MAX_BLOCK_SIZE)
+        # Check setting to 2MB
+        self.nodes[0].setexcessiveblock(2 * ONE_MEGABYTE)
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
-        assert_equal(ebs, 8 * LEGACY_MAX_BLOCK_SIZE)
+        assert_equal(ebs, 2 * ONE_MEGABYTE)
+
+        # Check setting to 13MB
+        self.nodes[0].setexcessiveblock(13 * ONE_MEGABYTE)
+        getsize = self.nodes[0].getexcessiveblock()
+        ebs = getsize['excessiveBlockSize']
+        assert_equal(ebs, 13 * ONE_MEGABYTE)
 
 if __name__ == '__main__':
     ABC_RPC_Test().main ()

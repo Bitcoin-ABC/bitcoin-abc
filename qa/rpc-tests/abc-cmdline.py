@@ -13,8 +13,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (start_node,
                                  stop_node,
                                  assert_equal)
-from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
-from test_framework.mininode import LEGACY_MAX_BLOCK_SIZE
+from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE
 
 
 class ABC_CmdLine_Test (BitcoinTestFramework):
@@ -37,13 +36,13 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         print("Testing -excessiveblocksize")
 
         print("  Set to twice the default, i.e. %d bytes" %
-              (2 * DEFAULT_MAX_BLOCK_SIZE))
+              (2 * LEGACY_MAX_BLOCK_SIZE))
         stop_node(self.nodes[0], 0)
         self.extra_args = [["-excessiveblocksize=%d" %
-                            (2 * DEFAULT_MAX_BLOCK_SIZE)]]
+                            (2 * LEGACY_MAX_BLOCK_SIZE)]]
         self.nodes[0] = start_node(0, self.options.tmpdir,
                                    self.extra_args[0])
-        self.check_excessive(2 * DEFAULT_MAX_BLOCK_SIZE)
+        self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
 
         print("  Attempt to set below legacy limit of 1MB - try %d bytes" %
               (LEGACY_MAX_BLOCK_SIZE - 1))

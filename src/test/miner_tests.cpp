@@ -715,13 +715,11 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999, LEGACY_CAP);
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, LEGACY_CAP);
 
-    // If the parameter is not specified, we use
-    // DEFAULT_MAX_GENERATED_BLOCK_SIZE
+    // Before the UAHF, the default generated block size is the LEGACY_CAP.
     {
         ClearArg("-blockmaxsize");
         BlockAssembler ba(config, chainparams);
-        BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
-                          DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+        BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), LEGACY_CAP);
     }
 
     // Activate UAHF

@@ -31,7 +31,6 @@ class FullBlockTest(ComparisonTestFramework):
     # Change the "outcome" variable from each TestInstance object to only do the comparison.
     def __init__(self):
         super().__init__()
-        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.num_nodes = 1
         self.block_heights = {}
         self.coinbase_key = CECKey()
@@ -43,7 +42,6 @@ class FullBlockTest(ComparisonTestFramework):
     def setup_network(self):
         self.extra_args = [['-debug',
                             '-whitelist=127.0.0.1',
-                            "-excessiveblocksize=%d" % self.excessive_block_size,
                             "-par=1" ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
@@ -58,8 +56,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.add_all_connections(self.nodes)
         # Start up network handling in another thread
         NetworkThread().start()
-        # Set the blocksize to 2MB as initial condition
-        self.nodes[0].setexcessiveblock(self.excessive_block_size)
+        # Mock the time so that block activating the HF will be accepted
         self.nodes[0].setmocktime(HF_START_TIME)
         self.test.run()
 

@@ -21,11 +21,13 @@ ONE_MEGABYTE = 1000000
 
 # Extract relevant default values parameters
 
-# Default setting for maximum allowed size for a block, in bytes
-
 # FIXME: re-enable evaluation of consensus.h once that can be read from
 # subfolder of top level
-DEFAULT_MAX_BLOCK_SIZE = 1000000
+# The maximum allowed block size before the fork
+LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE
+
+# Default setting for maximum allowed size for a block, in bytes
+DEFAULT_MAX_BLOCK_SIZE = 8 * ONE_MEGABYTE
 
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
