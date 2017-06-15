@@ -17,6 +17,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "validation.h"
+#include "validation.h"
 
 #include "test/test_bitcoin.h"
 
@@ -682,10 +683,60 @@ void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
 
 BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     GlobalConfig config;
+    const CChainParams &chainparams = Params();
+
+    // The maximum block size to be generated before the UAHF
+    static const auto LEGACY_CAP = LEGACY_MAX_BLOCK_SIZE - 1000;
+
+    // We are working on a fake chain and need to protect ourselves.
+    LOCK(cs_main);
+
+    // Check before UAHF activation.
+    BOOST_CHECK(!IsUAHFenabled(chainparams.GetConsensus(),
+                               chainActive.Tip()->GetMedianTimePast()));
+
+    // Test around the historical 1MB cap
+    config.SetMaxBlockSize(ONE_MEGABYTE);
+    CheckBlockMaxSize(chainparams, 0, 1000);
+    CheckBlockMaxSize(chainparams, 1000, 1000);
+    CheckBlockMaxSize(chainparams, 1001, 1001);
+    CheckBlockMaxSize(chainparams, 12345, 12345);
+
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, LEGACY_CAP);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, LEGACY_CAP);
+
+    // Test around higher limit, the block size should still cap at LEGACY_CAP.
+    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
+    config.SetMaxBlockSize(EIGHT_MEGABYTES);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001, LEGACY_CAP);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000, LEGACY_CAP);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999, LEGACY_CAP);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, LEGACY_CAP);
+
+    // If the parameter is not specified, we use
+    // DEFAULT_MAX_GENERATED_BLOCK_SIZE
+    {
+        ClearArg("-blockmaxsize");
+        BlockAssembler ba(config, chainparams);
+        BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
+                          DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+    }
+
+    // Activate UAHF
+    const int64_t hfStartTime = chainparams.GetConsensus().hfStartTime;
+    auto pindex = chainActive.Tip();
+    for (size_t i = 0; pindex && i < 5; i++) {
+        pindex->nTime = hfStartTime;
+        pindex = pindex->pprev;
+    }
+
+    BOOST_CHECK(IsUAHFenabled(chainparams.GetConsensus(),
+                              chainActive.Tip()->GetMedianTimePast()));
 
     // Test around historical 1MB
     config.SetMaxBlockSize(ONE_MEGABYTE);
-    const CChainParams &chainparams = Params(CBaseChainParams::MAIN);
     CheckBlockMaxSize(chainparams, 0, 1000);
     CheckBlockMaxSize(chainparams, 1000, 1000);
     CheckBlockMaxSize(chainparams, 1001, 1001);
@@ -696,8 +747,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 1000);
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 1000);
 
-    // Test around higher limit, e.g 8MB
-    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
+    // Test around higher limit such as 8MB
     config.SetMaxBlockSize(EIGHT_MEGABYTES);
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001,
                       EIGHT_MEGABYTES - 1001);
@@ -718,10 +768,14 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
 
-    ClearArg("-blockmaxsize");
-    BlockAssembler ba(config, chainparams);
-    BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
-                      DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+    // If the parameter is not specified, we use
+    // DEFAULT_MAX_GENERATED_BLOCK_SIZE
+    {
+        ClearArg("-blockmaxsize");
+        BlockAssembler ba(config, chainparams);
+        BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
+                          DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

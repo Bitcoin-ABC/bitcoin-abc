@@ -16,10 +16,10 @@ class CCoinsViewCache;
 
 /** Default for -blockmaxsize, which controls the maximum size of block the
  * mining code will create **/
-static const unsigned int DEFAULT_MAX_GENERATED_BLOCK_SIZE = 750000;
+static const uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE = 750000;
 /** Default for -blockprioritysize, maximum space for zero/low-fee transactions
  * **/
-static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 0;
+static const uint64_t DEFAULT_BLOCK_PRIORITY_SIZE = 0;
 /** Default for -blockmintxfee, which sets the minimum feerate for a transaction
  * in blocks created by mining code **/
 static const unsigned int DEFAULT_BLOCK_MIN_TX_FEE = 1000;

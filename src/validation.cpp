@@ -593,11 +593,6 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
-static bool IsUAHFenabled(const Consensus::Params &consensusParams,
-                          int64_t nMedianTimePast) {
-    return nMedianTimePast >= consensusParams.hfStartTime;
-}
-
 static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
@@ -3569,6 +3564,11 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     assert(state.IsValid());
 
     return true;
+}
+
+bool IsUAHFenabled(const Consensus::Params &consensusParams,
+                   int64_t nMedianTimePast) {
+    return nMedianTimePast >= consensusParams.hfStartTime;
 }
 
 /**

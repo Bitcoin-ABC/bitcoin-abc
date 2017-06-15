@@ -135,7 +135,7 @@ private:
     CBlock *pblock;
 
     // Configuration parameters for the block size
-    unsigned int nMaxGeneratedBlockSize;
+    uint64_t nMaxGeneratedBlockSize;
     CFeeRate blockMinFeeRate;
 
     // Information on the current status of the block
@@ -163,9 +163,7 @@ public:
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
 
-    unsigned int GetMaxGeneratedBlockSize() const {
-        return nMaxGeneratedBlockSize;
-    }
+    uint64_t GetMaxGeneratedBlockSize() const { return nMaxGeneratedBlockSize; }
 
 private:
     // utility functions

@@ -618,6 +618,10 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
                        CBlockIndex *pindexPrev, bool fCheckPOW = true,
                        bool fCheckMerkleRoot = true);
 
+/** Check is UAHF has activated. */
+bool IsUAHFenabled(const Consensus::Params &consensusParams,
+                   int64_t nMedianTimePast);
+
 /** When there are blocks in the active chain with missing data, rewind the
  * chainstate and remove them from the block index */
 bool RewindBlockIndex(const Config &config, const CChainParams &params);

@@ -74,18 +74,37 @@ int64_t UpdateTime(CBlockHeader *pblock,
     return nNewTime - nOldTime;
 }
 
-BlockAssembler::BlockAssembler(const Config &_config,
-                               const CChainParams &_chainparams)
-    : chainparams(_chainparams), config(&_config) {
+static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
+                                             int64_t nMedianTimePast) {
     // Block resource limits
     // If -blockmaxsize is not given, limit to DEFAULT_MAX_GENERATED_BLOCK_SIZE
     // If only one is given, only restrict the specified resource.
     // If both are given, restrict both.
-    nMaxGeneratedBlockSize = DEFAULT_MAX_GENERATED_BLOCK_SIZE;
+    uint64_t nMaxGeneratedBlockSize = DEFAULT_MAX_GENERATED_BLOCK_SIZE;
     if (IsArgSet("-blockmaxsize")) {
         nMaxGeneratedBlockSize =
             GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }
+
+    // Limit size to between 1K and MaxBlockSize-1K for sanity:
+    nMaxGeneratedBlockSize =
+        std::max(uint64_t(1000), std::min(config.GetMaxBlockSize() - 1000,
+                                          nMaxGeneratedBlockSize));
+
+    // If UAHF is not activated yet, we also want to limit the max generated
+    // block size to LEGACY_MAX_BLOCK_SIZE - 1000
+    if (!IsUAHFenabled(config.GetChainParams().GetConsensus(),
+                       nMedianTimePast)) {
+        nMaxGeneratedBlockSize =
+            std::min(LEGACY_MAX_BLOCK_SIZE - 1000, nMaxGeneratedBlockSize);
+    }
+
+    return nMaxGeneratedBlockSize;
+}
+
+BlockAssembler::BlockAssembler(const Config &_config,
+                               const CChainParams &_chainparams)
+    : chainparams(_chainparams), config(&_config) {
     if (IsArgSet("-blockmintxfee")) {
         CAmount n = 0;
         ParseMoney(GetArg("-blockmintxfee", ""), n);
@@ -94,11 +113,9 @@ BlockAssembler::BlockAssembler(const Config &_config,
         blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
-    // Limit size to between 1K and MaxBlockSize-1K for sanity:
-    nMaxGeneratedBlockSize =
-        std::max((unsigned int)1000,
-                 std::min((unsigned int)(config->GetMaxBlockSize() - 1000),
-                          nMaxGeneratedBlockSize));
+    LOCK(cs_main);
+    nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(
+        *config, chainActive.Tip()->GetMedianTimePast());
 }
 
 void BlockAssembler::resetBlock() {
@@ -147,6 +164,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     pblock->nTime = GetAdjustedTime();
     nMedianTimePast = pindexPrev->GetMedianTimePast();
+    nMaxGeneratedBlockSize =
+        ComputeMaxGeneratedBlockSize(*config, nMedianTimePast);
 
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
@@ -530,10 +549,9 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 void BlockAssembler::addPriorityTxs() {
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay.
-    unsigned int nBlockPrioritySize =
+    uint64_t nBlockPrioritySize =
         GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
     nBlockPrioritySize = std::min(nMaxGeneratedBlockSize, nBlockPrioritySize);
-
     if (nBlockPrioritySize == 0) {
         return;
     }
