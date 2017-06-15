@@ -330,6 +330,53 @@ class FullBlockTest(ComparisonTestFramework):
         block(29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
         yield rejected(RejectResult(16, b'bad-txn-sigops'))
 
+        # Rewind bad block
+        tip(26)
+
+        # P2SH
+        # Build the redeem script, hash it, use hash to create the p2sh script
+        redeem_script = CScript([self.coinbase_pubkey] + [OP_2DUP, OP_CHECKSIGVERIFY]*5 + [OP_CHECKSIG])
+        redeem_script_hash = hash160(redeem_script)
+        p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
+
+        # Create a p2sh transaction
+        p2sh_tx = self.create_and_sign_transaction(out[22].tx, out[22].n, 1, p2sh_script)
+
+        # Add the transaction to the block
+        block(30)
+        update_block(30, [p2sh_tx])
+        yield accepted()
+
+        # Creates a new transaction using the p2sh transaction included in the last block
+        def spend_p2sh_tx (output_script=CScript([OP_TRUE])):
+            # Create the transaction
+            spent_p2sh_tx = CTransaction()
+            spent_p2sh_tx.vin.append(CTxIn(COutPoint(p2sh_tx.sha256, 0), b''))
+            spent_p2sh_tx.vout.append(CTxOut(1, output_script))
+            # Sign the transaction using the redeem script
+            (sighash, err) = SignatureHash(redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL)
+            sig = self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))
+            spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
+            spent_p2sh_tx.rehash()
+            return spent_p2sh_tx
+
+        # Sigops p2sh limit
+        p2sh_sigops_limit = MAX_BLOCK_SIGOPS_PER_MB - redeem_script.GetSigOpCount(True)
+        # Too many sigops in one p2sh txn
+        too_many_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit + 1))
+        block(31, spend=out[23], block_size=ONE_MEGABYTE + 1)
+        update_block(31, [spend_p2sh_tx(too_many_p2sh_sigops)])
+        yield rejected(RejectResult(16, b'bad-txn-sigops'))
+
+        # Rewind bad block
+        tip(30)
+
+        # Max sigops in one p2sh txn
+        max_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit))
+        block(32, spend=out[23], block_size=ONE_MEGABYTE + 1)
+        update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
+        yield accepted()
+
 
 if __name__ == '__main__':
     FullBlockTest().main()
