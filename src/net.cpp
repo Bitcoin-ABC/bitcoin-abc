@@ -16,7 +16,6 @@
 #include "consensus/consensus.h"
 #include "crypto/common.h"
 #include "crypto/sha256.h"
-#include "globals.h"
 #include "hash.h"
 #include "netbase.h"
 #include "primitives/transaction.h"
@@ -2538,8 +2537,7 @@ bool CConnman::OutboundTargetReached(bool historicalBlockServingLimit) {
     if (historicalBlockServingLimit) {
         // keep a large enough buffer to at least relay each block once.
         uint64_t timeLeftInCycle = GetMaxOutboundTimeLeftInCycle();
-        // FIXME: Pass the config down there instead of using nMaxBlockSize.
-        uint64_t buffer = timeLeftInCycle / 600 * nMaxBlockSize;
+        uint64_t buffer = timeLeftInCycle / 600 * ONE_MEGABYTE;
         if (buffer >= nMaxOutboundLimit ||
             nMaxOutboundTotalBytesSentInCycle >= nMaxOutboundLimit - buffer)
             return true;
