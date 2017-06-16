@@ -593,11 +593,19 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
+static bool IsUAHFenabled(const Consensus::Params &consensusParams,
+                          const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsUAHFenabled(consensusParams, pindexPrev->GetMedianTimePast());
+}
+
 static bool
 IsUAHFenabledForCurrentBlock(const Consensus::Params &consensusParams) {
     AssertLockHeld(cs_main);
-    return IsUAHFenabled(consensusParams,
-                         chainActive.Tip()->GetMedianTimePast());
+    return IsUAHFenabled(consensusParams, chainActive.Tip());
 }
 
 static bool AcceptToMemoryPoolWorker(
@@ -1835,8 +1843,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(chainparams.GetConsensus(),
-                      pindex->pprev->GetMedianTimePast())) {
+    if (IsUAHFenabled(chainparams.GetConsensus(), pindex->pprev)) {
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
 
@@ -2298,12 +2305,9 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // transactions that are valid only on the HF chain. There is no easy way to
     // do this so we'll just discard the whole mempool and then add the
     // transaction of the block we just disconnected back.
-    if (IsUAHFenabled(consensusParams, pindexDelete->GetMedianTimePast())) {
-        if (pindexDelete->pprev == nullptr ||
-            !IsUAHFenabled(consensusParams,
-                           pindexDelete->pprev->GetMedianTimePast())) {
-            mempool.clear();
-        }
+    if (IsUAHFenabled(consensusParams, pindexDelete) &&
+        !IsUAHFenabled(consensusParams, pindexDelete->pprev)) {
+        mempool.clear();
     }
 
     if (!fBare) {
@@ -3280,16 +3284,10 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
-    // Check if UAHF is enabled and act accordingly.
-    const int64_t nMedianTimePast =
-        pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();
-
-    if (pindexPrev && IsUAHFenabled(consensusParams, nMedianTimePast)) {
+    if (IsUAHFenabled(consensusParams, pindexPrev)) {
         // If UAHF is enabled for the curent block, but not for the previous
         // block, we must check that the block is larger than 1MB.
-        if (pindexPrev->pprev == nullptr ||
-            !IsUAHFenabled(consensusParams,
-                           pindexPrev->pprev->GetMedianTimePast())) {
+        if (!IsUAHFenabled(consensusParams, pindexPrev->pprev)) {
             const uint64_t currentBlockSize =
                 ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
             if (currentBlockSize <= LEGACY_MAX_BLOCK_SIZE) {
@@ -3308,6 +3306,9 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
                              false, "size limits failed");
         }
     }
+
+    const int64_t nMedianTimePast =
+        pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();
 
     const int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
                                         ? nMedianTimePast
