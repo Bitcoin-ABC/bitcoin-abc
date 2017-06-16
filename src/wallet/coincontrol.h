@@ -8,13 +8,14 @@
 #include "primitives/transaction.h"
 
 /** Coin Control Features. */
-class CCoinControl
-{
+class CCoinControl {
 public:
     CTxDestination destChange;
-    //! If false, allows unselected inputs, but requires all selected inputs be used
+    //! If false, allows unselected inputs, but requires all selected inputs be
+    //! used
     bool fAllowOtherInputs;
-    //! Includes watch only addresses which match the ISMINE_WATCH_SOLVABLE criteria
+    //! Includes watch only addresses which match the ISMINE_WATCH_SOLVABLE
+    //! criteria
     bool fAllowWatchOnly;
     //! Minimum absolute fee (not per kilobyte)
     CAmount nMinimumTotalFee;
@@ -25,13 +26,9 @@ public:
     //! Override the default confirmation target, 0 = use default
     int nConfirmTarget;
 
-    CCoinControl()
-    {
-        SetNull();
-    }
+    CCoinControl() { SetNull(); }
 
-    void SetNull()
-    {
+    void SetNull() {
         destChange = CNoDestination();
         fAllowOtherInputs = false;
         fAllowWatchOnly = false;
@@ -42,33 +39,19 @@ public:
         nConfirmTarget = 0;
     }
 
-    bool HasSelected() const
-    {
-        return (setSelected.size() > 0);
-    }
+    bool HasSelected() const { return (setSelected.size() > 0); }
 
-    bool IsSelected(const COutPoint& output) const
-    {
+    bool IsSelected(const COutPoint &output) const {
         return (setSelected.count(output) > 0);
     }
 
-    void Select(const COutPoint& output)
-    {
-        setSelected.insert(output);
-    }
+    void Select(const COutPoint &output) { setSelected.insert(output); }
 
-    void UnSelect(const COutPoint& output)
-    {
-        setSelected.erase(output);
-    }
+    void UnSelect(const COutPoint &output) { setSelected.erase(output); }
 
-    void UnSelectAll()
-    {
-        setSelected.clear();
-    }
+    void UnSelectAll() { setSelected.clear(); }
 
-    void ListSelected(std::vector<COutPoint>& vOutpoints) const
-    {
+    void ListSelected(std::vector<COutPoint> &vOutpoints) const {
         vOutpoints.assign(setSelected.begin(), setSelected.end());
     }
 
