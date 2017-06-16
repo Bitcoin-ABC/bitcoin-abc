@@ -692,8 +692,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     LOCK(cs_main);
 
     // Check before UAHF activation.
-    BOOST_CHECK(!IsUAHFenabled(chainparams.GetConsensus(),
-                               chainActive.Tip()->GetMedianTimePast()));
+    BOOST_CHECK(!IsUAHFenabledForCurrentBlock(config));
 
     // Test around the historical 1MB cap
     config.SetMaxBlockSize(ONE_MEGABYTE);
@@ -730,8 +729,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
         pindex = pindex->pprev;
     }
 
-    BOOST_CHECK(IsUAHFenabled(chainparams.GetConsensus(),
-                              chainActive.Tip()->GetMedianTimePast()));
+    BOOST_CHECK(IsUAHFenabledForCurrentBlock(config));
 
     // Test around historical 1MB
     config.SetMaxBlockSize(ONE_MEGABYTE);

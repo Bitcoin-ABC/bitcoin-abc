@@ -371,6 +371,10 @@ void PruneAndFlush();
 /** Prune block files up to a given height */
 void PruneBlockFilesManual(int nPruneUpToHeight);
 
+/** Check is UAHF has activated. */
+bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast);
+bool IsUAHFenabledForCurrentBlock(const Config &config);
+
 /** (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from mempool
  * **/
@@ -617,10 +621,6 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
                        const CChainParams &chainparams, const CBlock &block,
                        CBlockIndex *pindexPrev, bool fCheckPOW = true,
                        bool fCheckMerkleRoot = true);
-
-/** Check is UAHF has activated. */
-bool IsUAHFenabled(const Consensus::Params &consensusParams,
-                   int64_t nMedianTimePast);
 
 /** When there are blocks in the active chain with missing data, rewind the
  * chainstate and remove them from the block index */

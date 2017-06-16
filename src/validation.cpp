@@ -593,19 +593,22 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
-static bool IsUAHFenabled(const Consensus::Params &consensusParams,
-                          const CBlockIndex *pindexPrev) {
+bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast) {
+    return nMedianTimePast >=
+           config.GetChainParams().GetConsensus().hfStartTime;
+}
+
+static bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsUAHFenabled(consensusParams, pindexPrev->GetMedianTimePast());
+    return IsUAHFenabled(config, pindexPrev->GetMedianTimePast());
 }
 
-static bool
-IsUAHFenabledForCurrentBlock(const Consensus::Params &consensusParams) {
+bool IsUAHFenabledForCurrentBlock(const Config &config) {
     AssertLockHeld(cs_main);
-    return IsUAHFenabled(consensusParams, chainActive.Tip());
+    return IsUAHFenabled(config, chainActive.Tip());
 }
 
 static bool AcceptToMemoryPoolWorker(
@@ -853,8 +856,7 @@ static bool AcceptToMemoryPoolWorker(
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
-        if (IsUAHFenabledForCurrentBlock(
-                config.GetChainParams().GetConsensus())) {
+        if (IsUAHFenabledForCurrentBlock(config)) {
             scriptVerifyFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
         }
 
@@ -1843,7 +1845,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(chainparams.GetConsensus(), pindex->pprev)) {
+    if (IsUAHFenabled(config, pindex->pprev)) {
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
 
@@ -2305,8 +2307,8 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // transactions that are valid only on the HF chain. There is no easy way to
     // do this so we'll just discard the whole mempool and then add the
     // transaction of the block we just disconnected back.
-    if (IsUAHFenabled(consensusParams, pindexDelete) &&
-        !IsUAHFenabled(consensusParams, pindexDelete->pprev)) {
+    if (IsUAHFenabled(config, pindexDelete) &&
+        !IsUAHFenabled(config, pindexDelete->pprev)) {
         mempool.clear();
     }
 
@@ -3222,7 +3224,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsUAHFenabled(consensusParams, nMedianTimePast) &&
+    if (IsUAHFenabled(config, nMedianTimePast) &&
         nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
         for (const CTxOut &o : tx.vout) {
             if (o.scriptPubKey.IsCommitment(
@@ -3284,10 +3286,10 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
-    if (IsUAHFenabled(consensusParams, pindexPrev)) {
+    if (IsUAHFenabled(config, pindexPrev)) {
         // If UAHF is enabled for the curent block, but not for the previous
         // block, we must check that the block is larger than 1MB.
-        if (!IsUAHFenabled(consensusParams, pindexPrev->pprev)) {
+        if (!IsUAHFenabled(config, pindexPrev->pprev)) {
             const uint64_t currentBlockSize =
                 ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
             if (currentBlockSize <= LEGACY_MAX_BLOCK_SIZE) {
@@ -3596,11 +3598,6 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     assert(state.IsValid());
 
     return true;
-}
-
-bool IsUAHFenabled(const Consensus::Params &consensusParams,
-                   int64_t nMedianTimePast) {
-    return nMedianTimePast >= consensusParams.hfStartTime;
 }
 
 /**

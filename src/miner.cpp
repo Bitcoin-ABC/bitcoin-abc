@@ -93,8 +93,7 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
 
     // If UAHF is not activated yet, we also want to limit the max generated
     // block size to LEGACY_MAX_BLOCK_SIZE - 1000
-    if (!IsUAHFenabled(config.GetChainParams().GetConsensus(),
-                       nMedianTimePast)) {
+    if (!IsUAHFenabled(config, nMedianTimePast)) {
         nMaxGeneratedBlockSize =
             std::min(LEGACY_MAX_BLOCK_SIZE - 1000, nMaxGeneratedBlockSize);
     }
