@@ -2260,32 +2260,51 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     LogPrintf("\n");
 }
 
-/** Disconnect chainActive's tip. You probably want to call
+/**
+ * Disconnect chainActive's tip. You probably want to call
  * mempool.removeForReorg and manually re-limit mempool size after this, with
- * cs_main held. */
+ * cs_main held.
+ */
 static bool DisconnectTip(const Config &config, CValidationState &state,
                           bool fBare = false) {
-    const CChainParams &chainparams = config.GetChainParams();
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
     CBlockIndex *pindexDelete = chainActive.Tip();
     assert(pindexDelete);
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexDelete, chainparams.GetConsensus()))
+    if (!ReadBlockFromDisk(block, pindexDelete, consensusParams)) {
         return AbortNode(state, "Failed to read block");
+    }
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
-        if (!DisconnectBlock(block, state, pindexDelete, view))
+        if (!DisconnectBlock(block, state, pindexDelete, view)) {
             return error("DisconnectTip(): DisconnectBlock %s failed",
                          pindexDelete->GetBlockHash().ToString());
+        }
         bool flushed = view.Flush();
         assert(flushed);
     }
     LogPrint("bench", "- Disconnect block: %.2fms\n",
              (GetTimeMicros() - nStart) * 0.001);
     // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) return false;
+    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) {
+        return false;
+    }
+
+    // If this block was the activation of the UAHF, then we need to remove
+    // transactions that are valid only on the HF chain. There is no easy way to
+    // do this so we'll just discard the whole mempool and then add the
+    // transaction of the block we just disconnected back.
+    if (IsUAHFenabled(consensusParams, pindexDelete->GetMedianTimePast())) {
+        if (pindexDelete->pprev == nullptr ||
+            !IsUAHFenabled(consensusParams,
+                           pindexDelete->pprev->GetMedianTimePast())) {
+            mempool.clear();
+        }
+    }
 
     if (!fBare) {
         // Resurrect mempool transactions from the disconnected block.
@@ -4052,11 +4071,10 @@ bool RewindBlockIndex(const Config &config, const CChainParams &params) {
     CBlockIndex *pindex = chainActive.Tip();
     while (chainActive.Height() >= nHeight) {
         if (fPruneMode && !(chainActive.Tip()->nStatus & BLOCK_HAVE_DATA)) {
-            // If pruning, don't try rewinding past the HAVE_DATA point;
-            // since older blocks can't be served anyway, there's
-            // no need to walk further, and trying to DisconnectTip()
-            // will fail (and require a needless reindex/redownload
-            // of the blockchain).
+            // If pruning, don't try rewinding past the HAVE_DATA point; since
+            // older blocks can't be served anyway, there's no need to walk
+            // further, and trying to DisconnectTip() will fail (and require a
+            // needless reindex/redownload of the blockchain).
             break;
         }
         if (!DisconnectTip(config, state, true)) {

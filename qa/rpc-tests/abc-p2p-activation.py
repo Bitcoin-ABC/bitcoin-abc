@@ -322,9 +322,22 @@ class FullBlockTest(ComparisonTestFramework):
         update_block(12, [tx_spend])
         yield accepted()
 
+        # The transaction has been mined, it's not in the mempool anymore
+        assert_equal(set(node.getrawmempool()), set())
+
         # Test OP_RETURN replay protection
         block(13, spend=out[8], script=antireplay_script)
         yield rejected(RejectResult(16, b'bad-txn-replay'))
+
+        # Now we reorg just when the HF activated. The
+        # SIGHASH_FORKID transaction is back in the mempool
+        node.invalidateblock(node.getbestblockhash())
+        assert(tx_spend_id in set(node.getrawmempool()))
+
+        # And now just before when the HF activated. The
+        # SIGHASH_FORKID should be kicked out the mempool
+        node.invalidateblock(node.getbestblockhash())
+        assert(tx_spend_id not in set(node.getrawmempool()))
 
 
 if __name__ == '__main__':
