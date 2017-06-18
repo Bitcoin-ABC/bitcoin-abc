@@ -722,7 +722,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     }
 
     // Activate UAHF
-    const int64_t hfStartTime = chainparams.GetConsensus().hfStartTime;
+    const int64_t hfStartTime = config.GetUAHFStartTime();
     auto pindex = chainActive.Tip();
     for (size_t i = 0; pindex && i < 5; i++) {
         pindex->nTime = hfStartTime;

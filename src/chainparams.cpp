@@ -17,7 +17,6 @@
 #include "chainparamsseeds.h"
 
 // Far into the future.
-static const int64_t HF_START_TIME = 2000000000;
 static const std::string ANTI_REPLAY_COMMITMENT =
     "Placeholder for the anti replay commitment";
 
@@ -104,7 +103,6 @@ public:
         consensus.BIP65Height = 388381;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.BIP66Height = 363725;
-        consensus.hfStartTime = HF_START_TIME;
         consensus.antiReplayOpReturnSunsetHeight = 530000;
         consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(
@@ -261,7 +259,6 @@ public:
         consensus.BIP65Height = 581885;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
         consensus.BIP66Height = 330776;
-        consensus.hfStartTime = HF_START_TIME;
         consensus.antiReplayOpReturnSunsetHeight = 530000;
         consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(
@@ -387,7 +384,6 @@ public:
         consensus.BIP65Height = 1351;
         // BIP66 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251;
-        consensus.hfStartTime = HF_START_TIME;
         consensus.antiReplayOpReturnSunsetHeight = 530000;
         consensus.antiReplayOpReturnCommitment = GetAntiReplayCommitment();
         consensus.powLimit = uint256S(

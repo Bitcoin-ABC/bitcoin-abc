@@ -7,3 +7,4 @@
 #include "consensus/consensus.h"
 
 uint64_t nMaxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
+int64_t nUAHFStartTime = DEFAULT_UAHF_START_TIME;

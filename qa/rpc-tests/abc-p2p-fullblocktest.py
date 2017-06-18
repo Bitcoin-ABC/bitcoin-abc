@@ -19,9 +19,10 @@ import time
 from test_framework.key import CECKey
 from test_framework.script import *
 from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
-                                  MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT,
-                                  HF_START_TIME)
+                                  MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
 
+# far into the future
+UAHF_START_TIME = 2000000000
 
 class PreviousSpendableOutput(object):
     def __init__(self, tx = CTransaction(), n = -1):
@@ -83,6 +84,7 @@ class FullBlockTest(ComparisonTestFramework):
                             '-limitdescendantcount=9999',
                             '-limitdescendantsize=9999',
                             '-maxmempool=999',
+                            "-uahfstarttime=%d" % UAHF_START_TIME,
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
@@ -100,7 +102,7 @@ class FullBlockTest(ComparisonTestFramework):
         NetworkThread().start()
         # Set the blocksize to 2MB as initial condition
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
-        self.nodes[0].setmocktime(HF_START_TIME)
+        self.nodes[0].setmocktime(UAHF_START_TIME)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
@@ -263,7 +265,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # In order to trigger the HF, we need one block past activation time
         bfork = block(5555)
-        bfork.nTime = HF_START_TIME
+        bfork.nTime = UAHF_START_TIME
         update_block(5555, [])
         save_spendable_output()
         yield accepted()

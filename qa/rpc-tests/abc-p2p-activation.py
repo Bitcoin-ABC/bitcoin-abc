@@ -18,9 +18,12 @@ from test_framework.key import CECKey
 from test_framework.script import *
 from test_framework.cdefs import *
 
-# Rrror for illegal use of SIGHASH_FORKID
+# Error for illegal use of SIGHASH_FORKID
 SIGHASH_FORKID_ERROR = b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'
 RPC_SIGHASH_FORKID_ERROR = "16: " + SIGHASH_FORKID_ERROR.decode("utf-8")
+
+# far into the future
+UAHF_START_TIME = 2000000000
 
 class PreviousSpendableOutput(object):
     def __init__(self, tx = CTransaction(), n = -1):
@@ -48,6 +51,7 @@ class FullBlockTest(ComparisonTestFramework):
     def setup_network(self):
         self.extra_args = [['-debug',
                             '-norelaypriority',
+                            "-uahfstarttime=%d" % UAHF_START_TIME,
                             '-whitelist=127.0.0.1',
                             '-par=1' ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
@@ -64,7 +68,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Start up network handling in another thread
         NetworkThread().start()
         # Mock the time so that block activating the HF will be accepted
-        self.nodes[0].setmocktime(HF_START_TIME)
+        self.nodes[0].setmocktime(UAHF_START_TIME)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
@@ -251,7 +255,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Create a block that would activate the HF. We also add the
         # transaction that will allow us to test SIGHASH_FORKID
         b03 = block(3)
-        b03.nTime = HF_START_TIME
+        b03.nTime = UAHF_START_TIME
         update_block(3, [tx_forkid])
         yield accepted()
 

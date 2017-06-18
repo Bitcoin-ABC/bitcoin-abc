@@ -21,8 +21,13 @@ uint64_t GlobalConfig::GetMaxBlockSize() const {
     return nMaxBlockSize;
 }
 
+bool GlobalConfig::SetUAHFStartTime(int64_t uahfStartTime) {
+    nUAHFStartTime = uahfStartTime;
+    return true;
+}
+
 int64_t GlobalConfig::GetUAHFStartTime() const {
-    return GetChainParams().GetConsensus().hfStartTime;
+    return nUAHFStartTime;
 }
 
 const CChainParams &GlobalConfig::GetChainParams() const {

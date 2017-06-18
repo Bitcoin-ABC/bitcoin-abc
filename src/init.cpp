@@ -1407,6 +1407,15 @@ bool AppInitParameterInteraction(Config &config) {
               "excessive block size (excessiveblocksize)"));
     }
 
+    const int64_t nProposedUAHFStartTime =
+        GetArg("-uahfstarttime", DEFAULT_UAHF_START_TIME);
+    if (!config.SetUAHFStartTime(nProposedUAHFStartTime)) {
+        return InitError(
+            strprintf(_("Unable to set uahfstarttime to the value (%d)"),
+                      nProposedUAHFStartTime));
+        assert(nProposedUAHFStartTime == config.GetUAHFStartTime());
+    }
+
     // block pruning; get the amount of disk space (in MiB) to allot for block &
     // undo files
     int64_t nPruneArg = GetArg("-prune", 0);

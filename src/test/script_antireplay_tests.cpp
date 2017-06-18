@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_antireplay) {
     // The anti replay rule start at hfStartTime and stops at
     // antiReplayOpReturnSunsetHeight.
     const int nSunsetHeight = params.antiReplayOpReturnSunsetHeight;
-    const int64_t nUAHFStartTime = params.hfStartTime;
+    const int64_t nUAHFStartTime = config.GetUAHFStartTime();
 
     CMutableTransaction tx;
     tx.nVersion = 1;
