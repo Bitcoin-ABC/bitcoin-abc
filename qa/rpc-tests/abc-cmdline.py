@@ -9,6 +9,7 @@ Currently:
 -excessiveblocksize=<blocksize_in_bytes>
 """
 
+import re
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (start_node,
                                  stop_node,
@@ -32,6 +33,13 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, expected_value)
 
+    def check_subversion(self, pattern_str):
+        'Check that the subversion is set as expected'
+        netinfo = self.nodes[0].getnetworkinfo()
+        subversion = netinfo['subversion']
+        pattern = re.compile(pattern_str)
+        assert(pattern.match(subversion))
+
     def excessiveblocksize_test(self):
         print("Testing -excessiveblocksize")
 
@@ -43,6 +51,8 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.nodes[0] = start_node(0, self.options.tmpdir,
                                    self.extra_args[0])
         self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
+        # Check for EB correctness in the subver string
+        self.check_subversion("/Bitcoin ABC:.*\(EB2\.0\)/")
 
         print("  Attempt to set below legacy limit of 1MB - try %d bytes" %
               (LEGACY_MAX_BLOCK_SIZE - 1))

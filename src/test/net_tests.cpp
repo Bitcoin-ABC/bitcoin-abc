@@ -165,4 +165,15 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test) {
     BOOST_CHECK(pnode2->fFeeler == false);
 }
 
+BOOST_AUTO_TEST_CASE(test_getSubVersionEB) {
+    BOOST_CHECK_EQUAL(getSubVersionEB(13800000000), "13800.0");
+    BOOST_CHECK_EQUAL(getSubVersionEB(3800000000), "3800.0");
+    BOOST_CHECK_EQUAL(getSubVersionEB(14000000), "14.0");
+    BOOST_CHECK_EQUAL(getSubVersionEB(1540000), "1.5");
+    BOOST_CHECK_EQUAL(getSubVersionEB(1560000), "1.5");
+    BOOST_CHECK_EQUAL(getSubVersionEB(210000), "0.2");
+    BOOST_CHECK_EQUAL(getSubVersionEB(10000), "0.0");
+    BOOST_CHECK_EQUAL(getSubVersionEB(0), "0.0");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

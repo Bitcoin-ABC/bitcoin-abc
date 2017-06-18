@@ -9,6 +9,7 @@
 #include "arith_uint256.h"
 #include "blockencodings.h"
 #include "chainparams.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "hash.h"
 #include "init.h"
@@ -250,7 +251,8 @@ void UpdatePreferredDownload(CNode *node, CNodeState *state) {
     nPreferredDownload += state->fPreferredDownload;
 }
 
-void PushNodeVersion(CNode *pnode, CConnman &connman, int64_t nTime) {
+void PushNodeVersion(const Config &config, CNode *pnode, CConnman &connman,
+                     int64_t nTime) {
     ServiceFlags nLocalNodeServices = pnode->GetLocalServices();
     uint64_t nonce = pnode->GetLocalNonce();
     int nNodeStartingHeight = pnode->GetMyStartingHeight();
@@ -262,11 +264,12 @@ void PushNodeVersion(CNode *pnode, CConnman &connman, int64_t nTime) {
                             : CAddress(CService(), addr.nServices));
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
-    connman.PushMessage(pnode, CNetMsgMaker(INIT_PROTO_VERSION)
-                                   .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
-                                         (uint64_t)nLocalNodeServices, nTime,
-                                         addrYou, addrMe, nonce, strSubVersion,
-                                         nNodeStartingHeight, ::fRelayTxes));
+    connman.PushMessage(pnode,
+                        CNetMsgMaker(INIT_PROTO_VERSION)
+                            .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
+                                  (uint64_t)nLocalNodeServices, nTime, addrYou,
+                                  addrMe, nonce, userAgent(config),
+                                  nNodeStartingHeight, ::fRelayTxes));
 
     if (fLogIPs)
         LogPrint("net", "send version message: version %d, blocks=%d, us=%s, "
@@ -281,6 +284,8 @@ void PushNodeVersion(CNode *pnode, CConnman &connman, int64_t nTime) {
 }
 
 void InitializeNode(CNode *pnode, CConnman &connman) {
+    // FIXME config should be passed as argument than retrieved here
+    const Config &config = GetConfig();
     CAddress addr = pnode->addr;
     std::string addrName = pnode->GetAddrName();
     NodeId nodeid = pnode->GetId();
@@ -291,7 +296,7 @@ void InitializeNode(CNode *pnode, CConnman &connman) {
             std::forward_as_tuple(nodeid),
             std::forward_as_tuple(addr, std::move(addrName)));
     }
-    if (!pnode->fInbound) PushNodeVersion(pnode, connman, GetTime());
+    if (!pnode->fInbound) PushNodeVersion(config, pnode, connman, GetTime());
 }
 
 void FinalizeNode(NodeId nodeid, bool &fUpdateConnectionTime) {
@@ -1421,7 +1426,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         // Be shy and don't send version until we hear
-        if (pfrom->fInbound) PushNodeVersion(pfrom, connman, GetAdjustedTime());
+        if (pfrom->fInbound)
+            PushNodeVersion(config, pfrom, connman, GetAdjustedTime());
 
         connman.PushMessage(
             pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::VERACK));

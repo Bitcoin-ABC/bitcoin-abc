@@ -76,7 +76,6 @@ bool fRelayTxes = true;
 CCriticalSection cs_mapLocalHost;
 std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
 static bool vfLimited[NET_MAX] = {};
-std::string strSubVersion;
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
@@ -2766,4 +2765,55 @@ uint64_t CConnman::CalculateKeyedNetGroup(const CAddress &ad) const {
     return GetDeterministicRandomizer(RANDOMIZER_ID_NETGROUP)
         .Write(&vchNetGroup[0], vchNetGroup.size())
         .Finalize();
+}
+/**
+ * This function convert MaxBlockSize from byte to
+ * MB with a decimal precision one digit rounded down
+ * E.g.
+ * 1660000 -> 1.6
+ * 2010000 -> 2.0
+ * 1000000 -> 1.0
+ * 230000  -> 0.2
+ * 50000   -> 0.0
+ *
+ *  NB behavior for EB<1MB not standardized yet still
+ *  the function applies the same algo used for
+ *  EB greater or equal to 1MB
+ */
+std::string getSubVersionEB(uint64_t MaxBlockSize) {
+    // Prepare EB string we are going to add to SubVer:
+    // 1) translate from byte to MB and convert to string
+    // 2) limit the EB string to the first decimal digit (floored)
+    std::stringstream ebMBs;
+    ebMBs << (MaxBlockSize / (ONE_MEGABYTE / 10));
+    std::string eb = ebMBs.str();
+    eb.insert(eb.size() - 1, ".", 1);
+    if (eb.substr(0, 1) == ".") eb = "0" + eb;
+    return eb;
+}
+
+std::string userAgent(const Config &config) {
+    // format excessive blocksize value
+    std::string eb = getSubVersionEB(config.GetMaxBlockSize());
+    std::vector<std::string> uacomments;
+    uacomments.push_back("EB" + eb);
+
+    // sanitize comments per BIP-0014, format user agent and check total size
+    if (mapMultiArgs.count("-uacomment")) {
+        for (const std::string &cmt : mapMultiArgs.at("-uacomment")) {
+            if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
+                LogPrintf("User Agent comment (%s) contains unsafe characters.",
+                          cmt);
+            uacomments.push_back(cmt);
+        }
+    }
+
+    std::string subversion =
+        FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
+    if (subversion.size() > MAX_SUBVERSION_LENGTH) {
+        LogPrintf("Total length of network version string (%i) exceeds maximum "
+                  "length (%i). Reduce the number or size of uacomments.",
+                  subversion.size(), MAX_SUBVERSION_LENGTH);
+    }
+    return subversion;
 }

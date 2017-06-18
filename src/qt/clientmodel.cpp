@@ -12,6 +12,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "clientversion.h"
+#include "config.h"
 #include "net.h"
 #include "txmempool.h"
 #include "ui_interface.h"
@@ -181,7 +182,7 @@ QString ClientModel::formatFullVersion() const {
 }
 
 QString ClientModel::formatSubVersion() const {
-    return QString::fromStdString(strSubVersion);
+    return QString::fromStdString(userAgent(GetConfig()));
 }
 
 bool ClientModel::isReleaseVersion() const {

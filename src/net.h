@@ -474,9 +474,6 @@ extern bool fRelayTxes;
 
 extern limitedmap<uint256, int64_t> mapAlreadyAskedFor;
 
-/** Subversion as sent to the P2P network in `version` messages */
-extern std::string strSubVersion;
-
 struct LocalServiceInfo {
     int nScore;
     int nPort;
@@ -807,4 +804,6 @@ public:
  * distributed events. */
 int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds);
 
+std::string getSubVersionEB(uint64_t MaxBlockSize);
+std::string userAgent(const Config &config);
 #endif // BITCOIN_NET_H
