@@ -16,16 +16,14 @@
 
 #include <boost/filesystem.hpp>
 
-CBanDB::CBanDB()
-{
+CBanDB::CBanDB() {
     pathBanlist = GetDataDir() / "banlist.dat";
 }
 
-bool CBanDB::Write(const banmap_t& banSet)
-{
+bool CBanDB::Write(const banmap_t &banSet) {
     // Generate random temporary filename
     unsigned short randv = 0;
-    GetRandBytes((unsigned char*)&randv, sizeof(randv));
+    GetRandBytes((unsigned char *)&randv, sizeof(randv));
     std::string tmpfn = strprintf("banlist.dat.%04x", randv);
 
     // serialize banlist, checksum data up to that point, then append csum
@@ -45,8 +43,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     // Write and commit header, data
     try {
         fileout << ssBanlist;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
     }
     FileCommit(fileout.Get());
@@ -59,20 +56,19 @@ bool CBanDB::Write(const banmap_t& banSet)
     return true;
 }
 
-bool CBanDB::Read(banmap_t& banSet)
-{
+bool CBanDB::Read(banmap_t &banSet) {
     // open input file, and associate with CAutoFile
     FILE *file = fopen(pathBanlist.string().c_str(), "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull())
-        return error("%s: Failed to open file %s", __func__, pathBanlist.string());
+        return error("%s: Failed to open file %s", __func__,
+                     pathBanlist.string());
 
     // use file size to size memory buffer
     uint64_t fileSize = boost::filesystem::file_size(pathBanlist);
     uint64_t dataSize = 0;
     // Don't try to resize to a negative number if file is small
-    if (fileSize >= sizeof(uint256))
-        dataSize = fileSize - sizeof(uint256);
+    if (fileSize >= sizeof(uint256)) dataSize = fileSize - sizeof(uint256);
     std::vector<unsigned char> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
@@ -81,8 +77,7 @@ bool CBanDB::Read(banmap_t& banSet)
     try {
         filein.read((char *)&vchData[0], dataSize);
         filein >> hashIn;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
     filein.fclose();
@@ -105,24 +100,21 @@ bool CBanDB::Read(banmap_t& banSet)
 
         // de-serialize ban data
         ssBanlist >> banSet;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
 
     return true;
 }
 
-CAddrDB::CAddrDB()
-{
+CAddrDB::CAddrDB() {
     pathAddr = GetDataDir() / "peers.dat";
 }
 
-bool CAddrDB::Write(const CAddrMan& addr)
-{
+bool CAddrDB::Write(const CAddrMan &addr) {
     // Generate random temporary filename
     unsigned short randv = 0;
-    GetRandBytes((unsigned char*)&randv, sizeof(randv));
+    GetRandBytes((unsigned char *)&randv, sizeof(randv));
     std::string tmpfn = strprintf("peers.dat.%04x", randv);
 
     // serialize addresses, checksum data up to that point, then append csum
@@ -142,8 +134,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     // Write and commit header, data
     try {
         fileout << ssPeers;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
     }
     FileCommit(fileout.Get());
@@ -156,8 +147,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     return true;
 }
 
-bool CAddrDB::Read(CAddrMan& addr)
-{
+bool CAddrDB::Read(CAddrMan &addr) {
     // open input file, and associate with CAutoFile
     FILE *file = fopen(pathAddr.string().c_str(), "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
@@ -168,8 +158,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     uint64_t fileSize = boost::filesystem::file_size(pathAddr);
     uint64_t dataSize = 0;
     // Don't try to resize to a negative number if file is small
-    if (fileSize >= sizeof(uint256))
-        dataSize = fileSize - sizeof(uint256);
+    if (fileSize >= sizeof(uint256)) dataSize = fileSize - sizeof(uint256);
     std::vector<unsigned char> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
@@ -178,8 +167,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     try {
         filein.read((char *)&vchData[0], dataSize);
         filein >> hashIn;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
     filein.fclose();
@@ -194,8 +182,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     return Read(addr, ssPeers);
 }
 
-bool CAddrDB::Read(CAddrMan& addr, CDataStream& ssPeers)
-{
+bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
     unsigned char pchMsgTmp[4];
     try {
         // de-serialize file header (network specific magic number) and ..
@@ -207,8 +194,7 @@ bool CAddrDB::Read(CAddrMan& addr, CDataStream& ssPeers)
 
         // de-serialize address data into one CAddrMan object
         ssPeers >> addr;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         // de-serialization has failed, ensure addrman is left in a clean state
         addr.Clear();
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
