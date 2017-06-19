@@ -173,6 +173,9 @@ public:
         // Bitcoin ABC seeder
         vSeeds.push_back(
             CDNSSeedData("bitcoinabc.org", "seed.bitcoinabc.org", true));
+        // bitcoinforks seeders
+        vSeeds.push_back(CDNSSeedData("bitcoinforks.org",
+                                      "seed-abc.bitcoinforks.org", true));
         // BU seeder
         vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
                                       "seed.bitcoinunlimited.info", true));
@@ -323,6 +326,8 @@ public:
         // Bitcoin ABC seeder
         vSeeds.push_back(CDNSSeedData("bitcoinabc.org",
                                       "testnet-seed.bitcoinabc.org", true));
+        vSeeds.push_back(CDNSSeedData(
+            "bitcoinforks.org", "testnet-seed-abc.bitcoinforks.org", true));
         // BU seeder
         vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
                                       "testnet-seed.bitcoinunlimited.info",
