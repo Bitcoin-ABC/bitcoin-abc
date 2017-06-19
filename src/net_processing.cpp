@@ -1626,12 +1626,11 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (!State(pfrom->GetId())->fProvidesHeaderAndIDs) {
                 State(pfrom->GetId())->fProvidesHeaderAndIDs = true;
             }
-            if (nCMPCTBLOCKVersion != 2) // ignore later version announces
-                State(pfrom->GetId())->fPreferHeaderAndIDs =
-                    fAnnounceUsingCMPCTBLOCK;
+
+            State(pfrom->GetId())->fPreferHeaderAndIDs =
+                fAnnounceUsingCMPCTBLOCK;
             if (!State(pfrom->GetId())->fSupportsDesiredCmpctVersion) {
-                State(pfrom->GetId())->fSupportsDesiredCmpctVersion =
-                    (nCMPCTBLOCKVersion == 1);
+                State(pfrom->GetId())->fSupportsDesiredCmpctVersion = true;
             }
         }
     }

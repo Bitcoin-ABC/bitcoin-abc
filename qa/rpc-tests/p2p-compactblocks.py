@@ -279,7 +279,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
     # Compare the generated shortids to what we expect based on BIP 152, given
     # bitcoind's choice of nonce.
-    def test_compactblock_construction(self, node, test_node, version):
+    def test_compactblock_construction(self, node, test_node):
         # Generate a bunch of transactions.
         node.generate(101)
         num_transactions = 25
@@ -296,7 +296,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         assert(test_node.wait_for_block_announcement(tip))
 
         # Make sure we will receive a fast-announce compact block
-        self.request_cb_announcements(test_node, node, version)
+        self.request_cb_announcements(test_node, node)
 
         # Now mine a block, and look at the resulting compact block.
         test_node.clear_block_announcement()
@@ -317,7 +317,7 @@ class CompactBlocksTest(BitcoinTestFramework):
             assert(test_node.last_cmpctblock is not None)
             # Convert the on-the-wire representation to absolute indexes
             header_and_shortids = HeaderAndShortIDs(test_node.last_cmpctblock.header_and_shortids)
-        self.check_compactblock_construction_from_block(version, header_and_shortids, block_hash, block)
+        self.check_compactblock_construction_from_block(header_and_shortids, block_hash, block)
 
         # Now fetch the compact block using a normal non-announce getdata
         with mininode_lock:
@@ -334,9 +334,9 @@ class CompactBlocksTest(BitcoinTestFramework):
             assert(test_node.last_cmpctblock is not None)
             # Convert the on-the-wire representation to absolute indexes
             header_and_shortids = HeaderAndShortIDs(test_node.last_cmpctblock.header_and_shortids)
-        self.check_compactblock_construction_from_block(version, header_and_shortids, block_hash, block)
+        self.check_compactblock_construction_from_block(header_and_shortids, block_hash, block)
 
-    def check_compactblock_construction_from_block(self, version, header_and_shortids, block_hash, block):
+    def check_compactblock_construction_from_block(self, header_and_shortids, block_hash, block):
         # Check that we got the right block!
         header_and_shortids.header.calc_sha256()
         assert_equal(header_and_shortids.header.sha256, block_hash)
@@ -353,11 +353,9 @@ class CompactBlocksTest(BitcoinTestFramework):
 
             # And this checks the witness
             wtxid = entry.tx.calc_sha256(True)
-            if version == 2:
-                assert_equal(wtxid, block.vtx[entry.index].calc_sha256(True))
-            else:
-                # Shouldn't have received a witness
-                assert(entry.tx.wit.is_null())
+
+            # Shouldn't have received a witness
+            assert(entry.tx.wit.is_null())
 
         # Check that the cmpctblock message announced all the transactions.
         assert_equal(len(header_and_shortids.prefilled_txn) + len(header_and_shortids.shortids), len(block.vtx))
@@ -374,8 +372,6 @@ class CompactBlocksTest(BitcoinTestFramework):
                 header_and_shortids.prefilled_txn.pop(0)
             else:
                 tx_hash = block.vtx[index].sha256
-                if version == 2:
-                    tx_hash = block.vtx[index].calc_sha256(True)
                 shortid = calculate_shortid(k0, k1, tx_hash)
                 assert_equal(shortid, header_and_shortids.shortids[0])
                 header_and_shortids.shortids.pop(0)
@@ -738,7 +734,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
     # Helper for enabling cb announcements
     # Send the sendcmpct request and sync headers
-    def request_cb_announcements(self, peer, node, version):
+    def request_cb_announcements(self, peer, node, version=1):
         tip = node.getbestblockhash()
         peer.get_headers(locator=[int(tip, 16)], hashstop=0)
 
@@ -829,15 +825,15 @@ class CompactBlocksTest(BitcoinTestFramework):
         sync_blocks(self.nodes)
 
         print("\tTesting compactblock construction...")
-        self.test_compactblock_construction(self.nodes[0], self.test_node, 1)
+        self.test_compactblock_construction(self.nodes[0], self.test_node)
         sync_blocks(self.nodes)
-        self.test_compactblock_construction(self.nodes[1], self.ex_softfork_node, 1)
+        self.test_compactblock_construction(self.nodes[1], self.ex_softfork_node)
         sync_blocks(self.nodes)
 
         print("\tTesting compactblock requests... ")
-        self.test_compactblock_requests(self.nodes[0], self.test_node, 1 )
+        self.test_compactblock_requests(self.nodes[0], self.test_node, 1)
         sync_blocks(self.nodes)
-        self.test_compactblock_requests(self.nodes[1], self.ex_softfork_node, 2 )
+        self.test_compactblock_requests(self.nodes[1], self.ex_softfork_node, 2)
         sync_blocks(self.nodes)
 
         print("\tTesting getblocktxn requests...")
@@ -868,9 +864,9 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # End-to-end block relay tests
         print("\tTesting end-to-end block relay...")
-        self.request_cb_announcements(self.test_node, self.nodes[0], 1)
-        self.request_cb_announcements(self.old_node, self.nodes[1], 1)
-        self.request_cb_announcements(self.ex_softfork_node, self.nodes[1], 2)
+        self.request_cb_announcements(self.test_node, self.nodes[0])
+        self.request_cb_announcements(self.old_node, self.nodes[1])
+        self.request_cb_announcements(self.ex_softfork_node, self.nodes[1], version=2)
         self.test_end_to_end_block_relay(self.nodes[0], [self.ex_softfork_node, self.test_node, self.old_node])
         self.test_end_to_end_block_relay(self.nodes[1], [self.ex_softfork_node, self.test_node, self.old_node])
 
