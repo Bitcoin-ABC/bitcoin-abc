@@ -170,21 +170,17 @@ public:
 
         // Note that of those with the service bits flag, most only support a
         // subset of possible options.
-        // Pieter Wuille, only supports x1, x5, x9, and xd
+        // Bitcoin ABC seeder
         vSeeds.push_back(
-            CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be", true));
-        // Matt Corallo, only supports x9
+            CDNSSeedData("bitcoinabc.org", "seed.bitcoinabc.org", true));
+        // BU seeder
+        vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
+                                      "seed.bitcoinunlimited.info", true));
+        // Bitprim
+        vSeeds.push_back(CDNSSeedData("bitprim.org", "seed.bitprim.org", true));
+        // Amaury SÉCHET
         vSeeds.push_back(
-            CDNSSeedData("bluematt.me", "dnsseed.bluematt.me", true));
-        // Luke Dashjr
-        vSeeds.push_back(
-            CDNSSeedData("dashjr.org", "dnsseed.bitcoin.dashjr.org"));
-        // Christian Decker, supports x1 - xf
-        vSeeds.push_back(
-            CDNSSeedData("bitcoinstats.com", "seed.bitcoinstats.com", true));
-        // Jonas Schnelli, only supports x1, x5, x9, and xd
-        vSeeds.push_back(CDNSSeedData("bitcoin.jonasschnelli.ch",
-                                      "seed.bitcoin.jonasschnelli.ch", true));
+            CDNSSeedData("deadalnix.me", "seed.deadalnix.me", true));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 5);
@@ -324,15 +320,19 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
-        vSeeds.push_back(CDNSSeedData("testnetbitcoin.jonasschnelli.ch",
-                                      "testnet-seed.bitcoin.jonasschnelli.ch",
+        // Bitcoin ABC seeder
+        vSeeds.push_back(CDNSSeedData("bitcoinabc.org",
+                                      "testnet-seed.bitcoinabc.org", true));
+        // BU seeder
+        vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
+                                      "testnet-seed.bitcoinunlimited.info",
                                       true));
+        // Bitprim
         vSeeds.push_back(
-            CDNSSeedData("petertodd.org", "seed.tbtc.petertodd.org", true));
+            CDNSSeedData("bitprim.org", "testnet-seed.bitprim.org", true));
+        // Amaury SÉCHET
         vSeeds.push_back(
-            CDNSSeedData("bluematt.me", "testnet-seed.bluematt.me"));
-        vSeeds.push_back(CDNSSeedData("bitcoin.schildbach.de",
-                                      "testnet-seed.bitcoin.schildbach.de"));
+            CDNSSeedData("deadalnix.me", "testnet-seed.deadalnix.me", true));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 196);
