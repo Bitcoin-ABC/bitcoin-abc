@@ -1,11 +1,13 @@
-# BUIP-HF Technical Specification
+# UAHF Technical Specification
+
+Version 1.2, 2017-06-14
 
 
 ## Introduction
 
 This document describes proposed requirements for a block size Hard Fork (HF).
 
-BUIP 55 specified a block height fork. This BUIP-HF specification is
+BUIP 55 specified a block height fork. This UAHF specification is
 inspired by the idea of a flag day, but changed to a time-based fork due
 to miner requests. It should be possible to change easily to a height-based
 fork - the sense of the requirements would largely stay the same.
@@ -18,7 +20,7 @@ nTime values of its past up to 11 ancestors, as obtained by the
 GetMedianTimePast(block.parent) call.
 
 "activation time": a block whose MTP is after this time
-shall comply with the new consensus rules introduced by this BUIP.
+shall comply with the new consensus rules introduced by this UAHF.
 
 "fork block": the first block in the active chain whose nTime is past the
 activation time.
@@ -36,9 +38,10 @@ is a block up to 1,000,000 bytes in size.
 
 "Core rules" means all blocks <= 1,000,000 bytes (Base block size).
 
-"BU tx/sigops rules" means the existing additional consensus rules (1) and
+"Extended BU tx/sigops rules" means the existing additional consensus rules (1) and
 (2) below, as formalized by BUIP040 [1] and used by the Bitcoin Unlimited
-client's excessive checks for blocks larger than 1MB:
+client's excessive checks for blocks larger than 1MB, extended with rule
+(3) below:
 1. maximum sigops per block is calculated based on the actual size of
 a block using
 max_block_sigops = 20000 * ceil((max(blocksize, 1000000) / 1000000))
@@ -49,20 +52,16 @@ NOTE 1: In plain English, the maximum allowed sigops per block is
 20K sigops per the size of the block, rounded up to nearest integer in MB.
 i.e. 20K if <= 1MB, 40K for the blocks > 1MB and up to 2MB, etc.
 
-NOTE 2: BU treats both rules (1) and (2) as falling under the Emergent
-Consensus rules (AD). Other clients may choose to implement them as
-firm rules at their own risk.
-
 
 ## Requirements
 
 ### REQ-1 (fork by default)
 
-The client (with BUIP-HF implementation) shall default to activating
+The client (with UAHF implementation) shall default to activating
 a hard fork with new consensus rules as specified by the remaining
 requirements.
 
-RATIONALE:: It is better to make the HF active by default in a
+RATIONALE: It is better to make the HF active by default in a
 special HF release version. Users have to download a version capable
 of HF anyway, it is more convenient for them if the default does not
 require them to make additional configuration.
@@ -74,14 +73,14 @@ REQ-DISABLE)
 ### REQ-2 (configurable activation time)
 
 The client shall allow a "activation time" to be configured by the user,
-with a default value of 1501545600 (epoch time corresponding to Tue
-1 Aug 2017 00:00:00 UTC)
+with a default value of 1501590000 (epoch time corresponding to Tue
+1 Aug 2017 12:20:00 UTC)
 
 RATIONALE: Make it configurable to adapt easily to UASF activation
 time changes.
 
 NOTE 1: Configuring a "activation time" value of zero (0) shall disable
-any BUIP-HF hard fork special rules (see REQ-DISABLE)
+any UAHF hard fork special rules (see REQ-DISABLE)
 
 
 ### REQ-3 (fork block must be > 1MB)
@@ -96,7 +95,7 @@ the original chain.
 
 ### REQ-4-1 (require "fork EB" configured to at least 8MB at startup)
 
-If BUIP-HF is not disabled (see REQ-DISABLE), the client shall enforce
+If UAHF is not disabled (see REQ-DISABLE), the client shall enforce
 that the "fork EB" is configured to at least 8,000,000 (bytes) by raising
 an error during startup requesting the user to ensure adequate configuration.
 
@@ -109,7 +108,7 @@ such a size, and the current network is capable of handling it.
 
 ### REQ-4-2 (require user to specify suitable *new* MG at startup)
 
-If BUIP-HF is not disabled (see REQ-DISABLE), the client shall require
+If UAHF is not disabled (see REQ-DISABLE), the client shall require
 the user to specify a "fork MG" (mining generation size) greater than
 1,000,000 bytes.
 
@@ -126,7 +125,7 @@ specified by the user (default: 2MB) will take effect.
 
 ### REQ-5 (max tx / max block sigops rules for blocks > 1 MB)
 
-Blocks larger than 1,000,000 shall be subject to "BU tx/sigops rules"
+Blocks larger than 1,000,000 shall be subject to "Extended BU tx/sigops rules"
 as follows:
 
 1. maximum sigops per block shall be calculated based on the actual size of
@@ -153,7 +152,7 @@ with a specific magic data value shall be considered invalid until
 block 530,000 inclusive.
 
 RATIONALE: To give users on the legacy chain (or other fork chains)
-an opt-in way to exclude their transactions from processing on the BUIP-HF
+an opt-in way to exclude their transactions from processing on the UAHF
 fork chain. The sunset clause block height is calculated as approximately
 1 year after currently planned UASF activation time (Aug 1 2017 00:00:00 GMT),
 rounded down to a human friendly number.
@@ -170,7 +169,7 @@ the following are true in combination:
 - adding a magic 'fork id' value to the nHashType before the hash is
   calculated allows a successful signature verification as per REQ-6-3
 
-RATIONALE: To give users on the BUIP-HF chain an opt-in way to encumber
+RATIONALE: To give users on the UAHF chain an opt-in way to encumber
 replay of their transactions to the legacy chain (and other forks which may
 consider such transactions invalid).
 
@@ -202,8 +201,8 @@ deployment.
 ### REQ-DISABLE (disable fork by setting fork time to 0)
 
 If the activation time is configured to 0, the client shall not enforce
-the new consensus rules of BUIP-HF, including the activation of the
-fork, the size constraint at a certain time, and the enforcing of EB/AD
+the new consensus rules of UAHF, including the activation of the fork,
+the size constraint at a certain time, and the enforcing of EB/AD
 constraints at startup.
 
 RATIONALE: To make it possible to use such a release as a compatible
@@ -219,7 +218,7 @@ node / make a decision at late stage without needing to change client.
 
 [3] [Digest for replay protected signature verification accross hard forks](replay-protected-sighash.md)
 
-[4] https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/doc/abc/buip-hf-test-plan.md
+[4] https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-test-plan.md
 
 
 END

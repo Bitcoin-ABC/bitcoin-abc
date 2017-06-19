@@ -1,10 +1,12 @@
-# BUIP-HF Test Plan
+# UAHF Test Plan
+
+Version 1.0, 2017-06-14
 
 
 ## Introduction
 
-This document is a rough draft of tests planned for BUIP-HF as described
-in the BUIP-HF Technical Specification [1].
+This document is a rough draft of tests planned for UAHF as described
+in the UAHF Technical Specification [1].
 
 Test cases listed below are currenty incomplete w.r.t. the revised
 technical specification - this document is very much under construction.
@@ -14,15 +16,15 @@ technical specification - this document is very much under construction.
 
 ### TEST-1
 
-If BUIP 55 is disabled a large block is considered to break
-core rules, as is presently the case.
+If UAHF is disabled a large block is considered to break core rules,
+as is presently the case.
 
 
 ### TEST-2
 
-If BUIP 55 is disabled, a regular block  is accepted at or
-after the activation time (as determined by MTP(block.parent)
-without being considered invalid.
+If UAHF is disabled, a regular block is accepted at or after the
+activation time (as determined by MTP(block.parent) without being
+considered invalid.
 
 
 ### TEST-3
@@ -73,7 +75,7 @@ disabled.  And vice versa (enabled -> disabled).
 
 If enabled, if a large but < 8MB block is produced, ensure that the
 degenerate case of sigops heavy instructions does not unduly affect
-validation times above and beyond the standard expected if BUIP-HF
+validation times above and beyond the standard expected if UAHF
 is not enabled.
 
 
@@ -89,7 +91,7 @@ sizes > 1MB (rounding block size up to nearest MB) (ref. BUIP040).
 clients.)
 
 Test what happens when the unmodified BU / Core / other clients are
-used on a datadir where the BUIP 55 client has been run. Should
+used on a datadir where the UAHF client has been run. Should
 test again data from disabled (Core rules data, should be fine) ,
 and enabled (big block data stored - may need to rebuild DB? or
 provide tool to truncate the data back to pre-fork block?)
@@ -97,7 +99,7 @@ provide tool to truncate the data back to pre-fork block?)
 
 ## References
 
-[1] https://github.com/BitcoinUnlimited/BUIP/blob/master/BUIP-HF/buip-hf-technical-spec.md
+[1] https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-technical-spec.md
 
 
 END
