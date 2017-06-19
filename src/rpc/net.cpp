@@ -81,7 +81,7 @@ static UniValue getpeerinfo(const Config &config,
             "[\n"
             "  {\n"
             "    \"id\": n,                   (numeric) Peer index\n"
-            "    \"addr\":\"host:port\",      (string) The ip address and port "
+            "    \"addr\":\"host:port\",      (string) The IP address and port "
             "of the peer\n"
             "    \"addrbind\":\"ip:port\",    (string) Bind address of the "
             "connection to the peer\n"
@@ -242,7 +242,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
          strCommand != "remove")) {
         throw std::runtime_error(
             "addnode \"node\" \"add|remove|onetry\"\n"
-            "\nAttempts add or remove a node from the addnode list.\n"
+            "\nAttempts to add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
             "Nodes added using addnode (or -connect) are protected from DoS "
             "disconnection and are not required to be\n"
@@ -357,7 +357,7 @@ static UniValue getaddednodeinfo(const Config &config,
             "\nResult:\n"
             "[\n"
             "  {\n"
-            "    \"addednode\" : \"192.168.0.201\",   (string) The node ip "
+            "    \"addednode\" : \"192.168.0.201\",   (string) The node IP "
             "address or name (as provided to addnode)\n"
             "    \"connected\" : true|false,          (boolean) If connected\n"
             "    \"addresses\" : [                    (list of objects) Only "
@@ -618,19 +618,20 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
         (strCommand != "add" && strCommand != "remove")) {
         throw std::runtime_error(
             "setban \"subnet\" \"add|remove\" (bantime) (absolute)\n"
-            "\nAttempts add or remove a IP/Subnet from the banned list.\n"
+            "\nAttempts to add or remove a IP/Subnet from the banned list.\n"
             "\nArguments:\n"
             "1. \"subnet\"       (string, required) The IP/Subnet (see "
-            "getpeerinfo for nodes ip) with a optional netmask (default is /32 "
-            "= single ip)\n"
-            "2. \"command\"      (string, required) 'add' to add a IP/Subnet "
-            "to the list, 'remove' to remove a IP/Subnet from the list\n"
+            "getpeerinfo for nodes IP) with an optional netmask (default is "
+            "/32 "
+            "= single IP)\n"
+            "2. \"command\"      (string, required) 'add' to add an IP/Subnet "
+            "to the list, 'remove' to remove an IP/Subnet from the list\n"
             "3. \"bantime\"      (numeric, optional) time in seconds how long "
-            "(or until when if [absolute] is set) the ip is banned (0 or empty "
+            "(or until when if [absolute] is set) the IP is banned (0 or empty "
             "means using the default time of 24h which can also be overwritten "
             "by the -bantime startup argument)\n"
             "4. \"absolute\"     (boolean, optional) If set, the bantime must "
-            "be a absolute timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
+            "be an absolute timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "\nExamples:\n" +
             HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
             HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +

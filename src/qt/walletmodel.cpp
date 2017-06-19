@@ -256,7 +256,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
     ssTx << newTx->get();
     transaction_array.append(&(ssTx[0]), ssTx.size());
 
-    // Add addresses / update labels that we've sent to to the address book, and
+    // Add addresses / update labels that we've sent to the address book, and
     // emit coinsSent signal for each recipient
     for (const SendCoinsRecipient &rcp : transaction.getRecipients()) {
         // Don't touch the address book when we have a payment request

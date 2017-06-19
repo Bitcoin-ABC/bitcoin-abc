@@ -150,7 +150,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(
     std::set<TxId> setAlreadyIncluded(txidsToUpdate.begin(),
                                       txidsToUpdate.end());
 
-    // Iterate in reverse, so that whenever we are looking at at a transaction
+    // Iterate in reverse, so that whenever we are looking at a transaction
     // we are sure that all in-mempool descendants have already been processed.
     // This maximizes the benefit of the descendant cache and guarantees that
     // setMemPoolChildren will be updated, an assumption made in

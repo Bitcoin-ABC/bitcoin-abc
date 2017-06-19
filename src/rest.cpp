@@ -468,7 +468,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
         boost::split(uriParts, strUriParams, boost::is_any_of("/"));
     }
 
-    // throw exception in case of a empty request
+    // throw exception in case of an empty request
     std::string strRequestMutable = req->ReadBody();
     if (strRequestMutable.length() == 0 && uriParts.size() == 0) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Error: empty request");

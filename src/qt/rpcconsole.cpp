@@ -856,7 +856,7 @@ void RPCConsole::fontSmaller() {
 void RPCConsole::setFontSize(int newSize) {
     QSettings settings;
 
-    // don't allow a insane font size
+    // don't allow an insane font size
     if (newSize < FONT_RANGE.width() || newSize > FONT_RANGE.height()) return;
 
     // temp. store the console content
@@ -935,7 +935,7 @@ void RPCConsole::clear(bool clearHistory) {
              "<br><span class=\"secwarning\"><br>" +
              tr("WARNING: Scammers have been active, telling users to type "
                 "commands here, stealing their wallet contents. Do not use "
-                "this console without fully understanding the ramification "
+                "this console without fully understanding the ramifications "
                 "of a command.") +
              "</span>"),
             true);

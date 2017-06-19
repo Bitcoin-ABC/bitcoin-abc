@@ -4301,14 +4301,15 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     } else if (gArgs.IsArgSet("-usehd")) {
         bool useHD = gArgs.GetBoolArg("-usehd", DEFAULT_USE_HD_WALLET);
         if (walletInstance->IsHDEnabled() && !useHD) {
-            InitError(strprintf(_("Error loading %s: You can't disable HD on a "
-                                  "already existing HD wallet"),
-                                walletFile));
+            InitError(
+                strprintf(_("Error loading %s: You can't disable HD on an "
+                            "already existing HD wallet"),
+                          walletFile));
             return nullptr;
         }
 
         if (!walletInstance->IsHDEnabled() && useHD) {
-            InitError(strprintf(_("Error loading %s: You can't enable HD on a "
+            InitError(strprintf(_("Error loading %s: You can't enable HD on an "
                                   "already existing non-HD wallet"),
                                 walletFile));
             return nullptr;
@@ -4336,8 +4337,8 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
     if (chainActive.Tip() && chainActive.Tip() != pindexRescan) {
         // We can't rescan beyond non-pruned blocks, stop and throw an error.
-        // This might happen if a user uses a old wallet within a pruned node or
-        // if he ran -disablewallet for a longer time, then decided to
+        // This might happen if a user uses an old wallet within a pruned node
+        // or if he ran -disablewallet for a longer time, then decided to
         // re-enable.
         if (fPruneMode) {
             CBlockIndex *block = chainActive.Tip();

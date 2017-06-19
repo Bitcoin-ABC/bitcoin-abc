@@ -220,7 +220,7 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync,
     }
     // if we are in-sync, update the UI regardless of last update time
     if (!initialSync || now - nLastUpdateNotification > MODEL_UPDATE_DELAY) {
-        // pass a async signal to the UI thread
+        // pass an async signal to the UI thread
         QMetaObject::invokeMethod(
             clientmodel, "numBlocksChanged", Qt::QueuedConnection,
             Q_ARG(int, height),
