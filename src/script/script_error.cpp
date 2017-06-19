@@ -73,18 +73,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Witness version reserved for soft-fork upgrades";
         case SCRIPT_ERR_PUBKEYTYPE:
             return "Public key is neither compressed or uncompressed";
-        case SCRIPT_ERR_WITNESS_PROGRAM_WRONG_LENGTH:
-            return "Witness program has incorrect length";
-        case SCRIPT_ERR_WITNESS_PROGRAM_WITNESS_EMPTY:
-            return "Witness program was passed an empty witness";
-        case SCRIPT_ERR_WITNESS_PROGRAM_MISMATCH:
-            return "Witness program hash mismatch";
-        case SCRIPT_ERR_WITNESS_MALLEATED:
-            return "Witness requires empty scriptSig";
-        case SCRIPT_ERR_WITNESS_MALLEATED_P2SH:
-            return "Witness requires only-redeemscript scriptSig";
-        case SCRIPT_ERR_WITNESS_UNEXPECTED:
-            return "Witness provided for non-witness script";
+        case SCRIPT_ERR_CLEANSTACK:
+            return "Script did not clean its stack";
         case SCRIPT_ERR_NONCOMPRESSED_PUBKEY:
             return "Using non-compressed public key";
         case SCRIPT_ERR_ILLEGAL_FORKID:
