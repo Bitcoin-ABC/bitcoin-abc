@@ -29,6 +29,36 @@ class PreviousSpendableOutput(object):
         self.n = n  # the output we're spending
 
 
+# TestNode: A peer we use to send messages to bitcoind, and store responses.
+class TestNode(SingleNodeConnCB):
+    def __init__(self):
+        self.last_sendcmpct = None
+        self.last_cmpctblock = None
+        self.last_getheaders = None
+        self.last_headers = None
+        SingleNodeConnCB.__init__(self)
+
+    def on_sendcmpct(self, conn, message):
+        self.last_sendcmpct = message
+
+    def on_cmpctblock(self, conn, message):
+        self.last_cmpctblock = message
+        self.last_cmpctblock.header_and_shortids.header.calc_sha256()
+
+    def on_getheaders(self, conn, message):
+        self.last_getheaders = message
+
+    def on_headers(self, conn, message):
+        self.last_headers = message
+        for x in self.last_headers.headers:
+            x.calc_sha256()
+
+    def clear_block_data(self):
+        with mininode_lock:
+            self.last_sendcmpct = None
+            self.last_cmpctblock = None
+
+
 class FullBlockTest(ComparisonTestFramework):
 
     # Can either run this test as 1 node with expected answers, or two and compare them.
@@ -46,7 +76,13 @@ class FullBlockTest(ComparisonTestFramework):
 
     def setup_network(self):
         self.extra_args = [['-debug',
+                            '-norelaypriority',
                             '-whitelist=127.0.0.1',
+                            '-limitancestorcount=9999',
+                            '-limitancestorsize=9999',
+                            '-limitdescendantcount=9999',
+                            '-limitdescendantsize=9999',
+                            '-maxmempool=999',
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size ]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
@@ -116,10 +152,8 @@ class FullBlockTest(ComparisonTestFramework):
         if (spend != None):
             tx = CTransaction()
             tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
-            # This copies the java comparison tool testing behavior: the first
-            # txout has a garbage scriptPubKey, "to make sure we're not
-            # pre-verifying too much" (?)
-            tx.vout.append(CTxOut(0, CScript([random.randint(0,255), height & 255])))
+            # We put some random data into the first transaction of the chain to randomize ids
+            tx.vout.append(CTxOut(0, CScript([random.randint(0,255), OP_DROP, OP_TRUE])))
             if script == None:
                 tx.vout.append(CTxOut(1, CScript([OP_TRUE])))
             else:
@@ -376,6 +410,88 @@ class FullBlockTest(ComparisonTestFramework):
         block(32, spend=out[23], block_size=ONE_MEGABYTE + 1)
         update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
         yield accepted()
+
+        # Check that compact block also work for big blocks
+        node = self.nodes[0]
+        peer = TestNode()
+        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer));
+
+        # Start up network handling in another thread and wait for connection
+        # to be etablished
+        NetworkThread().start()
+        peer.wait_for_verack()
+
+        # Wait for SENDCMPCT
+        def received_sendcmpct():
+            return (peer.last_sendcmpct != None)
+        got_sendcmpt = wait_until(received_sendcmpct, timeout=30)
+        assert(got_sendcmpt)
+
+        sendcmpct = msg_sendcmpct()
+        sendcmpct.version = 1
+        sendcmpct.announce = True
+        peer.send_and_ping(sendcmpct)
+
+        # Exchange headers
+        def received_getheaders():
+            return (peer.last_getheaders != None)
+        got_getheaders = wait_until(received_getheaders, timeout=30)
+        assert(got_getheaders)
+
+        # Return the favor
+        peer.send_message(peer.last_getheaders)
+
+        # Wait for the header list
+        def received_headers():
+            return (peer.last_headers != None)
+        got_headers = wait_until(received_headers, timeout=30)
+        assert(got_headers)
+
+        # It's like we know about the same headers !
+        peer.send_message(peer.last_headers)
+
+        # Send a block
+        b33 = block(33, spend=out[24], block_size=ONE_MEGABYTE + 1)
+        yield accepted()
+
+        # Checks the node to forward it via compact block
+        def received_block():
+            return (peer.last_cmpctblock != None)
+        got_cmpctblock = wait_until(received_block, timeout=30)
+        assert(got_cmpctblock)
+
+        # Was it our block ?
+        cmpctblk_header = peer.last_cmpctblock.header_and_shortids.header
+        cmpctblk_header.calc_sha256()
+        assert(cmpctblk_header.sha256 == b33.sha256)
+
+        # Send a bigger block
+        peer.clear_block_data()
+        b34 = block(34, spend=out[25], block_size=8*ONE_MEGABYTE)
+        yield accepted()
+
+        # Checks the node to forward it via compact block
+        got_cmpctblock = wait_until(received_block, timeout=30)
+        assert(got_cmpctblock)
+
+        # Was it our block ?
+        cmpctblk_header = peer.last_cmpctblock.header_and_shortids.header
+        cmpctblk_header.calc_sha256()
+        assert(cmpctblk_header.sha256 == b34.sha256)
+
+        # Let's send a compact block and see if the node accepts it.
+        # First, we generate the block and send all transaction to the mempool
+        b35 = block(35, spend=out[26], block_size=8*ONE_MEGABYTE)
+        for i in range(1, len(b35.vtx)):
+            node.sendrawtransaction(ToHex(b35.vtx[i]), True)
+
+        # Now we create the compact block and send it
+        comp_block = HeaderAndShortIDs()
+        comp_block.initialize_from_block(b35)
+        peer.send_and_ping(msg_cmpctblock(comp_block.to_p2p()))
+
+        # Check that compact block is received properly
+        assert(int(node.getbestblockhash(), 16) == b35.sha256)
 
 
 if __name__ == '__main__':
