@@ -269,6 +269,7 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                         state = STATE_EATING_SPACES;
                 }
                 if (breakParsing) break;
+                // FALLTHROUGH
             }
             case STATE_ARGUMENT: // In or after argument
             case STATE_EATING_SPACES_IN_ARG:
@@ -403,6 +404,7 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                 strResult = lastResult.get_str();
             else
                 strResult = lastResult.write(2);
+        // FALLTHROUGH
         case STATE_ARGUMENT:
         case STATE_EATING_SPACES:
             return true;

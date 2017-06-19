@@ -47,8 +47,10 @@ unsigned int MurmurHash3(unsigned int nHashSeed,
         switch (vDataToHash.size() & 3) {
             case 3:
                 k1 ^= tail[2] << 16;
+            // FALLTHROUGH
             case 2:
                 k1 ^= tail[1] << 8;
+            // FALLTHROUGH
             case 1:
                 k1 ^= tail[0];
                 k1 *= c1;
