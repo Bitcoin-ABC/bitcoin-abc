@@ -157,6 +157,7 @@ testScripts = [
     'abc-p2p-activation.py',
     'abc-p2p-fullblocktest.py',
     'abc-rpc.py',
+    'mempool-accept-txn.py',
 ]
 if ENABLE_ZMQ:
     testScripts.append('zmq_test.py')

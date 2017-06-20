@@ -41,6 +41,10 @@ MAX_BLOCK_SIGOPS_PER_MB = 20000
 # (network rule)
 MAX_TX_SIGOPS_COUNT = 20000
 
+# The maximum number of sigops we're willing to relay/mine in a single tx
+# (policy.h constant)
+MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT // 5
+
 # Coinbase transaction outputs can only be spent after this number of new 
 # blocks (network rule)
 COINBASE_MATURITY = 100
