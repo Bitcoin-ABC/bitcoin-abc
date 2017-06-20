@@ -431,7 +431,8 @@ struct CNodeSignals {
                                  std::atomic<bool> &),
                             CombinerAll>
         SendMessages;
-    boost::signals2::signal<void(CNode *, CConnman &)> InitializeNode;
+    boost::signals2::signal<void(const Config &, CNode *, CConnman &)>
+        InitializeNode;
     boost::signals2::signal<void(NodeId, bool &)> FinalizeNode;
 };
 

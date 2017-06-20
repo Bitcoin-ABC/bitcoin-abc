@@ -1084,7 +1084,9 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
                              CalculateKeyedNetGroup(addr), nonce, "", true);
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
-    GetNodeSignals().InitializeNode(pnode, *this);
+
+    // FIXME: Pass config down rather than use GetConfig
+    GetNodeSignals().InitializeNode(GetConfig(), pnode, *this);
 
     LogPrint("net", "connection from %s accepted\n", addr.ToString());
 
@@ -1902,7 +1904,8 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     if (fFeeler) pnode->fFeeler = true;
     if (fAddnode) pnode->fAddnode = true;
 
-    GetNodeSignals().InitializeNode(pnode, *this);
+    // FIXME: Pass the config down rather than use GetConfig()
+    GetNodeSignals().InitializeNode(GetConfig(), pnode, *this);
     {
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);

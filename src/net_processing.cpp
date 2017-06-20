@@ -283,9 +283,7 @@ void PushNodeVersion(const Config &config, CNode *pnode, CConnman &connman,
             PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
 }
 
-void InitializeNode(CNode *pnode, CConnman &connman) {
-    // FIXME config should be passed as argument than retrieved here
-    const Config &config = GetConfig();
+void InitializeNode(const Config &config, CNode *pnode, CConnman &connman) {
     CAddress addr = pnode->addr;
     std::string addrName = pnode->GetAddrName();
     NodeId nodeid = pnode->GetId();
