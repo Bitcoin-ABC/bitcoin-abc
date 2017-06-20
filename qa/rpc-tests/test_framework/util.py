@@ -26,6 +26,7 @@ import errno
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
 
+DEFAULT_BITCOIND = 'bitcoind'
 COVERAGE_DIR = None
 
 # The maximum number of nodes a single test can spawn
@@ -329,13 +330,37 @@ def _rpchost_to_args(rpchost):
         rv += ['-rpcport=' + rpcport]
     return rv
 
+
+def locate_bitcoind_binary():
+    """
+    Find bitcoind binary if possible.
+    """
+    bitcoind_binary = os.getenv("BITCOIND", DEFAULT_BITCOIND)
+    if os.path.exists(bitcoind_binary):
+        return bitcoind_binary
+
+    if os.path.exists(os.path.join('src', DEFAULT_BITCOIND)):
+        bitcoind_binary = os.path.abspath(os.path.join('src', DEFAULT_BITCOIND))
+    elif bitcoind_binary == 'bitcoind' or not os.path.exists(bitcoind_binary):
+        # If BITCOIND was specified and exists, use it, otherwise look for source.
+        # get_srcdir() already returns an absolute path
+        src_dir_cand = get_srcdir(sys.argv[0])
+        if src_dir_cand and os.path.exists(
+                            os.path.join(src_dir_cand, 'src', DEFAULT_BITCOIND)):
+            bitcoind_binary = os.path.join(src_dir_cand, 'src', DEFAULT_BITCOIND)
+        else:
+            sys.stderr.write("Unable to locate bitcoind for this test.\n")
+            sys.exit(1)
+    return bitcoind_binary
+
+
 def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=None):
     """
     Start a bitcoind and return RPC connection to it
     """
     datadir = os.path.join(dirname, "node"+str(i))
     if binary is None:
-        binary = os.getenv("BITCOIND", "bitcoind")
+        binary = locate_bitcoind_binary()
     args = [ binary, "-datadir="+datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-mocktime="+str(get_mocktime()) ]
     if extra_args is not None: args.extend(extra_args)
     bitcoind_processes[i] = subprocess.Popen(args)
@@ -712,3 +737,42 @@ def mine_large_block(node, utxos=None):
 def get_bip9_status(node, key):
     info = node.getblockchaininfo()
     return info['bip9_softforks'][key]
+
+def get_srcdir(calling_script=None):
+    """
+    Try to find out the base folder containing the 'src' folder.
+    If SRCDIR is set it does a sanity check and returns that.
+    Otherwise it goes on a search and rescue mission.
+
+    Returns None if it cannot find a suitable folder.
+    """
+    def contains_src(path_to_check):
+        if not path_to_check:
+            return False
+        else:
+            cand_path = os.path.join(path_to_check, 'src')
+            return os.path.exists(cand_path) and os.path.isdir(cand_path)
+
+    srcdir = os.environ.get('SRCDIR', '')
+    if contains_src(srcdir):
+        return srcdir
+
+    # If we have a caller, try to guess from its location where the
+    # top level might be.
+    if calling_script:
+        caller_basedir = os.path.dirname(os.path.dirname(os.path.dirname(calling_script)))
+        if caller_basedir != '' and contains_src(os.path.abspath(caller_basedir)):
+            return os.path.abspath(caller_basedir)
+
+    # Try to work it based out on main module
+    # We might expect the caller to be rpc-tests.py or a test script
+    # itself.
+    mainmod = sys.modules['__main__']
+    mainmod_path = getattr(mainmod, '__file__', '')
+    if mainmod_path and mainmod_path.endswith('.py'):
+        maybe_top = os.path.dirname(os.path.dirname(os.path.dirname(mainmod_path)))
+        if contains_src(os.path.abspath(maybe_top)):
+            return os.path.abspath(maybe_top)
+
+    # No luck, give up.
+    return None
