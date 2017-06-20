@@ -25,6 +25,7 @@ import errno
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
+from .outputchecker import OutputChecker
 
 DEFAULT_BITCOIND = 'bitcoind'
 COVERAGE_DIR = None
@@ -230,9 +231,8 @@ def wait_for_bitcoind_start(process, url, i):
 def initialize_chain(test_dir, num_nodes, cachedir):
     """
     Create a cache of a 200-block-long chain (with wallet) for MAX_NODES
-    Afterward, create num_nodes copies from the cache
+    Afterward, create num_nodes copies from the cache.
     """
-
     assert num_nodes <= MAX_NODES
     create_cache = False
     for i in range(MAX_NODES):
@@ -242,7 +242,7 @@ def initialize_chain(test_dir, num_nodes, cachedir):
 
     if create_cache:
 
-        #find and delete old cache directories if any exist
+        # Find and delete old cache directories if any exist
         for i in range(MAX_NODES):
             if os.path.isdir(os.path.join(cachedir,"node"+str(i))):
                 shutil.rmtree(os.path.join(cachedir,"node"+str(i)))
@@ -354,16 +354,24 @@ def locate_bitcoind_binary():
     return bitcoind_binary
 
 
-def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=None):
+def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=None, stderr_checker=None):
     """
-    Start a bitcoind and return RPC connection to it
+    Start a bitcoind and return RPC connection to it.
+    If stderr_checker is provided, it must be an OutputChecker.
+    Its output_file_obj will be connected to the stderr of the bitcoind process.
     """
     datadir = os.path.join(dirname, "node"+str(i))
     if binary is None:
         binary = locate_bitcoind_binary()
     args = [ binary, "-datadir="+datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-mocktime="+str(get_mocktime()) ]
     if extra_args is not None: args.extend(extra_args)
-    bitcoind_processes[i] = subprocess.Popen(args)
+    if stderr_checker:
+        assert(isinstance(stderr_checker, OutputChecker))
+        bitcoind_processes[i] = subprocess.Popen(args,
+                                                 universal_newlines=True,
+                                                 stderr=stderr_checker.get_connector())
+    else:
+        bitcoind_processes[i] = subprocess.Popen(args)
     if os.getenv("PYTHON_DEBUG", ""):
         print("start_node: bitcoind started, waiting for RPC to come up")
     url = rpc_url(i, rpchost)
@@ -377,16 +385,24 @@ def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=
 
     return proxy
 
-def start_nodes(num_nodes, dirname, extra_args=None, rpchost=None, timewait=None, binary=None):
+def start_nodes(num_nodes, dirname, extra_args=None, rpchost=None, timewait=None, binary=None, stderr_checkers=None):
     """
     Start multiple bitcoinds, return RPC connections to them
+    stderr_checkers is a list which can contain OutputCheckers or None for each of the nodes.
+    if a test calls start_nodes and provides an OutputChecker for a node,
+    this will be connected to the stderr output of the node.
     """
     if extra_args is None: extra_args = [ None for _ in range(num_nodes) ]
+    if stderr_checkers is None:
+        stderr_checkers = [ None for _ in range(num_nodes) ]
     if binary is None: binary = [ None for _ in range(num_nodes) ]
     rpcs = []
     try:
         for i in range(num_nodes):
-            rpcs.append(start_node(i, dirname, extra_args[i], rpchost, timewait=timewait, binary=binary[i]))
+            rpcs.append(start_node(i, dirname, extra_args[i],
+                                   rpchost, timewait=timewait,
+                                   binary=binary[i],
+                                   stderr_checker=stderr_checkers[i]))
     except: # If one node failed to start, stop the others
         stop_nodes(rpcs)
         raise

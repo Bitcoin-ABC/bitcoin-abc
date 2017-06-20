@@ -27,6 +27,7 @@ from .util import (
     PortSeed,
 )
 from .authproxy import JSONRPCException
+from .outputchecker import OutputChecker
 
 
 class BitcoinTestFramework(object):
@@ -53,9 +54,15 @@ class BitcoinTestFramework(object):
         stop_node(self.nodes[num_node], num_node)
 
     def setup_nodes(self):
+        '''
+        Starts up the nodes.
+        '''
         return start_nodes(self.num_nodes, self.options.tmpdir)
 
     def setup_network(self, split = False):
+        '''
+        Sets up network including starting up nodes.
+        '''
         self.nodes = self.setup_nodes()
 
         # Connect the nodes as a "chain".  This allows us
