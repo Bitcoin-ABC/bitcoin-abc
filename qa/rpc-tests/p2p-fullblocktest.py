@@ -74,8 +74,6 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.add_all_connections(self.nodes)
         # Start up network handling in another thread
         NetworkThread().start()
-        # Set the blocksize to legacy cap (1MB) as initial condition
-        self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):

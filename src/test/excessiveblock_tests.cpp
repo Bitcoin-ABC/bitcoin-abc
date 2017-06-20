@@ -34,11 +34,14 @@ BOOST_AUTO_TEST_CASE(excessiveblock_rpc) {
     BOOST_CHECK_THROW(CallRPC(std::string("setexcessiveblock ") +
                               std::to_string(ONE_MEGABYTE - 1)),
                       std::runtime_error);
+    BOOST_CHECK_THROW(CallRPC(std::string("setexcessiveblock ") +
+                              std::to_string(ONE_MEGABYTE)),
+                      std::runtime_error);
 
     BOOST_CHECK_NO_THROW(CallRPC(std::string("setexcessiveblock ") +
-                                 std::to_string(ONE_MEGABYTE)));
-    BOOST_CHECK_NO_THROW(CallRPC(std::string("setexcessiveblock ") +
                                  std::to_string(ONE_MEGABYTE + 1)));
+    BOOST_CHECK_NO_THROW(CallRPC(std::string("setexcessiveblock ") +
+                                 std::to_string(ONE_MEGABYTE + 10)));
 
     // Default can be higher than 1MB in future - test it too
     BOOST_CHECK_NO_THROW(CallRPC(std::string("setexcessiveblock ") +

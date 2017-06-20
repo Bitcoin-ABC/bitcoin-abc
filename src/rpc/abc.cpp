@@ -54,7 +54,7 @@ static UniValue setexcessiveblock(Config &config,
     }
 
     // Do not allow maxBlockSize to be set below historic 1MB limit
-    if (ebs < LEGACY_MAX_BLOCK_SIZE)
+    if (ebs <= LEGACY_MAX_BLOCK_SIZE)
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             std::string(

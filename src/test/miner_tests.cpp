@@ -731,8 +731,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
 
     BOOST_CHECK(IsUAHFenabledForCurrentBlock(config));
 
-    // Test around historical 1MB
-    config.SetMaxBlockSize(ONE_MEGABYTE);
+    // Test around historical 1MB (plus one byte because that's mandatory)
+    config.SetMaxBlockSize(ONE_MEGABYTE + 1);
     CheckBlockMaxSize(chainparams, 0, 1000);
     CheckBlockMaxSize(chainparams, 1000, 1000);
     CheckBlockMaxSize(chainparams, 1001, 1001);
@@ -740,8 +740,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
 
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
+    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
     // Test around higher limit such as 8MB
     config.SetMaxBlockSize(EIGHT_MEGABYTES);
