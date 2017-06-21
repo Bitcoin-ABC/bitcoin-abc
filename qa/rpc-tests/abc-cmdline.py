@@ -17,6 +17,9 @@ from test_framework.util import (start_node,
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE
 from test_framework.outputchecker import OutputChecker
 
+MAX_GENERATED_BLOCK_SIZE_ERROR = (
+    'Max generated block size (blockmaxsize) cannot be lower than '
+    '1MB or exceed the excessive block size (excessiveblocksize)')
 
 class ABC_CmdLine_Test (BitcoinTestFramework):
 
@@ -81,23 +84,55 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
                                        self.extra_args[0],
                                        stderr_checker=outputchecker)
         except Exception as e:
-            assert(outputchecker.contains(
-                'Error: Max generated block size (blockmaxsize) cannot be '
-                'lower than 1MB or exceed the excessive block size (excessiveblocksize)'))
+            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
             assert_equal('bitcoind exited with status 1 during initialization', str(e))
         else:
             raise AssertionError('Must not accept excessiveblocksize'
                                  ' below blockmaxsize')
 
+        # Make sure that allowsmallgeneratedblocksize doesn't help here
+        outputchecker = OutputChecker()
+        try:
+            self.extra_args = [['-blockmaxsize=1500000',
+                                '-excessiveblocksize=1300000',
+                                '-allowsmallgeneratedblocksize']]
+            self.nodes[0] = start_node(0, self.options.tmpdir,
+                                       self.extra_args[0],
+                                       stderr_checker=outputchecker)
+        except Exception as e:
+            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+        else:
+            raise AssertionError('Must not accept excessiveblocksize'
+                                 ' below blockmaxsize')
+
+        print("  Attempt to set blockmaxsize below 1MB")
+        outputchecker = OutputChecker()
+        try:
+            self.extra_args = [["-blockmaxsize=%d" % LEGACY_MAX_BLOCK_SIZE]]
+            self.nodes[0] = start_node(0, self.options.tmpdir,
+                                       self.extra_args[0],
+                                       stderr_checker=outputchecker)
+        except Exception as e:
+            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+        else:
+            raise AssertionError('Must not accept excessiveblocksize'
+                                 ' below blockmaxsize')
+
+        outputchecker = OutputChecker()
+        self.extra_args = [["-blockmaxsize=%d" % LEGACY_MAX_BLOCK_SIZE,
+                            "-allowsmallgeneratedblocksize"]]
+        self.nodes[0] = start_node(0, self.options.tmpdir,
+                                   self.extra_args[0],
+                                   stderr_checker=outputchecker)
+        assert(outputchecker.contains('Warning: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+
 
     def run_test(self):
-
         # Run tests on -excessiveblocksize option
         self.excessiveblocksize_test()
 
-        # Start up default because test framework expects running node
-        # at end of test.
-        self.nodes[0] = start_node(0, self.options.tmpdir)
 
 if __name__ == '__main__':
     ABC_CmdLine_Test().main()

@@ -13,6 +13,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.outputchecker import OutputChecker
 import time
 import os
 
@@ -43,16 +44,16 @@ class PruneTest(BitcoinTestFramework):
         self.is_network_split = False
 
         # Create nodes 0 and 1 to mine
-        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-blockmaxsize=999000", "-checkblocks=5"], timewait=900))
-        self.nodes.append(start_node(1, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-blockmaxsize=999000", "-checkblocks=5"], timewait=900))
+        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-checkblocks=5"], timewait=900))
+        self.nodes.append(start_node(1, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-checkblocks=5"], timewait=900))
 
         # Create node 2 to test pruning
         self.nodes.append(start_node(2, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-prune=550"], timewait=900))
         self.prunedir = self.options.tmpdir+"/node2/regtest/blocks/"
 
         # Create nodes 3 and 4 to test manual pruning (they will be re-started with manual pruning later)
-        self.nodes.append(start_node(3, self.options.tmpdir, ["-debug=0","-maxreceivebuffer=20000","-blockmaxsize=999000"], timewait=900))
-        self.nodes.append(start_node(4, self.options.tmpdir, ["-debug=0","-maxreceivebuffer=20000","-blockmaxsize=999000"], timewait=900))
+        self.nodes.append(start_node(3, self.options.tmpdir, ["-debug=0","-maxreceivebuffer=20000"], timewait=900))
+        self.nodes.append(start_node(4, self.options.tmpdir, ["-debug=0","-maxreceivebuffer=20000"], timewait=900))
 
         # Create nodes 5 to test wallet in prune mode, but do not connect
         self.nodes.append(start_node(5, self.options.tmpdir, ["-debug=0", "-prune=550"]))
@@ -109,7 +110,7 @@ class PruneTest(BitcoinTestFramework):
             # Node 2 stays connected, so it hears about the stale blocks and then reorg's when node0 reconnects
             # Stopping node 0 also clears its mempool, so it doesn't have node1's transactions to accidentally mine
             self.stop_node(0)
-            self.nodes[0]=start_node(0, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-blockmaxsize=999000", "-checkblocks=5"], timewait=900)
+            self.nodes[0]=start_node(0, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-checkblocks=5"], timewait=900)
             # Mine 24 blocks in node 1
             for i in range(24):
                 if j == 0:
@@ -134,7 +135,10 @@ class PruneTest(BitcoinTestFramework):
         # Reboot node 1 to clear its mempool (hopefully make the invalidate faster)
         # Lower the block max size so we don't keep mining all our big mempool transactions (from disconnected blocks)
         self.stop_node(1)
-        self.nodes[1]=start_node(1, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"], timewait=900)
+        self.nodes[1]=start_node(1, self.options.tmpdir,
+                                 ["-debug", "-maxreceivebuffer=20000", "-allowsmallgeneratedblocksize",
+                                  "-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"],
+                                  timewait=900, stderr_checker=OutputChecker())
 
         height = self.nodes[1].getblockcount()
         print("Current block height:", height)
@@ -157,7 +161,10 @@ class PruneTest(BitcoinTestFramework):
 
         # Reboot node1 to clear those giant tx's from mempool
         self.stop_node(1)
-        self.nodes[1]=start_node(1, self.options.tmpdir, ["-debug","-maxreceivebuffer=20000","-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"], timewait=900)
+        self.nodes[1]=start_node(1, self.options.tmpdir,
+                                 ["-debug", "-maxreceivebuffer=20000", "-allowsmallgeneratedblocksize",
+                                  "-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"],
+                                 timewait=900, stderr_checker=OutputChecker())
 
         print("Generating new longer chain of 300 more blocks")
         self.nodes[1].generate(300)

@@ -1396,11 +1396,20 @@ bool AppInitParameterInteraction(Config &config) {
     // satisfy the "must be big" UAHF rule.
     const uint64_t nProposedMaxGeneratedBlockSize =
         GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
-    if (nProposedMaxGeneratedBlockSize <= LEGACY_MAX_BLOCK_SIZE ||
-        nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize()) {
-        return InitError(
+    const bool maxGeneratedBlockSizeTooSmall =
+        nProposedMaxGeneratedBlockSize <= LEGACY_MAX_BLOCK_SIZE;
+    const bool maxGeneratedBlockSizeTooBig =
+        nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize();
+    if (maxGeneratedBlockSizeTooSmall || maxGeneratedBlockSizeTooBig) {
+        auto msg =
             _("Max generated block size (blockmaxsize) cannot be lower than "
-              "1MB or exceed the excessive block size (excessiveblocksize)"));
+              "1MB or exceed the excessive block size (excessiveblocksize)");
+        if (maxGeneratedBlockSizeTooBig ||
+            !IsArgSet("-allowsmallgeneratedblocksize")) {
+            return InitError(msg);
+        }
+
+        InitWarning(msg);
     }
 
     const int64_t nProposedUAHFStartTime =

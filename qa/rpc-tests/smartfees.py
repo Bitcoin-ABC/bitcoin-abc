@@ -10,6 +10,7 @@
 from collections import OrderedDict
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.outputchecker import OutputChecker
 
 # Construct 2 trivial P2SH's and the ScriptSigs that spend them
 # So we can create many many transactions without needing to spend
@@ -197,14 +198,16 @@ class EstimateFeeTest(BitcoinTestFramework):
         # (17k is room enough for 110 or so transactions)
         self.nodes.append(start_node(1, self.options.tmpdir,
                                      ["-blockprioritysize=1500", "-blockmaxsize=17000",
-                                      "-maxorphantx=1000", "-debug=estimatefee"]))
+                                      "-maxorphantx=1000", "-debug=estimatefee",
+                                      "-allowsmallgeneratedblocksize"],
+                                     stderr_checker=OutputChecker()))
         connect_nodes(self.nodes[1], 0)
 
         # Node2 is a stingy miner, that
         # produces too small blocks (room for only 55 or so transactions)
-        node2args = ["-blockprioritysize=0", "-blockmaxsize=8000", "-maxorphantx=1000"]
+        node2args = ["-blockprioritysize=0", "-blockmaxsize=8000", "-maxorphantx=1000", "-allowsmallgeneratedblocksize"]
 
-        self.nodes.append(start_node(2, self.options.tmpdir, node2args))
+        self.nodes.append(start_node(2, self.options.tmpdir, node2args, stderr_checker=OutputChecker()))
         connect_nodes(self.nodes[0], 2)
         connect_nodes(self.nodes[2], 1)
 
