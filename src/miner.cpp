@@ -75,7 +75,7 @@ int64_t UpdateTime(CBlockHeader *pblock,
 }
 
 static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
-                                             int64_t nMedianTimePast) {
+                                             const CBlockIndex *pindexPrev) {
     // Block resource limits
     // If -blockmaxsize is not given, limit to DEFAULT_MAX_GENERATED_BLOCK_SIZE
     // If only one is given, only restrict the specified resource.
@@ -93,12 +93,22 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
 
     // If UAHF is not activated yet, we also want to limit the max generated
     // block size to LEGACY_MAX_BLOCK_SIZE - 1000
-    if (!IsUAHFenabled(config, nMedianTimePast)) {
+    if (!IsUAHFenabled(config, pindexPrev)) {
         nMaxGeneratedBlockSize =
             std::min(LEGACY_MAX_BLOCK_SIZE - 1000, nMaxGeneratedBlockSize);
     }
 
     return nMaxGeneratedBlockSize;
+}
+
+static uint64_t ComputeMinGeneratedBlockSize(const Config &config,
+                                             const CBlockIndex *pindexPrev) {
+    if (IsUAHFenabled(config, pindexPrev) &&
+        !IsUAHFenabled(config, pindexPrev->pprev)) {
+        return LEGACY_MAX_BLOCK_SIZE + 1;
+    }
+
+    return 0;
 }
 
 BlockAssembler::BlockAssembler(const Config &_config,
@@ -113,8 +123,8 @@ BlockAssembler::BlockAssembler(const Config &_config,
     }
 
     LOCK(cs_main);
-    nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(
-        *config, chainActive.Tip()->GetMedianTimePast());
+    nMaxGeneratedBlockSize =
+        ComputeMaxGeneratedBlockSize(*config, chainActive.Tip());
 }
 
 void BlockAssembler::resetBlock() {
@@ -163,8 +173,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     pblock->nTime = GetAdjustedTime();
     nMedianTimePast = pindexPrev->GetMedianTimePast();
-    nMaxGeneratedBlockSize =
-        ComputeMaxGeneratedBlockSize(*config, nMedianTimePast);
+    nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(*config, pindexPrev);
 
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
@@ -190,11 +199,34 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vout[0].nValue =
         nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
-    pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
+    pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
     pblocktemplate->vTxFees[0] = -nFees;
 
     uint64_t nSerializeSize =
         GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
+
+    // We need a "must be big" block, so we stuff the coinbase.
+    uint64_t nMinBlockSize = ComputeMinGeneratedBlockSize(*config, pindexPrev);
+    if (nSerializeSize < nMinBlockSize) {
+        static const std::string pad =
+            "Bitcoin: A Peer-to-Peer Electronic Cash System";
+        auto o = CTxOut(
+            0, CScript() << OP_RETURN
+                         << std::vector<unsigned char>(pad.begin(), pad.end()));
+        auto commitmentSize =
+            GetSerializeSize(o, SER_NETWORK, PROTOCOL_VERSION);
+        auto missingCommitment =
+            1 + ((nMinBlockSize - nSerializeSize - 1) / commitmentSize);
+        coinbaseTx.vout.reserve(missingCommitment + 1);
+        for (size_t i = 0; i < missingCommitment; ++i) {
+            coinbaseTx.vout.push_back(o);
+        }
+
+        pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
+        nSerializeSize =
+            GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
+    }
+
     LogPrintf("CreateNewBlock(): total size: %u txs: %u fees: %ld sigops %d\n",
               nSerializeSize, nBlockTx, nFees, nBlockSigOps);
 

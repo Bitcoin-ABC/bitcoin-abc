@@ -372,7 +372,7 @@ void PruneAndFlush();
 void PruneBlockFilesManual(int nPruneUpToHeight);
 
 /** Check is UAHF has activated. */
-bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast);
+bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
 bool IsUAHFenabledForCurrentBlock(const Config &config);
 
 /** (try to) add transaction to memory pool

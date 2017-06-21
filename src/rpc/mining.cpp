@@ -158,6 +158,7 @@ static UniValue generateBlocks(const Config &config,
             coinbaseScript->KeepScript();
         }
     }
+
     return blockHashes;
 }
 

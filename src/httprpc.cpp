@@ -17,7 +17,8 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "utilstrencodings.h"
-#include <stdio.h>
+
+#include <cstdio>
 
 #include <boost/algorithm/string.hpp> // boost::trim
 
