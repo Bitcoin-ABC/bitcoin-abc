@@ -1201,9 +1201,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
                     if (exists(txin.prevout.GetTxId())) {
                         continue;
                     }
-                    if (!mapNextTx.count(txin.prevout)) {
-                        pvNoSpendsRemaining->push_back(txin.prevout);
-                    }
+                    pvNoSpendsRemaining->push_back(txin.prevout);
                 }
             }
         }
