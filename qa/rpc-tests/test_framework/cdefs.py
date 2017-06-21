@@ -29,6 +29,8 @@ LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE
 # Default setting for maximum allowed size for a block, in bytes
 DEFAULT_MAX_BLOCK_SIZE = 8 * ONE_MEGABYTE
 
+DEFAULT_UAHF_START_TIME = 1501590000
+
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
 # that violate current consensus.
