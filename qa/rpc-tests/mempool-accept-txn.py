@@ -17,7 +17,7 @@ import time
 from test_framework.key import CECKey
 from test_framework.script import *
 import struct
-from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, MAX_STANDARD_TX_SIGOPS
+from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 
 # Error for too many sigops in one TX
 TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
@@ -57,8 +57,6 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.add_all_connections(self.nodes)
         # Start up network handling in another thread
         NetworkThread().start()
-        # Set the blocksize to legacy cap (1MB) as initial condition
-        self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
