@@ -33,6 +33,8 @@
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 
+static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitcoinMiner
@@ -142,6 +144,14 @@ void BlockAssembler::resetBlock() {
     blockFinished = false;
 }
 
+static const std::vector<unsigned char>
+getExcessiveBlockSizeSig(const Config &config) {
+    std::string cbmsg = "/EB" + getSubVersionEB(config.GetMaxBlockSize()) + "/";
+    const char *cbcstr = cbmsg.c_str();
+    std::vector<unsigned char> vec(cbcstr, cbcstr + cbmsg.size());
+    return vec;
+}
+
 std::unique_ptr<CBlockTemplate>
 BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     int64_t nTimeStart = GetTimeMicros();
@@ -199,7 +209,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vout[0].nValue =
         nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
-    pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
+    pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vTxFees[0] = -nFees;
 
     uint64_t nSerializeSize =
@@ -658,7 +668,8 @@ void BlockAssembler::addPriorityTxs() {
     }
 }
 
-void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
+void IncrementExtraNonce(const Config &config, CBlock *pblock,
+                         const CBlockIndex *pindexPrev,
                          unsigned int &nExtraNonce) {
     // Update nExtraNonce
     static uint256 hashPrevBlock;
@@ -671,8 +682,10 @@ void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
     unsigned int nHeight = pindexPrev->nHeight + 1;
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
     txCoinbase.vin[0].scriptSig =
-        (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
-    assert(txCoinbase.vin[0].scriptSig.size() <= 100);
+        (CScript() << nHeight << CScriptNum(nExtraNonce)
+                   << getExcessiveBlockSizeSig(config)) +
+        COINBASE_FLAGS;
+    assert(txCoinbase.vin[0].scriptSig.size() <= MAX_COINBASE_SCRIPTSIG_SIZE);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);

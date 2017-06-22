@@ -202,6 +202,42 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == hashLowFeeTx2);
 }
 
+void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
+
+    GlobalConfig config;
+    config.SetMaxBlockSize(eb);
+    const CChainParams &chainparams = config.GetChainParams();
+
+    CScript scriptPubKey =
+        CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909"
+                              "a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112"
+                              "de5c384df7ba0b8d578a4c702b6bf11d5f")
+                  << OP_CHECKSIG;
+
+    std::unique_ptr<CBlockTemplate> pblocktemplate =
+        BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey);
+
+    CBlock *pblock = &pblocktemplate->block;
+
+    // IncrementExtraNonce creates a valid coinbase and merkleRoot
+    unsigned int extraNonce = 0;
+    IncrementExtraNonce(config, pblock, chainActive.Tip(), extraNonce);
+    unsigned int nHeight = chainActive.Tip()->nHeight + 1;
+    std::vector<unsigned char> vec(cbmsg.begin(), cbmsg.end());
+    BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==
+                ((CScript() << nHeight << CScriptNum(extraNonce) << vec) +
+                 COINBASE_FLAGS));
+}
+
+// Coinbase scriptSig has to contains the correct EB value
+// converted to MB, rounded down to the first decimal
+BOOST_AUTO_TEST_CASE(CheckCoinbase_EB) {
+    TestCoinbaseMessageEB(1000001, "/EB1.0/");
+    TestCoinbaseMessageEB(2000000, "/EB2.0/");
+    TestCoinbaseMessageEB(8000000, "/EB8.0/");
+    TestCoinbaseMessageEB(8320000, "/EB8.3/");
+}
+
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // Note that by default, these tests run with size accounting enabled.

@@ -130,7 +130,7 @@ static UniValue generateBlocks(const Config &config,
         CBlock *pblock = &pblocktemplate->block;
         {
             LOCK(cs_main);
-            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+            IncrementExtraNonce(config, pblock, chainActive.Tip(), nExtraNonce);
         }
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&
                !CheckProofOfWork(pblock->GetHash(), pblock->nBits,
