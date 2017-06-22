@@ -12,22 +12,22 @@
 #include "utiltime.h"
 #include "version.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <fstream>
 
 using namespace std;
 
 /**
- * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility,
- * but uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
+ * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility, but
+ * uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
  * unspecified (HTTP errors and contents of 'error').
- * 
+ *
  * 1.0 spec: http://json-rpc.org/wiki/specification
  * 1.2 spec: http://jsonrpc.org/historical/json-rpc-over-http.html
  */
 
-UniValue JSONRPCRequestObj(const string& strMethod, const UniValue& params, const UniValue& id)
-{
+UniValue JSONRPCRequestObj(const string &strMethod, const UniValue &params,
+                           const UniValue &id) {
     UniValue request(UniValue::VOBJ);
     request.push_back(Pair("method", strMethod));
     request.push_back(Pair("params", params));
@@ -35,8 +35,8 @@ UniValue JSONRPCRequestObj(const string& strMethod, const UniValue& params, cons
     return request;
 }
 
-UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id)
-{
+UniValue JSONRPCReplyObj(const UniValue &result, const UniValue &error,
+                         const UniValue &id) {
     UniValue reply(UniValue::VOBJ);
     if (!error.isNull())
         reply.push_back(Pair("result", NullUniValue));
@@ -47,14 +47,13 @@ UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const Un
     return reply;
 }
 
-string JSONRPCReply(const UniValue& result, const UniValue& error, const UniValue& id)
-{
+string JSONRPCReply(const UniValue &result, const UniValue &error,
+                    const UniValue &id) {
     UniValue reply = JSONRPCReplyObj(result, error, id);
     return reply.write() + "\n";
 }
 
-UniValue JSONRPCError(int code, const string& message)
-{
+UniValue JSONRPCError(int code, const string &message) {
     UniValue error(UniValue::VOBJ);
     error.push_back(Pair("code", code));
     error.push_back(Pair("message", message));
@@ -68,19 +67,18 @@ static const std::string COOKIEAUTH_USER = "__cookie__";
 /** Default name for auth cookie file */
 static const std::string COOKIEAUTH_FILE = ".cookie";
 
-boost::filesystem::path GetAuthCookieFile()
-{
+boost::filesystem::path GetAuthCookieFile() {
     boost::filesystem::path path(GetArg("-rpccookiefile", COOKIEAUTH_FILE));
     if (!path.is_complete()) path = GetDataDir() / path;
     return path;
 }
 
-bool GenerateAuthCookie(std::string *cookie_out)
-{
+bool GenerateAuthCookie(std::string *cookie_out) {
     const size_t COOKIE_SIZE = 32;
     unsigned char rand_pwd[COOKIE_SIZE];
     GetRandBytes(rand_pwd, COOKIE_SIZE);
-    std::string cookie = COOKIEAUTH_USER + ":" + HexStr(rand_pwd, rand_pwd+COOKIE_SIZE);
+    std::string cookie =
+        COOKIEAUTH_USER + ":" + HexStr(rand_pwd, rand_pwd + COOKIE_SIZE);
 
     /** the umask determines what permissions are used to create this file -
      * these are set to 077 in init.cpp unless overridden with -sysperms.
@@ -89,40 +87,36 @@ bool GenerateAuthCookie(std::string *cookie_out)
     boost::filesystem::path filepath = GetAuthCookieFile();
     file.open(filepath.string().c_str());
     if (!file.is_open()) {
-        LogPrintf("Unable to open cookie authentication file %s for writing\n", filepath.string());
+        LogPrintf("Unable to open cookie authentication file %s for writing\n",
+                  filepath.string());
         return false;
     }
     file << cookie;
     file.close();
     LogPrintf("Generated RPC authentication cookie %s\n", filepath.string());
 
-    if (cookie_out)
-        *cookie_out = cookie;
+    if (cookie_out) *cookie_out = cookie;
     return true;
 }
 
-bool GetAuthCookie(std::string *cookie_out)
-{
+bool GetAuthCookie(std::string *cookie_out) {
     std::ifstream file;
     std::string cookie;
     boost::filesystem::path filepath = GetAuthCookieFile();
     file.open(filepath.string().c_str());
-    if (!file.is_open())
-        return false;
+    if (!file.is_open()) return false;
     std::getline(file, cookie);
     file.close();
 
-    if (cookie_out)
-        *cookie_out = cookie;
+    if (cookie_out) *cookie_out = cookie;
     return true;
 }
 
-void DeleteAuthCookie()
-{
+void DeleteAuthCookie() {
     try {
         boost::filesystem::remove(GetAuthCookieFile());
-    } catch (const boost::filesystem::filesystem_error& e) {
-        LogPrintf("%s: Unable to remove random auth cookie file: %s\n", __func__, e.what());
+    } catch (const boost::filesystem::filesystem_error &e) {
+        LogPrintf("%s: Unable to remove random auth cookie file: %s\n",
+                  __func__, e.what());
     }
 }
-
