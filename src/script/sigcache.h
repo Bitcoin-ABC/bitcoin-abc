@@ -19,15 +19,21 @@ static const int64_t MAX_MAX_SIG_CACHE_SIZE = 16384;
 
 class CPubKey;
 
-class CachingTransactionSignatureChecker : public TransactionSignatureChecker
-{
+class CachingTransactionSignatureChecker : public TransactionSignatureChecker {
 private:
     bool store;
 
 public:
-    CachingTransactionSignatureChecker(const CTransaction* txToIn, unsigned int nInIn, const CAmount& amount, bool storeIn, PrecomputedTransactionData& txdataIn) : TransactionSignatureChecker(txToIn, nInIn, amount, txdataIn), store(storeIn) {}
+    CachingTransactionSignatureChecker(const CTransaction *txToIn,
+                                       unsigned int nInIn,
+                                       const CAmount &amount, bool storeIn,
+                                       PrecomputedTransactionData &txdataIn)
+        : TransactionSignatureChecker(txToIn, nInIn, amount, txdataIn),
+          store(storeIn) {}
 
-    bool VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& vchPubKey, const uint256& sighash) const;
+    bool VerifySignature(const std::vector<unsigned char> &vchSig,
+                         const CPubKey &vchPubKey,
+                         const uint256 &sighash) const;
 };
 
 void InitSignatureCache();
