@@ -252,9 +252,25 @@ public:
     }
 
     bool Run() {
-        bool proxyConnectionFailed = false;
-        if (!ConnectSocket(you, sock, nConnectTimeout,
-                           &proxyConnectionFailed)) {
+        // FIXME: This logic is duplicated with CConnman::ConnectNode for no
+        // good reason.
+        bool connected = false;
+        proxyType proxy;
+
+        if (you.IsValid()) {
+            bool proxyConnectionFailed = false;
+
+            if (GetProxy(you.GetNetwork(), proxy)) {
+                connected = ConnectThroughProxy(
+                    proxy, you.ToStringIP(), you.GetPort(), sock,
+                    nConnectTimeout, &proxyConnectionFailed);
+            } else {
+                // no proxy needed (none set for target network)
+                connected = ConnectSocketDirectly(you, sock, nConnectTimeout);
+            }
+        }
+
+        if (!connected) {
             return false;
         }
 
