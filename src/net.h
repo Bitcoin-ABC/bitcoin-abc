@@ -23,9 +23,9 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <deque>
 #include <memory>
-#include <stdint.h>
 #include <thread>
 
 #ifndef WIN32
