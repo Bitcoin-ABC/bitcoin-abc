@@ -1951,7 +1951,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
               nMempoolSizeMax * (1.0 / 1024 / 1024));
 
     bool fLoaded = false;
-    while (!fLoaded) {
+    while (!fLoaded && !fRequestShutdown) {
         bool fReset = fReindex;
         std::string strLoadError;
 
@@ -1984,6 +1984,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     strLoadError = _("Error upgrading chainstate database");
                     break;
                 }
+                if (fRequestShutdown) break;
 
                 if (!LoadBlockIndex(chainparams)) {
                     strLoadError = _("Error loading block database");
@@ -2076,7 +2077,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
             fLoaded = true;
         } while (false);
 
-        if (!fLoaded) {
+        if (!fLoaded && !fRequestShutdown) {
             // first suggest a reindex
             if (!fReset) {
                 bool fRet = uiInterface.ThreadSafeQuestion(
