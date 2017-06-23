@@ -141,8 +141,9 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
     int nRequired;
 
     out.pushKV("asm", ScriptToAsmStr(scriptPubKey));
-    if (fIncludeHex)
+    if (fIncludeHex) {
         out.pushKV("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+    }
 
     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
         out.pushKV("type", GetTxnOutputType(type));
@@ -170,10 +171,10 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxIn &txin = tx.vin[i];
         UniValue in(UniValue::VOBJ);
-        if (tx.IsCoinBase())
+        if (tx.IsCoinBase()) {
             in.pushKV("coinbase",
                       HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
-        else {
+        } else {
             in.pushKV("txid", txin.prevout.hash.GetHex());
             in.pushKV("vout", (int64_t)txin.prevout.n);
             UniValue o(UniValue::VOBJ);
@@ -204,7 +205,9 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
     }
     entry.pushKV("vout", vout);
 
-    if (!hashBlock.IsNull()) entry.pushKV("blockhash", hashBlock.GetHex());
+    if (!hashBlock.IsNull()) {
+        entry.pushKV("blockhash", hashBlock.GetHex());
+    }
 
     // the hex-encoded transaction. used the name "hex" to be consistent with
     // the verbose output of "getrawtransaction".
