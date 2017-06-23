@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(uahfstarttime_rpc) {
     BOOST_CHECK_THROW(CallRPC("setuahfstarttime -1"), boost::bad_lexical_cast);
     BOOST_CHECK_THROW(
         CallRPC(std::string("setuahfstarttime ") +
-                std::to_string(std::numeric_limits<int64_t>::max() + 1)),
+                std::to_string(std::numeric_limits<int64_t>::min())),
         boost::bad_lexical_cast);
 
     BOOST_CHECK_THROW(CallRPC("setuahfstarttime 0"), std::runtime_error);
