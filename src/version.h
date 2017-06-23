@@ -29,13 +29,16 @@ static const int BIP0031_VERSION = 60000;
 //! "mempool" command, enhanced "getdata" behavior starts with this version
 static const int MEMPOOL_GD_VERSION = 60002;
 
-//! "filter*" commands are disabled without NODE_BLOOM after and including this version
+//! "filter*" commands are disabled without NODE_BLOOM after and including this
+//! version
 static const int NO_BLOOM_VERSION = 70011;
 
-//! "sendheaders" command and announcing blocks with headers starts with this version
+//! "sendheaders" command and announcing blocks with headers starts with this
+//! version
 static const int SENDHEADERS_VERSION = 70012;
 
-//! "feefilter" tells peers to filter invs to you by fee starts with this version
+//! "feefilter" tells peers to filter invs to you by fee starts with this
+//! version
 static const int FEEFILTER_VERSION = 70013;
 
 //! short-id-based block download starts with this version
