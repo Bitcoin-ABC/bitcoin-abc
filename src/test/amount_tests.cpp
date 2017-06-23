@@ -9,8 +9,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
 
-BOOST_AUTO_TEST_CASE(GetFeeTest)
-{
+BOOST_AUTO_TEST_CASE(GetFeeTest) {
     CFeeRate feeRate;
 
     feeRate = CFeeRate(0);
@@ -39,7 +38,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest)
     feeRate = CFeeRate(123);
     // Truncates the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), 0);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), 1); // Special case: returns 1 instead of 0
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8),
+                      1); // Special case: returns 1 instead of 0
     BOOST_CHECK_EQUAL(feeRate.GetFee(9), 1);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), 14);
     BOOST_CHECK_EQUAL(feeRate.GetFee(122), 15);
@@ -50,7 +50,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest)
     feeRate = CFeeRate(-123);
     // Truncates the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), 0);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), -1); // Special case: returns -1 instead of 0
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8),
+                      -1); // Special case: returns -1 instead of 0
     BOOST_CHECK_EQUAL(feeRate.GetFee(9), -1);
 
     // Check full constructor
