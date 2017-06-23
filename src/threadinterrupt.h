@@ -10,13 +10,12 @@
 #include <condition_variable>
 #include <mutex>
 
-/*
-    A helper class for interruptible sleeps. Calling operator() will interrupt
-    any current sleep, and after that point operator bool() will return true
-    until reset.
-*/
-class CThreadInterrupt
-{
+/**
+ * A helper class for interruptible sleeps. Calling operator() will interrupt
+ * any current sleep, and after that point operator bool() will return true
+ * until reset.
+ */
+class CThreadInterrupt {
 public:
     explicit operator bool() const;
     void operator()();
@@ -31,4 +30,4 @@ private:
     std::atomic<bool> flag;
 };
 
-#endif //BITCOIN_THREADINTERRUPT_H
+#endif // BITCOIN_THREADINTERRUPT_H
