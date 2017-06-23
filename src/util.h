@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 /**
- * Server/client environment: argument handling, config file parsing,
- * logging, thread wrappers.
+ * Server/client environment: argument handling, config file parsing, logging,
+ * thread wrappers.
  */
 #ifndef BITCOIN_UTIL_H
 #define BITCOIN_UTIL_H

@@ -28,12 +28,13 @@ enum SafeChars {
 };
 
 /**
-* Remove unsafe chars. Safe chars chosen to allow simple messages/URLs/email
-* addresses, but avoid anything even possibly remotely dangerous like & or >
-* @param[in] str    The string to sanitize
-* @param[in] rule   The set of safe chars to choose (default: least restrictive)
-* @return           A new string without unsafe chars
-*/
+ * Remove unsafe chars. Safe chars chosen to allow simple messages/URLs/email
+ * addresses, but avoid anything even possibly remotely dangerous like & or >
+ * @param[in] str    The string to sanitize
+ * @param[in] rule   The set of safe chars to choose (default: least
+ * restrictive)
+ * @return           A new string without unsafe chars
+ */
 std::string SanitizeString(const std::string &str,
                            int rule = SAFE_CHARS_DEFAULT);
 std::vector<unsigned char> ParseHex(const char *psz);
@@ -132,7 +133,8 @@ template <typename T> bool TimingResistantEqual(const T &a, const T &b) {
     return accumulator == 0;
 }
 
-/** Parse number as fixed point according to JSON number syntax.
+/**
+ * Parse number as fixed point according to JSON number syntax.
  * See http://json.org/number.gif
  * @returns true on success, false on error.
  * @note The result must be in the range (-10^18,10^18), otherwise an overflow

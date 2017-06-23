@@ -16,7 +16,7 @@
 #include "utilstrencodings.h"
 #include "utiltime.h"
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #if (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
 #include <pthread.h>
@@ -764,8 +764,8 @@ void RenameThread(const char *name) {
 
 void SetupEnvironment() {
 #ifdef HAVE_MALLOPT_ARENA_MAX
-    // glibc-specific: On 32-bit systems set the number of arenas to 1.
-    // By default, since glibc 2.10, the C library will create up to two heap
+    // glibc-specific: On 32-bit systems set the number of arenas to 1. By
+    // default, since glibc 2.10, the C library will create up to two heap
     // arenas per core. This is known to cause excessive virtual address space
     // usage in our usage. Work around it by setting the maximum number of
     // arenas to 1.
