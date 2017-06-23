@@ -8,10 +8,10 @@
 #include <assert.h>
 #include <map>
 
-/** STL-like map container that only keeps the N elements with the highest value. */
-template <typename K, typename V>
-class limitedmap
-{
+/**
+ * STL-like map container that only keeps the N elements with the highest value.
+ */
+template <typename K, typename V> class limitedmap {
 public:
     typedef K key_type;
     typedef V mapped_type;
@@ -27,8 +27,7 @@ protected:
     size_type nMaxSize;
 
 public:
-    limitedmap(size_type nMaxSizeIn)
-    {
+    limitedmap(size_type nMaxSizeIn) {
         assert(nMaxSizeIn > 0);
         nMaxSize = nMaxSizeIn;
     }
@@ -36,10 +35,9 @@ public:
     const_iterator end() const { return map.end(); }
     size_type size() const { return map.size(); }
     bool empty() const { return map.empty(); }
-    const_iterator find(const key_type& k) const { return map.find(k); }
-    size_type count(const key_type& k) const { return map.count(k); }
-    void insert(const value_type& x)
-    {
+    const_iterator find(const key_type &k) const { return map.find(k); }
+    size_type count(const key_type &k) const { return map.count(k); }
+    void insert(const value_type &x) {
         std::pair<iterator, bool> ret = map.insert(x);
         if (ret.second) {
             if (map.size() > nMaxSize) {
@@ -49,44 +47,46 @@ public:
             rmap.insert(make_pair(x.second, ret.first));
         }
     }
-    void erase(const key_type& k)
-    {
+    void erase(const key_type &k) {
         iterator itTarget = map.find(k);
-        if (itTarget == map.end())
+        if (itTarget == map.end()) {
             return;
-        std::pair<rmap_iterator, rmap_iterator> itPair = rmap.equal_range(itTarget->second);
-        for (rmap_iterator it = itPair.first; it != itPair.second; ++it)
+        }
+        std::pair<rmap_iterator, rmap_iterator> itPair =
+            rmap.equal_range(itTarget->second);
+        for (rmap_iterator it = itPair.first; it != itPair.second; ++it) {
             if (it->second == itTarget) {
                 rmap.erase(it);
                 map.erase(itTarget);
                 return;
             }
+        }
         // Shouldn't ever get here
         assert(0);
     }
-    void update(const_iterator itIn, const mapped_type& v)
-    {
-        // Using map::erase() with empty range instead of map::find() to get a non-const iterator,
-        // since it is a constant time operation in C++11. For more details, see
+    void update(const_iterator itIn, const mapped_type &v) {
+        // Using map::erase() with empty range instead of map::find() to get a
+        // non-const iterator, since it is a constant time operation in C++11.
+        // For more details, see
         // https://stackoverflow.com/questions/765148/how-to-remove-constness-of-const-iterator
         iterator itTarget = map.erase(itIn, itIn);
-        
-        if (itTarget == map.end())
-            return;
-        std::pair<rmap_iterator, rmap_iterator> itPair = rmap.equal_range(itTarget->second);
-        for (rmap_iterator it = itPair.first; it != itPair.second; ++it)
+
+        if (itTarget == map.end()) return;
+        std::pair<rmap_iterator, rmap_iterator> itPair =
+            rmap.equal_range(itTarget->second);
+        for (rmap_iterator it = itPair.first; it != itPair.second; ++it) {
             if (it->second == itTarget) {
                 rmap.erase(it);
                 itTarget->second = v;
                 rmap.insert(make_pair(v, itTarget));
                 return;
             }
+        }
         // Shouldn't ever get here
         assert(0);
     }
     size_type max_size() const { return nMaxSize; }
-    size_type max_size(size_type s)
-    {
+    size_type max_size(size_type s) {
         assert(s > 0);
         while (map.size() > s) {
             map.erase(rmap.begin()->second);
