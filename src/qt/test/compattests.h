@@ -8,8 +8,7 @@
 #include <QObject>
 #include <QTest>
 
-class CompatTests : public QObject
-{
+class CompatTests : public QObject {
     Q_OBJECT
 
 private Q_SLOTS:

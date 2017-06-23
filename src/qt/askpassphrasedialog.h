@@ -10,13 +10,13 @@
 class WalletModel;
 
 namespace Ui {
-    class AskPassphraseDialog;
+class AskPassphraseDialog;
 }
 
-/** Multifunctional dialog to ask for passphrases. Used for encryption, unlocking, and changing the passphrase.
+/** Multifunctional dialog to ask for passphrases. Used for encryption,
+ * unlocking, and changing the passphrase.
  */
-class AskPassphraseDialog : public QDialog
-{
+class AskPassphraseDialog : public QDialog {
     Q_OBJECT
 
 public:

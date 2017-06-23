@@ -10,31 +10,25 @@
 
 #include <QUrl>
 
-OpenURIDialog::OpenURIDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::OpenURIDialog)
-{
+OpenURIDialog::OpenURIDialog(QWidget *parent)
+    : QDialog(parent), ui(new Ui::OpenURIDialog) {
     ui->setupUi(this);
 #if QT_VERSION >= 0x040700
     ui->uriEdit->setPlaceholderText("bitcoin:");
 #endif
 }
 
-OpenURIDialog::~OpenURIDialog()
-{
+OpenURIDialog::~OpenURIDialog() {
     delete ui;
 }
 
-QString OpenURIDialog::getURI()
-{
+QString OpenURIDialog::getURI() {
     return ui->uriEdit->text();
 }
 
-void OpenURIDialog::accept()
-{
+void OpenURIDialog::accept() {
     SendCoinsRecipient rcp;
-    if(GUIUtil::parseBitcoinURI(getURI(), &rcp))
-    {
+    if (GUIUtil::parseBitcoinURI(getURI(), &rcp)) {
         /* Only accept value URIs */
         QDialog::accept();
     } else {
@@ -42,11 +36,11 @@ void OpenURIDialog::accept()
     }
 }
 
-void OpenURIDialog::on_selectFileButton_clicked()
-{
-    QString filename = GUIUtil::getOpenFileName(this, tr("Select payment request file to open"), "", "", NULL);
-    if(filename.isEmpty())
-        return;
+void OpenURIDialog::on_selectFileButton_clicked() {
+    QString filename = GUIUtil::getOpenFileName(
+        this, tr("Select payment request file to open"), "", "", NULL);
+    if (filename.isEmpty()) return;
     QUrl fileUri = QUrl::fromLocalFile(filename);
-    ui->uriEdit->setText("bitcoin:?r=" + QUrl::toPercentEncoding(fileUri.toString()));
+    ui->uriEdit->setText("bitcoin:?r=" +
+                         QUrl::toPercentEncoding(fileUri.toString()));
 }

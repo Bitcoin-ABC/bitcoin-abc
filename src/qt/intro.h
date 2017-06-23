@@ -14,15 +14,14 @@ static const bool DEFAULT_CHOOSE_DATADIR = false;
 class FreespaceChecker;
 
 namespace Ui {
-    class Intro;
+class Intro;
 }
 
 /** Introduction screen (pre-GUI startup).
   Allows the user to choose a data directory,
   in which the wallet and block chain will be stored.
  */
-class Intro : public QDialog
-{
+class Intro : public QDialog {
     Q_OBJECT
 
 public:
@@ -33,9 +32,11 @@ public:
     void setDataDirectory(const QString &dataDir);
 
     /**
-     * Determine data directory. Let the user choose if the current one doesn't exist.
+     * Determine data directory. Let the user choose if the current one doesn't
+     * exist.
      *
-     * @returns true if a data directory was selected, false if the user cancelled the selection
+     * @returns true if a data directory was selected, false if the user
+     * cancelled the selection
      * dialog.
      *
      * @note do NOT call global GetDataDir() before calling this function, this

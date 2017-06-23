@@ -15,18 +15,18 @@
 class OptionsModel;
 
 namespace Ui {
-    class ReceiveRequestDialog;
+class ReceiveRequestDialog;
 }
 
 QT_BEGIN_NAMESPACE
 class QMenu;
 QT_END_NAMESPACE
 
-/* Label widget for QR code. This image can be dragged, dropped, copied and saved
+/* Label widget for QR code. This image can be dragged, dropped, copied and
+ * saved
  * to disk.
  */
-class QRImageWidget : public QLabel
-{
+class QRImageWidget : public QLabel {
     Q_OBJECT
 
 public:
@@ -45,8 +45,7 @@ private:
     QMenu *contextMenu;
 };
 
-class ReceiveRequestDialog : public QDialog
-{
+class ReceiveRequestDialog : public QDialog {
     Q_OBJECT
 
 public:

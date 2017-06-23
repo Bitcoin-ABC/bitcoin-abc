@@ -7,10 +7,10 @@
 
 #include <QObject>
 
-/** Macintosh-specific notification handler (supports UserNotificationCenter and Growl).
+/** Macintosh-specific notification handler (supports UserNotificationCenter and
+ * Growl).
  */
-class MacNotificationHandler : public QObject
-{
+class MacNotificationHandler : public QObject {
     Q_OBJECT
 
 public:
@@ -25,6 +25,5 @@ public:
     bool hasUserNotificationCenterSupport(void);
     static MacNotificationHandler *instance();
 };
-
 
 #endif // BITCOIN_QT_MACNOTIFICATIONHANDLER_H

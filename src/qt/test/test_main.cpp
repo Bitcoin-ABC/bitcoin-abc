@@ -7,11 +7,11 @@
 #endif
 
 #include "chainparams.h"
+#include "compattests.h"
 #include "key.h"
 #include "rpcnestedtests.h"
-#include "util.h"
 #include "uritests.h"
-#include "compattests.h"
+#include "util.h"
 
 #ifdef ENABLE_WALLET
 #include "paymentservertests.h"
@@ -34,8 +34,7 @@ Q_IMPORT_PLUGIN(qkrcodecs)
 extern void noui_connect();
 
 // This is all you need to run all the tests
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     ECC_Start();
     SetupEnvironment();
     SetupNetworking();
@@ -52,19 +51,15 @@ int main(int argc, char *argv[])
     SSL_library_init();
 
     URITests test1;
-    if (QTest::qExec(&test1) != 0)
-        fInvalid = true;
+    if (QTest::qExec(&test1) != 0) fInvalid = true;
 #ifdef ENABLE_WALLET
     PaymentServerTests test2;
-    if (QTest::qExec(&test2) != 0)
-        fInvalid = true;
+    if (QTest::qExec(&test2) != 0) fInvalid = true;
 #endif
     RPCNestedTests test3;
-    if (QTest::qExec(&test3) != 0)
-        fInvalid = true;
+    if (QTest::qExec(&test3) != 0) fInvalid = true;
     CompatTests test4;
-    if (QTest::qExec(&test4) != 0)
-        fInvalid = true;
+    if (QTest::qExec(&test4) != 0) fInvalid = true;
 
     ECC_Stop();
     return fInvalid;

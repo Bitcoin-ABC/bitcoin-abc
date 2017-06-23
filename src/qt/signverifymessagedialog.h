@@ -11,15 +11,15 @@ class PlatformStyle;
 class WalletModel;
 
 namespace Ui {
-    class SignVerifyMessageDialog;
+class SignVerifyMessageDialog;
 }
 
-class SignVerifyMessageDialog : public QDialog
-{
+class SignVerifyMessageDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SignVerifyMessageDialog(const PlatformStyle *platformStyle, QWidget *parent);
+    explicit SignVerifyMessageDialog(const PlatformStyle *platformStyle,
+                                     QWidget *parent);
     ~SignVerifyMessageDialog();
 
     void setModel(WalletModel *model);

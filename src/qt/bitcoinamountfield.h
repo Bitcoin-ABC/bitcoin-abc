@@ -17,29 +17,31 @@ QT_END_NAMESPACE
 
 /** Widget for entering bitcoin amounts.
   */
-class BitcoinAmountField: public QWidget
-{
+class BitcoinAmountField : public QWidget {
     Q_OBJECT
 
-    // ugly hack: for some unknown reason CAmount (instead of qint64) does not work here as expected
+    // ugly hack: for some unknown reason CAmount (instead of qint64) does not
+    // work here as expected
     // discussion: https://github.com/bitcoin/bitcoin/pull/5117
-    Q_PROPERTY(qint64 value READ value WRITE setValue NOTIFY valueChanged USER true)
+    Q_PROPERTY(
+        qint64 value READ value WRITE setValue NOTIFY valueChanged USER true)
 
 public:
     explicit BitcoinAmountField(QWidget *parent = 0);
 
-    CAmount value(bool *value=0) const;
-    void setValue(const CAmount& value);
+    CAmount value(bool *value = 0) const;
+    void setValue(const CAmount &value);
 
     /** Set single step in satoshis **/
-    void setSingleStep(const CAmount& step);
+    void setSingleStep(const CAmount &step);
 
     /** Make read-only **/
     void setReadOnly(bool fReadOnly);
 
     /** Mark current value as invalid in UI. */
     void setValid(bool valid);
-    /** Perform input validation, mark field as invalid if entered value is not valid. */
+    /** Perform input validation, mark field as invalid if entered value is not
+     * valid. */
     bool validate();
 
     /** Change unit used to display amount. */
@@ -51,7 +53,8 @@ public:
     /** Enable/Disable. */
     void setEnabled(bool fEnabled);
 
-    /** Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907),
+    /** Qt messes up the tab chain by default in some cases (issue
+       https://bugreports.qt-project.org/browse/QTBUG-10907),
         in these cases we have to set it up manually.
     */
     QWidget *setupTabChain(QWidget *prev);
@@ -69,7 +72,6 @@ private:
 
 private Q_SLOTS:
     void unitChanged(int idx);
-
 };
 
 #endif // BITCOIN_QT_BITCOINAMOUNTFIELD_H

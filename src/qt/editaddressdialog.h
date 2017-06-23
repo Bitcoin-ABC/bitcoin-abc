@@ -10,7 +10,7 @@
 class AddressTableModel;
 
 namespace Ui {
-    class EditAddressDialog;
+class EditAddressDialog;
 }
 
 QT_BEGIN_NAMESPACE
@@ -19,8 +19,7 @@ QT_END_NAMESPACE
 
 /** Dialog for editing an address and associated information.
  */
-class EditAddressDialog : public QDialog
-{
+class EditAddressDialog : public QDialog {
     Q_OBJECT
 
 public:

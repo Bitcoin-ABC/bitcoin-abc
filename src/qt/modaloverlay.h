@@ -8,16 +8,16 @@
 #include <QDateTime>
 #include <QWidget>
 
-//! The required delta of headers to the estimated number of available headers until we show the IBD progress
+//! The required delta of headers to the estimated number of available headers
+//! until we show the IBD progress
 static constexpr int HEADER_HEIGHT_DELTA_SYNC = 24;
 
 namespace Ui {
-    class ModalOverlay;
+class ModalOverlay;
 }
 
 /** Modal overlay to display information about the chain-sync state */
-class ModalOverlay : public QWidget
-{
+class ModalOverlay : public QWidget {
     Q_OBJECT
 
 public:
@@ -25,8 +25,9 @@ public:
     ~ModalOverlay();
 
 public Q_SLOTS:
-    void tipUpdate(int count, const QDateTime& blockDate, double nVerificationProgress);
-    void setKnownBestHeight(int count, const QDateTime& blockDate);
+    void tipUpdate(int count, const QDateTime &blockDate,
+                   double nVerificationProgress);
+    void setKnownBestHeight(int count, const QDateTime &blockDate);
 
     void toggleVisibility();
     // will show or hide the modal layer
@@ -35,14 +36,14 @@ public Q_SLOTS:
     bool isLayerVisible() { return layerIsVisible; }
 
 protected:
-    bool eventFilter(QObject * obj, QEvent * ev);
-    bool event(QEvent* ev);
+    bool eventFilter(QObject *obj, QEvent *ev);
+    bool event(QEvent *ev);
 
 private:
     Ui::ModalOverlay *ui;
-    int bestHeaderHeight; //best known height (based on the headers)
+    int bestHeaderHeight; // best known height (based on the headers)
     QDateTime bestHeaderDate;
-    QVector<QPair<qint64, double> > blockProcessTime;
+    QVector<QPair<qint64, double>> blockProcessTime;
     bool layerIsVisible;
     bool userClosed;
 };

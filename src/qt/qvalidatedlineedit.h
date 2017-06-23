@@ -7,11 +7,11 @@
 
 #include <QLineEdit>
 
-/** Line edit that can be marked as "invalid" to show input validation feedback. When marked as invalid,
+/** Line edit that can be marked as "invalid" to show input validation feedback.
+   When marked as invalid,
    it will get a red background until it is focused.
  */
-class QValidatedLineEdit : public QLineEdit
-{
+class QValidatedLineEdit : public QLineEdit {
     Q_OBJECT
 
 public:
@@ -34,7 +34,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void validationDidChange(QValidatedLineEdit *validatedLineEdit);
-    
+
 private Q_SLOTS:
     void markValid();
     void checkValidity();

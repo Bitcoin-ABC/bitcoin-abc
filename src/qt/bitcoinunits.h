@@ -34,39 +34,30 @@
 // correctly.  Workaround is to display a space in a small font.  If you
 // change this, please test that it doesn't cause the parent span to start
 // wrapping.
-#define HTML_HACK_SP "<span style='white-space: nowrap; font-size: 6pt'> </span>"
+#define HTML_HACK_SP                                                           \
+    "<span style='white-space: nowrap; font-size: 6pt'> </span>"
 
 // Define THIN_SP_* variables to be our preferred type of thin space
-#define THIN_SP_CP   REAL_THIN_SP_CP
+#define THIN_SP_CP REAL_THIN_SP_CP
 #define THIN_SP_UTF8 REAL_THIN_SP_UTF8
 #define THIN_SP_HTML HTML_HACK_SP
 
 /** Bitcoin unit definitions. Encapsulates parsing and formatting
    and serves as list model for drop-down selection boxes.
 */
-class BitcoinUnits: public QAbstractListModel
-{
+class BitcoinUnits : public QAbstractListModel {
     Q_OBJECT
 
 public:
     explicit BitcoinUnits(QObject *parent);
 
     /** Bitcoin units.
-      @note Source: https://en.bitcoin.it/wiki/Units . Please add only sensible ones
+      @note Source: https://en.bitcoin.it/wiki/Units . Please add only sensible
+      ones
      */
-    enum Unit
-    {
-        BTC,
-        mBTC,
-        uBTC
-    };
+    enum Unit { BTC, mBTC, uBTC };
 
-    enum SeparatorStyle
-    {
-        separatorNever,
-        separatorStandard,
-        separatorAlways
-    };
+    enum SeparatorStyle { separatorNever, separatorStandard, separatorAlways };
 
     //! @name Static API
     //! Unit conversion and formatting
@@ -85,14 +76,21 @@ public:
     //! Number of decimals left
     static int decimals(int unit);
     //! Format as string
-    static QString format(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
+    static QString format(int unit, const CAmount &amount,
+                          bool plussign = false,
+                          SeparatorStyle separators = separatorStandard);
     //! Format as string (with unit)
-    static QString formatWithUnit(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
+    static QString
+    formatWithUnit(int unit, const CAmount &amount, bool plussign = false,
+                   SeparatorStyle separators = separatorStandard);
     //! Format as HTML string (with unit)
-    static QString formatHtmlWithUnit(int unit, const CAmount& amount, bool plussign=false, SeparatorStyle separators=separatorStandard);
+    static QString
+    formatHtmlWithUnit(int unit, const CAmount &amount, bool plussign = false,
+                       SeparatorStyle separators = separatorStandard);
     //! Parse string to coin amount
     static bool parse(int unit, const QString &value, CAmount *val_out);
-    //! Gets title for amount column including current display unit if optionsModel reference available */
+    //! Gets title for amount column including current display unit if
+    //! optionsModel reference available */
     static QString getAmountColumnTitle(int unit);
     ///@}
 
@@ -107,8 +105,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     ///@}
 
-    static QString removeSpaces(QString text)
-    {
+    static QString removeSpaces(QString text) {
         text.remove(' ');
         text.remove(QChar(THIN_SP_CP));
 #if (THIN_SP_CP != REAL_THIN_SP_CP)

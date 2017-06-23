@@ -26,34 +26,35 @@ QT_END_NAMESPACE
  * modifications to BitcoinGUI, thus greatly simplifying merges while
  * reducing the risk of breaking top-level stuff.
  */
-class WalletFrame : public QFrame
-{
+class WalletFrame : public QFrame {
     Q_OBJECT
 
 public:
-    explicit WalletFrame(const PlatformStyle *platformStyle, BitcoinGUI *_gui = 0);
+    explicit WalletFrame(const PlatformStyle *platformStyle,
+                         BitcoinGUI *_gui = 0);
     ~WalletFrame();
 
     void setClientModel(ClientModel *clientModel);
 
-    bool addWallet(const QString& name, WalletModel *walletModel);
-    bool setCurrentWallet(const QString& name);
+    bool addWallet(const QString &name, WalletModel *walletModel);
+    bool setCurrentWallet(const QString &name);
     bool removeWallet(const QString &name);
     void removeAllWallets();
 
-    bool handlePaymentRequest(const SendCoinsRecipient& recipient);
+    bool handlePaymentRequest(const SendCoinsRecipient &recipient);
 
     void showOutOfSyncWarning(bool fShow);
 
 Q_SIGNALS:
-    /** Notify that the user has requested more information about the out-of-sync warning */
+    /** Notify that the user has requested more information about the
+     * out-of-sync warning */
     void requestedSyncWarningInfo();
 
 private:
     QStackedWidget *walletStack;
     BitcoinGUI *gui;
     ClientModel *clientModel;
-    QMap<QString, WalletView*> mapWalletViews;
+    QMap<QString, WalletView *> mapWalletViews;
 
     bool bOutOfSync;
 
