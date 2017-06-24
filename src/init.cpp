@@ -1682,10 +1682,6 @@ bool AppInitParameterInteraction(Config &config) {
         config.SetExcessUTXOCharge(DEFAULT_UTXO_FEE);
     }
 
-    // Fee-per-kilobyte amount considered the same as "free". If you are mining,
-    // be careful setting this: if you set it to zero then a transaction spammer
-    // can cheaply fill blocks using 1-satoshi-fee transactions. It should be
-    // set above the real cost to you of processing a transaction.
     if (gArgs.IsArgSet("-minrelaytxfee")) {
         Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-minrelaytxfee", ""), n);
