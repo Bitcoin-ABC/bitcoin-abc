@@ -18,7 +18,7 @@
 
 // Far into the future.
 static const std::string ANTI_REPLAY_COMMITMENT =
-    "Placeholder for the anti replay commitment";
+    "Bitcoin: A Peer-to-Peer Electronic Cash System";
 
 static std::vector<unsigned char> GetAntiReplayCommitment() {
     return std::vector<unsigned char>(std::begin(ANTI_REPLAY_COMMITMENT),

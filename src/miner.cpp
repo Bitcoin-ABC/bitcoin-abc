@@ -219,7 +219,9 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     uint64_t nMinBlockSize = ComputeMinGeneratedBlockSize(*config, pindexPrev);
     if (nSerializeSize < nMinBlockSize) {
         static const std::string pad =
-            "Bitcoin: A Peer-to-Peer Electronic Cash System";
+            "A purely peer-to-peer version of electronic cash would allow "
+            "online payments to be sent directly from one party to another "
+            "without going through a financial institution.";
         auto o = CTxOut(
             0, CScript() << OP_RETURN
                          << std::vector<unsigned char>(pad.begin(), pad.end()));

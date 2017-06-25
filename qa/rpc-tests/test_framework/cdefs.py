@@ -52,7 +52,7 @@ MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT // 5
 COINBASE_MATURITY = 100
 
 # Anti replay OP_RETURN commitment.
-ANTI_REPLAY_COMMITMENT = b"Placeholder for the anti replay commitment"
+ANTI_REPLAY_COMMITMENT = b"Bitcoin: A Peer-to-Peer Electronic Cash System"
 
 if __name__ == "__main__":
     # Output values if run standalone to verify
