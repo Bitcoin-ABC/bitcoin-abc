@@ -1,33 +1,33 @@
 # Gitian signing
 
 Once you've followed the instructions in gitian-building.md and verified that
-you have the same hashes as other developers, it's time to sign the gitian
+you have the same hashes as other developers, it's time to sign the Gitian
 builds.
 
 ## PGP fingerprints of gitian build signers
 
 The `contrib/gitian-signing/keys.txt` file contains the PGP fingerprints of
-gitian build signers. If you plan on signing gitian builds on a regular basis,
+Gitian build signers. If you plan on signing Gitian builds on a regular basis,
 please add you fingerprint here.
 
 TODO: Add reference to gitian keys process instructions once that document is
 written. It should be clear to signers that there are expectations associated
 with the siginging process and that it's unacceptable to blindly sign builds.
 
-## Sign your gitian builds
+## Sign your Gitian builds
 
-### Sign your gitian builds individually
+### Sign your Gitian builds individually
 
 TODO: Add scripts and instructions for checking for revoked keys and signing builds.
 For now, refer to `contrib/check-keys.sh` for retrieving all signing keys.
 
-### Sign your gitian builds under a single SHA256SUMS file (optional)
+### Sign your Gitian builds under a single SHA256SUMS file (optional)
 
 These steps are optional, but makes sharing the build signatures easier.
 
 1. After building all binaries using gitian, collect the hashes for the builds
     you care to sign. Exclude any debug binaries, unsigned builds, or metadata
-    files that are built as part of the gitian process, but be sure to include
+    files that are built as part of the Gitian process, but be sure to include
     the source used to generate the binaries. These hashes will look something
     like this:
 
