@@ -48,7 +48,6 @@ protected:
     virtual void ResendWalletTransactions(int64_t nBestBlockTime,
                                           CConnman *connman) {}
     virtual void BlockChecked(const CBlock &, const CValidationState &) {}
-    virtual void GetScriptForMining(std::shared_ptr<CReserveScript> &){};
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
     friend void ::RegisterValidationInterface(CValidationInterface *);
@@ -85,9 +84,6 @@ struct CMainSignals {
     /** Notifies listeners of a block validation result */
     boost::signals2::signal<void(const CBlock &, const CValidationState &)>
         BlockChecked;
-    /** Notifies listeners that a key for mining is required (coinbase) */
-    boost::signals2::signal<void(std::shared_ptr<CReserveScript> &)>
-        ScriptForMining;
     /**
      * Notifies listeners that a block which builds directly on our current tip
      * has been received and connected to the headers tree, though not validated

@@ -28,15 +28,11 @@ void RegisterValidationInterface(CValidationInterface *pwalletIn) {
         &CValidationInterface::ResendWalletTransactions, pwalletIn, _1, _2));
     g_signals.BlockChecked.connect(
         boost::bind(&CValidationInterface::BlockChecked, pwalletIn, _1, _2));
-    g_signals.ScriptForMining.connect(
-        boost::bind(&CValidationInterface::GetScriptForMining, pwalletIn, _1));
     g_signals.NewPoWValidBlock.connect(boost::bind(
         &CValidationInterface::NewPoWValidBlock, pwalletIn, _1, _2));
 }
 
 void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
-    g_signals.ScriptForMining.disconnect(
-        boost::bind(&CValidationInterface::GetScriptForMining, pwalletIn, _1));
     g_signals.BlockChecked.disconnect(
         boost::bind(&CValidationInterface::BlockChecked, pwalletIn, _1, _2));
     g_signals.Broadcast.disconnect(boost::bind(
@@ -58,7 +54,6 @@ void UnregisterValidationInterface(CValidationInterface *pwalletIn) {
 }
 
 void UnregisterAllValidationInterfaces() {
-    g_signals.ScriptForMining.disconnect_all_slots();
     g_signals.BlockChecked.disconnect_all_slots();
     g_signals.Broadcast.disconnect_all_slots();
     g_signals.Inventory.disconnect_all_slots();
