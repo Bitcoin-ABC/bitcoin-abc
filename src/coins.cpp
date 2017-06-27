@@ -14,9 +14,6 @@
 bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     return false;
 }
-bool CCoinsView::HaveCoin(const COutPoint &outpoint) const {
-    return false;
-}
 uint256 CCoinsView::GetBestBlock() const {
     return uint256();
 }
@@ -28,6 +25,10 @@ bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
 }
 CCoinsViewCursor *CCoinsView::Cursor() const {
     return nullptr;
+}
+bool CCoinsView::HaveCoin(const COutPoint &outpoint) const {
+    Coin coin;
+    return GetCoin(outpoint, coin);
 }
 
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) {}
@@ -98,7 +99,7 @@ bool CCoinsViewCache::GetCoin(const COutPoint &outpoint, Coin &coin) const {
         return false;
     }
     coin = it->second.coin;
-    return true;
+    return !coin.IsSpent();
 }
 
 void CCoinsViewCache::AddCoin(const COutPoint &outpoint, Coin coin,
