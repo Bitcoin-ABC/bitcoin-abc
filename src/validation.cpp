@@ -1212,7 +1212,7 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     CheckForkWarningConditions();
 }
 
-void static InvalidChainFound(CBlockIndex *pindexNew) {
+static void InvalidChainFound(CBlockIndex *pindexNew) {
     if (!pindexBestInvalid ||
         pindexNew->nChainWork > pindexBestInvalid->nChainWork)
         pindexBestInvalid = pindexNew;
@@ -1231,7 +1231,7 @@ void static InvalidChainFound(CBlockIndex *pindexNew) {
     CheckForkWarningConditions();
 }
 
-void static InvalidBlockFound(CBlockIndex *pindex,
+static void InvalidBlockFound(CBlockIndex *pindex,
                               const CValidationState &state) {
     if (!state.CorruptionPossible()) {
         pindex->nStatus |= BLOCK_FAILED_VALID;
@@ -1873,6 +1873,11 @@ bool ConnectBlock(const Config &config, const CBlock &block,
     std::vector<std::pair<uint256, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
+    std::vector<PrecomputedTransactionData> txdata;
+
+    // Required so that pointers to individual PrecomputedTransactionData don't
+    // get invalidated.
+    txdata.reserve(block.vtx.size());
 
     for (unsigned int i = 0; i < block.vtx.size(); i++) {
         const CTransaction &tx = *(block.vtx[i]);
@@ -1916,7 +1921,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
                              REJECT_INVALID, "bad-blk-sigops");
         }
 
-        PrecomputedTransactionData txdata(tx);
+        txdata.emplace_back(tx);
         if (!tx.IsCoinBase()) {
             nFees += view.GetValueIn(tx) - tx.GetValueOut();
 
@@ -1926,7 +1931,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
 
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
-                             fCacheResults, txdata,
+                             fCacheResults, txdata[i],
                              nScriptCheckThreads ? &vChecks : nullptr)) {
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
@@ -2399,7 +2404,9 @@ static bool ConnectTip(const Config &config, CValidationState &state,
                                chainparams);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
-            if (state.IsInvalid()) InvalidBlockFound(pindexNew, state);
+            if (state.IsInvalid()) {
+                InvalidBlockFound(pindexNew, state);
+            }
             return error("ConnectTip(): ConnectBlock %s failed",
                          pindexNew->GetBlockHash().ToString());
         }
