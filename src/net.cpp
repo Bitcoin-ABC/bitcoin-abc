@@ -776,13 +776,14 @@ const uint256 &CNetMessage::GetMessageHash() const {
 
 // requires LOCK(cs_vSend)
 size_t CConnman::SocketSendData(CNode *pnode) const {
-    auto it = pnode->vSendMsg.begin();
+    AssertLockHeld(pnode->cs_vSend);
     size_t nSentSize = 0;
+    size_t nMsgCount = 0;
 
-    while (it != pnode->vSendMsg.end()) {
-        const auto &data = *it;
+    for (const auto &data : pnode->vSendMsg) {
         assert(data.size() > pnode->nSendOffset);
         int nBytes = 0;
+
         {
             LOCK(pnode->cs_hSocket);
             if (pnode->hSocket == INVALID_SOCKET) break;
@@ -791,41 +792,48 @@ size_t CConnman::SocketSendData(CNode *pnode) const {
                                     pnode->nSendOffset,
                 data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
         }
-        if (nBytes > 0) {
-            pnode->nLastSend = GetSystemTimeInSeconds();
-            pnode->nSendBytes += nBytes;
-            pnode->nSendOffset += nBytes;
-            nSentSize += nBytes;
-            if (pnode->nSendOffset == data.size()) {
-                pnode->nSendOffset = 0;
-                pnode->nSendSize -= data.size();
-                pnode->fPauseSend = pnode->nSendSize > nSendBufferMaxSize;
-                it++;
-            } else {
-                // could not send full message; stop sending more
-                break;
-            }
-        } else {
-            if (nBytes < 0) {
-                // error
-                int nErr = WSAGetLastError();
-                if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE &&
-                    nErr != WSAEINTR && nErr != WSAEINPROGRESS) {
-                    LogPrintf("socket send error %s\n",
-                              NetworkErrorString(nErr));
-                    pnode->CloseSocketDisconnect();
-                }
-            }
+
+        if (nBytes == 0) {
             // couldn't send anything at all
             break;
         }
+
+        if (nBytes < 0) {
+            // error
+            int nErr = WSAGetLastError();
+            if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE &&
+                nErr != WSAEINTR && nErr != WSAEINPROGRESS) {
+                LogPrintf("socket send error %s\n", NetworkErrorString(nErr));
+                pnode->CloseSocketDisconnect();
+            }
+
+            break;
+        }
+
+        assert(nBytes > 0);
+        pnode->nLastSend = GetSystemTimeInSeconds();
+        pnode->nSendBytes += nBytes;
+        pnode->nSendOffset += nBytes;
+        nSentSize += nBytes;
+        if (pnode->nSendOffset != data.size()) {
+            // could not send full message; stop sending more
+            break;
+        }
+
+        pnode->nSendOffset = 0;
+        pnode->nSendSize -= data.size();
+        pnode->fPauseSend = pnode->nSendSize > nSendBufferMaxSize;
+        nMsgCount++;
     }
 
-    if (it == pnode->vSendMsg.end()) {
+    pnode->vSendMsg.erase(pnode->vSendMsg.begin(),
+                          pnode->vSendMsg.begin() + nMsgCount);
+
+    if (pnode->vSendMsg.empty()) {
         assert(pnode->nSendOffset == 0);
         assert(pnode->nSendSize == 0);
     }
-    pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it);
+
     return nSentSize;
 }
 
