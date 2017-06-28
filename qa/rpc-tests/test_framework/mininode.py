@@ -53,6 +53,9 @@ NODE_GETUTXO = (1 << 1)
 NODE_BLOOM = (1 << 2)
 NODE_WITNESS = (1 << 3)
 
+# Howmuch data will be read from the network at once
+READ_BUFFER_SIZE = 8192
+
 # Keep our own socket map for asyncore, so that we can track disconnects
 # ourselves (to workaround an issue with closing an asyncore socket when
 # using select)
@@ -1609,6 +1612,7 @@ class NodeConn(asyncore.dispatcher):
         b"getblocktxn": msg_getblocktxn,
         b"blocktxn": msg_blocktxn
     }
+
     MAGIC_BYTES = {
         "mainnet": b"\xf9\xbe\xb4\xd9",   # mainnet
         "testnet3": b"\x0b\x11\x09\x07",  # testnet3
@@ -1674,12 +1678,18 @@ class NodeConn(asyncore.dispatcher):
 
     def handle_read(self):
         try:
-            t = self.recv(8192)
-            if len(t) > 0:
-                self.recvbuf += t
-                self.got_data()
+            with mininode_lock:
+                t = self.recv(READ_BUFFER_SIZE)
+                if len(t) > 0:
+                    self.recvbuf += t
         except:
             pass
+
+        while True:
+            msg = self.got_data()
+            if msg == None:
+                break
+            self.got_message(msg)
 
     def readable(self):
         return True
@@ -1709,43 +1719,43 @@ class NodeConn(asyncore.dispatcher):
 
     def got_data(self):
         try:
-            while True:
+            with mininode_lock:
                 if len(self.recvbuf) < 4:
-                    return
+                    return None
                 if self.recvbuf[:4] != self.MAGIC_BYTES[self.network]:
                     raise ValueError("got garbage %s" % repr(self.recvbuf))
                 if self.ver_recv < 209:
                     if len(self.recvbuf) < 4 + 12 + 4:
-                        return
+                        return None
                     command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
                     msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
                     checksum = None
                     if len(self.recvbuf) < 4 + 12 + 4 + msglen:
-                        return
+                        return None
                     msg = self.recvbuf[4+12+4:4+12+4+msglen]
                     self.recvbuf = self.recvbuf[4+12+4+msglen:]
                 else:
                     if len(self.recvbuf) < 4 + 12 + 4 + 4:
-                        return
+                        return None
                     command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
                     msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
                     checksum = self.recvbuf[4+12+4:4+12+4+4]
                     if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
-                        return
+                        return None
                     msg = self.recvbuf[4+12+4+4:4+12+4+4+msglen]
-                    th = sha256(msg)
-                    h = sha256(th)
+                    h = sha256(sha256(msg))
                     if checksum != h[:4]:
                         raise ValueError("got bad checksum " + repr(self.recvbuf))
                     self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
-                if command in self.messagemap:
-                    f = BytesIO(msg)
-                    t = self.messagemap[command]()
-                    t.deserialize(f)
-                    self.got_message(t)
-                else:
+                if command not in self.messagemap:
                     self.show_debug_msg("Unknown command: '" + command + "' " +
                                         repr(msg))
+                    return None
+                f = BytesIO(msg)
+                m = self.messagemap[command]()
+                m.deserialize(f)
+                return m
+
         except Exception as e:
             print('got_data:', repr(e))
             # import  traceback
