@@ -1188,17 +1188,13 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     }
 
     // We define a condition where we should warn the user about as a fork of at
-    // least 7 blocks
-    // with a tip within 72 blocks (+/- 12 hours if no one mines it) of ours
-    // We use 7 blocks rather arbitrarily as it represents just under 10% of
-    // sustained network
-    // hash rate operating on the fork.
-    // or a chain that is entirely longer than ours and invalid (note that this
-    // should be detected by both)
-    // We define it this way because it allows us to only store the highest fork
-    // tip (+ base) which meets
-    // the 7-block condition and from this always have the
-    // most-likely-to-cause-warning fork
+    // least 7 blocks with a tip within 72 blocks (+/- 12 hours if no one mines
+    // it) of ours. We use 7 blocks rather arbitrarily as it represents just
+    // under 10% of sustained network hash rate operating on the fork, or a
+    // chain that is entirely longer than ours and invalid (note that this
+    // should be detected by both). We define it this way because it allows us
+    // to only store the highest fork tip (+ base) which meets the 7-block
+    // condition and from this always have the most-likely-to-cause-warning fork
     if (pfork && (!pindexBestForkTip ||
                   (pindexBestForkTip &&
                    pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
