@@ -950,6 +950,7 @@ static bool AcceptToMemoryPoolWorker(
         uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!config.GetChainParams().RequireStandard()) {
             scriptVerifyFlags =
+                SCRIPT_ENABLE_SIGHASH_FORKID |
                 gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 

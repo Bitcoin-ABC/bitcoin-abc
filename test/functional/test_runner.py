@@ -119,6 +119,8 @@ BASE_SCRIPTS = [
     'abc-rpc.py',
     'mempool-accept-txn.py',
     'wallet-encryption.py',
+    'bipdersig-p2p.py',
+    'bip65-cltv-p2p.py',
     'uptime.py',
     'resendwallettransactions.py',
 ]
@@ -142,10 +144,6 @@ EXTENDED_SCRIPTS = [
     'rpcbind_test.py',
     # vv Tests less than 30s vv
     'assumevalid.py',
-    'bip65-cltv.py',
-    'bip65-cltv-p2p.py',
-    'bipdersig-p2p.py',
-    'bipdersig.py',
     'txn_doublespend.py',
     'txn_clone.py --mineblock',
     'forknotify.py',
