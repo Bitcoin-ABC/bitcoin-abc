@@ -412,6 +412,16 @@ void ForceSetArg(const std::string &strArg, const std::string &strValue) {
     mapArgs[strArg] = strValue;
 }
 
+/**
+ * This function is only used for testing purpose so
+ * so we should not worry about element uniqueness and
+ * integrity of mapMultiArgs data structure
+ */
+void ForceSetMultiArg(const std::string &strArg, const std::string &strValue) {
+    LOCK(cs_args);
+    _mapMultiArgs[strArg].push_back(strValue);
+}
+
 void ClearArg(const std::string &strArg) {
     LOCK(cs_args);
     mapArgs.erase(strArg);

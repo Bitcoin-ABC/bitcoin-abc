@@ -2805,8 +2805,10 @@ std::string userAgent(const Config &config) {
     if (mapMultiArgs.count("-uacomment")) {
         for (const std::string &cmt : mapMultiArgs.at("-uacomment")) {
             if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
-                LogPrintf("User Agent comment (%s) contains unsafe characters.",
-                          cmt);
+                LogPrintf(
+                    "User Agent comment (%s) contains unsafe characters. "
+                    "We are going to use a sanitize version of the comment.\n",
+                    cmt);
             uacomments.push_back(cmt);
         }
     }
@@ -2815,8 +2817,12 @@ std::string userAgent(const Config &config) {
         FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
     if (subversion.size() > MAX_SUBVERSION_LENGTH) {
         LogPrintf("Total length of network version string (%i) exceeds maximum "
-                  "length (%i). Reduce the number or size of uacomments.",
+                  "length (%i). Reduce the number or size of uacomments. "
+                  "String has been resized to the max length allowed.\n",
                   subversion.size(), MAX_SUBVERSION_LENGTH);
+        subversion.resize(MAX_SUBVERSION_LENGTH - 2);
+        subversion.append(")/");
+        LogPrintf("Current network string has been set to: %s\n", subversion);
     }
     return subversion;
 }

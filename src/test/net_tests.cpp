@@ -4,12 +4,14 @@
 #include "net.h"
 #include "addrman.h"
 #include "chainparams.h"
+#include "config.h"
 #include "hash.h"
 #include "netbase.h"
 #include "serialize.h"
 #include "streams.h"
 #include "test/test_bitcoin.h"
 #include <boost/test/unit_test.hpp>
+#include <regex>
 #include <string>
 
 class CAddrManSerializationMock : public CAddrMan {
@@ -60,6 +62,11 @@ CDataStream AddrmanToStream(CAddrManSerializationMock &_addrman) {
     std::string str = ssPeersIn.str();
     std::vector<unsigned char> vchData(str.begin(), str.end());
     return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
+}
+
+bool matchString(const std::string &strValue, const std::string &regExp) {
+    std::regex toMatch(regExp);
+    return std::regex_match(strValue, toMatch);
 }
 
 BOOST_FIXTURE_TEST_SUITE(net_tests, BasicTestingSetup)
@@ -174,6 +181,24 @@ BOOST_AUTO_TEST_CASE(test_getSubVersionEB) {
     BOOST_CHECK_EQUAL(getSubVersionEB(210000), "0.2");
     BOOST_CHECK_EQUAL(getSubVersionEB(10000), "0.0");
     BOOST_CHECK_EQUAL(getSubVersionEB(0), "0.0");
+}
+
+BOOST_AUTO_TEST_CASE(test_userAgentLength) {
+    GlobalConfig config;
+    std::string long_uacomment = "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very very very very "
+                                 "very very very very very very long comment";
+    ForceSetMultiArg("-uacomment", long_uacomment);
+
+    BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
+    BOOST_CHECK(matchString(userAgent(config),
+                            "/Bitcoin ABC:.*\\(EB[[:digit:]]+\\.[[:digit:]]; "
+                            "very very very .*\\)/"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
