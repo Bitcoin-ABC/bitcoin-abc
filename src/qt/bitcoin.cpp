@@ -82,6 +82,8 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
 Q_DECLARE_METATYPE(CAmount)
+// Config is non-copyable so we can only register pointers to it
+Q_DECLARE_METATYPE(Config *)
 
 static void InitMessage(const std::string &message) {
     LogPrintf("init message: %s\n", message);
@@ -180,7 +182,7 @@ public:
     explicit BitcoinCore();
 
 public Q_SLOTS:
-    void initialize();
+    void initialize(Config *config);
     void shutdown();
 
 Q_SIGNALS:
@@ -217,9 +219,9 @@ public:
     void createSplashScreen(const NetworkStyle *networkStyle);
 
     /// Request core initialization
-    void requestInitialize();
+    void requestInitialize(Config &config);
     /// Request core shutdown
-    void requestShutdown();
+    void requestShutdown(Config &config);
 
     /// Get process return value
     int getReturnValue() { return returnValue; }
@@ -235,7 +237,7 @@ public Q_SLOTS:
     void handleRunawayException(const QString &message);
 
 Q_SIGNALS:
-    void requestedInitialize();
+    void requestedInitialize(Config *config);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -266,7 +268,8 @@ void BitcoinCore::handleRunawayException(const std::exception *e) {
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
-void BitcoinCore::initialize() {
+void BitcoinCore::initialize(Config *cfg) {
+    Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running AppInit2 in thread";
         if (!AppInitBasicSetup()) {
@@ -274,10 +277,6 @@ void BitcoinCore::initialize() {
             return;
         }
 
-        // FIXME: Ideally, we'd like to build the config here, but that's
-        // currently not possible as the whole application has too many global
-        // state. However, this is a first step.
-        auto &config = const_cast<Config &>(GetConfig());
         if (!AppInitParameterInteraction(config)) {
             Q_EMIT initializeResult(false);
             return;
@@ -396,7 +395,23 @@ void BitcoinApplication::startThread() {
             SLOT(shutdownResult(int)));
     connect(executor, SIGNAL(runawayException(QString)), this,
             SLOT(handleRunawayException(QString)));
-    connect(this, SIGNAL(requestedInitialize()), executor, SLOT(initialize()));
+
+    // Note on how Qt works: it tries to directly invoke methods if the signal
+    // is emitted on the same thread that the target object 'lives' on.
+    // But if the target object 'lives' on another thread (executor here does)
+    // the SLOT will be invoked asynchronously at a later time in the thread
+    // of the target object.  So.. we pass a pointer around.  If you pass
+    // a reference around (even if it's non-const) you'll get Qt generating
+    // code to copy-construct the parameter in question (Q_DECLARE_METATYPE
+    // and qRegisterMetaType generate this code).  For the Config class,
+    // which is noncopyable, we can't do this.  So.. we have to pass
+    // pointers to Config around.  Make sure Config &/Config * isn't a
+    // temporary (eg it lives somewhere aside from the stack) or this will
+    // crash because initialize() gets executed in another thread at some
+    // unspecified time (after) requestedInitialize() is emitted!
+    connect(this, SIGNAL(requestedInitialize(Config *)), executor,
+            SLOT(initialize(Config *)));
+
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
     /*  make sure executor object is deleted in its own thread */
     connect(this, SIGNAL(stopThread()), executor, SLOT(deleteLater()));
@@ -410,13 +425,16 @@ void BitcoinApplication::parameterSetup() {
     InitParameterInteraction();
 }
 
-void BitcoinApplication::requestInitialize() {
+void BitcoinApplication::requestInitialize(Config &config) {
     qDebug() << __func__ << ": Requesting initialize";
     startThread();
-    Q_EMIT requestedInitialize();
+    // IMPORTANT: config must NOT be a reference to a temporary because below
+    // signal may be connected to a slot that will be executed as a queued
+    // connection in another thread!
+    Q_EMIT requestedInitialize(&config);
 }
 
-void BitcoinApplication::requestShutdown() {
+void BitcoinApplication::requestShutdown(Config &config) {
     // Show a simple window indicating shutdown status. Do this first as some of
     // the steps may take some time below, for example the RPC console may still
     // be executing a command.
@@ -568,6 +586,14 @@ int main(int argc, char *argv[]) {
     //   IMPORTANT if it is no longer a typedef use the normal variant above
     qRegisterMetaType<CAmount>("CAmount");
 
+    // Need to register any types Qt doesn't know about if you intend
+    // to use them with the signal/slot mechanism Qt provides. Even pointers.
+    // Note that class Config is noncopyable and so we can't register a
+    // non-pointer version of it with Qt, because Qt expects to be able to
+    // copy-construct non-pointers to objects for invoking slots
+    // behind-the-scenes in the 'Queued' connection case.
+    qRegisterMetaType<Config *>();
+
     /// 3. Application identification
     // must be set before OptionsModel is initialized or translations are
     // loaded, as it is used to locate QSettings.
@@ -691,13 +717,16 @@ int main(int argc, char *argv[]) {
     // Subscribe to global signals from core
     uiInterface.InitMessage.connect(InitMessage);
 
+    // Get global config
+    Config &config = const_cast<Config &>(GetConfig());
+
     if (GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) &&
         !GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
 
     try {
         app.createWindow(networkStyle.data());
-        app.requestInitialize();
+        app.requestInitialize(config);
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")
@@ -705,7 +734,7 @@ int main(int argc, char *argv[]) {
             (HWND)app.getMainWinId());
 #endif
         app.exec();
-        app.requestShutdown();
+        app.requestShutdown(config);
         app.exec();
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
