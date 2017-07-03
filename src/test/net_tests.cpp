@@ -181,6 +181,8 @@ BOOST_AUTO_TEST_CASE(test_getSubVersionEB) {
 
 BOOST_AUTO_TEST_CASE(test_userAgentLength) {
     GlobalConfig config;
+
+    config.SetMaxBlockSize(8000000);
     std::string long_uacomment = "very very very very very very very very very "
                                  "very very very very very very very very very "
                                  "very very very very very very very very very "
