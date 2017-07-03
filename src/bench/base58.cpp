@@ -7,28 +7,27 @@
 #include "base58.h"
 #include "validation.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
 static void Base58Encode(benchmark::State &state) {
-    uint8_t buff[32] = {17,  79,  8,   99,  150, 189, 208, 162, 22,  23, 203,
-                        163, 36,  58,  147, 227, 139, 2,   215, 100, 91, 38,
-                        11,  141, 253, 40,  117, 21,  16,  90,  200, 24};
-    uint8_t *b = buff;
+    static const std::vector<uint8_t> buffer = {
+        17,  79,  8,   99,  150, 189, 208, 162, 22,  23, 203,
+        163, 36,  58,  147, 227, 139, 2,   215, 100, 91, 38,
+        11,  141, 253, 40,  117, 21,  16,  90,  200, 24};
     while (state.KeepRunning()) {
-        EncodeBase58(b, b + 32);
+        EncodeBase58(buffer);
     }
 }
 
 static void Base58CheckEncode(benchmark::State &state) {
-    uint8_t buff[32] = {17,  79,  8,   99,  150, 189, 208, 162, 22,  23, 203,
-                        163, 36,  58,  147, 227, 139, 2,   215, 100, 91, 38,
-                        11,  141, 253, 40,  117, 21,  16,  90,  200, 24};
-    uint8_t *b = buff;
-    std::vector<uint8_t> vch;
-    vch.assign(b, b + 32);
+    static const std::vector<uint8_t> buffer = {
+        17,  79,  8,   99,  150, 189, 208, 162, 22,  23, 203,
+        163, 36,  58,  147, 227, 139, 2,   215, 100, 91, 38,
+        11,  141, 253, 40,  117, 21,  16,  90,  200, 24};
     while (state.KeepRunning()) {
-        EncodeBase58Check(vch);
+        EncodeBase58Check(buffer);
     }
 }
 
