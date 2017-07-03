@@ -440,9 +440,9 @@ UniValue removeprunedfunds(const Config &config,
                                                 "ce581bebf46446a512166eae762873"
                                                 "4ea0a5\"") +
             "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("removprunedfunds", "\"a8d0c0184dde994a09ec054286f1c"
-                                               "e581bebf46446a512166eae7628734e"
-                                               "a0a5\""));
+            HelpExampleRpc("removeprunedfunds",
+                           "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166"
+                           "eae7628734ea0a5\""));
     }
 
     LOCK2(cs_main, pwallet->cs_wallet);
