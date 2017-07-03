@@ -10,9 +10,10 @@
 #include "serialize.h"
 #include "streams.h"
 #include "test/test_bitcoin.h"
-#include <boost/test/unit_test.hpp>
-#include <regex>
+
 #include <string>
+
+#include <boost/test/unit_test.hpp>
 
 class CAddrManSerializationMock : public CAddrMan {
 public:
@@ -62,11 +63,6 @@ CDataStream AddrmanToStream(CAddrManSerializationMock &_addrman) {
     std::string str = ssPeersIn.str();
     std::vector<unsigned char> vchData(str.begin(), str.end());
     return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
-}
-
-bool matchString(const std::string &strValue, const std::string &regExp) {
-    std::regex toMatch(regExp, std::regex::basic);
-    return std::regex_match(strValue, toMatch);
 }
 
 BOOST_FIXTURE_TEST_SUITE(net_tests, BasicTestingSetup)
@@ -196,9 +192,12 @@ BOOST_AUTO_TEST_CASE(test_userAgentLength) {
     ForceSetMultiArg("-uacomment", long_uacomment);
 
     BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
-    BOOST_CHECK(matchString(
-        userAgent(config),
-        "/Bitcoin ABC:.*[(]EB[0-9]+[.][0-9]; very very very .*[)]/"));
+    BOOST_CHECK_EQUAL(userAgent(config),
+                      "/Bitcoin ABC:0.14.1(EB8.0; very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very ve)/");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
