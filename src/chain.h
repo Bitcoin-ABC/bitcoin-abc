@@ -206,7 +206,7 @@ public:
     int nVersion;
     uint256 hashMerkleRoot;
     unsigned int nTime;
-    unsigned int nBits;
+    uint32_t nBits;
     unsigned int nNonce;
 
     //! (memory only) Sequential id assigned to distinguish order in which
@@ -217,9 +217,9 @@ public:
     unsigned int nTimeMax;
 
     void SetNull() {
-        phashBlock = NULL;
-        pprev = NULL;
-        pskip = NULL;
+        phashBlock = nullptr;
+        pprev = nullptr;
+        pskip = nullptr;
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
