@@ -9,7 +9,7 @@
 #include "primitives/transaction.h"
 #include "script_error.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -120,12 +120,6 @@ enum {
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
                             unsigned int flags, ScriptError *serror);
-
-struct PrecomputedTransactionData {
-    uint256 hashPrevouts, hashSequence, hashOutputs;
-
-    PrecomputedTransactionData(const CTransaction &tx);
-};
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,

@@ -348,4 +348,18 @@ static inline CTransactionRef MakeTransactionRef(Tx &&txIn) {
 /** Compute the size of a transaction */
 int64_t GetTransactionSize(const CTransaction &tx);
 
+/** Precompute sighash midstate to avoid quadratic hashing */
+struct PrecomputedTransactionData {
+    uint256 hashPrevouts, hashSequence, hashOutputs;
+
+    PrecomputedTransactionData()
+        : hashPrevouts(), hashSequence(), hashOutputs() {}
+
+    PrecomputedTransactionData(const PrecomputedTransactionData &txdata)
+        : hashPrevouts(txdata.hashPrevouts), hashSequence(txdata.hashSequence),
+          hashOutputs(txdata.hashOutputs) {}
+
+    PrecomputedTransactionData(const CTransaction &tx);
+};
+
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H

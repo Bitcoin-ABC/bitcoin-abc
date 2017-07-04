@@ -442,8 +442,8 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
                  unsigned int flags, bool cacheStore,
-                 PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks = NULL);
+                 const PrecomputedTransactionData &txdata,
+                 std::vector<CScriptCheck> *pvChecks = nullptr);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
@@ -513,15 +513,15 @@ private:
     unsigned int nFlags;
     bool cacheStore;
     ScriptError error;
-    PrecomputedTransactionData *txdata;
+    PrecomputedTransactionData txdata;
 
 public:
     CScriptCheck()
         : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
-          error(SCRIPT_ERR_UNKNOWN_ERROR) {}
+          error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
     CScriptCheck(const CCoins &txFromIn, const CTransaction &txToIn,
                  unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn,
-                 PrecomputedTransactionData *txdataIn)
+                 const PrecomputedTransactionData &txdataIn)
         : scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
           amount(txFromIn.vout[txToIn.vin[nInIn].prevout.n].nValue),
           ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
@@ -678,9 +678,10 @@ extern VersionBitsCache versionbitscache;
 int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params);
 
-/** Reject codes greater or equal to this can be returned by AcceptToMemPool
- * for transactions, to signal internal conditions. They cannot and should not
- * be sent over the P2P network.
+/**
+ * Reject codes greater or equal to this can be returned by AcceptToMemPool for
+ * transactions, to signal internal conditions. They cannot and should not be
+ * sent over the P2P network.
  */
 static const unsigned int REJECT_INTERNAL = 0x100;
 /** Too high fee. Can not be triggered by P2P transactions */

@@ -145,14 +145,14 @@ public:
     void Add(std::vector<T> &vChecks) {
         boost::unique_lock<boost::mutex> lock(mutex);
         for (T &check : vChecks) {
-            queue.push_back(T());
-            check.swap(queue.back());
+            queue.push_back(std::move(check));
         }
         nTodo += vChecks.size();
-        if (vChecks.size() == 1)
+        if (vChecks.size() == 1) {
             condWorker.notify_one();
-        else if (vChecks.size() > 1)
+        } else if (vChecks.size() > 1) {
             condWorker.notify_all();
+        }
     }
 
     ~CCheckQueue() {}
