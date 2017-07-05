@@ -23,7 +23,7 @@ public:
 /** Template base class for unsigned big integers. */
 template <unsigned int BITS> class base_uint {
 protected:
-    enum { WIDTH = BITS / 32 };
+    static constexpr int WIDTH = BITS / 32;
     uint32_t pn[WIDTH];
 
 public:

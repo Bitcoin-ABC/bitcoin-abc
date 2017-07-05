@@ -178,7 +178,7 @@ public:
         return GetHeaderReceivedTime() - GetBlockTime();
     }
 
-    enum { nMedianTimeSpan = 11 };
+    static constexpr int nMedianTimeSpan = 11;
 
     int64_t GetMedianTimePast() const {
         int64_t pmedian[nMedianTimeSpan];
