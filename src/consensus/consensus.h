@@ -36,13 +36,10 @@ static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
 static const int64_t P2SH_ACTIVATION_TIME = 1333234914;
 
 /** Flags for nSequence and nLockTime locks */
-enum {
-    /* Interpret sequence numbers as relative lock-time constraints. */
-    LOCKTIME_VERIFY_SEQUENCE = (1 << 0),
-
-    /* Use GetMedianTimePast() instead of nTime for end point timestamp. */
-    LOCKTIME_MEDIAN_TIME_PAST = (1 << 1),
-};
+/** Interpret sequence numbers as relative lock-time constraints. */
+static constexpr unsigned int LOCKTIME_VERIFY_SEQUENCE = (1 << 0);
+/** Use GetMedianTimePast() instead of nTime for end point timestamp. */
+static constexpr unsigned int LOCKTIME_MEDIAN_TIME_PAST = (1 << 1);
 
 /**
  * Compute the maximum number of sigops operation that can contained in a block
