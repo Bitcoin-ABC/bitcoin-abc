@@ -7,6 +7,7 @@
 #ifndef BITCOIN_INIT_H
 #define BITCOIN_INIT_H
 
+#include <memory>
 #include <string>
 
 class Config;
@@ -14,6 +15,9 @@ class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
 class RPCServer;
+
+class WalletInitInterface;
+extern std::unique_ptr<WalletInitInterface> g_wallet_init_interface;
 
 namespace boost {
 class thread_group;
