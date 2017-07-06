@@ -44,9 +44,9 @@
 #include "validation.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
-#include "wallet/init.h"
 #include "wallet/rpcdump.h"
 #endif
+#include "walletinitinterface.h"
 #include "warnings.h"
 
 #include <cstdint>
@@ -75,6 +75,7 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
+std::unique_ptr<WalletInitInterface> g_wallet_init_interface;
 
 #if ENABLE_ZMQ
 static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
@@ -189,9 +190,7 @@ void Shutdown() {
     StopREST();
     StopRPC();
     StopHTTPServer();
-#ifdef ENABLE_WALLET
-    FlushWallets();
-#endif
+    g_wallet_init_interface->Flush();
     StopMapPort();
 
     // Because these depend on each-other, we make sure that neither can be
@@ -246,9 +245,7 @@ void Shutdown() {
         pcoinsdbview.reset();
         pblocktree.reset();
     }
-#ifdef ENABLE_WALLET
-    StopWallets();
-#endif
+    g_wallet_init_interface->Stop();
 
 #if ENABLE_ZMQ
     if (pzmqNotificationInterface) {
@@ -267,9 +264,8 @@ void Shutdown() {
 #endif
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-#ifdef ENABLE_WALLET
-    CloseWallets();
-#endif
+    g_wallet_init_interface->Close();
+    g_wallet_init_interface.reset();
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -592,9 +588,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                     "MiB per 24h), 0 = no limit (default: %d)"),
                   DEFAULT_MAX_UPLOAD_TARGET));
 
-#ifdef ENABLE_WALLET
-    strUsage += GetWalletHelpString(showDebug);
-#endif
+    strUsage += g_wallet_init_interface->GetHelpString(showDebug);
 
 #if ENABLE_ZMQ
     strUsage += HelpMessageGroup(_("ZeroMQ notification options:"));
@@ -1571,8 +1565,8 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
     }
 
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
+    g_wallet_init_interface->RegisterRPC(tableRPC);
 #ifdef ENABLE_WALLET
-    RegisterWalletRPC(tableRPC);
     RegisterDumpRPCCommands(tableRPC);
 #endif
 
@@ -1643,11 +1637,9 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
     }
     nBytesPerSigOp = gArgs.GetArg("-bytespersigop", nBytesPerSigOp);
 
-#ifdef ENABLE_WALLET
-    if (!WalletParameterInteraction()) {
+    if (!g_wallet_init_interface->ParameterInteraction()) {
         return false;
     }
-#endif
 
     fIsBareMultisigStd =
         gArgs.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
@@ -1807,12 +1799,11 @@ bool AppInitMain(Config &config,
         }
     }
 
-// Step 5: verify wallet database integrity
-#ifdef ENABLE_WALLET
-    if (!VerifyWallets(chainparams)) {
+    // Step 5: verify wallet database integrity
+    if (!g_wallet_init_interface->Verify(chainparams)) {
         return false;
     }
-#endif
+
     // Step 6: network initialization
 
     // Note that we absolutely cannot open any actual connections
@@ -2195,14 +2186,10 @@ bool AppInitMain(Config &config,
     config.SetCashAddrEncoding(
         gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
 
-// Step 8: load wallet
-#ifdef ENABLE_WALLET
-    if (!OpenWallets(chainparams)) {
+    // Step 8: load wallet
+    if (!g_wallet_init_interface->Open(chainparams)) {
         return false;
     }
-#else
-    LogPrintf("No wallet support compiled in!\n");
-#endif
 
     // Step 9: data directory maintenance
 
@@ -2339,9 +2326,7 @@ bool AppInitMain(Config &config,
     SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
 
-#ifdef ENABLE_WALLET
-    StartWallets(scheduler);
-#endif
+    g_wallet_init_interface->Start(scheduler);
 
     return !fRequestShutdown;
 }

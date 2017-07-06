@@ -8,53 +8,63 @@
 #define BITCOIN_WALLET_INIT_H
 
 #include "chainparams.h"
+#include "walletinitinterface.h"
 
 #include <string>
 
 class CRPCTable;
 class CScheduler;
 
-/**
- * Return the wallets help message.
- */
-std::string GetWalletHelpString(bool showDebug);
+class WalletInit : public WalletInitInterface {
+public:
+    /**
+    * Return the wallets help message.
+    */
+    std::string GetHelpString(bool showDebug) override;
 
-/**
- * Wallets parameter interaction
- */
-bool WalletParameterInteraction();
+    /**
+    * Wallets parameter interaction
+    */
+    bool ParameterInteraction() override;
 
-/**
- * Register wallet RPCs.
- */
-void RegisterWalletRPC(CRPCTable &tableRPC);
+    /**
+     * Register wallet RPCs.
+     */
+    void RegisterRPC(CRPCTable &tableRPC) override;
 
-/**
- * Responsible for reading and validating the -wallet arguments and verifying
- * the wallet database.
- * This function will perform salvage on the wallet if requested, as long as
- * only one wallet is
- * being loaded (WalletParameterInteraction forbids -salvagewallet,
- * -zapwallettxes or -upgradewallet with multiwallet).
- */
+    /**
+     * Responsible for reading and validating the -wallet arguments and
+     * verifying the wallet database.
+     * This function will perform salvage on the wallet if requested, as long as
+     * only one wallet is being loaded (WalletParameterInteraction forbids
+     * -salvagewallet, -zapwallettxes or -upgradewallet with multiwallet).
+     */
+    bool Verify(const CChainParams &chainParams) override;
 
-bool VerifyWallets(const CChainParams &chainParams);
+    /**
+     * Load wallet databases.
+     */
+    bool Open(const CChainParams &chainParams) override;
 
-/**
- * Load wallet databases.
- */
-bool OpenWallets(const CChainParams &chainParams);
+    /**
+     * Complete startup of wallets.
+     */
+    void Start(CScheduler &scheduler) override;
 
-//! Complete startup of wallets.
-void StartWallets(CScheduler &scheduler);
+    /**
+     * Flush all wallets in preparation for shutdown.
+     */
+    void Flush() override;
 
-//! Flush all wallets in preparation for shutdown.
-void FlushWallets();
+    /**
+     * Stop all wallets. Wallets will be flushed first.
+     */
+    void Stop() override;
 
-//! Stop all wallets. Wallets will be flushed first.
-void StopWallets();
-
-//! Close all wallets.
-void CloseWallets();
+    /**
+     * Close all wallets.
+    */
+    void Close() override;
+};
 
 #endif // BITCOIN_WALLET_INIT_H
