@@ -134,11 +134,6 @@ MapRelay mapRelay;
 std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
 } // namespace
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// Registration of network node signals.
-//
-
 namespace {
 
 struct CBlockReject {
@@ -287,70 +282,6 @@ void PushNodeVersion(const Config &config, CNode *pnode, CConnman *connman,
             BCLog::NET,
             "send version message: version %d, blocks=%d, us=%s, peer=%d\n",
             PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
-    }
-}
-
-void InitializeNode(const Config &config, CNode *pnode, CConnman *connman) {
-    CAddress addr = pnode->addr;
-    std::string addrName = pnode->GetAddrName();
-    NodeId nodeid = pnode->GetId();
-    {
-        LOCK(cs_main);
-        mapNodeState.emplace_hint(
-            mapNodeState.end(), std::piecewise_construct,
-            std::forward_as_tuple(nodeid),
-            std::forward_as_tuple(addr, std::move(addrName)));
-    }
-
-    if (!pnode->fInbound) {
-        PushNodeVersion(config, pnode, connman, GetTime());
-    }
-}
-
-void FinalizeNode(NodeId nodeid, bool &fUpdateConnectionTime) {
-    fUpdateConnectionTime = false;
-    LOCK(cs_main);
-    CNodeState *state = State(nodeid);
-
-    if (state->fSyncStarted) {
-        nSyncStarted--;
-    }
-
-    if (state->nMisbehavior == 0 && state->fCurrentlyConnected) {
-        fUpdateConnectionTime = true;
-    }
-
-    for (const QueuedBlock &entry : state->vBlocksInFlight) {
-        mapBlocksInFlight.erase(entry.hash);
-    }
-    // Get rid of stale mapBlockSource entries for this peer as they may leak
-    // if we don't clean them up (I saw on the order of ~100 stale entries on
-    // a full resynch in my testing -- these entries stay forever).
-    // Performance note: most of the time mapBlockSource has 0 or 1 entries.
-    // During synch of blockchain it may end up with as many as 1000 entries,
-    // which still only takes ~1ms to iterate through on even old hardware.
-    // So this memleak cleanup is not expensive and worth doing since even
-    // small leaks are bad. :)
-    for (auto it = mapBlockSource.begin(); it != mapBlockSource.end(); /*NA*/) {
-        if (it->second.first == nodeid) {
-            mapBlockSource.erase(it++);
-        } else {
-            ++it;
-        }
-    }
-
-    EraseOrphansFor(nodeid);
-    nPreferredDownload -= state->fPreferredDownload;
-    nPeersWithValidatedDownloads -= (state->nBlocksInFlightValidHeaders != 0);
-    assert(nPeersWithValidatedDownloads >= 0);
-
-    mapNodeState.erase(nodeid);
-
-    if (mapNodeState.empty()) {
-        // Do a consistency check after the last peer is removed.
-        assert(mapBlocksInFlight.empty());
-        assert(nPreferredDownload == 0);
-        assert(nPeersWithValidatedDownloads == 0);
     }
 }
 
@@ -653,6 +584,56 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
 } // namespace
 
+void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
+    CAddress addr = pnode->addr;
+    std::string addrName = pnode->GetAddrName();
+    NodeId nodeid = pnode->GetId();
+    {
+        LOCK(cs_main);
+        mapNodeState.emplace_hint(
+            mapNodeState.end(), std::piecewise_construct,
+            std::forward_as_tuple(nodeid),
+            std::forward_as_tuple(addr, std::move(addrName)));
+    }
+    if (!pnode->fInbound) {
+        PushNodeVersion(config, pnode, connman, GetTime());
+    }
+}
+
+void PeerLogicValidation::FinalizeNode(const Config &config, NodeId nodeid,
+                                       bool &fUpdateConnectionTime) {
+    fUpdateConnectionTime = false;
+    LOCK(cs_main);
+    CNodeState *state = State(nodeid);
+    assert(state != nullptr);
+
+    if (state->fSyncStarted) {
+        nSyncStarted--;
+    }
+
+    if (state->nMisbehavior == 0 && state->fCurrentlyConnected) {
+        fUpdateConnectionTime = true;
+    }
+
+    for (const QueuedBlock &entry : state->vBlocksInFlight) {
+        mapBlocksInFlight.erase(entry.hash);
+    }
+    EraseOrphansFor(nodeid);
+    nPreferredDownload -= state->fPreferredDownload;
+    nPeersWithValidatedDownloads -= (state->nBlocksInFlightValidHeaders != 0);
+    assert(nPeersWithValidatedDownloads >= 0);
+
+    mapNodeState.erase(nodeid);
+
+    if (mapNodeState.empty()) {
+        // Do a consistency check after the last peer is removed.
+        assert(mapBlocksInFlight.empty());
+        assert(nPreferredDownload == 0);
+        assert(nPeersWithValidatedDownloads == 0);
+    }
+    LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
+}
+
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     LOCK(cs_main);
     CNodeState *state = State(nodeid);
@@ -671,20 +652,6 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         }
     }
     return true;
-}
-
-void RegisterNodeSignals(CNodeSignals &nodeSignals) {
-    nodeSignals.ProcessMessages.connect(&ProcessMessages);
-    nodeSignals.SendMessages.connect(&SendMessages);
-    nodeSignals.InitializeNode.connect(&InitializeNode);
-    nodeSignals.FinalizeNode.connect(&FinalizeNode);
-}
-
-void UnregisterNodeSignals(CNodeSignals &nodeSignals) {
-    nodeSignals.ProcessMessages.disconnect(&ProcessMessages);
-    nodeSignals.SendMessages.disconnect(&SendMessages);
-    nodeSignals.InitializeNode.disconnect(&InitializeNode);
-    nodeSignals.FinalizeNode.disconnect(&FinalizeNode);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2685,7 +2652,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 LogPrint(
                     BCLog::NET,
                     "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
-                    pindexLast->nHeight, pfrom->GetId(), pfrom->nStartingHeight);
+                    pindexLast->nHeight, pfrom->GetId(),
+                    pfrom->nStartingHeight);
                 connman->PushMessage(
                     pfrom,
                     msgMaker.Make(NetMsgType::GETHEADERS,
@@ -3044,8 +3012,8 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman) {
     return false;
 }
 
-bool ProcessMessages(const Config &config, CNode *pfrom, CConnman *connman,
-                     const std::atomic<bool> &interruptMsgProc) {
+bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
+                                          std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     //
     // Message format
@@ -3200,8 +3168,8 @@ public:
     }
 };
 
-bool SendMessages(const Config &config, CNode *pto, CConnman *connman,
-                  const std::atomic<bool> &interruptMsgProc) {
+bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
+                                       std::atomic<bool> &interruptMsgProc) {
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 

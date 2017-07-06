@@ -34,8 +34,6 @@
 #include <arpa/inet.h>
 #endif
 
-#include <boost/signals2/signal.hpp>
-
 class Config;
 class CNode;
 class CScheduler;
@@ -117,6 +115,7 @@ struct CSerializedNetMsg {
     std::string command;
 };
 
+class NetEventsInterface;
 class CConnman {
 public:
     enum NumConnections {
@@ -135,6 +134,7 @@ public:
         int nMaxFeeler = 0;
         int nBestHeight = 0;
         CClientUIInterface *uiInterface = nullptr;
+        NetEventsInterface *m_msgproc = nullptr;
         unsigned int nSendBufferMaxSize = 0;
         unsigned int nReceiveFloodSize = 0;
         uint64_t nMaxOutboundTimeframe = 0;
@@ -154,6 +154,7 @@ public:
         nMaxFeeler = connOptions.nMaxFeeler;
         nBestHeight = connOptions.nBestHeight;
         clientInterface = connOptions.uiInterface;
+        m_msgproc = connOptions.m_msgproc;
         nSendBufferMaxSize = connOptions.nSendBufferMaxSize;
         nReceiveFloodSize = connOptions.nReceiveFloodSize;
         nMaxOutboundTimeframe = connOptions.nMaxOutboundTimeframe;
@@ -401,6 +402,7 @@ private:
     int nMaxFeeler;
     std::atomic<int> nBestHeight;
     CClientUIInterface *clientInterface;
+    NetEventsInterface *m_msgproc;
 
     /** SipHasher seeds for deterministic randomness */
     const uint64_t nSeed0, nSeed1;
@@ -441,22 +443,19 @@ struct CombinerAll {
     }
 };
 
-// Signals for message handling
-struct CNodeSignals {
-    boost::signals2::signal<bool(const Config &, CNode *, CConnman *,
-                                 std::atomic<bool> &),
-                            CombinerAll>
-        ProcessMessages;
-    boost::signals2::signal<bool(const Config &, CNode *, CConnman *,
-                                 std::atomic<bool> &),
-                            CombinerAll>
-        SendMessages;
-    boost::signals2::signal<void(const Config &, CNode *, CConnman *)>
-        InitializeNode;
-    boost::signals2::signal<void(NodeId, bool &)> FinalizeNode;
+/**
+ * Interface for message handling
+ */
+class NetEventsInterface {
+public:
+    virtual bool ProcessMessages(const Config &config, CNode *pnode,
+                                 std::atomic<bool> &interrupt) = 0;
+    virtual bool SendMessages(const Config &config, CNode *pnode,
+                              std::atomic<bool> &interrupt) = 0;
+    virtual void InitializeNode(const Config &config, CNode *pnode) = 0;
+    virtual void FinalizeNode(const Config &config, NodeId id,
+                              bool &update_connection_time) = 0;
 };
-
-CNodeSignals &GetNodeSignals();
 
 enum {
     // unknown

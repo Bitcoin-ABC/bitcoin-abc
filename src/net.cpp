@@ -87,12 +87,6 @@ static bool vfLimited[NET_MAX] = {};
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
-// Signals for message handling
-static CNodeSignals g_signals;
-CNodeSignals &GetNodeSignals() {
-    return g_signals;
-}
-
 void CConnman::AddOneShot(const std::string &strDest) {
     LOCK(cs_vOneShots);
     vOneShots.push_back(strDest);
@@ -1219,8 +1213,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
                   CalculateKeyedNetGroup(addr), nonce, addr_bind, "", true);
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
-
-    GetNodeSignals().InitializeNode(*config, pnode, this);
+    m_msgproc->InitializeNode(*config, pnode);
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
 
@@ -2101,7 +2094,7 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         pnode->fAddnode = true;
     }
 
-    GetNodeSignals().InitializeNode(*config, pnode, this);
+    m_msgproc->InitializeNode(*config, pnode);
     {
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);
@@ -2129,8 +2122,8 @@ void CConnman::ThreadMessageHandler() {
             }
 
             // Receive messages
-            bool fMoreNodeWork = GetNodeSignals().ProcessMessages(
-                *config, pnode, this, flagInterruptMsgProc);
+            bool fMoreNodeWork = m_msgproc->ProcessMessages(
+                *config, pnode, flagInterruptMsgProc);
             fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
             if (flagInterruptMsgProc) {
                 return;
@@ -2139,9 +2132,9 @@ void CConnman::ThreadMessageHandler() {
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                GetNodeSignals().SendMessages(*config, pnode, this,
-                                              flagInterruptMsgProc);
+                m_msgproc->SendMessages(*config, pnode, flagInterruptMsgProc);
             }
+
             if (flagInterruptMsgProc) {
                 return;
             }
@@ -2488,6 +2481,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     //
     // Start threads
     //
+    assert(m_msgproc);
     InterruptSocks5(false);
     interruptNet.reset();
     flagInterruptMsgProc = false;
@@ -2628,7 +2622,7 @@ void CConnman::Stop() {
 void CConnman::DeleteNode(CNode *pnode) {
     assert(pnode);
     bool fUpdateConnectionTime = false;
-    GetNodeSignals().FinalizeNode(pnode->GetId(), fUpdateConnectionTime);
+    m_msgproc->FinalizeNode(*config, pnode->GetId(), fUpdateConnectionTime);
     if (fUpdateConnectionTime) {
         addrman.Connected(pnode->addr);
     }
