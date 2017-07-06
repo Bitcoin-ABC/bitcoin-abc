@@ -352,19 +352,21 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CDiskBlockPos *dbp = nullptr);
 
 /**
- * Initialize a new block tree database + block data on disk.
+ * Ensures we have a genesis block in the block tree, possibly writing one to
+ * disk.
  */
-bool InitBlockIndex(const Config &config);
+bool LoadGenesisBlock(const CChainParams &chainparams);
 
 /**
- * Load the block tree and coins database from disk.
+ * Load the block tree and coins database from disk, initializing state if we're
+ * running with -reindex.
  */
 bool LoadBlockIndex(const Config &config);
 
 /**
  * Update the chain tip based on database information.
  */
-void LoadChainTip(const CChainParams &chainparams);
+bool LoadChainTip(const Config &config);
 
 /**
  * Unload database information.
