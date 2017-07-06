@@ -60,7 +60,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 void Misbehaving(NodeId nodeid, int howmuch, const std::string &reason);
 
 /** Process protocol messages received from a given node */
-bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
+bool ProcessMessages(const Config &config, CNode *pfrom, CConnman *connman,
                      const std::atomic<bool> &interrupt);
 /**
  * Send queued protocol messages to be sent to a give node.
@@ -70,7 +70,7 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
  * @param[in]   interrupt       Interrupt condition for processing threads
  * @return                      True if there is more work to be done
  */
-bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
+bool SendMessages(const Config &config, CNode *pto, CConnman *connman,
                   const std::atomic<bool> &interrupt);
 
 #endif // BITCOIN_NET_PROCESSING_H

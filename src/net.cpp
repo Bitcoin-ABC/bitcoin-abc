@@ -1198,7 +1198,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
 
-    GetNodeSignals().InitializeNode(*config, pnode, *this);
+    GetNodeSignals().InitializeNode(*config, pnode, this);
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
 
@@ -2078,7 +2078,7 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         pnode->fAddnode = true;
     }
 
-    GetNodeSignals().InitializeNode(*config, pnode, *this);
+    GetNodeSignals().InitializeNode(*config, pnode, this);
     {
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);
@@ -2107,7 +2107,7 @@ void CConnman::ThreadMessageHandler() {
 
             // Receive messages
             bool fMoreNodeWork = GetNodeSignals().ProcessMessages(
-                *config, pnode, *this, flagInterruptMsgProc);
+                *config, pnode, this, flagInterruptMsgProc);
             fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
             if (flagInterruptMsgProc) {
                 return;
@@ -2116,7 +2116,7 @@ void CConnman::ThreadMessageHandler() {
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                GetNodeSignals().SendMessages(*config, pnode, *this,
+                GetNodeSignals().SendMessages(*config, pnode, this,
                                               flagInterruptMsgProc);
             }
             if (flagInterruptMsgProc) {

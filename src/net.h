@@ -426,15 +426,15 @@ struct CombinerAll {
 
 // Signals for message handling
 struct CNodeSignals {
-    boost::signals2::signal<bool(const Config &, CNode *, CConnman &,
+    boost::signals2::signal<bool(const Config &, CNode *, CConnman *,
                                  std::atomic<bool> &),
                             CombinerAll>
         ProcessMessages;
-    boost::signals2::signal<bool(const Config &, CNode *, CConnman &,
+    boost::signals2::signal<bool(const Config &, CNode *, CConnman *,
                                  std::atomic<bool> &),
                             CombinerAll>
         SendMessages;
-    boost::signals2::signal<void(const Config &, CNode *, CConnman &)>
+    boost::signals2::signal<void(const Config &, CNode *, CConnman *)>
         InitializeNode;
     boost::signals2::signal<void(NodeId, bool &)> FinalizeNode;
 };
