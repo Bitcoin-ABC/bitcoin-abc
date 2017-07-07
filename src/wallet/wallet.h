@@ -386,7 +386,7 @@ public:
             mapValueCopy["timesmart"] = strprintf("%u", nTimeSmart);
         }
 
-        s << *static_cast<const CMerkleTx *>(this);
+        s << static_cast<const CMerkleTx &>(*this);
         //!< Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s << vUnused << mapValueCopy << vOrderForm << fTimeReceivedIsTxTime
@@ -397,7 +397,7 @@ public:
         Init(nullptr);
         char fSpent;
 
-        s >> *static_cast<CMerkleTx *>(this);
+        s >> static_cast<CMerkleTx &>(*this);
         //!< Used to be vtxPrev
         std::vector<CMerkleTx> vUnused;
         s >> vUnused >> mapValue >> vOrderForm >> fTimeReceivedIsTxTime >>
