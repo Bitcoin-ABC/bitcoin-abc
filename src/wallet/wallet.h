@@ -20,10 +20,10 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdint>
 #include <map>
 #include <set>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -81,16 +81,20 @@ class CWalletTx;
 
 /** (client) version numbers for particular wallet features */
 enum WalletFeature {
-    FEATURE_BASE = 10500, // the earliest version new wallets supports (only
-                          // useful for getinfo's clientversion output)
+    // the earliest version new wallets supports (only useful for getinfo's
+    // clientversion output)
+    FEATURE_BASE = 10500,
 
-    FEATURE_WALLETCRYPT = 40000, // wallet encryption
-    FEATURE_COMPRPUBKEY = 60000, // compressed public keys
+    // wallet encryption
+    FEATURE_WALLETCRYPT = 40000,
+    // compressed public keys
+    FEATURE_COMPRPUBKEY = 60000,
 
-    FEATURE_HD = 130000, // Hierarchical key derivation after BIP32 (HD Wallet)
-    FEATURE_LATEST = FEATURE_COMPRPUBKEY // HD is optional, use
-                                         // FEATURE_COMPRPUBKEY as latest
-                                         // version
+    // Hierarchical key derivation after BIP32 (HD Wallet)
+    FEATURE_HD = 130000,
+
+    // HD is optional, use FEATURE_COMPRPUBKEY as latest version
+    FEATURE_LATEST = FEATURE_COMPRPUBKEY,
 };
 
 /** A key pool entry */
@@ -107,7 +111,10 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) READWRITE(nVersion);
+        if (!(s.GetType() & SER_GETHASH)) {
+            READWRITE(nVersion);
+        }
+
         READWRITE(nTime);
         READWRITE(vchPubKey);
     }
@@ -135,9 +142,11 @@ typedef std::map<std::string, std::string> mapValue_t;
 
 static inline void ReadOrderPos(int64_t &nOrderPos, mapValue_t &mapValue) {
     if (!mapValue.count("n")) {
-        nOrderPos = -1; // TODO: calculate elsewhere
+        // TODO: calculate elsewhere
+        nOrderPos = -1;
         return;
     }
+
     nOrderPos = atoi64(mapValue["n"].c_str());
 }
 
@@ -181,9 +190,11 @@ public:
         Init();
     }
 
-    /** Helper conversion operator to allow passing CMerkleTx where CTransaction
+    /**
+     * Helper conversion operator to allow passing CMerkleTx where CTransaction
      * is expected.
-     *  TODO: adapt callers and remove this operator. */
+     * TODO: adapt callers and remove this operator.
+     */
     operator const CTransaction &() const { return *tx; }
 
     void Init() {
@@ -223,8 +234,10 @@ public:
         return GetDepthInMainChain(pindexRet) > 0;
     }
     int GetBlocksToMaturity() const;
-    /** Pass this transaction to the mempool. Fails if absolute fee exceeds
-     * absurd fee. */
+    /**
+     * Pass this transaction to the mempool. Fails if absolute fee exceeds
+     * absurd fee.
+     */
     bool AcceptToMemoryPool(const CAmount &nAbsurdFee, CValidationState &state);
     bool hashUnset() const {
         return (hashBlock.IsNull() || hashBlock == ABANDON_HASH);
@@ -238,9 +251,8 @@ public:
 
 /**
  * A transaction with a bunch of additional info that only the owner cares
- * about.
- * It includes any unrecorded transactions needed to link it back to the block
- * chain.
+ * about. It includes any unrecorded transactions needed to link it back to the
+ * block chain.
  */
 class CWalletTx : public CMerkleTx {
 private:
@@ -445,8 +457,7 @@ public:
     int64_t nTimeExpires;
     std::string strComment;
     //! todo: add something to note what created it (user, getnewaddress,
-    //! change)
-    //!   maybe should have a map<string, string> property map
+    //! change) maybe should have a map<string, string> property map
 
     CWalletKey(int64_t nExpires = 0);
 
@@ -729,6 +740,7 @@ public:
     bool LoadKey(const CKey &key, const CPubKey &pubkey) {
         return CCryptoKeyStore::AddKeyPubKey(key, pubkey);
     }
+
     //! Load metadata (used by LoadWallet)
     bool LoadKeyMetadata(const CTxDestination &pubKey,
                          const CKeyMetadata &metadata);
@@ -922,10 +934,10 @@ public:
     void UpdatedTransaction(const uint256 &hashTx) override;
 
     void Inventory(const uint256 &hash) override {
-        {
-            LOCK(cs_wallet);
-            std::map<uint256, int>::iterator mi = mapRequestCount.find(hash);
-            if (mi != mapRequestCount.end()) (*mi).second++;
+        LOCK(cs_wallet);
+        std::map<uint256, int>::iterator mi = mapRequestCount.find(hash);
+        if (mi != mapRequestCount.end()) {
+            (*mi).second++;
         }
     }
 
@@ -1004,19 +1016,24 @@ public:
         fBroadcastTransactions = broadcast;
     }
 
-    /* Mark a transaction (and it in-wallet descendants) as abandoned so its
-     * inputs may be respent. */
+    /**
+     * Mark a transaction (and it in-wallet descendants) as abandoned so its
+     * inputs may be respent.
+     */
     bool AbandonTransaction(const uint256 &hashTx);
 
-    /** Mark a transaction as replaced by another transaction (e.g., BIP 125).
+    /**
+     * Mark a transaction as replaced by another transaction (e.g., BIP 125).
      */
     bool MarkReplaced(const uint256 &originalHash, const uint256 &newHash);
 
     /* Returns the wallets help message */
     static std::string GetWalletHelpString(bool showDebug);
 
-    /* Initializes the wallet, returns a new CWallet instance or a null pointer
-     * in case of an error */
+    /**
+     * Initializes the wallet, returns a new CWallet instance or a null pointer
+     * in case of an error.
+     */
     static CWallet *CreateWalletFromFile(const std::string walletFile);
     static bool InitLoadWallet();
 
@@ -1085,7 +1102,10 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) READWRITE(nVersion);
+        if (!(s.GetType() & SER_GETHASH)) {
+            READWRITE(nVersion);
+        }
+
         READWRITE(vchPubKey);
     }
 };
@@ -1112,6 +1132,7 @@ bool CWallet::DummySignTx(CMutableTransaction &txNew,
 
         nIn++;
     }
+
     return true;
 }
 
