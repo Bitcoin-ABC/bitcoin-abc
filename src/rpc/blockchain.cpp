@@ -874,7 +874,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
     stats.nTransactions++;
     for (const auto output : outputs) {
         ss << VARINT(output.first + 1);
-        ss << *(const CScriptBase *)(&output.second.GetTxOut().scriptPubKey);
+        ss << output.second.GetTxOut().scriptPubKey;
         ss << VARINT(output.second.GetTxOut().nValue.GetSatoshis());
         stats.nTransactionOutputs++;
         stats.nTotalAmount += output.second.GetTxOut().nValue;
