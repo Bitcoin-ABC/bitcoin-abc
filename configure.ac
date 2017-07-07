@@ -20,6 +20,12 @@ BITCOIN_CLI_NAME=bitcoin-cli
 BITCOIN_TX_NAME=bitcoin-tx
 BITCOIN_SEEDER_NAME=bitcoin-seeder
 
+dnl Unless the user specified ARFLAGS, force it to be cr
+AC_ARG_VAR(ARFLAGS, [Flags for the archiver, defaults to <cr> if not set])
+if test "x${ARFLAGS+set}" != "xset"; then
+  ARFLAGS="cr"
+fi
+
 AC_CANONICAL_HOST
 
 AH_TOP([#ifndef BITCOIN_BITCOIN_CONFIG_H])
@@ -1277,4 +1283,5 @@ echo "  CPPFLAGS      = $DEBUG_CPPFLAGS $HARDENED_CPPFLAGS $CPPFLAGS"
 echo "  CXX           = $CXX"
 echo "  CXXFLAGS      = $DEBUG_CXXFLAGS $HARDENED_CXXFLAGS $ERROR_CXXFLAGS $CXXFLAGS"
 echo "  LDFLAGS       = $PTHREAD_CFLAGS $HARDENED_LDFLAGS $LDFLAGS"
+echo "  ARFLAGS       = $ARFLAGS"
 echo
