@@ -292,25 +292,28 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
             "000000000000000000000000000000000000000000000000000e64")),
         COIN);
 
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e-9")),
-                      UniValue); // should fail
+    // should fail
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e-9")), UniValue);
+    // should fail
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("0.000000019")),
-                      UniValue); // should fail
+                      UniValue);
+    // should pass, cut trailing 0
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001000000")),
-                      1LL); // should pass, cut trailing 0
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("19e-9")),
-                      UniValue); // should fail
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.19e-6")),
-                      19); // should pass, leading 0 is present
+                      1LL);
+    // should fail
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("19e-9")), UniValue);
+    // should pass, leading 0 is present
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.19e-6")), 19);
 
+    // overflow error
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("92233720368.54775808")),
-                      UniValue); // overflow error
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e+11")),
-                      UniValue); // overflow error
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e11")),
-                      UniValue); // overflow error signless
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("93e+9")),
-                      UniValue); // overflow error
+                      UniValue);
+    // overflow error
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e+11")), UniValue);
+    // overflow error signless
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e11")), UniValue);
+    // overflow error
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("93e+9")), UniValue);
 }
 
 BOOST_AUTO_TEST_CASE(json_parse_errors) {
@@ -320,9 +323,9 @@ BOOST_AUTO_TEST_CASE(json_parse_errors) {
     BOOST_CHECK_EQUAL(ParseNonRFCJSONValue(" 1.0").get_real(), 1.0);
     BOOST_CHECK_EQUAL(ParseNonRFCJSONValue("1.0 ").get_real(), 1.0);
 
+    // should fail, missing leading 0, therefore invalid JSON
     BOOST_CHECK_THROW(AmountFromValue(ParseNonRFCJSONValue(".19e-6")),
-                      std::runtime_error); // should fail, missing leading 0,
-                                           // therefore invalid JSON
+                      std::runtime_error);
     BOOST_CHECK_EQUAL(AmountFromValue(ParseNonRFCJSONValue(
                           "0.00000000000000000000000000000000000001e+30 ")),
                       1);
@@ -345,8 +348,9 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
 
     UniValue r;
     BOOST_CHECK_NO_THROW(r = CallRPC(std::string("setban 127.0.0.0 add")));
+    // portnumber for setban not allowed
     BOOST_CHECK_THROW(r = CallRPC(std::string("setban 127.0.0.0:8334")),
-                      std::runtime_error); // portnumber for setban not allowed
+                      std::runtime_error);
     BOOST_CHECK_NO_THROW(r = CallRPC(std::string("listbanned")));
     UniValue ar = r.get_array();
     UniValue o1 = ar[0].get_obj();
@@ -365,8 +369,8 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
     adr = find_value(o1, "address");
     UniValue banned_until = find_value(o1, "banned_until");
     BOOST_CHECK_EQUAL(adr.get_str(), "127.0.0.0/24");
-    BOOST_CHECK_EQUAL(banned_until.get_int64(),
-                      1607731200); // absolute time check
+    // absolute time check
+    BOOST_CHECK_EQUAL(banned_until.get_int64(), 1607731200);
 
     BOOST_CHECK_NO_THROW(CallRPC(std::string("clearbanned")));
 
@@ -382,7 +386,7 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
     BOOST_CHECK(banned_until.get_int64() > now);
     BOOST_CHECK(banned_until.get_int64() - now <= 200);
 
-    // must throw an exception because 127.0.0.1 is in already banned suubnet
+    // must throw an exception because 127.0.0.1 is in already banned subnet
     // range
     BOOST_CHECK_THROW(r = CallRPC(std::string("setban 127.0.0.1 add")),
                       std::runtime_error);
@@ -402,8 +406,9 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
     ar = r.get_array();
     BOOST_CHECK_EQUAL(ar.size(), 0);
 
+    // invalid IP
     BOOST_CHECK_THROW(r = CallRPC(std::string("setban test add")),
-                      std::runtime_error); // invalid IP
+                      std::runtime_error);
 
     // IPv6 tests
     BOOST_CHECK_NO_THROW(
