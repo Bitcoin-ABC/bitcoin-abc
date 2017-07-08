@@ -92,41 +92,38 @@ public:
         hashPrev = (pprev ? pprev->GetBlockHash() : BlockHash());
     }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
+    SERIALIZE_METHODS(CDiskBlockIndex, obj) {
         int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) {
             READWRITE(VARINT(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
         }
 
-        READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));
-        READWRITE(nStatus);
-        READWRITE(VARINT(nTx));
+        READWRITE(VARINT(obj.nHeight, VarIntMode::NONNEGATIVE_SIGNED));
+        READWRITE(obj.nStatus);
+        READWRITE(VARINT(obj.nTx));
 
         // The size of the blocks are tracked starting at version 0.22.8
-        if (nStatus.hasData() && _nVersion >= TRACK_SIZE_VERSION) {
-            READWRITE(VARINT(nSize));
+        if (obj.nStatus.hasData() && _nVersion >= TRACK_SIZE_VERSION) {
+            READWRITE(VARINT(obj.nSize));
         }
 
-        if (nStatus.hasData() || nStatus.hasUndo()) {
-            READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));
+        if (obj.nStatus.hasData() || obj.nStatus.hasUndo()) {
+            READWRITE(VARINT(obj.nFile, VarIntMode::NONNEGATIVE_SIGNED));
         }
-        if (nStatus.hasData()) {
-            READWRITE(VARINT(nDataPos));
+        if (obj.nStatus.hasData()) {
+            READWRITE(VARINT(obj.nDataPos));
         }
-        if (nStatus.hasUndo()) {
-            READWRITE(VARINT(nUndoPos));
+        if (obj.nStatus.hasUndo()) {
+            READWRITE(VARINT(obj.nUndoPos));
         }
 
         // block header
-        READWRITE(this->nVersion);
-        READWRITE(hashPrev);
-        READWRITE(hashMerkleRoot);
-        READWRITE(nTime);
-        READWRITE(nBits);
-        READWRITE(nNonce);
+        READWRITE(obj.nVersion);
+        READWRITE(obj.hashPrev);
+        READWRITE(obj.hashMerkleRoot);
+        READWRITE(obj.nTime);
+        READWRITE(obj.nBits);
+        READWRITE(obj.nNonce);
     }
 
     BlockHash GetBlockHash() const {
