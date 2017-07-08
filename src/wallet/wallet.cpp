@@ -35,6 +35,7 @@
 #include <boost/thread.hpp>
 
 CWallet *pwalletMain = nullptr;
+
 /** Transaction fee set by the user */
 CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
 unsigned int nTxConfirmTarget = DEFAULT_TX_CONFIRM_TARGET;
@@ -2964,6 +2965,15 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         }
 
         if (sign) {
+            uint32_t nHashType = SIGHASH_ALL;
+            // If we already forked, use replay protected tx by default.
+            // It is ok to use GetConfig here, because we'll just use replay
+            // protected transaction only fairly soon anyway, so we can just
+            // remove that call.
+            if (IsUAHFenabledForCurrentBlock(GetConfig())) {
+                nHashType |= SIGHASH_FORKID;
+            }
+
             CTransaction txNewConst(txNew);
             int nIn = 0;
             for (const auto &coin : setCoins) {
@@ -2975,7 +2985,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                         TransactionSignatureCreator(
                             this, &txNewConst, nIn,
                             coin.first->tx->vout[coin.second].nValue,
-                            SIGHASH_ALL),
+                            nHashType),
                         scriptPubKey, sigdata)) {
                     strFailReason = _("Signing transaction failed");
                     return false;
