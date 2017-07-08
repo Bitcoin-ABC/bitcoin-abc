@@ -38,7 +38,7 @@ public:
         return (*this);
     }
 
-    template <typename T> OverrideStream<Stream> &operator>>(T &obj) {
+    template <typename T> OverrideStream<Stream> &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
@@ -434,7 +434,7 @@ public:
         return (*this);
     }
 
-    template <typename T> CDataStream &operator>>(T &obj) {
+    template <typename T> CDataStream &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
@@ -666,7 +666,7 @@ public:
         return (*this);
     }
 
-    template <typename T> CAutoFile &operator>>(T &obj) {
+    template <typename T> CAutoFile &operator>>(T &&obj) {
         // Unserialize from this stream
         if (!file)
             throw std::ios_base::failure(
@@ -801,7 +801,7 @@ public:
         return true;
     }
 
-    template <typename T> CBufferedFile &operator>>(T &obj) {
+    template <typename T> CBufferedFile &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);

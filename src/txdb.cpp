@@ -368,7 +368,7 @@ public:
         vout.assign(vAvail.size(), CTxOut());
         for (size_t i = 0; i < vAvail.size(); i++) {
             if (vAvail[i]) {
-                ::Unserialize(s, REF(CTxOutCompressor(vout[i])));
+                ::Unserialize(s, CTxOutCompressor(vout[i]));
             }
         }
         // coinbase height

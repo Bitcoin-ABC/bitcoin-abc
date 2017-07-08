@@ -63,7 +63,7 @@ public:
         }
 
         CTxOut txout;
-        ::Unserialize(s, REF(CTxOutCompressor(REF(txout))));
+        ::Unserialize(s, CTxOutCompressor(REF(txout)));
 
         *pcoin = Coin(std::move(txout), nHeight, fCoinBase);
     }
@@ -83,7 +83,7 @@ public:
         uint64_t count = vprevout.size();
         ::Serialize(s, COMPACTSIZE(REF(count)));
         for (const auto &prevout : vprevout) {
-            ::Serialize(s, REF(TxInUndoSerializer(&prevout)));
+            ::Serialize(s, TxInUndoSerializer(&prevout));
         }
     }
 
@@ -96,7 +96,7 @@ public:
         }
         vprevout.resize(count);
         for (auto &prevout : vprevout) {
-            ::Unserialize(s, REF(TxInUndoDeserializer(&prevout)));
+            ::Unserialize(s, TxInUndoDeserializer(&prevout));
         }
     }
 };

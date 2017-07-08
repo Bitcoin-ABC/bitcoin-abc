@@ -41,7 +41,7 @@ public:
         m_data += nSize;
     }
 
-    template <typename T> TxInputStream &operator>>(T &obj) {
+    template <typename T> TxInputStream &operator>>(T &&obj) {
         ::Unserialize(*this, obj);
         return *this;
     }

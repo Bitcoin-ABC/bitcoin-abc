@@ -191,7 +191,7 @@ public:
         }
     }
 
-    template <typename T> CHashVerifier<Source> &operator>>(T &obj) {
+    template <typename T> CHashVerifier<Source> &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
