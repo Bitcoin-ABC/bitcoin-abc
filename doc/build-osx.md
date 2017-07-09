@@ -25,6 +25,8 @@ Install dependencies:
 
     brew install automake berkeley-db libtool boost miniupnpc openssl pkg-config protobuf python qt libevent
 
+See [dependencies.md](dependencies.md) for a complete overview.
+
 If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
 
     brew install librsvg
