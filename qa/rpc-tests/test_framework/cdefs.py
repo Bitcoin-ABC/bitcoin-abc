@@ -8,35 +8,40 @@ framework, and defines equivalents of consensus parameters for the test
 framework.
 """
 
+import os
 import re
 
+from test_framework.util import get_srcdir
+
 # Slurp in consensus.h contents
-# FIXME: this breaks when tests are not called from top level
-#_consensus_h_fh = open('src/consensus/consensus.h', 'rt')
-#_consensus_h_contents = _consensus_h_fh.read()
-#_consensus_h_fh.close()
+_consensus_h_fh = open(os.path.join(get_srcdir(), 'src', 'consensus',
+                       'consensus.h'), 'rt')
+_consensus_h_contents = _consensus_h_fh.read()
+_consensus_h_fh.close()
 
 # This constant is currently needed to evaluate some that are formulas
 ONE_MEGABYTE = 1000000
 
 # Extract relevant default values parameters
 
-# FIXME: re-enable evaluation of consensus.h once that can be read from
-# subfolder of top level
 # The maximum allowed block size before the fork
 LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE
 
 # Default setting for maximum allowed size for a block, in bytes
-DEFAULT_MAX_BLOCK_SIZE = 8 * ONE_MEGABYTE
+DEFAULT_MAX_BLOCK_SIZE = eval(
+    re.search(r'DEFAULT_MAX_BLOCK_SIZE = (.+);',
+              _consensus_h_contents).group(1))
 
-DEFAULT_UAHF_START_TIME = 1501590000
+DEFAULT_UAHF_START_TIME = eval(
+    re.search(r'DEFAULT_UAHF_START_TIME = (.+);',
+              _consensus_h_contents).group(1))
 
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
 # that violate current consensus.
 
 # The maximum allowed number of signature check operations per MB in a block
-# (network rule) 
+# (network rule)
 MAX_BLOCK_SIGOPS_PER_MB = 20000
 
 # The maximum allowed number of signature check operations per transaction
@@ -47,7 +52,7 @@ MAX_TX_SIGOPS_COUNT = 20000
 # (policy.h constant)
 MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT // 5
 
-# Coinbase transaction outputs can only be spent after this number of new 
+# Coinbase transaction outputs can only be spent after this number of new
 # blocks (network rule)
 COINBASE_MATURITY = 100
 
