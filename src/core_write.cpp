@@ -66,12 +66,27 @@ const std::map<unsigned char, std::string> mapSigHashTypes =
                                std::string("ALL"))(
         static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_ANYONECANPAY),
         std::string("ALL|ANYONECANPAY"))(
+        static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_FORKID),
+        std::string("ALL|FORKID"))(
+        static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_FORKID |
+                                   SIGHASH_ANYONECANPAY),
+        std::string("ALL|FORKID|ANYONECANPAY"))(
         static_cast<unsigned char>(SIGHASH_NONE), std::string("NONE"))(
         static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_ANYONECANPAY),
         std::string("NONE|ANYONECANPAY"))(
+        static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_FORKID),
+        std::string("NONE|FORKID"))(
+        static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_FORKID |
+                                   SIGHASH_ANYONECANPAY),
+        std::string("NONE|FORKID|ANYONECANPAY"))(
         static_cast<unsigned char>(SIGHASH_SINGLE), std::string("SINGLE"))(
         static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY),
-        std::string("SINGLE|ANYONECANPAY"));
+        std::string("SINGLE|ANYONECANPAY"))(
+        static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_FORKID),
+        std::string("SINGLE|FORKID"))(
+        static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_FORKID |
+                                   SIGHASH_ANYONECANPAY),
+        std::string("SINGLE|FORKID|ANYONECANPAY"));
 
 /**
  * Create the assembly string representation of a CScript object.
