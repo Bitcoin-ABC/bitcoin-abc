@@ -90,16 +90,24 @@ static ScriptErrorDesc script_errors[] = {
 };
 
 const char *FormatScriptError(ScriptError_t err) {
-    for (unsigned int i = 0; i < ARRAYLEN(script_errors); ++i)
-        if (script_errors[i].err == err) return script_errors[i].name;
+    for (size_t i = 0; i < ARRAYLEN(script_errors); ++i) {
+        if (script_errors[i].err == err) {
+            return script_errors[i].name;
+        }
+    }
+
     BOOST_ERROR("Unknown scripterror enumeration value, update script_errors "
                 "in script_tests.cpp.");
     return "";
 }
 
 ScriptError_t ParseScriptError(const std::string &name) {
-    for (unsigned int i = 0; i < ARRAYLEN(script_errors); ++i)
-        if (script_errors[i].name == name) return script_errors[i].err;
+    for (size_t i = 0; i < ARRAYLEN(script_errors); ++i) {
+        if (script_errors[i].name == name) {
+            return script_errors[i].err;
+        }
+    }
+
     BOOST_ERROR("Unknown scripterror \"" << name << "\" in test description");
     return SCRIPT_ERR_UNKNOWN_ERROR;
 }
@@ -173,20 +181,20 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
                 bitcoinconsensus_verify_script_with_amount(
                     scriptPubKey.data(), scriptPubKey.size(),
                     txCredit.vout[0].nValue, (const unsigned char *)&stream[0],
-                    stream.size(), 0, libconsensus_flags, NULL) == expect,
+                    stream.size(), 0, libconsensus_flags, nullptr) == expect,
                 message);
         } else {
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(), 0,
                                     (const unsigned char *)&stream[0],
                                     stream.size(), 0, libconsensus_flags,
-                                    NULL) == expect,
+                                    nullptr) == expect,
                                 message);
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script(
                                     scriptPubKey.data(), scriptPubKey.size(),
                                     (const unsigned char *)&stream[0],
                                     stream.size(), 0, libconsensus_flags,
-                                    NULL) == expect,
+                                    nullptr) == expect,
                                 message);
         }
     }
@@ -211,12 +219,14 @@ static void NegateSignatureS(std::vector<unsigned char> &vchSig) {
     while (s.size() < 33) {
         s.insert(s.begin(), 0x00);
     }
+
     int carry = 0;
     for (int p = 32; p >= 1; p--) {
         int n = (int)order[p] - s[p] - carry;
         s[p] = (n + 256) & 0xFF;
         carry = (n < 0);
     }
+
     assert(carry == 0);
     if (s.size() > 1 && s[0] == 0 && s[1] < 0x80) {
         s.erase(s.begin());
@@ -355,12 +365,14 @@ public:
             if ((lenS == 33) != (vchSig[5 + vchSig[3]] == 33)) {
                 NegateSignatureS(vchSig);
             }
+
             r = std::vector<unsigned char>(vchSig.begin() + 4,
                                            vchSig.begin() + 4 + vchSig[3]);
             s = std::vector<unsigned char>(vchSig.begin() + 6 + vchSig[3],
                                            vchSig.begin() + 6 + vchSig[3] +
                                                vchSig[5 + vchSig[3]]);
         } while (lenR != r.size() || lenS != s.size());
+
         vchSig.push_back(static_cast<unsigned char>(nHashType));
         DoPush(vchSig);
         return *this;
@@ -417,6 +429,7 @@ public:
             amount.push_back(ValueFromAmount(nValue));
             array.push_back(amount);
         }
+
         array.push_back(FormatScript(spendTx.vin[0].scriptSig));
         array.push_back(FormatScript(creditTx->vout[0].scriptPubKey));
         array.push_back(FormatScriptFlags(flags));
@@ -439,6 +452,7 @@ std::string JSONPrettyPrint(const UniValue &univalue) {
         ret.replace(pos, 2, "\n");
         pos++;
     }
+
     return ret;
 }
 }
@@ -1130,6 +1144,7 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
             }
             continue;
         }
+
         std::string scriptSigString = test[pos++].get_str();
         CScript scriptSig = ParseScript(scriptSigString);
         std::string scriptPubKeyString = test[pos++].get_str();
@@ -1197,6 +1212,7 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
         vchSig.push_back((unsigned char)SIGHASH_ALL);
         result << vchSig;
     }
+
     return result;
 }
 
