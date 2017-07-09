@@ -29,27 +29,35 @@ std::string FormatScript(const CScript &script) {
             if (op == OP_0) {
                 ret += "0 ";
                 continue;
-            } else if ((op >= OP_1 && op <= OP_16) || op == OP_1NEGATE) {
+            }
+
+            if ((op >= OP_1 && op <= OP_16) || op == OP_1NEGATE) {
                 ret += strprintf("%i ", op - OP_1NEGATE - 1);
                 continue;
-            } else if (op >= OP_NOP && op <= OP_NOP10) {
+            }
+
+            if (op >= OP_NOP && op <= OP_NOP10) {
                 std::string str(GetOpName(op));
                 if (str.substr(0, 3) == std::string("OP_")) {
                     ret += str.substr(3, std::string::npos) + " ";
                     continue;
                 }
             }
+
             if (vch.size() > 0) {
                 ret += strprintf("0x%x 0x%x ", HexStr(it2, it - vch.size()),
                                  HexStr(it - vch.size(), it));
             } else {
                 ret += strprintf("0x%x ", HexStr(it2, it));
             }
+
             continue;
         }
+
         ret += strprintf("0x%x ", HexStr(it2, script.end()));
         break;
     }
+
     return ret.substr(0, ret.size() - 1);
 }
 
@@ -84,10 +92,12 @@ std::string ScriptToAsmStr(const CScript &script,
         if (!str.empty()) {
             str += " ";
         }
+
         if (!script.GetOp(pc, opcode, vch)) {
             str += "[error]";
             return str;
         }
+
         if (0 <= opcode && opcode <= OP_PUSHDATA4) {
             if (vch.size() <=
                 static_cast<std::vector<unsigned char>::size_type>(4)) {
@@ -104,7 +114,7 @@ std::string ScriptToAsmStr(const CScript &script,
                     // formats (see IsCompressedOrUncompressedPubKey) being
                     // incongruous with the checks in CheckSignatureEncoding.
                     if (CheckSignatureEncoding(vch, SCRIPT_VERIFY_STRICTENC,
-                                               NULL)) {
+                                               nullptr)) {
                         const unsigned char chSigHashType = vch.back();
                         if (mapSigHashTypes.count(chSigHashType)) {
                             strSigHashDecode =
@@ -116,6 +126,7 @@ std::string ScriptToAsmStr(const CScript &script,
                             vch.pop_back();
                         }
                     }
+
                     str += HexStr(vch) + strSigHashDecode;
                 } else {
                     str += HexStr(vch);
@@ -125,6 +136,7 @@ std::string ScriptToAsmStr(const CScript &script,
             str += GetOpName(opcode);
         }
     }
+
     return str;
 }
 
@@ -157,6 +169,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
     for (const CTxDestination &addr : addresses) {
         a.push_back(CBitcoinAddress(addr).ToString());
     }
+
     out.pushKV("addresses", a);
 }
 
@@ -183,9 +196,11 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
                      HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
             in.pushKV("scriptSig", o);
         }
+
         in.pushKV("sequence", (int64_t)txin.nSequence);
         vin.push_back(in);
     }
+
     entry.pushKV("vin", vin);
 
     UniValue vout(UniValue::VARR);
@@ -203,6 +218,7 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
         out.pushKV("scriptPubKey", o);
         vout.push_back(out);
     }
+
     entry.pushKV("vout", vout);
 
     if (!hashBlock.IsNull()) {

@@ -37,6 +37,7 @@ CScript ParseScript(const std::string &s) {
             if (strcmp(name, "OP_UNKNOWN") == 0) {
                 continue;
             }
+
             std::string strName(name);
             mapOpNames[strName] = (opcodetype)op;
             // Convenience: OP_ADD and just ADD are both recognized:
@@ -127,6 +128,7 @@ uint256 ParseHashUV(const UniValue &v, const std::string &strName) {
     if (v.isStr()) {
         strHex = v.getValStr();
     }
+
     // Note: ParseHashStr("") throws a runtime_error
     return ParseHashStr(strHex, strName);
 }
@@ -149,9 +151,11 @@ std::vector<unsigned char> ParseHexUV(const UniValue &v,
     if (v.isStr()) {
         strHex = v.getValStr();
     }
+
     if (!IsHex(strHex)) {
         throw std::runtime_error(
             strName + " must be hexadecimal string (not '" + strHex + "')");
     }
+
     return ParseHex(strHex);
 }
