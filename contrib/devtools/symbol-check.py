@@ -176,4 +176,4 @@ if __name__ == '__main__':
                       (filename, library_name))
                 retval = 1
 
-    exit(retval)
+    sys.exit(retval)
