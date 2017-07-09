@@ -130,7 +130,7 @@ if __name__ == '__main__':
     if 'rev_hash_bytes' not in settings:
         settings['rev_hash_bytes'] = 'false'
     if 'rpcuser' not in settings or 'rpcpassword' not in settings:
-        print("Missing username and/or password in cfg file", file=stderr)
+        print("Missing username and/or password in cfg file", file=sys.stderr)
         sys.exit(1)
 
     settings['port'] = int(settings['port'])
