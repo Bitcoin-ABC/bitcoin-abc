@@ -24,10 +24,15 @@ bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
                                             const CKeyID &address,
                                             const CScript &scriptCode) const {
     CKey key;
-    if (!keystore->GetKey(address, key)) return false;
+    if (!keystore->GetKey(address, key)) {
+        return false;
+    }
 
     uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount);
-    if (!key.Sign(hash, vchSig)) return false;
+    if (!key.Sign(hash, vchSig)) {
+        return false;
+    }
+
     vchSig.push_back((unsigned char)nHashType);
     return true;
 }
@@ -35,7 +40,10 @@ bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
 static bool Sign1(const CKeyID &address, const BaseSignatureCreator &creator,
                   const CScript &scriptCode, std::vector<valtype> &ret) {
     std::vector<unsigned char> vchSig;
-    if (!creator.CreateSig(vchSig, address, scriptCode)) return false;
+    if (!creator.CreateSig(vchSig, address, scriptCode)) {
+        return false;
+    }
+
     ret.push_back(vchSig);
     return true;
 }
@@ -45,12 +53,15 @@ static bool SignN(const std::vector<valtype> &multisigdata,
                   const CScript &scriptCode, std::vector<valtype> &ret) {
     int nSigned = 0;
     int nRequired = multisigdata.front()[0];
-    for (unsigned int i = 1; i < multisigdata.size() - 1 && nSigned < nRequired;
+    for (size_t i = 1; i < multisigdata.size() - 1 && nSigned < nRequired;
          i++) {
         const valtype &pubkey = multisigdata[i];
         CKeyID keyID = CPubKey(pubkey).GetID();
-        if (Sign1(keyID, creator, scriptCode, ret)) ++nSigned;
+        if (Sign1(keyID, creator, scriptCode, ret)) {
+            ++nSigned;
+        }
     }
+
     return nSigned == nRequired;
 }
 
@@ -69,7 +80,9 @@ static bool SignStep(const BaseSignatureCreator &creator,
     ret.clear();
 
     std::vector<valtype> vSolutions;
-    if (!Solver(scriptPubKey, whichTypeRet, vSolutions)) return false;
+    if (!Solver(scriptPubKey, whichTypeRet, vSolutions)) {
+        return false;
+    }
 
     CKeyID keyID;
     switch (whichTypeRet) {
@@ -79,16 +92,17 @@ static bool SignStep(const BaseSignatureCreator &creator,
         case TX_PUBKEY:
             keyID = CPubKey(vSolutions[0]).GetID();
             return Sign1(keyID, creator, scriptPubKey, ret);
-        case TX_PUBKEYHASH:
+        case TX_PUBKEYHASH: {
             keyID = CKeyID(uint160(vSolutions[0]));
-            if (!Sign1(keyID, creator, scriptPubKey, ret))
+            if (!Sign1(keyID, creator, scriptPubKey, ret)) {
                 return false;
-            else {
-                CPubKey vch;
-                creator.KeyStore().GetPubKey(keyID, vch);
-                ret.push_back(ToByteVector(vch));
             }
+
+            CPubKey vch;
+            creator.KeyStore().GetPubKey(keyID, vch);
+            ret.push_back(ToByteVector(vch));
             return true;
+        }
         case TX_SCRIPTHASH:
             if (creator.KeyStore().GetCScript(uint160(vSolutions[0]),
                                               scriptRet)) {
@@ -96,6 +110,7 @@ static bool SignStep(const BaseSignatureCreator &creator,
                                                          scriptRet.end()));
                 return true;
             }
+
             return false;
 
         case TX_MULTISIG:
@@ -119,6 +134,7 @@ static CScript PushAll(const std::vector<valtype> &values) {
             result << v;
         }
     }
+
     return result;
 }
 
@@ -200,6 +216,7 @@ static std::vector<valtype> CombineMultisig(
     for (const valtype &v : sigs1) {
         if (!v.empty()) allsigs.insert(v);
     }
+
     for (const valtype &v : sigs2) {
         if (!v.empty()) allsigs.insert(v);
     }
@@ -213,7 +230,9 @@ static std::vector<valtype> CombineMultisig(
         for (unsigned int i = 0; i < nPubKeys; i++) {
             const valtype &pubkey = vSolutions[i + 1];
             // Already got a sig for this pubkey
-            if (sigs.count(pubkey)) continue;
+            if (sigs.count(pubkey)) {
+                continue;
+            }
 
             if (checker.CheckSig(sig, pubkey, scriptPubKey)) {
                 sigs[pubkey] = sig;
@@ -232,9 +251,11 @@ static std::vector<valtype> CombineMultisig(
             ++nSigsHave;
         }
     }
+
     // Fill any missing with OP_0:
-    for (unsigned int i = nSigsHave; i < nSigsRequired; i++)
+    for (unsigned int i = nSigsHave; i < nSigsRequired; i++) {
         result.push_back(valtype());
+    }
 
     return result;
 }
@@ -268,33 +289,42 @@ static Stacks CombineSignatures(const CScript &scriptPubKey,
         case TX_NONSTANDARD:
         case TX_NULL_DATA:
             // Don't know anything about this, assume bigger one is correct:
-            if (sigs1.script.size() >= sigs2.script.size()) return sigs1;
+            if (sigs1.script.size() >= sigs2.script.size()) {
+                return sigs1;
+            }
+
             return sigs2;
         case TX_PUBKEY:
         case TX_PUBKEYHASH:
             // Signatures are bigger than placeholders or empty scripts:
-            if (sigs1.script.empty() || sigs1.script[0].empty()) return sigs2;
-            return sigs1;
-        case TX_SCRIPTHASH:
-            if (sigs1.script.empty() || sigs1.script.back().empty())
+            if (sigs1.script.empty() || sigs1.script[0].empty()) {
                 return sigs2;
-            else if (sigs2.script.empty() || sigs2.script.back().empty())
-                return sigs1;
-            else {
-                // Recur to combine:
-                valtype spk = sigs1.script.back();
-                CScript pubKey2(spk.begin(), spk.end());
-
-                txnouttype txType2;
-                std::vector<std::vector<unsigned char>> vSolutions2;
-                Solver(pubKey2, txType2, vSolutions2);
-                sigs1.script.pop_back();
-                sigs2.script.pop_back();
-                Stacks result = CombineSignatures(pubKey2, checker, txType2,
-                                                  vSolutions2, sigs1, sigs2);
-                result.script.push_back(spk);
-                return result;
             }
+
+            return sigs1;
+        case TX_SCRIPTHASH: {
+            if (sigs1.script.empty() || sigs1.script.back().empty()) {
+                return sigs2;
+            }
+
+            if (sigs2.script.empty() || sigs2.script.back().empty()) {
+                return sigs1;
+            }
+
+            // Recur to combine:
+            valtype spk = sigs1.script.back();
+            CScript pubKey2(spk.begin(), spk.end());
+
+            txnouttype txType2;
+            std::vector<std::vector<unsigned char>> vSolutions2;
+            Solver(pubKey2, txType2, vSolutions2);
+            sigs1.script.pop_back();
+            sigs2.script.pop_back();
+            Stacks result = CombineSignatures(pubKey2, checker, txType2,
+                                              vSolutions2, sigs1, sigs2);
+            result.script.push_back(spk);
+            return result;
+        }
         case TX_MULTISIG:
             return Stacks(CombineMultisig(scriptPubKey, checker, vSolutions,
                                           sigs1.script, sigs2.script));
