@@ -773,6 +773,12 @@ static UniValue signrawtransaction(const Config &config,
             "       \"ALL|ANYONECANPAY\"\n"
             "       \"NONE|ANYONECANPAY\"\n"
             "       \"SINGLE|ANYONECANPAY\"\n"
+            "       \"ALL|FORKID\"\n"
+            "       \"NONE|FORKID\"\n"
+            "       \"SINGLE|FORKID\"\n"
+            "       \"ALL|FORKID|ANYONECANPAY\"\n"
+            "       \"NONE|FORKID|ANYONECANPAY\"\n"
+            "       \"SINGLE|FORKID|ANYONECANPAY\"\n"
 
             "\nResult:\n"
             "{\n"
@@ -967,18 +973,28 @@ static UniValue signrawtransaction(const Config &config,
     const CKeyStore &keystore = tempKeystore;
 #endif
 
-    int nHashType = SIGHASH_ALL;
+    int nHashType = SIGHASH_ALL | SIGHASH_FORKID;
     if (request.params.size() > 3 && !request.params[3].isNull()) {
         static std::map<std::string, int> mapSigHashValues =
             boost::assign::map_list_of(std::string("ALL"), int(SIGHASH_ALL))(
                 std::string("ALL|ANYONECANPAY"),
-                int(SIGHASH_ALL | SIGHASH_ANYONECANPAY))(std::string("NONE"),
-                                                         int(SIGHASH_NONE))(
-                std::string("NONE|ANYONECANPAY"),
-                int(SIGHASH_NONE | SIGHASH_ANYONECANPAY))(std::string("SINGLE"),
-                                                          int(SIGHASH_SINGLE))(
+                int(SIGHASH_ALL | SIGHASH_ANYONECANPAY))(
+                std::string("ALL|FORKID"), int(SIGHASH_ALL | SIGHASH_FORKID))(
+                std::string("ALL|FORKID|ANYONECANPAY"),
+                int(SIGHASH_ALL | SIGHASH_FORKID | SIGHASH_ANYONECANPAY))(
+                std::string("NONE"),
+                int(SIGHASH_NONE))(std::string("NONE|ANYONECANPAY"),
+                                   int(SIGHASH_NONE | SIGHASH_ANYONECANPAY))(
+                std::string("NONE|FORKID"), int(SIGHASH_NONE | SIGHASH_FORKID))(
+                std::string("NONE|FORKID|ANYONECANPAY"),
+                int(SIGHASH_NONE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY))(
+                std::string("SINGLE"), int(SIGHASH_SINGLE))(
                 std::string("SINGLE|ANYONECANPAY"),
-                int(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY));
+                int(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY))(
+                std::string("SINGLE|FORKID"),
+                int(SIGHASH_SINGLE | SIGHASH_FORKID))(
+                std::string("SINGLE|FORKID|ANYONECANPAY"),
+                int(SIGHASH_SINGLE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY));
         std::string strHashType = request.params[3].get_str();
         if (!mapSigHashValues.count(strHashType)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid sighash param");
@@ -987,7 +1003,9 @@ static UniValue signrawtransaction(const Config &config,
         nHashType = mapSigHashValues[strHashType];
     }
 
-    bool fHashSingle = ((nHashType & ~SIGHASH_ANYONECANPAY) == SIGHASH_SINGLE);
+    bool fHashSingle =
+        ((nHashType & ~(SIGHASH_ANYONECANPAY | SIGHASH_FORKID)) ==
+         SIGHASH_SINGLE);
 
     // Script verification errors.
     UniValue vErrors(UniValue::VARR);
@@ -996,7 +1014,7 @@ static UniValue signrawtransaction(const Config &config,
     // rehashing.
     const CTransaction txConst(mergedTx);
     // Sign what we can:
-    for (unsigned int i = 0; i < mergedTx.vin.size(); i++) {
+    for (size_t i = 0; i < mergedTx.vin.size(); i++) {
         CTxIn &txin = mergedTx.vin[i];
         const CCoins *coins = view.AccessCoins(txin.prevout.hash);
         if (coins == nullptr || !coins->IsAvailable(txin.prevout.n)) {
@@ -1029,11 +1047,13 @@ static UniValue signrawtransaction(const Config &config,
 
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(
-                txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
+                txin.scriptSig, prevPubKey,
+                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID,
                 TransactionSignatureChecker(&txConst, i, amount), &serror)) {
             TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
         }
     }
+
     bool fComplete = vErrors.empty();
 
     UniValue result(UniValue::VOBJ);

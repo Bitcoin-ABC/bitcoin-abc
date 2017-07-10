@@ -33,7 +33,6 @@ Mine 1 old-version block.
 Mine 1 new version block.
 Mine 1 old version block, see that the node rejects.
 '''
-
 class BIP65Test(ComparisonTestFramework):
 
     def __init__(self):
@@ -57,7 +56,7 @@ class BIP65Test(ComparisonTestFramework):
         inputs = [{ "txid" : from_txid, "vout" : 0}]
         outputs = { to_address : amount }
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx)
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)

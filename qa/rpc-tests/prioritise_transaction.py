@@ -33,7 +33,8 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
     def run_test(self):
         utxo_count = 90
         utxos = create_confirmed_utxos(self.relayfee, self.nodes[0], utxo_count)
-        base_fee = self.relayfee*100 # our transactions are smaller than 100kb
+        # our transactions are smaller than 100kb
+        base_fee = self.relayfee*100
         txids = []
 
         # Create 3 batches of transactions at 3 different fee rate levels
@@ -53,7 +54,8 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             for j in txids[i]:
                 assert(j in mempool)
                 sizes[i] += mempool[j]['size']
-            assert(sizes[i] > LEGACY_MAX_BLOCK_SIZE) # Fail => raise utxo_count
+            # Fail => raise utxo_count
+            assert(sizes[i] > LEGACY_MAX_BLOCK_SIZE)
 
         # add a fee delta to something in the cheapest bucket and make sure it gets mined
         # also check that a different entry in the cheapest bucket is NOT mined (lower
@@ -112,7 +114,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         inputs.append({"txid" : utxo["txid"], "vout" : utxo["vout"]})
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx_hex = self.nodes[0].signrawtransaction(raw_tx)["hex"]
+        tx_hex = self.nodes[0].signrawtransaction(raw_tx, None, None, "ALL")["hex"]
         txid = self.nodes[0].sendrawtransaction(tx_hex)
 
         # A tx that spends an in-mempool tx has 0 priority, so we can use it to
@@ -122,7 +124,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         outputs = {}
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx2 = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx2_hex = self.nodes[0].signrawtransaction(raw_tx2)["hex"]
+        tx2_hex = self.nodes[0].signrawtransaction(raw_tx2, None, None, "ALL")["hex"]
         tx2_id = self.nodes[0].decoderawtransaction(tx2_hex)["txid"]
 
         try:
@@ -141,6 +143,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         print("Assert that prioritised free transaction is accepted to mempool")
         assert_equal(self.nodes[0].sendrawtransaction(tx2_hex), tx2_id)
         assert(tx2_id in self.nodes[0].getrawmempool())
+
 
 if __name__ == '__main__':
     PrioritiseTransactionTest().main()

@@ -57,7 +57,7 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Set the time lock
         timelock_tx = timelock_tx.replace("ffffffff", "11111191", 1)
         timelock_tx = timelock_tx[:-8] + hex(self.nodes[0].getblockcount() + 2)[2:] + "000000"
-        timelock_tx = self.nodes[0].signrawtransaction(timelock_tx)["hex"]
+        timelock_tx = self.nodes[0].signrawtransaction(timelock_tx, None, None, "ALL")["hex"]
         assert_raises(JSONRPCException, self.nodes[0].sendrawtransaction, timelock_tx)
 
         # Broadcast and mine spend_102 and 103:
