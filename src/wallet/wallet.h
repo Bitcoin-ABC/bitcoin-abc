@@ -640,6 +640,7 @@ private:
 
     std::set<int64_t> setInternalKeyPool;
     std::set<int64_t> setExternalKeyPool;
+    int64_t m_max_keypool_index;
 
     int64_t nTimeFirstKey;
 
@@ -684,12 +685,13 @@ public:
         }
     }
 
-    void LoadKeyPool(int nIndex, const CKeyPool &keypool) {
+    void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool) {
         if (keypool.fInternal) {
             setInternalKeyPool.insert(nIndex);
         } else {
             setExternalKeyPool.insert(nIndex);
         }
+        m_max_keypool_index = std::max(m_max_keypool_index, nIndex);
 
         // If no metadata exists yet, create a default with the pool key's
         // creation time. Note that this may be overwritten by actually stored
@@ -729,6 +731,7 @@ public:
         nAccountingEntryNumber = 0;
         nNextResend = 0;
         nLastResend = 0;
+        m_max_keypool_index = 0;
         nTimeFirstKey = 0;
         fBroadcastTransactions = false;
     }
