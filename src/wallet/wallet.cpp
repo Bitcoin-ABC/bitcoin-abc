@@ -2869,8 +2869,47 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         std::vector<COutput> vAvailableCoins;
         AvailableCoins(vAvailableCoins, true, coinControl);
 
+        // Create change script that will be used if we need change
+        // TODO: pass in scriptChange instead of reservekey so
+        // change transaction isn't always pay-to-bitcoin-address
+        CScript scriptChange;
+
+        // coin control: send change to custom address
+        if (coinControl &&
+            !boost::get<CNoDestination>(&coinControl->destChange)) {
+            scriptChange = GetScriptForDestination(coinControl->destChange);
+
+            // no coin control: send change to newly generated address
+        } else {
+            // Note: We use a new key here to keep it from being obvious
+            // which side is the change.
+            //  The drawback is that by not reusing a previous key, the
+            //  change may be lost if a backup is restored, if the backup
+            //  doesn't have the new private key for the change. If we
+            //  reused the old key, it would be possible to add code to look
+            //  for and rediscover unknown transactions that were written
+            //  with keys of ours to recover post-backup change.
+
+            // Reserve a new key pair from key pool
+            CPubKey vchPubKey;
+            bool ret;
+            ret = reservekey.GetReservedKey(vchPubKey, true);
+            if (!ret) {
+                strFailReason =
+                    _("Keypool ran out, please call keypoolrefill first");
+                return false;
+            }
+
+            scriptChange = GetScriptForDestination(vchPubKey.GetID());
+        }
+        CTxOut change_prototype_txout(Amount::zero(), scriptChange);
+        size_t change_prototype_size =
+            GetSerializeSize(change_prototype_txout, SER_DISK, 0);
+
         nFeeRet = Amount::zero();
-        // Start with no fee and loop until there is enough fee.
+        bool pick_new_inputs = true;
+        Amount nValueIn = Amount::zero();
+        // Start with no fee and loop until there is enough fee
         while (true) {
             nChangePosInOut = nChangePosRequest;
             txNew.vin.clear();
@@ -2921,13 +2960,15 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 txNew.vout.push_back(txout);
             }
 
-            // Choose coins to use.
-            Amount nValueIn = Amount::zero();
-            setCoins.clear();
-            if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
-                             nValueIn, coinControl)) {
-                strFailReason = _("Insufficient funds");
-                return false;
+            // Choose coins to use
+            if (pick_new_inputs) {
+                nValueIn = Amount::zero();
+                setCoins.clear();
+                if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
+                                 nValueIn, coinControl)) {
+                    strFailReason = _("Insufficient funds");
+                    return false;
+                }
             }
 
             for (const auto &pcoin : setCoins) {
@@ -2949,40 +2990,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             const Amount nChange = nValueIn - nValueToSelect;
             if (nChange > Amount::zero()) {
                 // Fill a vout to ourself.
-                // TODO: pass in scriptChange instead of reservekey so change
-                // transaction isn't always pay-to-bitcoin-address.
-                CScript scriptChange;
-
-                // Coin control: send change to custom address.
-                if (coinControl &&
-                    !boost::get<CNoDestination>(&coinControl->destChange)) {
-                    scriptChange =
-                        GetScriptForDestination(coinControl->destChange);
-
-                    // No coin control: send change to newly generated address.
-                } else {
-                    // Note: We use a new key here to keep it from being obvious
-                    // which side is the change. The drawback is that by not
-                    // reusing a previous key, the change may be lost if a
-                    // backup is restored, if the backup doesn't have the new
-                    // private key for the change. If we reused the old key, it
-                    // would be possible to add code to look for and rediscover
-                    // unknown transactions that were written with keys of ours
-                    // to recover post-backup change.
-
-                    // Reserve a new key pair from key pool.
-                    CPubKey vchPubKey;
-                    bool ret;
-                    ret = reservekey.GetReservedKey(vchPubKey, true);
-                    if (!ret) {
-                        strFailReason = _("Keypool ran out, please call "
-                                          "keypoolrefill first");
-                        return false;
-                    }
-
-                    scriptChange = GetScriptForDestination(vchPubKey.GetID());
-                }
-
                 CTxOut newTxOut(nChange, scriptChange);
 
                 // We do not move dust-change to fees, because the sender would
@@ -3017,7 +3024,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 if (newTxOut.IsDust(dustRelayFee)) {
                     nChangePosInOut = -1;
                     nFeeRet += nChange;
-                    reservekey.ReturnKey();
                 } else {
                     if (nChangePosInOut == -1) {
                         // Insert change txn at random position:
@@ -3033,7 +3039,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     txNew.vout.insert(position, newTxOut);
                 }
             } else {
-                reservekey.ReturnKey();
                 nChangePosInOut = -1;
             }
 
@@ -3086,15 +3091,36 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             if (nFeeRet >= nFeeNeeded) {
-                // Reduce fee to only the needed amount if we have change output
-                // to increase. This prevents potential overpayment in fees if
-                // the coins selected to meet nFeeNeeded result in a transaction
-                // that requires less fee than the prior iteration.
+                // Reduce fee to only the needed amount if possible. This
+                // prevents potential overpayment in fees if the coins selected
+                // to meet nFeeNeeded result in a transaction that requires less
+                // fee than the prior iteration.
+
                 // TODO: The case where nSubtractFeeFromAmount > 0 remains to be
                 // addressed because it requires returning the fee to the payees
                 // and not the change output.
-                // TODO: The case where there is no change output remains to be
-                // addressed so we avoid creating too small an output.
+
+                // If we have no change and a big enough excess fee, then try to
+                // construct transaction again only without picking new inputs.
+                // We now know we only need the smaller fee (because of reduced
+                // tx size) and so we should add a change output. Only try this
+                // once.
+                Amount fee_needed_for_change =
+                    GetMinimumFee(change_prototype_size,
+                                  currentConfirmationTarget, g_mempool);
+                Amount minimum_value_for_change =
+                    change_prototype_txout.GetDustThreshold(dustRelayFee);
+                Amount max_excess_fee =
+                    fee_needed_for_change + minimum_value_for_change;
+                if (nFeeRet > nFeeNeeded + max_excess_fee &&
+                    nChangePosInOut == -1 && nSubtractFeeFromAmount == 0 &&
+                    pick_new_inputs) {
+                    pick_new_inputs = false;
+                    nFeeRet = nFeeNeeded + fee_needed_for_change;
+                    continue;
+                }
+
+                // If we have change output already, just increase it
                 if (nFeeRet > nFeeNeeded && nChangePosInOut != -1 &&
                     nSubtractFeeFromAmount == 0) {
                     Amount extraFeePaid = nFeeRet - nFeeNeeded;
@@ -3106,6 +3132,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
                 // Done, enough fee included.
                 break;
+            } else if (!pick_new_inputs) {
+                // This shouldn't happen, we should have had enough excess fee
+                // to pay for the new output and still meet nFeeNeeded
+                strFailReason =
+                    _("Transaction fee and change calculation failed");
+                return false;
             }
 
             // Try to reduce change to include necessary fee.
@@ -3127,6 +3159,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             // Include more fee and try again.
             nFeeRet = nFeeNeeded;
             continue;
+        }
+
+        if (nChangePosInOut == -1) {
+            // Return any reserved key if we don't have change
+            reservekey.ReturnKey();
         }
 
         if (sign) {
