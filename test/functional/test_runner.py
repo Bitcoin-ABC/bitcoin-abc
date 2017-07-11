@@ -78,6 +78,7 @@ BASE_SCRIPTS = [
     'reindex.py',
     # vv Tests less than 30s vv
     'zmq_test.py',
+    'bitcoin_cli.py',
     'mempool_resurrect_test.py',
     'txn_doublespend.py --mineblock',
     'txn_clone.py',
@@ -295,6 +296,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, tmpdir, jobs=1, enable_cove
     # Set env vars
     if "BITCOIND" not in os.environ:
         os.environ["BITCOIND"] = build_dir + '/src/bitcoind' + exeext
+        os.environ["BITCOINCLI"] = build_dir + '/src/bitcoin-cli' + exeext
 
     tests_dir = src_dir + '/test/functional/'
 
