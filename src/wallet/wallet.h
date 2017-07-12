@@ -583,7 +583,7 @@ private:
  * transactions and balances, and provides the ability to create new
  * transactions.
  */
-class CWallet : public CCryptoKeyStore, public CValidationInterface {
+class CWallet final : public CCryptoKeyStore, public CValidationInterface {
 private:
     static std::atomic<bool> fFlushScheduled;
 
@@ -1127,7 +1127,7 @@ public:
 };
 
 /** A key allocated from the key pool. */
-class CReserveKey : public CReserveScript {
+class CReserveKey final : public CReserveScript {
 protected:
     CWallet *pwallet;
     int64_t nIndex;
