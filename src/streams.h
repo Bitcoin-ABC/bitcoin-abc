@@ -425,7 +425,9 @@ public:
 
     template <typename Stream> void Serialize(Stream &s) const {
         // Special case: stream << stream concatenates like stream += stream
-        if (!vch.empty()) s.write((char *)&vch[0], vch.size() * sizeof(vch[0]));
+        if (!vch.empty()) {
+            s.write((char *)vch.data(), vch.size() * sizeof(value_type));
+        }
     }
 
     template <typename T> CDataStream &operator<<(const T &obj) {

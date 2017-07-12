@@ -179,11 +179,8 @@ bool CPubKey::VerifyECDSA(const uint256 &hash,
                                    &(*this)[0], size())) {
         return false;
     }
-    if (vchSig.size() == 0) {
-        return false;
-    }
     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &sig,
-                                       &vchSig[0], vchSig.size())) {
+                                       vchSig.data(), vchSig.size())) {
         return false;
     }
     /**
@@ -325,7 +322,7 @@ bool CPubKey::CheckLowS(
     const boost::sliced_range<const std::vector<uint8_t>> &vchSig) {
     secp256k1_ecdsa_signature sig;
     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &sig,
-                                       &vchSig[0], vchSig.size())) {
+                                       &vchSig.front(), vchSig.size())) {
         return false;
     }
     return (!secp256k1_ecdsa_signature_normalize(secp256k1_context_verify,

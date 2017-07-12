@@ -270,9 +270,7 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
 
 std::string DecodeBase64(const std::string &str) {
     std::vector<uint8_t> vchRet = DecodeBase64(str.c_str());
-    return (vchRet.size() == 0)
-               ? std::string()
-               : std::string((const char *)&vchRet[0], vchRet.size());
+    return std::string((const char *)vchRet.data(), vchRet.size());
 }
 
 std::string EncodeBase32(const uint8_t *pch, size_t len) {
@@ -461,9 +459,7 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
 
 std::string DecodeBase32(const std::string &str) {
     std::vector<uint8_t> vchRet = DecodeBase32(str.c_str());
-    return (vchRet.size() == 0)
-               ? std::string()
-               : std::string((const char *)&vchRet[0], vchRet.size());
+    return std::string((const char *)vchRet.data(), vchRet.size());
 }
 
 static bool ParsePrechecks(const std::string &str) {
