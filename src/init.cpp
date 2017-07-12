@@ -2292,7 +2292,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
+    if (fLoaded) {
+        LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
+    }
 
     // Encoded addresses using cashaddr instead of base58
     // Activates by default on Jan, 14
