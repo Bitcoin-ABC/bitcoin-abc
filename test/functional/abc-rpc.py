@@ -9,7 +9,7 @@ import time
 import random
 import re
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
+from test_framework.util import (assert_equal, assert_raises_rpc_error)
 from test_framework.cdefs import (ONE_MEGABYTE,
                                   LEGACY_MAX_BLOCK_SIZE,
                                   DEFAULT_MAX_BLOCK_SIZE)
@@ -44,14 +44,8 @@ class ABC_RPC_Test (BitcoinTestFramework):
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
 
         # Check that going below legacy size is not accepted
-        try:
-            self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE)
-        except JSONRPCException as e:
-            assert("Invalid parameter, excessiveblock must be larger than %d" % LEGACY_MAX_BLOCK_SIZE
-                   in e.error['message'])
-        else:
-            raise AssertionError(
-                "Must not accept excessiveblock values <= %d bytes" % LEGACY_MAX_BLOCK_SIZE)
+        assert_raises_rpc_error(-8, "Invalid parameter, excessiveblock must be larger than %d" %
+                                LEGACY_MAX_BLOCK_SIZE, self.nodes[0].setexcessiveblock, LEGACY_MAX_BLOCK_SIZE)
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)

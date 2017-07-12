@@ -78,7 +78,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         test2tx = self.create_transaction(
             self.nodes[0], txid2, self.ms_address, 48)
         trueDummy(test2tx)
-        assert_raises_jsonrpc(-26, NULLDUMMY_ERROR, self.nodes[0].sendrawtransaction, bytes_to_hex_str(
+        assert_raises_rpc_error(-26, NULLDUMMY_ERROR, self.nodes[0].sendrawtransaction, bytes_to_hex_str(
             test2tx.serialize_with_witness()), True)
 
         self.log.info(

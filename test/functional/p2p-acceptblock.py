@@ -190,7 +190,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         # it's too far ahead
         for x in all_blocks[:-1]:
             self.nodes[0].getblock(x.hash)
-        assert_raises_jsonrpc(
+        assert_raises_rpc_error(
             -1, "Block not found on disk", self.nodes[0].getblock, all_blocks[-1].hash)
 
         headers_message.headers.pop()  # Ensure the last block is unrequested
