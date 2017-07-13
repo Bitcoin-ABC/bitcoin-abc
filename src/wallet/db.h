@@ -99,12 +99,13 @@ class CWalletDBWrapper {
 public:
     /** Create dummy DB handle */
     CWalletDBWrapper()
-        : nLastSeen(0), nLastFlushed(0), nLastWalletUpdate(0), env(nullptr) {}
+        : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
+          nLastWalletUpdate(0), env(nullptr) {}
 
     /** Create DB handle to real database */
     CWalletDBWrapper(CDBEnv *env_in, const std::string &strFile_in)
-        : nLastSeen(0), nLastFlushed(0), nLastWalletUpdate(0), env(env_in),
-          strFile(strFile_in) {}
+        : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
+          nLastWalletUpdate(0), env(env_in), strFile(strFile_in) {}
 
     /** Rewrite the entire database on disk, with the exception of key pszSkip
      * if non-zero
