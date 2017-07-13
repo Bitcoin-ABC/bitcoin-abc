@@ -854,6 +854,13 @@ std::string HelpMessage(HelpMessageMode mode) {
                       DEFAULT_HTTP_SERVER_TIMEOUT));
     }
 
+    strUsage += HelpMessageGroup(_("Hard Fork options:"));
+    strUsage +=
+        HelpMessageOpt("-uahfstarttime=<n>",
+                       strprintf(_("UAHF activation (integer) POSIX "
+                                   "time, seconds since epoch (default: %u)"),
+                                 DEFAULT_UAHF_START_TIME));
+
     return strUsage;
 }
 
