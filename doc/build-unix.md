@@ -321,7 +321,7 @@ Clang is installed by default as `cc` compiler, this makes it easier to get
 started than on [OpenBSD](build-openbsd.md). Installing dependencies:
 
     pkg install autoconf automake libtool pkgconf
-    pkg install boost-libs openssl libevent2
+    pkg install boost-libs openssl libevent gmake
 
 (`libressl` instead of `openssl` will also work)
 
@@ -337,8 +337,18 @@ with 4.8-built Bitcoin Core is needed follow the steps under "Berkeley DB" above
 Then build using:
 
     ./autogen.sh
-    ./configure --with-incompatible-bdb BDB_CFLAGS="-I/usr/local/include/db5" BDB_LIBS="-L/usr/local/lib -ldb_cxx-5"
-    make
+  
+With wallet support:
+
+    ./configure --without-gui --without-miniupnpc --with-incompatible-bdb BDB_CFLAGS="-I/usr/local/include/db5" BDB_LIBS="-L/usr/local/lib -ldb_cxx-5"
+
+Without wallet support:
+
+    ./configure --without-gui --without-miniupnpc --disable-wallet
+
+Then to compile:
+
+    gmake
 
 *Note on debugging*: The version of `gdb` installed by default is [ancient and considered harmful](https://wiki.freebsd.org/GdbRetirement).
 It is not suitable for debugging a multi-threaded C++ program, not even for getting backtraces. Please install the package `gdb` and
