@@ -60,6 +60,9 @@ class AuthServiceProxyWrapper():
     def url(self):
         return self.auth_service_proxy_instance.url
 
+    def __truediv__(self, relative_uri):
+        return AuthServiceProxyWrapper(self.auth_service_proxy_instance / relative_uri)
+
 
 def get_filename(dirname, n_node):
     """
