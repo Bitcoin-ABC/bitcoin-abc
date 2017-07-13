@@ -445,44 +445,48 @@ void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
 void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid, CConnman &connman) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
-    if (nodestate->fProvidesHeaderAndIDs) {
-        for (std::list<NodeId>::iterator it =
-                 lNodesAnnouncingHeaderAndIDs.begin();
-             it != lNodesAnnouncingHeaderAndIDs.end(); it++) {
-            if (*it == nodeid) {
-                lNodesAnnouncingHeaderAndIDs.erase(it);
-                lNodesAnnouncingHeaderAndIDs.push_back(nodeid);
-                return;
-            }
-        }
-        connman.ForNode(nodeid, [&connman](CNode *pfrom) {
-            bool fAnnounceUsingCMPCTBLOCK = false;
-            uint64_t nCMPCTBLOCKVersion = 1;
-            if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
-                // As per BIP152, we only get 3 of our peers to announce
-                // blocks using compact encodings.
-                connman.ForNode(
-                    lNodesAnnouncingHeaderAndIDs.front(),
-                    [&connman, fAnnounceUsingCMPCTBLOCK,
-                     nCMPCTBLOCKVersion](CNode *pnodeStop) {
-                        connman.PushMessage(
-                            pnodeStop, CNetMsgMaker(pnodeStop->GetSendVersion())
-                                           .Make(NetMsgType::SENDCMPCT,
-                                                 fAnnounceUsingCMPCTBLOCK,
-                                                 nCMPCTBLOCKVersion));
-                        return true;
-                    });
-                lNodesAnnouncingHeaderAndIDs.pop_front();
-            }
-            fAnnounceUsingCMPCTBLOCK = true;
-            connman.PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
-                                           .Make(NetMsgType::SENDCMPCT,
-                                                 fAnnounceUsingCMPCTBLOCK,
-                                                 nCMPCTBLOCKVersion));
-            lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
-            return true;
-        });
+    if (!nodestate) {
+        LogPrint("net", "node state unavailable: peer=%d\n", nodeid);
+        return;
     }
+    if (!nodestate->fProvidesHeaderAndIDs) {
+        return;
+    }
+    for (std::list<NodeId>::iterator it = lNodesAnnouncingHeaderAndIDs.begin();
+         it != lNodesAnnouncingHeaderAndIDs.end(); it++) {
+        if (*it == nodeid) {
+            lNodesAnnouncingHeaderAndIDs.erase(it);
+            lNodesAnnouncingHeaderAndIDs.push_back(nodeid);
+            return;
+        }
+    }
+    connman.ForNode(nodeid, [&connman](CNode *pfrom) {
+        bool fAnnounceUsingCMPCTBLOCK = false;
+        uint64_t nCMPCTBLOCKVersion = 1;
+        if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
+            // As per BIP152, we only get 3 of our peers to announce
+            // blocks using compact encodings.
+            connman.ForNode(lNodesAnnouncingHeaderAndIDs.front(),
+                            [&connman, fAnnounceUsingCMPCTBLOCK,
+                             nCMPCTBLOCKVersion](CNode *pnodeStop) {
+                                connman.PushMessage(
+                                    pnodeStop,
+                                    CNetMsgMaker(pnodeStop->GetSendVersion())
+                                        .Make(NetMsgType::SENDCMPCT,
+                                              fAnnounceUsingCMPCTBLOCK,
+                                              nCMPCTBLOCKVersion));
+                                return true;
+                            });
+            lNodesAnnouncingHeaderAndIDs.pop_front();
+        }
+        fAnnounceUsingCMPCTBLOCK = true;
+        connman.PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+                                       .Make(NetMsgType::SENDCMPCT,
+                                             fAnnounceUsingCMPCTBLOCK,
+                                             nCMPCTBLOCKVersion));
+        lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
+        return true;
+    });
 }
 
 // Requires cs_main
