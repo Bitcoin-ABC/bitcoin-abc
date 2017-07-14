@@ -93,7 +93,7 @@ const CWalletTx *CWallet::GetWalletTx(const uint256 &hash) const {
     return &(it->second);
 }
 
-CPubKey CWallet::GenerateNewKey(bool internal) {
+CPubKey CWallet::GenerateNewKey(CWalletDB &walletdb, bool internal) {
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     // default to compressed public keys if we want 0.6.0 wallets
@@ -108,7 +108,7 @@ CPubKey CWallet::GenerateNewKey(bool internal) {
     // use HD key derivation if HD was enabled during wallet creation
     if (IsHDEnabled()) {
         DeriveNewChildKey(
-            metadata, secret,
+            walletdb, metadata, secret,
             (CanSupportFeature(FEATURE_HD_SPLIT) ? internal : false));
     } else {
         secret.MakeNewKey(fCompressed);
@@ -125,15 +125,15 @@ CPubKey CWallet::GenerateNewKey(bool internal) {
     mapKeyMetadata[pubkey.GetID()] = metadata;
     UpdateTimeFirstKey(nCreationTime);
 
-    if (!AddKeyPubKey(secret, pubkey)) {
+    if (!AddKeyPubKeyWithDB(walletdb, secret, pubkey)) {
         throw std::runtime_error(std::string(__func__) + ": AddKey failed");
     }
 
     return pubkey;
 }
 
-void CWallet::DeriveNewChildKey(CKeyMetadata &metadata, CKey &secret,
-                                bool internal) {
+void CWallet::DeriveNewChildKey(CWalletDB &walletdb, CKeyMetadata &metadata,
+                                CKey &secret, bool internal) {
     // for now we use a fixed keypath scheme of m/0'/0'/k
     // master key seed (256bit)
     CKey key;
@@ -191,17 +191,34 @@ void CWallet::DeriveNewChildKey(CKeyMetadata &metadata, CKey &secret,
     secret = childKey.key;
     metadata.hdMasterKeyID = hdChain.masterKeyID;
     // update the chain model in the database
-    if (!CWalletDB(*dbw).WriteHDChain(hdChain)) {
+    if (!walletdb.WriteHDChain(hdChain)) {
         throw std::runtime_error(std::string(__func__) +
                                  ": Writing HD chain model failed");
     }
 }
 
-bool CWallet::AddKeyPubKey(const CKey &secret, const CPubKey &pubkey) {
+bool CWallet::AddKeyPubKeyWithDB(CWalletDB &walletdb, const CKey &secret,
+                                 const CPubKey &pubkey) {
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
+
+    // CCryptoKeyStore has no concept of wallet databases, but calls
+    // AddCryptedKey
+    // which is overridden below.  To avoid flushes, the database handle is
+    // tunneled through to it.
+    bool needsDB = !pwalletdbEncryption;
+    if (needsDB) {
+        pwalletdbEncryption = &walletdb;
+    }
     if (!CCryptoKeyStore::AddKeyPubKey(secret, pubkey)) {
+        if (needsDB) {
+            pwalletdbEncryption = nullptr;
+        }
         return false;
+    }
+
+    if (needsDB) {
+        pwalletdbEncryption = nullptr;
     }
 
     // Check if we need to remove from watch-only.
@@ -220,8 +237,13 @@ bool CWallet::AddKeyPubKey(const CKey &secret, const CPubKey &pubkey) {
         return true;
     }
 
-    return CWalletDB(*dbw).WriteKey(pubkey, secret.GetPrivKey(),
-                                    mapKeyMetadata[pubkey.GetID()]);
+    return walletdb.WriteKey(pubkey, secret.GetPrivKey(),
+                             mapKeyMetadata[pubkey.GetID()]);
+}
+
+bool CWallet::AddKeyPubKey(const CKey &secret, const CPubKey &pubkey) {
+    CWalletDB walletdb(*dbw);
+    return CWallet::AddKeyPubKeyWithDB(walletdb, secret, pubkey);
 }
 
 bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
@@ -3283,8 +3305,8 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
             nEnd = std::max(nEnd, *(setExternalKeyPool.rbegin()) + 1);
         }
 
-        if (!walletdb.WritePool(nEnd,
-                                CKeyPool(GenerateNewKey(internal), internal))) {
+        if (!walletdb.WritePool(
+                nEnd, CKeyPool(GenerateNewKey(walletdb, internal), internal))) {
             throw std::runtime_error(std::string(__func__) +
                                      ": writing generated key failed");
         }
@@ -3294,10 +3316,13 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
         } else {
             setExternalKeyPool.insert(nEnd);
         }
+    }
+    if (missingInternal + missingExternal > 0) {
         LogPrintf(
-            "keypool added key %d, size=%u (%u internal), new key is %s\n",
-            nEnd, setInternalKeyPool.size() + setExternalKeyPool.size(),
-            setInternalKeyPool.size(), internal ? "internal" : "external");
+            "keypool added %d keys (%d internal), size=%u (%u internal)\n",
+            missingInternal + missingExternal, missingInternal,
+            setInternalKeyPool.size() + setExternalKeyPool.size(),
+            setInternalKeyPool.size());
     }
 
     return true;
@@ -3368,16 +3393,16 @@ void CWallet::ReturnKey(int64_t nIndex, bool fInternal) {
 }
 
 bool CWallet::GetKeyFromPool(CPubKey &result, bool internal) {
-    int64_t nIndex = 0;
     CKeyPool keypool;
-
     LOCK(cs_wallet);
+    int64_t nIndex = 0;
     ReserveKeyFromKeyPool(nIndex, keypool, internal);
     if (nIndex == -1) {
         if (IsLocked()) {
             return false;
         }
-        result = GenerateNewKey(internal);
+        CWalletDB walletdb(*dbw);
+        result = GenerateNewKey(walletdb, internal);
         return true;
     }
 
