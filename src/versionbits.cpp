@@ -29,7 +29,7 @@ ThresholdState AbstractThresholdConditionChecker::GetStateFor(
     // A block's state is always the same as that of the first of its period, so
     // it is computed based on a pindexPrev whose height equals a multiple of
     // nPeriod - 1.
-    if (pindexPrev != NULL) {
+    if (pindexPrev != nullptr) {
         pindexPrev = pindexPrev->GetAncestor(
             pindexPrev->nHeight - ((pindexPrev->nHeight + 1) % nPeriod));
     }
@@ -38,7 +38,7 @@ ThresholdState AbstractThresholdConditionChecker::GetStateFor(
     // is known
     std::vector<const CBlockIndex *> vToCompute;
     while (cache.count(pindexPrev) == 0) {
-        if (pindexPrev == NULL) {
+        if (pindexPrev == nullptr) {
             // The genesis block is by definition defined.
             cache[pindexPrev] = THRESHOLD_DEFINED;
             break;
@@ -129,14 +129,14 @@ int AbstractThresholdConditionChecker::GetStateSinceHeightFor(
     // last block of a period, then pindexPrev points to the second to last
     // block of the period, and if we are computing for the first block of a
     // period, then pindexPrev points to the last block of the previous period.
-    // The parent of the genesis block is represented by NULL.
+    // The parent of the genesis block is represented by nullptr.
     pindexPrev = pindexPrev->GetAncestor(pindexPrev->nHeight -
                                          ((pindexPrev->nHeight + 1) % nPeriod));
 
     const CBlockIndex *previousPeriodParent =
         pindexPrev->GetAncestor(pindexPrev->nHeight - nPeriod);
 
-    while (previousPeriodParent != NULL &&
+    while (previousPeriodParent != nullptr &&
            GetStateFor(previousPeriodParent, params, cache) == initialState) {
         pindexPrev = previousPeriodParent;
         previousPeriodParent =

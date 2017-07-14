@@ -1847,7 +1847,7 @@ static UniValue listsinceblock(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    const CBlockIndex *pindex = NULL;
+    const CBlockIndex *pindex = nullptr;
     int target_confirms = 1;
     isminefilter filter = ISMINE_SPENDABLE;
 
@@ -2754,9 +2754,9 @@ static UniValue listunspent(const Config &config,
 
     UniValue results(UniValue::VARR);
     vector<COutput> vecOutputs;
-    assert(pwalletMain != NULL);
+    assert(pwalletMain != nullptr);
     LOCK2(cs_main, pwalletMain->cs_wallet);
-    pwalletMain->AvailableCoins(vecOutputs, !include_unsafe, NULL, true);
+    pwalletMain->AvailableCoins(vecOutputs, !include_unsafe, nullptr, true);
     for (const COutput &out : vecOutputs) {
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth) continue;
 

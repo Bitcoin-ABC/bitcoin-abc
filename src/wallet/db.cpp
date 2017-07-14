@@ -48,14 +48,14 @@ void CDBEnv::Reset() {
     fMockDb = false;
 }
 
-CDBEnv::CDBEnv() : dbenv(NULL) {
+CDBEnv::CDBEnv() : dbenv(nullptr) {
     Reset();
 }
 
 CDBEnv::~CDBEnv() {
     EnvShutdown();
     delete dbenv;
-    dbenv = NULL;
+    dbenv = nullptr;
 }
 
 void CDBEnv::Close() {
@@ -119,9 +119,9 @@ void CDBEnv::MakeMock() {
     dbenv->set_lk_max_objects(10000);
     dbenv->set_flags(DB_AUTO_COMMIT, 1);
     dbenv->log_set_config(DB_LOG_IN_MEMORY, 1);
-    int ret = dbenv->open(NULL, DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG |
-                                    DB_INIT_MPOOL | DB_INIT_TXN | DB_THREAD |
-                                    DB_PRIVATE,
+    int ret = dbenv->open(nullptr, DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG |
+                                       DB_INIT_MPOOL | DB_INIT_TXN | DB_THREAD |
+                                       DB_PRIVATE,
                           S_IRUSR | S_IWUSR);
     if (ret > 0)
         throw runtime_error(strprintf(
@@ -138,10 +138,10 @@ CDBEnv::Verify(const std::string &strFile,
     assert(mapFileUseCount.count(strFile) == 0);
 
     Db db(dbenv, 0);
-    int result = db.verify(strFile.c_str(), NULL, NULL, 0);
+    int result = db.verify(strFile.c_str(), nullptr, nullptr, 0);
     if (result == 0)
         return VERIFY_OK;
-    else if (recoverFunc == NULL)
+    else if (recoverFunc == nullptr)
         return RECOVER_FAIL;
 
     // Try to recover:
@@ -165,7 +165,7 @@ bool CDBEnv::Salvage(const std::string &strFile, bool fAggressive,
     stringstream strDump;
 
     Db db(dbenv, 0);
-    int result = db.verify(strFile.c_str(), NULL, &strDump, flags);
+    int result = db.verify(strFile.c_str(), nullptr, &strDump, flags);
     if (result == DB_VERIFY_BAD) {
         LogPrintf("CDBEnv::Salvage: Database salvage found errors, all data "
                   "may not be recoverable.\n");
@@ -227,13 +227,13 @@ void CDBEnv::CheckpointLSN(const std::string &strFile) {
 
 CDB::CDB(const std::string &strFilename, const char *pszMode,
          bool fFlushOnCloseIn)
-    : pdb(NULL), activeTxn(NULL) {
+    : pdb(nullptr), activeTxn(nullptr) {
     int ret;
     fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
     fFlushOnClose = fFlushOnCloseIn;
     if (strFilename.empty()) return;
 
-    bool fCreate = strchr(pszMode, 'c') != NULL;
+    bool fCreate = strchr(pszMode, 'c') != nullptr;
     unsigned int nFlags = DB_THREAD;
     if (fCreate) nFlags |= DB_CREATE;
 
@@ -245,7 +245,7 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
         strFile = strFilename;
         ++bitdb.mapFileUseCount[strFile];
         pdb = bitdb.mapDb[strFile];
-        if (pdb == NULL) {
+        if (pdb == nullptr) {
             pdb = new Db(bitdb.dbenv, 0);
 
             bool fMockDb = bitdb.IsMock();
@@ -260,8 +260,8 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
             }
 
             ret =
-                pdb->open(NULL,                               // Txn pointer
-                          fMockDb ? NULL : strFile.c_str(),   // Filename
+                pdb->open(nullptr,                             // Txn pointer
+                          fMockDb ? nullptr : strFile.c_str(), // Filename
                           fMockDb ? strFile.c_str() : "main", // Logical db name
                           DB_BTREE,                           // Database type
                           nFlags,                             // Flags
@@ -269,7 +269,7 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
 
             if (ret != 0) {
                 delete pdb;
-                pdb = NULL;
+                pdb = nullptr;
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
                 throw runtime_error(strprintf(
@@ -303,8 +303,8 @@ void CDB::Flush() {
 void CDB::Close() {
     if (!pdb) return;
     if (activeTxn) activeTxn->abort();
-    activeTxn = NULL;
-    pdb = NULL;
+    activeTxn = nullptr;
+    pdb = nullptr;
 
     if (fFlushOnClose) Flush();
 
@@ -316,12 +316,12 @@ void CDB::Close() {
 
 void CDBEnv::CloseDb(const string &strFile) {
     LOCK(cs_db);
-    if (mapDb[strFile] != NULL) {
+    if (mapDb[strFile] != nullptr) {
         // Close the database handle
         Db *pdb = mapDb[strFile];
         pdb->close(0);
         delete pdb;
-        mapDb[strFile] = NULL;
+        mapDb[strFile] = nullptr;
     }
 }
 
@@ -329,7 +329,7 @@ bool CDBEnv::RemoveDb(const string &strFile) {
     this->CloseDb(strFile);
 
     LOCK(cs_db);
-    int rc = dbenv->dbremove(NULL, strFile.c_str(), NULL, DB_AUTO_COMMIT);
+    int rc = dbenv->dbremove(nullptr, strFile.c_str(), nullptr, DB_AUTO_COMMIT);
     return (rc == 0);
 }
 
@@ -351,7 +351,7 @@ bool CDB::Rewrite(const string &strFile, const char *pszSkip) {
                     CDB db(strFile.c_str(), "r");
                     Db *pdbCopy = new Db(bitdb.dbenv, 0);
 
-                    int ret = pdbCopy->open(NULL,               // Txn pointer
+                    int ret = pdbCopy->open(nullptr,            // Txn pointer
                                             strFileRes.c_str(), // Filename
                                             "main",    // Logical db name
                                             DB_BTREE,  // Database type
@@ -390,7 +390,7 @@ bool CDB::Rewrite(const string &strFile, const char *pszSkip) {
                             }
                             Dbt datKey(ssKey.data(), ssKey.size());
                             Dbt datValue(ssValue.data(), ssValue.size());
-                            int ret2 = pdbCopy->put(NULL, &datKey, &datValue,
+                            int ret2 = pdbCopy->put(nullptr, &datKey, &datValue,
                                                     DB_NOOVERWRITE);
                             if (ret2 > 0) fSuccess = false;
                         }
@@ -403,9 +403,10 @@ bool CDB::Rewrite(const string &strFile, const char *pszSkip) {
                 }
                 if (fSuccess) {
                     Db dbA(bitdb.dbenv, 0);
-                    if (dbA.remove(strFile.c_str(), NULL, 0)) fSuccess = false;
+                    if (dbA.remove(strFile.c_str(), nullptr, 0))
+                        fSuccess = false;
                     Db dbB(bitdb.dbenv, 0);
-                    if (dbB.rename(strFileRes.c_str(), NULL, strFile.c_str(),
+                    if (dbB.rename(strFileRes.c_str(), nullptr, strFile.c_str(),
                                    0))
                         fSuccess = false;
                 }

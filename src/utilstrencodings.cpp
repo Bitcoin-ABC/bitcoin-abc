@@ -409,7 +409,7 @@ static bool ParsePrechecks(const std::string &str) {
 
 bool ParseInt32(const std::string &str, int32_t *out) {
     if (!ParsePrechecks(str)) return false;
-    char *endp = NULL;
+    char *endp = nullptr;
     // strtol will not set errno if valid
     errno = 0;
     long int n = strtol(str.c_str(), &endp, 10);
@@ -425,7 +425,7 @@ bool ParseInt32(const std::string &str, int32_t *out) {
 
 bool ParseInt64(const std::string &str, int64_t *out) {
     if (!ParsePrechecks(str)) return false;
-    char *endp = NULL;
+    char *endp = nullptr;
     // strtoll will not set errno if valid
     errno = 0;
     long long int n = strtoll(str.c_str(), &endp, 10);
@@ -443,7 +443,7 @@ bool ParseUInt32(const std::string &str, uint32_t *out) {
     // Reject negative values, unfortunately strtoul accepts these by default if
     // they fit in the range
     if (str.size() >= 1 && str[0] == '-') return false;
-    char *endp = NULL;
+    char *endp = nullptr;
     // strtoul will not set errno if valid
     errno = 0;
     unsigned long int n = strtoul(str.c_str(), &endp, 10);
@@ -461,7 +461,7 @@ bool ParseUInt64(const std::string &str, uint64_t *out) {
     // Reject negative values, unfortunately strtoull accepts these by default
     // if they fit in the range
     if (str.size() >= 1 && str[0] == '-') return false;
-    char *endp = NULL;
+    char *endp = nullptr;
     // strtoull will not set errno if valid
     errno = 0;
     unsigned long long int n = strtoull(str.c_str(), &endp, 10);
@@ -537,7 +537,7 @@ int64_t atoi64(const char *psz) {
 #ifdef _MSC_VER
     return _atoi64(psz);
 #else
-    return strtoll(psz, NULL, 10);
+    return strtoll(psz, nullptr, 10);
 #endif
 }
 
@@ -545,7 +545,7 @@ int64_t atoi64(const std::string &str) {
 #ifdef _MSC_VER
     return _atoi64(str.c_str());
 #else
-    return strtoll(str.c_str(), NULL, 10);
+    return strtoll(str.c_str(), nullptr, 10);
 #endif
 }
 

@@ -289,8 +289,8 @@ public:
      * which are unsigned 256bit quantities. Thus, all the complexities of the
      * sign bit and using base 256 are probably an implementation accident.
      */
-    arith_uint256 &SetCompact(uint32_t nCompact, bool *pfNegative = NULL,
-                              bool *pfOverflow = NULL);
+    arith_uint256 &SetCompact(uint32_t nCompact, bool *pfNegative = nullptr,
+                              bool *pfOverflow = nullptr);
     uint32_t GetCompact(bool fNegative = false) const;
 
     friend uint256 ArithToUint256(const arith_uint256 &);

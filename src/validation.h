@@ -278,7 +278,7 @@ bool ProcessNewBlock(const Config &config,
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
                             CValidationState &state,
-                            const CBlockIndex **ppindex = NULL);
+                            const CBlockIndex **ppindex = nullptr);
 
 /** Check whether enough disk space is available for an incoming block */
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
@@ -291,7 +291,7 @@ boost::filesystem::path GetBlockPosFilename(const CDiskBlockPos &pos,
                                             const char *prefix);
 /** Import blocks from an external file */
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                           CDiskBlockPos *dbp = NULL);
+                           CDiskBlockPos *dbp = nullptr);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex(const Config &config);
 /** Load the block tree and coins database from disk */
@@ -381,7 +381,7 @@ bool IsUAHFenabledForCurrentBlock(const Config &config);
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
-                        std::list<CTransactionRef> *plTxnReplaced = NULL,
+                        std::list<CTransactionRef> *plTxnReplaced = nullptr,
                         bool fOverrideMempoolLimit = false,
                         const CAmount nAbsurdFee = 0);
 
@@ -389,7 +389,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 bool AcceptToMemoryPoolWithTime(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
-    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = NULL,
+    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = nullptr,
     bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
 /** Convert CValidationState to a human-readable message for logging */
@@ -437,7 +437,8 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
 /**
  * Check whether all inputs of this transaction are valid (no double spends,
  * scripts & sigs, amounts). This does not modify the UTXO set. If pvChecks is
- * not NULL, script checks are pushed onto it instead of being performed inline.
+ * not nullptr, script checks are pushed onto it instead of being performed
+ * inline.
  */
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
@@ -497,7 +498,7 @@ bool SequenceLocks(const CTransaction &tx, int flags,
  * See consensus/consensus.h for flag definitions.
  */
 bool CheckSequenceLocks(const CTransaction &tx, int flags,
-                        LockPoints *lp = NULL,
+                        LockPoints *lp = nullptr,
                         bool useExistingLockPoints = false);
 
 /**

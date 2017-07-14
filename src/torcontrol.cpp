@@ -144,9 +144,9 @@ void TorControlConnection::readcb(struct bufferevent *bev, void *ctx) {
     size_t n_read_out = 0;
     char *line;
     assert(input);
-    //  If there is not a whole line to read, evbuffer_readln returns NULL
+    // If there is not a whole line to read, evbuffer_readln returns nullptr
     while ((line = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF)) !=
-           NULL) {
+           nullptr) {
         std::string s(line, n_read_out);
         free(line);
         // Short line
@@ -218,7 +218,7 @@ bool TorControlConnection::Connect(const std::string &target,
     // Create a new socket, set up callbacks and enable notification bits
     b_conn = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
     if (!b_conn) return false;
-    bufferevent_setcb(b_conn, TorControlConnection::readcb, NULL,
+    bufferevent_setcb(b_conn, TorControlConnection::readcb, nullptr,
                       TorControlConnection::eventcb, this);
     bufferevent_enable(b_conn, EV_READ | EV_WRITE);
     this->connected = _connected;
@@ -334,7 +334,7 @@ static std::pair<bool, std::string>
 ReadBinaryFile(const std::string &filename,
                size_t maxsize = std::numeric_limits<size_t>::max()) {
     FILE *f = fopen(filename.c_str(), "rb");
-    if (f == NULL) return std::make_pair(false, "");
+    if (f == nullptr) return std::make_pair(false, "");
     std::string retval;
     char buffer[128];
     size_t n;
@@ -353,7 +353,7 @@ ReadBinaryFile(const std::string &filename,
 static bool WriteBinaryFile(const std::string &filename,
                             const std::string &data) {
     FILE *f = fopen(filename.c_str(), "wb");
-    if (f == NULL) return false;
+    if (f == nullptr) return false;
     if (fwrite(data.data(), 1, data.size(), f) != data.size()) {
         fclose(f);
         return false;

@@ -179,7 +179,7 @@ public Q_SLOTS:
        Ok was clicked (modal only)
      */
     void message(const QString &title, const QString &message,
-                 unsigned int style, bool *ret = NULL);
+                 unsigned int style, bool *ret = nullptr);
 
 #ifdef ENABLE_WALLET
     /** Set the encryption status as shown in the UI.

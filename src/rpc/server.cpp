@@ -35,7 +35,7 @@ static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started");
 static CCriticalSection cs_rpcWarmup;
 /* Timer-creating functions */
-static RPCTimerInterface *timerInterface = NULL;
+static RPCTimerInterface *timerInterface = nullptr;
 /* Map of name to timer. */
 static std::map<std::string, std::unique_ptr<RPCTimerBase>> deadlineTimers;
 
@@ -275,7 +275,7 @@ CRPCTable::CRPCTable() {
 const CRPCCommand *CRPCTable::operator[](const std::string &name) const {
     map<string, const CRPCCommand *>::const_iterator it =
         mapCommands.find(name);
-    if (it == mapCommands.end()) return NULL;
+    if (it == mapCommands.end()) return nullptr;
     return (*it).second;
 }
 
@@ -498,7 +498,7 @@ void RPCSetTimerInterface(RPCTimerInterface *iface) {
 }
 
 void RPCUnsetTimerInterface(RPCTimerInterface *iface) {
-    if (timerInterface == iface) timerInterface = NULL;
+    if (timerInterface == iface) timerInterface = nullptr;
 }
 
 void RPCRunLater(const std::string &name, boost::function<void(void)> func,

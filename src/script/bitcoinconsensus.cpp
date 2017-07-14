@@ -25,11 +25,11 @@ public:
             throw std::ios_base::failure(std::string(__func__) +
                                          ": end of data");
 
-        if (pch == NULL)
+        if (pch == nullptr)
             throw std::ios_base::failure(std::string(__func__) +
                                          ": bad destination buffer");
 
-        if (m_data == NULL)
+        if (m_data == nullptr)
             throw std::ios_base::failure(std::string(__func__) +
                                          ": bad source buffer");
 
@@ -94,7 +94,7 @@ static int verify_script(const unsigned char *scriptPubKey,
         return VerifyScript(
             tx.vin[nIn].scriptSig,
             CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), flags,
-            TransactionSignatureChecker(&tx, nIn, amount, txdata), NULL);
+            TransactionSignatureChecker(&tx, nIn, amount, txdata), nullptr);
     } catch (const std::exception &) {
         // Error deserializing
         return set_error(err, bitcoinconsensus_ERR_TX_DESERIALIZE);

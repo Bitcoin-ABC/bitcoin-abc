@@ -53,8 +53,8 @@ bool OldEncrypt(const CKeyingMaterial &vchPlaintext,
 
     EVP_CIPHER_CTX_init(ctx);
     if (fOk)
-        fOk =
-            EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, chKey, chIV) != 0;
+        fOk = EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, chKey,
+                                 chIV) != 0;
     if (fOk)
         fOk = EVP_EncryptUpdate(ctx, &vchCiphertext[0], &nCLen,
                                 &vchPlaintext[0], nLen) != 0;
@@ -88,8 +88,8 @@ bool OldDecrypt(const std::vector<unsigned char> &vchCiphertext,
 
     EVP_CIPHER_CTX_init(ctx);
     if (fOk)
-        fOk =
-            EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, chKey, chIV) != 0;
+        fOk = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, chKey,
+                                 chIV) != 0;
     if (fOk)
         fOk = EVP_DecryptUpdate(ctx, &vchPlaintext[0], &nPLen,
                                 &vchCiphertext[0], nLen) != 0;

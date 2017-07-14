@@ -155,8 +155,8 @@ public:
     bool GetNetworkActive() const { return fNetworkActive; };
     void SetNetworkActive(bool active);
     bool OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
-                               CSemaphoreGrant *grantOutbound = NULL,
-                               const char *strDest = NULL,
+                               CSemaphoreGrant *grantOutbound = nullptr,
+                               const char *strDest = nullptr,
                                bool fOneShot = false, bool fFeeler = false,
                                bool fAddnode = false);
     bool CheckIncomingNonce(uint64_t nonce);
@@ -463,7 +463,7 @@ bool AddLocal(const CNetAddr &addr, int nScore = LOCAL_NONE);
 bool RemoveLocal(const CService &addr);
 bool SeenLocal(const CService &addr);
 bool IsLocal(const CService &addr);
-bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
+bool GetLocal(CService &addr, const CNetAddr *paddrPeer = nullptr);
 bool IsReachable(enum Network net);
 bool IsReachable(const CNetAddr &addr);
 CAddress GetLocalAddress(const CNetAddr *paddrPeer,

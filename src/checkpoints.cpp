@@ -24,7 +24,7 @@ CBlockIndex *GetLastCheckpoint(const CCheckpointData &data) {
         BlockMap::const_iterator t = mapBlockIndex.find(hash);
         if (t != mapBlockIndex.end()) return t->second;
     }
-    return NULL;
+    return nullptr;
 }
 
 } // namespace Checkpoints

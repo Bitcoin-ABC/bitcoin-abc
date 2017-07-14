@@ -213,10 +213,10 @@ struct CNodeState {
         fCurrentlyConnected = false;
         nMisbehavior = 0;
         fShouldBan = false;
-        pindexBestKnownBlock = NULL;
+        pindexBestKnownBlock = nullptr;
         hashLastUnknownBlock.SetNull();
-        pindexLastCommonBlock = NULL;
-        pindexBestHeaderSent = NULL;
+        pindexLastCommonBlock = nullptr;
+        pindexBestHeaderSent = nullptr;
         nUnconnectingHeaders = 0;
         fSyncStarted = false;
         nStallingSince = 0;
@@ -237,7 +237,7 @@ std::map<NodeId, CNodeState> mapNodeState;
 // Requires cs_main.
 CNodeState *State(NodeId pnode) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
-    if (it == mapNodeState.end()) return NULL;
+    if (it == mapNodeState.end()) return nullptr;
     return &it->second;
 }
 
@@ -362,13 +362,13 @@ bool MarkBlockAsReceived(const uint256 &hash) {
 // returns false, still setting pit, if the block was already in flight from the
 // same peer pit will only be valid as long as the same cs_main lock is being
 // held.
-static bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
-                                const uint256 &hash,
-                                const Consensus::Params &consensusParams,
-                                const CBlockIndex *pindex = NULL,
-                                std::list<QueuedBlock>::iterator **pit = NULL) {
+static bool
+MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
+                    const Consensus::Params &consensusParams,
+                    const CBlockIndex *pindex = nullptr,
+                    std::list<QueuedBlock>::iterator **pit = nullptr) {
     CNodeState *state = State(nodeid);
-    assert(state != NULL);
+    assert(state != nullptr);
 
     // Short-circuit most stuff in case its from the same node.
     std::map<uint256,
@@ -385,16 +385,16 @@ static bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
-        {hash, pindex, pindex != NULL,
+        {hash, pindex, pindex != nullptr,
          std::unique_ptr<PartiallyDownloadedBlock>(
-             pit ? new PartiallyDownloadedBlock(config, &mempool) : NULL)});
+             pit ? new PartiallyDownloadedBlock(config, &mempool) : nullptr)});
     state->nBlocksInFlight++;
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
         state->nDownloadingSince = GetTimeMicros();
     }
-    if (state->nBlocksInFlightValidHeaders == 1 && pindex != NULL) {
+    if (state->nBlocksInFlightValidHeaders == 1 && pindex != nullptr) {
         nPeersWithValidatedDownloads++;
     }
     itInFlight = mapBlocksInFlight
@@ -407,13 +407,13 @@ static bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
 /** Check whether the last unknown block a peer advertised is not yet known. */
 void ProcessBlockAvailability(NodeId nodeid) {
     CNodeState *state = State(nodeid);
-    assert(state != NULL);
+    assert(state != nullptr);
 
     if (!state->hashLastUnknownBlock.IsNull()) {
         BlockMap::iterator itOld =
             mapBlockIndex.find(state->hashLastUnknownBlock);
         if (itOld != mapBlockIndex.end() && itOld->second->nChainWork > 0) {
-            if (state->pindexBestKnownBlock == NULL ||
+            if (state->pindexBestKnownBlock == nullptr ||
                 itOld->second->nChainWork >=
                     state->pindexBestKnownBlock->nChainWork)
                 state->pindexBestKnownBlock = itOld->second;
@@ -425,14 +425,14 @@ void ProcessBlockAvailability(NodeId nodeid) {
 /** Update tracking information about which blocks a peer is assumed to have. */
 void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
     CNodeState *state = State(nodeid);
-    assert(state != NULL);
+    assert(state != nullptr);
 
     ProcessBlockAvailability(nodeid);
 
     BlockMap::iterator it = mapBlockIndex.find(hash);
     if (it != mapBlockIndex.end() && it->second->nChainWork > 0) {
         // An actually better block was announced.
-        if (state->pindexBestKnownBlock == NULL ||
+        if (state->pindexBestKnownBlock == nullptr ||
             it->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
             state->pindexBestKnownBlock = it->second;
     } else {
@@ -506,8 +506,10 @@ bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
     return false;
 }
 
-/** Find the last common ancestor two blocks have.
- *  Both pa and pb must be non-NULL. */
+/**
+ * Find the last common ancestor two blocks have.
+ * Both pa and pb must be non null.
+ */
 const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
                                       const CBlockIndex *pb) {
     if (pa->nHeight > pb->nHeight) {
@@ -536,19 +538,19 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
     vBlocks.reserve(vBlocks.size() + count);
     CNodeState *state = State(nodeid);
-    assert(state != NULL);
+    assert(state != nullptr);
 
     // Make sure pindexBestKnownBlock is up to date, we'll need it.
     ProcessBlockAvailability(nodeid);
 
-    if (state->pindexBestKnownBlock == NULL ||
+    if (state->pindexBestKnownBlock == nullptr ||
         state->pindexBestKnownBlock->nChainWork <
             chainActive.Tip()->nChainWork) {
         // This peer has nothing interesting.
         return;
     }
 
-    if (state->pindexLastCommonBlock == NULL) {
+    if (state->pindexLastCommonBlock == nullptr) {
         // Bootstrap quickly by guessing a parent of our best tip is the forking
         // point. Guessing wrong in either direction is not a problem.
         state->pindexLastCommonBlock = chainActive[std::min(
@@ -628,7 +630,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     LOCK(cs_main);
     CNodeState *state = State(nodeid);
-    if (state == NULL) return false;
+    if (state == nullptr) return false;
     stats.nMisbehavior = state->nMisbehavior;
     stats.nSyncHeight =
         state->pindexBestKnownBlock ? state->pindexBestKnownBlock->nHeight : -1;
@@ -779,7 +781,7 @@ void Misbehaving(NodeId pnode, int howmuch) {
     if (howmuch == 0) return;
 
     CNodeState *state = State(pnode);
-    if (state == NULL) return;
+    if (state == nullptr) return;
 
     state->nMisbehavior += howmuch;
     int banscore = GetArg("-banscore", DEFAULT_BANSCORE_THRESHOLD);
@@ -1092,7 +1094,7 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                         // equivalent proof of work) than the best header chain
                         // we know about.
                         send = mi->second->IsValid(BLOCK_VALID_SCRIPTS) &&
-                               (pindexBestHeader != NULL) &&
+                               (pindexBestHeader != nullptr) &&
                                (pindexBestHeader->GetBlockTime() -
                                     mi->second->GetBlockTime() <
                                 nOneMonth) &&
@@ -1115,7 +1117,7 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                 // assume > 1 week = historical
                 static const int nOneWeek = 7 * 24 * 60 * 60;
                 if (send && connman.OutboundTargetReached(true) &&
-                    (((pindexBestHeader != NULL) &&
+                    (((pindexBestHeader != nullptr) &&
                       (pindexBestHeader->GetBlockTime() -
                            mi->second->GetBlockTime() >
                        nOneWeek)) ||
@@ -1875,7 +1877,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         CNodeState *nodestate = State(pfrom->GetId());
-        const CBlockIndex *pindex = NULL;
+        const CBlockIndex *pindex = nullptr;
         if (locator.IsNull()) {
             // If locator is null, return the hashStop block
             BlockMap::iterator mi = mapBlockIndex.find(hashStop);
@@ -1898,7 +1900,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             vHeaders.push_back(pindex->GetBlockHeader());
             if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop) break;
         }
-        // pindex can be NULL either if we sent chainActive.Tip() OR
+        // pindex can be nullptr either if we sent chainActive.Tip() OR
         // if our peer has chainActive.Tip() (and thus we are sending an empty
         // headers message). In both cases it's safe to update
         // pindexBestHeaderSent to be our tip.
@@ -2147,7 +2149,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             }
         }
 
-        const CBlockIndex *pindex = NULL;
+        const CBlockIndex *pindex = nullptr;
         CValidationState state;
         if (!ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
                                     &pindex)) {
@@ -2231,7 +2233,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                          MAX_BLOCKS_IN_TRANSIT_PER_PEER) ||
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom->GetId())) {
-                    std::list<QueuedBlock>::iterator *queuedBlockIt = NULL;
+                    std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
                     if (!MarkBlockAsInFlight(config, pfrom->GetId(),
                                              pindex->GetBlockHash(),
                                              chainparams.GetConsensus(), pindex,
@@ -2481,7 +2483,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             return true;
         }
 
-        const CBlockIndex *pindexLast = NULL;
+        const CBlockIndex *pindexLast = nullptr;
         {
             LOCK(cs_main);
             CNodeState *nodestate = State(pfrom->GetId());
@@ -3032,7 +3034,7 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "ProcessMessages()");
     } catch (...) {
-        PrintExceptionContinue(NULL, "ProcessMessages()");
+        PrintExceptionContinue(nullptr, "ProcessMessages()");
     }
 
     if (!fRet) {
@@ -3148,7 +3150,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         }
 
         // Start block sync
-        if (pindexBestHeader == NULL) pindexBestHeader = chainActive.Tip();
+        if (pindexBestHeader == nullptr) pindexBestHeader = chainActive.Tip();
         bool fFetch = state.fPreferredDownload ||
                       (nPreferredDownload == 0 && !pto->fClient &&
                        !pto->fOneShot); // Download if this is a nice peer, or
@@ -3207,8 +3209,8 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                   (!state.fPreferHeaderAndIDs ||
                    pto->vBlockHashesToAnnounce.size() > 1)) ||
                  pto->vBlockHashesToAnnounce.size() > MAX_BLOCKS_TO_ANNOUNCE);
-            const CBlockIndex *pBestIndex =
-                NULL; // last header queued for delivery
+            // last header queued for delivery
+            const CBlockIndex *pBestIndex = nullptr;
             ProcessBlockAvailability(
                 pto->id); // ensure pindexBestKnownBlock is up-to-date
 
@@ -3226,7 +3228,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                         fRevertToInv = true;
                         break;
                     }
-                    if (pBestIndex != NULL && pindex->pprev != pBestIndex) {
+                    if (pBestIndex != nullptr && pindex->pprev != pBestIndex) {
                         // This means that the list of blocks to announce don't
                         // connect to each other.
                         // This shouldn't really be possible to hit during
@@ -3247,7 +3249,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                         vHeaders.push_back(pindex->GetBlockHeader());
                     } else if (PeerHasHeader(&state, pindex)) {
                         continue; // keep looking for the first new block
-                    } else if (pindex->pprev == NULL ||
+                    } else if (pindex->pprev == nullptr ||
                                PeerHasHeader(&state, pindex->pprev)) {
                         // Peer doesn't have this header but they do have the
                         // prior one.

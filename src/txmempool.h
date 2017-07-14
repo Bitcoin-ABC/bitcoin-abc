@@ -54,7 +54,7 @@ struct LockPoints {
     // values are still valid even after a reorg.
     CBlockIndex *maxInputBlock;
 
-    LockPoints() : height(0), time(0), maxInputBlock(NULL) {}
+    LockPoints() : height(0), time(0), maxInputBlock(nullptr) {}
 };
 
 class CTxMemPool;
@@ -658,7 +658,7 @@ public:
      * in this mempool.
      */
     void TrimToSize(size_t sizelimit,
-                    std::vector<uint256> *pvNoSpendsRemaining = NULL);
+                    std::vector<uint256> *pvNoSpendsRemaining = nullptr);
 
     /** Expire all transaction (and their dependencies) in the mempool older
      * than time. Return the number of removed transactions. */
@@ -694,7 +694,7 @@ public:
      * where one can be given.
      */
     CFeeRate estimateSmartFee(int nBlocks,
-                              int *answerFoundAtBlocks = NULL) const;
+                              int *answerFoundAtBlocks = nullptr) const;
 
     /** Estimate fee rate needed to get into the next nBlocks */
     CFeeRate estimateFee(int nBlocks) const;
@@ -705,7 +705,7 @@ public:
      * where one can be given.
      */
     double estimateSmartPriority(int nBlocks,
-                                 int *answerFoundAtBlocks = NULL) const;
+                                 int *answerFoundAtBlocks = nullptr) const;
 
     /** Estimate priority needed to get into the next nBlocks */
     double estimatePriority(int nBlocks) const;

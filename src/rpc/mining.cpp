@@ -41,7 +41,7 @@ static UniValue GetNetworkHashPS(int lookup, int height) {
 
     if (height >= 0 && height < chainActive.Height()) pb = chainActive[height];
 
-    if (pb == NULL || !pb->nHeight) return 0;
+    if (pb == nullptr || !pb->nHeight) return 0;
 
     // If lookup is -1, then use blocks since last difficulty change.
     if (lookup <= 0) {
@@ -146,7 +146,7 @@ static UniValue generateBlocks(const Config &config,
         }
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(config, shared_pblock, true, NULL))
+        if (!ProcessNewBlock(config, shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "ProcessNewBlock, block not accepted");
         ++nHeight;
@@ -857,7 +857,7 @@ static UniValue submitblock(const Config &config,
 
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(config, blockptr, true, NULL);
+    bool fAccepted = ProcessNewBlock(config, blockptr, true, nullptr);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
         if (fAccepted && !sc.found) return "duplicate-inconclusive";

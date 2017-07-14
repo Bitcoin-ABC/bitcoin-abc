@@ -530,7 +530,7 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
 
         setNumBlocks(_clientModel->getNumBlocks(),
                      _clientModel->getLastBlockDate(),
-                     _clientModel->getVerificationProgress(NULL), false);
+                     _clientModel->getVerificationProgress(nullptr), false);
         connect(_clientModel,
                 SIGNAL(numBlocksChanged(int, QDateTime, double, bool)), this,
                 SLOT(setNumBlocks(int, QDateTime, double, bool)));
@@ -973,7 +973,7 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message,
                          buttons, this);
         int r = mBox.exec();
-        if (ret != NULL) *ret = r == QMessageBox::Ok;
+        if (ret != nullptr) *ret = r == QMessageBox::Ok;
     } else
         notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
 }

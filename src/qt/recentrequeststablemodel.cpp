@@ -116,7 +116,7 @@ void RecentRequestsTableModel::updateAmountColumnTitle() {
 /** Gets title for amount column including current display unit if optionsModel
  * reference available. */
 QString RecentRequestsTableModel::getAmountTitle() {
-    return (this->walletModel->getOptionsModel() != NULL)
+    return (this->walletModel->getOptionsModel() != nullptr)
                ? tr("Requested") + " (" +
                      BitcoinUnits::name(this->walletModel->getOptionsModel()
                                             ->getDisplayUnit()) +

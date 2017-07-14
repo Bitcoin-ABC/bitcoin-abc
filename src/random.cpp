@@ -35,7 +35,7 @@ static inline int64_t GetPerformanceCounter() {
     QueryPerformanceCounter((LARGE_INTEGER *)&nCounter);
 #else
     timeval t;
-    gettimeofday(&t, NULL);
+    gettimeofday(&t, nullptr);
     nCounter = (int64_t)(t.tv_sec * 1000000 + t.tv_usec);
 #endif
     return nCounter;
@@ -67,8 +67,8 @@ static void RandAddSeedPerfmon() {
     const size_t nMaxSize = 10000000;
     while (true) {
         nSize = vData.size();
-        ret = RegQueryValueExA(HKEY_PERFORMANCE_DATA, "Global", NULL, NULL,
-                               vData.data(), &nSize);
+        ret = RegQueryValueExA(HKEY_PERFORMANCE_DATA, "Global", nullptr,
+                               nullptr, vData.data(), &nSize);
         if (ret != ERROR_MORE_DATA || vData.size() >= nMaxSize) {
             break;
         }
@@ -97,7 +97,7 @@ static void RandAddSeedPerfmon() {
 static void GetOSRand(unsigned char *ent32) {
 #ifdef WIN32
     HCRYPTPROV hProvider;
-    int ret = CryptAcquireContextW(&hProvider, NULL, NULL, PROV_RSA_FULL,
+    int ret = CryptAcquireContextW(&hProvider, nullptr, nullptr, PROV_RSA_FULL,
                                    CRYPT_VERIFYCONTEXT);
     if (!ret) {
         RandFailure();
