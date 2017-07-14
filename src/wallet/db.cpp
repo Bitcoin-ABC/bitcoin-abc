@@ -11,7 +11,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifndef WIN32
 #include <sys/stat.h>

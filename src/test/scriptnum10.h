@@ -6,11 +6,11 @@
 #ifndef BITCOIN_TEST_SCRIPTNUM10_H
 #define BITCOIN_TEST_SCRIPTNUM10_H
 
-#include "assert.h"
 #include <algorithm>
+#include <cassert>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <vector>
 

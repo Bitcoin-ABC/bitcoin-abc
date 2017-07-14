@@ -5,8 +5,8 @@
 #ifndef BITCOIN_HTTPSERVER_H
 #define BITCOIN_HTTPSERVER_H
 
+#include <cstdint>
 #include <functional>
-#include <stdint.h>
 #include <string>
 
 static const int DEFAULT_HTTP_THREADS = 4;

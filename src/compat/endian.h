@@ -9,7 +9,7 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "compat/byteswap.h"
 

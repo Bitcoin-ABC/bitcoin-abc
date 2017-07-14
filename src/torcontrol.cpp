@@ -9,9 +9,9 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
+#include <cstdlib>
 #include <deque>
 #include <set>
-#include <stdlib.h>
 #include <vector>
 
 #include <boost/algorithm/string/classification.hpp>

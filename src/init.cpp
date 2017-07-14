@@ -44,9 +44,9 @@
 #include "wallet/wallet.h"
 #endif
 #include "warnings.h"
+#include <cstdint>
+#include <cstdio>
 #include <memory>
-#include <stdint.h>
-#include <stdio.h>
 
 #ifndef WIN32
 #include <signal.h>

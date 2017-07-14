@@ -8,10 +8,10 @@
 #include "version.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <cstdint>
 #include <iomanip>
 #include <limits>
 #include <sstream>
-#include <stdint.h>
 #include <string>
 
 BOOST_FIXTURE_TEST_SUITE(arith_uint256_tests, BasicTestingSetup)

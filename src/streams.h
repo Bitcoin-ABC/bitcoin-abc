@@ -10,14 +10,14 @@
 #include "support/allocators/zeroafterfree.h"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <ios>
 #include <limits>
 #include <map>
 #include <set>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 #include <string>
 #include <utility>
 #include <vector>

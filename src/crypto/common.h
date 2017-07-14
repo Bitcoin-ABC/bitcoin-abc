@@ -9,8 +9,8 @@
 #include "bitcoin-config.h"
 #endif
 
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #include "compat/endian.h"
 

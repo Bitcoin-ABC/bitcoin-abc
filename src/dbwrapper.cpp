@@ -9,11 +9,11 @@
 
 #include <boost/filesystem.hpp>
 
+#include <cstdint>
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <memenv.h>
-#include <stdint.h>
 
 static leveldb::Options GetOptions(size_t nCacheSize) {
     leveldb::Options options;

@@ -20,7 +20,7 @@
 #endif
 #include <windows.h>
 #else
-#include <limits.h>       // for PAGESIZE
+#include <climits>        // for PAGESIZE
 #include <sys/mman.h>     // for mmap
 #include <sys/resource.h> // for getrlimit
 #include <unistd.h>       // for sysconf
@@ -204,7 +204,7 @@ private:
 
 PosixLockedPageAllocator::PosixLockedPageAllocator() {
 // Determine system page size in bytes
-#if defined(PAGESIZE) // defined in limits.h
+#if defined(PAGESIZE) // defined in climits
     page_size = PAGESIZE;
 #else // assume some POSIX OS
     page_size = sysconf(_SC_PAGESIZE);

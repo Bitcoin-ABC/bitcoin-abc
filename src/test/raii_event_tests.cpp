@@ -9,8 +9,8 @@
 // boost::test doesn't seem to make that practical (at least not in versions
 // available with common distros)
 
+#include <cstdlib>
 #include <map>
-#include <stdlib.h>
 
 #include "support/events.h"
 

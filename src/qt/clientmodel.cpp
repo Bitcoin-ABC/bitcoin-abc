@@ -19,7 +19,7 @@
 #include "util.h"
 #include "validation.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <QDebug>
 #include <QTimer>

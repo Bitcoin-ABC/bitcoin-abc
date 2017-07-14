@@ -5,7 +5,7 @@
 #ifndef BITCOIN_LIMITEDMAP_H
 #define BITCOIN_LIMITEDMAP_H
 
-#include <assert.h>
+#include <cassert>
 #include <map>
 
 /**

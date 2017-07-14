@@ -20,10 +20,10 @@
 #include "versionbits.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <exception>
 #include <map>
 #include <set>
-#include <stdint.h>
 #include <string>
 #include <utility>
 #include <vector>
