@@ -2,7 +2,7 @@
     "linters": {
         "clang-format": {
             "type": "clang-format",
-            "include": "(^src/.*\\.(h|cpp)$)",
+            "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": "(^src/(secp256k1|leveldb)/)"
         }
     }
