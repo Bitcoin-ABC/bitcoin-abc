@@ -124,7 +124,7 @@ bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
                       const CAmount &amount,
-                      const PrecomputedTransactionData *cache = NULL);
+                      const PrecomputedTransactionData *cache = nullptr);
 
 class BaseSignatureChecker {
 public:
@@ -160,7 +160,7 @@ protected:
 public:
     TransactionSignatureChecker(const CTransaction *txToIn, unsigned int nInIn,
                                 const CAmount &amountIn)
-        : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(NULL) {}
+        : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr) {}
     TransactionSignatureChecker(const CTransaction *txToIn, unsigned int nInIn,
                                 const CAmount &amountIn,
                                 const PrecomputedTransactionData &txdataIn)
@@ -185,9 +185,10 @@ public:
 
 bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
                 const CScript &script, unsigned int flags,
-                const BaseSignatureChecker &checker, ScriptError *error = NULL);
+                const BaseSignatureChecker &checker,
+                ScriptError *error = nullptr);
 bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
                   unsigned int flags, const BaseSignatureChecker &checker,
-                  ScriptError *serror = NULL);
+                  ScriptError *serror = nullptr);
 
 #endif // BITCOIN_SCRIPT_INTERPRETER_H
