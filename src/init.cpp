@@ -1610,15 +1610,18 @@ bool AppInitSanityChecks() {
     // Step 4: sanity checks
 
     // Initialize elliptic curve code
+    std::string sha256_algo = SHA256AutoDetect();
+    LogPrintf("Using the '%s' SHA256 implementation\n", sha256_algo);
     RandomInit();
     ECC_Start();
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
     // Sanity check
-    if (!InitSanityCheck())
+    if (!InitSanityCheck()) {
         return InitError(strprintf(
             _("Initialization sanity check failed. %s is shutting down."),
             _(PACKAGE_NAME)));
+    }
 
     // Probe the data directory lock to give an early error message, if possible
     return LockDataDirectory(true);
