@@ -1407,7 +1407,6 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             return false;
         }
 
-        if (nVersion == 10300) nVersion = 300;
         if (!vRecv.empty()) vRecv >> addrFrom >> nNonce;
         if (!vRecv.empty()) {
             vRecv >> LIMITED_STRING(strSubVer, MAX_SUBVERSION_LENGTH);
