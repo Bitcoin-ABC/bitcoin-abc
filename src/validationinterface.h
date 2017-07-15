@@ -119,7 +119,6 @@ public:
                         const CBlockIndex *pindex,
                         const std::vector<CTransactionRef> &);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &);
-    void UpdatedTransaction(const uint256 &);
     void SetBestChain(const CBlockLocator &);
     void Inventory(const uint256 &);
     void Broadcast(int64_t nBestBlockTime, CConnman *connman);
