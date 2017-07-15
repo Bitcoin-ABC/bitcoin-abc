@@ -1729,15 +1729,12 @@ bool AppInitSanityChecks() {
     }
 
     // Probe the data directory lock to give an early error message, if possible
+    // We cannot hold the data directory lock here, as the forking for daemon()
+    // hasn't yet happened, and a fork will cause weird behavior to it.
     return LockDataDirectory(true);
 }
 
-bool AppInitMain(Config &config,
-                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                 boost::thread_group &threadGroup, CScheduler &scheduler) {
-    const CChainParams &chainparams = config.GetChainParams();
-    // Step 4a: application initialization
-
+bool AppInitLockDataDirectory() {
     // After daemonization get the data directory lock again and hold on to it
     // until exit. This creates a slight window for a race condition to happen,
     // however this condition is harmless: it will at most make us exit without
@@ -1746,6 +1743,14 @@ bool AppInitMain(Config &config,
         // Detailed error printed inside LockDataDirectory
         return false;
     }
+    return true;
+}
+
+bool AppInitMain(Config &config,
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                 boost::thread_group &threadGroup, CScheduler &scheduler) {
+    // Step 4a: application initialization
+    const CChainParams &chainparams = config.GetChainParams();
 
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());

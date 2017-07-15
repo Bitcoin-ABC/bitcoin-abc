@@ -169,10 +169,15 @@ class BitcoinABC : public QObject {
 public:
     explicit BitcoinABC();
 
+    /**
+     * Basic initialization, before starting initialization/shutdown thread.
+     * Return true on success.
+     */
+    static bool baseInitialize(Config &config, RPCServer &rpcServer);
+
 public Q_SLOTS:
     void initialize(Config *config,
-                    HTTPRPCRequestProcessor *httpRPCRequestProcessor,
-                    RPCServer *rpcServer);
+                    HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void shutdown();
 
 Q_SIGNALS:
@@ -262,28 +267,27 @@ void BitcoinABC::handleRunawayException(const std::exception *e) {
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
+bool BitcoinABC::baseInitialize(Config &config, RPCServer &rpcServer) {
+    if (!AppInitBasicSetup()) {
+        return false;
+    }
+    if (!AppInitParameterInteraction(config, rpcServer)) {
+        return false;
+    }
+    if (!AppInitSanityChecks()) {
+        return false;
+    }
+    if (!AppInitLockDataDirectory()) {
+        return false;
+    }
+    return true;
+}
+
 void BitcoinABC::initialize(Config *cfg,
-                            HTTPRPCRequestProcessor *httpRPCRequestProcessor,
-                            RPCServer *rpcSrv) {
+                            HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     Config &config(*cfg);
-    RPCServer &rpcServer = *rpcSrv;
     try {
-        qDebug() << __func__ << ": Running AppInit2 in thread";
-        if (!AppInitBasicSetup()) {
-            Q_EMIT initializeResult(false);
-            return;
-        }
-
-        if (!AppInitParameterInteraction(config, rpcServer)) {
-            Q_EMIT initializeResult(false);
-            return;
-        }
-
-        if (!AppInitSanityChecks()) {
-            Q_EMIT initializeResult(false);
-            return;
-        }
-
+        qDebug() << __func__ << ": Running initialization in thread";
         bool rv = AppInitMain(config, *httpRPCRequestProcessor, threadGroup,
                               scheduler);
         Q_EMIT initializeResult(rv);
@@ -407,10 +411,9 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this, SIGNAL(requestedInitialize(
-                      Config *, HTTPRPCRequestProcessor *, RPCServer *)),
-            executor,
-            SLOT(initialize(Config *, HTTPRPCRequestProcessor *, RPCServer *)));
+    connect(this,
+            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
+            executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
     /*  make sure executor object is deleted in its own thread */
@@ -765,18 +768,29 @@ int main(int argc, char *argv[]) {
     RPCServer rpcServer;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
+    int rv = EXIT_SUCCESS;
     try {
         app.createWindow(&config, networkStyle.data());
-        app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
+        // Perform base initialization before spinning up
+        // initialization/shutdown thread. This is acceptable because this
+        // function only contains steps that are quick to execute, so the GUI
+        // thread won't be held up.
+        if (BitcoinABC::baseInitialize(config, rpcServer)) {
+            app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
 #if defined(Q_OS_WIN)
-        WinShutdownMonitor::registerShutdownBlockReason(
-            QObject::tr("%1 didn't yet exit safely...")
-                .arg(QObject::tr(PACKAGE_NAME)),
-            (HWND)app.getMainWinId());
+            WinShutdownMonitor::registerShutdownBlockReason(
+                QObject::tr("%1 didn't yet exit safely...")
+                    .arg(QObject::tr(PACKAGE_NAME)),
+                (HWND)app.getMainWinId());
 #endif
-        app.exec();
-        app.requestShutdown(config);
-        app.exec();
+            app.exec();
+            app.requestShutdown(config);
+            app.exec();
+            rv = app.getReturnValue();
+        } else {
+            // A dialog with detailed error will have been shown by InitError()
+            rv = EXIT_FAILURE;
+        }
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
         app.handleRunawayException(QString::fromStdString(GetWarnings("gui")));
@@ -784,6 +798,6 @@ int main(int argc, char *argv[]) {
         PrintExceptionContinue(nullptr, "Runaway exception");
         app.handleRunawayException(QString::fromStdString(GetWarnings("gui")));
     }
-    return app.getReturnValue();
+    return rv;
 }
 #endif // BITCOIN_QT_TEST
