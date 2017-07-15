@@ -865,8 +865,9 @@ std::string HelpMessage(HelpMessageMode mode) {
 }
 
 std::string LicenseInfo() {
-    const std::string URL_SOURCE_CODE = "<https://github.com/bitcoin/bitcoin>";
-    const std::string URL_WEBSITE = "<https://bitcoincore.org>";
+    const std::string URL_SOURCE_CODE =
+        "<https://github.com/Bitcoin-ABC/bitcoin-abc>";
+    const std::string URL_WEBSITE = "<https://www.bitcoinabc.org>";
 
     return CopyrightHolders(
                strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) +
@@ -1188,7 +1189,7 @@ int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
 ServiceFlags nLocalServices = NODE_NETWORK;
-}
+} // namespace
 
 [[noreturn]] static void new_handler_terminate() {
     // Rather than throwing std::bad-alloc if allocation fails, terminate
