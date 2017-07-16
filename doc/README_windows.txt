@@ -1,4 +1,4 @@
-Bitcoin Core 0.14.1
+Bitcoin ABC
 =====================
 
 Intro
@@ -13,10 +13,11 @@ Setup
 -----
 Unpack the files into a directory and run bitcoin-qt.exe.
 
-Bitcoin Core is the original Bitcoin client and it builds the backbone of the network.
-However, it downloads and stores the entire history of Bitcoin transactions;
-depending on the speed of your computer and network connection, the synchronization
-process can take anywhere from a few hours to a day or more.
+Bitcoin ABC is based on Bitcoin Core, which is the original Bitcoin client and
+builds the backbone of the network. It downloads and stores the entire history
+of Bitcoin transactions; depending on the speed of your computer and network
+connection, the synchronization process can take anywhere from a few hours to
+a day or more.
 
 See the bitcoin wiki at:
   https://en.bitcoin.it/wiki/Main_Page
