@@ -222,10 +222,10 @@ public:
         vch.clear();
         nReadPos = 0;
     }
-    iterator insert(iterator it, const char &x = char()) {
+    iterator insert(iterator it, const char x = char()) {
         return vch.insert(it, x);
     }
-    void insert(iterator it, size_type n, const char &x) {
+    void insert(iterator it, size_type n, const char x) {
         vch.insert(it, n, x);
     }
     value_type *data() { return vch.data() + nReadPos; }
