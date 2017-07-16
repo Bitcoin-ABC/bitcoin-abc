@@ -216,7 +216,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         coinControlUpdateLabels();
 
         // fee section
-        for (const int &n : confTargets) {
+        for (const int n : confTargets) {
             ui->confTargetSelector->addItem(
                 tr("%1 (%2 blocks)")
                     .arg(GUIUtil::formatNiceTimeOffset(

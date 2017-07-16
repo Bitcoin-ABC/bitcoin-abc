@@ -1963,7 +1963,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     return nCredit;
 }
 
-Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
+Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool fUseCache) const {
     if (IsImmatureCoinBase() && IsInMainChain()) {
         if (fUseCache && fImmatureWatchCreditCached) {
             return nImmatureWatchCreditCached;
@@ -1978,7 +1978,7 @@ Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
     return Amount::zero();
 }
 
-Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
+Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool fUseCache) const {
     if (pwallet == nullptr) {
         return Amount::zero();
     }
@@ -2294,8 +2294,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                              const Amount nMinimumAmount,
                              const Amount nMaximumAmount,
                              const Amount nMinimumSumAmount,
-                             const uint64_t &nMaximumCount,
-                             const int &nMinDepth, const int &nMaxDepth) const {
+                             const uint64_t nMaximumCount, const int nMinDepth,
+                             const int nMaxDepth) const {
     vCoins.clear();
     Amount nTotal = Amount::zero();
 

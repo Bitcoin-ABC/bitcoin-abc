@@ -430,8 +430,8 @@ public:
     Amount GetCredit(const isminefilter &filter) const;
     Amount GetImmatureCredit(bool fUseCache = true) const;
     Amount GetAvailableCredit(bool fUseCache = true) const;
-    Amount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
-    Amount GetAvailableWatchOnlyCredit(const bool &fUseCache = true) const;
+    Amount GetImmatureWatchOnlyCredit(const bool fUseCache = true) const;
+    Amount GetAvailableWatchOnlyCredit(const bool fUseCache = true) const;
     Amount GetChange() const;
 
     void GetAmounts(std::list<COutputEntry> &listReceived,
@@ -830,9 +830,9 @@ public:
                         const Amount nMinimumAmount = SATOSHI,
                         const Amount nMaximumAmount = MAX_MONEY,
                         const Amount nMinimumSumAmount = MAX_MONEY,
-                        const uint64_t &nMaximumCount = 0,
-                        const int &nMinDepth = 0,
-                        const int &nMaxDepth = 9999999) const;
+                        const uint64_t nMaximumCount = 0,
+                        const int nMinDepth = 0,
+                        const int nMaxDepth = 9999999) const;
 
     /**
      * Return list of available coins and locked coins grouped by non-change
