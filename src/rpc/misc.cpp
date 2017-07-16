@@ -33,110 +33,6 @@
 #include <malloc.h>
 #endif
 
-/**
- * @note Do not add or change anything in the information returned by this
- * method. `getinfo` exists for backwards-compatibility only. It combines
- * information from wildly different sources in the program, which is a mess,
- * and is thus planned to be deprecated eventually.
- *
- * Based on the source of the information, new information should be added to:
- * - `getblockchaininfo`,
- * - `getnetworkinfo` or
- * - `getwalletinfo`
- *
- * Or alternatively, create a specific query method for the information.
- **/
-static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0) {
-        throw std::runtime_error(
-            "getinfo\n"
-            "\nDEPRECATED. Returns an object containing various state info.\n"
-            "\nResult:\n"
-            "{\n"
-            "  \"version\": xxxxx,           (numeric) the server version\n"
-            "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total bitcoin "
-            "balance of the wallet\n"
-            "  \"blocks\": xxxxxx,           (numeric) the current number of "
-            "blocks processed in the server\n"
-            "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
-            "  \"connections\": xxxxx,       (numeric) the number of "
-            "connections\n"
-            "  \"proxy\": \"host:port\",     (string, optional) the proxy used "
-            "by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
-            "  \"testnet\": true|false,      (boolean) if the server is using "
-            "testnet or not\n"
-            "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds "
-            "since Unix epoch) of the oldest pre-generated key in the key "
-            "pool\n"
-            "  \"keypoolsize\": xxxx,        (numeric) how many new keys are "
-            "pre-generated\n"
-            "  \"unlocked_until\": ttt,      (numeric) the timestamp in "
-            "seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is "
-            "unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set "
-            "in " +
-            CURRENCY_UNIT +
-            "/kB\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for "
-            "non-free transactions in " +
-            CURRENCY_UNIT +
-            "/kB\n"
-            "  \"errors\": \"...\"           (string) any error messages\n"
-            "}\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getinfo", "") + HelpExampleRpc("getinfo", ""));
-    }
-
-#ifdef ENABLE_WALLET
-    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
-
-    LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
-#else
-    LOCK(cs_main);
-#endif
-
-    proxyType proxy;
-    GetProxy(NET_IPV4, proxy);
-
-    UniValue obj(UniValue::VOBJ);
-    obj.pushKV("version", CLIENT_VERSION);
-    obj.pushKV("protocolversion", PROTOCOL_VERSION);
-#ifdef ENABLE_WALLET
-    if (pwallet) {
-        obj.pushKV("walletversion", pwallet->GetVersion());
-        obj.pushKV("balance", ValueFromAmount(pwallet->GetBalance()));
-    }
-#endif
-    obj.pushKV("blocks", (int)chainActive.Height());
-    obj.pushKV("timeoffset", GetTimeOffset());
-    if (g_connman) {
-        obj.pushKV("connections",
-                   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
-    }
-    obj.pushKV("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
-                                         : std::string()));
-    obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.pushKV("testnet", config.GetChainParams().NetworkIDString() ==
-                              CBaseChainParams::TESTNET);
-#ifdef ENABLE_WALLET
-    if (pwallet) {
-        obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
-        obj.pushKV("keypoolsize", (int)pwallet->GetKeyPoolSize());
-    }
-    if (pwallet && pwallet->IsCrypted()) {
-        obj.pushKV("unlocked_until", pwallet->nRelockTime);
-    }
-    obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
-#endif
-    obj.pushKV("relayfee",
-               ValueFromAmount(config.GetMinFeePerKB().GetFeePerK()));
-    obj.pushKV("errors", GetWarnings("statusbar"));
-    return obj;
-}
-
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
 public:
@@ -710,7 +606,6 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
 static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        argNames
     //  ------------------- ------------------------  ----------------------  ----------
-    { "control",            "getinfo",                getinfo,                {} }, /* uses wallet if enabled */
     { "control",            "getmemoryinfo",          getmemoryinfo,          {"mode"} },
     { "util",               "validateaddress",        validateaddress,        {"address"} }, /* uses wallet if enabled */
     { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
