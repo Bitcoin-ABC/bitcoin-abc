@@ -479,8 +479,7 @@ def check_script_list(src_dir):
             sys.exit(1)
 
 
-class RPCCoverage(object):
-
+class RPCCoverage():
     """
     Coverage reporting utilities for test_runner.
 

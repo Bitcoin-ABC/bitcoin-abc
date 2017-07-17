@@ -31,11 +31,8 @@ generator that returns TestInstance objects.  See below for definition.
 global mininode_lock
 
 
-class RejectResult(object):
-
-    '''
-    Outcome that expects rejection of a transaction or block.
-    '''
+class RejectResult():
+    """Outcome that expects rejection of a transaction or block."""
 
     def __init__(self, code, reason=b''):
         self.code = code
@@ -174,16 +171,14 @@ class TestNode(NodeConnCB):
 #    or false, then only the last tx is tested against outcome.)
 
 
-class TestInstance(object):
-
+class TestInstance():
     def __init__(self, objects=None, sync_every_block=True, sync_every_tx=False):
         self.blocks_and_transactions = objects if objects else []
         self.sync_every_block = sync_every_block
         self.sync_every_tx = sync_every_tx
 
 
-class TestManager(object):
-
+class TestManager():
     def __init__(self, testgen, datadir):
         self.test_generator = testgen
         self.connections = []

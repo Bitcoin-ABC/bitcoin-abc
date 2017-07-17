@@ -41,8 +41,8 @@ def recvall(s, n):
 # Implementation classes
 
 
-class Socks5Configuration(object):
-    '''Proxy configuration'''
+class Socks5Configuration():
+    """Proxy configuration."""
 
     def __init__(self):
         self.addr = None  # Bind address (must be set)
@@ -51,8 +51,8 @@ class Socks5Configuration(object):
         self.auth = False  # Support authentication
 
 
-class Socks5Command(object):
-    '''Information about an incoming socks5 command'''
+class Socks5Command():
+    """Information about an incoming socks5 command."""
 
     def __init__(self, cmd, atyp, addr, port, username, password):
         self.cmd = cmd  # Command (one of Command.*)
@@ -66,7 +66,7 @@ class Socks5Command(object):
         return 'Socks5Command(%s,%s,%s,%s,%s,%s)' % (self.cmd, self.atyp, self.addr, self.port, self.username, self.password)
 
 
-class Socks5Connection(object):
+class Socks5Connection():
     def __init__(self, serv, conn, peer):
         self.serv = serv
         self.conn = conn
@@ -142,7 +142,7 @@ class Socks5Connection(object):
             self.conn.close()
 
 
-class Socks5Server(object):
+class Socks5Server():
     def __init__(self, conf):
         self.conf = conf
         self.s = socket.socket(conf.af)

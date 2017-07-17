@@ -22,7 +22,7 @@ from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
                                   MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
 
 
-class PreviousSpendableOutput(object):
+class PreviousSpendableOutput():
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx

@@ -24,7 +24,7 @@ RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + \
     TXNS_TOO_MANY_SIGOPS_ERROR.decode("utf-8")
 
 
-class PreviousSpendableOutput(object):
+class PreviousSpendableOutput():
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx

@@ -15,8 +15,7 @@ import struct
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, MAX_BLOCK_SIGOPS_PER_MB
 
 
-class PreviousSpendableOutput(object):
-
+class PreviousSpendableOutput():
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
