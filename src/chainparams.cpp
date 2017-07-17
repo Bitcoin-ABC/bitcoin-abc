@@ -139,10 +139,9 @@ public:
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        // 453354
         consensus.defaultAssumeValid =
-            uint256S("0x00000000000000000013176bf8d7dfeab4e1db31dc93bc311b436e8"
-                     "2ab226b90");
+            uint256S("0x000000000000000000ff3a41f208c932d5f91fe8d0739fca36152f6"
+                     "073b2ef5e");
 
         /**
          * The message start string is designed to be unlikely to occur in
