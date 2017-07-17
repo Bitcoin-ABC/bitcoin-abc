@@ -20,6 +20,7 @@
 #include "ui_interface.h"
 #include "util.h" // for GetBoolArg
 #include "validation.h"
+#include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h" // for BackupWallet
 
@@ -178,7 +179,7 @@ bool WalletModel::validateAddress(const QString &address) {
 
 WalletModel::SendCoinsReturn
 WalletModel::prepareTransaction(WalletModelTransaction &transaction,
-                                const CCoinControl *coinControl) {
+                                const CCoinControl &coinControl) {
     Amount total = Amount::zero();
     bool fSubtractFeeFromAmount = false;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
@@ -245,7 +246,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         return DuplicateAddress;
     }
 
-    Amount nBalance = getBalance(coinControl);
+    Amount nBalance = getBalance(&coinControl);
 
     if (total > nBalance) {
         return AmountExceedsBalance;

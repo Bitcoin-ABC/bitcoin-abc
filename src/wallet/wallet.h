@@ -1009,8 +1009,7 @@ public:
                            CWalletTx &wtxNew, CReserveKey &reservekey,
                            Amount &nFeeRet, int &nChangePosInOut,
                            std::string &strFailReason,
-                           const CCoinControl *coinControl = nullptr,
-                           bool sign = true);
+                           const CCoinControl &coinControl, bool sign = true);
     bool CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
                            CConnman *connman, CValidationState &state);
 

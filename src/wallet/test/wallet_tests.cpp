@@ -11,6 +11,7 @@
 #include "rpc/server.h"
 #include "test/test_bitcoin.h"
 #include "validation.h"
+#include "wallet/coincontrol.h"
 #include "wallet/rpcdump.h"
 #include "wallet/test/wallet_test_fixture.h"
 
@@ -729,8 +730,9 @@ public:
         Amount fee;
         int changePos = -1;
         std::string error;
+        CCoinControl dummy;
         BOOST_CHECK(wallet->CreateTransaction({recipient}, wtx, reservekey, fee,
-                                              changePos, error));
+                                              changePos, error, dummy));
         CValidationState state;
         BOOST_CHECK(wallet->CommitTransaction(wtx, reservekey, nullptr, state));
         CMutableTransaction blocktx;
