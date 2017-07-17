@@ -457,8 +457,9 @@ static void SendMoney(CWallet *const pwallet, const CTxDestination &address,
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
 
+    CCoinControl coinControl;
     if (!pwallet->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired,
-                                    nChangePosRet, strError)) {
+                                    nChangePosRet, strError, coinControl)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
             strError = strprintf("Error: This transaction requires a "
                                  "transaction fee of at least %s",
@@ -1331,8 +1332,10 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
     std::string strFailReason;
-    bool fCreated = pwallet->CreateTransaction(
-        vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason);
+    CCoinControl coinControl;
+    bool fCreated =
+        pwallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired,
+                                   nChangePosRet, strFailReason, coinControl);
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
@@ -3482,14 +3485,9 @@ static UniValue fundrawtransaction(const Config &config,
     pwallet->BlockUntilSyncedToCurrentChain();
 
     CCoinControl coinControl;
-    coinControl.destChange = CNoDestination();
     int changePosition = -1;
-    // include watching
-    coinControl.fAllowWatchOnly = false;
     bool lockUnspents = false;
     bool reserveChangeKey = true;
-    coinControl.nFeeRate = CFeeRate(Amount::zero());
-    coinControl.fOverrideFeeRate = false;
     UniValue subtractFeeFromOutputs;
     std::set<int> setSubtractFeeFromOutputs;
 
@@ -3548,7 +3546,7 @@ static UniValue fundrawtransaction(const Config &config,
             }
 
             if (options.exists("feeRate")) {
-                coinControl.nFeeRate =
+                coinControl.m_feerate =
                     CFeeRate(AmountFromValue(options["feeRate"]));
                 coinControl.fOverrideFeeRate = true;
             }
