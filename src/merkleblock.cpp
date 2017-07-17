@@ -54,6 +54,10 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, const std::set<TxId> &txids) {
 
 uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos,
                                      const std::vector<uint256> &vTxid) {
+    // we can never have zero txs in a merkle block, we always need the
+    // coinbase tx if we do not have this assert, we can hit a memory
+    // access violation when indexing into vTxid
+    assert(vTxid.size() != 0);
     if (height == 0) {
         // hash at height 0 is the txids themself.
         return vTxid[pos];

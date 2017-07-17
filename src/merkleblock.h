@@ -148,6 +148,9 @@ public:
  * From the peer-node's perspective, the SPV client is a "filtered node".
  * See BIP37 for details:
  * https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki
+ *
+ * NOTE: The class assumes that the given CBlock has *at least* 1 transaction.
+ * If the CBlock has 0 txs, it will hit an assertion.
  */
 class CMerkleBlock {
 public:
