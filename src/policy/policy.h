@@ -61,7 +61,7 @@ static constexpr bool DEFAULT_PERMIT_BAREMULTISIG{true};
  * only increase the dust limit after prior releases were already not creating
  * outputs below the new threshold.
  */
-static constexpr Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
+static constexpr Amount DUST_RELAY_TX_FEE(3000 * SATOSHI);
 
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 static constexpr Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
