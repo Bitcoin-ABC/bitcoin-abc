@@ -53,7 +53,7 @@ CWallet *GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
                 return pwallet;
             }
         }
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
+        throw JSONRPCError(RPC_WALLET_NOT_FOUND,
                            "Requested wallet does not exist or is not loaded");
     }
     return ::vpwallets.size() == 1 || (request.fHelp && ::vpwallets.size() > 0)
@@ -77,7 +77,20 @@ bool EnsureWalletIsAvailable(CWallet *const pwallet, bool avoidException) {
         return false;
     }
 
-    throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+    if (::vpwallets.empty()) {
+        // Note: It isn't currently possible to trigger this error because
+        // wallet RPC methods aren't registered unless a wallet is loaded. But
+        // this error is being kept as a precaution, because it's possible in
+        // the future that wallet RPC methods might get or remain registered
+        // when no wallets are loaded.
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (wallet "
+                                                 "method is disabled because "
+                                                 "no wallet is loaded)");
+    }
+
+    throw JSONRPCError(RPC_WALLET_NOT_SPECIFIED,
+                       "Wallet file not specified (must request wallet RPC "
+                       "through /wallet/<filename> uri-path).");
 }
 
 void EnsureWalletIsUnlocked(CWallet *const pwallet) {
