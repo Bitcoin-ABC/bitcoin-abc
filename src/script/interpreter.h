@@ -119,18 +119,19 @@ enum {
 };
 
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
-                            unsigned int flags, ScriptError *serror);
+                            uint32_t flags, ScriptError *serror);
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
                       const CAmount &amount,
-                      const PrecomputedTransactionData *cache = nullptr);
+                      const PrecomputedTransactionData *cache = nullptr,
+                      uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID);
 
 class BaseSignatureChecker {
 public:
     virtual bool CheckSig(const std::vector<unsigned char> &scriptSig,
                           const std::vector<unsigned char> &vchPubKey,
-                          const CScript &scriptCode) const {
+                          const CScript &scriptCode, uint32_t flags) const {
         return false;
     }
 
@@ -167,7 +168,7 @@ public:
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
     bool CheckSig(const std::vector<unsigned char> &scriptSig,
                   const std::vector<unsigned char> &vchPubKey,
-                  const CScript &scriptCode) const;
+                  const CScript &scriptCode, uint32_t flags) const;
     bool CheckLockTime(const CScriptNum &nLockTime) const;
     bool CheckSequence(const CScriptNum &nSequence) const;
 };
@@ -184,11 +185,11 @@ public:
 };
 
 bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
-                const CScript &script, unsigned int flags,
+                const CScript &script, uint32_t flags,
                 const BaseSignatureChecker &checker,
                 ScriptError *error = nullptr);
 bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
-                  unsigned int flags, const BaseSignatureChecker &checker,
+                  uint32_t flags, const BaseSignatureChecker &checker,
                   ScriptError *serror = nullptr);
 
 #endif // BITCOIN_SCRIPT_INTERPRETER_H

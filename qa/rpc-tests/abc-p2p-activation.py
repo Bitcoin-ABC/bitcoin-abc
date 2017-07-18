@@ -21,6 +21,7 @@ from test_framework.cdefs import *
 # Error for illegal use of SIGHASH_FORKID
 SIGHASH_FORKID_ERROR = b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'
 RPC_SIGHASH_FORKID_ERROR = "16: " + SIGHASH_FORKID_ERROR.decode("utf-8")
+SIGHASH_INVALID_ERROR = b'mandatory-script-verify-flag-failed (Script evaluated without error but finished with a false/empty top stack e'
 
 # far into the future
 UAHF_START_TIME = 2000000000
@@ -295,9 +296,9 @@ class FullBlockTest(ComparisonTestFramework):
         assert_equal(set(node.getrawmempool()), set())
 
         # check that SIGHASH_FORKID transaction are still rejected
-        b09 = block(9)
+        block(9)
         update_block(9, [tx_spend])
-        yield rejected(RejectResult(16, SIGHASH_FORKID_ERROR))
+        yield rejected(RejectResult(16, SIGHASH_INVALID_ERROR))
 
         # Rewind bad block
         tip(7)

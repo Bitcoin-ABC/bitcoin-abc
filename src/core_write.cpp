@@ -128,7 +128,9 @@ std::string ScriptToAsmStr(const CScript &script,
                     // Multisig scripts due to the restrictions on the pubkey
                     // formats (see IsCompressedOrUncompressedPubKey) being
                     // incongruous with the checks in CheckSignatureEncoding.
-                    if (CheckSignatureEncoding(vch, SCRIPT_VERIFY_STRICTENC,
+                    if (CheckSignatureEncoding(vch,
+                                               SCRIPT_VERIFY_STRICTENC |
+                                                   SCRIPT_ENABLE_SIGHASH_FORKID,
                                                nullptr)) {
                         const unsigned char chSigHashType = vch.back();
                         if (mapSigHashTypes.count(chSigHashType)) {
