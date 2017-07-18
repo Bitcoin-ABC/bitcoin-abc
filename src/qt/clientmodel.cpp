@@ -18,6 +18,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "validation.h"
+#include "warnings.h"
 
 #include <cstdint>
 

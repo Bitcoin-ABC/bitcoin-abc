@@ -26,6 +26,7 @@
 #include "utilstrencodings.h"
 #include "validation.h"
 #include "validationinterface.h"
+#include "warnings.h"
 
 #include <univalue.h>
 
