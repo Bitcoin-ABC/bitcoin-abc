@@ -200,7 +200,7 @@ enum class IntrRecvError {
  * @note This function requires that hSocket is in non-blocking mode.
  */
 static IntrRecvError InterruptibleRecv(char *data, size_t len, int timeout,
-                                       SOCKET &hSocket) {
+                                       const SOCKET &hSocket) {
     int64_t curTime = GetTimeMillis();
     int64_t endTime = curTime + timeout;
     // Maximum time to wait in one select call. It will take up until this time
@@ -464,10 +464,12 @@ bool ConnectSocketDirectly(const CService &addrConnect, SOCKET &hSocketRet,
     SetSocketNoDelay(hSocket);
 
     // Set to non-blocking
-    if (!SetSocketNonBlocking(hSocket, true))
+    if (!SetSocketNonBlocking(hSocket, true)) {
+        CloseSocket(hSocket);
         return error("ConnectSocketDirectly: Setting socket to non-blocking "
                      "failed, error %s\n",
                      NetworkErrorString(WSAGetLastError()));
+    }
 
     if (connect(hSocket, (struct sockaddr *)&sockaddr, len) == SOCKET_ERROR) {
         int nErr = WSAGetLastError();
@@ -675,7 +677,7 @@ bool CloseSocket(SOCKET &hSocket) {
     return ret != SOCKET_ERROR;
 }
 
-bool SetSocketNonBlocking(SOCKET &hSocket, bool fNonBlocking) {
+bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking) {
     if (fNonBlocking) {
 #ifdef WIN32
         u_long nOne = 1;
@@ -684,7 +686,6 @@ bool SetSocketNonBlocking(SOCKET &hSocket, bool fNonBlocking) {
         int fFlags = fcntl(hSocket, F_GETFL, 0);
         if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {
 #endif
-            CloseSocket(hSocket);
             return false;
         }
     } else {
@@ -695,7 +696,6 @@ bool SetSocketNonBlocking(SOCKET &hSocket, bool fNonBlocking) {
         int fFlags = fcntl(hSocket, F_GETFL, 0);
         if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR) {
 #endif
-            CloseSocket(hSocket);
             return false;
         }
     }
@@ -703,7 +703,7 @@ bool SetSocketNonBlocking(SOCKET &hSocket, bool fNonBlocking) {
     return true;
 }
 
-bool SetSocketNoDelay(SOCKET &hSocket) {
+bool SetSocketNoDelay(const SOCKET &hSocket) {
     int set = 1;
     int rc = setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char *)&set,
                         sizeof(int));
