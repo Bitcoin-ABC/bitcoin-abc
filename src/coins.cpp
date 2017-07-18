@@ -95,9 +95,13 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 CCoinsMap::const_iterator
 CCoinsViewCache::FetchCoins(const uint256 &txid) const {
     CCoinsMap::iterator it = cacheCoins.find(txid);
-    if (it != cacheCoins.end()) return it;
+    if (it != cacheCoins.end()) {
+        return it;
+    }
     CCoins tmp;
-    if (!base->GetCoins(txid, tmp)) return cacheCoins.end();
+    if (!base->GetCoins(txid, tmp)) {
+        return cacheCoins.end();
+    }
     CCoinsMap::iterator ret =
         cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry())).first;
     tmp.swap(ret->second.coins);
@@ -142,18 +146,19 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256 &txid) {
     return CCoinsModifier(*this, ret.first, cachedCoinUsage);
 }
 
-/* ModifyNewCoins allows for faster coin modification when creating the new
- * outputs from a transaction.  It assumes that BIP 30 (no duplicate txids)
+/**
+ * ModifyNewCoins allows for faster coin modification when creating the new
+ * outputs from a transaction. It assumes that BIP 30 (no duplicate txids)
  * applies and has already been tested for (or the test is not required due to
- * BIP 34, height in coinbase).  If we can assume BIP 30 then we know that any
+ * BIP 34, height in coinbase). If we can assume BIP 30 then we know that any
  * non-coinbase transaction we are adding to the UTXO must not already exist in
- * the utxo unless it is fully spent.  Thus we can check only if it exists DIRTY
+ * the utxo unless it is fully spent. Thus we can check only if it exists DIRTY
  * at the current level of the cache, in which case it is not safe to mark it
- * FRESH (b/c then its spentness still needs to flushed).  If it's not dirty and
+ * FRESH (b/c then its spentness still needs to flushed). If it's not dirty and
  * doesn't exist or is pruned in the current cache, we know it either doesn't
- * exist or is pruned in parent caches, which is the definition of FRESH.  The
+ * exist or is pruned in parent caches, which is the definition of FRESH. The
  * exception to this is the two historical violations of BIP 30 in the chain,
- * both of which were coinbases.  We do not mark these fresh so we we can ensure
+ * both of which were coinbases. We do not mark these fresh so we we can ensure
  * that they will still be properly overwritten when spent.
  */
 CCoinsModifier CCoinsViewCache::ModifyNewCoins(const uint256 &txid,
@@ -172,8 +177,7 @@ CCoinsModifier CCoinsViewCache::ModifyNewCoins(const uint256 &txid,
             // If the coin is known to be pruned (have no unspent outputs) in
             // the current view and the cache entry is not dirty, we know the
             // coin also must be pruned in the parent view as well, so it is
-            // safe
-            // to mark this fresh.
+            // safe to mark this fresh.
             ret.first->second.flags |= CCoinsCacheEntry::FRESH;
         }
     }
