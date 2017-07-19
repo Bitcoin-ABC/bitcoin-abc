@@ -512,10 +512,10 @@ public:
     bool Flush();
 
     /**
-     * Removes the transaction with the given hash from the cache, if it is
-     * not modified.
+     * Removes the UTXO with the given outpoint from the cache, if it is not
+     * modified.
      */
-    void Uncache(const uint256 &txid);
+    void Uncache(const COutPoint &outpoint);
 
     //! Calculate the size of the cache (in number of transactions)
     unsigned int GetCacheSize() const;

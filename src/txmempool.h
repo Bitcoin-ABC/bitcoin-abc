@@ -656,11 +656,11 @@ public:
     /**
      * Remove transactions from the mempool until its dynamic size is <=
      * sizelimit. pvNoSpendsRemaining, if set, will be populated with the list
-     * of transactions which are not in mempool which no longer have any spends
-     * in this mempool.
+     * of outpoints which are not in mempool which no longer have any spends in
+     * this mempool.
      */
     void TrimToSize(size_t sizelimit,
-                    std::vector<uint256> *pvNoSpendsRemaining = nullptr);
+                    std::vector<COutPoint> *pvNoSpendsRemaining = nullptr);
 
     /** Expire all transaction (and their dependencies) in the mempool older
      * than time. Return the number of removed transactions. */

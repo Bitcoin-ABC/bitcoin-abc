@@ -1150,7 +1150,7 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {
 }
 
 void CTxMemPool::TrimToSize(size_t sizelimit,
-                            std::vector<uint256> *pvNoSpendsRemaining) {
+                            std::vector<COutPoint> *pvNoSpendsRemaining) {
     LOCK(cs);
 
     unsigned nTxnRemoved = 0;
@@ -1185,12 +1185,15 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         if (pvNoSpendsRemaining) {
             for (const CTransaction &tx : txn) {
                 for (const CTxIn &txin : tx.vin) {
-                    if (exists(txin.prevout.hash)) continue;
+                    if (exists(txin.prevout.hash)) {
+                        continue;
+                    }
+
                     auto iter =
                         mapNextTx.lower_bound(COutPoint(txin.prevout.hash, 0));
                     if (iter == mapNextTx.end() ||
                         iter->first->hash != txin.prevout.hash)
-                        pvNoSpendsRemaining->push_back(txin.prevout.hash);
+                        pvNoSpendsRemaining->push_back(txin.prevout);
                 }
             }
         }

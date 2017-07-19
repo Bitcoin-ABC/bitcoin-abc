@@ -564,13 +564,14 @@ bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
 
 void LimitMempoolSize(CTxMemPool &pool, size_t limit, unsigned long age) {
     int expired = pool.Expire(GetTime() - age);
-    if (expired != 0)
+    if (expired != 0) {
         LogPrint("mempool", "Expired %i transactions from the memory pool\n",
                  expired);
+    }
 
-    std::vector<uint256> vNoSpendsRemaining;
+    std::vector<COutPoint> vNoSpendsRemaining;
     pool.TrimToSize(limit, &vNoSpendsRemaining);
-    for (const uint256 &removed : vNoSpendsRemaining) {
+    for (const COutPoint &removed : vNoSpendsRemaining) {
         pcoinsTip->Uncache(removed);
     }
 }
@@ -615,7 +616,7 @@ static bool AcceptToMemoryPoolWorker(
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced,
     bool fOverrideMempoolLimit, const CAmount &nAbsurdFee,
-    std::vector<uint256> &vHashTxnToUncache) {
+    std::vector<COutPoint> &coins_to_uncache) {
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
@@ -679,10 +680,10 @@ static bool AcceptToMemoryPoolWorker(
             // Do we already have it?
             for (size_t out = 0; out < tx.vout.size(); out++) {
                 COutPoint outpoint(txid, out);
-                bool fHadTxInCache = pcoinsTip->HaveCoinInCache(outpoint);
+                bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
                 if (view.HaveCoin(outpoint)) {
-                    if (!fHadTxInCache) {
-                        vHashTxnToUncache.push_back(txid);
+                    if (!had_coin_in_cache) {
+                        coins_to_uncache.push_back(outpoint);
                     }
 
                     return state.Invalid(false, REJECT_ALREADY_KNOWN,
@@ -690,13 +691,10 @@ static bool AcceptToMemoryPoolWorker(
                 }
             }
 
-            // Do all inputs exist? Note that this does not check for the
-            // presence of actual outputs (see the next check for that), and
-            // only helps with filling in pfMissingInputs (to determine missing
-            // vs spent).
+            // Do all inputs exist?
             for (const CTxIn txin : tx.vin) {
                 if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
-                    vHashTxnToUncache.push_back(txin.prevout.hash);
+                    coins_to_uncache.push_back(txin.prevout);
                 }
 
                 if (!view.HaveCoin(txin.prevout)) {
@@ -918,22 +916,21 @@ static bool AcceptToMemoryPoolWorker(
     return true;
 }
 
-bool AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
-                                CValidationState &state,
-                                const CTransactionRef &tx, bool fLimitFree,
-                                bool *pfMissingInputs, int64_t nAcceptTime,
-                                std::list<CTransactionRef> *plTxnReplaced,
-                                bool fOverrideMempoolLimit,
-                                const CAmount nAbsurdFee) {
-    std::vector<uint256> vHashTxToUncache;
+static bool AcceptToMemoryPoolWithTime(
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
+    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = nullptr,
+    bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0) {
+    std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
-        plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, vHashTxToUncache);
+        plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache);
     if (!res) {
-        for (const uint256 &txid : vHashTxToUncache) {
-            pcoinsTip->Uncache(txid);
+        for (const COutPoint &outpoint : coins_to_uncache) {
+            pcoinsTip->Uncache(outpoint);
         }
     }
+
     // After we've (potentially) uncached entries, ensure our coins cache is
     // still within its size limits
     CValidationState stateDummy;
