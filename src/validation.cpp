@@ -677,14 +677,17 @@ static bool AcceptToMemoryPoolWorker(
             view.SetBackend(viewMemPool);
 
             // Do we already have it?
-            bool fHadTxInCache = pcoinsTip->HaveCoinsInCache(txid);
-            if (view.HaveCoins(txid)) {
-                if (!fHadTxInCache) {
-                    vHashTxnToUncache.push_back(txid);
-                }
+            for (size_t out = 0; out < tx.vout.size(); out++) {
+                COutPoint outpoint(txid, out);
+                bool fHadTxInCache = pcoinsTip->HaveCoinInCache(outpoint);
+                if (view.HaveCoin(outpoint)) {
+                    if (!fHadTxInCache) {
+                        vHashTxnToUncache.push_back(txid);
+                    }
 
-                return state.Invalid(false, REJECT_ALREADY_KNOWN,
-                                     "txn-already-known");
+                    return state.Invalid(false, REJECT_ALREADY_KNOWN,
+                                         "txn-already-known");
+                }
             }
 
             // Do all inputs exist? Note that this does not check for the
@@ -692,11 +695,11 @@ static bool AcceptToMemoryPoolWorker(
             // only helps with filling in pfMissingInputs (to determine missing
             // vs spent).
             for (const CTxIn txin : tx.vin) {
-                if (!pcoinsTip->HaveCoinsInCache(txin.prevout.hash)) {
+                if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
                     vHashTxnToUncache.push_back(txin.prevout.hash);
                 }
 
-                if (!view.HaveCoins(txin.prevout.hash)) {
+                if (!view.HaveCoin(txin.prevout)) {
                     if (pfMissingInputs) {
                         *pfMissingInputs = true;
                     }

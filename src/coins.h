@@ -347,13 +347,29 @@ private:
 
 /** Abstract view on the open txout dataset. */
 class CCoinsView {
+protected:
+    //! Just check whether we have data for a given txid.
+    //! This may (but cannot always) return true for fully spent transactions
+    virtual bool HaveCoins(const uint256 &txid) const;
+
 public:
     //! Retrieve the CCoins (unspent transaction outputs) for a given txid
     virtual bool GetCoins(const uint256 &txid, CCoins &coins) const;
 
-    //! Just check whether we have data for a given txid.
-    //! This may (but cannot always) return true for fully spent transactions
-    virtual bool HaveCoins(const uint256 &txid) const;
+    //! Transitional function to move from HaveCoins to HaveCoin.
+    bool HaveCoins_DONOTUSE(const uint256 &txid) const {
+        return HaveCoins(txid);
+    }
+
+    //! Just check whether we have data for a given outpoint.
+    //! This may (but cannot always) return true for spent outputs.
+    bool HaveCoin(const COutPoint &outpoint) const {
+        CCoins coins;
+        if (!GetCoins(outpoint.hash, coins)) {
+            return false;
+        }
+        return coins.IsAvailable(outpoint.n);
+    }
 
     //! Retrieve the block hash whose state this CCoinsView currently represents
     virtual uint256 GetBestBlock() const;
@@ -374,10 +390,11 @@ class CCoinsViewBacked : public CCoinsView {
 protected:
     CCoinsView *base;
 
+    bool HaveCoins(const uint256 &txid) const;
+
 public:
     CCoinsViewBacked(CCoinsView *viewIn);
     bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
     uint256 GetBestBlock() const;
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
@@ -425,23 +442,24 @@ protected:
     /* Cached dynamic memory usage for the inner CCoins objects. */
     mutable size_t cachedCoinsUsage;
 
+    bool HaveCoins(const uint256 &txid) const;
+
 public:
     CCoinsViewCache(CCoinsView *baseIn);
     ~CCoinsViewCache();
 
     // Standard CCoinsView methods
     bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
 
     /**
-     * Check if we have the given tx already loaded in this cache.
-     * The semantics are the same as HaveCoins(), but no calls to
-     * the backing CCoinsView are made.
+     * Check if we have the given utxo already loaded in this cache.
+     * The semantics are the same as HaveCoin(), but no calls to the backing
+     * CCoinsView are made.
      */
-    bool HaveCoinsInCache(const uint256 &txid) const;
+    bool HaveCoinInCache(const COutPoint &outpoint) const;
 
     /**
      * Return a pointer to CCoins in the cache, or nullptr if not found. This is

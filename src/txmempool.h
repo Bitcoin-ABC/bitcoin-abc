@@ -771,10 +771,11 @@ class CCoinsViewMemPool : public CCoinsViewBacked {
 protected:
     const CTxMemPool &mempool;
 
+    bool HaveCoins(const uint256 &txid) const;
+
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
     bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
 };
 
 // We want to sort transactions by coin age priority

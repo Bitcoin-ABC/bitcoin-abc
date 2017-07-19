@@ -61,7 +61,7 @@ bool CCoinsViewBacked::GetCoins(const uint256 &txid, CCoins &coins) const {
     return base->GetCoins(txid, coins);
 }
 bool CCoinsViewBacked::HaveCoins(const uint256 &txid) const {
-    return base->HaveCoins(txid);
+    return base->HaveCoins_DONOTUSE(txid);
 }
 uint256 CCoinsViewBacked::GetBestBlock() const {
     return base->GetBestBlock();
@@ -204,9 +204,9 @@ bool CCoinsViewCache::HaveCoins(const uint256 &txid) const {
     return (it != cacheCoins.end() && !it->second.coins.vout.empty());
 }
 
-bool CCoinsViewCache::HaveCoinsInCache(const uint256 &txid) const {
-    CCoinsMap::const_iterator it = cacheCoins.find(txid);
-    return it != cacheCoins.end();
+bool CCoinsViewCache::HaveCoinInCache(const COutPoint &outpoint) const {
+    CCoinsMap::const_iterator it = cacheCoins.find(outpoint.hash);
+    return it != cacheCoins.end() && it->second.coins.IsAvailable(outpoint.n);
 }
 
 uint256 CCoinsViewCache::GetBestBlock() const {
