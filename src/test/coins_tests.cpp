@@ -440,6 +440,65 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
     BOOST_CHECK(spent_a_duplicate_coinbase);
 }
 
+BOOST_AUTO_TEST_CASE(coin_serialization) {
+    // Good example
+    CDataStream ss1(
+        ParseHex("97f23c835800816115944e077fe7c803cfa57f29b36bf87c1d35"),
+        SER_DISK, CLIENT_VERSION);
+    Coin c1;
+    ss1 >> c1;
+    BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
+    BOOST_CHECK_EQUAL(c1.GetHeight(), 203998);
+    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, 60000000000ULL);
+    BOOST_CHECK_EQUAL(HexStr(c1.GetTxOut().scriptPubKey),
+                      HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
+                          "816115944e077fe7c803cfa57f29b36bf87c1d35"))))));
+
+    // Good example
+    CDataStream ss2(
+        ParseHex("8ddf77bbd123008c988f1a4a4de2161e0f50aac7f17e7f9555caa4"),
+        SER_DISK, CLIENT_VERSION);
+    Coin c2;
+    ss2 >> c2;
+    BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
+    BOOST_CHECK_EQUAL(c2.GetHeight(), 120891);
+    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, 110397ULL);
+    BOOST_CHECK_EQUAL(HexStr(c2.GetTxOut().scriptPubKey),
+                      HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
+                          "8c988f1a4a4de2161e0f50aac7f17e7f9555caa4"))))));
+
+    // Smallest possible example
+    CDataStream ss3(ParseHex("000006"), SER_DISK, CLIENT_VERSION);
+    Coin c3;
+    ss3 >> c3;
+    BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
+    BOOST_CHECK_EQUAL(c3.GetHeight(), 0);
+    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, 0);
+    BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0);
+
+    // scriptPubKey that ends beyond the end of the stream
+    CDataStream ss4(ParseHex("000007"), SER_DISK, CLIENT_VERSION);
+    try {
+        Coin c4;
+        ss4 >> c4;
+        BOOST_CHECK_MESSAGE(false, "We should have thrown");
+    } catch (const std::ios_base::failure &e) {
+    }
+
+    // Very large scriptPubKey (3*10^9 bytes) past the end of the stream
+    CDataStream tmp(SER_DISK, CLIENT_VERSION);
+    uint64_t x = 3000000000ULL;
+    tmp << VARINT(x);
+    BOOST_CHECK_EQUAL(HexStr(tmp.begin(), tmp.end()), "8a95c0bb00");
+    CDataStream ss5(ParseHex("00008a95c0bb00"), SER_DISK, CLIENT_VERSION);
+    try {
+        Coin c5;
+        ss5 >> c5;
+        BOOST_CHECK_MESSAGE(false, "We should have thrown");
+    } catch (const std::ios_base::failure &e) {
+    }
+}
+
 BOOST_AUTO_TEST_CASE(ccoins_serialization) {
     // Good example
     CDataStream ss1(
