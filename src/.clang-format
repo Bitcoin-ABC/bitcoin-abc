@@ -6,6 +6,7 @@ TabWidth:        4
 UseTab:          Never
 AccessModifierOffset: -4
 IndentCaseLabels: true
+NamespaceIndentation: Inner
 BreakBeforeBraces: Attach
 AllowShortIfStatementsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
