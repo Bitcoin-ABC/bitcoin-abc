@@ -461,6 +461,13 @@ protected:
     bool GetCoins(const uint256 &txid, CCoins &coins) const;
     bool HaveCoins(const uint256 &txid) const;
 
+    /**
+     * Return a pointer to CCoins in the cache, or nullptr if not found. This is
+     * more efficient than GetCoins. Modifications to other cache entries are
+     * allowed while accessing the returned pointer.
+     */
+    const CCoins *AccessCoins(const uint256 &txid) const;
+
 public:
     CCoinsViewCache(CCoinsView *baseIn);
     ~CCoinsViewCache();
@@ -477,12 +484,19 @@ public:
      */
     bool HaveCoinInCache(const COutPoint &outpoint) const;
 
+    //! Transitional function to move from AccessCoins to AccessCoin.
+    const CCoins *AccessCoins_DONOTUSE(const uint256 &txid) const {
+        return AccessCoins(txid);
+    }
+
     /**
-     * Return a pointer to CCoins in the cache, or nullptr if not found. This is
-     * more efficient than GetCoins. Modifications to other cache entries are
+     * Return a copy of a Coin in the cache, or a pruned one if not found. This
+     * is more efficient than GetCoin. Modifications to other cache entries are
      * allowed while accessing the returned pointer.
+     * TODO: return a reference instead of a value once underlying storage is
+     * updated.
      */
-    const CCoins *AccessCoins(const uint256 &txid) const;
+    const Coin AccessCoin(const COutPoint &output) const;
 
     /**
      * Return a modifiable reference to a CCoins. If no entry with the given
@@ -558,5 +572,8 @@ private:
      */
     CCoinsViewCache(const CCoinsViewCache &);
 };
+
+//! Utility function to find any unspent output with a given txid.
+const Coin AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
 
 #endif // BITCOIN_COINS_H

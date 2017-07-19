@@ -504,7 +504,7 @@ private:
     CAmount amount;
     const CTransaction *ptxTo;
     unsigned int nIn;
-    unsigned int nFlags;
+    uint32_t nFlags;
     bool cacheStore;
     ScriptError error;
     PrecomputedTransactionData txdata;
@@ -513,12 +513,13 @@ public:
     CScriptCheck()
         : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
-    CScriptCheck(const CCoins &txFromIn, const CTransaction &txToIn,
-                 unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn,
+
+    CScriptCheck(const CScript &scriptPubKeyIn, const CAmount amountIn,
+                 const CTransaction &txToIn, unsigned int nInIn,
+                 uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn)
-        : scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
-          amount(txFromIn.vout[txToIn.vin[nInIn].prevout.n].nValue),
-          ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
+        : scriptPubKey(scriptPubKeyIn), amount(amountIn), ptxTo(&txToIn),
+          nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata(txdataIn) {}
 
     bool operator()();

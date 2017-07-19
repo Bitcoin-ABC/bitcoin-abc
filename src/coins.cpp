@@ -4,6 +4,7 @@
 
 #include "coins.h"
 
+#include "consensus/consensus.h"
 #include "memusage.h"
 #include "random.h"
 
@@ -195,6 +196,17 @@ const CCoins *CCoinsViewCache::AccessCoins(const uint256 &txid) const {
     }
 }
 
+static const Coin coinEmpty;
+
+const Coin CCoinsViewCache::AccessCoin(const COutPoint &outpoint) const {
+    CCoinsMap::const_iterator it = FetchCoins(outpoint.hash);
+    if (it == cacheCoins.end() || !it->second.coins.IsAvailable(outpoint.n)) {
+        return coinEmpty;
+    }
+    return Coin(it->second.coins.vout[outpoint.n], it->second.coins.nHeight,
+                it->second.coins.fCoinBase);
+}
+
 bool CCoinsViewCache::HaveCoins(const uint256 &txid) const {
     CCoinsMap::const_iterator it = FetchCoins(txid);
     // We're using vtx.empty() instead of IsPruned here for performance reasons,
@@ -374,3 +386,20 @@ CCoinsModifier::~CCoinsModifier() {
 }
 
 CCoinsViewCursor::~CCoinsViewCursor() {}
+
+// TODO: merge with similar definition in undo.h.
+static const size_t MAX_OUTPUTS_PER_TX =
+    MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), SER_NETWORK, PROTOCOL_VERSION);
+
+const Coin AccessByTxid(const CCoinsViewCache &view, const uint256 &txid) {
+    COutPoint iter(txid, 0);
+    while (iter.n < MAX_OUTPUTS_PER_TX) {
+        const Coin &alternate = view.AccessCoin(iter);
+        if (!alternate.IsSpent()) {
+            return alternate;
+        }
+        ++iter.n;
+    }
+
+    return coinEmpty;
+}

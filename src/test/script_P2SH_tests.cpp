@@ -109,15 +109,17 @@ BOOST_AUTO_TEST_CASE(sign) {
         for (int j = 0; j < 8; j++) {
             CScript sigSave = txTo[i].vin[0].scriptSig;
             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;
+            const CTxOut &output = txFrom.vout[txTo[i].vin[0].prevout.n];
             bool sigOK = CScriptCheck(
-                CCoins(txFrom, 0), txTo[i], 0,
+                output.scriptPubKey, output.nValue, txTo[i], 0,
                 SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, false, txdata)();
-            if (i == j)
+            if (i == j) {
                 BOOST_CHECK_MESSAGE(sigOK,
                                     strprintf("VerifySignature %d %d", i, j));
-            else
+            } else {
                 BOOST_CHECK_MESSAGE(!sigOK,
                                     strprintf("VerifySignature %d %d", i, j));
+            }
             txTo[i].vin[0].scriptSig = sigSave;
         }
     }

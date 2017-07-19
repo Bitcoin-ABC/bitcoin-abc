@@ -852,10 +852,8 @@ static UniValue signrawtransaction(const Config &config,
         view.SetBackend(viewMempool);
 
         for (const CTxIn &txin : mergedTx.vin) {
-            const uint256 &prevHash = txin.prevout.hash;
-            CCoins coins;
-            // This is certainly allowed to fail.
-            view.AccessCoins(prevHash);
+            // Load entries from viewChain into view; can fail.
+            view.AccessCoin(txin.prevout);
         }
 
         // Switch back to avoid locking mempool for too long.
@@ -1016,14 +1014,14 @@ static UniValue signrawtransaction(const Config &config,
     // Sign what we can:
     for (size_t i = 0; i < mergedTx.vin.size(); i++) {
         CTxIn &txin = mergedTx.vin[i];
-        const CCoins *coins = view.AccessCoins(txin.prevout.hash);
-        if (coins == nullptr || !coins->IsAvailable(txin.prevout.n)) {
+        const Coin &coin = view.AccessCoin(txin.prevout);
+        if (coin.IsSpent()) {
             TxInErrorToJSON(txin, vErrors, "Input not found or already spent");
             continue;
         }
 
-        const CScript &prevPubKey = coins->vout[txin.prevout.n].scriptPubKey;
-        const CAmount &amount = coins->vout[txin.prevout.n].nValue;
+        const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
+        const CAmount &amount = coin.GetTxOut().nValue;
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
@@ -1116,9 +1114,13 @@ static UniValue sendrawtransaction(const Config &config,
     }
 
     CCoinsViewCache &view = *pcoinsTip;
-    const CCoins *existingCoins = view.AccessCoins(txid);
+    bool fHaveChain = false;
+    for (size_t o = 0; !fHaveChain && o < tx->vout.size(); o++) {
+        const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
+        fHaveChain = !existingCoin.IsSpent();
+    }
+
     bool fHaveMempool = mempool.exists(txid);
-    bool fHaveChain = existingCoins && existingCoins->nHeight < 1000000000;
     if (!fHaveMempool && !fHaveChain) {
         // Push to local node and sync with wallets.
         CValidationState state;

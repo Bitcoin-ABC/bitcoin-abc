@@ -23,6 +23,26 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
                  CTxUndo &txundo, int nHeight);
 
 namespace {
+
+//! equality test
+bool operator==(const Coin &a, const Coin &b) {
+    // Empty Coin objects are always equal.
+    if (a.IsSpent() && b.IsSpent()) {
+        return true;
+    }
+
+    return a.IsCoinBase() == b.IsCoinBase() && a.GetHeight() == b.GetHeight() &&
+           a.GetTxOut() == b.GetTxOut();
+}
+
+//! equality test
+bool operator==(const Coin &c, const CCoins &coins) {
+    if (coins.vout.empty()) {
+        return c.IsSpent();
+    }
+    return c == Coin(coins.vout[0], coins.nHeight, coins.fCoinBase);
+}
+
 class CCoinsViewTest : public CCoinsView {
     uint256 hashBestBlock_;
     std::map<uint256, CCoins> map_;
@@ -93,7 +113,7 @@ static const unsigned int NUM_SIMULATION_ITERATIONS = 40000;
 // This is a large randomized insert/remove simulation test on a variable-size
 // stack of caches on top of CCoinsViewTest.
 //
-// It will randomly create/update/delete CCoins entries to a tip of caches, with
+// It will randomly create/update/delete Coin entries to a tip of caches, with
 // txids picked from a limited list of random 256-bit hashes. Occasionally, a
 // new tip is added to the stack of caches, or the tip is flushed and removed.
 //
@@ -108,6 +128,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
     bool updated_an_entry = false;
     bool found_an_entry = false;
     bool missed_an_entry = false;
+    bool uncached_an_entry = false;
 
     // A simple map to track what we expect the cache stack to represent.
     std::map<uint256, CCoins> result;
@@ -153,17 +174,28 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
             }
         }
 
+        // One every 10 iterations, remove a random entry from the cache
+        if (insecure_rand() % 10) {
+            COutPoint out(txids[insecure_rand() % txids.size()], 0);
+            int cacheid = insecure_rand() % stack.size();
+            stack[cacheid]->Uncache(out);
+            uncached_an_entry |= !stack[cacheid]->HaveCoinInCache(out);
+        }
+
         // Once every 1000 iterations and at the end, verify the full cache.
         if (insecure_rand() % 1000 == 1 || i == NUM_SIMULATION_ITERATIONS - 1) {
-            for (std::map<uint256, CCoins>::iterator it = result.begin();
-                 it != result.end(); it++) {
-                const CCoins *coins = stack.back()->AccessCoins(it->first);
-                if (coins) {
-                    BOOST_CHECK(*coins == it->second);
-                    found_an_entry = true;
-                } else {
-                    BOOST_CHECK(it->second.IsPruned());
+            for (auto it = result.begin(); it != result.end(); it++) {
+                bool have = stack.back()->HaveCoin(COutPoint(it->first, 0));
+                const Coin &coin =
+                    stack.back()->AccessCoin(COutPoint(it->first, 0));
+                BOOST_CHECK(have == !coin.IsSpent());
+                BOOST_CHECK(coin == it->second);
+                if (coin.IsSpent()) {
                     missed_an_entry = true;
+                } else {
+                    BOOST_CHECK(
+                        stack.back()->HaveCoinInCache(COutPoint(it->first, 0)));
+                    found_an_entry = true;
                 }
             }
             for (const CCoinsViewCacheTest *test : stack) {
@@ -217,6 +249,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
     BOOST_CHECK(updated_an_entry);
     BOOST_CHECK(found_an_entry);
     BOOST_CHECK(missed_an_entry);
+    BOOST_CHECK(uncached_an_entry);
 }
 
 typedef std::tuple<CTransaction, CTxUndo, CCoins> TxData;
@@ -268,6 +301,8 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             tx.vout.resize(1);
             // Keep txs unique unless intended to duplicate.
             tx.vout[0].nValue = i;
+            // Random sizes so we can test memory usage accounting
+            tx.vout[0].scriptPubKey.assign(insecure_rand() & 0x3F, 0);
             unsigned int height = insecure_rand();
             CCoins oldcoins;
 
@@ -389,19 +424,19 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
             // Update the utxoset
             utxoset.erase(undohash);
-            if (!tx.IsCoinBase()) utxoset.insert(tx.vin[0].prevout.hash);
+            if (!tx.IsCoinBase()) {
+                utxoset.insert(tx.vin[0].prevout.hash);
+            }
         }
 
         // Once every 1000 iterations and at the end, verify the full cache.
         if (insecure_rand() % 1000 == 1 || i == NUM_SIMULATION_ITERATIONS - 1) {
-            for (std::map<uint256, CCoins>::iterator it = result.begin();
-                 it != result.end(); it++) {
-                const CCoins *coins = stack.back()->AccessCoins(it->first);
-                if (coins) {
-                    BOOST_CHECK(*coins == it->second);
-                } else {
-                    BOOST_CHECK(it->second.IsPruned());
-                }
+            for (auto it = result.begin(); it != result.end(); it++) {
+                bool have = stack.back()->HaveCoin(COutPoint(it->first, 0));
+                const Coin &coin =
+                    stack.back()->AccessCoin(COutPoint(it->first, 0));
+                BOOST_CHECK(have == !coin.IsSpent());
+                BOOST_CHECK(coin == it->second);
             }
         }
 
@@ -578,7 +613,9 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
     }
 }
 
+// TODO: Remove TXID once the migration is over.
 const static uint256 TXID;
+const static COutPoint OUTPOINT;
 const static CAmount PRUNED = -1;
 const static CAmount ABSENT = -2;
 const static CAmount FAIL = -3;
@@ -657,11 +694,11 @@ public:
     CCoinsViewCacheTest cache{&base};
 };
 
-void CheckAccessCoins(CAmount base_value, CAmount cache_value,
-                      CAmount expected_value, char cache_flags,
-                      char expected_flags) {
+void CheckAccessCoin(CAmount base_value, CAmount cache_value,
+                     CAmount expected_value, char cache_flags,
+                     char expected_flags) {
     SingleEntryCacheTest test(base_value, cache_value, cache_flags);
-    test.cache.AccessCoins(TXID);
+    test.cache.AccessCoin(OUTPOINT);
     test.cache.SelfTest();
 
     CAmount result_value;
@@ -671,7 +708,7 @@ void CheckAccessCoins(CAmount base_value, CAmount cache_value,
     BOOST_CHECK_EQUAL(result_flags, expected_flags);
 }
 
-BOOST_AUTO_TEST_CASE(ccoins_access) {
+BOOST_AUTO_TEST_CASE(coin_access) {
     /* Check AccessCoin behavior, requesting a coin from a cache view layered on
      * top of a base view, and checking the resulting entry in the cache after
      * the access.
@@ -679,33 +716,33 @@ BOOST_AUTO_TEST_CASE(ccoins_access) {
      *               Base    Cache   Result  Cache        Result
      *               Value   Value   Value   Flags        Flags
      */
-    CheckAccessCoins(ABSENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
-    CheckAccessCoins(ABSENT, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoins(ABSENT, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoins(ABSENT, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoins(ABSENT, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoins(ABSENT, VALUE2, VALUE2, 0, 0);
-    CheckAccessCoins(ABSENT, VALUE2, VALUE2, FRESH, FRESH);
-    CheckAccessCoins(ABSENT, VALUE2, VALUE2, DIRTY, DIRTY);
-    CheckAccessCoins(ABSENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoins(PRUNED, ABSENT, PRUNED, NO_ENTRY, FRESH);
-    CheckAccessCoins(PRUNED, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoins(PRUNED, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoins(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoins(PRUNED, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoins(PRUNED, VALUE2, VALUE2, 0, 0);
-    CheckAccessCoins(PRUNED, VALUE2, VALUE2, FRESH, FRESH);
-    CheckAccessCoins(PRUNED, VALUE2, VALUE2, DIRTY, DIRTY);
-    CheckAccessCoins(PRUNED, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoins(VALUE1, ABSENT, VALUE1, NO_ENTRY, 0);
-    CheckAccessCoins(VALUE1, PRUNED, PRUNED, 0, 0);
-    CheckAccessCoins(VALUE1, PRUNED, PRUNED, FRESH, FRESH);
-    CheckAccessCoins(VALUE1, PRUNED, PRUNED, DIRTY, DIRTY);
-    CheckAccessCoins(VALUE1, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
-    CheckAccessCoins(VALUE1, VALUE2, VALUE2, 0, 0);
-    CheckAccessCoins(VALUE1, VALUE2, VALUE2, FRESH, FRESH);
-    CheckAccessCoins(VALUE1, VALUE2, VALUE2, DIRTY, DIRTY);
-    CheckAccessCoins(VALUE1, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(ABSENT, ABSENT, ABSENT, NO_ENTRY, NO_ENTRY);
+    CheckAccessCoin(ABSENT, PRUNED, PRUNED, 0, 0);
+    CheckAccessCoin(ABSENT, PRUNED, PRUNED, FRESH, FRESH);
+    CheckAccessCoin(ABSENT, PRUNED, PRUNED, DIRTY, DIRTY);
+    CheckAccessCoin(ABSENT, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(ABSENT, VALUE2, VALUE2, 0, 0);
+    CheckAccessCoin(ABSENT, VALUE2, VALUE2, FRESH, FRESH);
+    CheckAccessCoin(ABSENT, VALUE2, VALUE2, DIRTY, DIRTY);
+    CheckAccessCoin(ABSENT, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(PRUNED, ABSENT, PRUNED, NO_ENTRY, FRESH);
+    CheckAccessCoin(PRUNED, PRUNED, PRUNED, 0, 0);
+    CheckAccessCoin(PRUNED, PRUNED, PRUNED, FRESH, FRESH);
+    CheckAccessCoin(PRUNED, PRUNED, PRUNED, DIRTY, DIRTY);
+    CheckAccessCoin(PRUNED, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(PRUNED, VALUE2, VALUE2, 0, 0);
+    CheckAccessCoin(PRUNED, VALUE2, VALUE2, FRESH, FRESH);
+    CheckAccessCoin(PRUNED, VALUE2, VALUE2, DIRTY, DIRTY);
+    CheckAccessCoin(PRUNED, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(VALUE1, ABSENT, VALUE1, NO_ENTRY, 0);
+    CheckAccessCoin(VALUE1, PRUNED, PRUNED, 0, 0);
+    CheckAccessCoin(VALUE1, PRUNED, PRUNED, FRESH, FRESH);
+    CheckAccessCoin(VALUE1, PRUNED, PRUNED, DIRTY, DIRTY);
+    CheckAccessCoin(VALUE1, PRUNED, PRUNED, DIRTY | FRESH, DIRTY | FRESH);
+    CheckAccessCoin(VALUE1, VALUE2, VALUE2, 0, 0);
+    CheckAccessCoin(VALUE1, VALUE2, VALUE2, FRESH, FRESH);
+    CheckAccessCoin(VALUE1, VALUE2, VALUE2, DIRTY, DIRTY);
+    CheckAccessCoin(VALUE1, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
 }
 
 void CheckModifyCoins(CAmount base_value, CAmount cache_value,

@@ -42,9 +42,8 @@ static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
     ApplyBlockUndo(block, state, &pindex, view, blockundo);
 }
 
-static bool HashSpendableCoin(const CCoinsViewCache &view, uint256 txid) {
-    const CCoins *coins = view.AccessCoins(txid);
-    return coins != nullptr && !coins->IsPruned();
+static bool HasSpendableCoin(const CCoinsViewCache &view, const uint256 &txid) {
+    return !view.AccessCoin(COutPoint(txid, 0)).IsSpent();
 }
 
 BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
@@ -90,16 +89,16 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     UpdateUTXOSet(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.GetHash());
-    BOOST_CHECK(HashSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(HashSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(!HashSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(HasSpendableCoin(view, coinbaseTx.GetId()));
+    BOOST_CHECK(HasSpendableCoin(view, tx0.GetId()));
+    BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetId()));
 
     UndoBlock(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.hashPrevBlock);
-    BOOST_CHECK(!HashSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(!HashSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(HashSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetId()));
+    BOOST_CHECK(!HasSpendableCoin(view, tx0.GetId()));
+    BOOST_CHECK(HasSpendableCoin(view, prevTx0.GetId()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

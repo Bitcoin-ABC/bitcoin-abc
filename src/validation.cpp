@@ -758,8 +758,8 @@ static bool AcceptToMemoryPoolWorker(
         // during reorgs to ensure COINBASE_MATURITY is still met.
         bool fSpendsCoinbase = false;
         for (const CTxIn &txin : tx.vin) {
-            const CCoins *coins = view.AccessCoins(txin.prevout.hash);
-            if (coins->IsCoinBase()) {
+            const Coin &coin = view.AccessCoin(txin.prevout);
+            if (coin.IsCoinBase()) {
                 fSpendsCoinbase = true;
                 break;
             }
@@ -988,13 +988,10 @@ bool GetTransaction(const Config &config, const uint256 &txid,
 
     // use coin database to locate block that contains transaction, and scan it
     if (fAllowSlow) {
-        int nHeight = -1;
-        {
-            const CCoinsViewCache &view = *pcoinsTip;
-            const CCoins *coins = view.AccessCoins(txid);
-            if (coins) nHeight = coins->nHeight;
+        const Coin &coin = AccessByTxid(*pcoinsTip, txid);
+        if (!coin.IsSpent()) {
+            pindexSlow = chainActive[coin.GetHeight()];
         }
-        if (nHeight > 0) pindexSlow = chainActive[nHeight];
     }
 
     if (pindexSlow) {
@@ -1289,48 +1286,54 @@ namespace Consensus {
 bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
                    const CCoinsViewCache &inputs, int nSpendHeight) {
     // This doesn't trigger the DoS code on purpose; if it did, it would make it
-    // easier
-    // for an attacker to attempt to split the network.
-    if (!inputs.HaveInputs(tx))
+    // easier for an attacker to attempt to split the network.
+    if (!inputs.HaveInputs(tx)) {
         return state.Invalid(false, 0, "", "Inputs unavailable");
+    }
 
     CAmount nValueIn = 0;
     CAmount nFees = 0;
-    for (unsigned int i = 0; i < tx.vin.size(); i++) {
+    for (size_t i = 0; i < tx.vin.size(); i++) {
         const COutPoint &prevout = tx.vin[i].prevout;
-        const CCoins *coins = inputs.AccessCoins(prevout.hash);
-        assert(coins);
+        const Coin &coin = inputs.AccessCoin(prevout);
+        assert(!coin.IsSpent());
 
         // If prev is coinbase, check that it's matured
-        if (coins->IsCoinBase()) {
-            if (nSpendHeight - coins->nHeight < COINBASE_MATURITY)
+        if (coin.IsCoinBase()) {
+            if (nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
                 return state.Invalid(
                     false, REJECT_INVALID,
                     "bad-txns-premature-spend-of-coinbase",
                     strprintf("tried to spend coinbase at depth %d",
-                              nSpendHeight - coins->nHeight));
+                              nSpendHeight - coin.GetHeight()));
+            }
         }
 
         // Check for negative or overflow input values
-        nValueIn += coins->vout[prevout.n].nValue;
-        if (!MoneyRange(coins->vout[prevout.n].nValue) || !MoneyRange(nValueIn))
+        nValueIn += coin.GetTxOut().nValue;
+        if (!MoneyRange(coin.GetTxOut().nValue) || !MoneyRange(nValueIn)) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-inputvalues-outofrange");
+        }
     }
 
-    if (nValueIn < tx.GetValueOut())
+    if (nValueIn < tx.GetValueOut()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout",
                          false, strprintf("value in (%s) < value out (%s)",
                                           FormatMoney(nValueIn),
                                           FormatMoney(tx.GetValueOut())));
+    }
 
     // Tally transaction fees
     CAmount nTxFee = nValueIn - tx.GetValueOut();
-    if (nTxFee < 0)
+    if (nTxFee < 0) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
+    }
     nFees += nTxFee;
-    if (!MoneyRange(nFees))
+    if (!MoneyRange(nFees)) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
+    }
+
     return true;
 }
 } // namespace Consensus
@@ -1363,13 +1366,22 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         return true;
     }
 
-    for (unsigned int i = 0; i < tx.vin.size(); i++) {
+    for (size_t i = 0; i < tx.vin.size(); i++) {
         const COutPoint &prevout = tx.vin[i].prevout;
-        const CCoins *coins = inputs.AccessCoins(prevout.hash);
-        assert(coins);
+        const Coin &coin = inputs.AccessCoin(prevout);
+        assert(!coin.IsSpent());
+
+        // We very carefully only pass in things to CScriptCheck which are
+        // clearly committed to by tx' witness hash. This provides a sanity
+        // check that our caching is not introducing consensus failures through
+        // additional data in, eg, the coins being spent being checked as a part
+        // of CScriptCheck.
+        const CScript &scriptPubKey = coin.GetTxOut().scriptPubKey;
+        const CAmount amount = coin.GetTxOut().nValue;
 
         // Verify signature
-        CScriptCheck check(*coins, tx, i, flags, cacheStore, txdata);
+        CScriptCheck check(scriptPubKey, amount, tx, i, flags, cacheStore,
+                           txdata);
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
@@ -1379,9 +1391,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 // or non-null dummy arguments; if so, don't trigger DoS
                 // protection to avoid splitting the network between upgraded
                 // and non-upgraded nodes.
-                CScriptCheck check2(
-                    *coins, tx, i, flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
-                    cacheStore, txdata);
+                CScriptCheck check2(scriptPubKey, amount, tx, i,
+                                    flags &
+                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
+                                    cacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
@@ -1802,12 +1815,14 @@ bool ConnectBlock(const Config &config, const CBlock &block,
 
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
-            const CCoins *coins = view.AccessCoins(tx->GetId());
-            if (coins && !coins->IsPruned())
-                return state.DoS(
-                    100,
-                    error("ConnectBlock(): tried to overwrite transaction"),
-                    REJECT_INVALID, "bad-txns-BIP30");
+            for (size_t o = 0; o < tx->vout.size(); o++) {
+                if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
+                    return state.DoS(
+                        100,
+                        error("ConnectBlock(): tried to overwrite transaction"),
+                        REJECT_INVALID, "bad-txns-BIP30");
+                }
+            }
         }
     }
 
@@ -1885,8 +1900,7 @@ bool ConnectBlock(const Config &config, const CBlock &block,
             // require the UTXO set.
             prevheights.resize(tx.vin.size());
             for (size_t j = 0; j < tx.vin.size(); j++) {
-                prevheights[j] =
-                    view.AccessCoins(tx.vin[j].prevout.hash)->nHeight;
+                prevheights[j] = view.AccessCoin(tx.vin[j].prevout).GetHeight();
             }
 
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {

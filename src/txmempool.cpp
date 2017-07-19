@@ -577,12 +577,16 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins,
             for (const CTxIn &txin : tx.vin) {
                 indexed_transaction_set::const_iterator it2 =
                     mapTx.find(txin.prevout.hash);
-                if (it2 != mapTx.end()) continue;
-                const CCoins *coins = pcoins->AccessCoins(txin.prevout.hash);
-                if (nCheckFrequency != 0) assert(coins);
-                if (!coins || (coins->IsCoinBase() &&
-                               ((signed long)nMemPoolHeight) - coins->nHeight <
-                                   COINBASE_MATURITY)) {
+                if (it2 != mapTx.end()) {
+                    continue;
+                }
+
+                const Coin &coin = pcoins->AccessCoin(txin.prevout);
+                if (nCheckFrequency != 0) assert(!coin.IsSpent());
+                if (coin.IsSpent() ||
+                    (coin.IsCoinBase() &&
+                     ((signed long)nMemPoolHeight) - coin.GetHeight() <
+                         COINBASE_MATURITY)) {
                     txToRemove.insert(it);
                     break;
                 }
@@ -709,8 +713,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                     parentSigOpCount += it2->GetSigOpCount();
                 }
             } else {
-                const CCoins *coins = pcoins->AccessCoins(txin.prevout.hash);
-                assert(coins && coins->IsAvailable(txin.prevout.n));
+                assert(pcoins->HaveCoin(txin.prevout));
             }
             // Check whether its inputs are marked in mapNextTx.
             auto it3 = mapNextTx.find(txin.prevout);
