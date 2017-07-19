@@ -387,15 +387,15 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
         prevheights.resize(tx.vin.size());
         for (size_t txinIndex = 0; txinIndex < tx.vin.size(); txinIndex++) {
             const CTxIn &txin = tx.vin[txinIndex];
-            CCoins coins;
-            if (!viewMemPool.GetCoins(txin.prevout.hash, coins)) {
+            Coin coin;
+            if (!viewMemPool.GetCoin(txin.prevout, coin)) {
                 return error("%s: Missing input", __func__);
             }
-            if (coins.nHeight == MEMPOOL_HEIGHT) {
+            if (coin.GetHeight() == MEMPOOL_HEIGHT) {
                 // Assume all mempool transaction confirm in the next block
                 prevheights[txinIndex] = tip->nHeight + 1;
             } else {
-                prevheights[txinIndex] = coins.nHeight;
+                prevheights[txinIndex] = coin.GetHeight();
             }
         }
         lockPair = CalculateSequenceLocks(tx, flags, &prevheights, index);

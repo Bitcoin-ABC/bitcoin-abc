@@ -39,9 +39,11 @@ inline bool AllowFree(double dPriority) {
     return dPriority > AllowFreeThreshold();
 }
 
-/** Fake height value used in CCoins to signify they are only in the memory pool
- * (since 0.8) */
-static const unsigned int MEMPOOL_HEIGHT = 0x7FFFFFFF;
+/**
+ * Fake height value used in Coins to signify they are only in the memory
+ * pool(since 0.8)
+ */
+static const uint32_t MEMPOOL_HEIGHT = 0x7FFFFFFF;
 
 struct LockPoints {
     // Will be set to the blockchain height and median time past values that
@@ -576,7 +578,7 @@ public:
     void _clear();
     bool CompareDepthAndScore(const uint256 &hasha, const uint256 &hashb);
     void queryHashes(std::vector<uint256> &vtxid);
-    void pruneSpent(const uint256 &hash, CCoins &coins);
+    bool isSpent(const COutPoint &outpoint);
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
     /**
@@ -771,11 +773,11 @@ class CCoinsViewMemPool : public CCoinsViewBacked {
 protected:
     const CTxMemPool &mempool;
 
+    bool GetCoins(const uint256 &txid, CCoins &coins) const;
     bool HaveCoins(const uint256 &txid) const;
 
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
 };
 
 // We want to sort transactions by coin age priority

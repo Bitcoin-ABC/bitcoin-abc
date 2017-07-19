@@ -58,7 +58,7 @@ CCoinsViewCursor *CCoinsView::Cursor() const {
 
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) {}
 bool CCoinsViewBacked::GetCoins(const uint256 &txid, CCoins &coins) const {
-    return base->GetCoins(txid, coins);
+    return base->GetCoins_DONOTUSE(txid, coins);
 }
 bool CCoinsViewBacked::HaveCoins(const uint256 &txid) const {
     return base->HaveCoins_DONOTUSE(txid);
@@ -99,7 +99,7 @@ CCoinsViewCache::FetchCoins(const uint256 &txid) const {
         return it;
     }
     CCoins tmp;
-    if (!base->GetCoins(txid, tmp)) {
+    if (!base->GetCoins_DONOTUSE(txid, tmp)) {
         return cacheCoins.end();
     }
     CCoinsMap::iterator ret =
@@ -129,7 +129,7 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256 &txid) {
         cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
     size_t cachedCoinUsage = 0;
     if (ret.second) {
-        if (!base->GetCoins(txid, ret.first->second.coins)) {
+        if (!base->GetCoins_DONOTUSE(txid, ret.first->second.coins)) {
             // The parent view does not have this entry; mark it as fresh.
             ret.first->second.coins.Clear();
             ret.first->second.flags = CCoinsCacheEntry::FRESH;

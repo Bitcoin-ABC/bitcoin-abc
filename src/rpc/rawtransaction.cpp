@@ -318,7 +318,7 @@ static UniValue gettxoutproof(const Config &config,
         pblockindex = mapBlockIndex[hashBlock];
     } else {
         CCoins coins;
-        if (pcoinsTip->GetCoins(oneTxid, coins) && coins.nHeight > 0 &&
+        if (pcoinsTip->GetCoins_DONOTUSE(oneTxid, coins) && coins.nHeight > 0 &&
             coins.nHeight <= chainActive.Height())
             pblockindex = chainActive[coins.nHeight];
     }

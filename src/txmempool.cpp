@@ -391,18 +391,9 @@ CTxMemPool::~CTxMemPool() {
     delete minerPolicyEstimator;
 }
 
-void CTxMemPool::pruneSpent(const uint256 &txid, CCoins &coins) {
+bool CTxMemPool::isSpent(const COutPoint &outpoint) {
     LOCK(cs);
-
-    auto it = mapNextTx.lower_bound(COutPoint(txid, 0));
-
-    // iterate over all COutPoints in mapNextTx whose hash equals the provided
-    // hashTx
-    while (it != mapNextTx.end() && it->first->hash == txid) {
-        // and remove those outputs from coins
-        coins.Spend(it->first->n);
-        it++;
-    }
+    return mapNextTx.count(outpoint);
 }
 
 unsigned int CTxMemPool::GetTransactionsUpdated() const {
@@ -1032,7 +1023,7 @@ bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
         coins = CCoins(*ptx, MEMPOOL_HEIGHT);
         return true;
     }
-    return (base->GetCoins(txid, coins) && !coins.IsPruned());
+    return (base->GetCoins_DONOTUSE(txid, coins) && !coins.IsPruned());
 }
 
 bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {

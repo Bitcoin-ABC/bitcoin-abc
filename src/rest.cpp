@@ -39,17 +39,18 @@ static const struct {
 };
 
 struct CCoin {
-    // Don't call this nVersion, that name has a special meaning inside
-    // IMPLEMENT_SERIALIZE
-    uint32_t nTxVer;
     uint32_t nHeight;
     CTxOut out;
+
+    CCoin() : nHeight(0) {}
+    CCoin(Coin in) : nHeight(in.GetHeight()), out(std::move(in.GetTxOut())) {}
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(nTxVer);
+        uint32_t nTxVerDummy = 0;
+        READWRITE(nTxVerDummy);
         READWRITE(nHeight);
         READWRITE(out);
     }
@@ -536,23 +537,12 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
         }
 
         for (size_t i = 0; i < vOutPoints.size(); i++) {
-            CCoins coins;
-            uint256 hash = vOutPoints[i].hash;
+            Coin coin;
             bool hit = false;
-            if (view.GetCoins(hash, coins)) {
-                mempool.pruneSpent(hash, coins);
-                if (coins.IsAvailable(vOutPoints[i].n)) {
-                    hit = true;
-                    // Safe to index into vout here because IsAvailable checked
-                    // if it's off the end of the array, or if n is valid but
-                    // points to an already spent output (IsNull).
-                    CCoin coin;
-                    coin.nTxVer = coins.nVersion;
-                    coin.nHeight = coins.nHeight;
-                    coin.out = coins.vout.at(vOutPoints[i].n);
-                    assert(!coin.out.IsNull());
-                    outs.push_back(coin);
-                }
+            if (view.GetCoin(vOutPoints[i], coin) &&
+                !mempool.isSpent(vOutPoints[i])) {
+                hit = true;
+                outs.emplace_back(std::move(coin));
             }
 
             hits.push_back(hit);
@@ -607,8 +597,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             UniValue utxos(UniValue::VARR);
             for (const CCoin &coin : outs) {
                 UniValue utxo(UniValue::VOBJ);
-                utxo.push_back(Pair("txvers", (int32_t)coin.nTxVer));
-                utxo.push_back(Pair("height", (int32_t)coin.nHeight));
+                utxo.push_back(Pair("height", int32_t(coin.nHeight)));
                 utxo.push_back(Pair("value", ValueFromAmount(coin.out.nValue)));
 
                 // include the script in a json output

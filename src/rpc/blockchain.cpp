@@ -958,7 +958,8 @@ UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
 }
 
 UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
+    if (request.fHelp || request.params.size() < 2 ||
+        request.params.size() > 3) {
         throw std::runtime_error(
             "gettxout \"txid\" n ( include_mempool )\n"
             "\nReturns details about an unspent transaction output.\n"
@@ -998,6 +999,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
             HelpExampleCli("gettxout", "\"txid\" 1") +
             "\nAs a json rpc call\n" +
             HelpExampleRpc("gettxout", "\"txid\", 1"));
+    }
 
     LOCK(cs_main);
 
@@ -1006,36 +1008,40 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
     int n = request.params[1].get_int();
+    COutPoint out(hash, n);
     bool fMempool = true;
-    if (request.params.size() > 2) fMempool = request.params[2].get_bool();
+    if (request.params.size() > 2) {
+        fMempool = request.params[2].get_bool();
+    }
 
-    CCoins coins;
+    Coin coin;
     if (fMempool) {
         LOCK(mempool.cs);
         CCoinsViewMemPool view(pcoinsTip, mempool);
-        if (!view.GetCoins(hash, coins)) return NullUniValue;
-        mempool.pruneSpent(
-            hash, coins); // TODO: this should be done by the CCoinsViewMemPool
+        if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
+            // TODO: this should be done by the CCoinsViewMemPool
+            return NullUniValue;
+        }
     } else {
-        if (!pcoinsTip->GetCoins(hash, coins)) return NullUniValue;
+        if (!pcoinsTip->GetCoin(out, coin)) {
+            return NullUniValue;
+        }
     }
-    if (n < 0 || (unsigned int)n >= coins.vout.size() || coins.vout[n].IsNull())
-        return NullUniValue;
 
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
     CBlockIndex *pindex = it->second;
     ret.push_back(Pair("bestblock", pindex->GetBlockHash().GetHex()));
-    if ((unsigned int)coins.nHeight == MEMPOOL_HEIGHT)
+    if (coin.GetHeight() == MEMPOOL_HEIGHT) {
         ret.push_back(Pair("confirmations", 0));
-    else
-        ret.push_back(
-            Pair("confirmations", pindex->nHeight - coins.nHeight + 1));
-    ret.push_back(Pair("value", ValueFromAmount(coins.vout[n].nValue)));
+    } else {
+        ret.push_back(Pair("confirmations",
+                           int64_t(pindex->nHeight - coin.GetHeight() + 1)));
+    }
+    ret.push_back(Pair("value", ValueFromAmount(coin.GetTxOut().nValue)));
     UniValue o(UniValue::VOBJ);
-    ScriptPubKeyToJSON(coins.vout[n].scriptPubKey, o, true);
+    ScriptPubKeyToJSON(coin.GetTxOut().scriptPubKey, o, true);
     ret.push_back(Pair("scriptPubKey", o));
-    ret.push_back(Pair("version", coins.nVersion));
-    ret.push_back(Pair("coinbase", coins.fCoinBase));
+    ret.push_back(Pair("coinbase", coin.IsCoinBase()));
 
     return ret;
 }

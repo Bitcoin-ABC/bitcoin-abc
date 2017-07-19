@@ -348,13 +348,29 @@ private:
 /** Abstract view on the open txout dataset. */
 class CCoinsView {
 protected:
+    //! Retrieve the CCoins (unspent transaction outputs) for a given txid
+    virtual bool GetCoins(const uint256 &txid, CCoins &coins) const;
+
     //! Just check whether we have data for a given txid.
     //! This may (but cannot always) return true for fully spent transactions
     virtual bool HaveCoins(const uint256 &txid) const;
 
 public:
-    //! Retrieve the CCoins (unspent transaction outputs) for a given txid
-    virtual bool GetCoins(const uint256 &txid, CCoins &coins) const;
+    //! Transitional function to move from GetCoins to GetCoin.
+    bool GetCoins_DONOTUSE(const uint256 &txid, CCoins &coins) const {
+        return GetCoins(txid, coins);
+    }
+
+    //! Retrieve the Coin (unspent transaction output) for a given outpoint.
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
+        CCoins coins;
+        if (!GetCoins(outpoint.hash, coins) || !coins.IsAvailable(outpoint.n)) {
+            return false;
+        }
+
+        coin = Coin(coins.vout[outpoint.n], coins.nHeight, coins.fCoinBase);
+        return true;
+    }
 
     //! Transitional function to move from HaveCoins to HaveCoin.
     bool HaveCoins_DONOTUSE(const uint256 &txid) const {
@@ -390,11 +406,11 @@ class CCoinsViewBacked : public CCoinsView {
 protected:
     CCoinsView *base;
 
+    bool GetCoins(const uint256 &txid, CCoins &coins) const;
     bool HaveCoins(const uint256 &txid) const;
 
 public:
     CCoinsViewBacked(CCoinsView *viewIn);
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
     uint256 GetBestBlock() const;
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
@@ -442,6 +458,7 @@ protected:
     /* Cached dynamic memory usage for the inner CCoins objects. */
     mutable size_t cachedCoinsUsage;
 
+    bool GetCoins(const uint256 &txid, CCoins &coins) const;
     bool HaveCoins(const uint256 &txid) const;
 
 public:
@@ -449,7 +466,6 @@ public:
     ~CCoinsViewCache();
 
     // Standard CCoinsView methods
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
