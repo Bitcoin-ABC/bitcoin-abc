@@ -47,6 +47,11 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
     fCheckBlockIndex = true;
     SelectParams(chainName);
     noui_connect();
+
+    // Set config parameters to default.
+    GlobalConfig config;
+    config.SetUAHFStartTime(DEFAULT_UAHF_START_TIME);
+    config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 }
 
 BasicTestingSetup::~BasicTestingSetup() {
@@ -78,8 +83,10 @@ TestingSetup::TestingSetup(const std::string &chainName)
         BOOST_CHECK(ok);
     }
     nScriptCheckThreads = 3;
-    for (int i = 0; i < nScriptCheckThreads - 1; i++)
+    for (int i = 0; i < nScriptCheckThreads - 1; i++) {
         threadGroup.create_thread(&ThreadScriptCheck);
+    }
+
     // Deterministic randomness for tests.
     g_connman = std::unique_ptr<CConnman>(new CConnman(0x1337, 0x1337));
     connman = g_connman.get();
@@ -132,8 +139,9 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     IncrementExtraNonce(config, &block, chainActive.Tip(), extraNonce);
 
     while (!CheckProofOfWork(block.GetHash(), block.nBits,
-                             chainparams.GetConsensus()))
+                             chainparams.GetConsensus())) {
         ++block.nNonce;
+    }
 
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
