@@ -4508,12 +4508,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     }
 
     // Verify blocks in the best chain
-    if (nCheckDepth <= 0) {
-        // suffices until the year 19000
-        nCheckDepth = 1000000000;
-    }
-
-    if (nCheckDepth > chainActive.Height()) {
+    if (nCheckDepth <= 0 || nCheckDepth > chainActive.Height()) {
         nCheckDepth = chainActive.Height();
     }
 
