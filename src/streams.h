@@ -235,25 +235,35 @@ public:
 
     void insert(iterator it, std::vector<char>::const_iterator first,
                 std::vector<char>::const_iterator last) {
-        assert(last - first >= 0);
+        if (last == first) {
+            return;
+        }
+
+        assert(last - first > 0);
         if (it == vch.begin() + nReadPos &&
             (unsigned int)(last - first) <= nReadPos) {
             // special case for inserting at the front when there's room
             nReadPos -= (last - first);
             memcpy(&vch[nReadPos], &first[0], last - first);
-        } else
+        } else {
             vch.insert(it, first, last);
+        }
     }
 
     void insert(iterator it, const char *first, const char *last) {
-        assert(last - first >= 0);
+        if (last == first) {
+            return;
+        }
+
+        assert(last - first > 0);
         if (it == vch.begin() + nReadPos &&
             (unsigned int)(last - first) <= nReadPos) {
             // special case for inserting at the front when there's room
             nReadPos -= (last - first);
             memcpy(&vch[nReadPos], &first[0], last - first);
-        } else
+        } else {
             vch.insert(it, first, last);
+        }
     }
 
     iterator erase(iterator it) {
@@ -266,8 +276,9 @@ public:
                 return vch.erase(vch.begin(), vch.end());
             }
             return vch.begin() + nReadPos;
-        } else
+        } else {
             return vch.erase(it);
+        }
     }
 
     iterator erase(iterator first, iterator last) {
@@ -309,6 +320,10 @@ public:
     int GetVersion() const { return nVersion; }
 
     void read(char *pch, size_t nSize) {
+        if (nSize == 0) {
+            return;
+        }
+
         // Read from the beginning of the buffer
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size()) {
@@ -365,8 +380,8 @@ public:
         return (*this);
     }
 
-    void GetAndClear(CSerializeData &data) {
-        data.insert(data.end(), begin(), end());
+    void GetAndClear(CSerializeData &d) {
+        d.insert(d.end(), begin(), end());
         clear();
     }
 
