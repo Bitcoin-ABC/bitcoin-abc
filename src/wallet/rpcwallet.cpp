@@ -172,7 +172,7 @@ static UniValue getnewaddress(const Config &config,
 
     // Parse the label first so we don't generate a key if there's an error
     std::string label;
-    if (request.params.size() > 0) {
+    if (!request.params[0].isNull()) {
         label = LabelFromValue(request.params[0]);
     }
 
@@ -249,7 +249,7 @@ static UniValue getrawchangeaddress(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() > 1) {
+    if (request.fHelp || request.params.size() > 0) {
         throw std::runtime_error(
             "getrawchangeaddress\n"
             "\nReturns a new Bitcoin address, for receiving change.\n"
@@ -583,7 +583,7 @@ static UniValue listaddressgroupings(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp) {
+    if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "listaddressgroupings\n"
             "\nLists groups of addresses which have had their common "
@@ -773,7 +773,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     // Minimum confirmations
     int nMinDepth = 1;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         nMinDepth = request.params[1].get_int();
     }
 
@@ -844,7 +844,7 @@ UniValue getreceivedbylabel(const Config &config,
 
     // Minimum confirmations
     int nMinDepth = 1;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         nMinDepth = request.params[1].get_int();
     }
 
@@ -950,12 +950,12 @@ static UniValue getbalance(const Config &config,
                                      : nullptr;
 
     int nMinDepth = 1;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         nMinDepth = request.params[1].get_int();
     }
 
     isminefilter filter = ISMINE_SPENDABLE;
-    if (request.params.size() > 2 && request.params[2].get_bool()) {
+    if (!request.params[2].isNull() && request.params[2].get_bool()) {
         filter = filter | ISMINE_WATCH_ONLY;
     }
 
@@ -1266,7 +1266,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::string strAccount = LabelFromValue(request.params[0]);
     UniValue sendTo = request.params[1].get_obj();
     int nMinDepth = 1;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         nMinDepth = request.params[2].get_int();
     }
 
@@ -1435,13 +1435,13 @@ UniValue ListReceived(const Config &config, CWallet *const pwallet,
                       const UniValue &params, bool by_label) {
     // Minimum confirmations
     int nMinDepth = 1;
-    if (params.size() > 0) {
+    if (!params[0].isNull()) {
         nMinDepth = params[0].get_int();
     }
 
     // Whether to include empty labels
     bool fIncludeEmpty = false;
-    if (params.size() > 1) {
+    if (!params[1].isNull()) {
         fIncludeEmpty = params[1].get_bool();
     }
 
@@ -1922,22 +1922,22 @@ static UniValue listtransactions(const Config &config,
     LOCK2(cs_main, pwallet->cs_wallet);
 
     std::string strAccount = "*";
-    if (request.params.size() > 0) {
+    if (!request.params[0].isNull()) {
         strAccount = request.params[0].get_str();
     }
 
     int nCount = 10;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         nCount = request.params[1].get_int();
     }
 
     int nFrom = 0;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         nFrom = request.params[2].get_int();
     }
 
     isminefilter filter = ISMINE_SPENDABLE;
-    if (request.params.size() > 3 && request.params[3].get_bool()) {
+    if (!request.params[3].isNull() && request.params[3].get_bool()) {
         filter = filter | ISMINE_WATCH_ONLY;
     }
 
@@ -2112,7 +2112,7 @@ static UniValue listsinceblock(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp) {
+    if (request.fHelp || request.params.size() > 3) {
         throw std::runtime_error(
             "listsinceblock ( \"blockhash\" target_confirmations "
             "include_watchonly)\n"
@@ -2205,7 +2205,7 @@ static UniValue listsinceblock(const Config &config,
     int target_confirms = 1;
     isminefilter filter = ISMINE_SPENDABLE;
 
-    if (request.params.size() > 0) {
+    if (!request.params[0].isNull()) {
         uint256 blockId;
 
         blockId.SetHex(request.params[0].get_str());
@@ -2221,7 +2221,7 @@ static UniValue listsinceblock(const Config &config,
         }
     }
 
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         target_confirms = request.params[1].get_int();
 
         if (target_confirms < 1) {
@@ -2360,7 +2360,7 @@ static UniValue gettransaction(const Config &config,
     txid.SetHex(request.params[0].get_str());
 
     isminefilter filter = ISMINE_SPENDABLE;
-    if (request.params.size() > 1 && request.params[1].get_bool()) {
+    if (!request.params[1].isNull() && request.params[1].get_bool()) {
         filter = filter | ISMINE_WATCH_ONLY;
     }
 
@@ -2510,7 +2510,7 @@ static UniValue keypoolrefill(const Config &config,
     // 0 is interpreted by TopUpKeyPool() as the default keypool size given by
     // -keypool
     unsigned int kpSize = 0;
-    if (request.params.size() > 0) {
+    if (!request.params[0].isNull()) {
         if (request.params[0].get_int() < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected valid size.");
@@ -3497,7 +3497,7 @@ static UniValue fundrawtransaction(const Config &config,
     UniValue subtractFeeFromOutputs;
     std::set<int> setSubtractFeeFromOutputs;
 
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         if (request.params[1].type() == UniValue::VBOOL) {
             // backward compatibility bool only fallback
             coinControl.fAllowWatchOnly = request.params[1].get_bool();

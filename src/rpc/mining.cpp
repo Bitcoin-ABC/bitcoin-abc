@@ -108,8 +108,8 @@ static UniValue getnetworkhashps(const Config &config,
 
     LOCK(cs_main);
     return GetNetworkHashPS(
-        request.params.size() > 0 ? request.params[0].get_int() : 120,
-        request.params.size() > 1 ? request.params[1].get_int() : -1);
+        !request.params[0].isNull() ? request.params[0].get_int() : 120,
+        !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
 UniValue generateBlocks(const Config &config,
@@ -203,7 +203,7 @@ static UniValue generatetoaddress(const Config &config,
 
     int nGenerate = request.params[0].get_int();
     uint64_t nMaxTries = 1000000;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         nMaxTries = request.params[2].get_int();
     }
 
@@ -446,7 +446,7 @@ static UniValue getblocktemplate(const Config &config,
     std::string strMode = "template";
     UniValue lpval = NullUniValue;
     std::set<std::string> setClientRules;
-    if (request.params.size() > 0) {
+    if (!request.params[0].isNull()) {
         const UniValue &oparam = request.params[0].get_obj();
         const UniValue &modeval = find_value(oparam, "mode");
         if (modeval.isStr()) {
