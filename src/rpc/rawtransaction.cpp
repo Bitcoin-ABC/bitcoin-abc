@@ -154,7 +154,7 @@ static UniValue getrawtransaction(const Config &config,
 
     // Accept either a bool (true) or a num (>=1) to indicate verbose output.
     bool fVerbose = false;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         if (request.params[1].isNum()) {
             if (request.params[1].get_int() != 0) {
                 fVerbose = true;
@@ -249,7 +249,7 @@ static UniValue gettxoutproof(const Config &config,
     CBlockIndex *pblockindex = nullptr;
 
     uint256 hashBlock;
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         hashBlock = uint256S(request.params[1].get_str());
         if (!mapBlockIndex.count(hashBlock)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");

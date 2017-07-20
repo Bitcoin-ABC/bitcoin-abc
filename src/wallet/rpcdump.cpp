@@ -107,13 +107,13 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 
     std::string strSecret = request.params[0].get_str();
     std::string strLabel = "";
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         strLabel = request.params[1].get_str();
     }
 
     // Whether to perform rescan after import
     bool fRescan = true;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         fRescan = request.params[2].get_bool();
     }
 
@@ -273,13 +273,13 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
 
     std::string strLabel = "";
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         strLabel = request.params[1].get_str();
     }
 
     // Whether to perform rescan after import
     bool fRescan = true;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         fRescan = request.params[2].get_bool();
     }
 
@@ -290,7 +290,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 
     // Whether to import a p2sh version, too
     bool fP2SH = false;
-    if (request.params.size() > 3) {
+    if (!request.params[3].isNull()) {
         fP2SH = request.params[3].get_bool();
     }
 
@@ -481,13 +481,13 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
 
     std::string strLabel = "";
-    if (request.params.size() > 1) {
+    if (!request.params[1].isNull()) {
         strLabel = request.params[1].get_str();
     }
 
     // Whether to perform rescan after import
     bool fRescan = true;
-    if (request.params.size() > 2) {
+    if (!request.params[2].isNull()) {
         fRescan = request.params[2].get_bool();
     }
 
@@ -1302,7 +1302,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     // Default options
     bool fRescan = true;
 
-    if (mainRequest.params.size() > 1) {
+    if (!mainRequest.params[1].isNull()) {
         const UniValue &options = mainRequest.params[1];
 
         if (options.exists("rescan")) {
