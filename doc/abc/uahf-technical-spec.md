@@ -1,6 +1,6 @@
 # UAHF Technical Specification
 
-Version 1.2, 2017-06-14
+Version 1.4, 2017-07-16
 
 
 ## Introduction
@@ -149,7 +149,12 @@ firm rules at their own risk.
 ### REQ-6-1 (disallow special OP_RETURN-marked transactions with sunset clause)
 
 Once the fork has activated, transactions containing an OP_RETURN output
-with a specific magic data value shall be considered invalid until
+with a specific magic data value of
+
+    Bitcoin: A Peer-to-Peer Electronic Cash System
+
+(46 characters, including the single spaces separating the words, and
+without any terminating null character) shall be considered invalid until
 block 530,000 inclusive.
 
 RATIONALE: To give users on the legacy chain (or other fork chains)
@@ -185,6 +190,10 @@ constraint introduced by REQ-6-1.
 NOTE 3: If bit 6 is not set, only the unmodified nHashType will be used
 to compute the hash and verify the signature.
 
+NOTE 4: The magic 'fork id' value used by UAHF-compatible clients is zero.
+This means that the change in hash when bit 6 is set is effected only by
+the adapted signing algorithm (see REQ-6-3).
+
 
 ### REQ-6-3 (use adapted BIP143 hash algorithm for protected transactions)
 
@@ -198,6 +207,16 @@ NOTE 1: refer to [3] for the specificaton of the revised transaction
 digest based on BIP143. Revisions were made to account for non-Segwit
 deployment.
 
+
+### REQ-7 Difficulty adjustement in case of hashrate drop
+
+In case the MTP of the tip of the chain is 12h or more after the MTP 6 block
+before the tip, the proof of work target is increased by a quarter, or 25%,
+which corresponds to a difficulty reduction of 20% .
+
+RATIONALE: The hashrate supporting the chain is dependent on market price and
+hard to predict. In order to make sure the chain remains viable no matter what
+difficulty needs to adjust down in case of abrupt hashrate drop.
 
 ### REQ-DISABLE (disable fork by setting fork time to 0)
 
