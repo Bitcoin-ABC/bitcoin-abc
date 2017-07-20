@@ -28,11 +28,9 @@
 // many times and only complain if all iterations of the test fail.
 #define RANDOM_REPEATS 5
 
-using namespace std;
-
 std::vector<std::unique_ptr<CWalletTx>> wtxn;
 
-typedef set<pair<const CWalletTx *, unsigned int>> CoinSet;
+typedef std::set<std::pair<const CWalletTx *, unsigned int>> CoinSet;
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 
@@ -69,7 +67,7 @@ static void empty_wallet(void) {
 }
 
 static bool equal_sets(CoinSet a, CoinSet b) {
-    pair<CoinSet::iterator, CoinSet::iterator> ret =
+    std::pair<CoinSet::iterator, CoinSet::iterator> ret =
         mismatch(a.begin(), a.end(), b.begin());
     return ret.first == a.end() && ret.second == b.end();
 }
@@ -222,9 +220,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         add_coin(1 * COIN);
         add_coin(2 * COIN);
         add_coin(3 * COIN);
-        add_coin(
-            4 *
-            COIN); // now we have 5+6+7+8+18+20+30+100+200+300+400 = 1094 cents
+        // now we have 5+6+7+8+18+20+30+100+200+300+400 = 1094 cents
+        add_coin(4 * COIN);
         BOOST_CHECK(wallet.SelectCoinsMinConf(95 * CENT, 1, 1, 0, vCoins,
                                               setCoinsRet, nValueRet));
         // we should get 1 BTC in 1 coin
@@ -278,8 +275,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         // they tried to consolidate 10 50k coins into one 500k coin, and ended
         // up with 50k in change
         empty_wallet();
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < 20; j++) {
             add_coin(50000 * COIN);
+        }
 
         BOOST_CHECK(wallet.SelectCoinsMinConf(500000 * COIN, 1, 1, 0, vCoins,
                                               setCoinsRet, nValueRet));
@@ -343,8 +341,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
             empty_wallet();
             // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
             // bytes per input)
-            for (uint16_t j = 0; j < 676; j++)
+            for (uint16_t j = 0; j < 676; j++) {
                 add_coin(amt);
+            }
             BOOST_CHECK(wallet.SelectCoinsMinConf(2000, 1, 1, 0, vCoins,
                                                   setCoinsRet, nValueRet));
             if (amt - 2000 < MIN_CHANGE) {
@@ -363,8 +362,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         // test randomness
         {
             empty_wallet();
-            for (int i2 = 0; i2 < 100; i2++)
+            for (int i2 = 0; i2 < 100; i2++) {
                 add_coin(COIN);
+            }
 
             // picking 50 from 100 coins doesn't depend on the shuffle, but does
             // depend on randomness in the stochastic approximation code
@@ -422,8 +422,9 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
     empty_wallet();
 
     // Test vValue sort order
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 1000; i++) {
         add_coin(1000 * COIN);
+    }
     add_coin(3 * COIN);
 
     BOOST_CHECK(wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
