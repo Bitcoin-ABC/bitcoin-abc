@@ -49,8 +49,8 @@ MAX_INV_SZ = 50000
 COIN = 100000000  # 1 btc in satoshis
 
 NODE_NETWORK = (1 << 0)
-NODE_GETUTXO = (1 << 1)
-NODE_BLOOM = (1 << 2)
+# NODE_GETUTXO = (1 << 1)
+# NODE_BLOOM = (1 << 2)
 NODE_WITNESS = (1 << 3)
 NODE_XTHIN = (1 << 4)
 NODE_BITCOIN_CASH = (1 << 5)
@@ -857,6 +857,7 @@ class msg_addr():
     def __repr__(self):
         return "msg_addr(addrs=%s)" % (repr(self.addrs))
 
+
 class msg_inv():
     command = b"inv"
 
@@ -1266,9 +1267,6 @@ class NodeConnCB():
         # before acquiring the global lock and delivering the next message.
         self.deliver_sleep_time = None
 
-        # Remember the services our peer has advertised
-        self.peer_services = None
-
     # Message receiving methods
 
     def deliver(self, conn, message):
@@ -1293,10 +1291,6 @@ class NodeConnCB():
                 print("ERROR delivering %s (%s)" % (repr(message),
                                                     sys.exc_info()[0]))
                 raise
-
-    def set_deliver_sleep_time(self, value):
-        with mininode_lock:
-            self.deliver_sleep_time = value
 
     def get_deliver_sleep_time(self):
         with mininode_lock:
