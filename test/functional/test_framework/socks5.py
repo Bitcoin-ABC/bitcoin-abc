@@ -105,7 +105,7 @@ class Socks5Connection():
                 self.conn.sendall(bytearray([0x01, 0x00]))
 
             # Read connect request
-            (ver, cmd, rsv, atyp) = recvall(self.conn, 4)
+            ver, cmd, _, atyp = recvall(self.conn, 4)
             if ver != 0x05:
                 raise IOError(
                     'Invalid socks version %i in connect request' % ver)
