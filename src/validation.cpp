@@ -1497,15 +1497,9 @@ bool AbortNode(CValidationState &state, const std::string &strMessage,
 
 } // anon namespace
 
-/**
- * Apply the undo operation of a CTxInUndo to the given chain state.
- * @param undo The undo object.
- * @param view The coins view to which to apply the changes.
- * @param out The out point that corresponds to the tx input.
- * @return True on success.
- */
-bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
-                   const COutPoint &out) {
+/** Apply the undo operation of a CTxInUndo to the given chain state. */
+DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+                               const COutPoint &out) {
     bool fClean = true;
 
     CCoinsModifier coins = view.ModifyCoins(out.hash);
@@ -1513,64 +1507,66 @@ bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
         // undo data contains height: this is the last output of the prevout tx
         // being spent
         if (!coins->IsPruned()) {
-            fClean = fClean &&
-                     error("%s: undo data overwriting existing transaction",
-                           __func__);
+            // Overwriting existing transaction.
+            fClean = false;
         }
-        coins->Clear();
         coins->fCoinBase = undo.fCoinBase;
         coins->nHeight = undo.nHeight;
         coins->nVersion = undo.nVersion;
     } else {
         if (coins->IsPruned()) {
-            fClean = fClean &&
-                     error("%s: undo data adding output to missing transaction",
-                           __func__);
+            // Adding output to missing transaction.
+            fClean = false;
         }
     }
+
     if (coins->IsAvailable(out.n)) {
-        fClean = fClean &&
-                 error("%s: undo data overwriting existing output", __func__);
+        // Overwriting existing output.
+        fClean = false;
     }
+
     if (coins->vout.size() < out.n + 1) {
         coins->vout.resize(out.n + 1);
     }
+
     coins->vout[out.n] = undo.txout;
 
-    return fClean;
+    return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
-bool DisconnectBlock(const CBlock &block, CValidationState &state,
-                     const CBlockIndex *pindex, CCoinsViewCache &view,
-                     bool *pfClean) {
+/**
+ * Undo the effects of this block (with given index) on the UTXO set represented
+ * by coins. When UNCLEAN or FAILED is returned, view is left in an
+ * indeterminate state.
+ */
+static DisconnectResult DisconnectBlock(const CBlock &block,
+                                        const CBlockIndex *pindex,
+                                        CCoinsViewCache &view) {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
-
-    if (pfClean) {
-        *pfClean = false;
-    }
 
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
     if (pos.IsNull()) {
-        return error("DisconnectBlock(): no undo data available");
-    }
-    if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash())) {
-        return error("DisconnectBlock(): failure reading undo data");
+        error("DisconnectBlock(): no undo data available");
+        return DISCONNECT_FAILED;
     }
 
-    return ApplyBlockUndo(block, state, pindex, view, blockUndo, pfClean);
+    if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash())) {
+        error("DisconnectBlock(): failure reading undo data");
+        return DISCONNECT_FAILED;
+    }
+
+    return ApplyBlockUndo(blockUndo, block, pindex, view);
 }
 
-bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
-                    const CBlockIndex *pindex, CCoinsViewCache &view,
-                    const CBlockUndo &blockUndo, bool *pfClean) {
-    if (pfClean) {
-        *pfClean = false;
-    }
+DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
+                                const CBlock &block, const CBlockIndex *pindex,
+                                CCoinsViewCache &view) {
     bool fClean = true;
 
     if (blockUndo.vtxundo.size() + 1 != block.vtx.size()) {
-        return error("DisconnectBlock(): block and undo data inconsistent");
+        error("DisconnectBlock(): block and undo data inconsistent");
+        return DISCONNECT_FAILED;
     }
 
     // Undo transactions in reverse order.
@@ -1593,9 +1589,10 @@ bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
             if (outsBlock.nVersion < 0) {
                 outs->nVersion = outsBlock.nVersion;
             }
+
             if (*outs != outsBlock) {
-                fClean = fClean && error("DisconnectBlock(): added transaction "
-                                         "mismatch? database corrupted");
+                // Transaction mismatch.
+                fClean = false;
             }
 
             // Remove outputs.
@@ -1610,26 +1607,25 @@ bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
 
         const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
         if (txundo.vprevout.size() != tx.vin.size()) {
-            return error("DisconnectBlock(): transaction and undo data "
-                         "inconsistent");
+            error("DisconnectBlock(): transaction and undo data inconsistent");
+            return DISCONNECT_FAILED;
         }
+
         for (size_t j = tx.vin.size(); j-- > 0;) {
             const COutPoint &out = tx.vin[j].prevout;
             const CTxInUndo &undo = txundo.vprevout[j];
-            if (!ApplyTxInUndo(undo, view, out)) {
-                fClean = false;
+            DisconnectResult res = ApplyTxInUndo(undo, view, out);
+            if (res == DISCONNECT_FAILED) {
+                return DISCONNECT_FAILED;
             }
+            fClean = fClean && res != DISCONNECT_UNCLEAN;
         }
     }
 
     // Move best block pointer to previous block.
     view.SetBestBlock(block.hashPrevBlock);
-    if (pfClean) {
-        *pfClean = fClean;
-        return true;
-    }
 
-    return fClean;
+    return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
 void static FlushBlockFile(bool fFinalize = false) {
@@ -2314,19 +2310,23 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     if (!ReadBlockFromDisk(block, pindexDelete, consensusParams)) {
         return AbortNode(state, "Failed to read block");
     }
+
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
-        if (!DisconnectBlock(block, state, pindexDelete, view)) {
+        if (DisconnectBlock(block, pindexDelete, view) != DISCONNECT_OK) {
             return error("DisconnectTip(): DisconnectBlock %s failed",
                          pindexDelete->GetBlockHash().ToString());
         }
+
         bool flushed = view.Flush();
         assert(flushed);
     }
+
     LogPrint("bench", "- Disconnect block: %.2fms\n",
              (GetTimeMicros() - nStart) * 0.001);
+
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) {
         return false;
@@ -3976,13 +3976,18 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                          CCoinsView *coinsview, int nCheckLevel,
                          int nCheckDepth) {
     LOCK(cs_main);
-    if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr)
+    if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr) {
         return true;
+    }
 
     // Verify blocks in the best chain
-    if (nCheckDepth <= 0)
-        nCheckDepth = 1000000000; // suffices until the year 19000
-    if (nCheckDepth > chainActive.Height()) nCheckDepth = chainActive.Height();
+    if (nCheckDepth <= 0) {
+        // suffices until the year 19000
+        nCheckDepth = 1000000000;
+    }
+    if (nCheckDepth > chainActive.Height()) {
+        nCheckDepth = chainActive.Height();
+    }
     nCheckLevel = std::max(0, std::min(4, nCheckLevel));
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth,
               nCheckLevel);
@@ -4001,13 +4006,18 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                    99,
                    (int)(((double)(chainActive.Height() - pindex->nHeight)) /
                          (double)nCheckDepth * (nCheckLevel >= 4 ? 50 : 100))));
+
         if (reportDone < percentageDone / 10) {
             // report every 10% step
             LogPrintf("[%d%%]...", percentageDone);
             reportDone = percentageDone / 10;
         }
+
         uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone);
-        if (pindex->nHeight < chainActive.Height() - nCheckDepth) break;
+        if (pindex->nHeight < chainActive.Height() - nCheckDepth) {
+            break;
+        }
+
         if (fPruneMode && !(pindex->nStatus & BLOCK_HAVE_DATA)) {
             // If pruning, only go back as far as we have data.
             LogPrintf("VerifyDB(): block verification stopping at height %d "
@@ -4016,18 +4026,23 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
             break;
         }
         CBlock block;
+
         // check level 0: read from disk
-        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) {
             return error(
                 "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                 pindex->nHeight, pindex->GetBlockHash().ToString());
+        }
+
         // check level 1: verify block validity
         if (nCheckLevel >= 1 &&
-            !CheckBlock(config, block, state, chainparams.GetConsensus()))
+            !CheckBlock(config, block, state, chainparams.GetConsensus())) {
             return error("%s: *** found bad block at %d, hash=%s (%s)\n",
                          __func__, pindex->nHeight,
                          pindex->GetBlockHash().ToString(),
                          FormatStateMessage(state));
+        }
+
         // check level 2: verify undo validity
         if (nCheckLevel >= 2 && pindex) {
             CBlockUndo undo;
@@ -4041,29 +4056,33 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                 }
             }
         }
+
         // check level 3: check for inconsistencies during memory-only
         // disconnect of tip blocks
         if (nCheckLevel >= 3 && pindex == pindexState &&
             (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
-            bool fClean = true;
-            if (!DisconnectBlock(block, state, pindex, coins, &fClean)) {
+            DisconnectResult res = DisconnectBlock(block, pindex, coins);
+            if (res == DISCONNECT_FAILED) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
                              "block data at %d, hash=%s",
                              pindex->nHeight,
                              pindex->GetBlockHash().ToString());
             }
             pindexState = pindex->pprev;
-            if (!fClean) {
+            if (res == DISCONNECT_UNCLEAN) {
                 nGoodTransactions = 0;
                 pindexFailure = pindex;
-            } else
+            } else {
                 nGoodTransactions += block.vtx.size();
+            }
         }
+
         if (ShutdownRequested()) {
             return true;
         }
     }
+
     if (pindexFailure) {
         return error("VerifyDB(): *** coin database inconsistencies found "
                      "(last %i blocks, %i good transactions before that)\n",

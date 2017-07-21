@@ -17,11 +17,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
-                   const COutPoint &out);
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight);
-
 namespace {
 
 //! equality test
@@ -419,6 +414,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
                 const CTxInUndo &undoin = undo.vprevout[0];
                 ApplyTxInUndo(undoin, *(stack.back()), out);
             }
+
             // Store as a candidate for reconnection
             disconnectedids.insert(undohash);
 

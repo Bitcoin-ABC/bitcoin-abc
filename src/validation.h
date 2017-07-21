@@ -601,15 +601,6 @@ bool ConnectBlock(const Config &config, const CBlock &block,
                   CCoinsViewCache &coins, const CChainParams &chainparams,
                   bool fJustCheck = false);
 
-/** Undo the effects of this block (with given index) on the UTXO set
- * represented by coins. In case pfClean is provided, operation will try to be
- * tolerant about errors, and *pfClean will be true if no problems were found.
- * Otherwise, the return value will be false in case of problems. Note that in
- * any case, coins may be modified. */
-bool DisconnectBlock(const CBlock &block, CValidationState &state,
-                     const CBlockIndex *pindex, CCoinsViewCache &coins,
-                     bool *pfClean = nullptr);
-
 /** Check a block is completely valid from start to finish (only works on top of
  * our current best block, with cs_main held) */
 bool TestBlockValidity(const Config &config, CValidationState &state,

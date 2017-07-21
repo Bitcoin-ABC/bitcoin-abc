@@ -32,14 +32,11 @@ static void UpdateUTXOSet(const CBlock &block, CCoinsViewCache &view,
 }
 
 static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
-                      const CBlockUndo &blockundo,
+                      const CBlockUndo &blockUndo,
                       const CChainParams &chainparams, uint32_t nHeight) {
-    CValidationState state;
-
     CBlockIndex pindex;
     pindex.nHeight = nHeight;
-
-    ApplyBlockUndo(block, state, &pindex, view, blockundo);
+    ApplyBlockUndo(blockUndo, block, &pindex, view);
 }
 
 static bool HasSpendableCoin(const CCoinsViewCache &view, const uint256 &txid) {

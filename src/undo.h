@@ -83,14 +83,31 @@ public:
     }
 };
 
-/** Apply the undo operation of a CTxInUndo to the given chain state. */
-bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
-                   const COutPoint &out);
+enum DisconnectResult {
+    // All good.
+    DISCONNECT_OK,
+    // Rolled back, but UTXO set was inconsistent with block.
+    DISCONNECT_UNCLEAN,
+    // Something else went wrong.
+    DISCONNECT_FAILED,
+};
 
-/** Undo a block from the block and the undoblock data.
- * See DisconnectBlock for more details. */
-bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
-                    const CBlockIndex *pindex, CCoinsViewCache &coins,
-                    const CBlockUndo &blockUndo, bool *pfClean = nullptr);
+/**
+ * Apply the undo operation of a CTxInUndo to the given chain state.
+ * @param undo The undo object.
+ * @param view The coins view to which to apply the changes.
+ * @param out The out point that corresponds to the tx input.
+ * @return A DisconnectResult
+ */
+DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+                               const COutPoint &out);
+
+/**
+ * Undo a block from the block and the undoblock data.
+ * See DisconnectBlock for more details.
+ */
+DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
+                                const CBlock &block, const CBlockIndex *pindex,
+                                CCoinsViewCache &coins);
 
 #endif // BITCOIN_UNDO_H
