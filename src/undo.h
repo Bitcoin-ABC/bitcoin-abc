@@ -16,11 +16,11 @@ class CBlockIndex;
 class CCoinsViewCache;
 class CValidationState;
 
-/** Undo information for a CTxIn
+/**
+ * Undo information for a CTxIn
  *
- *  Contains the prevout's CTxOut being spent, and if this was the
- *  last output of the affected transaction, its metadata as well
- *  (coinbase or not, height, transaction version)
+ * Contains the prevout's CTxOut being spent, and its metadata as well (coinbase
+ * or not, height). Earlier versions also stored the transaction version.
  */
 class CTxInUndo {
 public:
@@ -29,11 +29,11 @@ public:
     // If the outpoint was the last unspent: whether it belonged to a coinbase
     bool fCoinBase;
     // If the outpoint was the last unspent: its height
-    unsigned int nHeight;
+    uint32_t nHeight;
 
     CTxInUndo() : txout(), fCoinBase(false), nHeight(0) {}
     CTxInUndo(const CTxOut &txoutIn, bool fCoinBaseIn = false,
-              unsigned int nHeightIn = 0)
+              uint32_t nHeightIn = 0)
         : txout(txoutIn), fCoinBase(fCoinBaseIn), nHeight(nHeightIn) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
@@ -46,7 +46,7 @@ public:
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        unsigned int nCode = 0;
+        uint32_t nCode = 0;
         ::Unserialize(s, VARINT(nCode));
         nHeight = nCode / 2;
         fCoinBase = nCode & 1;

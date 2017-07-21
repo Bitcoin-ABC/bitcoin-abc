@@ -1250,19 +1250,20 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
             CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
             unsigned nPos = txin.prevout.n;
 
-            if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
+            if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull()) {
                 assert(false);
-            // mark an outpoint spent, and construct undo information
+            }
+
+            // Mark an outpoint spent, and construct undo information.
             txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
             coins->Spend(nPos);
-            if (coins->vout.size() == 0) {
-                CTxInUndo &undo = txundo.vprevout.back();
-                undo.nHeight = coins->nHeight;
-                undo.fCoinBase = coins->fCoinBase;
-            }
+            CTxInUndo &undo = txundo.vprevout.back();
+            undo.nHeight = coins->nHeight;
+            undo.fCoinBase = coins->fCoinBase;
         }
     }
-    // add outputs
+
+    // Add outputs.
     inputs.ModifyNewCoins(tx.GetId(), tx.IsCoinBase())->FromTx(tx, nHeight);
 }
 
@@ -1513,12 +1514,20 @@ DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
         // undo data contains height: this is the last output of the prevout tx
         // being spent
         if (!coins->IsPruned()) {
-            // Overwriting existing transaction.
-            fClean = false;
+            if (coins->fCoinBase != undo.fCoinBase ||
+                uint32_t(coins->nHeight) != undo.nHeight) {
+                // Metadata mismatch.
+                fClean = false;
+            }
         }
+
+        // Restore height/coinbase tx metadata from undo data.
         coins->fCoinBase = undo.fCoinBase;
         coins->nHeight = undo.nHeight;
     } else {
+        // Undo data does not contain height/coinbase. This should never happen
+        // for newly created undo entries. Previously, this data was only saved
+        // for the last spend of a transaction's outputs, so check IsPruned().
         if (coins->IsPruned()) {
             // Adding output to missing transaction.
             fClean = false;
