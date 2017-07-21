@@ -7,7 +7,9 @@
 #ifndef BITCOIN_UNDO_H
 #define BITCOIN_UNDO_H
 
+#include "coins.h"
 #include "compressor.h"
+#include "consensus/consensus.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
 
@@ -20,55 +22,82 @@ class CValidationState;
  * Undo information for a CTxIn
  *
  * Contains the prevout's CTxOut being spent, and its metadata as well (coinbase
- * or not, height). Earlier versions also stored the transaction version.
+ * or not, height). The serialization contains a dummy value of zero. This is be
+ * compatible with older versions which expect to see the transaction version
+ * there.
  */
-class CTxInUndo {
-public:
-    // The txout data before being spent
-    CTxOut txout;
-    // If the outpoint was the last unspent: whether it belonged to a coinbase
-    bool fCoinBase;
-    // If the outpoint was the last unspent: its height
-    uint32_t nHeight;
+class TxInUndoSerializer {
+    const Coin *pcoin;
 
-    CTxInUndo() : txout(), fCoinBase(false), nHeight(0) {}
-    CTxInUndo(const CTxOut &txoutIn, bool fCoinBaseIn = false,
-              uint32_t nHeightIn = 0)
-        : txout(txoutIn), fCoinBase(fCoinBaseIn), nHeight(nHeightIn) {}
+public:
+    TxInUndoSerializer(const Coin *pcoinIn) : pcoin(pcoinIn) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
-        ::Serialize(s, VARINT(nHeight * 2 + (fCoinBase ? 1 : 0)));
-        if (nHeight > 0) {
-            int nVersionDummy = 0;
-            ::Serialize(s, VARINT(nVersionDummy));
+        ::Serialize(
+            s, VARINT(pcoin->GetHeight() * 2 + (pcoin->IsCoinBase() ? 1 : 0)));
+        if (pcoin->GetHeight() > 0) {
+            // Required to maintain compatibility with older undo format.
+            ::Serialize(s, uint8_t(0));
         }
-        ::Serialize(s, CTxOutCompressor(REF(txout)));
+        ::Serialize(s, CTxOutCompressor(REF(pcoin->GetTxOut())));
     }
+};
+
+class TxInUndoDeserializer {
+    Coin *pcoin;
+
+public:
+    TxInUndoDeserializer(Coin *pcoinIn) : pcoin(pcoinIn) {}
 
     template <typename Stream> void Unserialize(Stream &s) {
         uint32_t nCode = 0;
         ::Unserialize(s, VARINT(nCode));
-        nHeight = nCode / 2;
-        fCoinBase = nCode & 1;
+        uint32_t nHeight = nCode / 2;
+        bool fCoinBase = nCode & 1;
         if (nHeight > 0) {
+            // Old versions stored the version number for the last spend of a
+            // transaction's outputs. Non-final spends were indicated with
+            // height = 0.
             int nVersionDummy;
             ::Unserialize(s, VARINT(nVersionDummy));
         }
+
+        CTxOut txout;
         ::Unserialize(s, REF(CTxOutCompressor(REF(txout))));
+
+        *pcoin = Coin(std::move(txout), nHeight, fCoinBase);
     }
 };
 
-/** Undo information for a CTransaction */
+static const size_t MAX_INPUTS_PER_TX =
+    MAX_TX_SIZE / ::GetSerializeSize(CTxIn(), SER_NETWORK, PROTOCOL_VERSION);
+
+/** Restore the UTXO in a Coin at a given COutPoint */
 class CTxUndo {
 public:
     // Undo information for all txins
-    std::vector<CTxInUndo> vprevout;
+    std::vector<Coin> vprevout;
 
-    ADD_SERIALIZE_METHODS;
+    template <typename Stream> void Serialize(Stream &s) const {
+        // TODO: avoid reimplementing vector serializer.
+        uint64_t count = vprevout.size();
+        ::Serialize(s, COMPACTSIZE(REF(count)));
+        for (const auto &prevout : vprevout) {
+            ::Serialize(s, REF(TxInUndoSerializer(&prevout)));
+        }
+    }
 
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(vprevout);
+    template <typename Stream> void Unserialize(Stream &s) {
+        // TODO: avoid reimplementing vector deserializer.
+        uint64_t count = 0;
+        ::Unserialize(s, COMPACTSIZE(count));
+        if (count > MAX_INPUTS_PER_TX) {
+            throw std::ios_base::failure("Too many input undo records");
+        }
+        vprevout.resize(count);
+        for (auto &prevout : vprevout) {
+            ::Unserialize(s, REF(TxInUndoDeserializer(&prevout)));
+        }
     }
 };
 
@@ -96,13 +125,13 @@ enum DisconnectResult {
 };
 
 /**
- * Apply the undo operation of a CTxInUndo to the given chain state.
- * @param undo The undo object.
+ * Restore the UTXO in a Coin at a given COutPoint.
+ * @param undo The Coin to be restored.
  * @param view The coins view to which to apply the changes.
  * @param out The out point that corresponds to the tx input.
  * @return A DisconnectResult
  */
-DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
                                const COutPoint &out);
 
 /**

@@ -1243,7 +1243,7 @@ static void InvalidBlockFound(CBlockIndex *pindex,
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
                  CTxUndo &txundo, int nHeight) {
-    // mark inputs spent
+    // Mark inputs spent.
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn &txin : tx.vin) {
@@ -1255,11 +1255,10 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
             }
 
             // Mark an outpoint spent, and construct undo information.
-            txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
-            coins->Spend(nPos);
-            CTxInUndo &undo = txundo.vprevout.back();
-            undo.nHeight = coins->nHeight;
-            undo.fCoinBase = coins->fCoinBase;
+            txundo.vprevout.emplace_back(coins->vout[nPos], coins->nHeight,
+                                         coins->fCoinBase);
+            bool ret = coins->Spend(nPos);
+            assert(ret);
         }
     }
 
@@ -1504,26 +1503,24 @@ bool AbortNode(CValidationState &state, const std::string &strMessage,
 
 } // anon namespace
 
-/** Apply the undo operation of a CTxInUndo to the given chain state. */
-DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+/** Restore the UTXO in a Coin at a given COutPoint. */
+DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
                                const COutPoint &out) {
     bool fClean = true;
 
     CCoinsModifier coins = view.ModifyCoins(out.hash);
-    if (undo.nHeight != 0) {
-        // undo data contains height: this is the last output of the prevout tx
-        // being spent
+    if (undo.GetHeight() != 0) {
         if (!coins->IsPruned()) {
-            if (coins->fCoinBase != undo.fCoinBase ||
-                uint32_t(coins->nHeight) != undo.nHeight) {
+            if (coins->fCoinBase != undo.IsCoinBase() ||
+                uint32_t(coins->nHeight) != undo.GetHeight()) {
                 // Metadata mismatch.
                 fClean = false;
             }
         }
 
         // Restore height/coinbase tx metadata from undo data.
-        coins->fCoinBase = undo.fCoinBase;
-        coins->nHeight = undo.nHeight;
+        coins->fCoinBase = undo.IsCoinBase();
+        coins->nHeight = undo.GetHeight();
     } else {
         // Undo data does not contain height/coinbase. This should never happen
         // for newly created undo entries. Previously, this data was only saved
@@ -1543,8 +1540,7 @@ DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
         coins->vout.resize(out.n + 1);
     }
 
-    coins->vout[out.n] = undo.txout;
-
+    coins->vout[out.n] = undo.GetTxOut();
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
@@ -1619,8 +1615,8 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
 
         for (size_t j = tx.vin.size(); j-- > 0;) {
             const COutPoint &out = tx.vin[j].prevout;
-            const CTxInUndo &undo = txundo.vprevout[j];
-            DisconnectResult res = ApplyTxInUndo(undo, view, out);
+            const Coin &undo = txundo.vprevout[j];
+            DisconnectResult res = UndoCoinSpend(undo, view, out);
             if (res == DISCONNECT_FAILED) {
                 return DISCONNECT_FAILED;
             }

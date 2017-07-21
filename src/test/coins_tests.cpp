@@ -410,8 +410,8 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             // restore inputs
             if (!tx.IsCoinBase()) {
                 const COutPoint &out = tx.vin[0].prevout;
-                const CTxInUndo &undoin = undo.vprevout[0];
-                ApplyTxInUndo(undoin, *(stack.back()), out);
+                const Coin &undoin = undo.vprevout[0];
+                UndoCoinSpend(undoin, *(stack.back()), out);
             }
 
             // Store as a candidate for reconnection
