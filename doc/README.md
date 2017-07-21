@@ -1,4 +1,4 @@
-Bitcoin ABC 0.14.4
+Bitcoin ABC
 =====================
 
 Setup

@@ -30,7 +30,6 @@ Bitcoin ABC Release Process
 
 4. Increment version number in:
     - doc/Doxyfile
-    - doc/README.md
     - doc/release-notes.md
     - configure.ac
     - src/test/net_tests.cpp
