@@ -1451,7 +1451,9 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CDiskBlockPos &pos,
                       const uint256 &hashBlock) {
     // Open history file to read
     CAutoFile filein(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (filein.IsNull()) return error("%s: OpenUndoFile failed", __func__);
+    if (filein.IsNull()) {
+        return error("%s: OpenUndoFile failed", __func__);
+    }
 
     // Read block
     uint256 hashChecksum;
@@ -1466,8 +1468,9 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CDiskBlockPos &pos,
     CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
     hasher << hashBlock;
     hasher << blockundo;
-    if (hashChecksum != hasher.GetHash())
+    if (hashChecksum != hasher.GetHash()) {
         return error("%s: Checksum mismatch", __func__);
+    }
 
     return true;
 }
@@ -1509,24 +1512,29 @@ bool ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
     if (undo.nHeight != 0) {
         // undo data contains height: this is the last output of the prevout tx
         // being spent
-        if (!coins->IsPruned())
+        if (!coins->IsPruned()) {
             fClean = fClean &&
                      error("%s: undo data overwriting existing transaction",
                            __func__);
+        }
         coins->Clear();
         coins->fCoinBase = undo.fCoinBase;
         coins->nHeight = undo.nHeight;
         coins->nVersion = undo.nVersion;
     } else {
-        if (coins->IsPruned())
+        if (coins->IsPruned()) {
             fClean = fClean &&
                      error("%s: undo data adding output to missing transaction",
                            __func__);
+        }
     }
-    if (coins->IsAvailable(out.n))
+    if (coins->IsAvailable(out.n)) {
         fClean = fClean &&
                  error("%s: undo data overwriting existing output", __func__);
-    if (coins->vout.size() < out.n + 1) coins->vout.resize(out.n + 1);
+    }
+    if (coins->vout.size() < out.n + 1) {
+        coins->vout.resize(out.n + 1);
+    }
     coins->vout[out.n] = undo.txout;
 
     return fClean;
@@ -1537,13 +1545,18 @@ bool DisconnectBlock(const CBlock &block, CValidationState &state,
                      bool *pfClean) {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
-    if (pfClean) *pfClean = false;
+    if (pfClean) {
+        *pfClean = false;
+    }
 
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
-    if (pos.IsNull()) return error("DisconnectBlock(): no undo data available");
-    if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
+    if (pos.IsNull()) {
+        return error("DisconnectBlock(): no undo data available");
+    }
+    if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash())) {
         return error("DisconnectBlock(): failure reading undo data");
+    }
 
     return ApplyBlockUndo(block, state, pindex, view, blockUndo, pfClean);
 }
@@ -1551,11 +1564,14 @@ bool DisconnectBlock(const CBlock &block, CValidationState &state,
 bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
                     const CBlockIndex *pindex, CCoinsViewCache &view,
                     const CBlockUndo &blockUndo, bool *pfClean) {
-    if (pfClean) *pfClean = false;
+    if (pfClean) {
+        *pfClean = false;
+    }
     bool fClean = true;
 
-    if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
+    if (blockUndo.vtxundo.size() + 1 != block.vtx.size()) {
         return error("DisconnectBlock(): block and undo data inconsistent");
+    }
 
     // Undo transactions in reverse order.
     size_t i = block.vtx.size();
@@ -1574,10 +1590,13 @@ bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
             // network rules currently depend on the version here, so an
             // inconsistency is harmless but it must be corrected before txout
             // nversion ever influences a network rule.
-            if (outsBlock.nVersion < 0) outs->nVersion = outsBlock.nVersion;
-            if (*outs != outsBlock)
+            if (outsBlock.nVersion < 0) {
+                outs->nVersion = outsBlock.nVersion;
+            }
+            if (*outs != outsBlock) {
                 fClean = fClean && error("DisconnectBlock(): added transaction "
                                          "mismatch? database corrupted");
+            }
 
             // Remove outputs.
             outs->Clear();
@@ -1590,13 +1609,16 @@ bool ApplyBlockUndo(const CBlock &block, CValidationState &state,
         }
 
         const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
-        if (txundo.vprevout.size() != tx.vin.size())
+        if (txundo.vprevout.size() != tx.vin.size()) {
             return error("DisconnectBlock(): transaction and undo data "
                          "inconsistent");
-        for (unsigned int j = tx.vin.size(); j-- > 0;) {
+        }
+        for (size_t j = tx.vin.size(); j-- > 0;) {
             const COutPoint &out = tx.vin[j].prevout;
             const CTxInUndo &undo = txundo.vprevout[j];
-            if (!ApplyTxInUndo(undo, view, out)) fClean = false;
+            if (!ApplyTxInUndo(undo, view, out)) {
+                fClean = false;
+            }
         }
     }
 
@@ -4011,10 +4033,12 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
             CBlockUndo undo;
             CDiskBlockPos pos = pindex->GetUndoPos();
             if (!pos.IsNull()) {
-                if (!UndoReadFromDisk(undo, pos, pindex->pprev->GetBlockHash()))
+                if (!UndoReadFromDisk(undo, pos,
+                                      pindex->pprev->GetBlockHash())) {
                     return error(
                         "VerifyDB(): *** found bad undo data at %d, hash=%s\n",
                         pindex->nHeight, pindex->GetBlockHash().ToString());
+                }
             }
         }
         // check level 3: check for inconsistencies during memory-only
@@ -4023,11 +4047,12 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
             (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
             bool fClean = true;
-            if (!DisconnectBlock(block, state, pindex, coins, &fClean))
+            if (!DisconnectBlock(block, state, pindex, coins, &fClean)) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
                              "block data at %d, hash=%s",
                              pindex->nHeight,
                              pindex->GetBlockHash().ToString());
+            }
             pindexState = pindex->pprev;
             if (!fClean) {
                 nGoodTransactions = 0;
@@ -4035,13 +4060,16 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
             } else
                 nGoodTransactions += block.vtx.size();
         }
-        if (ShutdownRequested()) return true;
+        if (ShutdownRequested()) {
+            return true;
+        }
     }
-    if (pindexFailure)
+    if (pindexFailure) {
         return error("VerifyDB(): *** coin database inconsistencies found "
                      "(last %i blocks, %i good transactions before that)\n",
                      chainActive.Height() - pindexFailure->nHeight + 1,
                      nGoodTransactions);
+    }
 
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
@@ -4056,14 +4084,17 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                                                 (double)nCheckDepth * 50))));
             pindex = chainActive.Next(pindex);
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) {
                 return error(
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
-            if (!ConnectBlock(config, block, state, pindex, coins, chainparams))
+            }
+            if (!ConnectBlock(config, block, state, pindex, coins,
+                              chainparams)) {
                 return error(
                     "VerifyDB(): *** found unconnectable block at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
+            }
         }
     }
 
