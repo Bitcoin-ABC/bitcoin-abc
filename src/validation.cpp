@@ -1259,7 +1259,6 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
                 CTxInUndo &undo = txundo.vprevout.back();
                 undo.nHeight = coins->nHeight;
                 undo.fCoinBase = coins->fCoinBase;
-                undo.nVersion = coins->nVersion;
             }
         }
     }
@@ -1464,18 +1463,18 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CDiskBlockPos &pos,
 
     // Read block
     uint256 hashChecksum;
+    // We need a CHashVerifier as reserializing may lose data
+    CHashVerifier<CAutoFile> verifier(&filein);
     try {
-        filein >> blockundo;
+        verifier << hashBlock;
+        verifier >> blockundo;
         filein >> hashChecksum;
     } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
 
     // Verify checksum
-    CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-    hasher << hashBlock;
-    hasher << blockundo;
-    if (hashChecksum != hasher.GetHash()) {
+    if (hashChecksum != verifier.GetHash()) {
         return error("%s: Checksum mismatch", __func__);
     }
 
@@ -1519,7 +1518,6 @@ DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
         }
         coins->fCoinBase = undo.fCoinBase;
         coins->nHeight = undo.nHeight;
-        coins->nVersion = undo.nVersion;
     } else {
         if (coins->IsPruned()) {
             // Adding output to missing transaction.
@@ -1589,14 +1587,6 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
             outs->ClearUnspendable();
 
             CCoins outsBlock(tx, pindex->nHeight);
-            // The CCoins serialization does not serialize negative numbers. No
-            // network rules currently depend on the version here, so an
-            // inconsistency is harmless but it must be corrected before txout
-            // nversion ever influences a network rule.
-            if (outsBlock.nVersion < 0) {
-                outs->nVersion = outsBlock.nVersion;
-            }
-
             if (*outs != outsBlock) {
                 // Transaction mismatch.
                 fClean = false;

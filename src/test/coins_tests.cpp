@@ -158,7 +158,6 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
                 } else {
                     updated_an_entry = true;
                 }
-                coins.nVersion = insecure_rand();
                 coins.vout.resize(1);
                 coins.vout[0].nValue = insecure_rand();
                 *entry = coins;
@@ -537,7 +536,6 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
         SER_DISK, CLIENT_VERSION);
     CCoins cc1;
     ss1 >> cc1;
-    BOOST_CHECK_EQUAL(cc1.nVersion, 1);
     BOOST_CHECK_EQUAL(cc1.fCoinBase, false);
     BOOST_CHECK_EQUAL(cc1.nHeight, 203998);
     BOOST_CHECK_EQUAL(cc1.vout.size(), 2);
@@ -555,7 +553,6 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
         SER_DISK, CLIENT_VERSION);
     CCoins cc2;
     ss2 >> cc2;
-    BOOST_CHECK_EQUAL(cc2.nVersion, 1);
     BOOST_CHECK_EQUAL(cc2.fCoinBase, true);
     BOOST_CHECK_EQUAL(cc2.nHeight, 120891);
     BOOST_CHECK_EQUAL(cc2.vout.size(), 17);
@@ -578,7 +575,6 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
     CDataStream ss3(ParseHex("0002000600"), SER_DISK, CLIENT_VERSION);
     CCoins cc3;
     ss3 >> cc3;
-    BOOST_CHECK_EQUAL(cc3.nVersion, 0);
     BOOST_CHECK_EQUAL(cc3.fCoinBase, false);
     BOOST_CHECK_EQUAL(cc3.nHeight, 0);
     BOOST_CHECK_EQUAL(cc3.vout.size(), 1);

@@ -45,19 +45,19 @@ BOOST_AUTO_TEST_CASE(murmurhash3) {
 #undef T
 }
 
-/*
-   SipHash-2-4 output with
-   k = 00 01 02 ...
-   and
-   in = (empty string)
-   in = 00 (1 byte)
-   in = 00 01 (2 bytes)
-   in = 00 01 02 (3 bytes)
-   ...
-   in = 00 01 02 ... 3e (63 bytes)
-
-   from: https://131002.net/siphash/siphash24.c
-*/
+/**
+ * SipHash-2-4 output with
+ * k = 00 01 02 ...
+ * and
+ * in = (empty string)
+ * in = 00 (1 byte)
+ * in = 00 01 (2 bytes)
+ * in = 00 01 02 (3 bytes)
+ * ...
+ * in = 00 01 02 ... 3e (63 bytes)
+ *
+ * from: https://131002.net/siphash/siphash24.c
+ */
 uint64_t siphash_4_2_testvec[] = {
     0x726fdb47dd0e0e31, 0x74f839c593dc67fd, 0x0d6c8009d9a94f5a,
     0x85676696d7fb7e2d, 0xcf2794e0277187b7, 0x18765564cd99a68d,
@@ -154,6 +154,49 @@ BOOST_AUTO_TEST_CASE(siphash) {
         BOOST_CHECK_EQUAL(SipHashUint256(k1, k2, x), sip256.Finalize());
         BOOST_CHECK_EQUAL(SipHashUint256Extra(k1, k2, x, n), sip288.Finalize());
     }
+}
+
+namespace {
+class CDummyObject {
+    uint32_t value;
+
+public:
+    CDummyObject() : value(0) {}
+
+    uint32_t GetValue() { return value; }
+
+    template <typename Stream> void Serialize(Stream &s) const {
+        int nVersionDummy = 0;
+        ::Serialize(s, VARINT(nVersionDummy));
+        ::Serialize(s, VARINT(value));
+    }
+
+    template <typename Stream> void Unserialize(Stream &s) {
+        int nVersionDummy;
+        ::Unserialize(s, VARINT(nVersionDummy));
+        ::Unserialize(s, VARINT(value));
+    }
+};
+}
+
+BOOST_AUTO_TEST_CASE(hashverifier_tests) {
+    std::vector<uint8_t> data = ParseHex("4223");
+    CDataStream ss(data, SER_DISK, CLIENT_VERSION);
+
+    CHashVerifier<CDataStream> verifier(&ss);
+
+    CDummyObject dummy;
+    verifier >> dummy;
+    uint256 checksum = verifier.GetHash();
+    BOOST_CHECK_EQUAL(dummy.GetValue(), 0x23);
+
+    CHashWriter h0(SER_DISK, CLIENT_VERSION);
+    h0 << CDataStream(data, SER_DISK, CLIENT_VERSION);
+    BOOST_CHECK(h0.GetHash() == checksum);
+
+    CHashWriter h1(SER_DISK, CLIENT_VERSION);
+    h1 << dummy;
+    BOOST_CHECK(h1.GetHash() != checksum);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
