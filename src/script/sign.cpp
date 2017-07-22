@@ -33,7 +33,7 @@ bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
         return false;
     }
 
-    vchSig.push_back((unsigned char)nHashType);
+    vchSig.push_back(uint8_t(nHashType));
     return true;
 }
 
@@ -161,10 +161,16 @@ bool ProduceSignature(const BaseSignatureCreator &creator,
     sigdata.scriptSig = PushAll(result);
 
     // Test solution
-    return solved && VerifyScript(sigdata.scriptSig, fromPubKey,
-                                  STANDARD_SCRIPT_VERIFY_FLAGS |
-                                      SCRIPT_ENABLE_SIGHASH_FORKID,
-                                  creator.Checker());
+    // Because we have no good way to get nHashType here, we just try with and
+    // without enabling it. One of the two must pass.
+    // TODO: Remove after the fork.
+    return solved &&
+           (VerifyScript(sigdata.scriptSig, fromPubKey,
+                         STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker()) ||
+            VerifyScript(sigdata.scriptSig, fromPubKey,
+                         STANDARD_SCRIPT_VERIFY_FLAGS |
+                             SCRIPT_ENABLE_SIGHASH_FORKID,
+                         creator.Checker()));
 }
 
 SignatureData DataFromTransaction(const CMutableTransaction &tx,
@@ -215,11 +221,15 @@ static std::vector<valtype> CombineMultisig(
     // Combine all the signatures we've got:
     std::set<valtype> allsigs;
     for (const valtype &v : sigs1) {
-        if (!v.empty()) allsigs.insert(v);
+        if (!v.empty()) {
+            allsigs.insert(v);
+        }
     }
 
     for (const valtype &v : sigs2) {
-        if (!v.empty()) allsigs.insert(v);
+        if (!v.empty()) {
+            allsigs.insert(v);
+        }
     }
 
     // Build a map of pubkey -> signature by matching sigs to pubkeys:
@@ -235,8 +245,14 @@ static std::vector<valtype> CombineMultisig(
                 continue;
             }
 
-            if (checker.CheckSig(sig, pubkey, scriptPubKey,
-                                 SCRIPT_ENABLE_SIGHASH_FORKID)) {
+            // If the transaction is using SIGHASH_FORKID, we ned to set the
+            // apropriate flags.
+            // TODO: Remove after the Hard Fork.
+            uint32_t flags = STANDARD_SCRIPT_VERIFY_FLAGS;
+            if (sig.back() & SIGHASH_FORKID) {
+                flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
+            }
+            if (checker.CheckSig(sig, pubkey, scriptPubKey, flags)) {
                 sigs[pubkey] = sig;
                 break;
             }

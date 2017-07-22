@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     json_tests::tx_valid + sizeof(json_tests::tx_valid)));
 
     ScriptError err;
-    for (unsigned int idx = 0; idx < tests.size(); idx++) {
+    for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
         if (test[0].isArray()) {
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
             std::map<COutPoint, int64_t> mapprevOutValues;
             UniValue inputs = test[0].get_array();
             bool fValid = true;
-            for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
+            for (size_t inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
                 const UniValue &input = inputs[inpIdx];
                 if (!input.isArray()) {
                     fValid = false;
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
             BOOST_CHECK(state.IsValid());
 
             PrecomputedTransactionData txdata(tx);
-            for (unsigned int i = 0; i < tx.vin.size(); i++) {
+            for (size_t i = 0; i < tx.vin.size(); i++) {
                 if (!mapprevOutScriptPubKeys.count(tx.vin[i].prevout)) {
                     BOOST_ERROR("Bad test: " << strTest);
                     break;
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
 
-                unsigned int verify_flags = ParseScriptFlags(test[2].get_str());
+                uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(
                     VerifyScript(tx.vin[i].scriptSig,
                                  mapprevOutScriptPubKeys[tx.vin[i].prevout],
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     json_tests::tx_invalid + sizeof(json_tests::tx_invalid)));
 
     ScriptError err;
-    for (unsigned int idx = 0; idx < tests.size(); idx++) {
+    for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
         if (test[0].isArray()) {
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
             std::map<COutPoint, int64_t> mapprevOutValues;
             UniValue inputs = test[0].get_array();
             bool fValid = true;
-            for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
+            for (size_t inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
                 const UniValue &input = inputs[inpIdx];
                 if (!input.isArray()) {
                     fValid = false;
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
             fValid = CheckRegularTransaction(tx, state) && state.IsValid();
 
             PrecomputedTransactionData txdata(tx);
-            for (unsigned int i = 0; i < tx.vin.size() && fValid; i++) {
+            for (size_t i = 0; i < tx.vin.size() && fValid; i++) {
                 if (!mapprevOutScriptPubKeys.count(tx.vin[i].prevout)) {
                     BOOST_ERROR("Bad test: " << strTest);
                     break;
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
 
-                unsigned int verify_flags = ParseScriptFlags(test[2].get_str());
+                uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 fValid = VerifyScript(
                     tx.vin[i].scriptSig,
                     mapprevOutScriptPubKeys[tx.vin[i].prevout], verify_flags,

@@ -87,6 +87,7 @@ static ScriptErrorDesc script_errors[] = {
      "DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM"},
     {SCRIPT_ERR_NONCOMPRESSED_PUBKEY, "NONCOMPRESSED_PUBKEY"},
     {SCRIPT_ERR_ILLEGAL_FORKID, "ILLEGAL_FORKID"},
+    {SCRIPT_ERR_MUST_USE_FORKID, "MISSING_FORKID"},
 };
 
 const char *FormatScriptError(ScriptError_t err) {

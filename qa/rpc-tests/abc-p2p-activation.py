@@ -47,6 +47,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.forkid_key.set_secretbytes(b"forkid")
         self.forkid_pubkey = self.forkid_key.get_pubkey()
         self.tip = None
+        self.uahfEnabled = False
         self.blocks = {}
 
     def setup_network(self):
@@ -138,8 +139,14 @@ class FullBlockTest(ComparisonTestFramework):
                 scriptSig = CScript([OP_TRUE])
             else:
                 # We have to actually sign it
-                (sighash, err) = SignatureHash(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL)
-                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+                nHashType = SIGHASH_ALL
+                sighash = None
+                if self.uahfEnabled == False:
+                     (sighash, err) = SignatureHash(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL)
+                else:
+                     nHashType |= SIGHASH_FORKID
+                     sighash = SignatureHashForkId(spend.tx.vout[spend.n].scriptPubKey, tx, 0, nHashType, spend.tx.vout[spend.n].nValue)
+                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([nHashType]))])
             tx.vin[0].scriptSig = scriptSig
             # Now add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -313,6 +320,9 @@ class FullBlockTest(ComparisonTestFramework):
         # accepted in the mempool
         tx_spend_id = node.sendrawtransaction(ToHex(tx_spend))
         assert_equal(set(node.getrawmempool()), {tx_spend_id})
+
+        # Mark the HF
+        self.uahfEnabled = True
 
         # HF is active now, we MUST create a big block.
         block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);

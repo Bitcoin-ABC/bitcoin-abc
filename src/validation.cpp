@@ -857,13 +857,14 @@ static bool AcceptToMemoryPoolWorker(
                              "too-long-mempool-chain", false, errString);
         }
 
-        unsigned int scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
+        uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!Params().RequireStandard()) {
             scriptVerifyFlags =
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
-        if (IsUAHFenabledForCurrentBlock(config)) {
+        const bool hasUAHF = IsUAHFenabledForCurrentBlock(config);
+        if (hasUAHF) {
             scriptVerifyFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
         }
 
@@ -888,13 +889,22 @@ static bool AcceptToMemoryPoolWorker(
         //
         // SCRIPT_ENABLE_SIGHASH_FORKID is also added as to ensure we do not
         // filter out transactions using the antireplay feature.
-        if (!CheckInputs(tx, state, view, true,
-                         MANDATORY_SCRIPT_VERIFY_FLAGS |
-                             SCRIPT_ENABLE_SIGHASH_FORKID,
-                         true, txdata)) {
-            return error("%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
-                         "against MANDATORY but not STANDARD flags %s, %s",
-                         __func__, txid.ToString(), FormatStateMessage(state));
+        {
+            // Depending on the UAHF activation, we require SIGHASH_FORKID or
+            // not.
+            // TODO: Cleanup after the Hard Fork.
+            uint32_t mandatoryFlags = MANDATORY_SCRIPT_VERIFY_FLAGS;
+            if (hasUAHF) {
+                mandatoryFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
+            }
+
+            if (!CheckInputs(tx, state, view, true, mandatoryFlags, true,
+                             txdata)) {
+                return error(
+                    "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
+                    "against MANDATORY but not STANDARD flags %s, %s",
+                    __func__, txid.ToString(), FormatStateMessage(state));
+            }
         }
 
         // This transaction should only count for fee estimation if
@@ -1865,7 +1875,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     int64_t nBIP16SwitchTime = 1333238400;
     bool fStrictPayToScriptHash = (pindex->GetBlockTime() >= nBIP16SwitchTime);
 
-    unsigned int flags =
+    uint32_t flags =
         fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE;
 
     // Start enforcing the DERSIG (BIP66) rule
@@ -1889,7 +1899,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(config, pindex->pprev)) {
+    const bool hasUAHF = IsUAHFenabled(config, pindex->pprev);
+    if (hasUAHF) {
+        flags |= SCRIPT_VERIFY_STRICTENC;
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
 
@@ -2070,6 +2082,12 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     nTimeCallbacks += nTime6 - nTime5;
     LogPrint("bench", "    - Callbacks: %.2fms [%.2fs]\n",
              0.001 * (nTime6 - nTime5), nTimeCallbacks * 0.000001);
+
+    // If this block activates UAHF, we clear the mempool. This ensure that
+    // we'll only get replay protected transaction in the mempool going forward.
+    if (!hasUAHF && IsUAHFenabled(config, pindex)) {
+        mempool.clear();
+    }
 
     return true;
 }

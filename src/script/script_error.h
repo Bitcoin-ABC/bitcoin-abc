@@ -59,6 +59,7 @@ typedef enum ScriptError_t {
 
     /* anti replay */
     SCRIPT_ERR_ILLEGAL_FORKID,
+    SCRIPT_ERR_MUST_USE_FORKID,
 
     SCRIPT_ERR_ERROR_COUNT
 } ScriptError;

@@ -121,8 +121,8 @@ class FullBlockTest(ComparisonTestFramework):
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        (sighash, err) = SignatureHash(spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
-        tx.vin[0].scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+        sighash = SignatureHashForkId(spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL|SIGHASH_FORKID, spend_tx.vout[n].nValue)
+        tx.vin[0].scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -169,8 +169,8 @@ class FullBlockTest(ComparisonTestFramework):
                 scriptSig = CScript([OP_TRUE])
             else:
                 # We have to actually sign it
-                (sighash, err) = SignatureHash(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL)
-                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+                sighash = SignatureHashForkId(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL|SIGHASH_FORKID, spend.tx.vout[spend.n].nValue)
+                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))])
             tx.vin[0].scriptSig = scriptSig
             # Now add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -384,14 +384,14 @@ class FullBlockTest(ComparisonTestFramework):
         yield accepted()
 
         # Creates a new transaction using the p2sh transaction included in the last block
-        def spend_p2sh_tx (output_script=CScript([OP_TRUE])):
+        def spend_p2sh_tx(output_script=CScript([OP_TRUE])):
             # Create the transaction
             spent_p2sh_tx = CTransaction()
             spent_p2sh_tx.vin.append(CTxIn(COutPoint(p2sh_tx.sha256, 0), b''))
             spent_p2sh_tx.vout.append(CTxOut(1, output_script))
             # Sign the transaction using the redeem script
-            (sighash, err) = SignatureHash(redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL)
-            sig = self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))
+            sighash = SignatureHashForkId(redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL|SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
+            sig = self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx
