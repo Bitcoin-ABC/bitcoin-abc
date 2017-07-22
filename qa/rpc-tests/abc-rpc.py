@@ -10,6 +10,7 @@ import random
 import re
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.mininode import NODE_BITCOIN_CASH
 from test_framework.cdefs import (ONE_MEGABYTE,
                                   LEGACY_MAX_BLOCK_SIZE,
                                   DEFAULT_MAX_BLOCK_SIZE)
@@ -155,9 +156,18 @@ class ABC_RPC_Test (BitcoinTestFramework):
         # Not allowed to update anymore.
         check_cannot_update_starttime()
 
+    def test_cashservicebit(self):
+        # Check that NODE_BITCOIN_CASH bit is set.
+        # This can be seen in the 'localservices' entry of getnetworkinfo RPC.
+        node = self.nodes[0]
+        nw_info = node.getnetworkinfo()
+        assert_equal(int(nw_info['localservices'], 16) & NODE_BITCOIN_CASH,
+                     NODE_BITCOIN_CASH)
+
     def run_test(self):
         self.test_excessiveblock()
         self.test_uahfstarttime()
+        self.test_cashservicebit()
 
 
 if __name__ == '__main__':
