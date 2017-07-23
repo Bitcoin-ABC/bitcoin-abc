@@ -2036,7 +2036,7 @@ bool AppInitMain(Config &config,
                 pblocktree.reset(
                     new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
-                if (fReindex) {
+                if (fReset) {
                     pblocktree->WriteReindexing(true);
                     // If we're reindexing in prune mode, wipe away unusable
                     // block files and all undo data files
@@ -2052,6 +2052,9 @@ bool AppInitMain(Config &config,
                 // LoadBlockIndex will load fTxIndex from the db, or set it if
                 // we're reindexing. It will also load fHavePruned if we've
                 // ever removed a block file from disk.
+                // Note that it also sets fReindex based on the disk flag!
+                // From here on out fReindex and fReset mean something
+                // different!
                 if (!LoadBlockIndex(config)) {
                     strLoadError = _("Error loading block database");
                     break;
@@ -2087,8 +2090,10 @@ bool AppInitMain(Config &config,
 
                 // At this point blocktree args are consistent with what's on
                 // disk. If we're not mid-reindex (based on disk + args), add a
-                // genesis block on disk. This is called again in ThreadImport
-                // if the reindex completes.
+                // genesis block on disk (otherwise we use the one already on
+                // disk).
+                // This is called again in ThreadImport after the reindex
+                // completes.
                 if (!fReindex && !LoadGenesisBlock(chainparams)) {
                     strLoadError = _("Error initializing block database");
                     break;
@@ -2122,7 +2127,9 @@ bool AppInitMain(Config &config,
                 // The on-disk coinsdb is now in a good state, create the cache
                 pcoinsTip.reset(new CCoinsViewCache(pcoinscatcher.get()));
 
-                if (!fReindex && !fReindexChainState) {
+                bool is_coinsview_empty = fReset || fReindexChainState ||
+                                          pcoinsTip->GetBestBlock().IsNull();
+                if (!is_coinsview_empty) {
                     // LoadChainTip sets chainActive based on pcoinsTip's best
                     // block
                     if (!LoadChainTip(config)) {
@@ -2132,7 +2139,7 @@ bool AppInitMain(Config &config,
                     assert(chainActive.Tip() != nullptr);
                 }
 
-                if (!fReindex) {
+                if (!fReset) {
                     // Note that RewindBlockIndex MUST run even if we're about
                     // to -reindex-chainstate. It both disconnects blocks based
                     // on chainActive, and drops block data in mapBlockIndex
@@ -2146,7 +2153,7 @@ bool AppInitMain(Config &config,
                     }
                 }
 
-                if (!fReindex && !fReindexChainState) {
+                if (!is_coinsview_empty) {
                     uiInterface.InitMessage(_("Verifying blocks..."));
                     if (fHavePruned &&
                         gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
