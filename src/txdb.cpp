@@ -9,6 +9,7 @@
 #include "hash.h"
 #include "pow.h"
 #include "uint256.h"
+#include "validation.h"
 
 #include <cstdint>
 
