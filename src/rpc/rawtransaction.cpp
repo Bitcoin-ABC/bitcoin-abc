@@ -68,9 +68,13 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
 
     uint256 txid = tx.GetHash();
     entry.push_back(Pair("txid", txid.GetHex()));
-    entry.push_back(Pair("hash", tx.GetWitnessHash().GetHex()));
+    //Witness was removed
+    //entry.push_back(Pair("hash", tx.GetWitnessHash().GetHex()));
+    entry.push_back(Pair("hash", tx.GetHash().GetHex()));
     entry.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
-    entry.push_back(Pair("vsize", (int)::GetVirtualTransactionSize(tx)));
+    //Witness was removed
+    //entry.push_back(Pair("vsize", (int)::GetVirtualTransactionSize(tx)));
+    entry.push_back(Pair("vsize", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
     entry.push_back(Pair("version", tx.nVersion));
     entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
     UniValue vin(UniValue::VARR);
@@ -101,6 +105,8 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             }
 
         }
+        //Witness was removed
+        /*
         if (tx.HasWitness()) {
             if (!tx.vin[i].scriptWitness.IsNull()) {
                 UniValue txinwitness(UniValue::VARR);
@@ -111,7 +117,7 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                 in.push_back(Pair("txinwitness", txinwitness));
             }
 
-        }
+        }*/
         in.push_back(Pair("sequence", (int64_t)txin.nSequence));
         vin.push_back(in);
     }

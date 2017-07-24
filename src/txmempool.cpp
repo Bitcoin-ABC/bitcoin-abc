@@ -628,8 +628,8 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     mapTx.erase(it);
     nTransactionsUpdated++;
     minerPolicyEstimator->removeTx(txid);
-    removeAddressIndex(hash);
-    removeSpentIndex(hash);
+    removeAddressIndex(txid);
+    removeSpentIndex(txid);
 }
 
 // Calculates descendants of entry that are not already in setDescendants, and

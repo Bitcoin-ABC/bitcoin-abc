@@ -179,11 +179,11 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
             UniValue delta(UniValue::VOBJ);
 
             if (out.scriptPubKey.IsPayToScriptHash()) {
-                vector<unsigned char> hashBytes(out.scriptPubKey.begin()+2, out.scriptPubKey.begin()+22);
+                std::vector<unsigned char> hashBytes(out.scriptPubKey.begin()+2, out.scriptPubKey.begin()+22);
                 delta.push_back(Pair("address", CBitcoinAddress(CScriptID(uint160(hashBytes))).ToString()));
 
             } else if (out.scriptPubKey.IsPayToPublicKeyHash()) {
-                vector<unsigned char> hashBytes(out.scriptPubKey.begin()+3, out.scriptPubKey.begin()+23);
+                std::vector<unsigned char> hashBytes(out.scriptPubKey.begin()+3, out.scriptPubKey.begin()+23);
                 delta.push_back(Pair("address", CBitcoinAddress(CKeyID(uint160(hashBytes))).ToString()));
             } else {
                 continue;
@@ -771,7 +771,7 @@ UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
 UniValue getblockdeltas(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
-        throw runtime_error("");
+        throw std::runtime_error("");
 
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -794,7 +794,7 @@ UniValue getblockdeltas(const Config &config, const JSONRPCRequest& request)
 UniValue getblockhashes(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 2)
-        throw runtime_error(
+        throw std::runtime_error(
             "getblockhashes timestamp\n"
             "\nReturns array of hashes of blocks within the timestamp range provided.\n"
             "\nArguments:\n"
