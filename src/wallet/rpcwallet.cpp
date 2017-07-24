@@ -1710,6 +1710,17 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
     }
 }
 
+/**
+ * List transactions based on the given criteria.
+ *
+ * @param  pwallet    The wallet.
+ * @param  wtx        The wallet transaction.
+ * @param  strAccount The account, if any, or "*" for all.
+ * @param  nMinDepth  The minimum confirmation depth.
+ * @param  fLong      Whether to include the JSON version of the transaction.
+ * @param  ret        The UniValue into which the result is stored.
+ * @param  filter     The "is mine" filter bool.
+ */
 void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                       const std::string &strAccount, int nMinDepth, bool fLong,
                       UniValue &ret, const isminefilter &filter) {
@@ -2112,19 +2123,30 @@ static UniValue listsinceblock(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() > 3) {
+    if (request.fHelp || request.params.size() > 4) {
         throw std::runtime_error(
             "listsinceblock ( \"blockhash\" target_confirmations "
-            "include_watchonly)\n"
+            "include_watchonly include_removed )\n"
             "\nGet all transactions in blocks since block [blockhash], or all "
-            "transactions if omitted\n"
+            "transactions if omitted.\n"
+            "If \"blockhash\" is no longer a part of the main chain, "
+            "transactions from the fork point onward are included.\n"
+            "Additionally, if include_removed is set, transactions affecting "
+            "the wallet which were removed are returned in the \"removed\" "
+            "array.\n"
             "\nArguments:\n"
             "1. \"blockhash\"            (string, optional) The block hash to "
             "list transactions since\n"
-            "2. target_confirmations:    (numeric, optional) The confirmations "
-            "required, must be 1 or more\n"
+            "2. target_confirmations:    (numeric, optional, default=1) The "
+            "confirmations required, must be 1 or more\n"
             "3. include_watchonly:       (bool, optional, default=false) "
-            "Include transactions to watch-only addresses (see 'importaddress')"
+            "Include transactions to watch-only addresses (see "
+            "'importaddress')\n"
+            "4. include_removed:         (bool, optional, default=true) Show "
+            "transactions that were removed due to a reorg in the \"removed\" "
+            "array\n"
+            "                                                           (not "
+            "guaranteed to work on pruned nodes)\n"
             "\nResult:\n"
             "{\n"
             "  \"transactions\": [\n"
@@ -2180,6 +2202,13 @@ static UniValue listsinceblock(const Config &config,
             "    \"to\": \"...\",            (string) If a comment to is "
             "associated with the transaction.\n"
             "  ],\n"
+            "  \"removed\": [\n"
+            "    <structure is the same as \"transactions\" above, only "
+            "present if include_removed=true>\n"
+            "    Note: transactions that were readded in the active chain will "
+            "appear as-is in this array, and may thus have a positive "
+            "confirmation count.\n"
+            "  ],\n"
             "  \"lastblock\": \"lastblockhash\"     (string) The hash of the "
             "last block\n"
             "}\n"
@@ -2201,7 +2230,11 @@ static UniValue listsinceblock(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
+    // Block index of the specified block or the common ancestor, if the block
+    // provided was in a deactivated chain.
     const CBlockIndex *pindex = nullptr;
+    // Block index of the specified block, even if it's in a deactivated chain.
+    const CBlockIndex *paltindex = nullptr;
     int target_confirms = 1;
     isminefilter filter = ISMINE_SPENDABLE;
 
@@ -2211,7 +2244,7 @@ static UniValue listsinceblock(const Config &config,
         blockId.SetHex(request.params[0].get_str());
         BlockMap::iterator it = mapBlockIndex.find(blockId);
         if (it != mapBlockIndex.end()) {
-            pindex = it->second;
+            paltindex = pindex = it->second;
             if (chainActive[pindex->nHeight] != pindex) {
                 // the block being asked for is a part of a deactivated chain;
                 // we don't want to depend on its perceived height in the block
@@ -2229,9 +2262,12 @@ static UniValue listsinceblock(const Config &config,
         }
     }
 
-    if (request.params.size() > 2 && request.params[2].get_bool()) {
+    if (!request.params[2].isNull() && request.params[2].get_bool()) {
         filter = filter | ISMINE_WATCH_ONLY;
     }
+
+    bool include_removed =
+        (request.params[3].isNull() || request.params[3].get_bool());
 
     int depth = pindex ? (1 + chainActive.Height() - pindex->nHeight) : -1;
 
@@ -2245,12 +2281,36 @@ static UniValue listsinceblock(const Config &config,
         }
     }
 
+    // when a reorg'd block is requested, we also list any relevant transactions
+    // in the blocks of the chain that was detached
+    UniValue removed(UniValue::VARR);
+    while (include_removed && paltindex && paltindex != pindex) {
+        CBlock block;
+        if (!ReadBlockFromDisk(block, paltindex, config)) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR,
+                               "Can't read block from disk");
+        }
+        for (const CTransactionRef &tx : block.vtx) {
+            if (pwallet->mapWallet.count(tx->GetId()) > 0) {
+                // We want all transactions regardless of confirmation count to
+                // appear here, even negative confirmation ones, hence the big
+                // negative.
+                ListTransactions(pwallet, pwallet->mapWallet.at(tx->GetId()),
+                                 "*", -100000000, true, removed, filter);
+            }
+        }
+        paltindex = paltindex->pprev;
+    }
+
     CBlockIndex *pblockLast =
         chainActive[chainActive.Height() + 1 - target_confirms];
     uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256();
 
     UniValue ret(UniValue::VOBJ);
     ret.pushKV("transactions", transactions);
+    if (include_removed) {
+        ret.pushKV("removed", removed);
+    }
     ret.pushKV("lastblock", lastblock.GetHex());
 
     return ret;
@@ -3875,7 +3935,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "listreceivedbylabel",          listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
     { "wallet",             "listreceivedbyaccount",        listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
     { "wallet",             "listreceivedbyaddress",        listreceivedbyaddress,        {"minconf","include_empty","include_watchonly","address_filter"} },
-    { "wallet",             "listsinceblock",               listsinceblock,               {"blockhash","target_confirmations","include_watchonly"} },
+    { "wallet",             "listsinceblock",               listsinceblock,               {"blockhash","target_confirmations","include_watchonly","include_removed"} },
     { "wallet",             "listtransactions",             listtransactions,             {"account","count","skip","include_watchonly"} },
     { "wallet",             "listunspent",                  listunspent,                  {"minconf","maxconf","addresses","include_unsafe","query_options"} },
     { "wallet",             "listwallets",                  listwallets,                  {} },
