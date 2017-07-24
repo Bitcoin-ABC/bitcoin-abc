@@ -41,7 +41,9 @@ void OptionsModel::addOverriddenOption(const std::string &option) {
 
 // Writes all missing QSettings with their default values
 void OptionsModel::Init(bool resetSettings) {
-    if (resetSettings) Reset();
+    if (resetSettings) {
+        Reset();
+    }
 
     checkAndMigrate();
 
@@ -53,31 +55,37 @@ void OptionsModel::Init(bool resetSettings) {
     // These are Qt-only settings:
 
     // Window
-    if (!settings.contains("fHideTrayIcon"))
+    if (!settings.contains("fHideTrayIcon")) {
         settings.setValue("fHideTrayIcon", false);
+    }
     fHideTrayIcon = settings.value("fHideTrayIcon").toBool();
     Q_EMIT hideTrayIconChanged(fHideTrayIcon);
 
-    if (!settings.contains("fMinimizeToTray"))
+    if (!settings.contains("fMinimizeToTray")) {
         settings.setValue("fMinimizeToTray", false);
+    }
     fMinimizeToTray =
         settings.value("fMinimizeToTray").toBool() && !fHideTrayIcon;
 
-    if (!settings.contains("fMinimizeOnClose"))
+    if (!settings.contains("fMinimizeOnClose")) {
         settings.setValue("fMinimizeOnClose", false);
+    }
     fMinimizeOnClose = settings.value("fMinimizeOnClose").toBool();
 
     // Display
-    if (!settings.contains("nDisplayUnit"))
+    if (!settings.contains("nDisplayUnit")) {
         settings.setValue("nDisplayUnit", BitcoinUnits::BTC);
+    }
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 
-    if (!settings.contains("strThirdPartyTxUrls"))
+    if (!settings.contains("strThirdPartyTxUrls")) {
         settings.setValue("strThirdPartyTxUrls", "");
+    }
     strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "").toString();
 
-    if (!settings.contains("fCoinControlFeatures"))
+    if (!settings.contains("fCoinControlFeatures")) {
         settings.setValue("fCoinControlFeatures", false);
+    }
     fCoinControlFeatures =
         settings.value("fCoinControlFeatures", false).toBool();
 
@@ -90,73 +98,95 @@ void OptionsModel::Init(bool resetSettings) {
     // by command-line and show this in the UI.
 
     // Main
-    if (!settings.contains("nDatabaseCache"))
+    if (!settings.contains("nDatabaseCache")) {
         settings.setValue("nDatabaseCache", (qint64)nDefaultDbCache);
-    if (!SoftSetArg("-dbcache",
-                    settings.value("nDatabaseCache").toString().toStdString()))
+    }
+    if (!SoftSetArg(
+            "-dbcache",
+            settings.value("nDatabaseCache").toString().toStdString())) {
         addOverriddenOption("-dbcache");
+    }
 
-    if (!settings.contains("nThreadsScriptVerif"))
+    if (!settings.contains("nThreadsScriptVerif")) {
         settings.setValue("nThreadsScriptVerif", DEFAULT_SCRIPTCHECK_THREADS);
+    }
     if (!SoftSetArg(
             "-par",
-            settings.value("nThreadsScriptVerif").toString().toStdString()))
+            settings.value("nThreadsScriptVerif").toString().toStdString())) {
         addOverriddenOption("-par");
+    }
 
-    if (!settings.contains("strDataDir"))
+    if (!settings.contains("strDataDir")) {
         settings.setValue("strDataDir", Intro::getDefaultDataDirectory());
+    }
 
 // Wallet
 #ifdef ENABLE_WALLET
-    if (!settings.contains("bSpendZeroConfChange"))
+    if (!settings.contains("bSpendZeroConfChange")) {
         settings.setValue("bSpendZeroConfChange", true);
+    }
     if (!SoftSetBoolArg("-spendzeroconfchange",
-                        settings.value("bSpendZeroConfChange").toBool()))
+                        settings.value("bSpendZeroConfChange").toBool())) {
         addOverriddenOption("-spendzeroconfchange");
+    }
 #endif
 
     // Network
-    if (!settings.contains("fUseUPnP"))
+    if (!settings.contains("fUseUPnP")) {
         settings.setValue("fUseUPnP", DEFAULT_UPNP);
-    if (!SoftSetBoolArg("-upnp", settings.value("fUseUPnP").toBool()))
+    }
+    if (!SoftSetBoolArg("-upnp", settings.value("fUseUPnP").toBool())) {
         addOverriddenOption("-upnp");
+    }
 
-    if (!settings.contains("fListen"))
+    if (!settings.contains("fListen")) {
         settings.setValue("fListen", DEFAULT_LISTEN);
-    if (!SoftSetBoolArg("-listen", settings.value("fListen").toBool()))
+    }
+    if (!SoftSetBoolArg("-listen", settings.value("fListen").toBool())) {
         addOverriddenOption("-listen");
+    }
 
-    if (!settings.contains("fUseProxy")) settings.setValue("fUseProxy", false);
-    if (!settings.contains("addrProxy"))
+    if (!settings.contains("fUseProxy")) {
+        settings.setValue("fUseProxy", false);
+    }
+    if (!settings.contains("addrProxy")) {
         settings.setValue("addrProxy", "127.0.0.1:9050");
+    }
     // Only try to set -proxy, if user has enabled fUseProxy
     if (settings.value("fUseProxy").toBool() &&
         !SoftSetArg("-proxy",
-                    settings.value("addrProxy").toString().toStdString()))
+                    settings.value("addrProxy").toString().toStdString())) {
         addOverriddenOption("-proxy");
-    else if (!settings.value("fUseProxy").toBool() &&
-             !GetArg("-proxy", "").empty())
+    } else if (!settings.value("fUseProxy").toBool() &&
+               !GetArg("-proxy", "").empty()) {
         addOverriddenOption("-proxy");
+    }
 
-    if (!settings.contains("fUseSeparateProxyTor"))
+    if (!settings.contains("fUseSeparateProxyTor")) {
         settings.setValue("fUseSeparateProxyTor", false);
-    if (!settings.contains("addrSeparateProxyTor"))
+    }
+    if (!settings.contains("addrSeparateProxyTor")) {
         settings.setValue("addrSeparateProxyTor", "127.0.0.1:9050");
+    }
     // Only try to set -onion, if user has enabled fUseSeparateProxyTor
     if (settings.value("fUseSeparateProxyTor").toBool() &&
         !SoftSetArg(
             "-onion",
-            settings.value("addrSeparateProxyTor").toString().toStdString()))
+            settings.value("addrSeparateProxyTor").toString().toStdString())) {
         addOverriddenOption("-onion");
-    else if (!settings.value("fUseSeparateProxyTor").toBool() &&
-             !GetArg("-onion", "").empty())
+    } else if (!settings.value("fUseSeparateProxyTor").toBool() &&
+               !GetArg("-onion", "").empty()) {
         addOverriddenOption("-onion");
+    }
 
     // Display
-    if (!settings.contains("language")) settings.setValue("language", "");
+    if (!settings.contains("language")) {
+        settings.setValue("language", "");
+    }
     if (!SoftSetArg("-lang",
-                    settings.value("language").toString().toStdString()))
+                    settings.value("language").toString().toStdString())) {
         addOverriddenOption("-lang");
+    }
 
     language = settings.value("language").toString();
 }
@@ -178,8 +208,9 @@ void OptionsModel::Reset() {
     settings.setValue("fReset", true);
 
     // default setting for OptionsModel::StartAtStartup - disabled
-    if (GUIUtil::GetStartOnSystemStartup())
+    if (GUIUtil::GetStartOnSystemStartup()) {
         GUIUtil::SetStartOnSystemStartup(false);
+    }
 }
 
 int OptionsModel::rowCount(const QModelIndex &parent) const {

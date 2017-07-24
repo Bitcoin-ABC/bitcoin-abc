@@ -14,7 +14,8 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 
-/** QSpinBox that uses fixed-point numbers internally and uses our own
+/**
+ * QSpinBox that uses fixed-point numbers internally and uses our own
  * formatting/parsing functions.
  */
 class AmountSpinBox : public QAbstractSpinBox {
@@ -23,8 +24,7 @@ class AmountSpinBox : public QAbstractSpinBox {
 public:
     explicit AmountSpinBox(QWidget *parent)
         : QAbstractSpinBox(parent), currentUnit(BitcoinUnits::BTC),
-          singleStep(100000) // satoshis
-    {
+          singleStep(100000 /* satoshis */) {
         setAlignment(Qt::AlignRight);
 
         connect(lineEdit(), SIGNAL(textEdited(QString)), this,
@@ -35,8 +35,8 @@ public:
         if (text.isEmpty()) return QValidator::Intermediate;
         bool valid = false;
         parse(text, &valid);
-        /* Make sure we return Intermediate so that fixup() is called on defocus
-         */
+        // Make sure we return Intermediate so that fixup() is called on
+        // defocus.
         return valid ? QValidator::Intermediate : QValidator::Invalid;
     }
 
@@ -91,7 +91,8 @@ public:
             int w = fm.width(BitcoinUnits::format(
                 BitcoinUnits::BTC, BitcoinUnits::maxMoney(), false,
                 BitcoinUnits::separatorAlways));
-            w += 2; // cursor blinking space
+            // Cursor blinking space.
+            w += 2;
 
             QStyleOptionSpinBox opt;
             initStyleOption(&opt);
@@ -103,7 +104,7 @@ public:
                          ->subControlRect(QStyle::CC_SpinBox, &opt,
                                           QStyle::SC_SpinBoxEditField, this)
                          .size();
-            // get closer to final result by repeating the calculation
+            // Get closer to final result by repeating the calculation.
             opt.rect.setSize(hint + extra);
             extra += hint -
                      style()
@@ -137,9 +138,13 @@ private:
         CAmount val = 0;
         bool valid = BitcoinUnits::parse(currentUnit, text, &val);
         if (valid) {
-            if (val < 0 || val > BitcoinUnits::maxMoney()) valid = false;
+            if (val < 0 || val > BitcoinUnits::maxMoney()) {
+                valid = false;
+            }
         }
-        if (valid_out) *valid_out = valid;
+        if (valid_out) {
+            *valid_out = valid;
+        }
         return valid ? val : 0;
     }
 
@@ -149,7 +154,7 @@ protected:
             event->type() == QEvent::KeyRelease) {
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
             if (keyEvent->key() == Qt::Key_Comma) {
-                // Translate a comma into a period
+                // Translate a comma into a period.
                 QKeyEvent periodKeyEvent(
                     event->type(), Qt::Key_Period, keyEvent->modifiers(), ".",
                     keyEvent->isAutoRepeat(), keyEvent->count());
@@ -160,17 +165,25 @@ protected:
     }
 
     StepEnabled stepEnabled() const {
-        if (isReadOnly()) // Disable steps when AmountSpinBox is read-only
+        if (isReadOnly()) {
+            // Disable steps when AmountSpinBox is read-only.
             return StepNone;
-        if (text().isEmpty()) // Allow step-up with empty field
+        }
+        if (text().isEmpty()) {
+            // Allow step-up with empty field.
             return StepUpEnabled;
+        }
 
         StepEnabled rv = 0;
         bool valid = false;
         CAmount val = value(&valid);
         if (valid) {
-            if (val > 0) rv |= StepDownEnabled;
-            if (val < BitcoinUnits::maxMoney()) rv |= StepUpEnabled;
+            if (val > 0) {
+                rv |= StepDownEnabled;
+            }
+            if (val < BitcoinUnits::maxMoney()) {
+                rv |= StepUpEnabled;
+            }
         }
         return rv;
     }
@@ -228,10 +241,11 @@ bool BitcoinAmountField::validate() {
 }
 
 void BitcoinAmountField::setValid(bool valid) {
-    if (valid)
+    if (valid) {
         amount->setStyleSheet("");
-    else
+    } else {
         amount->setStyleSheet(STYLE_INVALID);
+    }
 }
 
 bool BitcoinAmountField::eventFilter(QObject *object, QEvent *event) {

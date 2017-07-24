@@ -193,7 +193,9 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
             fShouldReturnFalse = false;
         }
 
-        if (fShouldReturnFalse) return false;
+        if (fShouldReturnFalse) {
+            return false;
+        }
     }
     if (out) {
         *out = rv;

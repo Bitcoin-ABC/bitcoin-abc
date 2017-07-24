@@ -31,9 +31,8 @@
 #define FIGURE_SP_HTML "&#8199;"
 
 // QMessageBox seems to have a bug whereby it doesn't display thin/hair spaces
-// correctly.  Workaround is to display a space in a small font.  If you
-// change this, please test that it doesn't cause the parent span to start
-// wrapping.
+// correctly. Workaround is to display a space in a small font. If you change
+// this, please test that it doesn't cause the parent span to start wrapping.
 #define HTML_HACK_SP                                                           \
     "<span style='white-space: nowrap; font-size: 6pt'> </span>"
 
@@ -42,18 +41,20 @@
 #define THIN_SP_UTF8 REAL_THIN_SP_UTF8
 #define THIN_SP_HTML HTML_HACK_SP
 
-/** Bitcoin unit definitions. Encapsulates parsing and formatting
-   and serves as list model for drop-down selection boxes.
-*/
+/**
+ * Bitcoin unit definitions. Encapsulates parsing and formatting and serves as
+ * list model for drop-down selection boxes.
+ */
 class BitcoinUnits : public QAbstractListModel {
     Q_OBJECT
 
 public:
     explicit BitcoinUnits(QObject *parent);
 
-    /** Bitcoin units.
-      @note Source: https://en.bitcoin.it/wiki/Units . Please add only sensible
-      ones
+    /**
+     * Bitcoin units.
+     * @note Source: https://en.bitcoin.it/wiki/Units.
+     * Please add only sensible ones.
      */
     enum Unit { BTC, mBTC, uBTC };
 
@@ -120,6 +121,7 @@ public:
 private:
     QList<BitcoinUnits::Unit> unitlist;
 };
+
 typedef BitcoinUnits::Unit BitcoinUnit;
 
 #endif // BITCOIN_QT_BITCOINUNITS_H

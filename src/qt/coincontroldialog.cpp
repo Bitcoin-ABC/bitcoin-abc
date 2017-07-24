@@ -574,8 +574,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
                 }
             }
 
-            if (nChange == 0 && !CoinControlDialog::fSubtractFeeFromAmount)
+            if (nChange == 0 && !CoinControlDialog::fSubtractFeeFromAmount) {
                 nBytes -= 34;
+            }
         }
 
         // after fee
@@ -584,8 +585,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // actually update labels
     int nDisplayUnit = BitcoinUnits::BTC;
-    if (model && model->getOptionsModel())
+    if (model && model->getOptionsModel()) {
         nDisplayUnit = model->getOptionsModel()->getDisplayUnit();
+    }
 
     QLabel *l1 = dialog->findChild<QLabel *>("labelCoinControlQuantity");
     QLabel *l2 = dialog->findChild<QLabel *>("labelCoinControlAmount");
@@ -623,8 +625,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (nPayFee > 0 && (coinControl->nMinimumTotalFee < nPayFee)) {
         l3->setText(ASYMP_UTF8 + l3->text());
         l4->setText(ASYMP_UTF8 + l4->text());
-        if (nChange > 0 && !CoinControlDialog::fSubtractFeeFromAmount)
+        if (nChange > 0 && !CoinControlDialog::fSubtractFeeFromAmount) {
             l8->setText(ASYMP_UTF8 + l8->text());
+        }
     }
 
     // turn label red when dust
@@ -637,11 +640,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // how many satoshis the estimated fee can vary per byte we guess wrong
     double dFeeVary;
-    if (payTxFee.GetFeePerK() > 0)
+    if (payTxFee.GetFeePerK() > 0) {
         dFeeVary = (double)std::max(CWallet::GetRequiredFee(1000),
                                     payTxFee.GetFeePerK()) /
                    1000;
-    else {
+    } else {
         dFeeVary =
             (double)std::max(
                 CWallet::GetRequiredFee(1000),
@@ -668,12 +671,15 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // Insufficient funds
     QLabel *label = dialog->findChild<QLabel *>("labelCoinControlInsuffFunds");
-    if (label) label->setVisible(nChange < 0);
+    if (label) {
+        label->setVisible(nChange < 0);
+    }
 }
 
 void CoinControlDialog::updateView() {
-    if (!model || !model->getOptionsModel() || !model->getAddressTableModel())
+    if (!model || !model->getOptionsModel() || !model->getAddressTableModel()) {
         return;
+    }
 
     bool treeMode = ui->radioTreeMode->isChecked();
 
@@ -700,7 +706,9 @@ void CoinControlDialog::updateView() {
         QString sWalletAddress = coins.first;
         QString sWalletLabel =
             model->getAddressTableModel()->labelForAddress(sWalletAddress);
-        if (sWalletLabel.isEmpty()) sWalletLabel = tr("(no label)");
+        if (sWalletLabel.isEmpty()) {
+            sWalletLabel = tr("(no label)");
+        }
 
         if (treeMode) {
             // wallet address
@@ -723,10 +731,11 @@ void CoinControlDialog::updateView() {
             nChildren++;
 
             CCoinControlWidgetItem *itemOutput;
-            if (treeMode)
+            if (treeMode) {
                 itemOutput = new CCoinControlWidgetItem(itemWalletAddress);
-            else
+            } else {
                 itemOutput = new CCoinControlWidgetItem(ui->treeWidget);
+            }
             itemOutput->setFlags(flgCheckbox);
             itemOutput->setCheckState(COLUMN_CHECKBOX, Qt::Unchecked);
 
@@ -740,14 +749,14 @@ void CoinControlDialog::updateView() {
 
                 // if listMode or change => show bitcoin address. In tree mode,
                 // address is not shown again for direct wallet address outputs
-                if (!treeMode || (!(sAddress == sWalletAddress)))
+                if (!treeMode || (!(sAddress == sWalletAddress))) {
                     itemOutput->setText(COLUMN_ADDRESS, sAddress);
+                }
             }
 
             // label
             if (!(sAddress == sWalletAddress)) {
-                // change
-                // tooltip from where the change comes from
+                // change tooltip from where the change comes from
                 itemOutput->setToolTip(COLUMN_LABEL, tr("change from %1 (%2)")
                                                          .arg(sWalletLabel)
                                                          .arg(sWalletAddress));
@@ -755,7 +764,9 @@ void CoinControlDialog::updateView() {
             } else if (!treeMode) {
                 QString sLabel =
                     model->getAddressTableModel()->labelForAddress(sAddress);
-                if (sLabel.isEmpty()) sLabel = tr("(no label)");
+                if (sLabel.isEmpty()) {
+                    sLabel = tr("(no label)");
+                }
                 itemOutput->setText(COLUMN_LABEL, sLabel);
             }
 
@@ -801,8 +812,9 @@ void CoinControlDialog::updateView() {
             }
 
             // set checkbox
-            if (coinControl->IsSelected(COutPoint(txhash, out.i)))
+            if (coinControl->IsSelected(COutPoint(txhash, out.i))) {
                 itemOutput->setCheckState(COLUMN_CHECKBOX, Qt::Checked);
+            }
         }
 
         // amount

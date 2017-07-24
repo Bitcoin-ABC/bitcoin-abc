@@ -87,7 +87,10 @@ QString BitcoinUnits::format(int unit, const CAmount &nIn, bool fPlus,
                              SeparatorStyle separators) {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.
-    if (!valid(unit)) return QString(); // Refuse to format invalid unit
+    if (!valid(unit)) {
+        // Refuse to format invalid unit
+        return QString();
+    }
     qint64 n = (qint64)nIn;
     qint64 coin = factor(unit);
     int num_decimals = decimals(unit);
@@ -99,19 +102,22 @@ QString BitcoinUnits::format(int unit, const CAmount &nIn, bool fPlus,
         QString::number(remainder).rightJustified(num_decimals, '0');
 
     // Use SI-style thin space separators as these are locale independent and
-    // can't be
-    // confused with the decimal marker.
+    // can't be confused with the decimal marker.
     QChar thin_sp(THIN_SP_CP);
     int q_size = quotient_str.size();
     if (separators == separatorAlways ||
-        (separators == separatorStandard && q_size > 4))
-        for (int i = 3; i < q_size; i += 3)
+        (separators == separatorStandard && q_size > 4)) {
+        for (int i = 3; i < q_size; i += 3) {
             quotient_str.insert(q_size - i, thin_sp);
+        }
+    }
 
-    if (n < 0)
+    if (n < 0) {
         quotient_str.insert(0, '-');
-    else if (fPlus && n > 0)
+    } else if (fPlus && n > 0) {
         quotient_str.insert(0, '+');
+    }
+
     return quotient_str + QString(".") + remainder_str;
 }
 
@@ -138,15 +144,18 @@ QString BitcoinUnits::formatHtmlWithUnit(int unit, const CAmount &amount,
 }
 
 bool BitcoinUnits::parse(int unit, const QString &value, CAmount *val_out) {
-    if (!valid(unit) || value.isEmpty())
-        return false; // Refuse to parse invalid unit or empty string
+    if (!valid(unit) || value.isEmpty()) {
+        // Refuse to parse invalid unit or empty string
+        return false;
+    }
     int num_decimals = decimals(unit);
 
     // Ignore spaces and thin spaces when parsing
     QStringList parts = removeSpaces(value).split(".");
 
     if (parts.size() > 2) {
-        return false; // More than one dot
+        // More than one dot
+        return false;
     }
     QString whole = parts[0];
     QString decimals;
@@ -155,13 +164,15 @@ bool BitcoinUnits::parse(int unit, const QString &value, CAmount *val_out) {
         decimals = parts[1];
     }
     if (decimals.size() > num_decimals) {
-        return false; // Exceeds max precision
+        // Exceeds max precision
+        return false;
     }
     bool ok = false;
     QString str = whole + decimals.leftJustified(num_decimals, '0');
 
     if (str.size() > 18) {
-        return false; // Longer numbers will exceed 63 bits
+        // Longer numbers will exceed 63 bits
+        return false;
     }
     CAmount retvalue(str.toLongLong(&ok));
     if (val_out) {

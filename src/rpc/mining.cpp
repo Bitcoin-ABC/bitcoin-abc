@@ -39,9 +39,13 @@
 static UniValue GetNetworkHashPS(int lookup, int height) {
     CBlockIndex *pb = chainActive.Tip();
 
-    if (height >= 0 && height < chainActive.Height()) pb = chainActive[height];
+    if (height >= 0 && height < chainActive.Height()) {
+        pb = chainActive[height];
+    }
 
-    if (pb == nullptr || !pb->nHeight) return 0;
+    if (pb == nullptr || !pb->nHeight) {
+        return 0;
+    }
 
     // If lookup is -1, then use blocks since last difficulty change.
     if (lookup <= 0) {
@@ -51,7 +55,9 @@ static UniValue GetNetworkHashPS(int lookup, int height) {
     }
 
     // If lookup is larger than chain, then set it to chain length.
-    if (lookup > pb->nHeight) lookup = pb->nHeight;
+    if (lookup > pb->nHeight) {
+        lookup = pb->nHeight;
+    }
 
     CBlockIndex *pb0 = pb;
     int64_t minTime = pb0->GetBlockTime();
@@ -65,7 +71,9 @@ static UniValue GetNetworkHashPS(int lookup, int height) {
 
     // In case there's a situation where minTime == maxTime, we don't want a
     // divide by zero exception.
-    if (minTime == maxTime) return 0;
+    if (minTime == maxTime) {
+        return 0;
+    }
 
     arith_uint256 workDiff = pb->nChainWork - pb0->nChainWork;
     int64_t timeDiff = maxTime - minTime;
@@ -125,8 +133,9 @@ static UniValue generateBlocks(const Config &config,
         std::unique_ptr<CBlockTemplate> pblocktemplate(
             BlockAssembler(config, Params())
                 .CreateNewBlock(coinbaseScript->reserveScript));
-        if (!pblocktemplate.get())
+        if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
+        }
         CBlock *pblock = &pblocktemplate->block;
         {
             LOCK(cs_main);
@@ -146,9 +155,10 @@ static UniValue generateBlocks(const Config &config,
         }
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        if (!ProcessNewBlock(config, shared_pblock, true, nullptr))
+        if (!ProcessNewBlock(config, shared_pblock, true, nullptr)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "ProcessNewBlock, block not accepted");
+        }
         ++nHeight;
         blockHashes.push_back(pblock->GetHash().GetHex());
 
@@ -236,9 +246,10 @@ static UniValue generatetoaddress(const Config &config,
     }
 
     CBitcoinAddress address(request.params[1].get_str());
-    if (!address.IsValid())
+    if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Error: Invalid address");
+    }
 
     boost::shared_ptr<CReserveScript> coinbaseScript(new CReserveScript());
     coinbaseScript->reserveScript = GetScriptForDestination(address.Get());
@@ -274,13 +285,13 @@ static UniValue getmininginfo(const Config &config,
     LOCK(cs_main);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("blocks", (int)chainActive.Height()));
-    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty", (double)GetDifficulty()));
+    obj.push_back(Pair("blocks", int(chainActive.Height())));
+    obj.push_back(Pair("currentblocksize", uint64_t(nLastBlockSize)));
+    obj.push_back(Pair("currentblocktx", uint64_t(nLastBlockTx)));
+    obj.push_back(Pair("difficulty", double(GetDifficulty())));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
-    obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
+    obj.push_back(Pair("pooledtx", uint64_t(mempool.size())));
     obj.push_back(Pair("chain", Params().NetworkIDString()));
     return obj;
 }
@@ -329,7 +340,9 @@ static UniValue prioritisetransaction(const Config &config,
 // handled by caller
 static UniValue BIP22ValidationResult(const Config &config,
                                       const CValidationState &state) {
-    if (state.IsValid()) return NullUniValue;
+    if (state.IsValid()) {
+        return NullUniValue;
+    }
 
     std::string strRejectReason = state.GetRejectReason();
     if (state.IsError()) {
@@ -337,7 +350,9 @@ static UniValue BIP22ValidationResult(const Config &config,
     }
 
     if (state.IsInvalid()) {
-        if (strRejectReason.empty()) return "rejected";
+        if (strRejectReason.empty()) {
+            return "rejected";
+        }
         return strRejectReason;
     }
 
@@ -494,39 +509,46 @@ static UniValue getblocktemplate(const Config &config,
     if (request.params.size() > 0) {
         const UniValue &oparam = request.params[0].get_obj();
         const UniValue &modeval = find_value(oparam, "mode");
-        if (modeval.isStr())
+        if (modeval.isStr()) {
             strMode = modeval.get_str();
-        else if (modeval.isNull()) {
+        } else if (modeval.isNull()) {
             /* Do nothing */
-        } else
+        } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
+        }
         lpval = find_value(oparam, "longpollid");
 
         if (strMode == "proposal") {
             const UniValue &dataval = find_value(oparam, "data");
-            if (!dataval.isStr())
+            if (!dataval.isStr()) {
                 throw JSONRPCError(RPC_TYPE_ERROR,
                                    "Missing data String key for proposal");
+            }
 
             CBlock block;
-            if (!DecodeHexBlk(block, dataval.get_str()))
+            if (!DecodeHexBlk(block, dataval.get_str())) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                    "Block decode failed");
+            }
 
             uint256 hash = block.GetHash();
             BlockMap::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end()) {
                 CBlockIndex *pindex = mi->second;
-                if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) return "duplicate";
-                if (pindex->nStatus & BLOCK_FAILED_MASK)
+                if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
+                    return "duplicate";
+                }
+                if (pindex->nStatus & BLOCK_FAILED_MASK) {
                     return "duplicate-invalid";
+                }
                 return "duplicate-inconclusive";
             }
 
             CBlockIndex *const pindexPrev = chainActive.Tip();
             // TestBlockValidity only supports blocks built on the current Tip
-            if (block.hashPrevBlock != pindexPrev->GetBlockHash())
+            if (block.hashPrevBlock != pindexPrev->GetBlockHash()) {
                 return "inconclusive-not-best-prevblk";
+            }
             CValidationState state;
             TestBlockValidity(config, state, Params(), block, pindexPrev, false,
                               true);
@@ -535,7 +557,7 @@ static UniValue getblocktemplate(const Config &config,
 
         const UniValue &aClientRules = find_value(oparam, "rules");
         if (aClientRules.isArray()) {
-            for (unsigned int i = 0; i < aClientRules.size(); ++i) {
+            for (size_t i = 0; i < aClientRules.size(); ++i) {
                 const UniValue &v = aClientRules[i];
                 setClientRules.insert(v.get_str());
             }
@@ -549,21 +571,25 @@ static UniValue getblocktemplate(const Config &config,
         }
     }
 
-    if (strMode != "template")
+    if (strMode != "template") {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
+    }
 
-    if (!g_connman)
+    if (!g_connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
+    }
 
-    if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
+    if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) {
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED,
                            "Bitcoin is not connected!");
+    }
 
-    if (IsInitialBlockDownload())
+    if (IsInitialBlockDownload()) {
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
                            "Bitcoin is downloading blocks...");
+    }
 
     static unsigned int nTransactionsUpdatedLast;
 
@@ -599,16 +625,18 @@ static UniValue getblocktemplate(const Config &config,
                 if (!cvBlockChange.timed_wait(lock, checktxtime)) {
                     // Timeout: Check transactions for update
                     if (mempool.GetTransactionsUpdated() !=
-                        nTransactionsUpdatedLastLP)
+                        nTransactionsUpdatedLastLP) {
                         break;
+                    }
                     checktxtime += boost::posix_time::seconds(10);
                 }
             }
         }
         ENTER_CRITICAL_SECTION(cs_main);
 
-        if (!IsRPCRunning())
+        if (!IsRPCRunning()) {
             throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Shutting down");
+        }
         // TODO: Maybe recheck connections/IBD and (if something wrong) send an
         // expires-immediately template to stop miners?
     }
@@ -633,8 +661,9 @@ static UniValue getblocktemplate(const Config &config,
         CScript scriptDummy = CScript() << OP_TRUE;
         pblocktemplate =
             BlockAssembler(config, Params()).CreateNewBlock(scriptDummy);
-        if (!pblocktemplate)
+        if (!pblocktemplate) {
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
+        }
 
         // Need to update only after we know CreateNewBlock succeeded
         pindexPrev = pindexPrevNew;
@@ -657,7 +686,9 @@ static UniValue getblocktemplate(const Config &config,
         uint256 txId = tx.GetId();
         setTxIndex[txId] = i++;
 
-        if (tx.IsCoinBase()) continue;
+        if (tx.IsCoinBase()) {
+            continue;
+        }
 
         UniValue entry(UniValue::VOBJ);
 
@@ -799,7 +830,10 @@ public:
 protected:
     virtual void BlockChecked(const CBlock &block,
                               const CValidationState &stateIn) {
-        if (block.GetHash() != hash) return;
+        if (block.GetHash() != hash) {
+            return;
+        }
+
         found = true;
         state = stateIn;
     }
@@ -832,8 +866,9 @@ static UniValue submitblock(const Config &config,
 
     std::shared_ptr<CBlock> blockptr = std::make_shared<CBlock>();
     CBlock &block = *blockptr;
-    if (!DecodeHexBlk(block, request.params[0].get_str()))
+    if (!DecodeHexBlk(block, request.params[0].get_str())) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    }
 
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase()) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
@@ -847,8 +882,12 @@ static UniValue submitblock(const Config &config,
         BlockMap::iterator mi = mapBlockIndex.find(hash);
         if (mi != mapBlockIndex.end()) {
             CBlockIndex *pindex = mi->second;
-            if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) return "duplicate";
-            if (pindex->nStatus & BLOCK_FAILED_MASK) return "duplicate-invalid";
+            if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
+                return "duplicate";
+            }
+            if (pindex->nStatus & BLOCK_FAILED_MASK) {
+                return "duplicate-invalid";
+            }
             // Otherwise, we might only have the header - process the block
             // before returning
             fBlockPresent = true;
@@ -860,10 +899,16 @@ static UniValue submitblock(const Config &config,
     bool fAccepted = ProcessNewBlock(config, blockptr, true, nullptr);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
-        if (fAccepted && !sc.found) return "duplicate-inconclusive";
+        if (fAccepted && !sc.found) {
+            return "duplicate-inconclusive";
+        }
         return "duplicate";
     }
-    if (!sc.found) return "inconclusive";
+
+    if (!sc.found) {
+        return "inconclusive";
+    }
+
     return BIP22ValidationResult(config, sc.state);
 }
 
@@ -894,10 +939,14 @@ static UniValue estimatefee(const Config &config,
     RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
 
     int nBlocks = request.params[0].get_int();
-    if (nBlocks < 1) nBlocks = 1;
+    if (nBlocks < 1) {
+        nBlocks = 1;
+    }
 
     CFeeRate feeRate = mempool.estimateFee(nBlocks);
-    if (feeRate == CFeeRate(0)) return -1.0;
+    if (feeRate == CFeeRate(0)) {
+        return -1.0;
+    }
 
     return ValueFromAmount(feeRate.GetFeePerK());
 }
@@ -925,7 +974,9 @@ static UniValue estimatepriority(const Config &config,
     RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
 
     int nBlocks = request.params[0].get_int();
-    if (nBlocks < 1) nBlocks = 1;
+    if (nBlocks < 1) {
+        nBlocks = 1;
+    }
 
     return mempool.estimatePriority(nBlocks);
 }
