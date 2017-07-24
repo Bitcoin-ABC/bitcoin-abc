@@ -1986,6 +1986,24 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     break;
                 }
 
+                // Check for changed -addressindex state
+                if (fAddressIndex != GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex-chainstate to change -addressindex");
+                    break;
+                }
+
+                // Check for changed -spentindex state
+                if (fSpentIndex != GetBoolArg("-spentindex", DEFAULT_SPENTINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex-chainstate to change -spentindex");
+                    break;
+                }
+
+                // Check for changed -timestampindex state
+                if (fTimestampIndex != GetBoolArg("-timestampindex", DEFAULT_TIMESTAMPINDEX)) {
+                    strLoadError = _("You need to rebuild the database using -reindex-chainstate to change -timestampindex");
+                    break;
+                }
+
                 // Check for changed -prune state.  What we are concerned about
                 // is a user who has pruned blocks in the past, but is now
                 // trying to run unpruned.
