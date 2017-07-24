@@ -639,7 +639,7 @@ bool timestampSort(std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta> a,
     return a.second.time < b.second.time;
 }
 
-UniValue getaddressmempool(const JSONRPCRequest& request)
+UniValue getaddressmempool(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
@@ -710,7 +710,7 @@ UniValue getaddressmempool(const JSONRPCRequest& request)
     return result;
 }
 
-UniValue getaddressutxos(const JSONRPCRequest& request)
+UniValue getaddressutxos(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
@@ -796,7 +796,7 @@ UniValue getaddressutxos(const JSONRPCRequest& request)
     }
 }
 
-UniValue getaddressdeltas(const JSONRPCRequest& request)
+UniValue getaddressdeltas(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
         throw runtime_error(
@@ -921,7 +921,7 @@ UniValue getaddressdeltas(const JSONRPCRequest& request)
     }
 }
 
-UniValue getaddressbalance(const JSONRPCRequest& request)
+UniValue getaddressbalance(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
@@ -977,7 +977,7 @@ UniValue getaddressbalance(const JSONRPCRequest& request)
 
 }
 
-UniValue getaddresstxids(const JSONRPCRequest& request)
+UniValue getaddresstxids(const Config &config, const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
@@ -1060,7 +1060,7 @@ UniValue getaddresstxids(const JSONRPCRequest& request)
 
 }
 
-UniValue getspentinfo(const JSONRPCRequest& request)
+UniValue getspentinfo(const Config &config, const JSONRPCRequest& request)
 {
 
     if (request.fHelp || request.params.size() != 1 || !request.params[0].isObject())
@@ -1120,14 +1120,14 @@ static const CRPCCommand commands[] = {
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, true,  {"privkey","message"} },
 
     /* Address index */
-    { "addressindex",       "getaddressmempool",      &getaddressmempool,     true,  {} },
-    { "addressindex",       "getaddressutxos",        &getaddressutxos,       false, {} },
-    { "addressindex",       "getaddressdeltas",       &getaddressdeltas,      false, {} },
-    { "addressindex",       "getaddresstxids",        &getaddresstxids,       false, {} },
-    { "addressindex",       "getaddressbalance",      &getaddressbalance,     false, {} },
+    { "addressindex",       "getaddressmempool",      getaddressmempool,      true,  {} },
+    { "addressindex",       "getaddressutxos",        getaddressutxos,        false, {} },
+    { "addressindex",       "getaddressdeltas",       getaddressdeltas,       false, {} },
+    { "addressindex",       "getaddresstxids",        getaddresstxids,        false, {} },
+    { "addressindex",       "getaddressbalance",      getaddressbalance,      false, {} },
 
     /* Blockchain */
-    { "blockchain",         "getspentinfo",           &getspentinfo,          false, {} },
+    { "blockchain",         "getspentinfo",           getspentinfo,           false, {} },
 
     /* Not shown in help */
     { "hidden",             "setmocktime",            setmocktime,            true,  {"timestamp"}},
