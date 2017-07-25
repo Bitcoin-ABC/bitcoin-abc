@@ -173,9 +173,10 @@ public:
         // bitcoinforks seeders
         vSeeds.push_back(CDNSSeedData("bitcoinforks.org",
                                       "seed-abc.bitcoinforks.org", true));
-        // BU seeder
+        // BU backed seeder
         vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
-                                      "seed.bitcoinunlimited.info", true));
+                                      "btccash-seeder.bitcoinunlimited.info",
+                                      true));
         // Bitprim
         vSeeds.push_back(CDNSSeedData("bitprim.org", "seed.bitprim.org", true));
         // Amaury SÉCHET
