@@ -33,12 +33,13 @@ add_compiler_flag(
 	-Wformat-security
 	-Wcast-align
 	-Wunused-parameter
+	# FIXME: Activating this flag cause cmake to fail on leveldb.
+	# -Wthread-safety-analysis
 	-Wshadow
 )
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
 if(EXTRA_WARNINGS)
-	add_compiler_flag(-Wshadow)
 	add_cxx_compiler_flag(-Wsuggest-override)
 else()
 	add_compiler_flag(-Wno-unused-parameter)
