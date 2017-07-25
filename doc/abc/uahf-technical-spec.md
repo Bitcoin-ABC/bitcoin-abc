@@ -1,6 +1,6 @@
 # UAHF Technical Specification
 
-Version 1.4, 2017-07-16
+Version 1.6, 2017-07-24
 
 
 ## Introduction
@@ -148,8 +148,7 @@ firm rules at their own risk.
 
 ### REQ-6-1 (disallow special OP_RETURN-marked transactions with sunset clause)
 
-Once the fork has activated, transactions containing an OP_RETURN output
-with a specific magic data value of
+Once the fork has activated, transactions consisting exclusively of a single OP_RETURN output, followed by a single minimally-coded data push with the specific magic data value of
 
     Bitcoin: A Peer-to-Peer Electronic Cash System
 
@@ -157,42 +156,53 @@ with a specific magic data value of
 without any terminating null character) shall be considered invalid until
 block 530,000 inclusive.
 
-RATIONALE: To give users on the legacy chain (or other fork chains)
+RATIONALE: (DEPRECATED - see NOTE 2) To give users on the legacy chain (or other fork chains)
 an opt-in way to exclude their transactions from processing on the UAHF
 fork chain. The sunset clause block height is calculated as approximately
 1 year after currently planned UASF activation time (Aug 1 2017 00:00:00 GMT),
 rounded down to a human friendly number.
 
-NOTE: Transactions with such OP_RETURNs shall be considered valid again
+NOTE 1: Transactions with such OP_RETURNs shall be considered valid again
 for block 530,001 and onwards.
 
+NOTE 2: With the changes in v1.6 of this specification, mandatory use
+of SIGHASH_FORKID replay protection on UAHF chain makes the use of this
+opt-out protection unnecessary. Clients should nevertheless implement this
+requirement, as removing it would constitute a hard fork vis-a-vis the
+existing network. The sunset clause in this requirement will take care
+of its expiry by itself.
 
-### REQ-6-2 (opt-in signature shift via hash type)
 
-Once the fork has activated, a transaction shall not be deemed invalid if
+### REQ-6-2 (mandatory signature shift via hash type)
+
+Once the fork has activated, a transaction shall be deemed valid only if
 the following are true in combination:
-- the nHashType has bit 6 set (mask 0x40)
-- adding a magic 'fork id' value to the nHashType before the hash is
-  calculated allows a successful signature verification as per REQ-6-3
+- its nHashType has bit 6 set (SIGHASH_FORKID, mask 0x40)
+- a magic 'fork id' value is added to the nHashType before the hash is
+  calculated (see note 4)
+- it is digested using the new algorithm described in REQ-6-3
 
-RATIONALE: To give users on the UAHF chain an opt-in way to encumber
-replay of their transactions to the legacy chain (and other forks which may
-consider such transactions invalid).
+RATIONALE: To provide strong protection against replay of existing
+transactions on the UAHF chain, only transactions signed with the new
+hash algorithm and having SIGHASH_FORKID set will be accepted, by consensus.
 
-NOTE 1: It is possible for other hard forks to defeat this protection by
-implementing a compatible signature check that accepts transactions
-signed in this special way. However, this does require a counter hard fork.
+NOTE 1: It is possible for other hard forks to allow SIGHASH_FORKID-protected
+transactions on their chain by implementing a compatible signature.
+However, this does require a counter hard fork by legacy chains.
 
-NOTE 2: The client shall still accept transactions whose signatures
-verify according to pre-fork rules, subject to the additional OP_RETURN
-constraint introduced by REQ-6-1.
+NOTE 2: (DEPRECATED) ~~The client shall still accept transactions whose signatures~~
+~~verify according to pre-fork rules, subject to the additional OP_RETURN~~
+~~constraint introduced by REQ-6-1.~~
 
-NOTE 3: If bit 6 is not set, only the unmodified nHashType will be used
-to compute the hash and verify the signature.
+NOTE 3: (DEPRECATED) ~~If bit 6 is not set, only the unmodified nHashType will be used~~
+~~to compute the hash and verify the signature.~~
 
 NOTE 4: The magic 'fork id' value used by UAHF-compatible clients is zero.
 This means that the change in hash when bit 6 is set is effected only by
 the adapted signing algorithm (see REQ-6-3).
+
+NOTE 5: See also REQ-6-4 which introduces a requirement for use of
+SCRIPT_VERIFY_STRICTENC.
 
 
 ### REQ-6-3 (use adapted BIP143 hash algorithm for protected transactions)
@@ -206,6 +216,19 @@ RATIONALE: see Motivation section of BIP143 [2].
 NOTE 1: refer to [3] for the specificaton of the revised transaction
 digest based on BIP143. Revisions were made to account for non-Segwit
 deployment.
+
+
+### REQ-6-4 (mandatory use of SCRIPT_VERIFY_STRICTENC)
+
+Once the fork has activated, transactions shall be validated with
+SCRIPT_VERIFY_STRICTENC flag set.
+
+RATIONALE: Use of SCRIPT_VERIFY_STRICTENC also ensures that the
+nHashType is validated properly.
+
+NOTE: As SCRIPT_VERIFY_STRICTENC is not clearly defined by BIP,
+implementations seeking to be compliant should consult the Bitcoin C++
+source code to emulate the checks enforced by this flag.
 
 
 ### REQ-7 Difficulty adjustement in case of hashrate drop
@@ -228,6 +251,20 @@ constraints at startup.
 RATIONALE: To make it possible to use such a release as a compatible
 client with legacy chain / i.e. to decide to not follow the HF on one's
 node / make a decision at late stage without needing to change client.
+
+
+### OPT-SERVICEBIT (NODE_BITCOIN_CASH service bit)
+
+A UAHF-compatible client should set service bit 5 (value 0x20).
+
+RATIONALE: This service bit allows signaling that the node is a UAHF
+supporting node, which helps DNS seeders distinguish UAHF implementations.
+
+NOTE 1: This is an optional feature which clients do not strictly have to
+implement.
+
+NOTE 2: This bit is currently referred to as NODE_BITCOIN_CASH and displayed
+as "CASH" in user interfaces of some Bitcoin clients (BU, ABC).
 
 
 ## References
