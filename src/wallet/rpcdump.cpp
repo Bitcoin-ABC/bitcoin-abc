@@ -5,6 +5,7 @@
 #include <chain.h>
 #include <config.h>
 #include <core_io.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <merkleblock.h>
 #include <rpc/server.h>
@@ -154,7 +155,8 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     WalletRescanReserver reserver(pwallet);
     bool fRescan = true;
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
 
         EnsureWalletIsUnlocked(pwallet);
 
@@ -366,7 +368,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
 
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
 
         CTxDestination dest = DecodeDestination(request.params[0].get_str(),
                                                 config.GetChainParams());
@@ -437,7 +440,7 @@ UniValue importprunedfunds(const Config &config,
     size_t txnIndex = 0;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) ==
         merkleBlock.header.hashMerkleRoot) {
-        LOCK(cs_main);
+        auto locked_chain = pwallet->chain().lock();
         const CBlockIndex *pindex =
             LookupBlockIndex(merkleBlock.header.GetHash());
         if (!pindex || !chainActive.Contains(pindex)) {
@@ -461,7 +464,8 @@ UniValue importprunedfunds(const Config &config,
     wtx.nIndex = txnIndex;
     wtx.hashBlock = merkleBlock.header.GetHash();
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
 
     if (pwallet->IsMine(*wtx.tx)) {
         pwallet->AddToWallet(wtx, false);
@@ -500,7 +504,8 @@ UniValue removeprunedfunds(const Config &config,
                            "eae7628734ea0a5\""));
     }
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
 
     TxId txid;
     txid.SetHex(request.params[0].get_str());
@@ -592,7 +597,8 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
 
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
 
         for (const auto &dest : GetAllDestinationsForKey(pubKey)) {
             ImportAddress(pwallet, dest, strLabel);
@@ -645,7 +651,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     int64_t nTimeBegin = 0;
     bool fGood = true;
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
 
         EnsureWalletIsUnlocked(pwallet);
 
@@ -829,7 +836,8 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("dumpprivkey", "\"myaddress\""));
     }
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -883,7 +891,8 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             HelpExampleCli("dumpwallet", "\"test\"") +
             HelpExampleRpc("dumpwallet", "\"test\""));
 
-    LOCK2(cs_main, pwallet->cs_wallet);
+    auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -1464,7 +1473,8 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     int64_t nLowestTimestamp = 0;
     UniValue response(UniValue::VARR);
     {
-        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        LOCK(pwallet->cs_wallet);
         EnsureWalletIsUnlocked(pwallet);
 
         // Verify all timestamps are present before importing any keys.
