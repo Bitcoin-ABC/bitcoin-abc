@@ -296,7 +296,7 @@ static UniValue getmininginfo(const Config &config,
     return obj;
 }
 
-// NOTE: Unlike wallet RPC (which use BCC values), mining RPCs follow GBT (BIP
+// NOTE: Unlike wallet RPC (which use BC values), mining RPCs follow GBT (BIP
 // 22) in using satoshi amounts
 static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
@@ -998,7 +998,7 @@ static UniValue estimatesmartfee(const Config &config,
             "\nResult:\n"
             "{\n"
             "  \"feerate\" : x.x,     (numeric) estimate fee-per-kilobyte (in "
-            "BCC)\n"
+            "BC)\n"
             "  \"blocks\" : n         (numeric) block number where estimate "
             "was found\n"
             "}\n"
