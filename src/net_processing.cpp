@@ -777,23 +777,30 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 }
 
 // Requires cs_main.
-void Misbehaving(NodeId pnode, int howmuch) {
-    if (howmuch == 0) return;
+void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
+    if (howmuch == 0) {
+        return;
+    }
 
     CNodeState *state = State(pnode);
-    if (state == nullptr) return;
+    if (state == nullptr) {
+        return;
+    }
 
     state->nMisbehavior += howmuch;
     int banscore = GetArg("-banscore", DEFAULT_BANSCORE_THRESHOLD);
     if (state->nMisbehavior >= banscore &&
         state->nMisbehavior - howmuch < banscore) {
-        LogPrintf("%s: %s peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED\n",
-                  __func__, state->name, pnode, state->nMisbehavior - howmuch,
-                  state->nMisbehavior);
+        LogPrintf(
+            "%s: %s peer=%d (%d -> %d) reason: %s BAN THRESHOLD EXCEEDED\n",
+            __func__, state->name, pnode, state->nMisbehavior - howmuch,
+            state->nMisbehavior, reason.c_str());
         state->fShouldBan = true;
-    } else
-        LogPrintf("%s: %s peer=%d (%d -> %d)\n", __func__, state->name, pnode,
-                  state->nMisbehavior - howmuch, state->nMisbehavior);
+    } else {
+        LogPrintf("%s: %s peer=%d (%d -> %d) reason: %s\n", __func__,
+                  state->name, pnode, state->nMisbehavior - howmuch,
+                  state->nMisbehavior, reason.c_str());
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -943,8 +950,9 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
                 state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
                 hash};
             State(it->second.first)->rejects.push_back(reject);
-            if (nDoS > 0 && it->second.second)
-                Misbehaving(it->second.first, nDoS);
+            if (nDoS > 0 && it->second.second) {
+                Misbehaving(it->second.first, nDoS, state.GetRejectReason());
+            }
         }
     }
     // Check that:
@@ -1282,7 +1290,7 @@ inline void static SendBlockTransactions(const CBlock &block,
     for (size_t i = 0; i < req.indexes.size(); i++) {
         if (req.indexes[i] >= block.vtx.size()) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100);
+            Misbehaving(pfrom->GetId(), 100, "out-of-bound-tx-index");
             LogPrintf(
                 "Peer %d sent us a getblocktxn with out-of-bounds tx indices",
                 pfrom->id);
@@ -1315,7 +1323,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
          strCommand == NetMsgType::FILTERADD)) {
         if (pfrom->nVersion >= NO_BLOOM_VERSION) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100);
+            Misbehaving(pfrom->GetId(), 100, "no-bloom-version");
             return false;
         } else {
             pfrom->fDisconnect = true;
@@ -1359,7 +1367,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     .Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE,
                           std::string("Duplicate version message")));
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 1);
+            Misbehaving(pfrom->GetId(), 1, "multiple-version");
             return false;
         }
 
@@ -1531,7 +1539,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
     else if (pfrom->nVersion == 0) {
         // Must have a version message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom->GetId(), 1);
+        Misbehaving(pfrom->GetId(), 1, "missing-version");
         return false;
     }
 
@@ -1573,7 +1581,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
     else if (!pfrom->fSuccessfullyConnected) {
         // Must have a verack message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom->GetId(), 1);
+        Misbehaving(pfrom->GetId(), 1, "missing-verack");
         return false;
     }
 
@@ -1583,11 +1591,12 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
 
         // Don't want addr from older versions unless seeding
         if (pfrom->nVersion < CADDR_TIME_VERSION &&
-            connman.GetAddressCount() > 1000)
+            connman.GetAddressCount() > 1000) {
             return true;
+        }
         if (vAddr.size() > 1000) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pfrom->GetId(), 20, "oversized-addr");
             return error("message addr size() = %u", vAddr.size());
         }
 
@@ -1648,7 +1657,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pfrom->GetId(), 20, "oversized-inv");
             return error("message inv size() = %u", vInv.size());
         }
 
@@ -1657,8 +1666,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         // Allow whitelisted peers to send data other than blocks in blocks only
         // mode if whitelistrelay is true
         if (pfrom->fWhitelisted &&
-            GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY))
+            GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) {
             fBlocksOnly = false;
+        }
 
         LOCK(cs_main);
 
@@ -1667,10 +1677,12 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
 
         std::vector<CInv> vToFetch;
 
-        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) {
+        for (size_t nInv = 0; nInv < vInv.size(); nInv++) {
             CInv &inv = vInv[nInv];
 
-            if (interruptMsgProc) return true;
+            if (interruptMsgProc) {
+                return true;
+            }
 
             bool fAlreadyHave = AlreadyHave(inv);
             LogPrint("net", "got inv: %s  %s peer=%d\n", inv.ToString(),
@@ -1725,17 +1737,19 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pfrom->GetId(), 20, "too-many-inv");
             return error("message getdata size() = %u", vInv.size());
         }
 
-        if (fDebug || (vInv.size() != 1))
+        if (fDebug || (vInv.size() != 1)) {
             LogPrint("net", "received getdata (%u invsz) peer=%d\n",
                      vInv.size(), pfrom->id);
+        }
 
-        if ((fDebug && vInv.size() > 0) || (vInv.size() == 1))
+        if ((fDebug && vInv.size() > 0) || (vInv.size() == 1)) {
             LogPrint("net", "received getdata for: %s peer=%d\n",
                      vInv[0].ToString(), pfrom->id);
+        }
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(),
                                    vInv.end());
@@ -1974,7 +1988,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 auto itByPrev =
                     mapOrphanTransactionsByPrev.find(vWorkQueue.front());
                 vWorkQueue.pop_front();
-                if (itByPrev == mapOrphanTransactionsByPrev.end()) continue;
+                if (itByPrev == mapOrphanTransactionsByPrev.end()) {
+                    continue;
+                }
                 for (auto mi = itByPrev->second.begin();
                      mi != itByPrev->second.end(); ++mi) {
                     const CTransactionRef &porphanTx = (*mi)->second.tx;
@@ -1988,15 +2004,16 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     // in order to get anyone relaying LegitTxX banned)
                     CValidationState stateDummy;
 
-                    if (setMisbehaving.count(fromPeer)) continue;
+                    if (setMisbehaving.count(fromPeer)) {
+                        continue;
+                    }
                     if (AcceptToMemoryPool(config, mempool, stateDummy,
                                            porphanTx, true, &fMissingInputs2,
                                            &lRemovedTxn)) {
                         LogPrint("mempool", "   accepted orphan tx %s\n",
                                  orphanId.ToString());
                         RelayTransaction(orphanTx, connman);
-                        for (unsigned int i = 0; i < orphanTx.vout.size();
-                             i++) {
+                        for (size_t i = 0; i < orphanTx.vout.size(); i++) {
                             vWorkQueue.emplace_back(orphanId, i);
                         }
                         vEraseQueue.push_back(orphanId);
@@ -2004,7 +2021,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                         int nDos = 0;
                         if (stateDummy.IsInvalid(nDos) && nDos > 0) {
                             // Punish peer that gave us an invalid orphan tx
-                            Misbehaving(fromPeer, nDos);
+                            Misbehaving(fromPeer, nDos, "invalid-orphan-tx");
                             setMisbehaving.insert(fromPeer);
                             LogPrint("mempool", "   invalid orphan tx %s\n",
                                      orphanId.ToString());
@@ -2115,22 +2132,22 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                      tx.GetId().ToString(), pfrom->id,
                      FormatStateMessage(state));
             // Never send AcceptToMemoryPool's internal codes over P2P.
-            if (state.GetRejectCode() < REJECT_INTERNAL)
+            if (state.GetRejectCode() < REJECT_INTERNAL) {
                 connman.PushMessage(
                     pfrom, msgMaker.Make(NetMsgType::REJECT, strCommand,
                                          (unsigned char)state.GetRejectCode(),
                                          state.GetRejectReason().substr(
                                              0, MAX_REJECT_MESSAGE_LENGTH),
                                          inv.hash));
+            }
             if (nDoS > 0) {
-                Misbehaving(pfrom->GetId(), nDoS);
+                Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
             }
         }
     }
 
-    else if (strCommand == NetMsgType::CMPCTBLOCK && !fImporting &&
-             !fReindex) // Ignore blocks received while importing
-    {
+    // Ignore blocks received while importing
+    else if (strCommand == NetMsgType::CMPCTBLOCK && !fImporting && !fReindex) {
         CBlockHeaderAndShortTxIDs cmpctblock;
         vRecv >> cmpctblock;
 
@@ -2141,12 +2158,13 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 mapBlockIndex.end()) {
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
-                if (!IsInitialBlockDownload())
+                if (!IsInitialBlockDownload()) {
                     connman.PushMessage(
                         pfrom,
                         msgMaker.Make(NetMsgType::GETHEADERS,
                                       chainActive.GetLocator(pindexBestHeader),
                                       uint256()));
+                }
                 return true;
             }
         }
@@ -2159,7 +2177,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
-                    Misbehaving(pfrom->GetId(), nDoS);
+                    Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
                 }
                 LogPrintf("Peer %d sent us invalid header via cmpctblock\n",
                           pfrom->id);
@@ -2240,12 +2258,12 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                                              pindex->GetBlockHash(),
                                              chainparams.GetConsensus(), pindex,
                                              &queuedBlockIt)) {
-                        if (!(*queuedBlockIt)->partialBlock)
+                        if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
                                     new PartiallyDownloadedBlock(config,
                                                                  &mempool));
-                        else {
+                        } else {
                             // The block was already in flight using compact
                             // blocks from the same peer.
                             LogPrint("net", "Peer sent us compact block we "
@@ -2259,10 +2277,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     ReadStatus status =
                         partialBlock.InitData(cmpctblock, vExtraTxnForCompact);
                     if (status == READ_STATUS_INVALID) {
-                        MarkBlockAsReceived(
-                            pindex->GetBlockHash()); // Reset in-flight state in
-                                                     // case of whitelist
-                        Misbehaving(pfrom->GetId(), 100);
+                        // Reset in-flight state in case of whitelist
+                        MarkBlockAsReceived(pindex->GetBlockHash());
+                        Misbehaving(pfrom->GetId(), 100, "invalid-cmpctblk");
                         LogPrintf("Peer %d sent us invalid compact block\n",
                                   pfrom->id);
                         return true;
@@ -2405,7 +2422,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (status == READ_STATUS_INVALID) {
                 // Reset in-flight state in case of whitelist.
                 MarkBlockAsReceived(resp.blockhash);
-                Misbehaving(pfrom->GetId(), 100);
+                Misbehaving(pfrom->GetId(), 100, "invalid-cmpctblk-txns");
                 LogPrintf("Peer %d sent us invalid compact block/non-matching "
                           "block transactions\n",
                           pfrom->id);
@@ -2460,9 +2477,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
     }
 
-    else if (strCommand == NetMsgType::HEADERS && !fImporting &&
-             !fReindex) // Ignore headers received while importing
-    {
+    // Ignore headers received while importing
+    else if (strCommand == NetMsgType::HEADERS && !fImporting && !fReindex) {
         std::vector<CBlockHeader> headers;
 
         // Bypass the normal CBlock deserialization, as we don't want to risk
@@ -2470,13 +2486,13 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20);
+            Misbehaving(pfrom->GetId(), 20, "too-many-headers");
             return error("headers message size = %u", nCount);
         }
         headers.resize(nCount);
         for (unsigned int n = 0; n < nCount; n++) {
             vRecv >> headers[n];
-            // ignore tx count; assume it is 0.
+            // Ignore tx count; assume it is 0.
             ReadCompactSize(vRecv);
         }
 
@@ -2525,7 +2541,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 if (nodestate->nUnconnectingHeaders %
                         MAX_UNCONNECTING_HEADERS ==
                     0) {
-                    Misbehaving(pfrom->GetId(), 20);
+                    // The peer is sending us many headers we can't connect.
+                    Misbehaving(pfrom->GetId(), 20,
+                                "too-many-unconnected-headers");
                 }
                 return true;
             }
@@ -2534,7 +2552,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             for (const CBlockHeader &header : headers) {
                 if (!hashLastBlock.IsNull() &&
                     header.hashPrevBlock != hashLastBlock) {
-                    Misbehaving(pfrom->GetId(), 20);
+                    Misbehaving(pfrom->GetId(), 20, "disconnected-header");
                     return error("non-continuous headers sequence");
                 }
                 hashLastBlock = header.GetHash();
@@ -2547,7 +2565,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
-                    Misbehaving(pfrom->GetId(), nDoS);
+                    Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
                 }
                 return error("invalid header received");
             }
@@ -2823,7 +2841,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         if (!filter.IsWithinSizeConstraints()) {
             // There is no excuse for sending a too-large filter
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100);
+            Misbehaving(pfrom->GetId(), 100, "oversized-bloom-filter");
         } else {
             LOCK(pfrom->cs_filter);
             delete pfrom->pfilter;
@@ -2853,7 +2871,9 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
         if (bad) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100);
+            // The structure of this code doesn't really allow for a good error
+            // code. We'll go generic.
+            Misbehaving(pfrom->GetId(), 100, "invalid-filteradd");
         }
     }
 
@@ -2908,18 +2928,18 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman &connman) {
 
     if (state.fShouldBan) {
         state.fShouldBan = false;
-        if (pnode->fWhitelisted)
+        if (pnode->fWhitelisted) {
             LogPrintf("Warning: not punishing whitelisted peer %s!\n",
                       pnode->addr.ToString());
-        else if (pnode->fAddnode)
+        } else if (pnode->fAddnode) {
             LogPrintf("Warning: not punishing addnoded peer %s!\n",
                       pnode->addr.ToString());
-        else {
+        } else {
             pnode->fDisconnect = true;
-            if (pnode->addr.IsLocal())
+            if (pnode->addr.IsLocal()) {
                 LogPrintf("Warning: not banning local peer %s!\n",
                           pnode->addr.ToString());
-            else {
+            } else {
                 connman.Ban(pnode->addr, BanReasonNodeMisbehaving);
             }
         }
