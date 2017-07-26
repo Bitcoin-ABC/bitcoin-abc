@@ -1408,11 +1408,20 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 // or non-null dummy arguments; if so, don't trigger DoS
                 // protection to avoid splitting the network between upgraded
                 // and non-upgraded nodes.
+                uint32_t mandatoryFlags =
+                    flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
                 CScriptCheck check2(scriptPubKey, amount, tx, i,
-                                    flags &
-                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
+                                    mandatoryFlags &
+                                        ~SCRIPT_ENABLE_SIGHASH_FORKID,
                                     cacheStore, txdata);
-                if (check2()) {
+                // We also need to check with and without the forkid flag. Some
+                // node may not have caught up yet with the tip of the chain and
+                // may be relying transaction we do not consider valid.
+                CScriptCheck check3(scriptPubKey, amount, tx, i,
+                                    mandatoryFlags |
+                                        SCRIPT_ENABLE_SIGHASH_FORKID,
+                                    cacheStore, txdata);
+                if (check2() || check3()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
                         strprintf("non-mandatory-script-verify-flag (%s)",
