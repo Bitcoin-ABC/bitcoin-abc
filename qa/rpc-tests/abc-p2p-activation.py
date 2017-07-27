@@ -19,8 +19,8 @@ from test_framework.script import *
 from test_framework.cdefs import *
 
 # Error for illegal use of SIGHASH_FORKID
-SIGHASH_FORKID_ERROR = b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'
-RPC_SIGHASH_FORKID_ERROR = "16: " + SIGHASH_FORKID_ERROR.decode("utf-8")
+SIGHASH_FORKID_ERROR = b'non-mandatory-script-verify-flag (Illegal use of SIGHASH_FORKID)'
+RPC_SIGHASH_FORKID_ERROR = "64: " + SIGHASH_FORKID_ERROR.decode("utf-8")
 SIGHASH_INVALID_ERROR = b'mandatory-script-verify-flag-failed (Script evaluated without error but finished with a false/empty top stack e'
 
 # far into the future
