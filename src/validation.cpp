@@ -647,10 +647,15 @@ static bool AcceptToMemoryPoolWorker(
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
     // be mined yet.
+    CValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
-            config, tx, state, config.GetChainParams().GetConsensus(),
+            config, tx, ctxState, config.GetChainParams().GetConsensus(),
             STANDARD_LOCKTIME_VERIFY_FLAGS)) {
-        return state.DoS(0, false, REJECT_NONSTANDARD, "non-final");
+        // We copy the state from a dummy to ensure we don't increase the
+        // ban score of peer for transaction that could be valid in the future.
+        return state.DoS(
+            0, false, REJECT_NONSTANDARD, ctxState.GetRejectReason(),
+            ctxState.CorruptionPossible(), ctxState.GetDebugMessage());
     }
 
     // Is it already in the memory pool?
