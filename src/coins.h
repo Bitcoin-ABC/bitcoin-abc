@@ -16,7 +16,7 @@
 #include <cassert>
 #include <cstdint>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 /**
  * A UTXO entry.
@@ -296,6 +296,9 @@ public:
      * This *must* return size_t. With Boost 1.46 on 32-bit systems the
      * unordered_map will behave unpredictably if the custom hasher returns a
      * uint64_t, resulting in failures when syncing the chain (#4634).
+     * Note: This information above might be outdated as the unordered map
+     * container type has meanwhile been switched to the C++ standard library
+     * implementation.
      */
     size_t operator()(const uint256 &txid) const {
         return SipHashUint256(k0, k1, txid);
@@ -321,7 +324,7 @@ struct CCoinsCacheEntry {
     CCoinsCacheEntry() : coins(), flags(0) {}
 };
 
-typedef boost::unordered_map<uint256, CCoinsCacheEntry, SaltedTxidHasher>
+typedef std::unordered_map<uint256, CCoinsCacheEntry, SaltedTxidHasher>
     CCoinsMap;
 
 /** Cursor for iterating over CoinsView state */

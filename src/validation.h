@@ -31,7 +31,7 @@
 #include <atomic>
 
 #include <boost/filesystem/path.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 class CBlockIndex;
 class CBlockTreeDB;
@@ -174,7 +174,7 @@ struct BlockHasher {
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
-typedef boost::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
+typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
 extern BlockMap mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
