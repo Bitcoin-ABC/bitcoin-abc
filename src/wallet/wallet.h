@@ -92,7 +92,6 @@ static const bool DEFAULT_AVOIDPARTIALSPENDS = false;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
 
-class CBlockIndex;
 class CChainParams;
 class CCoinControl;
 class COutput;
@@ -301,7 +300,7 @@ public:
         READWRITE(nIndex);
     }
 
-    void SetMerkleBranch(const CBlockIndex *pIndex, int posInBlock);
+    void SetMerkleBranch(const BlockHash &block_hash, int posInBlock);
 
     /**
      * Return depth of transaction in blockchain:
@@ -725,7 +724,7 @@ private:
      * when necessary.
      */
     bool AddToWalletIfInvolvingMe(const CTransactionRef &tx,
-                                  const CBlockIndex *pIndex, int posInBlock,
+                                  const BlockHash &block_hash, int posInBlock,
                                   bool fUpdate)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
@@ -748,11 +747,10 @@ private:
     /**
      * Used by
      * TransactionAddedToMemorypool/BlockConnected/Disconnected/ScanForWalletTransactions.
-     * Should be called with pindexBlock and posInBlock if this is for a
+     * Should be called with non-zero block_hash and posInBlock if this is for a
      * transaction that is included in a block.
      */
-    void SyncTransaction(const CTransactionRef &tx,
-                         const CBlockIndex *pindex = nullptr,
+    void SyncTransaction(const CTransactionRef &tx, const BlockHash &block_hash,
                          int posInBlock = 0, bool update_tx = true)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
@@ -803,10 +801,8 @@ private:
      * Note that this is *not* how far we've processed, we may need some rescan
      * to have seen all transactions in the chain, but is only used to track
      * live BlockConnected callbacks.
-     *
-     * Protected by cs_main (see BlockUntilSyncedToCurrentChain)
      */
-    const CBlockIndex *m_last_block_processed = nullptr;
+    BlockHash m_last_block_processed;
 
 public:
     const CChainParams &chainParams;
@@ -1063,13 +1059,25 @@ public:
     int64_t RescanFromTime(int64_t startTime,
                            const WalletRescanReserver &reserver, bool update);
 
-    enum class ScanResult { SUCCESS, FAILURE, USER_ABORT };
-    ScanResult ScanForWalletTransactions(const CBlockIndex *const pindexStart,
-                                         const CBlockIndex *const pindexStop,
+    struct ScanResult {
+        enum { SUCCESS, FAILURE, USER_ABORT } status = SUCCESS;
+
+        //! Hash and height of most recent block that was successfully scanned.
+        //! Unset if no blocks were scanned due to read errors or the chain
+        //! being empty.
+        BlockHash stop_block;
+        Optional<int> stop_height;
+
+        //! Hash of the most recent block that could not be scanned due to
+        //! read errors or pruning. Will be set if status is FAILURE, unset if
+        //! status is SUCCESS, and may or may not be set if status is
+        //! USER_ABORT.
+        BlockHash failed_block;
+    };
+    ScanResult ScanForWalletTransactions(const BlockHash &first_block,
+                                         const BlockHash &last_block,
                                          const WalletRescanReserver &reserver,
-                                         const CBlockIndex *&failed_block,
-                                         const CBlockIndex *&stop_block,
-                                         bool fUpdate = false);
+                                         bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
