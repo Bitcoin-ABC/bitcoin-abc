@@ -803,6 +803,11 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
     }
 }
 
+// overloaded variant of above to operate on CNode*s
+static void Misbehaving(CNode *node, int howmuch, const std::string &reason) {
+    Misbehaving(node->GetId(), howmuch, reason);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // blockchain -> download logic notification
@@ -1290,7 +1295,7 @@ inline void static SendBlockTransactions(const CBlock &block,
     for (size_t i = 0; i < req.indexes.size(); i++) {
         if (req.indexes[i] >= block.vtx.size()) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100, "out-of-bound-tx-index");
+            Misbehaving(pfrom, 100, "out-of-bound-tx-index");
             LogPrintf(
                 "Peer %d sent us a getblocktxn with out-of-bounds tx indices",
                 pfrom->id);
@@ -1323,7 +1328,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
          strCommand == NetMsgType::FILTERADD)) {
         if (pfrom->nVersion >= NO_BLOOM_VERSION) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100, "no-bloom-version");
+            Misbehaving(pfrom, 100, "no-bloom-version");
             return false;
         } else {
             pfrom->fDisconnect = true;
@@ -1367,7 +1372,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     .Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE,
                           std::string("Duplicate version message")));
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 1, "multiple-version");
+            Misbehaving(pfrom, 1, "multiple-version");
             return false;
         }
 
@@ -1539,7 +1544,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
     else if (pfrom->nVersion == 0) {
         // Must have a version message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom->GetId(), 1, "missing-version");
+        Misbehaving(pfrom, 1, "missing-version");
         return false;
     }
 
@@ -1581,7 +1586,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
     else if (!pfrom->fSuccessfullyConnected) {
         // Must have a verack message before anything else
         LOCK(cs_main);
-        Misbehaving(pfrom->GetId(), 1, "missing-verack");
+        Misbehaving(pfrom, 1, "missing-verack");
         return false;
     }
 
@@ -1596,7 +1601,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         }
         if (vAddr.size() > 1000) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20, "oversized-addr");
+            Misbehaving(pfrom, 20, "oversized-addr");
             return error("message addr size() = %u", vAddr.size());
         }
 
@@ -1657,7 +1662,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20, "oversized-inv");
+            Misbehaving(pfrom, 20, "oversized-inv");
             return error("message inv size() = %u", vInv.size());
         }
 
@@ -1737,7 +1742,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20, "too-many-inv");
+            Misbehaving(pfrom, 20, "too-many-inv");
             return error("message getdata size() = %u", vInv.size());
         }
 
@@ -2141,7 +2146,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                                          inv.hash));
             }
             if (nDoS > 0) {
-                Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
+                Misbehaving(pfrom, nDoS, state.GetRejectReason());
             }
         }
     }
@@ -2177,7 +2182,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
-                    Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
+                    Misbehaving(pfrom, nDoS, state.GetRejectReason());
                 }
                 LogPrintf("Peer %d sent us invalid header via cmpctblock\n",
                           pfrom->id);
@@ -2279,7 +2284,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     if (status == READ_STATUS_INVALID) {
                         // Reset in-flight state in case of whitelist
                         MarkBlockAsReceived(pindex->GetBlockHash());
-                        Misbehaving(pfrom->GetId(), 100, "invalid-cmpctblk");
+                        Misbehaving(pfrom, 100, "invalid-cmpctblk");
                         LogPrintf("Peer %d sent us invalid compact block\n",
                                   pfrom->id);
                         return true;
@@ -2422,7 +2427,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (status == READ_STATUS_INVALID) {
                 // Reset in-flight state in case of whitelist.
                 MarkBlockAsReceived(resp.blockhash);
-                Misbehaving(pfrom->GetId(), 100, "invalid-cmpctblk-txns");
+                Misbehaving(pfrom, 100, "invalid-cmpctblk-txns");
                 LogPrintf("Peer %d sent us invalid compact block/non-matching "
                           "block transactions\n",
                           pfrom->id);
@@ -2486,7 +2491,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 20, "too-many-headers");
+            Misbehaving(pfrom, 20, "too-many-headers");
             return error("headers message size = %u", nCount);
         }
         headers.resize(nCount);
@@ -2542,8 +2547,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                         MAX_UNCONNECTING_HEADERS ==
                     0) {
                     // The peer is sending us many headers we can't connect.
-                    Misbehaving(pfrom->GetId(), 20,
-                                "too-many-unconnected-headers");
+                    Misbehaving(pfrom, 20, "too-many-unconnected-headers");
                 }
                 return true;
             }
@@ -2552,7 +2556,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             for (const CBlockHeader &header : headers) {
                 if (!hashLastBlock.IsNull() &&
                     header.hashPrevBlock != hashLastBlock) {
-                    Misbehaving(pfrom->GetId(), 20, "disconnected-header");
+                    Misbehaving(pfrom, 20, "disconnected-header");
                     return error("non-continuous headers sequence");
                 }
                 hashLastBlock = header.GetHash();
@@ -2565,7 +2569,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
-                    Misbehaving(pfrom->GetId(), nDoS, state.GetRejectReason());
+                    Misbehaving(pfrom, nDoS, state.GetRejectReason());
                 }
                 return error("invalid header received");
             }
@@ -2841,7 +2845,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         if (!filter.IsWithinSizeConstraints()) {
             // There is no excuse for sending a too-large filter
             LOCK(cs_main);
-            Misbehaving(pfrom->GetId(), 100, "oversized-bloom-filter");
+            Misbehaving(pfrom, 100, "oversized-bloom-filter");
         } else {
             LOCK(pfrom->cs_filter);
             delete pfrom->pfilter;
@@ -2873,7 +2877,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             LOCK(cs_main);
             // The structure of this code doesn't really allow for a good error
             // code. We'll go generic.
-            Misbehaving(pfrom->GetId(), 100, "invalid-filteradd");
+            Misbehaving(pfrom, 100, "invalid-filteradd");
         }
     }
 
