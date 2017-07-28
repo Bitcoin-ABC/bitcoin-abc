@@ -6,6 +6,7 @@
 #define BITCOIN_INTERFACES_CHAIN_H
 
 #include <optional.h>
+#include <primitives/transaction.h>
 #include <primitives/txid.h>
 
 #include <cstddef>
@@ -150,6 +151,9 @@ public:
     //! transaction.
     virtual void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                         size_t &descendants) = 0;
+
+    //! Check chain limits.
+    virtual bool checkChainLimits(CTransactionRef tx) = 0;
 };
 
 //! Interface to let node manage chain clients (wallets, or maybe tools for

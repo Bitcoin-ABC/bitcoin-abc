@@ -3395,26 +3395,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
     if (gArgs.GetBoolArg("-walletrejectlongchains",
                          DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
-        // Lastly, ensure this tx will pass the mempool's chain limits.
-        LockPoints lp;
-        CTxMemPoolEntry entry(tx, Amount::zero(), 0, 0, false, 0, lp);
-        CTxMemPool::setEntries setAncestors;
-        size_t nLimitAncestors =
-            gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
-        size_t nLimitAncestorSize =
-            gArgs.GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) *
-            1000;
-        size_t nLimitDescendants =
-            gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
-        size_t nLimitDescendantSize =
-            gArgs.GetArg("-limitdescendantsize",
-                         DEFAULT_DESCENDANT_SIZE_LIMIT) *
-            1000;
-        std::string errString;
-        LOCK(::g_mempool.cs);
-        if (!g_mempool.CalculateMemPoolAncestors(
-                entry, setAncestors, nLimitAncestors, nLimitAncestorSize,
-                nLimitDescendants, nLimitDescendantSize, errString)) {
+        // Lastly, ensure this tx will pass the mempool's chain limits
+        if (!chain().checkChainLimits(tx)) {
             strFailReason = _("Transaction has too long of a mempool chain");
             return false;
         }

@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <policy/mempool.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
 #include <sync.h>
@@ -197,6 +198,29 @@ namespace {
         void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                     size_t &descendants) override {
             ::g_mempool.GetTransactionAncestry(txid, ancestors, descendants);
+        }
+        bool checkChainLimits(CTransactionRef tx) override {
+            LockPoints lp;
+            CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
+            CTxMemPool::setEntries ancestors;
+            auto limit_ancestor_count =
+                gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
+            auto limit_ancestor_size =
+                gArgs.GetArg("-limitancestorsize",
+                             DEFAULT_ANCESTOR_SIZE_LIMIT) *
+                1000;
+            auto limit_descendant_count =
+                gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
+            auto limit_descendant_size =
+                gArgs.GetArg("-limitdescendantsize",
+                             DEFAULT_DESCENDANT_SIZE_LIMIT) *
+                1000;
+            std::string unused_error_string;
+            LOCK(::g_mempool.cs);
+            return ::g_mempool.CalculateMemPoolAncestors(
+                entry, ancestors, limit_ancestor_count, limit_ancestor_size,
+                limit_descendant_count, limit_descendant_size,
+                unused_error_string);
         }
     };
 
