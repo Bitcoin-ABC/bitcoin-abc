@@ -10,6 +10,7 @@
 #include <primitives/blockhash.h>
 #include <sync.h>
 #include <threadsafety.h>
+#include <txmempool.h>
 #include <util/system.h>
 #include <validation.h>
 
