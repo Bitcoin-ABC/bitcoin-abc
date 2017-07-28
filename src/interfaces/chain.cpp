@@ -10,6 +10,7 @@
 #include <policy/mempool.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
+#include <protocol.h>
 #include <sync.h>
 #include <threadsafety.h>
 #include <txmempool.h>
@@ -195,6 +196,11 @@ namespace {
             auto it_mp = ::g_mempool.mapTx.find(txid);
             return it_mp != ::g_mempool.mapTx.end() &&
                    it_mp->GetCountWithDescendants() > 1;
+        }
+        void relayTransaction(const TxId &txid) override {
+            CInv inv(MSG_TX, txid);
+            g_connman->ForEachNode(
+                [&inv](CNode *node) { node->PushInventory(inv); });
         }
         void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                     size_t &descendants) override {

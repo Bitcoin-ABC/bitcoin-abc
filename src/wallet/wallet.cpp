@@ -1993,8 +1993,7 @@ void CWallet::ReacceptWalletTransactions() {
     }
 }
 
-bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain,
-                                       CConnman *connman) {
+bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain) {
     assert(pwallet->GetBroadcastTransactions());
     if (IsCoinBase() || isAbandoned() ||
         GetDepthInMainChain(locked_chain) != 0) {
@@ -2005,10 +2004,8 @@ bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain,
     // GetDepthInMainChain already catches known conflicts.
     if (InMempool() || AcceptToMemoryPool(locked_chain, maxTxFee, state)) {
         pwallet->WalletLogPrintf("Relaying wtx %s\n", GetId().ToString());
-        if (connman) {
-            CInv inv(MSG_TX, GetId());
-            connman->ForEachNode(
-                [&inv](CNode *pnode) { pnode->PushInventory(inv); });
+        if (pwallet->chain().p2pEnabled()) {
+            pwallet->chain().relayTransaction(GetId());
             return true;
         }
     }
@@ -2243,7 +2240,7 @@ bool CWalletTx::IsEquivalentTo(const CWalletTx &_tx) const {
 
 std::vector<uint256>
 CWallet::ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
-                                        int64_t nTime, CConnman *connman) {
+                                        int64_t nTime) {
     std::vector<uint256> result;
 
     LOCK(cs_wallet);
@@ -2262,7 +2259,7 @@ CWallet::ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
 
     for (const std::pair<const unsigned int, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *item.second;
-        if (wtx.RelayWalletTransaction(locked_chain, connman)) {
+        if (wtx.RelayWalletTransaction(locked_chain)) {
             result.push_back(wtx.GetId());
         }
     }
@@ -2295,8 +2292,8 @@ void CWallet::ResendWalletTransactions(int64_t nBestBlockTime,
     auto locked_chain = chain().assumeLocked();
     // Rebroadcast unconfirmed txes older than 5 minutes before the last block
     // was found:
-    std::vector<uint256> relayed = ResendWalletTransactionsBefore(
-        *locked_chain, nBestBlockTime - 5 * 60, connman);
+    std::vector<uint256> relayed =
+        ResendWalletTransactionsBefore(*locked_chain, nBestBlockTime - 5 * 60);
     if (!relayed.empty()) {
         WalletLogPrintf("%s: rebroadcast %u unconfirmed transactions\n",
                         __func__, relayed.size());
@@ -3411,7 +3408,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 bool CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
     std::vector<std::pair<std::string, std::string>> orderForm,
-    CReserveKey &reservekey, CConnman *connman, CValidationState &state) {
+    CReserveKey &reservekey, CValidationState &state) {
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -3451,7 +3448,7 @@ bool CWallet::CommitTransaction(
             // TODO: if we expect the failure to be long term or permanent,
             // instead delete wtx from the wallet and return failure.
         } else {
-            wtx.RelayWalletTransaction(*locked_chain, connman);
+            wtx.RelayWalletTransaction(*locked_chain);
         }
     }
 

@@ -152,6 +152,9 @@ public:
     virtual void getTransactionAncestry(const TxId &txid, size_t &ancestors,
                                         size_t &descendants) = 0;
 
+    //! Relay transaction.
+    virtual void relayTransaction(const TxId &txid) = 0;
+
     //! Check chain limits.
     virtual bool checkChainLimits(CTransactionRef tx) = 0;
 

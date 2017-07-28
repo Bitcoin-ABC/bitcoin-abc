@@ -52,7 +52,7 @@ namespace {
             CValidationState state;
             if (!m_wallet.CommitTransaction(m_tx, std::move(value_map),
                                             std::move(order_form), m_key,
-                                            g_connman.get(), state)) {
+                                            state)) {
                 reject_reason = state.GetRejectReason();
                 return false;
             }

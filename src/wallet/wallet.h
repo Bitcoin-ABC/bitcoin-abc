@@ -549,8 +549,7 @@ public:
     int64_t GetTxTime() const;
 
     // RelayWalletTransaction may only be called if fBroadcastTransactions!
-    bool RelayWalletTransaction(interfaces::Chain::Lock &locked_chain,
-                                CConnman *connman);
+    bool RelayWalletTransaction(interfaces::Chain::Lock &locked_chain);
 
     /**
      * Pass this transaction to the mempool. Fails if absolute fee exceeds
@@ -1088,7 +1087,7 @@ public:
     // fBroadcastTransactions!
     std::vector<uint256>
     ResendWalletTransactionsBefore(interfaces::Chain::Lock &locked_chain,
-                                   int64_t nTime, CConnman *connman);
+                                   int64_t nTime);
     Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
                       const int min_depth = 0) const;
     Amount GetUnconfirmedBalance() const;
@@ -1128,7 +1127,7 @@ public:
     bool CommitTransaction(
         CTransactionRef tx, mapValue_t mapValue,
         std::vector<std::pair<std::string, std::string>> orderForm,
-        CReserveKey &reservekey, CConnman *connman, CValidationState &state);
+        CReserveKey &reservekey, CValidationState &state);
 
     bool DummySignTx(CMutableTransaction &txNew, const std::set<CTxOut> &txouts,
                      bool use_max_sig = false) const {
