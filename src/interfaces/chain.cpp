@@ -9,6 +9,7 @@
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
 #include <sync.h>
+#include <threadsafety.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -132,6 +133,12 @@ namespace {
                 return fork->nHeight;
             }
             return nullopt;
+        }
+        bool contextualCheckTransactionForCurrentBlock(
+            const Consensus::Params &params, const CTransaction &tx,
+            CValidationState &state) override {
+            LockAnnotation lock(::cs_main);
+            return ContextualCheckTransactionForCurrentBlock(params, tx, state);
         }
     };
 

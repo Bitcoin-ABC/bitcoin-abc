@@ -98,8 +98,7 @@ namespace {
     static WalletTxStatus
     MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
                        const CWalletTx &wtx) {
-        // Temporary, for ContextualCheckTransactionForCurrentBlock below.
-        // Removed in upcoming commit.
+        // Temporary, for LookupBlockIndex below. Removed in upcoming commit.
         LockAnnotation lock(::cs_main);
 
         WalletTxStatus result;
@@ -111,8 +110,9 @@ namespace {
         result.time_received = wtx.nTimeReceived;
         result.lock_time = wtx.tx->nLockTime;
         CValidationState state;
-        result.is_final = ContextualCheckTransactionForCurrentBlock(
-            Params().GetConsensus(), *wtx.tx, state);
+        result.is_final =
+            locked_chain.contextualCheckTransactionForCurrentBlock(
+                Params().GetConsensus(), *wtx.tx, state);
         result.is_trusted = wtx.IsTrusted(locked_chain);
         result.is_abandoned = wtx.isAbandoned();
         result.is_coinbase = wtx.IsCoinBase();

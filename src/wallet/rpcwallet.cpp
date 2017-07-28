@@ -711,9 +711,6 @@ static UniValue getreceivedbyaddress(const Config &config,
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
-    // in upcoming commit.
-    LockAnnotation lock(::cs_main);
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -742,7 +739,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
+            !locked_chain->contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }
@@ -807,9 +804,6 @@ static UniValue getreceivedbylabel(const Config &config,
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
-    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
-    // in upcoming commit.
-    LockAnnotation lock(::cs_main);
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -829,7 +823,7 @@ static UniValue getreceivedbylabel(const Config &config,
         const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
+            !locked_chain->contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }
@@ -1264,10 +1258,6 @@ static UniValue
 ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
              CWallet *const pwallet, const UniValue &params, bool by_label)
     EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
-    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
-    // in upcoming commit.
-    LockAnnotation lock(::cs_main);
-
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
@@ -1305,7 +1295,7 @@ ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
+            !locked_chain.contextualCheckTransactionForCurrentBlock(
                 config.GetChainParams().GetConsensus(), *wtx.tx, state)) {
             continue;
         }

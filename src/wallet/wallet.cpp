@@ -2183,14 +2183,10 @@ bool CWalletTx::InMempool() const {
 }
 
 bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain) const {
-    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
-    // in upcoming commit.
-    LockAnnotation lock(::cs_main);
-
     // Quick answer in most cases
     CValidationState state;
-    if (!ContextualCheckTransactionForCurrentBlock(Params().GetConsensus(), *tx,
-                                                   state)) {
+    if (!locked_chain.contextualCheckTransactionForCurrentBlock(
+            Params().GetConsensus(), *tx, state)) {
         return false;
     }
 
@@ -2400,9 +2396,6 @@ Amount CWallet::GetImmatureWatchOnlyBalance() const {
 // trusted.
 Amount CWallet::GetLegacyBalance(const isminefilter &filter,
                                  int minDepth) const {
-    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
-    // in upcoming commit.
-    LockAnnotation lock(::cs_main);
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
 
@@ -2414,8 +2407,8 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter,
         const int depth = wtx.GetDepthInMainChain(*locked_chain);
         CValidationState state;
         if (depth < 0 ||
-            !ContextualCheckTransactionForCurrentBlock(params, *wtx.tx,
-                                                       state) ||
+            !locked_chain->contextualCheckTransactionForCurrentBlock(
+                params, *wtx.tx, state) ||
             wtx.IsImmatureCoinBase(*locked_chain)) {
             continue;
         }
@@ -2477,8 +2470,8 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
         const CWalletTx *pcoin = &entry.second;
 
         CValidationState state;
-        if (!ContextualCheckTransactionForCurrentBlock(params, *pcoin->tx,
-                                                       state)) {
+        if (!locked_chain.contextualCheckTransactionForCurrentBlock(
+                params, *pcoin->tx, state)) {
             continue;
         }
 

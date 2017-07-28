@@ -17,6 +17,11 @@ class CBlock;
 struct CBlockLocator;
 class CChainParams;
 class CScheduler;
+class CTransaction;
+class CValidationState;
+namespace Consensus {
+struct Params;
+}
 
 namespace interfaces {
 
@@ -106,6 +111,11 @@ public:
         //! is guaranteed to be an ancestor of the block used to create the
         //! locator.
         virtual Optional<int> findLocatorFork(const CBlockLocator &locator) = 0;
+
+        //! Check if transaction will be final given chain height current time.
+        virtual bool contextualCheckTransactionForCurrentBlock(
+            const Consensus::Params &params, const CTransaction &tx,
+            CValidationState &state) = 0;
     };
 
     //! Return Lock interface. Chain is locked when this is called, and
