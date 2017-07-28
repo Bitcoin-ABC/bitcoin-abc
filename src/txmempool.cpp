@@ -653,6 +653,7 @@ void CTxMemPool::_clear() {
     mapLinks.clear();
     mapTx.clear();
     mapNextTx.clear();
+    vTxHashes.clear();
     totalTxSize = 0;
     cachedInnerUsage = 0;
     lastRollingFeeUpdate = GetTime();

@@ -101,6 +101,41 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     BOOST_CHECK_EQUAL(testPool.size(), 0);
 }
 
+BOOST_AUTO_TEST_CASE(MempoolClearTest) {
+    // Test CTxMemPool::clear functionality
+
+    TestMemPoolEntryHelper entry;
+    // Create a transaction
+    CMutableTransaction txParent;
+    txParent.vin.resize(1);
+    txParent.vin[0].scriptSig = CScript() << OP_11;
+    txParent.vout.resize(3);
+    for (int i = 0; i < 3; i++) {
+        txParent.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txParent.vout[i].nValue = 33000LL;
+    }
+
+    CTxMemPool testPool(CFeeRate(0));
+
+    // Nothing in pool, clear should do nothing:
+    testPool.clear();
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
+
+    // Add the transaction
+    testPool.addUnchecked(txParent.GetId(), entry.FromTx(txParent));
+    BOOST_CHECK_EQUAL(testPool.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.mapTx.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 1);
+
+    // CTxMemPool's members should be empty after a clear
+    testPool.clear();
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.mapTx.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 0);
+}
+
 template <typename name>
 void CheckSort(CTxMemPool &pool, std::vector<std::string> &sortedOrder) {
     BOOST_CHECK_EQUAL(pool.size(), sortedOrder.size());
@@ -495,8 +530,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(!pool.exists(tx2.GetId()));
     BOOST_CHECK(!pool.exists(tx3.GetId()));
 
-    CFeeRate maxFeeRateRemoved(25000, GetTransactionSize(tx3) +
-                                          GetTransactionSize(tx2));
+    CFeeRate maxFeeRateRemoved(
+        25000, GetTransactionSize(tx3) + GetTransactionSize(tx2));
     BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(),
                       maxFeeRateRemoved.GetFeePerK() + 1000);
 
