@@ -4913,8 +4913,8 @@ CWallet::GroupOutputs(const std::vector<COutput> &outputs,
             CInputCoin input_coin = output.GetInputCoin();
 
             size_t ancestors, descendants;
-            g_mempool.GetTransactionAncestry(output.tx->GetId(), ancestors,
-                                             descendants);
+            chain().getTransactionAncestry(output.tx->GetId(), ancestors,
+                                           descendants);
             if (!single_coin &&
                 ExtractDestination(output.tx->tx->vout[output.i].scriptPubKey,
                                    dst)) {

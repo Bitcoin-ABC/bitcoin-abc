@@ -8,6 +8,7 @@
 #include <optional.h>
 #include <primitives/txid.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -144,6 +145,11 @@ public:
 
     //! Check if transaction has descendants in mempool.
     virtual bool hasDescendantsInMempool(const TxId &txid) = 0;
+
+    //! Calculate mempool ancestor and descendant counts for the given
+    //! transaction.
+    virtual void getTransactionAncestry(const TxId &txid, size_t &ancestors,
+                                        size_t &descendants) = 0;
 };
 
 //! Interface to let node manage chain clients (wallets, or maybe tools for

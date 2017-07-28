@@ -194,6 +194,10 @@ namespace {
             return it_mp != ::g_mempool.mapTx.end() &&
                    it_mp->GetCountWithDescendants() > 1;
         }
+        void getTransactionAncestry(const TxId &txid, size_t &ancestors,
+                                    size_t &descendants) override {
+            ::g_mempool.GetTransactionAncestry(txid, ancestors, descendants);
+        }
     };
 
 } // namespace
