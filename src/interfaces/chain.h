@@ -6,6 +6,7 @@
 #define BITCOIN_INTERFACES_CHAIN_H
 
 #include <optional.h>
+#include <primitives/txid.h>
 
 #include <cstdint>
 #include <memory>
@@ -140,6 +141,9 @@ public:
     //! Estimate fraction of total transactions verified if blocks up to
     //! the specified block hash are verified.
     virtual double guessVerificationProgress(const BlockHash &block_hash) = 0;
+
+    //! Check if transaction has descendants in mempool.
+    virtual bool hasDescendantsInMempool(const TxId &txid) = 0;
 };
 
 //! Interface to let node manage chain clients (wallets, or maybe tools for

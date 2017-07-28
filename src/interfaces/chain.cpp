@@ -188,6 +188,12 @@ namespace {
             return GuessVerificationProgress(Params().TxData(),
                                              LookupBlockIndex(block_hash));
         }
+        bool hasDescendantsInMempool(const TxId &txid) override {
+            LOCK(::g_mempool.cs);
+            auto it_mp = ::g_mempool.mapTx.find(txid);
+            return it_mp != ::g_mempool.mapTx.end() &&
+                   it_mp->GetCountWithDescendants() > 1;
+        }
     };
 
 } // namespace
