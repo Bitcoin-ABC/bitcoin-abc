@@ -18,6 +18,7 @@ from test_framework.cdefs import (ONE_MEGABYTE,
 # far into the future
 UAHF_START_TIME = 2000000000
 
+
 class ABC_RPC_Test (BitcoinTestFramework):
 
     def __init__(self):
@@ -61,9 +62,10 @@ class ABC_RPC_Test (BitcoinTestFramework):
             self.nodes[0].setexcessiveblock(LEGACY_MAX_BLOCK_SIZE)
         except JSONRPCException as e:
             assert("Invalid parameter, excessiveblock must be larger than %d" % LEGACY_MAX_BLOCK_SIZE
-                       in e.error['message'])
+                   in e.error['message'])
         else:
-            raise AssertionError("Must not accept excessiveblock values <= %d bytes" % LEGACY_MAX_BLOCK_SIZE)
+            raise AssertionError(
+                "Must not accept excessiveblock values <= %d bytes" % LEGACY_MAX_BLOCK_SIZE)
         getsize = self.nodes[0].getexcessiveblock()
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
@@ -94,6 +96,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
 
     def test_uahfstarttime(self):
         node = self.nodes[0]
+
         def check_uahf_starttime_equals(val):
             starttime_reply = node.getuahfstarttime()
             assert_equal(starttime_reply['uahfStartTime'], val)
@@ -112,7 +115,8 @@ class ABC_RPC_Test (BitcoinTestFramework):
                 assert("Invalid parameter, uahfStartTime must be greater than chain tip "
                        "MTP+2hrs (%d)" % (tip_mtp + 7200) in e.error['message'])
             else:
-                raise AssertionError("Must not accept uahfStartTime values within 2 hrs of chain tip MTP")
+                raise AssertionError(
+                    "Must not accept uahfStartTime values within 2 hrs of chain tip MTP")
             check_uahf_starttime_equals(UAHF_START_TIME)
 
         # Check that setting to > tip MTP + 2hrs is ok
@@ -143,7 +147,8 @@ class ABC_RPC_Test (BitcoinTestFramework):
                 assert("UAHF already activated - disallowing start time modification"
                        in e.error['message'])
             else:
-                raise AssertionError("Must not accept uahfStartTime modification once UAHF is activated.")
+                raise AssertionError(
+                    "Must not accept uahfStartTime modification once UAHF is activated.")
             check_uahf_starttime_equals(UAHF_START_TIME)
 
         check_cannot_update_starttime()
@@ -171,4 +176,4 @@ class ABC_RPC_Test (BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    ABC_RPC_Test().main ()
+    ABC_RPC_Test().main()
