@@ -32,7 +32,7 @@ static std::atomic<unsigned int> nWalletDBUpdateCounter;
 bool CWalletDB::WriteName(const std::string &strAddress,
                           const std::string &strName) {
     nWalletDBUpdateCounter++;
-    return Write(make_pair(std::string("name"), strAddress), strName);
+    return Write(std::make_pair(std::string("name"), strAddress), strName);
 }
 
 bool CWalletDB::EraseName(const std::string &strAddress) {
@@ -40,18 +40,19 @@ bool CWalletDB::EraseName(const std::string &strAddress) {
     // addresses, receiving addresses must always have an address book entry if
     // they're not change return.
     nWalletDBUpdateCounter++;
-    return Erase(make_pair(std::string("name"), strAddress));
+    return Erase(std::make_pair(std::string("name"), strAddress));
 }
 
 bool CWalletDB::WritePurpose(const std::string &strAddress,
                              const std::string &strPurpose) {
     nWalletDBUpdateCounter++;
-    return Write(make_pair(std::string("purpose"), strAddress), strPurpose);
+    return Write(std::make_pair(std::string("purpose"), strAddress),
+                 strPurpose);
 }
 
 bool CWalletDB::ErasePurpose(const std::string &strPurpose) {
     nWalletDBUpdateCounter++;
-    return Erase(make_pair(std::string("purpose"), strPurpose));
+    return Erase(std::make_pair(std::string("purpose"), strPurpose));
 }
 
 bool CWalletDB::WriteTx(const CWalletTx &wtx) {
@@ -178,12 +179,12 @@ bool CWalletDB::WriteMinVersion(int nVersion) {
 
 bool CWalletDB::ReadAccount(const std::string &strAccount, CAccount &account) {
     account.SetNull();
-    return Read(make_pair(std::string("acc"), strAccount), account);
+    return Read(std::make_pair(std::string("acc"), strAccount), account);
 }
 
 bool CWalletDB::WriteAccount(const std::string &strAccount,
                              const CAccount &account) {
-    return Write(make_pair(std::string("acc"), strAccount), account);
+    return Write(std::make_pair(std::string("acc"), strAccount), account);
 }
 
 bool CWalletDB::WriteAccountingEntry(const uint64_t nAccEntryNum,
@@ -594,7 +595,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     pwallet->laccentries.clear();
     ListAccountCreditDebit("*", pwallet->laccentries);
     for (CAccountingEntry &entry : pwallet->laccentries) {
-        pwallet->wtxOrdered.insert(make_pair(
+        pwallet->wtxOrdered.insert(std::make_pair(
             entry.nOrderPos, CWallet::TxPair((CWalletTx *)0, &entry)));
     }
 
