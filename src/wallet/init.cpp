@@ -260,19 +260,22 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         // environment instances for the same directory
         fs::path canonical_wallet_dir = fs::canonical(wallet_dir, error);
         if (error || !fs::exists(wallet_dir)) {
-            return InitError(
+            chain.initError(
                 strprintf(_("Specified -walletdir \"%s\" does not exist"),
                           wallet_dir.string()));
+            return false;
         } else if (!fs::is_directory(wallet_dir)) {
-            return InitError(
+            chain.initError(
                 strprintf(_("Specified -walletdir \"%s\" is not a directory"),
                           wallet_dir.string()));
+            return false;
             // The canonical path transforms relative paths into absolute ones,
             // so we check the non-canonical version
         } else if (!wallet_dir.is_absolute()) {
-            return InitError(
+            chain.initError(
                 strprintf(_("Specified -walletdir \"%s\" is a relative path"),
                           wallet_dir.string()));
+            return false;
         }
         gArgs.ForceSetArg("-walletdir", canonical_wallet_dir.string());
     }
@@ -294,9 +297,10 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         WalletLocation location(wallet_file);
 
         if (!wallet_paths.insert(location.GetPath()).second) {
-            return InitError(strprintf(_("Error loading wallet %s. Duplicate "
-                                         "-wallet filename specified."),
-                                       wallet_file));
+            chain.initError(strprintf(_("Error loading wallet %s. Duplicate "
+                                        "-wallet filename specified."),
+                                      wallet_file));
+            return false;
         }
 
         std::string error_string;
@@ -305,10 +309,10 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
             CWallet::Verify(chainParams, chain, location, salvage_wallet,
                             error_string, warning_string);
         if (!error_string.empty()) {
-            InitError(error_string);
+            chain.initError(error_string);
         }
         if (!warning_string.empty()) {
-            InitWarning(warning_string);
+            chain.initWarning(warning_string);
         }
         if (!verify_success) {
             return false;

@@ -15,6 +15,7 @@
 #include <threadsafety.h>
 #include <timedata.h>
 #include <txmempool.h>
+#include <ui_interface.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -233,6 +234,15 @@ namespace {
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }
+        void initMessage(const std::string &message) override {
+            ::uiInterface.InitMessage(message);
+        }
+        void initWarning(const std::string &message) override {
+            InitWarning(message);
+        }
+        void initError(const std::string &message) override {
+            InitError(message);
+        }
     };
 
 } // namespace
