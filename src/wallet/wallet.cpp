@@ -3182,11 +3182,14 @@ DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
         }
     }
 
+    // This wallet is in its first run if all of these are empty
+    fFirstRunRet = mapKeys.empty() && mapCryptedKeys.empty() &&
+                   mapWatchKeys.empty() && setWatchOnly.empty() &&
+                   mapScripts.empty();
+
     if (nLoadWalletRet != DB_LOAD_OK) {
         return nLoadWalletRet;
     }
-
-    fFirstRunRet = !vchDefaultKey.IsValid();
 
     uiInterface.LoadWallet(this);
 
@@ -3196,7 +3199,6 @@ DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
 DBErrors CWallet::ZapSelectTx(std::vector<uint256> &vHashIn,
                               std::vector<uint256> &vHashOut) {
     AssertLockHeld(cs_wallet); // mapWallet
-    vchDefaultKey = CPubKey();
     DBErrors nZapSelectTxRet =
         CWalletDB(*dbw, "cr+").ZapSelectTx(vHashIn, vHashOut);
     for (uint256 hash : vHashOut) {
@@ -3224,7 +3226,6 @@ DBErrors CWallet::ZapSelectTx(std::vector<uint256> &vHashIn,
 }
 
 DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
-    vchDefaultKey = CPubKey();
     DBErrors nZapWalletTxRet = CWalletDB(*dbw, "cr+").ZapWalletTx(vWtx);
     if (nZapWalletTxRet == DB_NEED_REWRITE) {
         if (dbw->Rewrite("\x04pool")) {
@@ -3294,15 +3295,6 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
 
     CWalletDB(*dbw).ErasePurpose(address);
     return CWalletDB(*dbw).EraseName(address);
-}
-
-bool CWallet::SetDefaultKey(const CPubKey &vchPubKey) {
-    if (!CWalletDB(*dbw).WriteDefaultKey(vchPubKey)) {
-        return false;
-    }
-
-    vchDefaultKey = vchPubKey;
-    return true;
 }
 
 /**
@@ -4224,14 +4216,10 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
             }
         }
 
-        CPubKey newDefaultKey;
-        if (walletInstance->GetKeyFromPool(newDefaultKey, false)) {
-            walletInstance->SetDefaultKey(newDefaultKey);
-            if (!walletInstance->SetAddressBook(
-                    walletInstance->vchDefaultKey.GetID(), "", "receive")) {
-                InitError(_("Cannot write default address") += "\n");
-                return nullptr;
-            }
+        // Top up the keypool
+        if (!walletInstance->TopUpKeyPool()) {
+            InitError(_("Unable to generate initial keys") += "\n");
+            return nullptr;
         }
 
         walletInstance->SetBestChain(chainActive.GetLocator());

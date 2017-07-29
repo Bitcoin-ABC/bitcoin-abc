@@ -75,7 +75,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
 
         # Check that we have marked all keys up to the used keypool key as used
         assert_equal(self.nodes[1].validateaddress(
-            self.nodes[1].getnewaddress())['hdkeypath'], "m/0'/0'/111'")
+            self.nodes[1].getnewaddress())['hdkeypath'], "m/0'/0'/110'")
 
 
 if __name__ == '__main__':
