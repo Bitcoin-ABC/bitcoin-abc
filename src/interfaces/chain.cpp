@@ -222,6 +222,7 @@ namespace {
                 limit_descendant_count, limit_descendant_size,
                 unused_error_string);
         }
+        bool getPruneMode() override { return ::fPruneMode; }
     };
 
 } // namespace

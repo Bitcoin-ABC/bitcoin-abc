@@ -160,7 +160,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
             fRescan = request.params[2].get_bool();
         }
 
-        if (fRescan && fPruneMode) {
+        if (fRescan && pwallet->chain().getPruneMode()) {
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Rescan is disabled in pruned mode");
         }
@@ -345,7 +345,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         fRescan = request.params[2].get_bool();
     }
 
-    if (fRescan && fPruneMode) {
+    if (fRescan && pwallet->chain().getPruneMode()) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Rescan is disabled in pruned mode");
     }
@@ -579,7 +579,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
         fRescan = request.params[2].get_bool();
     }
 
-    if (fRescan && fPruneMode) {
+    if (fRescan && pwallet->chain().getPruneMode()) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Rescan is disabled in pruned mode");
     }
@@ -646,7 +646,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("importwallet", "\"test\""));
     }
 
-    if (fPruneMode) {
+    if (pwallet->chain().getPruneMode()) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Importing wallets is disabled in pruned mode");
     }
