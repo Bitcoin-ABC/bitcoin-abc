@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <net.h>
 #include <policy/mempool.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
@@ -223,6 +224,7 @@ namespace {
                 unused_error_string);
         }
         bool getPruneMode() override { return ::fPruneMode; }
+        bool p2pEnabled() override { return g_connman != nullptr; }
     };
 
 } // namespace
