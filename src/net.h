@@ -10,6 +10,7 @@
 #include "addrman.h"
 #include "amount.h"
 #include "bloom.h"
+#include "chainparams.h"
 #include "compat.h"
 #include "hash.h"
 #include "limitedmap.h"
@@ -695,6 +696,8 @@ public:
     std::atomic<int64_t> nMinPingUsecTime;
     // Whether a ping is requested.
     std::atomic<bool> fPingQueued;
+    // Whether the node uses the bitcoin cash magic to communicate.
+    std::atomic<bool> fUsesCashMagic;
     // Minimum fee rate with which to filter inv's to this node
     CAmount minFeeFilter;
     CCriticalSection cs_feeFilter;
@@ -743,6 +746,12 @@ public:
     int GetRecvVersion() { return nRecvVersion; }
     void SetSendVersion(int nVersionIn);
     int GetSendVersion() const;
+
+    const CMessageHeader::MessageStartChars &
+    GetMagic(const CChainParams &params) const {
+        return fUsesCashMagic ? params.CashMessageStart()
+                              : params.MessageStart();
+    }
 
     CService GetAddrLocal() const;
     //! May not be called more than once

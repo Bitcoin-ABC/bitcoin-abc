@@ -703,15 +703,15 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes,
     nLastRecv = nTimeMicros / 1000000;
     nRecvBytes += nBytes;
     while (nBytes > 0) {
-        // get current incomplete message, or create a new one
+        // Get current incomplete message, or create a new one.
         if (vRecvMsg.empty() || vRecvMsg.back().complete()) {
-            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK,
+            vRecvMsg.push_back(CNetMessage(GetMagic(Params()), SER_NETWORK,
                                            INIT_PROTO_VERSION));
         }
 
         CNetMessage &msg = vRecvMsg.back();
 
-        // absorb network data
+        // Absorb network data.
         int handled;
         if (!msg.in_data) {
             handled = msg.readHeader(pch, nBytes);
@@ -2846,6 +2846,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     nPingUsecStart = 0;
     nPingUsecTime = 0;
     fPingQueued = false;
+    // set when etablishing connection
+    fUsesCashMagic = false;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
     minFeeFilter = 0;
     lastSentFeeFilter = 0;
@@ -2930,7 +2932,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     std::vector<unsigned char> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);
     uint256 hash = Hash(msg.data.data(), msg.data.data() + nMessageSize);
-    CMessageHeader hdr(Params().MessageStart(), msg.command.c_str(),
+    CMessageHeader hdr(pnode->GetMagic(Params()), msg.command.c_str(),
                        nMessageSize);
     memcpy(hdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
