@@ -94,7 +94,7 @@ void RPCNestedTests::rpcNestedTests() {
     (RPCConsole::RPCExecuteCommandLine(*node, result2,
                                        "createrawtransaction([],{},0)"));
     QVERIFY(result == result2);
-    // Whitespace between parametres is allowed.
+    // Whitespace between parameters is allowed.
     (RPCConsole::RPCExecuteCommandLine(
         *node, result2, "createrawtransaction( [],  {} , 0   )"));
     QVERIFY(result == result2);
