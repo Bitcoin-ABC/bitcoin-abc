@@ -1,4 +1,6 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -168,7 +170,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     tx.vin[0].prevout.hash = txFirst[2]->GetId();
     tx.vout.resize(2);
     tx.vout[0].nValue = 5000000000LL - 100000000;
-    // 1BCC output.
+    // 1XBT output.
     tx.vout[1].nValue = 100000000;
     uint256 hashFreeTx2 = tx.GetId();
     mempool.addUnchecked(hashFreeTx2,
