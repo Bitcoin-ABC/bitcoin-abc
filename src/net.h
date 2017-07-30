@@ -417,7 +417,9 @@ struct CombinerAll {
 
     template <typename I> bool operator()(I first, I last) const {
         while (first != last) {
-            if (!(*first)) return false;
+            if (!(*first)) {
+                return false;
+            }
             ++first;
         }
         return true;
@@ -550,7 +552,10 @@ public:
     }
 
     bool complete() const {
-        if (!in_data) return false;
+        if (!in_data) {
+            return false;
+        }
+
         return (hdr.nMessageSize == nDataPos);
     }
 
@@ -769,10 +774,8 @@ public:
     }
 
     void AddInventoryKnown(const CInv &inv) {
-        {
-            LOCK(cs_inventory);
-            filterInventoryKnown.insert(inv.hash);
-        }
+        LOCK(cs_inventory);
+        filterInventoryKnown.insert(inv.hash);
     }
 
     void PushInventory(const CInv &inv) {
@@ -804,8 +807,10 @@ public:
     void MaybeSetAddrName(const std::string &addrNameIn);
 };
 
-/** Return a timestamp in the future (in microseconds) for exponentially
- * distributed events. */
+/**
+ * Return a timestamp in the future (in microseconds) for exponentially
+ * distributed events.
+ */
 int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds);
 
 std::string getSubVersionEB(uint64_t MaxBlockSize);
