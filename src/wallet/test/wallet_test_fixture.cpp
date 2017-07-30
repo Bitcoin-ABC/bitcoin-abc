@@ -16,12 +16,9 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
                                         WalletDatabase::CreateMock()) {
     bool fFirstRun;
     m_wallet.LoadWallet(fFirstRun);
-    RegisterValidationInterface(&m_wallet);
+    m_wallet.m_chain_notifications_handler =
+        m_chain->handleNotifications(m_wallet);
 
     RegisterWalletRPCCommands(tableRPC);
     RegisterDumpRPCCommands(tableRPC);
-}
-
-WalletTestingSetup::~WalletTestingSetup() {
-    UnregisterValidationInterface(&m_wallet);
 }

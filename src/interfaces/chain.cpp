@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <interfaces/handler.h>
 #include <interfaces/wallet.h>
 #include <net.h>
 #include <policy/mempool.h>
@@ -20,6 +21,7 @@
 #include <ui_interface.h>
 #include <util/system.h>
 #include <validation.h>
+#include <validationinterface.h>
 
 #include <memory>
 #include <utility>
@@ -163,6 +165,54 @@ namespace {
         using UniqueLock::UniqueLock;
     };
 
+    class NotificationsHandlerImpl : public Handler, CValidationInterface {
+    public:
+        explicit NotificationsHandlerImpl(Chain &chain,
+                                          Chain::Notifications &notifications)
+            : m_chain(chain), m_notifications(&notifications) {
+            RegisterValidationInterface(this);
+        }
+        ~NotificationsHandlerImpl() override { disconnect(); }
+        void disconnect() override {
+            if (m_notifications) {
+                m_notifications = nullptr;
+                UnregisterValidationInterface(this);
+            }
+        }
+        void TransactionAddedToMempool(const CTransactionRef &tx) override {
+            m_notifications->TransactionAddedToMempool(tx);
+        }
+        void TransactionRemovedFromMempool(const CTransactionRef &tx) override {
+            m_notifications->TransactionRemovedFromMempool(tx);
+        }
+        void BlockConnected(
+            const std::shared_ptr<const CBlock> &block,
+            const CBlockIndex *index,
+            const std::vector<CTransactionRef> &tx_conflicted) override {
+            m_notifications->BlockConnected(*block, tx_conflicted);
+        }
+        void
+        BlockDisconnected(const std::shared_ptr<const CBlock> &block) override {
+            m_notifications->BlockDisconnected(*block);
+        }
+        void ChainStateFlushed(const CBlockLocator &locator) override {
+            m_notifications->ChainStateFlushed(locator);
+        }
+        void ResendWalletTransactions(int64_t best_block_time,
+                                      CConnman *) override {
+            // `cs_main` is always held when this method is called, so it is
+            // safe to call `assumeLocked`. This is awkward, and the
+            // `assumeLocked` method should be able to be removed entirely if
+            // `ResendWalletTransactions` is replaced by a wallet timer as
+            // suggested in https://github.com/bitcoin/bitcoin/issues/15619
+            auto locked_chain = m_chain.assumeLocked();
+            m_notifications->ResendWalletTransactions(*locked_chain,
+                                                      best_block_time);
+        }
+        Chain &m_chain;
+        Chain::Notifications *m_notifications;
+    };
+
     class ChainImpl : public Chain {
     public:
         std::unique_ptr<Chain::Lock> lock(bool try_lock) override {
@@ -258,6 +308,14 @@ namespace {
         }
         void loadWallet(std::unique_ptr<Wallet> wallet) override {
             ::uiInterface.LoadWallet(wallet);
+        }
+        std::unique_ptr<Handler>
+        handleNotifications(Notifications &notifications) override {
+            return std::make_unique<NotificationsHandlerImpl>(*this,
+                                                              notifications);
+        }
+        void waitForNotifications() override {
+            SyncWithValidationInterfaceQueue();
         }
     };
 

@@ -9,6 +9,7 @@
 
 #include <amount.h>
 #include <interfaces/chain.h>
+#include <interfaces/handler.h>
 #include <outputtype.h>
 #include <primitives/blockhash.h>
 #include <script/ismine.h>
@@ -674,7 +675,8 @@ class WalletRescanReserver;
  * transactions and balances, and provides the ability to create new
  * transactions.
  */
-class CWallet final : public CCryptoKeyStore, public CValidationInterface {
+class CWallet final : public CCryptoKeyStore,
+                      private interfaces::Chain::Notifications {
 private:
     static std::atomic<bool> fFlushScheduled;
     std::atomic<bool> fAbortRescan{false};
@@ -876,6 +878,9 @@ public:
 
     std::set<COutPoint> setLockedCoins GUARDED_BY(cs_wallet);
 
+    /** Registered interfaces::Chain::Notifications handler. */
+    std::unique_ptr<interfaces::Handler> m_chain_notifications_handler;
+
     /** Interface for accessing chain state. */
     interfaces::Chain &chain() const { return m_chain; }
 
@@ -1051,11 +1056,9 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void TransactionAddedToMempool(const CTransactionRef &tx) override;
     void
-    BlockConnected(const std::shared_ptr<const CBlock> &pblock,
-                   const CBlockIndex *pindex,
+    BlockConnected(const CBlock &block,
                    const std::vector<CTransactionRef> &vtxConflicted) override;
-    void
-    BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) override;
+    void BlockDisconnected(const CBlock &block) override;
     int64_t RescanFromTime(int64_t startTime,
                            const WalletRescanReserver &reserver, bool update);
 
@@ -1080,9 +1083,8 @@ public:
                                          bool fUpdate);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
-    void ResendWalletTransactions(int64_t nBestBlockTime,
-                                  CConnman *connman) override
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void ResendWalletTransactions(interfaces::Chain::Lock &locked_chain,
+                                  int64_t nBestBlockTime) override;
     // ResendWalletTransactionsBefore may only be called if
     // fBroadcastTransactions!
     std::vector<uint256>
@@ -1442,6 +1444,8 @@ public:
      * Implement lookup of key origin information through wallet key metadata.
      */
     bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override;
+
+    friend struct WalletTestingSetup;
 };
 
 /** A key allocated from the key pool. */
