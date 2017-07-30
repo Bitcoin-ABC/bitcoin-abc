@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# Exercise the Bitcoin ABC RPC calls.
+# Exercise the Bitcoin XBT RPC calls.
 
 import time
 import random

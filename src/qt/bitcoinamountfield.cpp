@@ -1,5 +1,6 @@
-// Copyright (c) 2011-2015 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developersXBT
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bitcoinamountfield.h"
@@ -23,7 +24,7 @@ class AmountSpinBox : public QAbstractSpinBox {
 
 public:
     explicit AmountSpinBox(QWidget *parent)
-        : QAbstractSpinBox(parent), currentUnit(BitcoinUnits::BCC),
+        : QAbstractSpinBox(parent), currentUnit(BitcoinUnits::XBT),
           singleStep(100000 /* satoshis */) {
         setAlignment(Qt::AlignRight);
 
@@ -89,7 +90,7 @@ public:
             const QFontMetrics fm(fontMetrics());
             int h = lineEdit()->minimumSizeHint().height();
             int w = fm.width(BitcoinUnits::format(
-                BitcoinUnits::BCC, BitcoinUnits::maxMoney(), false,
+                BitcoinUnits::XBT, BitcoinUnits::maxMoney(), false,
                 BitcoinUnits::separatorAlways));
             // Cursor blinking space.
             w += 2;

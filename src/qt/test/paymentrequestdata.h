@@ -1,4 +1,6 @@
-// Copyright (c) 2009-2015 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -427,7 +429,7 @@ d2hj739GDLz0b5KuJ2SG6VknMRQM976w/m2qlq0ccVGaaZ2zMIGfpzL3p6adwx/5\
 ";
 
 //
-// Payment request with amount overflow (amount is set to 21000001 BCC)
+// Payment request with amount overflow (amount is set to 21000001 XBT)
 //
 const char *paymentrequest5_cert2_BASE64 = "\
 Egt4NTA5K3NoYTI1NhrQBArNBDCCAkkwggExoAMCAQICAQEwDQYJKoZIhvcNAQEL\

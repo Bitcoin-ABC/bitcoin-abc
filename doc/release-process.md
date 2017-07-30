@@ -1,4 +1,4 @@
-Bitcoin ABC Release Process
+Bitcoin XBT Release Process
 ===========================
 
 
@@ -45,21 +45,21 @@ Bitcoin ABC Release Process
     
 7. Verify matching gitian builds, gather signatures
 
-8. Upload gitian build to [bitcoinabc.org](https://download.bitcoinabc.org/)
+8. Upload gitian build to [bitcoinxbt.org](https://download.bitcoinxbt.org/)
 
 9. Re-verify the uploads (make sure that downloading them, their checksums are ok)
 
-10. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases) 
+10. Create a [GitHub release](https://github.com/Bitcoin-xbt/bitcoin-xbt/releases) 
 
 
 ## After Release
 
-11. Update version number on www.bitcoinabc.org
+11. Update version number on www.bitcoinxbt.org
 
-12. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+12. Publish signed checksums (various places, e.g. blog, reddit/r/Bitcoinxbt)
 
 13. Announce Release:
-    - [Reddit](https://www.reddit.com/r/BitcoinABC/)
-    - Twitter @Bitcoin_ABC
-    - Public slack channels friendly to Bitcoin ABC announcements 
-      (eg. #abc-announce on BTCforks,  #hardfork on BTCchat)
+    - [Reddit](https://www.reddit.com/r/Bitcoinxbt/)
+    - Twitter @Bitcoin_xbt
+    - Public slack channels friendly to Bitcoin xbt announcements 
+      (eg. #xbt-announce on BTCforks,  #hardfork on BTCchat)

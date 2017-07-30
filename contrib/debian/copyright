@@ -1,8 +1,8 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Bitcoin ABC
+Upstream-Name: Bitcoin XBT
 Upstream-Contact: Satoshi Nakamoto <satoshin@gmx.com>
- irc://#bitcoinabc@freenode.net
-Source: https://github.com/Bitcoin-ABC/bitcoin-abc
+ irc://#bitcoinxbt@freenode.net
+Source: https://github.com/BitcoinXBT/bitcoinxbt
 
 Files: *
 Copyright: 2009-2017, Bitcoin Core Developers, 2017 Bitcoin Developers

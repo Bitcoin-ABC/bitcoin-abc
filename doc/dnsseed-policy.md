@@ -1,13 +1,13 @@
-Bitcoin ABC UAHF-relevant DNS seed information
+Bitcoin XBT UAHF-relevant DNS seed information
 ==============================================
 
-Bitcoin ABC uses special seeds under the control of the
+Bitcoin XBT uses special seeds under the control of the
 UAHF supporting operators, to increase the chance of a smooth
 separation of the UAHF network from the non-UAHF-supporting
 parts of the network.
 
-The seeds used by ABC should distribute peers fairly but in a
-manner which increases the likelihood that ABC nodes are able
+The seeds used by XBT should distribute peers fairly but in a
+manner which increases the likelihood that XBTXBT nodes are able
 to connect to UAHF compatible peers.
 
 This may mean that in the beginning, they might serve only

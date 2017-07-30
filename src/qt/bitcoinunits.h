@@ -1,4 +1,6 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -52,11 +54,11 @@ public:
     explicit BitcoinUnits(QObject *parent);
 
     /**
-     * Bitcoin units (Bitcoin Cash unit work the same as Bitoin).
+     * Bitcoin units (Bitcoin Cash units work the same as Bitcoin).
      * @note Source: https://en.bitcoin.it/wiki/Units.
      * Please add only sensible ones.
      */
-    enum Unit { BCC, mBCC, uBCC };
+    enum Unit { XBT, mXBT, uXBT };
 
     enum SeparatorStyle { separatorNever, separatorStandard, separatorAlways };
 

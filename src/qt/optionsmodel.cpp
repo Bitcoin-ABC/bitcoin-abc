@@ -1,4 +1,6 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -74,7 +76,7 @@ void OptionsModel::Init(bool resetSettings) {
 
     // Display
     if (!settings.contains("nDisplayUnit")) {
-        settings.setValue("nDisplayUnit", BitcoinUnits::BCC);
+        settings.setValue("nDisplayUnit", BitcoinUnits::XBT);
     }
     nDisplayUnit = settings.value("nDisplayUnit").toInt();
 

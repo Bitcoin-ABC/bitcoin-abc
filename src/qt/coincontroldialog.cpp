@@ -1,4 +1,6 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developersXBT
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -584,7 +586,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     }
 
     // actually update labels
-    int nDisplayUnit = BitcoinUnits::BCC;
+    int nDisplayUnit = BitcoinUnits::XBT;
     if (model && model->getOptionsModel()) {
         nDisplayUnit = model->getOptionsModel()->getDisplayUnit();
     }

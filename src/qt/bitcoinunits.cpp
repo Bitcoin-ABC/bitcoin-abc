@@ -1,4 +1,6 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,17 +15,17 @@ BitcoinUnits::BitcoinUnits(QObject *parent)
 
 QList<BitcoinUnits::Unit> BitcoinUnits::availableUnits() {
     QList<BitcoinUnits::Unit> unitlist;
-    unitlist.append(BCC);
-    unitlist.append(mBCC);
-    unitlist.append(uBCC);
+    unitlist.append(XBT);
+    unitlist.append(mXBT);
+    unitlist.append(uXBT);
     return unitlist;
 }
 
 bool BitcoinUnits::valid(int unit) {
     switch (unit) {
-        case BCC:
-        case mBCC:
-        case uBCC:
+        case XBT:
+        case mXBT:
+        case uXBT:
             return true;
         default:
             return false;
@@ -32,12 +34,12 @@ bool BitcoinUnits::valid(int unit) {
 
 QString BitcoinUnits::name(int unit) {
     switch (unit) {
-        case BCC:
-            return QString("BCC");
-        case mBCC:
-            return QString("mBCC");
-        case uBCC:
-            return QString::fromUtf8("μBCC");
+        case XBT:
+            return QString("XBT");
+        case mXBT:
+            return QString("mXBT");
+        case uXBT:
+            return QString::fromUtf8("μXBT");
         default:
             return QString("???");
     }
@@ -45,11 +47,11 @@ QString BitcoinUnits::name(int unit) {
 
 QString BitcoinUnits::description(int unit) {
     switch (unit) {
-        case BCC:
+        case XBT:
             return QString("Bitcoins");
-        case mBCC:
+        case mXBT:
             return QString("Milli-Bitcoins (1 / 1" THIN_SP_UTF8 "000)");
-        case uBCC:
+        case uXBT:
             return QString("Micro-Bitcoins (1 / 1" THIN_SP_UTF8
                            "000" THIN_SP_UTF8 "000)");
         default:
@@ -59,11 +61,11 @@ QString BitcoinUnits::description(int unit) {
 
 qint64 BitcoinUnits::factor(int unit) {
     switch (unit) {
-        case BCC:
+        case XBT:
             return 100000000;
-        case mBCC:
+        case mXBT:
             return 100000;
-        case uBCC:
+        case uXBT:
             return 100;
         default:
             return 100000000;
@@ -72,11 +74,11 @@ qint64 BitcoinUnits::factor(int unit) {
 
 int BitcoinUnits::decimals(int unit) {
     switch (unit) {
-        case BCC:
+        case XBT:
             return 8;
-        case mBCC:
+        case mXBT:
             return 5;
-        case uBCC:
+        case uXBT:
             return 2;
         default:
             return 0;
