@@ -1,4 +1,4 @@
-Bitcoin XBTXBT Release Process
+Bitcoin XBT Release Process
 ===========================
 
 
