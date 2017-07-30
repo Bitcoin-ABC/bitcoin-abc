@@ -44,7 +44,7 @@ Build Bitcoin XBT
 
 3.  It is recommended to build and run the unit tests:
 
-        make checkmake check
+        make check
 
 4.  You can also create a .dmg that contains the .app bundle (optional):
 
