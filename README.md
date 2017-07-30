@@ -14,7 +14,7 @@ out collectively by the network.
 What is Bitcoin XBT?
 --------------------
 
-Bitcoin XBT is a "Adjustable Blocksize Cap" implementation of Bitcoin, forked from Bitcoin-ABC and compatible with the Bitcoin Cash UAHF protocol. 
+Bitcoin XBT is a "Adjustable Blocksize Cap" implementation of Bitcoin, forked from Bitcoin-ABC and compatible with the Bitcoin Cash UAHF protocol. All credit for engineering works goes to the Bitcoin-ABC development team.
 
 Bitcoin XBT is the name of this open source software which enables the use of Bitcoin via the ‘Bitcoin Cash’ network.
 
@@ -33,3 +33,4 @@ Development Process
 
 Bitcoin development takes place at https://reviews.bitcoinabc.org/
 
+Bitcoin XBT will always be updated with like for like changes as when when Bitcoin-ABC is updated.
