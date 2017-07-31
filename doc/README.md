@@ -3,9 +3,9 @@ Bitcoin XBT
 
 Setup
 ---------------------
-Bitcoin XBT is an identical and fully compatible implementation of the Bitcoin ABC protocol, which has been forked from Bitcoin Core as of Aug 1st 2017, Bitcoin/Core was the original Bitcoin client from 2009-2017 and built the backbone of the Bitcoin network. Bitcoin XBT builds upon previous implementations of Bitcoin by allowing up to 8mb blocks to be propagated to the network (default 2mb). BitcoinXBT downloads and stores the entire history of Bitcoin transactions (which is currently over 100 GB in size); depending on the speed of your computer and network connection, the full synchronization process can take anywhere from a 24 hours to a few days..
+Bitcoin XBT is an identical and fully compatible implementation of the Bitcoin ABC protocol, which is due to be forked from Bitcoin Core as of Aug 1st 2017, Bitcoin Core was the original Bitcoin client from 2009-2017 and built the backbone of the Bitcoin network. Bitcoin ABC builds upon previous implementations of Bitcoin by allowing up to 8mb blocks to be propagated to the network (default 2mb). BitcoinXBT downloads and stores the entire history of Bitcoin transactions (which is currently over 100 GB in size); depending on the speed of your computer and network connection, the full synchronization process can take anywhere from a 24 hours to a few days..
 
-To download Bitcoin XBT, visit [bitcoinxbt.org](https://download.bitcoinxbt.org/).
+To download Bitcoin XBT, visit (https://github.com/BitcoinXBT/BitcoinXBT).
 
 Running
 ---------------------
@@ -30,7 +30,7 @@ Drag bitcoin-xbt to your applications folder, and then run bitcoin-XBT.
 
 * See the documentation at the [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page)
 for help and more information.
-* Ask for help on the [Bitcoin XBT Subreddit](https://www.reddit.com/r/BitcoinXBT/).
+* Ask for help on the [Bitcoin ABC Subreddit](https://www.reddit.com/r/BitcoinABC/).
 
 Building
 ---------------------
@@ -44,7 +44,7 @@ The following are developer notes on how to build Bitcoin on your native platfor
 
 Development
 ---------------------
-The Bitcoin XBT repo's [root README](/README.md) contains relevant information on the development process and automated testing.
+The Bitcoin XBC repo's [root README](/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
 - [Release Notes](release-notes.md)

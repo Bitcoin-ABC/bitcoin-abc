@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developersXBT
+// Copyright (c) 2017- The Bitcoin developers
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bitcoinamountfield.h"
