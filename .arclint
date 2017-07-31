@@ -3,7 +3,10 @@
         "clang-format": {
             "type": "clang-format",
             "include": "(^src/.*\\.(h|c|cpp)$)",
-            "exclude": "(^src/(secp256k1|leveldb)/)"
+            "exclude": [
+                "(^src/(secp256k1|leveldb)/)",
+                "(^src/chainparamsseeds\\.h$)"
+            ]
         },
         "autopep8": {
             "type": "autopep8",
