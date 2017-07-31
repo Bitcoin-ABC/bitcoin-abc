@@ -706,7 +706,7 @@ bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
     return true;
 }
 
-int static EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+static int EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<uint256, COrphanTx>::iterator it =
         mapOrphanTransactions.find(hash);
     if (it == mapOrphanTransactions.end()) return 0;
@@ -980,7 +980,7 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
 // Messages
 //
 
-bool static AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     switch (inv.type) {
         case MSG_TX: {
             assert(recentRejects);
@@ -1059,7 +1059,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
 }
 
-void static ProcessGetData(const Config &config, CNode *pfrom,
+static void ProcessGetData(const Config &config, CNode *pfrom,
                            const Consensus::Params &consensusParams,
                            CConnman &connman,
                            const std::atomic<bool> &interruptMsgProc) {
@@ -1288,7 +1288,7 @@ uint32_t GetFetchFlags(CNode *pfrom, const CBlockIndex *pprev,
     return nFetchFlags;
 }
 
-inline void static SendBlockTransactions(const CBlock &block,
+inline static void SendBlockTransactions(const CBlock &block,
                                          const BlockTransactionsRequest &req,
                                          CNode *pfrom, CConnman &connman) {
     BlockTransactions resp(req);
@@ -1310,7 +1310,7 @@ inline void static SendBlockTransactions(const CBlock &block,
                         msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
-bool static ProcessMessage(const Config &config, CNode *pfrom,
+static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
                            int64_t nTimeReceived,
                            const CChainParams &chainparams, CConnman &connman,

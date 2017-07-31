@@ -59,7 +59,7 @@ static inline void popstack(std::vector<valtype> &stack) {
     stack.pop_back();
 }
 
-bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
+static bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     if (vchPubKey.size() < 33) {
         //  Non-canonical public key: too short
         return false;
@@ -81,7 +81,7 @@ bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     return true;
 }
 
-bool static IsCompressedPubKey(const valtype &vchPubKey) {
+static bool IsCompressedPubKey(const valtype &vchPubKey) {
     if (vchPubKey.size() != 33) {
         //  Non-canonical public key: invalid length for compressed key
         return false;
@@ -104,7 +104,7 @@ bool static IsCompressedPubKey(const valtype &vchPubKey) {
  *
  * This function is consensus-critical since BIP66.
  */
-bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
+static bool IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
     // [sighash]
     // * total-length: 1-byte length descriptor of everything that follows,
@@ -173,7 +173,7 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     return true;
 }
 
-bool static IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
+static bool IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
     if (!IsValidSignatureEncoding(vchSig)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
     }
@@ -265,7 +265,7 @@ static bool CheckPubKeyEncoding(const valtype &vchPubKey, uint32_t flags,
     return true;
 }
 
-bool static CheckMinimalPush(const valtype &data, opcodetype opcode) {
+static bool CheckMinimalPush(const valtype &data, opcodetype opcode) {
     if (data.size() == 0) {
         // Could have used OP_0.
         return opcode == OP_0;

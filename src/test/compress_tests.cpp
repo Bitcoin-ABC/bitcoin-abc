@@ -24,17 +24,17 @@
 
 BOOST_FIXTURE_TEST_SUITE(compress_tests, BasicTestingSetup)
 
-bool static TestEncode(uint64_t in) {
+static bool TestEncode(uint64_t in) {
     return in == CTxOutCompressor::DecompressAmount(
                      CTxOutCompressor::CompressAmount(in));
 }
 
-bool static TestDecode(uint64_t in) {
+static bool TestDecode(uint64_t in) {
     return in == CTxOutCompressor::CompressAmount(
                      CTxOutCompressor::DecompressAmount(in));
 }
 
-bool static TestPair(uint64_t dec, uint64_t enc) {
+static bool TestPair(uint64_t dec, uint64_t enc) {
     return CTxOutCompressor::CompressAmount(dec) == enc &&
            CTxOutCompressor::DecompressAmount(enc) == dec;
 }

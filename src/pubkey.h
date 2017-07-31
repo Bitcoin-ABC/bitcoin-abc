@@ -44,7 +44,7 @@ private:
     unsigned char vch[65];
 
     //! Compute the length of a pubkey with a given first byte.
-    unsigned int static GetLen(unsigned char chHeader) {
+    static unsigned int GetLen(unsigned char chHeader) {
         if (chHeader == 2 || chHeader == 3) return 33;
         if (chHeader == 4 || chHeader == 6 || chHeader == 7) return 65;
         return 0;

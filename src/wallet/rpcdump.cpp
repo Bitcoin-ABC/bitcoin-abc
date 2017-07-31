@@ -31,11 +31,11 @@ using namespace std;
 void EnsureWalletIsUnlocked();
 bool EnsureWalletIsAvailable(bool avoidException);
 
-std::string static EncodeDumpTime(int64_t nTime) {
+static std::string EncodeDumpTime(int64_t nTime) {
     return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
 }
 
-int64_t static DecodeDumpTime(const std::string &str) {
+static int64_t DecodeDumpTime(const std::string &str) {
     static const boost::posix_time::ptime epoch =
         boost::posix_time::from_time_t(0);
     static const std::locale loc(
@@ -49,7 +49,7 @@ int64_t static DecodeDumpTime(const std::string &str) {
     return (ptime - epoch).total_seconds();
 }
 
-std::string static EncodeDumpString(const std::string &str) {
+static std::string EncodeDumpString(const std::string &str) {
     std::stringstream ret;
     for (unsigned char c : str) {
         if (c <= 32 || c >= 128 || c == '%') {

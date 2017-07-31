@@ -576,7 +576,7 @@ TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(
 }
 
 #ifdef WIN32
-boost::filesystem::path static StartupShortcutPath() {
+static boost::filesystem::path StartupShortcutPath() {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
@@ -666,7 +666,7 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 // Follow the Desktop Application Autostart Spec:
 // http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
 
-boost::filesystem::path static GetAutostartDir() {
+static boost::filesystem::path GetAutostartDir() {
     namespace fs = boost::filesystem;
 
     char *pszConfigHome = getenv("XDG_CONFIG_HOME");
@@ -676,7 +676,7 @@ boost::filesystem::path static GetAutostartDir() {
     return fs::path();
 }
 
-boost::filesystem::path static GetAutostartFilePath() {
+static boost::filesystem::path GetAutostartFilePath() {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
         return GetAutostartDir() / "bitcoin.desktop";

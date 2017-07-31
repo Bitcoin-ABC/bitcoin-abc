@@ -331,7 +331,7 @@ uint64_t CNetAddr::GetHash() const {
 // used in GetReachabilityFrom
 static const int NET_UNKNOWN = NET_MAX + 0;
 static const int NET_TEREDO = NET_MAX + 1;
-int static GetExtNetwork(const CNetAddr *addr) {
+static int GetExtNetwork(const CNetAddr *addr) {
     if (addr == nullptr) return NET_UNKNOWN;
     if (addr->IsRFC4380()) return NET_TEREDO;
     return addr->GetNetwork();

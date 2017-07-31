@@ -272,7 +272,7 @@ void HandleSIGHUP(int) {
     fReopenDebugLog = true;
 }
 
-bool static Bind(CConnman &connman, const CService &addr, unsigned int flags) {
+static bool Bind(CConnman &connman, const CService &addr, unsigned int flags) {
     if (!(flags & BF_EXPLICIT) && IsLimited(addr)) return false;
     std::string strError;
     if (!connman.BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) {

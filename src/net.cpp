@@ -61,7 +61,7 @@
 #endif
 #endif
 
-const static std::string NET_MESSAGE_COMMAND_OTHER = "*other*";
+static const std::string NET_MESSAGE_COMMAND_OTHER = "*other*";
 
 // SHA256("netgroup")[0:8]
 static const uint64_t RANDOMIZER_ID_NETGROUP = 0x6c0edd8036ef4036ULL;

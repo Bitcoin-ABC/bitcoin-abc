@@ -44,7 +44,7 @@ const char *BLOCKTXN = "blocktxn";
 /** All known message types. Keep this in the same order as the list of
  * messages above and in protocol.h.
  */
-const static std::string allNetMessageTypes[] = {
+static const std::string allNetMessageTypes[] = {
     NetMsgType::VERSION,     NetMsgType::VERACK,     NetMsgType::ADDR,
     NetMsgType::INV,         NetMsgType::GETDATA,    NetMsgType::MERKLEBLOCK,
     NetMsgType::GETBLOCKS,   NetMsgType::GETHEADERS, NetMsgType::TX,
@@ -55,7 +55,7 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::FEEFILTER,   NetMsgType::SENDCMPCT,  NetMsgType::CMPCTBLOCK,
     NetMsgType::GETBLOCKTXN, NetMsgType::BLOCKTXN,
 };
-const static std::vector<std::string>
+static const std::vector<std::string>
     allNetMessageTypesVec(allNetMessageTypes,
                           allNetMessageTypes + ARRAYLEN(allNetMessageTypes));
 

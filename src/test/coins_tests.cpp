@@ -610,21 +610,21 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
 }
 
 // TODO: Remove TXID once the migration is over.
-const static uint256 TXID;
-const static COutPoint OUTPOINT;
-const static CAmount PRUNED = -1;
-const static CAmount ABSENT = -2;
-const static CAmount FAIL = -3;
-const static CAmount VALUE1 = 100;
-const static CAmount VALUE2 = 200;
-const static CAmount VALUE3 = 300;
-const static char DIRTY = CCoinsCacheEntry::DIRTY;
-const static char FRESH = CCoinsCacheEntry::FRESH;
-const static char NO_ENTRY = -1;
+static const uint256 TXID;
+static const COutPoint OUTPOINT;
+static const CAmount PRUNED = -1;
+static const CAmount ABSENT = -2;
+static const CAmount FAIL = -3;
+static const CAmount VALUE1 = 100;
+static const CAmount VALUE2 = 200;
+static const CAmount VALUE3 = 300;
+static const char DIRTY = CCoinsCacheEntry::DIRTY;
+static const char FRESH = CCoinsCacheEntry::FRESH;
+static const char NO_ENTRY = -1;
 
-const static auto FLAGS = {char(0), FRESH, DIRTY, char(DIRTY | FRESH)};
-const static auto CLEAN_FLAGS = {char(0), FRESH};
-const static auto ABSENT_FLAGS = {NO_ENTRY};
+static const auto FLAGS = {char(0), FRESH, DIRTY, char(DIRTY | FRESH)};
+static const auto CLEAN_FLAGS = {char(0), FRESH};
+static const auto ABSENT_FLAGS = {NO_ENTRY};
 
 void SetCoinsValue(CAmount value, CCoins &coins) {
     assert(value != ABSENT);
