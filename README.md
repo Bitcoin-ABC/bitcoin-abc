@@ -34,5 +34,3 @@ Development Process
 Bitcoin development takes place at https://reviews.bitcoinabc.org/
 
 Bitcoin XBT will always be updated with like for like changes as when when Bitcoin-ABC is updated.
-
-Tip Jar: 19W4wb83h1KnbFZXCrPE9bdGnptaAguhKb
