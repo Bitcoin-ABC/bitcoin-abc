@@ -30,9 +30,9 @@ Build Bitcoin XBT
 1. Clone the Bitcoin XBT source code and cd into `bitcoin-abc`
 
         git clone github.com/BitcoinXBT/bitcoinxbt
-        cd bitcoin-abc
+        cd bitcoinxbt
 
-2.  Build bitcoin-xbt:
+2.  Build bitcoinxbt:
 
     Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
 
