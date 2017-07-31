@@ -116,9 +116,10 @@ void EnsureWalletIsUnlocked(CWallet *const pwallet) {
     }
 }
 
-static void WalletTxToJSON(interfaces::Chain &chain, const CWalletTx &wtx,
-                           UniValue &entry) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    int confirms = wtx.GetDepthInMainChain();
+static void WalletTxToJSON(interfaces::Chain &chain,
+                           interfaces::Chain::Lock &locked_chain,
+                           const CWalletTx &wtx, UniValue &entry) {
+    int confirms = wtx.GetDepthInMainChain(locked_chain);
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
         entry.pushKV("generated", true);
@@ -129,7 +130,7 @@ static void WalletTxToJSON(interfaces::Chain &chain, const CWalletTx &wtx,
         entry.pushKV("blocktime",
                      LookupBlockIndex(wtx.hashBlock)->GetBlockTime());
     } else {
-        entry.pushKV("trusted", wtx.IsTrusted());
+        entry.pushKV("trusted", wtx.IsTrusted(locked_chain));
     }
     uint256 hash = wtx.GetId();
     entry.pushKV("txid", hash.GetHex());
@@ -559,7 +560,8 @@ static UniValue getaddressesbyaccount(const Config &config,
     return ret;
 }
 
-static CTransactionRef SendMoney(CWallet *const pwallet,
+static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
+                                 CWallet *const pwallet,
                                  const CTxDestination &address, Amount nValue,
                                  bool fSubtractFeeFromAmount,
                                  mapValue_t mapValue, std::string fromAccount) {
@@ -594,8 +596,9 @@ static CTransactionRef SendMoney(CWallet *const pwallet,
 
     CCoinControl coinControl;
     CTransactionRef tx;
-    if (!pwallet->CreateTransaction(vecSend, tx, reservekey, nFeeRequired,
-                                    nChangePosRet, strError, coinControl)) {
+    if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, reservekey,
+                                    nFeeRequired, nChangePosRet, strError,
+                                    coinControl)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
             strError = strprintf("Error: This transaction requires a "
                                  "transaction fee of at least %s",
@@ -704,7 +707,7 @@ static UniValue sendtoaddress(const Config &config,
     EnsureWalletIsUnlocked(pwallet);
 
     CTransactionRef tx =
-        SendMoney(pwallet, dest, nAmount, fSubtractFeeFromAmount,
+        SendMoney(*locked_chain, pwallet, dest, nAmount, fSubtractFeeFromAmount,
                   std::move(mapValue), {} /* fromAccount */);
     return tx->GetId().GetHex();
 }
@@ -752,7 +755,8 @@ static UniValue listaddressgroupings(const Config &config,
     LOCK(pwallet->cs_wallet);
 
     UniValue jsonGroupings(UniValue::VARR);
-    std::map<CTxDestination, Amount> balances = pwallet->GetAddressBalances();
+    std::map<CTxDestination, Amount> balances =
+        pwallet->GetAddressBalances(*locked_chain);
     for (const std::set<CTxDestination> &grouping :
          pwallet->GetAddressGroupings()) {
         UniValue jsonGrouping(UniValue::VARR);
@@ -894,6 +898,9 @@ static UniValue getreceivedbyaddress(const Config &config,
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
+    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
+    // in upcoming commit.
+    LockAnnotation lock(::cs_main);
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -929,7 +936,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
         for (const CTxOut &txout : wtx.tx->vout) {
             if (txout.scriptPubKey == scriptPubKey) {
-                if (wtx.GetDepthInMainChain() >= nMinDepth) {
+                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
                     nAmount += txout.nValue;
                 }
             }
@@ -994,6 +1001,9 @@ static UniValue getreceivedbylabel(const Config &config,
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
 
+    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
+    // in upcoming commit.
+    LockAnnotation lock(::cs_main);
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
@@ -1022,7 +1032,7 @@ static UniValue getreceivedbylabel(const Config &config,
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) &&
                 IsMine(*pwallet, address) && setAddress.count(address)) {
-                if (wtx.GetDepthInMainChain() >= nMinDepth) {
+                if (wtx.GetDepthInMainChain(*locked_chain) >= nMinDepth) {
                     nAmount += txout.nValue;
                 }
             }
@@ -1386,7 +1396,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
                            "Account has insufficient funds");
     }
 
-    CTransactionRef tx = SendMoney(pwallet, dest, nAmount, false,
+    CTransactionRef tx = SendMoney(*locked_chain, pwallet, dest, nAmount, false,
                                    std::move(mapValue), std::move(label));
     return tx->GetId().GetHex();
 }
@@ -1648,9 +1658,9 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::string strFailReason;
     CTransactionRef tx;
     CCoinControl coinControl;
-    bool fCreated =
-        pwallet->CreateTransaction(vecSend, tx, keyChange, nFeeRequired,
-                                   nChangePosRet, strFailReason, coinControl);
+    bool fCreated = pwallet->CreateTransaction(
+        *locked_chain, vecSend, tx, keyChange, nFeeRequired, nChangePosRet,
+        strFailReason, coinControl);
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     }
@@ -1766,9 +1776,14 @@ struct tallyitem {
     tallyitem() {}
 };
 
-static UniValue ListReceived(const Config &config, CWallet *const pwallet,
-                             const UniValue &params, bool by_label)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main, pwallet->cs_wallet) {
+static UniValue
+ListReceived(const Config &config, interfaces::Chain::Lock &locked_chain,
+             CWallet *const pwallet, const UniValue &params, bool by_label)
+    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
+    // Temporary, for ContextualCheckTransactionForCurrentBlock below. Removed
+    // in upcoming commit.
+    LockAnnotation lock(::cs_main);
+
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
@@ -1811,7 +1826,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain();
+        int nDepth = wtx.GetDepthInMainChain(locked_chain);
         if (nDepth < nMinDepth) {
             continue;
         }
@@ -1987,7 +2002,7 @@ static UniValue listreceivedbyaddress(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    return ListReceived(config, pwallet, request.params, false);
+    return ListReceived(config, *locked_chain, pwallet, request.params, false);
 }
 
 static UniValue listreceivedbylabel(const Config &config,
@@ -2055,7 +2070,7 @@ static UniValue listreceivedbylabel(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    return ListReceived(config, pwallet, request.params, true);
+    return ListReceived(config, *locked_chain, pwallet, request.params, true);
 }
 
 static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
@@ -2075,11 +2090,11 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
  * @param  ret        The UniValue into which the result is stored.
  * @param  filter     The "is mine" filter bool.
  */
-static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
+static void ListTransactions(interfaces::Chain::Lock &locked_chain,
+                             CWallet *const pwallet, const CWalletTx &wtx,
                              const std::string &strAccount, int nMinDepth,
                              bool fLong, UniValue &ret,
-                             const isminefilter &filter)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                             const isminefilter &filter) {
     Amount nFee;
     std::string strSentAccount;
     std::list<COutputEntry> listReceived;
@@ -2112,7 +2127,7 @@ static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
             entry.pushKV("vout", s.vout);
             entry.pushKV("fee", ValueFromAmount(-1 * nFee));
             if (fLong) {
-                WalletTxToJSON(pwallet->chain(), wtx, entry);
+                WalletTxToJSON(pwallet->chain(), locked_chain, wtx, entry);
             }
             entry.pushKV("abandoned", wtx.isAbandoned());
             ret.push_back(entry);
@@ -2120,7 +2135,8 @@ static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
     }
 
     // Received
-    if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
+    if (listReceived.size() > 0 &&
+        wtx.GetDepthInMainChain(locked_chain) >= nMinDepth) {
         for (const COutputEntry &r : listReceived) {
             std::string account;
             if (pwallet->mapAddressBook.count(r.destination)) {
@@ -2137,9 +2153,9 @@ static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                 }
                 MaybePushAddress(entry, r.destination);
                 if (wtx.IsCoinBase()) {
-                    if (wtx.GetDepthInMainChain() < 1) {
+                    if (wtx.GetDepthInMainChain(locked_chain) < 1) {
                         entry.pushKV("category", "orphan");
-                    } else if (wtx.IsImmatureCoinBase()) {
+                    } else if (wtx.IsImmatureCoinBase(locked_chain)) {
                         entry.pushKV("category", "immature");
                     } else {
                         entry.pushKV("category", "generate");
@@ -2153,7 +2169,7 @@ static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                 }
                 entry.pushKV("vout", r.vout);
                 if (fLong) {
-                    WalletTxToJSON(pwallet->chain(), wtx, entry);
+                    WalletTxToJSON(pwallet->chain(), locked_chain, wtx, entry);
                 }
                 ret.push_back(entry);
             }
@@ -2412,7 +2428,8 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
          it != txOrdered.rend(); ++it) {
         CWalletTx *const pwtx = (*it).second.first;
         if (pwtx != nullptr) {
-            ListTransactions(pwallet, *pwtx, strAccount, 0, true, ret, filter);
+            ListTransactions(*locked_chain, pwallet, *pwtx, strAccount, 0, true,
+                             ret, filter);
         }
         if (IsDeprecatedRPCEnabled(gArgs, "accounts")) {
             CAccountingEntry *const pacentry = (*it).second.second;
@@ -2540,8 +2557,8 @@ static UniValue listaccounts(const Config &config,
         std::string strSentAccount;
         std::list<COutputEntry> listReceived;
         std::list<COutputEntry> listSent;
-        int nDepth = wtx.GetDepthInMainChain();
-        if (wtx.IsImmatureCoinBase() || nDepth < 0) {
+        int nDepth = wtx.GetDepthInMainChain(*locked_chain);
+        if (wtx.IsImmatureCoinBase(*locked_chain) || nDepth < 0) {
             continue;
         }
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount,
@@ -2744,8 +2761,9 @@ static UniValue listsinceblock(const Config &config,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         CWalletTx tx = pairWtx.second;
 
-        if (depth == -1 || tx.GetDepthInMainChain() < depth) {
-            ListTransactions(pwallet, tx, "*", 0, true, transactions, filter);
+        if (depth == -1 || tx.GetDepthInMainChain(*locked_chain) < depth) {
+            ListTransactions(*locked_chain, pwallet, tx, "*", 0, true,
+                             transactions, filter);
         }
     }
 
@@ -2766,8 +2784,8 @@ static UniValue listsinceblock(const Config &config,
                 // We want all transactions regardless of confirmation count to
                 // appear here, even negative confirmation ones, hence the big
                 // negative.
-                ListTransactions(pwallet, it->second, "*", -100000000, true,
-                                 removed, filter);
+                ListTransactions(*locked_chain, pwallet, it->second, "*",
+                                 -100000000, true, removed, filter);
             }
         }
         paltindex = paltindex->pprev;
@@ -2906,7 +2924,7 @@ static UniValue gettransaction(const Config &config,
     }
     const CWalletTx &wtx = it->second;
 
-    Amount nCredit = wtx.GetCredit(filter);
+    Amount nCredit = wtx.GetCredit(*locked_chain, filter);
     Amount nDebit = wtx.GetDebit(filter);
     Amount nNet = nCredit - nDebit;
     Amount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit
@@ -2917,10 +2935,11 @@ static UniValue gettransaction(const Config &config,
         entry.pushKV("fee", ValueFromAmount(nFee));
     }
 
-    WalletTxToJSON(pwallet->chain(), wtx, entry);
+    WalletTxToJSON(pwallet->chain(), *locked_chain, wtx, entry);
 
     UniValue details(UniValue::VARR);
-    ListTransactions(pwallet, wtx, "*", 0, false, details, filter);
+    ListTransactions(*locked_chain, pwallet, wtx, "*", 0, false, details,
+                     filter);
     entry.pushKV("details", details);
 
     std::string strHex = EncodeHexTx(*wtx.tx, RPCSerializationFlags());
@@ -2976,7 +2995,7 @@ static UniValue abandontransaction(const Config &config,
                            "Invalid or non-wallet transaction id");
     }
 
-    if (!pwallet->AbandonTransaction(txid)) {
+    if (!pwallet->AbandonTransaction(*locked_chain, txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not eligible for abandonment");
     }
@@ -3484,7 +3503,7 @@ static UniValue lockunspent(const Config &config,
                                "Invalid parameter, vout index out of bounds");
         }
 
-        if (pwallet->IsSpent(output)) {
+        if (pwallet->IsSpent(*locked_chain, output)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected unspent output");
         }
@@ -3988,8 +4007,8 @@ static UniValue resendwallettransactions(const Config &config,
                                              "-walletbroadcast");
     }
 
-    std::vector<uint256> txids =
-        pwallet->ResendWalletTransactionsBefore(GetTime(), g_connman.get());
+    std::vector<uint256> txids = pwallet->ResendWalletTransactionsBefore(
+        *locked_chain, GetTime(), g_connman.get());
     UniValue result(UniValue::VARR);
     for (const uint256 &txid : txids) {
         result.push_back(txid.ToString());
@@ -4173,8 +4192,8 @@ static UniValue listunspent(const Config &config,
     {
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
-        pwallet->AvailableCoins(vecOutputs, !include_unsafe, nullptr,
-                                nMinimumAmount, nMaximumAmount,
+        pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe,
+                                nullptr, nMinimumAmount, nMaximumAmount,
                                 nMinimumSumAmount, nMaximumCount, nMinDepth,
                                 nMaxDepth);
     }
