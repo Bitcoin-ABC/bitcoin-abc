@@ -20,7 +20,7 @@ Bitcoin XBT is the name of this open source software which enables the use of Bi
 
 It is designed to assist with a hard fork to increase Bitcoin's block size limit.
 
-Bitcoin XBT uses $XBT units of account (other compatible clients may use other abbreviations and naming conventions).
+Bitcoin XBT uses XBT units of account (other compatible clients may use other abbreviations and naming conventions).
 
 License
 -------
