@@ -1,7 +1,7 @@
 Bitcoin XBT
 ===========
 
-https://bitcoinxbt.org
+https://bitcoinabc.org
 
 What is Bitcoin?
 ----------------
