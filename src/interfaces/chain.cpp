@@ -10,6 +10,7 @@
 #include <policy/mempool.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
+#include <primitives/transaction.h>
 #include <protocol.h>
 #include <sync.h>
 #include <threadsafety.h>
@@ -146,6 +147,14 @@ namespace {
             LockAnnotation lock(::cs_main);
             return ContextualCheckTransactionForCurrentBlock(params, tx, state);
         }
+        bool submitToMemoryPool(const Config &config, CTransactionRef tx,
+                                Amount absurd_fee,
+                                CValidationState &state) override {
+            LockAnnotation lock(::cs_main);
+            return AcceptToMemoryPool(config, ::g_mempool, state, tx,
+                                      nullptr /* missing inputs */,
+                                      false /* bypass limits */, absurd_fee);
+        }
     };
 
     class LockingStateImpl : public LockImpl,
@@ -231,6 +240,7 @@ namespace {
                 limit_descendant_count, limit_descendant_size,
                 unused_error_string);
         }
+        Amount maxTxFee() override { return ::maxTxFee; }
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }

@@ -1989,7 +1989,7 @@ void CWallet::ReacceptWalletTransactions() {
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
         CValidationState state;
-        wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state);
+        wtx.AcceptToMemoryPool(*locked_chain, state);
     }
 }
 
@@ -2002,7 +2002,7 @@ bool CWalletTx::RelayWalletTransaction(interfaces::Chain::Lock &locked_chain) {
 
     CValidationState state;
     // GetDepthInMainChain already catches known conflicts.
-    if (InMempool() || AcceptToMemoryPool(locked_chain, maxTxFee, state)) {
+    if (InMempool() || AcceptToMemoryPool(locked_chain, state)) {
         pwallet->WalletLogPrintf("Relaying wtx %s\n", GetId().ToString());
         if (pwallet->chain().p2pEnabled()) {
             pwallet->chain().relayTransaction(GetId());
@@ -3441,7 +3441,7 @@ bool CWallet::CommitTransaction(
 
     if (fBroadcastTransactions) {
         // Broadcast
-        if (!wtx.AcceptToMemoryPool(*locked_chain, maxTxFee, state)) {
+        if (!wtx.AcceptToMemoryPool(*locked_chain, state)) {
             WalletLogPrintf("CommitTransaction(): Transaction cannot be "
                             "broadcast immediately, %s\n",
                             FormatStateMessage(state));
@@ -4864,19 +4864,14 @@ bool CMerkleTx::IsImmatureCoinBase(
 }
 
 bool CWalletTx::AcceptToMemoryPool(interfaces::Chain::Lock &locked_chain,
-                                   const Amount nAbsurdFee,
                                    CValidationState &state) {
-    // Temporary, for AcceptToMemoryPool below. Removed in upcoming commit.
-    LockAnnotation lock(::cs_main);
-
     // We must set fInMempool here - while it will be re-set to true by the
     // entered-mempool callback, if we did not there would be a race where a
     // user could call sendmoney in a loop and hit spurious out of funds errors
     // because we think that this newly generated transaction's change is
     // unavailable as we're not yet aware that it is in the mempool.
-    bool ret = ::AcceptToMemoryPool(GetConfig(), g_mempool, state, tx,
-                                    nullptr /* pfMissingInputs */,
-                                    false /* bypass_limits */, nAbsurdFee);
+    bool ret = locked_chain.submitToMemoryPool(
+        ::GetConfig(), tx, pwallet->chain().maxTxFee(), state);
     fInMempool |= ret;
     return ret;
 }

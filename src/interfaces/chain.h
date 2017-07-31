@@ -19,8 +19,8 @@ struct BlockHash;
 class CBlock;
 struct CBlockLocator;
 class CChainParams;
+class Config;
 class CScheduler;
-class CTransaction;
 class CValidationState;
 namespace Consensus {
 struct Params;
@@ -119,6 +119,12 @@ public:
         virtual bool contextualCheckTransactionForCurrentBlock(
             const Consensus::Params &params, const CTransaction &tx,
             CValidationState &state) = 0;
+
+        //! Add transaction to memory pool if the transaction fee is below the
+        //! amount specified by absurd_fee (as a safeguard). */
+        virtual bool submitToMemoryPool(const Config &config,
+                                        CTransactionRef tx, Amount absurd_fee,
+                                        CValidationState &state) = 0;
     };
 
     //! Return Lock interface. Chain is locked when this is called, and
@@ -157,6 +163,12 @@ public:
 
     //! Check chain limits.
     virtual bool checkChainLimits(CTransactionRef tx) = 0;
+
+    //! Get node max tx fee setting (-maxtxfee).
+    //! This could be replaced by a per-wallet max fee, as proposed at
+    //! https://github.com/bitcoin/bitcoin/issues/15355
+    //! But for the time being, wallets call this to access the node setting.
+    virtual Amount maxTxFee() = 0;
 
     //! Check if pruning is enabled.
     virtual bool getPruneMode() = 0;
