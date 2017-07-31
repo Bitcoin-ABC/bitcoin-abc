@@ -1729,8 +1729,10 @@ static const CRPCCommand commands[] = {
 };
 // clang-format on
 
-void RegisterDumpRPCCommands(CRPCTable &t) {
+void RegisterDumpRPCCommands(
+    interfaces::Chain &chain,
+    std::vector<std::unique_ptr<interfaces::Handler>> &handlers) {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++) {
-        t.appendCommand(commands[vcidx].name, &commands[vcidx]);
+        handlers.emplace_back(chain.handleRpc(commands[vcidx]));
     }
 }

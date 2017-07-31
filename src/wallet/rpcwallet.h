@@ -7,7 +7,9 @@
 
 #include <script/sighashtype.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 
 class Config;
 class CRPCTable;
@@ -17,7 +19,14 @@ class JSONRPCRequest;
 struct PartiallySignedTransaction;
 class UniValue;
 
-void RegisterWalletRPCCommands(CRPCTable &t);
+namespace interfaces {
+class Chain;
+class Handler;
+} // namespace interfaces
+
+void RegisterWalletRPCCommands(
+    interfaces::Chain &chain,
+    std::vector<std::unique_ptr<interfaces::Handler>> &handlers);
 
 /**
  * Figures out what wallet, if any, to use for a JSONRPCRequest.

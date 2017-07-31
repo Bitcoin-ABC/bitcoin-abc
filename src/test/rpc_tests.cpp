@@ -31,9 +31,11 @@ UniValue CallRPC(std::string args) {
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
     request.fHelp = false;
-    BOOST_CHECK(tableRPC[strMethod]);
+    if (RPCIsInWarmup(nullptr)) {
+        SetRPCWarmupFinished();
+    }
     try {
-        UniValue result = tableRPC[strMethod]->call(config, request);
+        UniValue result = tableRPC.execute(config, request);
         return result;
     } catch (const UniValue &objError) {
         throw std::runtime_error(find_value(objError, "message").get_str());

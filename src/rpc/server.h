@@ -172,49 +172,56 @@ void RPCUnsetTimerInterface(RPCTimerInterface *iface);
 void RPCRunLater(const std::string &name, std::function<void()> func,
                  int64_t nSeconds);
 
-typedef UniValue (*rpcfn_type)(Config &config,
-                               const JSONRPCRequest &jsonRequest);
-typedef UniValue (*const_rpcfn_type)(const Config &config,
-                                     const JSONRPCRequest &jsonRequest);
+using rpcfn_type = UniValue (*)(Config &config,
+                                const JSONRPCRequest &jsonRequest);
+using const_rpcfn_type = UniValue (*)(const Config &config,
+                                      const JSONRPCRequest &jsonRequest);
 
 class CRPCCommand {
 public:
+    //! RPC method handler reading request and assigning result. Should return
+    //! true if request is fully handled, false if it should be passed on to
+    //! subsequent handlers.
+    using Actor =
+        std::function<bool(Config &config, const JSONRPCRequest &request,
+                           UniValue &result, bool last_handler)>;
+
+    //! Constructor taking Actor callback supporting multiple handlers.
+    CRPCCommand(std::string _category, std::string _name, Actor _actor,
+                std::vector<std::string> _args, intptr_t _unique_id)
+        : category(std::move(_category)), name(std::move(_name)),
+          actor(std::move(_actor)), argNames(std::move(_args)),
+          unique_id(_unique_id) {}
+
+    //! Simplified constructor taking plain rpcfn_type function pointer.
+    CRPCCommand(const char *_category, const char *_name, rpcfn_type _fn,
+                std::initializer_list<const char *> _args)
+        : CRPCCommand(
+              _category, _name,
+              [_fn](Config &config, const JSONRPCRequest &request,
+                    UniValue &result, bool) {
+                  result = _fn(config, request);
+                  return true;
+              },
+              {_args.begin(), _args.end()}, intptr_t(_fn)) {}
+
+    //! Simplified constructor taking plain const_rpcfn_type function pointer.
+    CRPCCommand(const char *_category, const char *_name, const_rpcfn_type _fn,
+                std::initializer_list<const char *> _args)
+        : CRPCCommand(
+              _category, _name,
+              [_fn](const Config &config, const JSONRPCRequest &request,
+                    UniValue &result, bool) {
+                  result = _fn(config, request);
+                  return true;
+              },
+              {_args.begin(), _args.end()}, intptr_t(_fn)) {}
+
     std::string category;
     std::string name;
-
-private:
-    union {
-        rpcfn_type fn;
-        const_rpcfn_type cfn;
-    } actor;
-    bool useConstConfig;
-
-public:
+    Actor actor;
     std::vector<std::string> argNames;
-
-    CRPCCommand(std::string _category, std::string _name, rpcfn_type _actor,
-                std::vector<std::string> _argNames)
-        : category{std::move(_category)}, name{std::move(_name)},
-          useConstConfig{false}, argNames{std::move(_argNames)} {
-        actor.fn = _actor;
-    }
-
-    /**
-     * There are 2 constructors depending Config is const or not, so we
-     * can call the command through the proper pointer. Casting constness
-     * on parameters of function is undefined behavior.
-     */
-    CRPCCommand(std::string _category, std::string _name,
-                const_rpcfn_type _actor, std::vector<std::string> _argNames)
-        : category{std::move(_category)}, name{std::move(_name)},
-          useConstConfig{true}, argNames{std::move(_argNames)} {
-        actor.cfn = _actor;
-    }
-
-    UniValue call(Config &config, const JSONRPCRequest &jsonRequest) const {
-        return useConstConfig ? (*actor.cfn)(config, jsonRequest)
-                              : (*actor.fn)(config, jsonRequest);
-    };
+    intptr_t unique_id;
 };
 
 /**
@@ -222,11 +229,10 @@ public:
  */
 class CRPCTable {
 private:
-    std::map<std::string, const CRPCCommand *> mapCommands;
+    std::map<std::string, std::vector<const CRPCCommand *>> mapCommands;
 
 public:
     CRPCTable();
-    const CRPCCommand *operator[](const std::string &name) const;
     std::string help(Config &config, const std::string &name,
                      const JSONRPCRequest &helpreq) const;
 
@@ -250,9 +256,7 @@ public:
      * Returns false if RPC server is already running (dump concurrency
      * protection).
      *
-     * Commands cannot be overwritten (returns false).
-     *
-     * Commands with different method names but the same callback function will
+     * Commands with different method names but the same unique_id will
      * be considered aliases, and only the first registered method name will
      * show up in the help text command listing. Aliased commands do not have
      * to have the same behavior. Server and client code can distinguish
@@ -260,6 +264,7 @@ public:
      * register different names, types, and numbers of parameters.
      */
     bool appendCommand(const std::string &name, const CRPCCommand *pcmd);
+    bool removeCommand(const std::string &name, const CRPCCommand *pcmd);
 };
 
 bool IsDeprecatedRPCEnabled(ArgsManager &args, const std::string &method);

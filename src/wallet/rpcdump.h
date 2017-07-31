@@ -7,11 +7,21 @@
 
 #include <univalue.h>
 
+#include <memory>
+#include <vector>
+
 class Config;
 class CRPCTable;
 class JSONRPCRequest;
 
-void RegisterDumpRPCCommands(CRPCTable &t);
+namespace interfaces {
+class Chain;
+class Handler;
+} // namespace interfaces
+
+void RegisterDumpRPCCommands(
+    interfaces::Chain &chain,
+    std::vector<std::unique_ptr<interfaces::Handler>> &handlers);
 
 UniValue importmulti(const Config &config, const JSONRPCRequest &request);
 UniValue dumpwallet(const Config &config, const JSONRPCRequest &request);

@@ -499,8 +499,8 @@ namespace {
             : m_chain(chain), m_wallet_filenames(std::move(wallet_filenames)) {}
 
         void registerRpcs() override {
-            RegisterWalletRPCCommands(::tableRPC);
-            RegisterDumpRPCCommands(::tableRPC);
+            RegisterWalletRPCCommands(m_chain, m_rpc_handlers);
+            RegisterDumpRPCCommands(m_chain, m_rpc_handlers);
         }
         bool verify(const CChainParams &chainParams) override {
             return VerifyWallets(chainParams, m_chain, m_wallet_filenames);
@@ -517,6 +517,7 @@ namespace {
 
         Chain &m_chain;
         std::vector<std::string> m_wallet_filenames;
+        std::vector<std::unique_ptr<Handler>> m_rpc_handlers;
     };
 
 } // namespace

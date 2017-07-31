@@ -20,6 +20,7 @@ class CBlock;
 struct CBlockLocator;
 class CChainParams;
 class Config;
+class CRPCCommand;
 class CScheduler;
 class CValidationState;
 namespace Consensus {
@@ -245,6 +246,10 @@ public:
 
     //! Wait for pending notifications to be handled.
     virtual void waitForNotifications() = 0;
+
+    //! Register handler for RPC. Command is not copied, so reference
+    //! needs to remain valid until Handler is disconnected.
+    virtual std::unique_ptr<Handler> handleRpc(const CRPCCommand &command) = 0;
 };
 
 //! Interface to let node manage chain clients (wallets, or maybe tools for
