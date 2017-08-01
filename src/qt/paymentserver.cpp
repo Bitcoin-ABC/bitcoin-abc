@@ -682,7 +682,7 @@ void PaymentServer::fetchRequest(const QUrl &url) {
 }
 
 void PaymentServer::fetchPaymentACK(CWallet *wallet,
-                                    SendCoinsRecipient recipient,
+                                    const SendCoinsRecipient &recipient,
                                     QByteArray transaction) {
     const payments::PaymentDetails &details =
         recipient.paymentRequest.getDetails();
