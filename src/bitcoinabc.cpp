@@ -77,7 +77,7 @@ bool AppInit(int argc, char *argv[]) {
     //
     // Parameters
     //
-    // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's
+    // If Qt is used, parameters/bitcoinabc.conf are parsed in qt/bitcoin.cpp's
     // main()
     ParseParameters(argc, argv);
 
@@ -92,10 +92,10 @@ bool AppInit(int argc, char *argv[]) {
             strUsage += FormatParagraph(LicenseInfo());
         } else {
             strUsage += "\n" + _("Usage:") + "\n" +
-                        "  bitcoind [options]                     " +
+                        "  bitcoinabc [options]                     " +
                         strprintf(_("Start %s Daemon"), _(PACKAGE_NAME)) + "\n";
 
-            strUsage += "\n" + HelpMessage(HMM_BITCOIND);
+            strUsage += "\n" + HelpMessage(HMM_BITCOINABC);
         }
 
         fprintf(stdout, "%s", strUsage.c_str());
@@ -133,11 +133,11 @@ bool AppInit(int argc, char *argv[]) {
 
         if (fCommandLine) {
             fprintf(stderr, "Error: There is no RPC client functionality in "
-                            "bitcoind anymore. Use the bitcoin-cli utility "
+                            "bitcoinabc anymore. Use the bitcoin-cli utility "
                             "instead.\n");
             exit(EXIT_FAILURE);
         }
-        // -server defaults to true for bitcoind but not for the GUI so do this
+        // -server defaults to true for bitcoinabc but not for the GUI so do this
         // here
         SoftSetBoolArg("-server", true);
         // Set this early so that parameter interactions go to console
@@ -201,7 +201,7 @@ bool AppInit(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
     SetupEnvironment();
 
-    // Connect bitcoind signal handlers
+    // Connect bitcoinabc signal handlers
     noui_connect();
 
     return (AppInit(argc, argv) ? EXIT_SUCCESS : EXIT_FAILURE);

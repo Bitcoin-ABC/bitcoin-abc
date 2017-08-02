@@ -105,8 +105,8 @@ std::string to_internal(const std::string &);
 
 using namespace std;
 
-const char *const BITCOIN_CONF_FILENAME = "bitcoin.conf";
-const char *const BITCOIN_PID_FILENAME = "bitcoind.pid";
+const char *const BITCOIN_CONF_FILENAME = "bitcoinabc.conf";
+const char *const BITCOIN_PID_FILENAME = "bitcoinabc.pid";
 
 CCriticalSection cs_args;
 map<string, string> mapArgs;
@@ -542,7 +542,7 @@ boost::filesystem::path GetConfigFile(const std::string &confPath) {
 void ReadConfigFile(const std::string &confPath) {
     boost::filesystem::ifstream streamConfig(GetConfigFile(confPath));
 
-    // No bitcoin.conf file is OK
+    // No bitcoinabc.conf file is OK
     if (!streamConfig.good()) return;
 
     {
@@ -555,7 +555,7 @@ void ReadConfigFile(const std::string &confPath) {
              end;
              it != end; ++it) {
             // Don't overwrite existing settings so command line settings
-            // override bitcoin.conf
+            // override bitcoinabc.conf
             string strKey = string("-") + it->string_key;
             string strValue = it->value[0];
             InterpretNegativeSetting(strKey, strValue);

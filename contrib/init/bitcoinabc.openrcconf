@@ -1,0 +1,33 @@
+# /etc/conf.d/bitcoinabc: config file for /etc/init.d/bitcoinabc
+
+# Config file location
+#BITCOINABC_CONFIGFILE="/etc/bitcoinabc/bitcoinabc.conf"
+
+# What directory to write pidfile to?  (created and owned by $BITCOINABC_USER)
+#BITCOINABC_PIDDIR="/var/run/bitcoinabc"
+
+# What filename to give the pidfile
+#BITCOINABC_PIDFILE="${BITCOINABC_PIDDIR}/bitcoinabc.pid"
+
+# Where to write bitcoinabc data (be mindful that the blockchain is large)
+#BITCOINABC_DATADIR="/var/lib/bitcoinabc"
+
+# User and group to own bitcoinabc process
+#BITCOINABC_USER="bitcoin"
+#BITCOINABC_GROUP="bitcoin"
+
+# Path to bitcoinabc executable
+#BITCOINABC_BIN="/usr/bin/bitcoinabc"
+
+# Nice value to run bitcoinabc under
+#BITCOINABC_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+BITCOINABC_OPTS="-disablewallet"
+
+# The timeout in seconds OpenRC will wait for bitcoinabc to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+BITCOINABC_SIGTERM_TIMEOUT=60

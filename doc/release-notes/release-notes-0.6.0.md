@@ -54,7 +54,7 @@ transactions and less traffic on the bitcoin
 network. The shorter keys are already supported
 by the network but wallet.dat files containing
 short keys are not compatible with earlier
-versions of Bitcoin-Qt/bitcoind.
+versions of Bitcoin-Qt/bitcoinabc.
 
 New command-line argument -blocknotify=<command>
 that will spawn a shell process to run <command> 
