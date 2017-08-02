@@ -15,6 +15,9 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 # Create one-input, one-output, no-fee transaction:
 
 
@@ -26,7 +29,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.num_nodes = 3
 
     def setup_network(self, split=False):
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir)
+        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
+                                 [["-uahfstarttime=%d" % UAHF_START_TIME]for i in range(self.num_nodes)])
 
         # connect to a local machine for debugging
         # url = "http://bitcoinrpc:DP6DvqZtqXarpeNWyN3LZTFchCCyCUuHwNF7E8pX99x1@%s:%d" % ('127.0.0.1', 18332)

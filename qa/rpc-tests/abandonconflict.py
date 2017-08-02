@@ -8,6 +8,9 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 import urllib.parse
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 
 class AbandonConflictTest(BitcoinTestFramework):
 
@@ -19,9 +22,14 @@ class AbandonConflictTest(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = []
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-debug", "-logtimemicros", "-minrelaytxfee=0.00001"]))
+            start_node(0, self.options.tmpdir, ["-debug",
+                                                "-logtimemicros",
+                                                "-minrelaytxfee=0.00001",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
         self.nodes.append(
-            start_node(1, self.options.tmpdir, ["-debug", "-logtimemicros"]))
+            start_node(1, self.options.tmpdir, ["-debug",
+                                                "-logtimemicros",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
         connect_nodes(self.nodes[0], 1)
 
     def run_test(self):
@@ -90,7 +98,9 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Note had to make sure tx did not have AllowFree priority
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-debug", "-logtimemicros", "-minrelaytxfee=0.0001"])
+                                   "-debug", "-logtimemicros",
+                                   "-minrelaytxfee=0.0001",
+                                   "-uahfstarttime=%d" % UAHF_START_TIME])
 
         # Verify txs no longer in mempool
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -120,7 +130,9 @@ class AbandonConflictTest(BitcoinTestFramework):
         # from wallet on startup once abandoned
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-debug", "-logtimemicros", "-minrelaytxfee=0.00001"])
+                                   "-debug", "-logtimemicros",
+                                   "-minrelaytxfee=0.00001",
+                                   "-uahfstarttime=%d" % UAHF_START_TIME])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         assert_equal(self.nodes[0].getbalance(), balance)
 
@@ -142,7 +154,9 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Remove using high relay fee again
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-debug", "-logtimemicros", "-minrelaytxfee=0.0001"])
+                                   "-debug", "-logtimemicros",
+                                   "-minrelaytxfee=0.0001",
+                                   "-uahfstarttime=%d" % UAHF_START_TIME])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         newbalance = self.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("24.9996"))

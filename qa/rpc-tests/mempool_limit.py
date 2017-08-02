@@ -8,13 +8,19 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 
 class MempoolLimitTest(BitcoinTestFramework):
 
     def setup_network(self):
         self.nodes = []
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-maxmempool=5", "-spendzeroconfchange=0", "-debug"]))
+            start_node(0, self.options.tmpdir, ["-maxmempool=5",
+                                                "-spendzeroconfchange=0",
+                                                "-debug",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
         self.is_network_split = False
         self.sync_all()
         self.relayfee = self.nodes[0].getnetworkinfo()['relayfee']

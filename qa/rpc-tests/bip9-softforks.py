@@ -14,6 +14,9 @@ from io import BytesIO
 import time
 import itertools
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 '''
 This test is meant to exercise BIP forks
 Connect to a single node.
@@ -37,8 +40,9 @@ class BIP9SoftForksTest(ComparisonTestFramework):
 
     def setup_network(self):
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[
-                                     ['-debug', '-whitelist=127.0.0.1']],
+                                 extra_args=[['-debug',
+                                              '-whitelist=127.0.0.1',
+                                              "-uahfstarttime=%d" % UAHF_START_TIME]],
                                  binary=[self.options.testbinary])
 
     def run_test(self):

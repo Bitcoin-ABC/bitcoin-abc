@@ -11,6 +11,8 @@ from test_framework.script import CScript
 from io import BytesIO
 import time
 
+# far into the future
+UAHF_START_TIME = 2000000000
 NULLDUMMY_ERROR = "64: non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)"
 
 
@@ -48,7 +50,10 @@ class NULLDUMMYTest(BitcoinTestFramework):
     def setup_network(self):
         # Must set the blockversion for this test
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[['-debug', '-whitelist=127.0.0.1', '-walletprematurewitness']])
+                                 extra_args=[['-debug',
+                                              '-whitelist=127.0.0.1',
+                                              '-walletprematurewitness',
+                                              "-uahfstarttime=%d" % UAHF_START_TIME]])
 
     def run_test(self):
         self.address = self.nodes[0].getnewaddress()
