@@ -32,7 +32,8 @@ PATTERN_IPV4 = re.compile(
 PATTERN_IPV6 = re.compile(r"^\[([0-9a-z:]+)\]:(\d+)$")
 PATTERN_ONION = re.compile(
     r"^([abcdefghijklmnopqrstuvwxyz234567]{16}\.onion):(\d+)$")
-# Used to only select nodes with a user agent string compatible with the BCC/UAHF specification.
+# Used to only select nodes with a user agent string compatible with the
+# BCC/UAHF specification.
 PATTERN_AGENT = re.compile(
     r"^(/BitcoinABC:0.14.(4|5|6|7)\(\S+\)/|/BitcoinXT:0.11.0G\(\S+\)/|/BUCash:1.1.0\(\S+\)/|/Classic:1.3.1\(\S+\)/)")
 
@@ -179,7 +180,7 @@ def main():
     # TODO during this bootstrap phase we need any BCC full nodes
     # active on the network, uncomment the following line once the
     # BCC chain will be consolidated.
-    #ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
+    # ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
     # Sort the results by IP address (for deterministic output).
     ips.sort(key=lambda x: (x['net'], x['sortkey']))
 
