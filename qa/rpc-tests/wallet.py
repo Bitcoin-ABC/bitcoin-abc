@@ -6,6 +6,9 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+# far in the past
+UAHF_START_TIME = 30000000
+
 
 class WalletTest (BitcoinTestFramework):
 
@@ -19,8 +22,9 @@ class WalletTest (BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [['-usehd={:d}'.format(i % 2 == 0)]
-                           for i in range(4)]
+        self.extra_args = [['-usehd={:d}'.format(i % 2 == 0),
+                            "-uahfstarttime=%d" % UAHF_START_TIME
+                            ] for i in range(4)]
 
     def setup_network(self, split=False):
         self.nodes = start_nodes(3, self.options.tmpdir, self.extra_args[:3])
@@ -103,7 +107,7 @@ class WalletTest (BitcoinTestFramework):
             outputs[self.nodes[2].getnewaddress("from1")] = utxo["amount"] - 3
             raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
             txns_to_send.append(
-                self.nodes[0].signrawtransaction(raw_tx, None, None, "ALL"))
+                self.nodes[0].signrawtransaction(raw_tx, None, None, "ALL|FORKID"))
 
         # Have node 1 (miner) send the transactions
         self.nodes[1].sendrawtransaction(txns_to_send[0]["hex"], True)
@@ -192,7 +196,7 @@ class WalletTest (BitcoinTestFramework):
             "c0833842", "00000000")  # replace 11.11 with 0.0 (int32)
         decRawTx = self.nodes[1].decoderawtransaction(rawTx)
         signedRawTx = self.nodes[
-            1].signrawtransaction(rawTx, None, None, "ALL")
+            1].signrawtransaction(rawTx, None, None, "ALL|FORKID")
         decRawTx = self.nodes[1].decoderawtransaction(signedRawTx['hex'])
         zeroValueTxid = decRawTx['txid']
         sendResp = self.nodes[1].sendrawtransaction(signedRawTx['hex'])
@@ -212,8 +216,9 @@ class WalletTest (BitcoinTestFramework):
 
         # do some -walletbroadcast tests
         stop_nodes(self.nodes)
-        self.nodes = start_nodes(3, self.options.tmpdir, [
-                                 ["-walletbroadcast=0"], ["-walletbroadcast=0"], ["-walletbroadcast=0"]])
+        extra_args = [["-walletbroadcast=0",
+                       "-uahfstarttime=%d" % UAHF_START_TIME] for i in range(3)]
+        self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
         connect_nodes_bi(self.nodes, 0, 2)
@@ -222,10 +227,11 @@ class WalletTest (BitcoinTestFramework):
         txIdNotBroadcasted = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), 2)
         txObjNotBroadcasted = self.nodes[0].gettransaction(txIdNotBroadcasted)
-        self.nodes[1].generate(1)  # mine a block, tx should not be in there
+        # mine a block, tx should not be in there
+        self.nodes[1].generate(1)
         self.sync_all()
+        # should not be changed because tx was not broadcasted
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
-                     # should not be changed because tx was not broadcasted
 
         # now broadcast from another node, mine a block, sync, and check the
         # balance
@@ -242,7 +248,9 @@ class WalletTest (BitcoinTestFramework):
 
         # restart the nodes with -walletbroadcast=1
         stop_nodes(self.nodes)
-        self.nodes = start_nodes(3, self.options.tmpdir)
+        extra_args = [["-uahfstarttime=%d" % UAHF_START_TIME]
+                      for i in range(3)]
+        self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
         connect_nodes_bi(self.nodes, 0, 2)
@@ -357,8 +365,10 @@ class WalletTest (BitcoinTestFramework):
             print("check " + m)
             stop_nodes(self.nodes)
             # set lower ancestor limit for later
-            self.nodes = start_nodes(3, self.options.tmpdir, [
-                                     [m, "-limitancestorcount=" + str(chainlimit)]] * 3)
+            self.nodes = start_nodes(3, self.options.tmpdir,
+                                     [[m,
+                                       "-uahfstarttime=%d" % UAHF_START_TIME,
+                                       "-limitancestorcount=" + str(chainlimit)]] * 3)
             while m == '-reindex' and [block_count] * 3 != [self.nodes[i].getblockcount() for i in range(3)]:
                 # reindex will leave rpc warm up "early"; Wait for it to finish
                 time.sleep(0.1)
@@ -385,7 +395,8 @@ class WalletTest (BitcoinTestFramework):
         # Split into two chains
         rawtx = self.nodes[0].createrawtransaction([{"txid": singletxid, "vout": 0}], {
                                                    chain_addrs[0]: node0_balance / 2 - Decimal('0.01'), chain_addrs[1]: node0_balance / 2 - Decimal('0.01')})
-        signedtx = self.nodes[0].signrawtransaction(rawtx, None, None, "ALL")
+        signedtx = self.nodes[0].signrawtransaction(
+            rawtx, None, None, "ALL|FORKID")
         singletxid = self.nodes[0].sendrawtransaction(signedtx["hex"])
         self.nodes[0].generate(1)
 
