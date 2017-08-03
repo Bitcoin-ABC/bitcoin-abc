@@ -208,11 +208,15 @@ class BitcoinTestFramework(object):
             sys.exit(1)
 
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 # Test framework for doing p2p comparison testing, which sets up some bitcoind
 # binaries:
 # 1 binary: test binary
 # 2 binaries: 1 test binary, 1 ref binary
 # n>2 binaries: 1 test binary, n-1 ref binaries
+
 
 class ComparisonTestFramework(BitcoinTestFramework):
 
@@ -232,6 +236,7 @@ class ComparisonTestFramework(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = start_nodes(
             self.num_nodes, self.options.tmpdir,
-            extra_args=[['-debug', '-whitelist=127.0.0.1']] * self.num_nodes,
+            extra_args=[
+                ['-debug', '-whitelist=127.0.0.1', "-uahfstarttime=%d" % UAHF_START_TIME]] * self.num_nodes,
             binary=[self.options.testbinary] +
             [self.options.refbinary] * (self.num_nodes - 1))
