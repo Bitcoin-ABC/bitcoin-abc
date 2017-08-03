@@ -117,6 +117,12 @@ CDBWrapper::CDBWrapper(const fs::path &path, size_t nCacheSize, bool fMemory,
     dbwrapper_private::HandleError(status);
     LogPrintf("Opened LevelDB successfully\n");
 
+    if (GetBoolArg("-forcecompactdb", false)) {
+        LogPrintf("Starting database compaction of %s\n", path.string());
+        pdb->CompactRange(nullptr, nullptr);
+        LogPrintf("Finished database compaction of %s\n", path.string());
+    }
+
     // The base-case obfuscation key, which is a noop.
     obfuscate_key = std::vector<uint8_t>(OBFUSCATE_KEY_NUM_BYTES, '\000');
 

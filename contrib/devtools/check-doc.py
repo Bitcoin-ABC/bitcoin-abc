@@ -30,7 +30,7 @@ REGEX_ARG = re.compile(
 REGEX_DOC = re.compile(r'HelpMessageOpt\(\"(\-[^\"=]+?)(?:=|\")')
 # list unsupported, deprecated and duplicate args as they need no documentation
 SET_DOC_OPTIONAL = set(['-rpcssl', '-benchmark', '-h', '-help', '-socks', '-tor', '-debugnet', '-whitelistalwaysrelay',
-                        '-prematurewitness', '-walletprematurewitness', '-promiscuousmempoolflags', '-blockminsize'])
+                        '-prematurewitness', '-walletprematurewitness', '-promiscuousmempoolflags', '-blockminsize', '-forcecompactdb'])
 
 
 def main():
