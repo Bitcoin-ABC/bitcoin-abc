@@ -44,11 +44,12 @@ class BitcoinTestFramework(object):
         pass
 
     def setup_chain(self):
-        print("Initializing test directory "+self.options.tmpdir)
+        print("Initializing test directory " + self.options.tmpdir)
         if self.setup_clean_chain:
             initialize_chain_clean(self.options.tmpdir, self.num_nodes)
         else:
-            initialize_chain(self.options.tmpdir, self.num_nodes, self.options.cachedir)
+            initialize_chain(
+                self.options.tmpdir, self.num_nodes, self.options.cachedir)
 
     def stop_node(self, num_node):
         stop_node(self.nodes[num_node], num_node)
@@ -59,7 +60,7 @@ class BitcoinTestFramework(object):
         '''
         return start_nodes(self.num_nodes, self.options.tmpdir)
 
-    def setup_network(self, split = False):
+    def setup_network(self, split=False):
         '''
         Sets up network including starting up nodes.
         '''
@@ -110,19 +111,26 @@ class BitcoinTestFramework(object):
     def main(self):
 
         parser = optparse.OptionParser(usage="%prog [options]")
-        parser.add_option("--nocleanup", dest="nocleanup", default=False, action="store_true",
+        parser.add_option(
+            "--nocleanup", dest="nocleanup", default=False, action="store_true",
                           help="Leave bitcoinds and test.* datadir on exit or error")
-        parser.add_option("--noshutdown", dest="noshutdown", default=False, action="store_true",
+        parser.add_option(
+            "--noshutdown", dest="noshutdown", default=False, action="store_true",
                           help="Don't stop bitcoinds after the test execution")
-        parser.add_option("--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__))+"/../../../src"),
+        parser.add_option(
+            "--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
                           help="Source directory containing bitcoind/bitcoin-cli (default: %default)")
-        parser.add_option("--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__))+"/../../cache"),
+        parser.add_option(
+            "--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
                           help="Directory for caching pregenerated datadirs")
-        parser.add_option("--tmpdir", dest="tmpdir", default=tempfile.mkdtemp(prefix="test"),
+        parser.add_option(
+            "--tmpdir", dest="tmpdir", default=tempfile.mkdtemp(prefix="test"),
                           help="Root directory for datadirs")
-        parser.add_option("--tracerpc", dest="trace_rpc", default=False, action="store_true",
+        parser.add_option(
+            "--tracerpc", dest="trace_rpc", default=False, action="store_true",
                           help="Print out all RPC calls as they are made")
-        parser.add_option("--portseed", dest="port_seed", default=os.getpid(), type='int',
+        parser.add_option(
+            "--portseed", dest="port_seed", default=os.getpid(), type='int',
                           help="The seed to use for assigning port numbers (default: current process id)")
         parser.add_option("--coveragedir", dest="coveragedir",
                           help="Write tested RPC commands into this directory")
@@ -130,7 +138,8 @@ class BitcoinTestFramework(object):
         (self.options, self.args) = parser.parse_args()
 
         # backup dir variable for removal at cleanup
-        self.options.root, self.options.tmpdir = self.options.tmpdir, self.options.tmpdir + '/' + str(self.options.port_seed)
+        self.options.root, self.options.tmpdir = self.options.tmpdir, self.options.tmpdir + \
+            '/' + str(self.options.port_seed)
 
         if self.options.trace_rpc:
             logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
@@ -140,7 +149,8 @@ class BitcoinTestFramework(object):
 
         PortSeed.n = self.options.port_seed
 
-        os.environ['PATH'] = self.options.srcdir+":"+self.options.srcdir+"/qt:"+os.environ['PATH']
+        os.environ['PATH'] = self.options.srcdir + ":" + \
+            self.options.srcdir + "/qt:" + os.environ['PATH']
 
         check_json_precision()
 
@@ -152,13 +162,13 @@ class BitcoinTestFramework(object):
             self.run_test()
             success = True
         except JSONRPCException as e:
-            print("JSONRPC error: "+e.error['message'])
+            print("JSONRPC error: " + e.error['message'])
             traceback.print_tb(sys.exc_info()[2])
         except AssertionError as e:
             print("Assertion failed: " + str(e))
             traceback.print_tb(sys.exc_info()[2])
         except KeyError as e:
-            print("key not found: "+ str(e))
+            print("key not found: " + str(e))
             traceback.print_tb(sys.exc_info()[2])
         except Exception as e:
             print("Unexpected exception caught during testing: " + repr(e))
@@ -183,10 +193,11 @@ class BitcoinTestFramework(object):
                 # Dump the end of the debug logs, to aid in debugging rare
                 # travis failures.
                 import glob
-                filenames = glob.glob(self.options.tmpdir + "/node*/regtest/debug.log")
+                filenames = glob.glob(
+                    self.options.tmpdir + "/node*/regtest/debug.log")
                 MAX_LINES_TO_PRINT = 1000
                 for f in filenames:
-                    print("From" , f, ":")
+                    print("From", f, ":")
                     from collections import deque
                     print("".join(deque(open(f), MAX_LINES_TO_PRINT)))
         if success:
@@ -223,4 +234,4 @@ class ComparisonTestFramework(BitcoinTestFramework):
             self.num_nodes, self.options.tmpdir,
             extra_args=[['-debug', '-whitelist=127.0.0.1']] * self.num_nodes,
             binary=[self.options.testbinary] +
-            [self.options.refbinary]*(self.num_nodes-1))
+            [self.options.refbinary] * (self.num_nodes - 1))
