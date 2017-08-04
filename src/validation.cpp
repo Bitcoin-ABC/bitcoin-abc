@@ -2097,12 +2097,6 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     LogPrint("bench", "    - Callbacks: %.2fms [%.2fs]\n",
              0.001 * (nTime6 - nTime5), nTimeCallbacks * 0.000001);
 
-    // If this block activates UAHF, we clear the mempool. This ensure that
-    // we'll only get replay protected transaction in the mempool going forward.
-    if (!hasUAHF && IsUAHFenabled(config, pindex)) {
-        mempool.clear();
-    }
-
     return true;
 }
 
@@ -2380,15 +2374,6 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) {
         return false;
-    }
-
-    // If this block was the activation of the UAHF, then we need to remove
-    // transactions that are valid only on the HF chain. There is no easy way to
-    // do this so we'll just discard the whole mempool and then add the
-    // transaction of the block we just disconnected back.
-    if (IsUAHFenabled(config, pindexDelete) &&
-        !IsUAHFenabled(config, pindexDelete->pprev)) {
-        mempool.clear();
     }
 
     if (!fBare) {
@@ -3384,29 +3369,6 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
     if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_CSV,
                          versionbitscache) == THRESHOLD_ACTIVE) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
-    }
-
-    if (IsUAHFenabled(config, pindexPrev)) {
-        // If UAHF is enabled for the curent block, but not for the previous
-        // block, we must check that the block is larger than 1MB.
-        if (!IsUAHFenabled(config, pindexPrev->pprev)) {
-            const uint64_t currentBlockSize =
-                ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-            if (currentBlockSize <= LEGACY_MAX_BLOCK_SIZE) {
-                return state.DoS(100, false, REJECT_INVALID,
-                                 "bad-blk-too-small", false,
-                                 "size limits failed");
-            }
-        }
-    } else {
-        // When UAHF is not enabled, block cannot be bigger than
-        // LEGACY_MAX_BLOCK_SIZE .
-        const uint64_t currentBlockSize =
-            ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-        if (currentBlockSize > LEGACY_MAX_BLOCK_SIZE) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length",
-                             false, "size limits failed");
-        }
     }
 
     const int64_t nMedianTimePast =

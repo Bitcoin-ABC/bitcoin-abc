@@ -267,13 +267,6 @@ class FullBlockTest(ComparisonTestFramework):
         block(1, spend=out[0], block_size=LEGACY_MAX_BLOCK_SIZE)
         yield accepted()
 
-        # bigger block are reject as the fork isn't activated yet.
-        block(2, spend=out[1], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-length'))
-
-        # Rewind bad block
-        tip(1)
-
         # Create a transaction that we will use to test SIGHASH_FORID
         script_forkid = CScript([self.forkid_pubkey, OP_CHECKSIG])
         tx_forkid = self.create_and_sign_transaction(
@@ -295,13 +288,6 @@ class FullBlockTest(ComparisonTestFramework):
         yield accepted()
         block(7, spend=out[5])
         yield accepted()
-
-        # bigger block are still rejected as the fork isn't activated yet.
-        block(8, spend=out[6], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-length'))
-
-        # Rewind bad block
-        tip(7)
 
         # build a transaction using SIGHASH_FORKID
         tx_spend = self.create_tx(tx_forkid, 0, 1, CScript([OP_TRUE]))
@@ -345,13 +331,6 @@ class FullBlockTest(ComparisonTestFramework):
         # Mark the HF
         self.uahfEnabled = True
 
-        # HF is active now, we MUST create a big block.
-        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE)
-        yield rejected(RejectResult(16, b'bad-blk-too-small'))
-
-        # Rewind bad block
-        tip(10)
-
         # HF is active, now we can create bigger blocks and use
         # SIGHASH_FORKID replay protection.
         block(12, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE + 1)
@@ -379,11 +358,6 @@ class FullBlockTest(ComparisonTestFramework):
         # SIGHASH_FORKID transaction is back in the mempool
         node.invalidateblock(fork_block_id)
         assert(tx_spend_id in set(node.getrawmempool()))
-
-        # And now just before when the HF activated. The
-        # SIGHASH_FORKID should be kicked out the mempool
-        node.invalidateblock(node.getbestblockhash())
-        assert(tx_spend_id not in set(node.getrawmempool()))
 
 
 if __name__ == '__main__':
