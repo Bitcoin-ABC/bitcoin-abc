@@ -1058,8 +1058,7 @@ static UniValue signrawtransaction(const Config &config,
 
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(
-                txin.scriptSig, prevPubKey,
-                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID,
+                txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
                 TransactionSignatureChecker(&txConst, i, amount), &serror)) {
             TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
         }

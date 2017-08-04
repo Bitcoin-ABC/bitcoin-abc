@@ -41,7 +41,7 @@ extern unsigned nMaxDatacarrierBytes;
  * details.
  */
 static const unsigned int MANDATORY_SCRIPT_VERIFY_FLAGS =
-    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
+    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SIGHASH_FORKID;
 
 enum txnouttype {
     TX_NONSTANDARD,

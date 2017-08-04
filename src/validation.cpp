@@ -862,8 +862,7 @@ static bool AcceptToMemoryPoolWorker(
                              "too-long-mempool-chain", false, errString);
         }
 
-        uint32_t scriptVerifyFlags =
-            STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID;
+        uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!Params().RequireStandard()) {
             scriptVerifyFlags =
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
@@ -887,14 +886,9 @@ static bool AcceptToMemoryPoolWorker(
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks, however allowing such transactions into the mempool
         // can be exploited as a DoS attack.
-        //
-        // SCRIPT_ENABLE_SIGHASH_FORKID is also added as to ensure we do not
-        // filter out transactions using the antireplay feature.
         {
             if (!CheckInputs(tx, state, view, true,
-                             MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                 SCRIPT_ENABLE_SIGHASH_FORKID,
-                             true, txdata)) {
+                             MANDATORY_SCRIPT_VERIFY_FLAGS, true, txdata)) {
                 return error(
                     "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
                     "against MANDATORY but not STANDARD flags %s, %s",
@@ -1403,11 +1397,9 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 // or non-null dummy arguments; if so, don't trigger DoS
                 // protection to avoid splitting the network between upgraded
                 // and non-upgraded nodes.
-                uint32_t mandatoryFlags =
-                    flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
                 CScriptCheck check2(scriptPubKey, amount, tx, i,
-                                    mandatoryFlags |
-                                        SCRIPT_ENABLE_SIGHASH_FORKID,
+                                    flags &
+                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
                                     cacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(

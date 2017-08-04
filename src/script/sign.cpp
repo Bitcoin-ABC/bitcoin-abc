@@ -161,10 +161,9 @@ bool ProduceSignature(const BaseSignatureCreator &creator,
     sigdata.scriptSig = PushAll(result);
 
     // Test solution
-    return solved && VerifyScript(sigdata.scriptSig, fromPubKey,
-                                  STANDARD_SCRIPT_VERIFY_FLAGS |
-                                      SCRIPT_ENABLE_SIGHASH_FORKID,
-                                  creator.Checker());
+    return solved &&
+           VerifyScript(sigdata.scriptSig, fromPubKey,
+                        STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());
 }
 
 SignatureData DataFromTransaction(const CMutableTransaction &tx,
@@ -240,8 +239,7 @@ static std::vector<valtype> CombineMultisig(
             }
 
             if (checker.CheckSig(sig, pubkey, scriptPubKey,
-                                 STANDARD_SCRIPT_VERIFY_FLAGS |
-                                     SCRIPT_ENABLE_SIGHASH_FORKID)) {
+                                 STANDARD_SCRIPT_VERIFY_FLAGS)) {
                 sigs[pubkey] = sig;
                 break;
             }
@@ -275,8 +273,7 @@ struct Stacks {
     explicit Stacks(const std::vector<valtype> &scriptSigStack_)
         : script(scriptSigStack_) {}
     explicit Stacks(const SignatureData &data) {
-        EvalScript(script, data.scriptSig,
-                   SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SIGHASH_FORKID,
+        EvalScript(script, data.scriptSig, MANDATORY_SCRIPT_VERIFY_FLAGS,
                    BaseSignatureChecker());
     }
 
