@@ -9,6 +9,8 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.mininode import COIN
 
+# far in the future
+UAHF_START_TIME = 2000000000
 MAX_ANCESTORS = 25
 MAX_DESCENDANTS = 25
 
@@ -23,9 +25,14 @@ class MempoolPackagesTest(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = []
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-maxorphantx=1000", "-debug"]))
+            start_node(0, self.options.tmpdir, ["-maxorphantx=1000",
+                                                "-debug",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
         self.nodes.append(
-            start_node(1, self.options.tmpdir, ["-maxorphantx=1000", "-limitancestorcount=5", "-debug"]))
+            start_node(1, self.options.tmpdir, ["-maxorphantx=1000",
+                                                "-limitancestorcount=5",
+                                                "-debug",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
         connect_nodes(self.nodes[0], 1)
         self.is_network_split = False
         self.sync_all()
