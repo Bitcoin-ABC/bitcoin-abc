@@ -234,7 +234,9 @@ public:
             279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819ef"
                              "a9041e458e9bd7e40"))(
             295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35"
-                             "a100370c64632a983"))};
+                             "a100370c64632a983"))(
+            478641, uint256S("0x0000000000000000027c1fea6fe49acb16d46c82dd2f2a8"
+                             "0b22ecc9cdb3ababe"))};
 
         // Data as of block
         // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
