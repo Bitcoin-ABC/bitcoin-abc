@@ -19,8 +19,9 @@ from test_framework.script import *
 import struct
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 
-# far into the future
-UAHF_START_TIME = 2000000000
+# far into the past
+UAHF_START_TIME = 30000000
+
 # Error for too many sigops in one TX
 TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
 RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + \
@@ -86,10 +87,10 @@ class FullBlockTest(ComparisonTestFramework):
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        (sighash, err) = SignatureHash(
-            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
+        sighash = SignatureHashForkId(
+            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
         tx.vin[0].scriptSig = CScript(
-            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -112,12 +113,13 @@ class FullBlockTest(ComparisonTestFramework):
         if spend == None:
             block = create_block(base_block_hash, coinbase, block_time)
         else:
+            # all but one satoshi to fees
             coinbase.vout[0].nValue += spend.tx.vout[
-                spend.n].nValue - 1  # all but one satoshi to fees
+                spend.n].nValue - 1
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
-            tx = create_transaction(
-                spend.tx, spend.n, b"", 1, script)  # spend 1 satoshi
+            # spend 1 satoshi
+            tx = create_transaction(spend.tx, spend.n, b"", 1, script)
             self.sign_tx(tx, spend.tx, spend.n)
             self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()
@@ -213,10 +215,10 @@ class FullBlockTest(ComparisonTestFramework):
                 CTxIn(COutPoint(p2sh_tx_to_spend.sha256, 0), b''))
             spent_p2sh_tx.vout.append(CTxOut(1, output_script))
             # Sign the transaction using the redeem script
-            (sighash, err) = SignatureHash(
-                redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL)
+            sighash = SignatureHashForkId(
+                redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx_to_spend.vout[0].nValue)
             sig = self.coinbase_key.sign(
-                sighash) + bytes(bytearray([SIGHASH_ALL]))
+                sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx

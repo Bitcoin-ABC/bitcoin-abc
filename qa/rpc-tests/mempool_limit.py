@@ -8,8 +8,8 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 
 class MempoolLimitTest(BitcoinTestFramework):
@@ -41,11 +41,13 @@ class MempoolLimitTest(BitcoinTestFramework):
         inputs = [{"txid": us0["txid"], "vout": us0["vout"]}]
         outputs = {self.nodes[0].getnewaddress(): 0.0001}
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
+        # specifically fund this tx with low fee
         self.nodes[0].settxfee(self.relayfee)
-                               # specifically fund this tx with low fee
         txF = self.nodes[0].fundrawtransaction(tx)
-        self.nodes[0].settxfee(0)  # return to automatic fee selection
-        txFS = self.nodes[0].signrawtransaction(txF['hex'], None, None, "ALL")
+        # return to automatic fee selection
+        self.nodes[0].settxfee(0)
+        txFS = self.nodes[0].signrawtransaction(
+            txF['hex'], None, None, "ALL|FORKID")
         txid = self.nodes[0].sendrawtransaction(txFS['hex'])
 
         relayfee = self.nodes[0].getnetworkinfo()['relayfee']
@@ -53,7 +55,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         for i in range(3):
             txids.append([])
             txids[i] = create_lots_of_big_transactions(
-                self.nodes[0], self.txouts, utxos[30 * i:30 * i + 30], 30, (i + 1) * base_fee)
+                self.nodes[0], self.txouts, utxos[30 * i:30 * i + 30], 30, (i + 1) * base_fee, "NONE|FORKID")
 
         # by now, the tx should be evicted, check confirmation state
         assert(txid not in self.nodes[0].getrawmempool())

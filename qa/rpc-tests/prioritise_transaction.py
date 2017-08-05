@@ -13,8 +13,8 @@ from test_framework.util import *
 from test_framework.mininode import COIN
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
@@ -51,7 +51,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             start_range = i * range_size
             end_range = start_range + range_size
             txids[i] = create_lots_of_big_transactions(self.nodes[0], self.txouts, utxos[
-                                                       start_range:end_range], end_range - start_range, (i + 1) * base_fee)
+                                                       start_range:end_range], end_range - start_range, (i + 1) * base_fee, "NONE|FORKID")
 
         # Make sure that the size of each group of transactions exceeds
         # LEGACY_MAX_BLOCK_SIZE -- otherwise the test needs to be revised to create
@@ -125,7 +125,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
         tx_hex = self.nodes[0].signrawtransaction(
-            raw_tx, None, None, "ALL")["hex"]
+            raw_tx, None, None, "ALL|FORKID")["hex"]
         txid = self.nodes[0].sendrawtransaction(tx_hex)
 
         # A tx that spends an in-mempool tx has 0 priority, so we can use it to
@@ -137,7 +137,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         outputs[self.nodes[0].getnewaddress()] = utxo["amount"] - self.relayfee
         raw_tx2 = self.nodes[0].createrawtransaction(inputs, outputs)
         tx2_hex = self.nodes[0].signrawtransaction(
-            raw_tx2, None, None, "ALL")["hex"]
+            raw_tx2, None, None, "ALL|FORKID")["hex"]
         tx2_id = self.nodes[0].decoderawtransaction(tx2_hex)["txid"]
 
         try:

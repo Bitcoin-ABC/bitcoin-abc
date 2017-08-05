@@ -750,7 +750,8 @@ def create_confirmed_utxos(fee, node, count):
         outputs[addr1] = satoshi_round(send_value / 2)
         outputs[addr2] = satoshi_round(send_value / 2)
         raw_tx = node.createrawtransaction(inputs, outputs)
-        signed_tx = node.signrawtransaction(raw_tx, None, None, "ALL")["hex"]
+        signed_tx = node.signrawtransaction(
+            raw_tx, None, None, "ALL|FORKID")["hex"]
         txid = node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):
@@ -784,11 +785,11 @@ def gen_return_txouts():
     return txouts
 
 
-def create_tx(node, coinbase, to_address, amount):
+def create_tx(node, coinbase, to_address, amount, nHashType="ALL"):
     inputs = [{"txid": coinbase, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+    signresult = node.signrawtransaction(rawtx, None, None, nHashType)
     assert_equal(signresult["complete"], True)
     return signresult["hex"]
 
@@ -796,7 +797,7 @@ def create_tx(node, coinbase, to_address, amount):
 # transaction to make it large.  See gen_return_txouts() above.
 
 
-def create_lots_of_big_transactions(node, txouts, utxos, num, fee):
+def create_lots_of_big_transactions(node, txouts, utxos, num, fee, nHashType="NONE"):
     addr = node.getnewaddress()
     txids = []
     for _ in range(num):
@@ -809,7 +810,7 @@ def create_lots_of_big_transactions(node, txouts, utxos, num, fee):
         newtx = rawtx[0:92]
         newtx = newtx + txouts
         newtx = newtx + rawtx[94:]
-        signresult = node.signrawtransaction(newtx, None, None, "NONE")
+        signresult = node.signrawtransaction(newtx, None, None, nHashType)
         txid = node.sendrawtransaction(signresult["hex"], True)
         txids.append(txid)
     return txids
