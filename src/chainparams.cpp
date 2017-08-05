@@ -140,8 +140,8 @@ public:
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x000000000000000000ff3a41f208c932d5f91fe8d0739fca36152f6"
-                     "073b2ef5e");
+            uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d424bd9f15ff2013"
+                     "6191a5eec");
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -302,10 +302,9 @@ public:
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        // 1079274
         consensus.defaultAssumeValid =
-            uint256S("0x00000000000128796ee387cf110ccb9d2f36cffaf7f73079c995377"
-                     "c65ac0dcc");
+            uint256S("0x00000000f17c850672894b9a75b63a1e72830bbd5f4c8889b5c1a80"
+                     "e7faef138");
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
