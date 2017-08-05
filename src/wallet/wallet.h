@@ -453,6 +453,7 @@ public:
     int64_t GetTxTime() const;
     int GetRequestCount() const;
 
+    // RelayWalletTransaction may only be called if fBroadcastTransactions!
     bool RelayWalletTransaction(CConnman *connman);
 
     std::set<uint256> GetConflicts() const;
@@ -877,6 +878,8 @@ public:
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
                                   CConnman *connman) override;
+    // ResendWalletTransactionsBefore may only be called if
+    // fBroadcastTransactions!
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime,
                                                         CConnman *connman);
     Amount GetBalance() const;

@@ -2102,6 +2102,7 @@ CWallet::ResendWalletTransactionsBefore(int64_t nTime, CConnman *connman) {
     std::vector<uint256> result;
 
     LOCK(cs_wallet);
+
     // Sort them in chronological order
     std::multimap<unsigned int, CWalletTx *> mapSorted;
     for (std::pair<const uint256, CWalletTx> &item : mapWallet) {

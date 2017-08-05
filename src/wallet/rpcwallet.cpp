@@ -3036,6 +3036,7 @@ static UniValue resendwallettransactions(const Config &config,
             "Intended only for testing; the wallet code periodically "
             "re-broadcasts\n"
             "automatically.\n"
+            "Returns an RPC error if -walletbroadcast is set to false.\n"
             "Returns array of transaction ids that were re-broadcast.\n");
     }
 
@@ -3046,6 +3047,12 @@ static UniValue resendwallettransactions(const Config &config,
     }
 
     LOCK2(cs_main, pwallet->cs_wallet);
+
+    if (!pwallet->GetBroadcastTransactions()) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: Wallet transaction "
+                                             "broadcasting is disabled with "
+                                             "-walletbroadcast");
+    }
 
     std::vector<uint256> txids =
         pwallet->ResendWalletTransactionsBefore(GetTime(), g_connman.get());
