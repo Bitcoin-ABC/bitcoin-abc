@@ -66,12 +66,15 @@ int64_t UpdateTime(CBlockHeader *pblock,
     int64_t nNewTime =
         std::max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
 
-    if (nOldTime < nNewTime) pblock->nTime = nNewTime;
+    if (nOldTime < nNewTime) {
+        pblock->nTime = nNewTime;
+    }
 
     // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks)
+    if (consensusParams.fPowAllowMinDifficultyBlocks) {
         pblock->nBits =
             GetNextWorkRequired(pindexPrev, pblock, consensusParams);
+    }
 
     return nNewTime - nOldTime;
 }
@@ -160,15 +163,19 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     pblocktemplate.reset(new CBlockTemplate());
 
-    if (!pblocktemplate.get()) return nullptr;
+    if (!pblocktemplate.get()) {
+        return nullptr;
+    }
 
     // Pointer for convenience.
     pblock = &pblocktemplate->block;
 
     // Add dummy coinbase tx as first transaction.
     pblock->vtx.emplace_back();
-    pblocktemplate->vTxFees.push_back(-1);        // updated at end
-    pblocktemplate->vTxSigOpsCount.push_back(-1); // updated at end
+    // updated at end
+    pblocktemplate->vTxFees.push_back(-1);
+    // updated at end
+    pblocktemplate->vTxSigOpsCount.push_back(-1);
 
     LOCK2(cs_main, mempool.cs);
     CBlockIndex *pindexPrev = chainActive.Tip();
@@ -178,8 +185,9 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
-    if (chainparams.MineBlocksOnDemand())
+    if (chainparams.MineBlocksOnDemand()) {
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
+    }
 
     pblock->nTime = GetAdjustedTime();
     nMedianTimePast = pindexPrev->GetMedianTimePast();
@@ -401,7 +409,9 @@ int BlockAssembler::UpdatePackagesForAdded(
         mempool.CalculateDescendants(it, descendants);
         // Insert all descendants (not yet in block) into the modified set.
         for (CTxMemPool::txiter desc : descendants) {
-            if (alreadyAdded.count(desc)) continue;
+            if (alreadyAdded.count(desc)) {
+                continue;
+            }
             ++nDescendantsUpdated;
             modtxiter mit = mapModifiedTx.find(desc);
             if (mit == mapModifiedTx.end()) {
@@ -430,8 +440,9 @@ bool BlockAssembler::SkipMapTxEntry(
     CTxMemPool::txiter it, indexed_modified_transaction_set &mapModifiedTx,
     CTxMemPool::setEntries &failedTx) {
     assert(it != mempool.mapTx.end());
-    if (mapModifiedTx.count(it) || inBlock.count(it) || failedTx.count(it))
+    if (mapModifiedTx.count(it) || inBlock.count(it) || failedTx.count(it)) {
         return true;
+    }
     return false;
 }
 
