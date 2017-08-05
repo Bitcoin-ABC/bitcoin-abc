@@ -2102,9 +2102,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
 /**
  * Update the on-disk chain state.
- * The caches and indexes are flushed depending on the mode we're called with
- * if they're too large, if it's been a while since the last write,
- * or always and in all cases if we're in prune mode and are deleting files.
+ * The caches and indexes are flushed depending on the mode we're called with if
+ * they're too large, if it's been a while since the last write, or always and
+ * in all cases if we're in prune mode and are deleting files.
  */
 static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight) {
@@ -3761,14 +3761,18 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
     }
 }
 
-/* Calculate the block/rev files to delete based on height specified by user
- * with RPC command pruneblockchain */
+/**
+ * Calculate the block/rev files to delete based on height specified by user
+ * with RPC command pruneblockchain.
+ */
 void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                             int nManualPruneHeight) {
     assert(fPruneMode && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
-    if (chainActive.Tip() == nullptr) return;
+    if (chainActive.Tip() == nullptr) {
+        return;
+    }
 
     // last block to prune is the lesser of (user-specified height,
     // MIN_BLOCKS_TO_KEEP from the tip)
@@ -3778,8 +3782,9 @@ void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
     int count = 0;
     for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
         if (vinfoBlockFile[fileNumber].nSize == 0 ||
-            vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
+            vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
             continue;
+        }
         PruneOneBlockFile(fileNumber);
         setFilesToPrune.insert(fileNumber);
         count++;
@@ -3801,7 +3806,7 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
     if (chainActive.Tip() == nullptr || nPruneTarget == 0) {
         return;
     }
-    if ((uint64_t)chainActive.Tip()->nHeight <= nPruneAfterHeight) {
+    if (uint64_t(chainActive.Tip()->nHeight) <= nPruneAfterHeight) {
         return;
     }
 
@@ -3820,16 +3825,20 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
             nBytesToPrune = vinfoBlockFile[fileNumber].nSize +
                             vinfoBlockFile[fileNumber].nUndoSize;
 
-            if (vinfoBlockFile[fileNumber].nSize == 0) continue;
+            if (vinfoBlockFile[fileNumber].nSize == 0) {
+                continue;
+            }
 
-            if (nCurrentUsage + nBuffer <
-                nPruneTarget) // are we below our target?
+            // are we below our target?
+            if (nCurrentUsage + nBuffer < nPruneTarget) {
                 break;
+            }
 
             // don't prune files that could have a block within
             // MIN_BLOCKS_TO_KEEP of the main chain's tip but keep scanning
-            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
+            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
                 continue;
+            }
 
             PruneOneBlockFile(fileNumber);
             // Queue up the files for removal

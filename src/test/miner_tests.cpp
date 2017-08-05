@@ -721,41 +721,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     GlobalConfig config;
     const CChainParams &chainparams = Params();
 
-    // The maximum block size to be generated before the UAHF
-    static const auto LEGACY_CAP = LEGACY_MAX_BLOCK_SIZE - 1000;
-
     // We are working on a fake chain and need to protect ourselves.
     LOCK(cs_main);
-
-    // Check before UAHF activation.
-    BOOST_CHECK(!IsUAHFenabledForCurrentBlock(config));
-
-    // Test around the historical 1MB cap
-    config.SetMaxBlockSize(ONE_MEGABYTE);
-    CheckBlockMaxSize(chainparams, 0, 1000);
-    CheckBlockMaxSize(chainparams, 1000, 1000);
-    CheckBlockMaxSize(chainparams, 1001, 1001);
-    CheckBlockMaxSize(chainparams, 12345, 12345);
-
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, LEGACY_CAP);
-
-    // Test around higher limit, the block size should still cap at LEGACY_CAP.
-    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
-    config.SetMaxBlockSize(EIGHT_MEGABYTES);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, LEGACY_CAP);
-
-    // Before the UAHF, the default generated block size is the LEGACY_CAP.
-    {
-        ClearArg("-blockmaxsize");
-        BlockAssembler ba(config, chainparams);
-        BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), LEGACY_CAP);
-    }
 
     // Activate UAHF
     const int64_t hfStartTime = config.GetUAHFStartTime();
@@ -780,6 +747,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
     // Test around higher limit such as 8MB
+    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
     config.SetMaxBlockSize(EIGHT_MEGABYTES);
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001,
                       EIGHT_MEGABYTES - 1001);

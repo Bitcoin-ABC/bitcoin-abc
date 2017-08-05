@@ -96,24 +96,7 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
         std::max(uint64_t(1000), std::min(config.GetMaxBlockSize() - 1000,
                                           nMaxGeneratedBlockSize));
 
-    // If UAHF is not activated yet, we also want to limit the max generated
-    // block size to LEGACY_MAX_BLOCK_SIZE - 1000
-    if (!IsUAHFenabled(config, pindexPrev)) {
-        nMaxGeneratedBlockSize =
-            std::min(LEGACY_MAX_BLOCK_SIZE - 1000, nMaxGeneratedBlockSize);
-    }
-
     return nMaxGeneratedBlockSize;
-}
-
-static uint64_t ComputeMinGeneratedBlockSize(const Config &config,
-                                             const CBlockIndex *pindexPrev) {
-    if (IsUAHFenabled(config, pindexPrev) &&
-        !IsUAHFenabled(config, pindexPrev->pprev)) {
-        return LEGACY_MAX_BLOCK_SIZE + 1;
-    }
-
-    return 0;
 }
 
 BlockAssembler::BlockAssembler(const Config &_config,
@@ -162,7 +145,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     resetBlock();
 
     pblocktemplate.reset(new CBlockTemplate());
-
     if (!pblocktemplate.get()) {
         return nullptr;
     }
@@ -222,30 +204,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     uint64_t nSerializeSize =
         GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
-
-    // We need a "must be big" block, so we stuff the coinbase.
-    uint64_t nMinBlockSize = ComputeMinGeneratedBlockSize(*config, pindexPrev);
-    if (nSerializeSize < nMinBlockSize) {
-        static const std::string pad =
-            "A purely peer-to-peer version of electronic cash would allow "
-            "online payments to be sent directly from one party to another "
-            "without going through a financial institution.";
-        auto o = CTxOut(
-            0, CScript() << OP_RETURN
-                         << std::vector<unsigned char>(pad.begin(), pad.end()));
-        auto commitmentSize =
-            GetSerializeSize(o, SER_NETWORK, PROTOCOL_VERSION);
-        auto missingCommitment =
-            1 + ((nMinBlockSize - nSerializeSize - 1) / commitmentSize);
-        coinbaseTx.vout.reserve(missingCommitment + 1);
-        for (size_t i = 0; i < missingCommitment; ++i) {
-            coinbaseTx.vout.push_back(o);
-        }
-
-        pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
-        nSerializeSize =
-            GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
-    }
 
     LogPrintf("CreateNewBlock(): total size: %u txs: %u fees: %ld sigops %d\n",
               nSerializeSize, nBlockTx, nFees, nBlockSigOps);
