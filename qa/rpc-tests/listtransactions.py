@@ -10,6 +10,9 @@ from test_framework.util import *
 from test_framework.mininode import CTransaction, COIN
 from io import BytesIO
 
+# far in the past
+UAHF_START_TIME = 30000000
+
 
 def txFromHex(hexstring):
     tx = CTransaction()
@@ -28,7 +31,8 @@ class ListTransactionsTest(BitcoinTestFramework):
     def setup_nodes(self):
         # This test requires mocktime
         enable_mocktime()
-        return start_nodes(self.num_nodes, self.options.tmpdir)
+        return start_nodes(self.num_nodes, self.options.tmpdir,
+                           [["-uahfstarttime=%d" % UAHF_START_TIME] for i in range(self.num_nodes)])
 
     def run_test(self):
         # Simple send, 0 to 1:

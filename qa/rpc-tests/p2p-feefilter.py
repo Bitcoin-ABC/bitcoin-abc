@@ -9,6 +9,9 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 import time
 
+# far in the past
+UAHF_START_TIME = 30000000
+
 '''
 FeeFilterTest -- test processing of feefilter messages
 '''
@@ -63,10 +66,12 @@ class FeeFilterTest(BitcoinTestFramework):
         # Node1 will be used to generate txs which should be relayed from Node0
         # to our test node
         self.nodes = []
+        extra_args = ["-debug", "-logtimemicros",
+                      "-uahfstarttime=%d" % UAHF_START_TIME]
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-debug", "-logtimemicros"]))
+            start_node(0, self.options.tmpdir, extra_args))
         self.nodes.append(
-            start_node(1, self.options.tmpdir, ["-debug", "-logtimemicros"]))
+            start_node(1, self.options.tmpdir, extra_args))
         connect_nodes(self.nodes[0], 1)
 
     def run_test(self):
