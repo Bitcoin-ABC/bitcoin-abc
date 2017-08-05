@@ -11,8 +11,8 @@ from test_framework.script import CScript
 from io import BytesIO
 import time
 
-# far into the future
-UAHF_START_TIME = 2000000000
+# far into the past
+UAHF_START_TIME = 30000000
 NULLDUMMY_ERROR = "64: non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)"
 
 
@@ -95,7 +95,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         inputs = [{"txid": txid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)

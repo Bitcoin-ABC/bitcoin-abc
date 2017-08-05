@@ -55,7 +55,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         for i in range(3):
             txids.append([])
             txids[i] = create_lots_of_big_transactions(
-                self.nodes[0], self.txouts, utxos[30 * i:30 * i + 30], 30, (i + 1) * base_fee, "NONE|FORKID")
+                self.nodes[0], self.txouts, utxos[30 * i:30 * i + 30], 30, (i + 1) * base_fee)
 
         # by now, the tx should be evicted, check confirmation state
         assert(txid not in self.nodes[0].getrawmempool())

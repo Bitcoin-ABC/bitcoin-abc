@@ -6,8 +6,8 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far into the future
-UAHF_START_TIME = 2000000000
+# far into the past
+UAHF_START_TIME = 30000000
 
 
 def get_unspent(listunspent, amount):
@@ -473,7 +473,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         fundedTx = self.nodes[2].fundrawtransaction(rawTx)
 
         signedTx = self.nodes[2].signrawtransaction(
-            fundedTx['hex'], None, None, "ALL")
+            fundedTx['hex'], None, None, "ALL|FORKID")
         txId = self.nodes[2].sendrawtransaction(signedTx['hex'])
         self.sync_all()
         self.nodes[1].generate(1)
@@ -539,7 +539,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # now we need to unlock
         self.nodes[1].walletpassphrase("test", 600)
         signedTx = self.nodes[1].signrawtransaction(
-            fundedTx['hex'], None, None, "ALL")
+            fundedTx['hex'], None, None, "ALL|FORKID")
         txId = self.nodes[1].sendrawtransaction(signedTx['hex'])
         self.nodes[1].generate(1)
         self.sync_all()
@@ -604,7 +604,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawTx = self.nodes[1].createrawtransaction(inputs, outputs)
         fundedTx = self.nodes[1].fundrawtransaction(rawTx)
         fundedAndSignedTx = self.nodes[1].signrawtransaction(
-            fundedTx['hex'], None, None, "ALL")
+            fundedTx['hex'], None, None, "ALL|FORKID")
         txId = self.nodes[1].sendrawtransaction(fundedAndSignedTx['hex'])
         self.sync_all()
         self.nodes[0].generate(1)
@@ -666,10 +666,10 @@ class RawTransactionsTest(BitcoinTestFramework):
                      result["changepos"]]["value"], watchonly_amount / 10)
 
         signedtx = self.nodes[3].signrawtransaction(
-            result["hex"], None, None, "ALL")
+            result["hex"], None, None, "ALL|FORKID")
         assert(not signedtx["complete"])
         signedtx = self.nodes[0].signrawtransaction(
-            signedtx["hex"], None, None, "ALL")
+            signedtx["hex"], None, None, "ALL|FORKID")
         assert(signedtx["complete"])
         self.nodes[0].sendrawtransaction(signedtx["hex"])
         self.nodes[0].generate(1)

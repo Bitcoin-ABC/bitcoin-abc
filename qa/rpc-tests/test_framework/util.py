@@ -797,7 +797,7 @@ def create_tx(node, coinbase, to_address, amount, nHashType="ALL"):
 # transaction to make it large.  See gen_return_txouts() above.
 
 
-def create_lots_of_big_transactions(node, txouts, utxos, num, fee, nHashType="NONE"):
+def create_lots_of_big_transactions(node, txouts, utxos, num, fee):
     addr = node.getnewaddress()
     txids = []
     for _ in range(num):
@@ -810,7 +810,7 @@ def create_lots_of_big_transactions(node, txouts, utxos, num, fee, nHashType="NO
         newtx = rawtx[0:92]
         newtx = newtx + txouts
         newtx = newtx + rawtx[94:]
-        signresult = node.signrawtransaction(newtx, None, None, nHashType)
+        signresult = node.signrawtransaction(newtx, None, None, "NONE|FORKID")
         txid = node.sendrawtransaction(signresult["hex"], True)
         txids.append(txid)
     return txids

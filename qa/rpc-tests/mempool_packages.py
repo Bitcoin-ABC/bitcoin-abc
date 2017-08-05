@@ -9,8 +9,8 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.mininode import COIN
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 MAX_ANCESTORS = 25
 MAX_DESCENDANTS = 25
 
@@ -46,11 +46,11 @@ class MempoolPackagesTest(BitcoinTestFramework):
         for i in range(num_outputs):
             outputs[node.getnewaddress()] = send_value
         rawtx = node.createrawtransaction(inputs, outputs)
-        signedtx = node.signrawtransaction(rawtx, None, None, "ALL")
+        signedtx = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         txid = node.sendrawtransaction(signedtx['hex'])
         fulltx = node.getrawtransaction(txid, 1)
+        # make sure we didn't generate a change output
         assert(len(fulltx['vout']) == num_outputs)
-               # make sure we didn't generate a change output
         return (txid, send_value)
 
     def run_test(self):
@@ -245,7 +245,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         for i in range(2):
             outputs[self.nodes[0].getnewaddress()] = send_value
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
-        signedtx = self.nodes[0].signrawtransaction(rawtx, None, None, "ALL")
+        signedtx = self.nodes[0].signrawtransaction(
+            rawtx, None, None, "ALL|FORKID")
         txid = self.nodes[0].sendrawtransaction(signedtx['hex'])
         tx0_id = txid
         value = send_value
@@ -271,7 +272,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         inputs = [{'txid': tx1_id, 'vout': 0}, {'txid': txid, 'vout': 0}]
         outputs = {self.nodes[0].getnewaddress(): send_value + value - 4 * fee}
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
-        signedtx = self.nodes[0].signrawtransaction(rawtx, None, None, "ALL")
+        signedtx = self.nodes[0].signrawtransaction(
+            rawtx, None, None, "ALL|FORKID")
         txid = self.nodes[0].sendrawtransaction(signedtx['hex'])
         sync_mempools(self.nodes)
 

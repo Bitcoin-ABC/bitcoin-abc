@@ -17,8 +17,8 @@ from test_framework.outputchecker import OutputChecker
 import time
 import os
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 MIN_BLOCKS_TO_KEEP = 288
 

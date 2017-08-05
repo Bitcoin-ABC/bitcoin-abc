@@ -8,8 +8,8 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 import urllib.parse
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 
 class AbandonConflictTest(BitcoinTestFramework):
@@ -47,8 +47,8 @@ class AbandonConflictTest(BitcoinTestFramework):
 
         sync_blocks(self.nodes)
         newbalance = self.nodes[0].getbalance()
+        # no more than fees lost
         assert(balance - newbalance < Decimal("0.001"))
-               # no more than fees lost
         balance = newbalance
 
         url = urllib.parse.urlparse(self.nodes[1].url)
@@ -71,7 +71,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         outputs[self.nodes[0].getnewaddress()] = Decimal("14.99998")
         outputs[self.nodes[1].getnewaddress()] = Decimal("5")
         signed = self.nodes[0].signrawtransaction(
-            self.nodes[0].createrawtransaction(inputs, outputs), None, None, "ALL")
+            self.nodes[0].createrawtransaction(inputs, outputs), None, None, "ALL|FORKID")
         txAB1 = self.nodes[0].sendrawtransaction(signed["hex"])
 
         # Identify the 14.99998btc output
@@ -85,7 +85,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         outputs = {}
         outputs[self.nodes[0].getnewaddress()] = Decimal("24.9996")
         signed2 = self.nodes[0].signrawtransaction(
-            self.nodes[0].createrawtransaction(inputs, outputs), None, None, "ALL")
+            self.nodes[0].createrawtransaction(inputs, outputs), None, None, "ALL|FORKID")
         txABC2 = self.nodes[0].sendrawtransaction(signed2["hex"])
 
         # In mempool txs from self should increase balance from change
@@ -169,7 +169,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         outputs = {}
         outputs[self.nodes[1].getnewaddress()] = Decimal("9.9999")
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
-        signed = self.nodes[0].signrawtransaction(tx, None, None, "ALL")
+        signed = self.nodes[0].signrawtransaction(tx, None, None, "ALL|FORKID")
         self.nodes[1].sendrawtransaction(signed["hex"])
         self.nodes[1].generate(1)
 

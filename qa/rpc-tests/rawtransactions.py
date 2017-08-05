@@ -15,8 +15,8 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 # Create one-input, one-output, no-fee transaction:
 
@@ -30,7 +30,8 @@ class RawTransactionsTest(BitcoinTestFramework):
 
     def setup_network(self, split=False):
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 [["-uahfstarttime=%d" % UAHF_START_TIME]for i in range(self.num_nodes)])
+                                 [["-uahfstarttime=%d" % UAHF_START_TIME]
+                                  for i in range(self.num_nodes)])
 
         # connect to a local machine for debugging
         # url = "http://bitcoinrpc:DP6DvqZtqXarpeNWyN3LZTFchCCyCUuHwNF7E8pX99x1@%s:%d" % ('127.0.0.1', 18332)
@@ -67,7 +68,8 @@ class RawTransactionsTest(BitcoinTestFramework):
             # won't exists
         outputs = {self.nodes[0].getnewaddress(): 4.998}
         rawtx = self.nodes[2].createrawtransaction(inputs, outputs)
-        rawtx = self.nodes[2].signrawtransaction(rawtx, None, None, "ALL")
+        rawtx = self.nodes[2].signrawtransaction(
+            rawtx, None, None, "ALL|FORKID")
 
         try:
             rawtx = self.nodes[2].sendrawtransaction(rawtx['hex'])
@@ -127,9 +129,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         # THIS IS A INCOMPLETE FEATURE
         # NODE2 HAS TWO OF THREE KEY AND THE FUNDS SHOULD BE SPENDABLE AND
         # COUNT AT BALANCE CALCULATION
+        # for now, assume the funds of a 2of3 multisig tx are not marked as
+        # spendable
         assert_equal(self.nodes[2].getbalance(), bal)
-                     # for now, assume the funds of a 2of3 multisig tx are not
-                     # marked as spendable
 
         txDetails = self.nodes[0].gettransaction(txId, True)
         rawTx = self.nodes[0].decoderawtransaction(txDetails['hex'])
@@ -140,17 +142,21 @@ class RawTransactionsTest(BitcoinTestFramework):
                 break
 
         bal = self.nodes[0].getbalance()
-        inputs = [
-            {"txid": txId, "vout": vout['n'], "scriptPubKey": vout['scriptPubKey']['hex']}]
+        inputs = [{
+            "txid": txId,
+            "vout": vout['n'],
+            "scriptPubKey": vout['scriptPubKey']['hex'],
+            "amount": vout['value'],
+        }]
         outputs = {self.nodes[0].getnewaddress(): 2.19}
         rawTx = self.nodes[2].createrawtransaction(inputs, outputs)
         rawTxPartialSigned = self.nodes[
-            1].signrawtransaction(rawTx, inputs, None, "ALL")
+            1].signrawtransaction(rawTx, inputs, None, "ALL|FORKID")
         # node1 only has one key, can't comp. sign the tx
         assert_equal(rawTxPartialSigned['complete'], False)
 
         rawTxSigned = self.nodes[2].signrawtransaction(
-            rawTx, inputs, None, "ALL")
+            rawTx, inputs, None, "ALL|FORKID")
         # node2 can sign the tx compl., own two of three keys
         assert_equal(rawTxSigned['complete'], True)
         self.nodes[2].sendrawtransaction(rawTxSigned['hex'])
