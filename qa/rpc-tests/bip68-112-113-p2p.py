@@ -12,6 +12,9 @@ from test_framework.script import *
 from io import BytesIO
 import time
 
+# far in the future
+UAHF_START_TIME = 2000000000
+
 '''
 This test is meant to exercise activation of the first version bits soft fork
 This soft fork will activate the following BIPS:
@@ -104,8 +107,10 @@ class BIP68_112_113Test(ComparisonTestFramework):
     def setup_network(self):
         # Must set the blockversion for this test
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[
-                                     ['-debug', '-whitelist=127.0.0.1', '-blockversion=4']],
+                                 extra_args=[['-debug',
+                                              '-whitelist=127.0.0.1',
+                                              '-blockversion=4',
+                                              "-uahfstarttime=%d" % UAHF_START_TIME]],
                                  binary=[self.options.testbinary])
 
     def run_test(self):
