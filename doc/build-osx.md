@@ -24,15 +24,15 @@ In case you want to build the disk image with `make deploy` (.dmg / optional), y
 
 NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
 
-Build Bitcoin XBT
+Build Bitcoin XBC
 -----------------
 
-1. Clone the Bitcoin XBT source code and cd into `bitcoin-abc`
+1. Clone the Bitcoin XBC source code and cd into `Bitcoin-XBC`
 
-        git clone github.com/BitcoinXBT/bitcoinxbt
-        cd bitcoinxbt
+        git clone github.com/Bitcoin-XBC/Bitcoin-XBC
+        cd bitcoin-xbc
 
-2.  Build bitcoinxbt:
+2.  Build bitcoin-xbc:
 
     Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
 
@@ -53,7 +53,7 @@ Build Bitcoin XBT
 Running
 -------
 
-Bitcoin XBT is now available at `./src/bitcoind`
+Bitcoin XBC is now available at `./src/bitcoind`
 
 Before running, it's recommended you create an RPC configuration file.
 

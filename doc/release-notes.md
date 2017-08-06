@@ -1,6 +1,6 @@
-Bitcoin XBT version 0.14.6 is now available from:
+Bitcoin XBC version 0.14.6 r2 is now available from:
 
-  <https://download.bitcoinxbt.org/0.14.6/>
+  <https://www.bitcoin-xbc.org/>
 
 This release includes the following features and fixes:
  - Updated debian packaging

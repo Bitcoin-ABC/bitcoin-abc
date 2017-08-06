@@ -2258,7 +2258,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
             continue;
         }
 
-        // Bitcoin-XBT: Removed check that prevents consideration of coins from
+        // Bitcoin-XBC: Removed check that prevents consideration of coins from
         // transactions that are replacing other transactions. This check based
         // on pcoin->mapValue.count("replaces_txid") which was not being set
         // anywhere.
@@ -2272,7 +2272,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
         // D could all be accepted (instead of just B and D, or just A and A'
         // like the user would want).
 
-        // Bitcoin-XBT: retained this check as 'replaced_by_txid' is still set
+        // Bitcoin-XBC: retained this check as 'replaced_by_txid' is still set
         // in the wallet code.
         if (nDepth == 0 && fOnlyConfirmed &&
             pcoin->mapValue.count("replaced_by_txid")) {

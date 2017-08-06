@@ -99,7 +99,7 @@ This means that if Tor is running (and proper authentication has been configured
 Bitcoin Core automatically creates a hidden service to listen on. This will positively 
 affect the number of available .onion nodes.
 
-This new feature is enabled by default if Bitcoin XBT is listening (`-listen`), and
+This new feature is enabled by default if Bitcoin XBC is listening (`-listen`), and
 requires a Tor connection to work. It can be explicitly disabled with `-listenonion=0`
 and, if not disabled, configured using the `-torcontrol` and `-torpassword` settings.
 To show verbose debugging information, pass `-debug=tor`.

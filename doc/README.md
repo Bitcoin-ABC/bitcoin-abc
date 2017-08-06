@@ -1,11 +1,11 @@
-Bitcoin XBT
+Bitcoin XBC
 =====================
 
 Setup
 ---------------------
-Bitcoin XBT is an identical and fully compatible implementation of the Bitcoin ABC protocol, which is due to be forked from Bitcoin Core as of Aug 1st 2017, Bitcoin Core was the original Bitcoin client from 2009-2017 and built the backbone of the Bitcoin network. Bitcoin ABC builds upon previous implementations of Bitcoin by allowing up to 8mb blocks to be propagated to the network (default 2mb). BitcoinXBT downloads and stores the entire history of Bitcoin transactions (which is currently over 100 GB in size); depending on the speed of your computer and network connection, the full synchronization process can take anywhere from a 24 hours to a few days..
+Bitcoin XBC is an identical and fully compatible implementation of the Bitcoin ABC protocol, which is due to be forked from Bitcoin Core as of Aug 1st 2017, Bitcoin Core was the original Bitcoin client from 2009-2017 and built the backbone of the Bitcoin network. Bitcoin ABC builds upon previous implementations of Bitcoin by allowing up to 8mb blocks to be propagated to the network (default 2mb). Bitcoin-XBC downloads and stores the entire history of Bitcoin transactions (which is currently over 100 GB in size); depending on the speed of your computer and network connection, the full synchronization process can take anywhere from a 24 hours to a few days..
 
-To download Bitcoin XBT, visit (https://github.com/BitcoinXBT/BitcoinXBT).
+To download Bitcoin XBC, visit (https://github.com/Bitcoin-XBC/Bitcoin-XBC).
 
 Running
 ---------------------
@@ -24,7 +24,7 @@ Unpack the files into a directory, and then run bitcoin-qt.exe.
 
 ### OS X
 
-Drag bitcoin-xbt to your applications folder, and then run bitcoin-XBT.
+Drag Bitcoin-xbc to your applications folder, and then run Bitcoin-XBC.
 
 ### Need Help?
 

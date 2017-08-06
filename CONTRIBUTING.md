@@ -1,7 +1,7 @@
-Contributing to Bitcoin XBT
+Contributing to Bitcoin XBC
 ===========================
 
-The Bitcoin XBT is cloned from Bitcoin-ABC, this project welcomes contributors!
+The Bitcoin XBC is cloned from Bitcoin-ABC, this project welcomes contributors!
 
 To contribute, sign up at: https://reviews.bitcoinabc.org/
 

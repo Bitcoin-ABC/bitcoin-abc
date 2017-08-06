@@ -866,8 +866,8 @@ std::string HelpMessage(HelpMessageMode mode) {
 
 std::string LicenseInfo() {
     const std::string URL_SOURCE_CODE =
-        "<https://github.com/BitcoinXBT/bitcoinxbt>";
-    const std::string URL_WEBSITE = "<https://www.bitcoinabc.org>";
+        "<https://github.com/bitcoin-XBC/bitcoin-xbc>";
+    const std::string URL_WEBSITE = "<https://www.bitcoin-xbc.org>";
 
     return CopyrightHolders(
                strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) +

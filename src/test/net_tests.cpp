@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(test_userAgentLength) {
 
     BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
     BOOST_CHECK_EQUAL(userAgent(config),
-                      "/Bitcoin XBT:0.14.6(EB8.0; very very very very very "
+                      "/Bitcoin XBC:0.14.6(EB8.0; very very very very very "
                       "very very very very very very very very very very very "
                       "very very very very very very very very very very very "
                       "very very very very very very very very very very very "

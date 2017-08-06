@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developersXBT
+// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -19,10 +19,10 @@
 #define NUM_MULTIPLES_CENT 10000
 
 // amounts 1 .. 10000
-#define NUM_MULTIPLES_1XBT 10000
+#define NUM_MULTIPLES_1XBC 10000
 
 // amounts 50 .. 21000000
-#define NUM_MULTIPLES_50XBT 420000
+#define NUM_MULTIPLES_50XBC 420000
 
 BOOST_FIXTURE_TEST_SUITE(compress_tests, BasicTestingSetup)
 
@@ -57,11 +57,11 @@ BOOST_AUTO_TEST_CASE(compress_amounts) {
         BOOST_CHECK(TestEncode(i * CENT));
     }
 
-    for (uint64_t i = 1; i <= NUM_MULTIPLES_1XBT; i++) {
+    for (uint64_t i = 1; i <= NUM_MULTIPLES_1XBC; i++) {
         BOOST_CHECK(TestEncode(i * COIN));
     }
 
-    for (uint64_t i = 1; i <= NUM_MULTIPLES_50XBT; i++) {
+    for (uint64_t i = 1; i <= NUM_MULTIPLES_50XBC; i++) {
         BOOST_CHECK(TestEncode(i * 50 * COIN));
     }
 

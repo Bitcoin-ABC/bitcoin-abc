@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-Exercise the command line functions specific to XBT functionality.
+Exercise the command line functions specific to XBC functionality.
 Currently:
 
 -excessiveblocksize=<blocksize_in_bytes>

@@ -58,7 +58,7 @@ public:
      * @note Source: https://en.bitcoin.it/wiki/Units.
      * Please add only sensible ones.
      */
-    enum Unit { XBT, mXBT, uXBT };
+    enum Unit { XBC, mXBC, uXBC };
 
     enum SeparatorStyle { separatorNever, separatorStandard, separatorAlways };
 
