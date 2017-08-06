@@ -101,10 +101,10 @@ class FullBlockTest(ComparisonTestFramework):
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        (sighash, err) = SignatureHash(
-            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
+        sighash = SignatureHashForkId(
+            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
         tx.vin[0].scriptSig = CScript(
-            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -380,19 +380,6 @@ class FullBlockTest(ComparisonTestFramework):
         yield accepted()
         save_spendable_output()
 
-        # Make the next block one byte bigger and check that it fails
-        tip(15)
-        b24 = block(24, spend=out[6])
-        script_length = LEGACY_MAX_BLOCK_SIZE - len(b24.serialize()) - 69
-        script_output = CScript([b'\x00' * (script_length + 1)])
-        tx.vout = [CTxOut(0, script_output)]
-        b24 = update_block(24, [tx])
-        assert_equal(len(b24.serialize()), LEGACY_MAX_BLOCK_SIZE + 1)
-        yield rejected(RejectResult(16, b'bad-blk-length'))
-
-        block(25, spend=out[7])
-        yield rejected()
-
         # Create blocks with a coinbase input script size out of range
         #     genesis -> b1 (0) -> b2 (1) -> b5 (2) -> b6  (3)
         #                                          \-> b12 (3) -> b13 (4) -> b15 (5) -> b23 (6) -> b30 (7)
@@ -574,6 +561,7 @@ class FullBlockTest(ComparisonTestFramework):
         assert_equal(numTxes <= b39_outputs, True)
 
         lastOutpoint = COutPoint(b40.vtx[1].sha256, 0)
+        lastAmount = b40.vtx[1].vout[0].nValue
         new_txs = []
         for i in range(1, numTxes + 1):
             tx = CTransaction()
@@ -583,15 +571,18 @@ class FullBlockTest(ComparisonTestFramework):
             tx.vin.append(CTxIn(COutPoint(b39.vtx[i].sha256, 0), b''))
             # Note: must pass the redeem_script (not p2sh_script) to the
             # signature hash function
-            (sighash, err) = SignatureHash(redeem_script, tx, 1, SIGHASH_ALL)
+            sighash = SignatureHashForkId(
+                redeem_script, tx, 1, SIGHASH_ALL | SIGHASH_FORKID,
+                                          lastAmount)
             sig = self.coinbase_key.sign(
-                sighash) + bytes(bytearray([SIGHASH_ALL]))
+                sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             scriptSig = CScript([sig, redeem_script])
 
             tx.vin[1].scriptSig = scriptSig
             tx.rehash()
             new_txs.append(tx)
             lastOutpoint = COutPoint(tx.sha256, 0)
+            lastAmount = tx.vout[0].nValue
 
         b40_sigops_to_fill = MAX_BLOCK_SIGOPS_PER_MB - \
             (numTxes * b39_sigops_per_output + sigops) + 1
@@ -1320,7 +1311,6 @@ class FullBlockTest(ComparisonTestFramework):
             yield accepted()
 
             chain1_tip += 2
-
 
 if __name__ == '__main__':
     FullBlockTest().main()
