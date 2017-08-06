@@ -12,8 +12,8 @@ from test_framework.script import *
 from io import BytesIO
 import time
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 '''
 This test is meant to exercise activation of the first version bits soft fork
@@ -134,7 +134,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
 
     def sign_transaction(self, node, unsignedtx):
         rawtx = ToHex(unsignedtx)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
@@ -250,14 +250,14 @@ class BIP68_112_113Test(ComparisonTestFramework):
 
         # Fail to achieve LOCKED_IN 100 out of 144 signal bit 0
         # using a variety of bits to simulate multiple parallel softforks
-        test_blocks = self.generate_blocks(
-            50, 536870913)  # 0x20000001 (signalling ready)
-        test_blocks = self.generate_blocks(
-            20, 4, test_blocks)  # 0x00000004 (signalling not)
-        test_blocks = self.generate_blocks(
-            50, 536871169, test_blocks)  # 0x20000101 (signalling ready)
-        test_blocks = self.generate_blocks(
-            24, 536936448, test_blocks)  # 0x20010000 (signalling not)
+        # 0x20000001 (signalling ready)
+        test_blocks = self.generate_blocks(50, 536870913)
+        # 0x00000004 (signalling not)
+        test_blocks = self.generate_blocks(20, 4, test_blocks)
+        # 0x20000101 (signalling ready)
+        test_blocks = self.generate_blocks(50, 536871169, test_blocks)
+        # 0x20010000 (signalling not)
+        test_blocks = self.generate_blocks(24, 536936448, test_blocks)
         yield TestInstance(test_blocks, sync_every_block=False)  # 2
         # Failed to advance past STARTED, height = 287
         assert_equal(
@@ -265,14 +265,14 @@ class BIP68_112_113Test(ComparisonTestFramework):
 
         # 108 out of 144 signal bit 0 to achieve lock-in
         # using a variety of bits to simulate multiple parallel softforks
-        test_blocks = self.generate_blocks(
-            58, 536870913)  # 0x20000001 (signalling ready)
-        test_blocks = self.generate_blocks(
-            26, 4, test_blocks)  # 0x00000004 (signalling not)
-        test_blocks = self.generate_blocks(
-            50, 536871169, test_blocks)  # 0x20000101 (signalling ready)
-        test_blocks = self.generate_blocks(
-            10, 536936448, test_blocks)  # 0x20010000 (signalling not)
+        # 0x20000001 (signalling ready)
+        test_blocks = self.generate_blocks(58, 536870913)
+        # 0x00000004 (signalling not)
+        test_blocks = self.generate_blocks(26, 4, test_blocks)
+        # 0x20000101 (signalling ready)
+        test_blocks = self.generate_blocks(50, 536871169, test_blocks)
+        # 0x20010000 (signalling not)
+        test_blocks = self.generate_blocks(10, 536936448, test_blocks)
         yield TestInstance(test_blocks, sync_every_block=False)  # 3
         # Advanced from STARTED to LOCKED_IN, height = 431
         assert_equal(

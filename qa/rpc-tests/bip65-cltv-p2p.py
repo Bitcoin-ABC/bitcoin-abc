@@ -12,8 +12,8 @@ from test_framework.script import CScript, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, O
 from io import BytesIO
 import time
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 
 def cltv_invalidate(tx):
@@ -57,7 +57,8 @@ class BIP65Test(ComparisonTestFramework):
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
         test.add_all_connections(self.nodes)
-        NetworkThread().start()  # Start up network handling in another thread
+        # Start up network handling in another thread
+        NetworkThread().start()
         test.run()
 
     def create_transaction(self, node, coinbase, to_address, amount):
@@ -65,7 +66,7 @@ class BIP65Test(ComparisonTestFramework):
         inputs = [{"txid": from_txid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)

@@ -12,8 +12,8 @@ from test_framework.script import CScript
 from io import BytesIO
 import time
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 # A canonical signature consists of:
 # <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
@@ -66,7 +66,8 @@ class BIP66Test(ComparisonTestFramework):
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
         test.add_all_connections(self.nodes)
-        NetworkThread().start()  # Start up network handling in another thread
+        # Start up network handling in another thread
+        NetworkThread().start()
         test.run()
 
     def create_transaction(self, node, coinbase, to_address, amount):
@@ -74,7 +75,7 @@ class BIP66Test(ComparisonTestFramework):
         inputs = [{"txid": from_txid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
@@ -115,28 +116,6 @@ class BIP66Test(ComparisonTestFramework):
             self.tip = block.sha256
             height += 1
         yield TestInstance(test_blocks, sync_every_block=False)
-
-        '''
-        Check that the new DERSIG rules are not enforced in the 750th
-        version 3 block.
-        '''
-        spendtx = self.create_transaction(self.nodes[0],
-                                          self.coinbase_blocks[0], self.nodeaddress, 1.0)
-        unDERify(spendtx)
-        spendtx.rehash()
-
-        block = create_block(
-            self.tip, create_coinbase(height), self.last_block_time + 1)
-        block.nVersion = 3
-        block.vtx.append(spendtx)
-        block.hashMerkleRoot = block.calc_merkle_root()
-        block.rehash()
-        block.solve()
-
-        self.last_block_time += 1
-        self.tip = block.sha256
-        height += 1
-        yield TestInstance([[block, True]])
 
         ''' Mine 199 new version blocks on last valid tip '''
         test_blocks = []

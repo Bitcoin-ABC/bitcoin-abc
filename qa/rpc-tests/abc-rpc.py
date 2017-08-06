@@ -15,10 +15,6 @@ from test_framework.cdefs import (ONE_MEGABYTE,
                                   LEGACY_MAX_BLOCK_SIZE,
                                   DEFAULT_MAX_BLOCK_SIZE)
 
-# far into the future
-UAHF_START_TIME = 2000000000
-
-
 class ABC_RPC_Test (BitcoinTestFramework):
 
     def __init__(self):
@@ -30,8 +26,6 @@ class ABC_RPC_Test (BitcoinTestFramework):
     def setup_network(self):
         self.extra_args = [['-debug',
                             '-norelaypriority',
-                            "-mocktime=%d" % UAHF_START_TIME,
-                            "-uahfstarttime=%d" % UAHF_START_TIME,
                             '-whitelist=127.0.0.1',
                             '-par=1']]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,

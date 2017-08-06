@@ -9,10 +9,6 @@ from test_framework.util import *
 import time
 from test_framework.blocktools import create_block, create_coinbase
 
-# far in the future
-UAHF_START_TIME = 2000000000
-
-
 '''
 AcceptBlockTest -- test processing of unrequested blocks.
 
@@ -80,9 +76,8 @@ class TestNode(NodeConnCB):
         self.last_getdata = message
 
     # Spin until verack message is received from the node.
-    # We use this to signal that our test can begin. This
-    # is called from the testing thread, so it needs to acquire
-    # the global lock.
+    # We use this to signal that our test can begin. This is called from the
+    # testing thread, so it needs to acquire the global lock.
     def wait_for_verack(self):
         while True:
             with mininode_lock:
@@ -129,13 +124,10 @@ class AcceptBlockTest(BitcoinTestFramework):
         # from peers which are not whitelisted, while Node1 will be used for
         # the whitelisted case.
         self.nodes = []
-        self.nodes.append(start_node(0, self.options.tmpdir,
-                                     ["-debug", "-uahfstarttime=%d" %
-                                         UAHF_START_TIME],
+        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug"],
                                      binary=self.options.testbinary))
         self.nodes.append(start_node(1, self.options.tmpdir,
-                                     ["-debug", "-uahfstarttime=%d" % UAHF_START_TIME,
-                                      "-whitelist=127.0.0.1"],
+                                     ["-debug", "-whitelist=127.0.0.1"],
                                      binary=self.options.testbinary))
 
     def run_test(self):

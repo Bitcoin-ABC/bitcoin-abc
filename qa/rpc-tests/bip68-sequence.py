@@ -21,8 +21,8 @@ SEQUENCE_LOCKTIME_MASK = 0x0000ffff
 # RPC error for non-BIP68 final transactions
 NOT_FINAL_ERROR = "64: non-BIP68-final"
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 
 class BIP68Test(BitcoinTestFramework):
@@ -98,7 +98,7 @@ class BIP68Test(BitcoinTestFramework):
         tx1.vout = [CTxOut(value, CScript([b'a']))]
 
         tx1_signed = self.nodes[0].signrawtransaction(
-            ToHex(tx1), None, None, "ALL")["hex"]
+            ToHex(tx1), None, None, "ALL|FORKID")["hex"]
         tx1_id = self.nodes[0].sendrawtransaction(tx1_signed)
         tx1_id = int(tx1_id, 16)
 
@@ -222,7 +222,7 @@ class BIP68Test(BitcoinTestFramework):
             tx.vout.append(
                 CTxOut(int(value - self.relayfee * tx_size * COIN / 1000), CScript([b'a'])))
             rawtx = self.nodes[0].signrawtransaction(
-                ToHex(tx), None, None, "ALL")["hex"]
+                ToHex(tx), None, None, "ALL|FORKID")["hex"]
 
             try:
                 self.nodes[0].sendrawtransaction(rawtx)
@@ -255,7 +255,7 @@ class BIP68Test(BitcoinTestFramework):
         tx2.vout = [
             CTxOut(int(tx1.vout[0].nValue - self.relayfee * COIN), CScript([b'a']))]
         tx2_raw = self.nodes[0].signrawtransaction(
-            ToHex(tx2), None, None, "ALL")["hex"]
+            ToHex(tx2), None, None, "ALL|FORKID")["hex"]
         tx2 = FromHex(tx2, tx2_raw)
         tx2.rehash()
 
@@ -342,7 +342,7 @@ class BIP68Test(BitcoinTestFramework):
             CTxIn(COutPoint(int(utxos[0]["txid"], 16), utxos[0]["vout"]), nSequence=1))
         tx5.vout[0].nValue += int(utxos[0]["amount"] * COIN)
         raw_tx5 = self.nodes[0].signrawtransaction(
-            ToHex(tx5), None, None, "ALL")["hex"]
+            ToHex(tx5), None, None, "ALL|FORKID")["hex"]
 
         try:
             self.nodes[0].sendrawtransaction(raw_tx5)
@@ -411,7 +411,7 @@ class BIP68Test(BitcoinTestFramework):
 
         # sign tx2
         tx2_raw = self.nodes[0].signrawtransaction(
-            ToHex(tx2), None, None, "ALL")["hex"]
+            ToHex(tx2), None, None, "ALL|FORKID")["hex"]
         tx2 = FromHex(tx2, tx2_raw)
         tx2.rehash()
 
@@ -465,7 +465,7 @@ class BIP68Test(BitcoinTestFramework):
         tx = FromHex(CTransaction(), rawtxfund)
         tx.nVersion = 2
         tx_signed = self.nodes[1].signrawtransaction(
-            ToHex(tx), None, None, "ALL")["hex"]
+            ToHex(tx), None, None, "ALL|FORKID")["hex"]
         try:
             tx_id = self.nodes[1].sendrawtransaction(tx_signed)
             assert(before_activation == False)

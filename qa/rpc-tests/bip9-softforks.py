@@ -14,8 +14,8 @@ from io import BytesIO
 import time
 import itertools
 
-# far in the future
-UAHF_START_TIME = 2000000000
+# far in the past
+UAHF_START_TIME = 30000000
 
 '''
 This test is meant to exercise BIP forks
@@ -64,7 +64,7 @@ class BIP9SoftForksTest(ComparisonTestFramework):
 
     def sign_transaction(self, node, tx):
         signresult = node.signrawtransaction(
-            bytes_to_hex_str(tx.serialize()), None, None, "ALL")
+            bytes_to_hex_str(tx.serialize()), None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
@@ -143,14 +143,14 @@ class BIP9SoftForksTest(ComparisonTestFramework):
         # Test 3
         # 108 out of 144 signal bit 1 to achieve LOCKED_IN
         # using a variety of bits to simulate multiple parallel softforks
-        test_blocks = self.generate_blocks(
-            58, activated_version)  # 0x20000001 (signalling ready)
-        test_blocks = self.generate_blocks(
-            26, 4, test_blocks)  # 0x00000004 (signalling not)
-        test_blocks = self.generate_blocks(
-            50, activated_version, test_blocks)  # 0x20000101 (signalling ready)
-        test_blocks = self.generate_blocks(
-            10, 4, test_blocks)  # 0x20010000 (signalling not)
+        # 0x20000001 (signalling ready)
+        test_blocks = self.generate_blocks(58, activated_version)
+        # 0x00000004 (signalling not)
+        test_blocks = self.generate_blocks(26, 4, test_blocks)
+        # 0x20000101 (signalling ready)
+        test_blocks = self.generate_blocks(50, activated_version, test_blocks)
+        # 0x20010000 (signalling not)
+        test_blocks = self.generate_blocks(10, 4, test_blocks)
         yield TestInstance(test_blocks, sync_every_block=False)
 
         assert_equal(self.get_bip9_status(bipName)['status'], 'locked_in')
