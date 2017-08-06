@@ -66,7 +66,7 @@ class TxnMallTest(BitcoinTestFramework):
         outputs[change_address] = 1248 - 1240 + doublespend_fee
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
         doublespend = self.nodes[0].signrawtransaction(
-            rawtx, None, None, "ALL")
+            rawtx, None, None, "ALL|FORKID")
         assert_equal(doublespend["complete"], True)
 
         # Create two spends using 1 50 BTC coin each

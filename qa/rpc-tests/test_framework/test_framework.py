@@ -30,6 +30,10 @@ from .authproxy import JSONRPCException
 from .outputchecker import OutputChecker
 
 
+# far in the past
+UAHF_START_TIME = 30000000
+
+
 class BitcoinTestFramework(object):
 
     def __init__(self):
@@ -58,7 +62,7 @@ class BitcoinTestFramework(object):
         '''
         Starts up the nodes.
         '''
-        return start_nodes(self.num_nodes, self.options.tmpdir)
+        return start_nodes(self.num_nodes, self.options.tmpdir, [["-uahfstarttime=%d" % UAHF_START_TIME] for i in range(self.num_nodes)])
 
     def setup_network(self, split=False):
         '''
@@ -207,9 +211,6 @@ class BitcoinTestFramework(object):
             print("Failed")
             sys.exit(1)
 
-
-# far in the future
-UAHF_START_TIME = 2000000000
 
 # Test framework for doing p2p comparison testing, which sets up some bitcoind
 # binaries:
