@@ -320,6 +320,21 @@ void FinalizeNode(NodeId nodeid, bool &fUpdateConnectionTime) {
     for (const QueuedBlock &entry : state->vBlocksInFlight) {
         mapBlocksInFlight.erase(entry.hash);
     }
+    // Get rid of stale mapBlockSource entries for this peer as they may leak
+    // if we don't clean them up (I saw on the order of ~100 stale entries on
+    // a full resynch in my testing -- these entries stay forever).
+    // Performance note: most of the time mapBlockSource has 0 or 1 entries.
+    // During synch of blockchain it may end up with as many as 1000 entries,
+    // which still only takes ~1ms to iterate through on even old hardware.
+    // So this memleak cleanup is not expensive and worth doing since even
+    // small leaks are bad. :)
+    for (auto it = mapBlockSource.begin(); it != mapBlockSource.end(); /*NA*/) {
+        if (it->second.first == nodeid) {
+            mapBlockSource.erase(it++);
+        } else {
+            ++it;
+        }
+    }
 
     EraseOrphansFor(nodeid);
     nPreferredDownload -= state->fPreferredDownload;
