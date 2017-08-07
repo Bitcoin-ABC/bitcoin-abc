@@ -1406,17 +1406,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 uint32_t mandatoryFlags =
                     flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
                 CScriptCheck check2(scriptPubKey, amount, tx, i,
-                                    mandatoryFlags &
-                                        ~SCRIPT_ENABLE_SIGHASH_FORKID,
-                                    cacheStore, txdata);
-                // We also need to check with and without the forkid flag. Some
-                // node may not have caught up yet with the tip of the chain and
-                // may be relying transaction we do not consider valid.
-                CScriptCheck check3(scriptPubKey, amount, tx, i,
                                     mandatoryFlags |
                                         SCRIPT_ENABLE_SIGHASH_FORKID,
                                     cacheStore, txdata);
-                if (check2() || check3()) {
+                if (check2()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
                         strprintf("non-mandatory-script-verify-flag (%s)",
