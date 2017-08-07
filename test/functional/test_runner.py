@@ -119,6 +119,7 @@ BASE_SCRIPTS = [
     'mempool-accept-txn.py',
     'wallet-encryption.py',
     'uptime.py',
+    'resendwallettransactions.py',
 ]
 
 EXTENDED_SCRIPTS = [

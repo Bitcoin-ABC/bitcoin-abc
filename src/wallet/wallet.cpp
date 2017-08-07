@@ -945,7 +945,7 @@ bool CWallet::AccountMove(std::string strFrom, std::string strTo,
     CAccountingEntry debit;
     debit.nOrderPos = IncOrderPosNext(&walletdb);
     debit.strAccount = strFrom;
-    debit.nCreditDebit = -1 * nAmount;
+    debit.nCreditDebit = -nAmount;
     debit.nTime = nNow;
     debit.strOtherAccount = strTo;
     debit.strComment = strComment;
