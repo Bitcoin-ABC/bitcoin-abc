@@ -28,9 +28,6 @@ static bool ToMemPool(CMutableTransaction &tx) {
 }
 
 BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
-    GlobalConfig config;
-    config.SetUAHFStartTime(2000000000);
-
     // Make sure skipping validation of transctions that were validated going
     // into the memory pool does not allow double-spends in blocks to pass
     // validation when they should not.
@@ -52,10 +49,11 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
 
         // Sign:
         std::vector<uint8_t> vchSig;
-        uint256 hash =
-            SignatureHash(scriptPubKey, spends[i], 0, SIGHASH_ALL, 0);
+        uint256 hash = SignatureHash(scriptPubKey, spends[i], 0,
+                                     SIGHASH_ALL | SIGHASH_FORKID,
+                                     coinbaseTxns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
-        vchSig.push_back(uint8_t(SIGHASH_ALL));
+        vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         spends[i].vin[0].scriptSig << vchSig;
     }
 
