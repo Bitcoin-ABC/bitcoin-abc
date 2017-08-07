@@ -14,7 +14,7 @@ out collectively by the network.
 What is Bitcoin XBC?
 --------------------
 
-Bitcoin XBC is a "Adjustable Block Size Cap" implementation of the original Bitcoin client, allowing up to 8mb block size. Forked from Bitcoin-ABC and compatible with the Bitcoin Cash UAHF blockchain only. All credit for previous engineering work goes to Satoshi Nakamoto, The Bitcoin Core and Bitcoin-ABC development teams.
+Bitcoin XBC is a "Adjustable Block Size" implementation of the original Bitcoin client, allowing up to 8mb block size. Forked from Bitcoin-ABC and compatible with the Bitcoin Cash UAHF blockchain only. All credit for previous engineering work goes to Satoshi Nakamoto, The Bitcoin Core and Bitcoin-ABC development teams.
 
 Bitcoin XBC is the name of this open source software which enables the use of Bitcoin via the ‘Bitcoin Cash’ blockchain.
 
