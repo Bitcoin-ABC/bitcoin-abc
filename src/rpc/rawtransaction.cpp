@@ -999,6 +999,10 @@ static UniValue signrawtransaction(const Config &config,
         }
 
         nHashType = mapSigHashValues[strHashType];
+        if ((nHashType & SIGHASH_FORKID) == 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Signature must use SIGHASH_FORKID");
+        }
     }
 
     bool fHashSingle =
@@ -1043,22 +1047,12 @@ static UniValue signrawtransaction(const Config &config,
 
         UpdateTransaction(mergedTx, i, sigdata);
 
-        // Because we do not know if forkid is used or not, we just try both.
-        // TODO: Remove after the Hard Fork.
-        ScriptError serror0 = SCRIPT_ERR_OK;
-        ScriptError serror1 = SCRIPT_ERR_OK;
-        TransactionSignatureChecker checker(&txConst, i, amount);
-        if (!VerifyScript(txin.scriptSig, prevPubKey,
-                          STANDARD_SCRIPT_VERIFY_FLAGS |
-                              SCRIPT_ENABLE_SIGHASH_FORKID,
-                          checker, &serror0) &&
-            !VerifyScript(txin.scriptSig, prevPubKey,
-                          STANDARD_SCRIPT_VERIFY_FLAGS, checker, &serror1)) {
-            std::string error;
-            error += ScriptErrorString(serror0);
-            error += " ";
-            error += ScriptErrorString(serror1);
-            TxInErrorToJSON(txin, vErrors, error);
+        ScriptError serror = SCRIPT_ERR_OK;
+        if (!VerifyScript(
+                txin.scriptSig, prevPubKey,
+                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID,
+                TransactionSignatureChecker(&txConst, i, amount), &serror)) {
+            TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
         }
     }
 
