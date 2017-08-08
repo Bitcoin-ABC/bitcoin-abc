@@ -862,15 +862,11 @@ static bool AcceptToMemoryPoolWorker(
                              "too-long-mempool-chain", false, errString);
         }
 
-        uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
+        uint32_t scriptVerifyFlags =
+            STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID;
         if (!Params().RequireStandard()) {
             scriptVerifyFlags =
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
-        }
-
-        const bool hasUAHF = IsUAHFenabledForCurrentBlock(config);
-        if (hasUAHF) {
-            scriptVerifyFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
         }
 
         // Check against previous transactions. This is done last to help
@@ -895,16 +891,10 @@ static bool AcceptToMemoryPoolWorker(
         // SCRIPT_ENABLE_SIGHASH_FORKID is also added as to ensure we do not
         // filter out transactions using the antireplay feature.
         {
-            // Depending on the UAHF activation, we require SIGHASH_FORKID or
-            // not.
-            // TODO: Cleanup after the Hard Fork.
-            uint32_t mandatoryFlags = MANDATORY_SCRIPT_VERIFY_FLAGS;
-            if (hasUAHF) {
-                mandatoryFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-            }
-
-            if (!CheckInputs(tx, state, view, true, mandatoryFlags, true,
-                             txdata)) {
+            if (!CheckInputs(tx, state, view, true,
+                             MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                 SCRIPT_ENABLE_SIGHASH_FORKID,
+                             true, txdata)) {
                 return error(
                     "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
                     "against MANDATORY but not STANDARD flags %s, %s",

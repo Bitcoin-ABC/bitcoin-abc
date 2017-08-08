@@ -11,6 +11,9 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+# far in the past
+UAHF_START_TIME = 30000000
+
 # Create one-input, one-output, no-fee transaction:
 
 
@@ -23,7 +26,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
 
     def setup_network(self):
         # Just need one node for this test
-        args = ["-checkmempool", "-debug=mempool"]
+        args = ["-checkmempool", "-debug=mempool",
+                "-uahfstarttime=%d" % UAHF_START_TIME]
         self.nodes = []
         self.nodes.append(start_node(0, self.options.tmpdir, args))
         self.is_network_split = False

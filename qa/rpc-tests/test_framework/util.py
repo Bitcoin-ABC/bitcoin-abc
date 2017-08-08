@@ -785,11 +785,11 @@ def gen_return_txouts():
     return txouts
 
 
-def create_tx(node, coinbase, to_address, amount, nHashType="ALL"):
+def create_tx(node, coinbase, to_address, amount):
     inputs = [{"txid": coinbase, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx, None, None, nHashType)
+    signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
     assert_equal(signresult["complete"], True)
     return signresult["hex"]
 

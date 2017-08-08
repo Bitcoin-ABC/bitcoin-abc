@@ -12,6 +12,9 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.outputchecker import OutputChecker
 
+# far in the past
+UAHF_START_TIME = 30000000
+
 # Construct 2 trivial P2SH's and the ScriptSigs that spend them
 # So we can create many many transactions without needing to spend
 # time signing.
@@ -94,7 +97,7 @@ def split_inputs(from_node, txins, txouts, initial_split=False):
     # Otherwise we just need to insert the property ScriptSig
     if (initial_split):
         completetx = from_node.signrawtransaction(
-            rawtx, None, None, "ALL")["hex"]
+            rawtx, None, None, "ALL|FORKID")["hex"]
     else:
         completetx = rawtx[0:82] + SCRIPT_SIG[prevtxout["vout"]] + rawtx[84:]
     txid = from_node.sendrawtransaction(completetx, True)
@@ -171,7 +174,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         # Use node0 to mine blocks for input splitting
         self.nodes.append(
             start_node(0, self.options.tmpdir, ["-maxorphantx=1000",
-                                                "-whitelist=127.0.0.1"]))
+                                                "-whitelist=127.0.0.1",
+                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
 
         print("This test is time consuming, please be patient")
         print(
@@ -212,7 +216,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         # (17k is room enough for 110 or so transactions)
         self.nodes.append(start_node(1, self.options.tmpdir,
                                      ["-blockprioritysize=1500", "-blockmaxsize=17000",
-                                      "-maxorphantx=1000", "-debug=estimatefee"],
+                                      "-maxorphantx=1000", "-debug=estimatefee",
+                                      "-uahfstarttime=%d" % UAHF_START_TIME],
                                      stderr_checker=OutputChecker()))
         connect_nodes(self.nodes[1], 0)
 
@@ -220,7 +225,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         # produces too small blocks (room for only 55 or so transactions)
         node2args = ["-blockprioritysize=0",
                      "-blockmaxsize=8000",
-                     "-maxorphantx=1000"]
+                     "-maxorphantx=1000",
+                     "-uahfstarttime=%d" % UAHF_START_TIME]
 
         self.nodes.append(
             start_node(2, self.options.tmpdir, node2args, stderr_checker=OutputChecker()))

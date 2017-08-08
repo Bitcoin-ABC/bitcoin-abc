@@ -154,7 +154,6 @@ testScripts = [
     'listsinceblock.py',
     'p2p-leaktests.py',
     'abc-cmdline.py',
-    'abc-p2p-activation.py',
     'abc-p2p-fullblocktest.py',
     'abc-rpc.py',
     'mempool-accept-txn.py',

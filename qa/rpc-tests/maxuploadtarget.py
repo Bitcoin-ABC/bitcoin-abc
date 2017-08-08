@@ -9,6 +9,8 @@ from test_framework.util import *
 import time
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 
+# far in the past
+UAHF_START_TIME = 30000000
 
 '''
 Test behavior of -maxuploadtarget.
@@ -100,7 +102,9 @@ class MaxUploadTest(BitcoinTestFramework):
         # Start a node with maxuploadtarget of 200 MB (/24h)
         self.nodes = []
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-debug", "-maxuploadtarget=200"]))
+            start_node(
+                0, self.options.tmpdir, ["-debug", "-maxuploadtarget=200",
+                                         "-uahfstarttime=%d" % UAHF_START_TIME]))
 
     def run_test(self):
         # Before we connect anything, we first set the time on the node
@@ -213,7 +217,8 @@ class MaxUploadTest(BitcoinTestFramework):
         print("Restarting nodes with -whitelist=127.0.0.1")
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-debug", "-whitelist=127.0.0.1", "-maxuploadtarget=1"])
+                                   "-debug", "-whitelist=127.0.0.1", "-maxuploadtarget=1",
+                                   "-uahfstarttime=%d" % UAHF_START_TIME])
 
         # recreate/reconnect 3 test nodes
         test_nodes = []
