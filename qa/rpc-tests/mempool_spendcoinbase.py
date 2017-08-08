@@ -17,6 +17,8 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
 # Create one-input, one-output, no-fee transaction:
+
+
 class MempoolSpendCoinbaseTest(BitcoinTestFramework):
 
     def __init__(self):
@@ -39,17 +41,19 @@ class MempoolSpendCoinbaseTest(BitcoinTestFramework):
         # Coinbase at height chain_height-100+1 ok in mempool, should
         # get mined. Coinbase at height chain_height-100+2 is
         # is too immature to spend.
-        b = [ self.nodes[0].getblockhash(n) for n in range(101, 103) ]
-        coinbase_txids = [ self.nodes[0].getblock(h)['tx'][0] for h in b ]
-        spends_raw = [ create_tx(self.nodes[0], txid, node0_address, 49.99) for txid in coinbase_txids ]
+        b = [self.nodes[0].getblockhash(n) for n in range(101, 103)]
+        coinbase_txids = [self.nodes[0].getblock(h)['tx'][0] for h in b]
+        spends_raw = [create_tx(self.nodes[0], txid, node0_address, 49.99)
+                      for txid in coinbase_txids]
 
         spend_101_id = self.nodes[0].sendrawtransaction(spends_raw[0])
 
         # coinbase at height 102 should be too immature to spend
-        assert_raises(JSONRPCException, self.nodes[0].sendrawtransaction, spends_raw[1])
+        assert_raises(JSONRPCException, self.nodes[
+                      0].sendrawtransaction, spends_raw[1])
 
         # mempool should have just spend_101:
-        assert_equal(self.nodes[0].getrawmempool(), [ spend_101_id ])
+        assert_equal(self.nodes[0].getrawmempool(), [spend_101_id])
 
         # mine a block, spend_101 should get confirmed
         self.nodes[0].generate(1)
@@ -57,7 +61,7 @@ class MempoolSpendCoinbaseTest(BitcoinTestFramework):
 
         # ... and now height 102 can be spent:
         spend_102_id = self.nodes[0].sendrawtransaction(spends_raw[1])
-        assert_equal(self.nodes[0].getrawmempool(), [ spend_102_id ])
+        assert_equal(self.nodes[0].getrawmempool(), [spend_102_id])
 
 if __name__ == '__main__':
     MempoolSpendCoinbaseTest().main()
