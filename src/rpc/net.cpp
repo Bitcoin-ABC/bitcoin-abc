@@ -7,6 +7,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
+#include <core_io.h>
 #include <net.h>
 #include <net_processing.h>
 #include <netbase.h>

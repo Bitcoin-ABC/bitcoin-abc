@@ -268,7 +268,6 @@ extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
 extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 
 extern Amount AmountFromValue(const UniValue &value);
-extern UniValue ValueFromAmount(const Amount amount);
 extern std::string HelpExampleCli(const std::string &methodname,
                                   const std::string &args);
 extern std::string HelpExampleRpc(const std::string &methodname,

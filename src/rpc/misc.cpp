@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <clientversion.h>
 #include <config.h>
+#include <core_io.h>
 #include <dstencode.h>
 #include <init.h>
 #include <net.h>

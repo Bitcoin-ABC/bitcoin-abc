@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+class Amount;
 class CBlock;
 class CMutableTransaction;
 class CScript;
@@ -26,6 +27,7 @@ uint256 ParseHashStr(const std::string &, const std::string &strName);
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 
 // core_write.cpp
+UniValue ValueFromAmount(const Amount &amount);
 std::string FormatScript(const CScript &script);
 std::string EncodeHexTx(const CTransaction &tx, const int serializeFlags = 0);
 void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,

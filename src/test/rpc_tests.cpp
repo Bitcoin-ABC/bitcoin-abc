@@ -7,6 +7,7 @@
 
 #include <base58.h>
 #include <config.h>
+#include <core_io.h>
 #include <netbase.h>
 
 #include <test/test_bitcoin.h>

@@ -161,15 +161,6 @@ Amount AmountFromValue(const UniValue &value) {
     return amt;
 }
 
-UniValue ValueFromAmount(const Amount amount) {
-    bool sign = amount < Amount::zero();
-    Amount n_abs(sign ? -amount : amount);
-    int64_t quotient = n_abs / COIN;
-    int64_t remainder = (n_abs % COIN) / SATOSHI;
-    return UniValue(UniValue::VNUM, strprintf("%s%d.%08d", sign ? "-" : "",
-                                              quotient, remainder));
-}
-
 uint256 ParseHashV(const UniValue &v, std::string strName) {
     std::string strHex;
     if (v.isStr()) {
