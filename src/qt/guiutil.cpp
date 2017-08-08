@@ -742,13 +742,15 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 
+// NB: caller must release returned ref if it's not NULL
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
                                               CFURLRef findUrl);
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
                                               CFURLRef findUrl) {
+    LSSharedFileListItemRef foundItem = nullptr;
     // loop through the list of startup items and try to find the bitcoin app
     CFArrayRef listSnapshot = LSSharedFileListCopySnapshot(list, nullptr);
-    for (int i = 0; i < CFArrayGetCount(listSnapshot); i++) {
+    for (int i = 0; !foundItem && i < CFArrayGetCount(listSnapshot); ++i) {
         LSSharedFileListItemRef item =
             (LSSharedFileListItemRef)CFArrayGetValueAtIndex(listSnapshot, i);
         UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction |
@@ -773,14 +775,14 @@ LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
 
         if (currentItemURL && CFEqual(currentItemURL, findUrl)) {
             // found
-            CFRelease(currentItemURL);
-            return item;
+            CFRetain(foundItem = item);
         }
         if (currentItemURL) {
             CFRelease(currentItemURL);
         }
     }
-    return nullptr;
+    CFRelease(listSnapshot);
+    return foundItem;
 }
 
 bool GetStartOnSystemStartup() {
@@ -789,7 +791,13 @@ bool GetStartOnSystemStartup() {
         nullptr, kLSSharedFileListSessionLoginItems, nullptr);
     LSSharedFileListItemRef foundItem =
         findStartupItemInList(loginItems, bitcoinAppUrl);
-    return !!foundItem; // return boolified object
+    // findStartupItemInList retains the item it returned, need to release
+    if (foundItem) {
+        CFRelease(foundItem);
+    }
+    CFRelease(loginItems);
+    CFRelease(bitcoinAppUrl);
+    return foundItem;
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart) {
@@ -808,6 +816,12 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
         // remove item
         LSSharedFileListItemRemove(loginItems, foundItem);
     }
+    // findStartupItemInList retains the item it returned, need to release
+    if (foundItem) {
+        CFRelease(foundItem);
+    }
+    CFRelease(loginItems);
+    CFRelease(bitcoinAppUrl);
     return true;
 }
 #pragma GCC diagnostic pop
