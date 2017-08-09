@@ -1520,6 +1520,9 @@ bool AppInitParameterInteraction(Config &config) {
     // to differentiate the network nodes.
     nLocalServices = ServiceFlags(nLocalServices | NODE_BITCOIN_CASH);
 
+    // Preferentially keep peers which service NODE_BITCOIN_CASH
+    nRelevantServices = ServiceFlags(nRelevantServices | NODE_BITCOIN_CASH);
+
     nMaxTipAge = GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
     if (mapMultiArgs.count("-bip9params")) {
