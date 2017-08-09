@@ -112,8 +112,8 @@ void ValidateCheckInputsForAllFlags(const CMutableTransaction &mutableTx,
         // Make sure the mandatory flags are enabled.
         test_flags |= MANDATORY_SCRIPT_VERIFY_FLAGS;
 
-        bool ret = CheckInputs(tx, state, pcoinsTip, true, test_flags, true,
-                               add_to_cache, txdata, nullptr);
+        bool ret = CheckInputs(tx, state, pcoinsTip.get(), true, test_flags,
+                               true, add_to_cache, txdata, nullptr);
 
         // CheckInputs should succeed iff test_flags doesn't intersect with
         // failing_flags
@@ -132,15 +132,17 @@ void ValidateCheckInputsForAllFlags(const CMutableTransaction &mutableTx,
         if (ret && add_to_cache) {
             // Check that we get a cache hit if the tx was valid
             std::vector<CScriptCheck> scriptchecks;
-            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip, true, test_flags,
-                                    true, add_to_cache, txdata, &scriptchecks));
+            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
+                                    test_flags, true, add_to_cache, txdata,
+                                    &scriptchecks));
             BOOST_CHECK(scriptchecks.empty());
         } else {
             // Check that we get script executions to check, if the transaction
             // was invalid, or we didn't add to cache.
             std::vector<CScriptCheck> scriptchecks;
-            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip, true, test_flags,
-                                    true, add_to_cache, txdata, &scriptchecks));
+            BOOST_CHECK(CheckInputs(tx, state, pcoinsTip.get(), true,
+                                    test_flags, true, add_to_cache, txdata,
+                                    &scriptchecks));
             BOOST_CHECK_EQUAL(scriptchecks.size(), tx.vin.size());
         }
     }
@@ -209,7 +211,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         CValidationState state;
         PrecomputedTransactionData ptd_spend_tx(spend_tx);
 
-        BOOST_CHECK(!CheckInputs(spend_tx, state, pcoinsTip, true,
+        BOOST_CHECK(!CheckInputs(spend_tx, state, pcoinsTip.get(), true,
                                  MANDATORY_SCRIPT_VERIFY_FLAGS |
                                      SCRIPT_VERIFY_CLEANSTACK,
                                  true, true, ptd_spend_tx, nullptr));
@@ -218,7 +220,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         // ConnectBlock), we should add a script check object for this -- we're
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(CheckInputs(spend_tx, state, pcoinsTip, true,
+        BOOST_CHECK(CheckInputs(spend_tx, state, pcoinsTip.get(), true,
                                 MANDATORY_SCRIPT_VERIFY_FLAGS |
                                     SCRIPT_VERIFY_CLEANSTACK,
                                 true, true, ptd_spend_tx, &scriptchecks));
@@ -290,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         CTransaction transaction(invalid_with_cltv_tx);
         PrecomputedTransactionData txdata(transaction);
 
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip, true,
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
                                 MANDATORY_SCRIPT_VERIFY_FLAGS |
                                     SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
                                 true, true, txdata, nullptr));
@@ -326,7 +328,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         CTransaction transaction(invalid_with_csv_tx);
         PrecomputedTransactionData txdata(transaction);
 
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip, true,
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
                                 MANDATORY_SCRIPT_VERIFY_FLAGS |
                                     SCRIPT_VERIFY_CHECKSEQUENCEVERIFY,
                                 true, true, txdata, nullptr));
@@ -373,14 +375,14 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
 
         // This transaction is now invalid because the second signature is
         // missing.
-        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip, true,
+        BOOST_CHECK(!CheckInputs(transaction, state, pcoinsTip.get(), true,
                                  MANDATORY_SCRIPT_VERIFY_FLAGS, true, true,
                                  txdata, nullptr));
 
         // Make sure this transaction was not cached (ie becausethe first input
         // was valid)
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip, true,
+        BOOST_CHECK(CheckInputs(transaction, state, pcoinsTip.get(), true,
                                 MANDATORY_SCRIPT_VERIFY_FLAGS, true, true,
                                 txdata, &scriptchecks));
         // Should get 2 script checks back -- caching is on a whole-transaction

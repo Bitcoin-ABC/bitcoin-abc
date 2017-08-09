@@ -16,9 +16,6 @@ class RPCNestedTests : public QObject {
 
 private Q_SLOTS:
     void rpcNestedTests();
-
-private:
-    CCoinsViewDB *pcoinsdbview;
 };
 
 #endif // BITCOIN_QT_TEST_RPC_NESTED_TESTS_H

@@ -155,7 +155,7 @@ public:
     // the caller.
 };
 
-static CCoinsViewErrorCatcher *pcoinscatcher = nullptr;
+static std::unique_ptr<CCoinsViewErrorCatcher> pcoinscatcher;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 void Interrupt(boost::thread_group &threadGroup) {
@@ -244,14 +244,10 @@ void Shutdown() {
         if (pcoinsTip != nullptr) {
             FlushStateToDisk();
         }
-        delete pcoinsTip;
-        pcoinsTip = nullptr;
-        delete pcoinscatcher;
-        pcoinscatcher = nullptr;
-        delete pcoinsdbview;
-        pcoinsdbview = nullptr;
-        delete pblocktree;
-        pblocktree = nullptr;
+        pcoinsTip.reset();
+        pcoinscatcher.reset();
+        pcoinsdbview.reset();
+        pblocktree.reset();
     }
 #ifdef ENABLE_WALLET
     for (CWalletRef pwallet : vpwallets) {
@@ -1991,13 +1987,11 @@ bool AppInitMain(Config &config,
         do {
             try {
                 UnloadBlockIndex();
-                delete pcoinsTip;
-                delete pcoinsdbview;
-                delete pcoinscatcher;
-                delete pblocktree;
-
-                pblocktree =
-                    new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
+                pcoinsTip.reset();
+                pcoinsdbview.reset();
+                pcoinscatcher.reset();
+                pblocktree.reset(
+                    new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
@@ -2060,9 +2054,10 @@ bool AppInitMain(Config &config,
                 // At this point we're either in reindex or we've loaded a
                 // useful block tree into mapBlockIndex!
 
-                pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false,
-                                                fReindex || fReindexChainState);
-                pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
+                pcoinsdbview.reset(new CCoinsViewDB(
+                    nCoinDBCache, false, fReset || fReindexChainState));
+                pcoinscatcher.reset(
+                    new CCoinsViewErrorCatcher(pcoinsdbview.get()));
 
                 // If necessary, upgrade from older database format.
                 // This is a no-op if we cleared the coinsviewdb with -reindex
@@ -2074,7 +2069,7 @@ bool AppInitMain(Config &config,
 
                 // ReplayBlocks is a no-op if we cleared the coinsviewdb with
                 // -reindex or -reindex-chainstate
-                if (!ReplayBlocks(config, pcoinsdbview)) {
+                if (!ReplayBlocks(config, pcoinsdbview.get())) {
                     strLoadError =
                         _("Unable to replay blocks. You will need to rebuild "
                           "the database using -reindex-chainstate.");
@@ -2082,7 +2077,7 @@ bool AppInitMain(Config &config,
                 }
 
                 // The on-disk coinsdb is now in a good state, create the cache
-                pcoinsTip = new CCoinsViewCache(pcoinscatcher);
+                pcoinsTip.reset(new CCoinsViewCache(pcoinscatcher.get()));
 
                 if (!fReindex && !fReindexChainState) {
                     // LoadChainTip sets chainActive based on pcoinsTip's best
@@ -2138,7 +2133,7 @@ bool AppInitMain(Config &config,
                     }
 
                     if (!CVerifyDB().VerifyDB(
-                            config, pcoinsdbview,
+                            config, pcoinsdbview.get(),
                             gArgs.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                             gArgs.GetArg("-checkblocks",
                                          DEFAULT_CHECKBLOCKS))) {

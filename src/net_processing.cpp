@@ -2393,7 +2393,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         if (!AlreadyHave(inv) && AcceptToMemoryPool(config, mempool, state, ptx,
                                                     true, &fMissingInputs)) {
-            mempool.check(pcoinsTip);
+            mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
@@ -2466,7 +2466,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                             recentRejects->insert(orphanId);
                         }
                     }
-                    mempool.check(pcoinsTip);
+                    mempool.check(pcoinsTip.get());
                 }
             }
 

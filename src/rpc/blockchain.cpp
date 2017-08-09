@@ -1015,7 +1015,7 @@ UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
 
     CCoinsStats stats;
     FlushStateToDisk();
-    if (GetUTXOStats(pcoinsdbview, stats)) {
+    if (GetUTXOStats(pcoinsdbview.get(), stats)) {
         ret.push_back(Pair("height", int64_t(stats.nHeight)));
         ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
         ret.push_back(Pair("transactions", int64_t(stats.nTransactions)));
@@ -1092,7 +1092,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     Coin coin;
     if (fMempool) {
         LOCK(mempool.cs);
-        CCoinsViewMemPool view(pcoinsTip, mempool);
+        CCoinsViewMemPool view(pcoinsTip.get(), mempool);
         if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
             // TODO: this should be done by the CCoinsViewMemPool
             return NullUniValue;
@@ -1151,7 +1151,8 @@ UniValue verifychain(const Config &config, const JSONRPCRequest &request) {
         nCheckDepth = request.params[1].get_int();
     }
 
-    return CVerifyDB().VerifyDB(config, pcoinsTip, nCheckLevel, nCheckDepth);
+    return CVerifyDB().VerifyDB(config, pcoinsTip.get(), nCheckLevel,
+                                nCheckDepth);
 }
 
 /** Implementation of IsSuperMajority with better feedback */
