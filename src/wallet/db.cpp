@@ -141,6 +141,7 @@ bool CDBEnv::Open(const fs::path &pathIn) {
                         DB_INIT_TXN | DB_THREAD | DB_RECOVER | nEnvFlags,
                     S_IRUSR | S_IWUSR);
     if (ret != 0) {
+        dbenv->close(0);
         return error(
             "CDBEnv::Open: Error %d opening database environment: %s\n", ret,
             DbEnv::strerror(ret));
@@ -239,6 +240,7 @@ bool CDB::Recover(const std::string &filename, void *callbackDataIn,
                             0);
     if (ret > 0) {
         LogPrintf("Cannot create database file %s\n", filename);
+        pdbCopy->close(0);
         return false;
     }
 
@@ -610,6 +612,8 @@ bool CDB::Rewrite(CWalletDBWrapper &dbw, const char *pszSkip) {
                         if (pdbCopy->close(0)) {
                             fSuccess = false;
                         }
+                    } else {
+                        pdbCopy->close(0);
                     }
                 }
                 if (fSuccess) {
