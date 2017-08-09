@@ -548,7 +548,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
 
     self_rawtx = from_node.createrawtransaction(inputs, outputs)
     self_signresult = from_node.signrawtransaction(
-        self_rawtx, None, None, "ALL")
+        self_rawtx, None, None, "ALL|FORKID")
     self_txid = from_node.sendrawtransaction(self_signresult["hex"], True)
 
     vout = find_output(from_node, self_txid, amount + fee)
@@ -558,7 +558,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
     outputs = {to_node.getnewaddress(): float(amount)}
 
     rawtx = from_node.createrawtransaction(inputs, outputs)
-    signresult = from_node.signrawtransaction(rawtx, None, None, "ALL")
+    signresult = from_node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
     txid = from_node.sendrawtransaction(signresult["hex"], True)
 
     return (txid, signresult["hex"])

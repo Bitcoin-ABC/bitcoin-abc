@@ -347,7 +347,8 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     inputm.vout.resize(1);
     inputm.vout[0].nValue = 1;
     inputm.vout[0].scriptPubKey = CScript();
-    bool ret = SignSignature(keystore, *output, inputm, 0, SIGHASH_ALL);
+    bool ret = SignSignature(keystore, *output, inputm, 0,
+                             SIGHASH_ALL | SIGHASH_FORKID);
     BOOST_CHECK_EQUAL(ret, success);
     CDataStream ssin(SER_NETWORK, PROTOCOL_VERSION);
     ssin << inputm;
@@ -363,7 +364,8 @@ void CheckWithFlag(const CTransactionRef &output,
     ScriptError error;
     CTransaction inputi(input);
     bool ret = VerifyScript(
-        inputi.vin[0].scriptSig, output->vout[0].scriptPubKey, flags,
+        inputi.vin[0].scriptSig, output->vout[0].scriptPubKey,
+        flags | SCRIPT_ENABLE_SIGHASH_FORKID,
         TransactionSignatureChecker(&inputi, 0, output->vout[0].nValue),
         &error);
     BOOST_CHECK_EQUAL(ret, success);

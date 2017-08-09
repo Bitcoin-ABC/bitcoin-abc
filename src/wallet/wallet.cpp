@@ -2598,7 +2598,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, CAmount &nFeeRet,
 
     // Copy output sizes from new transaction; they may have had the fee
     // subtracted from them.
-    for (unsigned int idx = 0; idx < tx.vout.size(); idx++) {
+    for (size_t idx = 0; idx < tx.vout.size(); idx++) {
         tx.vout[idx].nValue = wtx.tx->vout[idx].nValue;
     }
 

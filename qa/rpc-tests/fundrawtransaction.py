@@ -153,8 +153,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         for out in dec_tx['vout']:
             totalOut += out['value']
 
+        # compare vin total and totalout+fee
         assert_equal(fee + totalOut, utx['amount'])
-                     # compare vin total and totalout+fee
 
         #
         # test a fundrawtransaction with which will not get a change output #
@@ -306,9 +306,8 @@ class RawTransactionsTest(BitcoinTestFramework):
                 if vinIn['txid'] == vinOut['txid']:
                     matchingIns += 1
 
+        # we now must see two vins identical to vins given as params
         assert_equal(matchingIns, 2)
-                     # we now must see two vins identical to vins given as
-                     # params
 
         #
         # test a fundrawtransaction with two VINs and two vOUTs #
