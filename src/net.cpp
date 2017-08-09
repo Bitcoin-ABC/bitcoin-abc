@@ -2346,8 +2346,6 @@ CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In)
     nLastNodeId = 0;
     nSendBufferMaxSize = 0;
     nReceiveFloodSize = 0;
-    semOutbound = nullptr;
-    semAddnode = nullptr;
     flagInterruptMsgProc = false;
 
     Options connOptions;
@@ -2463,12 +2461,12 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 
     if (semOutbound == nullptr) {
         // initialize semaphore
-        semOutbound = new CSemaphore(
-            std::min((nMaxOutbound + nMaxFeeler), nMaxConnections));
+        semOutbound = std::unique_ptr<CSemaphore>(new CSemaphore(
+            std::min((nMaxOutbound + nMaxFeeler), nMaxConnections)));
     }
     if (semAddnode == nullptr) {
         // initialize semaphore
-        semAddnode = new CSemaphore(nMaxAddnode);
+        semAddnode = std::unique_ptr<CSemaphore>(new CSemaphore(nMaxAddnode));
     }
 
     //
@@ -2606,10 +2604,8 @@ void CConnman::Stop() {
     vNodes.clear();
     vNodesDisconnected.clear();
     vhListenSocket.clear();
-    delete semOutbound;
-    semOutbound = nullptr;
-    delete semAddnode;
-    semAddnode = nullptr;
+    semOutbound.reset();
+    semAddnode.reset();
 }
 
 void CConnman::DeleteNode(CNode *pnode) {
@@ -2888,7 +2884,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     nNextInvSend = 0;
     fRelayTxes = false;
     fSentAddr = false;
-    pfilter = new CBloomFilter();
+    pfilter = std::unique_ptr<CBloomFilter>(new CBloomFilter());
     timeLastMempoolReq = 0;
     nLastBlockTime = 0;
     nLastTXTime = 0;
@@ -2918,10 +2914,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
 
 CNode::~CNode() {
     CloseSocket(hSocket);
-
-    if (pfilter) {
-        delete pfilter;
-    }
 }
 
 void CNode::AskFor(const CInv &inv) {

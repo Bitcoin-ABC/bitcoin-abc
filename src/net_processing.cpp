@@ -2911,8 +2911,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             Misbehaving(pfrom, 100, "oversized-bloom-filter");
         } else {
             LOCK(pfrom->cs_filter);
-            delete pfrom->pfilter;
-            pfrom->pfilter = new CBloomFilter(filter);
+            pfrom->pfilter.reset(new CBloomFilter(filter));
             pfrom->pfilter->UpdateEmptyFull();
             pfrom->fRelayTxes = true;
         }
@@ -2947,8 +2946,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     else if (strCommand == NetMsgType::FILTERCLEAR) {
         LOCK(pfrom->cs_filter);
         if (pfrom->GetLocalServices() & NODE_BLOOM) {
-            delete pfrom->pfilter;
-            pfrom->pfilter = new CBloomFilter();
+            pfrom->pfilter.reset(new CBloomFilter());
         }
         pfrom->fRelayTxes = true;
     }
