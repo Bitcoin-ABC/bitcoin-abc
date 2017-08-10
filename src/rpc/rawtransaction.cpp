@@ -906,6 +906,10 @@ static UniValue signrawtransaction(const Config &config,
                                 {"txid", UniValueType(UniValue::VSTR)},
                                 {"vout", UniValueType(UniValue::VNUM)},
                                 {"scriptPubKey", UniValueType(UniValue::VSTR)},
+                                // "amount" is also required but check is done
+                                // below due to UniValue::VNUM erroneously
+                                // not accepting quoted numerics
+                                // (which are valid JSON)
                             });
 
             uint256 txid = ParseHashO(prevOut, "txid");
@@ -939,6 +943,17 @@ static UniValue signrawtransaction(const Config &config,
                 if (prevOut.exists("amount")) {
                     coins->vout[nOut].nValue =
                         AmountFromValue(find_value(prevOut, "amount"));
+                } else {
+                    // amount param is required in replay-protected txs.
+                    // Note that we must check for its presence here rather
+                    // than use RPCTypeCheckObj() above, since UniValue::VNUM
+                    // parser incorrectly parses numerics with quotes, eg
+                    // "3.12" as a string when JSON allows it to also parse
+                    // as numeric. And we have to accept numerics with quotes
+                    // because our own dogfood (our rpc results) always
+                    // produces decimal numbers that are quoted
+                    // eg getbalance returns "3.14152" rather than 3.14152
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing amount");
                 }
             }
 
