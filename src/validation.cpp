@@ -4355,7 +4355,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
             unsigned int nSize = 0;
             try {
                 // Locate a header.
-                unsigned char buf[CMessageHeader::MESSAGE_START_SIZE];
+                uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
                 blkdat.FindByte(chainparams.MessageStart()[0]);
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> FLATDATA(buf);

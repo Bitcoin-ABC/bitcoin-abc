@@ -49,7 +49,7 @@ static int64_t DecodeDumpTime(const std::string &str) {
 
 static std::string EncodeDumpString(const std::string &str) {
     std::stringstream ret;
-    for (unsigned char c : str) {
+    for (uint8_t c : str) {
         if (c <= 32 || c >= 128 || c == '%') {
             ret << '%' << HexStr(&c, &c + 1);
         } else {
@@ -62,7 +62,7 @@ static std::string EncodeDumpString(const std::string &str) {
 std::string DecodeDumpString(const std::string &str) {
     std::stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
-        unsigned char c = str[pos];
+        uint8_t c = str[pos];
         if (c == '%' && pos + 2 < str.length()) {
             c = (((str[pos + 1] >> 6) * 9 + ((str[pos + 1] - '0') & 15)) << 4) |
                 ((str[pos + 2] >> 6) * 9 + ((str[pos + 2] - '0') & 15));
@@ -251,7 +251,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
                                "a script instead");
         ImportAddress(address, strLabel);
     } else if (IsHex(request.params[0].get_str())) {
-        std::vector<unsigned char> data(ParseHex(request.params[0].get_str()));
+        std::vector<uint8_t> data(ParseHex(request.params[0].get_str()));
         ImportScript(CScript(data.begin(), data.end()), strLabel, fP2SH);
     } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -421,7 +421,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     if (!IsHex(request.params[0].get_str()))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Pubkey must be a hex string");
-    std::vector<unsigned char> data(ParseHex(request.params[0].get_str()));
+    std::vector<uint8_t> data(ParseHex(request.params[0].get_str()));
     CPubKey pubKey(data.begin(), data.end());
     if (!pubKey.IsFullyValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -735,7 +735,7 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                                    "Invalid scriptPubKey");
             }
 
-            std::vector<unsigned char> vData(ParseHex(output));
+            std::vector<uint8_t> vData(ParseHex(output));
             script = CScript(vData.begin(), vData.end());
         }
 
@@ -777,7 +777,7 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
         // P2SH
         if (isP2SH) {
             // Import redeem script.
-            std::vector<unsigned char> vData(ParseHex(strRedeemScript));
+            std::vector<uint8_t> vData(ParseHex(strRedeemScript));
             CScript redeemScript = CScript(vData.begin(), vData.end());
 
             // Invalid P2SH address
@@ -879,7 +879,7 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                                        "Pubkey must be a hex string");
                 }
 
-                std::vector<unsigned char> vData(ParseHex(strPubKey));
+                std::vector<uint8_t> vData(ParseHex(strPubKey));
                 CPubKey pubKey(vData.begin(), vData.end());
 
                 if (!pubKey.IsFullyValid()) {

@@ -25,13 +25,13 @@ private:
 public:
     static const size_t OUTPUT_SIZE = CSHA256::OUTPUT_SIZE;
 
-    void Finalize(unsigned char hash[OUTPUT_SIZE]) {
-        unsigned char buf[CSHA256::OUTPUT_SIZE];
+    void Finalize(uint8_t hash[OUTPUT_SIZE]) {
+        uint8_t buf[CSHA256::OUTPUT_SIZE];
         sha.Finalize(buf);
         sha.Reset().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash256 &Write(const unsigned char *data, size_t len) {
+    CHash256 &Write(const uint8_t *data, size_t len) {
         sha.Write(data, len);
         return *this;
     }
@@ -50,13 +50,13 @@ private:
 public:
     static const size_t OUTPUT_SIZE = CRIPEMD160::OUTPUT_SIZE;
 
-    void Finalize(unsigned char hash[OUTPUT_SIZE]) {
-        unsigned char buf[CSHA256::OUTPUT_SIZE];
+    void Finalize(uint8_t hash[OUTPUT_SIZE]) {
+        uint8_t buf[CSHA256::OUTPUT_SIZE];
         sha.Finalize(buf);
         CRIPEMD160().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash160 &Write(const unsigned char *data, size_t len) {
+    CHash160 &Write(const uint8_t *data, size_t len) {
         sha.Write(data, len);
         return *this;
     }
@@ -69,12 +69,12 @@ public:
 
 /** Compute the 256-bit hash of an object. */
 template <typename T1> inline uint256 Hash(const T1 pbegin, const T1 pend) {
-    static const unsigned char pblank[1] = {};
+    static const uint8_t pblank[1] = {};
     uint256 result;
     CHash256()
-        .Write(pbegin == pend ? pblank : (const unsigned char *)&pbegin[0],
+        .Write(pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
                (pend - pbegin) * sizeof(pbegin[0]))
-        .Finalize((unsigned char *)&result);
+        .Finalize((uint8_t *)&result);
     return result;
 }
 
@@ -82,14 +82,14 @@ template <typename T1> inline uint256 Hash(const T1 pbegin, const T1 pend) {
 template <typename T1, typename T2>
 inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin,
                     const T2 p2end) {
-    static const unsigned char pblank[1] = {};
+    static const uint8_t pblank[1] = {};
     uint256 result;
     CHash256()
-        .Write(p1begin == p1end ? pblank : (const unsigned char *)&p1begin[0],
+        .Write(p1begin == p1end ? pblank : (const uint8_t *)&p1begin[0],
                (p1end - p1begin) * sizeof(p1begin[0]))
-        .Write(p2begin == p2end ? pblank : (const unsigned char *)&p2begin[0],
+        .Write(p2begin == p2end ? pblank : (const uint8_t *)&p2begin[0],
                (p2end - p2begin) * sizeof(p2begin[0]))
-        .Finalize((unsigned char *)&result);
+        .Finalize((uint8_t *)&result);
     return result;
 }
 
@@ -97,38 +97,38 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin,
 template <typename T1, typename T2, typename T3>
 inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin,
                     const T2 p2end, const T3 p3begin, const T3 p3end) {
-    static const unsigned char pblank[1] = {};
+    static const uint8_t pblank[1] = {};
     uint256 result;
     CHash256()
-        .Write(p1begin == p1end ? pblank : (const unsigned char *)&p1begin[0],
+        .Write(p1begin == p1end ? pblank : (const uint8_t *)&p1begin[0],
                (p1end - p1begin) * sizeof(p1begin[0]))
-        .Write(p2begin == p2end ? pblank : (const unsigned char *)&p2begin[0],
+        .Write(p2begin == p2end ? pblank : (const uint8_t *)&p2begin[0],
                (p2end - p2begin) * sizeof(p2begin[0]))
-        .Write(p3begin == p3end ? pblank : (const unsigned char *)&p3begin[0],
+        .Write(p3begin == p3end ? pblank : (const uint8_t *)&p3begin[0],
                (p3end - p3begin) * sizeof(p3begin[0]))
-        .Finalize((unsigned char *)&result);
+        .Finalize((uint8_t *)&result);
     return result;
 }
 
 /** Compute the 160-bit hash an object. */
 template <typename T1> inline uint160 Hash160(const T1 pbegin, const T1 pend) {
-    static unsigned char pblank[1] = {};
+    static uint8_t pblank[1] = {};
     uint160 result;
     CHash160()
-        .Write(pbegin == pend ? pblank : (const unsigned char *)&pbegin[0],
+        .Write(pbegin == pend ? pblank : (const uint8_t *)&pbegin[0],
                (pend - pbegin) * sizeof(pbegin[0]))
-        .Finalize((unsigned char *)&result);
+        .Finalize((uint8_t *)&result);
     return result;
 }
 
 /** Compute the 160-bit hash of a vector. */
-inline uint160 Hash160(const std::vector<unsigned char> &vch) {
+inline uint160 Hash160(const std::vector<uint8_t> &vch) {
     return Hash160(vch.begin(), vch.end());
 }
 
 /** Compute the 160-bit hash of a vector. */
 template <unsigned int N>
-inline uint160 Hash160(const prevector<N, unsigned char> &vch) {
+inline uint160 Hash160(const prevector<N, uint8_t> &vch) {
     return Hash160(vch.begin(), vch.end());
 }
 
@@ -148,13 +148,13 @@ public:
     int GetVersion() const { return nVersion; }
 
     void write(const char *pch, size_t size) {
-        ctx.Write((const unsigned char *)pch, size);
+        ctx.Write((const uint8_t *)pch, size);
     }
 
     // invalidates the object
     uint256 GetHash() {
         uint256 result;
-        ctx.Finalize((unsigned char *)&result);
+        ctx.Finalize((uint8_t *)&result);
         return result;
     }
 
@@ -175,11 +175,10 @@ uint256 SerializeHash(const T &obj, int nType = SER_GETHASH,
 }
 
 unsigned int MurmurHash3(unsigned int nHashSeed,
-                         const std::vector<unsigned char> &vDataToHash);
+                         const std::vector<uint8_t> &vDataToHash);
 
-void BIP32Hash(const ChainCode &chainCode, unsigned int nChild,
-               unsigned char header, const unsigned char data[32],
-               unsigned char output[64]);
+void BIP32Hash(const ChainCode &chainCode, unsigned int nChild, uint8_t header,
+               const uint8_t data[32], uint8_t output[64]);
 
 /** SipHash-2-4 */
 class CSipHasher {
@@ -199,7 +198,7 @@ public:
      */
     CSipHasher &Write(uint64_t data);
     /** Hash arbitrary bytes. */
-    CSipHasher &Write(const unsigned char *data, size_t size);
+    CSipHasher &Write(const uint8_t *data, size_t size);
     /** Compute the 64-bit SipHash-2-4 of the data written so far. The object
      * remains untouched. */
     uint64_t Finalize() const;

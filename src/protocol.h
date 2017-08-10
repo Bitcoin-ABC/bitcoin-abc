@@ -37,7 +37,7 @@ public:
         HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE +
                       CHECKSUM_SIZE
     };
-    typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
+    typedef uint8_t MessageStartChars[MESSAGE_START_SIZE];
 
     CMessageHeader(const MessageStartChars &pchMessageStartIn);
     CMessageHeader(const MessageStartChars &pchMessageStartIn,

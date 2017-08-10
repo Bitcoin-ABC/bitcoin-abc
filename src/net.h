@@ -122,7 +122,7 @@ struct CSerializedNetMsg {
     CSerializedNetMsg(const CSerializedNetMsg &msg) = delete;
     CSerializedNetMsg &operator=(const CSerializedNetMsg &) = delete;
 
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> data;
     std::string command;
 };
 
@@ -586,7 +586,7 @@ public:
     // Offset inside the first vSendMsg already sent.
     size_t nSendOffset;
     uint64_t nSendBytes;
-    std::deque<std::vector<unsigned char>> vSendMsg;
+    std::deque<std::vector<uint8_t>> vSendMsg;
     CCriticalSection cs_vSend;
     CCriticalSection cs_hSocket;
     CCriticalSection cs_vRecv;

@@ -139,7 +139,7 @@ std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
 namespace {
 
 struct CBlockReject {
-    unsigned char chRejectCode;
+    uint8_t chRejectCode;
     std::string strRejectReason;
     uint256 hashBlock;
 };
@@ -1020,7 +1020,7 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
             // Blocks are never rejected with internal reject codes.
             assert(state.GetRejectCode() < REJECT_INTERNAL);
             CBlockReject reject = {
-                (unsigned char)state.GetRejectCode(),
+                uint8_t(state.GetRejectCode()),
                 state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
                 hash};
             State(it->second.first)->rejects.push_back(reject);
@@ -1420,7 +1420,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         if (fDebug) {
             try {
                 std::string strMsg;
-                unsigned char ccode;
+                uint8_t ccode;
                 std::string strReason;
                 vRecv >> LIMITED_STRING(strMsg, CMessageHeader::COMMAND_SIZE) >>
                     ccode >>
@@ -2256,7 +2256,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             if (state.GetRejectCode() < REJECT_INTERNAL) {
                 connman.PushMessage(
                     pfrom, msgMaker.Make(NetMsgType::REJECT, strCommand,
-                                         (unsigned char)state.GetRejectCode(),
+                                         uint8_t(state.GetRejectCode()),
                                          state.GetRejectReason().substr(
                                              0, MAX_REJECT_MESSAGE_LENGTH),
                                          inv.hash));
@@ -2985,7 +2985,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     else if (strCommand == NetMsgType::FILTERADD) {
-        std::vector<unsigned char> vData;
+        std::vector<uint8_t> vData;
         vRecv >> vData;
 
         // Nodes must NEVER send a data item > 520 bytes (the max size for a
@@ -3268,7 +3268,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
     if (pingSend) {
         uint64_t nonce = 0;
         while (nonce == 0) {
-            GetRandBytes((unsigned char *)&nonce, sizeof(nonce));
+            GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
         }
         pto->fPingQueued = false;
         pto->nPingUsecStart = GetTimeMicros();

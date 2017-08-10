@@ -130,11 +130,11 @@ void BlockAssembler::resetBlock() {
     blockFinished = false;
 }
 
-static const std::vector<unsigned char>
+static const std::vector<uint8_t>
 getExcessiveBlockSizeSig(const Config &config) {
     std::string cbmsg = "/EB" + getSubVersionEB(config.GetMaxBlockSize()) + "/";
     const char *cbcstr = cbmsg.c_str();
-    std::vector<unsigned char> vec(cbcstr, cbcstr + cbmsg.size());
+    std::vector<uint8_t> vec(cbcstr, cbcstr + cbmsg.size());
     return vec;
 }
 

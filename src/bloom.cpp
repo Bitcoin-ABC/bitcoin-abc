@@ -31,7 +31,7 @@
  * formulas.
  */
 CBloomFilter::CBloomFilter(unsigned int nElements, double nFPRate,
-                           unsigned int nTweakIn, unsigned char nFlagsIn)
+                           unsigned int nTweakIn, uint8_t nFlagsIn)
     : vData(std::min((unsigned int)(-1 / LN2SQUARED * nElements * log(nFPRate)),
                      MAX_BLOOM_FILTER_SIZE * 8) /
             8),
@@ -50,14 +50,14 @@ CBloomFilter::CBloomFilter(unsigned int nElements, double nFPRate,
 
 inline unsigned int
 CBloomFilter::Hash(unsigned int nHashNum,
-                   const std::vector<unsigned char> &vDataToHash) const {
+                   const std::vector<uint8_t> &vDataToHash) const {
     // 0xFBA4C795 chosen as it guarantees a reasonable bit difference between
     // nHashNum values.
     return MurmurHash3(nHashNum * 0xFBA4C795 + nTweak, vDataToHash) %
            (vData.size() * 8);
 }
 
-void CBloomFilter::insert(const std::vector<unsigned char> &vKey) {
+void CBloomFilter::insert(const std::vector<uint8_t> &vKey) {
     if (isFull) return;
     for (unsigned int i = 0; i < nHashFuncs; i++) {
         unsigned int nIndex = Hash(i, vKey);
@@ -70,16 +70,16 @@ void CBloomFilter::insert(const std::vector<unsigned char> &vKey) {
 void CBloomFilter::insert(const COutPoint &outpoint) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << outpoint;
-    std::vector<unsigned char> data(stream.begin(), stream.end());
+    std::vector<uint8_t> data(stream.begin(), stream.end());
     insert(data);
 }
 
 void CBloomFilter::insert(const uint256 &hash) {
-    std::vector<unsigned char> data(hash.begin(), hash.end());
+    std::vector<uint8_t> data(hash.begin(), hash.end());
     insert(data);
 }
 
-bool CBloomFilter::contains(const std::vector<unsigned char> &vKey) const {
+bool CBloomFilter::contains(const std::vector<uint8_t> &vKey) const {
     if (isFull) return true;
     if (isEmpty) return false;
     for (unsigned int i = 0; i < nHashFuncs; i++) {
@@ -93,12 +93,12 @@ bool CBloomFilter::contains(const std::vector<unsigned char> &vKey) const {
 bool CBloomFilter::contains(const COutPoint &outpoint) const {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << outpoint;
-    std::vector<unsigned char> data(stream.begin(), stream.end());
+    std::vector<uint8_t> data(stream.begin(), stream.end());
     return contains(data);
 }
 
 bool CBloomFilter::contains(const uint256 &hash) const {
-    std::vector<unsigned char> data(hash.begin(), hash.end());
+    std::vector<uint8_t> data(hash.begin(), hash.end());
     return contains(data);
 }
 
@@ -136,7 +136,7 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
         // spending transactions, which avoids round-tripping and race
         // conditions.
         CScript::const_iterator pc = txout.scriptPubKey.begin();
-        std::vector<unsigned char> data;
+        std::vector<uint8_t> data;
         while (pc < txout.scriptPubKey.end()) {
             opcodetype opcode;
             if (!txout.scriptPubKey.GetOp(pc, opcode, data)) break;
@@ -147,7 +147,7 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
                 else if ((nFlags & BLOOM_UPDATE_MASK) ==
                          BLOOM_UPDATE_P2PUBKEY_ONLY) {
                     txnouttype type;
-                    std::vector<std::vector<unsigned char>> vSolutions;
+                    std::vector<std::vector<uint8_t>> vSolutions;
                     if (Solver(txout.scriptPubKey, type, vSolutions) &&
                         (type == TX_PUBKEY || type == TX_MULTISIG))
                         insert(COutPoint(txid, i));
@@ -166,7 +166,7 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
         // Match if the filter contains any arbitrary script data element in any
         // scriptSig in tx
         CScript::const_iterator pc = txin.scriptSig.begin();
-        std::vector<unsigned char> data;
+        std::vector<uint8_t> data;
         while (pc < txin.scriptSig.end()) {
             opcodetype opcode;
             if (!txin.scriptSig.GetOp(pc, opcode, data)) break;
@@ -227,11 +227,11 @@ CRollingBloomFilter::CRollingBloomFilter(unsigned int nElements,
 /* Similar to CBloomFilter::Hash */
 static inline uint32_t
 RollingBloomHash(unsigned int nHashNum, uint32_t nTweak,
-                 const std::vector<unsigned char> &vDataToHash) {
+                 const std::vector<uint8_t> &vDataToHash) {
     return MurmurHash3(nHashNum * 0xFBA4C795 + nTweak, vDataToHash);
 }
 
-void CRollingBloomFilter::insert(const std::vector<unsigned char> &vKey) {
+void CRollingBloomFilter::insert(const std::vector<uint8_t> &vKey) {
     if (nEntriesThisGeneration == nEntriesPerGeneration) {
         nEntriesThisGeneration = 0;
         nGeneration++;
@@ -264,12 +264,11 @@ void CRollingBloomFilter::insert(const std::vector<unsigned char> &vKey) {
 }
 
 void CRollingBloomFilter::insert(const uint256 &hash) {
-    std::vector<unsigned char> vData(hash.begin(), hash.end());
+    std::vector<uint8_t> vData(hash.begin(), hash.end());
     insert(vData);
 }
 
-bool CRollingBloomFilter::contains(
-    const std::vector<unsigned char> &vKey) const {
+bool CRollingBloomFilter::contains(const std::vector<uint8_t> &vKey) const {
     for (int n = 0; n < nHashFuncs; n++) {
         uint32_t h = RollingBloomHash(n, nTweak, vKey);
         int bit = h & 0x3F;
@@ -284,7 +283,7 @@ bool CRollingBloomFilter::contains(
 }
 
 bool CRollingBloomFilter::contains(const uint256 &hash) const {
-    std::vector<unsigned char> vData(hash.begin(), hash.end());
+    std::vector<uint8_t> vData(hash.begin(), hash.end());
     return contains(vData);
 }
 

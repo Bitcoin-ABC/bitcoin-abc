@@ -42,7 +42,7 @@ void HandleError(const leveldb::Status &status);
  * Database obfuscation should be considered an implementation detail of the
  * specific database.
  */
-const std::vector<unsigned char> &GetObfuscateKey(const CDBWrapper &w);
+const std::vector<uint8_t> &GetObfuscateKey(const CDBWrapper &w);
 };
 
 /** Batch of changes queued to be written to a CDBWrapper */
@@ -148,7 +148,7 @@ public:
 };
 
 class CDBWrapper {
-    friend const std::vector<unsigned char> &
+    friend const std::vector<uint8_t> &
     dbwrapper_private::GetObfuscateKey(const CDBWrapper &w);
 
 private:
@@ -175,7 +175,7 @@ private:
     leveldb::DB *pdb;
 
     //! a key used for optional XOR-obfuscation of the database
-    std::vector<unsigned char> obfuscate_key;
+    std::vector<uint8_t> obfuscate_key;
 
     //! the key under which the obfuscation key is stored
     static const std::string OBFUSCATE_KEY_KEY;
@@ -183,7 +183,7 @@ private:
     //! the length of the obfuscate key in number of bytes
     static const unsigned int OBFUSCATE_KEY_NUM_BYTES;
 
-    std::vector<unsigned char> CreateObfuscateKey() const;
+    std::vector<uint8_t> CreateObfuscateKey() const;
 
 public:
     /**

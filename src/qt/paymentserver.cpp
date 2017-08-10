@@ -173,7 +173,7 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
         }
 #endif
         QByteArray certData = cert.toDer();
-        const unsigned char *data = (const unsigned char *)certData.data();
+        const uint8_t *data = (const uint8_t *)certData.data();
 
         std::unique_ptr<X509, X509Deleter> x509(
             d2i_X509(0, &data, certData.size()));

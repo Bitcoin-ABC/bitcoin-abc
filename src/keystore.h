@@ -106,9 +106,8 @@ public:
     virtual bool HaveWatchOnly() const;
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char>>
-    CKeyingMaterial;
-typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char>>>
+typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
+typedef std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>
     CryptedKeyMap;
 
 #endif // BITCOIN_KEYSTORE_H

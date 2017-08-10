@@ -19,12 +19,12 @@ private:
 public:
     static const size_t OUTPUT_SIZE = 64;
 
-    CHMAC_SHA512(const unsigned char *key, size_t keylen);
-    CHMAC_SHA512 &Write(const unsigned char *data, size_t len) {
+    CHMAC_SHA512(const uint8_t *key, size_t keylen);
+    CHMAC_SHA512 &Write(const uint8_t *data, size_t len) {
         inner.Write(data, len);
         return *this;
     }
-    void Finalize(unsigned char hash[OUTPUT_SIZE]);
+    void Finalize(uint8_t hash[OUTPUT_SIZE]);
 };
 
 #endif // BITCOIN_CRYPTO_HMAC_SHA512_H

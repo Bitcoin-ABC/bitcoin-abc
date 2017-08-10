@@ -117,8 +117,8 @@ enum {
     SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
 };
 
-bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
-                            uint32_t flags, ScriptError *serror);
+bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
+                            ScriptError *serror);
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
@@ -128,8 +128,8 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 
 class BaseSignatureChecker {
 public:
-    virtual bool CheckSig(const std::vector<unsigned char> &scriptSig,
-                          const std::vector<unsigned char> &vchPubKey,
+    virtual bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                          const std::vector<uint8_t> &vchPubKey,
                           const CScript &scriptCode, uint32_t flags) const {
         return false;
     }
@@ -153,7 +153,7 @@ private:
     const PrecomputedTransactionData *txdata;
 
 protected:
-    virtual bool VerifySignature(const std::vector<unsigned char> &vchSig,
+    virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
                                  const CPubKey &vchPubKey,
                                  const uint256 &sighash) const;
 
@@ -165,8 +165,8 @@ public:
                                 const CAmount &amountIn,
                                 const PrecomputedTransactionData &txdataIn)
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
-    bool CheckSig(const std::vector<unsigned char> &scriptSig,
-                  const std::vector<unsigned char> &vchPubKey,
+    bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                  const std::vector<uint8_t> &vchPubKey,
                   const CScript &scriptCode, uint32_t flags) const;
     bool CheckLockTime(const CScriptNum &nLockTime) const;
     bool CheckSequence(const CScriptNum &nSequence) const;
@@ -183,9 +183,8 @@ public:
         : TransactionSignatureChecker(&txTo, nInIn, amount), txTo(*txToIn) {}
 };
 
-bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
-                const CScript &script, uint32_t flags,
-                const BaseSignatureChecker &checker,
+bool EvalScript(std::vector<std::vector<uint8_t>> &stack, const CScript &script,
+                uint32_t flags, const BaseSignatureChecker &checker,
                 ScriptError *error = nullptr);
 bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
                   uint32_t flags, const BaseSignatureChecker &checker,

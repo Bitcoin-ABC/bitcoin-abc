@@ -422,7 +422,7 @@ static void MutateTxAddOutData(CMutableTransaction &tx,
         throw std::runtime_error("invalid TX output data");
     }
 
-    std::vector<unsigned char> data = ParseHex(strData);
+    std::vector<uint8_t> data = ParseHex(strData);
 
     CTxOut txout(value, CScript() << OP_RETURN << data);
     tx.vout.push_back(txout);
@@ -529,10 +529,10 @@ uint256 ParseHashUO(std::map<std::string, UniValue> &o, std::string strKey) {
     return ParseHashUV(o[strKey], strKey);
 }
 
-std::vector<unsigned char> ParseHexUO(std::map<std::string, UniValue> &o,
-                                      std::string strKey) {
+std::vector<uint8_t> ParseHexUO(std::map<std::string, UniValue> &o,
+                                std::string strKey) {
     if (!o.count(strKey)) {
-        std::vector<unsigned char> emptyVec;
+        std::vector<uint8_t> emptyVec;
         return emptyVec;
     }
 
@@ -622,7 +622,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("vout must be positive");
         }
 
-        std::vector<unsigned char> pkData(
+        std::vector<uint8_t> pkData(
             ParseHexUV(prevOut["scriptPubKey"], "scriptPubKey"));
         CScript scriptPubKey(pkData.begin(), pkData.end());
 
@@ -652,7 +652,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         if (scriptPubKey.IsPayToScriptHash() &&
             prevOut.exists("redeemScript")) {
             UniValue v = prevOut["redeemScript"];
-            std::vector<unsigned char> rsData(ParseHexUV(v, "redeemScript"));
+            std::vector<uint8_t> rsData(ParseHexUV(v, "redeemScript"));
             CScript redeemScript(rsData.begin(), rsData.end());
             tempKeystore.AddCScript(redeemScript);
         }

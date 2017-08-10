@@ -103,8 +103,8 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
                 typeRet = tplate.first;
                 if (typeRet == TX_MULTISIG) {
                     // Additional checks for TX_MULTISIG:
-                    unsigned char m = vSolutionsRet.front()[0];
-                    unsigned char n = vSolutionsRet.back()[0];
+                    uint8_t m = vSolutionsRet.front()[0];
+                    uint8_t n = vSolutionsRet.back()[0];
                     if (m < 1 || n < 1 || m > n ||
                         vSolutionsRet.size() - 2 != n)
                         return false;
@@ -242,7 +242,7 @@ CScript GetScriptForDestination(const CTxDestination &dest) {
 }
 
 CScript GetScriptForRawPubKey(const CPubKey &pubKey) {
-    return CScript() << std::vector<unsigned char>(pubKey.begin(), pubKey.end())
+    return CScript() << std::vector<uint8_t>(pubKey.begin(), pubKey.end())
                      << OP_CHECKSIG;
 }
 

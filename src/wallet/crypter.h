@@ -32,15 +32,15 @@ const unsigned int WALLET_CRYPTO_IV_SIZE = 16;
 /** Master key for wallet encryption */
 class CMasterKey {
 public:
-    std::vector<unsigned char> vchCryptedKey;
-    std::vector<unsigned char> vchSalt;
+    std::vector<uint8_t> vchCryptedKey;
+    std::vector<uint8_t> vchSalt;
     //! 0 = EVP_sha512()
     //! 1 = scrypt()
     unsigned int nDerivationMethod;
     unsigned int nDeriveIterations;
     //! Use this for more parameters to key derivation, such as the various
     //! parameters to scrypt
-    std::vector<unsigned char> vchOtherDerivationParameters;
+    std::vector<uint8_t> vchOtherDerivationParameters;
 
     ADD_SERIALIZE_METHODS;
 
@@ -58,12 +58,11 @@ public:
         // ie slightly lower than the lowest hardware we need bother supporting
         nDeriveIterations = 25000;
         nDerivationMethod = 0;
-        vchOtherDerivationParameters = std::vector<unsigned char>(0);
+        vchOtherDerivationParameters = std::vector<uint8_t>(0);
     }
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char>>
-    CKeyingMaterial;
+typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
 
 namespace wallet_crypto {
 class TestCrypter;
@@ -75,25 +74,25 @@ class CCrypter {
     friend class wallet_crypto::TestCrypter;
 
 private:
-    std::vector<unsigned char, secure_allocator<unsigned char>> vchKey;
-    std::vector<unsigned char, secure_allocator<unsigned char>> vchIV;
+    std::vector<uint8_t, secure_allocator<uint8_t>> vchKey;
+    std::vector<uint8_t, secure_allocator<uint8_t>> vchIV;
     bool fKeySet;
 
-    int BytesToKeySHA512AES(const std::vector<unsigned char> &chSalt,
+    int BytesToKeySHA512AES(const std::vector<uint8_t> &chSalt,
                             const SecureString &strKeyData, int count,
-                            unsigned char *key, unsigned char *iv) const;
+                            uint8_t *key, uint8_t *iv) const;
 
 public:
     bool SetKeyFromPassphrase(const SecureString &strKeyData,
-                              const std::vector<unsigned char> &chSalt,
+                              const std::vector<uint8_t> &chSalt,
                               const unsigned int nRounds,
                               const unsigned int nDerivationMethod);
     bool Encrypt(const CKeyingMaterial &vchPlaintext,
-                 std::vector<unsigned char> &vchCiphertext) const;
-    bool Decrypt(const std::vector<unsigned char> &vchCiphertext,
+                 std::vector<uint8_t> &vchCiphertext) const;
+    bool Decrypt(const std::vector<uint8_t> &vchCiphertext,
                  CKeyingMaterial &vchPlaintext) const;
     bool SetKey(const CKeyingMaterial &chNewKey,
-                const std::vector<unsigned char> &chNewIV);
+                const std::vector<uint8_t> &chNewIV);
 
     void CleanKey() {
         memory_cleanse(vchKey.data(), vchKey.size());
@@ -154,9 +153,8 @@ public:
 
     bool Lock();
 
-    virtual bool
-    AddCryptedKey(const CPubKey &vchPubKey,
-                  const std::vector<unsigned char> &vchCryptedSecret);
+    virtual bool AddCryptedKey(const CPubKey &vchPubKey,
+                               const std::vector<uint8_t> &vchCryptedSecret);
     bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey);
     bool HaveKey(const CKeyID &address) const {
         {

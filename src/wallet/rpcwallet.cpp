@@ -636,7 +636,7 @@ static UniValue signmessage(const Config &config,
     ss << strMessageMagic;
     ss << strMessage;
 
-    std::vector<unsigned char> vchSig;
+    std::vector<uint8_t> vchSig;
     if (!key.SignCompact(ss.GetHash(), vchSig)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
     }

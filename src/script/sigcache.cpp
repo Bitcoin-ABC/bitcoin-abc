@@ -53,7 +53,7 @@ public:
     CSignatureCache() { GetRandBytes(nonce.begin(), 32); }
 
     void ComputeEntry(uint256 &entry, const uint256 &hash,
-                      const std::vector<unsigned char> &vchSig,
+                      const std::vector<uint8_t> &vchSig,
                       const CPubKey &pubkey) {
         CSHA256()
             .Write(nonce.begin(), 32)
@@ -100,7 +100,7 @@ void InitSignatureCache() {
 }
 
 bool CachingTransactionSignatureChecker::VerifySignature(
-    const std::vector<unsigned char> &vchSig, const CPubKey &pubkey,
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
     const uint256 &sighash) const {
     uint256 entry;
     signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);

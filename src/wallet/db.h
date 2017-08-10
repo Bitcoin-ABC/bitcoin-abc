@@ -65,8 +65,7 @@ public:
      * NOTE: reads the entire database into memory, so cannot be used
      * for huge databases.
      */
-    typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char>>
-        KeyValPair;
+    typedef std::pair<std::vector<uint8_t>, std::vector<uint8_t>> KeyValPair;
     bool Salvage(const std::string &strFile, bool fAggressive,
                  std::vector<KeyValPair> &vResult);
 

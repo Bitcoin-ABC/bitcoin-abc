@@ -203,8 +203,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                 const payments::Output &out = details.outputs(i);
                 if (out.amount() <= 0) continue;
                 subtotal += out.amount();
-                const unsigned char *scriptStr =
-                    (const unsigned char *)out.script().data();
+                const uint8_t *scriptStr = (const uint8_t *)out.script().data();
                 CScript scriptPubKey(scriptStr,
                                      scriptStr + out.script().size());
                 CAmount nAmount = out.amount();

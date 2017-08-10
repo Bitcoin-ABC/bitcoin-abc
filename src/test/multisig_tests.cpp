@@ -15,7 +15,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-typedef std::vector<unsigned char> valtype;
+typedef std::vector<uint8_t> valtype;
 
 BOOST_FIXTURE_TEST_SUITE(multisig_tests, BasicTestingSetup)
 
@@ -28,9 +28,9 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
     // CHECKMULTISIG bug workaround
     result << OP_0;
     for (const CKey &key : keys) {
-        std::vector<unsigned char> vchSig;
+        std::vector<uint8_t> vchSig;
         BOOST_CHECK(key.Sign(hash, vchSig));
-        vchSig.push_back((unsigned char)SIGHASH_ALL);
+        vchSig.push_back(uint8_t(SIGHASH_ALL));
         result << vchSig;
     }
     return result;

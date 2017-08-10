@@ -60,7 +60,7 @@ static void RandAddSeedPerfmon() {
     if (GetTime() < nLastPerfmon + 10 * 60) return;
     nLastPerfmon = GetTime();
 
-    std::vector<unsigned char> vData(250000, 0);
+    std::vector<uint8_t> vData(250000, 0);
     long ret = 0;
     unsigned long nSize = 0;
     // Bail out at more than 10MB of performance data
@@ -94,7 +94,7 @@ static void RandAddSeedPerfmon() {
 }
 
 /** Get 32 bytes of system entropy. */
-static void GetOSRand(unsigned char *ent32) {
+static void GetOSRand(uint8_t *ent32) {
 #ifdef WIN32
     HCRYPTPROV hProvider;
     int ret = CryptAcquireContextW(&hProvider, nullptr, nullptr, PROV_RSA_FULL,
@@ -124,16 +124,16 @@ static void GetOSRand(unsigned char *ent32) {
 #endif
 }
 
-void GetRandBytes(unsigned char *buf, int num) {
+void GetRandBytes(uint8_t *buf, int num) {
     if (RAND_bytes(buf, num) != 1) {
         RandFailure();
     }
 }
 
-void GetStrongRandBytes(unsigned char *out, int num) {
+void GetStrongRandBytes(uint8_t *out, int num) {
     assert(num <= 32);
     CSHA512 hasher;
-    unsigned char buf[64];
+    uint8_t buf[64];
 
     // First source: OpenSSL's RNG
     RandAddSeedPerfmon();
@@ -160,7 +160,7 @@ uint64_t GetRand(uint64_t nMax) {
     uint64_t nRange = (std::numeric_limits<uint64_t>::max() / nMax) * nMax;
     uint64_t nRand = 0;
     do {
-        GetRandBytes((unsigned char *)&nRand, sizeof(nRand));
+        GetRandBytes((uint8_t *)&nRand, sizeof(nRand));
     } while (nRand >= nRange);
     return (nRand % nMax);
 }
@@ -171,7 +171,7 @@ int GetRandInt(int nMax) {
 
 uint256 GetRandHash() {
     uint256 hash;
-    GetRandBytes((unsigned char *)&hash, sizeof(hash));
+    GetRandBytes((uint8_t *)&hash, sizeof(hash));
     return hash;
 }
 
@@ -182,11 +182,11 @@ FastRandomContext::FastRandomContext(bool fDeterministic) {
     } else {
         uint32_t tmp;
         do {
-            GetRandBytes((unsigned char *)&tmp, 4);
+            GetRandBytes((uint8_t *)&tmp, 4);
         } while (tmp == 0 || tmp == 0x9068ffffU);
         Rz = tmp;
         do {
-            GetRandBytes((unsigned char *)&tmp, 4);
+            GetRandBytes((uint8_t *)&tmp, 4);
         } while (tmp == 0 || tmp == 0x464fffffU);
         Rw = tmp;
     }

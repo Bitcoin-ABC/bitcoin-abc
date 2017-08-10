@@ -18,7 +18,7 @@
 BOOST_FIXTURE_TEST_SUITE(script_antireplay_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(test_is_commitment) {
-    std::vector<unsigned char> data{};
+    std::vector<uint8_t> data{};
 
     // Empty commitment.
     auto s = CScript() << OP_RETURN << data;
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(test_is_commitment) {
 
     // Commitment to a larger value.
     std::string str = "Bitcoin: A peer-to-peer Electronic Cash System";
-    data = std::vector<unsigned char>(str.begin(), str.end());
+    data = std::vector<uint8_t>(str.begin(), str.end());
     BOOST_CHECK(!s.IsCommitment(data));
 
     s = CScript() << OP_RETURN << data;

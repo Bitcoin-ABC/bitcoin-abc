@@ -50,7 +50,7 @@ struct Params {
     /** Block height at which OP_RETURN replay protection stops */
     int antiReplayOpReturnSunsetHeight;
     /** Committed OP_RETURN value for replay protection */
-    std::vector<unsigned char> antiReplayOpReturnCommitment;
+    std::vector<uint8_t> antiReplayOpReturnCommitment;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

@@ -10,7 +10,7 @@
 
 static void RollingBloom(benchmark::State &state) {
     CRollingBloomFilter filter(120000, 0.000001);
-    std::vector<unsigned char> data(32);
+    std::vector<uint8_t> data(32);
     uint32_t count = 0;
     uint32_t nEntriesPerGeneration = (120000 + 1) / 2;
     uint32_t countnow = 0;

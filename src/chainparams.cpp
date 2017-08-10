@@ -20,9 +20,9 @@
 static const std::string ANTI_REPLAY_COMMITMENT =
     "Bitcoin: A Peer-to-Peer Electronic Cash System";
 
-static std::vector<unsigned char> GetAntiReplayCommitment() {
-    return std::vector<unsigned char>(std::begin(ANTI_REPLAY_COMMITMENT),
-                                      std::end(ANTI_REPLAY_COMMITMENT));
+static std::vector<uint8_t> GetAntiReplayCommitment() {
+    return std::vector<uint8_t>(std::begin(ANTI_REPLAY_COMMITMENT),
+                                std::end(ANTI_REPLAY_COMMITMENT));
 }
 
 static CBlock CreateGenesisBlock(const char *pszTimestamp,
@@ -34,12 +34,11 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
     txNew.nVersion = 1;
     txNew.vin.resize(1);
     txNew.vout.resize(1);
-    txNew.vin[0].scriptSig = CScript()
-                             << 486604799 << CScriptNum(4)
-                             << std::vector<unsigned char>(
-                                    (const unsigned char *)pszTimestamp,
-                                    (const unsigned char *)pszTimestamp +
-                                        strlen(pszTimestamp));
+    txNew.vin[0].scriptSig =
+        CScript() << 486604799 << CScriptNum(4)
+                  << std::vector<uint8_t>((const uint8_t *)pszTimestamp,
+                                          (const uint8_t *)pszTimestamp +
+                                              strlen(pszTimestamp));
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
@@ -190,15 +189,15 @@ public:
         vSeeds.push_back(
             CDNSSeedData("criptolayer.net", "seeder.criptolayer.net", true));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 0);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 5);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 128);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
         base58Prefixes[EXT_PUBLIC_KEY] =
             boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
         base58Prefixes[EXT_SECRET_KEY] =
             boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
 
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
@@ -352,15 +351,15 @@ public:
         vSeeds.push_back(CDNSSeedData("criptolayer.net",
                                       "testnet-seeder.criptolayer.net", true));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 196);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 239);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] =
             boost::assign::list_of(0x04)(0x35)(0x87)(0xCF)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
         base58Prefixes[EXT_SECRET_KEY] =
             boost::assign::list_of(0x04)(0x35)(0x83)(0x94)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
 
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
@@ -465,15 +464,15 @@ public:
 
         chainTxData = ChainTxData{0, 0, 0};
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 196);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 239);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] =
             boost::assign::list_of(0x04)(0x35)(0x87)(0xCF)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
         base58Prefixes[EXT_SECRET_KEY] =
             boost::assign::list_of(0x04)(0x35)(0x83)(0x94)
-                .convert_to_container<std::vector<unsigned char>>();
+                .convert_to_container<std::vector<uint8_t>>();
     }
 
     void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,

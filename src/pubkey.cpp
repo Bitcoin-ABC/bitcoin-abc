@@ -25,12 +25,12 @@ secp256k1_context *secp256k1_context_verify = nullptr;
  */
 static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx,
                                          secp256k1_ecdsa_signature *sig,
-                                         const unsigned char *input,
+                                         const uint8_t *input,
                                          size_t inputlen) {
     size_t rpos, rlen, spos, slen;
     size_t pos = 0;
     size_t lenbyte;
-    unsigned char tmpsig[64] = {0};
+    uint8_t tmpsig[64] = {0};
     int overflow = 0;
 
     /* Hack to initialize sig with a correctly-parsed but invalid signature. */
@@ -168,7 +168,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx,
 }
 
 bool CPubKey::Verify(const uint256 &hash,
-                     const std::vector<unsigned char> &vchSig) const {
+                     const std::vector<uint8_t> &vchSig) const {
     if (!IsValid()) return false;
     secp256k1_pubkey pubkey;
     secp256k1_ecdsa_signature sig;
@@ -193,7 +193,7 @@ bool CPubKey::Verify(const uint256 &hash,
 }
 
 bool CPubKey::RecoverCompact(const uint256 &hash,
-                             const std::vector<unsigned char> &vchSig) {
+                             const std::vector<uint8_t> &vchSig) {
     if (vchSig.size() != 65) return false;
     int recid = (vchSig[0] - 27) & 3;
     bool fComp = ((vchSig[0] - 27) & 4) != 0;
@@ -207,7 +207,7 @@ bool CPubKey::RecoverCompact(const uint256 &hash,
                                  hash.begin())) {
         return false;
     }
-    unsigned char pub[65];
+    uint8_t pub[65];
     size_t publen = 65;
     secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
                                   &pubkey, fComp ? SECP256K1_EC_COMPRESSED
@@ -230,7 +230,7 @@ bool CPubKey::Decompress() {
                                    &(*this)[0], size())) {
         return false;
     }
-    unsigned char pub[65];
+    uint8_t pub[65];
     size_t publen = 65;
     secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
                                   &pubkey, SECP256K1_EC_UNCOMPRESSED);
@@ -243,7 +243,7 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, ChainCode &ccChild,
     assert(IsValid());
     assert((nChild >> 31) == 0);
     assert(begin() + 33 == end());
-    unsigned char out[64];
+    uint8_t out[64];
     BIP32Hash(cc, nChild, *begin(), begin() + 1, out);
     memcpy(ccChild.begin(), out + 32, 32);
     secp256k1_pubkey pubkey;
@@ -255,7 +255,7 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, ChainCode &ccChild,
                                        out)) {
         return false;
     }
-    unsigned char pub[33];
+    uint8_t pub[33];
     size_t publen = 33;
     secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
                                   &pubkey, SECP256K1_EC_COMPRESSED);
@@ -263,7 +263,7 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, ChainCode &ccChild,
     return true;
 }
 
-void CExtPubKey::Encode(unsigned char code[BIP32_EXTKEY_SIZE]) const {
+void CExtPubKey::Encode(uint8_t code[BIP32_EXTKEY_SIZE]) const {
     code[0] = nDepth;
     memcpy(code + 1, vchFingerprint, 4);
     code[5] = (nChild >> 24) & 0xFF;
@@ -275,7 +275,7 @@ void CExtPubKey::Encode(unsigned char code[BIP32_EXTKEY_SIZE]) const {
     memcpy(code + 41, pubkey.begin(), 33);
 }
 
-void CExtPubKey::Decode(const unsigned char code[BIP32_EXTKEY_SIZE]) {
+void CExtPubKey::Decode(const uint8_t code[BIP32_EXTKEY_SIZE]) {
     nDepth = code[0];
     memcpy(vchFingerprint, code + 1, 4);
     nChild = (code[5] << 24) | (code[6] << 16) | (code[7] << 8) | code[8];
@@ -291,7 +291,7 @@ bool CExtPubKey::Derive(CExtPubKey &out, unsigned int _nChild) const {
     return pubkey.Derive(out.pubkey, out.chaincode, _nChild, chaincode);
 }
 
-/* static */ bool CPubKey::CheckLowS(const std::vector<unsigned char> &vchSig) {
+/* static */ bool CPubKey::CheckLowS(const std::vector<uint8_t> &vchSig) {
     secp256k1_ecdsa_signature sig;
     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &sig,
                                        &vchSig[0], vchSig.size())) {

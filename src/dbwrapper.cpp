@@ -58,14 +58,14 @@ CDBWrapper::CDBWrapper(const boost::filesystem::path &path, size_t nCacheSize,
     LogPrintf("Opened LevelDB successfully\n");
 
     // The base-case obfuscation key, which is a noop.
-    obfuscate_key = std::vector<unsigned char>(OBFUSCATE_KEY_NUM_BYTES, '\000');
+    obfuscate_key = std::vector<uint8_t>(OBFUSCATE_KEY_NUM_BYTES, '\000');
 
     bool key_exists = Read(OBFUSCATE_KEY_KEY, obfuscate_key);
 
     if (!key_exists && obfuscate && IsEmpty()) {
         // Initialize non-degenerate obfuscation if it won't upset existing,
         // non-obfuscated data.
-        std::vector<unsigned char> new_key = CreateObfuscateKey();
+        std::vector<uint8_t> new_key = CreateObfuscateKey();
 
         // Write `new_key` so we don't obfuscate the key with itself
         Write(OBFUSCATE_KEY_KEY, new_key);
@@ -109,10 +109,10 @@ const unsigned int CDBWrapper::OBFUSCATE_KEY_NUM_BYTES = 8;
  * Returns a string (consisting of 8 random bytes) suitable for use as an
  * obfuscating XOR key.
  */
-std::vector<unsigned char> CDBWrapper::CreateObfuscateKey() const {
-    unsigned char buff[OBFUSCATE_KEY_NUM_BYTES];
+std::vector<uint8_t> CDBWrapper::CreateObfuscateKey() const {
+    uint8_t buff[OBFUSCATE_KEY_NUM_BYTES];
     GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);
-    return std::vector<unsigned char>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
+    return std::vector<uint8_t>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
 }
 
 bool CDBWrapper::IsEmpty() {
@@ -153,7 +153,7 @@ void HandleError(const leveldb::Status &status) {
     throw dbwrapper_error("Unknown database error");
 }
 
-const std::vector<unsigned char> &GetObfuscateKey(const CDBWrapper &w) {
+const std::vector<uint8_t> &GetObfuscateKey(const CDBWrapper &w) {
     return w.obfuscate_key;
 }
 };

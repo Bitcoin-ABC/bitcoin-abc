@@ -278,7 +278,7 @@ namespace detail {
             ++len;                                                             \
         out.write(value, len);                                                 \
     }
-    // Overload for const char* and char*.  Could overload for signed & unsigned
+    // Overload for const char* and char*. Could overload for signed & unsigned
     // char too, but these are technically unneeded for printf compatibility.
     TINYFORMAT_DEFINE_FORMAT_TRUNCATED_CSTR(const char)
     TINYFORMAT_DEFINE_FORMAT_TRUNCATED_CSTR(char)
@@ -353,10 +353,10 @@ inline void formatValue(std::ostream &out, const char * /*fmtBegin*/,
                 break;                                                         \
         }                                                                      \
     }
-// per 3.9.1: char, signed char and unsigned char are all distinct types
+// per 3.9.1: char, signed char and uint8_t are all distinct types
 TINYFORMAT_DEFINE_FORMATVALUE_CHAR(char)
 TINYFORMAT_DEFINE_FORMATVALUE_CHAR(signed char)
-TINYFORMAT_DEFINE_FORMATVALUE_CHAR(unsigned char)
+TINYFORMAT_DEFINE_FORMATVALUE_CHAR(uint8_t)
 #undef TINYFORMAT_DEFINE_FORMATVALUE_CHAR
 
 //------------------------------------------------------------------------------

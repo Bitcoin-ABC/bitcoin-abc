@@ -151,7 +151,7 @@ uint256 ParseHashV(const UniValue &v, std::string strName) {
 uint256 ParseHashO(const UniValue &o, std::string strKey) {
     return ParseHashV(find_value(o, strKey), strKey);
 }
-std::vector<unsigned char> ParseHexV(const UniValue &v, std::string strName) {
+std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName) {
     std::string strHex;
     if (v.isStr()) strHex = v.get_str();
     if (!IsHex(strHex))
@@ -160,7 +160,7 @@ std::vector<unsigned char> ParseHexV(const UniValue &v, std::string strName) {
                                strHex + "')");
     return ParseHex(strHex);
 }
-std::vector<unsigned char> ParseHexO(const UniValue &o, std::string strKey) {
+std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey) {
     return ParseHexV(find_value(o, strKey), strKey);
 }
 

@@ -18,8 +18,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Helpers:
-static std::vector<unsigned char> Serialize(const CScript &s) {
-    std::vector<unsigned char> sSerialized(s.begin(), s.end());
+static std::vector<uint8_t> Serialize(const CScript &s) {
+    std::vector<uint8_t> sSerialized(s.begin(), s.end());
     return sSerialized;
 }
 

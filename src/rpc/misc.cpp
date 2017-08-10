@@ -428,8 +428,7 @@ static UniValue verifymessage(const Config &config,
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
 
     bool fInvalid = false;
-    std::vector<unsigned char> vchSig =
-        DecodeBase64(strSign.c_str(), &fInvalid);
+    std::vector<uint8_t> vchSig = DecodeBase64(strSign.c_str(), &fInvalid);
 
     if (fInvalid)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -486,7 +485,7 @@ static UniValue signmessagewithprivkey(const Config &config,
     ss << strMessageMagic;
     ss << strMessage;
 
-    std::vector<unsigned char> vchSig;
+    std::vector<uint8_t> vchSig;
     if (!key.SignCompact(ss.GetHash(), vchSig))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
 

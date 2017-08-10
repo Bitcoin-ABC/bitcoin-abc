@@ -24,7 +24,7 @@ std::string FormatScript(const CScript &script) {
     opcodetype op;
     while (it != script.end()) {
         CScript::const_iterator it2 = it;
-        std::vector<unsigned char> vch;
+        std::vector<uint8_t> vch;
         if (script.GetOp2(it, op, &vch)) {
             if (op == OP_0) {
                 ret += "0 ";
@@ -61,31 +61,31 @@ std::string FormatScript(const CScript &script) {
     return ret.substr(0, ret.size() - 1);
 }
 
-const std::map<unsigned char, std::string> mapSigHashTypes =
-    boost::assign::map_list_of(static_cast<unsigned char>(SIGHASH_ALL),
+const std::map<uint8_t, std::string> mapSigHashTypes =
+    boost::assign::map_list_of(static_cast<uint8_t>(SIGHASH_ALL),
                                std::string("ALL"))(
-        static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_ANYONECANPAY),
+        static_cast<uint8_t>(SIGHASH_ALL | SIGHASH_ANYONECANPAY),
         std::string("ALL|ANYONECANPAY"))(
-        static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_FORKID),
-        std::string("ALL|FORKID"))(
-        static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_FORKID |
-                                   SIGHASH_ANYONECANPAY),
-        std::string("ALL|FORKID|ANYONECANPAY"))(
-        static_cast<unsigned char>(SIGHASH_NONE), std::string("NONE"))(
-        static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_ANYONECANPAY),
+        static_cast<uint8_t>(SIGHASH_ALL | SIGHASH_FORKID),
+        std::string("ALL|FORKID"))(static_cast<uint8_t>(SIGHASH_ALL |
+                                                        SIGHASH_FORKID |
+                                                        SIGHASH_ANYONECANPAY),
+                                   std::string("ALL|FORKID|ANYONECANPAY"))(
+        static_cast<uint8_t>(SIGHASH_NONE), std::string("NONE"))(
+        static_cast<uint8_t>(SIGHASH_NONE | SIGHASH_ANYONECANPAY),
         std::string("NONE|ANYONECANPAY"))(
-        static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_FORKID),
-        std::string("NONE|FORKID"))(
-        static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_FORKID |
-                                   SIGHASH_ANYONECANPAY),
-        std::string("NONE|FORKID|ANYONECANPAY"))(
-        static_cast<unsigned char>(SIGHASH_SINGLE), std::string("SINGLE"))(
-        static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY),
+        static_cast<uint8_t>(SIGHASH_NONE | SIGHASH_FORKID),
+        std::string("NONE|FORKID"))(static_cast<uint8_t>(SIGHASH_NONE |
+                                                         SIGHASH_FORKID |
+                                                         SIGHASH_ANYONECANPAY),
+                                    std::string("NONE|FORKID|ANYONECANPAY"))(
+        static_cast<uint8_t>(SIGHASH_SINGLE), std::string("SINGLE"))(
+        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY),
         std::string("SINGLE|ANYONECANPAY"))(
-        static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_FORKID),
+        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_FORKID),
         std::string("SINGLE|FORKID"))(
-        static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_FORKID |
-                                   SIGHASH_ANYONECANPAY),
+        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_FORKID |
+                             SIGHASH_ANYONECANPAY),
         std::string("SINGLE|FORKID|ANYONECANPAY"));
 
 /**
@@ -101,7 +101,7 @@ std::string ScriptToAsmStr(const CScript &script,
                            const bool fAttemptSighashDecode) {
     std::string str;
     opcodetype opcode;
-    std::vector<unsigned char> vch;
+    std::vector<uint8_t> vch;
     CScript::const_iterator pc = script.begin();
     while (pc < script.end()) {
         if (!str.empty()) {
@@ -114,8 +114,7 @@ std::string ScriptToAsmStr(const CScript &script,
         }
 
         if (0 <= opcode && opcode <= OP_PUSHDATA4) {
-            if (vch.size() <=
-                static_cast<std::vector<unsigned char>::size_type>(4)) {
+            if (vch.size() <= static_cast<std::vector<uint8_t>::size_type>(4)) {
                 str += strprintf("%d", CScriptNum(vch, false).getint());
             } else {
                 // the IsUnspendable check makes sure not to try to decode
@@ -136,7 +135,7 @@ std::string ScriptToAsmStr(const CScript &script,
                         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
                     }
                     if (CheckSignatureEncoding(vch, flags, nullptr)) {
-                        const unsigned char chSigHashType = vch.back();
+                        const uint8_t chSigHashType = vch.back();
                         if (mapSigHashTypes.count(chSigHashType)) {
                             strSigHashDecode =
                                 "[" +

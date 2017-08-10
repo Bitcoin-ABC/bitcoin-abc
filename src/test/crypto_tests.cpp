@@ -29,7 +29,7 @@ void TestVector(const Hasher &h, const In &in, const Out &out) {
     hash.resize(out.size());
     {
         // Test that writing the whole input string at once works.
-        Hasher(h).Write((unsigned char *)&in[0], in.size()).Finalize(&hash[0]);
+        Hasher(h).Write((uint8_t *)&in[0], in.size()).Finalize(&hash[0]);
         BOOST_CHECK(hash == out);
     }
     for (int i = 0; i < 32; i++) {
@@ -38,14 +38,14 @@ void TestVector(const Hasher &h, const In &in, const Out &out) {
         size_t pos = 0;
         while (pos < in.size()) {
             size_t len = insecure_rand() % ((in.size() - pos + 1) / 2 + 1);
-            hasher.Write((unsigned char *)&in[pos], len);
+            hasher.Write((uint8_t *)&in[pos], len);
             pos += len;
             if (pos > 0 && pos + 2 * out.size() > in.size() &&
                 pos < in.size()) {
                 // Test that writing the rest at once to a copy of a hasher
                 // works.
                 Hasher(hasher)
-                    .Write((unsigned char *)&in[pos], in.size() - pos)
+                    .Write((uint8_t *)&in[pos], in.size() - pos)
                     .Finalize(&hash[0]);
                 BOOST_CHECK(hash == out);
             }
@@ -70,24 +70,24 @@ void TestRIPEMD160(const std::string &in, const std::string &hexout) {
 
 void TestHMACSHA256(const std::string &hexkey, const std::string &hexin,
                     const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
+    std::vector<uint8_t> key = ParseHex(hexkey);
     TestVector(CHMAC_SHA256(&key[0], key.size()), ParseHex(hexin),
                ParseHex(hexout));
 }
 
 void TestHMACSHA512(const std::string &hexkey, const std::string &hexin,
                     const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
+    std::vector<uint8_t> key = ParseHex(hexkey);
     TestVector(CHMAC_SHA512(&key[0], key.size()), ParseHex(hexin),
                ParseHex(hexout));
 }
 
 void TestAES128(const std::string &hexkey, const std::string &hexin,
                 const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> buf, buf2;
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> buf, buf2;
 
     assert(key.size() == 16);
     assert(in.size() == 16);
@@ -104,10 +104,10 @@ void TestAES128(const std::string &hexkey, const std::string &hexin,
 
 void TestAES256(const std::string &hexkey, const std::string &hexin,
                 const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> buf;
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> buf;
 
     assert(key.size() == 32);
     assert(in.size() == 16);
@@ -124,11 +124,11 @@ void TestAES256(const std::string &hexkey, const std::string &hexin,
 void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
                    bool pad, const std::string &hexin,
                    const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> iv = ParseHex(hexiv);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> realout(in.size() + AES_BLOCKSIZE);
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> iv = ParseHex(hexiv);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
 
     // Encrypt the plaintext and verify that it equals the cipher
     AES128CBCEncrypt enc(&key[0], &iv[0], pad);
@@ -139,7 +139,7 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
                         HexStr(realout) + std::string(" != ") + hexout);
 
     // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<unsigned char> decrypted(correctout.size());
+    std::vector<uint8_t> decrypted(correctout.size());
     AES128CBCDecrypt dec(&key[0], &iv[0], pad);
     size = dec.Decrypt(&correctout[0], correctout.size(), &decrypted[0]);
     decrypted.resize(size);
@@ -149,14 +149,13 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
 
     // Encrypt and re-decrypt substrings of the plaintext and verify that they
     // equal each-other
-    for (std::vector<unsigned char>::iterator i(in.begin()); i != in.end();
-         ++i) {
-        std::vector<unsigned char> sub(i, in.end());
-        std::vector<unsigned char> subout(sub.size() + AES_BLOCKSIZE);
+    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+        std::vector<uint8_t> sub(i, in.end());
+        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
         int _size = enc.Encrypt(&sub[0], sub.size(), &subout[0]);
         if (_size != 0) {
             subout.resize(_size);
-            std::vector<unsigned char> subdecrypted(subout.size());
+            std::vector<uint8_t> subdecrypted(subout.size());
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
@@ -170,11 +169,11 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
 void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
                    bool pad, const std::string &hexin,
                    const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> iv = ParseHex(hexiv);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> realout(in.size() + AES_BLOCKSIZE);
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> iv = ParseHex(hexiv);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
 
     // Encrypt the plaintext and verify that it equals the cipher
     AES256CBCEncrypt enc(&key[0], &iv[0], pad);
@@ -185,7 +184,7 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
                         HexStr(realout) + std::string(" != ") + hexout);
 
     // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<unsigned char> decrypted(correctout.size());
+    std::vector<uint8_t> decrypted(correctout.size());
     AES256CBCDecrypt dec(&key[0], &iv[0], pad);
     size = dec.Decrypt(&correctout[0], correctout.size(), &decrypted[0]);
     decrypted.resize(size);
@@ -195,14 +194,13 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
 
     // Encrypt and re-decrypt substrings of the plaintext and verify that they
     // equal each-other
-    for (std::vector<unsigned char>::iterator i(in.begin()); i != in.end();
-         ++i) {
-        std::vector<unsigned char> sub(i, in.end());
-        std::vector<unsigned char> subout(sub.size() + AES_BLOCKSIZE);
+    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+        std::vector<uint8_t> sub(i, in.end());
+        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
         int _size = enc.Encrypt(&sub[0], sub.size(), &subout[0]);
         if (_size != 0) {
             subout.resize(_size);
-            std::vector<unsigned char> subdecrypted(subout.size());
+            std::vector<uint8_t> subdecrypted(subout.size());
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
@@ -216,11 +214,11 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
 std::string LongTestString(void) {
     std::string ret;
     for (int i = 0; i < 200000; i++) {
-        ret += (unsigned char)(i);
-        ret += (unsigned char)(i >> 4);
-        ret += (unsigned char)(i >> 8);
-        ret += (unsigned char)(i >> 12);
-        ret += (unsigned char)(i >> 16);
+        ret += uint8_t(i);
+        ret += uint8_t(i >> 4);
+        ret += uint8_t(i >> 8);
+        ret += uint8_t(i >> 12);
+        ret += uint8_t(i >> 16);
     }
     return ret;
 }

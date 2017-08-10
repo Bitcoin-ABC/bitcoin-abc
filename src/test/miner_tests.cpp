@@ -30,7 +30,7 @@ BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
 
 static struct {
-    unsigned char extranonce;
+    uint8_t extranonce;
     unsigned int nonce;
 } blockinfo[] = {
     {4, 0xa4a3e223}, {2, 0x15c32f9e}, {1, 0x0375b547}, {1, 0x7004a8a5},
@@ -223,7 +223,7 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
     unsigned int extraNonce = 0;
     IncrementExtraNonce(config, pblock, chainActive.Tip(), extraNonce);
     unsigned int nHeight = chainActive.Tip()->nHeight + 1;
-    std::vector<unsigned char> vec(cbmsg.begin(), cbmsg.end());
+    std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
     BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==
                 ((CScript() << nHeight << CScriptNum(extraNonce) << vec) +
                  COINBASE_FLAGS));
@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // block size > limit
     tx.vin[0].scriptSig = CScript();
     // 18 * (520char + DROP) + OP_1 = 9433 bytes
-    std::vector<unsigned char> vchData(520);
+    std::vector<uint8_t> vchData(520);
     for (unsigned int i = 0; i < 18; ++i)
         tx.vin[0].scriptSig << vchData << OP_DROP;
     tx.vin[0].scriptSig << OP_1;
@@ -437,8 +437,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         hash,
         entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
     tx.vin[0].prevout.hash = hash;
-    tx.vin[0].scriptSig =
-        CScript() << std::vector<unsigned char>(script.begin(), script.end());
+    tx.vin[0].scriptSig = CScript()
+                          << std::vector<uint8_t>(script.begin(), script.end());
     tx.vout[0].nValue -= LOWFEE;
     hash = tx.GetId();
     mempool.addUnchecked(

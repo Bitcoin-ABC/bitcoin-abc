@@ -29,7 +29,7 @@ enum Network {
 class CNetAddr {
 protected:
     // in network byte order
-    unsigned char ip[16];
+    uint8_t ip[16];
     // for scoped/link-local ipv6 addresses
     uint32_t scopeId;
 
@@ -89,7 +89,7 @@ public:
     unsigned int GetByte(int n) const;
     uint64_t GetHash() const;
     bool GetInAddr(struct in_addr *pipv4Addr) const;
-    std::vector<unsigned char> GetGroup() const;
+    std::vector<uint8_t> GetGroup() const;
     int GetReachabilityFrom(const CNetAddr *paddrPartner = nullptr) const;
 
     CNetAddr(const struct in6_addr &pipv6Addr, const uint32_t scope = 0);
@@ -164,7 +164,7 @@ public:
     friend bool operator==(const CService &a, const CService &b);
     friend bool operator!=(const CService &a, const CService &b);
     friend bool operator<(const CService &a, const CService &b);
-    std::vector<unsigned char> GetKey() const;
+    std::vector<uint8_t> GetKey() const;
     std::string ToString() const;
     std::string ToStringPort() const;
     std::string ToStringIPPort() const;

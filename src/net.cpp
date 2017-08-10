@@ -819,7 +819,7 @@ int CNetMessage::readData(const char *pch, unsigned int nBytes) {
         vRecv.resize(std::min(hdr.nMessageSize, nDataPos + nCopy + 256 * 1024));
     }
 
-    hasher.Write((const unsigned char *)pch, nCopy);
+    hasher.Write((const uint8_t *)pch, nCopy);
     memcpy(&vRecv[nDataPos], pch, nCopy);
     nDataPos += nCopy;
 
@@ -1805,7 +1805,7 @@ void CConnman::ThreadOpenConnections() {
         // this here so we don't have to critsect vNodes inside mapAddresses
         // critsect.
         int nOutbound = 0;
-        std::set<std::vector<unsigned char>> setConnected;
+        std::set<std::vector<uint8_t>> setConnected;
         {
             LOCK(cs_vNodes);
             for (CNode *pnode : vNodes) {
@@ -2929,7 +2929,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     LogPrint("net", "sending %s (%d bytes) peer=%d\n",
              SanitizeString(msg.command.c_str()), nMessageSize, pnode->id);
 
-    std::vector<unsigned char> serializedHeader;
+    std::vector<uint8_t> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);
     uint256 hash = Hash(msg.data.data(), msg.data.data() + nMessageSize);
     CMessageHeader hdr(pnode->GetMagic(Params()), msg.command.c_str(),
@@ -2989,7 +2989,7 @@ CSipHasher CConnman::GetDeterministicRandomizer(uint64_t id) const {
 }
 
 uint64_t CConnman::CalculateKeyedNetGroup(const CAddress &ad) const {
-    std::vector<unsigned char> vchNetGroup(ad.GetGroup());
+    std::vector<uint8_t> vchNetGroup(ad.GetGroup());
 
     return GetDeterministicRandomizer(RANDOMIZER_ID_NETGROUP)
         .Write(&vchNetGroup[0], vchNetGroup.size())

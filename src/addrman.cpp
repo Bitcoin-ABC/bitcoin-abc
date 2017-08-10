@@ -22,7 +22,7 @@ int CAddrInfo::GetTriedBucket(const uint256 &nKey) const {
 }
 
 int CAddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src) const {
-    std::vector<unsigned char> vchSourceGroupKey = src.GetGroup();
+    std::vector<uint8_t> vchSourceGroupKey = src.GetGroup();
     uint64_t hash1 =
         (CHashWriter(SER_GETHASH, 0) << nKey << GetGroup() << vchSourceGroupKey)
             .GetHash()

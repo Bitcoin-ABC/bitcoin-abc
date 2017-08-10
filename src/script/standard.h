@@ -75,7 +75,7 @@ typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 const char *GetTxnOutputType(txnouttype t);
 
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
-            std::vector<std::vector<unsigned char>> &vSolutionsRet);
+            std::vector<std::vector<uint8_t>> &vSolutionsRet);
 bool ExtractDestination(const CScript &scriptPubKey,
                         CTxDestination &addressRet);
 bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,

@@ -52,7 +52,7 @@ static const ctaes_test ctaes_tests[] = {
     {256, "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4",
      "f69f2445df4f9b17ad2b417be66c3710", "23304b7a39f9f3ff067d8d8f9e24ecc7"}};
 
-static void from_hex(unsigned char *data, int len, const char *hex) {
+static void from_hex(uint8_t *data, int len, const char *hex) {
     int p;
     for (p = 0; p < len; p++) {
         int v = 0;
@@ -76,8 +76,7 @@ int main(void) {
     int i;
     int fail = 0;
     for (i = 0; i < sizeof(ctaes_tests) / sizeof(ctaes_tests[0]); i++) {
-        unsigned char key[32], plain[16], cipher[16], ciphered[16],
-            deciphered[16];
+        uint8_t key[32], plain[16], cipher[16], ciphered[16], deciphered[16];
         const ctaes_test *test = &ctaes_tests[i];
         assert(test->keysize == 128 || test->keysize == 192 ||
                test->keysize == 256);

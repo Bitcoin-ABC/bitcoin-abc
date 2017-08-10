@@ -44,7 +44,7 @@ namespace sha1 {
     const uint32_t k4 = 0xCA62C1D6ul;
 
     /** Perform a SHA-1 transformation, processing a 64-byte chunk. */
-    void Transform(uint32_t *s, const unsigned char *chunk) {
+    void Transform(uint32_t *s, const uint8_t *chunk) {
         uint32_t a = s[0], b = s[1], c = s[2], d = s[3], e = s[4];
         uint32_t w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13,
             w14, w15;
@@ -151,8 +151,8 @@ CSHA1::CSHA1() : bytes(0) {
     sha1::Initialize(s);
 }
 
-CSHA1 &CSHA1::Write(const unsigned char *data, size_t len) {
-    const unsigned char *end = data + len;
+CSHA1 &CSHA1::Write(const uint8_t *data, size_t len) {
+    const uint8_t *end = data + len;
     size_t bufsize = bytes % 64;
     if (bufsize && bufsize + len >= 64) {
         // Fill the buffer, and process it.
@@ -176,9 +176,9 @@ CSHA1 &CSHA1::Write(const unsigned char *data, size_t len) {
     return *this;
 }
 
-void CSHA1::Finalize(unsigned char hash[OUTPUT_SIZE]) {
-    static const unsigned char pad[64] = {0x80};
-    unsigned char sizedesc[8];
+void CSHA1::Finalize(uint8_t hash[OUTPUT_SIZE]) {
+    static const uint8_t pad[64] = {0x80};
+    uint8_t sizedesc[8];
     WriteBE64(sizedesc, bytes << 3);
     Write(pad, 1 + ((119 - (bytes % 64)) % 64));
     Write(sizedesc, 8);

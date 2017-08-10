@@ -215,10 +215,8 @@ extern CRPCTable tableRPC;
  */
 extern uint256 ParseHashV(const UniValue &v, std::string strName);
 extern uint256 ParseHashO(const UniValue &o, std::string strKey);
-extern std::vector<unsigned char> ParseHexV(const UniValue &v,
-                                            std::string strName);
-extern std::vector<unsigned char> ParseHexO(const UniValue &o,
-                                            std::string strKey);
+extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
+extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 
 extern int64_t nWalletUnlockTime;
 extern CAmount AmountFromValue(const UniValue &value);

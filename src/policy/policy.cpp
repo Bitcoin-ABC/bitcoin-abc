@@ -28,12 +28,12 @@
  *   DUP CHECKSIG DROP ... repeated 100 times... OP_1
  */
 bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
-    std::vector<std::vector<unsigned char>> vSolutions;
+    std::vector<std::vector<uint8_t>> vSolutions;
     if (!Solver(scriptPubKey, whichType, vSolutions)) return false;
 
     if (whichType == TX_MULTISIG) {
-        unsigned char m = vSolutions.front()[0];
-        unsigned char n = vSolutions.back()[0];
+        uint8_t m = vSolutions.front()[0];
+        uint8_t n = vSolutions.back()[0];
         // Support up to x-of-3 multisig txns as standard
         if (n < 1 || n > 3) return false;
         if (m < 1 || m > n) return false;
@@ -116,14 +116,14 @@ bool AreInputsStandard(const CTransaction &tx,
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxOut &prev = mapInputs.GetOutputFor(tx.vin[i]);
 
-        std::vector<std::vector<unsigned char>> vSolutions;
+        std::vector<std::vector<uint8_t>> vSolutions;
         txnouttype whichType;
         // get the scriptPubKey corresponding to this input:
         const CScript &prevScript = prev.scriptPubKey;
         if (!Solver(prevScript, whichType, vSolutions)) return false;
 
         if (whichType == TX_SCRIPTHASH) {
-            std::vector<std::vector<unsigned char>> stack;
+            std::vector<std::vector<uint8_t>> stack;
             // convert the scriptSig into a stack, so we can inspect the
             // redeemScript
             if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE,

@@ -212,9 +212,8 @@ bool CWallet::AddKeyPubKey(const CKey &secret, const CPubKey &pubkey) {
         .WriteKey(pubkey, secret.GetPrivKey(), mapKeyMetadata[pubkey.GetID()]);
 }
 
-bool CWallet::AddCryptedKey(
-    const CPubKey &vchPubKey,
-    const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
+                            const std::vector<uint8_t> &vchCryptedSecret) {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret)) {
         return false;
     }
@@ -243,9 +242,8 @@ bool CWallet::LoadKeyMetadata(const CTxDestination &keyID,
     return true;
 }
 
-bool CWallet::LoadCryptedKey(
-    const CPubKey &vchPubKey,
-    const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey,
+                             const std::vector<uint8_t> &vchCryptedSecret) {
     return CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret);
 }
 

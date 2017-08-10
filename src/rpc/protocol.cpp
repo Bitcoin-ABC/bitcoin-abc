@@ -73,7 +73,7 @@ boost::filesystem::path GetAuthCookieFile() {
 
 bool GenerateAuthCookie(std::string *cookie_out) {
     const size_t COOKIE_SIZE = 32;
-    unsigned char rand_pwd[COOKIE_SIZE];
+    uint8_t rand_pwd[COOKIE_SIZE];
     GetRandBytes(rand_pwd, COOKIE_SIZE);
     std::string cookie =
         COOKIEAUTH_USER + ":" + HexStr(rand_pwd, rand_pwd + COOKIE_SIZE);

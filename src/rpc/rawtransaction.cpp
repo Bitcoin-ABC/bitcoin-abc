@@ -534,7 +534,7 @@ static UniValue createrawtransaction(const Config &config,
     std::vector<std::string> addrList = sendTo.getKeys();
     for (const std::string &name_ : addrList) {
         if (name_ == "data") {
-            std::vector<unsigned char> data =
+            std::vector<uint8_t> data =
                 ParseHexV(sendTo[name_].getValStr(), "Data");
 
             CTxOut out(0, CScript() << OP_RETURN << data);
@@ -674,7 +674,7 @@ static UniValue decodescript(const Config &config,
     UniValue r(UniValue::VOBJ);
     CScript script;
     if (request.params[0].get_str().size() > 0) {
-        std::vector<unsigned char> scriptData(
+        std::vector<uint8_t> scriptData(
             ParseHexV(request.params[0], "argument"));
         script = CScript(scriptData.begin(), scriptData.end());
     } else {
@@ -815,8 +815,7 @@ static UniValue signrawtransaction(const Config &config,
         request.params,
         {UniValue::VSTR, UniValue::VARR, UniValue::VARR, UniValue::VSTR}, true);
 
-    std::vector<unsigned char> txData(
-        ParseHexV(request.params[0], "argument 1"));
+    std::vector<uint8_t> txData(ParseHexV(request.params[0], "argument 1"));
     CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
     std::vector<CMutableTransaction> txVariants;
     while (!ssData.empty()) {
@@ -916,8 +915,7 @@ static UniValue signrawtransaction(const Config &config,
                                    "vout must be positive");
             }
 
-            std::vector<unsigned char> pkData(
-                ParseHexO(prevOut, "scriptPubKey"));
+            std::vector<uint8_t> pkData(ParseHexO(prevOut, "scriptPubKey"));
             CScript scriptPubKey(pkData.begin(), pkData.end());
 
             {
@@ -966,8 +964,7 @@ static UniValue signrawtransaction(const Config &config,
                              });
                 UniValue v = find_value(prevOut, "redeemScript");
                 if (!v.isNull()) {
-                    std::vector<unsigned char> rsData(
-                        ParseHexV(v, "redeemScript"));
+                    std::vector<uint8_t> rsData(ParseHexV(v, "redeemScript"));
                     CScript redeemScript(rsData.begin(), rsData.end());
                     tempKeystore.AddCScript(redeemScript);
                 }

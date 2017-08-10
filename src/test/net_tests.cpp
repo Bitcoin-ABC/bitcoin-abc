@@ -36,7 +36,7 @@ public:
     void Serialize(CDataStream &s) const {
         // Produces corrupt output that claims addrman has 20 addrs when it only
         // has one addr.
-        unsigned char nVersion = 1;
+        uint8_t nVersion = 1;
         s << nVersion;
         s << uint8_t(32);
         s << nKey;

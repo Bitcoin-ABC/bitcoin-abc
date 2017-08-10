@@ -23,8 +23,7 @@ bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx);
 bool DecodeHexBlk(CBlock &, const std::string &strHexBlk);
 uint256 ParseHashUV(const UniValue &v, const std::string &strName);
 uint256 ParseHashStr(const std::string &, const std::string &strName);
-std::vector<unsigned char> ParseHexUV(const UniValue &v,
-                                      const std::string &strName);
+std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 
 // core_write.cpp
 std::string FormatScript(const CScript &script);

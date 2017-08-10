@@ -105,15 +105,14 @@ static bool multiUserAuthorized(std::string strUserPass) {
             std::string strHash = vFields[2];
 
             static const unsigned int KEY_SIZE = 32;
-            unsigned char out[KEY_SIZE];
+            uint8_t out[KEY_SIZE];
 
-            CHMAC_SHA256(
-                reinterpret_cast<const unsigned char *>(strSalt.c_str()),
-                strSalt.size())
-                .Write(reinterpret_cast<const unsigned char *>(strPass.c_str()),
+            CHMAC_SHA256(reinterpret_cast<const uint8_t *>(strSalt.c_str()),
+                         strSalt.size())
+                .Write(reinterpret_cast<const uint8_t *>(strPass.c_str()),
                        strPass.size())
                 .Finalize(out);
-            std::vector<unsigned char> hexvec(out, out + KEY_SIZE);
+            std::vector<uint8_t> hexvec(out, out + KEY_SIZE);
             std::string strHashFromPass = HexStr(hexvec);
 
             if (TimingResistantEqual(strHashFromPass, strHash)) {

@@ -18,8 +18,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Helpers:
-static std::vector<unsigned char> Serialize(const CScript &s) {
-    std::vector<unsigned char> sSerialized(s.begin(), s.end());
+static std::vector<uint8_t> Serialize(const CScript &s) {
+    std::vector<uint8_t> sSerialized(s.begin(), s.end());
     return sSerialized;
 }
 
@@ -221,53 +221,53 @@ BOOST_AUTO_TEST_CASE(is) {
 
     // Not considered pay-to-script-hash if using one of the OP_PUSHDATA
     // opcodes:
-    static const unsigned char direct[] = {
-        OP_HASH160, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0,       0,
-        0,          0,  0, 0, 0, 0, 0, 0, 0, 0, OP_EQUAL};
+    static const uint8_t direct[] = {OP_HASH160, 20, 0, 0, 0, 0, 0,       0,
+                                     0,          0,  0, 0, 0, 0, 0,       0,
+                                     0,          0,  0, 0, 0, 0, OP_EQUAL};
     BOOST_CHECK(CScript(direct, direct + sizeof(direct)).IsPayToScriptHash());
-    static const unsigned char pushdata1[] = {OP_HASH160, OP_PUSHDATA1,
-                                              20,         0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          OP_EQUAL};
+    static const uint8_t pushdata1[] = {OP_HASH160, OP_PUSHDATA1,
+                                        20,         0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          OP_EQUAL};
     BOOST_CHECK(
         !CScript(pushdata1, pushdata1 + sizeof(pushdata1)).IsPayToScriptHash());
-    static const unsigned char pushdata2[] = {OP_HASH160, OP_PUSHDATA2,
-                                              20,         0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              OP_EQUAL};
+    static const uint8_t pushdata2[] = {OP_HASH160, OP_PUSHDATA2,
+                                        20,         0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        OP_EQUAL};
     BOOST_CHECK(
         !CScript(pushdata2, pushdata2 + sizeof(pushdata2)).IsPayToScriptHash());
-    static const unsigned char pushdata4[] = {OP_HASH160, OP_PUSHDATA4,
-                                              20,         0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              0,          0,
-                                              OP_EQUAL};
+    static const uint8_t pushdata4[] = {OP_HASH160, OP_PUSHDATA4,
+                                        20,         0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        0,          0,
+                                        OP_EQUAL};
     BOOST_CHECK(
         !CScript(pushdata4, pushdata4 + sizeof(pushdata4)).IsPayToScriptHash());
 
@@ -400,10 +400,10 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     // validating signatures, so just create dummy signatures that DO include
     // the correct P2SH scripts:
     txTo.vin[3].scriptSig << OP_11 << OP_11
-                          << std::vector<unsigned char>(oneAndTwo.begin(),
-                                                        oneAndTwo.end());
-    txTo.vin[4].scriptSig << std::vector<unsigned char>(fifteenSigops.begin(),
-                                                        fifteenSigops.end());
+                          << std::vector<uint8_t>(oneAndTwo.begin(),
+                                                  oneAndTwo.end());
+    txTo.vin[4].scriptSig << std::vector<uint8_t>(fifteenSigops.begin(),
+                                                  fifteenSigops.end());
 
     BOOST_CHECK(::AreInputsStandard(txTo, coins));
     // 22 P2SH sigops for all inputs (1 for vin[0], 6 for vin[3], 15 for vin[4]
@@ -417,8 +417,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd1.vin.resize(1);
     txToNonStd1.vin[0].prevout.n = 5;
     txToNonStd1.vin[0].prevout.hash = txFrom.GetId();
-    txToNonStd1.vin[0].scriptSig << std::vector<unsigned char>(
-        sixteenSigops.begin(), sixteenSigops.end());
+    txToNonStd1.vin[0].scriptSig
+        << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(txToNonStd1, coins));
     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(txToNonStd1, coins), 16U);
@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd2.vin[0].prevout.n = 6;
     txToNonStd2.vin[0].prevout.hash = txFrom.GetId();
     txToNonStd2.vin[0].scriptSig
-        << std::vector<unsigned char>(twentySigops.begin(), twentySigops.end());
+        << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(txToNonStd2, coins));
     BOOST_CHECK_EQUAL(GetP2SHSigOpCount(txToNonStd2, coins), 20U);

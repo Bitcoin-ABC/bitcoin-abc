@@ -31,7 +31,7 @@ public:
         : TransactionSignatureChecker(txToIn, nInIn, amount, txdataIn),
           store(storeIn) {}
 
-    bool VerifySignature(const std::vector<unsigned char> &vchSig,
+    bool VerifySignature(const std::vector<uint8_t> &vchSig,
                          const CPubKey &vchPubKey,
                          const uint256 &sighash) const;
 };
