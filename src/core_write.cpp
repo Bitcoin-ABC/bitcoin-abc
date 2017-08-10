@@ -16,8 +16,6 @@
 
 #include <univalue.h>
 
-#include <boost/assign/list_of.hpp>
-
 std::string FormatScript(const CScript &script) {
     std::string ret;
     CScript::const_iterator it = script.begin();
@@ -61,32 +59,23 @@ std::string FormatScript(const CScript &script) {
     return ret.substr(0, ret.size() - 1);
 }
 
-const std::map<uint8_t, std::string> mapSigHashTypes =
-    boost::assign::map_list_of(static_cast<uint8_t>(SIGHASH_ALL),
-                               std::string("ALL"))(
-        static_cast<uint8_t>(SIGHASH_ALL | SIGHASH_ANYONECANPAY),
-        std::string("ALL|ANYONECANPAY"))(
-        static_cast<uint8_t>(SIGHASH_ALL | SIGHASH_FORKID),
-        std::string("ALL|FORKID"))(static_cast<uint8_t>(SIGHASH_ALL |
-                                                        SIGHASH_FORKID |
-                                                        SIGHASH_ANYONECANPAY),
-                                   std::string("ALL|FORKID|ANYONECANPAY"))(
-        static_cast<uint8_t>(SIGHASH_NONE), std::string("NONE"))(
-        static_cast<uint8_t>(SIGHASH_NONE | SIGHASH_ANYONECANPAY),
-        std::string("NONE|ANYONECANPAY"))(
-        static_cast<uint8_t>(SIGHASH_NONE | SIGHASH_FORKID),
-        std::string("NONE|FORKID"))(static_cast<uint8_t>(SIGHASH_NONE |
-                                                         SIGHASH_FORKID |
-                                                         SIGHASH_ANYONECANPAY),
-                                    std::string("NONE|FORKID|ANYONECANPAY"))(
-        static_cast<uint8_t>(SIGHASH_SINGLE), std::string("SINGLE"))(
-        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY),
-        std::string("SINGLE|ANYONECANPAY"))(
-        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_FORKID),
-        std::string("SINGLE|FORKID"))(
-        static_cast<uint8_t>(SIGHASH_SINGLE | SIGHASH_FORKID |
-                             SIGHASH_ANYONECANPAY),
-        std::string("SINGLE|FORKID|ANYONECANPAY"));
+const std::map<uint8_t, std::string> mapSigHashTypes = {
+    {SIGHASH_ALL, "ALL"},
+    {SIGHASH_ALL | SIGHASH_ANYONECANPAY, "ALL|ANYONECANPAY"},
+    {SIGHASH_ALL | SIGHASH_FORKID, "ALL|FORKID"},
+    {SIGHASH_ALL | SIGHASH_FORKID | SIGHASH_ANYONECANPAY,
+     "ALL|FORKID|ANYONECANPAY"},
+    {SIGHASH_NONE, "NONE"},
+    {SIGHASH_NONE | SIGHASH_ANYONECANPAY, "NONE|ANYONECANPAY"},
+    {SIGHASH_NONE | SIGHASH_FORKID, "NONE|FORKID"},
+    {SIGHASH_NONE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY,
+     "NONE|FORKID|ANYONECANPAY"},
+    {SIGHASH_SINGLE, "SINGLE"},
+    {SIGHASH_SINGLE | SIGHASH_ANYONECANPAY, "SINGLE|ANYONECANPAY"},
+    {SIGHASH_SINGLE | SIGHASH_FORKID, "SINGLE|FORKID"},
+    {SIGHASH_SINGLE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY,
+     "SINGLE|FORKID|ANYONECANPAY"},
+};
 
 /**
  * Create the assembly string representation of a CScript object.

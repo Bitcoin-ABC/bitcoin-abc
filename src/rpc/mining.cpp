@@ -26,7 +26,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <boost/assign/list_of.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <univalue.h>
@@ -936,7 +935,7 @@ static UniValue estimatefee(const Config &config,
             HelpExampleCli("estimatefee", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
     if (nBlocks < 1) {
@@ -971,7 +970,7 @@ static UniValue estimatepriority(const Config &config,
             HelpExampleCli("estimatepriority", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
     if (nBlocks < 1) {
@@ -1011,7 +1010,7 @@ static UniValue estimatesmartfee(const Config &config,
             HelpExampleCli("estimatesmartfee", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
 
@@ -1055,7 +1054,7 @@ static UniValue estimatesmartpriority(const Config &config,
             HelpExampleCli("estimatesmartpriority", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
 

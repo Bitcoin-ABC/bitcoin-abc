@@ -23,8 +23,6 @@
 
 #include <cstdint>
 
-#include <boost/assign/list_of.hpp>
-
 #include <univalue.h>
 
 int64_t nWalletUnlockTime;
@@ -2717,10 +2715,9 @@ static UniValue lockunspent(const Config &config,
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     if (request.params.size() == 1) {
-        RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VBOOL));
+        RPCTypeCheck(request.params, {UniValue::VBOOL});
     } else {
-        RPCTypeCheck(request.params,
-                     boost::assign::list_of(UniValue::VBOOL)(UniValue::VARR));
+        RPCTypeCheck(request.params, {UniValue::VBOOL, UniValue::VARR});
     }
 
     bool fUnlock = request.params[0].get_bool();
@@ -3215,7 +3212,7 @@ static UniValue fundrawtransaction(const Config &config,
             HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\""));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VSTR));
+    RPCTypeCheck(request.params, {UniValue::VSTR});
 
     CTxDestination changeAddress = CNoDestination();
     int changePosition = -1;
@@ -3232,8 +3229,7 @@ static UniValue fundrawtransaction(const Config &config,
             // backward compatibility bool only fallback
             includeWatching = request.params[1].get_bool();
         } else {
-            RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VSTR)(
-                                             UniValue::VOBJ));
+            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ});
 
             UniValue options = request.params[1];
 
