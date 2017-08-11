@@ -655,6 +655,9 @@ std::string HelpMessage(HelpMessageMode mode) {
             "-disablesafemode", strprintf("Disable safemode, override a real "
                                           "safe mode event (default: %d)",
                                           DEFAULT_DISABLE_SAFEMODE));
+        strUsage +=
+            HelpMessageOpt("-deprecatedrpc=<method>",
+                           "Allows deprecated RPC method(s) to be used");
         strUsage += HelpMessageOpt(
             "-testsafemode",
             strprintf("Force safe mode (default: %d)", DEFAULT_TESTSAFEMODE));

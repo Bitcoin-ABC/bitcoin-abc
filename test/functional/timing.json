@@ -1,23 +1,23 @@
 [
  {
   "name": "abandonconflict.py",
-  "time": 17
+  "time": 14
  },
  {
   "name": "abc-checkdatasig-activation.py",
-  "time": 16
+  "time": 5
  },
  {
   "name": "abc-cmdline.py",
-  "time": 8
+  "time": 9
  },
  {
   "name": "abc-high_priority_transaction.py",
-  "time": 22
+  "time": 11
  },
  {
   "name": "abc-magnetic-anomaly-activation.py",
-  "time": 10
+  "time": 8
  },
  {
   "name": "abc-mempool-accept-txn.py",
@@ -25,59 +25,63 @@
  },
  {
   "name": "abc-p2p-compactblocks.py",
-  "time": 184
+  "time": 165
  },
  {
   "name": "abc-p2p-fullblocktest.py",
-  "time": 65
+  "time": 52
  },
  {
   "name": "abc-replay-protection.py",
-  "time": 5
- },
- {
-  "name": "abc-rpc.py",
-  "time": 15
- },
- {
-  "name": "abc-transaction-ordering.py",
-  "time": 9
- },
- {
-  "name": "assumevalid.py",
   "time": 13
  },
  {
+  "name": "abc-rpc.py",
+  "time": 4
+ },
+ {
+  "name": "abc-transaction-ordering.py",
+  "time": 8
+ },
+ {
+  "name": "assumevalid.py",
+  "time": 29
+ },
+ {
   "name": "bip65-cltv-p2p.py",
-  "time": 5
+  "time": 16
  },
  {
   "name": "bip68-112-113-p2p.py",
-  "time": 21
+  "time": 26
  },
  {
   "name": "bip68-sequence.py",
-  "time": 37
+  "time": 29
  },
  {
   "name": "bipdersig-p2p.py",
-  "time": 5
+  "time": 15
  },
  {
   "name": "bitcoin_cli.py",
-  "time": 14
+  "time": 3
  },
  {
   "name": "blockchain.py",
-  "time": 9
+  "time": 8
  },
  {
   "name": "dbcrash.py",
-  "time": 1161
+  "time": 1320
  },
  {
   "name": "decodescript.py",
-  "time": 15
+  "time": 3
+ },
+ {
+  "name": "deprecated_rpc.py",
+  "time": 3
  },
  {
   "name": "disablewallet.py",
@@ -85,47 +89,47 @@
  },
  {
   "name": "disconnect_ban.py",
-  "time": 10
- },
- {
-  "name": "example_test.py",
-  "time": 14
- },
- {
-  "name": "forknotify.py",
   "time": 20
  },
  {
+  "name": "example_test.py",
+  "time": 4
+ },
+ {
+  "name": "forknotify.py",
+  "time": 17
+ },
+ {
   "name": "fundrawtransaction.py",
-  "time": 50
+  "time": 43
  },
  {
   "name": "getblocktemplate_longpoll.py",
-  "time": 68
+  "time": 73
  },
  {
   "name": "getchaintips.py",
-  "time": 22
+  "time": 6
  },
  {
   "name": "httpbasics.py",
-  "time": 19
+  "time": 16
  },
  {
   "name": "import-rescan.py",
-  "time": 44
+  "time": 18
  },
  {
   "name": "importmulti.py",
-  "time": 24
+  "time": 14
  },
  {
   "name": "importprunedfunds.py",
-  "time": 3
+  "time": 4
  },
  {
   "name": "invalidateblock.py",
-  "time": 8
+  "time": 13
  },
  {
   "name": "invalidblockrequest.py",
@@ -133,71 +137,71 @@
  },
  {
   "name": "invalidtxrequest.py",
-  "time": 3
+  "time": 4
  },
  {
   "name": "keypool-topup.py",
-  "time": 45
+  "time": 31
  },
  {
   "name": "keypool.py",
-  "time": 9
+  "time": 20
  },
  {
   "name": "listsinceblock.py",
-  "time": 4
- },
- {
-  "name": "listtransactions.py",
-  "time": 8
- },
- {
-  "name": "maxuploadtarget.py",
-  "time": 49
- },
- {
-  "name": "mempool_limit.py",
-  "time": 35
- },
- {
-  "name": "mempool_packages.py",
-  "time": 62
- },
- {
-  "name": "mempool_persist.py",
-  "time": 26
- },
- {
-  "name": "mempool_reorg.py",
   "time": 5
  },
  {
+  "name": "listtransactions.py",
+  "time": 26
+ },
+ {
+  "name": "maxuploadtarget.py",
+  "time": 55
+ },
+ {
+  "name": "mempool_limit.py",
+  "time": 22
+ },
+ {
+  "name": "mempool_packages.py",
+  "time": 29
+ },
+ {
+  "name": "mempool_persist.py",
+  "time": 20
+ },
+ {
+  "name": "mempool_reorg.py",
+  "time": 8
+ },
+ {
   "name": "mempool_resurrect_test.py",
-  "time": 4
+  "time": 30
  },
  {
   "name": "mempool_spendcoinbase.py",
-  "time": 3
- },
- {
-  "name": "merkle_blocks.py",
-  "time": 4
- },
- {
-  "name": "minchainwork.py",
   "time": 16
  },
  {
+  "name": "merkle_blocks.py",
+  "time": 5
+ },
+ {
+  "name": "minchainwork.py",
+  "time": 7
+ },
+ {
   "name": "mining.py",
-  "time": 4
+  "time": 17
  },
  {
   "name": "multi_rpc.py",
-  "time": 6
+  "time": 5
  },
  {
   "name": "multiwallet.py",
-  "time": 21
+  "time": 8
  },
  {
   "name": "net.py",
@@ -209,23 +213,23 @@
  },
  {
   "name": "p2p-acceptblock.py",
-  "time": 7
+  "time": 15
  },
  {
   "name": "p2p-compactblocks.py",
-  "time": 31
+  "time": 29
  },
  {
   "name": "p2p-feefilter.py",
-  "time": 24
+  "time": 41
  },
  {
   "name": "p2p-fullblocktest.py",
-  "time": 175
+  "time": 182
  },
  {
   "name": "p2p-leaktests.py",
-  "time": 9
+  "time": 8
  },
  {
   "name": "p2p-mempool.py",
@@ -233,47 +237,47 @@
  },
  {
   "name": "p2p-timeouts.py",
-  "time": 66
+  "time": 65
  },
  {
   "name": "preciousblock.py",
-  "time": 5
+  "time": 6
  },
  {
   "name": "prioritise_transaction.py",
-  "time": 9
+  "time": 40
  },
  {
   "name": "proxy_test.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "pruning.py",
-  "time": 1590
+  "time": 1515
  },
  {
   "name": "rawtransactions.py",
-  "time": 26
+  "time": 14
  },
  {
   "name": "receivedby.py",
-  "time": 24
+  "time": 16
  },
  {
   "name": "reindex.py",
-  "time": 25
+  "time": 14
  },
  {
   "name": "resendwallettransactions.py",
-  "time": 7
+  "time": 5
  },
  {
   "name": "rest.py",
-  "time": 19
+  "time": 22
  },
  {
   "name": "rpcbind_test.py",
-  "time": 27
+  "time": 25
  },
  {
   "name": "rpcnamedargs.py",
@@ -281,11 +285,11 @@
  },
  {
   "name": "sendheaders.py",
-  "time": 30
+  "time": 27
  },
  {
   "name": "signmessages.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "signrawtransactions.py",
@@ -297,7 +301,7 @@
  },
  {
   "name": "txn_clone.py --mineblock",
-  "time": 17
+  "time": 7
  },
  {
   "name": "txn_doublespend.py",
@@ -309,38 +313,38 @@
  },
  {
   "name": "uptime.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet-accounts.py",
-  "time": 22
+  "time": 11
  },
  {
   "name": "wallet-dump.py",
-  "time": 7
+  "time": 37
  },
  {
   "name": "wallet-encryption.py",
-  "time": 9
+  "time": 15
  },
  {
   "name": "wallet-hd.py",
-  "time": 85
+  "time": 132
  },
  {
   "name": "wallet.py",
-  "time": 47
+  "time": 57
  },
  {
   "name": "walletbackup.py",
-  "time": 116
+  "time": 154
  },
  {
   "name": "zapwallettxes.py",
-  "time": 34
+  "time": 12
  },
  {
   "name": "zmq_test.py",
-  "time": 5
+  "time": 6
  }
 ]

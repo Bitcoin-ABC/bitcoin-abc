@@ -405,6 +405,14 @@ bool RPCIsInWarmup(std::string *outStatus) {
     return fRPCInWarmup;
 }
 
+bool IsDeprecatedRPCEnabled(const std::string &method) {
+    const std::vector<std::string> enabled_methods =
+        gArgs.GetArgs("-deprecatedrpc");
+
+    return find(enabled_methods.begin(), enabled_methods.end(), method) !=
+           enabled_methods.end();
+}
+
 static UniValue JSONRPCExecOne(Config &config, RPCServer &rpcServer,
                                JSONRPCRequest jreq, const UniValue &req) {
     UniValue rpc_result(UniValue::VOBJ);
