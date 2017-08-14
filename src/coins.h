@@ -517,13 +517,6 @@ public:
     const Coin AccessCoin(const COutPoint &output) const;
 
     /**
-     * Return a modifiable reference to a CCoins. If no entry with the given
-     * txid exists, a new one is created. Simultaneous modifications are not
-     * allowed.
-     */
-    CCoinsModifier ModifyCoins(const uint256 &txid);
-
-    /**
      * Add a coin. Set potential_overwrite to true if a non-pruned version may
      * already exist.
      */

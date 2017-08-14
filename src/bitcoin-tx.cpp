@@ -622,29 +622,29 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("vout must be positive");
         }
 
+        COutPoint out(txid, nOut);
         std::vector<uint8_t> pkData(
             ParseHexUV(prevOut["scriptPubKey"], "scriptPubKey"));
         CScript scriptPubKey(pkData.begin(), pkData.end());
 
         {
-            CCoinsModifier coins = view.ModifyCoins(txid);
-            if (coins->IsAvailable(nOut) &&
-                coins->vout[nOut].scriptPubKey != scriptPubKey) {
+            const Coin &coin = view.AccessCoin(out);
+            if (!coin.IsSpent() &&
+                coin.GetTxOut().scriptPubKey != scriptPubKey) {
                 std::string err("Previous output scriptPubKey mismatch:\n");
-                err = err + ScriptToAsmStr(coins->vout[nOut].scriptPubKey) +
+                err = err + ScriptToAsmStr(coin.GetTxOut().scriptPubKey) +
                       "\nvs:\n" + ScriptToAsmStr(scriptPubKey);
                 throw std::runtime_error(err);
             }
 
-            if ((unsigned int)nOut >= coins->vout.size()) {
-                coins->vout.resize(nOut + 1);
+            CTxOut txout;
+            txout.scriptPubKey = scriptPubKey;
+            txout.nValue = 0;
+            if (prevOut.exists("amount")) {
+                txout.nValue = AmountFromValue(prevOut["amount"]);
             }
 
-            coins->vout[nOut].scriptPubKey = scriptPubKey;
-            coins->vout[nOut].nValue = 0;
-            if (prevOut.exists("amount")) {
-                coins->vout[nOut].nValue = AmountFromValue(prevOut["amount"]);
-            }
+            view.AddCoin(out, Coin(txout, 1, false), true);
         }
 
         // If redeemScript given and private keys given, add redeemScript to the

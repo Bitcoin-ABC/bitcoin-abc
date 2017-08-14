@@ -1500,39 +1500,30 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
                                const COutPoint &out) {
     bool fClean = true;
 
-    CCoinsModifier coins = view.ModifyCoins(out.hash);
-    if (undo.GetHeight() != 0) {
-        if (!coins->IsPruned()) {
-            if (coins->fCoinBase != undo.IsCoinBase() ||
-                uint32_t(coins->nHeight) != undo.GetHeight()) {
-                // Metadata mismatch.
-                fClean = false;
-            }
-        }
-
-        // Restore height/coinbase tx metadata from undo data.
-        coins->fCoinBase = undo.IsCoinBase();
-        coins->nHeight = undo.GetHeight();
-    } else {
-        // Undo data does not contain height/coinbase. This should never happen
-        // for newly created undo entries. Previously, this data was only saved
-        // for the last spend of a transaction's outputs, so check IsPruned().
-        if (coins->IsPruned()) {
-            // Adding output to missing transaction.
-            fClean = false;
-        }
-    }
-
-    if (coins->IsAvailable(out.n)) {
-        // Overwriting existing output.
+    if (view.HaveCoin(out)) {
+        // Overwriting transaction output.
         fClean = false;
     }
 
-    if (coins->vout.size() < out.n + 1) {
-        coins->vout.resize(out.n + 1);
+    if (undo.GetHeight() == 0) {
+        // Missing undo metadata (height and coinbase). Older versions included
+        // this information only in undo records for the last spend of a
+        // transactions' outputs. This implies that it must be present for some
+        // other output of the same tx.
+        const Coin &alternate = AccessByTxid(view, out.hash);
+        if (alternate.IsSpent()) {
+            // Adding output for transaction without known metadata
+            return DISCONNECT_FAILED;
+        }
+
+        // This is somewhat ugly, but hopefully utility is limited. This is only
+        // useful when working from legacy on disck data. In any case, putting
+        // the correct information in there doesn't hurt.
+        const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
+                                        alternate.IsCoinBase());
     }
 
-    coins->vout[out.n] = undo.GetTxOut();
+    view.AddCoin(out, undo, undo.IsCoinBase());
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
@@ -1579,18 +1570,18 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
-        {
-            CCoinsModifier outs = view.ModifyCoins(txid);
-            outs->ClearUnspendable();
-
-            CCoins outsBlock(tx, pindex->nHeight);
-            if (*outs != outsBlock) {
-                // Transaction mismatch.
-                fClean = false;
+        for (size_t o = 0; o < tx.vout.size(); o++) {
+            if (tx.vout[o].scriptPubKey.IsUnspendable()) {
+                continue;
             }
 
-            // Remove outputs.
-            outs->Clear();
+            COutPoint out(txid, o);
+            Coin coin;
+            bool is_spent = view.SpendCoin(out, &coin);
+            if (!is_spent || tx.vout[o] != coin.GetTxOut()) {
+                // transaction output mismatch
+                fClean = false;
+            }
         }
 
         // Restore inputs.

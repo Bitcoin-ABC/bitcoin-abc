@@ -123,29 +123,6 @@ bool CCoinsViewCache::GetCoins(const uint256 &txid, CCoins &coins) const {
     return false;
 }
 
-CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256 &txid) {
-    assert(!hasModifier);
-    std::pair<CCoinsMap::iterator, bool> ret =
-        cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
-    size_t cachedCoinUsage = 0;
-    if (ret.second) {
-        if (!base->GetCoins_DONOTUSE(txid, ret.first->second.coins)) {
-            // The parent view does not have this entry; mark it as fresh.
-            ret.first->second.coins.Clear();
-            ret.first->second.flags = CCoinsCacheEntry::FRESH;
-        } else if (ret.first->second.coins.IsPruned()) {
-            // The parent view only has a pruned entry for this; mark it as
-            // fresh.
-            ret.first->second.flags = CCoinsCacheEntry::FRESH;
-        }
-    } else {
-        cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage();
-    }
-    // Assume that whenever ModifyCoins is called, the entry will be modified.
-    ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
-    return CCoinsModifier(*this, ret.first, cachedCoinUsage);
-}
-
 void CCoinsViewCache::AddCoin(const COutPoint &outpoint, const Coin &coin,
                               bool possible_overwrite) {
     assert(!coin.IsSpent());

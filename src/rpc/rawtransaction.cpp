@@ -915,27 +915,25 @@ static UniValue signrawtransaction(const Config &config,
                                    "vout must be positive");
             }
 
+            COutPoint out(txid, nOut);
             std::vector<uint8_t> pkData(ParseHexO(prevOut, "scriptPubKey"));
             CScript scriptPubKey(pkData.begin(), pkData.end());
 
             {
-                CCoinsModifier coins = view.ModifyCoins(txid);
-                if (coins->IsAvailable(nOut) &&
-                    coins->vout[nOut].scriptPubKey != scriptPubKey) {
+                const Coin &coin = view.AccessCoin(out);
+                if (!coin.IsSpent() &&
+                    coin.GetTxOut().scriptPubKey != scriptPubKey) {
                     std::string err("Previous output scriptPubKey mismatch:\n");
-                    err = err + ScriptToAsmStr(coins->vout[nOut].scriptPubKey) +
+                    err = err + ScriptToAsmStr(coin.GetTxOut().scriptPubKey) +
                           "\nvs:\n" + ScriptToAsmStr(scriptPubKey);
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR, err);
                 }
 
-                if ((unsigned int)nOut >= coins->vout.size()) {
-                    coins->vout.resize(nOut + 1);
-                }
-
-                coins->vout[nOut].scriptPubKey = scriptPubKey;
-                coins->vout[nOut].nValue = 0;
+                CTxOut txout;
+                txout.scriptPubKey = scriptPubKey;
+                txout.nValue = 0;
                 if (prevOut.exists("amount")) {
-                    coins->vout[nOut].nValue =
+                    txout.nValue =
                         AmountFromValue(find_value(prevOut, "amount"));
                 } else {
                     // amount param is required in replay-protected txs.
@@ -949,6 +947,8 @@ static UniValue signrawtransaction(const Config &config,
                     // eg getbalance returns "3.14152" rather than 3.14152
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing amount");
                 }
+
+                view.AddCoin(out, Coin(txout, 1, false), true);
             }
 
             // If redeemScript given and not using the local wallet (private
