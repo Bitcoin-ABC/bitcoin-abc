@@ -3526,58 +3526,53 @@ bool CheckBlock(const Config &config, const CBlock &block,
     return true;
 }
 
-static bool CheckIndexAgainstCheckpoint(const CBlockIndex *pindexPrev,
-                                        CValidationState &state,
-                                        const CChainParams &chainparams,
-                                        const uint256 &hash) {
-    if (*pindexPrev->phashBlock ==
-        chainparams.GetConsensus().hashGenesisBlock) {
-        return true;
-    }
-
-    int nHeight = pindexPrev->nHeight + 1;
-    const CCheckpointData &checkpoints = chainparams.Checkpoints();
-
-    // Check that the block chain matches the known block chain up to a
-    // checkpoint.
-    if (!Checkpoints::CheckBlock(checkpoints, nHeight, hash)) {
-        return state.DoS(100,
-                         error("%s: rejected by checkpoint lock-in at %d",
-                               __func__, nHeight),
-                         REJECT_CHECKPOINT, "checkpoint mismatch");
-    }
-
-    // Don't accept any forks from the main chain prior to last checkpoint.
-    // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in
-    // our MapBlockIndex.
-    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
-    if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-        return state.DoS(
-            100,
-            error("%s: forked chain older than last checkpoint (height %d)",
-                  __func__, nHeight),
-            REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
-    }
-
-    return true;
-}
-
+/**
+ * Context-dependent validity checks.
+ * By "context", we mean only the previous block headers, but not the UTXO
+ * set; UTXO-related validity checks are done in ConnectBlock().
+ */
 static bool ContextualCheckBlockHeader(const Config &config,
                                        const CBlockHeader &block,
                                        CValidationState &state,
                                        const CBlockIndex *pindexPrev,
                                        int64_t nAdjustedTime) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
 
     // Check proof of work
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, config)) {
         LogPrintf("bad bits after height: %d\n", pindexPrev->nHeight);
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
                          "incorrect proof of work");
+    }
+
+    // Check against checkpoints
+    if (fCheckpointsEnabled) {
+        const CCheckpointData &checkpoints =
+            config.GetChainParams().Checkpoints();
+
+        // Check that the block chain matches the known block chain up to a
+        // checkpoint.
+        if (!Checkpoints::CheckBlock(checkpoints, nHeight, block.GetHash())) {
+            return state.DoS(100,
+                             error("%s: rejected by checkpoint lock-in at %d",
+                                   __func__, nHeight),
+                             REJECT_CHECKPOINT, "checkpoint mismatch");
+        }
+
+        // Don't accept any forks from the main chain prior to last checkpoint.
+        // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's
+        // in our MapBlockIndex.
+        CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
+        if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
+            return state.DoS(
+                100,
+                error("%s: forked chain older than last checkpoint (height %d)",
+                      __func__, nHeight),
+                REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
+        }
     }
 
     // Check timestamp against prev
@@ -3761,12 +3756,6 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         if (pindexPrev->nStatus.isInvalid()) {
             return state.DoS(100, error("%s: prev block invalid", __func__),
                              REJECT_INVALID, "bad-prevblk");
-        }
-
-        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
-                                       pindexPrev, state, chainparams, hash)) {
-            return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
-                         state.GetRejectReason().c_str());
         }
 
         if (!ContextualCheckBlockHeader(config, block, state, pindexPrev,
@@ -4043,16 +4032,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
                        const CBlock &block, CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
-    const CChainParams &chainparams = config.GetChainParams();
-
     assert(pindexPrev && pindexPrev == chainActive.Tip());
-    if (fCheckpointsEnabled &&
-        !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
-                                     block.GetHash())) {
-        return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
-                     state.GetRejectReason().c_str());
-    }
-
     CCoinsViewCache viewNew(pcoinsTip.get());
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
