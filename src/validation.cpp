@@ -1247,23 +1247,15 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn &txin : tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
-            unsigned nPos = txin.prevout.n;
-
-            if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull()) {
-                assert(false);
-            }
-
-            // Mark an outpoint spent, and construct undo information.
-            txundo.vprevout.emplace_back(coins->vout[nPos], coins->nHeight,
-                                         coins->fCoinBase);
-            bool ret = coins->Spend(nPos);
-            assert(ret);
+            txundo.vprevout.emplace_back();
+            bool is_spent =
+                inputs.SpendCoin(txin.prevout, &txundo.vprevout.back());
+            assert(is_spent);
         }
     }
 
     // Add outputs.
-    inputs.ModifyNewCoins(tx.GetId(), tx.IsCoinBase())->FromTx(tx, nHeight);
+    AddCoins(inputs, tx, nHeight);
 }
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight) {

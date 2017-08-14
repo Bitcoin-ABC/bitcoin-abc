@@ -524,16 +524,18 @@ public:
     CCoinsModifier ModifyCoins(const uint256 &txid);
 
     /**
-     * Return a modifiable reference to a CCoins. Assumes that no entry with the
-     * given txid exists and creates a new one. This saves a database access in
-     * the case where the coins were to be wiped out by FromTx anyway. This
-     * should not be called with the 2 historical coinbase duplicate pairs
-     * because the new coins are marked fresh, and in the event the duplicate
-     * coinbase was spent before a flush, the now pruned coins would not
-     * properly overwrite the first coinbase of the pair. Simultaneous
-     * modifications are not allowed.
+     * Add a coin. Set potential_overwrite to true if a non-pruned version may
+     * already exist.
      */
-    CCoinsModifier ModifyNewCoins(const uint256 &txid, bool coinbase);
+    void AddCoin(const COutPoint &outpoint, const Coin &coin,
+                 bool potential_overwrite);
+
+    /**
+     * Spend a coin. Pass moveto in order to get the deleted data.
+     * If no unspent output exists for the passed outpoint, this call has no
+     * effect.
+     */
+    bool SpendCoin(const COutPoint &outpoint, Coin *moveto = nullptr);
 
     /**
      * Push the modifications applied to this cache to its base.
@@ -582,7 +584,7 @@ public:
     friend class CCoinsModifier;
 
 private:
-    CCoinsMap::const_iterator FetchCoins(const uint256 &txid) const;
+    CCoinsMap::iterator FetchCoins(const uint256 &txid) const;
 
     /**
      * By making the copy constructor private, we prevent accidentally using it
@@ -590,6 +592,12 @@ private:
      */
     CCoinsViewCache(const CCoinsViewCache &);
 };
+
+//! Utility function to add all of a transaction's outputs to a cache.
+// It assumes that overwrites are only possible for coinbase transactions.
+// TODO: pass in a boolean to limit these possible overwrites to known
+// (pre-BIP34) cases.
+void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight);
 
 //! Utility function to find any unspent output with a given txid.
 const Coin AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
