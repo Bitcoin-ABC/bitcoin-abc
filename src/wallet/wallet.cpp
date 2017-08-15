@@ -3977,8 +3977,8 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
         std::unique_ptr<CWalletDBWrapper> dbw(
             new CWalletDBWrapper(&bitdb, walletFile));
-        std::unique_ptr<CWallet> tempWallet(
-            new CWallet(chainParams, std::move(dbw)));
+        std::unique_ptr<CWallet> tempWallet =
+            MakeUnique<CWallet>(chainParams, std::move(dbw));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DB_LOAD_OK) {
             InitError(
