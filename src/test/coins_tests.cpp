@@ -277,7 +277,7 @@ UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
 // the functionality of UpdateCoins random txs are created and UpdateCoins is
 // used to update the cache stack. In particular it is tested that spending a
 // duplicate coinbase tx has the expected effect (the other duplicate is
-// overwitten at all cache levels)
+// overwritten at all cache levels)
 BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
     bool spent_a_duplicate_coinbase = false;
     // A simple map to track what we expect the cache stack to represent.

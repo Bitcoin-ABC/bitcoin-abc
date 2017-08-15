@@ -83,7 +83,7 @@ void RPCNestedTests::rpcNestedTests() {
     RPCConsole::RPCExecuteCommandLine(*node, result, "getblockchaininfo ");
     QVERIFY(result.substr(0, 1) == "{");
 
-    // Quote path identifier are allowed, but look after a child contaning the
+    // Quote path identifier are allowed, but look after a child containing the
     // quotes in the key.
     (RPCConsole::RPCExecuteCommandLine(*node, result,
                                        "getblockchaininfo()[\"chain\"]"));
