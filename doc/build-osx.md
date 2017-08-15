@@ -30,9 +30,9 @@ Build Bitcoin XBC
 1. Clone the Bitcoin XBC source code and cd into `Bitcoin-XBC`
 
         git clone https://github.com/Bitcoin-XBC/Bitcoin-XBC
-        cd bitcoin-xbc
+        cd Bitcoin-XBC
 
-2.  Build bitcoin-xbc:
+2.  Build Bitcoin-XBC:
 
     Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
 
