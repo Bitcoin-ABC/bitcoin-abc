@@ -4,7 +4,6 @@
 
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
-#include <data/sighash.json.h>
 #include <hash.h>
 #include <script/interpreter.h>
 #include <script/script.h>
@@ -14,6 +13,7 @@
 #include <utilstrencodings.h>
 #include <version.h>
 
+#include <test/data/sighash.json.h>
 #include <test/jsonutil.h>
 #include <test/test_bitcoin.h>
 

@@ -9,7 +9,6 @@
 #include <script/sign.h>
 
 #include <core_io.h>
-#include <data/script_tests.json.h>
 #include <key.h>
 #include <keystore.h>
 #include <rpc/server.h>
@@ -20,6 +19,7 @@
 #include <script/bitcoinconsensus.h>
 #endif
 
+#include <test/data/script_tests.json.h>
 #include <test/jsonutil.h>
 #include <test/scriptflags.h>
 #include <test/sigutil.h>

@@ -10,8 +10,6 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <data/tx_invalid.json.h>
-#include <data/tx_valid.json.h>
 #include <key.h>
 #include <keystore.h>
 #include <policy/policy.h>
@@ -22,6 +20,8 @@
 #include <utilstrencodings.h>
 #include <validation.h>
 
+#include <test/data/tx_invalid.json.h>
+#include <test/data/tx_valid.json.h>
 #include <test/jsonutil.h>
 #include <test/scriptflags.h>
 #include <test/test_bitcoin.h>
