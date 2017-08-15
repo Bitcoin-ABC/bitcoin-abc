@@ -31,6 +31,12 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle,
     ui->deleteButton_s->setIcon(
         platformStyle->SingleColorIcon(":/icons/remove"));
 
+    ui->messageTextLabel->setToolTip(
+        tr("A message that was attached to the %1 URI which will be"
+           " stored with the transaction for your reference. Note: "
+           "This message will not be sent over the Bitcoin network.")
+            .arg(GUIUtil::URI_SCHEME));
+
     setCurrentWidget(ui->SendCoins);
 
     if (platformStyle->getUseExtraSpacing()) ui->payToLayout->setSpacing(4);

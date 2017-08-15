@@ -14,7 +14,7 @@ For example:
 
 A prefix will be generated that's suitable for plugging into Bitcoin's
 configure. In the above example, a dir named x86_64-w64-mingw32 will be
-created. To use it for Bitcoin:
+created. To use it for bitcoin-abc:
 
     ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32
 

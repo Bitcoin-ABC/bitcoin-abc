@@ -358,8 +358,8 @@
         <translation>Orebalk</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
-        <translation>Versoek betalings (genereer QR-kodes en bitcoin: URI's)</translation>
+        <source>Request payments (generates QR codes and %1 URIs)</source>
+        <translation>Versoek betalings (genereer QR-kodes en %1 URI's)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -370,8 +370,8 @@
         <translation>Vertoon die lys van gebruikte ontvangers-adresse en etikette</translation>
     </message>
     <message>
-        <source>Open a bitcoin: URI or payment request</source>
-        <translation>Skep 'n bitcoin: URI of betalingsversoek</translation>
+        <source>Open a %1 URI or payment request</source>
+        <translation>Skep 'n %1 URI of betalingsversoek</translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>

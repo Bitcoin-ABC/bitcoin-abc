@@ -82,6 +82,7 @@ extern double NSAppKitVersionNumber;
 #endif
 
 namespace GUIUtil {
+const QString URI_SCHEME("bitcoincash");
 
 QString dateTimeStr(const QDateTime &date) {
     return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") +
@@ -151,8 +152,8 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
 }
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
-    // return if URI is not valid or is no bitcoin: URI
-    if (!uri.isValid() || uri.scheme() != QString("bitcoin")) return false;
+    // return if URI is not valid or is no bitcoincash: URI
+    if (!uri.isValid() || uri.scheme() != URI_SCHEME) return false;
 
     SendCoinsRecipient rv;
     rv.address = uri.path();
@@ -204,20 +205,20 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
 }
 
 bool parseBitcoinURI(QString uri, SendCoinsRecipient *out) {
-    // Convert bitcoin:// to bitcoin:
+    // Convert bitcoincash:// to bitcoincash:
     //
-    //    Cannot handle this later, because bitcoin://
+    //    Cannot handle this later, because bitcoincash://
     //    will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if (uri.startsWith("bitcoin://", Qt::CaseInsensitive)) {
-        uri.replace(0, 10, "bitcoin:");
+    if (uri.startsWith(URI_SCHEME + "://", Qt::CaseInsensitive)) {
+        uri.replace(0, URI_SCHEME.length() + 3, URI_SCHEME + ":");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
 }
 
 QString formatBitcoinURI(const SendCoinsRecipient &info) {
-    QString ret = QString("bitcoin:%1").arg(info.address);
+    QString ret = (URI_SCHEME + ":%1").arg(info.address);
     int paramCount = 0;
 
     if (info.amount) {

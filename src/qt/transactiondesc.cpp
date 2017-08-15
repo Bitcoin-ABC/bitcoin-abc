@@ -274,7 +274,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
     strHTML += "<b>" + tr("Output index") + ":</b> " +
                QString::number(rec->getOutputIndex()) + "<br>";
 
-    // Message from normal bitcoin:URI (bitcoin:123...?message=example)
+    // Message from normal bitcoincash:URI (bitcoincash:123...?message=example)
     for (const std::pair<std::string, std::string> &r : wtx.vOrderForm) {
         if (r.first == "Message")
             strHTML += "<br><b>" + tr("Message") + ":</b><br>" +
