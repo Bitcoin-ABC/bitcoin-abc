@@ -192,6 +192,27 @@ AC_ARG_ENABLE([debug],
     [enable_debug=$enableval],
     [enable_debug=no])
 
+# Enable ASAN
+AC_ARG_ENABLE([asan],
+    [AS_HELP_STRING([--enable-asan],
+                    [enable address sanitizer compiler flags (implies --enable-debug, default is no)])],
+    [enable_asan=$enableval],
+    [enable_asan=no])
+
+# Enable TSAN
+AC_ARG_ENABLE([tsan],
+    [AS_HELP_STRING([--enable-tsan],
+                    [enable thread sanitizer compiler flags; requires 64-bit target architecture (implies --enable-debug, default is no)])],
+    [enable_tsan=$enableval],
+    [enable_tsan=no])
+
+# Enable UBSAN
+AC_ARG_ENABLE([ubsan],
+    [AS_HELP_STRING([--enable-ubsan],
+                    [enable undefined behavior sanitizer compiler flags (implies --enable-debug, default is no)])],
+    [enable_ubsan=$enableval],
+    [enable_ubsan=no])
+
 # Turn warnings into errors
 AC_ARG_ENABLE([werror],
     [AS_HELP_STRING([--enable-werror],
@@ -201,6 +222,39 @@ AC_ARG_ENABLE([werror],
 
 AC_LANG_PUSH([C++])
 AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
+
+if test "x$enable_asan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use ASAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=address -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=address -fno-omit-frame-pointer"
+fi
+
+if test "x$enable_tsan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use TSAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=thread -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=thread -fno-omit-frame-pointer"
+fi
+
+if test "x$enable_ubsan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use UBSAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
+fi
 
 if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
@@ -1181,7 +1235,12 @@ echo "  with bench    = $use_bench"
 echo "  with upnp     = $use_upnp"
 echo "  debug enabled = $enable_debug"
 echo "  werror        = $enable_werror"
-echo 
+echo
+echo "  sanitizers    "
+echo "          asan  = $enable_asan"
+echo "          tsan  = $enable_tsan"
+echo "          ubsan = $enable_ubsan"
+echo
 echo "  target os     = $TARGET_OS"
 echo "  build os      = $BUILD_OS"
 echo
