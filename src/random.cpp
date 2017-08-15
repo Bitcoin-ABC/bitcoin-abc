@@ -36,7 +36,7 @@ static inline int64_t GetPerformanceCounter() {
 #else
     timeval t;
     gettimeofday(&t, nullptr);
-    nCounter = (int64_t)(t.tv_sec * 1000000 + t.tv_usec);
+    nCounter = t.tv_sec * 1000000LL + t.tv_usec;
 #endif
     return nCounter;
 }
