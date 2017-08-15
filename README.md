@@ -1,4 +1,4 @@
-<img src="https://user-images.githubusercontent.com/30542935/29334926-f6192d3e-8200-11e7-8f86-fb1ca0c2835c.jpg" width="15%"></img> 
+<img src="https://user-images.githubusercontent.com/30542935/29334926-f6192d3e-8200-11e7-8f86-fb1ca0c2835c.jpg" width="30%"></img> 
 
 Bitcoin XBC
 ===========
