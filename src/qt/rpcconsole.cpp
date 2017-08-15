@@ -122,7 +122,7 @@ public:
     }
 };
 
-#include "rpcconsole.moc"
+#include <qt/rpcconsole.moc>
 
 /**
  * Split shell command line into a list of arguments and optionally execute the

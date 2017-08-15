@@ -253,7 +253,7 @@ private:
     void startThread();
 };
 
-#include "bitcoin.moc"
+#include <qt/bitcoin.moc>
 
 BitcoinABC::BitcoinABC(interfaces::Node &node) : QObject(), m_node(node) {}
 
