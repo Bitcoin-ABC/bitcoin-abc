@@ -7,7 +7,10 @@
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_array_result, assert_equal
+from test_framework.util import (assert_array_result,
+                                 assert_equal,
+                                 assert_raises_rpc_error,
+                                 )
 
 
 class ReceivedByTest(BitcoinTestFramework):
@@ -71,6 +74,10 @@ class ReceivedByTest(BitcoinTestFramework):
         self.sync_all()
         balance = self.nodes[1].getreceivedbyaddress(addr)
         assert_equal(balance, Decimal("0.1"))
+
+        # Trying to getreceivedby for an address the wallet doesn't own should return an error
+        assert_raises_rpc_error(-4, "Address not found in wallet",
+                                self.nodes[0].getreceivedbyaddress, addr)
 
         self.log.info("listreceivedbyaccount + getreceivedbyaccount Test")
 
