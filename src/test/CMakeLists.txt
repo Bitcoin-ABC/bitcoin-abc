@@ -143,12 +143,6 @@ add_test_to_suite(bitcoin test_bitcoin
 	${JSON_HEADERS}
 )
 
-target_include_directories(test_bitcoin
-	PUBLIC
-		# To access the generated json headers.
-		${CMAKE_CURRENT_BINARY_DIR}
-)
-
 find_package(Boost 1.58 REQUIRED unit_test_framework)
 
 target_link_libraries(test_bitcoin Boost::unit_test_framework rpcclient server)

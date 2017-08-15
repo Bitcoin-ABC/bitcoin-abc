@@ -2,8 +2,6 @@
 
 project(bitcoin-bench)
 
-include_directories(.)
-
 add_executable(bitcoin-bench
 	EXCLUDE_FROM_ALL
 	base58.cpp
