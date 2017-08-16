@@ -44,8 +44,6 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_FAILED = 1
 TEST_EXIT_SKIPPED = 77
 
-BITCOIND_PROC_WAIT_TIMEOUT = 60
-
 
 class BitcoinTestFramework():
     """Base class for a bitcoin test script.
@@ -278,8 +276,7 @@ class BitcoinTestFramework():
     def stop_node(self, i):
         """Stop a bitcoind test node"""
         self.nodes[i].stop_node()
-        while not self.nodes[i].is_node_stopped():
-            time.sleep(0.1)
+        self.nodes[i].wait_until_stopped()
 
     def stop_nodes(self):
         """Stop multiple bitcoind test nodes"""
@@ -289,8 +286,7 @@ class BitcoinTestFramework():
 
         for node in self.nodes:
             # Wait for nodes to stop
-            while not node.is_node_stopped():
-                time.sleep(0.1)
+            node.wait_until_stopped()
 
     def assert_start_raises_init_error(self, i, extra_args=None, expected_msg=None):
         with tempfile.SpooledTemporaryFile(max_size=2**16) as log_stderr:
