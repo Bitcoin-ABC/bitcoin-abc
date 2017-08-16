@@ -25,7 +25,12 @@
 
 #include <boost/assign/list_of.hpp>
 
+#include "core_io.h"
 #include <univalue.h>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -521,6 +526,56 @@ static UniValue setmocktime(const Config &config,
     return NullUniValue;
 }
 
+static UniValue getutxocount(const Config &config, const JSONRPCRequest &request) {
+
+	int counter = 0;
+	uint64_t value = 0;
+	boost::scoped_ptr<CCoinsViewCursor> pcursor(pcoinsTip->Cursor());
+	txnouttype type;
+	vector<CTxDestination> address;
+	int nRequired;
+
+	UniValue obj(UniValue::VOBJ);
+	obj.push_back(Pair("version", CLIENT_VERSION));
+	obj.push_back(Pair("mapaddr", &pcoinsTip->cacheCoins ));
+
+	std::ofstream outfile("/tmp/utxodump.txt");
+
+	// iterate pcoinsTip (UTXO database)
+	while (pcursor->Valid()) {
+	    boost::this_thread::interruption_point();
+	    uint256 key;
+            CCoins coins;
+	    if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
+	        for (unsigned int i=0; i<coins.vout.size(); i++) {
+
+                    const CTxOut &out = coins.vout[i];
+                    if (!out.IsNull()) {
+                        counter++;
+                        UniValue o(UniValue::VOBJ);
+                        ScriptPubKeyToUniv(out.scriptPubKey, o, true);
+                        ExtractDestinations(out.scriptPubKey, type, address, nRequired);
+			 
+                       outfile << CBitcoinAddress(address.front()).ToString() << ": " << coins.nHeight << ": " << out.nValue <<"\n";
+		    }
+
+		}
+
+            } else {
+		    return error("%s: unable to read value", __func__);
+	    }
+
+	    pcursor->Next();
+
+	 }
+
+         outfile.close();
+	 obj.push_back(Pair("utxocount", counter));
+
+	 return obj;
+
+}
+
 static UniValue RPCLockedMemoryInfo() {
     LockedPool::Stats stats = LockedPoolManager::Instance().stats();
     UniValue obj(UniValue::VOBJ);
@@ -590,6 +645,7 @@ static const CRPCCommand commands[] = {
     { "util",               "createmultisig",         createmultisig,         true,  {"nrequired","keys"} },
     { "util",               "verifymessage",          verifymessage,          true,  {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", signmessagewithprivkey, true,  {"privkey","message"} },
+    { "util",               "getutxocount",           getutxocount,           true,  {} }, 
 
     /* Not shown in help */
     { "hidden",             "setmocktime",            setmocktime,            true,  {"timestamp"}},
