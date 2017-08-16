@@ -456,7 +456,6 @@ protected:
      * declared as "const".
      */
     mutable uint256 hashBlock;
-    mutable CCoinsMap cacheCoins;
 
     /* Cached dynamic memory usage for the inner CCoins objects. */
     mutable size_t cachedCoinsUsage;
@@ -474,6 +473,8 @@ protected:
 public:
     CCoinsViewCache(CCoinsView *baseIn);
     ~CCoinsViewCache();
+    // relocated so it can be accessed by getutxocount
+    mutable CCoinsMap cacheCoins;
 
     // Standard CCoinsView methods
     uint256 GetBestBlock() const;
