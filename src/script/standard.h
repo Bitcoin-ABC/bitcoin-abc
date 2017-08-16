@@ -28,8 +28,16 @@ public:
     CScriptID(const uint160 &in) : uint160(in) {}
 };
 
-//!< bytes (+1 for OP_RETURN, +2 for the pushdata opcodes)
+/**
+ * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for
+ * OP_RETURN, +2 for the pushdata opcodes.
+ */
 static const unsigned int MAX_OP_RETURN_RELAY = 223;
+
+/**
+ * A data carrying output is an unspendable output containing data. The script
+ * type is designated as TX_NULL_DATA.
+ */
 extern bool fAcceptDatacarrier;
 
 /**
@@ -50,6 +58,7 @@ enum txnouttype {
     TX_PUBKEYHASH,
     TX_SCRIPTHASH,
     TX_MULTISIG,
+    // unspendable OP_RETURN script that carries data
     TX_NULL_DATA,
 };
 
@@ -72,19 +81,58 @@ public:
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 
-const char *GetTxnOutputType(txnouttype t);
+/** Check whether a CTxDestination is a CNoDestination. */
 bool IsValidDestination(const CTxDestination &dest);
 
+/** Get the name of a txnouttype as a C string, or nullptr if unknown. */
+const char *GetTxnOutputType(txnouttype t);
+
+/**
+ * Parse a scriptPubKey and identify script type for standard scripts. If
+ * successful, returns script type and parsed pubkeys or hashes, depending on
+ * the type. For example, for a P2SH script, vSolutionsRet will contain the
+ * script hash, for P2PKH it will contain the key hash, etc.
+ *
+ * @param[in]   scriptPubKey   Script to parse
+ * @param[out]  typeRet        The script type
+ * @param[out]  vSolutionsRet  Vector of parsed pubkeys and hashes
+ * @return                     True if script matches standard template
+ */
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
             std::vector<std::vector<uint8_t>> &vSolutionsRet);
+
+/**
+ * Parse a standard scriptPubKey for the destination address. Assigns result to
+ * the addressRet parameter and returns true if successful. For multisig
+ * scripts, instead use ExtractDestinations. Currently only works for P2PK,
+ * P2PKH, and P2SH scripts.
+ */
 bool ExtractDestination(const CScript &scriptPubKey,
                         CTxDestination &addressRet);
+
+/**
+ * Parse a standard scriptPubKey with one or more destination addresses. For
+ * multisig scripts, this populates the addressRet vector with the pubkey IDs
+ * and nRequiredRet with the n required to spend. For other destinations,
+ * addressRet is populated with a single value and nRequiredRet is set to 1.
+ * Returns true if successful. Currently does not extract address from
+ * pay-to-witness scripts.
+ */
 bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,
                          std::vector<CTxDestination> &addressRet,
                          int &nRequiredRet);
 
+/**
+ * Generate a Bitcoin scriptPubKey for the given CTxDestination. Returns a P2PKH
+ * script for a CKeyID destination, a P2SH script for a CScriptID, and an empty
+ * script for CNoDestination.
+ */
 CScript GetScriptForDestination(const CTxDestination &dest);
+
+/** Generate a P2PK script for the given pubkey. */
 CScript GetScriptForRawPubKey(const CPubKey &pubkey);
+
+/** Generate a multisig script. */
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey> &keys);
 
 #endif // BITCOIN_SCRIPT_STANDARD_H

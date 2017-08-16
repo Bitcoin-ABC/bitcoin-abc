@@ -35,10 +35,6 @@ const char *GetTxnOutputType(txnouttype t) {
     return nullptr;
 }
 
-/**
- * Return public keys or hashes from scriptPubKey, for 'standard' transaction
- * types.
- */
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
             std::vector<std::vector<uint8_t>> &vSolutionsRet) {
     // Templates
