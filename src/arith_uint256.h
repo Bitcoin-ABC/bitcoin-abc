@@ -258,7 +258,8 @@ public:
     unsigned int bits() const;
 
     uint64_t GetLow64() const {
-        assert(WIDTH >= 2);
+        static_assert(WIDTH >= 2, "Assertion WIDTH >= 2 failed (WIDTH = BITS / "
+                                  "32). BITS is a template parameter.");
         return pn[0] | (uint64_t)pn[1] << 32;
     }
 };
