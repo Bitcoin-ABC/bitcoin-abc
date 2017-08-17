@@ -2,26 +2,22 @@
 # Copyright (c) 2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-from test_framework.mininode import *
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-
-'''
-Test for message sending before handshake completion
+"""Test message sending before handshake completion.
 
 A node should never send anything other than VERSION/VERACK/REJECT until it's
 received a VERACK.
 
 This test connects to a node and sends it a few messages, trying to intice it
-into sending us something it shouldn't.
-'''
+into sending us something it shouldn't."""
+
+from test_framework.mininode import *
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import *
 
 banscore = 10
 
 
 class CLazyNode(NodeConnCB):
-
     def __init__(self):
         super().__init__()
         self.unexpected_msg = False
@@ -85,8 +81,7 @@ class CLazyNode(NodeConnCB):
 
 class CNodeNoVersionBan(CLazyNode):
     # send a bunch of veracks without sending a message. This should get us disconnected.
-    # NOTE: implementation-specific check here. Remove if bitcoind ban
-    # behavior changes
+    # NOTE: implementation-specific check here. Remove if bitcoind ban behavior changes
     def on_open(self, conn):
         super().on_open(conn)
         for i in range(banscore):
@@ -99,7 +94,6 @@ class CNodeNoVersionBan(CLazyNode):
 
 
 class CNodeNoVersionIdle(CLazyNode):
-
     def __init__(self):
         super().__init__()
 
@@ -107,7 +101,6 @@ class CNodeNoVersionIdle(CLazyNode):
 
 
 class CNodeNoVerackIdle(CLazyNode):
-
     def __init__(self):
         self.version_received = False
         super().__init__()
@@ -136,12 +129,12 @@ class P2PLeakTest(BitcoinTestFramework):
         no_verack_idlenode = CNodeNoVerackIdle()
 
         connections = []
-        connections.append(
-            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], no_version_bannode, send_version=False))
-        connections.append(
-            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], no_version_idlenode, send_version=False))
-        connections.append(
-            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], no_verack_idlenode))
+        connections.append(NodeConn('127.0.0.1', p2p_port(
+            0), self.nodes[0], no_version_bannode, send_version=False))
+        connections.append(NodeConn('127.0.0.1', p2p_port(
+            0), self.nodes[0], no_version_idlenode, send_version=False))
+        connections.append(NodeConn('127.0.0.1', p2p_port(0),
+                                    self.nodes[0], no_verack_idlenode))
         no_version_bannode.add_connection(connections[0])
         no_version_idlenode.add_connection(connections[1])
         no_verack_idlenode.add_connection(connections[2])
@@ -165,6 +158,9 @@ class P2PLeakTest(BitcoinTestFramework):
         assert not no_version_bannode.connected
 
         [conn.disconnect_node() for conn in connections]
+
+        # Wait until all connections are closed
+        wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 0)
 
         # Make sure no unexpected messages came in
         assert(no_version_bannode.unexpected_msg == False)
