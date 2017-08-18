@@ -650,8 +650,9 @@ void CWallet::AddToSpends(const COutPoint &outpoint, const TxId &wtxid) {
 }
 
 void CWallet::AddToSpends(const TxId &wtxid) {
-    assert(mapWallet.count(wtxid));
-    CWalletTx &thisTx = mapWallet.at(wtxid);
+    auto it = mapWallet.find(wtxid);
+    assert(it != mapWallet.end());
+    CWalletTx &thisTx = it->second;
     // Coinbases don't spend anything!
     if (thisTx.IsCoinBase()) {
         return;
@@ -1023,8 +1024,9 @@ bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
     wtxOrdered.insert(std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
     AddToSpends(txid);
     for (const CTxIn &txin : wtx.tx->vin) {
-        if (mapWallet.count(txin.prevout.GetTxId())) {
-            CWalletTx &prevtx = mapWallet.at(txin.prevout.GetTxId());
+        auto it = mapWallet.find(txin.prevout.GetTxId());
+        if (it != mapWallet.end()) {
+            CWalletTx &prevtx = it->second;
             if (prevtx.nIndex == -1 && !prevtx.hashUnset()) {
                 MarkConflicted(prevtx.hashBlock, wtx.GetId());
             }
@@ -1138,9 +1140,10 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
     std::set<TxId> todo;
     std::set<TxId> done;
 
-    // Can't mark abandoned if confirmed or in mempool.
-    assert(mapWallet.count(txid));
-    CWalletTx &origtx = mapWallet.at(txid);
+    // Can't mark abandoned if confirmed or in mempool
+    auto it = mapWallet.find(txid);
+    assert(it != mapWallet.end());
+    CWalletTx &origtx = it->second;
     if (origtx.GetDepthInMainChain() > 0 || origtx.InMempool()) {
         return false;
     }
@@ -1151,8 +1154,9 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
         const TxId now = *todo.begin();
         todo.erase(now);
         done.insert(now);
-        assert(mapWallet.count(now));
-        CWalletTx &wtx = mapWallet.at(now);
+        it = mapWallet.find(now);
+        assert(it != mapWallet.end());
+        CWalletTx &wtx = it->second;
         int currentconfirm = wtx.GetDepthInMainChain();
         // If the orig tx was not in block, none of its spends can be.
         assert(currentconfirm <= 0);
@@ -1182,8 +1186,9 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
             // balance available of the outputs it spends. So force those to be
             // recomputed.
             for (const CTxIn &txin : wtx.tx->vin) {
-                if (mapWallet.count(txin.prevout.GetTxId())) {
-                    mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
+                auto it2 = mapWallet.find(txin.prevout.GetTxId());
+                if (it2 != mapWallet.end()) {
+                    it2->second.MarkDirty();
                 }
             }
         }
@@ -1222,8 +1227,9 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
         const TxId now = *todo.begin();
         todo.erase(now);
         done.insert(now);
-        assert(mapWallet.count(now));
-        CWalletTx &wtx = mapWallet.at(now);
+        auto it = mapWallet.find(now);
+        assert(it != mapWallet.end());
+        CWalletTx &wtx = it->second;
         int currentconfirm = wtx.GetDepthInMainChain();
         if (conflictconfirms < currentconfirm) {
             // Block is 'more conflicted' than current confirm; update.
@@ -1247,8 +1253,9 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
             // balance available of the outputs it spends. So force those to be
             // recomputed.
             for (const CTxIn &txin : wtx.tx->vin) {
-                if (mapWallet.count(txin.prevout.GetTxId())) {
-                    mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
+                auto it2 = mapWallet.find(txin.prevout.GetTxId());
+                if (it2 != mapWallet.end()) {
+                    it2->second.MarkDirty();
                 }
             }
         }
@@ -1265,11 +1272,12 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
     }
 
     // If a transaction changes 'conflicted' state, that changes the balance
-    // available of the outputs it spends. So force those to be recomputed,
-    // also:
+    // available of the outputs it spends. So force those to be
+    // recomputed, also:
     for (const CTxIn &txin : tx.vin) {
-        if (mapWallet.count(txin.prevout.GetTxId())) {
-            mapWallet.at(txin.prevout.GetTxId()).MarkDirty();
+        auto it = mapWallet.find(txin.prevout.GetTxId());
+        if (it != mapWallet.end()) {
+            it->second.MarkDirty();
         }
     }
 }
