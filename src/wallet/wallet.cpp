@@ -4005,14 +4005,9 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {
         }
         LearnAllRelatedScripts(keypool.vchPubKey);
         batch.ErasePool(index);
+        LogPrintf("keypool index %d removed\n", index);
         it = setKeyPool->erase(it);
     }
-}
-
-bool CWallet::HasUnusedKeys(size_t min_keys) const {
-    return setExternalKeyPool.size() >= min_keys &&
-           (setInternalKeyPool.size() >= min_keys ||
-            !CanSupportFeature(FEATURE_HD_SPLIT));
 }
 
 void CWallet::GetScriptForMining(std::shared_ptr<CReserveScript> &script) {
