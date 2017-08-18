@@ -2973,34 +2973,71 @@ static UniValue lockunspent(const Config &config,
         return true;
     }
 
-    UniValue outputs = request.params[1].get_array();
-    for (size_t idx = 0; idx < outputs.size(); idx++) {
-        const UniValue &output = outputs[idx];
-        if (!output.isObject()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Invalid parameter, expected object");
-        }
-        const UniValue &o = output.get_obj();
+    const UniValue &output_params = request.params[1];
+
+    // Create and validate the COutPoints first.
+
+    std::vector<COutPoint> outputs;
+    outputs.reserve(output_params.size());
+
+    for (size_t idx = 0; idx < output_params.size(); idx++) {
+        const UniValue &o = output_params[idx].get_obj();
 
         RPCTypeCheckObj(o, {
                                {"txid", UniValueType(UniValue::VSTR)},
                                {"vout", UniValueType(UniValue::VNUM)},
                            });
 
-        std::string txid = find_value(o, "txid").get_str();
+        const std::string &txid = find_value(o, "txid").get_str();
         if (!IsHex(txid)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected hex txid");
         }
 
-        int nOutput = find_value(o, "vout").get_int();
+        const int nOutput = find_value(o, "vout").get_int();
         if (nOutput < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, vout must be positive");
         }
 
-        COutPoint outpt(uint256S(txid), nOutput);
+        const COutPoint outpt(uint256S(txid), nOutput);
 
+        const auto it = pwallet->mapWallet.find(outpt.GetTxId());
+        if (it == pwallet->mapWallet.end()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, unknown transaction");
+        }
+
+        const CWalletTx &trans = it->second;
+
+        if (outpt.GetN() >= trans.tx->vout.size()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, vout index out of bounds");
+        }
+
+        if (pwallet->IsSpent(outpt.GetTxId(), outpt.GetN())) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, expected unspent output");
+        }
+
+        const bool is_locked =
+            pwallet->IsLockedCoin(outpt.GetTxId(), outpt.GetN());
+
+        if (fUnlock && !is_locked) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, expected locked output");
+        }
+
+        if (!fUnlock && is_locked) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, output already locked");
+        }
+
+        outputs.push_back(outpt);
+    }
+
+    // Atomically set (un)locked status for the outputs.
+    for (const COutPoint &outpt : outputs) {
         if (fUnlock) {
             pwallet->UnlockCoin(outpt);
         } else {
