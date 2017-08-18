@@ -111,6 +111,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	schnorr_tests.cpp
 	script_commitment_tests.cpp
 	script_P2SH_tests.cpp
+	script_standard_tests.cpp
 	script_tests.cpp
 	scriptflags.cpp
 	scriptnum_tests.cpp
