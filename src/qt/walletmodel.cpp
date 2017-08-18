@@ -554,17 +554,16 @@ void WalletModel::getOutputs(const std::vector<COutPoint> &vOutpoints,
                              std::vector<COutput> &vOutputs) {
     LOCK2(cs_main, wallet->cs_wallet);
     for (const COutPoint &outpoint : vOutpoints) {
-        if (!wallet->mapWallet.count(outpoint.GetTxId())) {
+        auto it = wallet->mapWallet.find(outpoint.GetTxId());
+        if (it == wallet->mapWallet.end()) {
             continue;
         }
-        int nDepth =
-            wallet->mapWallet.at(outpoint.GetTxId()).GetDepthInMainChain();
+        int nDepth = it->second.GetDepthInMainChain();
         if (nDepth < 0) {
             continue;
         }
-        COutput out(&wallet->mapWallet.at(outpoint.GetTxId()), outpoint.GetN(),
-                    nDepth, true /* spendable */, true /* solvable */,
-                    true /* safe */);
+        COutput out(&it->second, outpoint.GetN(), nDepth, true /* spendable */,
+                    true /* solvable */, true /* safe */);
         vOutputs.push_back(out);
     }
 }

@@ -2291,12 +2291,13 @@ static UniValue listsinceblock(const Config &config,
                                "Can't read block from disk");
         }
         for (const CTransactionRef &tx : block.vtx) {
-            if (pwallet->mapWallet.count(tx->GetId()) > 0) {
+            auto it = pwallet->mapWallet.find(tx->GetId());
+            if (it != pwallet->mapWallet.end()) {
                 // We want all transactions regardless of confirmation count to
                 // appear here, even negative confirmation ones, hence the big
                 // negative.
-                ListTransactions(pwallet, pwallet->mapWallet.at(tx->GetId()),
-                                 "*", -100000000, true, removed, filter);
+                ListTransactions(pwallet, it->second, "*", -100000000, true,
+                                 removed, filter);
             }
         }
         paltindex = paltindex->pprev;
@@ -2425,12 +2426,12 @@ static UniValue gettransaction(const Config &config,
     }
 
     UniValue entry(UniValue::VOBJ);
-    if (!pwallet->mapWallet.count(txid)) {
+    auto it = pwallet->mapWallet.find(txid);
+    if (it == pwallet->mapWallet.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
-
-    const CWalletTx &wtx = pwallet->mapWallet.at(txid);
+    const CWalletTx &wtx = it->second;
 
     Amount nCredit = wtx.GetCredit(filter);
     Amount nDebit = wtx.GetDebit(filter);
