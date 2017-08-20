@@ -1188,8 +1188,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     pnode->AddRef();
     pnode->fWhitelisted = whitelisted;
 
-    // FIXME: Pass config down rather than use GetConfig
-    GetNodeSignals().InitializeNode(GetConfig(), pnode, *this);
+    GetNodeSignals().InitializeNode(*config, pnode, *this);
 
     LogPrint("net", "connection from %s accepted\n", addr.ToString());
 
@@ -2065,8 +2064,7 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         pnode->fAddnode = true;
     }
 
-    // FIXME: Pass the config down rather than use GetConfig()
-    GetNodeSignals().InitializeNode(GetConfig(), pnode, *this);
+    GetNodeSignals().InitializeNode(*config, pnode, *this);
     {
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);
@@ -2094,9 +2092,8 @@ void CConnman::ThreadMessageHandler() {
             }
 
             // Receive messages
-            // FIXME: Pass the config down here.
             bool fMoreNodeWork = GetNodeSignals().ProcessMessages(
-                GetConfig(), pnode, *this, flagInterruptMsgProc);
+                *config, pnode, *this, flagInterruptMsgProc);
             fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
             if (flagInterruptMsgProc) {
                 return;
@@ -2105,7 +2102,7 @@ void CConnman::ThreadMessageHandler() {
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                GetNodeSignals().SendMessages(GetConfig(), pnode, *this,
+                GetNodeSignals().SendMessages(*config, pnode, *this,
                                               flagInterruptMsgProc);
             }
             if (flagInterruptMsgProc) {
@@ -2319,8 +2316,8 @@ void CConnman::SetNetworkActive(bool active) {
     uiInterface.NotifyNetworkActiveChanged(fNetworkActive);
 }
 
-CConnman::CConnman(uint64_t nSeed0In, uint64_t nSeed1In)
-    : nSeed0(nSeed0In), nSeed1(nSeed1In) {
+CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In)
+    : config(&configIn), nSeed0(nSeed0In), nSeed1(nSeed1In) {
     fNetworkActive = true;
     setBannedIsDirty = false;
     fAddressesInitialized = false;

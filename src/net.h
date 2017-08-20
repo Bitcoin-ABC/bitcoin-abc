@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -149,7 +150,7 @@ public:
         uint64_t nMaxOutboundTimeframe = 0;
         uint64_t nMaxOutboundLimit = 0;
     };
-    CConnman(uint64_t seed0, uint64_t seed1);
+    CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1);
     ~CConnman();
     bool Start(CScheduler &scheduler, std::string &strNodeError,
                Options options);
@@ -337,6 +338,8 @@ private:
 
     // Whether the node should be passed out in ForEach* callbacks
     static bool NodeFullyConnected(const CNode *pnode);
+
+    const Config *config;
 
     // Network usage totals
     CCriticalSection cs_totalBytesRecv;
