@@ -204,7 +204,7 @@
                 "reqSigs": 1,
                 "type": "pubkeyhash",
                 "addresses": [
-                    "1E7SGgAZFCHDnVZLuRViX3gUmxpMfdvd2o"
+                    "CVaKqiWd8FFkgdTmbApe6ZJWQ62mWDiKAt"
                 ]
             }
         }, 
@@ -217,7 +217,7 @@
                 "reqSigs": 1,
                 "type": "pubkeyhash",
                 "addresses": [
-                    "1AtWkdmfmYkErU16d3KYykJUbEp9MAj9Sb"
+                    "CSMQKg7jebimkbuXJneUZFvWDN2ZFw4ezf"
                 ]
             }
         }

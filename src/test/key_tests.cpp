@@ -24,12 +24,12 @@ static const std::string
     strSecret1C("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw");
 static const std::string
     strSecret2C("L3Hq7a8FEQwJkW1M2GNKDW28546Vp5miewcCzSqUD9kCAXrJdS3g");
-static const CBitcoinAddress addr1("1QFqqMUD55ZV3PJEJZtaKCsQmjLT6JkjvJ");
-static const CBitcoinAddress addr2("1F5y5E5FMc5YzdJtB9hLaUe43GDxEKXENJ");
-static const CBitcoinAddress addr1C("1NoJrossxPBKfCHuJXT4HadJrXRE9Fxiqs");
-static const CBitcoinAddress addr2C("1CRj2HyM1CXWzHAXLQtiGLyggNT9WQqsDs");
+static const CBitcoinAddress addr1("CfijQPpGx8Y1wXCezKDVtiVSPrYs1TqKcS");
+static const CBitcoinAddress addr2("CWYreGRKEf45tmDJru2G9zG5fPSN7JN6T1");
+static const CBitcoinAddress addr1C("CeGCRrDwqS9rZLCKzGmys6FLUede24ZV4o");
+static const CBitcoinAddress addr2C("CTtcbLKQtFW3tR4x2ADdqrbiJVfZQD9cFm");
 
-static const std::string strAddressBad("1HV9Lc3sNHZxwj4Zk6fB38tEmBryq2cBiF");
+static const std::string strAddressBad("CYx2uePwFLYVqrxzRqz6ceWGPK5PmEWfWD");
 
 #ifdef KEY_TESTS_DUMPINFO
 void dumpKeyInfo(uint256 privkey) {
