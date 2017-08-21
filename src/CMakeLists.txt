@@ -115,8 +115,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# Build all static so there is no dll file to distribute.
 	add_linker_flags(-static)
 
-	# Windows 7
-	add_compile_definitions(_WIN32_WINNT=0x0601)
+	add_compile_definitions(
+		# Windows 7
+		_WIN32_WINNT=0x0601
+		# Internet Explorer 5.01 (!)
+		_WIN32_IE=0x0501
+		# Define WIN32_LEAN_AND_MEAN to exclude APIs such as Cryptography, DDE,
+		# RPC, Shell, and Windows Sockets.
+		WIN32_LEAN_AND_MEAN
+	)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
