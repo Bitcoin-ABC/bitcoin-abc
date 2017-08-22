@@ -239,7 +239,7 @@ static UniValue getpeerinfo(const Config &config,
 
 static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
     std::string strCommand;
-    if (request.params.size() == 2) {
+    if (!request.params[1].isNull()) {
         strCommand = request.params[1].get_str();
     }
 
@@ -323,8 +323,7 @@ static UniValue disconnectnode(const Config &config,
 
     bool success;
     const UniValue &address_arg = request.params[0];
-    const UniValue &id_arg =
-        request.params.size() < 2 ? NullUniValue : request.params[1];
+    const UniValue &id_arg = request.params[1];
 
     if (!address_arg.isNull() && id_arg.isNull()) {
         /* handle disconnect-by-address */
@@ -391,7 +390,7 @@ static UniValue getaddednodeinfo(const Config &config,
 
     std::vector<AddedNodeInfo> vInfo = g_connman->GetAddedNodeInfo();
 
-    if (request.params.size() == 1 && !request.params[0].isNull()) {
+    if (!request.params[0].isNull()) {
         bool found = false;
         for (const AddedNodeInfo &info : vInfo) {
             if (info.strAddedNode == request.params[0].get_str()) {
@@ -616,7 +615,7 @@ static UniValue getnetworkinfo(const Config &config,
 
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     std::string strCommand;
-    if (request.params.size() >= 2) {
+    if (!request.params[1].isNull()) {
         strCommand = request.params[1].get_str();
     }
 
@@ -679,12 +678,12 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
 
         // Use standard bantime if not specified.
         int64_t banTime = 0;
-        if (request.params.size() >= 3 && !request.params[2].isNull()) {
+        if (!request.params[2].isNull()) {
             banTime = request.params[2].get_int64();
         }
 
         bool absolute = false;
-        if (request.params.size() == 4 && request.params[3].isTrue()) {
+        if (request.params[3].isTrue()) {
             absolute = true;
         }
 

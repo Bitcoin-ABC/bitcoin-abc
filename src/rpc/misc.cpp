@@ -378,9 +378,8 @@ static UniValue getmemoryinfo(const Config &config,
             HelpExampleRpc("getmemoryinfo", ""));
     }
 
-    std::string mode = (request.params.size() < 1 || request.params[0].isNull())
-                           ? "stats"
-                           : request.params[0].get_str();
+    std::string mode =
+        request.params[0].isNull() ? "stats" : request.params[0].get_str();
     if (mode == "stats") {
         UniValue obj(UniValue::VOBJ);
         obj.pushKV("locked", RPCLockedMemoryInfo());
@@ -463,11 +462,11 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
     }
 
     uint32_t original_log_categories = GetLogger().GetCategoryMask();
-    if (request.params.size() > 0 && request.params[0].isArray()) {
+    if (request.params[0].isArray()) {
         EnableOrDisableLogCategories(request.params[0], true);
     }
 
-    if (request.params.size() > 1 && request.params[1].isArray()) {
+    if (request.params[1].isArray()) {
         EnableOrDisableLogCategories(request.params[1], false);
     }
 

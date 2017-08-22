@@ -475,7 +475,7 @@ static UniValue createrawtransaction(const Config &config,
 
     CMutableTransaction rawTx;
 
-    if (request.params.size() > 2 && !request.params[2].isNull()) {
+    if (!request.params[2].isNull()) {
         int64_t nLockTime = request.params[2].get_int64();
         if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -1176,7 +1176,7 @@ static UniValue sendrawtransaction(const Config &config,
     const TxId &txid = tx->GetId();
 
     Amount nMaxRawTxFee = maxTxFee;
-    if (request.params.size() > 1 && request.params[1].get_bool()) {
+    if (!request.params[1].isNull() && request.params[1].get_bool()) {
         nMaxRawTxFee = Amount::zero();
     }
 
