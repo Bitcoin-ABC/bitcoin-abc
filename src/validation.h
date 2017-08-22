@@ -213,7 +213,7 @@ extern CWaitableCriticalSection g_best_block_mutex;
 extern CConditionVariable g_best_block_cv;
 extern uint256 g_best_block;
 extern std::atomic_bool fImporting;
-extern bool fReindex;
+extern std::atomic_bool fReindex;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern bool fIsBareMultisigStd;

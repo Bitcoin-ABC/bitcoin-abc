@@ -9,6 +9,8 @@
 #include "serialize.h"
 #include "support/allocators/secure.h"
 
+#include <atomic>
+
 class uint256;
 
 const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
@@ -120,7 +122,7 @@ private:
 
     //! if fUseCrypto is true, mapKeys must be empty
     //! if fUseCrypto is false, vMasterKey must be empty
-    bool fUseCrypto;
+    std::atomic<bool> fUseCrypto;
 
     //! keeps track of whether Unlock has run a thorough check before
     bool fDecryptionThoroughlyChecked;
