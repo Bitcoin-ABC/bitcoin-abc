@@ -57,7 +57,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                     IsMine(*wallet, address)) {
                     // Received by Bitcoin Address
                     sub.type = TransactionRecord::RecvWithAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = EncodeDestination(address);
                 } else {
                     // Received by IP connection (deprecated features), or a
                     // multisignature or other non-simple transaction
@@ -119,7 +119,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                 if (ExtractDestination(txout.scriptPubKey, address)) {
                     // Sent to Bitcoin Address
                     sub.type = TransactionRecord::SendToAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = EncodeDestination(address);
                 } else {
                     // Sent to IP, or other non-address transaction like OP_EVAL
                     sub.type = TransactionRecord::SendToOther;

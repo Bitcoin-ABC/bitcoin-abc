@@ -176,9 +176,8 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 
     UniValue a(UniValue::VARR);
     for (const CTxDestination &addr : addresses) {
-        a.push_back(CBitcoinAddress(addr).ToString());
+        a.push_back(EncodeDestination(addr));
     }
-
     out.pushKV("addresses", a);
 }
 

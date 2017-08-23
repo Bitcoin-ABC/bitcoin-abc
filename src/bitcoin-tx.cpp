@@ -277,13 +277,11 @@ static void MutateTxAddOutAddr(CMutableTransaction &tx,
 
     // extract and validate ADDRESS
     std::string strAddr = vStrInputParts[1];
-    CBitcoinAddress addr(strAddr);
-    if (!addr.IsValid()) {
+    CTxDestination destination = DecodeDestination(strAddr);
+    if (!IsValidDestination(destination)) {
         throw std::runtime_error("invalid TX output address");
     }
-
-    // build standard output script via GetScriptForDestination()
-    CScript scriptPubKey = GetScriptForDestination(addr.Get());
+    CScript scriptPubKey = GetScriptForDestination(destination);
 
     // construct TxOut, append to transaction output list
     CTxOut txout(value, scriptPubKey);
@@ -310,7 +308,6 @@ static void MutateTxAddOutPubKey(CMutableTransaction &tx,
     }
 
     CScript scriptPubKey = GetScriptForRawPubKey(pubkey);
-    CBitcoinAddress addr(scriptPubKey);
 
     // Extract and validate FLAGS
     bool bScriptHash = false;
@@ -320,10 +317,9 @@ static void MutateTxAddOutPubKey(CMutableTransaction &tx,
     }
 
     if (bScriptHash) {
-        // Get the address for the redeem script, then call
-        // GetScriptForDestination() to construct a P2SH scriptPubKey.
-        CBitcoinAddress redeemScriptAddr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(redeemScriptAddr.Get());
+        // Get the ID for the script, and then construct a P2SH destination for
+        // it.
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
@@ -387,10 +383,9 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
     CScript scriptPubKey = GetScriptForMultisig(required, pubkeys);
 
     if (bScriptHash) {
-        // Get the address for the redeem script, then call
-        // GetScriptForDestination() to construct a P2SH scriptPubKey.
-        CBitcoinAddress addr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(addr.Get());
+        // Get the ID for the script, and then construct a P2SH destination for
+        // it.
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
@@ -450,8 +445,7 @@ static void MutateTxAddOutScript(CMutableTransaction &tx,
     }
 
     if (bScriptHash) {
-        CBitcoinAddress addr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(addr.Get());
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
