@@ -131,14 +131,14 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x0000000000000000000000000000000000000000003f94d1ad39168"
-                     "2fe038bf5");
+            uint256S("0x000000000000000000000000000000000000000000756697b2e44d3"
+                     "745086353");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d424bd9f15ff2013"
-                     "6191a5eec");
+            uint256S("0x000000000000000002d8cae5936d502defc09c5ac317201a61955dd"
+                     "c8cdd950c");
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -229,8 +229,9 @@ public:
                                   "819efa9041e458e9bd7e40")},
                 {295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e0"
                                   "3af35a100370c64632a983")},
-                {478641, uint256S("0x0000000000000000027c1fea6fe49acb16d46c82dd"
-                                  "2f2a80b22ecc9cdb3ababe")}}};
+                // UAHF fork block
+                {478559, uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d42"
+                                  "4bd9f15ff20136191a5eec")}}};
 
         // Data as of block
         // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
@@ -293,14 +294,14 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x00000000000000000000000000000000000000000000001f057509e"
-                     "ba81aed91");
+            uint256S("0x0000000000000000000000000000000000000000000000287612691"
+                     "ad473cdd2");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x00000000f17c850672894b9a75b63a1e72830bbd5f4c8889b5c1a80"
-                     "e7faef138");
+            uint256S("0x0000000000000407b4c5a5d8204f05d584f1463004c8edea89376b1"
+                     "c52f7e1dd");
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
@@ -363,6 +364,10 @@ public:
             .mapCheckpoints = {
                 {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345"
                                "d31b1bcebf76acb70")},
+                // UAHF fork block
+                {1155876,
+                 uint256S("00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef"
+                          "70c9a0ea4a285b8f5")},
             }};
 
         // Data as of block
