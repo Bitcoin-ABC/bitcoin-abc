@@ -232,6 +232,7 @@ if test "x$enable_asan" = xyes; then
 	enable_debug=yes
 	CFLAGS="$CFLAGS -fsanitize=address -fno-omit-frame-pointer"
 	CXXFLAGS="$CXXFLAGS -fsanitize=address -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=address"
 fi
 
 if test "x$enable_tsan" = xyes; then
@@ -243,6 +244,7 @@ if test "x$enable_tsan" = xyes; then
 	enable_debug=yes
 	CFLAGS="$CFLAGS -fsanitize=thread -fno-omit-frame-pointer"
 	CXXFLAGS="$CXXFLAGS -fsanitize=thread -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=thread"
 fi
 
 if test "x$enable_ubsan" = xyes; then
@@ -254,6 +256,7 @@ if test "x$enable_ubsan" = xyes; then
 	enable_debug=yes
 	CFLAGS="$CFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
 	CXXFLAGS="$CXXFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=undefined"
 fi
 
 if test "x$enable_debug" = xyes; then
