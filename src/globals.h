@@ -9,5 +9,6 @@
 
 /** The largest block size this node will accept. */
 extern uint64_t nMaxBlockSize;
+extern uint64_t nBlockPriorityPercentage;
 
 #endif // BITCOIN_GLOBALS_H

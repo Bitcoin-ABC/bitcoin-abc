@@ -22,6 +22,19 @@ uint64_t GlobalConfig::GetMaxBlockSize() const {
     return nMaxBlockSize;
 }
 
+bool GlobalConfig::SetBlockPriorityPercentage(int64_t blockPriorityPercentage) {
+    // blockPriorityPercentage has to belong to [0..100]
+    if ((blockPriorityPercentage < 0) || (blockPriorityPercentage > 100)) {
+        return false;
+    }
+    nBlockPriorityPercentage = blockPriorityPercentage;
+    return true;
+}
+
+uint8_t GlobalConfig::GetBlockPriorityPercentage() const {
+    return nBlockPriorityPercentage;
+}
+
 const CChainParams &GlobalConfig::GetChainParams() const {
     return Params();
 }

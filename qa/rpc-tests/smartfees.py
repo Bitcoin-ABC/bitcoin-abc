@@ -214,14 +214,14 @@ class EstimateFeeTest(BitcoinTestFramework):
         # NOTE: the CreateNewBlock code starts counting block size at 1,000 bytes,
         # (17k is room enough for 110 or so transactions)
         self.nodes.append(start_node(1, self.options.tmpdir,
-                                     ["-blockprioritysize=1500", "-blockmaxsize=17000",
+                                     ["-blockprioritypercentage=9", "-blockmaxsize=17000",
                                       "-maxorphantx=1000"],
                                      stderr_checker=OutputChecker()))
         connect_nodes(self.nodes[1], 0)
 
         # Node2 is a stingy miner, that
         # produces too small blocks (room for only 55 or so transactions)
-        node2args = ["-blockprioritysize=0",
+        node2args = ["-blockprioritypercentage=0",
                      "-blockmaxsize=8000", "-maxorphantx=1000"]
 
         self.nodes.append(
@@ -292,6 +292,7 @@ class EstimateFeeTest(BitcoinTestFramework):
         sync_blocks(self.nodes[0:3], wait=.1)
         self.log.info("Final estimates after emptying mempools")
         check_estimates(self.nodes[1], self.fees_per_kb, 2)
+
 
 if __name__ == '__main__':
     EstimateFeeTest().main()

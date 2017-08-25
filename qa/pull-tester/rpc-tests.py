@@ -145,6 +145,7 @@ testScripts = [
     'keypool.py',
     'p2p-mempool.py',
     'prioritise_transaction.py',
+    'high_priority_transaction.py',
     'invalidblockrequest.py',
     'invalidtxrequest.py',
     'p2p-versionbits-warning.py',
@@ -289,10 +290,10 @@ class RPCTestHandler:
                               time.time(),
                               subprocess.Popen(
                                   (RPC_TESTS_DIR + t).split() +
-                                   self.flags + port_seed,
-                                               universal_newlines=True,
-                                               stdout=log_stdout,
-                                               stderr=log_stderr),
+                                  self.flags + port_seed,
+                                  universal_newlines=True,
+                                  stdout=log_stdout,
+                                  stderr=log_stderr),
                               log_stdout,
                               log_stderr))
         if not self.jobs:

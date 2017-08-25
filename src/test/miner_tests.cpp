@@ -78,13 +78,16 @@ bool TestSequenceLocks(const CTransaction &tx, int flags) {
 // Test suite for ancestor feerate transaction selection.
 // Implemented as an additional function, rather than a separate test case, to
 // allow reusing the blockchain created in CreateNewBlock_validity.
-// Note that this test assumes blockprioritysize is 0.
+// Note that this test assumes blockprioritypercentage is 0.
 void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
                           std::vector<CTransactionRef> &txFirst) {
     // Test the ancestor feerate transaction selection.
     TestMemPoolEntryHelper entry;
 
     GlobalConfig config;
+
+    // these 3 tests assume blockprioritypercentage is 0.
+    config.SetBlockPriorityPercentage(0);
 
     // Test that a medium fee transaction will be selected after a higher fee
     // rate package with a low fee rate parent.

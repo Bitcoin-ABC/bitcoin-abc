@@ -47,6 +47,7 @@ class PortSeed:
     # Must be initialized with a unique integer for each process
     n = None
 
+
 # Set Mocktime default to OFF.
 # MOCKTIME is only needed for scripts that use the
 # cached version of the blockchain.  If the cached
@@ -194,6 +195,7 @@ def sync_mempools(rpc_connections, *, wait=1, timeout=60):
         timeout -= wait
     raise AssertionError("Mempool sync failed")
 
+
 bitcoind_processes = {}
 
 
@@ -322,8 +324,8 @@ def initialize_chain(test_dir, num_nodes, cachedir):
         from_dir = os.path.join(cachedir, "node" + str(i))
         to_dir = os.path.join(test_dir,  "node" + str(i))
         shutil.copytree(from_dir, to_dir)
+        # Overwrite port/rpcport in bitcoin.conf
         initialize_datadir(test_dir, i)
-                           # Overwrite port/rpcport in bitcoin.conf
 
 
 def initialize_chain_clean(test_dir, num_nodes):
@@ -627,7 +629,7 @@ def assert_fee_amount(fee, tx_size, fee_per_kB):
 def assert_equal(thing1, thing2, *args):
     if thing1 != thing2 or any(thing1 != arg for arg in args):
         raise AssertionError("not(%s)" % " == ".join(str(arg)
-                             for arg in (thing1, thing2) + args))
+                                                     for arg in (thing1, thing2) + args))
 
 
 def assert_greater_than(thing1, thing2):
@@ -749,8 +751,8 @@ def satoshi_round(amount):
 # Pass in a fee that is sufficient for relay and mining new transactions.
 
 
-def create_confirmed_utxos(fee, node, count):
-    node.generate(int(0.5 * count) + 101)
+def create_confirmed_utxos(fee, node, count, age=101):
+    node.generate(int(0.5 * count) + age)
     utxos = node.listunspent()
     iterations = count - len(utxos)
     addr1 = node.getnewaddress()

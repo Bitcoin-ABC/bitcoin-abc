@@ -784,11 +784,11 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-blockmaxsize=<n>",
         strprintf(_("Set maximum block size in bytes (default: %d)"),
                   DEFAULT_MAX_GENERATED_BLOCK_SIZE));
-    strUsage +=
-        HelpMessageOpt("-blockprioritysize=<n>",
-                       strprintf(_("Set maximum size of high-priority/low-fee "
-                                   "transactions in bytes (default: %d)"),
-                                 DEFAULT_BLOCK_PRIORITY_SIZE));
+    strUsage += HelpMessageOpt(
+        "-blockprioritypercentage=<n>",
+        strprintf(_("Set maximum percentage of a block reserved to "
+                    "high-priority/low-fee transactions (default: %d)"),
+                  DEFAULT_BLOCK_PRIORITY_PERCENTAGE));
     strUsage += HelpMessageOpt(
         "-blockmintxfee=<amt>",
         strprintf(_("Set lowest fee rate (in %s/kB) for transactions to be "
@@ -1272,6 +1272,15 @@ bool AppInitParameterInteraction(Config &config) {
     if (GetArg("-prune", 0)) {
         if (GetBoolArg("-txindex", DEFAULT_TXINDEX))
             return InitError(_("Prune mode is incompatible with -txindex."));
+    }
+
+    // if space reserved for high priority transactions is misconfigured
+    // stop program execution and warn the user with a proper error message
+    const int64_t blkprio =
+        GetArg("-blockprioritypercentage", DEFAULT_BLOCK_PRIORITY_PERCENTAGE);
+    if (!config.SetBlockPriorityPercentage(blkprio)) {
+        return InitError(_("Block priority percentage has to belong to the "
+                           "[0..100] interval."));
     }
 
     // Make sure enough file descriptors are available

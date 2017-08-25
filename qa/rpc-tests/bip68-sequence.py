@@ -28,7 +28,8 @@ class BIP68Test(BitcoinTestFramework):
         super().__init__()
         self.num_nodes = 2
         self.setup_clean_chain = False
-        self.extra_args = [[], ["-acceptnonstdtxn=0"]]
+        self.extra_args = [["-blockprioritypercentage=0"],
+                           ["-acceptnonstdtxn=0", "-blockprioritypercentage=0"]]
 
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]

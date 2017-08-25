@@ -561,12 +561,12 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 void BlockAssembler::addPriorityTxs() {
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay.
-    uint64_t nBlockPrioritySize =
-        GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = std::min(nMaxGeneratedBlockSize, nBlockPrioritySize);
-    if (nBlockPrioritySize == 0) {
+    if (config->GetBlockPriorityPercentage() == 0) {
         return;
     }
+
+    uint64_t nBlockPrioritySize =
+        nMaxGeneratedBlockSize * config->GetBlockPriorityPercentage() / 100;
 
     // This vector will be sorted into a priority queue:
     std::vector<TxCoinAgePriority> vecPriority;
@@ -590,7 +590,8 @@ void BlockAssembler::addPriorityTxs() {
 
     CTxMemPool::txiter iter;
 
-    // Add a tx from priority queue to fill the blockprioritysize.
+    // Add a tx from priority queue to fill the part of block reserved to
+    // priority transactions.
     while (!vecPriority.empty() && !blockFinished) {
         iter = vecPriority.front().second;
         actualPriority = vecPriority.front().first;

@@ -5,6 +5,7 @@ Bitcoin ABC version 0.15.0 is now available from:
 This release includes the following features and fixes:
 
 - Low level RPC error code changes (D500 / backport of PR9853)
+- Reserve block space for high priority transactions (D485)
 
 Low-level RPC changes (D500)
 ----------------------------
@@ -31,3 +32,17 @@ Low-level RPC changes (D500)
   - `fundrawtransaction` now returns RPC_WALLET_ERROR if bitcoind is unable to create
   the transaction. The error message provides further details. Previously returned
   RPC_INTERNAL_ERROR.
+
+Reserve block space for high priority transactions (D485)
+---------------------------------------------------------
+
+By default reserve 5% of the max generated block size parameter to hiprio transactions.
+Hence a `bitcoind` instance running with an unmodified configuration will reserve 100K
+for high priority transactions. The parameter name used for this configuration
+`blockprioritypercentage`. While introducing this new parameter we deprecated
+`blockprioritysize`(it was used to specify the amount of high prio reserved area in byte).
+
+A transaction is considered high priority if its priority is higher than this threshold: `COIN * 144 / 250`,
+where COIN is the value of a one bitcoin UTXO expressed in satoshis. Thus a transaction
+who as an input of 1 bitcoin and are 144 blocks old and whose size is 250 bytes is considered
+the priority cut-off.
