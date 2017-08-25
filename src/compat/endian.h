@@ -9,9 +9,9 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include <cstdint>
-
 #include "compat/byteswap.h"
+
+#include <cstdint>
 
 #if defined(HAVE_ENDIAN_H)
 #include <endian.h>
