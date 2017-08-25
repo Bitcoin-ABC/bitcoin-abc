@@ -3110,18 +3110,22 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // We now know we only need the smaller fee (because of reduced
                 // tx size) and so we should add a change output. Only try this
                 // once.
-                Amount fee_needed_for_change = GetMinimumFee(
-                    change_prototype_size, coinControl, g_mempool);
-                Amount minimum_value_for_change =
-                    GetDustThreshold(change_prototype_txout, dustRelayFee);
-                Amount max_excess_fee =
-                    fee_needed_for_change + minimum_value_for_change;
-                if (nFeeRet > nFeeNeeded + max_excess_fee &&
-                    nChangePosInOut == -1 && nSubtractFeeFromAmount == 0 &&
+                if (nChangePosInOut == -1 && nSubtractFeeFromAmount == 0 &&
                     pick_new_inputs) {
-                    pick_new_inputs = false;
-                    nFeeRet = nFeeNeeded + fee_needed_for_change;
-                    continue;
+                    // Add 2 as a buffer in case increasing # of outputs changes
+                    // compact size
+                    unsigned int tx_size_with_change =
+                        nBytes + change_prototype_size + 2;
+                    Amount fee_needed_with_change = GetMinimumFee(
+                        tx_size_with_change, coinControl, g_mempool);
+                    Amount minimum_value_for_change =
+                        GetDustThreshold(change_prototype_txout, dustRelayFee);
+                    if (nFeeRet >=
+                        fee_needed_with_change + minimum_value_for_change) {
+                        pick_new_inputs = false;
+                        nFeeRet = fee_needed_with_change;
+                        continue;
+                    }
                 }
 
                 // If we have change output already, just increase it
