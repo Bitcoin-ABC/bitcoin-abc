@@ -12,9 +12,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.outputchecker import OutputChecker
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 # Construct 2 trivial P2SH's and the ScriptSigs that spend them
 # So we can create many many transactions without needing to spend
 # time signing.
@@ -174,8 +171,7 @@ class EstimateFeeTest(BitcoinTestFramework):
         # Use node0 to mine blocks for input splitting
         self.nodes.append(
             start_node(0, self.options.tmpdir, ["-maxorphantx=1000",
-                                                "-whitelist=127.0.0.1",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-whitelist=127.0.0.1"]))
 
         print("This test is time consuming, please be patient")
         print(
@@ -216,17 +212,14 @@ class EstimateFeeTest(BitcoinTestFramework):
         # (17k is room enough for 110 or so transactions)
         self.nodes.append(start_node(1, self.options.tmpdir,
                                      ["-blockprioritysize=1500", "-blockmaxsize=17000",
-                                      "-maxorphantx=1000", "-debug=estimatefee",
-                                      "-uahfstarttime=%d" % UAHF_START_TIME],
+                                      "-maxorphantx=1000", "-debug=estimatefee"],
                                      stderr_checker=OutputChecker()))
         connect_nodes(self.nodes[1], 0)
 
         # Node2 is a stingy miner, that
         # produces too small blocks (room for only 55 or so transactions)
         node2args = ["-blockprioritysize=0",
-                     "-blockmaxsize=8000",
-                     "-maxorphantx=1000",
-                     "-uahfstarttime=%d" % UAHF_START_TIME]
+                     "-blockmaxsize=8000", "-maxorphantx=1000"]
 
         self.nodes.append(
             start_node(2, self.options.tmpdir, node2args, stderr_checker=OutputChecker()))

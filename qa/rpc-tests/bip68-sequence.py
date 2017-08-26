@@ -21,9 +21,6 @@ SEQUENCE_LOCKTIME_MASK = 0x0000ffff
 # RPC error for non-BIP68 final transactions
 NOT_FINAL_ERROR = "64: non-BIP68-final"
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 class BIP68Test(BitcoinTestFramework):
 
@@ -36,13 +33,11 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes = []
         self.nodes.append(
             start_node(0, self.options.tmpdir, ["-debug",
-                                                "-blockprioritysize=0",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-blockprioritysize=0"]))
         self.nodes.append(
             start_node(1, self.options.tmpdir, ["-debug",
                                                 "-blockprioritysize=0",
-                                                "-acceptnonstdtxn=0",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-acceptnonstdtxn=0"]))
         self.is_network_split = False
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
         connect_nodes(self.nodes[0], 1)

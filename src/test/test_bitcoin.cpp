@@ -50,7 +50,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
 
     // Set config parameters to default.
     GlobalConfig config;
-    config.SetUAHFStartTime(DEFAULT_UAHF_START_TIME);
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 }
 

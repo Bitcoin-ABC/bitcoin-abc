@@ -17,9 +17,6 @@ from test_framework.outputchecker import OutputChecker
 import time
 import os
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 MIN_BLOCKS_TO_KEEP = 288
 
 # Rescans start at the earliest block up to 2 hours before a key timestamp, so
@@ -53,15 +50,13 @@ class PruneTest(BitcoinTestFramework):
             start_node(0, self.options.tmpdir, ["-debug",
                                                 "-maxreceivebuffer=20000",
                                                 "-checkblocks=5",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                "-blockmaxsize=1000000"],
                        timewait=900))
         self.nodes.append(
             start_node(1, self.options.tmpdir, ["-debug",
                                                 "-maxreceivebuffer=20000",
                                                 "-checkblocks=5",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                "-blockmaxsize=1000000"],
                        timewait=900))
 
         # Create node 2 to test pruning
@@ -69,8 +64,7 @@ class PruneTest(BitcoinTestFramework):
             start_node(2, self.options.tmpdir, ["-debug",
                                                 "-maxreceivebuffer=20000",
                                                 "-prune=550",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                "-blockmaxsize=1000000"],
                        timewait=900))
         self.prunedir = self.options.tmpdir + "/node2/regtest/blocks/"
 
@@ -79,22 +73,19 @@ class PruneTest(BitcoinTestFramework):
         self.nodes.append(
             start_node(3, self.options.tmpdir, ["-debug=0",
                                                 "-maxreceivebuffer=20000",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                "-blockmaxsize=1000000"],
                        timewait=900))
         self.nodes.append(
             start_node(4, self.options.tmpdir, ["-debug=0",
                                                 "-maxreceivebuffer=20000",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                "-blockmaxsize=1000000"],
                        timewait=900))
 
         # Create nodes 5 to test wallet in prune mode, but do not connect
         self.nodes.append(
             start_node(5, self.options.tmpdir, ["-debug=0",
                                                 "-prune=550",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-blockmaxsize=1000000"]))
 
         # Determine default relay fee
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
@@ -157,8 +148,7 @@ class PruneTest(BitcoinTestFramework):
             self.nodes[0] = start_node(0, self.options.tmpdir, ["-debug",
                                                                 "-maxreceivebuffer=20000",
                                                                 "-checkblocks=5",
-                                                                "-blockmaxsize=1000000",
-                                                                "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                                "-blockmaxsize=1000000"],
                                        timewait=900)
             # Mine 24 blocks in node 1
             for i in range(24):
@@ -192,8 +182,7 @@ class PruneTest(BitcoinTestFramework):
                                                             "-maxreceivebuffer=20000",
                                                             "-blockmaxsize=5000",
                                                             "-checkblocks=5",
-                                                            "-disablesafemode",
-                                                            "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                            "-disablesafemode"],
                                    timewait=900, stderr_checker=OutputChecker())
 
         height = self.nodes[1].getblockcount()
@@ -223,8 +212,7 @@ class PruneTest(BitcoinTestFramework):
                                                             "-blockmaxsize=5000",
                                                             "-checkblocks=5",
                                                             "-disablesafemode",
-                                                            "-blockmaxsize=1000000",
-                                                            "-uahfstarttime=%d" % UAHF_START_TIME],
+                                                            "-blockmaxsize=1000000"],
                                    timewait=900, stderr_checker=OutputChecker())
 
         print("Generating new longer chain of 300 more blocks")
@@ -311,7 +299,7 @@ class PruneTest(BitcoinTestFramework):
         # at this point, node has 995 blocks and has not yet run in prune mode
         node = self.nodes[node_number] = start_node(
             node_number, self.options.tmpdir,
-            ["-debug=0", "-blockmaxsize=1000000", "-uahfstarttime=%d" % UAHF_START_TIME], timewait=900)
+            ["-debug=0", "-blockmaxsize=1000000"], timewait=900)
         assert_equal(node.getblockcount(), 995)
         assert_raises_message(
             JSONRPCException, "not in prune mode", node.pruneblockchain, 500)
@@ -320,7 +308,7 @@ class PruneTest(BitcoinTestFramework):
         # now re-start in manual pruning mode
         node = self.nodes[node_number] = start_node(
             node_number, self.options.tmpdir,
-            ["-debug=0", "-prune=1", "-blockmaxsize=1000000", "-uahfstarttime=%d" % UAHF_START_TIME], timewait=900)
+            ["-debug=0", "-prune=1", "-blockmaxsize=1000000"], timewait=900)
         assert_equal(node.getblockcount(), 995)
 
         def height(index):
@@ -410,7 +398,7 @@ class PruneTest(BitcoinTestFramework):
         self.stop_node(node_number)
         self.nodes[node_number] = start_node(
             node_number, self.options.tmpdir,
-            ["-debug=0", "-prune=550", "-blockmaxsize=1000000", "-uahfstarttime=%d" % UAHF_START_TIME], timewait=900)
+            ["-debug=0", "-prune=550", "-blockmaxsize=1000000"], timewait=900)
 
         print("Success")
 
@@ -421,8 +409,7 @@ class PruneTest(BitcoinTestFramework):
             self.stop_node(2)
             start_node(2, self.options.tmpdir, ["-debug=1",
                                                 "-prune=550",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME])
+                                                "-blockmaxsize=1000000"])
             print("Success")
         except Exception as detail:
             raise AssertionError(
@@ -438,8 +425,7 @@ class PruneTest(BitcoinTestFramework):
             self.stop_node(5)  # stop and start to trigger rescan
             start_node(5, self.options.tmpdir, ["-debug=1",
                                                 "-prune=550",
-                                                "-blockmaxsize=1000000",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME])
+                                                "-blockmaxsize=1000000"])
             print ("Success")
         except Exception as detail:
             raise AssertionError("Wallet test: unable to re-start node5")

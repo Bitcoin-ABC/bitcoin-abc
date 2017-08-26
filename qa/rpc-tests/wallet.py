@@ -6,9 +6,6 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 class WalletTest (BitcoinTestFramework):
 
@@ -22,9 +19,8 @@ class WalletTest (BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [['-usehd={:d}'.format(i % 2 == 0),
-                            "-uahfstarttime=%d" % UAHF_START_TIME
-                            ] for i in range(4)]
+        self.extra_args = [['-usehd={:d}'.format(i % 2 == 0)]
+                           for i in range(4)]
 
     def setup_network(self, split=False):
         self.nodes = start_nodes(3, self.options.tmpdir, self.extra_args[:3])
@@ -216,8 +212,7 @@ class WalletTest (BitcoinTestFramework):
 
         # do some -walletbroadcast tests
         stop_nodes(self.nodes)
-        extra_args = [["-walletbroadcast=0",
-                       "-uahfstarttime=%d" % UAHF_START_TIME] for i in range(3)]
+        extra_args = [["-walletbroadcast=0"] for i in range(3)]
         self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
@@ -248,9 +243,7 @@ class WalletTest (BitcoinTestFramework):
 
         # restart the nodes with -walletbroadcast=1
         stop_nodes(self.nodes)
-        extra_args = [["-uahfstarttime=%d" % UAHF_START_TIME]
-                      for i in range(3)]
-        self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
+        self.nodes = start_nodes(3, self.options.tmpdir)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
         connect_nodes_bi(self.nodes, 0, 2)
@@ -366,9 +359,7 @@ class WalletTest (BitcoinTestFramework):
             stop_nodes(self.nodes)
             # set lower ancestor limit for later
             self.nodes = start_nodes(3, self.options.tmpdir,
-                                     [[m,
-                                       "-uahfstarttime=%d" % UAHF_START_TIME,
-                                       "-limitancestorcount=" + str(chainlimit)]] * 3)
+                                     [[m, "-limitancestorcount=" + str(chainlimit)]] * 3)
             while m == '-reindex' and [block_count] * 3 != [self.nodes[i].getblockcount() for i in range(3)]:
                 # reindex will leave rpc warm up "early"; Wait for it to finish
                 time.sleep(0.1)

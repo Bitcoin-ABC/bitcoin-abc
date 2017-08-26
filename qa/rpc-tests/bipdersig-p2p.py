@@ -12,9 +12,6 @@ from test_framework.script import CScript
 from io import BytesIO
 import time
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 # A canonical signature consists of:
 # <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
 
@@ -59,8 +56,7 @@ class BIP66Test(ComparisonTestFramework):
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  extra_args=[['-debug',
                                               '-whitelist=127.0.0.1',
-                                              '-blockversion=2',
-                                              "-uahfstarttime=%d" % UAHF_START_TIME]],
+                                              '-blockversion=2']],
                                  binary=[self.options.testbinary])
 
     def run_test(self):

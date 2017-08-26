@@ -854,13 +854,6 @@ std::string HelpMessage(HelpMessageMode mode) {
                       DEFAULT_HTTP_SERVER_TIMEOUT));
     }
 
-    strUsage += HelpMessageGroup(_("Hard Fork options:"));
-    strUsage += HelpMessageOpt(
-        "-uahfstarttime=<n>",
-        strprintf(_("(Deprecated) UAHF activation (integer) "
-                    "POSIX time, seconds since epoch (default: %u)"),
-                  DEFAULT_UAHF_START_TIME));
-
     return strUsage;
 }
 
@@ -1407,18 +1400,6 @@ bool AppInitParameterInteraction(Config &config) {
                      "the excessive block size (excessiveblocksize)");
         return InitError(msg);
     }
-
-    const int64_t uahfFromArgs =
-        GetArg("-uahfstarttime", DEFAULT_UAHF_START_TIME);
-    if (uahfFromArgs != int64_t(DEFAULT_UAHF_START_TIME)) {
-        LogPrintf("WARNING: Deprecated use of -uahfstarttime=%d parameter\n",
-                  uahfFromArgs);
-    }
-    if (!config.SetUAHFStartTime(uahfFromArgs)) {
-        return InitError(strprintf(
-            _("Unable to set uahfstarttime to the value (%d)"), uahfFromArgs));
-    }
-    assert(config.GetUAHFStartTime() == uahfFromArgs);
 
     // block pruning; get the amount of disk space (in MiB) to allot for block &
     // undo files

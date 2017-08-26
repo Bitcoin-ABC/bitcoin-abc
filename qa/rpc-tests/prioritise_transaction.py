@@ -13,9 +13,6 @@ from test_framework.util import *
 from test_framework.mininode import COIN
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
 
@@ -31,9 +28,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         self.is_network_split = False
 
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-debug",
-                                                "-printpriority=1",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+            start_node(0, self.options.tmpdir, ["-debug", "-printpriority=1"]))
         self.relayfee = self.nodes[0].getnetworkinfo()['relayfee']
 
     def run_test(self):

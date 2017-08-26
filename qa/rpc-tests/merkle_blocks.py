@@ -10,9 +10,6 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far into the past
-UAHF_START_TIME = 30000000
-
 
 class MerkleBlockTest(BitcoinTestFramework):
 
@@ -24,15 +21,13 @@ class MerkleBlockTest(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = []
         # Nodes 0/1 are "wallet" nodes
-        extra_args = ["-debug", "-uahfstarttime=%d" % UAHF_START_TIME]
+        extra_args = ["-debug"]
         self.nodes.append(start_node(0, self.options.tmpdir, extra_args))
         self.nodes.append(start_node(1, self.options.tmpdir, extra_args))
         # Nodes 2/3 are used for testing
         self.nodes.append(start_node(2, self.options.tmpdir, extra_args))
         self.nodes.append(
-            start_node(3, self.options.tmpdir, ["-debug",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME,
-                                                "-txindex"]))
+            start_node(3, self.options.tmpdir, ["-debug", "-txindex"]))
         connect_nodes(self.nodes[0], 1)
         connect_nodes(self.nodes[0], 2)
         connect_nodes(self.nodes[0], 3)

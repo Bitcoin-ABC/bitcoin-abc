@@ -30,10 +30,6 @@ from .authproxy import JSONRPCException
 from .outputchecker import OutputChecker
 
 
-# far in the past
-UAHF_START_TIME = 30000000
-
-
 class BitcoinTestFramework(object):
 
     def __init__(self):
@@ -62,7 +58,7 @@ class BitcoinTestFramework(object):
         '''
         Starts up the nodes.
         '''
-        return start_nodes(self.num_nodes, self.options.tmpdir, [["-uahfstarttime=%d" % UAHF_START_TIME] for i in range(self.num_nodes)])
+        return start_nodes(self.num_nodes, self.options.tmpdir)
 
     def setup_network(self, split=False):
         '''
@@ -237,7 +233,6 @@ class ComparisonTestFramework(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = start_nodes(
             self.num_nodes, self.options.tmpdir,
-            extra_args=[
-                ['-debug', '-whitelist=127.0.0.1', "-uahfstarttime=%d" % UAHF_START_TIME]] * self.num_nodes,
+            extra_args=[['-debug', '-whitelist=127.0.0.1']] * self.num_nodes,
             binary=[self.options.testbinary] +
             [self.options.refbinary] * (self.num_nodes - 1))

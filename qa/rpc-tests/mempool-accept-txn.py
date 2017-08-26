@@ -19,9 +19,6 @@ from test_framework.script import *
 import struct
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 
-# far into the past
-UAHF_START_TIME = 30000000
-
 # Error for too many sigops in one TX
 TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
 RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + \
@@ -52,8 +49,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks = {}
 
     def setup_network(self):
-        self.extra_args = [['-norelaypriority',
-                            "-uahfstarttime=%d" % UAHF_START_TIME]]
+        self.extra_args = [['-norelaypriority']]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
                                  binary=[self.options.testbinary])

@@ -8,9 +8,6 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 def get_sub_array_from_array(object_array, to_match):
     '''
@@ -38,8 +35,7 @@ class ReceivedByTest(BitcoinTestFramework):
     def setup_nodes(self):
         # This test requires mocktime
         enable_mocktime()
-        return start_nodes(self.num_nodes, self.options.tmpdir,
-                           [["-uahfstarttime=%d" % UAHF_START_TIME] for i in range(self.num_nodes)])
+        return start_nodes(self.num_nodes, self.options.tmpdir)
 
     def run_test(self):
         '''

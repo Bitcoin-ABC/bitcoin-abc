@@ -28,9 +28,6 @@ import collections
 import enum
 import itertools
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 Call = enum.Enum("Call", "single multi")
 Data = enum.Enum("Data", "address pub priv")
 Rescan = enum.Enum("Rescan", "no yes late_timestamp")
@@ -129,8 +126,7 @@ class ImportRescanTest(BitcoinTestFramework):
         self.num_nodes = 2 + len(IMPORT_NODES)
 
     def setup_network(self):
-        extra_args = [["-debug=1", "-uahfstarttime=%d" % UAHF_START_TIME]
-                      for _ in range(self.num_nodes)]
+        extra_args = [["-debug=1"] for _ in range(self.num_nodes)]
         for i, import_node in enumerate(IMPORT_NODES, 2):
             if import_node.prune:
                 extra_args[i] += ["-prune=1"]

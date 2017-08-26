@@ -71,6 +71,9 @@ struct Params {
     }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+
+    /** The time at which UAHF starts. */
+    int64_t uahfStartTime;
 };
 } // namespace Consensus
 

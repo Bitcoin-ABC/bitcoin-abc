@@ -12,9 +12,6 @@ from test_framework.script import CScript, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, O
 from io import BytesIO
 import time
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 def cltv_invalidate(tx):
     '''Modify the signature in vin 0 of the tx to fail CLTV
@@ -50,8 +47,7 @@ class BIP65Test(ComparisonTestFramework):
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  extra_args=[['-debug',
                                               '-whitelist=127.0.0.1',
-                                              '-blockversion=3',
-                                              "-uahfstarttime=%d" % UAHF_START_TIME]],
+                                              '-blockversion=3']],
                                  binary=[self.options.testbinary])
 
     def run_test(self):

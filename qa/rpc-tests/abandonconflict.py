@@ -8,9 +8,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 import urllib.parse
 
-# far in the past
-UAHF_START_TIME = 30000000
-
 
 class AbandonConflictTest(BitcoinTestFramework):
 
@@ -24,12 +21,10 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.nodes.append(
             start_node(0, self.options.tmpdir, ["-debug",
                                                 "-logtimemicros",
-                                                "-minrelaytxfee=0.00001",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-minrelaytxfee=0.00001"]))
         self.nodes.append(
             start_node(1, self.options.tmpdir, ["-debug",
-                                                "-logtimemicros",
-                                                "-uahfstarttime=%d" % UAHF_START_TIME]))
+                                                "-logtimemicros"]))
         connect_nodes(self.nodes[0], 1)
 
     def run_test(self):
@@ -99,8 +94,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
                                    "-debug", "-logtimemicros",
-                                   "-minrelaytxfee=0.0001",
-                                   "-uahfstarttime=%d" % UAHF_START_TIME])
+                                   "-minrelaytxfee=0.0001"])
 
         # Verify txs no longer in mempool
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -131,8 +125,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
                                    "-debug", "-logtimemicros",
-                                   "-minrelaytxfee=0.00001",
-                                   "-uahfstarttime=%d" % UAHF_START_TIME])
+                                   "-minrelaytxfee=0.00001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         assert_equal(self.nodes[0].getbalance(), balance)
 
@@ -155,8 +148,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
                                    "-debug", "-logtimemicros",
-                                   "-minrelaytxfee=0.0001",
-                                   "-uahfstarttime=%d" % UAHF_START_TIME])
+                                   "-minrelaytxfee=0.0001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         newbalance = self.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("24.9996"))

@@ -602,7 +602,8 @@ static bool IsCurrentForFeeEstimation() {
 }
 
 static bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >= config.GetUAHFStartTime();
+    return nMedianTimePast >=
+           config.GetChainParams().GetConsensus().uahfStartTime;
 }
 
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
