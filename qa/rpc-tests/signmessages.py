@@ -8,6 +8,7 @@ from test_framework.util import *
 
 
 class SignMessagesTest(BitcoinTestFramework):
+
     """Tests RPC commands for signing and verifying messages."""
 
     def __init__(self):

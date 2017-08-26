@@ -6,6 +6,7 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
+
 class ListSinceBlockTest (BitcoinTestFramework):
 
     def __init__(self):
@@ -13,7 +14,7 @@ class ListSinceBlockTest (BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 4
 
-    def run_test (self):
+    def run_test(self):
         '''
         `listsinceblock` did not behave correctly when handed a block that was
         no longer in the main chain:
@@ -67,7 +68,8 @@ class ListSinceBlockTest (BitcoinTestFramework):
 
         self.join_network()
 
-        # listsinceblock(lastblockhash) should now include tx, as seen from nodes[0]
+        # listsinceblock(lastblockhash) should now include tx, as seen from
+        # nodes[0]
         lsbres = self.nodes[0].listsinceblock(lastblockhash)
         found = False
         for tx in lsbres['transactions']:

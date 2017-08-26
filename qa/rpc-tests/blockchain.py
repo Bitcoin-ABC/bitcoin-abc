@@ -23,6 +23,7 @@ from test_framework.util import (
 
 
 class BlockchainTest(BitcoinTestFramework):
+
     """
     Test blockchain-related RPC calls:
 

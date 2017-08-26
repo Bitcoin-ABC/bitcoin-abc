@@ -15,6 +15,7 @@ from test_framework.cdefs import (ONE_MEGABYTE,
                                   LEGACY_MAX_BLOCK_SIZE,
                                   DEFAULT_MAX_BLOCK_SIZE)
 
+
 class ABC_RPC_Test (BitcoinTestFramework):
 
     def __init__(self):

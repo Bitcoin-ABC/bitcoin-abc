@@ -20,10 +20,13 @@ re-requested.
 '''
 
 # Use the ComparisonTestFramework with 1 node: only use --testbinary.
+
+
 class InvalidBlockRequestTest(ComparisonTestFramework):
 
-    ''' Can either run this test as 1 node with expected answers, or two and compare them. 
+    ''' Can either run this test as 1 node with expected answers, or two and compare them.
         Change the "outcome" variable from each TestInstance object to only do the comparison. '''
+
     def __init__(self):
         super().__init__()
         self.num_nodes = 1
@@ -33,19 +36,20 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         test.add_all_connections(self.nodes)
         self.tip = None
         self.block_time = None
-        NetworkThread().start() # Start up network handling in another thread
+        NetworkThread().start()  # Start up network handling in another thread
         test.run()
 
     def get_tests(self):
         if self.tip is None:
             self.tip = int("0x" + self.nodes[0].getbestblockhash(), 0)
-        self.block_time = int(time.time())+1
+        self.block_time = int(time.time()) + 1
 
         '''
         Create a new block with an anyone-can-spend coinbase
         '''
         height = 1
-        block = create_block(self.tip, create_coinbase(height), self.block_time)
+        block = create_block(
+            self.tip, create_coinbase(height), self.block_time)
         self.block_time += 1
         block.solve()
         # Save the coinbase for later
@@ -59,7 +63,8 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         '''
         test = TestInstance(sync_every_block=False)
         for i in range(100):
-            block = create_block(self.tip, create_coinbase(height), self.block_time)
+            block = create_block(
+                self.tip, create_coinbase(height), self.block_time)
             block.solve()
             self.tip = block.sha256
             self.block_time += 1
@@ -71,10 +76,11 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         Now we use merkle-root malleability to generate an invalid block with
         same blockheader.
         Manufacture a block with 3 transactions (coinbase, spend of prior
-        coinbase, spend of that spend).  Duplicate the 3rd transaction to 
+        coinbase, spend of that spend).  Duplicate the 3rd transaction to
         leave merkle root and blockheader unchanged but invalidate the block.
         '''
-        block2 = create_block(self.tip, create_coinbase(height), self.block_time)
+        block2 = create_block(
+            self.tip, create_coinbase(height), self.block_time)
         self.block_time += 1
 
         # b'0x51' is OP_TRUE
@@ -101,10 +107,11 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         '''
         Make sure that a totally screwed up block is not valid.
         '''
-        block3 = create_block(self.tip, create_coinbase(height), self.block_time)
+        block3 = create_block(
+            self.tip, create_coinbase(height), self.block_time)
         self.block_time += 1
-        block3.vtx[0].vout[0].nValue = 100 * COIN # Too high!
-        block3.vtx[0].sha256=None
+        block3.vtx[0].vout[0].nValue = 100 * COIN  # Too high!
+        block3.vtx[0].sha256 = None
         block3.vtx[0].calc_sha256()
         block3.hashMerkleRoot = block3.calc_merkle_root()
         block3.rehash()
