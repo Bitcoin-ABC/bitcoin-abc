@@ -179,7 +179,7 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 }
 
 bool CBlockTreeDB::LoadBlockIndexGuts(
-    boost::function<CBlockIndex *(const uint256 &)> insertBlockIndex) {
+    std::function<CBlockIndex *(const uint256 &)> insertBlockIndex) {
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));

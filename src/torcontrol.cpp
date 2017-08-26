@@ -19,7 +19,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/signals2/signal.hpp>
 
 #include <event2/buffer.h>
@@ -74,9 +73,8 @@ public:
  */
 class TorControlConnection {
 public:
-    typedef boost::function<void(TorControlConnection &)> ConnectionCB;
-    typedef boost::function<void(TorControlConnection &,
-                                 const TorControlReply &)>
+    typedef std::function<void(TorControlConnection &)> ConnectionCB;
+    typedef std::function<void(TorControlConnection &, const TorControlReply &)>
         ReplyHandlerCB;
 
     /** Create a new TorControlConnection.
@@ -114,9 +112,9 @@ public:
 
 private:
     /** Callback when ready for use */
-    boost::function<void(TorControlConnection &)> connected;
+    std::function<void(TorControlConnection &)> connected;
     /** Callback when connection lost */
-    boost::function<void(TorControlConnection &)> disconnected;
+    std::function<void(TorControlConnection &)> disconnected;
     /** Libevent event base */
     struct event_base *base;
     /** Connection to control socket */
