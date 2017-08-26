@@ -90,17 +90,12 @@ class MaxUploadTest(BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 1
+        # Start a node with maxuploadtarget of 200 MB (/24h)
+        self.extra_args = [["-maxuploadtarget=200"]]
 
         # Cache for utxos, as the listunspent may take a long time later in the
         # test
         self.utxo_cache = []
-
-    def setup_network(self):
-        # Start a node with maxuploadtarget of 200 MB (/24h)
-        self.nodes = []
-        self.nodes.append(
-            start_node(
-                0, self.options.tmpdir, ["-maxuploadtarget=200"]))
 
     def run_test(self):
         # Before we connect anything, we first set the time on the node

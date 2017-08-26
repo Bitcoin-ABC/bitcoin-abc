@@ -23,17 +23,12 @@ class ABC_RPC_Test (BitcoinTestFramework):
         self.num_nodes = 1
         self.tip = None
         self.setup_clean_chain = True
-
-    def setup_network(self):
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-par=1']]
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 self.extra_args)
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
 
     def check_subversion(self, pattern_str):
-        'Check that the subversion is set as expected'
+        # Check that the subversion is set as expected
         netinfo = self.nodes[0].getnetworkinfo()
         subversion = netinfo['subversion']
         pattern = re.compile(pattern_str)
@@ -70,7 +65,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, 2 * ONE_MEGABYTE)
         # Check for EB correctness in the subver string
-        self.check_subversion("/Bitcoin ABC:.*\(EB2\.0\)/")
+        self.check_subversion("/Bitcoin ABC:.*\(EB2\.0; .*\)/")
 
         # Check setting to 13MB
         self.nodes[0].setexcessiveblock(13 * ONE_MEGABYTE)
@@ -78,7 +73,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, 13 * ONE_MEGABYTE)
         # Check for EB correctness in the subver string
-        self.check_subversion("/Bitcoin ABC:.*\(EB13\.0\)/")
+        self.check_subversion("/Bitcoin ABC:.*\(EB13\.0; .*\)/")
 
         # Check setting to 13.14MB
         self.nodes[0].setexcessiveblock(13140000)
@@ -86,7 +81,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         ebs = getsize['excessiveBlockSize']
         assert_equal(ebs, 13.14 * ONE_MEGABYTE)
         # check for EB correctness in the subver string
-        self.check_subversion("/Bitcoin ABC:.*\(EB13\.1\)/")
+        self.check_subversion("/Bitcoin ABC:.*\(EB13\.1; .*\)/")
 
     def test_cashservicebit(self):
         # Check that NODE_BITCOIN_CASH bit is set.
@@ -97,6 +92,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
                      NODE_BITCOIN_CASH)
 
     def run_test(self):
+        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
         self.test_excessiveblock()
         self.test_cashservicebit()
 

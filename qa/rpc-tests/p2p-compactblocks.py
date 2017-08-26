@@ -121,15 +121,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 2
+        self.extra_args = [[], ["-txindex"]]
         self.utxos = []
-
-    def setup_network(self):
-        self.nodes = []
-
-        # Start up two version 1 CB nodes.
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 [[], ["-txindex"]])
-        connect_nodes(self.nodes[0], 1)
 
     def build_block_on_tip(self, node):
         height = node.getblockcount()

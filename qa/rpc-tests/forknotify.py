@@ -18,8 +18,6 @@ class ForkNotifyTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = False
 
-    alert_filename = None  # Set by setup_network
-
     def setup_network(self):
         self.nodes = []
         self.alert_filename = os.path.join(self.options.tmpdir, "alert.txt")
@@ -32,7 +30,6 @@ class ForkNotifyTest(BitcoinTestFramework):
                                      ["-blockversion=211"]))
         connect_nodes(self.nodes[1], 0)
 
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):

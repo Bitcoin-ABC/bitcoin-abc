@@ -19,11 +19,7 @@ class InvalidateTest(BitcoinTestFramework):
         self.num_nodes = 3
 
     def setup_network(self):
-        self.nodes = []
-        self.is_network_split = False
-        self.nodes.append(start_node(0, self.options.tmpdir))
-        self.nodes.append(start_node(1, self.options.tmpdir))
-        self.nodes.append(start_node(2, self.options.tmpdir))
+        self.setup_nodes()
 
     def run_test(self):
         self.log.info(

@@ -68,7 +68,6 @@ class FullBlockTest(ComparisonTestFramework):
 
     def __init__(self):
         super().__init__()
-        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.num_nodes = 1
         self.block_heights = {}
         self.coinbase_key = CECKey()
@@ -76,8 +75,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.coinbase_pubkey = self.coinbase_key.get_pubkey()
         self.tip = None
         self.blocks = {}
-
-    def setup_network(self):
+        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=9999',
@@ -87,9 +85,6 @@ class FullBlockTest(ComparisonTestFramework):
                             '-maxmempool=999',
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 self.extra_args,
-                                 binary=[self.options.testbinary])
 
     def add_options(self, parser):
         super().add_options(parser)
