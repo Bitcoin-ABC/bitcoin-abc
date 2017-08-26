@@ -367,28 +367,6 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
     return tx.ComputePriority(dResult);
 }
 
-CCoinsModifier::CCoinsModifier(CCoinsViewCache &cache_, CCoinsMap::iterator it_,
-                               size_t usage)
-    : cache(cache_), it(it_), cachedCoinUsage(usage) {
-    assert(!cache.hasModifier);
-    cache.hasModifier = true;
-}
-
-CCoinsModifier::~CCoinsModifier() {
-    assert(cache.hasModifier);
-    cache.hasModifier = false;
-    it->second.coins.Cleanup();
-    // Subtract the old usage
-    cache.cachedCoinsUsage -= cachedCoinUsage;
-    if ((it->second.flags & CCoinsCacheEntry::FRESH) &&
-        it->second.coins.IsPruned()) {
-        cache.cacheCoins.erase(it);
-    } else {
-        // If the coin still exists after the modification, add the new usage
-        cache.cachedCoinsUsage += it->second.coins.DynamicMemoryUsage();
-    }
-}
-
 CCoinsViewCursor::~CCoinsViewCursor() {}
 
 // TODO: merge with similar definition in undo.h.

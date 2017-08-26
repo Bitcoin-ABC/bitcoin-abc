@@ -435,31 +435,8 @@ public:
     CCoinsViewCursor *Cursor() const;
 };
 
-class CCoinsViewCache;
-
 /**
- * A reference to a mutable cache entry. Encapsulating it allows us to run
- *  cleanup code after the modification is finished, and keeping track of
- *  concurrent modifications.
- */
-class CCoinsModifier {
-private:
-    CCoinsViewCache &cache;
-    CCoinsMap::iterator it;
-    // Cached memory usage of the CCoins object before modification.
-    size_t cachedCoinUsage;
-
-    CCoinsModifier(CCoinsViewCache &cache_, CCoinsMap::iterator it_,
-                   size_t usage);
-
-public:
-    CCoins *operator->() { return &it->second.coins; }
-    CCoins &operator*() { return it->second.coins; }
-    ~CCoinsModifier();
-    friend class CCoinsViewCache;
-};
-
-/** CCoinsView that adds a memory cache for transactions to another CCoinsView
+ * CCoinsView that adds a memory cache for transactions to another CCoinsView
  */
 class CCoinsViewCache : public CCoinsViewBacked {
 protected:
