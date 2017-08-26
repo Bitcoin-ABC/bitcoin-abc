@@ -239,21 +239,15 @@ uint256 GetRandHash() {
     return hash;
 }
 
-FastRandomContext::FastRandomContext(bool fDeterministic) {
-    // The seed values have some unlikely fixed points which we avoid.
-    if (fDeterministic) {
-        Rz = Rw = 11;
-    } else {
-        uint32_t tmp;
-        do {
-            GetRandBytes((uint8_t *)&tmp, 4);
-        } while (tmp == 0 || tmp == 0x9068ffffU);
-        Rz = tmp;
-        do {
-            GetRandBytes((uint8_t *)&tmp, 4);
-        } while (tmp == 0 || tmp == 0x464fffffU);
-        Rw = tmp;
-    }
+void FastRandomContext::RandomSeed() {
+    uint256 seed = GetRandHash();
+    rng.SetKey(seed.begin(), 32);
+    requires_seed = false;
+}
+
+FastRandomContext::FastRandomContext(const uint256 &seed)
+    : requires_seed(false), bytebuf_size(0), bitbuf_size(0) {
+    rng.SetKey(seed.begin(), 32);
 }
 
 bool Random_SanityCheck() {
@@ -287,4 +281,13 @@ bool Random_SanityCheck() {
     } while (num_overwritten < NUM_OS_RANDOM_BYTES && tries < MAX_TRIES);
     /* If this failed, bailed out after too many tries */
     return (num_overwritten == NUM_OS_RANDOM_BYTES);
+}
+
+FastRandomContext::FastRandomContext(bool fDeterministic)
+    : requires_seed(!fDeterministic), bytebuf_size(0), bitbuf_size(0) {
+    if (!fDeterministic) {
+        return;
+    }
+    uint256 seed;
+    rng.SetKey(seed.begin(), 32);
 }
