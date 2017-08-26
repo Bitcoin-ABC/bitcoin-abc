@@ -101,7 +101,12 @@ CCoinsViewCursor *CCoinsViewDB::Cursor() const {
      */
     i->pcursor->Seek(DB_COINS);
     // Cache key of first record
-    i->pcursor->GetKey(i->keyTmp);
+    if (i->pcursor->Valid()) {
+        i->pcursor->GetKey(i->keyTmp);
+    } else {
+        // Make sure Valid() and GetKey() return false
+        i->keyTmp.first = 0;
+    }
     return i;
 }
 
