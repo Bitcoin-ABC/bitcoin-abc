@@ -36,8 +36,6 @@ public:
      * exceed (2^63 - 1)
      */
     CFeeRate(const Amount nFeePaid, size_t nBytes);
-    constexpr CFeeRate(const CFeeRate &other)
-        : nSatoshisPerK(other.nSatoshisPerK) {}
 
     /**
      * Return the fee in satoshis for the given size in bytes.
