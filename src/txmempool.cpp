@@ -52,10 +52,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
     nSigOpCountWithAncestors = sigOpCount;
 }
 
-CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
-    *this = other;
-}
-
 double CTxMemPoolEntry::GetPriority(unsigned int currentHeight) const {
     double deltaPriority =
         double((currentHeight - entryHeight) * (inChainInputValue / SATOSHI)) /
