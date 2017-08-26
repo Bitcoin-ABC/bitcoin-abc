@@ -105,6 +105,10 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_parse) {
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = find_value(metadata, "isPrivkey").get_bool();
         SelectParams(find_value(metadata, "chain").get_str());
+        bool try_case_flip =
+            find_value(metadata, "tryCaseFlip").isNull()
+                ? false
+                : find_value(metadata, "tryCaseFlip").get_bool();
         if (isPrivkey) {
             bool isCompressed = find_value(metadata, "isCompressed").get_bool();
             // Must be valid private key
@@ -128,6 +132,23 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_parse) {
             BOOST_CHECK_MESSAGE(IsValidDestination(destination),
                                 "!IsValid:" + strTest);
             BOOST_CHECK_EQUAL(HexStr(script), HexStr(exp_payload));
+
+            // Try flipped case version
+            for (char &c : exp_base58string) {
+                if (c >= 'a' && c <= 'z') {
+                    c = (c - 'a') + 'A';
+                } else if (c >= 'A' && c <= 'Z') {
+                    c = (c - 'A') + 'a';
+                }
+            }
+            destination = DecodeDestination(exp_base58string, Params());
+            BOOST_CHECK_MESSAGE(IsValidDestination(destination) ==
+                                    try_case_flip,
+                                "!IsValid case flipped:" + strTest);
+            if (IsValidDestination(destination)) {
+                script = GetScriptForDestination(destination);
+                BOOST_CHECK_EQUAL(HexStr(script), HexStr(exp_payload));
+            }
 
             // Public key must be invalid private key
             privkey = DecodeSecret(exp_base58string);
