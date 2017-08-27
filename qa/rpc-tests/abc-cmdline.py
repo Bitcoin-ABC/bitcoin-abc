@@ -45,10 +45,10 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         assert(pattern.match(subversion))
 
     def excessiveblocksize_test(self):
-        print("Testing -excessiveblocksize")
+        self.log.info("Testing -excessiveblocksize")
 
-        print("  Set to twice the default, i.e. %d bytes" %
-              (2 * LEGACY_MAX_BLOCK_SIZE))
+        self.log.info("  Set to twice the default, i.e. %d bytes" %
+                      (2 * LEGACY_MAX_BLOCK_SIZE))
         stop_node(self.nodes[0], 0)
         self.extra_args = [["-excessiveblocksize=%d" %
                             (2 * LEGACY_MAX_BLOCK_SIZE)]]
@@ -58,8 +58,8 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         # Check for EB correctness in the subver string
         self.check_subversion("/Bitcoin ABC:.*\(EB2\.0\)/")
 
-        print("  Attempt to set below legacy limit of 1MB - try %d bytes" %
-              LEGACY_MAX_BLOCK_SIZE)
+        self.log.info("  Attempt to set below legacy limit of 1MB - try %d bytes" %
+                      LEGACY_MAX_BLOCK_SIZE)
         outputchecker = OutputChecker()
         stop_node(self.nodes[0], 0)
         try:
@@ -77,7 +77,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
             raise AssertionError("Must not accept excessiveblocksize"
                                  " value < %d bytes" % LEGACY_MAX_BLOCK_SIZE)
 
-        print("  Attempt to set below blockmaxsize (mining limit)")
+        self.log.info("  Attempt to set below blockmaxsize (mining limit)")
         outputchecker = OutputChecker()
         try:
             self.extra_args = [['-blockmaxsize=1500000',

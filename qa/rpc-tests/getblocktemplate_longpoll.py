@@ -36,7 +36,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         self.setup_clean_chain = False
 
     def run_test(self):
-        print(
+        self.log.info(
             "Warning: this test will take about 70 seconds in the best case. Be patient.")
         self.nodes[0].generate(10)
         templat = self.nodes[0].getblocktemplate()

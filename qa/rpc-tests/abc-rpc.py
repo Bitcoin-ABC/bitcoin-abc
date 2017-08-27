@@ -25,8 +25,7 @@ class ABC_RPC_Test (BitcoinTestFramework):
         self.setup_clean_chain = True
 
     def setup_network(self):
-        self.extra_args = [['-debug',
-                            '-norelaypriority',
+        self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-par=1']]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,

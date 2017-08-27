@@ -71,7 +71,7 @@ class ProxyTest(BitcoinTestFramework):
             self.conf3.unauth = True
             self.conf3.auth = True
         else:
-            print("Warning: testing without local IPv6 support")
+            self.log.info("Warning: testing without local IPv6 support")
 
         self.serv1 = Socks5Server(self.conf1)
         self.serv1.start()
@@ -86,16 +86,16 @@ class ProxyTest(BitcoinTestFramework):
         # this is because the proxy to use is based on CService.GetNetwork(),
         # which return NET_UNROUTABLE for localhost
         args = [
-            ['-listen', '-debug=net', '-debug=proxy', '-proxy=%s:%i' %
+            ['-listen', '-proxy=%s:%i' %
                 (self.conf1.addr), '-proxyrandomize=1'],
-            ['-listen', '-debug=net', '-debug=proxy', '-proxy=%s:%i' %
+            ['-listen', '-proxy=%s:%i' %
                 (self.conf1.addr), '-onion=%s:%i' % (self.conf2.addr), '-proxyrandomize=0'],
-            ['-listen', '-debug=net', '-debug=proxy', '-proxy=%s:%i' %
+            ['-listen', '-proxy=%s:%i' %
                 (self.conf2.addr), '-proxyrandomize=1'],
             []
         ]
         if self.have_ipv6:
-            args[3] = ['-listen', '-debug=net', '-debug=proxy', '-proxy=[%s]:%i' %
+            args[3] = ['-listen', '-proxy=[%s]:%i' %
                        (self.conf3.addr), '-proxyrandomize=0', '-noonion']
         return start_nodes(self.num_nodes, self.options.tmpdir, extra_args=args)
 

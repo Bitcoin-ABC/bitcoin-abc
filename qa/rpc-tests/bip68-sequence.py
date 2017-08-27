@@ -32,11 +32,9 @@ class BIP68Test(BitcoinTestFramework):
     def setup_network(self):
         self.nodes = []
         self.nodes.append(
-            start_node(0, self.options.tmpdir, ["-debug",
-                                                "-blockprioritysize=0"]))
+            start_node(0, self.options.tmpdir, ["-blockprioritysize=0"]))
         self.nodes.append(
-            start_node(1, self.options.tmpdir, ["-debug",
-                                                "-blockprioritysize=0",
+            start_node(1, self.options.tmpdir, ["-blockprioritysize=0",
                                                 "-acceptnonstdtxn=0"]))
         self.is_network_split = False
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
@@ -46,28 +44,29 @@ class BIP68Test(BitcoinTestFramework):
         # Generate some coins
         self.nodes[0].generate(110)
 
-        print("Running test disable flag")
+        self.log.info("Running test disable flag")
         self.test_disable_flag()
 
-        print("Running test sequence-lock-confirmed-inputs")
+        self.log.info("Running test sequence-lock-confirmed-inputs")
         self.test_sequence_lock_confirmed_inputs()
 
-        print("Running test sequence-lock-unconfirmed-inputs")
+        self.log.info("Running test sequence-lock-unconfirmed-inputs")
         self.test_sequence_lock_unconfirmed_inputs()
 
-        print("Running test BIP68 not consensus before versionbits activation")
+        self.log.info(
+            "Running test BIP68 not consensus before versionbits activation")
         self.test_bip68_not_consensus()
 
-        print("Verifying nVersion=2 transactions aren't standard")
+        self.log.info("Verifying nVersion=2 transactions aren't standard")
         self.test_version2_relay(before_activation=True)
 
-        print("Activating BIP68 (and 112/113)")
+        self.log.info("Activating BIP68 (and 112/113)")
         self.activateCSV()
 
-        print("Verifying nVersion=2 transactions are now standard")
+        self.log.info("Verifying nVersion=2 transactions are now standard")
         self.test_version2_relay(before_activation=False)
 
-        print("Passed\n")
+        self.log.info("Passed")
 
     # Test that BIP68 is not in effect if tx version is 1, or if
     # the first sequence bit is set.

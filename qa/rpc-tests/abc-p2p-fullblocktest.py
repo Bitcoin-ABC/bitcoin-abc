@@ -78,8 +78,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks = {}
 
     def setup_network(self):
-        self.extra_args = [['-debug',
-                            '-norelaypriority',
+        self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=9999',
                             '-limitancestorsize=9999',

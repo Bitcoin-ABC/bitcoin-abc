@@ -63,7 +63,7 @@ class FeeFilterTest(BitcoinTestFramework):
         # Node1 will be used to generate txs which should be relayed from Node0
         # to our test node
         self.nodes = []
-        extra_args = ["-debug", "-logtimemicros"]
+        extra_args = ["-logtimemicros"]
         self.nodes.append(
             start_node(0, self.options.tmpdir, extra_args))
         self.nodes.append(

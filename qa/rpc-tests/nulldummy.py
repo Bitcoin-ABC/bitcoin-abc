@@ -48,8 +48,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
     def setup_network(self):
         # Must set the blockversion for this test
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[['-debug',
-                                              '-whitelist=127.0.0.1',
+                                 extra_args=[['-whitelist=127.0.0.1',
                                               '-walletprematurewitness']])
 
     def run_test(self):
@@ -67,7 +66,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
         self.lastblockheight = 429
         self.lastblocktime = int(time.time()) + 429
 
-        print (
+        self.log.info(
             "Test 1: NULLDUMMY compliant base transactions should be accepted to mempool and mined before activation [430]")
         test1txs = [self.create_transaction(
             self.nodes[0], coinbase_txid[0], self.ms_address, 49)]
@@ -77,14 +76,14 @@ class NULLDUMMYTest(BitcoinTestFramework):
         txid2 = self.tx_submit(self.nodes[0], test1txs[1])
         self.block_submit(self.nodes[0], test1txs, False, True)
 
-        print (
+        self.log.info(
             "Test 2: Non-NULLDUMMY base multisig transaction should not be accepted to mempool before activation")
         test2tx = self.create_transaction(
             self.nodes[0], txid2, self.ms_address, 48)
         trueDummy(test2tx)
         txid4 = self.tx_submit(self.nodes[0], test2tx, NULLDUMMY_ERROR)
 
-        print (
+        self.log.info(
             "Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
         self.block_submit(self.nodes[0], [test2tx], False, True)
 

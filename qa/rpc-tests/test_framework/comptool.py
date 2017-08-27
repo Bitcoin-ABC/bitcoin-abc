@@ -7,6 +7,10 @@ from .mininode import *
 from .blockstore import BlockStore, TxStore
 from .util import p2p_port
 
+import logging
+
+logger = logging.getLogger("TestFramework.comptool")
+
 '''
 This is a tool for comparing two or more bitcoinds to each other
 using a script provided.
@@ -231,7 +235,6 @@ class TestManager(object):
 
         # --> error if not requested
         if not wait_until(blocks_requested, attempts=20 * num_blocks):
-            # print [ c.cb.block_request_map for c in self.connections ]
             raise AssertionError("Not all nodes requested block")
 
         # Send getheaders message
@@ -254,7 +257,6 @@ class TestManager(object):
 
         # --> error if not requested
         if not wait_until(transaction_requested, attempts=20 * num_events):
-            # print [ c.cb.tx_request_map for c in self.connections ]
             raise AssertionError("Not all nodes requested transaction")
 
         # Get the mempool
@@ -281,14 +283,14 @@ class TestManager(object):
                     if c.cb.bestblockhash == blockhash:
                         return False
                     if blockhash not in c.cb.block_reject_map:
-                        print('Block not in reject map: %064x' % (blockhash))
+                        logger.error(
+                            'Block not in reject map: %064x' % (blockhash))
                         return False
                     if not outcome.match(c.cb.block_reject_map[blockhash]):
-                        print('Block rejected with %s instead of expected %s: %064x' %
-                              (c.cb.block_reject_map[blockhash], outcome, blockhash))
+                        logger.error('Block rejected with %s instead of expected %s: %064x' %
+                                     (c.cb.block_reject_map[blockhash], outcome, blockhash))
                         return False
                 elif ((c.cb.bestblockhash == blockhash) != outcome):
-                    # print c.cb.bestblockhash, blockhash, outcome
                     return False
             return True
 
@@ -304,20 +306,18 @@ class TestManager(object):
                 if outcome is None:
                     # Make sure the mempools agree with each other
                     if c.cb.lastInv != self.connections[0].cb.lastInv:
-                        # print c.rpc.getrawmempool()
                         return False
                 elif isinstance(outcome, RejectResult):  # Check that tx was rejected w/ code
                     if txhash in c.cb.lastInv:
                         return False
                     if txhash not in c.cb.tx_reject_map:
-                        print('Tx not in reject map: %064x' % (txhash))
+                        logger.error('Tx not in reject map: %064x' % (txhash))
                         return False
                     if not outcome.match(c.cb.tx_reject_map[txhash]):
-                        print('Tx rejected with %s instead of expected %s: %064x' %
-                              (c.cb.tx_reject_map[txhash], outcome, txhash))
+                        logger.error('Tx rejected with %s instead of expected %s: %064x' %
+                                     (c.cb.tx_reject_map[txhash], outcome, txhash))
                         return False
                 elif ((txhash in c.cb.lastInv) != outcome):
-                    # print c.rpc.getrawmempool(), c.cb.lastInv
                     return False
             return True
 
@@ -440,8 +440,7 @@ class TestManager(object):
                     raise AssertionError(
                         "Mempool test failed at test %d" % test_number)
 
-            print("Test %d: PASS" %
-                  test_number, [c.rpc.getblockcount() for c in self.connections])
+            logger.info("Test %d: PASS" % test_number)
             test_number += 1
 
         [c.disconnect_node() for c in self.connections]

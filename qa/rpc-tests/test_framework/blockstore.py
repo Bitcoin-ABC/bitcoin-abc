@@ -11,7 +11,11 @@ from .mininode import *
 from io import BytesIO
 import dbm.dumb as dbmd
 
+logger = logging.getLogger("TestFramework.blockstore")
+
+
 class BlockStore(object):
+
     def __init__(self, datadir):
         self.blockDB = dbmd.open(datadir + "/blocks", 'c')
         self.currentBlock = 0
@@ -60,7 +64,7 @@ class BlockStore(object):
             return None
 
         response = msg_headers()
-        headersList = [ current_block_header ]
+        headersList = [current_block_header]
         maxheaders = 2000
         while (headersList[0].sha256 not in locator.vHave):
             prevBlockHash = headersList[0].hashPrevBlock
@@ -69,11 +73,11 @@ class BlockStore(object):
                 headersList.insert(0, prevBlockHeader)
             else:
                 break
-        headersList = headersList[:maxheaders] # truncate if we have too many
+        headersList = headersList[:maxheaders]  # truncate if we have too many
         hashList = [x.sha256 for x in headersList]
         index = len(headersList)
         if (hash_stop in hashList):
-            index = hashList.index(hash_stop)+1
+            index = hashList.index(hash_stop) + 1
         response.headers = headersList[:index]
         return response
 
@@ -82,7 +86,7 @@ class BlockStore(object):
         try:
             self.blockDB[repr(block.sha256)] = bytes(block.serialize())
         except TypeError as e:
-            print("Unexpected error: ", sys.exc_info()[0], e.args)
+            logger.exception("Unexpected error")
         self.currentBlock = block.sha256
         self.headers_map[block.sha256] = CBlockHeader(block)
 
@@ -94,7 +98,7 @@ class BlockStore(object):
     def get_blocks(self, inv):
         responses = []
         for i in inv:
-            if (i.type == 2): # MSG_BLOCK
+            if (i.type == 2):  # MSG_BLOCK
                 data = self.get(i.hash)
                 if data is not None:
                     # Use msg_generic to avoid re-serialization
@@ -121,7 +125,9 @@ class BlockStore(object):
         locator.vHave = r
         return locator
 
+
 class TxStore(object):
+
     def __init__(self, datadir):
         self.txDB = dbmd.open(datadir + "/transactions", 'c')
 
@@ -152,12 +158,12 @@ class TxStore(object):
         try:
             self.txDB[repr(tx.sha256)] = bytes(tx.serialize())
         except TypeError as e:
-            print("Unexpected error: ", sys.exc_info()[0], e.args)
+            logger.exception("Unexpected error")
 
     def get_transactions(self, inv):
         responses = []
         for i in inv:
-            if (i.type == 1): # MSG_TX
+            if (i.type == 1):  # MSG_TX
                 tx = self.get(i.hash)
                 if tx is not None:
                     responses.append(msg_generic(b"tx", tx))

@@ -80,7 +80,7 @@ class VersionBitsWarningTest(BitcoinTestFramework):
         with open(self.alert_filename, 'w', encoding='utf8') as _:
             pass
         self.extra_args = [
-            ["-debug", "-logtimemicros=1", "-alertnotify=echo %s >> \"" + self.alert_filename + "\""]]
+            ["-alertnotify=echo %s >> \"" + self.alert_filename + "\""]]
         self.nodes = start_nodes(
             self.num_nodes, self.options.tmpdir, self.extra_args)
 

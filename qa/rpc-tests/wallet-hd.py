@@ -61,7 +61,7 @@ class WalletHDTest(BitcoinTestFramework):
         self.sync_all()
         assert_equal(self.nodes[1].getbalance(), num_hd_adds + 1)
 
-        print("Restore backup ...")
+        self.log.info("Restore backup ...")
         self.stop_node(1)
         os.remove(self.options.tmpdir + "/node1/regtest/wallet.dat")
         shutil.copyfile(
