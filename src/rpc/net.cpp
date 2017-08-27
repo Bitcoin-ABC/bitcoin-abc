@@ -543,9 +543,12 @@ static UniValue getnetworkinfo(const Config &config,
 
 static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     std::string strCommand;
-    if (request.params.size() >= 2) strCommand = request.params[1].get_str();
+    if (request.params.size() >= 2) {
+        strCommand = request.params[1].get_str();
+    }
+
     if (request.fHelp || request.params.size() < 2 ||
-        (strCommand != "add" && strCommand != "remove"))
+        (strCommand != "add" && strCommand != "remove")) {
         throw std::runtime_error(
             "setban \"subnet\" \"add|remove\" (bantime) (absolute)\n"
             "\nAttempts add or remove a IP/Subnet from the banned list.\n"
@@ -565,50 +568,64 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
             HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
             HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
             HelpExampleRpc("setban", "\"192.168.0.6\", \"add\", 86400"));
-    if (!g_connman)
+    }
+
+    if (!g_connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
+    }
 
     CSubNet subNet;
     CNetAddr netAddr;
     bool isSubnet = false;
 
-    if (request.params[0].get_str().find("/") != std::string::npos)
+    if (request.params[0].get_str().find("/") != std::string::npos) {
         isSubnet = true;
+    }
 
     if (!isSubnet) {
         CNetAddr resolved;
         LookupHost(request.params[0].get_str().c_str(), resolved, false);
         netAddr = resolved;
-    } else
+    } else {
         LookupSubNet(request.params[0].get_str().c_str(), subNet);
+    }
 
-    if (!(isSubnet ? subNet.IsValid() : netAddr.IsValid()))
-        throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
+    if (!(isSubnet ? subNet.IsValid() : netAddr.IsValid())) {
+        throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET,
                            "Error: Invalid IP/Subnet");
+    }
 
     if (strCommand == "add") {
         if (isSubnet ? g_connman->IsBanned(subNet)
-                     : g_connman->IsBanned(netAddr))
+                     : g_connman->IsBanned(netAddr)) {
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED,
                                "Error: IP/Subnet already banned");
+        }
 
-        int64_t banTime = 0; // use standard bantime if not specified
-        if (request.params.size() >= 3 && !request.params[2].isNull())
+        // Use standard bantime if not specified.
+        int64_t banTime = 0;
+        if (request.params.size() >= 3 && !request.params[2].isNull()) {
             banTime = request.params[2].get_int64();
+        }
 
         bool absolute = false;
-        if (request.params.size() == 4 && request.params[3].isTrue())
+        if (request.params.size() == 4 && request.params[3].isTrue()) {
             absolute = true;
+        }
 
         isSubnet
             ? g_connman->Ban(subNet, BanReasonManuallyAdded, banTime, absolute)
             : g_connman->Ban(netAddr, BanReasonManuallyAdded, banTime,
                              absolute);
     } else if (strCommand == "remove") {
-        if (!(isSubnet ? g_connman->Unban(subNet) : g_connman->Unban(netAddr)))
-            throw JSONRPCError(RPC_MISC_ERROR, "Error: Unban failed");
+        if (!(isSubnet ? g_connman->Unban(subNet)
+                       : g_connman->Unban(netAddr))) {
+            throw JSONRPCError(RPC_CLIENT_INVALID_IP_OR_SUBNET,
+                               "Error: Unban failed. Requested address/subnet "
+                               "was not previously banned.");
+        }
     }
     return NullUniValue;
 }

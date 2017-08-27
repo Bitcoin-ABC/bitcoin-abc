@@ -42,7 +42,6 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.sync_all()
 
     def run_test(self):
-
         # prepare some coins for multiple *rawtransaction commands
         self.nodes[2].generate(1)
         self.sync_all()
@@ -66,12 +65,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawtx = self.nodes[2].signrawtransaction(
             rawtx, None, None, "ALL|FORKID")
 
-        try:
-            rawtx = self.nodes[2].sendrawtransaction(rawtx['hex'])
-        except JSONRPCException as e:
-            assert("Missing inputs" in e.error['message'])
-        else:
-            assert(False)
+        # This will raise an exception since there are missing inputs
+        assert_raises_jsonrpc(
+            -25, "Missing inputs", self.nodes[2].sendrawtransaction, rawtx['hex'])
 
         #
         # RAW TX MULTISIG TESTS #
@@ -95,9 +91,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.sync_all()
         self.nodes[0].generate(1)
         self.sync_all()
+        # node2 has both keys of the 2of2 ms addr., tx should affect the
+        # balance
         assert_equal(self.nodes[2].getbalance(), bal + Decimal('1.20000000'))
-                     # node2 has both keys of the 2of2 ms addr., tx should
-                     # affect the balance
 
         # 2of3 test from different nodes
         bal = self.nodes[2].getbalance()
@@ -187,16 +183,16 @@ class RawTransactionsTest(BitcoinTestFramework):
             txHash, True)["hex"], rawTxSigned['hex'])
 
         # 6. invalid parameters - supply txid and string "Flase"
-        assert_raises(JSONRPCException, self.nodes[
-                      0].getrawtransaction, txHash, "Flase")
+        assert_raises_jsonrpc(
+            -3, "Invalid type", self.nodes[0].getrawtransaction, txHash, "False")
 
         # 7. invalid parameters - supply txid and empty array
-        assert_raises(
-            JSONRPCException, self.nodes[0].getrawtransaction, txHash, [])
+        assert_raises_jsonrpc(
+            -3, "Invalid type", self.nodes[0].getrawtransaction, txHash, [])
 
         # 8. invalid parameters - supply txid and empty dict
-        assert_raises(
-            JSONRPCException, self.nodes[0].getrawtransaction, txHash, {})
+        assert_raises_jsonrpc(
+            -3, "Invalid type", self.nodes[0].getrawtransaction, txHash, {})
 
         inputs = [
             {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 1000}]
@@ -205,17 +201,21 @@ class RawTransactionsTest(BitcoinTestFramework):
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
         assert_equal(decrawtx['vin'][0]['sequence'], 1000)
 
+        # 9. invalid parameters - sequence number out of range
         inputs = [
             {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': -1}]
         outputs = {self.nodes[0].getnewaddress(): 1}
-        assert_raises(JSONRPCException, self.nodes[
-                      0].createrawtransaction, inputs, outputs)
+        assert_raises_jsonrpc(
+            -8, 'Invalid parameter, sequence number is out of range',
+                              self.nodes[0].createrawtransaction, inputs, outputs)
 
+        # 10. invalid parameters - sequence number out of range
         inputs = [
             {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967296}]
         outputs = {self.nodes[0].getnewaddress(): 1}
-        assert_raises(JSONRPCException, self.nodes[
-                      0].createrawtransaction, inputs, outputs)
+        assert_raises_jsonrpc(
+            -8, 'Invalid parameter, sequence number is out of range',
+                              self.nodes[0].createrawtransaction, inputs, outputs)
 
         inputs = [
             {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967294}]

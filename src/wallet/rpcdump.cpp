@@ -339,9 +339,11 @@ UniValue importprunedfunds(const Config &config,
 
 UniValue removeprunedfunds(const Config &config,
                            const JSONRPCRequest &request) {
-    if (!EnsureWalletIsAvailable(request.fHelp)) return NullUniValue;
+    if (!EnsureWalletIsAvailable(request.fHelp)) {
+        return NullUniValue;
+    }
 
-    if (request.fHelp || request.params.size() != 1)
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "removeprunedfunds \"txid\"\n"
             "\nDeletes the specified transaction from the wallet. Meant for "
@@ -358,6 +360,7 @@ UniValue removeprunedfunds(const Config &config,
             HelpExampleRpc("removprunedfunds", "\"a8d0c0184dde994a09ec054286f1c"
                                                "e581bebf46446a512166eae7628734e"
                                                "a0a5\""));
+    }
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -368,12 +371,12 @@ UniValue removeprunedfunds(const Config &config,
     std::vector<uint256> vHashOut;
 
     if (pwalletMain->ZapSelectTx(vHash, vHashOut) != DB_LOAD_OK) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
+        throw JSONRPCError(RPC_WALLET_ERROR,
                            "Could not properly delete the transaction.");
     }
 
     if (vHashOut.empty()) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
                            "Transaction does not exist in wallet.");
     }
 

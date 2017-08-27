@@ -3251,7 +3251,7 @@ static UniValue fundrawtransaction(const Config &config,
 
                 if (!address.IsValid()) {
                     throw JSONRPCError(
-                        RPC_INVALID_PARAMETER,
+                        RPC_INVALID_ADDRESS_OR_KEY,
                         "changeAddress must be a valid bitcoin address");
                 }
 
@@ -3330,7 +3330,7 @@ static UniValue fundrawtransaction(const Config &config,
             tx, nFeeOut, overrideEstimatedFeerate, feeRate, changePosition,
             strFailReason, includeWatching, lockUnspents,
             setSubtractFeeFromOutputs, reserveChangeKey, changeAddress)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, strFailReason);
+        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
     }
 
     UniValue result(UniValue::VOBJ);

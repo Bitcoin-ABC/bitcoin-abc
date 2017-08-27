@@ -830,12 +830,15 @@ UniValue getblock(const Config &config, const JSONRPCRequest &request) {
 
     if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) &&
         pblockindex->nTx > 0) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
-                           "Block not available (pruned data)");
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not available (pruned data)");
     }
 
     if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+        // Block not found on disk. This could be because we have the block
+        // header in our index but don't have the block (for example if a
+        // non-whitelisted node sends us an unrequested long chain of valid
+        // blocks, we add the headers to our index, but don't accept the block).
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
     }
 
     if (!fVerbose) {
@@ -921,7 +924,7 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
 
     if (!fPruneMode) {
         throw JSONRPCError(
-            RPC_METHOD_NOT_FOUND,
+            RPC_MISC_ERROR,
             "Cannot prune blocks because node is not in prune mode.");
     }
 
@@ -941,7 +944,7 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
             chainActive.FindEarliestAtLeast(heightParam - 7200);
         if (!pindex) {
             throw JSONRPCError(
-                RPC_INTERNAL_ERROR,
+                RPC_INVALID_PARAMETER,
                 "Could not find block with at least the specified timestamp.");
         }
         heightParam = pindex->nHeight;
@@ -950,7 +953,7 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
     unsigned int height = (unsigned int)heightParam;
     unsigned int chainHeight = (unsigned int)chainActive.Height();
     if (chainHeight < Params().PruneAfterHeight()) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
+        throw JSONRPCError(RPC_MISC_ERROR,
                            "Blockchain is too short for pruning.");
     } else if (height > chainHeight) {
         throw JSONRPCError(

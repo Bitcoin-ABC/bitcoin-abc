@@ -172,10 +172,11 @@ class PruneTest(BitcoinTestFramework):
               calc_usage(self.prunedir))
 
     def reorg_test(self):
-        # Node 1 will mine a 300 block chain starting 287 blocks back from Node 0 and Node 2's tip
-        # This will cause Node 2 to do a reorg requiring 288 blocks of undo data to the reorg_test chain
-        # Reboot node 1 to clear its mempool (hopefully make the invalidate faster)
-        # Lower the block max size so we don't keep mining all our big mempool
+        # Node 1 will mine a 300 block chain starting 287 blocks back from Node
+        # 0 and Node 2's tip. This will cause Node 2 to do a reorg requiring
+        # 288 blocks of undo data to the reorg_test chain. Reboot node 1 to
+        # clear its mempool (hopefully make the invalidate faster). Lower the
+        # block max size so we don't keep mining all our big mempool
         # transactions (from disconnected blocks)
         self.stop_node(1)
         self.nodes[1] = start_node(1, self.options.tmpdir, ["-debug",
@@ -193,7 +194,7 @@ class PruneTest(BitcoinTestFramework):
         print("Invalidating block at height:", invalidheight, badhash)
         self.nodes[1].invalidateblock(badhash)
 
-        # We've now switched to our previously mined-24 block fork on node 1, but thats not what we want
+        # We've now switched to our previously mined-24 block fork on node 1, but thats not what we want.
         # So invalidate that fork as well, until we're on the same chain as
         # node 0/2 (but at an ancestor 288 blocks ago)
         mainchainhash = self.nodes[0].getblockhash(invalidheight - 1)
@@ -232,8 +233,8 @@ class PruneTest(BitcoinTestFramework):
         for i in range(22):
             # This can be slow, so do this in multiple RPC calls to avoid
             # RPC timeouts.
-            self.nodes[0].generate(
-                10)  # node 0 has many large tx's in its mempool from the disconnects
+            # node 0 has many large tx's in its mempool from the disconnects
+            self.nodes[0].generate(10)
         sync_blocks(self.nodes[0:3], timeout=300)
 
         usage = calc_usage(self.prunedir)
@@ -245,17 +246,14 @@ class PruneTest(BitcoinTestFramework):
 
     def reorg_back(self):
         # Verify that a block on the old main chain fork has been pruned away
-        try:
-            self.nodes[2].getblock(self.forkhash)
-            raise AssertionError(
-                "Old block wasn't pruned so can't test redownload")
-        except JSONRPCException as e:
-            print("Will need to redownload block", self.forkheight)
+        assert_raises_jsonrpc(
+            -1, "Block not available (pruned data)", self.nodes[2].getblock, self.forkhash)
+        print("Will need to redownload block", self.forkheight)
 
-        # Verify that we have enough history to reorg back to the fork point
-        # Although this is more than 288 blocks, because this chain was written more recently
-        # and only its other 299 small and 220 large block are in the block files after it,
-        # its expected to still be retained
+        # Verify that we have enough history to reorg back to the fork point.
+        # Although this is more than 288 blocks, because this chain was written
+        # more recently and only its other 299 small and 220 large block are in
+        # the block files after it, its expected to still be retained.
         self.nodes[2].getblock(self.nodes[2].getblockhash(self.forkheight))
 
         first_reorg_height = self.nodes[2].getblockcount()
@@ -264,15 +262,16 @@ class PruneTest(BitcoinTestFramework):
         goalbestheight = self.mainchainheight
         goalbesthash = self.mainchainhash2
 
-        # As of 0.10 the current block download logic is not able to reorg to the original chain created in
-        # create_chain_with_stale_blocks because it doesn't know of any peer thats on that chain from which to
-        # redownload its missing blocks.
-        # Invalidate the reorg_test chain in node 0 as well, it can successfully switch to the original chain
-        # because it has all the block data.
-        # However it must mine enough blocks to have a more work chain than the reorg_test chain in order
-        # to trigger node 2's block download logic.
-        # At this point node 2 is within 288 blocks of the fork point so it
-        # will preserve its ability to reorg
+        # As of 0.10 the current block download logic is not able to reorg to
+        # the original chain created in create_chain_with_stale_blocks because
+        # it doesn't know of any peer thats on that chain from which to
+        # redownload its missing blocks. Invalidate the reorg_test chain in
+        # node 0 as well, it can successfully switch to the original chain
+        # because it has all the block data. However it must mine enough blocks
+        # to have a more work chain than the reorg_test chain in order to
+        # trigger node 2's block download logic. At this point node 2 is within
+        # 288 blocks of the fork point so it will preserve its ability to
+        # reorg.
         if self.nodes[2].getblockcount() < self.mainchainheight:
             blocks_to_mine = first_reorg_height + 1 - self.mainchainheight
             print(
@@ -301,8 +300,8 @@ class PruneTest(BitcoinTestFramework):
             node_number, self.options.tmpdir,
             ["-debug=0", "-blockmaxsize=1000000"], timewait=900)
         assert_equal(node.getblockcount(), 995)
-        assert_raises_message(
-            JSONRPCException, "not in prune mode", node.pruneblockchain, 500)
+        assert_raises_jsonrpc(
+            -1, "not in prune mode", node.pruneblockchain, 500)
         self.stop_node(node_number)
 
         # now re-start in manual pruning mode
@@ -337,16 +336,15 @@ class PruneTest(BitcoinTestFramework):
 
         # should not prune because chain tip of node 3 (995) < PruneAfterHeight
         # (1000)
-        assert_raises_message(
-            JSONRPCException, "Blockchain is too short for pruning", node.pruneblockchain, height(500))
+        assert_raises_jsonrpc(
+            -1, "Blockchain is too short for pruning", node.pruneblockchain, height(500))
 
         # mine 6 blocks so we are at height 1001 (i.e., above PruneAfterHeight)
         node.generate(6)
         assert_equal(node.getblockchaininfo()["blocks"], 1001)
 
         # negative heights should raise an exception
-        assert_raises_message(
-            JSONRPCException, "Negative", node.pruneblockchain, -10)
+        assert_raises_jsonrpc(-8, "Negative", node.pruneblockchain, -10)
 
         # height=100 too low to prune first block file so this is a no-op
         prune(100)
@@ -405,15 +403,9 @@ class PruneTest(BitcoinTestFramework):
     def wallet_test(self):
         # check that the pruning node's wallet is still in good shape
         print("Stop and start pruning node to trigger wallet rescan")
-        try:
-            self.stop_node(2)
-            start_node(2, self.options.tmpdir, ["-debug=1",
-                                                "-prune=550",
-                                                "-blockmaxsize=1000000"])
-            print("Success")
-        except Exception as detail:
-            raise AssertionError(
-                "Wallet test: unable to re-start the pruning node")
+        self.stop_node(2)
+        start_node(2, self.options.tmpdir, ["-debug=1", "-prune=550"])
+        print("Success")
 
         # check that wallet loads loads successfully when restarting a pruned node after IBD.
         # this was reported to fail in #7494.
@@ -421,14 +413,10 @@ class PruneTest(BitcoinTestFramework):
         connect_nodes(self.nodes[0], 5)
         nds = [self.nodes[0], self.nodes[5]]
         sync_blocks(nds, wait=5, timeout=300)
-        try:
-            self.stop_node(5)  # stop and start to trigger rescan
-            start_node(5, self.options.tmpdir, ["-debug=1",
-                                                "-prune=550",
-                                                "-blockmaxsize=1000000"])
-            print ("Success")
-        except Exception as detail:
-            raise AssertionError("Wallet test: unable to re-start node5")
+        # Stop and start to trigger rescan
+        self.stop_node(5)
+        start_node(5, self.options.tmpdir, ["-debug=1", "-prune=550"])
+        print ("Success")
 
     def run_test(self):
         print(
