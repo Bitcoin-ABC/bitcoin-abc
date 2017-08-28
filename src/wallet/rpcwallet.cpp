@@ -3567,9 +3567,9 @@ static UniValue fundrawtransaction(const Config &config,
             "     \"reserveChangeKey\"       (boolean, optional) "
             "DEPRECATED.  Reserves the change output key from the keypool\n"
             "     \"feeRate\"                (numeric, optional, default not "
-            "set: makes wallet determine the fee) Set a specific feerate (" +
+            "set: makes wallet determine the fee) Set a specific fee rate in " +
             CURRENCY_UNIT +
-            " per KB)\n"
+            "/kB\n"
             "     \"subtractFeeFromOutputs\" (array, optional) A json array of "
             "integers.\n"
             "                              The fee will be equally deducted "
