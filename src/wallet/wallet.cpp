@@ -595,6 +595,10 @@ void CWallet::SyncMetaData(
             continue;
         }
 
+        assert(
+            copyFrom &&
+            "Oldest wallet transaction in range assumed to have been found.");
+
         if (!copyFrom->IsEquivalentTo(*copyTo)) {
             continue;
         }
