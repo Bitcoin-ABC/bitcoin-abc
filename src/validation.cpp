@@ -1708,6 +1708,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     // further duplicate transactions descending from the known pairs either. If
     // we're on the known chain at height greater than where BIP34 activated, we
     // can save the db accesses needed for the BIP30 check.
+    assert(pindex->pprev);
     CBlockIndex *pindexBIP34height =
         pindex->pprev->GetAncestor(consensusParams.BIP34Height);
     // Only continue to enforce if we're below BIP34 activation height or the
@@ -1891,6 +1892,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         return false;
     }
 
+    assert(pindex->phashBlock);
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
 
