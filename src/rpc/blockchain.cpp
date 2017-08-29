@@ -857,13 +857,14 @@ struct CCoinsStats {
     uint256 hashBlock;
     uint64_t nTransactions;
     uint64_t nTransactionOutputs;
-    uint64_t nSerializedSize;
+    uint64_t nBogoSize;
     uint256 hashSerialized;
+    uint64_t nDiskSize;
     CAmount nTotalAmount;
 
     CCoinsStats()
-        : nHeight(0), nTransactions(0), nTransactionOutputs(0),
-          nSerializedSize(0), nTotalAmount(0) {}
+        : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0),
+          nDiskSize(0), nTotalAmount(0) {}
 };
 
 //! Calculate statistics about the unspent transaction output set
@@ -885,6 +886,7 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
         if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
             stats.nTransactions++;
             ss << key;
+            ss << VARINT(coins.nHeight * 2 + coins.fCoinBase);
             for (size_t i = 0; i < coins.vout.size(); i++) {
                 const CTxOut &out = coins.vout[i];
                 if (!out.IsNull()) {
@@ -892,9 +894,13 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
                     ss << VARINT(i + 1);
                     ss << out;
                     nTotalAmount += out.nValue;
+                    stats.nBogoSize +=
+                        32 /* txid */ + 4 /* vout index */ +
+                        4 /* height + coinbase */ + 8 /* amount */ +
+                        2 /* scriptPubKey len */ +
+                        out.scriptPubKey.size() /* scriptPubKey */;
                 }
             }
-            stats.nSerializedSize += 32 + pcursor->GetValueSize();
             ss << VARINT(0);
         } else {
             return error("%s: unable to read value", __func__);
@@ -903,6 +909,7 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
     }
     stats.hashSerialized = ss.GetHash();
     stats.nTotalAmount = nTotalAmount;
+    stats.nDiskSize = view->EstimateSize();
     return true;
 }
 
@@ -982,8 +989,11 @@ UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
             "  \"transactions\": n,      (numeric) The number of transactions\n"
             "  \"txouts\": n,            (numeric) The number of output "
             "transactions\n"
-            "  \"bytes_serialized\": n,  (numeric) The serialized size\n"
+            "  \"bogosize\": n,          (numeric) A database-independent "
+            "metric for UTXO set size\n"
             "  \"hash_serialized\": \"hash\",   (string) The serialized hash\n"
+            "  \"disk_size\": n,         (numeric) The estimated size of the "
+            "chainstate on disk\n"
             "  \"total_amount\": x.xxx          (numeric) The total amount\n"
             "}\n"
             "\nExamples:\n" +
@@ -1000,8 +1010,9 @@ UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
         ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
         ret.push_back(Pair("transactions", int64_t(stats.nTransactions)));
         ret.push_back(Pair("txouts", int64_t(stats.nTransactionOutputs)));
-        ret.push_back(Pair("bytes_serialized", int64_t(stats.nSerializedSize)));
+        ret.push_back(Pair("bogosize", int64_t(stats.nBogoSize)));
         ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
+        ret.push_back(Pair("disk_size", stats.nDiskSize));
         ret.push_back(
             Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
     } else {

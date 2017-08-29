@@ -50,8 +50,11 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(res['transactions'], 200)
         assert_equal(res['height'], 200)
         assert_equal(res['txouts'], 200)
-        assert_equal(res['bytes_serialized'], 13924)
+        assert_equal(res['bogosize'], 17000),
         assert_equal(res['bestblock'], node.getblockhash(200))
+        size = res['disk_size']
+        assert size > 6400
+        assert size < 64000
         assert_equal(len(res['bestblock']), 64)
         assert_equal(len(res['hash_serialized']), 64)
 
@@ -65,6 +68,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(res2['total_amount'], Decimal('0'))
         assert_equal(res2['height'], 0)
         assert_equal(res2['txouts'], 0)
+        assert_equal(res2['bogosize'], 0),
         assert_equal(res2['bestblock'], node.getblockhash(0))
         assert_equal(len(res2['hash_serialized']), 64)
 
@@ -77,6 +81,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(res['transactions'], res3['transactions'])
         assert_equal(res['height'], res3['height'])
         assert_equal(res['txouts'], res3['txouts'])
+        assert_equal(res['bogosize'], res3['bogosize'])
         assert_equal(res['bestblock'], res3['bestblock'])
         assert_equal(res['hash_serialized'], res3['hash_serialized'])
 
@@ -105,6 +110,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert isinstance(header['version'], int)
         assert isinstance(int(header['versionHex'], 16), int)
         assert isinstance(header['difficulty'], Decimal)
+
 
 if __name__ == '__main__':
     BlockchainTest().main()

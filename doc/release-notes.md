@@ -32,6 +32,11 @@ Low-level RPC changes (D500)
   - `fundrawtransaction` now returns RPC_WALLET_ERROR if bitcoind is unable to create
   the transaction. The error message provides further details. Previously returned
   RPC_INTERNAL_ERROR.
+  - The `gettxoutsetinfo` response now contains `disk_size` and `bogosize` instead of
+    `bytes_serialized`. The first is a more accurate estimate of actual disk usage, but
+    is not deterministic. The second is unrelated to disk usage, but is a
+    database-independent metric of UTXO set size: it counts every UTXO entry as 50 + the
+    length of its scriptPubKey.
 
 Reserve block space for high priority transactions (D485)
 ---------------------------------------------------------
