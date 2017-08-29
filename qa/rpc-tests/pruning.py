@@ -244,7 +244,7 @@ class PruneTest(BitcoinTestFramework):
         # Verify that a block on the old main chain fork has been pruned away
         assert_raises_jsonrpc(
             -1, "Block not available (pruned data)", self.nodes[2].getblock, self.forkhash)
-        self.log.info("Will need to redownload block", self.forkheight)
+        self.log.info("Will need to redownload block %d" % self.forkheight)
 
         # Verify that we have enough history to reorg back to the fork point.
         # Although this is more than 288 blocks, because this chain was written
