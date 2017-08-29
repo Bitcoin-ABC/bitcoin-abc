@@ -46,7 +46,6 @@
 #ifdef ENABLE_WALLET
 #include "wallet/init.h"
 #include "wallet/rpcdump.h"
-#include "wallet/wallet.h"
 #endif
 #include "warnings.h"
 
@@ -191,9 +190,7 @@ void Shutdown() {
     StopRPC();
     StopHTTPServer();
 #ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->Flush(false);
-    }
+    FlushWallets();
 #endif
     StopMapPort();
 
@@ -250,9 +247,7 @@ void Shutdown() {
         pblocktree.reset();
     }
 #ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->Flush(true);
-    }
+    StopWallets();
 #endif
 
 #if ENABLE_ZMQ
@@ -273,10 +268,7 @@ void Shutdown() {
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
 #ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        delete pwallet;
-    }
-    vpwallets.clear();
+    CloseWallets();
 #endif
     globalVerifyHandle.reset();
     ECC_Stop();
@@ -1580,7 +1572,7 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
 
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
 #ifdef ENABLE_WALLET
-    RegisterWalletRPCCommands(tableRPC);
+    RegisterWalletRPC(tableRPC);
     RegisterDumpRPCCommands(tableRPC);
 #endif
 
@@ -1817,7 +1809,7 @@ bool AppInitMain(Config &config,
 
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!WalletVerify(chainparams)) {
+    if (!VerifyWallets(chainparams)) {
         return false;
     }
 #endif
@@ -2205,7 +2197,7 @@ bool AppInitMain(Config &config,
 
 // Step 8: load wallet
 #ifdef ENABLE_WALLET
-    if (!InitLoadWallet(chainparams)) {
+    if (!OpenWallets(chainparams)) {
         return false;
     }
 #else
@@ -2348,9 +2340,7 @@ bool AppInitMain(Config &config,
     uiInterface.InitMessage(_("Done loading"));
 
 #ifdef ENABLE_WALLET
-    for (CWalletRef pwallet : vpwallets) {
-        pwallet->postInitProcess(scheduler);
-    }
+    StartWallets(scheduler);
 #endif
 
     return !fRequestShutdown;

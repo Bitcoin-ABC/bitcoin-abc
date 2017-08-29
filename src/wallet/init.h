@@ -11,6 +11,9 @@
 
 #include <string>
 
+class CRPCTable;
+class CScheduler;
+
 /**
  * Return the wallets help message.
  */
@@ -22,19 +25,36 @@ std::string GetWalletHelpString(bool showDebug);
 bool WalletParameterInteraction();
 
 /**
+ * Register wallet RPCs.
+ */
+void RegisterWalletRPC(CRPCTable &tableRPC);
+
+/**
  * Responsible for reading and validating the -wallet arguments and verifying
  * the wallet database.
  * This function will perform salvage on the wallet if requested, as long as
  * only one wallet is
- * being loaded (CWallet::ParameterInteraction forbids -salvagewallet,
+ * being loaded (WalletParameterInteraction forbids -salvagewallet,
  * -zapwallettxes or -upgradewallet with multiwallet).
  */
 
-bool WalletVerify(const CChainParams &chainParams);
+bool VerifyWallets(const CChainParams &chainParams);
 
 /**
  * Load wallet databases.
  */
-bool InitLoadWallet(const CChainParams &chainParams);
+bool OpenWallets(const CChainParams &chainParams);
+
+//! Complete startup of wallets.
+void StartWallets(CScheduler &scheduler);
+
+//! Flush all wallets in preparation for shutdown.
+void FlushWallets();
+
+//! Stop all wallets. Wallets will be flushed first.
+void StopWallets();
+
+//! Close all wallets.
+void CloseWallets();
 
 #endif // BITCOIN_WALLET_INIT_H
