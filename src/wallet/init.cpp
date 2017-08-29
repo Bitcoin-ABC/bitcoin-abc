@@ -11,6 +11,7 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validation.h"
+#include "wallet/rpcwallet.h"
 #include "wallet/wallet.h"
 
 std::string GetWalletHelpString(bool showDebug) {
@@ -249,7 +250,15 @@ bool WalletParameterInteraction() {
     return true;
 }
 
-bool WalletVerify(const CChainParams &chainParams) {
+void RegisterWalletRPC(CRPCTable &t) {
+    if (gArgs.GetBoolArg("-disablewallet", false)) {
+        return;
+    }
+
+    RegisterWalletRPCCommands(t);
+}
+
+bool VerifyWallets(const CChainParams &chainParams) {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         return true;
     }
@@ -320,7 +329,7 @@ bool WalletVerify(const CChainParams &chainParams) {
     return true;
 }
 
-bool InitLoadWallet(const CChainParams &chainParams) {
+bool OpenWallets(const CChainParams &chainParams) {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         LogPrintf("Wallet disabled!\n");
         return true;
@@ -336,4 +345,29 @@ bool InitLoadWallet(const CChainParams &chainParams) {
     }
 
     return true;
+}
+
+void StartWallets(CScheduler &scheduler) {
+    for (CWalletRef pwallet : vpwallets) {
+        pwallet->postInitProcess(scheduler);
+    }
+}
+
+void FlushWallets() {
+    for (CWalletRef pwallet : vpwallets) {
+        pwallet->Flush(false);
+    }
+}
+
+void StopWallets() {
+    for (CWalletRef pwallet : vpwallets) {
+        pwallet->Flush(true);
+    }
+}
+
+void CloseWallets() {
+    for (CWalletRef pwallet : vpwallets) {
+        delete pwallet;
+    }
+    vpwallets.clear();
 }
