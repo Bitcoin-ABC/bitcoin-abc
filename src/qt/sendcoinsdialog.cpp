@@ -839,10 +839,8 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                 tr("Warning: Invalid Bitcoin address"));
         } else {
             // Valid address
-            CKeyID keyid;
-            addr.GetKeyID(keyid);
-            // Unknown change address
-            if (!model->havePrivKey(keyid)) {
+            const CTxDestination dest = addr.Get();
+            if (!model->IsSpendable(dest)) {
                 ui->labelCoinControlChangeLabel->setText(
                     tr("Warning: Unknown change address"));
 
@@ -856,7 +854,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                     QMessageBox::Cancel);
 
                 if (btnRetVal == QMessageBox::Yes)
-                    CoinControlDialog::coinControl->destChange = addr.Get();
+                    CoinControlDialog::coinControl->destChange = dest;
                 else {
                     ui->lineEditCoinControlChange->setText("");
                     ui->labelCoinControlChangeLabel->setStyleSheet(
@@ -876,7 +874,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                 else
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
 
-                CoinControlDialog::coinControl->destChange = addr.Get();
+                CoinControlDialog::coinControl->destChange = dest;
             }
         }
     }
