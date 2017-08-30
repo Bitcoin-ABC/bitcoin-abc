@@ -1,4 +1,4 @@
-Contributing to Bitcoin XBC
+Contributing to Bitcoin-XBC
 ===========================
 
 The Bitcoin XBC is cloned from Bitcoin-ABC, this project welcomes contributors!

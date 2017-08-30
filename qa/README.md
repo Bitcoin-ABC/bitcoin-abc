@@ -5,7 +5,7 @@ Every pull request to the bitcoin repository is built and run through
 the regression test suite. You can also run all or only individual
 tests locally.
 
-Test dependencies
+Test dependencies.
 =================
 Before running the tests, the following must be installed.
 

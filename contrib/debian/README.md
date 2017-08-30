@@ -1,6 +1,6 @@
 
 Debian
-====================
+===================
 This directory contains files used to package bitcoind/bitcoin-qt
 for Debian-based Linux systems. If you compile bitcoind/bitcoin-qt yourself, there are some useful files here.
 

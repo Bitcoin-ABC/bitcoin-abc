@@ -1,5 +1,5 @@
 Repository Tools
----------------------
+-----------------
 
 ### [Developer tools](/contrib/devtools) ###
 Specific tools for developers working on this repository.
