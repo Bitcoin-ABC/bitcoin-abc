@@ -440,9 +440,6 @@ public:
  */
 class CCoinsViewCache : public CCoinsViewBacked {
 protected:
-    /* Whether this cache has an active modifier. */
-    bool hasModifier;
-
     /**
      * Make mutable so that we can "fill the cache" even from Get-methods
      * declared as "const".
@@ -465,7 +462,6 @@ protected:
 
 public:
     CCoinsViewCache(CCoinsView *baseIn);
-    ~CCoinsViewCache();
 
     // Standard CCoinsView methods
     uint256 GetBestBlock() const;

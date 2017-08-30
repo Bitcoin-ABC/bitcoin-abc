@@ -83,11 +83,7 @@ SaltedTxidHasher::SaltedTxidHasher()
       k1(GetRand(std::numeric_limits<uint64_t>::max())) {}
 
 CCoinsViewCache::CCoinsViewCache(CCoinsView *baseIn)
-    : CCoinsViewBacked(baseIn), hasModifier(false), cachedCoinsUsage(0) {}
-
-CCoinsViewCache::~CCoinsViewCache() {
-    assert(!hasModifier);
-}
+    : CCoinsViewBacked(baseIn), cachedCoinsUsage(0) {}
 
 size_t CCoinsViewCache::DynamicMemoryUsage() const {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
@@ -236,7 +232,6 @@ void CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
 
 bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
                                  const uint256 &hashBlockIn) {
-    assert(!hasModifier);
     for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();) {
         // Ignore non-dirty entries (optimization).
         if (it->second.flags & CCoinsCacheEntry::DIRTY) {
