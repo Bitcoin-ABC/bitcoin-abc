@@ -107,6 +107,11 @@ enum {
     // Do we accept signature using SIGHASH_FORKID
     //
     SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
+
+    // Support MERKLEBRANCHVERIFY
+    //
+    // See BIP116 for details
+    SCRIPT_VERIFY_MERKLEBRANCHVERIFY = (1U << 17),  
 };
 
 bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
