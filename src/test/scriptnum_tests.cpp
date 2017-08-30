@@ -43,10 +43,7 @@ static void CheckCreateVch(const int64_t &num) {
     CScriptNum scriptnum(num);
     BOOST_CHECK(verify(bignum, scriptnum));
 
-    std::vector<uint8_t> vch = bignum.getvch();
-
     CScriptNum10 bignum2(bignum.getvch(), false);
-    vch = scriptnum.getvch();
     CScriptNum scriptnum2(scriptnum.getvch(), false);
     BOOST_CHECK(verify(bignum2, scriptnum2));
 
@@ -103,10 +100,9 @@ static void CheckSubtract(const int64_t &num1, const int64_t &num2) {
     const CScriptNum10 bignum2(num2);
     const CScriptNum scriptnum1(num1);
     const CScriptNum scriptnum2(num2);
-    bool invalid = false;
 
     // int64_t overflow is undefined.
-    invalid =
+    bool invalid =
         ((num2 > 0 && num1 < std::numeric_limits<int64_t>::min() + num2) ||
          (num2 < 0 && num1 > std::numeric_limits<int64_t>::max() + num2));
     if (!invalid) {
