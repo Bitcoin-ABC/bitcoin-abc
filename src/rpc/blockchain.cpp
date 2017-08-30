@@ -867,6 +867,27 @@ struct CCoinsStats {
           nDiskSize(0), nTotalAmount(0) {}
 };
 
+static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
+                       const std::map<uint32_t, Coin> &outputs) {
+    assert(!outputs.empty());
+    ss << hash;
+    ss << VARINT(outputs.begin()->second.GetHeight() * 2 +
+                 outputs.begin()->second.IsCoinBase());
+    stats.nTransactions++;
+    for (const auto output : outputs) {
+        ss << VARINT(output.first + 1);
+        ss << *(const CScriptBase *)(&output.second.GetTxOut().scriptPubKey);
+        ss << VARINT(output.second.GetTxOut().nValue);
+        stats.nTransactionOutputs++;
+        stats.nTotalAmount += output.second.GetTxOut().nValue;
+        stats.nBogoSize +=
+            32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
+            8 /* amount */ + 2 /* scriptPubKey len */ +
+            output.second.GetTxOut().scriptPubKey.size() /* scriptPubKey */;
+    }
+    ss << VARINT(0);
+}
+
 //! Calculate statistics about the unspent transaction output set
 static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
@@ -878,37 +899,28 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
         stats.nHeight = mapBlockIndex.find(stats.hashBlock)->second->nHeight;
     }
     ss << stats.hashBlock;
-    CAmount nTotalAmount = 0;
+    uint256 prevkey;
+    std::map<uint32_t, Coin> outputs;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
-        uint256 key;
-        CCoins coins;
-        if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
-            stats.nTransactions++;
-            ss << key;
-            ss << VARINT(coins.nHeight * 2 + coins.fCoinBase);
-            for (size_t i = 0; i < coins.vout.size(); i++) {
-                const CTxOut &out = coins.vout[i];
-                if (!out.IsNull()) {
-                    stats.nTransactionOutputs++;
-                    ss << VARINT(i + 1);
-                    ss << out;
-                    nTotalAmount += out.nValue;
-                    stats.nBogoSize +=
-                        32 /* txid */ + 4 /* vout index */ +
-                        4 /* height + coinbase */ + 8 /* amount */ +
-                        2 /* scriptPubKey len */ +
-                        out.scriptPubKey.size() /* scriptPubKey */;
-                }
+        COutPoint key;
+        Coin coin;
+        if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
+            if (!outputs.empty() && key.hash != prevkey) {
+                ApplyStats(stats, ss, prevkey, outputs);
+                outputs.clear();
             }
-            ss << VARINT(0);
+            prevkey = key.hash;
+            outputs[key.n] = std::move(coin);
         } else {
             return error("%s: unable to read value", __func__);
         }
         pcursor->Next();
     }
+    if (!outputs.empty()) {
+        ApplyStats(stats, ss, prevkey, outputs);
+    }
     stats.hashSerialized = ss.GetHash();
-    stats.nTotalAmount = nTotalAmount;
     stats.nDiskSize = view->EstimateSize();
     return true;
 }
@@ -1053,7 +1065,6 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
             "        ,...\n"
             "     ]\n"
             "  },\n"
-            "  \"version\" : n,            (numeric) The version\n"
             "  \"coinbase\" : true|false   (boolean) Coinbase or not\n"
             "}\n"
 

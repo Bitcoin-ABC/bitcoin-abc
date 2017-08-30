@@ -315,10 +315,11 @@ static UniValue gettxoutproof(const Config &config,
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         pblockindex = mapBlockIndex[hashBlock];
     } else {
-        CCoins coins;
-        if (pcoinsTip->GetCoins_DONOTUSE(oneTxid, coins) && coins.nHeight > 0 &&
-            coins.nHeight <= chainActive.Height())
-            pblockindex = chainActive[coins.nHeight];
+        const Coin &coin = AccessByTxid(*pcoinsTip, oneTxid);
+        if (!coin.IsSpent() && coin.GetHeight() > 0 &&
+            int64_t(coin.GetHeight()) <= chainActive.Height()) {
+            pblockindex = chainActive[coin.GetHeight()];
+        }
     }
 
     if (pblockindex == nullptr) {

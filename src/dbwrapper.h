@@ -66,6 +66,11 @@ public:
         : parent(_parent), ssKey(SER_DISK, CLIENT_VERSION),
           ssValue(SER_DISK, CLIENT_VERSION), size_estimate(0){};
 
+    void Clear() {
+        batch.Clear();
+        size_estimate = 0;
+    }
+
     template <typename K, typename V> void Write(const K &key, const V &value) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;

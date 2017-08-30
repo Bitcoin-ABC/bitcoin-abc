@@ -141,9 +141,9 @@ bool ShutdownRequested() {
 class CCoinsViewErrorCatcher : public CCoinsViewBacked {
 public:
     CCoinsViewErrorCatcher(CCoinsView *view) : CCoinsViewBacked(view) {}
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
         try {
-            return CCoinsViewBacked::GetCoins(txid, coins);
+            return CCoinsViewBacked::GetCoin(outpoint, coin);
         } catch (const std::runtime_error &e) {
             uiInterface.ThreadSafeMessageBox(
                 _("Error reading from database, shutting down."), "",
@@ -1942,7 +1942,12 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     pblocktree->WriteReindexing(true);
                     // If we're reindexing in prune mode, wipe away unusable
                     // block files and all undo data files
-                    if (fPruneMode) CleanupBlockRevFiles();
+                    if (fPruneMode) {
+                        CleanupBlockRevFiles();
+                    }
+                } else if (!pcoinsdbview->Upgrade()) {
+                    strLoadError = _("Error upgrading chainstate database");
+                    break;
                 }
 
                 if (!LoadBlockIndex(chainparams)) {

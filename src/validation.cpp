@@ -2182,16 +2182,18 @@ static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
         // Flush best chain related state. This can only be done if the blocks /
         // block index write was also done.
         if (fDoFullFlush) {
-            // Typical CCoins structures on disk are around 128 bytes in size.
+            // Typical Coin structures on disk are around 48 bytes in size.
             // Pushing a new one to the database can cause it to be written
             // twice (once in the log, and once in the tables). This is already
             // an overestimation, as most will delete an existing entry or
             // overwrite one. Still, use a conservative safety factor of 2.
-            if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
+            if (!CheckDiskSpace(48 * 2 * 2 * pcoinsTip->GetCacheSize())) {
                 return state.Error("out of disk space");
+            }
             // Flush the chainstate (which may refer to block index entries).
-            if (!pcoinsTip->Flush())
+            if (!pcoinsTip->Flush()) {
                 return AbortNode(state, "Failed to write to coin database");
+            }
             nLastFlush = nNow;
         }
         if (fDoFullFlush ||
@@ -2287,7 +2289,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     }
     LogPrintf(
         "%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-        "date='%s' progress=%f cache=%.1fMiB(%utx)",
+        "date='%s' progress=%f cache=%.1fMiB(%utxo)",
         __func__, chainActive.Tip()->GetBlockHash().ToString(),
         chainActive.Height(), chainActive.Tip()->nVersion,
         log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),

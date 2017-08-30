@@ -370,6 +370,19 @@ enum class MemPoolRemovalReason {
     REPLACED
 };
 
+class SaltedTxidHasher {
+private:
+    /** Salt */
+    const uint64_t k0, k1;
+
+public:
+    SaltedTxidHasher();
+
+    size_t operator()(const uint256 &txid) const {
+        return SipHashUint256(k0, k1, txid);
+    }
+};
+
 /**
  * CTxMemPool stores valid-according-to-the-current-best-chain transactions that
  * may be included in the next block.
@@ -683,7 +696,13 @@ public:
 
     bool exists(uint256 hash) const {
         LOCK(cs);
-        return (mapTx.count(hash) != 0);
+        return mapTx.count(hash) != 0;
+    }
+
+    bool exists(const COutPoint &outpoint) const {
+        LOCK(cs);
+        auto it = mapTx.find(outpoint.hash);
+        return it != mapTx.end() && outpoint.n < it->GetTx().vout.size();
     }
 
     CTransactionRef get(const uint256 &hash) const;
@@ -773,11 +792,10 @@ class CCoinsViewMemPool : public CCoinsViewBacked {
 protected:
     const CTxMemPool &mempool;
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
-
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
+    bool HaveCoin(const COutPoint &outpoint) const;
 };
 
 // We want to sort transactions by coin age priority

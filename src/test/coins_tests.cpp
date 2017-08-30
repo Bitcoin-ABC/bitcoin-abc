@@ -32,25 +32,25 @@ bool operator==(const Coin &a, const Coin &b) {
 
 class CCoinsViewTest : public CCoinsView {
     uint256 hashBestBlock_;
-    std::map<uint256, CCoins> map_;
+    std::map<COutPoint, Coin> map_;
 
 public:
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
-        std::map<uint256, CCoins>::const_iterator it = map_.find(txid);
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
+        std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
         if (it == map_.end()) {
             return false;
         }
-        coins = it->second;
-        if (coins.IsPruned() && insecure_rand() % 2 == 0) {
+        coin = it->second;
+        if (coin.IsSpent() && insecure_rand() % 2 == 0) {
             // Randomly return false in case of an empty entry.
             return false;
         }
         return true;
     }
 
-    bool HaveCoins(const uint256 &txid) const {
-        CCoins coins;
-        return GetCoins(txid, coins);
+    bool HaveCoin(const COutPoint outpoint) const {
+        Coin coin;
+        return GetCoin(outpoint, coin);
     }
 
     uint256 GetBestBlock() const { return hashBestBlock_; }
@@ -60,15 +60,17 @@ public:
             if (it->second.flags & CCoinsCacheEntry::DIRTY) {
                 // Same optimization used in CCoinsViewDB is to only write dirty
                 // entries.
-                map_[it->first] = it->second.coins;
-                if (it->second.coins.IsPruned() && insecure_rand() % 3 == 0) {
+                map_[it->first] = it->second.coin;
+                if (it->second.coin.IsSpent() && insecure_rand() % 3 == 0) {
                     // Randomly delete empty entries on write.
                     map_.erase(it->first);
                 }
             }
             mapCoins.erase(it++);
         }
-        if (!hashBlock.IsNull()) hashBestBlock_ = hashBlock;
+        if (!hashBlock.IsNull()) {
+            hashBestBlock_ = hashBlock;
+        }
         return true;
     }
 };
@@ -83,7 +85,7 @@ public:
         size_t ret = memusage::DynamicUsage(cacheCoins);
         for (CCoinsMap::iterator it = cacheCoins.begin();
              it != cacheCoins.end(); it++) {
-            ret += it->second.coins.DynamicMemoryUsage();
+            ret += it->second.coin.DynamicMemoryUsage();
         }
         BOOST_CHECK_EQUAL(DynamicMemoryUsage(), ret);
     }
@@ -622,9 +624,7 @@ BOOST_AUTO_TEST_CASE(ccoins_serialization) {
     }
 }
 
-// TODO: Remove TXID once the migration is over.
-static const uint256 TXID;
-static const COutPoint OUTPOINT = {uint256(), 0};
+static const COutPoint OUTPOINT;
 static const CAmount PRUNED = -1;
 static const CAmount ABSENT = -2;
 static const CAmount FAIL = -3;
@@ -639,14 +639,15 @@ static const auto FLAGS = {char(0), FRESH, DIRTY, char(DIRTY | FRESH)};
 static const auto CLEAN_FLAGS = {char(0), FRESH};
 static const auto ABSENT_FLAGS = {NO_ENTRY};
 
-void SetCoinsValue(CAmount value, CCoins &coins) {
+void SetCoinsValue(CAmount value, Coin &coin) {
     assert(value != ABSENT);
-    coins.Clear();
-    assert(coins.IsPruned());
+    coin.Clear();
+    assert(coin.IsSpent());
     if (value != PRUNED) {
-        coins.vout.emplace_back();
-        coins.vout.back().nValue = value;
-        assert(!coins.IsPruned());
+        CTxOut out;
+        out.nValue = value;
+        coin = Coin(std::move(out), 1, false);
+        assert(!coin.IsSpent());
     }
 }
 
@@ -658,24 +659,22 @@ size_t InsertCoinsMapEntry(CCoinsMap &map, CAmount value, char flags) {
     assert(flags != NO_ENTRY);
     CCoinsCacheEntry entry;
     entry.flags = flags;
-    SetCoinsValue(value, entry.coins);
-    auto inserted = map.emplace(TXID, std::move(entry));
+    SetCoinsValue(value, entry.coin);
+    auto inserted = map.emplace(OUTPOINT, std::move(entry));
     assert(inserted.second);
-    return inserted.first->second.coins.DynamicMemoryUsage();
+    return inserted.first->second.coin.DynamicMemoryUsage();
 }
 
 void GetCoinsMapEntry(const CCoinsMap &map, CAmount &value, char &flags) {
-    auto it = map.find(TXID);
+    auto it = map.find(OUTPOINT);
     if (it == map.end()) {
         value = ABSENT;
         flags = NO_ENTRY;
     } else {
-        if (it->second.coins.IsPruned()) {
-            assert(it->second.coins.vout.size() == 0);
+        if (it->second.coin.IsSpent()) {
             value = PRUNED;
         } else {
-            assert(it->second.coins.vout.size() == 1);
-            value = it->second.coins.vout[0].nValue;
+            value = it->second.coin.GetTxOut().nValue;
         }
         flags = it->second.flags;
         assert(flags != NO_ENTRY);

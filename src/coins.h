@@ -299,13 +299,13 @@ public:
     }
 };
 
-class SaltedTxidHasher {
+class SaltedOutpointHasher {
 private:
     /** Salt */
     const uint64_t k0, k1;
 
 public:
-    SaltedTxidHasher();
+    SaltedOutpointHasher();
 
     /**
      * This *must* return size_t. With Boost 1.46 on 32-bit systems the
@@ -315,13 +315,14 @@ public:
      * container type has meanwhile been switched to the C++ standard library
      * implementation.
      */
-    size_t operator()(const uint256 &txid) const {
-        return SipHashUint256(k0, k1, txid);
+    size_t operator()(const COutPoint &outpoint) const {
+        return SipHashUint256Extra(k0, k1, outpoint.hash, outpoint.n);
     }
 };
 
 struct CCoinsCacheEntry {
-    CCoins coins; // The actual cached data.
+    // The actual cached data.
+    Coin coin;
     uint8_t flags;
 
     enum Flags {
@@ -336,21 +337,22 @@ struct CCoinsCacheEntry {
            that condition is not guaranteed. */
     };
 
-    CCoinsCacheEntry() : coins(), flags(0) {}
+    CCoinsCacheEntry() : flags(0) {}
+    explicit CCoinsCacheEntry(Coin coinIn)
+        : coin(std::move(coinIn)), flags(0) {}
 };
 
-typedef std::unordered_map<uint256, CCoinsCacheEntry, SaltedTxidHasher>
+typedef std::unordered_map<COutPoint, CCoinsCacheEntry, SaltedOutpointHasher>
     CCoinsMap;
 
 /** Cursor for iterating over CoinsView state */
 class CCoinsViewCursor {
 public:
     CCoinsViewCursor(const uint256 &hashBlockIn) : hashBlock(hashBlockIn) {}
-    virtual ~CCoinsViewCursor();
+    virtual ~CCoinsViewCursor() {}
 
-    virtual bool GetKey(uint256 &key) const = 0;
-    virtual bool GetValue(CCoins &coins) const = 0;
-    /* Don't care about GetKeySize here */
+    virtual bool GetKey(COutPoint &key) const = 0;
+    virtual bool GetValue(Coin &coin) const = 0;
     virtual unsigned int GetValueSize() const = 0;
 
     virtual bool Valid() const = 0;
@@ -365,50 +367,18 @@ private:
 
 /** Abstract view on the open txout dataset. */
 class CCoinsView {
-protected:
-    //! Retrieve the CCoins (unspent transaction outputs) for a given txid
-    virtual bool GetCoins(const uint256 &txid, CCoins &coins) const;
-
-    //! Just check whether we have data for a given txid.
-    //! This may (but cannot always) return true for fully spent transactions
-    virtual bool HaveCoins(const uint256 &txid) const;
-
 public:
-    //! Transitional function to move from GetCoins to GetCoin.
-    bool GetCoins_DONOTUSE(const uint256 &txid, CCoins &coins) const {
-        return GetCoins(txid, coins);
-    }
-
     //! Retrieve the Coin (unspent transaction output) for a given outpoint.
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
-        CCoins coins;
-        if (!GetCoins(outpoint.hash, coins) || !coins.IsAvailable(outpoint.n)) {
-            return false;
-        }
-
-        coin = Coin(coins.vout[outpoint.n], coins.nHeight, coins.fCoinBase);
-        return true;
-    }
-
-    //! Transitional function to move from HaveCoins to HaveCoin.
-    bool HaveCoins_DONOTUSE(const uint256 &txid) const {
-        return HaveCoins(txid);
-    }
+    virtual bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
 
     //! Just check whether we have data for a given outpoint.
     //! This may (but cannot always) return true for spent outputs.
-    bool HaveCoin(const COutPoint &outpoint) const {
-        CCoins coins;
-        if (!GetCoins(outpoint.hash, coins)) {
-            return false;
-        }
-        return coins.IsAvailable(outpoint.n);
-    }
+    virtual bool HaveCoin(const COutPoint &outpoint) const;
 
     //! Retrieve the block hash whose state this CCoinsView currently represents
     virtual uint256 GetBestBlock() const;
 
-    //! Do a bulk modification (multiple CCoins changes + BestBlock change).
+    //! Do a bulk modification (multiple Coin changes + BestBlock change).
     //! The passed mapCoins can be modified.
     virtual bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
 
@@ -427,11 +397,10 @@ class CCoinsViewBacked : public CCoinsView {
 protected:
     CCoinsView *base;
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
-
 public:
     CCoinsViewBacked(CCoinsView *viewIn);
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
+    bool HaveCoin(const COutPoint &outpoint) const;
     uint256 GetBestBlock() const;
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
@@ -451,23 +420,15 @@ protected:
     mutable uint256 hashBlock;
     mutable CCoinsMap cacheCoins;
 
-    /* Cached dynamic memory usage for the inner CCoins objects. */
+    /* Cached dynamic memory usage for the inner Coin objects. */
     mutable size_t cachedCoinsUsage;
-
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
-
-    /**
-     * Return a pointer to CCoins in the cache, or nullptr if not found. This is
-     * more efficient than GetCoins. Modifications to other cache entries are
-     * allowed while accessing the returned pointer.
-     */
-    const CCoins *AccessCoins(const uint256 &txid) const;
 
 public:
     CCoinsViewCache(CCoinsView *baseIn);
 
     // Standard CCoinsView methods
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
+    bool HaveCoin(const COutPoint &outpoint) const;
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
@@ -479,25 +440,18 @@ public:
      */
     bool HaveCoinInCache(const COutPoint &outpoint) const;
 
-    //! Transitional function to move from AccessCoins to AccessCoin.
-    const CCoins *AccessCoins_DONOTUSE(const uint256 &txid) const {
-        return AccessCoins(txid);
-    }
-
     /**
-     * Return a copy of a Coin in the cache, or a pruned one if not found. This
-     * is more efficient than GetCoin. Modifications to other cache entries are
-     * allowed while accessing the returned pointer.
-     * TODO: return a reference instead of a value once underlying storage is
-     * updated.
+     * Return a reference to a Coin in the cache, or a pruned one if not found.
+     * This is more efficient than GetCoin. Modifications to other cache entries
+     * are allowed while accessing the returned pointer.
      */
-    const Coin AccessCoin(const COutPoint &output) const;
+    const Coin &AccessCoin(const COutPoint &output) const;
 
     /**
      * Add a coin. Set potential_overwrite to true if a non-pruned version may
      * already exist.
      */
-    void AddCoin(const COutPoint &outpoint, const Coin &coin,
+    void AddCoin(const COutPoint &outpoint, Coin coin,
                  bool potential_overwrite);
 
     /**
@@ -521,7 +475,7 @@ public:
      */
     void Uncache(const COutPoint &outpoint);
 
-    //! Calculate the size of the cache (in number of transactions)
+    //! Calculate the size of the cache (in number of transaction outputs)
     unsigned int GetCacheSize() const;
 
     //! Calculate the size of the cache (in bytes)
@@ -551,10 +505,8 @@ public:
 
     const CTxOut &GetOutputFor(const CTxIn &input) const;
 
-    friend class CCoinsModifier;
-
 private:
-    CCoinsMap::iterator FetchCoins(const uint256 &txid) const;
+    CCoinsMap::iterator FetchCoin(const COutPoint &outpoint) const;
 
     /**
      * By making the copy constructor private, we prevent accidentally using it
@@ -570,6 +522,6 @@ private:
 void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight);
 
 //! Utility function to find any unspent output with a given txid.
-const Coin AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
+const Coin &AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
 
 #endif // BITCOIN_COINS_H
