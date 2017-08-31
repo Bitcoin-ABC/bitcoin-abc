@@ -32,7 +32,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
 
     def __init__(self):
         super().__init__()
-        self.num_nodes = 4
+        self.num_nodes = 2
         self.setup_clean_chain = False
 
     def run_test(self):
@@ -83,6 +83,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         # seconds it should have returned
         thr.join(60 + 20)
         assert(not thr.is_alive())
+
 
 if __name__ == '__main__':
     GetBlockTemplateLPTest().main()
