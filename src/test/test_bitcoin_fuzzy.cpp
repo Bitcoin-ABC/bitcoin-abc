@@ -36,7 +36,7 @@ enum TEST_ID {
     CBANENTRY_DESERIALIZE,
     CTXUNDO_DESERIALIZE,
     CBLOCKUNDO_DESERIALIZE,
-    CCOINS_DESERIALIZE,
+    COIN_DESERIALIZE,
     CNETADDR_DESERIALIZE,
     CSERVICE_DESERIALIZE,
     CMESSAGEHEADER_DESERIALIZE,
@@ -164,10 +164,10 @@ int main(int argc, char **argv) {
             }
             break;
         }
-        case CCOINS_DESERIALIZE: {
+        case COIN_DESERIALIZE: {
             try {
-                CCoins block;
-                ds >> block;
+                Coin coin;
+                ds >> coin;
             } catch (const std::ios_base::failure &e) {
                 return 0;
             }
