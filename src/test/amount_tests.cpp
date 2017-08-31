@@ -7,7 +7,81 @@
 
 #include <boost/test/unit_test.hpp>
 
+// Snippit to allow compile time introspection for multiplication operator
+// Used to ensure that certain operations are not implemented on Amount
+namespace Check {
+class No {
+public:
+    bool b[2];
+};
+template <typename T, typename Arg> No operator*(const T &, const Arg &);
+
+bool Check(...);
+No &Check(const No &);
+
+template <typename T, typename Arg = T> struct MultiplicationExists {
+    enum { value = (sizeof(Check(*(T *)(0) * *(Arg *)(0))) != sizeof(No)) };
+};
+} // namespace Check
+
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(CAmountTests) {
+    BOOST_CHECK(Amount(2) <= Amount(2));
+    BOOST_CHECK(Amount(2) <= Amount(3));
+
+    BOOST_CHECK(Amount(2) >= Amount(2));
+    BOOST_CHECK(Amount(3) >= Amount(2));
+
+    BOOST_CHECK(Amount(1) < Amount(2));
+    BOOST_CHECK(Amount(-1) < Amount(0));
+
+    BOOST_CHECK(Amount(2) > Amount(1));
+    BOOST_CHECK(Amount(0) > Amount(-1));
+
+    BOOST_CHECK(Amount(1) < Amount(2));
+    BOOST_CHECK(Amount(-1) < Amount(0));
+
+    BOOST_CHECK(Amount(2) > Amount(1));
+    BOOST_CHECK(Amount(0) > Amount(-1));
+
+    BOOST_CHECK(Amount(0) == Amount(0));
+    BOOST_CHECK(Amount(0) != Amount(1));
+
+    Amount amount(0);
+    BOOST_CHECK_EQUAL(amount += Amount(1), Amount(1));
+    BOOST_CHECK_EQUAL(amount += Amount(-1), Amount(0));
+    BOOST_CHECK_EQUAL(amount -= Amount(1), Amount(-1));
+    BOOST_CHECK_EQUAL(amount -= Amount(-1), Amount(0));
+
+    BOOST_CHECK_EQUAL(COIN + COIN, Amount(2 * COIN));
+    BOOST_CHECK_EQUAL(2 * COIN + COIN, Amount(3 * COIN));
+    BOOST_CHECK_EQUAL(-1 * COIN + COIN, Amount(0));
+
+    BOOST_CHECK_EQUAL(COIN - COIN, Amount(0));
+    BOOST_CHECK_EQUAL(COIN - 2 * COIN, -1 * COIN);
+
+    BOOST_CHECK_EQUAL(10 * Amount(10), Amount(100));
+    BOOST_CHECK_EQUAL(-1 * Amount(1), Amount(-1));
+
+    // The C preprocessor will now allow passing a template type into a macro
+    // directly, so we must define these aliases.
+    using impl_int = Check::MultiplicationExists<int64_t, Amount>;
+    using impl_float = Check::MultiplicationExists<double, Amount>;
+    BOOST_CHECK(impl_int::value);
+    BOOST_CHECK(!impl_float::value);
+
+    BOOST_CHECK_EQUAL(Amount(100).GetSatoshis() / 10, 10);
+    // This should probably be Banker's rounding,
+    // but that's a large change
+    BOOST_CHECK_EQUAL(Amount(100).GetSatoshis() / 3, 33);
+    BOOST_CHECK_EQUAL(Amount(101).GetSatoshis() / 3, 33);
+
+    // Modulus
+    BOOST_CHECK_EQUAL(COIN.GetSatoshis() % 1, Amount(0));
+    BOOST_CHECK_EQUAL((3 * COIN.GetSatoshis()) % (2 * COIN.GetSatoshis()),
+                      COIN);
+}
 
 BOOST_AUTO_TEST_CASE(GetFeeTest) {
     CFeeRate feeRate;
@@ -66,7 +140,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK(CFeeRate(CAmount(26), 789) == CFeeRate(32));
     BOOST_CHECK(CFeeRate(CAmount(27), 789) == CFeeRate(34));
     // Maximum size in bytes, should not crash
-    CFeeRate(MAX_MONEY, std::numeric_limits<size_t>::max() >> 1).GetFeePerK();
+    CFeeRate(MAX_MONEY.GetSatoshis(), std::numeric_limits<size_t>::max() >> 1)
+        .GetFeePerK();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

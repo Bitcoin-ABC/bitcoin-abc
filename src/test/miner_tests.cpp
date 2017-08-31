@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "miner.h"
 #include "chainparams.h"
 #include "coins.h"
 #include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "miner.h"
 #include "policy/policy.h"
 #include "pubkey.h"
 #include "script/standard.h"
@@ -16,7 +16,6 @@
 #include "uint256.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "validation.h"
 #include "validation.h"
 
 #include "test/test_bitcoin.h"
@@ -303,10 +302,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         pblocktemplate =
             BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey));
 
-    const CAmount BLOCKSUBSIDY = 50 * COIN;
-    const CAmount LOWFEE = CENT;
-    const CAmount HIGHFEE = COIN;
-    const CAmount HIGHERFEE = 4 * COIN;
+    const CAmount BLOCKSUBSIDY = 50 * COIN.GetSatoshis();
+    const CAmount LOWFEE = CENT.GetSatoshis();
+    const CAmount HIGHFEE = COIN.GetSatoshis();
+    const CAmount HIGHERFEE = 4 * COIN.GetSatoshis();
 
     // block sigops > limit: 1000 CHECKMULTISIG + 1
     tx.vin.resize(1);

@@ -9,13 +9,86 @@
 #include "serialize.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <string>
+#include <type_traits>
+
+struct Amount {
+private:
+    int64_t amount;
+
+public:
+    Amount(int _camount) : amount(_camount) {}
+    Amount(int64_t _camount) : amount(_camount) {}
+    Amount(const Amount &_camount) : amount(_camount.amount) {}
+    // Disable implicit construction from a floating-point value.
+    Amount(double _camount) = delete;
+
+    // Allow access to underlying value for non-monetary operations
+    int64_t GetSatoshis() const { return amount; }
+
+    /*
+     * Implement standard operators
+     */
+    Amount &operator+=(const Amount a) {
+        amount += a.amount;
+        return *this;
+    }
+    Amount &operator-=(const Amount a) {
+        amount -= a.amount;
+        return *this;
+    }
+    friend bool operator<(const Amount a, const Amount b) {
+        return a.amount < b.amount;
+    }
+    friend bool operator==(const Amount a, const Amount b) {
+        return a.amount == b.amount;
+    }
+    friend bool operator>(const Amount a, const Amount b) {
+        return b.amount < a.amount;
+    }
+    friend bool operator!=(const Amount a, const Amount b) {
+        return !(a.amount == b.amount);
+    }
+    friend bool operator<=(const Amount a, const Amount b) {
+        return !(a.amount > b.amount);
+    }
+    friend bool operator>=(const Amount a, const Amount b) {
+        return !(a.amount < b.amount);
+    }
+    friend Amount operator+(const Amount a, const Amount b) {
+        return Amount(a.amount + b.amount);
+    }
+    friend Amount operator-(const Amount a, const Amount b) {
+        return Amount(a.amount - b.amount);
+    }
+    // Implemented for allowing COIN as a base unit.
+    template <typename T, typename std::enable_if<(std::is_integral<T>::value),
+                                                  T>::type = 0>
+    friend Amount operator*(const T a, const Amount b) {
+        return Amount(a * b.amount);
+    }
+
+    // ostream support
+    friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
+        return stream << ca.amount;
+    }
+    std::string ToString() const;
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(amount);
+    }
+};
 
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static const CAmount COIN = 100000000;
-static const CAmount CENT = 1000000;
+static const Amount COIN = 100000000;
+static const Amount CENT = 1000000;
 
 extern const std::string CURRENCY_UNIT;
 
@@ -29,7 +102,7 @@ extern const std::string CURRENCY_UNIT;
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  */
-static const CAmount MAX_MONEY = 21000000 * COIN;
+static const Amount MAX_MONEY = 21000000 * COIN;
 inline bool MoneyRange(const CAmount &nValue) {
     return (nValue >= 0 && nValue <= MAX_MONEY);
 }

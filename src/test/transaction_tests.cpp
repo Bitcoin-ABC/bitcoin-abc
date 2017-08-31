@@ -113,11 +113,12 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
 
                 uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(
-                    VerifyScript(tx.vin[i].scriptSig,
-                                 mapprevOutScriptPubKeys[tx.vin[i].prevout],
-                                 verify_flags, TransactionSignatureChecker(
-                                                   &tx, i, amount, txdata),
-                                 &err),
+                    VerifyScript(
+                        tx.vin[i].scriptSig,
+                        mapprevOutScriptPubKeys[tx.vin[i].prevout],
+                        verify_flags,
+                        TransactionSignatureChecker(&tx, i, amount, txdata),
+                        &err),
                     strTest);
                 BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK,
                                     ScriptErrorString(err));
@@ -270,19 +271,19 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
 
     // Create some dummy input transactions
     dummyTransactions[0].vout.resize(2);
-    dummyTransactions[0].vout[0].nValue = 11 * CENT;
+    dummyTransactions[0].vout[0].nValue = 11 * CENT.GetSatoshis();
     dummyTransactions[0].vout[0].scriptPubKey
         << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
-    dummyTransactions[0].vout[1].nValue = 50 * CENT;
+    dummyTransactions[0].vout[1].nValue = 50 * CENT.GetSatoshis();
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
     AddCoins(coinsRet, dummyTransactions[0], 0);
 
     dummyTransactions[1].vout.resize(2);
-    dummyTransactions[1].vout[0].nValue = 21 * CENT;
+    dummyTransactions[1].vout[0].nValue = 21 * CENT.GetSatoshis();
     dummyTransactions[1].vout[0].scriptPubKey =
         GetScriptForDestination(key[2].GetPubKey().GetID());
-    dummyTransactions[1].vout[1].nValue = 22 * CENT;
+    dummyTransactions[1].vout[1].nValue = 22 * CENT.GetSatoshis();
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
     AddCoins(coinsRet, dummyTransactions[1], 0);
@@ -311,11 +312,12 @@ BOOST_AUTO_TEST_CASE(test_Get) {
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
     t1.vout.resize(2);
-    t1.vout[0].nValue = 90 * CENT;
+    t1.vout[0].nValue = 90 * CENT.GetSatoshis();
     t1.vout[0].scriptPubKey << OP_1;
 
     BOOST_CHECK(AreInputsStandard(t1, coins));
-    BOOST_CHECK_EQUAL(coins.GetValueIn(t1), (50 + 21 + 22) * CENT);
+    BOOST_CHECK_EQUAL(coins.GetValueIn(t1),
+                      (50 + 21 + 22) * CENT.GetSatoshis());
 }
 
 void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
@@ -489,11 +491,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, 0, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 
     // P2SH 2-of-2 multisig
@@ -509,11 +512,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, SCRIPT_VERIFY_P2SH, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, SCRIPT_VERIFY_P2SH, true);
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 }
@@ -532,7 +536,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
     t.vout.resize(1);
-    t.vout[0].nValue = 90 * CENT;
+    t.vout[0].nValue = 90 * CENT.GetSatoshis();
     CKey key;
     key.MakeNewKey(true);
     t.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
@@ -587,8 +591,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // Data payload can be encoded in any way...
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("");
     BOOST_CHECK(IsStandardTx(t, reason));
-    t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("00")
-                                       << ParseHex("01");
+    t.vout[0].scriptPubKey = CScript()
+                             << OP_RETURN << ParseHex("00") << ParseHex("01");
     BOOST_CHECK(IsStandardTx(t, reason));
     // OP_RESERVED *is* considered to be a PUSHDATA type opcode by IsPushOnly()!
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << OP_RESERVED << -1 << 0

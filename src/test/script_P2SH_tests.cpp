@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "script/script.h"
 #include "core_io.h"
 #include "key.h"
 #include "keystore.h"
 #include "policy/policy.h"
 #include "script/ismine.h"
+#include "script/script.h"
 #include "script/script_error.h"
 #include "script/sign.h"
 #include "test/test_bitcoin.h"
@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_CASE(sign) {
     txFrom.vout.resize(8);
     for (int i = 0; i < 4; i++) {
         txFrom.vout[i].scriptPubKey = evalScripts[i];
-        txFrom.vout[i].nValue = COIN;
+        txFrom.vout[i].nValue = COIN.GetSatoshis();
         txFrom.vout[i + 4].scriptPubKey = standardScripts[i];
-        txFrom.vout[i + 4].nValue = COIN;
+        txFrom.vout[i + 4].nValue = COIN.GetSatoshis();
     }
     BOOST_CHECK(IsStandardTx(txFrom, reason));
 
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(set) {
     txFrom.vout.resize(4);
     for (int i = 0; i < 4; i++) {
         txFrom.vout[i].scriptPubKey = outer[i];
-        txFrom.vout[i].nValue = CENT;
+        txFrom.vout[i].nValue = CENT.GetSatoshis();
     }
     BOOST_CHECK(IsStandardTx(txFrom, reason));
 
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(set) {
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout.n = i;
         txTo[i].vin[0].prevout.hash = txFrom.GetId();
-        txTo[i].vout[0].nValue = 1 * CENT;
+        txTo[i].vout[0].nValue = 1 * CENT.GetSatoshis();
         txTo[i].vout[0].scriptPubKey = inner[i];
         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
                             strprintf("IsMine %d", i));

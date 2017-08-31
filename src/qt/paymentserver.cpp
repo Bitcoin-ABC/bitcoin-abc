@@ -806,7 +806,7 @@ bool PaymentServer::verifyAmount(const CAmount &requestAmount) {
                               "of allowed range (%2, allowed 0 - %3).")
                           .arg(__func__)
                           .arg(requestAmount)
-                          .arg(MAX_MONEY);
+                          .arg(MAX_MONEY.GetSatoshis());
     }
     return fVerified;
 }

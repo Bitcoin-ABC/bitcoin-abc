@@ -9,6 +9,11 @@
 
 const std::string CURRENCY_UNIT = "BCC";
 
+std::string Amount::ToString() const {
+    return strprintf("%d.%08d %s", amount / COIN.GetSatoshis(),
+                     amount % COIN.GetSatoshis(), CURRENCY_UNIT);
+}
+
 CFeeRate::CFeeRate(const CAmount &nFeePaid, size_t nBytes_) {
     assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
     int64_t nSize = int64_t(nBytes_);
@@ -39,6 +44,6 @@ CAmount CFeeRate::GetFee(size_t nBytes_) const {
 }
 
 std::string CFeeRate::ToString() const {
-    return strprintf("%d.%08d %s/kB", nSatoshisPerK / COIN,
-                     nSatoshisPerK % COIN, CURRENCY_UNIT);
+    return strprintf("%d.%08d %s/kB", nSatoshisPerK / COIN.GetSatoshis(),
+                     nSatoshisPerK % COIN.GetSatoshis(), CURRENCY_UNIT);
 }

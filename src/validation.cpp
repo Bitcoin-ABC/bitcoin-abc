@@ -157,7 +157,7 @@ std::set<CBlockIndex *> setDirtyBlockIndex;
 
 /** Dirty block file entries. */
 std::set<int> setDirtyFileInfo;
-} // anon namespace
+} // namespace
 
 /* Use this class to start tracking transactions that are removed from the
  * mempool and pass all those transactions through SyncTransaction when the
@@ -1158,7 +1158,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64) return 0;
 
-    CAmount nSubsidy = 50 * COIN;
+    CAmount nSubsidy = 50 * COIN.GetSatoshis();
     // Subsidy is cut in half every 210,000 blocks which will occur
     // approximately every 4 years.
     nSubsidy >>= halvings;
@@ -1271,9 +1271,10 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     // should be detected by both). We define it this way because it allows us
     // to only store the highest fork tip (+ base) which meets the 7-block
     // condition and from this always have the most-likely-to-cause-warning fork
-    if (pfork && (!pindexBestForkTip ||
-                  (pindexBestForkTip &&
-                   pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
+    if (pfork &&
+        (!pindexBestForkTip ||
+         (pindexBestForkTip &&
+          pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork >
             (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->nHeight < 72) {
@@ -1388,10 +1389,10 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     }
 
     if (nValueIn < tx.GetValueOut()) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout",
-                         false, strprintf("value in (%s) < value out (%s)",
-                                          FormatMoney(nValueIn),
-                                          FormatMoney(tx.GetValueOut())));
+        return state.DoS(
+            100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
+            strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn),
+                      FormatMoney(tx.GetValueOut())));
     }
 
     // Tally transaction fees
@@ -1580,7 +1581,7 @@ bool AbortNode(CValidationState &state, const std::string &strMessage,
     return state.Error(strMessage);
 }
 
-} // anon namespace
+} // namespace
 
 /** Restore the UTXO in a Coin at a given COutPoint. */
 DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
@@ -2024,8 +2025,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 return state.DoS(
-                    100, error("%s: contains a non-BIP68-final transaction",
-                               __func__),
+                    100,
+                    error("%s: contains a non-BIP68-final transaction",
+                          __func__),
                     REJECT_INVALID, "bad-txns-nonfinal");
             }
         }
@@ -2075,8 +2077,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
-    LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, "
-                      "%.3fms/txin) [%.2fs]\n",
+    LogPrint("bench",
+             "      - Connect %u transactions: %.2fms (%.3fms/tx, "
+             "%.3fms/txin) [%.2fs]\n",
              (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2),
              0.001 * (nTime3 - nTime2) / block.vtx.size(),
              nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs - 1),
@@ -2085,9 +2088,10 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     CAmount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
     if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
-                                    "(actual=%d vs limit=%d)",
-                                    block.vtx[0]->GetValueOut(), blockReward),
+        return state.DoS(100,
+                         error("ConnectBlock(): coinbase pays too much "
+                               "(actual=%d vs limit=%d)",
+                               block.vtx[0]->GetValueOut(), blockReward),
                          REJECT_INVALID, "bad-cb-amount");
     }
 
@@ -2801,9 +2805,8 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                 std::shared_ptr<const CBlock> nullBlockPtr;
                 if (!ActivateBestChainStep(
                         config, state, pindexMostWork,
-                        pblock &&
-                                pblock->GetHash() ==
-                                    pindexMostWork->GetBlockHash()
+                        pblock && pblock->GetHash() ==
+                                      pindexMostWork->GetBlockHash()
                             ? pblock
                             : nullBlockPtr,
                         fInvalidFound, connectTrace))
@@ -3504,9 +3507,8 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         assert(pindexPrev);
-        if (fCheckpointsEnabled &&
-            !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
-                                         hash)) {
+        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
+                                       pindexPrev, state, chainparams, hash)) {
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
                          state.GetRejectReason().c_str());
         }
@@ -3907,8 +3909,9 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
         }
     }
 
-    LogPrint("prune", "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
-                      "max_prune_height=%d removed %d blk/rev pairs\n",
+    LogPrint("prune",
+             "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
+             "max_prune_height=%d removed %d blk/rev pairs\n",
              nPruneTarget / 1024 / 1024, nCurrentUsage / 1024 / 1024,
              ((int64_t)nPruneTarget - (int64_t)nCurrentUsage) / 1024 / 1024,
              nLastBlockWeCanPrune, count);

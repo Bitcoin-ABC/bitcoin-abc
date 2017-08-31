@@ -31,7 +31,7 @@ class CAutoFile;
 class CBlockIndex;
 
 inline double AllowFreeThreshold() {
-    return COIN * 144 / 250;
+    return COIN.GetSatoshis() * 144 / 250;
 }
 
 inline bool AllowFree(double dPriority) {
