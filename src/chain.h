@@ -106,7 +106,7 @@ struct CDiskBlockPos {
     }
 };
 
-enum BlockStatus : uint32_t {
+enum BlockStatus : unsigned int {
     //! Unused.
     BLOCK_VALID_UNKNOWN = 0,
 
