@@ -200,7 +200,7 @@ public:
     unsigned int nChainTx;
 
     //! Verification status of this block. See enum BlockStatus
-    unsigned int nStatus;
+    uint32_t nStatus;
 
     //! block header
     int nVersion;
