@@ -1891,8 +1891,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     CBlockUndo blockundo;
 
-    CCheckQueueControl<CScriptCheck> control(
-        fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : nullptr);
+    CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
+                                                           : nullptr);
 
     std::vector<int> prevheights;
     CAmount nFees = 0;
@@ -1962,7 +1962,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
                              fCacheResults, PrecomputedTransactionData(tx),
-                             nScriptCheckThreads ? &vChecks : nullptr)) {
+                             &vChecks)) {
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
             }
