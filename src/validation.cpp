@@ -23,6 +23,7 @@
 #include "primitives/transaction.h"
 #include "random.h"
 #include "script/script.h"
+#include "script/scriptcache.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
 #include "timedata.h"
@@ -227,7 +228,8 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight);
 static bool CheckInputs(const CTransaction &tx, CValidationState &state,
                         const CCoinsViewCache &view, bool fScriptChecks,
-                        uint32_t flags, bool cacheStore,
+                        uint32_t flags, bool sigCacheStore,
+                        bool scriptCacheStore,
                         const PrecomputedTransactionData &txdata,
                         std::vector<CScriptCheck> *pvChecks = nullptr);
 static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
@@ -879,7 +881,7 @@ static bool AcceptToMemoryPoolWorker(
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
         PrecomputedTransactionData txdata(tx);
-        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true,
+        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false,
                          txdata)) {
             // State filled in by CheckInputs.
             return false;
@@ -903,7 +905,7 @@ static bool AcceptToMemoryPoolWorker(
         uint32_t currentBlockScriptVerifyFlags =
             GetBlockScriptFlags(chainActive.Tip(), config);
         if (!CheckInputs(tx, state, view, true, currentBlockScriptVerifyFlags,
-                         true, txdata)) {
+                         true, true, txdata)) {
             // If we're using promiscuousmempoolflags, we may hit this normally.
             // Check if current block has some flags that scriptVerifyFlags does
             // not before printing an ominous warning.
@@ -915,7 +917,8 @@ static bool AcceptToMemoryPoolWorker(
             }
 
             if (!CheckInputs(tx, state, view, true,
-                             MANDATORY_SCRIPT_VERIFY_FLAGS, true, txdata)) {
+                             MANDATORY_SCRIPT_VERIFY_FLAGS, true, false,
+                             txdata)) {
                 return error(
                     "%s: ConnectInputs failed against MANDATORY but not "
                     "STANDARD flags due to promiscuous mempool %s, %s",
@@ -941,9 +944,10 @@ static bool AcceptToMemoryPoolWorker(
             LimitMempoolSize(
                 pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
                 GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
-            if (!pool.exists(txid))
+            if (!pool.exists(txid)) {
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                                  "mempool full");
+            }
         }
     }
 
@@ -1368,13 +1372,20 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends,
- * scripts & sigs, amounts). This does not modify the UTXO set. If pvChecks is
- * not nullptr, script checks are pushed onto it instead of being performed
- * inline.
+ * scripts & sigs, amounts). This does not modify the UTXO set.
+ *
+ * If pvChecks is not nullptr, script checks are pushed onto it instead of being
+ * performed inline. Any script checks which are not necessary (eg due to script
+ * execution cache hits) are, obviously, not pushed onto pvChecks/run.
+ *
+ * Setting sigCacheStore/scriptCacheStore to false will remove elements from the
+ * corresponding cache which are matched. This is useful for checking blocks
+ * where we will likely never need the cache entry again.
  */
 static bool CheckInputs(const CTransaction &tx, CValidationState &state,
                         const CCoinsViewCache &inputs, bool fScriptChecks,
-                        uint32_t flags, bool cacheStore,
+                        uint32_t flags, bool sigCacheStore,
+                        bool scriptCacheStore,
                         const PrecomputedTransactionData &txdata,
                         std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
@@ -1400,6 +1411,15 @@ static bool CheckInputs(const CTransaction &tx, CValidationState &state,
         return true;
     }
 
+    // First check if script executions have been cached with the same flags.
+    // Note that this assumes that the inputs provided are correct (ie that the
+    // transaction hash which is in tx's prevouts properly commits to the
+    // scriptPubKey in the inputs view of that transaction).
+    uint256 hashCacheEntry = GetScriptCacheKey(tx, flags);
+    if (IsKeyInScriptCache(hashCacheEntry, !scriptCacheStore)) {
+        return true;
+    }
+
     for (size_t i = 0; i < tx.vin.size(); i++) {
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin &coin = inputs.AccessCoin(prevout);
@@ -1414,7 +1434,7 @@ static bool CheckInputs(const CTransaction &tx, CValidationState &state,
         const CAmount amount = coin.GetTxOut().nValue;
 
         // Verify signature
-        CScriptCheck check(scriptPubKey, amount, tx, i, flags, cacheStore,
+        CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
                            txdata);
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
@@ -1428,7 +1448,7 @@ static bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 CScriptCheck check2(scriptPubKey, amount, tx, i,
                                     flags &
                                         ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
-                                    cacheStore, txdata);
+                                    sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
@@ -1448,6 +1468,12 @@ static bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 strprintf("mandatory-script-verify-flag-failed (%s)",
                           ScriptErrorString(check.GetScriptError())));
         }
+    }
+
+    if (scriptCacheStore && !pvChecks) {
+        // We executed all of the provided scripts, and were told to cache the
+        // result. Do so now.
+        AddKeyInScriptCache(hashCacheEntry);
     }
 
     return true;
@@ -2002,8 +2028,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
-                             fCacheResults, PrecomputedTransactionData(tx),
-                             &vChecks)) {
+                             fCacheResults, fCacheResults,
+                             PrecomputedTransactionData(tx), &vChecks)) {
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
             }

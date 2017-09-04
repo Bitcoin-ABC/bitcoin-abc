@@ -28,6 +28,7 @@
 #include "rpc/register.h"
 #include "rpc/server.h"
 #include "scheduler.h"
+#include "script/scriptcache.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
 #include "timedata.h"
@@ -705,6 +706,10 @@ std::string HelpMessage(HelpMessageMode mode) {
             "-maxsigcachesize=<n>",
             strprintf("Limit size of signature cache to <n> MiB (default: %u)",
                       DEFAULT_MAX_SIG_CACHE_SIZE));
+        strUsage += HelpMessageOpt(
+            "-maxscriptcachesize=<n>",
+            strprintf("Limit size of script cache to <n> MiB (default: %u)",
+                      DEFAULT_MAX_SCRIPT_CACHE_SIZE));
         strUsage += HelpMessageOpt(
             "-maxtipage=<n>",
             strprintf("Maximum tip age in seconds to consider node in initial "
@@ -1656,12 +1661,14 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
               nMaxConnections, nFD);
 
     InitSignatureCache();
+    InitScriptExecutionCache();
 
     LogPrintf("Using %u threads for script verification\n",
               nScriptCheckThreads);
     if (nScriptCheckThreads) {
-        for (int i = 0; i < nScriptCheckThreads - 1; i++)
+        for (int i = 0; i < nScriptCheckThreads - 1; i++) {
             threadGroup.create_thread(&ThreadScriptCheck);
+        }
     }
 
     // Start the lightweight task scheduler thread

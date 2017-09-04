@@ -17,6 +17,7 @@
 #include "random.h"
 #include "rpc/register.h"
 #include "rpc/server.h"
+#include "script/scriptcache.h"
 #include "script/sigcache.h"
 #include "txdb.h"
 #include "txmempool.h"
@@ -52,6 +53,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
     SetupEnvironment();
     SetupNetworking();
     InitSignatureCache();
+    InitScriptExecutionCache();
     // Don't want to write to debug.log file.
     fPrintToDebugLog = false;
     fCheckBlockIndex = true;

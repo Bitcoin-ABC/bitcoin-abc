@@ -445,11 +445,14 @@ public:
      */
     inline bool contains(const Element &e, const bool erase) const {
         std::array<uint32_t, 8> locs = compute_hashes(e);
-        for (uint32_t loc : locs)
+        for (uint32_t loc : locs) {
             if (table[loc] == e) {
-                if (erase) allow_erase(loc);
+                if (erase) {
+                    allow_erase(loc);
+                }
                 return true;
             }
+        }
         return false;
     }
 };
