@@ -117,7 +117,6 @@ add_test_to_suite(bitcoin test_bitcoin
 	sync_tests.cpp
 	test_bitcoin.cpp
 	test_bitcoin_main.cpp
-	testutil.cpp
 	timedata_tests.cpp
 	transaction_tests.cpp
 	txvalidationcache_tests.cpp
