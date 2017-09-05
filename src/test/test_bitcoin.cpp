@@ -25,8 +25,6 @@
 #include "ui_interface.h"
 #include "validation.h"
 
-#include "test/testutil.h"
-
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -86,9 +84,9 @@ TestingSetup::TestingSetup(const std::string &chainName)
     RPCServer rpcServer;
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
     ClearDatadirCache();
-    pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i",
-                                         (unsigned long)GetTime(),
-                                         (int)(InsecureRandRange(100000)));
+    pathTemp = fs::temp_directory_path() /
+               strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(),
+                         (int)(InsecureRandRange(100000)));
     fs::create_directories(pathTemp);
     gArgs.ForceSetArg("-datadir", pathTemp.string());
 

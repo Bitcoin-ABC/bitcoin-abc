@@ -16,7 +16,6 @@ add_test_to_suite(bitcoin-qt test_bitcoin-qt
 	
 	# Test framework
 	../../test/test_bitcoin.cpp
-	../../test/testutil.cpp
 )
 
 target_link_libraries(test_bitcoin-qt bitcoin-qt-base Qt5::Test)
