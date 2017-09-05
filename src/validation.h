@@ -435,7 +435,7 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
  */
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &view, bool fScriptChecks,
-                 unsigned int flags, bool cacheStore,
+                 uint32_t flags, bool cacheStore,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks = nullptr);
 

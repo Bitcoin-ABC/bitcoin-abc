@@ -1338,7 +1338,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &inputs, bool fScriptChecks,
-                 unsigned int flags, bool cacheStore,
+                 uint32_t flags, bool cacheStore,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
