@@ -5,13 +5,13 @@
 
 #include "sigcache.h"
 
+#include "cuckoocache.h"
 #include "memusage.h"
 #include "pubkey.h"
 #include "random.h"
 #include "uint256.h"
 #include "util.h"
 
-#include "cuckoocache.h"
 #include <boost/thread.hpp>
 
 namespace {
@@ -75,12 +75,13 @@ public:
     uint32_t setup_bytes(size_t n) { return setValid.setup_bytes(n); }
 };
 
-/* In previous versions of this code, signatureCache was a local static variable
- * in CachingTransactionSignatureChecker::VerifySignature.  We initialize
+/**
+ * In previous versions of this code, signatureCache was a local static variable
+ * in CachingTransactionSignatureChecker::VerifySignature. We initialize
  * signatureCache outside of VerifySignature to avoid the atomic operation per
  * call overhead associated with local static variables even though
  * signatureCache could be made local to VerifySignature.
-*/
+ */
 static CSignatureCache signatureCache;
 }
 
@@ -89,10 +90,10 @@ void InitSignatureCache() {
     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).
     size_t nMaxCacheSize =
-        std::min(std::max((int64_t)0, GetArg("-maxsigcachesize",
+        std::min(std::max(int64_t(0), GetArg("-maxsigcachesize",
                                              DEFAULT_MAX_SIG_CACHE_SIZE)),
                  MAX_MAX_SIG_CACHE_SIZE) *
-        ((size_t)1 << 20);
+        (size_t(1) << 20);
     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);
     LogPrintf("Using %zu MiB out of %zu requested for signature cache, able to "
               "store %zu elements\n",
@@ -104,9 +105,15 @@ bool CachingTransactionSignatureChecker::VerifySignature(
     const uint256 &sighash) const {
     uint256 entry;
     signatureCache.ComputeEntry(entry, sighash, vchSig, pubkey);
-    if (signatureCache.Get(entry, !store)) return true;
-    if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey, sighash))
+    if (signatureCache.Get(entry, !store)) {
+        return true;
+    }
+    if (!TransactionSignatureChecker::VerifySignature(vchSig, pubkey,
+                                                      sighash)) {
         return false;
-    if (store) signatureCache.Set(entry);
+    }
+    if (store) {
+        signatureCache.Set(entry);
+    }
     return true;
 }
