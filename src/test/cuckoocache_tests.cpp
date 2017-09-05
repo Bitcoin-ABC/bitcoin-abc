@@ -1,12 +1,16 @@
 // Copyright (c) 2012-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "cuckoocache.h"
 #include "random.h"
+#include "script/sigcache.h"
 #include "test/test_bitcoin.h"
+
+#include <thread>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
-#include <thread>
 
 /** Test Suite for CuckooCache
  *
@@ -24,27 +28,14 @@ FastRandomContext insecure_rand(true);
 
 BOOST_AUTO_TEST_SUITE(cuckoocache_tests);
 
-/** insecure_GetRandHash fills in a uint256 from insecure_rand
+/**
+ * Insecure_GetRandHash fills in a uint256 from insecure_rand.
  */
 void insecure_GetRandHash(uint256 &t) {
     uint32_t *ptr = (uint32_t *)t.begin();
     for (uint8_t j = 0; j < 8; ++j)
         *(ptr++) = insecure_rand.rand32();
 }
-
-/** Definition copied from /src/script/sigcache.cpp
- */
-class uint256Hasher {
-public:
-    template <uint8_t hash_select>
-    uint32_t operator()(const uint256 &key) const {
-        static_assert(hash_select < 8,
-                      "SignatureCacheHasher only has 8 hashes available.");
-        uint32_t u;
-        std::memcpy(&u, key.begin() + 4 * hash_select, 4);
-        return u;
-    }
-};
 
 /**
  * Test that no values not inserted into the cache are read out of it.
@@ -53,7 +44,7 @@ public:
  */
 BOOST_AUTO_TEST_CASE(test_cuckoocache_no_fakes) {
     insecure_rand = FastRandomContext(true);
-    CuckooCache::cache<uint256, uint256Hasher> cc{};
+    CuckooCache::cache<uint256, SignatureCacheHasher> cc{};
     cc.setup_bytes(32 << 20);
     uint256 v;
     for (int x = 0; x < 100000; ++x) {
@@ -130,8 +121,9 @@ BOOST_AUTO_TEST_CASE(cuckoocache_hit_rate_ok) {
     double HitRateThresh = 0.98;
     size_t megabytes = 32;
     for (double load = 0.1; load < 2; load *= 2) {
-        double hits = test_cache<CuckooCache::cache<uint256, uint256Hasher>>(
-            megabytes, load);
+        double hits =
+            test_cache<CuckooCache::cache<uint256, SignatureCacheHasher>>(
+                megabytes, load);
         BOOST_CHECK(normalize_hit_rate(hits, load) > HitRateThresh);
     }
 }
@@ -196,7 +188,8 @@ template <typename Cache> void test_cache_erase(size_t megabytes) {
 
 BOOST_AUTO_TEST_CASE(cuckoocache_erase_ok) {
     size_t megabytes = 32;
-    test_cache_erase<CuckooCache::cache<uint256, uint256Hasher>>(megabytes);
+    test_cache_erase<CuckooCache::cache<uint256, SignatureCacheHasher>>(
+        megabytes);
 }
 
 template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
@@ -279,8 +272,8 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
 }
 BOOST_AUTO_TEST_CASE(cuckoocache_erase_parallel_ok) {
     size_t megabytes = 32;
-    test_cache_erase_parallel<CuckooCache::cache<uint256, uint256Hasher>>(
-        megabytes);
+    test_cache_erase_parallel<
+        CuckooCache::cache<uint256, SignatureCacheHasher>>(megabytes);
 }
 
 template <typename Cache> void test_cache_generations() {
@@ -374,7 +367,7 @@ template <typename Cache> void test_cache_generations() {
                 max_rate_less_than_tight_hit_rate);
 }
 BOOST_AUTO_TEST_CASE(cuckoocache_generations) {
-    test_cache_generations<CuckooCache::cache<uint256, uint256Hasher>>();
+    test_cache_generations<CuckooCache::cache<uint256, SignatureCacheHasher>>();
 }
 
 BOOST_AUTO_TEST_SUITE_END();
