@@ -45,8 +45,6 @@ enum RPCErrorCode {
     //! General application defined errors
     //!< std::exception thrown in command handling
     RPC_MISC_ERROR = -1,
-    //!< Server is in safe mode, and command is not allowed in safe mode
-    RPC_FORBIDDEN_BY_SAFE_MODE = -2,
     //!< Unexpected type was passed as parameter
     RPC_TYPE_ERROR = -3,
     //!< Invalid address or key
@@ -117,6 +115,11 @@ enum RPCErrorCode {
     RPC_WALLET_NOT_SPECIFIED = -19,
     //!< Backwards compatible aliases
     RPC_WALLET_INVALID_ACCOUNT_NAME = RPC_WALLET_INVALID_LABEL_NAME,
+
+    //! Unused reserved codes, kept around for backwards compatibility. Do not
+    //! reuse.
+    //!< Server is in safe mode, and command is not allowed in safe mode
+    RPC_FORBIDDEN_BY_SAFE_MODE = -2,
 };
 
 UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,

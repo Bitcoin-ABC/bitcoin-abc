@@ -28,7 +28,6 @@
 #include "netbase.h"
 #include "policy/policy.h"
 #include "rpc/register.h"
-#include "rpc/safemode.h"
 #include "rpc/server.h"
 #include "scheduler.h"
 #include "script/scriptcache.h"
@@ -663,16 +662,9 @@ std::string HelpMessage(HelpMessageMode mode) {
             "-checkpoints", strprintf("Only accept block chain matching "
                                       "built-in checkpoints (default: %d)",
                                       DEFAULT_CHECKPOINTS_ENABLED));
-        strUsage += HelpMessageOpt(
-            "-disablesafemode", strprintf("Disable safemode, override a real "
-                                          "safe mode event (default: %d)",
-                                          DEFAULT_DISABLE_SAFEMODE));
         strUsage +=
             HelpMessageOpt("-deprecatedrpc=<method>",
                            "Allows deprecated RPC method(s) to be used");
-        strUsage += HelpMessageOpt(
-            "-testsafemode",
-            strprintf("Force safe mode (default: %d)", DEFAULT_TESTSAFEMODE));
         strUsage +=
             HelpMessageOpt("-dropmessagestest=<n>",
                            "Randomly drop 1 of every <n> network messages");

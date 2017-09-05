@@ -274,7 +274,6 @@ add_library(server
 	rpc/misc.cpp
 	rpc/net.cpp
 	rpc/rawtransaction.cpp
-	rpc/safemode.cpp
 	rpc/server.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp

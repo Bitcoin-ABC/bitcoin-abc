@@ -9,3 +9,4 @@ This release includes the following features and fixes:
  - Code standard updated to c++14.
  - Remove `depends` from transaction objects provided by `getblocktemplate`.
  - The option to reuse exisiting receiving addresses has been removed from the wallet.
+ - Remove safe mode.

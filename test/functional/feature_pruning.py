@@ -159,7 +159,7 @@ class PruneTest(BitcoinTestFramework):
         self.stop_node(1)
         self.start_node(1, extra_args=[
                         "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5",
-                        "-disablesafemode", "-noparkdeepreorg", "-maxreorgdepth=-1"])
+                        "-noparkdeepreorg", "-maxreorgdepth=-1"])
 
         height = self.nodes[1].getblockcount()
         self.log.info("Current block height: {}".format(height))
@@ -187,7 +187,7 @@ class PruneTest(BitcoinTestFramework):
         self.stop_node(1)
         self.start_node(1, extra_args=[
                         "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5",
-                        "-disablesafemode", "-noparkdeepreorg", "-maxreorgdepth=-1"])
+                        "-noparkdeepreorg", "-maxreorgdepth=-1"])
 
         self.log.info("Generating new longer chain of 300 more blocks")
         self.nodes[1].generate(300)
