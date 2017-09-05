@@ -427,18 +427,6 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx,
 uint64_t GetTransactionSigOpCount(const CTransaction &tx,
                                   const CCoinsViewCache &inputs, int flags);
 
-/**
- * Check whether all inputs of this transaction are valid (no double spends,
- * scripts & sigs, amounts). This does not modify the UTXO set. If pvChecks is
- * not nullptr, script checks are pushed onto it instead of being performed
- * inline.
- */
-bool CheckInputs(const CTransaction &tx, CValidationState &state,
-                 const CCoinsViewCache &view, bool fScriptChecks,
-                 uint32_t flags, bool cacheStore,
-                 const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks = nullptr);
-
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,

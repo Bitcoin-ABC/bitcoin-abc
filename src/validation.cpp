@@ -223,8 +223,13 @@ enum FlushStateMode {
 // See definition for documentation
 static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight = 0);
-void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                            int nManualPruneHeight);
+static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                   int nManualPruneHeight);
+static bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                        const CCoinsViewCache &view, bool fScriptChecks,
+                        uint32_t flags, bool cacheStore,
+                        const PrecomputedTransactionData &txdata,
+                        std::vector<CScriptCheck> *pvChecks = nullptr);
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
@@ -1336,11 +1341,17 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 }
 } // namespace Consensus
 
-bool CheckInputs(const CTransaction &tx, CValidationState &state,
-                 const CCoinsViewCache &inputs, bool fScriptChecks,
-                 uint32_t flags, bool cacheStore,
-                 const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks) {
+/**
+ * Check whether all inputs of this transaction are valid (no double spends,
+ * scripts & sigs, amounts). This does not modify the UTXO set. If pvChecks is
+ * not nullptr, script checks are pushed onto it instead of being performed
+ * inline.
+ */
+static bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                        const CCoinsViewCache &inputs, bool fScriptChecks,
+                        uint32_t flags, bool cacheStore,
+                        const PrecomputedTransactionData &txdata,
+                        std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
 
     if (!Consensus::CheckTxInputs(tx, state, inputs, GetSpendHeight(inputs))) {
@@ -3719,8 +3730,8 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
  * Calculate the block/rev files to delete based on height specified by user
  * with RPC command pruneblockchain.
  */
-void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                            int nManualPruneHeight) {
+static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                   int nManualPruneHeight) {
     assert(fPruneMode && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
