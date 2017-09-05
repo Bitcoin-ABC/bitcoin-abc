@@ -230,6 +230,8 @@ static bool CheckInputs(const CTransaction &tx, CValidationState &state,
                         uint32_t flags, bool cacheStore,
                         const PrecomputedTransactionData &txdata,
                         std::vector<CScriptCheck> *pvChecks = nullptr);
+static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
+                                    const Config &config);
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
@@ -883,23 +885,46 @@ static bool AcceptToMemoryPoolWorker(
             return false;
         }
 
-        // Check again against just the consensus-critical mandatory script
-        // verification flags, in case of bugs in the standard flags that cause
+        // Check again against the current block tip's script verification flags
+        // to cache our script execution flags. This is, of course, useless if
+        // the next block has different script flags from the previous one, but
+        // because the cache tracks script flags for us it will auto-invalidate
+        // and we'll just have a few blocks of extra misses on soft-fork
+        // activation.
+        //
+        // This is also useful in case of bugs in the standard flags that cause
         // transactions to pass as valid when they're actually invalid. For
-        // instance the STRICTENC flag was incorrectly allowing certain
-        // CHECKSIG NOT scripts to pass, even though they were invalid.
+        // instance the STRICTENC flag was incorrectly allowing certain CHECKSIG
+        // NOT scripts to pass, even though they were invalid.
         //
         // There is a similar check in CreateNewBlock() to prevent creating
-        // invalid blocks, however allowing such transactions into the mempool
-        // can be exploited as a DoS attack.
-        {
+        // invalid blocks (using TestBlockValidity), however allowing such
+        // transactions into the mempool can be exploited as a DoS attack.
+        uint32_t currentBlockScriptVerifyFlags =
+            GetBlockScriptFlags(chainActive.Tip(), config);
+        if (!CheckInputs(tx, state, view, true, currentBlockScriptVerifyFlags,
+                         true, txdata)) {
+            // If we're using promiscuousmempoolflags, we may hit this normally.
+            // Check if current block has some flags that scriptVerifyFlags does
+            // not before printing an ominous warning.
+            if (!(~scriptVerifyFlags & currentBlockScriptVerifyFlags)) {
+                return error(
+                    "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed against "
+                    "MANDATORY but not STANDARD flags %s, %s",
+                    __func__, txid.ToString(), FormatStateMessage(state));
+            }
+
             if (!CheckInputs(tx, state, view, true,
                              MANDATORY_SCRIPT_VERIFY_FLAGS, true, txdata)) {
                 return error(
-                    "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
-                    "against MANDATORY but not STANDARD flags %s, %s",
+                    "%s: ConnectInputs failed against MANDATORY but not "
+                    "STANDARD flags due to promiscuous mempool %s, %s",
                     __func__, txid.ToString(), FormatStateMessage(state));
             }
+
+            LogPrintf("Warning: -promiscuousmempool flags set to not include "
+                      "currently enforced soft forks, this may break mining or "
+                      "otherwise cause instability!\n");
         }
 
         // This transaction should only count for fee estimation if
