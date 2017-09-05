@@ -4275,20 +4275,15 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     }
 
     if (fFirstRun) {
-        // Create new keyUser and set as default key.
-        if (gArgs.GetBoolArg("-usehd", DEFAULT_USE_HD_WALLET) &&
-            !walletInstance->IsHDEnabled()) {
+        // Ensure this wallet.dat can only be opened by clients supporting
+        // HD with chain split and expects no default key.
+        walletInstance->SetMinVersion(FEATURE_NO_DEFAULT_KEY);
 
-            // Ensure this wallet.dat can only be opened by clients supporting
-            // HD with chain split.
-            walletInstance->SetMinVersion(FEATURE_HD_SPLIT);
-
-            // Generate a new master key.
-            CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-            if (!walletInstance->SetHDMasterKey(masterPubKey)) {
-                throw std::runtime_error(std::string(__func__) +
-                                         ": Storing master key failed");
-            }
+        // Generate a new master key.
+        CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
+        if (!walletInstance->SetHDMasterKey(masterPubKey)) {
+            throw std::runtime_error(std::string(__func__) +
+                                     ": Storing master key failed");
         }
 
         // Top up the keypool
@@ -4310,7 +4305,8 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
         if (!walletInstance->IsHDEnabled() && useHD) {
             InitError(strprintf(_("Error loading %s: You can't enable HD on an "
-                                  "already existing non-HD wallet"),
+                                  "already existing non-HD wallet or create "
+                                  "new non-HD wallets."),
                                 walletFile));
             return nullptr;
         }

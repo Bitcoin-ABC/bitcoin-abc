@@ -85,12 +85,6 @@ void WalletInit::AddWalletOptions() const {
                              "transactions (default: %d)"),
                            DEFAULT_SPEND_ZEROCONF_CHANGE),
                  false, OptionsCategory::WALLET);
-    gArgs.AddArg(
-        "-usehd",
-        _("Use hierarchical deterministic key generation (HD) after BIP32. "
-          "Only has effect during wallet creation/first start") +
-            " " + strprintf(_("(default: %d)"), DEFAULT_USE_HD_WALLET),
-        false, OptionsCategory::WALLET);
     gArgs.AddArg("-upgradewallet",
                  _("Upgrade wallet to latest format on startup"), false,
                  OptionsCategory::WALLET);
