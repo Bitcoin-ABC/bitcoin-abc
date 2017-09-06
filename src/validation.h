@@ -719,7 +719,7 @@ static const unsigned int REJECT_AGAINST_FINALIZED = 0x103;
 CBlockFileInfo *GetBlockFileInfo(size_t n);
 
 /** Dump the mempool to disk. */
-void DumpMempool();
+bool DumpMempool();
 
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config);
