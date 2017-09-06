@@ -311,6 +311,8 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
     AssertLockHeld(g_mempool.cs);
 
     CBlockIndex *tip = chainActive.Tip();
+    assert(tip != nullptr);
+
     CBlockIndex index;
     index.pprev = tip;
     // CheckSequenceLocks() uses chainActive.Height()+1 to evaluate height based
