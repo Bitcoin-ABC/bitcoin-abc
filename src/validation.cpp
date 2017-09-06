@@ -628,6 +628,49 @@ bool IsUAHFenabledForCurrentBlock(const Config &config) {
     return IsUAHFenabled(config, chainActive.Tip());
 }
 
+// Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
+// were somehow broken and returning the wrong scriptPubKeys
+static bool CheckInputsFromMempoolAndCache(const CTransaction &tx,
+                                           CValidationState &state,
+                                           const CCoinsViewCache &view,
+                                           CTxMemPool &pool, uint32_t flags,
+                                           bool cacheSigStore,
+                                           PrecomputedTransactionData &txdata) {
+    AssertLockHeld(cs_main);
+
+    // pool.cs should be locked already, but go ahead and re-take the lock here
+    // to enforce that mempool doesn't change between when we check the view and
+    // when we actually call through to CheckInputs
+    LOCK(pool.cs);
+
+    assert(!tx.IsCoinBase());
+    for (const CTxIn &txin : tx.vin) {
+        const Coin &coin = view.AccessCoin(txin.prevout);
+
+        // At this point we haven't actually checked if the coins are all
+        // available (or shouldn't assume we have, since CheckInputs does). So
+        // we just return failure if the inputs are not available here, and then
+        // only have to check equivalence for available inputs.
+        if (coin.IsSpent()) {
+            return false;
+        }
+
+        const CTransactionRef &txFrom = pool.get(txin.prevout.hash);
+        if (txFrom) {
+            assert(txFrom->GetHash() == txin.prevout.hash);
+            assert(txFrom->vout.size() > txin.prevout.n);
+            assert(txFrom->vout[txin.prevout.n] == coin.GetTxOut());
+        } else {
+            const Coin &coinFromDisk = pcoinsTip->AccessCoin(txin.prevout);
+            assert(!coinFromDisk.IsSpent());
+            assert(coinFromDisk.GetTxOut() == coin.GetTxOut());
+        }
+    }
+
+    return CheckInputs(tx, state, view, true, flags, cacheSigStore, true,
+                       txdata);
+}
+
 static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
@@ -904,8 +947,9 @@ static bool AcceptToMemoryPoolWorker(
         // transactions into the mempool can be exploited as a DoS attack.
         uint32_t currentBlockScriptVerifyFlags =
             GetBlockScriptFlags(chainActive.Tip(), config);
-        if (!CheckInputs(tx, state, view, true, currentBlockScriptVerifyFlags,
-                         true, true, txdata)) {
+        if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
+                                            currentBlockScriptVerifyFlags, true,
+                                            txdata)) {
             // If we're using promiscuousmempoolflags, we may hit this normally.
             // Check if current block has some flags that scriptVerifyFlags does
             // not before printing an ominous warning.
