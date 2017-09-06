@@ -200,14 +200,14 @@ public:
     unsigned int nChainTx;
 
     //! Verification status of this block. See enum BlockStatus
-    unsigned int nStatus;
+    uint32_t nStatus;
 
     //! block header
-    int nVersion;
+    int32_t nVersion;
     uint256 hashMerkleRoot;
-    unsigned int nTime;
+    uint32_t nTime;
     uint32_t nBits;
-    unsigned int nNonce;
+    uint32_t nNonce;
 
     //! (memory only) Sequential id assigned to distinguish order in which
     //! blocks are received.
