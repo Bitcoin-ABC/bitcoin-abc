@@ -13,7 +13,7 @@
 #include <map>
 #include <vector>
 
-static std::map<std::string, unsigned int> mapFlagNames = {
+static std::map<std::string, uint32_t> mapFlagNames = {
     {"NONE", SCRIPT_VERIFY_NONE},
     {"P2SH", SCRIPT_VERIFY_P2SH},
     {"STRICTENC", SCRIPT_VERIFY_STRICTENC},
@@ -34,11 +34,12 @@ static std::map<std::string, unsigned int> mapFlagNames = {
     {"SIGHASH_FORKID", SCRIPT_ENABLE_SIGHASH_FORKID},
 };
 
-unsigned int ParseScriptFlags(std::string strFlags) {
+uint32_t ParseScriptFlags(std::string strFlags) {
     if (strFlags.empty()) {
         return 0;
     }
-    unsigned int flags = 0;
+
+    uint32_t flags = 0;
     std::vector<std::string> words;
     boost::algorithm::split(words, strFlags, boost::algorithm::is_any_of(","));
 
@@ -51,18 +52,19 @@ unsigned int ParseScriptFlags(std::string strFlags) {
     return flags;
 }
 
-std::string FormatScriptFlags(unsigned int flags) {
+std::string FormatScriptFlags(uint32_t flags) {
     if (flags == 0) {
         return "";
     }
+
     std::string ret;
-    std::map<std::string, unsigned int>::const_iterator it =
-        mapFlagNames.begin();
+    std::map<std::string, uint32_t>::const_iterator it = mapFlagNames.begin();
     while (it != mapFlagNames.end()) {
         if (flags & it->second) {
             ret += it->first + ",";
         }
         it++;
     }
+
     return ret.substr(0, ret.size() - 1);
 }
