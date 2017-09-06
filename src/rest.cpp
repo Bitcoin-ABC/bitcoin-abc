@@ -208,10 +208,6 @@ static bool rest_headers(Config &config, HTTPRequest *req,
                            "output format not found (available: .bin, .hex)");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_block(const Config &config, HTTPRequest *req,
@@ -284,10 +280,6 @@ static bool rest_block(const Config &config, HTTPRequest *req,
                                AvailableDataFormatsString() + ")");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_block_extended(Config &config, HTTPRequest *req,
@@ -324,10 +316,6 @@ static bool rest_chaininfo(Config &config, HTTPRequest *req,
                            "output format not found (available: json)");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_mempool_info(Config &config, HTTPRequest *req,
@@ -353,10 +341,6 @@ static bool rest_mempool_info(Config &config, HTTPRequest *req,
                            "output format not found (available: json)");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_mempool_contents(Config &config, HTTPRequest *req,
@@ -382,10 +366,6 @@ static bool rest_mempool_contents(Config &config, HTTPRequest *req,
                            "output format not found (available: json)");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_tx(Config &config, HTTPRequest *req,
@@ -447,10 +427,6 @@ static bool rest_tx(Config &config, HTTPRequest *req,
                                AvailableDataFormatsString() + ")");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static bool rest_getutxos(Config &config, HTTPRequest *req,
@@ -666,10 +642,6 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
                                AvailableDataFormatsString() + ")");
         }
     }
-
-    // not reached
-    // continue to process further HTTP reqs on this cxn
-    return true;
 }
 
 static const struct {

@@ -720,7 +720,6 @@ bool BerkeleyBatch::Rewrite(BerkeleyDatabase &database, const char *pszSkip) {
         }
         MilliSleep(100);
     }
-    return false;
 }
 
 void BerkeleyEnvironment::Flush(bool fShutdown) {
@@ -864,7 +863,6 @@ bool BerkeleyDatabase::Backup(const std::string &strDest) {
         }
         MilliSleep(100);
     }
-    return false;
 }
 
 void BerkeleyDatabase::Flush(bool shutdown) {
