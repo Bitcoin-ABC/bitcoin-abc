@@ -119,6 +119,8 @@ BITCOIN_TESTS =\
   test/serialize_tests.cpp \
   test/sighash_tests.cpp \
   test/sigopcount_tests.cpp \
+  test/sigutil.cpp \
+  test/sigutil.h \
   test/skiplist_tests.cpp \
   test/streams_tests.cpp \
   test/test_bitcoin.cpp \

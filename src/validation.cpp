@@ -226,12 +226,6 @@ static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight = 0);
 static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight);
-static bool CheckInputs(const CTransaction &tx, CValidationState &state,
-                        const CCoinsViewCache &view, bool fScriptChecks,
-                        uint32_t flags, bool sigCacheStore,
-                        bool scriptCacheStore,
-                        const PrecomputedTransactionData &txdata,
-                        std::vector<CScriptCheck> *pvChecks = nullptr);
 static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
                                     const Config &config);
 
@@ -1414,24 +1408,11 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 }
 } // namespace Consensus
 
-/**
- * Check whether all inputs of this transaction are valid (no double spends,
- * scripts & sigs, amounts). This does not modify the UTXO set.
- *
- * If pvChecks is not nullptr, script checks are pushed onto it instead of being
- * performed inline. Any script checks which are not necessary (eg due to script
- * execution cache hits) are, obviously, not pushed onto pvChecks/run.
- *
- * Setting sigCacheStore/scriptCacheStore to false will remove elements from the
- * corresponding cache which are matched. This is useful for checking blocks
- * where we will likely never need the cache entry again.
- */
-static bool CheckInputs(const CTransaction &tx, CValidationState &state,
-                        const CCoinsViewCache &inputs, bool fScriptChecks,
-                        uint32_t flags, bool sigCacheStore,
-                        bool scriptCacheStore,
-                        const PrecomputedTransactionData &txdata,
-                        std::vector<CScriptCheck> *pvChecks) {
+bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                 const CCoinsViewCache &inputs, bool fScriptChecks,
+                 uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+                 const PrecomputedTransactionData &txdata,
+                 std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
 
     if (!Consensus::CheckTxInputs(tx, state, inputs, GetSpendHeight(inputs))) {
