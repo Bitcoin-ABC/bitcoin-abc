@@ -119,7 +119,7 @@ static const uint8_t dummydata[] = {
 
 // Generate a dummy address with invalid CRC, starting with the network prefix.
 static std::string DummyAddress(const CChainParams &params) {
-    std::vector<uint8_t> sourcedata =
+    std::vector<unsigned char> sourcedata =
         params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
     sourcedata.insert(sourcedata.end(), dummydata,
                       dummydata + sizeof(dummydata));

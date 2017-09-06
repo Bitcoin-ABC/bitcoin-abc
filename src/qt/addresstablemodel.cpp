@@ -230,8 +230,7 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
     editStatus = OK;
 
     if (role == Qt::EditRole) {
-        /* For SetAddressBook / DelAddressBook */
-        LOCK(wallet->cs_wallet);
+        LOCK(wallet->cs_wallet); /* For SetAddressBook / DelAddressBook */
         CTxDestination curAddress =
             DecodeDestination(rec->address.toStdString());
         if (index.column() == Label) {
