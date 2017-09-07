@@ -234,7 +234,7 @@ static UniValue getrawtransaction(const Config &config,
 
     CTransactionRef tx;
     uint256 hashBlock;
-    if (!GetTransaction(config, hash, tx, hashBlock, true)) {
+    if (!GetTransaction(config, hash, tx, hashBlock)) {
         throw JSONRPCError(
             RPC_INVALID_ADDRESS_OR_KEY,
             std::string(fTxIndex ? "No such mempool or blockchain transaction"
@@ -263,13 +263,10 @@ static UniValue gettxoutproof(const Config &config,
             "gettxoutproof [\"txid\",...] ( blockhash )\n"
             "\nReturns a hex-encoded proof that \"txid\" was included in a "
             "block.\n"
-            "\nNOTE: By default this function only works sometimes. This is "
-            "when there is an\n"
-            "unspent output in the utxo for this transaction. To make it "
-            "always work,\n"
-            "you need to maintain a transaction index, using the -txindex "
-            "command line option or\n"
-            "specify the block in which the transaction is included manually "
+            "\nNOTE: This function only works if a transaction index is "
+            "maintained using the\n"
+            "-txindex command line option or\n"
+            "by specifying the block in which the transaction is included manually "
             "(by blockhash).\n"
             "\nArguments:\n"
             "1. \"txids\"       (string) A json array of txids to filter\n"
@@ -316,16 +313,17 @@ static UniValue gettxoutproof(const Config &config,
         if (!mapBlockIndex.count(hashBlock))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         pblockindex = mapBlockIndex[hashBlock];
-    } else {
-        CCoins coins;
-        if (pcoinsTip->GetCoins_DONOTUSE(oneTxid, coins) && coins.nHeight > 0 &&
-            coins.nHeight <= chainActive.Height())
-            pblockindex = chainActive[coins.nHeight];
     }
 
     if (pblockindex == nullptr) {
+
+        if (!fTxIndex) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Missing blockhash parameter.");
+        }
+
         CTransactionRef tx;
-        if (!GetTransaction(config, oneTxid, tx, hashBlock, false) ||
+        if (!GetTransaction(config, oneTxid, tx, hashBlock) ||
             hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");
