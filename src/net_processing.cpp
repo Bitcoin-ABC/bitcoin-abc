@@ -2048,42 +2048,23 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 EraseOrphanTx(hash);
             }
         } else if (fMissingInputs) {
-            // It may be the case that the orphans parents have all been
-            // rejected.
-            bool fRejectedParents = false;
-            for (const CTxIn &txin : tx.vin) {
-                if (recentRejects->contains(txin.prevout.hash)) {
-                    fRejectedParents = true;
-                    break;
-                }
-            }
-            if (!fRejectedParents) {
-                uint32_t nFetchFlags = GetFetchFlags(
-                    pfrom, chainActive.Tip(), chainparams.GetConsensus());
-                for (const CTxIn &txin : tx.vin) {
-                    CInv _inv(MSG_TX | nFetchFlags, txin.prevout.hash);
-                    pfrom->AddInventoryKnown(_inv);
-                    if (!AlreadyHave(_inv)) pfrom->AskFor(_inv);
-                }
-                AddOrphanTx(ptx, pfrom->GetId());
 
-                // DoS prevention: do not allow mapOrphanTransactions to grow
-                // unbounded
-                unsigned int nMaxOrphanTx = (unsigned int)std::max(
-                    (int64_t)0,
-                    GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-                unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
-                if (nEvicted > 0)
-                    LogPrint("mempool", "mapOrphan overflow, removed %u tx\n",
-                             nEvicted);
-            } else {
-                LogPrint("mempool",
-                         "not keeping orphan with rejected parents %s\n",
-                         tx.GetId().ToString());
-                // We will continue to reject this tx since it has rejected
-                // parents so avoid re-requesting it from other peers.
-                recentRejects->insert(tx.GetId());
-            }
+            // Pre MalFix, we would fetch the missing input transactions
+            // from this peer, but post-malfix, we can't as we don't have
+            // the ids
+
+            AddOrphanTx(ptx, pfrom->GetId());
+
+            // DoS prevention: do not allow mapOrphanTransactions to grow
+            // unbounded
+            unsigned int nMaxOrphanTx = (unsigned int)std::max(
+                (int64_t)0,
+                GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
+            unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
+            if (nEvicted > 0)
+                LogPrint("mempool", "mapOrphan overflow, removed %u tx\n",
+                         nEvicted);
+
         } else {
             if (!state.CorruptionPossible()) {
                 // Do not use rejection cache for witness transactions or
