@@ -32,7 +32,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
 }
 
 CMerkleBlock::CMerkleBlock(const CBlock &block,
-                           const std::set<uint256> &txids) {
+                           const std::set<txid_t> &txids) {
     header = block.GetBlockHeader();
 
     std::vector<bool> vMatch;
@@ -42,7 +42,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block,
     vHashes.reserve(block.vtx.size());
 
     for (unsigned int i = 0; i < block.vtx.size(); i++) {
-        const uint256 &txid = block.vtx[i]->GetId();
+        const txid_t &txid = block.vtx[i]->GetId();
         if (txids.count(txid))
             vMatch.push_back(true);
         else

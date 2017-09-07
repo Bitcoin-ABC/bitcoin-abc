@@ -627,7 +627,9 @@ static bool AcceptToMemoryPoolWorker(
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
-    const uint256 txid = tx.GetId();
+    const txid_t txid = tx.GetId();
+    const utxid_t utxid = tx.GetUtxid();
+
     if (pfMissingInputs) {
         *pfMissingInputs = false;
     }
@@ -691,7 +693,7 @@ static bool AcceptToMemoryPoolWorker(
 
             // Do we already have it?
             for (size_t out = 0; out < tx.vout.size(); out++) {
-                COutPoint outpoint(txid, out);
+                COutPoint outpoint(utxid, out);
                 bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
                 if (view.HaveCoin(outpoint)) {
                     if (!had_coin_in_cache) {
@@ -972,7 +974,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 
 /** Return transaction in txOut, and if it was found inside a block, its hash is
  * placed in hashBlock */
-bool GetTransaction(const Config &config, const uint256 &txid,
+bool GetTransaction(const Config &config, const txid_t &txid,
                     CTransactionRef &txOut, uint256 &hashBlock) {
 
     LOCK(cs_main);
@@ -1237,7 +1239,7 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn &txin : tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.utxid);
             unsigned nPos = txin.prevout.n;
 
             if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
@@ -1254,7 +1256,7 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
         }
     }
     // add outputs
-    inputs.ModifyNewCoins(tx.GetId(), tx.IsCoinBase())->FromTx(tx, nHeight);
+    inputs.ModifyNewCoins(tx.GetUtxid(), tx.IsCoinBase())->FromTx(tx, nHeight);
 }
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight) {
@@ -1508,7 +1510,7 @@ DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
                                const COutPoint &out) {
     bool fClean = true;
 
-    CCoinsModifier coins = view.ModifyCoins(out.hash);
+    CCoinsModifier coins = view.ModifyCoins(out.utxid);
     if (undo.nHeight != 0) {
         // undo data contains height: this is the last output of the prevout tx
         // being spent
@@ -1579,12 +1581,12 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     size_t i = block.vtx.size();
     while (i-- > 0) {
         const CTransaction &tx = *(block.vtx[i]);
-        uint256 txid = tx.GetId();
+        utxid_t utxid = tx.GetUtxid();
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
         {
-            CCoinsModifier outs = view.ModifyCoins(txid);
+            CCoinsModifier outs = view.ModifyCoins(utxid);
             outs->ClearUnspendable();
 
             CCoins outsBlock(tx, pindex->nHeight);
@@ -1850,7 +1852,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
+                if (view.HaveCoin(COutPoint(tx->GetUtxid(), o))) {
                     return state.DoS(
                         100,
                         error("ConnectBlock(): tried to overwrite transaction"),
@@ -1916,7 +1918,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
+    std::vector<std::pair<txid_t, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
@@ -2063,7 +2065,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
 
     // Watch for changes to the previous coinbase transaction.
-    static uint256 hashPrevBestCoinBase;
+    static txid_t hashPrevBestCoinBase;
     GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
     hashPrevBestCoinBase = block.vtx[0]->GetId();
 
@@ -2368,7 +2370,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
 
     if (!fBare) {
         // Resurrect mempool transactions from the disconnected block.
-        std::vector<uint256> vHashUpdate;
+        std::vector<txid_t> vHashUpdate;
         for (const auto &it : block.vtx) {
             const CTransaction &tx = *it;
             // ignore validation errors in resurrected transactions
@@ -4890,7 +4892,7 @@ bool LoadMempool(const Config &config) {
             }
             if (ShutdownRequested()) return false;
         }
-        std::map<uint256, CAmount> mapDeltas;
+        std::map<txid_t, CAmount> mapDeltas;
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {

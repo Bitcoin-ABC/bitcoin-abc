@@ -95,6 +95,9 @@ std::map<uint256, std::pair<NodeId, bool>> mapBlockSource;
  * Decreasing the false positive rate is fairly cheap, so we pick one in a
  * million to make it highly unlikely for users to have issues with this filter.
  *
+ * We use UTXIDs to reference the transactions in order to properly detect
+ * rejected transactions being spent
+ *
  * Memory used: 1.3 MB
  */
 std::unique_ptr<CRollingBloomFilter> recentRejects;
@@ -983,6 +986,9 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
 bool static AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     switch (inv.type) {
         case MSG_TX: {
+
+            const txid_t txid(inv.hash);
+
             assert(recentRejects);
             if (chainActive.Tip()->GetBlockHash() !=
                 hashRecentRejectsChainTip) {
@@ -995,9 +1001,9 @@ bool static AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             }
 
 
-            return recentRejects->contains(inv.hash) ||
-                   mempool.exists(inv.hash) ||
-                   mapOrphanTransactions.count(inv.hash);
+            return recentRejects->contains(txid) ||
+                   mempool.exists(txid) ||
+                   mapOrphanTransactions.count(txid);
         }
         case MSG_BLOCK:
             return mapBlockIndex.count(inv.hash);
@@ -1224,6 +1230,8 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                     }
                 }
             } else if (inv.type == MSG_TX) {
+
+                const txid_t txid(inv.hash);
                 // Send stream from relay memory
                 bool push = false;
                 auto mi = mapRelay.find(inv.hash);
@@ -1234,7 +1242,7 @@ void static ProcessGetData(const Config &config, CNode *pfrom,
                         msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                     push = true;
                 } else if (pfrom->timeLastMempoolReq) {
-                    auto txinfo = mempool.info(inv.hash);
+                    auto txinfo = mempool.info(txid);
                     // To protect privacy, do not answer getdata using the
                     // mempool when that TX couldn't have been INVed in reply to
                     // a MEMPOOL request.
@@ -1954,6 +1962,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         CInv inv(MSG_TX, tx.GetId());
         pfrom->AddInventoryKnown(inv);
 
+        const utxid_t &utxid = tx.GetUtxid();
+
         LOCK(cs_main);
 
         bool fMissingInputs = false;
@@ -1970,7 +1980,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
             mempool.check(pcoinsTip);
             RelayTransaction(tx, connman);
             for (unsigned int i = 0; i < tx.vout.size(); i++) {
-                vWorkQueue.emplace_back(inv.hash, i);
+                vWorkQueue.emplace_back(utxid, i);
             }
 
             pfrom->nLastTXTime = GetTime();
@@ -1995,6 +2005,8 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     const CTransactionRef &porphanTx = (*mi)->second.tx;
                     const CTransaction &orphanTx = *porphanTx;
                     const uint256 &orphanId = orphanTx.GetId();
+                    const utxid_t &orphanUTXId = orphanTx.GetUtxid();
+
                     NodeId fromPeer = (*mi)->second.fromPeer;
                     bool fMissingInputs2 = false;
                     // Use a dummy CValidationState so someone can't setup nodes
@@ -2010,10 +2022,10 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                                            porphanTx, true, &fMissingInputs2,
                                            &lRemovedTxn)) {
                         LogPrint("mempool", "   accepted orphan tx %s\n",
-                                 orphanId.ToString());
+                                 orphanUTXId.ToString());
                         RelayTransaction(orphanTx, connman);
                         for (size_t i = 0; i < orphanTx.vout.size(); i++) {
-                            vWorkQueue.emplace_back(orphanId, i);
+                            vWorkQueue.emplace_back(orphanUTXId, i);
                         }
                         vEraseQueue.push_back(orphanId);
                     } else if (!fMissingInputs2) {
@@ -2072,7 +2084,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                 // malleated. See https://github.com/bitcoin/bitcoin/issues/8279
                 // for details.
                 assert(recentRejects);
-                recentRejects->insert(tx.GetId());
+                recentRejects->insert(inv.hash);
                 if (RecursiveDynamicUsage(*ptx) < 100000) {
                     AddToCompactExtraTransactions(ptx);
                 }
@@ -3055,8 +3067,8 @@ class CompareInvMempoolOrder {
 public:
     CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
 
-    bool operator()(std::set<uint256>::iterator a,
-                    std::set<uint256>::iterator b) {
+    bool operator()(std::set<txid_t>::iterator a,
+                    std::set<txid_t>::iterator b) {
         /* As std::make_heap produces a max-heap, we want the entries with the
          * fewest ancestors/highest fee to sort later. */
         return mp->CompareDepthAndScore(*b, *a);
@@ -3404,7 +3416,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 LOCK(pto->cs_filter);
 
                 for (const auto &txinfo : vtxinfo) {
-                    const uint256 &txid = txinfo.tx->GetId();
+                    const txid_t &txid = txinfo.tx->GetId();
                     CInv inv(MSG_TX, txid);
                     pto->setInventoryTxToSend.erase(txid);
                     if (filterrate) {
@@ -3428,9 +3440,9 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             // Determine transactions to relay
             if (fSendTrickle) {
                 // Produce a vector with all candidates for sending
-                std::vector<std::set<uint256>::iterator> vInvTx;
+                std::vector<std::set<txid_t>::iterator> vInvTx;
                 vInvTx.reserve(pto->setInventoryTxToSend.size());
-                for (std::set<uint256>::iterator it =
+                for (std::set<txid_t>::iterator it =
                          pto->setInventoryTxToSend.begin();
                      it != pto->setInventoryTxToSend.end(); it++) {
                     vInvTx.push_back(it);
@@ -3456,17 +3468,17 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                     // Fetch the top element from the heap
                     std::pop_heap(vInvTx.begin(), vInvTx.end(),
                                   compareInvMempoolOrder);
-                    std::set<uint256>::iterator it = vInvTx.back();
+                    std::set<txid_t>::iterator it = vInvTx.back();
                     vInvTx.pop_back();
-                    uint256 hash = *it;
+
                     // Remove it from the to-be-sent set
                     pto->setInventoryTxToSend.erase(it);
                     // Check if not in the filter already
-                    if (pto->filterInventoryKnown.contains(hash)) {
+                    if (pto->filterInventoryKnown.contains(*it)) {
                         continue;
                     }
                     // Not in the mempool anymore? don't bother sending it.
-                    auto txinfo = mempool.info(hash);
+                    auto txinfo = mempool.info(*it);
                     if (!txinfo.tx) {
                         continue;
                     }
@@ -3478,7 +3490,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                         !pto->pfilter->IsRelevantAndUpdate(*txinfo.tx))
                         continue;
                     // Send
-                    vInv.push_back(CInv(MSG_TX, hash));
+                    vInv.push_back(CInv(MSG_TX, *it));
                     nRelayedTransactions++;
                     {
                         // Expire old relay messages
@@ -3489,7 +3501,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                         }
 
                         auto ret = mapRelay.insert(
-                            std::make_pair(hash, std::move(txinfo.tx)));
+                            std::make_pair(*it, std::move(txinfo.tx)));
                         if (ret.second) {
                             vRelayExpiration.push_back(std::make_pair(
                                 nNow + 15 * 60 * 1000000, ret.first));
@@ -3500,7 +3512,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                             pto, msgMaker.Make(NetMsgType::INV, vInv));
                         vInv.clear();
                     }
-                    pto->filterInventoryKnown.insert(hash);
+                    pto->filterInventoryKnown.insert(*it);
                 }
             }
         }

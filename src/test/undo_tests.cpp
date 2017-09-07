@@ -39,8 +39,8 @@ static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
     ApplyBlockUndo(blockUndo, block, &pindex, view);
 }
 
-static bool HasSpendableCoin(const CCoinsViewCache &view, const uint256 &txid) {
-    return !view.AccessCoin(COutPoint(txid, 0)).IsSpent();
+static bool HasSpendableCoin(const CCoinsViewCache &view, const utxid_t &utxid) {
+    return !view.AccessCoin(COutPoint(utxid, 0)).IsSpent();
 }
 
 BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
@@ -67,17 +67,17 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     block.vtx[0] = MakeTransactionRef(tx);
 
     tx.vout[0].scriptPubKey = CScript() << OP_TRUE;
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
     tx.vin[0].prevout.n = 0;
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL;
     tx.vin[0].scriptSig.resize(0);
     tx.nVersion = 2;
 
     auto prevTx0 = CTransaction(tx);
-    view.ModifyNewCoins(prevTx0.GetId(), prevTx0.IsCoinBase())
+    view.ModifyNewCoins(prevTx0.GetUtxid(), prevTx0.IsCoinBase())
         ->FromTx(prevTx0, 100);
 
-    tx.vin[0].prevout.hash = prevTx0.GetId();
+    tx.vin[0].prevout.utxid = prevTx0.GetUtxid();
     auto tx0 = CTransaction(tx);
     block.vtx[1] = MakeTransactionRef(tx0);
 
@@ -86,16 +86,16 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     UpdateUTXOSet(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.GetHash());
-    BOOST_CHECK(HasSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(HasSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(HasSpendableCoin(view, coinbaseTx.GetUtxid()));
+    BOOST_CHECK(HasSpendableCoin(view, tx0.GetUtxid()));
+    BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetUtxid()));
 
     UndoBlock(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.hashPrevBlock);
-    BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(!HasSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(HasSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetUtxid()));
+    BOOST_CHECK(!HasSpendableCoin(view, tx0.GetUtxid()));
+    BOOST_CHECK(HasSpendableCoin(view, prevTx0.GetUtxid()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

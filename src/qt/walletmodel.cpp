@@ -557,7 +557,7 @@ void WalletModel::getOutputs(const std::vector<COutPoint> &vOutpoints,
 
 bool WalletModel::isSpent(const COutPoint &outpoint) const {
     LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->IsSpent(outpoint.hash, outpoint.n);
+    return wallet->IsSpent(outpoint);
 }
 
 // AvailableCoins + LockedCoins grouped by wallet address (put change in one

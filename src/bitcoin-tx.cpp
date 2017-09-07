@@ -229,18 +229,18 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     std::vector<std::string> vStrInputParts;
     boost::split(vStrInputParts, strInput, boost::is_any_of(":"));
 
-    // separate TXID:VOUT in string
+    // separate UTXID:VOUT in string
     if (vStrInputParts.size() < 2) {
         throw std::runtime_error("TX input missing separator");
     }
 
-    // extract and validate TXID
-    std::string strTxid = vStrInputParts[0];
-    if ((strTxid.size() != 64) || !IsHex(strTxid)) {
+    // extract and validate UTXID
+    std::string strUTxid = vStrInputParts[0];
+    if ((strUTxid.size() != 64) || !IsHex(strUTxid)) {
         throw std::runtime_error("invalid TX input txid");
     }
 
-    uint256 txid(uint256S(strTxid));
+    utxid_t utxid(uint256S(strUTxid));
 
     static const unsigned int minTxOutSz = 9;
     static const unsigned int maxVout = MAX_TX_SIZE / minTxOutSz;
@@ -259,7 +259,7 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     }
 
     // append to transaction input list
-    CTxIn txin(txid, vout, CScript(), nSequenceIn);
+    CTxIn txin(utxid, vout, CScript(), nSequenceIn);
     tx.vin.push_back(txin);
 }
 
@@ -609,13 +609,13 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         }
 
         std::map<std::string, UniValue::VType> types =
-            boost::assign::map_list_of("txid", UniValue::VSTR)(
+            boost::assign::map_list_of("utxid", UniValue::VSTR)(
                 "vout", UniValue::VNUM)("scriptPubKey", UniValue::VSTR);
         if (!prevOut.checkObject(types)) {
             throw std::runtime_error("prevtxs internal object typecheck fail");
         }
 
-        uint256 txid = ParseHashUV(prevOut["txid"], "txid");
+        utxid_t utxid = utxid_t(ParseHashUV(prevOut["utxid"], "utxid"));
 
         int nOut = atoi(prevOut["vout"].getValStr());
         if (nOut < 0) {
@@ -627,7 +627,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         CScript scriptPubKey(pkData.begin(), pkData.end());
 
         {
-            CCoinsModifier coins = view.ModifyCoins(txid);
+            CCoinsModifier coins = view.ModifyCoins(utxid);
             if (coins->IsAvailable(nOut) &&
                 coins->vout[nOut].scriptPubKey != scriptPubKey) {
                 std::string err("Previous output scriptPubKey mismatch:\n");

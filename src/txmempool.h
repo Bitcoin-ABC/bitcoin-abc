@@ -235,11 +235,20 @@ private:
 
 // extracts a TxMemPoolEntry's transaction hash
 struct mempoolentry_txid {
-    typedef uint256 result_type;
+    typedef txid_t result_type;
     result_type operator()(const CTxMemPoolEntry &entry) const {
         return entry.GetTx().GetId();
     }
 };
+
+// extracts a TxMemPoolEntry's utxid
+struct mempoolentry_utxid {
+    typedef utxid_t result_type;
+    result_type operator()(const CTxMemPoolEntry &entry) const {
+        return entry.GetTx().GetUtxid();
+    }
+};
+
 
 /** \class CompareTxMemPoolEntryByDescendantScore
  *
@@ -325,6 +334,7 @@ public:
 };
 
 // Multi_index tag names
+struct utxid_idx {};
 struct descendant_score {};
 struct entry_time {};
 struct mining_score {};
@@ -479,6 +489,10 @@ public:
                              // sorted by txid
                              boost::multi_index::hashed_unique<
                                  mempoolentry_txid, SaltedTxidHasher>,
+                             // sorted by utxid
+                             boost::multi_index::hashed_unique<
+                                boost::multi_index::tag<utxid_idx>,
+                                 mempoolentry_utxid, SaltedTxidHasher>,
                              // sorted by fee rate
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<descendant_score>,
@@ -506,7 +520,8 @@ public:
 
     typedef indexed_transaction_set::nth_index<0>::type::iterator txiter;
     //!< All tx hashes/entries in mapTx, in random order
-    std::vector<std::pair<uint256, txiter>> vTxHashes;
+    std::vector<std::pair<txid_t, txiter>> vTxHashes;
+
 
     struct CompareIteratorByHash {
         bool operator()(const txiter &a, const txiter &b) const {
@@ -535,9 +550,22 @@ private:
     std::vector<indexed_transaction_set::const_iterator>
     GetSortedDepthAndScore() const;
 
+    typedef indexed_transaction_set::index<utxid_idx>::type mapTxByUTXId;
+
+    txiter findByUTXId(const utxid_t &utxid) const {
+
+        mapTxByUTXId::iterator pit = mapTx.get<utxid_idx>().find(utxid);
+        if (pit == mapTx.get<utxid_idx>().end()) {
+            return mapTx.end();
+        }
+        else {
+            return mapTx.find(pit->GetTx().GetId());
+        }
+    }
+
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx;
-    std::map<uint256, std::pair<double, CAmount>> mapDeltas;
+    std::map<txid_t, std::pair<double, CAmount>> mapDeltas;
 
     /** Create a new CTxMemPool.
      */
@@ -559,9 +587,9 @@ public:
     // to track size/count of descendant transactions. First version of
     // addUnchecked can be used to have it call CalculateMemPoolAncestors(), and
     // then invoke the second version.
-    bool addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
+    bool addUnchecked(const txid_t &txid, const CTxMemPoolEntry &entry,
                       bool validFeeEstimate = true);
-    bool addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
+    bool addUnchecked(const txid_t &txid, const CTxMemPoolEntry &entry,
                       setEntries &setAncestors, bool validFeeEstimate = true);
 
     void removeRecursive(
@@ -576,8 +604,8 @@ public:
     void clear();
     // lock free
     void _clear();
-    bool CompareDepthAndScore(const uint256 &hasha, const uint256 &hashb);
-    void queryHashes(std::vector<uint256> &vtxid);
+    bool CompareDepthAndScore(const txid_t &hasha, const txid_t &hashb);
+    void queryHashes(std::vector<txid_t> &vtxid);
     bool isSpent(const COutPoint &outpoint);
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
@@ -589,11 +617,11 @@ public:
     bool HasNoInputsOf(const CTransaction &tx) const;
 
     /** Affect CreateNewBlock prioritisation of transactions */
-    void PrioritiseTransaction(const uint256 hash, const std::string strHash,
+    void PrioritiseTransaction(const txid_t txid, const std::string strHash,
                                double dPriorityDelta, const CAmount &nFeeDelta);
-    void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
+    void ApplyDeltas(const txid_t txid, double &dPriorityDelta,
                      CAmount &nFeeDelta) const;
-    void ClearPrioritisation(const uint256 hash);
+    void ClearPrioritisation(const txid_t txid);
 
 public:
     /**
@@ -618,7 +646,7 @@ public:
      * disconnected block that have been accepted back into the mempool.
      */
     void
-    UpdateTransactionsFromBlock(const std::vector<uint256> &hashesToUpdate);
+    UpdateTransactionsFromBlock(const std::vector<txid_t> &hashesToUpdate);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -668,7 +696,7 @@ public:
 
     /** Returns false if the transaction is in the mempool and not within the
      * chain limit specified. */
-    bool TransactionWithinChainLimit(const uint256 &txid,
+    bool TransactionWithinChainLimit(const txid_t &txid,
                                      size_t chainLimit) const;
 
     unsigned long size() {
@@ -681,13 +709,19 @@ public:
         return totalTxSize;
     }
 
-    bool exists(uint256 hash) const {
+    bool exists(txid_t txid) const {
         LOCK(cs);
-        return (mapTx.count(hash) != 0);
+        return (mapTx.count(txid) != 0);
     }
 
-    CTransactionRef get(const uint256 &hash) const;
-    TxMempoolInfo info(const uint256 &hash) const;
+    bool exists(utxid_t utxid) const {
+        LOCK(cs);
+        return (mapTx.get<utxid_idx>().count(utxid) != 0);
+    }
+
+    CTransactionRef get(const txid_t &txid) const;
+    CTransactionRef get(const utxid_t &utxid) const;
+    TxMempoolInfo info(const txid_t &txid) const;
     std::vector<TxMempoolInfo> infoAll() const;
 
     /**
@@ -737,7 +771,7 @@ private:
      * transaction again, if encountered in another transaction chain.
      */
     void UpdateForDescendants(txiter updateIt, cacheMap &cachedDescendants,
-                              const std::set<uint256> &setExclude);
+                              const std::set<txid_t> &setExclude);
     /** Update ancestors of hash to add/remove it as a descendant transaction.
      */
     void UpdateAncestorsOf(bool add, txiter hash, setEntries &setAncestors);
@@ -773,8 +807,8 @@ class CCoinsViewMemPool : public CCoinsViewBacked {
 protected:
     const CTxMemPool &mempool;
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
+    bool GetCoins(const utxid_t &txid, CCoins &coins) const;
+    bool HaveCoins(const utxid_t &txid) const;
 
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
