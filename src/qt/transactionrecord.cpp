@@ -37,7 +37,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
     CAmount nCredit = wtx.GetCredit(ISMINE_ALL);
     CAmount nDebit = wtx.GetDebit(ISMINE_ALL);
     CAmount nNet = nCredit - nDebit;
-    uint256 hash = wtx.GetId();
+    txid_t hash = wtx.GetId();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
     if (nNet > 0 || wtx.IsCoinBase()) {

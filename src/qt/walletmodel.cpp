@@ -449,7 +449,7 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
 }
 
 static void NotifyTransactionChanged(WalletModel *walletmodel, CWallet *wallet,
-                                     const uint256 &hash, ChangeType status) {
+                                     const txid_t &hash, ChangeType status) {
     Q_UNUSED(wallet);
     Q_UNUSED(hash);
     Q_UNUSED(status);
@@ -546,10 +546,11 @@ void WalletModel::getOutputs(const std::vector<COutPoint> &vOutpoints,
                              std::vector<COutput> &vOutputs) {
     LOCK2(cs_main, wallet->cs_wallet);
     for (const COutPoint &outpoint : vOutpoints) {
-        if (!wallet->mapWallet.count(outpoint.hash)) continue;
-        int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
+        const CWalletTx *wtx = wallet->GetWalletTx(outpoint.utxid);
+        if (!wtx) continue;
+        int nDepth = wtx->GetDepthInMainChain();
         if (nDepth < 0) continue;
-        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth, true,
+        COutput out(wtx, outpoint.n, nDepth, true,
                     true);
         vOutputs.push_back(out);
     }
@@ -574,10 +575,11 @@ void WalletModel::listCoins(
 
     // add locked coins
     for (const COutPoint &outpoint : vLockedCoins) {
-        if (!wallet->mapWallet.count(outpoint.hash)) continue;
-        int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
+        const CWalletTx *wtx = wallet->GetWalletTx(outpoint.utxid);
+        if (!wtx) continue;
+        int nDepth = wtx->GetDepthInMainChain();
         if (nDepth < 0) continue;
-        COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth, true,
+        COutput out(wtx, outpoint.n, nDepth, true,
                     true);
         if (outpoint.n < out.tx->tx->vout.size() &&
             wallet->IsMine(out.tx->tx->vout[outpoint.n]) == ISMINE_SPENDABLE)
@@ -590,10 +592,10 @@ void WalletModel::listCoins(
         while (wallet->IsChange(cout.tx->tx->vout[cout.i]) &&
                cout.tx->tx->vin.size() > 0 &&
                wallet->IsMine(cout.tx->tx->vin[0])) {
-            if (!wallet->mapWallet.count(cout.tx->tx->vin[0].prevout.hash))
+            const CWalletTx *wtx = wallet->GetWalletTx(cout.tx->tx->vin[0].prevout.utxid);
+            if (!wtx)
                 break;
-            cout = COutput(&wallet->mapWallet[cout.tx->tx->vin[0].prevout.hash],
-                           cout.tx->tx->vin[0].prevout.n, 0, true, true);
+            cout = COutput(wtx, cout.tx->tx->vin[0].prevout.n, 0, true, true);
         }
 
         CTxDestination address;
@@ -606,9 +608,14 @@ void WalletModel::listCoins(
     }
 }
 
-bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const {
+bool WalletModel::isLockedCoin(txid_t hash, unsigned int n) const {
     LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->IsLockedCoin(hash, n);
+    const CWalletTx *wtx = wallet->GetWalletTx(hash);
+    if (!wtx) {
+        return false;
+    }
+
+    return wallet->IsLockedCoin(COutPoint(wtx->tx->GetUtxid(), n));
 }
 
 void WalletModel::lockCoin(COutPoint &output) {
@@ -656,7 +663,7 @@ bool WalletModel::saveReceiveRequest(const std::string &sAddress,
         return wallet->AddDestData(dest, key, sRequest);
 }
 
-bool WalletModel::transactionCanBeAbandoned(uint256 hash) const {
+bool WalletModel::transactionCanBeAbandoned(txid_t hash) const {
     LOCK2(cs_main, wallet->cs_wallet);
     const CWalletTx *wtx = wallet->GetWalletTx(hash);
     if (!wtx || wtx->isAbandoned() || wtx->GetDepthInMainChain() > 0 ||
@@ -665,7 +672,7 @@ bool WalletModel::transactionCanBeAbandoned(uint256 hash) const {
     return true;
 }
 
-bool WalletModel::abandonTransaction(uint256 hash) const {
+bool WalletModel::abandonTransaction(txid_t hash) const {
     LOCK2(cs_main, wallet->cs_wallet);
     return wallet->AbandonTransaction(hash);
 }

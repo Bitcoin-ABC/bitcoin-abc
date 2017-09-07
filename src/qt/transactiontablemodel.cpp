@@ -42,10 +42,10 @@ struct TxLessThan {
                     const TransactionRecord &b) const {
         return a.hash < b.hash;
     }
-    bool operator()(const TransactionRecord &a, const uint256 &b) const {
+    bool operator()(const TransactionRecord &a, const txid_t &b) const {
         return a.hash < b;
     }
-    bool operator()(const uint256 &a, const TransactionRecord &b) const {
+    bool operator()(const txid_t &a, const TransactionRecord &b) const {
         return a < b.hash;
     }
 };
@@ -72,7 +72,7 @@ public:
         cachedWallet.clear();
         {
             LOCK2(cs_main, wallet->cs_wallet);
-            for (std::map<uint256, CWalletTx>::iterator it =
+            for (std::map<txid_t, CWalletTx>::iterator it =
                      wallet->mapWallet.begin();
                  it != wallet->mapWallet.end(); ++it) {
                 if (TransactionRecord::showTransaction(it->second))
@@ -87,7 +87,7 @@ public:
      * the wallet with that of the core.
      * Call with transaction that was added, removed or changed.
      */
-    void updateWallet(const uint256 &hash, int status, bool showTransaction) {
+    void updateWallet(const txid_t &hash, int status, bool showTransaction) {
         qDebug() << "TransactionTablePriv::updateWallet: " +
                         QString::fromStdString(hash.ToString()) + " " +
                         QString::number(status);
@@ -125,7 +125,7 @@ public:
                 if (showTransaction) {
                     LOCK2(cs_main, wallet->cs_wallet);
                     // Find transaction in wallet
-                    std::map<uint256, CWalletTx>::iterator mi =
+                    std::map<txid_t, CWalletTx>::iterator mi =
                         wallet->mapWallet.find(hash);
                     if (mi == wallet->mapWallet.end()) {
                         qWarning() << "TransactionTablePriv::updateWallet: "
@@ -189,7 +189,7 @@ public:
             if (lockMain) {
                 TRY_LOCK(wallet->cs_wallet, lockWallet);
                 if (lockWallet && rec->statusUpdateNeeded()) {
-                    std::map<uint256, CWalletTx>::iterator mi =
+                    std::map<txid_t, CWalletTx>::iterator mi =
                         wallet->mapWallet.find(rec->hash);
 
                     if (mi != wallet->mapWallet.end()) {
@@ -205,7 +205,7 @@ public:
     QString describe(TransactionRecord *rec, int unit) {
         {
             LOCK2(cs_main, wallet->cs_wallet);
-            std::map<uint256, CWalletTx>::iterator mi =
+            std::map<txid_t, CWalletTx>::iterator mi =
                 wallet->mapWallet.find(rec->hash);
             if (mi != wallet->mapWallet.end()) {
                 return TransactionDesc::toHTML(wallet, mi->second, rec, unit);
@@ -216,7 +216,7 @@ public:
 
     QString getTxHex(TransactionRecord *rec) {
         LOCK2(cs_main, wallet->cs_wallet);
-        std::map<uint256, CWalletTx>::iterator mi =
+        std::map<txid_t, CWalletTx>::iterator mi =
             wallet->mapWallet.find(rec->hash);
         if (mi != wallet->mapWallet.end()) {
             std::string strHex =
@@ -258,7 +258,7 @@ void TransactionTableModel::updateAmountColumnTitle() {
 
 void TransactionTableModel::updateTransaction(const QString &hash, int status,
                                               bool showTransaction) {
-    uint256 updated;
+    txid_t updated;
     updated.SetHex(hash.toStdString());
 
     priv->updateWallet(updated, status, showTransaction);
@@ -706,7 +706,7 @@ void TransactionTableModel::updateDisplayUnit() {
 struct TransactionNotification {
 public:
     TransactionNotification() {}
-    TransactionNotification(uint256 _hash, ChangeType _status,
+    TransactionNotification(txid_t _hash, ChangeType _status,
                             bool _showTransaction)
         : hash(_hash), status(_status), showTransaction(_showTransaction) {}
 
@@ -721,7 +721,7 @@ public:
     }
 
 private:
-    uint256 hash;
+    txid_t hash;
     ChangeType status;
     bool showTransaction;
 };
@@ -730,10 +730,10 @@ static bool fQueueNotifications = false;
 static std::vector<TransactionNotification> vQueueNotifications;
 
 static void NotifyTransactionChanged(TransactionTableModel *ttm,
-                                     CWallet *wallet, const uint256 &hash,
+                                     CWallet *wallet, const txid_t &hash,
                                      ChangeType status) {
     // Find transaction in wallet
-    std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
+    std::map<txid_t, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
     // Determine whether to show transaction or not (determine this here so that
     // no relocking is needed in GUI thread)
     bool inWallet = mi != wallet->mapWallet.end();

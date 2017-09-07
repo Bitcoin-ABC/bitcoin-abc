@@ -20,6 +20,7 @@ class CTransaction;
 class CValidationInterface;
 class CValidationState;
 class uint256;
+class txid_t;
 
 // These functions dispatch to one or all registered wallets
 
