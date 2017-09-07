@@ -4,8 +4,25 @@ Bitcoin ABC version 0.15.0 is now available from:
 
 This release includes the following features and fixes:
 
-- Low level RPC error code changes (D500 / backport of PR9853)
 - Reserve block space for high priority transactions (D485)
+- Use "bitcoincash:" URI (D466)
+- Add and accept Bitcoin Cash networking magic (D400)
+- Peer preferentially with NODE_CASH nodes (D457)
+- Hardcoded seeds update (D403)
+- Remove UAHF RPC calls, and some of the UAHF activation logic (D407, D417)
+- Various test fixes and other cleanups now that UAHF activation is past
+- Various changes now that we do replay protected txns only (D437, D440, D442, D444, D451, D455, D456)
+- Make SCRIPT_VERIFY_STRICTENC a mandatory flag (D421)
+- Fix RPC signrawtransaction silently accepting missing amount field (D449)
+- Fix a some small memory leaks, and an overflow (D372, D452, D472)
+- Added sanitizer support (D474, D481)
+- Rename package to bitcoin-abc-* (D482, D489, D510, D513)
+- Cryptographic randomness improvements (backport from Core PR9821 and PR9792) (D488, D490)
+- Store the UTXO set on a per output basis rather than a per transaction basis (backport from Core)
+- Various other backports and fixes from Core
+- Various fixes and improvements to test suite
+- Various code cleanups and style improvements
+- Low level RPC error code changes (D500 / backport of PR9853)
 
 Low-level RPC changes (D500)
 ----------------------------
