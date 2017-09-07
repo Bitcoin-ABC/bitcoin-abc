@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     if (buffer.size() < sizeof(uint32_t)) return 0;
 
     uint32_t test_id = 0xffffffff;
-    memcpy(&test_id, &buffer[0], sizeof(uint32_t));
+    memcpy(&test_id, buffer.data(), sizeof(uint32_t));
     buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t));
 
     if (test_id >= TEST_ID_END) return 0;

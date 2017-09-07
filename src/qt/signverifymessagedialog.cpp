@@ -161,7 +161,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked() {
                                 QString("</nobr>"));
 
     ui->signatureOut_SM->setText(
-        QString::fromStdString(EncodeBase64(&vchSig[0], vchSig.size())));
+        QString::fromStdString(EncodeBase64(vchSig.data(), vchSig.size())));
 }
 
 void SignVerifyMessageDialog::on_copySignatureButton_SM_clicked() {

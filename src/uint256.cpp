@@ -13,7 +13,7 @@
 template <unsigned int BITS>
 base_blob<BITS>::base_blob(const std::vector<uint8_t> &vch) {
     assert(vch.size() == sizeof(data));
-    memcpy(data, &vch[0], sizeof(data));
+    memcpy(data, vch.data(), sizeof(data));
 }
 
 template <unsigned int BITS> std::string base_blob<BITS>::GetHex() const {

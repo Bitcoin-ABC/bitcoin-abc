@@ -28,9 +28,7 @@ int CCrypter::BytesToKeySHA512AES(const std::vector<uint8_t> &chSalt,
     CSHA512 di;
 
     di.Write((const uint8_t *)strKeyData.c_str(), strKeyData.size());
-    if (chSalt.size()) {
-        di.Write(&chSalt[0], chSalt.size());
-    }
+    di.Write(chSalt.data(), chSalt.size());
     di.Finalize(buf);
 
     for (int i = 0; i != count - 1; i++) {
@@ -92,8 +90,8 @@ bool CCrypter::Encrypt(const CKeyingMaterial &vchPlaintext,
     vchCiphertext.resize(vchPlaintext.size() + AES_BLOCKSIZE);
 
     AES256CBCEncrypt enc(vchKey.data(), vchIV.data(), true);
-    size_t nLen =
-        enc.Encrypt(&vchPlaintext[0], vchPlaintext.size(), &vchCiphertext[0]);
+    size_t nLen = enc.Encrypt(vchPlaintext.data(), vchPlaintext.size(),
+                              vchCiphertext.data());
     if (nLen < vchPlaintext.size()) {
         return false;
     }
@@ -114,8 +112,8 @@ bool CCrypter::Decrypt(const std::vector<uint8_t> &vchCiphertext,
     vchPlaintext.resize(nLen);
 
     AES256CBCDecrypt dec(vchKey.data(), vchIV.data(), true);
-    nLen =
-        dec.Decrypt(&vchCiphertext[0], vchCiphertext.size(), &vchPlaintext[0]);
+    nLen = dec.Decrypt(vchCiphertext.data(), vchCiphertext.size(),
+                       vchPlaintext.data());
     if (nLen == 0) {
         return false;
     }
@@ -129,7 +127,7 @@ static bool EncryptSecret(const CKeyingMaterial &vMasterKey,
                           std::vector<uint8_t> &vchCiphertext) {
     CCrypter cKeyCrypter;
     std::vector<uint8_t> chIV(WALLET_CRYPTO_IV_SIZE);
-    memcpy(&chIV[0], &nIV, WALLET_CRYPTO_IV_SIZE);
+    memcpy(chIV.data(), &nIV, WALLET_CRYPTO_IV_SIZE);
     if (!cKeyCrypter.SetKey(vMasterKey, chIV)) {
         return false;
     }
@@ -142,7 +140,7 @@ static bool DecryptSecret(const CKeyingMaterial &vMasterKey,
                           const uint256 &nIV, CKeyingMaterial &vchPlaintext) {
     CCrypter cKeyCrypter;
     std::vector<uint8_t> chIV(WALLET_CRYPTO_IV_SIZE);
-    memcpy(&chIV[0], &nIV, WALLET_CRYPTO_IV_SIZE);
+    memcpy(chIV.data(), &nIV, WALLET_CRYPTO_IV_SIZE);
     if (!cKeyCrypter.SetKey(vMasterKey, chIV)) {
         return false;
     }

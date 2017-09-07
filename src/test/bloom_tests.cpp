@@ -238,9 +238,9 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
     COutPoint prevOutPoint(txid, 0);
     {
         std::vector<uint8_t> data(32 + sizeof(uint32_t));
-        memcpy(&data[0], prevOutPoint.GetTxId().begin(), 32);
+        memcpy(data.data(), prevOutPoint.GetTxId().begin(), 32);
         uint32_t n = prevOutPoint.GetN();
-        memcpy(&data[32], &n, sizeof(uint32_t));
+        memcpy(data.data() + 32, &n, sizeof(uint32_t));
         filter.insert(data);
     }
     BOOST_CHECK_MESSAGE(

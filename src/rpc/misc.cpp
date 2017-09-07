@@ -308,7 +308,7 @@ static UniValue signmessagewithprivkey(const Config &config,
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
     }
 
-    return EncodeBase64(&vchSig[0], vchSig.size());
+    return EncodeBase64(vchSig.data(), vchSig.size());
 }
 
 static UniValue setmocktime(const Config &config,
