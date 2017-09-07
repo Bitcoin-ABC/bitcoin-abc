@@ -393,10 +393,10 @@ void JSONRPCRequest::parse(const UniValue &valRequest) {
                            "Params must be an array or object");
 }
 
-static UniValue JSONRPCExecOne(Config &config, const UniValue &req) {
+static UniValue JSONRPCExecOne(Config &config, JSONRPCRequest jreq,
+                               const UniValue &req) {
     UniValue rpc_result(UniValue::VOBJ);
 
-    JSONRPCRequest jreq;
     try {
         jreq.parse(req);
 
@@ -412,10 +412,11 @@ static UniValue JSONRPCExecOne(Config &config, const UniValue &req) {
     return rpc_result;
 }
 
-std::string JSONRPCExecBatch(Config &config, const UniValue &vReq) {
+std::string JSONRPCExecBatch(Config &config, const JSONRPCRequest &jreq,
+                             const UniValue &vReq) {
     UniValue ret(UniValue::VARR);
-    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++) {
-        ret.push_back(JSONRPCExecOne(config, vReq[reqIdx]));
+    for (size_t i = 0; i < vReq.size(); i++) {
+        ret.push_back(JSONRPCExecOne(config, jreq, vReq[i]));
     }
 
     return ret.write() + "\n";

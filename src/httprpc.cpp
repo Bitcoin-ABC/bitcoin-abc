@@ -198,10 +198,9 @@ static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
 
             // Send reply
             strReply = JSONRPCReply(result, NullUniValue, jreq.id);
-
-            // array of requests
         } else if (valRequest.isArray()) {
-            strReply = JSONRPCExecBatch(config, valRequest.get_array());
+            // array of requests
+            strReply = JSONRPCExecBatch(config, jreq, valRequest.get_array());
         } else {
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
         }

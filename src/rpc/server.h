@@ -227,7 +227,8 @@ extern std::string HelpExampleRpc(const std::string &methodname,
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(Config &config, const UniValue &vReq);
+std::string JSONRPCExecBatch(Config &config, const JSONRPCRequest &req,
+                             const UniValue &vReq);
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);
 
 // Retrieves any serialization flags requested in command line argument
