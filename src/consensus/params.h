@@ -16,6 +16,7 @@ enum DeploymentPos {
     DEPLOYMENT_TESTDUMMY,
     // Deployment of BIP68, BIP112, and BIP113.
     DEPLOYMENT_CSV,
+    DEPLOYMENT_MALFIX,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
     // versionbits.cpp
     MAX_VERSION_BITS_DEPLOYMENTS
