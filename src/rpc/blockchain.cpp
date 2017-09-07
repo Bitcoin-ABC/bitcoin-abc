@@ -1322,6 +1322,9 @@ UniValue getblockchaininfo(const Config &config,
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     BIP9SoftForkDescPushBack(bip9_softforks, "csv", consensusParams,
                              Consensus::DEPLOYMENT_CSV);
+    /* Not actually a softfork, but we can ignore the terminology for info requests */
+    BIP9SoftForkDescPushBack(bip9_softforks, "malfix", consensusParams,
+                             Consensus::DEPLOYMENT_MALFIX);
     obj.push_back(Pair("softforks", softforks));
     obj.push_back(Pair("bip9_softforks", bip9_softforks));
 
