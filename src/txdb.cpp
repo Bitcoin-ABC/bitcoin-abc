@@ -35,13 +35,13 @@ struct CoinEntry {
 
     template <typename Stream> void Serialize(Stream &s) const {
         s << key;
-        s << outpoint->hash;
+        s << outpoint->utxid;
         s << VARINT(outpoint->n);
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
         s >> key;
-        s >> outpoint->hash;
+        s >> outpoint->utxid;
         s >> VARINT(outpoint->n);
     }
 };
@@ -194,14 +194,14 @@ bool CBlockTreeDB::WriteBatchSync(
     return WriteBatch(batch, true);
 }
 
-bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+bool CBlockTreeDB::ReadTxIndex(const txid_t &txid, CDiskTxPos &pos) {
     return Read(std::make_pair(DB_TXINDEX, txid), pos);
 }
 
 bool CBlockTreeDB::WriteTxIndex(
-    const std::vector<std::pair<uint256, CDiskTxPos>> &vect) {
+    const std::vector<std::pair<txid_t, CDiskTxPos>> &vect) {
     CDBBatch batch(*this);
-    for (std::vector<std::pair<uint256, CDiskTxPos>>::const_iterator it =
+    for (std::vector<std::pair<txid_t, CDiskTxPos>>::const_iterator it =
              vect.begin();
          it != vect.end(); it++)
         batch.Write(std::make_pair(DB_TXINDEX, it->first), it->second);
@@ -335,7 +335,7 @@ bool CCoinsViewDB::Upgrade() {
     CDBBatch batch(db);
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
-        std::pair<uint8_t, uint256> key;
+        std::pair<uint8_t, utxid_t> key;
         if (!pcursor->GetKey(key) || key.first != DB_COINS) {
             break;
         }

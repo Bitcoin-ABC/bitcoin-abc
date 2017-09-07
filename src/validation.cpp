@@ -633,7 +633,9 @@ static bool AcceptToMemoryPoolWorker(
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
-    const uint256 txid = tx.GetId();
+    const txid_t txid = tx.GetId();
+    const utxid_t utxid = tx.GetUtxid();
+
     if (pfMissingInputs) {
         *pfMissingInputs = false;
     }
@@ -697,7 +699,7 @@ static bool AcceptToMemoryPoolWorker(
 
             // Do we already have it?
             for (size_t out = 0; out < tx.vout.size(); out++) {
-                COutPoint outpoint(txid, out);
+                COutPoint outpoint(utxid, out);
                 bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
                 if (view.HaveCoin(outpoint)) {
                     if (!had_coin_in_cache) {
@@ -962,7 +964,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 
 /** Return transaction in txOut, and if it was found inside a block, its hash is
  * placed in hashBlock */
-bool GetTransaction(const Config &config, const uint256 &txid,
+bool GetTransaction(const Config &config, const txid_t &txid,
                     CTransactionRef &txOut, uint256 &hashBlock) {
 
     LOCK(cs_main);
@@ -1496,17 +1498,27 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
         // this information only in undo records for the last spend of a
         // transactions' outputs. This implies that it must be present for some
         // other output of the same tx.
-        const Coin &alternate = AccessByTxid(view, out.hash);
-        if (alternate.IsSpent()) {
+        COutPoint iter(out.utxid, 0);
+        while (iter.n < MAX_OUTPUTS_PER_TX) {
+            const Coin &alternate = view.AccessCoin(iter);
+            if (!alternate.IsSpent()) {
+
+                // This is somewhat ugly, but hopefully utility is limited. This is only
+                // useful when working from legacy on disck data. In any case, putting
+                // the correct information in there doesn't hurt.
+                const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
+                                                alternate.IsCoinBase());
+                break;
+            }
+            ++iter.n;
+        }
+
+        if (iter.n == MAX_OUTPUTS_PER_TX) {
             // Adding output for transaction without known metadata
             return DISCONNECT_FAILED;
         }
 
-        // This is somewhat ugly, but hopefully utility is limited. This is only
-        // useful when working from legacy on disck data. In any case, putting
-        // the correct information in there doesn't hurt.
-        const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
-                                        alternate.IsCoinBase());
+
     }
 
     view.AddCoin(out, undo, undo.IsCoinBase());
@@ -1552,7 +1564,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     size_t i = block.vtx.size();
     while (i-- > 0) {
         const CTransaction &tx = *(block.vtx[i]);
-        uint256 txid = tx.GetId();
+        utxid_t utxid = tx.GetUtxid();
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
@@ -1561,7 +1573,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
                 continue;
             }
 
-            COutPoint out(txid, o);
+            COutPoint out(utxid, o);
             Coin coin;
             bool is_spent = view.SpendCoin(out, &coin);
             if (!is_spent || tx.vout[o] != coin.GetTxOut()) {
@@ -1815,7 +1827,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
+                if (view.HaveCoin(COutPoint(tx->GetUtxid(), o))) {
                     return state.DoS(
                         100,
                         error("ConnectBlock(): tried to overwrite transaction"),
@@ -1881,7 +1893,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
+    std::vector<std::pair<txid_t, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
@@ -2028,7 +2040,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
 
     // Watch for changes to the previous coinbase transaction.
-    static uint256 hashPrevBestCoinBase;
+    static txid_t hashPrevBestCoinBase;
     GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
     hashPrevBestCoinBase = block.vtx[0]->GetId();
 
@@ -2320,7 +2332,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
 
     if (!fBare) {
         // Resurrect mempool transactions from the disconnected block.
-        std::vector<uint256> vHashUpdate;
+        std::vector<txid_t> vHashUpdate;
         for (const auto &it : block.vtx) {
             const CTransaction &tx = *it;
             // ignore validation errors in resurrected transactions
@@ -4828,7 +4840,7 @@ bool LoadMempool(const Config &config) {
             }
             if (ShutdownRequested()) return false;
         }
-        std::map<uint256, CAmount> mapDeltas;
+        std::map<txid_t, CAmount> mapDeltas;
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {

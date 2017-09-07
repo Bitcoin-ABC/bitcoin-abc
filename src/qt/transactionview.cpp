@@ -389,7 +389,7 @@ void TransactionView::contextualMenu(const QPoint &point) {
 
     // check if transaction can be abandoned, disable context menu action in
     // case it doesn't
-    uint256 hash;
+    txid_t hash;
     hash.SetHex(selection.at(0)
                     .data(TransactionTableModel::TxHashRole)
                     .toString()
@@ -407,7 +407,7 @@ void TransactionView::abandonTx() {
         transactionView->selectionModel()->selectedRows(0);
 
     // get the hash from the TxHashRole (QVariant / QString)
-    uint256 hash;
+    txid_t hash;
     QString hashQStr =
         selection.at(0).data(TransactionTableModel::TxHashRole).toString();
     hash.SetHex(hashQStr.toStdString());

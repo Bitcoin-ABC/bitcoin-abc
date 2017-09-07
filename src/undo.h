@@ -72,6 +72,9 @@ public:
 static const size_t MAX_INPUTS_PER_TX =
     MAX_TX_SIZE / ::GetSerializeSize(CTxIn(), SER_NETWORK, PROTOCOL_VERSION);
 
+static const size_t MAX_OUTPUTS_PER_TX =
+    MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), SER_NETWORK, PROTOCOL_VERSION);
+
 /** Restore the UTXO in a Coin at a given COutPoint */
 class CTxUndo {
 public:

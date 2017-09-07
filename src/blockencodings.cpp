@@ -116,7 +116,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     std::vector<bool> have_txn(txn_available.size());
     {
         LOCK(pool->cs);
-        const std::vector<std::pair<uint256, CTxMemPool::txiter>> &vTxHashes =
+        const std::vector<std::pair<txid_t, CTxMemPool::txiter>> &vTxHashes =
             pool->vTxHashes;
         for (size_t i = 0; i < vTxHashes.size(); i++) {
             uint64_t shortid = cmpctblock.GetShortID(vTxHashes[i].first);

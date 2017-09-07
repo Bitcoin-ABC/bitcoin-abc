@@ -97,7 +97,7 @@ void BuildTxs(CMutableTransaction &spendingTx, CCoinsViewCache &coins,
 
     spendingTx.nVersion = 1;
     spendingTx.vin.resize(1);
-    spendingTx.vin[0].prevout.hash = creationTx.GetId();
+    spendingTx.vin[0].prevout.utxid = creationTx.GetUtxid();
     spendingTx.vin[0].prevout.n = 0;
     spendingTx.vin[0].scriptSig = scriptSig;
     spendingTx.vout.resize(1);
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(test_max_sigops_per_tx) {
     CMutableTransaction tx;
     tx.nVersion = 1;
     tx.vin.resize(1);
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript();
     tx.vout.resize(1);

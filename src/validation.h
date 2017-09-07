@@ -315,7 +315,7 @@ bool IsInitialBlockDownload();
  */
 std::string GetWarnings(const std::string &strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(const Config &config, const uint256 &hash,
+bool GetTransaction(const Config &config, const txid_t &hash,
                     CTransactionRef &tx, uint256 &hashBlock);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(

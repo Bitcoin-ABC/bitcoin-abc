@@ -87,7 +87,7 @@ public:
      * implementation.
      */
     size_t operator()(const COutPoint &outpoint) const {
-        return SipHashUint256Extra(k0, k1, outpoint.hash, outpoint.n);
+        return SipHashUint256Extra(k0, k1, outpoint.utxid, outpoint.n);
     }
 };
 

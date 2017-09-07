@@ -136,22 +136,19 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
     // Use a limited set of random transaction ids, so we do test overwriting
     // entries.
-    std::vector<uint256> txids;
-    txids.resize(NUM_SIMULATION_ITERATIONS / 8);
-    for (size_t i = 0; i < txids.size(); i++) {
-        txids[i] = GetRandHash();
+    std::vector<utxid_t> utxids;
+    utxids.resize(NUM_SIMULATION_ITERATIONS / 8);
+    for (size_t i = 0; i < utxids.size(); i++) {
+        utxids[i] = utxid_t(GetRandHash());
     }
 
     for (unsigned int i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
         // Do a random modification.
         {
             // txid we're going to modify in this iteration.
-            uint256 txid = txids[insecure_rand() % txids.size()];
-            Coin &coin = result[COutPoint(txid, 0)];
-            const Coin &entry =
-                (insecure_rand() % 500 == 0)
-                    ? AccessByTxid(*stack.back(), txid)
-                    : stack.back()->AccessCoin(COutPoint(txid, 0));
+            utxid_t utxid = utxids[insecure_rand() % utxids.size()];
+            Coin &coin = result[COutPoint(utxid, 0)];
+            const Coin &entry = stack.back()->AccessCoin(COutPoint(utxid, 0));
             BOOST_CHECK(coin == entry);
 
             if (insecure_rand() % 5 == 0 || coin.IsSpent()) {
@@ -170,18 +167,18 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
                 }
 
                 Coin newcoin(txout, 1, false);
-                stack.back()->AddCoin(COutPoint(txid, 0), newcoin,
+                stack.back()->AddCoin(COutPoint(utxid, 0), newcoin,
                                       !coin.IsSpent() || insecure_rand() & 1);
             } else {
                 removed_an_entry = true;
                 coin.Clear();
-                stack.back()->SpendCoin(COutPoint(txid, 0));
+                stack.back()->SpendCoin(COutPoint(utxid, 0));
             }
         }
 
         // One every 10 iterations, remove a random entry from the cache
         if (insecure_rand() % 10) {
-            COutPoint out(txids[insecure_rand() % txids.size()], 0);
+            COutPoint out(utxids[insecure_rand() % utxids.size()], 0);
             int cacheid = insecure_rand() % stack.size();
             stack[cacheid]->Uncache(out);
             uncached_an_entry |= !stack[cacheid]->HaveCoinInCache(out);
@@ -262,7 +259,7 @@ UtxoData utxoData;
 
 UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
     assert(utxoSet.size());
-    auto utxoSetIt = utxoSet.lower_bound(COutPoint(GetRandHash(), 0));
+    auto utxoSetIt = utxoSet.lower_bound(COutPoint(utxid_t(GetRandHash()), 0));
     if (utxoSetIt == utxoSet.end()) {
         utxoSetIt = utxoSet.begin();
     }
@@ -323,7 +320,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
                     duplicate_coins.insert(utxod->first);
                 } else {
-                    coinbase_coins.insert(COutPoint(tx.GetId(), 0));
+                    coinbase_coins.insert(COutPoint(tx.GetUtxid(), 0));
                 }
                 assert(CTransaction(tx).IsCoinBase());
             }
@@ -381,7 +378,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             }
             // Update the expected result to know about the new output coins
             assert(tx.vout.size() == 1);
-            const COutPoint outpoint(tx.GetId(), 0);
+            const COutPoint outpoint(tx.GetUtxid(), 0);
             result[outpoint] =
                 Coin(tx.vout[0], height, CTransaction(tx).IsCoinBase());
 

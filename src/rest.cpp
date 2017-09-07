@@ -360,7 +360,7 @@ static bool rest_tx(Config &config, HTTPRequest *req,
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
 
-    uint256 hash;
+    txid_t hash;
     if (!ParseHashStr(hashStr, hash))
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
 
@@ -437,12 +437,12 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     if (uriParts.size() > 0) {
 
         // inputs is sent over URI scheme
-        // (/rest/getutxos/checkmempool/txid1-n/txid2-n/...)
+        // (/rest/getutxos/checkmempool/utxid1-n/utxid2-n/...)
         if (uriParts.size() > 0 && uriParts[0] == "checkmempool")
             fCheckMemPool = true;
 
         for (size_t i = (fCheckMemPool) ? 1 : 0; i < uriParts.size(); i++) {
-            uint256 txid;
+            utxid_t utxid;
             int32_t nOutput;
             std::string strTxid = uriParts[i].substr(0, uriParts[i].find("-"));
             std::string strOutput =
@@ -451,8 +451,8 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             if (!ParseInt32(strOutput, &nOutput) || !IsHex(strTxid))
                 return RESTERR(req, HTTP_BAD_REQUEST, "Parse error");
 
-            txid.SetHex(strTxid);
-            vOutPoints.push_back(COutPoint(txid, (uint32_t)nOutput));
+            utxid.SetHex(strTxid);
+            vOutPoints.push_back(COutPoint(utxid, (uint32_t)nOutput));
         }
 
         if (vOutPoints.size() > 0) {

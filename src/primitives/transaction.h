@@ -11,18 +11,39 @@
 #include "serialize.h"
 #include "uint256.h"
 
+#include "boost/serialization/strong_typedef.hpp"
+
 static const int SERIALIZE_TRANSACTION = 0x00;
+
+/** A utxid is either:
+ * The txid of a v1 or v2 transaction or
+ * The double sha256 of all transaction data *except the inputs*
+ *
+ * It is used as reference to a transaction in an Outpoint. */
+class utxid_t : public uint256 {
+public:
+    utxid_t() {}
+    explicit utxid_t(const uint256 &b) : uint256(b) {}
+};
+
+/** A txid is the double sha256 hash of the full transaction data */
+class txid_t : public uint256 {
+public:
+    txid_t() {}
+    explicit txid_t(const uint256 &b) : uint256(b) {}
+};
+
 
 /** An outpoint - a combination of a transaction hash and an index n into its
  * vout */
 class COutPoint {
 public:
-    uint256 hash;
+    utxid_t utxid;
     uint32_t n;
 
     COutPoint() { SetNull(); }
-    COutPoint(uint256 hashIn, uint32_t nIn) {
-        hash = hashIn;
+    COutPoint(utxid_t utxidIn, uint32_t nIn) {
+        utxid = utxidIn;
         n = nIn;
     }
 
@@ -30,23 +51,23 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(hash);
+        READWRITE(utxid);
         READWRITE(n);
     }
 
     void SetNull() {
-        hash.SetNull();
+        utxid.SetNull();
         n = (uint32_t)-1;
     }
-    bool IsNull() const { return (hash.IsNull() && n == (uint32_t)-1); }
+    bool IsNull() const { return (utxid.IsNull() && n == (uint32_t)-1); }
 
     friend bool operator<(const COutPoint &a, const COutPoint &b) {
-        int cmp = a.hash.Compare(b.hash);
+        int cmp = a.utxid.Compare(b.utxid);
         return cmp < 0 || (cmp == 0 && a.n < b.n);
     }
 
     friend bool operator==(const COutPoint &a, const COutPoint &b) {
-        return (a.hash == b.hash && a.n == b.n);
+        return (a.utxid == b.utxid && a.n == b.n);
     }
 
     friend bool operator!=(const COutPoint &a, const COutPoint &b) {
@@ -97,7 +118,7 @@ public:
 
     explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn = CScript(),
                    uint32_t nSequenceIn = SEQUENCE_FINAL);
-    CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn = CScript(),
+    CTxIn(utxid_t utxid, uint32_t nOut, CScript scriptSigIn = CScript(),
           uint32_t nSequenceIn = SEQUENCE_FINAL);
 
     ADD_SERIALIZE_METHODS;
@@ -238,9 +259,11 @@ public:
 
 private:
     /** Memory only. */
-    const uint256 hash;
+    const txid_t hash;
+    const utxid_t utxid;
 
-    uint256 ComputeHash() const;
+    txid_t ComputeHash() const;
+    utxid_t ComputeUtxid() const;
 
 public:
     /** Construct a CTransaction that qualifies as IsNull() */
@@ -263,10 +286,16 @@ public:
 
     bool IsNull() const { return vin.empty() && vout.empty(); }
 
-    const uint256 &GetId() const { return hash; }
+    const txid_t &GetId() const { return hash; }
+
+    /**
+     * Returns the identifier of the transaction used by outpoints.
+     * For v3 transactions, this is the immutableId
+     **/
+    const utxid_t &GetUtxid() const { return utxid;  }
 
     // Compute a hash that includes both transaction and witness data
-    uint256 GetHash() const;
+    txid_t GetHash() const;
 
     // Return sum of txouts.
     CAmount GetValueOut() const;
@@ -328,7 +357,12 @@ struct CMutableTransaction {
     /** Compute the hash of this CMutableTransaction. This is computed on the
      * fly, as opposed to GetId() in CTransaction, which uses a cached result.
      */
-    uint256 GetId() const;
+    txid_t GetId() const;
+
+    /** Compute the UTXID of this CMutableTransaction. This is computed on the
+     * fly, as opposed to GetUtxid() in CTransaction, which uses a cached result.
+     */
+    utxid_t GetUtxid() const;
 
     friend bool operator==(const CMutableTransaction &a,
                            const CMutableTransaction &b) {

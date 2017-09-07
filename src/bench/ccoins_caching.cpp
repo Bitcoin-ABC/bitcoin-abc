@@ -65,14 +65,14 @@ static void CCoinsCaching(benchmark::State &state) {
 
     CMutableTransaction t1;
     t1.vin.resize(3);
-    t1.vin[0].prevout.hash = dummyTransactions[0].GetId();
+    t1.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid();
     t1.vin[0].prevout.n = 1;
     t1.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
-    t1.vin[1].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[1].prevout.utxid = dummyTransactions[1].GetUtxid();
     t1.vin[1].prevout.n = 0;
     t1.vin[1].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
-    t1.vin[2].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[2].prevout.utxid = dummyTransactions[1].GetUtxid();
     t1.vin[2].prevout.n = 1;
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);

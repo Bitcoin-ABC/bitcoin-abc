@@ -72,7 +72,7 @@ void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
     uint256 hash = wtx.GetId();
     entry.push_back(Pair("txid", hash.GetHex()));
     UniValue conflicts(UniValue::VARR);
-    for (const uint256 &conflict : wtx.GetConflicts()) {
+    for (const txid_t &conflict : wtx.GetConflicts()) {
         conflicts.push_back(conflict.GetHex());
     }
     entry.push_back(Pair("walletconflicts", conflicts));
@@ -701,8 +701,7 @@ static UniValue getreceivedbyaddress(const Config &config,
 
     // Tally
     CAmount nAmount = 0;
-    for (std::map<uint256, CWalletTx>::iterator it =
-             pwalletMain->mapWallet.begin();
+    for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
 
@@ -774,8 +773,7 @@ static UniValue getreceivedbyaccount(const Config &config,
 
     // Tally
     CAmount nAmount = 0;
-    for (std::map<uint256, CWalletTx>::iterator it =
-             pwalletMain->mapWallet.begin();
+    for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
         CValidationState state;
@@ -879,7 +877,7 @@ static UniValue getbalance(const Config &config,
         // TxIns spending from the wallet. This also has fewer restrictions on
         // which unconfirmed transactions are considered trusted.
         CAmount nBalance = 0;
-        for (std::map<uint256, CWalletTx>::iterator it =
+        for (std::map<txid_t, CWalletTx>::iterator it =
                  pwalletMain->mapWallet.begin();
              it != pwalletMain->mapWallet.end(); ++it) {
             const CWalletTx &wtx = (*it).second;
@@ -1377,8 +1375,7 @@ static UniValue ListReceived(const Config &config, const UniValue &params,
 
     // Tally
     std::map<CBitcoinAddress, tallyitem> mapTally;
-    for (std::map<uint256, CWalletTx>::iterator it =
-             pwalletMain->mapWallet.begin();
+    for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
 
@@ -1938,8 +1935,7 @@ static UniValue listaccounts(const Config &config,
         }
     }
 
-    for (std::map<uint256, CWalletTx>::iterator it =
-             pwalletMain->mapWallet.begin();
+    for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
         CAmount nFee;
@@ -2108,8 +2104,7 @@ static UniValue listsinceblock(const Config &config,
 
     UniValue transactions(UniValue::VARR);
 
-    for (std::map<uint256, CWalletTx>::iterator it =
-             pwalletMain->mapWallet.begin();
+    for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); it++) {
         CWalletTx tx = (*it).second;
 
@@ -2221,8 +2216,8 @@ static UniValue gettransaction(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    txid_t txid;
+    txid.SetHex(request.params[0].get_str());
 
     isminefilter filter = ISMINE_SPENDABLE;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
@@ -2230,33 +2225,31 @@ static UniValue gettransaction(const Config &config,
     }
 
     UniValue entry(UniValue::VOBJ);
-    if (!pwalletMain->mapWallet.count(hash)) {
-        {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Invalid or non-wallet transaction id");
-        }
+
+    const CWalletTx *wtx = pwalletMain->GetWalletTx(txid);
+    if (!wtx) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           "Invalid or non-wallet transaction id");
     }
 
-    const CWalletTx &wtx = pwalletMain->mapWallet[hash];
-
-    CAmount nCredit = wtx.GetCredit(filter);
-    CAmount nDebit = wtx.GetDebit(filter);
+    CAmount nCredit = wtx->GetCredit(filter);
+    CAmount nDebit = wtx->GetDebit(filter);
     CAmount nNet = nCredit - nDebit;
-    CAmount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : 0);
+    CAmount nFee = (wtx->IsFromMe(filter) ? wtx->tx->GetValueOut() - nDebit : 0);
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
-    if (wtx.IsFromMe(filter)) {
+    if (wtx->IsFromMe(filter)) {
         entry.push_back(Pair("fee", ValueFromAmount(nFee)));
     }
 
-    WalletTxToJSON(wtx, entry);
+    WalletTxToJSON(*wtx, entry);
 
     UniValue details(UniValue::VARR);
-    ListTransactions(wtx, "*", 0, false, details, filter);
+    ListTransactions(*wtx, "*", 0, false, details, filter);
     entry.push_back(Pair("details", details));
 
     std::string strHex =
-        EncodeHexTx(static_cast<CTransaction>(wtx), RPCSerializationFlags());
+        EncodeHexTx(static_cast<CTransaction>(*wtx), RPCSerializationFlags());
     entry.push_back(Pair("hex", strHex));
 
     return entry;
@@ -2294,15 +2287,15 @@ static UniValue abandontransaction(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    txid_t txid;
+    txid.SetHex(request.params[0].get_str());
 
-    if (!pwalletMain->mapWallet.count(hash)) {
+
+    if (!pwalletMain->GetWalletTx(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
-
-    if (!pwalletMain->AbandonTransaction(hash)) {
+    if (!pwalletMain->AbandonTransaction(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not eligible for abandonment");
     }
@@ -2677,7 +2670,7 @@ static UniValue lockunspent(const Config &config,
             "Each object the txid (string) vout (numeric)\n"
             "     [           (json array of json objects)\n"
             "       {\n"
-            "         \"txid\":\"id\",    (string) The transaction id\n"
+            "         \"utxid\":\"id\",   (string) The unpent transaction id\n"
             "         \"vout\": n         (numeric) The output number\n"
             "       }\n"
             "       ,...\n"
@@ -2739,12 +2732,12 @@ static UniValue lockunspent(const Config &config,
         const UniValue &o = output.get_obj();
 
         RPCTypeCheckObj(o, {
-                               {"txid", UniValueType(UniValue::VSTR)},
+                               {"utxid", UniValueType(UniValue::VSTR)},
                                {"vout", UniValueType(UniValue::VNUM)},
                            });
 
-        std::string txid = find_value(o, "txid").get_str();
-        if (!IsHex(txid)) {
+        std::string utxid = find_value(o, "utxid").get_str();
+        if (!IsHex(utxid)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, expected hex txid");
         }
@@ -2755,7 +2748,13 @@ static UniValue lockunspent(const Config &config,
                                "Invalid parameter, vout must be positive");
         }
 
-        COutPoint outpt(uint256S(txid), nOutput);
+        const CWalletTx *wtx = pwalletMain->GetWalletTx(utxid_t(uint256S(utxid)));
+
+        if (!wtx)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Invalid parameter, txid unknown");
+
+        COutPoint outpt(wtx->tx->GetUtxid(), nOutput);
 
         if (fUnlock) {
             pwalletMain->UnlockCoin(outpt);
@@ -2782,8 +2781,8 @@ static UniValue listlockunspent(const Config &config,
             "\nResult:\n"
             "[\n"
             "  {\n"
-            "    \"txid\" : \"transactionid\",     (string) The transaction id "
-            "locked\n"
+            "    \"utxid\" : \"transactionid\",     (string) The unpend transaction "
+            "id locked\n"
             "    \"vout\" : n                      (numeric) The vout value\n"
             "  }\n"
             "  ,...\n"
@@ -2793,7 +2792,7 @@ static UniValue listlockunspent(const Config &config,
             HelpExampleCli("listunspent", "") +
             "\nLock an unspent transaction\n" +
             HelpExampleCli("lockunspent", "false "
-                                          "\"[{\\\"txid\\\":"
+                                          "\"[{\\\"utxid\\\":"
                                           "\\\"a08e6907dbbd3d809776dbfc5d82e371"
                                           "b764ed838b5655e72f463568df1aadf0\\\""
                                           ",\\\"vout\\\":1}]\"") +
@@ -2801,7 +2800,7 @@ static UniValue listlockunspent(const Config &config,
             HelpExampleCli("listlockunspent", "") +
             "\nUnlock the transaction again\n" +
             HelpExampleCli("lockunspent", "true "
-                                          "\"[{\\\"txid\\\":"
+                                          "\"[{\\\"utxid\\\":"
                                           "\\\"a08e6907dbbd3d809776dbfc5d82e371"
                                           "b764ed838b5655e72f463568df1aadf0\\\""
                                           ",\\\"vout\\\":1}]\"") +
@@ -2818,7 +2817,7 @@ static UniValue listlockunspent(const Config &config,
     for (COutPoint &outpt : vOutpts) {
         UniValue o(UniValue::VOBJ);
 
-        o.push_back(Pair("txid", outpt.hash.GetHex()));
+        o.push_back(Pair("utxid", outpt.utxid.GetHex()));
         o.push_back(Pair("vout", (int)outpt.n));
         ret.push_back(o);
     }
@@ -2950,10 +2949,10 @@ static UniValue resendwallettransactions(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    std::vector<uint256> txids =
+    std::vector<txid_t> txids =
         pwalletMain->ResendWalletTransactionsBefore(GetTime(), g_connman.get());
     UniValue result(UniValue::VARR);
-    for (const uint256 &txid : txids) {
+    for (const txid_t &txid : txids) {
         result.push_back(txid.ToString());
     }
 
@@ -2995,7 +2994,7 @@ static UniValue listunspent(const Config &config,
             "\nResult\n"
             "[                   (array of json object)\n"
             "  {\n"
-            "    \"txid\" : \"txid\",          (string) the transaction id \n"
+            "    \"utxid\" : \"utxid\",          (string) the unpent transaction id \n"
             "    \"vout\" : n,               (numeric) the vout value\n"
             "    \"address\" : \"address\",    (string) the bitcoin address\n"
             "    \"account\" : \"account\",    (string) DEPRECATED. The "
@@ -3089,7 +3088,7 @@ static UniValue listunspent(const Config &config,
         }
 
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("txid", out.tx->GetId().GetHex()));
+        entry.push_back(Pair("utxid", out.tx->tx->GetUtxid().GetHex()));
         entry.push_back(Pair("vout", out.i));
 
         if (fValidAddress) {

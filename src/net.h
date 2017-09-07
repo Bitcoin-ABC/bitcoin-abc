@@ -22,6 +22,7 @@
 #include "sync.h"
 #include "threadinterrupt.h"
 #include "uint256.h"
+#include "primitives/transaction.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -41,6 +42,7 @@ class CAddrMan;
 class Config;
 class CNode;
 class CScheduler;
+
 
 namespace boost {
 class thread_group;
@@ -667,7 +669,7 @@ public:
     CRollingBloomFilter filterInventoryKnown;
     // Set of transaction ids we still have to announce. They are sorted by the
     // mempool before relay, so the order is not important.
-    std::set<uint256> setInventoryTxToSend;
+    std::set<txid_t> setInventoryTxToSend;
     // List of block ids we still have announce. There is no final sorting
     // before sending, as they are always sent immediately and in the order
     // requested.
@@ -794,8 +796,9 @@ public:
     void PushInventory(const CInv &inv) {
         LOCK(cs_inventory);
         if (inv.type == MSG_TX) {
-            if (!filterInventoryKnown.contains(inv.hash)) {
-                setInventoryTxToSend.insert(inv.hash);
+            const txid_t txid(inv.hash);
+            if (!filterInventoryKnown.contains(txid)) {
+                setInventoryTxToSend.insert(txid);
             }
         } else if (inv.type == MSG_BLOCK) {
             vInventoryBlockToSend.push_back(inv.hash);
