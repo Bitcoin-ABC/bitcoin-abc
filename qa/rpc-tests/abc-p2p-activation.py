@@ -19,15 +19,17 @@ from test_framework.script import *
 from test_framework.cdefs import *
 
 # Error for illegal use of SIGHASH_FORKID
-SIGHASH_FORKID_ERROR = b'mandatory-script-verify-flag-failed (Illegal use of SIGHASH_FORKID)'
-RPC_SIGHASH_FORKID_ERROR = "16: " + SIGHASH_FORKID_ERROR.decode("utf-8")
+SIGHASH_FORKID_ERROR = b'non-mandatory-script-verify-flag (Illegal use of SIGHASH_FORKID)'
+RPC_SIGHASH_FORKID_ERROR = "64: " + SIGHASH_FORKID_ERROR.decode("utf-8")
 SIGHASH_INVALID_ERROR = b'mandatory-script-verify-flag-failed (Script evaluated without error but finished with a false/empty top stack e'
 
 # far into the future
 UAHF_START_TIME = 2000000000
 
+
 class PreviousSpendableOutput(object):
-    def __init__(self, tx = CTransaction(), n = -1):
+
+    def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
 
@@ -35,7 +37,9 @@ class PreviousSpendableOutput(object):
 class FullBlockTest(ComparisonTestFramework):
 
     # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do the comparison.
+    # Change the "outcome" variable from each TestInstance object to only do
+    # the comparison.
+
     def __init__(self):
         super().__init__()
         self.num_nodes = 1
@@ -55,14 +59,15 @@ class FullBlockTest(ComparisonTestFramework):
                             '-norelaypriority',
                             "-uahfstarttime=%d" % UAHF_START_TIME,
                             '-whitelist=127.0.0.1',
-                            '-par=1' ]]
+                            '-par=1']]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
                                  binary=[self.options.testbinary])
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option("--runbarelyexpensive", dest="runbarelyexpensive", default=True)
+        parser.add_option(
+            "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
@@ -74,7 +79,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
-        [ tx.rehash() for tx in tx_list ]
+        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     # this is a little handier to use than the version in blocktools.py
@@ -83,14 +88,17 @@ class FullBlockTest(ComparisonTestFramework):
         return tx
 
     # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in spend_tx
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
     def sign_tx(self, tx, spend_tx, n):
         scriptPubKey = bytearray(spend_tx.vout[n].scriptPubKey)
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        (sighash, err) = SignatureHash(spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
-        tx.vin[0].scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+        (sighash, err) = SignatureHash(
+            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
+        tx.vin[0].scriptSig = CScript(
+            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -106,7 +114,7 @@ class FullBlockTest(ComparisonTestFramework):
         """
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = int(time.time())+1
+            block_time = int(time.time()) + 1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -115,17 +123,20 @@ class FullBlockTest(ComparisonTestFramework):
         coinbase = create_coinbase(height, self.coinbase_pubkey)
         coinbase.vout[0].nValue += additional_coinbase_value
         if (spend != None):
-            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1 # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.tx.vout[
+                spend.n].nValue - 1  # all but one satoshi to fees
         coinbase.rehash()
         block = create_block(base_block_hash, coinbase, block_time)
         spendable_output = None
         if (spend != None):
             tx = CTransaction()
-            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
+            tx.vin.append(
+                CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
             # This copies the java comparison tool testing behavior: the first
             # txout has a garbage scriptPubKey, "to make sure we're not
             # pre-verifying too much" (?)
-            tx.vout.append(CTxOut(0, CScript([random.randint(0,255), height & 255])))
+            tx.vout.append(
+                CTxOut(0, CScript([random.randint(0, 255), height & 255])))
             if script == None:
                 tx.vout.append(CTxOut(1, CScript([OP_TRUE])))
             else:
@@ -142,11 +153,14 @@ class FullBlockTest(ComparisonTestFramework):
                 nHashType = SIGHASH_ALL
                 sighash = None
                 if self.uahfEnabled == False:
-                     (sighash, err) = SignatureHash(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL)
+                    (sighash, err) = SignatureHash(
+                        spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL)
                 else:
-                     nHashType |= SIGHASH_FORKID
-                     sighash = SignatureHashForkId(spend.tx.vout[spend.n].scriptPubKey, tx, 0, nHashType, spend.tx.vout[spend.n].nValue)
-                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([nHashType]))])
+                    nHashType |= SIGHASH_FORKID
+                    sighash = SignatureHashForkId(
+                        spend.tx.vout[spend.n].scriptPubKey, tx, 0, nHashType, spend.tx.vout[spend.n].nValue)
+                scriptSig = CScript(
+                    [self.coinbase_key.sign(sighash) + bytes(bytearray([nHashType]))])
             tx.vin[0].scriptSig = scriptSig
             # Now add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -157,13 +171,16 @@ class FullBlockTest(ComparisonTestFramework):
                 script_length = block_size - len(block.serialize()) - 79
                 if script_length > 510000:
                     script_length = 500000
-                tx_sigops = min(extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
+                tx_sigops = min(
+                    extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
                 extra_sigops -= tx_sigops
                 script_pad_len = script_length - tx_sigops
-                script_output = CScript([b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
+                script_output = CScript(
+                    [b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
                 tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                 tx.vout.append(CTxOut(0, script_output))
-                tx.vin.append(CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
+                tx.vin.append(
+                    CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
                 spendable_output = PreviousSpendableOutput(tx, 0)
                 self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()
@@ -198,7 +215,7 @@ class FullBlockTest(ComparisonTestFramework):
             return TestInstance([[self.tip, True]])
 
         # returns a test case that asserts that the current tip was rejected
-        def rejected(reject = None):
+        def rejected(reject=None):
             if reject is None:
                 return TestInstance([[self.tip, False]])
             else:
@@ -218,7 +235,8 @@ class FullBlockTest(ComparisonTestFramework):
             # Update the internal state just like in next_block
             self.tip = block
             if block.sha256 != old_sha256:
-                self.block_heights[block.sha256] = self.block_heights[old_sha256]
+                self.block_heights[
+                    block.sha256] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block
@@ -258,7 +276,8 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Create a transaction that we will use to test SIGHASH_FORID
         script_forkid = CScript([self.forkid_pubkey, OP_CHECKSIG])
-        tx_forkid = self.create_and_sign_transaction(out[1].tx, out[1].n, 1, script_forkid)
+        tx_forkid = self.create_and_sign_transaction(
+            out[1].tx, out[1].n, 1, script_forkid)
 
         # Create a block that would activate the HF. We also add the
         # transaction that will allow us to test SIGHASH_FORKID
@@ -286,9 +305,11 @@ class FullBlockTest(ComparisonTestFramework):
 
         # build a transaction using SIGHASH_FORKID
         tx_spend = self.create_tx(tx_forkid, 0, 1, CScript([OP_TRUE]))
-        sighash_spend = SignatureHashForkId(script_forkid, tx_spend, 0, SIGHASH_FORKID | SIGHASH_ALL, 1)
+        sighash_spend = SignatureHashForkId(
+            script_forkid, tx_spend, 0, SIGHASH_FORKID | SIGHASH_ALL, 1)
         sig_forkid = self.forkid_key.sign(sighash_spend)
-        tx_spend.vin[0].scriptSig = CScript([sig_forkid + bytes(bytearray([SIGHASH_FORKID | SIGHASH_ALL]))])
+        tx_spend.vin[0].scriptSig = CScript(
+            [sig_forkid + bytes(bytearray([SIGHASH_FORKID | SIGHASH_ALL]))])
         tx_spend.rehash()
 
         # This transaction can't get into the mempool yet
@@ -312,7 +333,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Pile up another block, to activate. OP_RETURN anti replay
         # outputs are still considered valid.
-        antireplay_script=CScript([OP_RETURN, ANTI_REPLAY_COMMITMENT])
+        antireplay_script = CScript([OP_RETURN, ANTI_REPLAY_COMMITMENT])
         block(10, spend=out[6], script=antireplay_script)
         yield accepted()
 
@@ -325,7 +346,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.uahfEnabled = True
 
         # HF is active now, we MUST create a big block.
-        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE);
+        block(11, spend=out[7], block_size=LEGACY_MAX_BLOCK_SIZE)
         yield rejected(RejectResult(16, b'bad-blk-too-small'))
 
         # Rewind bad block

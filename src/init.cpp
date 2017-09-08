@@ -142,9 +142,9 @@ bool ShutdownRequested() {
 class CCoinsViewErrorCatcher : public CCoinsViewBacked {
 public:
     CCoinsViewErrorCatcher(CCoinsView *view) : CCoinsViewBacked(view) {}
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoins(const utxid_t &utxid, CCoins &coins) const {
         try {
-            return CCoinsViewBacked::GetCoins(txid, coins);
+            return CCoinsViewBacked::GetCoins(utxid, coins);
         } catch (const std::runtime_error &e) {
             uiInterface.ThreadSafeMessageBox(
                 _("Error reading from database, shutting down."), "",

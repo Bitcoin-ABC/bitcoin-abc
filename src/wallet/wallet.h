@@ -245,7 +245,7 @@ public:
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
     void setAbandoned() { hashBlock = ABANDON_HASH; }
 
-    const uint256 &GetId() const { return tx->GetId(); }
+    const txid_t &GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
 };
 
@@ -426,7 +426,7 @@ public:
 
     bool RelayWalletTransaction(CConnman *connman);
 
-    std::set<uint256> GetConflicts() const;
+    std::set<txid_t> GetConflicts() const;
 };
 
 class COutput {
@@ -587,14 +587,14 @@ private:
      * Used to keep track of spent outpoints, and detect and report conflicts
      * (double-spends or mutated transactions where the mutant gets mined).
      */
-    typedef std::multimap<COutPoint, uint256> TxSpends;
+    typedef std::multimap<COutPoint, txid_t> TxSpends;
     TxSpends mapTxSpends;
-    void AddToSpends(const COutPoint &outpoint, const uint256 &wtxid);
-    void AddToSpends(const uint256 &wtxid);
+    void AddToSpends(const COutPoint &outpoint, const txid_t &wtxid);
+    void AddToSpends(const txid_t &wtxid);
 
     /* Mark a transaction (and its in-wallet descendants) as conflicting with a
      * particular block. */
-    void MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx);
+    void MarkConflicted(const uint256 &hashBlock, const txid_t &hashTx);
 
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>);
 
@@ -675,7 +675,7 @@ public:
         fBroadcastTransactions = false;
     }
 
-    std::map<uint256, CWalletTx> mapWallet;
+    std::map<txid_t, CWalletTx> mapWallet;
     std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx *, CAccountingEntry *> TxPair;
@@ -691,7 +691,9 @@ public:
 
     std::set<COutPoint> setLockedCoins;
 
-    const CWalletTx *GetWalletTx(const uint256 &hash) const;
+    const CWalletTx *GetWalletTx(const txid_t &txid) const;
+    const CWalletTx *GetWalletTx(const utxid_t &utxid) const;
+
 
     //! check whether we are allowed to upgrade (or already support) to the
     //! named feature
@@ -720,9 +722,9 @@ public:
         std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
         CAmount &nValueRet) const;
 
-    bool IsSpent(const uint256 &hash, unsigned int n) const;
+    bool IsSpent(const COutPoint &output) const;
 
-    bool IsLockedCoin(uint256 hash, unsigned int n) const;
+    bool IsLockedCoin(const COutPoint &outpoint) const;
     void LockCoin(const COutPoint &output);
     void UnlockCoin(const COutPoint &output);
     void UnlockAllCoins();
@@ -803,6 +805,8 @@ public:
                           bool bForceNew = false);
 
     void MarkDirty();
+    void MarkDirty(const COutPoint &outpoint);
+
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
     bool LoadToWallet(const CWalletTx &wtxIn);
     void SyncTransaction(const CTransaction &tx, const CBlockIndex *pindex,
@@ -815,7 +819,7 @@ public:
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
                                   CConnman *connman) override;
-    std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime,
+    std::vector<txid_t> ResendWalletTransactionsBefore(int64_t nTime,
                                                         CConnman *connman);
     CAmount GetBalance() const;
     CAmount GetUnconfirmedBalance() const;
@@ -923,15 +927,15 @@ public:
 
     DBErrors LoadWallet(bool &fFirstRunRet);
     DBErrors ZapWalletTx(std::vector<CWalletTx> &vWtx);
-    DBErrors ZapSelectTx(std::vector<uint256> &vHashIn,
-                         std::vector<uint256> &vHashOut);
+    DBErrors ZapSelectTx(std::vector<txid_t> &vHashIn,
+                         std::vector<txid_t> &vHashOut);
 
     bool SetAddressBook(const CTxDestination &address,
                         const std::string &strName, const std::string &purpose);
 
     bool DelAddressBook(const CTxDestination &address);
 
-    void UpdatedTransaction(const uint256 &hashTx) override;
+    void UpdatedTransaction(const txid_t &hashTx) override;
 
     void Inventory(const uint256 &hash) override {
         LOCK(cs_wallet);
@@ -973,11 +977,7 @@ public:
 
     //! Get wallet transactions that conflict with given transaction (spend same
     //! outputs)
-    std::set<uint256> GetConflicts(const uint256 &txid) const;
-
-    //! Check if a given transaction has any of its outputs spent by another
-    //! transaction in the wallet
-    bool HasWalletSpend(const uint256 &txid) const;
+    std::set<txid_t> GetConflicts(const txid_t &txid) const;
 
     //! Flush wallet (bitdb flush)
     void Flush(bool shutdown = false);
@@ -998,7 +998,7 @@ public:
      * Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */
-    boost::signals2::signal<void(CWallet *wallet, const uint256 &hashTx,
+    boost::signals2::signal<void(CWallet *wallet, const txid_t &hashTx,
                                  ChangeType status)>
         NotifyTransactionChanged;
 
@@ -1020,12 +1020,8 @@ public:
      * Mark a transaction (and it in-wallet descendants) as abandoned so its
      * inputs may be respent.
      */
-    bool AbandonTransaction(const uint256 &hashTx);
+    bool AbandonTransaction(const txid_t &hashTx);
 
-    /**
-     * Mark a transaction as replaced by another transaction (e.g., BIP 125).
-     */
-    bool MarkReplaced(const uint256 &originalHash, const uint256 &newHash);
 
     /* Returns the wallets help message */
     static std::string GetWalletHelpString(bool showDebug);

@@ -24,14 +24,17 @@ from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
 # far into the future
 UAHF_START_TIME = 2000000000
 
+
 class PreviousSpendableOutput(object):
-    def __init__(self, tx = CTransaction(), n = -1):
+
+    def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
 
 
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
 class TestNode(SingleNodeConnCB):
+
     def __init__(self):
         self.last_sendcmpct = None
         self.last_cmpctblock = None
@@ -63,7 +66,9 @@ class TestNode(SingleNodeConnCB):
 class FullBlockTest(ComparisonTestFramework):
 
     # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do the comparison.
+    # Change the "outcome" variable from each TestInstance object to only do
+    # the comparison.
+
     def __init__(self):
         super().__init__()
         self.excessive_block_size = 16 * ONE_MEGABYTE
@@ -86,14 +91,15 @@ class FullBlockTest(ComparisonTestFramework):
                             '-maxmempool=999',
                             "-uahfstarttime=%d" % UAHF_START_TIME,
                             "-excessiveblocksize=%d"
-                            % self.excessive_block_size ]]
+                            % self.excessive_block_size]]
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
                                  self.extra_args,
                                  binary=[self.options.testbinary])
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option("--runbarelyexpensive", dest="runbarelyexpensive", default=True)
+        parser.add_option(
+            "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
@@ -106,7 +112,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
-        [ tx.rehash() for tx in tx_list ]
+        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     # this is a little handier to use than the version in blocktools.py
@@ -115,14 +121,17 @@ class FullBlockTest(ComparisonTestFramework):
         return tx
 
     # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in spend_tx
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
     def sign_tx(self, tx, spend_tx, n):
         scriptPubKey = bytearray(spend_tx.vout[n].scriptPubKey)
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        sighash = SignatureHashForkId(spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL|SIGHASH_FORKID, spend_tx.vout[n].nValue)
-        tx.vin[0].scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))])
+        sighash = SignatureHashForkId(
+            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
+        tx.vin[0].scriptSig = CScript(
+            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -138,7 +147,7 @@ class FullBlockTest(ComparisonTestFramework):
         """
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = int(time.time())+1
+            block_time = int(time.time()) + 1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -147,15 +156,19 @@ class FullBlockTest(ComparisonTestFramework):
         coinbase = create_coinbase(height, self.coinbase_pubkey)
         coinbase.vout[0].nValue += additional_coinbase_value
         if (spend != None):
-            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1 # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.tx.vout[
+                spend.n].nValue - 1  # all but one satoshi to fees
         coinbase.rehash()
         block = create_block(base_block_hash, coinbase, block_time)
         spendable_output = None
         if (spend != None):
             tx = CTransaction()
-            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
-            # We put some random data into the first transaction of the chain to randomize ids
-            tx.vout.append(CTxOut(0, CScript([random.randint(0,255), OP_DROP, OP_TRUE])))
+            tx.vin.append(
+                CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
+            # We put some random data into the first transaction of the chain
+            # to randomize ids
+            tx.vout.append(
+                CTxOut(0, CScript([random.randint(0, 255), OP_DROP, OP_TRUE])))
             if script == None:
                 tx.vout.append(CTxOut(1, CScript([OP_TRUE])))
             else:
@@ -169,8 +182,10 @@ class FullBlockTest(ComparisonTestFramework):
                 scriptSig = CScript([OP_TRUE])
             else:
                 # We have to actually sign it
-                sighash = SignatureHashForkId(spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL|SIGHASH_FORKID, spend.tx.vout[spend.n].nValue)
-                scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))])
+                sighash = SignatureHashForkId(
+                    spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend.tx.vout[spend.n].nValue)
+                scriptSig = CScript(
+                    [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
             tx.vin[0].scriptSig = scriptSig
             # Now add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -181,13 +196,16 @@ class FullBlockTest(ComparisonTestFramework):
                 script_length = block_size - len(block.serialize()) - 79
                 if script_length > 510000:
                     script_length = 500000
-                tx_sigops = min(extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
+                tx_sigops = min(
+                    extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
                 extra_sigops -= tx_sigops
                 script_pad_len = script_length - tx_sigops
-                script_output = CScript([b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
+                script_output = CScript(
+                    [b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
                 tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                 tx.vout.append(CTxOut(0, script_output))
-                tx.vin.append(CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
+                tx.vin.append(
+                    CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
                 spendable_output = PreviousSpendableOutput(tx, 0)
                 self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()
@@ -222,7 +240,7 @@ class FullBlockTest(ComparisonTestFramework):
             return TestInstance([[self.tip, True]])
 
         # returns a test case that asserts that the current tip was rejected
-        def rejected(reject = None):
+        def rejected(reject=None):
             if reject is None:
                 return TestInstance([[self.tip, False]])
             else:
@@ -242,7 +260,8 @@ class FullBlockTest(ComparisonTestFramework):
             # Update the internal state just like in next_block
             self.tip = block
             if block.sha256 != old_sha256:
-                self.block_heights[block.sha256] = self.block_heights[old_sha256]
+                self.block_heights[
+                    block.sha256] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block
@@ -280,7 +299,8 @@ class FullBlockTest(ComparisonTestFramework):
         # Create a new block and activate the fork, the block needs
         # to be > 1MB . For more specific tests about the fork activation,
         # check abc-p2p-activation.py
-        block(5556, spend=get_spendable_output(), block_size=LEGACY_MAX_BLOCK_SIZE + 1)
+        block(5556, spend=get_spendable_output(),
+              block_size=LEGACY_MAX_BLOCK_SIZE + 1)
         yield accepted()
 
         # collect spendable outputs now to avoid cluttering the code later on
@@ -291,7 +311,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Let's build some blocks and test them.
         for i in range(16):
             n = i + 1
-            block(n, spend=out[i], block_size=n*ONE_MEGABYTE)
+            block(n, spend=out[i], block_size=n * ONE_MEGABYTE)
             yield accepted()
 
         # block of maximal size
@@ -301,69 +321,83 @@ class FullBlockTest(ComparisonTestFramework):
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
         yield rejected(RejectResult(16, b'bad-blk-length'))
-        
+
         # Rewind bad block.
         tip(17)
 
         # Accept many sigops
-        lots_of_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
-        block(19, spend=out[17], script=lots_of_checksigs, block_size=ONE_MEGABYTE)
+        lots_of_checksigs = CScript(
+            [OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
+        block(
+            19, spend=out[17], script=lots_of_checksigs, block_size=ONE_MEGABYTE)
         yield accepted()
-        
-        too_many_blk_checksigs = CScript([OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
-        block(20, spend=out[18], script=too_many_blk_checksigs, block_size=ONE_MEGABYTE)
+
+        too_many_blk_checksigs = CScript(
+            [OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
+        block(
+            20, spend=out[18], script=too_many_blk_checksigs, block_size=ONE_MEGABYTE)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
         tip(19)
 
         # Accept 40k sigops per block > 1MB and <= 2MB
-        block(21, spend=out[18], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
+        block(21, spend=out[18], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=ONE_MEGABYTE + 1)
         yield accepted()
 
         # Accept 40k sigops per block > 1MB and <= 2MB
-        block(22, spend=out[19], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE)
+        block(22, spend=out[19], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE)
         yield accepted()
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(23, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
+        block(23, spend=out[20], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=ONE_MEGABYTE + 1)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
         tip(22)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(24, spend=out[20], script=lots_of_checksigs, extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE)
+        block(24, spend=out[20], script=lots_of_checksigs,
+              extra_sigops=MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
         tip(22)
 
         # Accept 60k sigops per block > 2MB and <= 3MB
-        block(25, spend=out[20], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=2*ONE_MEGABYTE + 1)
+        block(25, spend=out[20], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB, block_size=2 * ONE_MEGABYTE + 1)
         yield accepted()
 
         # Accept 60k sigops per block > 2MB and <= 3MB
-        block(26, spend=out[21], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB, block_size=3*ONE_MEGABYTE)
+        block(26, spend=out[21], script=lots_of_checksigs,
+              extra_sigops=2 * MAX_BLOCK_SIGOPS_PER_MB, block_size=3 * ONE_MEGABYTE)
         yield accepted()
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(27, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2*ONE_MEGABYTE + 1)
+        block(27, spend=out[22], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=2 * ONE_MEGABYTE + 1)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
         tip(26)
 
         # Reject more than 40k sigops per block > 1MB and <= 2MB.
-        block(28, spend=out[22], script=lots_of_checksigs, extra_sigops=2*MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3*ONE_MEGABYTE)
+        block(28, spend=out[22], script=lots_of_checksigs, extra_sigops=2 *
+              MAX_BLOCK_SIGOPS_PER_MB + 1, block_size=3 * ONE_MEGABYTE)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
         tip(26)
 
         # Too many sigops in one txn
-        too_many_tx_checksigs = CScript([OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
-        block(29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
+        too_many_tx_checksigs = CScript(
+            [OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB + 1))
+        block(
+            29, spend=out[22], script=too_many_tx_checksigs, block_size=ONE_MEGABYTE + 1)
         yield rejected(RejectResult(16, b'bad-txn-sigops'))
 
         # Rewind bad block
@@ -371,33 +405,39 @@ class FullBlockTest(ComparisonTestFramework):
 
         # P2SH
         # Build the redeem script, hash it, use hash to create the p2sh script
-        redeem_script = CScript([self.coinbase_pubkey] + [OP_2DUP, OP_CHECKSIGVERIFY]*5 + [OP_CHECKSIG])
+        redeem_script = CScript([self.coinbase_pubkey] + [
+                                OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
         redeem_script_hash = hash160(redeem_script)
         p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
 
         # Create a p2sh transaction
-        p2sh_tx = self.create_and_sign_transaction(out[22].tx, out[22].n, 1, p2sh_script)
+        p2sh_tx = self.create_and_sign_transaction(
+            out[22].tx, out[22].n, 1, p2sh_script)
 
         # Add the transaction to the block
         block(30)
         update_block(30, [p2sh_tx])
         yield accepted()
 
-        # Creates a new transaction using the p2sh transaction included in the last block
+        # Creates a new transaction using the p2sh transaction included in the
+        # last block
         def spend_p2sh_tx(output_script=CScript([OP_TRUE])):
             # Create the transaction
             spent_p2sh_tx = CTransaction()
             spent_p2sh_tx.vin.append(CTxIn(COutPoint(p2sh_tx.sha256, 0), b''))
             spent_p2sh_tx.vout.append(CTxOut(1, output_script))
             # Sign the transaction using the redeem script
-            sighash = SignatureHashForkId(redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL|SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
-            sig = self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL|SIGHASH_FORKID]))
+            sighash = SignatureHashForkId(
+                redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
+            sig = self.coinbase_key.sign(sighash) + bytes(
+                bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx
 
         # Sigops p2sh limit
-        p2sh_sigops_limit = MAX_BLOCK_SIGOPS_PER_MB - redeem_script.GetSigOpCount(True)
+        p2sh_sigops_limit = MAX_BLOCK_SIGOPS_PER_MB - \
+            redeem_script.GetSigOpCount(True)
         # Too many sigops in one p2sh txn
         too_many_p2sh_sigops = CScript([OP_CHECKSIG] * (p2sh_sigops_limit + 1))
         block(31, spend=out[23], block_size=ONE_MEGABYTE + 1)
@@ -416,7 +456,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Check that compact block also work for big blocks
         node = self.nodes[0]
         peer = TestNode()
-        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer));
+        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer))
 
         # Start up network handling in another thread and wait for connection
         # to be etablished
@@ -469,7 +509,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Send a bigger block
         peer.clear_block_data()
-        b34 = block(34, spend=out[25], block_size=8*ONE_MEGABYTE)
+        b34 = block(34, spend=out[25], block_size=8 * ONE_MEGABYTE)
         yield accepted()
 
         # Checks the node to forward it via compact block
@@ -483,7 +523,7 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Let's send a compact block and see if the node accepts it.
         # First, we generate the block and send all transaction to the mempool
-        b35 = block(35, spend=out[26], block_size=8*ONE_MEGABYTE)
+        b35 = block(35, spend=out[26], block_size=8 * ONE_MEGABYTE)
         for i in range(1, len(b35.vtx)):
             node.sendrawtransaction(ToHex(b35.vtx[i]), True)
 

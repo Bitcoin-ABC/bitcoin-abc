@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
+                COutPoint outpoint(utxid_t(uint256S(vinput[0].get_str())),
                                    vinput[1].get_int());
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
+                COutPoint outpoint(utxid_t(uint256S(vinput[0].get_str())),
                                    vinput[1].get_int());
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
@@ -276,7 +276,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[0].vout[1].nValue = 50 * CENT;
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
-    coinsRet.ModifyCoins(dummyTransactions[0].GetId())
+    coinsRet.ModifyCoins(dummyTransactions[0].GetUtxid(MALFIX_MODE_MEMPOOL))
         ->FromTx(dummyTransactions[0], 0);
 
     dummyTransactions[1].vout.resize(2);
@@ -286,7 +286,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[1].vout[1].nValue = 22 * CENT;
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
-    coinsRet.ModifyCoins(dummyTransactions[1].GetId())
+    coinsRet.ModifyCoins(dummyTransactions[1].GetUtxid(MALFIX_MODE_MEMPOOL))
         ->FromTx(dummyTransactions[1], 0);
 
     return dummyTransactions;
@@ -301,14 +301,14 @@ BOOST_AUTO_TEST_CASE(test_Get) {
 
     CMutableTransaction t1;
     t1.vin.resize(3);
-    t1.vin[0].prevout.hash = dummyTransactions[0].GetId();
+    t1.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid(MALFIX_MODE_MEMPOOL);
     t1.vin[0].prevout.n = 1;
     t1.vin[0].scriptSig << std::vector<unsigned char>(65, 0);
-    t1.vin[1].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[1].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_MEMPOOL);
     t1.vin[1].prevout.n = 0;
     t1.vin[1].scriptSig << std::vector<unsigned char>(65, 0)
                         << std::vector<unsigned char>(33, 4);
-    t1.vin[2].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[2].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_MEMPOOL);
     t1.vin[2].prevout.n = 1;
     t1.vin[2].scriptSig << std::vector<unsigned char>(65, 0)
                         << std::vector<unsigned char>(33, 4);
@@ -342,7 +342,7 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     CMutableTransaction inputm;
     inputm.nVersion = 1;
     inputm.vin.resize(1);
-    inputm.vin[0].prevout.hash = output->GetId();
+    inputm.vin[0].prevout.utxid = output->GetUtxid(MALFIX_MODE_MEMPOOL);
     inputm.vin[0].prevout.n = 0;
     inputm.vout.resize(1);
     inputm.vout[0].nValue = 1;
@@ -528,7 +528,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
     CMutableTransaction t;
     t.vin.resize(1);
-    t.vin[0].prevout.hash = dummyTransactions[0].GetId();
+    t.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid(MALFIX_MODE_MEMPOOL);
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<unsigned char>(65, 0);
     t.vout.resize(1);

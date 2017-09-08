@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txChild[i].vin.resize(1);
         txChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txChild[i].vin[0].prevout.hash = txParent.GetId();
+        txChild[i].vin[0].prevout.utxid = txParent.GetUtxid(MALFIX_MODE_MEMPOOL);
         txChild[i].vin[0].prevout.n = i;
         txChild[i].vout.resize(1);
         txChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txGrandChild[i].vin.resize(1);
         txGrandChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txGrandChild[i].vin[0].prevout.hash = txChild[i].GetId();
+        txGrandChild[i].vin[0].prevout.utxid = txChild[i].GetUtxid(MALFIX_MODE_MEMPOOL);
         txGrandChild[i].vin[0].prevout.n = 0;
         txGrandChild[i].vout.resize(1);
         txGrandChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -99,6 +99,41 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     testPool.removeRecursive(txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 6);
     BOOST_CHECK_EQUAL(testPool.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(MempoolClearTest) {
+    // Test CTxMemPool::clear functionality
+
+    TestMemPoolEntryHelper entry;
+    // Create a transaction
+    CMutableTransaction txParent;
+    txParent.vin.resize(1);
+    txParent.vin[0].scriptSig = CScript() << OP_11;
+    txParent.vout.resize(3);
+    for (int i = 0; i < 3; i++) {
+        txParent.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txParent.vout[i].nValue = 33000LL;
+    }
+
+    CTxMemPool testPool(CFeeRate(0));
+
+    // Nothing in pool, clear should do nothing:
+    testPool.clear();
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
+
+    // Add the transaction
+    testPool.addUnchecked(txParent.GetId(), entry.FromTx(txParent));
+    BOOST_CHECK_EQUAL(testPool.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.mapTx.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 1);
+    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 1);
+
+    // CTxMemPool's members should be empty after a clear
+    testPool.clear();
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.mapTx.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 0);
 }
 
 template <typename name>
@@ -182,7 +217,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     setAncestors.insert(pool.mapTx.find(tx6.GetId()));
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(1);
-    tx7.vin[0].prevout = COutPoint(tx6.GetId(), 0);
+    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx7.vin[0].scriptSig = CScript() << OP_11;
     tx7.vout.resize(2);
     tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -211,7 +246,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* low fee child of tx7 */
     CMutableTransaction tx8 = CMutableTransaction();
     tx8.vin.resize(1);
-    tx8.vin[0].prevout = COutPoint(tx7.GetId(), 0);
+    tx8.vin[0].prevout = COutPoint(tx7.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx8.vin[0].scriptSig = CScript() << OP_11;
     tx8.vout.resize(1);
     tx8.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -227,7 +262,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* low fee child of tx7 */
     CMutableTransaction tx9 = CMutableTransaction();
     tx9.vin.resize(1);
-    tx9.vin[0].prevout = COutPoint(tx7.GetId(), 1);
+    tx9.vin[0].prevout = COutPoint(tx7.GetUtxid(MALFIX_MODE_MEMPOOL), 1);
     tx9.vin[0].scriptSig = CScript() << OP_11;
     tx9.vout.resize(1);
     tx9.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -247,9 +282,9 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* tx10 depends on tx8 and tx9 and has a high fee*/
     CMutableTransaction tx10 = CMutableTransaction();
     tx10.vin.resize(2);
-    tx10.vin[0].prevout = COutPoint(tx8.GetId(), 0);
+    tx10.vin[0].prevout = COutPoint(tx8.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx10.vin[0].scriptSig = CScript() << OP_11;
-    tx10.vin[1].prevout = COutPoint(tx9.GetId(), 0);
+    tx10.vin[1].prevout = COutPoint(tx9.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx10.vin[1].scriptSig = CScript() << OP_11;
     tx10.vout.resize(1);
     tx10.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -411,7 +446,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
 
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(1);
-    tx7.vin[0].prevout = COutPoint(tx6.GetId(), 0);
+    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx7.vin[0].scriptSig = CScript() << OP_11;
     tx7.vout.resize(1);
     tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -476,7 +511,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     pool.addUnchecked(tx2.GetId(), entry.FromTx(tx2, &pool));
     CMutableTransaction tx3 = CMutableTransaction();
     tx3.vin.resize(1);
-    tx3.vin[0].prevout = COutPoint(tx2.GetId(), 0);
+    tx3.vin[0].prevout = COutPoint(tx2.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx3.vin[0].scriptSig = CScript() << OP_2;
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_3 << OP_EQUAL;
@@ -495,8 +530,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(!pool.exists(tx2.GetId()));
     BOOST_CHECK(!pool.exists(tx3.GetId()));
 
-    CFeeRate maxFeeRateRemoved(25000, GetTransactionSize(tx3) +
-                                          GetTransactionSize(tx2));
+    CFeeRate maxFeeRateRemoved(
+        25000, GetTransactionSize(tx3) + GetTransactionSize(tx2));
     BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(),
                       maxFeeRateRemoved.GetFeePerK() + 1000);
 
@@ -514,7 +549,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx5 = CMutableTransaction();
     tx5.vin.resize(2);
-    tx5.vin[0].prevout = COutPoint(tx4.GetId(), 0);
+    tx5.vin[0].prevout = COutPoint(tx4.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx5.vin[0].scriptSig = CScript() << OP_4;
     tx5.vin[1].prevout.SetNull();
     tx5.vin[1].scriptSig = CScript() << OP_5;
@@ -526,7 +561,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx6 = CMutableTransaction();
     tx6.vin.resize(2);
-    tx6.vin[0].prevout = COutPoint(tx4.GetId(), 1);
+    tx6.vin[0].prevout = COutPoint(tx4.GetUtxid(MALFIX_MODE_MEMPOOL), 1);
     tx6.vin[0].scriptSig = CScript() << OP_4;
     tx6.vin[1].prevout.SetNull();
     tx6.vin[1].scriptSig = CScript() << OP_6;
@@ -538,9 +573,9 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(2);
-    tx7.vin[0].prevout = COutPoint(tx5.GetId(), 0);
+    tx7.vin[0].prevout = COutPoint(tx5.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx7.vin[0].scriptSig = CScript() << OP_5;
-    tx7.vin[1].prevout = COutPoint(tx6.GetId(), 0);
+    tx7.vin[1].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_MEMPOOL), 0);
     tx7.vin[1].scriptSig = CScript() << OP_6;
     tx7.vout.resize(2);
     tx7.vout[0].scriptPubKey = CScript() << OP_7 << OP_EQUAL;

@@ -4,6 +4,10 @@
             "type": "clang-format",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": "(^src/(secp256k1|leveldb)/)"
+        },
+        "autopep8": {
+            "type": "autopep8",
+            "include": "(\\.py$)"
         }
     }
 }

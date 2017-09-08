@@ -27,11 +27,11 @@ static const char DB_LAST_BLOCK = 'l';
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe)
     : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true) {}
 
-bool CCoinsViewDB::GetCoins(const uint256 &txid, CCoins &coins) const {
+bool CCoinsViewDB::GetCoins(const utxid_t &txid, CCoins &coins) const {
     return db.Read(std::make_pair(DB_COINS, txid), coins);
 }
 
-bool CCoinsViewDB::HaveCoins(const uint256 &txid) const {
+bool CCoinsViewDB::HaveCoins(const utxid_t &txid) const {
     return db.Exists(std::make_pair(DB_COINS, txid));
 }
 
@@ -105,7 +105,7 @@ CCoinsViewCursor *CCoinsViewDB::Cursor() const {
     return i;
 }
 
-bool CCoinsViewDBCursor::GetKey(uint256 &key) const {
+bool CCoinsViewDBCursor::GetKey(utxid_t &key) const {
     // Return cached key
     if (keyTmp.first == DB_COINS) {
         key = keyTmp.second;
@@ -153,14 +153,14 @@ bool CBlockTreeDB::WriteBatchSync(
     return WriteBatch(batch, true);
 }
 
-bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+bool CBlockTreeDB::ReadTxIndex(const txid_t &txid, CDiskTxPos &pos) {
     return Read(std::make_pair(DB_TXINDEX, txid), pos);
 }
 
 bool CBlockTreeDB::WriteTxIndex(
-    const std::vector<std::pair<uint256, CDiskTxPos>> &vect) {
+    const std::vector<std::pair<txid_t, CDiskTxPos>> &vect) {
     CDBBatch batch(*this);
-    for (std::vector<std::pair<uint256, CDiskTxPos>>::const_iterator it =
+    for (std::vector<std::pair<txid_t, CDiskTxPos>>::const_iterator it =
              vect.begin();
          it != vect.end(); it++)
         batch.Write(std::make_pair(DB_TXINDEX, it->first), it->second);

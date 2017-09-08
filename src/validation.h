@@ -31,7 +31,7 @@
 #include <atomic>
 
 #include <boost/filesystem/path.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 class CBlockIndex;
 class CBlockTreeDB;
@@ -174,7 +174,7 @@ struct BlockHasher {
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
-typedef boost::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
+typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
 extern BlockMap mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
@@ -315,9 +315,8 @@ bool IsInitialBlockDownload();
  */
 std::string GetWarnings(const std::string &strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(const Config &config, const uint256 &hash,
-                    CTransactionRef &tx, uint256 &hashBlock,
-                    bool fAllowSlow = false);
+bool GetTransaction(const Config &config, const txid_t &hash,
+                    CTransactionRef &tx, uint256 &hashBlock);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
@@ -440,9 +439,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  std::vector<CScriptCheck> *pvChecks = nullptr);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight,
+                 MalFixMode MalFixMode);
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight);
+                 CTxUndo &txundo, int nHeight, MalFixMode MalFixMode);
 
 /** Transaction validation functions */
 

@@ -20,6 +20,7 @@ class CTransaction;
 class CValidationInterface;
 class CValidationState;
 class uint256;
+class txid_t;
 
 // These functions dispatch to one or all registered wallets
 
@@ -38,7 +39,7 @@ protected:
     virtual void SyncTransaction(const CTransaction &tx,
                                  const CBlockIndex *pindex, int posInBlock) {}
     virtual void SetBestChain(const CBlockLocator &locator) {}
-    virtual void UpdatedTransaction(const uint256 &hash) {}
+    virtual void UpdatedTransaction(const txid_t &hash) {}
     virtual void Inventory(const uint256 &hash) {}
     virtual void ResendWalletTransactions(int64_t nBestBlockTime,
                                           CConnman *connman) {}
@@ -78,7 +79,7 @@ struct CMainSignals {
      * Notifies listeners of an updated transaction without new data (for now: a
      * coinbase potentially becoming visible).
      */
-    boost::signals2::signal<void(const uint256 &)> UpdatedTransaction;
+    boost::signals2::signal<void(const txid_t &)> UpdatedTransaction;
     /** Notifies listeners of a new active block chain. */
     boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
     /** Notifies listeners about an inventory item being seen on the network. */

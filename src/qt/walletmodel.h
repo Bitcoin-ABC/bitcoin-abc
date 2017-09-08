@@ -212,7 +212,7 @@ public:
     bool isSpent(const COutPoint &outpoint) const;
     void listCoins(std::map<QString, std::vector<COutput>> &mapCoins) const;
 
-    bool isLockedCoin(uint256 hash, unsigned int n) const;
+    bool isLockedCoin(txid_t hash, unsigned int n) const;
     void lockCoin(COutPoint &output);
     void unlockCoin(COutPoint &output);
     void listLockedCoins(std::vector<COutPoint> &vOutpts);
@@ -221,8 +221,8 @@ public:
     bool saveReceiveRequest(const std::string &sAddress, const int64_t nId,
                             const std::string &sRequest);
 
-    bool transactionCanBeAbandoned(uint256 hash) const;
-    bool abandonTransaction(uint256 hash) const;
+    bool transactionCanBeAbandoned(txid_t hash) const;
+    bool abandonTransaction(txid_t hash) const;
 
     static bool isWalletEnabled();
 

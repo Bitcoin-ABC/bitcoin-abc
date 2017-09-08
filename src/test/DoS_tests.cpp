@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     dummyNode1.nVersion = 1;
     dummyNode1.fSuccessfullyConnected = true;
     // Should get banned.
-    Misbehaving(dummyNode1.GetId(), 100);
+    Misbehaving(dummyNode1.GetId(), 100, "");
     SendMessages(config, &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
     // Different IP, not banned.
@@ -70,13 +70,13 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     GetNodeSignals().InitializeNode(config, &dummyNode2, *connman);
     dummyNode2.nVersion = 1;
     dummyNode2.fSuccessfullyConnected = true;
-    Misbehaving(dummyNode2.GetId(), 50);
+    Misbehaving(dummyNode2.GetId(), 50, "");
     SendMessages(config, &dummyNode2, *connman, interruptDummy);
     // 2 not banned yet...
     BOOST_CHECK(!connman->IsBanned(addr2));
     // ... but 1 still should be.
     BOOST_CHECK(connman->IsBanned(addr1));
-    Misbehaving(dummyNode2.GetId(), 50);
+    Misbehaving(dummyNode2.GetId(), 50, "");
     SendMessages(config, &dummyNode2, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr2));
 }
@@ -95,13 +95,13 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     GetNodeSignals().InitializeNode(config, &dummyNode1, *connman);
     dummyNode1.nVersion = 1;
     dummyNode1.fSuccessfullyConnected = true;
-    Misbehaving(dummyNode1.GetId(), 100);
+    Misbehaving(dummyNode1.GetId(), 100, "");
     SendMessages(config, &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(!connman->IsBanned(addr1));
-    Misbehaving(dummyNode1.GetId(), 10);
+    Misbehaving(dummyNode1.GetId(), 10, "");
     SendMessages(config, &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(!connman->IsBanned(addr1));
-    Misbehaving(dummyNode1.GetId(), 1);
+    Misbehaving(dummyNode1.GetId(), 1, "");
     SendMessages(config, &dummyNode1, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
     ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     dummyNode.nVersion = 1;
     dummyNode.fSuccessfullyConnected = true;
 
-    Misbehaving(dummyNode.GetId(), 100);
+    Misbehaving(dummyNode.GetId(), 100, "");
     SendMessages(config, &dummyNode, *connman, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr));
 
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         CMutableTransaction tx;
         tx.vin.resize(1);
         tx.vin[0].prevout.n = 0;
-        tx.vin[0].prevout.hash = GetRandHash();
+        tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         CMutableTransaction tx;
         tx.vin.resize(1);
         tx.vin[0].prevout.n = 0;
-        tx.vin[0].prevout.hash = txPrev->GetId();
+        tx.vin[0].prevout.utxid = txPrev->GetUtxid(MALFIX_MODE_MEMPOOL);
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vin.resize(2777);
         for (unsigned int j = 0; j < tx.vin.size(); j++) {
             tx.vin[j].prevout.n = j;
-            tx.vin[j].prevout.hash = txPrev->GetId();
+            tx.vin[j].prevout.utxid = txPrev->GetUtxid(MALFIX_MODE_MEMPOOL);
         }
         SignSignature(keystore, *txPrev, tx, 0, SIGHASH_ALL);
         // Re-use same signature for other inputs

@@ -73,8 +73,8 @@ protected:
 public:
     CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
+    bool GetCoins(const utxid_t &utxid, CCoins &coins) const;
+    bool HaveCoins(const utxid_t &utxid) const;
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
     CCoinsViewCursor *Cursor() const;
@@ -85,7 +85,7 @@ class CCoinsViewDBCursor : public CCoinsViewCursor {
 public:
     ~CCoinsViewDBCursor() {}
 
-    bool GetKey(uint256 &key) const;
+    bool GetKey(utxid_t &key) const;
     bool GetValue(CCoins &coins) const;
     unsigned int GetValueSize() const;
 
@@ -96,7 +96,7 @@ private:
     CCoinsViewDBCursor(CDBIterator *pcursorIn, const uint256 &hashBlockIn)
         : CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
     std::unique_ptr<CDBIterator> pcursor;
-    std::pair<char, uint256> keyTmp;
+    std::pair<char, utxid_t> keyTmp;
 
     friend class CCoinsViewDB;
 };
@@ -118,8 +118,8 @@ public:
     bool ReadLastBlockFile(int &nFile);
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool &fReindex);
-    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>> &list);
+    bool ReadTxIndex(const txid_t &utxid, CDiskTxPos &pos);
+    bool WriteTxIndex(const std::vector<std::pair<txid_t, CDiskTxPos>> &list);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(

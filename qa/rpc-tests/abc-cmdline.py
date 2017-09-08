@@ -21,6 +21,7 @@ MAX_GENERATED_BLOCK_SIZE_ERROR = (
     'Max generated block size (blockmaxsize) cannot be lower than '
     '1MB or exceed the excessive block size (excessiveblocksize)')
 
+
 class ABC_CmdLine_Test (BitcoinTestFramework):
 
     def __init__(self):
@@ -63,14 +64,16 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         outputchecker = OutputChecker()
         stop_node(self.nodes[0], 0)
         try:
-            self.extra_args = [["-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE]]
+            self.extra_args = [
+                ["-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE]]
             self.nodes[0] = start_node(0, self.options.tmpdir,
                                        self.extra_args[0],
                                        stderr_checker=outputchecker)
         except Exception as e:
             assert(outputchecker.contains(
                 'Error: Excessive block size must be > 1,000,000 bytes (1MB)'))
-            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+            assert_equal(
+                'bitcoind exited with status 1 during initialization', str(e))
         else:
             raise AssertionError("Must not accept excessiveblocksize"
                                  " value < %d bytes" % LEGACY_MAX_BLOCK_SIZE)
@@ -84,8 +87,10 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
                                        self.extra_args[0],
                                        stderr_checker=outputchecker)
         except Exception as e:
-            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
-            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+            assert(outputchecker.contains(
+                'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+            assert_equal(
+                'bitcoind exited with status 1 during initialization', str(e))
         else:
             raise AssertionError('Must not accept excessiveblocksize'
                                  ' below blockmaxsize')
@@ -100,8 +105,10 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
                                        self.extra_args[0],
                                        stderr_checker=outputchecker)
         except Exception as e:
-            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
-            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+            assert(outputchecker.contains(
+                'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+            assert_equal(
+                'bitcoind exited with status 1 during initialization', str(e))
         else:
             raise AssertionError('Must not accept excessiveblocksize'
                                  ' below blockmaxsize')
@@ -114,8 +121,10 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
                                        self.extra_args[0],
                                        stderr_checker=outputchecker)
         except Exception as e:
-            assert(outputchecker.contains('Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
-            assert_equal('bitcoind exited with status 1 during initialization', str(e))
+            assert(outputchecker.contains(
+                'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
+            assert_equal(
+                'bitcoind exited with status 1 during initialization', str(e))
         else:
             raise AssertionError('Must not accept excessiveblocksize'
                                  ' below blockmaxsize')
@@ -126,8 +135,8 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.nodes[0] = start_node(0, self.options.tmpdir,
                                    self.extra_args[0],
                                    stderr_checker=outputchecker)
-        assert(outputchecker.contains('Warning: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
-
+        assert(outputchecker.contains(
+            'Warning: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
 
     def run_test(self):
         # Run tests on -excessiveblocksize option
