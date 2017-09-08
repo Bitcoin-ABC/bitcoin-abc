@@ -1327,7 +1327,8 @@ static UniValue addmultisigaddress(const Config &config,
         request.params.size() > 3) {
         std::string msg =
             "addmultisigaddress nrequired [\"key\",...] ( \"account\" )\n"
-            "\nAdd a nrequired-to-sign multisignature address to the wallet.\n"
+            "\nAdd a nrequired-to-sign multisignature address to the wallet. "
+            "Requires a new wallet backup.\n"
             "Each key is a Bitcoin address or hex-encoded public key.\n"
             "If 'account' is specified (DEPRECATED), assign address to that "
             "account.\n"

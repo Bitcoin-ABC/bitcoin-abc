@@ -81,9 +81,9 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 3)
         throw std::runtime_error(
-            "importprivkey \"bitcoinprivkey\" ( \"label\" ) ( rescan )\n"
-            "\nAdds a private key (as returned by dumpprivkey) to your "
-            "wallet.\n"
+            "importprivkey \"privkey\" ( \"label\" ) ( rescan )\n"
+            "\nAdds a private key (as returned by dumpprivkey) to your wallet. "
+            "Requires a new wallet backup.\n"
             "\nArguments:\n"
             "1. \"bitcoinprivkey\"   (string, required) The private key (see "
             "dumpprivkey)\n"
@@ -248,7 +248,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         throw std::runtime_error(
             "importaddress \"address\" ( \"label\" rescan p2sh )\n"
             "\nAdds a script (in hex) or address that can be watched as if it "
-            "were in your wallet but cannot be used to spend.\n"
+            "were in your wallet but cannot be used to spend. Requires a new "
+            "wallet backup.\n"
             "\nArguments:\n"
             "1. \"script\"           (string, required) The hex-encoded script "
             "(or address)\n"
@@ -463,7 +464,8 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
         throw std::runtime_error(
             "importpubkey \"pubkey\" ( \"label\" rescan )\n"
             "\nAdds a public key (in hex) that can be watched as if it were in "
-            "your wallet but cannot be used to spend.\n"
+            "your wallet but cannot be used to spend. Requires a new wallet "
+            "backup.\n"
             "\nArguments:\n"
             "1. \"pubkey\"           (string, required) The hex-encoded public "
             "key\n"
@@ -532,7 +534,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "importwallet \"filename\"\n"
-            "\nImports keys from a wallet dump file (see dumpwallet).\n"
+            "\nImports keys from a wallet dump file (see dumpwallet). Requires "
+            "a new wallet backup to include imported keys.\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The wallet file\n"
             "\nExamples:\n"
@@ -702,6 +705,12 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             "\nDumps all wallet keys in a human-readable format to a "
             "server-side file. This does not allow overwriting existing "
             "files.\n"
+            "Imported scripts are not currently included in wallet dumps, "
+            "these must be backed up separately.\n"
+            "Note that if your wallet contains keys which are not derived from "
+            "your HD seed (e.g. imported keys), these are not covered by\n"
+            "only backing up the seed itself, and must be backed up too (e.g. "
+            "ensure you back up the whole dumpfile).\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The filename with path "
             "(either absolute or relative to bitcoind)\n"
@@ -1216,8 +1225,8 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     // clang-format off
     if (mainRequest.fHelp || mainRequest.params.size() < 1 || mainRequest.params.size() > 2) {
         throw std::runtime_error(
-            "importmulti \"requests\" \"options\"\n\n"
-            "Import addresses/scripts (with private or public keys, redeem script (P2SH)), rescanning all addresses in one-shot-only (rescan can be disabled via options).\n\n"
+            "importmulti \"requests\" ( \"options\" )\n\n"
+            "Import addresses/scripts (with private or public keys, redeem script (P2SH)), rescanning all addresses in one-shot-only (rescan can be disabled via options). Requires a new wallet backup.\n\n"
             "Arguments:\n"
             "1. requests     (array, required) Data to be imported\n"
             "  [     (array of json objects)\n"
