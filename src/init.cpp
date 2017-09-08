@@ -2131,7 +2131,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     }
 
     threadGroup.create_thread(
-        boost::bind(&ThreadImport, boost::ref(config), vImportFiles));
+        boost::bind(&ThreadImport, std::ref(config), vImportFiles));
 
     // Wait for genesis block to be processed
     {
