@@ -10,20 +10,19 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+
 class BIP66Test(BitcoinTestFramework):
+
     def __init__(self):
         super().__init__()
         self.num_nodes = 3
         self.setup_clean_chain = False
+        self.extra_args = [[], ["-blockversion=2"], ["-blockversion=3"]]
 
     def setup_network(self):
-        self.nodes = []
-        self.nodes.append(start_node(0, self.options.tmpdir, []))
-        self.nodes.append(start_node(1, self.options.tmpdir, ["-blockversion=2"]))
-        self.nodes.append(start_node(2, self.options.tmpdir, ["-blockversion=3"]))
+        self.setup_nodes()
         connect_nodes(self.nodes[1], 0)
         connect_nodes(self.nodes[2], 0)
-        self.is_network_split = False
         self.sync_all()
 
     def run_test(self):
@@ -63,7 +62,8 @@ class BIP66Test(BitcoinTestFramework):
         self.nodes[1].generate(1)
         self.sync_all()
         if (self.nodes[0].getblockcount() != cnt + 1050):
-            raise AssertionError("Failed to mine a version=2 block after 949 version=3 blocks")
+            raise AssertionError(
+                "Failed to mine a version=2 block after 949 version=3 blocks")
 
         # Mine 1 new-version blocks
         self.nodes[2].generate(1)
@@ -74,12 +74,14 @@ class BIP66Test(BitcoinTestFramework):
         # Mine 1 old-version blocks
         try:
             self.nodes[1].generate(1)
-            raise AssertionError("Succeeded to mine a version=2 block after 950 version=3 blocks")
+            raise AssertionError(
+                "Succeeded to mine a version=2 block after 950 version=3 blocks")
         except JSONRPCException:
             pass
         self.sync_all()
         if (self.nodes[0].getblockcount() != cnt + 1051):
-            raise AssertionError("Accepted a version=2 block after 950 version=3 blocks")
+            raise AssertionError(
+                "Accepted a version=2 block after 950 version=3 blocks")
 
         # Mine 1 new-version blocks
         self.nodes[2].generate(1)

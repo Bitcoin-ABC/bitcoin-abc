@@ -47,15 +47,14 @@
 #endif
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString BITCOIN_IPC_PREFIX("bitcoin:");
 // BIP70 payment protocol messages
 const char *BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char *BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
 // BIP71 payment protocol media types
-const char *BIP71_MIMETYPE_PAYMENT = "application/bitcoin-payment";
-const char *BIP71_MIMETYPE_PAYMENTACK = "application/bitcoin-paymentack";
+const char *BIP71_MIMETYPE_PAYMENT = "application/bitcoincash-payment";
+const char *BIP71_MIMETYPE_PAYMENTACK = "application/bitcoincash-paymentack";
 const char *BIP71_MIMETYPE_PAYMENTREQUEST =
-    "application/bitcoin-paymentrequest";
+    "application/bitcoincash-paymentrequest";
 
 struct X509StoreDeleter {
     void operator()(X509_STORE *b) { X509_STORE_free(b); }
@@ -173,7 +172,7 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
         }
 #endif
         QByteArray certData = cert.toDer();
-        const unsigned char *data = (const unsigned char *)certData.data();
+        const uint8_t *data = (const uint8_t *)certData.data();
 
         std::unique_ptr<X509, X509Deleter> x509(
             d2i_X509(0, &data, certData.size()));
@@ -212,13 +211,13 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
         QString arg(argv[i]);
         if (arg.startsWith("-")) continue;
 
-        // If the bitcoin: URI contains a payment request, we are not able to
-        // detect the network as that would require fetching and parsing the
+        // If the bitcoincash: URI contains a payment request, we are not able
+        // to detect the network as that would require fetching and parsing the
         // payment request. That means clicking such an URI which contains a
         // testnet payment request will start a mainnet instance and throw a
         // "wrong network" error.
-        if (arg.startsWith(BITCOIN_IPC_PREFIX,
-                           Qt::CaseInsensitive)) // bitcoin: URI
+        if (arg.startsWith(GUIUtil::URI_SCHEME + ":",
+                           Qt::CaseInsensitive)) // bitcoincash: URI
         {
             savedPaymentRequests.append(arg);
 
@@ -297,7 +296,7 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // Install global event filter to catch QFileOpenEvents
-    // on Mac: sent when you click bitcoin: links
+    // on Mac: sent when you click bitcoincash: links
     // other OSes: helpful when dealing with payment request files
     if (parent) parent->installEventFilter(this);
 
@@ -312,9 +311,9 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "Q_EMIT
             // message()" here
-            QMessageBox::critical(
-                0, tr("Payment request error"),
-                tr("Cannot start bitcoin: click-to-pay handler"));
+            QMessageBox::critical(0, tr("Payment request error"),
+                                  tr("Cannot start %1: click-to-pay handler")
+                                      .arg(GUIUtil::URI_SCHEME));
         } else {
             connect(uriServer, SIGNAL(newConnection()), this,
                     SLOT(handleURIConnection()));
@@ -329,7 +328,7 @@ PaymentServer::~PaymentServer() {
 }
 
 //
-// OSX-specific way of handling bitcoin: URIs and PaymentRequest mime types.
+// OSX-specific way of handling bitcoincash: URIs and PaymentRequest mime types.
 // Also used by paymentservertests.cpp and when opening a payment request file
 // via "Open URI..." menu entry.
 //
@@ -351,7 +350,7 @@ void PaymentServer::initNetManager() {
     if (!optionsModel) return;
     if (netManager != nullptr) delete netManager;
 
-    // netManager is used to fetch paymentrequests given in bitcoin: URIs
+    // netManager is used to fetch paymentrequests given in bitcoincash: URIs
     netManager = new QNetworkAccessManager(this);
 
     QNetworkProxy proxy;
@@ -389,8 +388,8 @@ void PaymentServer::handleURIOrFile(const QString &s) {
         return;
     }
 
-    // bitcoin: URI
-    if (s.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) {
+    // bitcoincash: URI
+    if (s.startsWith(GUIUtil::URI_SCHEME + ":", Qt::CaseInsensitive)) {
 #if QT_VERSION < 0x050000
         QUrl uri(s);
 #else

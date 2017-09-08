@@ -9,7 +9,6 @@
 
 /** The largest block size this node will accept. */
 extern uint64_t nMaxBlockSize;
-/** The timestamp at which UAHF starts. */
-extern int64_t nUAHFStartTime;
+extern uint64_t nBlockPriorityPercentage;
 
 #endif // BITCOIN_GLOBALS_H

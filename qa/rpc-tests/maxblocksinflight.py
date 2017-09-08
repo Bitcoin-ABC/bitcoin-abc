@@ -6,7 +6,6 @@
 from test_framework.mininode import *
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-import logging
 
 '''
 In this test we connect to one node over p2p, send it numerous inv's, and
@@ -16,8 +15,10 @@ reach. [0.10 clients shouldn't request more than 16 from a single peer.]
 '''
 MAX_REQUESTS = 128
 
+
 class TestManager(NodeConnCB):
     # set up NodeConnCB callbacks, overriding base class
+
     def on_getdata(self, conn, message):
         self.log.debug("got getdata %s" % repr(message))
         # Log the requests
@@ -32,7 +33,6 @@ class TestManager(NodeConnCB):
 
     def __init__(self):
         NodeConnCB.__init__(self)
-        self.log = logging.getLogger("BlockRelayTest")
 
     def add_new_connection(self, connection):
         self.connection = connection
@@ -61,16 +61,20 @@ class TestManager(NodeConnCB):
                 for key in self.blockReqCounts:
                     total_requests += self.blockReqCounts[key]
                     if self.blockReqCounts[key] > 1:
-                        raise AssertionError("Error, test failed: block %064x requested more than once" % key)
+                        raise AssertionError(
+                            "Error, test failed: block %064x requested more than once" % key)
             if total_requests > MAX_REQUESTS:
-                raise AssertionError("Error, too many blocks (%d) requested" % total_requests)
-            print("Round %d: success (total requests: %d)" % (count, total_requests))
+                raise AssertionError(
+                    "Error, too many blocks (%d) requested" % total_requests)
+            self.log.info("Round %d: success (total requests: %d)" %
+                          (count, total_requests))
 
         self.disconnectOkay = True
         self.connection.disconnect_node()
 
 
 class MaxBlocksInFlightTest(BitcoinTestFramework):
+
     def add_options(self, parser):
         parser.add_option("--testbinary", dest="testbinary",
                           default=os.getenv("BITCOIND", "bitcoind"),
@@ -83,12 +87,15 @@ class MaxBlocksInFlightTest(BitcoinTestFramework):
 
     def setup_network(self):
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[['-debug', '-whitelist=127.0.0.1']],
+                                 extra_args=[['-whitelist=127.0.0.1']],
                                  binary=[self.options.testbinary])
 
     def run_test(self):
         test = TestManager()
-        test.add_new_connection(NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], test))
+        # pass log handler through to the test manager object
+        test.log = self.log
+        test.add_new_connection(
+            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], test))
         NetworkThread().start()  # Start up network handling in another thread
         test.run()
 

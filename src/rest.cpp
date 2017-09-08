@@ -465,12 +465,10 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     switch (rf) {
         case RF_HEX: {
             // convert hex to bin, continue then with bin part
-            std::vector<unsigned char> strRequestV =
-                ParseHex(strRequestMutable);
+            std::vector<uint8_t> strRequestV = ParseHex(strRequestMutable);
             strRequestMutable.assign(strRequestV.begin(), strRequestV.end());
-            // FALLTHROUGH
         }
-
+        // FALLTHROUGH
         case RF_BINARY: {
             try {
                 // deserialize only if user sent a request
@@ -516,7 +514,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
 
     // check spentness and form a bitmap (as well as a JSON capable
     // human-readable string representation)
-    std::vector<unsigned char> bitmap;
+    std::vector<uint8_t> bitmap;
     std::vector<CCoin> outs;
     std::string bitmapStringRepresentation;
     std::vector<bool> hits;

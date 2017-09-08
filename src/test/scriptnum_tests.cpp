@@ -41,7 +41,7 @@ static void CheckCreateVch(const int64_t &num) {
     CScriptNum scriptnum(num);
     BOOST_CHECK(verify(bignum, scriptnum));
 
-    std::vector<unsigned char> vch = bignum.getvch();
+    std::vector<uint8_t> vch = bignum.getvch();
 
     CScriptNum10 bignum2(bignum.getvch(), false);
     vch = scriptnum.getvch();

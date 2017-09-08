@@ -40,7 +40,8 @@ extern unsigned nMaxDatacarrierBytes;
  * Failing one of these tests may trigger a DoS ban - see CheckInputs() for
  * details.
  */
-static const unsigned int MANDATORY_SCRIPT_VERIFY_FLAGS = SCRIPT_VERIFY_P2SH;
+static const unsigned int MANDATORY_SCRIPT_VERIFY_FLAGS =
+    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC | SCRIPT_ENABLE_SIGHASH_FORKID;
 
 enum txnouttype {
     TX_NONSTANDARD,
@@ -74,7 +75,7 @@ typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 const char *GetTxnOutputType(txnouttype t);
 
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
-            std::vector<std::vector<unsigned char>> &vSolutionsRet);
+            std::vector<std::vector<uint8_t>> &vSolutionsRet);
 bool ExtractDestination(const CScript &scriptPubKey,
                         CTxDestination &addressRet);
 bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,

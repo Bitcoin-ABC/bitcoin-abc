@@ -13,7 +13,7 @@
 #include "script/script.h"
 #include "uint256.h"
 
-typedef std::vector<unsigned char> valtype;
+typedef std::vector<uint8_t> valtype;
 
 namespace {
 
@@ -59,7 +59,7 @@ static inline void popstack(std::vector<valtype> &stack) {
     stack.pop_back();
 }
 
-bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
+static bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     if (vchPubKey.size() < 33) {
         //  Non-canonical public key: too short
         return false;
@@ -81,7 +81,7 @@ bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     return true;
 }
 
-bool static IsCompressedPubKey(const valtype &vchPubKey) {
+static bool IsCompressedPubKey(const valtype &vchPubKey) {
     if (vchPubKey.size() != 33) {
         //  Non-canonical public key: invalid length for compressed key
         return false;
@@ -104,7 +104,7 @@ bool static IsCompressedPubKey(const valtype &vchPubKey) {
  *
  * This function is consensus-critical since BIP66.
  */
-bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
+static bool IsValidSignatureEncoding(const std::vector<uint8_t> &sig) {
     // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
     // [sighash]
     // * total-length: 1-byte length descriptor of everything that follows,
@@ -173,12 +173,12 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     return true;
 }
 
-bool static IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
+static bool IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
     if (!IsValidSignatureEncoding(vchSig)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
     }
-    std::vector<unsigned char> vchSigCopy(vchSig.begin(),
-                                          vchSig.begin() + vchSig.size() - 1);
+    std::vector<uint8_t> vchSigCopy(vchSig.begin(),
+                                    vchSig.begin() + vchSig.size() - 1);
     if (!CPubKey::CheckLowS(vchSigCopy)) {
         return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
     }
@@ -194,7 +194,7 @@ static uint32_t GetHashType(const valtype &vchSig) {
 }
 
 static void CleanupScriptCode(CScript &scriptCode,
-                              const std::vector<unsigned char> &vchSig,
+                              const std::vector<uint8_t> &vchSig,
                               uint32_t flags) {
     // Drop the signature in scripts when SIGHASH_FORKID is not used.
     uint32_t nHashType = GetHashType(vchSig);
@@ -217,8 +217,8 @@ static bool IsDefinedHashtypeSignature(const valtype &vchSig) {
     return true;
 }
 
-bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig,
-                            uint32_t flags, ScriptError *serror) {
+bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
+                            ScriptError *serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
     if (vchSig.size() == 0) {
@@ -265,7 +265,7 @@ static bool CheckPubKeyEncoding(const valtype &vchPubKey, uint32_t flags,
     return true;
 }
 
-bool static CheckMinimalPush(const valtype &data, opcodetype opcode) {
+static bool CheckMinimalPush(const valtype &data, opcodetype opcode) {
     if (data.size() == 0) {
         // Could have used OP_0.
         return opcode == OP_0;
@@ -1427,22 +1427,21 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 }
 
 bool TransactionSignatureChecker::VerifySignature(
-    const std::vector<unsigned char> &vchSig, const CPubKey &pubkey,
+    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
     const uint256 &sighash) const {
     return pubkey.Verify(sighash, vchSig);
 }
 
 bool TransactionSignatureChecker::CheckSig(
-    const std::vector<unsigned char> &vchSigIn,
-    const std::vector<unsigned char> &vchPubKey, const CScript &scriptCode,
-    uint32_t flags) const {
+    const std::vector<uint8_t> &vchSigIn, const std::vector<uint8_t> &vchPubKey,
+    const CScript &scriptCode, uint32_t flags) const {
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid()) {
         return false;
     }
 
     // Hash type is one byte tacked on to the end of the signature
-    std::vector<unsigned char> vchSig(vchSigIn);
+    std::vector<uint8_t> vchSig(vchSigIn);
     if (vchSig.empty()) {
         return false;
     }

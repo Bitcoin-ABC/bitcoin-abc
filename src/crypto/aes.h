@@ -21,10 +21,9 @@ private:
     AES128_ctx ctx;
 
 public:
-    AES128Encrypt(const unsigned char key[16]);
+    AES128Encrypt(const uint8_t key[16]);
     ~AES128Encrypt();
-    void Encrypt(unsigned char ciphertext[16],
-                 const unsigned char plaintext[16]) const;
+    void Encrypt(uint8_t ciphertext[16], const uint8_t plaintext[16]) const;
 };
 
 /** A decryption class for AES-128. */
@@ -33,10 +32,9 @@ private:
     AES128_ctx ctx;
 
 public:
-    AES128Decrypt(const unsigned char key[16]);
+    AES128Decrypt(const uint8_t key[16]);
     ~AES128Decrypt();
-    void Decrypt(unsigned char plaintext[16],
-                 const unsigned char ciphertext[16]) const;
+    void Decrypt(uint8_t plaintext[16], const uint8_t ciphertext[16]) const;
 };
 
 /** An encryption class for AES-256. */
@@ -45,10 +43,9 @@ private:
     AES256_ctx ctx;
 
 public:
-    AES256Encrypt(const unsigned char key[32]);
+    AES256Encrypt(const uint8_t key[32]);
     ~AES256Encrypt();
-    void Encrypt(unsigned char ciphertext[16],
-                 const unsigned char plaintext[16]) const;
+    void Encrypt(uint8_t ciphertext[16], const uint8_t plaintext[16]) const;
 };
 
 /** A decryption class for AES-256. */
@@ -57,62 +54,61 @@ private:
     AES256_ctx ctx;
 
 public:
-    AES256Decrypt(const unsigned char key[32]);
+    AES256Decrypt(const uint8_t key[32]);
     ~AES256Decrypt();
-    void Decrypt(unsigned char plaintext[16],
-                 const unsigned char ciphertext[16]) const;
+    void Decrypt(uint8_t plaintext[16], const uint8_t ciphertext[16]) const;
 };
 
 class AES256CBCEncrypt {
 public:
-    AES256CBCEncrypt(const unsigned char key[AES256_KEYSIZE],
-                     const unsigned char ivIn[AES_BLOCKSIZE], bool padIn);
+    AES256CBCEncrypt(const uint8_t key[AES256_KEYSIZE],
+                     const uint8_t ivIn[AES_BLOCKSIZE], bool padIn);
     ~AES256CBCEncrypt();
-    int Encrypt(const unsigned char *data, int size, unsigned char *out) const;
+    int Encrypt(const uint8_t *data, int size, uint8_t *out) const;
 
 private:
     const AES256Encrypt enc;
     const bool pad;
-    unsigned char iv[AES_BLOCKSIZE];
+    uint8_t iv[AES_BLOCKSIZE];
 };
 
 class AES256CBCDecrypt {
 public:
-    AES256CBCDecrypt(const unsigned char key[AES256_KEYSIZE],
-                     const unsigned char ivIn[AES_BLOCKSIZE], bool padIn);
+    AES256CBCDecrypt(const uint8_t key[AES256_KEYSIZE],
+                     const uint8_t ivIn[AES_BLOCKSIZE], bool padIn);
     ~AES256CBCDecrypt();
-    int Decrypt(const unsigned char *data, int size, unsigned char *out) const;
+    int Decrypt(const uint8_t *data, int size, uint8_t *out) const;
 
 private:
     const AES256Decrypt dec;
     const bool pad;
-    unsigned char iv[AES_BLOCKSIZE];
+    uint8_t iv[AES_BLOCKSIZE];
 };
 
 class AES128CBCEncrypt {
 public:
-    AES128CBCEncrypt(const unsigned char key[AES128_KEYSIZE],
-                     const unsigned char ivIn[AES_BLOCKSIZE], bool padIn);
+    AES128CBCEncrypt(const uint8_t key[AES128_KEYSIZE],
+                     const uint8_t ivIn[AES_BLOCKSIZE], bool padIn);
     ~AES128CBCEncrypt();
-    int Encrypt(const unsigned char *data, int size, unsigned char *out) const;
+    int Encrypt(const uint8_t *data, int size, uint8_t *out) const;
 
 private:
     const AES128Encrypt enc;
     const bool pad;
-    unsigned char iv[AES_BLOCKSIZE];
+    uint8_t iv[AES_BLOCKSIZE];
 };
 
 class AES128CBCDecrypt {
 public:
-    AES128CBCDecrypt(const unsigned char key[AES128_KEYSIZE],
-                     const unsigned char ivIn[AES_BLOCKSIZE], bool padIn);
+    AES128CBCDecrypt(const uint8_t key[AES128_KEYSIZE],
+                     const uint8_t ivIn[AES_BLOCKSIZE], bool padIn);
     ~AES128CBCDecrypt();
-    int Decrypt(const unsigned char *data, int size, unsigned char *out) const;
+    int Decrypt(const uint8_t *data, int size, uint8_t *out) const;
 
 private:
     const AES128Decrypt dec;
     const bool pad;
-    unsigned char iv[AES_BLOCKSIZE];
+    uint8_t iv[AES_BLOCKSIZE];
 };
 
 #endif // BITCOIN_CRYPTO_AES_H

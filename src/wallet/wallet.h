@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -755,13 +754,12 @@ public:
     void UpdateTimeFirstKey(int64_t nCreateTime);
 
     //! Adds an encrypted key to the store, and saves it to disk.
-    bool
-    AddCryptedKey(const CPubKey &vchPubKey,
-                  const std::vector<unsigned char> &vchCryptedSecret) override;
+    bool AddCryptedKey(const CPubKey &vchPubKey,
+                       const std::vector<uint8_t> &vchCryptedSecret) override;
     //! Adds an encrypted key to the store, without saving it to disk (used by
     //! LoadWallet)
     bool LoadCryptedKey(const CPubKey &vchPubKey,
-                        const std::vector<unsigned char> &vchCryptedSecret);
+                        const std::vector<uint8_t> &vchCryptedSecret);
     bool AddCScript(const CScript &redeemScript) override;
     bool LoadCScript(const CScript &redeemScript);
 

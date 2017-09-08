@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -66,8 +65,7 @@ public:
      * NOTE: reads the entire database into memory, so cannot be used
      * for huge databases.
      */
-    typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char>>
-        KeyValPair;
+    typedef std::pair<std::vector<uint8_t>, std::vector<uint8_t>> KeyValPair;
     bool Salvage(const std::string &strFile, bool fAggressive,
                  std::vector<KeyValPair> &vResult);
 
@@ -281,7 +279,7 @@ public:
         return Write(std::string("version"), nVersion);
     }
 
-    bool static Rewrite(const std::string &strFile,
+    static bool Rewrite(const std::string &strFile,
                         const char *pszSkip = nullptr);
 };
 

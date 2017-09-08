@@ -16,7 +16,7 @@ transactions:
     2-101:    bury that block with 100 blocks so the coinbase transaction
               output can be spent
     102:      a block containing a transaction spending the coinbase
-              transaction output. The transaction has an invalid signature. 
+              transaction output. The transaction has an invalid signature.
     103-2202: bury the bad block with just over two weeks' worth of blocks
               (2100 blocks)
 
@@ -38,7 +38,9 @@ from test_framework.blocktools import create_block, create_coinbase
 from test_framework.key import CECKey
 from test_framework.script import *
 
+
 class BaseNode(SingleNodeConnCB):
+
     def __init__(self):
         SingleNodeConnCB.__init__(self)
         self.last_inv = None
@@ -60,10 +62,12 @@ class BaseNode(SingleNodeConnCB):
 
     def send_header_for_blocks(self, new_blocks):
         headers_message = msg_headers()
-        headers_message.headers = [ CBlockHeader(b) for b in new_blocks ]
+        headers_message.headers = [CBlockHeader(b) for b in new_blocks]
         self.send_message(headers_message)
 
+
 class SendHeadersTest(BitcoinTestFramework):
+
     def __init__(self):
         super().__init__()
         self.setup_clean_chain = True
@@ -74,22 +78,24 @@ class SendHeadersTest(BitcoinTestFramework):
         # we need to pre-mine a block with an invalid transaction
         # signature so we can pass in the block hash as assumevalid.
         self.nodes = []
-        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug"]))
+        self.nodes.append(start_node(0, self.options.tmpdir))
 
     def run_test(self):
 
         # Connect to node0
         node0 = BaseNode()
         connections = []
-        connections.append(NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], node0))
+        connections.append(
+            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], node0))
         node0.add_connection(connections[0])
 
-        NetworkThread().start() # Start up network handling in another thread
+        NetworkThread().start()  # Start up network handling in another thread
         node0.wait_for_verack()
 
         # Build the blockchain
         self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time'] + 1
+        self.block_time = self.nodes[0].getblock(
+            self.nodes[0].getbestblockhash())['time'] + 1
 
         self.blocks = []
 
@@ -100,7 +106,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
         # Create the first block with a coinbase output to our key
         height = 1
-        block = create_block(self.tip, create_coinbase(height, coinbase_pubkey), self.block_time)
+        block = create_block(self.tip, create_coinbase(
+            height, coinbase_pubkey), self.block_time)
         self.blocks.append(block)
         self.block_time += 1
         block.solve()
@@ -111,20 +118,24 @@ class SendHeadersTest(BitcoinTestFramework):
 
         # Bury the block 100 deep so the coinbase output is spendable
         for i in range(100):
-            block = create_block(self.tip, create_coinbase(height), self.block_time)
+            block = create_block(
+                self.tip, create_coinbase(height), self.block_time)
             block.solve()
             self.blocks.append(block)
             self.tip = block.sha256
             self.block_time += 1
             height += 1
 
-        # Create a transaction spending the coinbase output with an invalid (null) signature
+        # Create a transaction spending the coinbase output with an invalid
+        # (null) signature
         tx = CTransaction()
-        tx.vin.append(CTxIn(COutPoint(self.block1.vtx[0].sha256, 0), scriptSig=b""))
-        tx.vout.append(CTxOut(49*100000000, CScript([OP_TRUE])))
+        tx.vin.append(
+            CTxIn(COutPoint(self.block1.vtx[0].sha256, 0), scriptSig=b""))
+        tx.vout.append(CTxOut(49 * 100000000, CScript([OP_TRUE])))
         tx.calc_sha256()
 
-        block102 = create_block(self.tip, create_coinbase(height), self.block_time)
+        block102 = create_block(
+            self.tip, create_coinbase(height), self.block_time)
         self.block_time += 1
         block102.vtx.extend([tx])
         block102.hashMerkleRoot = block102.calc_merkle_root()
@@ -137,7 +148,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
         # Bury the assumed valid block 2100 deep
         for i in range(2100):
-            block = create_block(self.tip, create_coinbase(height), self.block_time)
+            block = create_block(
+                self.tip, create_coinbase(height), self.block_time)
             block.nVersion = 4
             block.solve()
             self.blocks.append(block)
@@ -145,18 +157,21 @@ class SendHeadersTest(BitcoinTestFramework):
             self.block_time += 1
             height += 1
 
-        # Start node1 and node2 with assumevalid so they accept a block with a bad signature.
+        # Start node1 and node2 with assumevalid so they accept a block with a
+        # bad signature.
         self.nodes.append(start_node(1, self.options.tmpdir,
-                                     ["-debug", "-assumevalid=" + hex(block102.sha256)]))
+                                     ["-assumevalid=" + hex(block102.sha256)]))
         node1 = BaseNode()  # connects to node1
-        connections.append(NodeConn('127.0.0.1', p2p_port(1), self.nodes[1], node1))
+        connections.append(
+            NodeConn('127.0.0.1', p2p_port(1), self.nodes[1], node1))
         node1.add_connection(connections[1])
         node1.wait_for_verack()
 
         self.nodes.append(start_node(2, self.options.tmpdir,
-                                     ["-debug", "-assumevalid=" + hex(block102.sha256)]))
+                                     ["-assumevalid=" + hex(block102.sha256)]))
         node2 = BaseNode()  # connects to node2
-        connections.append(NodeConn('127.0.0.1', p2p_port(2), self.nodes[2], node2))
+        connections.append(
+            NodeConn('127.0.0.1', p2p_port(2), self.nodes[2], node2))
         node2.add_connection(connections[2])
         node2.wait_for_verack()
 
@@ -170,22 +185,25 @@ class SendHeadersTest(BitcoinTestFramework):
         # Send 102 blocks to node0. Block 102 will be rejected.
         for i in range(101):
             node0.send_message(msg_block(self.blocks[i]))
-        node0.sync_with_ping() # make sure the most recent block is synced
+        node0.sync_with_ping()  # make sure the most recent block is synced
         node0.send_message(msg_block(self.blocks[101]))
-        assert_equal(self.nodes[0].getblock(self.nodes[0].getbestblockhash())['height'], 101)
+        assert_equal(self.nodes[0].getblock(
+            self.nodes[0].getbestblockhash())['height'], 101)
 
         # Send 3102 blocks to node1. All blocks will be accepted.
         for i in range(2202):
             node1.send_message(msg_block(self.blocks[i]))
-        node1.sync_with_ping() # make sure the most recent block is synced
-        assert_equal(self.nodes[1].getblock(self.nodes[1].getbestblockhash())['height'], 2202)
+        node1.sync_with_ping()  # make sure the most recent block is synced
+        assert_equal(self.nodes[1].getblock(
+            self.nodes[1].getbestblockhash())['height'], 2202)
 
         # Send 102 blocks to node2. Block 102 will be rejected.
         for i in range(101):
             node2.send_message(msg_block(self.blocks[i]))
-        node2.sync_with_ping() # make sure the most recent block is synced
+        node2.sync_with_ping()  # make sure the most recent block is synced
         node2.send_message(msg_block(self.blocks[101]))
-        assert_equal(self.nodes[2].getblock(self.nodes[2].getbestblockhash())['height'], 101)
+        assert_equal(self.nodes[2].getblock(
+            self.nodes[2].getbestblockhash())['height'], 101)
 
 if __name__ == '__main__':
     SendHeadersTest().main()

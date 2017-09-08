@@ -525,7 +525,7 @@
     </message>
     <message>
         <location line="-158"/>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
+        <source>Request payments (generates QR codes and %1 URIs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -540,7 +540,7 @@
     </message>
     <message>
         <location line="+3"/>
-        <source>Open a bitcoin: URI or payment request</source>
+        <source>Open a %1 URI or payment request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1612,7 +1612,7 @@
     </message>
     <message>
         <location line="-402"/>
-        <source>Cannot start bitcoin: click-to-pay handler</source>
+        <source>Cannot start %1 click-to-pay handler</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2962,7 +2962,7 @@
     </message>
     <message>
         <location line="+47"/>
-        <source>A message that was attached to the bitcoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
+        <source>A message that was attached to the %1 URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

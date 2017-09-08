@@ -6,8 +6,8 @@
 
 #include <cstring>
 
-CHMAC_SHA512::CHMAC_SHA512(const unsigned char *key, size_t keylen) {
-    unsigned char rkey[128];
+CHMAC_SHA512::CHMAC_SHA512(const uint8_t *key, size_t keylen) {
+    uint8_t rkey[128];
     if (keylen <= 128) {
         memcpy(rkey, key, keylen);
         memset(rkey + keylen, 0, 128 - keylen);
@@ -25,8 +25,8 @@ CHMAC_SHA512::CHMAC_SHA512(const unsigned char *key, size_t keylen) {
     inner.Write(rkey, 128);
 }
 
-void CHMAC_SHA512::Finalize(unsigned char hash[OUTPUT_SIZE]) {
-    unsigned char temp[64];
+void CHMAC_SHA512::Finalize(uint8_t hash[OUTPUT_SIZE]) {
+    uint8_t temp[64];
     inner.Finalize(temp);
     outer.Write(temp, 64).Finalize(hash);
 }

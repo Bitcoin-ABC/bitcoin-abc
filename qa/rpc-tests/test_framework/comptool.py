@@ -7,6 +7,10 @@ from .mininode import *
 from .blockstore import BlockStore, TxStore
 from .util import p2p_port
 
+import logging
+
+logger = logging.getLogger("TestFramework.comptool")
+
 '''
 This is a tool for comparing two or more bitcoinds to each other
 using a script provided.
@@ -26,19 +30,25 @@ generator that returns TestInstance objects.  See below for definition.
 
 global mininode_lock
 
+
 class RejectResult(object):
+
     '''
     Outcome that expects rejection of a transaction or block.
     '''
+
     def __init__(self, code, reason=b''):
         self.code = code
         self.reason = reason
+
     def match(self, other):
         if self.code != other.code:
             return False
         return other.reason.startswith(self.reason)
+
     def __repr__(self):
-        return '%i:%s' % (self.code,self.reason or '*')
+        return '%i:%s' % (self.code, self.reason or '*')
+
 
 class TestNode(NodeConnCB):
 
@@ -53,9 +63,9 @@ class TestNode(NodeConnCB):
         self.block_reject_map = {}
         self.tx_reject_map = {}
 
-        # When the pingmap is non-empty we're waiting for 
+        # When the pingmap is non-empty we're waiting for
         # a response
-        self.pingMap = {} 
+        self.pingMap = {}
         self.lastInv = []
         self.closed = False
 
@@ -72,13 +82,16 @@ class TestNode(NodeConnCB):
             self.bestblockhash = best_header.sha256
 
     def on_getheaders(self, conn, message):
-        response = self.block_store.headers_for(message.locator, message.hashstop)
+        response = self.block_store.headers_for(
+            message.locator, message.hashstop)
         if response is not None:
             conn.send_message(response)
 
     def on_getdata(self, conn, message):
-        [conn.send_message(r) for r in self.block_store.get_blocks(message.inv)]
-        [conn.send_message(r) for r in self.tx_store.get_transactions(message.inv)]
+        [conn.send_message(r)
+         for r in self.block_store.get_blocks(message.inv)]
+        [conn.send_message(r)
+         for r in self.tx_store.get_transactions(message.inv)]
 
         for i in message.inv:
             if i.type == 1:
@@ -93,13 +106,16 @@ class TestNode(NodeConnCB):
         try:
             del self.pingMap[message.nonce]
         except KeyError:
-            raise AssertionError("Got pong for unknown ping [%s]" % repr(message))
+            raise AssertionError(
+                "Got pong for unknown ping [%s]" % repr(message))
 
     def on_reject(self, conn, message):
         if message.message == b'tx':
-            self.tx_reject_map[message.data] = RejectResult(message.code, message.reason)
+            self.tx_reject_map[message.data] = RejectResult(
+                message.code, message.reason)
         if message.message == b'block':
-            self.block_reject_map[message.data] = RejectResult(message.code, message.reason)
+            self.block_reject_map[message.data] = RejectResult(
+                message.code, message.reason)
 
     def send_inv(self, obj):
         mtype = 2 if isinstance(obj, CBlock) else 1
@@ -150,42 +166,46 @@ class TestNode(NodeConnCB):
 #    nodes will be tested based on the outcome for the block.  If False,
 #    then inv's accumulate until all blocks are processed (or max inv size
 #    is reached) and then sent out in one inv message.  Then the final block
-#    will be synced across all connections, and the outcome of the final 
+#    will be synced across all connections, and the outcome of the final
 #    block will be tested.
 # sync_every_tx: analogous to behavior for sync_every_block, except if outcome
 #    on the final tx is None, then contents of entire mempool are compared
 #    across all connections.  (If outcome of final tx is specified as true
 #    or false, then only the last tx is tested against outcome.)
 
+
 class TestInstance(object):
+
     def __init__(self, objects=None, sync_every_block=True, sync_every_tx=False):
         self.blocks_and_transactions = objects if objects else []
         self.sync_every_block = sync_every_block
         self.sync_every_tx = sync_every_tx
 
+
 class TestManager(object):
 
     def __init__(self, testgen, datadir):
         self.test_generator = testgen
-        self.connections    = []
-        self.test_nodes     = []
-        self.block_store    = BlockStore(datadir)
-        self.tx_store       = TxStore(datadir)
-        self.ping_counter   = 1
+        self.connections = []
+        self.test_nodes = []
+        self.block_store = BlockStore(datadir)
+        self.tx_store = TxStore(datadir)
+        self.ping_counter = 1
 
     def add_all_connections(self, nodes):
         for i in range(len(nodes)):
             # Create a p2p connection to each node
             test_node = TestNode(self.block_store, self.tx_store)
             self.test_nodes.append(test_node)
-            self.connections.append(NodeConn('127.0.0.1', p2p_port(i), nodes[i], test_node))
+            self.connections.append(
+                NodeConn('127.0.0.1', p2p_port(i), nodes[i], test_node))
             # Make sure the TestNode (callback class) has a reference to its
             # associated NodeConn
             test_node.add_connection(self.connections[-1])
 
     def clear_all_connections(self):
-        self.connections    = []
-        self.test_nodes     = []
+        self.connections = []
+        self.test_nodes = []
 
     def wait_for_disconnections(self):
         def disconnected():
@@ -208,26 +228,27 @@ class TestManager(object):
     def sync_blocks(self, blockhash, num_blocks):
         def blocks_requested():
             return all(
-                blockhash in node.block_request_map and node.block_request_map[blockhash]
+                blockhash in node.block_request_map and node.block_request_map[
+                    blockhash]
                 for node in self.test_nodes
             )
 
         # --> error if not requested
-        if not wait_until(blocks_requested, attempts=20*num_blocks):
-            # print [ c.cb.block_request_map for c in self.connections ]
+        if not wait_until(blocks_requested, attempts=20 * num_blocks):
             raise AssertionError("Not all nodes requested block")
 
         # Send getheaders message
-        [ c.cb.send_getheaders() for c in self.connections ]
+        [c.cb.send_getheaders() for c in self.connections]
 
         # Send ping and wait for response -- synchronization hack
-        [ c.cb.send_ping(self.ping_counter) for c in self.connections ]
+        [c.cb.send_ping(self.ping_counter) for c in self.connections]
         self.wait_for_pings(self.ping_counter)
         self.ping_counter += 1
 
     # Analogous to sync_block (see above)
     def sync_transaction(self, txhash, num_events):
-        # Wait for nodes to request transaction (50ms sleep * 20 tries * num_events)
+        # Wait for nodes to request transaction (50ms sleep * 20 tries *
+        # num_events)
         def transaction_requested():
             return all(
                 txhash in node.tx_request_map and node.tx_request_map[txhash]
@@ -235,21 +256,20 @@ class TestManager(object):
             )
 
         # --> error if not requested
-        if not wait_until(transaction_requested, attempts=20*num_events):
-            # print [ c.cb.tx_request_map for c in self.connections ]
+        if not wait_until(transaction_requested, attempts=20 * num_events):
             raise AssertionError("Not all nodes requested transaction")
 
         # Get the mempool
-        [ c.cb.send_mempool() for c in self.connections ]
+        [c.cb.send_mempool() for c in self.connections]
 
         # Send ping and wait for response -- synchronization hack
-        [ c.cb.send_ping(self.ping_counter) for c in self.connections ]
+        [c.cb.send_ping(self.ping_counter) for c in self.connections]
         self.wait_for_pings(self.ping_counter)
         self.ping_counter += 1
 
         # Sort inv responses from each node
         with mininode_lock:
-            [ c.cb.lastInv.sort() for c in self.connections ]
+            [c.cb.lastInv.sort() for c in self.connections]
 
     # Verify that the tip of each connection all agree with each other, and
     # with the expected outcome (if given)
@@ -259,17 +279,18 @@ class TestManager(object):
                 if outcome is None:
                     if c.cb.bestblockhash != self.connections[0].cb.bestblockhash:
                         return False
-                elif isinstance(outcome, RejectResult): # Check that block was rejected w/ code
+                elif isinstance(outcome, RejectResult):  # Check that block was rejected w/ code
                     if c.cb.bestblockhash == blockhash:
                         return False
                     if blockhash not in c.cb.block_reject_map:
-                        print('Block not in reject map: %064x' % (blockhash))
+                        logger.error(
+                            'Block not in reject map: %064x' % (blockhash))
                         return False
                     if not outcome.match(c.cb.block_reject_map[blockhash]):
-                        print('Block rejected with %s instead of expected %s: %064x' % (c.cb.block_reject_map[blockhash], outcome, blockhash))
+                        logger.error('Block rejected with %s instead of expected %s: %064x' %
+                                     (c.cb.block_reject_map[blockhash], outcome, blockhash))
                         return False
                 elif ((c.cb.bestblockhash == blockhash) != outcome):
-                    # print c.cb.bestblockhash, blockhash, outcome
                     return False
             return True
 
@@ -285,19 +306,18 @@ class TestManager(object):
                 if outcome is None:
                     # Make sure the mempools agree with each other
                     if c.cb.lastInv != self.connections[0].cb.lastInv:
-                        # print c.rpc.getrawmempool()
                         return False
-                elif isinstance(outcome, RejectResult): # Check that tx was rejected w/ code
+                elif isinstance(outcome, RejectResult):  # Check that tx was rejected w/ code
                     if txhash in c.cb.lastInv:
                         return False
                     if txhash not in c.cb.tx_reject_map:
-                        print('Tx not in reject map: %064x' % (txhash))
+                        logger.error('Tx not in reject map: %064x' % (txhash))
                         return False
                     if not outcome.match(c.cb.tx_reject_map[txhash]):
-                        print('Tx rejected with %s instead of expected %s: %064x' % (c.cb.tx_reject_map[txhash], outcome, txhash))
+                        logger.error('Tx rejected with %s instead of expected %s: %064x' %
+                                     (c.cb.tx_reject_map[txhash], outcome, txhash))
                         return False
                 elif ((txhash in c.cb.lastInv) != outcome):
-                    # print c.rpc.getrawmempool(), c.cb.lastInv
                     return False
             return True
 
@@ -310,8 +330,8 @@ class TestManager(object):
             # We use these variables to keep track of the last block
             # and last transaction in the tests, which are used
             # if we're not syncing on every block or every tx.
-            [ block, block_outcome, tip ] = [ None, None, None ]
-            [ tx, tx_outcome ] = [ None, None ]
+            [block, block_outcome, tip] = [None, None, None]
+            [tx, tx_outcome] = [None, None]
             invqueue = []
 
             for test_obj in test_instance.blocks_and_transactions:
@@ -343,7 +363,8 @@ class TestManager(object):
                             if first_block_with_hash and block.sha256 in c.cb.block_request_map and c.cb.block_request_map[block.sha256] == True:
                                 # There was a previous request for this block hash
                                 # Most likely, we delivered a header for this block
-                                # but never had the block to respond to the getdata
+                                # but never had the block to respond to the
+                                # getdata
                                 c.send_message(msg_block(block))
                             else:
                                 c.cb.block_request_map[block.sha256] = False
@@ -351,23 +372,27 @@ class TestManager(object):
                     # to invqueue for later inv'ing.
                     if (test_instance.sync_every_block):
                         # if we expect success, send inv and sync every block
-                        # if we expect failure, just push the block and see what happens.
+                        # if we expect failure, just push the block and see
+                        # what happens.
                         if outcome == True:
-                            [ c.cb.send_inv(block) for c in self.connections ]
+                            [c.cb.send_inv(block) for c in self.connections]
                             self.sync_blocks(block.sha256, 1)
                         else:
-                            [ c.send_message(msg_block(block)) for c in self.connections ]
-                            [ c.cb.send_ping(self.ping_counter) for c in self.connections ]
+                            [c.send_message(msg_block(block))
+                             for c in self.connections]
+                            [c.cb.send_ping(self.ping_counter)
+                             for c in self.connections]
                             self.wait_for_pings(self.ping_counter)
                             self.ping_counter += 1
                         if (not self.check_results(tip, outcome)):
-                            raise AssertionError("Test failed at test %d" % test_number)
+                            raise AssertionError(
+                                "Test failed at test %d" % test_number)
                     else:
                         invqueue.append(CInv(2, block.sha256))
                 elif isinstance(b_or_t, CBlockHeader):
                     block_header = b_or_t
                     self.block_store.add_header(block_header)
-                    [ c.cb.send_header(block_header) for c in self.connections ]
+                    [c.cb.send_header(block_header) for c in self.connections]
 
                 else:  # Tx test runner
                     assert(isinstance(b_or_t, CTransaction))
@@ -380,37 +405,45 @@ class TestManager(object):
                             c.cb.tx_request_map[tx.sha256] = False
                     # Again, either inv to all nodes or save for later
                     if (test_instance.sync_every_tx):
-                        [ c.cb.send_inv(tx) for c in self.connections ]
+                        [c.cb.send_inv(tx) for c in self.connections]
                         self.sync_transaction(tx.sha256, 1)
                         if (not self.check_mempool(tx.sha256, outcome)):
-                            raise AssertionError("Test failed at test %d" % test_number)
+                            raise AssertionError(
+                                "Test failed at test %d" % test_number)
                     else:
                         invqueue.append(CInv(1, tx.sha256))
                 # Ensure we're not overflowing the inv queue
                 if len(invqueue) == MAX_INV_SZ:
-                    [ c.send_message(msg_inv(invqueue)) for c in self.connections ]
+                    [c.send_message(msg_inv(invqueue))
+                     for c in self.connections]
                     invqueue = []
 
             # Do final sync if we weren't syncing on every block or every tx.
             if (not test_instance.sync_every_block and block is not None):
                 if len(invqueue) > 0:
-                    [ c.send_message(msg_inv(invqueue)) for c in self.connections ]
+                    [c.send_message(msg_inv(invqueue))
+                     for c in self.connections]
                     invqueue = []
-                self.sync_blocks(block.sha256, len(test_instance.blocks_and_transactions))
+                self.sync_blocks(
+                    block.sha256, len(test_instance.blocks_and_transactions))
                 if (not self.check_results(tip, block_outcome)):
-                    raise AssertionError("Block test failed at test %d" % test_number)
+                    raise AssertionError(
+                        "Block test failed at test %d" % test_number)
             if (not test_instance.sync_every_tx and tx is not None):
                 if len(invqueue) > 0:
-                    [ c.send_message(msg_inv(invqueue)) for c in self.connections ]
+                    [c.send_message(msg_inv(invqueue))
+                     for c in self.connections]
                     invqueue = []
-                self.sync_transaction(tx.sha256, len(test_instance.blocks_and_transactions))
+                self.sync_transaction(
+                    tx.sha256, len(test_instance.blocks_and_transactions))
                 if (not self.check_mempool(tx.sha256, tx_outcome)):
-                    raise AssertionError("Mempool test failed at test %d" % test_number)
+                    raise AssertionError(
+                        "Mempool test failed at test %d" % test_number)
 
-            print("Test %d: PASS" % test_number, [ c.rpc.getblockcount() for c in self.connections ])
+            logger.info("Test %d: PASS" % test_number)
             test_number += 1
 
-        [ c.disconnect_node() for c in self.connections ]
+        [c.disconnect_node() for c in self.connections]
         self.wait_for_disconnections()
         self.block_store.close()
         self.tx_store.close()

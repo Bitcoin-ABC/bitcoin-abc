@@ -290,7 +290,7 @@ unsigned int CScript::GetSigOpCount(const CScript &scriptSig) const {
     // get the last item that the scriptSig
     // pushes onto the stack:
     const_iterator pc = scriptSig.begin();
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> data;
     while (pc < scriptSig.end()) {
         opcodetype opcode;
         if (!scriptSig.GetOp(pc, opcode, data)) return 0;
@@ -313,7 +313,7 @@ bool CScript::IsPayToWitnessScriptHash() const {
     return (this->size() == 34 && (*this)[0] == OP_0 && (*this)[1] == 0x20);
 }
 
-bool CScript::IsCommitment(const std::vector<unsigned char> &data) const {
+bool CScript::IsCommitment(const std::vector<uint8_t> &data) const {
     // To ensure we have an immediate push, we limit the commitment size to 64
     // bytes. In addition to the data themselves, we have 2 extra bytes:
     // OP_RETURN and the push opcode itself.
@@ -337,7 +337,7 @@ bool CScript::IsCommitment(const std::vector<unsigned char> &data) const {
 // A witness program is any valid CScript that consists of a 1-byte push opcode
 // followed by a data push between 2 and 40 bytes.
 bool CScript::IsWitnessProgram(int &version,
-                               std::vector<unsigned char> &program) const {
+                               std::vector<uint8_t> &program) const {
     if (this->size() < 4 || this->size() > 42) {
         return false;
     }
@@ -346,7 +346,7 @@ bool CScript::IsWitnessProgram(int &version,
     }
     if ((size_t)((*this)[1] + 2) == this->size()) {
         version = DecodeOP_N((opcodetype)(*this)[0]);
-        program = std::vector<unsigned char>(this->begin() + 2, this->end());
+        program = std::vector<uint8_t>(this->begin() + 2, this->end());
         return true;
     }
     return false;

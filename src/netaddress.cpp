@@ -12,9 +12,8 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
-static const unsigned char pchIPv4[12] = {0, 0, 0, 0, 0,    0,
-                                          0, 0, 0, 0, 0xff, 0xff};
-static const unsigned char pchOnionCat[] = {0xFD, 0x87, 0xD8, 0x7E, 0xEB, 0x43};
+static const uint8_t pchIPv4[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
+static const uint8_t pchOnionCat[] = {0xFD, 0x87, 0xD8, 0x7E, 0xEB, 0x43};
 
 void CNetAddr::Init() {
     memset(ip, 0, sizeof(ip));
@@ -42,7 +41,7 @@ void CNetAddr::SetRaw(Network network, const uint8_t *ip_in) {
 bool CNetAddr::SetSpecial(const std::string &strName) {
     if (strName.size() > 6 &&
         strName.substr(strName.size() - 6, 6) == ".onion") {
-        std::vector<unsigned char> vchAddr =
+        std::vector<uint8_t> vchAddr =
             DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
         if (vchAddr.size() != 16 - sizeof(pchOnionCat)) return false;
         memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
@@ -115,8 +114,8 @@ bool CNetAddr::IsRFC3964() const {
 }
 
 bool CNetAddr::IsRFC6052() const {
-    static const unsigned char pchRFC6052[] = {0, 0x64, 0xFF, 0x9B, 0, 0,
-                                               0, 0,    0,    0,    0, 0};
+    static const uint8_t pchRFC6052[] = {0, 0x64, 0xFF, 0x9B, 0, 0,
+                                         0, 0,    0,    0,    0, 0};
     return (memcmp(ip, pchRFC6052, sizeof(pchRFC6052)) == 0);
 }
 
@@ -126,7 +125,7 @@ bool CNetAddr::IsRFC4380() const {
 }
 
 bool CNetAddr::IsRFC4862() const {
-    static const unsigned char pchRFC4862[] = {0xFE, 0x80, 0, 0, 0, 0, 0, 0};
+    static const uint8_t pchRFC4862[] = {0xFE, 0x80, 0, 0, 0, 0, 0, 0};
     return (memcmp(ip, pchRFC4862, sizeof(pchRFC4862)) == 0);
 }
 
@@ -135,8 +134,8 @@ bool CNetAddr::IsRFC4193() const {
 }
 
 bool CNetAddr::IsRFC6145() const {
-    static const unsigned char pchRFC6145[] = {0, 0, 0,    0,    0, 0,
-                                               0, 0, 0xFF, 0xFF, 0, 0};
+    static const uint8_t pchRFC6145[] = {0, 0, 0,    0,    0, 0,
+                                         0, 0, 0xFF, 0xFF, 0, 0};
     return (memcmp(ip, pchRFC6145, sizeof(pchRFC6145)) == 0);
 }
 
@@ -154,8 +153,8 @@ bool CNetAddr::IsLocal() const {
     if (IsIPv4() && (GetByte(3) == 127 || GetByte(3) == 0)) return true;
 
     // IPv6 loopback (::1/128)
-    static const unsigned char pchLocal[16] = {0, 0, 0, 0, 0, 0, 0, 0,
-                                               0, 0, 0, 0, 0, 0, 0, 1};
+    static const uint8_t pchLocal[16] = {0, 0, 0, 0, 0, 0, 0, 0,
+                                         0, 0, 0, 0, 0, 0, 0, 1};
     if (memcmp(ip, pchLocal, 16) == 0) return true;
 
     return false;
@@ -175,7 +174,7 @@ bool CNetAddr::IsValid() const {
     if (memcmp(ip, pchIPv4 + 3, sizeof(pchIPv4) - 3) == 0) return false;
 
     // unspecified IPv6 address (::/128)
-    unsigned char ipNone6[16] = {};
+    uint8_t ipNone6[16] = {};
     if (memcmp(ip, ipNone6, 16) == 0) return false;
 
     // documentation IPv6 address
@@ -263,8 +262,8 @@ bool CNetAddr::GetIn6Addr(struct in6_addr *pipv6Addr) const {
 
 // get canonical identifier of an address' group no two connections will be
 // attempted to addresses with the same group
-std::vector<unsigned char> CNetAddr::GetGroup() const {
-    std::vector<unsigned char> vchRet;
+std::vector<uint8_t> CNetAddr::GetGroup() const {
+    std::vector<uint8_t> vchRet;
     int nClass = NET_IPV6;
     int nStartByte = 0;
     int nBits = 16;
@@ -331,7 +330,7 @@ uint64_t CNetAddr::GetHash() const {
 // used in GetReachabilityFrom
 static const int NET_UNKNOWN = NET_MAX + 0;
 static const int NET_TEREDO = NET_MAX + 1;
-int static GetExtNetwork(const CNetAddr *addr) {
+static int GetExtNetwork(const CNetAddr *addr) {
     if (addr == nullptr) return NET_UNKNOWN;
     if (addr->IsRFC4380()) return NET_TEREDO;
     return addr->GetNetwork();
@@ -498,8 +497,8 @@ bool CService::GetSockAddr(struct sockaddr *paddr, socklen_t *addrlen) const {
     return false;
 }
 
-std::vector<unsigned char> CService::GetKey() const {
-    std::vector<unsigned char> vKey;
+std::vector<uint8_t> CService::GetKey() const {
+    std::vector<uint8_t> vKey;
     vKey.resize(18);
     memcpy(&vKey[0], ip, 16);
     vKey[16] = port / 0x100;

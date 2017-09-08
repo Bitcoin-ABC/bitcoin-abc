@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,6 +11,7 @@
 #include "addrman.h"
 #include "amount.h"
 #include "bloom.h"
+#include "chainparams.h"
 #include "compat.h"
 #include "hash.h"
 #include "limitedmap.h"
@@ -93,7 +95,8 @@ static const bool DEFAULT_FORCEDNSSEED = true;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
-static const ServiceFlags REQUIRED_SERVICES = NODE_NETWORK;
+static const ServiceFlags REQUIRED_SERVICES =
+    ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH);
 
 // Default 24-hour ban.
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
@@ -120,7 +123,7 @@ struct CSerializedNetMsg {
     CSerializedNetMsg(const CSerializedNetMsg &msg) = delete;
     CSerializedNetMsg &operator=(const CSerializedNetMsg &) = delete;
 
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> data;
     std::string command;
 };
 
@@ -147,7 +150,7 @@ public:
         uint64_t nMaxOutboundTimeframe = 0;
         uint64_t nMaxOutboundLimit = 0;
     };
-    CConnman(uint64_t seed0, uint64_t seed1);
+    CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1);
     ~CConnman();
     bool Start(CScheduler &scheduler, std::string &strNodeError,
                Options options);
@@ -336,6 +339,8 @@ private:
     // Whether the node should be passed out in ForEach* callbacks
     static bool NodeFullyConnected(const CNode *pnode);
 
+    const Config *config;
+
     // Network usage totals
     CCriticalSection cs_totalBytesRecv;
     CCriticalSection cs_totalBytesSent;
@@ -417,7 +422,9 @@ struct CombinerAll {
 
     template <typename I> bool operator()(I first, I last) const {
         while (first != last) {
-            if (!(*first)) return false;
+            if (!(*first)) {
+                return false;
+            }
             ++first;
         }
         return true;
@@ -550,7 +557,10 @@ public:
     }
 
     bool complete() const {
-        if (!in_data) return false;
+        if (!in_data) {
+            return false;
+        }
+
         return (hdr.nMessageSize == nDataPos);
     }
 
@@ -579,7 +589,7 @@ public:
     // Offset inside the first vSendMsg already sent.
     size_t nSendOffset;
     uint64_t nSendBytes;
-    std::deque<std::vector<unsigned char>> vSendMsg;
+    std::deque<std::vector<uint8_t>> vSendMsg;
     CCriticalSection cs_vSend;
     CCriticalSection cs_hSocket;
     CCriticalSection cs_vRecv;
@@ -690,6 +700,8 @@ public:
     std::atomic<int64_t> nMinPingUsecTime;
     // Whether a ping is requested.
     std::atomic<bool> fPingQueued;
+    // Whether the node uses the bitcoin cash magic to communicate.
+    std::atomic<bool> fUsesCashMagic;
     // Minimum fee rate with which to filter inv's to this node
     CAmount minFeeFilter;
     CCriticalSection cs_feeFilter;
@@ -739,6 +751,12 @@ public:
     void SetSendVersion(int nVersionIn);
     int GetSendVersion() const;
 
+    const CMessageHeader::MessageStartChars &
+    GetMagic(const CChainParams &params) const {
+        return fUsesCashMagic ? params.CashMessageStart()
+                              : params.MessageStart();
+    }
+
     CService GetAddrLocal() const;
     //! May not be called more than once
     void SetAddrLocal(const CService &addrLocalIn);
@@ -760,7 +778,7 @@ public:
         // after addresses were pushed.
         if (_addr.IsValid() && !addrKnown.contains(_addr.GetKey())) {
             if (vAddrToSend.size() >= MAX_ADDR_TO_SEND) {
-                vAddrToSend[insecure_rand.rand32() % vAddrToSend.size()] =
+                vAddrToSend[insecure_rand.randrange(vAddrToSend.size())] =
                     _addr;
             } else {
                 vAddrToSend.push_back(_addr);
@@ -769,10 +787,8 @@ public:
     }
 
     void AddInventoryKnown(const CInv &inv) {
-        {
-            LOCK(cs_inventory);
-            filterInventoryKnown.insert(inv.hash);
-        }
+        LOCK(cs_inventory);
+        filterInventoryKnown.insert(inv.hash);
     }
 
     void PushInventory(const CInv &inv) {
@@ -804,8 +820,10 @@ public:
     void MaybeSetAddrName(const std::string &addrNameIn);
 };
 
-/** Return a timestamp in the future (in microseconds) for exponentially
- * distributed events. */
+/**
+ * Return a timestamp in the future (in microseconds) for exponentially
+ * distributed events.
+ */
 int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds);
 
 std::string getSubVersionEB(uint64_t MaxBlockSize);

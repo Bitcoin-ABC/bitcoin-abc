@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(base58_EncodeBase58) {
             BOOST_ERROR("Bad test: " << strTest);
             continue;
         }
-        std::vector<unsigned char> sourcedata = ParseHex(test[0].get_str());
+        std::vector<uint8_t> sourcedata = ParseHex(test[0].get_str());
         std::string base58string = test[1].get_str();
         BOOST_CHECK_MESSAGE(
             EncodeBase58(sourcedata.data(),
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(base58_DecodeBase58) {
         read_json(std::string(json_tests::base58_encode_decode,
                               json_tests::base58_encode_decode +
                                   sizeof(json_tests::base58_encode_decode)));
-    std::vector<unsigned char> result;
+    std::vector<uint8_t> result;
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(base58_DecodeBase58) {
             BOOST_ERROR("Bad test: " << strTest);
             continue;
         }
-        std::vector<unsigned char> expected = ParseHex(test[0].get_str());
+        std::vector<uint8_t> expected = ParseHex(test[0].get_str());
         std::string base58string = test[1].get_str();
         BOOST_CHECK_MESSAGE(DecodeBase58(base58string, result), strTest);
         BOOST_CHECK_MESSAGE(
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(base58_DecodeBase58) {
     // non-whitespace at the end.
     BOOST_CHECK(!DecodeBase58(" \t\n\v\f\r skip \r\f\v\n\t a", result));
     BOOST_CHECK(DecodeBase58(" \t\n\v\f\r skip \r\f\v\n\t ", result));
-    std::vector<unsigned char> expected = ParseHex("971a55");
+    std::vector<uint8_t> expected = ParseHex("971a55");
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
                                   expected.begin(), expected.end());
 }
@@ -104,10 +104,10 @@ public:
 // Visitor to check address payload
 class TestPayloadVisitor : public boost::static_visitor<bool> {
 private:
-    std::vector<unsigned char> exp_payload;
+    std::vector<uint8_t> exp_payload;
 
 public:
-    TestPayloadVisitor(std::vector<unsigned char> &_exp_payload)
+    TestPayloadVisitor(std::vector<uint8_t> &_exp_payload)
         : exp_payload(_exp_payload) {}
     bool operator()(const CKeyID &id) const {
         uint160 exp_key(exp_payload);
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_parse) {
             continue;
         }
         std::string exp_base58string = test[0].get_str();
-        std::vector<unsigned char> exp_payload = ParseHex(test[1].get_str());
+        std::vector<uint8_t> exp_payload = ParseHex(test[1].get_str());
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = find_value(metadata, "isPrivkey").get_bool();
         bool isTestnet = find_value(metadata, "isTestnet").get_bool();
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_gen) {
             continue;
         }
         std::string exp_base58string = test[0].get_str();
-        std::vector<unsigned char> exp_payload = ParseHex(test[1].get_str());
+        std::vector<uint8_t> exp_payload = ParseHex(test[1].get_str());
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = find_value(metadata, "isPrivkey").get_bool();
         bool isTestnet = find_value(metadata, "isTestnet").get_bool();

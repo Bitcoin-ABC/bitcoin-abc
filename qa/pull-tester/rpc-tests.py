@@ -33,7 +33,7 @@ import re
 sys.path.append("qa/pull-tester/")
 from tests_config import *
 
-BOLD = ("","")
+BOLD = ("", "")
 if os.name == 'posix':
     # primitive formatting on supported
     # terminal via ANSI escape sequences:
@@ -41,19 +41,19 @@ if os.name == 'posix':
 
 RPC_TESTS_DIR = SRCDIR + '/qa/rpc-tests/'
 
-#If imported values are not defined then set to zero (or disabled)
+# If imported values are not defined then set to zero (or disabled)
 if 'ENABLE_WALLET' not in vars():
-    ENABLE_WALLET=0
+    ENABLE_WALLET = 0
 if 'ENABLE_BITCOIND' not in vars():
-    ENABLE_BITCOIND=0
+    ENABLE_BITCOIND = 0
 if 'ENABLE_UTILS' not in vars():
-    ENABLE_UTILS=0
+    ENABLE_UTILS = 0
 if 'ENABLE_ZMQ' not in vars():
-    ENABLE_ZMQ=0
+    ENABLE_ZMQ = 0
 
-ENABLE_COVERAGE=0
+ENABLE_COVERAGE = 0
 
-#Create a set to store arguments and create the passon string
+# Create a set to store arguments and create the passon string
 opts = set()
 passon_args = []
 PASSON_REGEX = re.compile("^--")
@@ -75,21 +75,24 @@ for arg in sys.argv[1:]:
     else:
         opts.add(arg)
 
-#Set env vars
+# Set env vars
 if "BITCOIND" not in os.environ:
     os.environ["BITCOIND"] = BUILDDIR + '/src/bitcoind' + EXEEXT
 
 if EXEEXT == ".exe" and "-win" not in opts:
     # https://github.com/bitcoin/bitcoin/commit/d52802551752140cf41f0d9a225a43e84404d3e9
     # https://github.com/bitcoin/bitcoin/pull/5677#issuecomment-136646964
-    print("Win tests currently disabled by default.  Use -win option to enable")
+    print(
+        "Win tests currently disabled by default.  Use -win option to enable")
     sys.exit(0)
 
 if not (ENABLE_WALLET == 1 and ENABLE_UTILS == 1 and ENABLE_BITCOIND == 1):
-    print("No rpc tests to run. Wallet, utils, and bitcoind must all be enabled")
+    print(
+        "No rpc tests to run. Wallet, utils, and bitcoind must all be enabled")
     sys.exit(0)
 
-# python3-zmq may not be installed. Handle this gracefully and with some helpful info
+# python3-zmq may not be installed. Handle this gracefully and with some
+# helpful info
 if ENABLE_ZMQ:
     try:
         import zmq
@@ -135,13 +138,14 @@ testScripts = [
     'multi_rpc.py',
     'proxy_test.py',
     'signrawtransactions.py',
-    'nodehandling.py',
+    'disconnect_ban.py',
     'decodescript.py',
     'blockchain.py',
     'disablewallet.py',
     'keypool.py',
     'p2p-mempool.py',
     'prioritise_transaction.py',
+    'high_priority_transaction.py',
     'invalidblockrequest.py',
     'invalidtxrequest.py',
     'p2p-versionbits-warning.py',
@@ -154,7 +158,6 @@ testScripts = [
     'listsinceblock.py',
     'p2p-leaktests.py',
     'abc-cmdline.py',
-    'abc-p2p-activation.py',
     'abc-p2p-fullblocktest.py',
     'abc-rpc.py',
     'mempool-accept-txn.py',
@@ -222,12 +225,13 @@ def runtests():
         # Populate cache
         subprocess.check_output([RPC_TESTS_DIR + 'create_cache.py'] + flags)
 
-    #Run Tests
+    # Run Tests
     max_len_name = len(max(test_list, key=len))
     time_sum = 0
     time0 = time.time()
     job_queue = RPCTestHandler(run_parallel, test_list, flags)
-    results = BOLD[1] + "%s | %s | %s\n\n" % ("TEST".ljust(max_len_name), "PASSED", "DURATION") + BOLD[0]
+    results = BOLD[1] + "%s | %s | %s\n\n" % (
+        "TEST".ljust(max_len_name), "PASSED", "DURATION") + BOLD[0]
     all_passed = True
     for _ in range(len(test_list)):
         (name, stdout, stderr, passed, duration) = job_queue.get_next()
@@ -237,9 +241,12 @@ def runtests():
         print('\n' + BOLD[1] + name + BOLD[0] + ":")
         print('' if passed else stdout + '\n', end='')
         print('' if stderr == '' else 'stderr:\n' + stderr + '\n', end='')
-        results += "%s | %s | %s s\n" % (name.ljust(max_len_name), str(passed).ljust(6), duration)
-        print("Pass: %s%s%s, Duration: %s s\n" % (BOLD[1], passed, BOLD[0], duration))
-    results += BOLD[1] + "\n%s | %s | %s s (accumulated)" % ("ALL".ljust(max_len_name), str(all_passed).ljust(6), time_sum) + BOLD[0]
+        results += "%s | %s | %s s\n" % (
+            name.ljust(max_len_name), str(passed).ljust(6), duration)
+        print("Pass: %s%s%s, Duration: %s s\n" %
+              (BOLD[1], passed, BOLD[0], duration))
+    results += BOLD[1] + "\n%s | %s | %s s (accumulated)" % (
+        "ALL".ljust(max_len_name), str(all_passed).ljust(6), time_sum) + BOLD[0]
     print(results)
     print("\nRuntime: %s s" % (int(time.time() - time0)))
 
@@ -253,6 +260,7 @@ def runtests():
 
 
 class RPCTestHandler:
+
     """
     Trigger the testscrips passed in via the list.
     """
@@ -274,15 +282,18 @@ class RPCTestHandler:
             # Add tests
             self.num_running += 1
             t = self.test_list.pop(0)
-            port_seed = ["--portseed={}".format(len(self.test_list) + self.portseed_offset)]
+            port_seed = ["--portseed={}".format(
+                len(self.test_list) + self.portseed_offset)]
             log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
             log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
             self.jobs.append((t,
                               time.time(),
-                              subprocess.Popen((RPC_TESTS_DIR + t).split() + self.flags + port_seed,
-                                               universal_newlines=True,
-                                               stdout=log_stdout,
-                                               stderr=log_stderr),
+                              subprocess.Popen(
+                                  (RPC_TESTS_DIR + t).split() +
+                                  self.flags + port_seed,
+                                  universal_newlines=True,
+                                  stdout=log_stdout,
+                                  stderr=log_stderr),
                               log_stdout,
                               log_stderr))
         if not self.jobs:
@@ -294,7 +305,8 @@ class RPCTestHandler:
                 (name, time0, proc, log_out, log_err) = j
                 if proc.poll() is not None:
                     log_out.seek(0), log_err.seek(0)
-                    [stdout, stderr] = [l.read().decode('utf-8') for l in (log_out, log_err)]
+                    [stdout, stderr] = [l.read().decode('utf-8')
+                                        for l in (log_out, log_err)]
                     log_out.close(), log_err.close()
                     passed = stderr == "" and proc.returncode == 0
                     self.num_running -= 1
@@ -304,6 +316,7 @@ class RPCTestHandler:
 
 
 class RPCCoverage(object):
+
     """
     Coverage reporting utilities for pull-tester.
 
@@ -318,6 +331,7 @@ class RPCCoverage(object):
     See also: qa/rpc-tests/test_framework/coverage.py
 
     """
+
     def __init__(self):
         self.dir = tempfile.mkdtemp(prefix="coverage")
         self.flag = '--coveragedir=%s' % self.dir

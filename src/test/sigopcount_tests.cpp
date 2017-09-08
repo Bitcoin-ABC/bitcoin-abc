@@ -18,8 +18,8 @@
 #include <boost/test/unit_test.hpp>
 
 // Helpers:
-static std::vector<unsigned char> Serialize(const CScript &s) {
-    std::vector<unsigned char> sSerialized(s.begin(), s.end());
+static std::vector<uint8_t> Serialize(const CScript &s) {
+    std::vector<uint8_t> sSerialized(s.begin(), s.end());
     return sSerialized;
 }
 
@@ -104,7 +104,7 @@ void BuildTxs(CMutableTransaction &spendingTx, CCoinsViewCache &coins,
     spendingTx.vout[0].nValue = 1;
     spendingTx.vout[0].scriptPubKey = CScript();
 
-    coins.ModifyCoins(creationTx.GetId())->FromTx(creationTx, 0);
+    AddCoins(coins, creationTx, 0);
 }
 
 BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {

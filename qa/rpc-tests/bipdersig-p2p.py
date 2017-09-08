@@ -12,8 +12,10 @@ from test_framework.script import CScript
 from io import BytesIO
 import time
 
-# A canonical signature consists of: 
+# A canonical signature consists of:
 # <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
+
+
 def unDERify(tx):
     '''
     Make the signature in vin 0 of a tx non-DER-compliant,
@@ -27,7 +29,7 @@ def unDERify(tx):
         else:
             newscript.append(i)
     tx.vin[0].scriptSig = CScript(newscript)
-    
+
 '''
 This test is meant to exercise BIP66 (DER SIG).
 Connect to a single node.
@@ -41,31 +43,27 @@ Mine 1 old-version block.
 Mine 1 new version block.
 Mine 1 old version block, see that the node rejects.
 '''
-            
+
+
 class BIP66Test(ComparisonTestFramework):
 
     def __init__(self):
         super().__init__()
         self.num_nodes = 1
 
-    def setup_network(self):
-        # Must set the blockversion for this test
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[['-debug', '-whitelist=127.0.0.1', '-blockversion=2']],
-                                 binary=[self.options.testbinary])
-
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
         test.add_all_connections(self.nodes)
-        NetworkThread().start() # Start up network handling in another thread
+        # Start up network handling in another thread
+        NetworkThread().start()
         test.run()
 
     def create_transaction(self, node, coinbase, to_address, amount):
         from_txid = node.getblock(coinbase)['tx'][0]
-        inputs = [{ "txid" : from_txid, "vout" : 0}]
-        outputs = { to_address : amount }
+        inputs = [{"txid": from_txid, "vout": 0}]
+        outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
@@ -82,7 +80,8 @@ class BIP66Test(ComparisonTestFramework):
         ''' 298 more version 2 blocks '''
         test_blocks = []
         for i in range(298):
-            block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+            block = create_block(
+                self.tip, create_coinbase(height), self.last_block_time + 1)
             block.nVersion = 2
             block.rehash()
             block.solve()
@@ -95,7 +94,8 @@ class BIP66Test(ComparisonTestFramework):
         ''' Mine 749 version 3 blocks '''
         test_blocks = []
         for i in range(749):
-            block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+            block = create_block(
+                self.tip, create_coinbase(height), self.last_block_time + 1)
             block.nVersion = 3
             block.rehash()
             block.solve()
@@ -105,31 +105,11 @@ class BIP66Test(ComparisonTestFramework):
             height += 1
         yield TestInstance(test_blocks, sync_every_block=False)
 
-        ''' 
-        Check that the new DERSIG rules are not enforced in the 750th
-        version 3 block.
-        '''
-        spendtx = self.create_transaction(self.nodes[0],
-                self.coinbase_blocks[0], self.nodeaddress, 1.0)
-        unDERify(spendtx)
-        spendtx.rehash()
-
-        block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
-        block.nVersion = 3
-        block.vtx.append(spendtx)
-        block.hashMerkleRoot = block.calc_merkle_root()
-        block.rehash()
-        block.solve()
-
-        self.last_block_time += 1
-        self.tip = block.sha256
-        height += 1
-        yield TestInstance([[block, True]])       
-
         ''' Mine 199 new version blocks on last valid tip '''
         test_blocks = []
         for i in range(199):
-            block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+            block = create_block(
+                self.tip, create_coinbase(height), self.last_block_time + 1)
             block.nVersion = 3
             block.rehash()
             block.solve()
@@ -140,7 +120,8 @@ class BIP66Test(ComparisonTestFramework):
         yield TestInstance(test_blocks, sync_every_block=False)
 
         ''' Mine 1 old version block '''
-        block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+        block = create_block(
+            self.tip, create_coinbase(height), self.last_block_time + 1)
         block.nVersion = 2
         block.rehash()
         block.solve()
@@ -150,7 +131,8 @@ class BIP66Test(ComparisonTestFramework):
         yield TestInstance([[block, True]])
 
         ''' Mine 1 new version block '''
-        block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+        block = create_block(
+            self.tip, create_coinbase(height), self.last_block_time + 1)
         block.nVersion = 3
         block.rehash()
         block.solve()
@@ -159,16 +141,17 @@ class BIP66Test(ComparisonTestFramework):
         height += 1
         yield TestInstance([[block, True]])
 
-        ''' 
+        '''
         Check that the new DERSIG rules are enforced in the 951st version 3
         block.
         '''
         spendtx = self.create_transaction(self.nodes[0],
-                self.coinbase_blocks[1], self.nodeaddress, 1.0)
+                                          self.coinbase_blocks[1], self.nodeaddress, 1.0)
         unDERify(spendtx)
         spendtx.rehash()
 
-        block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+        block = create_block(
+            self.tip, create_coinbase(height), self.last_block_time + 1)
         block.nVersion = 3
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -178,7 +161,8 @@ class BIP66Test(ComparisonTestFramework):
         yield TestInstance([[block, False]])
 
         ''' Mine 1 old version block, should be invalid '''
-        block = create_block(self.tip, create_coinbase(height), self.last_block_time + 1)
+        block = create_block(
+            self.tip, create_coinbase(height), self.last_block_time + 1)
         block.nVersion = 2
         block.rehash()
         block.solve()

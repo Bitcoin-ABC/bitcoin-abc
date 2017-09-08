@@ -15,8 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/function.hpp>
-
 class CBlockIndex;
 class CCoinsViewDBCursor;
 class uint256;
@@ -73,11 +71,16 @@ protected:
 public:
     CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const;
-    bool HaveCoins(const uint256 &txid) const;
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
+    bool HaveCoin(const COutPoint &outpoint) const;
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
     CCoinsViewCursor *Cursor() const;
+
+    //! Attempt to update from an older database format.
+    //! Returns whether an error occurred.
+    bool Upgrade();
+    size_t EstimateSize() const override;
 };
 
 /** Specialization of CCoinsViewCursor to iterate over a CCoinsViewDB */
@@ -85,8 +88,8 @@ class CCoinsViewDBCursor : public CCoinsViewCursor {
 public:
     ~CCoinsViewDBCursor() {}
 
-    bool GetKey(uint256 &key) const;
-    bool GetValue(CCoins &coins) const;
+    bool GetKey(COutPoint &key) const;
+    bool GetValue(Coin &coin) const;
     unsigned int GetValueSize() const;
 
     bool Valid() const;
@@ -96,7 +99,7 @@ private:
     CCoinsViewDBCursor(CDBIterator *pcursorIn, const uint256 &hashBlockIn)
         : CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
     std::unique_ptr<CDBIterator> pcursor;
-    std::pair<char, uint256> keyTmp;
+    std::pair<char, COutPoint> keyTmp;
 
     friend class CCoinsViewDB;
 };
@@ -123,7 +126,7 @@ public:
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(
-        boost::function<CBlockIndex *(const uint256 &)> insertBlockIndex);
+        std::function<CBlockIndex *(const uint256 &)> insertBlockIndex);
 };
 
 #endif // BITCOIN_TXDB_H

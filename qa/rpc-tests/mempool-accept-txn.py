@@ -21,17 +21,23 @@ from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 
 # Error for too many sigops in one TX
 TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
-RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + TXNS_TOO_MANY_SIGOPS_ERROR.decode("utf-8")
+RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + \
+    TXNS_TOO_MANY_SIGOPS_ERROR.decode("utf-8")
+
 
 class PreviousSpendableOutput(object):
-    def __init__(self, tx = CTransaction(), n = -1):
+
+    def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
+
 
 class FullBlockTest(ComparisonTestFramework):
 
     # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do the comparison.
+    # Change the "outcome" variable from each TestInstance object to only do
+    # the comparison.
+
     def __init__(self):
         super().__init__()
         self.num_nodes = 1
@@ -50,7 +56,8 @@ class FullBlockTest(ComparisonTestFramework):
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option("--runbarelyexpensive", dest="runbarelyexpensive", default=True)
+        parser.add_option(
+            "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
@@ -60,7 +67,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
-        [ tx.rehash() for tx in tx_list ]
+        [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
     # this is a little handier to use than the version in blocktools.py
@@ -69,14 +76,17 @@ class FullBlockTest(ComparisonTestFramework):
         return tx
 
     # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in spend_tx
+    # this signs input 0 in tx, which is assumed to be spending output n in
+    # spend_tx
     def sign_tx(self, tx, spend_tx, n):
         scriptPubKey = bytearray(spend_tx.vout[n].scriptPubKey)
         if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
             tx.vin[0].scriptSig = CScript()
             return
-        (sighash, err) = SignatureHash(spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL)
-        tx.vin[0].scriptSig = CScript([self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))])
+        sighash = SignatureHashForkId(
+            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
+        tx.vin[0].scriptSig = CScript(
+            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
 
     def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = self.create_tx(spend_tx, n, value, script)
@@ -87,7 +97,7 @@ class FullBlockTest(ComparisonTestFramework):
     def next_block(self, number, spend=None, additional_coinbase_value=0, script=CScript([OP_TRUE]), solve=True):
         if self.tip == None:
             base_block_hash = self.genesis_hash
-            block_time = int(time.time())+1
+            block_time = int(time.time()) + 1
         else:
             base_block_hash = self.tip.sha256
             block_time = self.tip.nTime + 1
@@ -99,10 +109,13 @@ class FullBlockTest(ComparisonTestFramework):
         if spend == None:
             block = create_block(base_block_hash, coinbase, block_time)
         else:
-            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1 # all but one satoshi to fees
+            # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.tx.vout[
+                spend.n].nValue - 1
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
-            tx = create_transaction(spend.tx, spend.n, b"", 1, script)  # spend 1 satoshi
+            # spend 1 satoshi
+            tx = create_transaction(spend.tx, spend.n, b"", 1, script)
             self.sign_tx(tx, spend.tx, spend.n)
             self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()
@@ -132,7 +145,7 @@ class FullBlockTest(ComparisonTestFramework):
             return TestInstance([[self.tip, True]])
 
         # returns a test case that asserts that the current tip was rejected
-        def rejected(reject = None):
+        def rejected(reject=None):
             if reject is None:
                 return TestInstance([[self.tip, False]])
             else:
@@ -152,7 +165,8 @@ class FullBlockTest(ComparisonTestFramework):
             # Update the internal state just like in next_block
             self.tip = block
             if block.sha256 != old_sha256:
-                self.block_heights[block.sha256] = self.block_heights[old_sha256]
+                self.block_heights[
+                    block.sha256] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block
@@ -184,26 +198,31 @@ class FullBlockTest(ComparisonTestFramework):
 
         # P2SH
         # Build the redeem script, hash it, use hash to create the p2sh script
-        redeem_script = CScript([self.coinbase_pubkey] + [OP_2DUP, OP_CHECKSIGVERIFY]*5 + [OP_CHECKSIG])
+        redeem_script = CScript([self.coinbase_pubkey] + [
+                                OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
         redeem_script_hash = hash160(redeem_script)
         p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
 
         # Creates a new transaction using a p2sh transaction as input
-        def spend_p2sh_tx (p2sh_tx_to_spend, output_script=CScript([OP_TRUE])):
+        def spend_p2sh_tx(p2sh_tx_to_spend, output_script=CScript([OP_TRUE])):
             # Create the transaction
             spent_p2sh_tx = CTransaction()
-            spent_p2sh_tx.vin.append(CTxIn(COutPoint(p2sh_tx_to_spend.sha256, 0), b''))
+            spent_p2sh_tx.vin.append(
+                CTxIn(COutPoint(p2sh_tx_to_spend.sha256, 0), b''))
             spent_p2sh_tx.vout.append(CTxOut(1, output_script))
             # Sign the transaction using the redeem script
-            (sighash, err) = SignatureHash(redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL)
-            sig = self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL]))
+            sighash = SignatureHashForkId(
+                redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx_to_spend.vout[0].nValue)
+            sig = self.coinbase_key.sign(
+                sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx
 
         # P2SH tests
         # Create a p2sh transaction
-        p2sh_tx = self.create_and_sign_transaction(out[0].tx, out[0].n, 1, p2sh_script)
+        p2sh_tx = self.create_and_sign_transaction(
+            out[0].tx, out[0].n, 1, p2sh_script)
 
         # Add the transaction to the block
         block(1)
@@ -211,13 +230,16 @@ class FullBlockTest(ComparisonTestFramework):
         yield accepted()
 
         # Sigops p2sh limit for the mempool test
-        p2sh_sigops_limit_mempool = MAX_STANDARD_TX_SIGOPS - redeem_script.GetSigOpCount(True)
+        p2sh_sigops_limit_mempool = MAX_STANDARD_TX_SIGOPS - \
+            redeem_script.GetSigOpCount(True)
         # Too many sigops in one p2sh script
-        too_many_p2sh_sigops_mempool = CScript([OP_CHECKSIG] * (p2sh_sigops_limit_mempool + 1))
+        too_many_p2sh_sigops_mempool = CScript(
+            [OP_CHECKSIG] * (p2sh_sigops_limit_mempool + 1))
 
         # A transaction with this output script can't get into the mempool
         try:
-            node.sendrawtransaction(ToHex(spend_p2sh_tx(p2sh_tx, too_many_p2sh_sigops_mempool)))
+            node.sendrawtransaction(
+                ToHex(spend_p2sh_tx(p2sh_tx, too_many_p2sh_sigops_mempool)))
         except JSONRPCException as exp:
             assert_equal(exp.error["message"], RPC_TXNS_TOO_MANY_SIGOPS_ERROR)
         else:
@@ -227,11 +249,13 @@ class FullBlockTest(ComparisonTestFramework):
         assert_equal(set(node.getrawmempool()), set())
 
         # Max sigops in one p2sh txn
-        max_p2sh_sigops_mempool = CScript([OP_CHECKSIG] * (p2sh_sigops_limit_mempool))
+        max_p2sh_sigops_mempool = CScript(
+            [OP_CHECKSIG] * (p2sh_sigops_limit_mempool))
 
         # A transaction with this output script can get into the mempool
         max_p2sh_sigops_txn = spend_p2sh_tx(p2sh_tx, max_p2sh_sigops_mempool)
-        max_p2sh_sigops_txn_id = node.sendrawtransaction(ToHex(max_p2sh_sigops_txn))
+        max_p2sh_sigops_txn_id = node.sendrawtransaction(
+            ToHex(max_p2sh_sigops_txn))
         assert_equal(set(node.getrawmempool()), {max_p2sh_sigops_txn_id})
 
         # Mine the transaction

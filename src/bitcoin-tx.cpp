@@ -24,7 +24,6 @@
 #include <cstdio>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/assign/list_of.hpp>
 
 static bool fCreateBlank;
 static std::map<std::string, UniValue> registers;
@@ -422,7 +421,7 @@ static void MutateTxAddOutData(CMutableTransaction &tx,
         throw std::runtime_error("invalid TX output data");
     }
 
-    std::vector<unsigned char> data = ParseHex(strData);
+    std::vector<uint8_t> data = ParseHex(strData);
 
     CTxOut txout(value, CScript() << OP_RETURN << data);
     tx.vout.push_back(txout);
@@ -529,10 +528,10 @@ uint256 ParseHashUO(std::map<std::string, UniValue> &o, std::string strKey) {
     return ParseHashUV(o[strKey], strKey);
 }
 
-std::vector<unsigned char> ParseHexUO(std::map<std::string, UniValue> &o,
-                                      std::string strKey) {
+std::vector<uint8_t> ParseHexUO(std::map<std::string, UniValue> &o,
+                                std::string strKey) {
     if (!o.count(strKey)) {
-        std::vector<unsigned char> emptyVec;
+        std::vector<uint8_t> emptyVec;
         return emptyVec;
     }
 
@@ -608,9 +607,10 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("expected prevtxs internal object");
         }
 
-        std::map<std::string, UniValue::VType> types =
-            boost::assign::map_list_of("txid", UniValue::VSTR)(
-                "vout", UniValue::VNUM)("scriptPubKey", UniValue::VSTR);
+        std::map<std::string, UniValue::VType> types = {
+            {"txid", UniValue::VSTR},
+            {"vout", UniValue::VNUM},
+            {"scriptPubKey", UniValue::VSTR}};
         if (!prevOut.checkObject(types)) {
             throw std::runtime_error("prevtxs internal object typecheck fail");
         }
@@ -622,29 +622,29 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("vout must be positive");
         }
 
-        std::vector<unsigned char> pkData(
+        COutPoint out(txid, nOut);
+        std::vector<uint8_t> pkData(
             ParseHexUV(prevOut["scriptPubKey"], "scriptPubKey"));
         CScript scriptPubKey(pkData.begin(), pkData.end());
 
         {
-            CCoinsModifier coins = view.ModifyCoins(txid);
-            if (coins->IsAvailable(nOut) &&
-                coins->vout[nOut].scriptPubKey != scriptPubKey) {
+            const Coin &coin = view.AccessCoin(out);
+            if (!coin.IsSpent() &&
+                coin.GetTxOut().scriptPubKey != scriptPubKey) {
                 std::string err("Previous output scriptPubKey mismatch:\n");
-                err = err + ScriptToAsmStr(coins->vout[nOut].scriptPubKey) +
+                err = err + ScriptToAsmStr(coin.GetTxOut().scriptPubKey) +
                       "\nvs:\n" + ScriptToAsmStr(scriptPubKey);
                 throw std::runtime_error(err);
             }
 
-            if ((unsigned int)nOut >= coins->vout.size()) {
-                coins->vout.resize(nOut + 1);
+            CTxOut txout;
+            txout.scriptPubKey = scriptPubKey;
+            txout.nValue = 0;
+            if (prevOut.exists("amount")) {
+                txout.nValue = AmountFromValue(prevOut["amount"]);
             }
 
-            coins->vout[nOut].scriptPubKey = scriptPubKey;
-            coins->vout[nOut].nValue = 0;
-            if (prevOut.exists("amount")) {
-                coins->vout[nOut].nValue = AmountFromValue(prevOut["amount"]);
-            }
+            view.AddCoin(out, Coin(txout, 1, false), true);
         }
 
         // If redeemScript given and private keys given, add redeemScript to the
@@ -652,7 +652,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         if (scriptPubKey.IsPayToScriptHash() &&
             prevOut.exists("redeemScript")) {
             UniValue v = prevOut["redeemScript"];
-            std::vector<unsigned char> rsData(ParseHexUV(v, "redeemScript"));
+            std::vector<uint8_t> rsData(ParseHexUV(v, "redeemScript"));
             CScript redeemScript(rsData.begin(), rsData.end());
             tempKeystore.AddCScript(redeemScript);
         }
@@ -695,8 +695,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         UpdateTransaction(mergedTx, i, sigdata);
 
         if (!VerifyScript(
-                txin.scriptSig, prevPubKey,
-                STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_SIGHASH_FORKID,
+                txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
                 MutableTransactionSignatureChecker(&mergedTx, i, amount))) {
             fComplete = false;
         }

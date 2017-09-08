@@ -178,42 +178,40 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
     int libconsensus_flags = flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
     if (libconsensus_flags == flags) {
         if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
-            BOOST_CHECK_MESSAGE(
-                bitcoinconsensus_verify_script_with_amount(
-                    scriptPubKey.data(), scriptPubKey.size(),
-                    txCredit.vout[0].nValue, (const unsigned char *)&stream[0],
-                    stream.size(), 0, libconsensus_flags, nullptr) == expect,
-                message);
+            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
+                                    scriptPubKey.data(), scriptPubKey.size(),
+                                    txCredit.vout[0].nValue,
+                                    (const uint8_t *)&stream[0], stream.size(),
+                                    0, libconsensus_flags, nullptr) == expect,
+                                message);
         } else {
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(), 0,
-                                    (const unsigned char *)&stream[0],
-                                    stream.size(), 0, libconsensus_flags,
-                                    nullptr) == expect,
+                                    (const uint8_t *)&stream[0], stream.size(),
+                                    0, libconsensus_flags, nullptr) == expect,
                                 message);
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script(
                                     scriptPubKey.data(), scriptPubKey.size(),
-                                    (const unsigned char *)&stream[0],
-                                    stream.size(), 0, libconsensus_flags,
-                                    nullptr) == expect,
+                                    (const uint8_t *)&stream[0], stream.size(),
+                                    0, libconsensus_flags, nullptr) == expect,
                                 message);
         }
     }
 #endif
 }
 
-static void NegateSignatureS(std::vector<unsigned char> &vchSig) {
+static void NegateSignatureS(std::vector<uint8_t> &vchSig) {
     // Parse the signature.
-    std::vector<unsigned char> r, s;
-    r = std::vector<unsigned char>(vchSig.begin() + 4,
-                                   vchSig.begin() + 4 + vchSig[3]);
-    s = std::vector<unsigned char>(vchSig.begin() + 6 + vchSig[3],
-                                   vchSig.begin() + 6 + vchSig[3] +
-                                       vchSig[5 + vchSig[3]]);
+    std::vector<uint8_t> r, s;
+    r = std::vector<uint8_t>(vchSig.begin() + 4,
+                             vchSig.begin() + 4 + vchSig[3]);
+    s = std::vector<uint8_t>(vchSig.begin() + 6 + vchSig[3],
+                             vchSig.begin() + 6 + vchSig[3] +
+                                 vchSig[5 + vchSig[3]]);
 
     // Really ugly to implement mod-n negation here, but it would be feature
     // creep to expose such functionality from libsecp256k1.
-    static const unsigned char order[33] = {
+    static const uint8_t order[33] = {
         0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xBA, 0xAE, 0xDC, 0xE6, 0xAF,
         0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41};
@@ -246,15 +244,12 @@ static void NegateSignatureS(std::vector<unsigned char> &vchSig) {
 }
 
 namespace {
-const unsigned char vchKey0[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
-const unsigned char vchKey1[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
-const unsigned char vchKey2[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+const uint8_t vchKey0[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+const uint8_t vchKey1[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
+const uint8_t vchKey2[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
 
 struct KeyData {
     CKey key0, key0C, key1, key1C, key2, key2C;
@@ -269,7 +264,7 @@ struct KeyData {
         pubkey0 = key0.GetPubKey();
         pubkey0H = key0.GetPubKey();
         pubkey0C = key0C.GetPubKey();
-        *const_cast<unsigned char *>(&pubkey0H[0]) = 0x06 | (pubkey0H[64] & 1);
+        *const_cast<uint8_t *>(&pubkey0H[0]) = 0x06 | (pubkey0H[64] & 1);
 
         key1.Set(vchKey1, vchKey1 + 32, false);
         key1C.Set(vchKey1, vchKey1 + 32, true);
@@ -292,7 +287,7 @@ private:
     CTransactionRef creditTx;
     CMutableTransaction spendTx;
     bool havePush;
-    std::vector<unsigned char> push;
+    std::vector<uint8_t> push;
     std::string comment;
     int flags;
     int scriptError;
@@ -305,7 +300,7 @@ private:
         }
     }
 
-    void DoPush(const std::vector<unsigned char> &data) {
+    void DoPush(const std::vector<uint8_t> &data) {
         DoPush();
         push = data;
         havePush = true;
@@ -351,7 +346,7 @@ public:
     }
 
     TestBuilder &Push(const CScript &_script) {
-        DoPush(std::vector<unsigned char>(_script.begin(), _script.end()));
+        DoPush(std::vector<uint8_t>(_script.begin(), _script.end()));
         return *this;
     }
 
@@ -359,7 +354,7 @@ public:
                          unsigned int lenR = 32, unsigned int lenS = 32,
                          CAmount amount = 0) {
         uint256 hash = SignatureHash(script, spendTx, 0, nHashType, amount);
-        std::vector<unsigned char> vchSig, r, s;
+        std::vector<uint8_t> vchSig, r, s;
         uint32_t iter = 0;
         do {
             key.Sign(hash, vchSig, iter++);
@@ -367,39 +362,38 @@ public:
                 NegateSignatureS(vchSig);
             }
 
-            r = std::vector<unsigned char>(vchSig.begin() + 4,
-                                           vchSig.begin() + 4 + vchSig[3]);
-            s = std::vector<unsigned char>(vchSig.begin() + 6 + vchSig[3],
-                                           vchSig.begin() + 6 + vchSig[3] +
-                                               vchSig[5 + vchSig[3]]);
+            r = std::vector<uint8_t>(vchSig.begin() + 4,
+                                     vchSig.begin() + 4 + vchSig[3]);
+            s = std::vector<uint8_t>(vchSig.begin() + 6 + vchSig[3],
+                                     vchSig.begin() + 6 + vchSig[3] +
+                                         vchSig[5 + vchSig[3]]);
         } while (lenR != r.size() || lenS != s.size());
 
-        vchSig.push_back(static_cast<unsigned char>(nHashType));
+        vchSig.push_back(static_cast<uint8_t>(nHashType));
         DoPush(vchSig);
         return *this;
     }
 
     TestBuilder &Push(const CPubKey &pubkey) {
-        DoPush(std::vector<unsigned char>(pubkey.begin(), pubkey.end()));
+        DoPush(std::vector<uint8_t>(pubkey.begin(), pubkey.end()));
         return *this;
     }
 
     TestBuilder &PushRedeem() {
-        DoPush(std::vector<unsigned char>(redeemscript.begin(),
-                                          redeemscript.end()));
+        DoPush(std::vector<uint8_t>(redeemscript.begin(), redeemscript.end()));
         return *this;
     }
 
     TestBuilder &EditPush(unsigned int pos, const std::string &hexin,
                           const std::string &hexout) {
         assert(havePush);
-        std::vector<unsigned char> datain = ParseHex(hexin);
-        std::vector<unsigned char> dataout = ParseHex(hexout);
+        std::vector<uint8_t> datain = ParseHex(hexin);
+        std::vector<uint8_t> dataout = ParseHex(hexout);
         assert(pos + datain.size() <= push.size());
-        BOOST_CHECK_MESSAGE(std::vector<unsigned char>(
-                                push.begin() + pos,
-                                push.begin() + pos + datain.size()) == datain,
-                            comment);
+        BOOST_CHECK_MESSAGE(
+            std::vector<uint8_t>(push.begin() + pos,
+                                 push.begin() + pos + datain.size()) == datain,
+            comment);
         push.erase(push.begin() + pos, push.begin() + pos + datain.size());
         push.insert(push.begin() + pos, dataout.begin(), dataout.end());
         return *this;
@@ -1162,33 +1156,33 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
 BOOST_AUTO_TEST_CASE(script_PushData) {
     // Check that PUSHDATA1, PUSHDATA2, and PUSHDATA4 create the same value on
     // the stack as the 1-75 opcodes do.
-    static const unsigned char direct[] = {1, 0x5a};
-    static const unsigned char pushdata1[] = {OP_PUSHDATA1, 1, 0x5a};
-    static const unsigned char pushdata2[] = {OP_PUSHDATA2, 1, 0, 0x5a};
-    static const unsigned char pushdata4[] = {OP_PUSHDATA4, 1, 0, 0, 0, 0x5a};
+    static const uint8_t direct[] = {1, 0x5a};
+    static const uint8_t pushdata1[] = {OP_PUSHDATA1, 1, 0x5a};
+    static const uint8_t pushdata2[] = {OP_PUSHDATA2, 1, 0, 0x5a};
+    static const uint8_t pushdata4[] = {OP_PUSHDATA4, 1, 0, 0, 0, 0x5a};
 
     ScriptError err;
-    std::vector<std::vector<unsigned char>> directStack;
+    std::vector<std::vector<uint8_t>> directStack;
     BOOST_CHECK(EvalScript(directStack,
                            CScript(&direct[0], &direct[sizeof(direct)]),
                            SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
-    std::vector<std::vector<unsigned char>> pushdata1Stack;
+    std::vector<std::vector<uint8_t>> pushdata1Stack;
     BOOST_CHECK(EvalScript(
         pushdata1Stack, CScript(&pushdata1[0], &pushdata1[sizeof(pushdata1)]),
         SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata1Stack == directStack);
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
-    std::vector<std::vector<unsigned char>> pushdata2Stack;
+    std::vector<std::vector<uint8_t>> pushdata2Stack;
     BOOST_CHECK(EvalScript(
         pushdata2Stack, CScript(&pushdata2[0], &pushdata2[sizeof(pushdata2)]),
         SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata2Stack == directStack);
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
 
-    std::vector<std::vector<unsigned char>> pushdata4Stack;
+    std::vector<std::vector<uint8_t>> pushdata4Stack;
     BOOST_CHECK(EvalScript(
         pushdata4Stack, CScript(&pushdata4[0], &pushdata4[sizeof(pushdata4)]),
         SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
@@ -1209,9 +1203,9 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
     //
     result << OP_0;
     for (const CKey &key : keys) {
-        std::vector<unsigned char> vchSig;
+        std::vector<uint8_t> vchSig;
         BOOST_CHECK(key.Sign(hash, vchSig));
-        vchSig.push_back((unsigned char)SIGHASH_ALL);
+        vchSig.push_back(uint8_t(SIGHASH_ALL));
         result << vchSig;
     }
 
@@ -1443,8 +1437,8 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
                 combined.scriptSig == scriptSig);
     // dummy scriptSigCopy with placeholder, should always choose
     // non-placeholder:
-    scriptSigCopy = CScript() << OP_0 << std::vector<unsigned char>(
-                                             pkSingle.begin(), pkSingle.end());
+    scriptSigCopy = CScript() << OP_0 << std::vector<uint8_t>(pkSingle.begin(),
+                                                              pkSingle.end());
     combined = CombineSignatures(
         scriptPubKey, MutableTransactionSignatureChecker(&txTo, 0, amount),
         SignatureData(scriptSigCopy), SignatureData(scriptSig));
@@ -1468,15 +1462,15 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     BOOST_CHECK(combined.scriptSig == scriptSig);
 
     // A couple of partially-signed versions:
-    std::vector<unsigned char> sig1;
+    std::vector<uint8_t> sig1;
     uint256 hash1 = SignatureHash(scriptPubKey, txTo, 0, SIGHASH_ALL, 0);
     BOOST_CHECK(keys[0].Sign(hash1, sig1));
     sig1.push_back(SIGHASH_ALL);
-    std::vector<unsigned char> sig2;
+    std::vector<uint8_t> sig2;
     uint256 hash2 = SignatureHash(scriptPubKey, txTo, 0, SIGHASH_NONE, 0);
     BOOST_CHECK(keys[1].Sign(hash2, sig2));
     sig2.push_back(SIGHASH_NONE);
-    std::vector<unsigned char> sig3;
+    std::vector<uint8_t> sig3;
     uint256 hash3 = SignatureHash(scriptPubKey, txTo, 0, SIGHASH_SINGLE, 0);
     BOOST_CHECK(keys[2].Sign(hash3, sig3));
     sig3.push_back(SIGHASH_SINGLE);
@@ -1542,7 +1536,7 @@ BOOST_AUTO_TEST_CASE(script_standard_push) {
     }
 
     for (unsigned int i = 0; i <= MAX_SCRIPT_ELEMENT_SIZE; i++) {
-        std::vector<unsigned char> data(i, '\111');
+        std::vector<uint8_t> data(i, '\111');
         CScript script;
         script << data;
         BOOST_CHECK_MESSAGE(script.IsPushOnly(),
@@ -1561,7 +1555,7 @@ BOOST_AUTO_TEST_CASE(script_IsPushOnly_on_invalid_scripts) {
     // P2SH evaluation uses it, although this specific behavior should not be
     // consensus critical as the P2SH evaluation would fail first due to the
     // invalid push. Still, it doesn't hurt to test it explicitly.
-    static const unsigned char direct[] = {1};
+    static const uint8_t direct[] = {1};
     BOOST_CHECK(!CScript(direct, direct + sizeof(direct)).IsPushOnly());
 }
 
@@ -1581,7 +1575,7 @@ BOOST_AUTO_TEST_CASE(script_GetScriptAsm) {
                        "d782e53023ee313d741ad0cfbc0c5090");
     std::string pubKey(
         "03b0da749730dc9b4b1f4a14d6902877a92541f5368778853d9c4a0cb7802dcfb2");
-    std::vector<unsigned char> vchPubKey = ToByteVector(ParseHex(pubKey));
+    std::vector<uint8_t> vchPubKey = ToByteVector(ParseHex(pubKey));
 
     BOOST_CHECK_EQUAL(
         derSig + "00 " + pubKey,
@@ -1689,7 +1683,7 @@ BOOST_AUTO_TEST_CASE(script_GetScriptAsm) {
 }
 
 static CScript ScriptFromHex(const char *hex) {
-    std::vector<unsigned char> data = ParseHex(hex);
+    std::vector<uint8_t> data = ParseHex(hex);
     return CScript(data.begin(), data.end());
 }
 

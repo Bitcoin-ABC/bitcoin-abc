@@ -30,8 +30,7 @@ public:
 
     static const size_t nDefaultMaxNumSize = 4;
 
-    explicit CScriptNum10(const std::vector<unsigned char> &vch,
-                          bool fRequireMinimal,
+    explicit CScriptNum10(const std::vector<uint8_t> &vch, bool fRequireMinimal,
                           const size_t nMaxNumSize = nDefaultMaxNumSize) {
         if (vch.size() > nMaxNumSize) {
             throw scriptnum10_error("script number overflow");
@@ -140,12 +139,12 @@ public:
         return m_value;
     }
 
-    std::vector<unsigned char> getvch() const { return serialize(m_value); }
+    std::vector<uint8_t> getvch() const { return serialize(m_value); }
 
-    static std::vector<unsigned char> serialize(const int64_t &value) {
-        if (value == 0) return std::vector<unsigned char>();
+    static std::vector<uint8_t> serialize(const int64_t &value) {
+        if (value == 0) return std::vector<uint8_t>();
 
-        std::vector<unsigned char> result;
+        std::vector<uint8_t> result;
         const bool neg = value < 0;
         uint64_t absvalue = neg ? -value : value;
 
@@ -175,7 +174,7 @@ public:
     }
 
 private:
-    static int64_t set_vch(const std::vector<unsigned char> &vch) {
+    static int64_t set_vch(const std::vector<uint8_t> &vch) {
         if (vch.empty()) return 0;
 
         int64_t result = 0;

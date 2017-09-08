@@ -8,15 +8,18 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+
 class KeyPoolTest(BitcoinTestFramework):
 
     def run_test(self):
         nodes = self.nodes
         addr_before_encrypting = nodes[0].getnewaddress()
-        addr_before_encrypting_data = nodes[0].validateaddress(addr_before_encrypting)
+        addr_before_encrypting_data = nodes[
+            0].validateaddress(addr_before_encrypting)
         wallet_info_old = nodes[0].getwalletinfo()
-        assert(addr_before_encrypting_data['hdmasterkeyid'] == wallet_info_old['hdmasterkeyid'])
-        
+        assert(addr_before_encrypting_data[
+               'hdmasterkeyid'] == wallet_info_old['hdmasterkeyid'])
+
         # Encrypt wallet and wait to terminate
         nodes[0].encryptwallet('test')
         bitcoind_processes[0].wait()
@@ -26,14 +29,16 @@ class KeyPoolTest(BitcoinTestFramework):
         addr = nodes[0].getnewaddress()
         addr_data = nodes[0].validateaddress(addr)
         wallet_info = nodes[0].getwalletinfo()
-        assert(addr_before_encrypting_data['hdmasterkeyid'] != wallet_info['hdmasterkeyid'])
+        assert(addr_before_encrypting_data[
+               'hdmasterkeyid'] != wallet_info['hdmasterkeyid'])
         assert(addr_data['hdmasterkeyid'] == wallet_info['hdmasterkeyid'])
-        
+
         try:
             addr = nodes[0].getnewaddress()
-            raise AssertionError('Keypool should be exhausted after one address')
+            raise AssertionError(
+                'Keypool should be exhausted after one address')
         except JSONRPCException as e:
-            assert(e.error['code']==-12)
+            assert(e.error['code'] == -12)
 
         # put three new keys in the keypool
         nodes[0].walletpassphrase('test', 12000)
@@ -51,9 +56,10 @@ class KeyPoolTest(BitcoinTestFramework):
         # the next one should fail
         try:
             addr = nodes[0].getrawchangeaddress()
-            raise AssertionError('Keypool should be exhausted after three addresses')
+            raise AssertionError(
+                'Keypool should be exhausted after three addresses')
         except JSONRPCException as e:
-            assert(e.error['code']==-12)
+            assert(e.error['code'] == -12)
 
         # refill keypool with three new addresses
         nodes[0].walletpassphrase('test', 1)
@@ -69,17 +75,15 @@ class KeyPoolTest(BitcoinTestFramework):
         nodes[0].generate(1)
         try:
             nodes[0].generate(1)
-            raise AssertionError('Keypool should be exhausted after three addesses')
+            raise AssertionError(
+                'Keypool should be exhausted after three addesses')
         except JSONRPCException as e:
-            assert(e.error['code']==-12)
+            assert(e.error['code'] == -12)
 
     def __init__(self):
         super().__init__()
         self.setup_clean_chain = False
         self.num_nodes = 1
-
-    def setup_network(self):
-        self.nodes = self.setup_nodes()
 
 if __name__ == '__main__':
     KeyPoolTest().main()

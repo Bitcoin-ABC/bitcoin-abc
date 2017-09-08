@@ -23,6 +23,7 @@ from test_framework.util import (
 
 
 class BlockchainTest(BitcoinTestFramework):
+
     """
     Test blockchain-related RPC calls:
 
@@ -34,13 +35,7 @@ class BlockchainTest(BitcoinTestFramework):
     def __init__(self):
         super().__init__()
         self.setup_clean_chain = False
-        self.num_nodes = 2
-
-    def setup_network(self, split=False):
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir)
-        connect_nodes_bi(self.nodes, 0, 1)
-        self.is_network_split = False
-        self.sync_all()
+        self.num_nodes = 1
 
     def run_test(self):
         self._test_gettxoutsetinfo()
@@ -55,9 +50,40 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(res['transactions'], 200)
         assert_equal(res['height'], 200)
         assert_equal(res['txouts'], 200)
-        assert_equal(res['bytes_serialized'], 13924),
+        assert_equal(res['bogosize'], 17000),
+        assert_equal(res['bestblock'], node.getblockhash(200))
+        size = res['disk_size']
+        assert size > 6400
+        assert size < 64000
         assert_equal(len(res['bestblock']), 64)
         assert_equal(len(res['hash_serialized']), 64)
+
+        self.log.info(
+            "Test that gettxoutsetinfo() works for blockchain with just the genesis block")
+        b1hash = node.getblockhash(1)
+        node.invalidateblock(b1hash)
+
+        res2 = node.gettxoutsetinfo()
+        assert_equal(res2['transactions'], 0)
+        assert_equal(res2['total_amount'], Decimal('0'))
+        assert_equal(res2['height'], 0)
+        assert_equal(res2['txouts'], 0)
+        assert_equal(res2['bogosize'], 0),
+        assert_equal(res2['bestblock'], node.getblockhash(0))
+        assert_equal(len(res2['hash_serialized']), 64)
+
+        self.log.info(
+            "Test that gettxoutsetinfo() returns the same result after invalidate/reconsider block")
+        node.reconsiderblock(b1hash)
+
+        res3 = node.gettxoutsetinfo()
+        assert_equal(res['total_amount'], res3['total_amount'])
+        assert_equal(res['transactions'], res3['transactions'])
+        assert_equal(res['height'], res3['height'])
+        assert_equal(res['txouts'], res3['txouts'])
+        assert_equal(res['bogosize'], res3['bogosize'])
+        assert_equal(res['bestblock'], res3['bestblock'])
+        assert_equal(res['hash_serialized'], res3['hash_serialized'])
 
     def _test_getblockheader(self):
         node = self.nodes[0]
@@ -84,6 +110,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert isinstance(header['version'], int)
         assert isinstance(int(header['versionHex'], 16), int)
         assert isinstance(header['difficulty'], Decimal)
+
 
 if __name__ == '__main__':
     BlockchainTest().main()

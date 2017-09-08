@@ -12,17 +12,15 @@
 
 #include <cassert>
 
-#include <boost/assign/list_of.hpp>
-
 #include "chainparamsseeds.h"
 
 // Far into the future.
 static const std::string ANTI_REPLAY_COMMITMENT =
     "Bitcoin: A Peer-to-Peer Electronic Cash System";
 
-static std::vector<unsigned char> GetAntiReplayCommitment() {
-    return std::vector<unsigned char>(std::begin(ANTI_REPLAY_COMMITMENT),
-                                      std::end(ANTI_REPLAY_COMMITMENT));
+static std::vector<uint8_t> GetAntiReplayCommitment() {
+    return std::vector<uint8_t>(std::begin(ANTI_REPLAY_COMMITMENT),
+                                std::end(ANTI_REPLAY_COMMITMENT));
 }
 
 static CBlock CreateGenesisBlock(const char *pszTimestamp,
@@ -34,12 +32,11 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
     txNew.nVersion = 1;
     txNew.vin.resize(1);
     txNew.vout.resize(1);
-    txNew.vin[0].scriptSig = CScript()
-                             << 486604799 << CScriptNum(4)
-                             << std::vector<unsigned char>(
-                                    (const unsigned char *)pszTimestamp,
-                                    (const unsigned char *)pszTimestamp +
-                                        strlen(pszTimestamp));
+    txNew.vin[0].scriptSig =
+        CScript() << 486604799 << CScriptNum(4)
+                  << std::vector<uint8_t>((const uint8_t *)pszTimestamp,
+                                          (const uint8_t *)pszTimestamp +
+                                              strlen(pszTimestamp));
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
@@ -134,14 +131,17 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x0000000000000000000000000000000000000000003f94d1ad39168"
-                     "2fe038bf5");
+            uint256S("0x000000000000000000000000000000000000000000756697b2e44d3"
+                     "745086353");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x000000000000000000ff3a41f208c932d5f91fe8d0739fca36152f6"
-                     "073b2ef5e");
+            uint256S("0x000000000000000002d8cae5936d502defc09c5ac317201a61955dd"
+                     "c8cdd950c");
+
+        // Aug, 1 hard fork
+        consensus.uahfStartTime = 1501590000;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -152,6 +152,10 @@ public:
         pchMessageStart[1] = 0xbe;
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xd9;
+        pchCashMessageStart[0] = 0xe3;
+        pchCashMessageStart[1] = 0xe1;
+        pchCashMessageStart[2] = 0xf3;
+        pchCashMessageStart[3] = 0xe8;
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
@@ -186,15 +190,11 @@ public:
         vSeeds.push_back(
             CDNSSeedData("criptolayer.net", "seeder.criptolayer.net", true));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 0);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 5);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 128);
-        base58Prefixes[EXT_PUBLIC_KEY] =
-            boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E)
-                .convert_to_container<std::vector<unsigned char>>();
-        base58Prefixes[EXT_SECRET_KEY] =
-            boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4)
-                .convert_to_container<std::vector<unsigned char>>();
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
 
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
@@ -204,33 +204,37 @@ public:
         fRequireStandard = true;
         fMineBlocksOnDemand = false;
 
-        checkpointData = (CCheckpointData){boost::assign::map_list_of(
-            11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee925"
-                            "59f542fdb26e7c1d"))(
-            33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce"
-                            "69f00d7ddfb5d0a6"))(
-            74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a"
-                            "81e7f953b8661a20"))(
-            105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe44a77"
-                             "3f3eefb151d6bdc97"))(
-            134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814"
-                             "c91184a0d42d2b0fe"))(
-            168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33d7899"
-                             "acb35b75c8303b763"))(
-            193000, uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff"
-                             "6e6c3bd83ca8b1317"))(
-            210000, uint256S("0x000000000000048b95347e83192f69cf0366076336c639f"
-                             "9b7228e9ba171342e"))(
-            216116, uint256S("0x00000000000001b4f4b433e81ee46494af945cf96014816"
-                             "a4e2370f11b23df4e"))(
-            225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a606b8e"
-                             "797f065b130575932"))(
-            250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35"
-                             "453d7be294df2d214"))(
-            279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819ef"
-                             "a9041e458e9bd7e40"))(
-            295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35"
-                             "a100370c64632a983"))};
+        checkpointData = {
+            .mapCheckpoints = {
+                {11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2"
+                                 "ee92559f542fdb26e7c1d")},
+                {33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e"
+                                 "7b1ce69f00d7ddfb5d0a6")},
+                {74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0"
+                                 "e824a81e7f953b8661a20")},
+                {105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe"
+                                  "44a773f3eefb151d6bdc97")},
+                {134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430"
+                                  "ac814c91184a0d42d2b0fe")},
+                {168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33"
+                                  "d7899acb35b75c8303b763")},
+                {193000, uint256S("0x000000000000059f452a5f7340de6682a977387c17"
+                                  "010ff6e6c3bd83ca8b1317")},
+                {210000, uint256S("0x000000000000048b95347e83192f69cf0366076336"
+                                  "c639f9b7228e9ba171342e")},
+                {216116, uint256S("0x00000000000001b4f4b433e81ee46494af945cf960"
+                                  "14816a4e2370f11b23df4e")},
+                {225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a6"
+                                  "06b8e797f065b130575932")},
+                {250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8a"
+                                  "f8f35453d7be294df2d214")},
+                {279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e"
+                                  "819efa9041e458e9bd7e40")},
+                {295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e0"
+                                  "3af35a100370c64632a983")},
+                // UAHF fork block
+                {478559, uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d42"
+                                  "4bd9f15ff20136191a5eec")}}};
 
         // Data as of block
         // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
@@ -293,20 +297,26 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x00000000000000000000000000000000000000000000001f057509e"
-                     "ba81aed91");
+            uint256S("0x0000000000000000000000000000000000000000000000287612691"
+                     "ad473cdd2");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        // 1079274
         consensus.defaultAssumeValid =
-            uint256S("0x00000000000128796ee387cf110ccb9d2f36cffaf7f73079c995377"
-                     "c65ac0dcc");
+            uint256S("0x0000000000000407b4c5a5d8204f05d584f1463004c8edea89376b1"
+                     "c52f7e1dd");
+
+        // Aug, 1 hard fork
+        consensus.uahfStartTime = 1501590000;
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
         pchMessageStart[3] = 0x07;
+        pchCashMessageStart[0] = 0xf4;
+        pchCashMessageStart[1] = 0xe5;
+        pchCashMessageStart[2] = 0xf3;
+        pchCashMessageStart[3] = 0xf4;
         nDefaultPort = 18333;
         nPruneAfterHeight = 1000;
 
@@ -343,16 +353,11 @@ public:
         vSeeds.push_back(CDNSSeedData("criptolayer.net",
                                       "testnet-seeder.criptolayer.net", true));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 196);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 239);
-        base58Prefixes[EXT_PUBLIC_KEY] =
-            boost::assign::list_of(0x04)(0x35)(0x87)(0xCF)
-                .convert_to_container<std::vector<unsigned char>>();
-        base58Prefixes[EXT_SECRET_KEY] =
-            boost::assign::list_of(0x04)(0x35)(0x83)(0x94)
-                .convert_to_container<std::vector<unsigned char>>();
-
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -361,11 +366,15 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
 
-        checkpointData = (CCheckpointData){
-            boost::assign::map_list_of(
-                546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d"
-                              "31b1bcebf76acb70")),
-        };
+        checkpointData = {
+            .mapCheckpoints = {
+                {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345"
+                               "d31b1bcebf76acb70")},
+                // UAHF fork block
+                {1155876,
+                 uint256S("00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef"
+                          "70c9a0ea4a285b8f5")},
+            }};
 
         // Data as of block
         // 00000000c2872f8f8a8935c8e3c5862be9038c97d4de2cf37ed496991166928a
@@ -420,10 +429,17 @@ public:
         // valid.
         consensus.defaultAssumeValid = uint256S("0x00");
 
+        // Hard fork is always enabled on regtest.
+        consensus.uahfStartTime = 0;
+
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
         pchMessageStart[3] = 0xda;
+        pchCashMessageStart[0] = 0xda;
+        pchCashMessageStart[1] = 0xb5;
+        pchCashMessageStart[2] = 0xbf;
+        pchCashMessageStart[3] = 0xfa;
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
@@ -446,21 +462,18 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
 
-        checkpointData = (CCheckpointData){boost::assign::map_list_of(
-            0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a"
-                        "11466e2206"))};
+        checkpointData = {.mapCheckpoints = {
+                              {0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5"
+                                           "beb436012afca590b1a11466e2206")},
+                          }};
 
         chainTxData = ChainTxData{0, 0, 0};
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 111);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 196);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 239);
-        base58Prefixes[EXT_PUBLIC_KEY] =
-            boost::assign::list_of(0x04)(0x35)(0x87)(0xCF)
-                .convert_to_container<std::vector<unsigned char>>();
-        base58Prefixes[EXT_SECRET_KEY] =
-            boost::assign::list_of(0x04)(0x35)(0x83)(0x94)
-                .convert_to_container<std::vector<unsigned char>>();
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
+        base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
     }
 
     void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,

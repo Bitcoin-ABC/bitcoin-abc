@@ -10,6 +10,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 
+
 class CreateCache(BitcoinTestFramework):
 
     def __init__(self):

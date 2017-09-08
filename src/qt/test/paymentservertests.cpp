@@ -1,6 +1,4 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developers
+// Copyright (c) 2009-2015 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,9 +21,9 @@
 #include <QTemporaryFile>
 
 X509 *parse_b64der_cert(const char *cert_data) {
-    std::vector<unsigned char> data = DecodeBase64(cert_data);
+    std::vector<uint8_t> data = DecodeBase64(cert_data);
     assert(data.size() > 0);
-    const unsigned char *dptr = &data[0];
+    const uint8_t *dptr = &data[0];
     X509 *cert = d2i_X509(nullptr, &dptr, data.size());
     assert(cert);
     return cert;
@@ -36,7 +34,7 @@ X509 *parse_b64der_cert(const char *cert_data) {
 //
 
 static SendCoinsRecipient handleRequest(PaymentServer *server,
-                                        std::vector<unsigned char> &data) {
+                                        std::vector<uint8_t> &data) {
     RecipientCatcher sigCatcher;
     QObject::connect(server, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
                      &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
@@ -74,7 +72,7 @@ void PaymentServerTests::paymentServerTests() {
     server->setOptionsModel(&optionsModel);
     server->uiReady();
 
-    std::vector<unsigned char> data;
+    std::vector<uint8_t> data;
     SendCoinsRecipient r;
     QString merchant;
 
@@ -189,7 +187,7 @@ void PaymentServerTests::paymentServerTests() {
     QCOMPARE(PaymentServer::verifyExpired(r.paymentRequest.getDetails()), true);
 
     // Test BIP70 DoS protection:
-    unsigned char randData[BIP70_MAX_PAYMENTREQUEST_SIZE + 1];
+    uint8_t randData[BIP70_MAX_PAYMENTREQUEST_SIZE + 1];
     GetRandBytes(randData, sizeof(randData));
     // Write data to a temp file:
     QTemporaryFile tempFile;
@@ -199,7 +197,7 @@ void PaymentServerTests::paymentServerTests() {
     // compares 50001 <= BIP70_MAX_PAYMENTREQUEST_SIZE == false
     QCOMPARE(PaymentServer::verifySize(tempFile.size()), false);
 
-    // Payment request with amount overflow (amount is set to 21000001 XBC):
+    // Payment request with amount overflow (amount is set to 21000001 BCC):
     data = DecodeBase64(paymentrequest5_cert2_BASE64);
     byteArray = QByteArray((const char *)&data[0], data.size());
     r.paymentRequest.parse(byteArray);

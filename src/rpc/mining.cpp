@@ -1,6 +1,5 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017- The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,6 +15,7 @@
 #include "init.h"
 #include "miner.h"
 #include "net.h"
+#include "policy/policy.h"
 #include "pow.h"
 #include "rpc/server.h"
 #include "txmempool.h"
@@ -27,7 +27,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <boost/assign/list_of.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <univalue.h>
@@ -290,6 +289,9 @@ static UniValue getmininginfo(const Config &config,
     obj.push_back(Pair("currentblocksize", uint64_t(nLastBlockSize)));
     obj.push_back(Pair("currentblocktx", uint64_t(nLastBlockTx)));
     obj.push_back(Pair("difficulty", double(GetDifficulty())));
+    obj.push_back(Pair("blockprioritypercentage",
+                       uint8_t(GetArg("-blockprioritypercentage",
+                                      DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
     obj.push_back(Pair("pooledtx", uint64_t(mempool.size())));
@@ -297,7 +299,7 @@ static UniValue getmininginfo(const Config &config,
     return obj;
 }
 
-// NOTE: Unlike wallet RPC (which use XBC values), mining RPCs follow GBT (BIP
+// NOTE: Unlike wallet RPC (which use BCC values), mining RPCs follow GBT (BIP
 // 22) in using satoshi amounts
 static UniValue prioritisetransaction(const Config &config,
                                       const JSONRPCRequest &request) {
@@ -741,6 +743,7 @@ static UniValue getblocktemplate(const Config &config,
             case THRESHOLD_LOCKED_IN:
                 // Ensure bit is set in block version
                 pblock->nVersion |= VersionBitsMask(consensusParams, pos);
+
             // FALLTHROUGH to get vbavailable set...
             case THRESHOLD_STARTED: {
                 const struct BIP9DeploymentInfo &vbinfo =
@@ -937,7 +940,7 @@ static UniValue estimatefee(const Config &config,
             HelpExampleCli("estimatefee", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
     if (nBlocks < 1) {
@@ -972,7 +975,7 @@ static UniValue estimatepriority(const Config &config,
             HelpExampleCli("estimatepriority", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
     if (nBlocks < 1) {
@@ -999,7 +1002,7 @@ static UniValue estimatesmartfee(const Config &config,
             "\nResult:\n"
             "{\n"
             "  \"feerate\" : x.x,     (numeric) estimate fee-per-kilobyte (in "
-            "XBC)\n"
+            "BCC)\n"
             "  \"blocks\" : n         (numeric) block number where estimate "
             "was found\n"
             "}\n"
@@ -1012,7 +1015,7 @@ static UniValue estimatesmartfee(const Config &config,
             HelpExampleCli("estimatesmartfee", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
 
@@ -1056,7 +1059,7 @@ static UniValue estimatesmartpriority(const Config &config,
             HelpExampleCli("estimatesmartpriority", "6"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VNUM));
+    RPCTypeCheck(request.params, {UniValue::VNUM});
 
     int nBlocks = request.params[0].get_int();
 

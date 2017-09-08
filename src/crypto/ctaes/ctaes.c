@@ -26,7 +26,7 @@
  * Convert a byte to sliced form, storing it corresponding to given row and
  * column in s.
  */
-static void LoadByte(AES_state *s, unsigned char byte, int r, int c) {
+static void LoadByte(AES_state *s, uint8_t byte, int r, int c) {
     int i;
     for (i = 0; i < 8; i++) {
         s->slice[i] |= (byte & 1) << (r * 4 + c);
@@ -35,7 +35,7 @@ static void LoadByte(AES_state *s, unsigned char byte, int r, int c) {
 }
 
 /** Load 16 bytes of data into 8 sliced integers */
-static void LoadBytes(AES_state *s, const unsigned char *data16) {
+static void LoadBytes(AES_state *s, const uint8_t *data16) {
     int c;
     for (c = 0; c < 4; c++) {
         int r;
@@ -46,7 +46,7 @@ static void LoadBytes(AES_state *s, const unsigned char *data16) {
 }
 
 /** Convert 8 sliced integers into 16 bytes of data */
-static void SaveBytes(unsigned char *data16, const AES_state *s) {
+static void SaveBytes(uint8_t *data16, const AES_state *s) {
     int c;
     for (c = 0; c < 4; c++) {
         int r;
@@ -465,8 +465,8 @@ static void AES_setup(AES_state *rounds, const uint8_t *key, int nkeywords,
     }
 }
 
-static void AES_encrypt(const AES_state *rounds, int nrounds,
-                        unsigned char *cipher16, const unsigned char *plain16) {
+static void AES_encrypt(const AES_state *rounds, int nrounds, uint8_t *cipher16,
+                        const uint8_t *plain16) {
     AES_state s = {{0}};
     int round;
 
@@ -487,8 +487,8 @@ static void AES_encrypt(const AES_state *rounds, int nrounds,
     SaveBytes(cipher16, &s);
 }
 
-static void AES_decrypt(const AES_state *rounds, int nrounds,
-                        unsigned char *plain16, const unsigned char *cipher16) {
+static void AES_decrypt(const AES_state *rounds, int nrounds, uint8_t *plain16,
+                        const uint8_t *cipher16) {
     /* Most AES decryption implementations use the alternate scheme
      * (the Equivalent Inverse Cipher), which allows for more code reuse between
      * the encryption and decryption code, but requires separate setup for both.
@@ -515,12 +515,12 @@ static void AES_decrypt(const AES_state *rounds, int nrounds,
     SaveBytes(plain16, &s);
 }
 
-void AES128_init(AES128_ctx *ctx, const unsigned char *key16) {
+void AES128_init(AES128_ctx *ctx, const uint8_t *key16) {
     AES_setup(ctx->rk, key16, 4, 10);
 }
 
-void AES128_encrypt(const AES128_ctx *ctx, size_t blocks,
-                    unsigned char *cipher16, const unsigned char *plain16) {
+void AES128_encrypt(const AES128_ctx *ctx, size_t blocks, uint8_t *cipher16,
+                    const uint8_t *plain16) {
     while (blocks--) {
         AES_encrypt(ctx->rk, 10, cipher16, plain16);
         cipher16 += 16;
@@ -528,8 +528,8 @@ void AES128_encrypt(const AES128_ctx *ctx, size_t blocks,
     }
 }
 
-void AES128_decrypt(const AES128_ctx *ctx, size_t blocks,
-                    unsigned char *plain16, const unsigned char *cipher16) {
+void AES128_decrypt(const AES128_ctx *ctx, size_t blocks, uint8_t *plain16,
+                    const uint8_t *cipher16) {
     while (blocks--) {
         AES_decrypt(ctx->rk, 10, plain16, cipher16);
         cipher16 += 16;
@@ -537,12 +537,12 @@ void AES128_decrypt(const AES128_ctx *ctx, size_t blocks,
     }
 }
 
-void AES192_init(AES192_ctx *ctx, const unsigned char *key24) {
+void AES192_init(AES192_ctx *ctx, const uint8_t *key24) {
     AES_setup(ctx->rk, key24, 6, 12);
 }
 
-void AES192_encrypt(const AES192_ctx *ctx, size_t blocks,
-                    unsigned char *cipher16, const unsigned char *plain16) {
+void AES192_encrypt(const AES192_ctx *ctx, size_t blocks, uint8_t *cipher16,
+                    const uint8_t *plain16) {
     while (blocks--) {
         AES_encrypt(ctx->rk, 12, cipher16, plain16);
         cipher16 += 16;
@@ -550,8 +550,8 @@ void AES192_encrypt(const AES192_ctx *ctx, size_t blocks,
     }
 }
 
-void AES192_decrypt(const AES192_ctx *ctx, size_t blocks,
-                    unsigned char *plain16, const unsigned char *cipher16) {
+void AES192_decrypt(const AES192_ctx *ctx, size_t blocks, uint8_t *plain16,
+                    const uint8_t *cipher16) {
     while (blocks--) {
         AES_decrypt(ctx->rk, 12, plain16, cipher16);
         cipher16 += 16;
@@ -559,12 +559,12 @@ void AES192_decrypt(const AES192_ctx *ctx, size_t blocks,
     }
 }
 
-void AES256_init(AES256_ctx *ctx, const unsigned char *key32) {
+void AES256_init(AES256_ctx *ctx, const uint8_t *key32) {
     AES_setup(ctx->rk, key32, 8, 14);
 }
 
-void AES256_encrypt(const AES256_ctx *ctx, size_t blocks,
-                    unsigned char *cipher16, const unsigned char *plain16) {
+void AES256_encrypt(const AES256_ctx *ctx, size_t blocks, uint8_t *cipher16,
+                    const uint8_t *plain16) {
     while (blocks--) {
         AES_encrypt(ctx->rk, 14, cipher16, plain16);
         cipher16 += 16;
@@ -572,8 +572,8 @@ void AES256_encrypt(const AES256_ctx *ctx, size_t blocks,
     }
 }
 
-void AES256_decrypt(const AES256_ctx *ctx, size_t blocks,
-                    unsigned char *plain16, const unsigned char *cipher16) {
+void AES256_decrypt(const AES256_ctx *ctx, size_t blocks, uint8_t *plain16,
+                    const uint8_t *cipher16) {
     while (blocks--) {
         AES_decrypt(ctx->rk, 14, plain16, cipher16);
         cipher16 += 16;

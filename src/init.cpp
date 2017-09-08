@@ -58,7 +58,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/function.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
 #include <openssl/crypto.h>
@@ -142,9 +141,9 @@ bool ShutdownRequested() {
 class CCoinsViewErrorCatcher : public CCoinsViewBacked {
 public:
     CCoinsViewErrorCatcher(CCoinsView *view) : CCoinsViewBacked(view) {}
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
         try {
-            return CCoinsViewBacked::GetCoins(txid, coins);
+            return CCoinsViewBacked::GetCoin(outpoint, coin);
         } catch (const std::runtime_error &e) {
             uiInterface.ThreadSafeMessageBox(
                 _("Error reading from database, shutting down."), "",
@@ -272,7 +271,7 @@ void HandleSIGHUP(int) {
     fReopenDebugLog = true;
 }
 
-bool static Bind(CConnman &connman, const CService &addr, unsigned int flags) {
+static bool Bind(CConnman &connman, const CService &addr, unsigned int flags) {
     if (!(flags & BF_EXPLICIT) && IsLimited(addr)) return false;
     std::string strError;
     if (!connman.BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) {
@@ -785,11 +784,11 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-blockmaxsize=<n>",
         strprintf(_("Set maximum block size in bytes (default: %d)"),
                   DEFAULT_MAX_GENERATED_BLOCK_SIZE));
-    strUsage +=
-        HelpMessageOpt("-blockprioritysize=<n>",
-                       strprintf(_("Set maximum size of high-priority/low-fee "
-                                   "transactions in bytes (default: %d)"),
-                                 DEFAULT_BLOCK_PRIORITY_SIZE));
+    strUsage += HelpMessageOpt(
+        "-blockprioritypercentage=<n>",
+        strprintf(_("Set maximum percentage of a block reserved to "
+                    "high-priority/low-fee transactions (default: %d)"),
+                  DEFAULT_BLOCK_PRIORITY_PERCENTAGE));
     strUsage += HelpMessageOpt(
         "-blockmintxfee=<amt>",
         strprintf(_("Set lowest fee rate (in %s/kB) for transactions to be "
@@ -854,19 +853,12 @@ std::string HelpMessage(HelpMessageMode mode) {
                       DEFAULT_HTTP_SERVER_TIMEOUT));
     }
 
-    strUsage += HelpMessageGroup(_("Hard Fork options:"));
-    strUsage +=
-        HelpMessageOpt("-uahfstarttime=<n>",
-                       strprintf(_("UAHF activation (integer) POSIX "
-                                   "time, seconds since epoch (default: %u)"),
-                                 DEFAULT_UAHF_START_TIME));
-
     return strUsage;
 }
 
 std::string LicenseInfo() {
     const std::string URL_SOURCE_CODE =
-        "<https://github.com/bitcoin-XBC/bitcoin-xbc>";
+        "<https://github.com/Bitcoin-XBC/Bitcoin-XBC>";
     const std::string URL_WEBSITE = "<https://www.bitcoin-xbc.org>";
 
     return CopyrightHolders(
@@ -1055,7 +1047,15 @@ bool InitSanityCheck(void) {
             "Elliptic curve cryptography sanity check failure. Aborting.");
         return false;
     }
-    if (!glibc_sanity_test() || !glibcxx_sanity_test()) return false;
+
+    if (!glibc_sanity_test() || !glibcxx_sanity_test()) {
+        return false;
+    }
+
+    if (!Random_SanityCheck()) {
+        InitError("OS cryptographic RNG sanity check failure. Aborting.");
+        return false;
+    }
 
     return true;
 }
@@ -1179,7 +1179,7 @@ void InitLogging() {
     fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Bitcoin version %s\n", FormatFullVersion());
+    LogPrintf("%s version %s\n", CLIENT_NAME, FormatFullVersion());
 }
 
 namespace { // Variables internal to initialization process only
@@ -1272,6 +1272,15 @@ bool AppInitParameterInteraction(Config &config) {
     if (GetArg("-prune", 0)) {
         if (GetBoolArg("-txindex", DEFAULT_TXINDEX))
             return InitError(_("Prune mode is incompatible with -txindex."));
+    }
+
+    // if space reserved for high priority transactions is misconfigured
+    // stop program execution and warn the user with a proper error message
+    const int64_t blkprio =
+        GetArg("-blockprioritypercentage", DEFAULT_BLOCK_PRIORITY_PERCENTAGE);
+    if (!config.SetBlockPriorityPercentage(blkprio)) {
+        return InitError(_("Block priority percentage has to belong to the "
+                           "[0..100] interval."));
     }
 
     // Make sure enough file descriptors are available
@@ -1400,33 +1409,12 @@ bool AppInitParameterInteraction(Config &config) {
     }
 
     // Check blockmaxsize does not exceed maximum accepted block size.
-    // Also checks that it isn't smaller than 1MB, as to make sure we can
-    // satisfy the "must be big" UAHF rule.
     const uint64_t nProposedMaxGeneratedBlockSize =
         GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
-    const bool maxGeneratedBlockSizeTooSmall =
-        nProposedMaxGeneratedBlockSize <= LEGACY_MAX_BLOCK_SIZE;
-    const bool maxGeneratedBlockSizeTooBig =
-        nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize();
-    if (maxGeneratedBlockSizeTooSmall || maxGeneratedBlockSizeTooBig) {
-        auto msg =
-            _("Max generated block size (blockmaxsize) cannot be lower than "
-              "1MB or exceed the excessive block size (excessiveblocksize)");
-        if (maxGeneratedBlockSizeTooBig ||
-            !IsArgSet("-allowsmallgeneratedblocksize")) {
-            return InitError(msg);
-        }
-
-        InitWarning(msg);
-    }
-
-    const int64_t nProposedUAHFStartTime =
-        GetArg("-uahfstarttime", DEFAULT_UAHF_START_TIME);
-    if (!config.SetUAHFStartTime(nProposedUAHFStartTime)) {
-        return InitError(
-            strprintf(_("Unable to set uahfstarttime to the value (%d)"),
-                      nProposedUAHFStartTime));
-        assert(nProposedUAHFStartTime == config.GetUAHFStartTime());
+    if (nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize()) {
+        auto msg = _("Max generated block size (blockmaxsize) cannot exceed "
+                     "the excessive block size (excessiveblocksize)");
+        return InitError(msg);
     }
 
     // block pruning; get the amount of disk space (in MiB) to allot for block &
@@ -1531,6 +1519,9 @@ bool AppInitParameterInteraction(Config &config) {
     // TODO: remove some time after the hardfork when no longer needed
     // to differentiate the network nodes.
     nLocalServices = ServiceFlags(nLocalServices | NODE_BITCOIN_CASH);
+
+    // Preferentially keep peers which service NODE_BITCOIN_CASH
+    nRelevantServices = ServiceFlags(nRelevantServices | NODE_BITCOIN_CASH);
 
     nMaxTipAge = GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
@@ -1706,7 +1697,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     assert(!g_connman);
     g_connman = std::unique_ptr<CConnman>(
-        new CConnman(GetRand(std::numeric_limits<uint64_t>::max()),
+        new CConnman(config, GetRand(std::numeric_limits<uint64_t>::max()),
                      GetRand(std::numeric_limits<uint64_t>::max())));
     CConnman &connman = *g_connman;
 
@@ -1951,7 +1942,12 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     pblocktree->WriteReindexing(true);
                     // If we're reindexing in prune mode, wipe away unusable
                     // block files and all undo data files
-                    if (fPruneMode) CleanupBlockRevFiles();
+                    if (fPruneMode) {
+                        CleanupBlockRevFiles();
+                    }
+                } else if (!pcoinsdbview->Upgrade()) {
+                    strLoadError = _("Error upgrading chainstate database");
+                    break;
                 }
 
                 if (!LoadBlockIndex(chainparams)) {

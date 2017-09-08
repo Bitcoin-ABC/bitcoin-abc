@@ -3,6 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 TESTS += test/test_bitcoin
+LOG_DRIVER = $(srcdir)/test/test-bitcoin-driver
+EXTRA_DIST += test/test-bitcoin-driver
 bin_PROGRAMS += test/test_bitcoin
 noinst_PROGRAMS += test/test_bitcoin_fuzzy
 TEST_SRCDIR = test
@@ -103,6 +105,7 @@ BITCOIN_TESTS =\
   test/pow_tests.cpp \
   test/prevector_tests.cpp \
   test/raii_event_tests.cpp \
+  test/random_tests.cpp \
   test/reverselock_tests.cpp \
   test/rpc_tests.cpp \
   test/sanity_tests.cpp \
@@ -127,7 +130,6 @@ BITCOIN_TESTS =\
   test/transaction_tests.cpp \
   test/txvalidationcache_tests.cpp \
   test/versionbits_tests.cpp \
-  test/uahfstarttime_tests.cpp \
   test/uint256_tests.cpp \
   test/undo_tests.cpp \
   test/univalue_tests.cpp \

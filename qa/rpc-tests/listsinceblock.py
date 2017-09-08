@@ -6,6 +6,7 @@
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
+
 class ListSinceBlockTest (BitcoinTestFramework):
 
     def __init__(self):
@@ -13,7 +14,7 @@ class ListSinceBlockTest (BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 4
 
-    def run_test (self):
+    def run_test(self):
         '''
         `listsinceblock` did not behave correctly when handed a block that was
         no longer in the main chain:
@@ -42,7 +43,6 @@ class ListSinceBlockTest (BitcoinTestFramework):
         This test only checks that [tx0] is present.
         '''
 
-        assert_equal(self.is_network_split, False)
         self.nodes[2].generate(101)
         self.sync_all()
 
@@ -53,7 +53,6 @@ class ListSinceBlockTest (BitcoinTestFramework):
 
         # Split network into two
         self.split_network()
-        assert_equal(self.is_network_split, True)
 
         # send to nodes[0] from nodes[2]
         senttx = self.nodes[2].sendtoaddress(self.nodes[0].getnewaddress(), 1)
@@ -61,13 +60,14 @@ class ListSinceBlockTest (BitcoinTestFramework):
         # generate on both sides
         lastblockhash = self.nodes[1].generate(6)[5]
         self.nodes[2].generate(7)
-        print('lastblockhash=%s' % (lastblockhash))
+        self.log.info('lastblockhash=%s' % (lastblockhash))
 
-        self.sync_all()
+        self.sync_all([self.nodes[:2], self.nodes[2:]])
 
         self.join_network()
 
-        # listsinceblock(lastblockhash) should now include tx, as seen from nodes[0]
+        # listsinceblock(lastblockhash) should now include tx, as seen from
+        # nodes[0]
         lsbres = self.nodes[0].listsinceblock(lastblockhash)
         found = False
         for tx in lsbres['transactions']:

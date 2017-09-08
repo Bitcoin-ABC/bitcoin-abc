@@ -15,7 +15,7 @@ namespace {
 /** A class that deserializes a single CTransaction one time. */
 class TxInputStream {
 public:
-    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo,
+    TxInputStream(int nTypeIn, int nVersionIn, const uint8_t *txTo,
                   size_t txToLen)
         : m_type(nTypeIn), m_version(nVersionIn), m_data(txTo),
           m_remaining(txToLen) {}
@@ -49,7 +49,7 @@ public:
 private:
     const int m_type;
     const int m_version;
-    const unsigned char *m_data;
+    const uint8_t *m_data;
     size_t m_remaining;
 };
 
@@ -71,9 +71,9 @@ static bool verify_flags(unsigned int flags) {
     return (flags & ~(bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL)) == 0;
 }
 
-static int verify_script(const unsigned char *scriptPubKey,
+static int verify_script(const uint8_t *scriptPubKey,
                          unsigned int scriptPubKeyLen, CAmount amount,
-                         const unsigned char *txTo, unsigned int txToLen,
+                         const uint8_t *txTo, unsigned int txToLen,
                          unsigned int nIn, unsigned int flags,
                          bitcoinconsensus_error *err) {
     if (!verify_flags(flags)) {
@@ -102,19 +102,18 @@ static int verify_script(const unsigned char *scriptPubKey,
 }
 
 int bitcoinconsensus_verify_script_with_amount(
-    const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen,
-    int64_t amount, const unsigned char *txTo, unsigned int txToLen,
-    unsigned int nIn, unsigned int flags, bitcoinconsensus_error *err) {
+    const uint8_t *scriptPubKey, unsigned int scriptPubKeyLen, int64_t amount,
+    const uint8_t *txTo, unsigned int txToLen, unsigned int nIn,
+    unsigned int flags, bitcoinconsensus_error *err) {
     CAmount am(amount);
     return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
                            nIn, flags, err);
 }
 
-int bitcoinconsensus_verify_script(const unsigned char *scriptPubKey,
+int bitcoinconsensus_verify_script(const uint8_t *scriptPubKey,
                                    unsigned int scriptPubKeyLen,
-                                   const unsigned char *txTo,
-                                   unsigned int txToLen, unsigned int nIn,
-                                   unsigned int flags,
+                                   const uint8_t *txTo, unsigned int txToLen,
+                                   unsigned int nIn, unsigned int flags,
                                    bitcoinconsensus_error *err) {
     if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID ||
         flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_WITNESS_DEPRECATED) {

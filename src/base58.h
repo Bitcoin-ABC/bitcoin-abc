@@ -30,45 +30,43 @@
  * Encode a byte sequence as a base58-encoded string.
  * pbegin and pend cannot be nullptr, unless both are.
  */
-std::string EncodeBase58(const unsigned char *pbegin,
-                         const unsigned char *pend);
+std::string EncodeBase58(const uint8_t *pbegin, const uint8_t *pend);
 
 /**
  * Encode a byte vector as a base58-encoded string
  */
-std::string EncodeBase58(const std::vector<unsigned char> &vch);
+std::string EncodeBase58(const std::vector<uint8_t> &vch);
 
 /**
  * Decode a base58-encoded string (psz) into a byte vector (vchRet).
  * return true if decoding is successful.
  * psz cannot be nullptr.
  */
-bool DecodeBase58(const char *psz, std::vector<unsigned char> &vchRet);
+bool DecodeBase58(const char *psz, std::vector<uint8_t> &vchRet);
 
 /**
  * Decode a base58-encoded string (str) into a byte vector (vchRet).
  * return true if decoding is successful.
  */
-bool DecodeBase58(const std::string &str, std::vector<unsigned char> &vchRet);
+bool DecodeBase58(const std::string &str, std::vector<uint8_t> &vchRet);
 
 /**
  * Encode a byte vector into a base58-encoded string, including checksum
  */
-std::string EncodeBase58Check(const std::vector<unsigned char> &vchIn);
+std::string EncodeBase58Check(const std::vector<uint8_t> &vchIn);
 
 /**
  * Decode a base58-encoded string (psz) that includes a checksum into a byte
  * vector (vchRet), return true if decoding is successful
  */
-inline bool DecodeBase58Check(const char *psz,
-                              std::vector<unsigned char> &vchRet);
+inline bool DecodeBase58Check(const char *psz, std::vector<uint8_t> &vchRet);
 
 /**
  * Decode a base58-encoded string (str) that includes a checksum into a byte
  * vector (vchRet), return true if decoding is successful
  */
 inline bool DecodeBase58Check(const std::string &str,
-                              std::vector<unsigned char> &vchRet);
+                              std::vector<uint8_t> &vchRet);
 
 /**
  * Base class for all base58-encoded data
@@ -76,18 +74,18 @@ inline bool DecodeBase58Check(const std::string &str,
 class CBase58Data {
 protected:
     //! the version byte(s)
-    std::vector<unsigned char> vchVersion;
+    std::vector<uint8_t> vchVersion;
 
     //! the actually encoded data
-    typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char>>
+    typedef std::vector<uint8_t, zero_after_free_allocator<uint8_t>>
         vector_uchar;
     vector_uchar vchData;
 
     CBase58Data();
-    void SetData(const std::vector<unsigned char> &vchVersionIn,
-                 const void *pdata, size_t nSize);
-    void SetData(const std::vector<unsigned char> &vchVersionIn,
-                 const unsigned char *pbegin, const unsigned char *pend);
+    void SetData(const std::vector<uint8_t> &vchVersionIn, const void *pdata,
+                 size_t nSize);
+    void SetData(const std::vector<uint8_t> &vchVersionIn,
+                 const uint8_t *pbegin, const uint8_t *pend);
 
 public:
     bool SetString(const char *psz, unsigned int nVersionBytes = 1);
@@ -153,7 +151,7 @@ template <typename K, int Size, CChainParams::Base58Type Type>
 class CBitcoinExtKeyBase : public CBase58Data {
 public:
     void SetKey(const K &key) {
-        unsigned char vch[Size];
+        uint8_t vch[Size];
         key.Encode(vch);
         SetData(Params().Base58Prefix(Type), vch, vch + Size);
     }

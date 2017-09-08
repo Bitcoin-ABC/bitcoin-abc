@@ -1,14 +1,14 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 0)
-define(_CLIENT_VERSION_MINOR, 14)
-define(_CLIENT_VERSION_REVISION, 6)
+define(_CLIENT_VERSION_MINOR, 15)
+define(_CLIENT_VERSION_REVISION, 0)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2017)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Bitcoin]])
-AC_INIT([Bitcoin XBC],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/Bitcoin-XBC/Bitcoin-XBC/issues],[bitcoin],[https://bitcoin-xbc.org/])
+AC_INIT([Bitcoin XBC],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[https://github.com/Bitcoin-XBC/Bitcoin-XBC/issues],[bitcoin-xbc],[https://bitcoin-xbc.org/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -192,6 +192,27 @@ AC_ARG_ENABLE([debug],
     [enable_debug=$enableval],
     [enable_debug=no])
 
+# Enable ASAN
+AC_ARG_ENABLE([asan],
+    [AS_HELP_STRING([--enable-asan],
+                    [enable address sanitizer compiler flags (implies --enable-debug, default is no)])],
+    [enable_asan=$enableval],
+    [enable_asan=no])
+
+# Enable TSAN
+AC_ARG_ENABLE([tsan],
+    [AS_HELP_STRING([--enable-tsan],
+                    [enable thread sanitizer compiler flags; requires 64-bit target architecture (implies --enable-debug, default is no)])],
+    [enable_tsan=$enableval],
+    [enable_tsan=no])
+
+# Enable UBSAN
+AC_ARG_ENABLE([ubsan],
+    [AS_HELP_STRING([--enable-ubsan],
+                    [enable undefined behavior sanitizer compiler flags (implies --enable-debug, default is no)])],
+    [enable_ubsan=$enableval],
+    [enable_ubsan=no])
+
 # Turn warnings into errors
 AC_ARG_ENABLE([werror],
     [AS_HELP_STRING([--enable-werror],
@@ -201,6 +222,42 @@ AC_ARG_ENABLE([werror],
 
 AC_LANG_PUSH([C++])
 AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
+
+if test "x$enable_asan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use ASAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=address -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=address -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=address"
+fi
+
+if test "x$enable_tsan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use TSAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=thread -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=thread -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=thread"
+fi
+
+if test "x$enable_ubsan" = xyes; then
+	case $host in
+  	*mingw*)
+		AC_MSG_ERROR("Windows builds cannot use UBSAN")
+		;;
+	esac
+	enable_debug=yes
+	CFLAGS="$CFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
+	CXXFLAGS="$CXXFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
+	LDFLAGS="$LDFLAGS -fsanitize=undefined"
+fi
 
 if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
@@ -549,6 +606,8 @@ AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
                  #include <byteswap.h>
                  #endif])
 
+AC_CHECK_DECLS([__builtin_clz, __builtin_clzl, __builtin_clzll])
+
 dnl Check for MSG_NOSIGNAL
 AC_MSG_CHECKING(for MSG_NOSIGNAL)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/socket.h>]],
@@ -582,6 +641,33 @@ AC_LINK_IFELSE([AC_LANG_SOURCE([
   ]
 )
 
+# Check for different ways of gathering OS randomness
+AC_MSG_CHECKING(for Linux getrandom syscall)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
+  #include <sys/syscall.h>
+  #include <linux/random.h>]],
+ [[ syscall(SYS_getrandom, nullptr, 32, 0); ]])],
+ [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SYS_GETRANDOM, 1,[Define this symbol if the Linux getrandom system call is available]) ],
+ [ AC_MSG_RESULT(no)]
+)
+
+AC_MSG_CHECKING(for getentropy)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>]],
+ [[ getentropy(nullptr, 32) ]])],
+ [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_GETENTROPY, 1,[Define this symbol if the BSD getentropy system call is available]) ],
+ [ AC_MSG_RESULT(no)]
+)
+
+AC_MSG_CHECKING(for sysctl KERN_ARND)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+  #include <sys/sysctl.h>]],
+ [[ static const int name[2] = {CTL_KERN, KERN_ARND};
+    sysctl(name, 2, nullptr, nullptr, nullptr, 0); ]])],
+ [ AC_MSG_RESULT(yes); AC_DEFINE(HAVE_SYSCTL_ARND, 1,[Define this symbol if the BSD sysctl(KERN_ARND) is available]) ],
+ [ AC_MSG_RESULT(no)]
+)
+
+# Check for reduced exports
 if test x$use_reduce_exports = xyes; then
   AX_CHECK_COMPILE_FLAG([-fvisibility=hidden],[RE_CXXFLAGS="-fvisibility=hidden"],
   [AC_MSG_ERROR([Cannot set default symbol visibility. Use --disable-reduce-exports.])])
@@ -1181,7 +1267,12 @@ echo "  with bench    = $use_bench"
 echo "  with upnp     = $use_upnp"
 echo "  debug enabled = $enable_debug"
 echo "  werror        = $enable_werror"
-echo 
+echo
+echo "  sanitizers    "
+echo "          asan  = $enable_asan"
+echo "          tsan  = $enable_tsan"
+echo "          ubsan = $enable_ubsan"
+echo
 echo "  target os     = $TARGET_OS"
 echo "  build os      = $BUILD_OS"
 echo

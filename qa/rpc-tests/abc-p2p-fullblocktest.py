@@ -21,9 +21,6 @@ from test_framework.script import *
 from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
                                   MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
 
-# far into the future
-UAHF_START_TIME = 2000000000
-
 
 class PreviousSpendableOutput(object):
 
@@ -71,7 +68,6 @@ class FullBlockTest(ComparisonTestFramework):
 
     def __init__(self):
         super().__init__()
-        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.num_nodes = 1
         self.block_heights = {}
         self.coinbase_key = CECKey()
@@ -79,22 +75,16 @@ class FullBlockTest(ComparisonTestFramework):
         self.coinbase_pubkey = self.coinbase_key.get_pubkey()
         self.tip = None
         self.blocks = {}
-
-    def setup_network(self):
-        self.extra_args = [['-debug',
-                            '-norelaypriority',
+        self.excessive_block_size = 16 * ONE_MEGABYTE
+        self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=9999',
                             '-limitancestorsize=9999',
                             '-limitdescendantcount=9999',
                             '-limitdescendantsize=9999',
                             '-maxmempool=999',
-                            "-uahfstarttime=%d" % UAHF_START_TIME,
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 self.extra_args,
-                                 binary=[self.options.testbinary])
 
     def add_options(self, parser):
         super().add_options(parser)
@@ -108,7 +98,6 @@ class FullBlockTest(ComparisonTestFramework):
         NetworkThread().start()
         # Set the blocksize to 2MB as initial condition
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
-        self.nodes[0].setmocktime(UAHF_START_TIME)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
@@ -163,8 +152,9 @@ class FullBlockTest(ComparisonTestFramework):
         spendable_output = None
         if (spend != None):
             tx = CTransaction()
+            # no signature yet
             tx.vin.append(
-                CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))  # no signature yet
+                CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))
             # We put some random data into the first transaction of the chain
             # to randomize ids
             tx.vout.append(
@@ -281,27 +271,6 @@ class FullBlockTest(ComparisonTestFramework):
             test.blocks_and_transactions.append([self.tip, True])
             save_spendable_output()
         yield test
-
-        # In order to trigger the HF, we need one block past activation time
-        bfork = block(5555)
-        bfork.nTime = UAHF_START_TIME
-        update_block(5555, [])
-        save_spendable_output()
-        yield accepted()
-
-        # Then we pile 5 blocks to move MTP forward and trigger the HF
-        for i in range(5):
-            block(5100 + i)
-            test.blocks_and_transactions.append([self.tip, True])
-            save_spendable_output()
-        yield test
-
-        # Create a new block and activate the fork, the block needs
-        # to be > 1MB . For more specific tests about the fork activation,
-        # check abc-p2p-activation.py
-        block(5556, spend=get_spendable_output(),
-              block_size=LEGACY_MAX_BLOCK_SIZE + 1)
-        yield accepted()
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []

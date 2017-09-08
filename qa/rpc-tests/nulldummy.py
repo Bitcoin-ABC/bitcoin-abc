@@ -13,6 +13,7 @@ import time
 
 NULLDUMMY_ERROR = "64: non-mandatory-script-verify-flag (Dummy CHECKMULTISIG argument must be zero)"
 
+
 def trueDummy(tx):
     scriptSig = CScript(tx.vin[0].scriptSig)
     newscript = []
@@ -36,73 +37,75 @@ Generate 427 more blocks.
 [Policy/Consensus] Check that the new NULLDUMMY rules are enforced on the 432nd block.
 '''
 
+
 class NULLDUMMYTest(BitcoinTestFramework):
 
     def __init__(self):
         super().__init__()
         self.num_nodes = 1
         self.setup_clean_chain = True
-
-    def setup_network(self):
-        # Must set the blockversion for this test
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                                 extra_args=[['-debug', '-whitelist=127.0.0.1', '-walletprematurewitness']])
+        self.extra_args = [['-whitelist=127.0.0.1', '-walletprematurewitness']]
 
     def run_test(self):
         self.address = self.nodes[0].getnewaddress()
-        self.ms_address = self.nodes[0].addmultisigaddress(1,[self.address])
+        self.ms_address = self.nodes[0].addmultisigaddress(1, [self.address])
 
-        NetworkThread().start() # Start up network handling in another thread
-        self.coinbase_blocks = self.nodes[0].generate(2) # Block 2
+        NetworkThread().start()  # Start up network handling in another thread
+        self.coinbase_blocks = self.nodes[0].generate(2)  # Block 2
         coinbase_txid = []
         for i in self.coinbase_blocks:
             coinbase_txid.append(self.nodes[0].getblock(i)['tx'][0])
-        self.nodes[0].generate(427) # Block 429
+        self.nodes[0].generate(427)  # Block 429
         self.lastblockhash = self.nodes[0].getbestblockhash()
         self.tip = int("0x" + self.lastblockhash, 0)
         self.lastblockheight = 429
         self.lastblocktime = int(time.time()) + 429
 
-        print ("Test 1: NULLDUMMY compliant base transactions should be accepted to mempool and mined before activation [430]")
-        test1txs = [self.create_transaction(self.nodes[0], coinbase_txid[0], self.ms_address, 49)]
+        self.log.info(
+            "Test 1: NULLDUMMY compliant base transactions should be accepted to mempool and mined before activation [430]")
+        test1txs = [self.create_transaction(
+            self.nodes[0], coinbase_txid[0], self.ms_address, 49)]
         txid1 = self.tx_submit(self.nodes[0], test1txs[0])
-        test1txs.append(self.create_transaction(self.nodes[0], txid1, self.ms_address, 48))
+        test1txs.append(self.create_transaction(
+            self.nodes[0], txid1, self.ms_address, 48))
         txid2 = self.tx_submit(self.nodes[0], test1txs[1])
         self.block_submit(self.nodes[0], test1txs, False, True)
 
-        print ("Test 2: Non-NULLDUMMY base multisig transaction should not be accepted to mempool before activation")
-        test2tx = self.create_transaction(self.nodes[0], txid2, self.ms_address, 48)
+        self.log.info(
+            "Test 2: Non-NULLDUMMY base multisig transaction should not be accepted to mempool before activation")
+        test2tx = self.create_transaction(
+            self.nodes[0], txid2, self.ms_address, 48)
         trueDummy(test2tx)
         txid4 = self.tx_submit(self.nodes[0], test2tx, NULLDUMMY_ERROR)
 
-        print ("Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
+        self.log.info(
+            "Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
         self.block_submit(self.nodes[0], [test2tx], False, True)
 
-
     def create_transaction(self, node, txid, to_address, amount):
-        inputs = [{ "txid" : txid, "vout" : 0}]
-        outputs = { to_address : amount }
+        inputs = [{"txid": txid, "vout": 0}]
+        outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
-        signresult = node.signrawtransaction(rawtx, None, None, "ALL")
+        signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
         tx = CTransaction()
         f = BytesIO(hex_str_to_bytes(signresult['hex']))
         tx.deserialize(f)
         return tx
 
-
-    def tx_submit(self, node, tx, msg = ""):
+    def tx_submit(self, node, tx, msg=""):
         tx.rehash()
         try:
-            node.sendrawtransaction(bytes_to_hex_str(tx.serialize_with_witness()), True)
+            node.sendrawtransaction(
+                bytes_to_hex_str(tx.serialize_with_witness()), True)
         except JSONRPCException as exp:
             assert_equal(exp.error["message"], msg)
         else:
             assert_equal('', msg)
         return tx.hash
 
-
-    def block_submit(self, node, txs, witness = False, accept = False):
-        block = create_block(self.tip, create_coinbase(self.lastblockheight + 1), self.lastblocktime + 1)
+    def block_submit(self, node, txs, witness=False, accept=False):
+        block = create_block(self.tip, create_coinbase(
+            self.lastblockheight + 1), self.lastblocktime + 1)
         block.nVersion = 4
         for tx in txs:
             tx.rehash()

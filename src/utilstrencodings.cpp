@@ -12,20 +12,18 @@
 #include <cstring>
 #include <limits>
 
-using namespace std;
-
-static const string CHARS_ALPHA_NUM =
+static const std::string CHARS_ALPHA_NUM =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-static const string SAFE_CHARS[] = {
+static const std::string SAFE_CHARS[] = {
     // SAFE_CHARS_DEFAULT
     CHARS_ALPHA_NUM + " .,;-_/:?@()",
     // SAFE_CHARS_UA_COMMENT
     CHARS_ALPHA_NUM + " .,;-_?@",
 };
 
-string SanitizeString(const string &str, int rule) {
-    string strResult;
+std::string SanitizeString(const std::string &str, int rule) {
+    std::string strResult;
     for (std::string::size_type i = 0; i < str.size(); i++) {
         if (SAFE_CHARS[rule].find(str[i]) != std::string::npos)
             strResult.push_back(str[i]);
@@ -53,25 +51,25 @@ const signed char p_util_hexdigit[256] = {
 };
 
 signed char HexDigit(char c) {
-    return p_util_hexdigit[(unsigned char)c];
+    return p_util_hexdigit[(uint8_t)c];
 }
 
-bool IsHex(const string &str) {
+bool IsHex(const std::string &str) {
     for (std::string::const_iterator it(str.begin()); it != str.end(); ++it) {
         if (HexDigit(*it) < 0) return false;
     }
     return (str.size() > 0) && (str.size() % 2 == 0);
 }
 
-vector<unsigned char> ParseHex(const char *psz) {
+std::vector<uint8_t> ParseHex(const char *psz) {
     // convert hex dump to vector
-    vector<unsigned char> vch;
+    std::vector<uint8_t> vch;
     while (true) {
         while (isspace(*psz))
             psz++;
         signed char c = HexDigit(*psz++);
         if (c == (signed char)-1) break;
-        unsigned char n = (c << 4);
+        uint8_t n = (c << 4);
         c = HexDigit(*psz++);
         if (c == (signed char)-1) break;
         n |= c;
@@ -80,19 +78,19 @@ vector<unsigned char> ParseHex(const char *psz) {
     return vch;
 }
 
-vector<unsigned char> ParseHex(const string &str) {
+std::vector<uint8_t> ParseHex(const std::string &str) {
     return ParseHex(str.c_str());
 }
 
-string EncodeBase64(const unsigned char *pch, size_t len) {
+std::string EncodeBase64(const uint8_t *pch, size_t len) {
     static const char *pbase64 =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    string strRet = "";
+    std::string strRet = "";
     strRet.reserve((len + 2) / 3 * 4);
 
     int mode = 0, left = 0;
-    const unsigned char *pchEnd = pch + len;
+    const uint8_t *pchEnd = pch + len;
 
     while (pch < pchEnd) {
         int enc = *(pch++);
@@ -126,11 +124,11 @@ string EncodeBase64(const unsigned char *pch, size_t len) {
     return strRet;
 }
 
-string EncodeBase64(const string &str) {
-    return EncodeBase64((const unsigned char *)str.c_str(), str.size());
+std::string EncodeBase64(const std::string &str) {
+    return EncodeBase64((const uint8_t *)str.c_str(), str.size());
 }
 
-vector<unsigned char> DecodeBase64(const char *p, bool *pfInvalid) {
+std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid) {
     static const int decode64_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -150,14 +148,14 @@ vector<unsigned char> DecodeBase64(const char *p, bool *pfInvalid) {
 
     if (pfInvalid) *pfInvalid = false;
 
-    vector<unsigned char> vchRet;
+    std::vector<uint8_t> vchRet;
     vchRet.reserve(strlen(p) * 3 / 4);
 
     int mode = 0;
     int left = 0;
 
     while (1) {
-        int dec = decode64_table[(unsigned char)*p];
+        int dec = decode64_table[(uint8_t)*p];
         if (dec == -1) break;
         p++;
         switch (mode) {
@@ -195,13 +193,12 @@ vector<unsigned char> DecodeBase64(const char *p, bool *pfInvalid) {
 
             case 2: // 4n+2 base64 characters processed: require '=='
                 if (left || p[0] != '=' || p[1] != '=' ||
-                    decode64_table[(unsigned char)p[2]] != -1)
+                    decode64_table[(uint8_t)p[2]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 3: // 4n+3 base64 characters processed: require '='
-                if (left || p[0] != '=' ||
-                    decode64_table[(unsigned char)p[1]] != -1)
+                if (left || p[0] != '=' || decode64_table[(uint8_t)p[1]] != -1)
                     *pfInvalid = true;
                 break;
         }
@@ -209,20 +206,21 @@ vector<unsigned char> DecodeBase64(const char *p, bool *pfInvalid) {
     return vchRet;
 }
 
-string DecodeBase64(const string &str) {
-    vector<unsigned char> vchRet = DecodeBase64(str.c_str());
-    return (vchRet.size() == 0) ? string() : string((const char *)&vchRet[0],
-                                                    vchRet.size());
+std::string DecodeBase64(const std::string &str) {
+    std::vector<uint8_t> vchRet = DecodeBase64(str.c_str());
+    return (vchRet.size() == 0)
+               ? std::string()
+               : std::string((const char *)&vchRet[0], vchRet.size());
 }
 
-string EncodeBase32(const unsigned char *pch, size_t len) {
+std::string EncodeBase32(const uint8_t *pch, size_t len) {
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
-    string strRet = "";
+    std::string strRet = "";
     strRet.reserve((len + 4) / 5 * 8);
 
     int mode = 0, left = 0;
-    const unsigned char *pchEnd = pch + len;
+    const uint8_t *pchEnd = pch + len;
 
     while (pch < pchEnd) {
         int enc = *(pch++);
@@ -270,11 +268,11 @@ string EncodeBase32(const unsigned char *pch, size_t len) {
     return strRet;
 }
 
-string EncodeBase32(const string &str) {
-    return EncodeBase32((const unsigned char *)str.c_str(), str.size());
+std::string EncodeBase32(const std::string &str) {
+    return EncodeBase32((const uint8_t *)str.c_str(), str.size());
 }
 
-vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
+std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
     static const int decode32_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -294,14 +292,14 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
 
     if (pfInvalid) *pfInvalid = false;
 
-    vector<unsigned char> vchRet;
+    std::vector<uint8_t> vchRet;
     vchRet.reserve((strlen(p)) * 5 / 8);
 
     int mode = 0;
     int left = 0;
 
     while (1) {
-        int dec = decode32_table[(unsigned char)*p];
+        int dec = decode32_table[(uint8_t)*p];
         if (dec == -1) break;
         p++;
         switch (mode) {
@@ -364,25 +362,24 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
             case 2: // 8n+2 base32 characters processed: require '======'
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
                     p[3] != '=' || p[4] != '=' || p[5] != '=' ||
-                    decode32_table[(unsigned char)p[6]] != -1)
+                    decode32_table[(uint8_t)p[6]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 4: // 8n+4 base32 characters processed: require '===='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    p[3] != '=' || decode32_table[(unsigned char)p[4]] != -1)
+                    p[3] != '=' || decode32_table[(uint8_t)p[4]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 5: // 8n+5 base32 characters processed: require '==='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    decode32_table[(unsigned char)p[3]] != -1)
+                    decode32_table[(uint8_t)p[3]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 7: // 8n+7 base32 characters processed: require '='
-                if (left || p[0] != '=' ||
-                    decode32_table[(unsigned char)p[1]] != -1)
+                if (left || p[0] != '=' || decode32_table[(uint8_t)p[1]] != -1)
                     *pfInvalid = true;
                 break;
         }
@@ -390,10 +387,11 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
     return vchRet;
 }
 
-string DecodeBase32(const string &str) {
-    vector<unsigned char> vchRet = DecodeBase32(str.c_str());
-    return (vchRet.size() == 0) ? string() : string((const char *)&vchRet[0],
-                                                    vchRet.size());
+std::string DecodeBase32(const std::string &str) {
+    std::vector<uint8_t> vchRet = DecodeBase32(str.c_str());
+    return (vchRet.size() == 0)
+               ? std::string()
+               : std::string((const char *)&vchRet[0], vchRet.size());
 }
 
 static bool ParsePrechecks(const std::string &str) {

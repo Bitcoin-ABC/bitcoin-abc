@@ -22,7 +22,7 @@ int CAddrInfo::GetTriedBucket(const uint256 &nKey) const {
 }
 
 int CAddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src) const {
-    std::vector<unsigned char> vchSourceGroupKey = src.GetGroup();
+    std::vector<uint8_t> vchSourceGroupKey = src.GetGroup();
     uint64_t hash1 =
         (CHashWriter(SER_GETHASH, 0) << nKey << GetGroup() << vchSourceGroupKey)
             .GetHash()
@@ -349,17 +349,22 @@ CAddrInfo CAddrMan::Select_(bool newOnly) {
             int nKBucket = RandomInt(ADDRMAN_TRIED_BUCKET_COUNT);
             int nKBucketPos = RandomInt(ADDRMAN_BUCKET_SIZE);
             while (vvTried[nKBucket][nKBucketPos] == -1) {
-                nKBucket = (nKBucket + insecure_rand.rand32()) %
-                           ADDRMAN_TRIED_BUCKET_COUNT;
-                nKBucketPos = (nKBucketPos + insecure_rand.rand32()) %
-                              ADDRMAN_BUCKET_SIZE;
+                nKBucket =
+                    (nKBucket +
+                     insecure_rand.randbits(ADDRMAN_TRIED_BUCKET_COUNT_LOG2)) %
+                    ADDRMAN_TRIED_BUCKET_COUNT;
+                nKBucketPos =
+                    (nKBucketPos +
+                     insecure_rand.randbits(ADDRMAN_BUCKET_SIZE_LOG2)) %
+                    ADDRMAN_BUCKET_SIZE;
             }
             int nId = vvTried[nKBucket][nKBucketPos];
             assert(mapInfo.count(nId) == 1);
             CAddrInfo &info = mapInfo[nId];
             if (RandomInt(1 << 30) <
-                fChanceFactor * info.GetChance() * (1 << 30))
+                fChanceFactor * info.GetChance() * (1 << 30)) {
                 return info;
+            }
             fChanceFactor *= 1.2;
         }
     } else {
@@ -369,10 +374,14 @@ CAddrInfo CAddrMan::Select_(bool newOnly) {
             int nUBucket = RandomInt(ADDRMAN_NEW_BUCKET_COUNT);
             int nUBucketPos = RandomInt(ADDRMAN_BUCKET_SIZE);
             while (vvNew[nUBucket][nUBucketPos] == -1) {
-                nUBucket = (nUBucket + insecure_rand.rand32()) %
-                           ADDRMAN_NEW_BUCKET_COUNT;
-                nUBucketPos = (nUBucketPos + insecure_rand.rand32()) %
-                              ADDRMAN_BUCKET_SIZE;
+                nUBucket =
+                    (nUBucket +
+                     insecure_rand.randbits(ADDRMAN_NEW_BUCKET_COUNT_LOG2)) %
+                    ADDRMAN_NEW_BUCKET_COUNT;
+                nUBucketPos =
+                    (nUBucketPos +
+                     insecure_rand.randbits(ADDRMAN_BUCKET_SIZE_LOG2)) %
+                    ADDRMAN_BUCKET_SIZE;
             }
             int nId = vvNew[nUBucket][nUBucketPos];
             assert(mapInfo.count(nId) == 1);

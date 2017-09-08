@@ -85,7 +85,7 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
         hostOut = in;
 }
 
-bool static LookupIntern(const char *pszName, std::vector<CNetAddr> &vIP,
+static bool LookupIntern(const char *pszName, std::vector<CNetAddr> &vIP,
                          unsigned int nMaxSolutions, bool fAllowLookup) {
     vIP.clear();
 
@@ -207,7 +207,7 @@ struct timeval MillisToTimeval(int64_t nTimeout) {
  *
  * @note This function requires that hSocket is in non-blocking mode.
  */
-bool static InterruptibleRecv(char *data, size_t len, int timeout,
+static bool InterruptibleRecv(char *data, size_t len, int timeout,
                               SOCKET &hSocket) {
     int64_t curTime = GetTimeMillis();
     int64_t endTime = curTime + timeout;
@@ -429,7 +429,7 @@ static bool Socks5(const std::string &strDest, int port,
     return true;
 }
 
-bool static ConnectSocketDirectly(const CService &addrConnect,
+static bool ConnectSocketDirectly(const CService &addrConnect,
                                   SOCKET &hSocketRet, int nTimeout) {
     hSocketRet = INVALID_SOCKET;
 

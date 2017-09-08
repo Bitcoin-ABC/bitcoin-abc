@@ -42,11 +42,11 @@ from test_framework.cdefs import MAX_BLOCK_SIGOPS_PER_MB
 BIP0031_VERSION = 60000
 MY_VERSION = 70014  # past bip-31 for ping/pong
 MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
-MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
+MY_RELAY = 1  # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
 
 MAX_INV_SZ = 50000
 
-COIN = 100000000 # 1 btc in satoshis
+COIN = 100000000  # 1 btc in satoshis
 
 NODE_NETWORK = (1 << 0)
 NODE_GETUTXO = (1 << 1)
@@ -57,6 +57,8 @@ NODE_BITCOIN_CASH = (1 << 5)
 
 # Howmuch data will be read from the network at once
 READ_BUFFER_SIZE = 8192
+
+logger = logging.getLogger("TestFramework.mininode")
 
 # Keep our own socket map for asyncore, so that we can track disconnects
 # ourselves (to workaround an issue with closing an asyncore socket when
@@ -72,14 +74,19 @@ mininode_socket_map = dict()
 mininode_lock = RLock()
 
 # Serialization/deserialization tools
+
+
 def sha256(s):
     return hashlib.new('sha256', s).digest()
+
 
 def ripemd160(s):
     return hashlib.new('ripemd160', s).digest()
 
+
 def hash256(s):
     return sha256(sha256(s))
+
 
 def ser_compact_size(l):
     r = b""
@@ -93,6 +100,7 @@ def ser_compact_size(l):
         r = struct.pack("<BQ", 255, l)
     return r
 
+
 def deser_compact_size(f):
     nit = struct.unpack("<B", f.read(1))[0]
     if nit == 253:
@@ -103,12 +111,15 @@ def deser_compact_size(f):
         nit = struct.unpack("<Q", f.read(8))[0]
     return nit
 
+
 def deser_string(f):
     nit = deser_compact_size(f)
     return f.read(nit)
 
+
 def ser_string(s):
     return ser_compact_size(len(s)) + s
+
 
 def deser_uint256(f):
     r = 0
@@ -211,17 +222,23 @@ def ser_int_vector(l):
     return r
 
 # Deserialize from a hex string representation (eg from RPC)
+
+
 def FromHex(obj, hex_string):
     obj.deserialize(BytesIO(hex_str_to_bytes(hex_string)))
     return obj
 
 # Convert a binary-serializable object to hex (eg for submission via RPC)
+
+
 def ToHex(obj):
     return bytes_to_hex_str(obj.serialize())
 
 # Objects that map to bitcoind objects, which can be serialized/deserialized
 
+
 class CAddress(object):
+
     def __init__(self):
         self.nServices = 1
         self.pchReserved = b"\x00" * 10 + b"\xff" * 2
@@ -246,15 +263,16 @@ class CAddress(object):
         return "CAddress(nServices=%i ip=%s port=%i)" % (self.nServices,
                                                          self.ip, self.port)
 
-MSG_WITNESS_FLAG = 1<<30
+MSG_WITNESS_FLAG = 1 << 30
+
 
 class CInv(object):
     typemap = {
         0: "Error",
         1: "TX",
         2: "Block",
-        1|MSG_WITNESS_FLAG: "WitnessTx",
-        2|MSG_WITNESS_FLAG : "WitnessBlock",
+        1 | MSG_WITNESS_FLAG: "WitnessTx",
+        2 | MSG_WITNESS_FLAG: "WitnessBlock",
         4: "CompactBlock"
     }
 
@@ -278,6 +296,7 @@ class CInv(object):
 
 
 class CBlockLocator(object):
+
     def __init__(self):
         self.nVersion = MY_VERSION
         self.vHave = []
@@ -298,6 +317,7 @@ class CBlockLocator(object):
 
 
 class COutPoint(object):
+
     def __init__(self, hash=0, n=0):
         self.hash = hash
         self.n = n
@@ -317,6 +337,7 @@ class COutPoint(object):
 
 
 class CTxIn(object):
+
     def __init__(self, outpoint=None, scriptSig=b"", nSequence=0):
         if outpoint is None:
             self.prevout = COutPoint()
@@ -345,6 +366,7 @@ class CTxIn(object):
 
 
 class CTxOut(object):
+
     def __init__(self, nValue=0, scriptPubKey=b""):
         self.nValue = nValue
         self.scriptPubKey = scriptPubKey
@@ -366,6 +388,7 @@ class CTxOut(object):
 
 
 class CScriptWitness(object):
+
     def __init__(self):
         # stack is a vector of strings
         self.stack = []
@@ -381,6 +404,7 @@ class CScriptWitness(object):
 
 
 class CTxInWitness(object):
+
     def __init__(self):
         self.scriptWitness = CScriptWitness()
 
@@ -398,6 +422,7 @@ class CTxInWitness(object):
 
 
 class CTxWitness(object):
+
     def __init__(self):
         self.vtxinwit = []
 
@@ -426,6 +451,7 @@ class CTxWitness(object):
 
 
 class CTransaction(object):
+
     def __init__(self, tx=None):
         if tx is None:
             self.nVersion = 1
@@ -513,8 +539,10 @@ class CTransaction(object):
             return uint256_from_str(hash256(self.serialize_with_witness()))
 
         if self.sha256 is None:
-            self.sha256 = uint256_from_str(hash256(self.serialize_without_witness()))
-        self.hash = encode(hash256(self.serialize())[::-1], 'hex_codec').decode('ascii')
+            self.sha256 = uint256_from_str(
+                hash256(self.serialize_without_witness()))
+        self.hash = encode(
+            hash256(self.serialize())[::-1], 'hex_codec').decode('ascii')
 
     def is_valid(self):
         self.calc_sha256()
@@ -529,6 +557,7 @@ class CTransaction(object):
 
 
 class CBlockHeader(object):
+
     def __init__(self, header=None):
         if header is None:
             self.set_null()
@@ -597,6 +626,7 @@ class CBlockHeader(object):
 
 
 class CBlock(CBlockHeader):
+
     def __init__(self, header=None):
         super(CBlock, self).__init__(header)
         self.vtx = []
@@ -619,7 +649,7 @@ class CBlock(CBlockHeader):
         while len(hashes) > 1:
             newhashes = []
             for i in range(0, len(hashes), 2):
-                i2 = min(i+1, len(hashes)-1)
+                i2 = min(i + 1, len(hashes) - 1)
                 newhashes.append(hash256(hashes[i] + hashes[i2]))
             hashes = newhashes
         return uint256_from_str(hashes[0])
@@ -668,6 +698,7 @@ class CBlock(CBlockHeader):
 
 
 class CUnsignedAlert(object):
+
     def __init__(self):
         self.nVersion = 1
         self.nRelayUntil = 0
@@ -723,6 +754,7 @@ class CUnsignedAlert(object):
 
 
 class CAlert(object):
+
     def __init__(self):
         self.vchMsg = b""
         self.vchSig = b""
@@ -743,7 +775,8 @@ class CAlert(object):
 
 
 class PrefilledTransaction(object):
-    def __init__(self, index=0, tx = None):
+
+    def __init__(self, index=0, tx=None):
         self.index = index
         self.tx = tx
 
@@ -768,7 +801,10 @@ class PrefilledTransaction(object):
         return "PrefilledTransaction(index=%d, tx=%s)" % (self.index, repr(self.tx))
 
 # This is what we send on the wire, in a cmpctblock message.
+
+
 class P2PHeaderAndShortIDs(object):
+
     def __init__(self):
         self.header = CBlockHeader()
         self.nonce = 0
@@ -784,7 +820,8 @@ class P2PHeaderAndShortIDs(object):
         for i in range(self.shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
-            self.shortids.append(struct.unpack("<Q", f.read(6) + b'\x00\x00')[0])
+            self.shortids.append(
+                struct.unpack("<Q", f.read(6) + b'\x00\x00')[0])
         self.prefilled_txn = deser_vector(f, PrefilledTransaction)
         self.prefilled_txn_length = len(self.prefilled_txn)
 
@@ -808,11 +845,16 @@ class P2PHeaderAndShortIDs(object):
 
 # P2P version of the above that will use witness serialization (for compact
 # block version 2)
+
+
 class P2PHeaderAndShortWitnessIDs(P2PHeaderAndShortIDs):
+
     def serialize(self):
         return super(P2PHeaderAndShortWitnessIDs, self).serialize(with_witness=True)
 
 # Calculate the BIP 152-compact blocks shortid for a given transaction hash
+
+
 def calculate_shortid(k0, k1, tx_hash):
     expected_shortid = siphash256(k0, k1, tx_hash)
     expected_shortid &= 0x0000ffffffffffff
@@ -820,8 +862,11 @@ def calculate_shortid(k0, k1, tx_hash):
 
 # This version gets rid of the array lengths, and reinterprets the differential
 # encoding into indices that can be used for lookup.
+
+
 class HeaderAndShortIDs(object):
-    def __init__(self, p2pheaders_and_shortids = None):
+
+    def __init__(self, p2pheaders_and_shortids=None):
         self.header = CBlockHeader()
         self.nonce = 0
         self.shortids = []
@@ -834,7 +879,8 @@ class HeaderAndShortIDs(object):
             self.shortids = p2pheaders_and_shortids.shortids
             last_index = -1
             for x in p2pheaders_and_shortids.prefilled_txn:
-                self.prefilled_txn.append(PrefilledTransaction(x.index + last_index + 1, x.tx))
+                self.prefilled_txn.append(
+                    PrefilledTransaction(x.index + last_index + 1, x.tx))
                 last_index = self.prefilled_txn[-1].index
 
     def to_p2p(self):
@@ -850,7 +896,8 @@ class HeaderAndShortIDs(object):
         ret.prefilled_txn = []
         last_index = -1
         for x in self.prefilled_txn:
-            ret.prefilled_txn.append(PrefilledTransaction(x.index - last_index - 1, x.tx))
+            ret.prefilled_txn.append(
+                PrefilledTransaction(x.index - last_index - 1, x.tx))
             last_index = x.index
         return ret
 
@@ -860,13 +907,14 @@ class HeaderAndShortIDs(object):
         hash_header_nonce_as_str = sha256(header_nonce)
         key0 = struct.unpack("<Q", hash_header_nonce_as_str[0:8])[0]
         key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
-        return [ key0, key1 ]
+        return [key0, key1]
 
     # Version 2 compact blocks use wtxid in shortids (rather than txid)
-    def initialize_from_block(self, block, nonce=0, prefill_list = [0], use_witness = False):
+    def initialize_from_block(self, block, nonce=0, prefill_list=[0], use_witness=False):
         self.header = CBlockHeader(block)
         self.nonce = nonce
-        self.prefilled_txn = [ PrefilledTransaction(i, block.vtx[i]) for i in prefill_list ]
+        self.prefilled_txn = [PrefilledTransaction(i, block.vtx[i])
+                              for i in prefill_list]
         self.shortids = []
         self.use_witness = use_witness
         [k0, k1] = self.get_siphash_keys()
@@ -883,7 +931,7 @@ class HeaderAndShortIDs(object):
 
 class BlockTransactionsRequest(object):
 
-    def __init__(self, blockhash=0, indexes = None):
+    def __init__(self, blockhash=0, indexes=None):
         self.blockhash = blockhash
         self.indexes = indexes if indexes != None else []
 
@@ -906,14 +954,14 @@ class BlockTransactionsRequest(object):
         self.indexes = []
         last_index = -1
         for x in absolute_indexes:
-            self.indexes.append(x-last_index-1)
+            self.indexes.append(x - last_index - 1)
             last_index = x
 
     def to_absolute(self):
         absolute_indexes = []
         last_index = -1
         for x in self.indexes:
-            absolute_indexes.append(x+last_index+1)
+            absolute_indexes.append(x + last_index + 1)
             last_index = absolute_indexes[-1]
         return absolute_indexes
 
@@ -923,7 +971,7 @@ class BlockTransactionsRequest(object):
 
 class BlockTransactions(object):
 
-    def __init__(self, blockhash=0, transactions = None):
+    def __init__(self, blockhash=0, transactions=None):
         self.blockhash = blockhash
         self.transactions = transactions if transactions != None else []
 
@@ -1137,6 +1185,7 @@ class msg_tx(object):
     def __repr__(self):
         return "msg_tx(tx=%s)" % (repr(self.tx))
 
+
 class msg_witness_tx(msg_tx):
 
     def serialize(self):
@@ -1163,7 +1212,10 @@ class msg_block(object):
 
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the command, and the data
+
+
 class msg_generic(object):
+
     def __init__(self, command, data=None):
         self.command = command
         self.data = data
@@ -1174,11 +1226,13 @@ class msg_generic(object):
     def __repr__(self):
         return "msg_generic()"
 
+
 class msg_witness_block(msg_block):
 
     def serialize(self):
         r = self.block.serialize(with_witness=True)
         return r
+
 
 class msg_getaddr(object):
     command = b"getaddr"
@@ -1262,6 +1316,7 @@ class msg_mempool(object):
 
     def __repr__(self):
         return "msg_mempool()"
+
 
 class msg_sendheaders(object):
     command = b"sendheaders"
@@ -1360,6 +1415,8 @@ class msg_reject(object):
             % (self.message, self.code, self.reason, self.data)
 
 # Helper function
+
+
 def wait_until(predicate, *, attempts=float('inf'), timeout=float('inf')):
     attempt = 0
     elapsed = 0
@@ -1373,6 +1430,7 @@ def wait_until(predicate, *, attempts=float('inf'), timeout=float('inf')):
         time.sleep(0.05)
 
     return False
+
 
 class msg_feefilter(object):
     command = b"feefilter"
@@ -1390,6 +1448,7 @@ class msg_feefilter(object):
 
     def __repr__(self):
         return "msg_feefilter(feerate=%08x)" % self.feerate
+
 
 class msg_sendcmpct(object):
     command = b"sendcmpct"
@@ -1411,10 +1470,11 @@ class msg_sendcmpct(object):
     def __repr__(self):
         return "msg_sendcmpct(announce=%s, version=%lu)" % (self.announce, self.version)
 
+
 class msg_cmpctblock(object):
     command = b"cmpctblock"
 
-    def __init__(self, header_and_shortids = None):
+    def __init__(self, header_and_shortids=None):
         self.header_and_shortids = header_and_shortids
 
     def deserialize(self, f):
@@ -1428,6 +1488,7 @@ class msg_cmpctblock(object):
 
     def __repr__(self):
         return "msg_cmpctblock(HeaderAndShortIDs=%s)" % repr(self.header_and_shortids)
+
 
 class msg_getblocktxn(object):
     command = b"getblocktxn"
@@ -1447,6 +1508,7 @@ class msg_getblocktxn(object):
     def __repr__(self):
         return "msg_getblocktxn(block_txn_request=%s)" % (repr(self.block_txn_request))
 
+
 class msg_blocktxn(object):
     command = b"blocktxn"
 
@@ -1464,7 +1526,9 @@ class msg_blocktxn(object):
     def __repr__(self):
         return "msg_blocktxn(block_transactions=%s)" % (repr(self.block_transactions))
 
+
 class msg_witness_blocktxn(msg_blocktxn):
+
     def serialize(self):
         r = b""
         r += self.block_transactions.serialize(with_witness=True)
@@ -1472,7 +1536,10 @@ class msg_witness_blocktxn(msg_blocktxn):
 
 # This is what a callback should look like for NodeConn
 # Reimplement the on_* functions to provide handling for events
+
+
 class NodeConnCB(object):
+
     def __init__(self):
         self.verack_received = False
         # deliver_sleep_time is helpful for debugging race conditions in p2p
@@ -1507,10 +1574,10 @@ class NodeConnCB(object):
             time.sleep(deliver_sleep)
         with mininode_lock:
             try:
-                getattr(self, 'on_' + message.command.decode('ascii'))(conn, message)
+                getattr(self, 'on_' + message.command.decode('ascii'))(
+                    conn, message)
             except:
-                print("ERROR delivering %s (%s)" % (repr(message),
-                                                    sys.exc_info()[0]))
+                logger.exception("ERROR delivering %s" % repr(message))
 
     def on_version(self, conn, message):
         if message.nVersion >= 209:
@@ -1533,31 +1600,55 @@ class NodeConnCB(object):
             conn.send_message(want)
 
     def on_addr(self, conn, message): pass
+
     def on_alert(self, conn, message): pass
+
     def on_getdata(self, conn, message): pass
+
     def on_getblocks(self, conn, message): pass
+
     def on_tx(self, conn, message): pass
+
     def on_block(self, conn, message): pass
+
     def on_getaddr(self, conn, message): pass
+
     def on_headers(self, conn, message): pass
+
     def on_getheaders(self, conn, message): pass
+
     def on_ping(self, conn, message):
         if conn.ver_send > BIP0031_VERSION:
             conn.send_message(msg_pong(message.nonce))
+
     def on_reject(self, conn, message): pass
+
     def on_open(self, conn): pass
+
     def on_close(self, conn): pass
+
     def on_mempool(self, conn): pass
+
     def on_pong(self, conn, message): pass
+
     def on_feefilter(self, conn, message): pass
+
     def on_sendheaders(self, conn, message): pass
+
     def on_sendcmpct(self, conn, message): pass
+
     def on_cmpctblock(self, conn, message): pass
+
     def on_getblocktxn(self, conn, message): pass
+
     def on_blocktxn(self, conn, message): pass
 
-# More useful callbacks and functions for NodeConnCB's which have a single NodeConn
+# More useful callbacks and functions for NodeConnCB's which have a single
+# NodeConn
+
+
 class SingleNodeConnCB(NodeConnCB):
+
     def __init__(self):
         NodeConnCB.__init__(self)
         self.connection = None
@@ -1589,6 +1680,8 @@ class SingleNodeConnCB(NodeConnCB):
 
 # The actual NodeConn class
 # This class provides an interface for a p2p connection to a specified node
+
+
 class NodeConn(asyncore.dispatcher):
     messagemap = {
         b"version": msg_version,
@@ -1616,14 +1709,13 @@ class NodeConn(asyncore.dispatcher):
     }
 
     MAGIC_BYTES = {
-        "mainnet": b"\xf9\xbe\xb4\xd9",   # mainnet
-        "testnet3": b"\x0b\x11\x09\x07",  # testnet3
-        "regtest": b"\xfa\xbf\xb5\xda",   # regtest
+        "mainnet": b"\xe3\xe1\xf3\xe8",
+        "testnet3": b"\xf4\xe5\xf3\xf4",
+        "regtest": b"\xda\xb5\xbf\xfa",
     }
 
     def __init__(self, dstaddr, dstport, rpc, callback, net="regtest", services=NODE_NETWORK, send_version=True):
         asyncore.dispatcher.__init__(self, map=mininode_socket_map)
-        self.log = logging.getLogger("NodeConn(%s:%d)" % (dstaddr, dstport))
         self.dstaddr = dstaddr
         self.dstport = dstport
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -1648,8 +1740,8 @@ class NodeConn(asyncore.dispatcher):
             vt.addrFrom.port = 0
             self.send_message(vt, True)
 
-        print('MiniNode: Connecting to Bitcoin Node IP # ' + dstaddr + ':' \
-            + str(dstport))
+        logger.info('Connecting to Bitcoin Node: %s:%d' %
+                    (self.dstaddr, self.dstport))
 
         try:
             self.connect((dstaddr, dstport))
@@ -1657,18 +1749,15 @@ class NodeConn(asyncore.dispatcher):
             self.handle_close()
         self.rpc = rpc
 
-    def show_debug_msg(self, msg):
-        self.log.debug(msg)
-
     def handle_connect(self):
         if self.state != "connected":
-            self.show_debug_msg("MiniNode: Connected & Listening: \n")
+            logger.debug("Connected & Listening: \n")
             self.state = "connected"
             self.cb.on_open(self)
 
     def handle_close(self):
-        self.show_debug_msg("MiniNode: Closing Connection to %s:%d... "
-                            % (self.dstaddr, self.dstport))
+        logger.debug("Closing Connection to %s:%d... " %
+                     (self.dstaddr, self.dstport))
         self.state = "closed"
         self.recvbuf = b""
         self.sendbuf = b""
@@ -1729,29 +1818,32 @@ class NodeConn(asyncore.dispatcher):
                 if self.ver_recv < 209:
                     if len(self.recvbuf) < 4 + 12 + 4:
                         return None
-                    command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
-                    msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
+                    command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
+                    msglen = struct.unpack(
+                        "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
                     checksum = None
                     if len(self.recvbuf) < 4 + 12 + 4 + msglen:
                         return None
-                    msg = self.recvbuf[4+12+4:4+12+4+msglen]
-                    self.recvbuf = self.recvbuf[4+12+4+msglen:]
+                    msg = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + msglen]
+                    self.recvbuf = self.recvbuf[4 + 12 + 4 + msglen:]
                 else:
                     if len(self.recvbuf) < 4 + 12 + 4 + 4:
                         return None
-                    command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
-                    msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
-                    checksum = self.recvbuf[4+12+4:4+12+4+4]
+                    command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
+                    msglen = struct.unpack(
+                        "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
+                    checksum = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + 4]
                     if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
                         return None
-                    msg = self.recvbuf[4+12+4+4:4+12+4+4+msglen]
+                    msg = self.recvbuf[4 + 12 + 4 + 4:4 + 12 + 4 + 4 + msglen]
                     h = sha256(sha256(msg))
                     if checksum != h[:4]:
-                        raise ValueError("got bad checksum " + repr(self.recvbuf))
-                    self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
+                        raise ValueError(
+                            "got bad checksum " + repr(self.recvbuf))
+                    self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
                 if command not in self.messagemap:
-                    self.show_debug_msg("Unknown command: '" + command + "' " +
-                                        repr(msg))
+                    logger.warning("Received unknown command from %s:%d: '%s' %s" %
+                                   (self.dstaddr, self.dstport, command, repr(msg)))
                     return None
                 f = BytesIO(msg)
                 m = self.messagemap[command]()
@@ -1759,14 +1851,13 @@ class NodeConn(asyncore.dispatcher):
                 return m
 
         except Exception as e:
-            print('got_data:', repr(e))
-            # import  traceback
-            # traceback.print_tb(sys.exc_info()[2])
+            logger.exception('got_data:', repr(e))
 
     def send_message(self, message, pushbuf=False):
         if self.state != "connected" and not pushbuf:
             raise IOError('Not connected, no pushbuf')
-        self.show_debug_msg("Send %s" % repr(message))
+        logger.debug("Send message to %s:%d: %s" %
+                     (self.dstaddr, self.dstport, repr(message)))
         command = message.command
         data = message.serialize()
         tmsg = self.MAGIC_BYTES[self.network]
@@ -1788,7 +1879,8 @@ class NodeConn(asyncore.dispatcher):
                 self.messagemap[b'ping'] = msg_ping_prebip31
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(self.messagemap[b'ping']())
-        self.show_debug_msg("Recv %s" % repr(message))
+        logger.debug("Received message from %s:%d: %s" %
+                     (self.dstaddr, self.dstport, repr(message)))
         self.cb.deliver(self, message)
 
     def disconnect_node(self):
@@ -1796,6 +1888,7 @@ class NodeConn(asyncore.dispatcher):
 
 
 class NetworkThread(Thread):
+
     def run(self):
         while mininode_socket_map:
             # We check for whether to disconnect outside of the asyncore
@@ -1805,13 +1898,14 @@ class NetworkThread(Thread):
             for fd, obj in mininode_socket_map.items():
                 if obj.disconnect:
                     disconnected.append(obj)
-            [ obj.handle_close() for obj in disconnected ]
+            [obj.handle_close() for obj in disconnected]
             asyncore.loop(0.1, use_poll=True, map=mininode_socket_map, count=1)
 
 
 # An exception we can raise if we detect a potential disconnect
 # (p2p or rpc) before the test is complete
 class EarlyDisconnectError(Exception):
+
     def __init__(self, value):
         self.value = value
 

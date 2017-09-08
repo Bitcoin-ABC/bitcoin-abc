@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# Copyright (c) 2017 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#
+# Test HighPriorityTransaction code
+#
+
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import *
+from test_framework.mininode import COIN
+from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, COINBASE_MATURITY
+
+
+class HighPriorityTransactionTest(BitcoinTestFramework):
+
+    def __init__(self):
+        super().__init__()
+        self.setup_clean_chain = True
+        self.is_network_split = False
+        self.num_nodes = 2
+
+    def setup_nodes(self):
+        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, extra_args=[
+            ["-blockprioritypercentage=0", "-limitfreerelay=2"],
+            ["-limitfreerelay=2"]
+        ])
+
+    def create_small_transactions(self, node, utxos, num, fee):
+        addr = node.getnewaddress()
+        txids = []
+        for _ in range(num):
+            t = utxos.pop()
+            inputs = [{"txid": t["txid"], "vout": t["vout"]}]
+            outputs = {}
+            change = t['amount'] - fee
+            outputs[addr] = satoshi_round(change)
+            rawtx = node.createrawtransaction(inputs, outputs)
+            signresult = node.signrawtransaction(
+                rawtx, None, None, "NONE|FORKID")
+            txid = node.sendrawtransaction(signresult["hex"], True)
+            txids.append(txid)
+        return txids
+
+    def generate_high_priotransactions(self, node, count):
+        # generate a bunch of spendable utxos
+        self.txouts = gen_return_txouts()
+        # create 150 simple one input one output hi prio txns
+        hiprio_utxo_count = 150
+        age = 250
+        # be sure to make this utxo aged enough
+        hiprio_utxos = create_confirmed_utxos(
+            self.relayfee, node, hiprio_utxo_count, age)
+        txids = []
+
+        # Create hiprio_utxo_count number of txns with 0 fee
+        range_size = [0, hiprio_utxo_count]
+        start_range = range_size[0]
+        end_range = range_size[1]
+        txids = self.create_small_transactions(
+            node, hiprio_utxos[start_range:end_range], end_range - start_range, 0)
+        return txids
+
+    def run_test(self):
+        # this is the priority cut off as defined in AllowFreeThreshold() (see: src/txmempool.h)
+        # anything above that value is considered an high priority transaction
+        hiprio_threshold = COIN * 144 / 250
+        self.relayfee = self.nodes[0].getnetworkinfo()['relayfee']
+
+        # first test step: 0 reserved prio space in block
+        txids = self.generate_high_priotransactions(self.nodes[0], 150)
+        mempool_size_pre = self.nodes[0].getmempoolinfo()['bytes']
+        mempool = self.nodes[0].getrawmempool(True)
+        # assert that all the txns are in the mempool and that all of them are hi prio
+        for i in txids:
+            assert(i in mempool)
+            assert(mempool[i]['currentpriority'] > hiprio_threshold)
+
+        # mine one block
+        self.nodes[0].generate(1)
+
+        self.log.info(
+            "Assert that all high prio transactions haven't been mined")
+        assert_equal(self.nodes[0].getmempoolinfo()['bytes'], mempool_size_pre)
+
+        # second test step: default reserved prio space in block (100K).
+        # the mempool size is about 25K this means that all txns will be
+        # included in the soon to be mined block
+        txids = self.generate_high_priotransactions(self.nodes[1], 150)
+        mempool_size_pre = self.nodes[1].getmempoolinfo()['bytes']
+        mempool = self.nodes[1].getrawmempool(True)
+        # assert that all the txns are in the mempool and that all of them are hiprio
+        for i in txids:
+            assert(i in mempool)
+            assert(mempool[i]['currentpriority'] > hiprio_threshold)
+
+        # mine one block
+        self.nodes[1].generate(1)
+
+        self.log.info("Assert that all high prio transactions have been mined")
+        assert(self.nodes[1].getmempoolinfo()['bytes'] == 0)
+
+
+if __name__ == '__main__':
+    HighPriorityTransactionTest().main()

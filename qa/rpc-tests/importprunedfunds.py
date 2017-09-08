@@ -14,37 +14,33 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
 
-    def setup_network(self, split=False):
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir)
-        connect_nodes_bi(self.nodes,0,1)
-        self.is_network_split=False
-        self.sync_all()
-
     def run_test(self):
-        print("Mining blocks...")
+        self.log.info("Mining blocks...")
         self.nodes[0].generate(101)
 
         self.sync_all()
-        
+
         # address
         address1 = self.nodes[0].getnewaddress()
         # pubkey
         address2 = self.nodes[0].getnewaddress()
-        address2_pubkey = self.nodes[0].validateaddress(address2)['pubkey']                 # Using pubkey
+        # Using pubkey
+        address2_pubkey = self.nodes[0].validateaddress(address2)['pubkey']
         # privkey
         address3 = self.nodes[0].getnewaddress()
-        address3_privkey = self.nodes[0].dumpprivkey(address3)                              # Using privkey
+        # Using privkey
+        address3_privkey = self.nodes[0].dumpprivkey(address3)
 
-        #Check only one address
+        # Check only one address
         address_info = self.nodes[0].validateaddress(address1)
         assert_equal(address_info['ismine'], True)
 
         self.sync_all()
 
-        #Node 1 sync test
-        assert_equal(self.nodes[1].getblockcount(),101)
+        # Node 1 sync test
+        assert_equal(self.nodes[1].getblockcount(), 101)
 
-        #Address Test - before import
+        # Address Test - before import
         address_info = self.nodes[1].validateaddress(address1)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
@@ -57,7 +53,7 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
 
-        #Send funds to self
+        # Send funds to self
         txnid1 = self.nodes[0].sendtoaddress(address1, 0.1)
         self.nodes[0].generate(1)
         rawtxn1 = self.nodes[0].gettransaction(txnid1)['hex']
@@ -75,24 +71,20 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
 
         self.sync_all()
 
-        #Import with no affiliated address
-        try:
-            self.nodes[1].importprunedfunds(rawtxn1, proof1)
-        except JSONRPCException as e:
-            assert('No addresses' in e.error['message'])
-        else:
-            assert(False)
+        # Import with no affiliated address
+        assert_raises_jsonrpc(
+            -5, "No addresses", self.nodes[1].importprunedfunds, rawtxn1, proof1)
 
         balance1 = self.nodes[1].getbalance("", 0, True)
         assert_equal(balance1, Decimal(0))
 
-        #Import with affiliated address with no rescan
+        # Import with affiliated address with no rescan
         self.nodes[1].importaddress(address2, "add2", False)
         result2 = self.nodes[1].importprunedfunds(rawtxn2, proof2)
         balance2 = self.nodes[1].getbalance("add2", 0, True)
         assert_equal(balance2, Decimal('0.05'))
 
-        #Import with private key with no rescan
+        # Import with private key with no rescan
         self.nodes[1].importprivkey(address3_privkey, "add3", False)
         result3 = self.nodes[1].importprunedfunds(rawtxn3, proof3)
         balance3 = self.nodes[1].getbalance("add3", 0, False)
@@ -100,7 +92,7 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         balance3 = self.nodes[1].getbalance("*", 0, True)
         assert_equal(balance3, Decimal('0.075'))
 
-        #Addresses Test - after import
+        # Addresses Test - after import
         address_info = self.nodes[1].validateaddress(address1)
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], False)
@@ -111,13 +103,9 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         assert_equal(address_info['iswatchonly'], False)
         assert_equal(address_info['ismine'], True)
 
-        #Remove transactions
-        try:
-            self.nodes[1].removeprunedfunds(txnid1)
-        except JSONRPCException as e:
-            assert('does not exist' in e.error['message'])
-        else:
-            assert(False)
+        # Remove transactions
+        assert_raises_jsonrpc(
+            -8, "Transaction does not exist in wallet.", self.nodes[1].removeprunedfunds, txnid1)
 
         balance1 = self.nodes[1].getbalance("*", 0, True)
         assert_equal(balance1, Decimal('0.075'))

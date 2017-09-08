@@ -394,8 +394,8 @@
         <translation>Раздели</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
-        <translation>Изискване на плащания(генерира QR кодове и биткойн: URIs)</translation>
+        <source>Request payments (generates QR codes and %1 URIs)</source>
+        <translation>Изискване на плащания(генерира QR кодове и %1 URIs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -406,8 +406,8 @@
         <translation>Покажи списък с използваните адреси и имена.</translation>
     </message>
     <message>
-        <source>Open a bitcoin: URI or payment request</source>
-        <translation>Отворете биткойн: URI  или заявка за плащане</translation>
+        <source>Open a %1 URI or payment request</source>
+        <translation>Отворете %1 URI  или заявка за плащане</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1062,8 +1062,8 @@
         <translation>Възникна грешка по време назаявката за плащане</translation>
     </message>
     <message>
-        <source>Cannot start bitcoin: click-to-pay handler</source>
-        <translation>Биткойн не можe да се стартира: click-to-pay handler</translation>
+        <source>Cannot start %1 click-to-pay handler</source>
+        <translation>Биткойн не можe да се %1 click-to-pay handler</translation>
     </message>
     <message>
         <source>URI handling</source>

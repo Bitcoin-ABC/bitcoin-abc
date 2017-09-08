@@ -153,7 +153,7 @@ void ReceiveRequestDialog::update() {
             QImage qrImage =
                 QImage(code->width + 8, code->width + 8, QImage::Format_RGB32);
             qrImage.fill(0xffffff);
-            unsigned char *p = code->data;
+            uint8_t *p = code->data;
             for (int y = 0; y < code->width; y++) {
                 for (int x = 0; x < code->width; x++) {
                     qrImage.setPixel(x + 4, y + 4, ((*p & 1) ? 0x0 : 0xffffff));

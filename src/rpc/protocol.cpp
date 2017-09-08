@@ -15,8 +15,6 @@
 #include <cstdint>
 #include <fstream>
 
-using namespace std;
-
 /**
  * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility, but
  * uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
@@ -26,7 +24,7 @@ using namespace std;
  * 1.2 spec: http://jsonrpc.org/historical/json-rpc-over-http.html
  */
 
-UniValue JSONRPCRequestObj(const string &strMethod, const UniValue &params,
+UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
                            const UniValue &id) {
     UniValue request(UniValue::VOBJ);
     request.push_back(Pair("method", strMethod));
@@ -47,13 +45,13 @@ UniValue JSONRPCReplyObj(const UniValue &result, const UniValue &error,
     return reply;
 }
 
-string JSONRPCReply(const UniValue &result, const UniValue &error,
-                    const UniValue &id) {
+std::string JSONRPCReply(const UniValue &result, const UniValue &error,
+                         const UniValue &id) {
     UniValue reply = JSONRPCReplyObj(result, error, id);
     return reply.write() + "\n";
 }
 
-UniValue JSONRPCError(int code, const string &message) {
+UniValue JSONRPCError(int code, const std::string &message) {
     UniValue error(UniValue::VOBJ);
     error.push_back(Pair("code", code));
     error.push_back(Pair("message", message));
@@ -75,7 +73,7 @@ boost::filesystem::path GetAuthCookieFile() {
 
 bool GenerateAuthCookie(std::string *cookie_out) {
     const size_t COOKIE_SIZE = 32;
-    unsigned char rand_pwd[COOKIE_SIZE];
+    uint8_t rand_pwd[COOKIE_SIZE];
     GetRandBytes(rand_pwd, COOKIE_SIZE);
     std::string cookie =
         COOKIEAUTH_USER + ":" + HexStr(rand_pwd, rand_pwd + COOKIE_SIZE);

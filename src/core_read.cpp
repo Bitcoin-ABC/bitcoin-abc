@@ -19,7 +19,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/assign/list_of.hpp>
 
 CScript ParseScript(const std::string &s) {
     CScript result;
@@ -66,7 +65,7 @@ CScript ParseScript(const std::string &s) {
                    (w->begin() + 2 != w->end()) &&
                    IsHex(std::string(w->begin() + 2, w->end()))) {
             // Raw hex data, inserted NOT pushed onto stack:
-            std::vector<unsigned char> raw =
+            std::vector<uint8_t> raw =
                 ParseHex(std::string(w->begin() + 2, w->end()));
             result.insert(result.end(), raw.begin(), raw.end());
         } else if (w->size() >= 2 && boost::algorithm::starts_with(*w, "'") &&
@@ -74,7 +73,7 @@ CScript ParseScript(const std::string &s) {
             // Single-quoted string, pushed as data. NOTE: this is poor-man's
             // parsing, spaces/tabs/newlines in single-quoted strings won't
             // work.
-            std::vector<unsigned char> value(w->begin() + 1, w->end() - 1);
+            std::vector<uint8_t> value(w->begin() + 1, w->end() - 1);
             result << value;
         } else if (mapOpNames.count(*w)) {
             // opcode, e.g. OP_ADD or ADD:
@@ -92,7 +91,7 @@ bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx) {
         return false;
     }
 
-    std::vector<unsigned char> txData(ParseHex(strHexTx));
+    std::vector<uint8_t> txData(ParseHex(strHexTx));
 
     CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
     try {
@@ -112,7 +111,7 @@ bool DecodeHexBlk(CBlock &block, const std::string &strHexBlk) {
         return false;
     }
 
-    std::vector<unsigned char> blockData(ParseHex(strHexBlk));
+    std::vector<uint8_t> blockData(ParseHex(strHexBlk));
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
     try {
         ssBlock >> block;
@@ -145,8 +144,7 @@ uint256 ParseHashStr(const std::string &strHex, const std::string &strName) {
     return result;
 }
 
-std::vector<unsigned char> ParseHexUV(const UniValue &v,
-                                      const std::string &strName) {
+std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName) {
     std::string strHex;
     if (v.isStr()) {
         strHex = v.getValStr();
