@@ -10,6 +10,7 @@
 #include "uint256.h"
 #include "undo.h"
 #include "utilstrencodings.h"
+#include "primitives/transaction.h"
 #include "validation.h"
 
 #include <map>
@@ -310,11 +311,11 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
                     tx = std::get<0>(txd);
                     // shouldn't be available for reconnection if its been
                     // duplicated
-                    disconnectedids.erase(tx.GetUtxid());
+                    disconnectedids.erase(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
 
-                    duplicateids.insert(tx.GetUtxid());
+                    duplicateids.insert(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
                 } else {
-                    coinbaseids.insert(tx.GetUtxid());
+                    coinbaseids.insert(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
                 }
                 assert(CTransaction(tx).IsCoinBase());
             }
@@ -330,23 +331,23 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
                     prevouthash = tx.vin[0].prevout.utxid;
                     if (!CTransaction(tx).IsCoinBase() &&
                         !utxoset.count(prevouthash)) {
-                        disconnectedids.erase(tx.GetUtxid());
+                        disconnectedids.erase(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
                         continue;
                     }
 
                     // If this tx is already IN the UTXO, then it must be a
                     // coinbase, and it must be a duplicate
-                    if (utxoset.count(tx.GetUtxid())) {
+                    if (utxoset.count(tx.GetUtxid(MALFIX_MODE_MEMPOOL))) {
                         assert(CTransaction(tx).IsCoinBase());
-                        assert(duplicateids.count(tx.GetUtxid()));
+                        assert(duplicateids.count(tx.GetUtxid(MALFIX_MODE_MEMPOOL)));
                     }
-                    disconnectedids.erase(tx.GetUtxid());
+                    disconnectedids.erase(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
                 }
 
                 // 16/20 times create a regular tx
                 else {
                     TxData &txd = FindRandomFrom(utxoset);
-                    prevouthash = std::get<0>(txd).GetUtxid();
+                    prevouthash = std::get<0>(txd).GetUtxid(MALFIX_MODE_MEMPOOL);
 
                     // Construct the tx to spend the coins of prevouthash
                     tx.vin[0].prevout.utxid = prevouthash;
@@ -369,17 +370,17 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
                     spent_a_duplicate_coinbase = true;
             }
             // Update the expected result to know about the new output coins
-            result[tx.GetUtxid()].FromTx(tx, height);
+            result[tx.GetUtxid(MALFIX_MODE_MEMPOOL)].FromTx(tx, height);
 
             // Call UpdateCoins on the top cache
             CTxUndo undo;
-            UpdateCoins(tx, *(stack.back()), undo, height);
+            UpdateCoins(tx, *(stack.back()), undo, height, MALFIX_MODE_MEMPOOL);
 
             // Update the utxo set for future spends
-            utxoset.insert(tx.GetUtxid());
+            utxoset.insert(tx.GetUtxid(MALFIX_MODE_MEMPOOL));
 
             // Track this tx and undo info to use later
-            alltxs.insert(std::make_pair(tx.GetUtxid(),
+            alltxs.insert(std::make_pair(tx.GetUtxid(MALFIX_MODE_MEMPOOL),
                                          std::make_tuple(tx, undo, oldcoins)));
         }
 
@@ -391,7 +392,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             CTxUndo &undo = std::get<1>(txd);
             CCoins &origcoins = std::get<2>(txd);
 
-            utxid_t undohash = tx.GetUtxid();
+            utxid_t undohash = tx.GetUtxid(MALFIX_MODE_MEMPOOL);
 
             // Update the expected result
             // Remove new outputs

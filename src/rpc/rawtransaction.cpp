@@ -1111,7 +1111,7 @@ static UniValue sendrawtransaction(const Config &config,
     }
 
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
-    const utxid_t &utxid = tx->GetUtxid();
+    const utxid_t &utxid = tx->GetUtxid(MALFIX_MODE_MEMPOOL);
     const txid_t &txid = tx->GetId();
 
     bool fLimitFree = false;

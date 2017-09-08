@@ -628,7 +628,7 @@ static bool AcceptToMemoryPoolWorker(
 
     const CTransaction &tx = *ptx;
     const txid_t txid = tx.GetId();
-    const utxid_t utxid = tx.GetUtxid();
+    const utxid_t utxid = tx.GetUtxid(MALFIX_MODE_MEMPOOL);
 
     if (pfMissingInputs) {
         *pfMissingInputs = false;
@@ -1234,7 +1234,7 @@ static void InvalidBlockFound(CBlockIndex *pindex,
 }
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight) {
+                 CTxUndo &txundo, int nHeight, MalFixMode malFixMode) {
     // mark inputs spent
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
@@ -1256,12 +1256,12 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
         }
     }
     // add outputs
-    inputs.ModifyNewCoins(tx.GetUtxid(), tx.IsCoinBase())->FromTx(tx, nHeight);
+    inputs.ModifyNewCoins(tx.GetUtxid(malFixMode), tx.IsCoinBase())->FromTx(tx, nHeight);
 }
 
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight) {
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight, MalFixMode malFixMode) {
     CTxUndo txundo;
-    UpdateCoins(tx, inputs, txundo, nHeight);
+    UpdateCoins(tx, inputs, txundo, nHeight, malFixMode);
 }
 
 bool CScriptCheck::operator()() {
@@ -1549,7 +1549,8 @@ DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
  */
 static DisconnectResult DisconnectBlock(const CBlock &block,
                                         const CBlockIndex *pindex,
-                                        CCoinsViewCache &view) {
+                                        CCoinsViewCache &view,
+                                        MalFixMode malFixMode) {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
     CBlockUndo blockUndo;
@@ -1564,12 +1565,12 @@ static DisconnectResult DisconnectBlock(const CBlock &block,
         return DISCONNECT_FAILED;
     }
 
-    return ApplyBlockUndo(blockUndo, block, pindex, view);
+    return ApplyBlockUndo(blockUndo, block, pindex, view, malFixMode);
 }
 
 DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
                                 const CBlock &block, const CBlockIndex *pindex,
-                                CCoinsViewCache &view) {
+                                CCoinsViewCache &view, MalFixMode malFixMode) {
     bool fClean = true;
 
     if (blockUndo.vtxundo.size() + 1 != block.vtx.size()) {
@@ -1581,7 +1582,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     size_t i = block.vtx.size();
     while (i-- > 0) {
         const CTransaction &tx = *(block.vtx[i]);
-        utxid_t utxid = tx.GetUtxid();
+        utxid_t utxid = tx.GetUtxid(malFixMode);
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
@@ -1765,6 +1766,13 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         return true;
     }
 
+
+    // Is Malleability Fix active?
+    const MalFixMode malFixMode = (VersionBitsState(pindex->pprev, chainparams.GetConsensus(),
+                          Consensus::DEPLOYMENT_MALFIX, versionbitscache) == THRESHOLD_ACTIVE)
+                          ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
+
     bool fScriptChecks = true;
     if (!hashAssumeValid.IsNull()) {
         // We've been configured with the hash of a block which has been
@@ -1852,7 +1860,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetUtxid(), o))) {
+                if (view.HaveCoin(COutPoint(tx->GetUtxid(malFixMode), o))) {
                     return state.DoS(
                         100,
                         error("ConnectBlock(): tried to overwrite transaction"),
@@ -1987,7 +1995,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             blockundo.vtxundo.push_back(CTxUndo());
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(),
-                    pindex->nHeight);
+                    pindex->nHeight, malFixMode);
 
         vPos.push_back(std::make_pair(tx.GetId(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -2338,11 +2346,16 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
         return AbortNode(state, "Failed to read block");
     }
 
+    // Was Malleability Fix active when the block was created?
+    const MalFixMode malFixMode = (VersionBitsState(pindexDelete->pprev, consensusParams,
+                                   Consensus::DEPLOYMENT_MALFIX, versionbitscache) == THRESHOLD_ACTIVE)
+                                ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
-        if (DisconnectBlock(block, pindexDelete, view) != DISCONNECT_OK) {
+        if (DisconnectBlock(block, pindexDelete, view, malFixMode) != DISCONNECT_OK) {
             return error("DisconnectTip(): DisconnectBlock %s failed",
                          pindexDelete->GetBlockHash().ToString());
         }
@@ -4149,7 +4162,15 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
         if (nCheckLevel >= 3 && pindex == pindexState &&
             (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
-            DisconnectResult res = DisconnectBlock(block, pindex, coins);
+
+            // Was Malleability Fix active when the block was created?
+            const MalFixMode malFixMode = (VersionBitsState(pindex->pprev,
+                                           config.GetChainParams().GetConsensus(),
+                                           Consensus::DEPLOYMENT_MALFIX, versionbitscache)
+                                           == THRESHOLD_ACTIVE)
+                                        ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
+            DisconnectResult res = DisconnectBlock(block, pindex, coins, malFixMode);
             if (res == DISCONNECT_FAILED) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
                              "block data at %d, hash=%s",

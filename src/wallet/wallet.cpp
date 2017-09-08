@@ -88,7 +88,7 @@ const CWalletTx *CWallet::GetWalletTx(const utxid_t &utxid) const {
                 mapWallet.begin(),
                 mapWallet.end(),
                 [&utxid](const std::pair<txid_t, CWalletTx> & t) -> bool {
-                      return t.second.tx->GetUtxid() == utxid;
+                      return t.second.tx->GetUtxid(MALFIX_MODE_MEMPOOL) == utxid;
     });
 
     if (wtx_iter == mapWallet.end()) {
@@ -1164,7 +1164,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction &tx,
             std::pair<TxSpends::const_iterator, TxSpends::const_iterator>
                 range = mapTxSpends.equal_range(txin.prevout);
             while (range.first != range.second) {
-                if (range.first->second != tx.GetUtxid()) {
+                if (range.first->second != tx.GetUtxid(MALFIX_MODE_MEMPOOL)) {
                     LogPrintf("Transaction %s (in block %s) conflicts with "
                               "wallet transaction %s (both spend %s:%i)\n",
                               tx.GetId().ToString(),
@@ -1221,7 +1221,7 @@ bool CWallet::AbandonTransaction(const txid_t &hashTx) {
         done.insert(now);
         assert(mapWallet.count(now));
         CWalletTx wtx = mapWallet[now];
-        utxid_t utxid = wtx.tx->GetUtxid();
+        utxid_t utxid = wtx.tx->GetUtxid(MALFIX_MODE_MEMPOOL);
 
         int currentconfirm = wtx.GetDepthInMainChain();
         // If the orig tx was not in block, none of its spends can be.
@@ -1301,7 +1301,7 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const txid_t &hashTx) {
             wtx.hashBlock = hashBlock;
             wtx.MarkDirty();
             walletdb.WriteTx(wtx);
-            utxid_t utxid = wtx.tx->GetUtxid();
+            utxid_t utxid = wtx.tx->GetUtxid(MALFIX_MODE_MEMPOOL);
             // Iterate over all its outputs, and mark transactions in the wallet
             // that spend them conflicted too.
             TxSpends::const_iterator iter =
@@ -1918,7 +1918,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     }
 
     CAmount nCredit = 0;
-    utxid_t utxid = tx->GetUtxid();
+    utxid_t utxid = tx->GetUtxid(MALFIX_MODE_MEMPOOL);
     for (unsigned int i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(COutPoint(utxid, i))) {
             const CTxOut &txout = tx->vout[i];
@@ -1966,7 +1966,7 @@ CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
     }
 
     CAmount nCredit = 0;
-    utxid_t utxid = tx->GetUtxid();
+    utxid_t utxid = tx->GetUtxid(MALFIX_MODE_MEMPOOL);
     for (unsigned int i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(COutPoint(utxid,i))) {
             const CTxOut &txout = tx->vout[i];
@@ -2222,7 +2222,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
          it != mapWallet.end(); ++it) {
 
         const CWalletTx *pcoin = &(*it).second;
-        const utxid_t &utxid = pcoin->tx->GetUtxid();
+        const utxid_t &utxid = pcoin->tx->GetUtxid(MALFIX_MODE_MEMPOOL);
 
         if (!CheckFinalTx(*pcoin)) {
             continue;
@@ -2850,7 +2850,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             // nLockTime set above actually works.
             for (const auto &coin : setCoins) {
                 txNew.vin.push_back(
-                    CTxIn(coin.first->tx->GetUtxid(), coin.second, CScript(),
+                    CTxIn(coin.first->tx->GetUtxid(MALFIX_MODE_MEMPOOL), coin.second, CScript(),
                           std::numeric_limits<unsigned int>::max() - 1));
             }
 
@@ -3446,7 +3446,7 @@ std::map<CTxDestination, CAmount> CWallet::GetAddressBalances() {
     LOCK(cs_wallet);
     for (std::pair<txid_t, CWalletTx> walletEntry : mapWallet) {
         CWalletTx *pcoin = &walletEntry.second;
-        const utxid_t &utxid = pcoin->tx->GetUtxid();
+        const utxid_t &utxid = pcoin->tx->GetUtxid(MALFIX_MODE_MEMPOOL);
         if (!pcoin->IsTrusted()) {
             continue;
         }

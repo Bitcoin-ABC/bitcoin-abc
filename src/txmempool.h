@@ -245,7 +245,7 @@ struct mempoolentry_txid {
 struct mempoolentry_utxid {
     typedef utxid_t result_type;
     result_type operator()(const CTxMemPoolEntry &entry) const {
-        return entry.GetTx().GetUtxid();
+        return entry.GetTx().GetUtxid(MALFIX_MODE_MEMPOOL);
     }
 };
 

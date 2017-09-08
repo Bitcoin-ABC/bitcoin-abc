@@ -1962,7 +1962,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
         CInv inv(MSG_TX, tx.GetId());
         pfrom->AddInventoryKnown(inv);
 
-        const utxid_t &utxid = tx.GetUtxid();
+        const utxid_t &utxid = tx.GetUtxid(MALFIX_MODE_MEMPOOL);
 
         LOCK(cs_main);
 
@@ -2005,7 +2005,7 @@ bool static ProcessMessage(const Config &config, CNode *pfrom,
                     const CTransactionRef &porphanTx = (*mi)->second.tx;
                     const CTransaction &orphanTx = *porphanTx;
                     const uint256 &orphanId = orphanTx.GetId();
-                    const utxid_t &orphanUTXId = orphanTx.GetUtxid();
+                    const utxid_t &orphanUTXId = orphanTx.GetUtxid(MALFIX_MODE_MEMPOOL);
 
                     NodeId fromPeer = (*mi)->second.fromPeer;
                     bool fMissingInputs2 = false;

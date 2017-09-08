@@ -439,9 +439,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  std::vector<CScriptCheck> *pvChecks = nullptr);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight,
+                 MalFixMode MalFixMode);
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight);
+                 CTxUndo &txundo, int nHeight, MalFixMode MalFixMode);
 
 /** Transaction validation functions */
 
