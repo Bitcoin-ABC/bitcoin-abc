@@ -17,7 +17,7 @@ static const int SERIALIZE_TRANSACTION = 0x00;
 
 /** A utxid is either:
  * The txid of a v1 or v2 transaction or
- * The double sha256 of all transaction data *except the inputs*
+ * The double sha256 of all transaction data *except the input scripts*
  *
  * It is used as reference to a transaction in an Outpoint. */
 class utxid_t : public uint256 {
@@ -33,6 +33,18 @@ public:
     explicit txid_t(const uint256 &b) : uint256(b) {}
 };
 
+
+/** Temporary setting to track MalFix activation, as
+ * it determines the calculation of the utxid */
+typedef enum MalfixMode_t {
+    MALFIX_MODE_INACTIVE,
+    MALFIX_MODE_ACTIVE,
+
+    /* We only need to care about activation during block validation
+     * In other places, assume activation as v3 transaction are non-standard
+     * anyway*/
+    MALFIX_MODE_LEGACY=1
+} MalFixMode;
 
 /** An outpoint - a combination of a transaction hash and an index n into its
  * vout */
@@ -292,7 +304,7 @@ public:
      * Returns the identifier of the transaction used by outpoints.
      * For v3 transactions, this is the immutableId
      **/
-    const utxid_t &GetUtxid() const { return utxid;  }
+    const utxid_t &GetUtxid(MalFixMode mode) const { return utxid;  }
 
     // Compute a hash that includes both transaction and witness data
     txid_t GetHash() const;
@@ -362,7 +374,7 @@ struct CMutableTransaction {
     /** Compute the UTXID of this CMutableTransaction. This is computed on the
      * fly, as opposed to GetUtxid() in CTransaction, which uses a cached result.
      */
-    utxid_t GetUtxid() const;
+    utxid_t GetUtxid(MalFixMode mode) const;
 
     friend bool operator==(const CMutableTransaction &a,
                            const CMutableTransaction &b) {

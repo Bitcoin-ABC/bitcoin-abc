@@ -156,7 +156,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(
             continue;
         }
 
-        utxid_t utxid = it->GetTx().GetUtxid();
+        utxid_t utxid = it->GetTx().GetUtxid(MALFIX_MODE_LEGACY);
         auto iter = mapNextTx.lower_bound(COutPoint(utxid, 0));
         // First calculate the children, and update setMemPoolChildren to
         // include them, and update their setMemPoolParents to include this tx.
@@ -537,7 +537,7 @@ void CTxMemPool::removeRecursive(const CTransaction &origTx,
             // during chain re-orgs if origTx isn't re-accepted into the mempool
             // for any reason.
             for (unsigned int i = 0; i < origTx.vout.size(); i++) {
-                auto it = mapNextTx.find(COutPoint(origTx.GetUtxid(), i));
+                auto it = mapNextTx.find(COutPoint(origTx.GetUtxid(MALFIX_MODE_LEGACY), i));
                 if (it == mapNextTx.end()) continue;
                 txiter nextit = mapTx.find(it->second->GetId());
                 assert(nextit != mapTx.end());
@@ -750,10 +750,10 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
 
         // Check children against mapNextTx
         CTxMemPool::setEntries setChildrenCheck;
-        auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetUtxid(), 0));
+        auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetUtxid(MALFIX_MODE_LEGACY), 0));
         int64_t childSizes = 0;
         for (; iter != mapNextTx.end() &&
-               iter->first->utxid == it->GetTx().GetUtxid();
+               iter->first->utxid == it->GetTx().GetUtxid(MALFIX_MODE_LEGACY);
              ++iter) {
             txiter childit = mapTx.find(iter->second->GetId());
             assert(childit !=
@@ -776,7 +776,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                                 Consensus::CheckTxInputs(
                                     tx, state, mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(tx, mempoolDuplicate, 1000000);
+            UpdateCoins(tx, mempoolDuplicate, 1000000, MALFIX_MODE_LEGACY);
         }
     }
     unsigned int stepsSinceLastRemove = 0;
@@ -794,7 +794,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                 Consensus::CheckTxInputs(entry->GetTx(), state,
                                          mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(entry->GetTx(), mempoolDuplicate, 1000000);
+            UpdateCoins(entry->GetTx(), mempoolDuplicate, 1000000, MALFIX_MODE_LEGACY);
             stepsSinceLastRemove = 0;
         }
     }

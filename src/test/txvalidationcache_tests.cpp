@@ -41,7 +41,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     for (int i = 0; i < 2; i++) {
         spends[i].nVersion = 1;
         spends[i].vin.resize(1);
-        spends[i].vin[0].prevout.utxid = coinbaseTxns[0].GetUtxid();
+        spends[i].vin[0].prevout.utxid = coinbaseTxns[0].GetUtxid(MALFIX_MODE_LEGACY);
         spends[i].vin[0].prevout.n = 0;
         spends[i].vout.resize(1);
         spends[i].vout[0].nValue = 11 * CENT;

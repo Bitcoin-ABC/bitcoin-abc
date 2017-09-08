@@ -36,7 +36,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[0].vout[1].nValue = 50 * CENT;
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
-    AddCoins(coinsRet, dummyTransactions[0], 0);
+    AddCoins(coinsRet, dummyTransactions[0], 0, MALFIX_MODE_LEGACY);
 
     dummyTransactions[1].vout.resize(2);
     dummyTransactions[1].vout[0].nValue = 21 * CENT;
@@ -45,7 +45,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[1].vout[1].nValue = 22 * CENT;
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
-    AddCoins(coinsRet, dummyTransactions[1], 0);
+    AddCoins(coinsRet, dummyTransactions[1], 0, MALFIX_MODE_LEGACY);
 
     return dummyTransactions;
 }
@@ -65,14 +65,14 @@ static void CCoinsCaching(benchmark::State &state) {
 
     CMutableTransaction t1;
     t1.vin.resize(3);
-    t1.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid();
+    t1.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[0].prevout.n = 1;
     t1.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
-    t1.vin[1].prevout.utxid = dummyTransactions[1].GetUtxid();
+    t1.vin[1].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[1].prevout.n = 0;
     t1.vin[1].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
-    t1.vin[2].prevout.utxid = dummyTransactions[1].GetUtxid();
+    t1.vin[2].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[2].prevout.n = 1;
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);

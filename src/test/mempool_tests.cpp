@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txChild[i].vin.resize(1);
         txChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txChild[i].vin[0].prevout.utxid = txParent.GetUtxid();
+        txChild[i].vin[0].prevout.utxid = txParent.GetUtxid(MALFIX_MODE_LEGACY);
         txChild[i].vin[0].prevout.n = i;
         txChild[i].vout.resize(1);
         txChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txGrandChild[i].vin.resize(1);
         txGrandChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txGrandChild[i].vin[0].prevout.utxid = txChild[i].GetUtxid();
+        txGrandChild[i].vin[0].prevout.utxid = txChild[i].GetUtxid(MALFIX_MODE_LEGACY);
         txGrandChild[i].vin[0].prevout.n = 0;
         txGrandChild[i].vout.resize(1);
         txGrandChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     setAncestors.insert(pool.mapTx.find(tx6.GetId()));
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(1);
-    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(), 0);
+    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx7.vin[0].scriptSig = CScript() << OP_11;
     tx7.vout.resize(2);
     tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* low fee child of tx7 */
     CMutableTransaction tx8 = CMutableTransaction();
     tx8.vin.resize(1);
-    tx8.vin[0].prevout = COutPoint(tx7.GetUtxid(), 0);
+    tx8.vin[0].prevout = COutPoint(tx7.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx8.vin[0].scriptSig = CScript() << OP_11;
     tx8.vout.resize(1);
     tx8.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* low fee child of tx7 */
     CMutableTransaction tx9 = CMutableTransaction();
     tx9.vin.resize(1);
-    tx9.vin[0].prevout = COutPoint(tx7.GetUtxid(), 1);
+    tx9.vin[0].prevout = COutPoint(tx7.GetUtxid(MALFIX_MODE_LEGACY), 1);
     tx9.vin[0].scriptSig = CScript() << OP_11;
     tx9.vout.resize(1);
     tx9.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -282,9 +282,9 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     /* tx10 depends on tx8 and tx9 and has a high fee*/
     CMutableTransaction tx10 = CMutableTransaction();
     tx10.vin.resize(2);
-    tx10.vin[0].prevout = COutPoint(tx8.GetUtxid(), 0);
+    tx10.vin[0].prevout = COutPoint(tx8.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx10.vin[0].scriptSig = CScript() << OP_11;
-    tx10.vin[1].prevout = COutPoint(tx9.GetUtxid(), 0);
+    tx10.vin[1].prevout = COutPoint(tx9.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx10.vin[1].scriptSig = CScript() << OP_11;
     tx10.vout.resize(1);
     tx10.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -446,7 +446,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
 
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(1);
-    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(), 0);
+    tx7.vin[0].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx7.vin[0].scriptSig = CScript() << OP_11;
     tx7.vout.resize(1);
     tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
@@ -511,7 +511,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     pool.addUnchecked(tx2.GetId(), entry.FromTx(tx2, &pool));
     CMutableTransaction tx3 = CMutableTransaction();
     tx3.vin.resize(1);
-    tx3.vin[0].prevout = COutPoint(tx2.GetUtxid(), 0);
+    tx3.vin[0].prevout = COutPoint(tx2.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx3.vin[0].scriptSig = CScript() << OP_2;
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_3 << OP_EQUAL;
@@ -549,7 +549,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx5 = CMutableTransaction();
     tx5.vin.resize(2);
-    tx5.vin[0].prevout = COutPoint(tx4.GetUtxid(), 0);
+    tx5.vin[0].prevout = COutPoint(tx4.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx5.vin[0].scriptSig = CScript() << OP_4;
     tx5.vin[1].prevout.SetNull();
     tx5.vin[1].scriptSig = CScript() << OP_5;
@@ -561,7 +561,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx6 = CMutableTransaction();
     tx6.vin.resize(2);
-    tx6.vin[0].prevout = COutPoint(tx4.GetUtxid(), 1);
+    tx6.vin[0].prevout = COutPoint(tx4.GetUtxid(MALFIX_MODE_LEGACY), 1);
     tx6.vin[0].scriptSig = CScript() << OP_4;
     tx6.vin[1].prevout.SetNull();
     tx6.vin[1].scriptSig = CScript() << OP_6;
@@ -573,9 +573,9 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     CMutableTransaction tx7 = CMutableTransaction();
     tx7.vin.resize(2);
-    tx7.vin[0].prevout = COutPoint(tx5.GetUtxid(), 0);
+    tx7.vin[0].prevout = COutPoint(tx5.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx7.vin[0].scriptSig = CScript() << OP_5;
-    tx7.vin[1].prevout = COutPoint(tx6.GetUtxid(), 0);
+    tx7.vin[1].prevout = COutPoint(tx6.GetUtxid(MALFIX_MODE_LEGACY), 0);
     tx7.vin[1].scriptSig = CScript() << OP_6;
     tx7.vout.resize(2);
     tx7.vout[0].scriptPubKey = CScript() << OP_7 << OP_EQUAL;

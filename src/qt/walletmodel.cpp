@@ -614,7 +614,7 @@ bool WalletModel::isLockedCoin(txid_t hash, unsigned int n) const {
         return false;
     }
 
-    return wallet->IsLockedCoin(COutPoint(wtx->tx->GetUtxid(), n));
+    return wallet->IsLockedCoin(COutPoint(wtx->tx->GetUtxid(MALFIX_MODE_LEGACY), n));
 }
 
 void WalletModel::lockCoin(COutPoint &output) {

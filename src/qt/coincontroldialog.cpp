@@ -482,7 +482,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     for (const COutput &out : vOutputs) {
         // unselect already spent, very unlikely scenario, this could happen
         // when selected are spent elsewhere, like rpc or another computer
-        utxid_t txhash = out.tx->tx->GetUtxid();
+        utxid_t txhash = out.tx->tx->GetUtxid(MALFIX_MODE_LEGACY);
         COutPoint outpt(txhash, out.i);
         if (model->isSpent(outpt)) {
             coinControl->UnSelect(outpt);
@@ -799,7 +799,7 @@ void CoinControlDialog::updateView() {
 
             // disable locked coins
             if (model->isLockedCoin(txhash, out.i)) {
-                COutPoint outpt(out.tx->tx->GetUtxid(), out.i);
+                COutPoint outpt(out.tx->tx->GetUtxid(MALFIX_MODE_LEGACY), out.i);
                 // just to be sure
                 coinControl->UnSelect(outpt);
                 itemOutput->setDisabled(true);
@@ -809,7 +809,7 @@ void CoinControlDialog::updateView() {
             }
 
             // set checkbox
-            if (coinControl->IsSelected(COutPoint(out.tx->tx->GetUtxid(), out.i))) {
+            if (coinControl->IsSelected(COutPoint(out.tx->tx->GetUtxid(MALFIX_MODE_LEGACY), out.i))) {
                 itemOutput->setCheckState(COLUMN_CHECKBOX, Qt::Checked);
             }
         }

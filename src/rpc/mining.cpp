@@ -681,13 +681,19 @@ static UniValue getblocktemplate(const Config &config,
     UniValue aCaps(UniValue::VARR);
     aCaps.push_back("proposal");
 
+    // Is Malleability Fix active?
+    const MalFixMode malFixMode = (VersionBitsState(pindexPrev, consensusParams,
+                                   Consensus::DEPLOYMENT_MALFIX,
+                                   versionbitscache) == THRESHOLD_ACTIVE)
+                                ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
     UniValue transactions(UniValue::VARR);
     std::map<utxid_t, int64_t> setTxIndex;
     int i = 0;
     for (const auto &it : pblock->vtx) {
         const CTransaction &tx = *it;
         uint256 txId = tx.GetId();
-        utxid_t txUTXId = tx.GetUtxid();
+        utxid_t txUTXId = tx.GetUtxid(malFixMode);
         setTxIndex[txUTXId] = i++;
 
         if (tx.IsCoinBase()) {

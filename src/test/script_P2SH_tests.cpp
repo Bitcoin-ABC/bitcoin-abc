@@ -34,7 +34,7 @@ static bool Verify(const CScript &scriptSig, const CScript &scriptPubKey,
     txTo.vin.resize(1);
     txTo.vout.resize(1);
     txTo.vin[0].prevout.n = 0;
-    txTo.vin[0].prevout.utxid = txFrom.GetUtxid();
+    txTo.vin[0].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
     txTo.vin[0].scriptSig = scriptSig;
     txTo.vout[0].nValue = 1;
 
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(sign) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.utxid = txFrom.GetUtxid();
+        txTo[i].vin[0].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
         txTo[i].vout[0].nValue = 1;
         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
                             strprintf("IsMine %d", i));
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(set) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.utxid = txFrom.GetUtxid();
+        txTo[i].vin[0].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
         txTo[i].vout[0].nValue = 1 * CENT;
         txTo[i].vout[0].scriptPubKey = inner[i];
         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         GetScriptForDestination(CScriptID(twentySigops));
     txFrom.vout[6].nValue = 6000;
 
-    AddCoins(coins, txFrom, 0);
+    AddCoins(coins, txFrom, 0, MALFIX_MODE_LEGACY);
 
     CMutableTransaction txTo;
     txTo.vout.resize(1);
@@ -388,7 +388,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txTo.vin.resize(5);
     for (int i = 0; i < 5; i++) {
         txTo.vin[i].prevout.n = i;
-        txTo.vin[i].prevout.utxid = txFrom.GetUtxid();
+        txTo.vin[i].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
     }
     BOOST_CHECK(
         SignSignature(keystore, txFrom, txTo, 0, SIGHASH_ALL | SIGHASH_FORKID));
@@ -416,7 +416,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd1.vout[0].nValue = 1000;
     txToNonStd1.vin.resize(1);
     txToNonStd1.vin[0].prevout.n = 5;
-    txToNonStd1.vin[0].prevout.utxid = txFrom.GetUtxid();
+    txToNonStd1.vin[0].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
     txToNonStd1.vin[0].scriptSig
         << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
 
@@ -430,7 +430,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd2.vout[0].nValue = 1000;
     txToNonStd2.vin.resize(1);
     txToNonStd2.vin[0].prevout.n = 6;
-    txToNonStd2.vin[0].prevout.utxid = txFrom.GetUtxid();
+    txToNonStd2.vin[0].prevout.utxid = txFrom.GetUtxid(MALFIX_MODE_LEGACY);
     txToNonStd2.vin[0].scriptSig
         << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
 

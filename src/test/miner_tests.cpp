@@ -94,20 +94,20 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     CMutableTransaction tx;
     tx.vin.resize(1);
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = 5000000000LL - 1000;
     // This tx has a low fee: 1000 satoshis.
     // Save this txid for later use.
     txid_t hashParentTx = tx.GetId();
-    utxid_t utxidParentTx = tx.GetUtxid();
+    utxid_t utxidParentTx = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(
         hashParentTx,
         entry.Fee(1000).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis.
-    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vout[0].nValue = 5000000000LL - 10000;
     txid_t hashMediumFeeTx = tx.GetId();
     mempool.addUnchecked(
@@ -119,7 +119,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // 50k satoshi fee.
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000;
     txid_t hashHighFeeTx = tx.GetId();
-    utxid_t utxidHighFeeTx = tx.GetUtxid();
+    utxid_t utxidHighFeeTx = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(
         hashHighFeeTx,
         entry.Fee(50000).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
@@ -135,7 +135,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // 0 fee.
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000;
     txid_t hashFreeTx = tx.GetId();
-    utxid_t utxidFreeTx = tx.GetUtxid();
+    utxid_t utxidFreeTx = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(hashFreeTx, entry.Fee(0).FromTx(tx));
     size_t freeTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
@@ -171,13 +171,13 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // Test that transaction selection properly updates ancestor fee
     // calculations as ancestor transactions get included in a block. Add a
     // 0-fee transaction that has 2 outputs.
-    tx.vin[0].prevout.utxid = txFirst[2]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[2]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vout.resize(2);
     tx.vout[0].nValue = 5000000000LL - 100000000;
     // 1BCC output.
     tx.vout[1].nValue = 100000000;
     txid_t hashFreeTx2 = tx.GetId();
-    utxid_t utxidFreeTx2 = tx.GetUtxid();
+    utxid_t utxidFreeTx2 = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(hashFreeTx2,
                          entry.Fee(0).SpendsCoinbase(true).FromTx(tx));
 
@@ -318,7 +318,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // NOTE: OP_NOP is used to force 20 SigOps for the CHECKMULTISIG
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_0 << OP_0 << OP_NOP
                                     << OP_CHECKMULTISIG << OP_1;
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY;
@@ -333,19 +333,19 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                                        .Time(GetTime())
                                        .SpendsCoinbase(spendsCoinbase)
                                        .FromTx(tx));
-        tx.vin[0].prevout.utxid = tx.GetUtxid();
+        tx.vin[0].prevout.utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
     }
     BOOST_CHECK_THROW(
         BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey),
         std::runtime_error);
     mempool.clear();
 
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 1001; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetId();
-        utxid = tx.GetUtxid();
+        utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
         // Only first tx spends coinbase.
         bool spendsCoinbase = (i == 0) ? true : false;
         // If we do set the # of sig ops in the CTxMemPoolEntry, template
@@ -369,12 +369,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     for (unsigned int i = 0; i < 18; ++i)
         tx.vin[0].scriptSig << vchData << OP_DROP;
     tx.vin[0].scriptSig << OP_1;
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetId();
-        utxid = tx.GetUtxid();
+        utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
         // Only first tx spends coinbase.
         bool spendsCoinbase = (i == 0) ? true : false;
         mempool.addUnchecked(hash, entry.Fee(LOWFEE)
@@ -398,17 +398,17 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // Child with higher priority than parent.
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     hash = tx.GetId();
-    utxid = tx.GetUtxid();
+    utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(
         hash,
         entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
     tx.vin[0].prevout.utxid = utxid;
     tx.vin.resize(2);
     tx.vin[1].scriptSig = CScript() << OP_1;
-    tx.vin[1].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[1].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[1].prevout.n = 0;
     // First txn output + fresh coinbase - new txn fee.
     tx.vout[0].nValue = tx.vout[0].nValue + BLOCKSUBSIDY - HIGHERFEE;
@@ -437,14 +437,14 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     mempool.clear();
 
     // Invalid (pre-p2sh) txn in mempool, template creation fails.
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vout[0].nValue = BLOCKSUBSIDY - LOWFEE;
     script = CScript() << OP_0;
     tx.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(script));
     hash = tx.GetId();
-    utxid = tx.GetUtxid();
+    utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(
         hash,
         entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     mempool.clear();
 
     // Double spend txn pair in mempool, template creation fails.
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
@@ -530,7 +530,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin.resize(1);
     prevheights.resize(1);
     // Only 1 transaction.
-    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[0]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript() << OP_1;
     // txFirst[0] is the 2nd block
@@ -561,7 +561,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                       CreateBlockIndex(chainActive.Tip()->nHeight + 2)));
 
     // Relative time locked.
-    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[1]->GetUtxid(MALFIX_MODE_LEGACY);
     // txFirst[1] is the 3rd block.
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG |
                           (((chainActive.Tip()->GetMedianTimePast() + 1 -
@@ -599,7 +599,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // Absolute height locked.
-    tx.vin[0].prevout.utxid = txFirst[2]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[2]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL - 1;
     prevheights[0] = baseheight + 3;
     tx.nLockTime = chainActive.Tip()->nHeight + 1;
@@ -630,12 +630,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // Absolute time locked.
-    tx.vin[0].prevout.utxid = txFirst[3]->GetUtxid();
+    tx.vin[0].prevout.utxid = txFirst[3]->GetUtxid(MALFIX_MODE_LEGACY);
     tx.nLockTime = chainActive.Tip()->GetMedianTimePast();
     prevheights.resize(1);
     prevheights[0] = baseheight + 4;
     hash = tx.GetId();
-    utxid = tx.GetUtxid();
+    utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
 
     {

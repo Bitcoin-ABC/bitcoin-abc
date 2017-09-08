@@ -9,6 +9,7 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
+
 std::string COutPoint::ToString() const {
     return strprintf("COutPoint(%s, %u)", utxid.ToString().substr(0, 10), n);
 }
@@ -60,7 +61,7 @@ txid_t CMutableTransaction::GetId() const {
     return txid_t(SerializeHash(*this, SER_GETHASH, 0));
 }
 
-utxid_t CMutableTransaction::GetUtxid() const {
+utxid_t CMutableTransaction::GetUtxid(MalFixMode mode) const {
     return utxid_t(SerializeHash(*this, SER_GETHASH, 0));
 }
 

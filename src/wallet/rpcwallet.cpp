@@ -2754,7 +2754,7 @@ static UniValue lockunspent(const Config &config,
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, txid unknown");
 
-        COutPoint outpt(wtx->tx->GetUtxid(), nOutput);
+        COutPoint outpt(wtx->tx->GetUtxid(MALFIX_MODE_LEGACY), nOutput);
 
         if (fUnlock) {
             pwalletMain->UnlockCoin(outpt);
@@ -3088,7 +3088,7 @@ static UniValue listunspent(const Config &config,
         }
 
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("utxid", out.tx->tx->GetUtxid().GetHex()));
+        entry.push_back(Pair("utxid", out.tx->tx->GetUtxid(MALFIX_MODE_LEGACY).GetHex()));
         entry.push_back(Pair("vout", out.i));
 
         if (fValidAddress) {

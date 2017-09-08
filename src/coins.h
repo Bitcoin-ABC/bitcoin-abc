@@ -290,9 +290,7 @@ private:
 // It assumes that overwrites are only possible for coinbase transactions.
 // TODO: pass in a boolean to limit these possible overwrites to known
 // (pre-BIP34) cases.
-void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight);
+void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight, MalFixMode malFixMode);
 
-//! Utility function to find any unspent output with a given txid.
-const Coin &AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
 
 #endif // BITCOIN_COINS_H
