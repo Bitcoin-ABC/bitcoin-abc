@@ -10,6 +10,25 @@
 #include "utilstrencodings.h"
 
 
+/** Returns the Immutable TxId, defined as the
+ * double SHA256 of the transaction minus its scriptSigs */
+static uint256 SerializeImmutableTxId(int nVersion,
+                                      const std::vector<CTxIn> &vin,
+                                      const std::vector<CTxOut> &vout,
+                                      uint32_t nLockTime) {
+    CHashWriter ss(SER_GETHASH, 0);
+
+    ss << nVersion;
+    ::WriteCompactSize(ss, vin.size());
+    for(const CTxIn &txin : vin) {
+        ss << txin.prevout << txin.nSequence; // All but scriptSigs
+    }
+    ss << vout << nLockTime;
+
+    return ss.GetHash();
+}
+
+
 std::string COutPoint::ToString() const {
     return strprintf("COutPoint(%s, %u)", utxid.ToString().substr(0, 10), n);
 }
@@ -62,12 +81,16 @@ txid_t CMutableTransaction::GetId() const {
 }
 
 utxid_t CMutableTransaction::GetUtxid(MalFixMode mode) const {
-    return utxid_t(SerializeHash(*this, SER_GETHASH, 0));
+    if (mode == MALFIX_MODE_INACTIVE || nVersion <= 2) {
+        return utxid_t(::SerializeHash(*this, SER_GETHASH, 0));
+    }
+    else {
+        return utxid_t(::SerializeImmutableTxId(nVersion, vin, vout, nLockTime));
+    }
 }
 
-utxid_t CTransaction::ComputeUtxid() const {
-    // TODO Compute Immutable TXID; for now UTXID=TXID
-    return utxid_t(SerializeHash(*this, SER_GETHASH, 0));
+uint256 CTransaction::ComputeImmutableId() const {
+    return ::SerializeImmutableTxId(nVersion, vin, vout, nLockTime);
 }
 
 txid_t CTransaction::ComputeHash() const {
@@ -87,10 +110,12 @@ CTransaction::CTransaction()
       hash() {}
 CTransaction::CTransaction(const CMutableTransaction &tx)
     : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout),
-      nLockTime(tx.nLockTime), hash(ComputeHash()), utxid(ComputeUtxid()) {}
+      nLockTime(tx.nLockTime), hash(ComputeHash()),
+      immutableId(ComputeImmutableId()) {}
 CTransaction::CTransaction(CMutableTransaction &&tx)
     : nVersion(tx.nVersion), vin(std::move(tx.vin)), vout(std::move(tx.vout)),
-      nLockTime(tx.nLockTime), hash(ComputeHash()), utxid(ComputeUtxid()) {}
+      nLockTime(tx.nLockTime), hash(ComputeHash()),
+      immutableId(ComputeImmutableId()) {}
 
 CAmount CTransaction::GetValueOut() const {
     CAmount nValueOut = 0;

@@ -272,10 +272,10 @@ public:
 private:
     /** Memory only. */
     const txid_t hash;
-    const utxid_t utxid;
+    const uint256 immutableId;
 
     txid_t ComputeHash() const;
-    utxid_t ComputeUtxid() const;
+    uint256 ComputeImmutableId() const;
 
 public:
     /** Construct a CTransaction that qualifies as IsNull() */
@@ -304,7 +304,14 @@ public:
      * Returns the identifier of the transaction used by outpoints.
      * For v3 transactions, this is the immutableId
      **/
-    const utxid_t &GetUtxid(MalFixMode mode) const { return utxid;  }
+    const utxid_t GetUtxid(MalFixMode mode) const {
+        if (mode == MALFIX_MODE_INACTIVE || nVersion <= 2) {
+            return utxid_t(hash);
+        }
+        else {
+            return utxid_t(immutableId);
+        }
+    }
 
     // Compute a hash that includes both transaction and witness data
     txid_t GetHash() const;
