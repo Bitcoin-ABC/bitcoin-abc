@@ -27,8 +27,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <boost/shared_ptr.hpp>
-
 #include <univalue.h>
 
 /**
@@ -111,7 +109,7 @@ static UniValue getnetworkhashps(const Config &config,
 }
 
 static UniValue generateBlocks(const Config &config,
-                               boost::shared_ptr<CReserveScript> coinbaseScript,
+                               std::shared_ptr<CReserveScript> coinbaseScript,
                                int nGenerate, uint64_t nMaxTries,
                                bool keepScript) {
     static const int nInnerLoopCount = 0x100000;
@@ -197,7 +195,7 @@ static UniValue generate(const Config &config, const JSONRPCRequest &request) {
         nMaxTries = request.params[1].get_int();
     }
 
-    boost::shared_ptr<CReserveScript> coinbaseScript;
+    std::shared_ptr<CReserveScript> coinbaseScript;
     GetMainSignals().ScriptForMining(coinbaseScript);
 
     // If the keypool is exhausted, no script is returned at all. Catch this.
@@ -251,7 +249,7 @@ static UniValue generatetoaddress(const Config &config,
                            "Error: Invalid address");
     }
 
-    boost::shared_ptr<CReserveScript> coinbaseScript(new CReserveScript());
+    std::shared_ptr<CReserveScript> coinbaseScript(new CReserveScript());
     coinbaseScript->reserveScript = GetScriptForDestination(address.Get());
 
     return generateBlocks(config, coinbaseScript, nGenerate, nMaxTries, false);
