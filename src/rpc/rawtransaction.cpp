@@ -491,7 +491,7 @@ static UniValue createrawtransaction(const Config &config,
         rawTx.nLockTime = nLockTime;
     }
 
-    for (unsigned int idx = 0; idx < inputs.size(); idx++) {
+    for (size_t idx = 0; idx < inputs.size(); idx++) {
         const UniValue &input = inputs[idx];
         const UniValue &o = input.get_obj();
 
@@ -521,13 +521,12 @@ static UniValue createrawtransaction(const Config &config,
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
                     "Invalid parameter, sequence number is out of range");
-            } else {
-                nSequence = (uint32_t)seqNr64;
             }
+
+            nSequence = uint32_t(seqNr64);
         }
 
         CTxIn in(COutPoint(txid, nOutput), CScript(), nSequence);
-
         rawTx.vin.push_back(in);
     }
 

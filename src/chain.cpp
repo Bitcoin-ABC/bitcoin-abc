@@ -13,6 +13,7 @@ void CChain::SetTip(CBlockIndex *pindex) {
         vChain.clear();
         return;
     }
+
     vChain.resize(pindex->nHeight + 1);
     while (pindex && vChain[pindex->nHeight] != pindex) {
         vChain[pindex->nHeight] = pindex;
@@ -25,11 +26,15 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
     std::vector<uint256> vHave;
     vHave.reserve(32);
 
-    if (!pindex) pindex = Tip();
+    if (!pindex) {
+        pindex = Tip();
+    }
     while (pindex) {
         vHave.push_back(pindex->GetBlockHash());
         // Stop when we have added the genesis block.
-        if (pindex->nHeight == 0) break;
+        if (pindex->nHeight == 0) {
+            break;
+        }
         // Exponentially larger steps back, plus the genesis block.
         int nHeight = std::max(pindex->nHeight - nStep, 0);
         if (Contains(pindex)) {
@@ -39,7 +44,9 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
             // Otherwise, use O(log n) skiplist.
             pindex = pindex->GetAncestor(nHeight);
         }
-        if (vHave.size() > 10) nStep *= 2;
+        if (vHave.size() > 10) {
+            nStep *= 2;
+        }
     }
 
     return CBlockLocator(vHave);
@@ -49,9 +56,12 @@ const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
     if (pindex == nullptr) {
         return nullptr;
     }
-    if (pindex->nHeight > Height()) pindex = pindex->GetAncestor(Height());
-    while (pindex && !Contains(pindex))
+    if (pindex->nHeight > Height()) {
+        pindex = pindex->GetAncestor(Height());
+    }
+    while (pindex && !Contains(pindex)) {
         pindex = pindex->pprev;
+    }
     return pindex;
 }
 
@@ -72,7 +82,9 @@ static inline int InvertLowestOne(int n) {
 
 /** Compute what height to jump back to with the CBlockIndex::pskip pointer. */
 static inline int GetSkipHeight(int height) {
-    if (height < 2) return 0;
+    if (height < 2) {
+        return 0;
+    }
 
     // Determine which height to jump back to. Any number strictly lower than
     // height is acceptable, but the following expression seems to perform well
@@ -82,7 +94,9 @@ static inline int GetSkipHeight(int height) {
 }
 
 CBlockIndex *CBlockIndex::GetAncestor(int height) {
-    if (height > nHeight || height < 0) return nullptr;
+    if (height > nHeight || height < 0) {
+        return nullptr;
+    }
 
     CBlockIndex *pindexWalk = this;
     int heightWalk = nHeight;
@@ -110,7 +124,9 @@ const CBlockIndex *CBlockIndex::GetAncestor(int height) const {
 }
 
 void CBlockIndex::BuildSkip() {
-    if (pprev) pskip = pprev->GetAncestor(GetSkipHeight(nHeight));
+    if (pprev) {
+        pskip = pprev->GetAncestor(GetSkipHeight(nHeight));
+    }
 }
 
 arith_uint256 GetBlockProof(const CBlockIndex &block) {
@@ -118,7 +134,9 @@ arith_uint256 GetBlockProof(const CBlockIndex &block) {
     bool fNegative;
     bool fOverflow;
     bnTarget.SetCompact(block.nBits, &fNegative, &fOverflow);
-    if (fNegative || fOverflow || bnTarget == 0) return 0;
+    if (fNegative || fOverflow || bnTarget == 0) {
+        return 0;
+    }
     // We need to compute 2**256 / (bnTarget+1), but we can't represent 2**256
     // as it's too large for a arith_uint256. However, as 2**256 is at least as
     // large as bnTarget+1, it is equal to ((2**256 - bnTarget - 1) /

@@ -494,15 +494,20 @@ const CChainParams &Params() {
 }
 
 CChainParams &Params(const std::string &chain) {
-    if (chain == CBaseChainParams::MAIN)
+    if (chain == CBaseChainParams::MAIN) {
         return mainParams;
-    else if (chain == CBaseChainParams::TESTNET)
+    }
+
+    if (chain == CBaseChainParams::TESTNET) {
         return testNetParams;
-    else if (chain == CBaseChainParams::REGTEST)
+    }
+
+    if (chain == CBaseChainParams::REGTEST) {
         return regTestParams;
-    else
-        throw std::runtime_error(
-            strprintf("%s: Unknown chain %s.", __func__, chain));
+    }
+
+    throw std::runtime_error(
+        strprintf("%s: Unknown chain %s.", __func__, chain));
 }
 
 void SelectParams(const std::string &network) {

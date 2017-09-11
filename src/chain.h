@@ -60,11 +60,19 @@ public:
 
     /** update statistics (does not update nSize) */
     void AddBlock(unsigned int nHeightIn, uint64_t nTimeIn) {
-        if (nBlocks == 0 || nHeightFirst > nHeightIn) nHeightFirst = nHeightIn;
-        if (nBlocks == 0 || nTimeFirst > nTimeIn) nTimeFirst = nTimeIn;
+        if (nBlocks == 0 || nHeightFirst > nHeightIn) {
+            nHeightFirst = nHeightIn;
+        }
+        if (nBlocks == 0 || nTimeFirst > nTimeIn) {
+            nTimeFirst = nTimeIn;
+        }
         nBlocks++;
-        if (nHeightIn > nHeightLast) nHeightLast = nHeightIn;
-        if (nTimeIn > nTimeLast) nTimeLast = nTimeIn;
+        if (nHeightIn > nHeightLast) {
+            nHeightLast = nHeightIn;
+        }
+        if (nTimeIn > nTimeLast) {
+            nTimeLast = nTimeIn;
+        }
     }
 };
 
@@ -271,7 +279,9 @@ public:
     CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
         block.nVersion = nVersion;
-        if (pprev) block.hashPrevBlock = pprev->GetBlockHash();
+        if (pprev) {
+            block.hashPrevBlock = pprev->GetBlockHash();
+        }
         block.hashMerkleRoot = hashMerkleRoot;
         block.nTime = nTime;
         block.nBits = nBits;
@@ -294,8 +304,9 @@ public:
 
         const CBlockIndex *pindex = this;
         for (int i = 0; i < nMedianTimeSpan && pindex;
-             i++, pindex = pindex->pprev)
+             i++, pindex = pindex->pprev) {
             *(--pbegin) = pindex->GetBlockTime();
+        }
 
         std::sort(pbegin, pend);
         return pbegin[(pend - pbegin) / 2];
@@ -312,7 +323,9 @@ public:
     bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const {
         // Only validity flags allowed.
         assert(!(nUpTo & ~BLOCK_VALID_MASK));
-        if (nStatus & BLOCK_FAILED_MASK) return false;
+        if (nStatus & BLOCK_FAILED_MASK) {
+            return false;
+        }
         return ((nStatus & BLOCK_VALID_MASK) >= nUpTo);
     }
 
@@ -321,7 +334,9 @@ public:
     bool RaiseValidity(enum BlockStatus nUpTo) {
         // Only validity flags allowed.
         assert(!(nUpTo & ~BLOCK_VALID_MASK));
-        if (nStatus & BLOCK_FAILED_MASK) return false;
+        if (nStatus & BLOCK_FAILED_MASK) {
+            return false;
+        }
         if ((nStatus & BLOCK_VALID_MASK) < nUpTo) {
             nStatus = (nStatus & ~BLOCK_VALID_MASK) | nUpTo;
             return true;
@@ -362,15 +377,22 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) READWRITE(VARINT(nVersion));
+        if (!(s.GetType() & SER_GETHASH)) {
+            READWRITE(VARINT(nVersion));
+        }
 
         READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
-        if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
+        if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO)) {
             READWRITE(VARINT(nFile));
-        if (nStatus & BLOCK_HAVE_DATA) READWRITE(VARINT(nDataPos));
-        if (nStatus & BLOCK_HAVE_UNDO) READWRITE(VARINT(nUndoPos));
+        }
+        if (nStatus & BLOCK_HAVE_DATA) {
+            READWRITE(VARINT(nDataPos));
+        }
+        if (nStatus & BLOCK_HAVE_UNDO) {
+            READWRITE(VARINT(nUndoPos));
+        }
 
         // block header
         READWRITE(this->nVersion);
@@ -427,7 +449,9 @@ public:
      * if no such height exists.
      */
     CBlockIndex *operator[](int nHeight) const {
-        if (nHeight < 0 || nHeight >= (int)vChain.size()) return nullptr;
+        if (nHeight < 0 || nHeight >= (int)vChain.size()) {
+            return nullptr;
+        }
         return vChain[nHeight];
     }
 
@@ -447,10 +471,11 @@ public:
      * index is not found or is the tip.
      */
     CBlockIndex *Next(const CBlockIndex *pindex) const {
-        if (Contains(pindex))
-            return (*this)[pindex->nHeight + 1];
-        else
+        if (!Contains(pindex)) {
             return nullptr;
+        }
+
+        return (*this)[pindex->nHeight + 1];
     }
 
     /**

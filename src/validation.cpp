@@ -449,10 +449,11 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx,
     }
 
     uint64_t nSigOps = 0;
-    for (unsigned int i = 0; i < tx.vin.size(); i++) {
-        const CTxOut &prevout = inputs.GetOutputFor(tx.vin[i]);
-        if (prevout.scriptPubKey.IsPayToScriptHash())
-            nSigOps += prevout.scriptPubKey.GetSigOpCount(tx.vin[i].scriptSig);
+    for (auto &i : tx.vin) {
+        const CTxOut &prevout = inputs.GetOutputFor(i);
+        if (prevout.scriptPubKey.IsPayToScriptHash()) {
+            nSigOps += prevout.scriptPubKey.GetSigOpCount(i.scriptSig);
+        }
     }
     return nSigOps;
 }
@@ -848,9 +849,11 @@ static bool AcceptToMemoryPoolWorker(
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "mempool min fee not met", false,
                              strprintf("%d < %d", nFees, mempoolRejectFee));
-        } else if (GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
-                   nModifiedFees < ::minRelayTxFee.GetFee(nSize) &&
-                   !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
+        }
+
+        if (GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
+            nModifiedFees < ::minRelayTxFee.GetFee(nSize) &&
+            !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
             // Require that free transactions have sufficient priority to be
             // mined in the next block.
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
@@ -870,7 +873,7 @@ static bool AcceptToMemoryPoolWorker(
             LOCK(csFreeLimiter);
 
             // Use an exponentially decaying ~10-minute window:
-            dFreeCount *= pow(1.0 - 1.0 / 600.0, (double)(nNow - nLastTime));
+            dFreeCount *= pow(1.0 - 1.0 / 600.0, double(nNow - nLastTime));
             nLastTime = nNow;
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
@@ -1271,10 +1274,9 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     // should be detected by both). We define it this way because it allows us
     // to only store the highest fork tip (+ base) which meets the 7-block
     // condition and from this always have the most-likely-to-cause-warning fork
-    if (pfork &&
-        (!pindexBestForkTip ||
-         (pindexBestForkTip &&
-          pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
+    if (pfork && (!pindexBestForkTip ||
+                  (pindexBestForkTip &&
+                   pindexNewForkTip->nHeight > pindexBestForkTip->nHeight)) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork >
             (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->nHeight < 72) {
@@ -1389,10 +1391,10 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     }
 
     if (nValueIn < tx.GetValueOut()) {
-        return state.DoS(
-            100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
-            strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn),
-                      FormatMoney(tx.GetValueOut())));
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout",
+                         false, strprintf("value in (%s) < value out (%s)",
+                                          FormatMoney(nValueIn),
+                                          FormatMoney(tx.GetValueOut())));
     }
 
     // Tally transaction fees
@@ -2025,9 +2027,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 return state.DoS(
-                    100,
-                    error("%s: contains a non-BIP68-final transaction",
-                          __func__),
+                    100, error("%s: contains a non-BIP68-final transaction",
+                               __func__),
                     REJECT_INVALID, "bad-txns-nonfinal");
             }
         }
@@ -2077,9 +2078,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
-    LogPrint("bench",
-             "      - Connect %u transactions: %.2fms (%.3fms/tx, "
-             "%.3fms/txin) [%.2fs]\n",
+    LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, "
+                      "%.3fms/txin) [%.2fs]\n",
              (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2),
              0.001 * (nTime3 - nTime2) / block.vtx.size(),
              nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs - 1),
@@ -2088,10 +2088,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     CAmount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
     if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.DoS(100,
-                         error("ConnectBlock(): coinbase pays too much "
-                               "(actual=%d vs limit=%d)",
-                               block.vtx[0]->GetValueOut(), blockReward),
+        return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
+                                    "(actual=%d vs limit=%d)",
+                                    block.vtx[0]->GetValueOut(), blockReward),
                          REJECT_INVALID, "bad-cb-amount");
     }
 
@@ -2805,8 +2804,9 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                 std::shared_ptr<const CBlock> nullBlockPtr;
                 if (!ActivateBestChainStep(
                         config, state, pindexMostWork,
-                        pblock && pblock->GetHash() ==
-                                      pindexMostWork->GetBlockHash()
+                        pblock &&
+                                pblock->GetHash() ==
+                                    pindexMostWork->GetBlockHash()
                             ? pblock
                             : nullBlockPtr,
                         fInvalidFound, connectTrace))
@@ -3507,8 +3507,9 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         assert(pindexPrev);
-        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
-                                       pindexPrev, state, chainparams, hash)) {
+        if (fCheckpointsEnabled &&
+            !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
+                                         hash)) {
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
                          state.GetRejectReason().c_str());
         }
@@ -3909,9 +3910,8 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
         }
     }
 
-    LogPrint("prune",
-             "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
-             "max_prune_height=%d removed %d blk/rev pairs\n",
+    LogPrint("prune", "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
+                      "max_prune_height=%d removed %d blk/rev pairs\n",
              nPruneTarget / 1024 / 1024, nCurrentUsage / 1024 / 1024,
              ((int64_t)nPruneTarget - (int64_t)nCurrentUsage) / 1024 / 1024,
              nLastBlockWeCanPrune, count);
