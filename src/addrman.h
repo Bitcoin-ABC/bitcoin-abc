@@ -518,6 +518,8 @@ public:
         nNew = 0;
         // Initially at 1 so that "never" is strictly worse.
         nLastGood = 1;
+        mapInfo.clear();
+        mapAddr.clear();
     }
 
     CAddrMan() { Clear(); }
