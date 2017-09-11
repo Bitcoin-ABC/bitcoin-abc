@@ -183,7 +183,8 @@ static UniValue getpeerinfo(const Config &config,
         if (stats.dPingTime > 0.0) {
             obj.pushKV("pingtime", stats.dPingTime);
         }
-        if (stats.dMinPing < std::numeric_limits<int64_t>::max() / 1e6) {
+        if (stats.dMinPing <
+            static_cast<double>(std::numeric_limits<int64_t>::max()) / 1e6) {
             obj.pushKV("minping", stats.dMinPing);
         }
         if (stats.dPingWait > 0.0) {

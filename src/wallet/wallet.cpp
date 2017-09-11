@@ -436,9 +436,9 @@ bool CWallet::ChangeWalletPassphrase(
                                          pMasterKey.second.vchSalt,
                                          pMasterKey.second.nDeriveIterations,
                                          pMasterKey.second.nDerivationMethod);
-            pMasterKey.second.nDeriveIterations =
+            pMasterKey.second.nDeriveIterations = static_cast<unsigned int>(
                 pMasterKey.second.nDeriveIterations *
-                (100 / ((double)(GetTimeMillis() - nStartTime)));
+                (100 / ((double)(GetTimeMillis() - nStartTime))));
 
             nStartTime = GetTimeMillis();
             crypter.SetKeyFromPassphrase(strNewWalletPassphrase,
@@ -447,8 +447,9 @@ bool CWallet::ChangeWalletPassphrase(
                                          pMasterKey.second.nDerivationMethod);
             pMasterKey.second.nDeriveIterations =
                 (pMasterKey.second.nDeriveIterations +
-                 pMasterKey.second.nDeriveIterations * 100 /
-                     double(GetTimeMillis() - nStartTime)) /
+                 static_cast<unsigned int>(
+                     pMasterKey.second.nDeriveIterations * 100 /
+                     double(GetTimeMillis() - nStartTime))) /
                 2;
 
             if (pMasterKey.second.nDeriveIterations < 25000) {
@@ -680,8 +681,8 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
     int64_t nStartTime = GetTimeMillis();
     crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, 25000,
                                  kMasterKey.nDerivationMethod);
-    kMasterKey.nDeriveIterations =
-        2500000 / ((double)(GetTimeMillis() - nStartTime));
+    kMasterKey.nDeriveIterations = static_cast<unsigned int>(
+        2500000 / double(GetTimeMillis() - nStartTime));
 
     nStartTime = GetTimeMillis();
     crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt,
@@ -689,8 +690,8 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
                                  kMasterKey.nDerivationMethod);
     kMasterKey.nDeriveIterations =
         (kMasterKey.nDeriveIterations +
-         kMasterKey.nDeriveIterations * 100 /
-             ((double)(GetTimeMillis() - nStartTime))) /
+         static_cast<unsigned int>(kMasterKey.nDeriveIterations * 100 /
+                                   double(GetTimeMillis() - nStartTime))) /
         2;
 
     if (kMasterKey.nDeriveIterations < 25000) {
