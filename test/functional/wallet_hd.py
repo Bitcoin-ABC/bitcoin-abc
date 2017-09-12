@@ -18,6 +18,15 @@ class WalletHDTest(BitcoinTestFramework):
         self.extra_args = [[], ['-keypool=0']]
 
     def run_test(self):
+        tmpdir = self.options.tmpdir
+
+        # Make sure can't switch off usehd after wallet creation
+        self.stop_node(1)
+        self.assert_start_raises_init_error(
+            1, ['-usehd=0'], 'already existing HD wallet')
+        self.start_node(1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+
         # Make sure we use hd, keep masterkeyid
         masterkeyid = self.nodes[1].getwalletinfo()['hdmasterkeyid']
         assert_equal(len(masterkeyid), 40)
