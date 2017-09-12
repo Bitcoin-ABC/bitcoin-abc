@@ -130,11 +130,13 @@ NODISCARD static bool CreatePidFile() {
 // AppInit() or the Qt main() function.
 //
 // A clean exit happens when StartShutdown() or the SIGTERM signal handler sets
-// ShutdownRequested(), which triggers the DetectShutdownThread(), which
-// interrupts the main thread group. DetectShutdownThread() then exits, which
-// causes AppInit() to continue (it .joins the shutdown thread). Shutdown() is
-// then called to clean up database connections, and stop other threads that
-// should only be stopped after the main network-processing threads have exited.
+// fRequestShutdown, which makes main thread's WaitForShutdown() interrupts the
+// thread group.
+// And then, WaitForShutdown() makes all other on-going threads in the thread
+// group join the main thread.
+// Shutdown() is then called to clean up database connections, and stop other
+// threads that should only be stopped after the main network-processing threads
+// have exited.
 //
 // Shutdown for Qt is very similar, only it uses a QTimer to detect
 // ShutdownRequested() getting set, and then does the normal Qt shutdown thing.
