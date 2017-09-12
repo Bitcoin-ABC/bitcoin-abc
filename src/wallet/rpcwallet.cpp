@@ -528,6 +528,11 @@ static UniValue sendtoaddress(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     CTxDestination dest =
@@ -599,6 +604,11 @@ static UniValue listaddressgroupings(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     UniValue jsonGroupings(UniValue::VARR);
@@ -727,7 +737,7 @@ static UniValue getreceivedbyaddress(const Config &config,
             "confirmations\n" +
             HelpExampleCli("getreceivedbyaddress",
                            "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 0") +
-            "\nThe amount with at least 6 confirmation, very safe\n" +
+            "\nThe amount with at least 6 confirmations\n" +
             HelpExampleCli("getreceivedbyaddress",
                            "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" 6") +
             "\nAs a json rpc call\n" +
@@ -736,6 +746,11 @@ static UniValue getreceivedbyaddress(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     // Bitcoin address
@@ -814,6 +829,11 @@ UniValue getreceivedbylabel(const Config &config,
             HelpExampleRpc("getreceivedbylabel", "\"tabby\", 6"));
     }
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     // Minimum confirmations
@@ -900,14 +920,19 @@ static UniValue getbalance(const Config &config,
             CURRENCY_UNIT +
             " received for this account.\n"
             "\nExamples:\n"
-            "\nThe total amount in the wallet\n" +
+            "\nThe total amount in the wallet with 1 or more confirmations\n" +
             HelpExampleCli("getbalance", "") +
-            "\nThe total amount in the wallet at least 5 blocks confirmed\n" +
+            "\nThe total amount in the wallet at least 6 blocks confirmed\n" +
             HelpExampleCli("getbalance", "\"*\" 6") + "\nAs a json rpc call\n" +
             HelpExampleRpc("getbalance", "\"*\", 6"));
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     if (request.params.size() == 0) {
@@ -946,6 +971,11 @@ static UniValue getunconfirmedbalance(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     return ValueFromAmount(pwallet->GetUnconfirmedBalance());
@@ -1084,6 +1114,11 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     std::string label = LabelFromValue(request.params[0]);
@@ -1210,6 +1245,11 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     if (pwallet->GetBroadcastTransactions() && !g_connman) {
@@ -1593,6 +1633,11 @@ static UniValue listreceivedbyaddress(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
     return ListReceived(config, pwallet, request.params, false);
 }
@@ -1640,6 +1685,11 @@ UniValue listreceivedbylabel(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     return ListReceived(config, pwallet, request.params, true);
@@ -1855,6 +1905,11 @@ static UniValue listtransactions(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     std::string strAccount = "*";
@@ -1973,6 +2028,11 @@ static UniValue listaccounts(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     int nMinDepth = 1;
@@ -2125,6 +2185,11 @@ static UniValue listsinceblock(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     const CBlockIndex *pindex = nullptr;
@@ -2275,6 +2340,11 @@ static UniValue gettransaction(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     TxId txid;
@@ -2349,6 +2419,11 @@ static UniValue abandontransaction(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     TxId txid;
@@ -2385,6 +2460,10 @@ static UniValue backupwallet(const Config &config,
             HelpExampleCli("backupwallet", "\"backup.dat\"") +
             HelpExampleRpc("backupwallet", "\"backup.dat\""));
     }
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
@@ -2770,6 +2849,10 @@ static UniValue lockunspent(const Config &config,
                                           ",\\\"vout\\\":1}]\""));
     }
 
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     if (request.params.size() == 1) {
@@ -2974,6 +3057,11 @@ static UniValue getwalletinfo(const Config &config,
     }
 
     ObserveSafeMode();
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     LOCK2(cs_main, pwallet->cs_wallet);
 
     UniValue obj(UniValue::VOBJ);
@@ -3242,6 +3330,10 @@ static UniValue listunspent(const Config &config,
         }
     }
 
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
     UniValue results(UniValue::VARR);
     std::vector<COutput> vecOutputs;
     assert(pwallet != nullptr);
@@ -3384,6 +3476,10 @@ static UniValue fundrawtransaction(const Config &config,
 
     ObserveSafeMode();
     RPCTypeCheck(request.params, {UniValue::VSTR});
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
 
     CTxDestination changeAddress = CNoDestination();
     int changePosition = -1;
