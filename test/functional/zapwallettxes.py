@@ -15,9 +15,11 @@
   been zapped.
 """
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (assert_equal,
-                                 assert_raises_rpc_error,
-                                 )
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    wait_until,
+)
 
 
 class ZapWalletTXesTest (BitcoinTestFramework):
@@ -56,6 +58,9 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         # transaction is zapped from the wallet, but is re-added when the mempool is reloaded.
         self.stop_node(0)
         self.start_node(0, ["-persistmempool=1", "-zapwallettxes=2"])
+
+        wait_until(lambda: self.nodes[0].getmempoolinfo()[
+                   'size'] == 1, timeout=3)
 
         assert_equal(self.nodes[0].gettransaction(txid1)['txid'], txid1)
         assert_equal(self.nodes[0].gettransaction(txid2)['txid'], txid2)
