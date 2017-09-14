@@ -300,6 +300,8 @@ def main():
             [sys.executable, os.path.join(tests_dir, test_list[0]), '-h'])
         sys.exit(0)
 
+    check_script_prefixes(all_scripts)
+
     if not args.keepcache:
         shutil.rmtree(os.path.join(build_dir, "test",
                                    "cache"), ignore_errors=True)
@@ -592,6 +594,37 @@ def get_all_scripts_from_disk(test_dir, non_scripts):
     """
     python_files = set([t for t in os.listdir(test_dir) if t[-3:] == ".py"])
     return list(python_files - set(non_scripts))
+
+
+def check_script_prefixes(all_scripts):
+    """Check that no more than `EXPECTED_VIOLATION_COUNT` of the
+       test scripts don't start with one of the allowed name prefixes."""
+    EXPECTED_VIOLATION_COUNT = 29
+
+    # LEEWAY is provided as a transition measure, so that pull-requests
+    # that introduce new tests that don't conform with the naming
+    # convention don't immediately cause the tests to fail.
+    LEEWAY = 10
+
+    good_prefixes_re = re.compile(
+        "(example|feature|interface|mempool|mining|p2p|rpc|wallet)_")
+    bad_script_names = [
+        script for script in all_scripts if good_prefixes_re.match(script) is None]
+
+    if len(bad_script_names) < EXPECTED_VIOLATION_COUNT:
+        print(
+            "{}HURRAY!{} Number of functional tests violating naming convention reduced!".format(
+                BOLD[1],
+                BOLD[0]))
+        print("Consider reducing EXPECTED_VIOLATION_COUNT from {} to {}".format(
+            EXPECTED_VIOLATION_COUNT, len(bad_script_names)))
+    elif len(bad_script_names) > EXPECTED_VIOLATION_COUNT:
+        print(
+            "INFO: {} tests not meeting naming conventions (expected {}):".format(len(bad_script_names), EXPECTED_VIOLATION_COUNT))
+        print("  {}".format("\n  ".join(sorted(bad_script_names))))
+        assert len(bad_script_names) <= EXPECTED_VIOLATION_COUNT + \
+            LEEWAY, "Too many tests not following naming convention! ({} found, expected: <= {})".format(
+                len(bad_script_names), EXPECTED_VIOLATION_COUNT)
 
 
 def get_tests_to_run(test_list, test_params, cutoff, src_timings):
