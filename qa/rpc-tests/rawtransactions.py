@@ -24,6 +24,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 3
+        self.extra_args = [["-txindex"]] * self.num_nodes
 
     def setup_network(self, split=False):
         super().setup_network()
@@ -46,7 +47,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # sendrawtransaction with missing input #
         #
         inputs = [
-            {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1}]
+            {'utxid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1}]
             # won't exists
         outputs = {self.nodes[0].getnewaddress(): 4.998}
         rawtx = self.nodes[2].createrawtransaction(inputs, outputs)
@@ -122,7 +123,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         bal = self.nodes[0].getbalance()
         inputs = [{
-            "txid": txId,
+            "utxid": txId,
             "vout": vout['n'],
             "scriptPubKey": vout['scriptPubKey']['hex'],
             "amount": vout['value'],
@@ -183,7 +184,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             -3, "Invalid type", self.nodes[0].getrawtransaction, txHash, {})
 
         inputs = [
-            {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 1000}]
+            {'utxid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 1000}]
         outputs = {self.nodes[0].getnewaddress(): 1}
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
@@ -191,7 +192,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # 9. invalid parameters - sequence number out of range
         inputs = [
-            {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': -1}]
+            {'utxid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': -1}]
         outputs = {self.nodes[0].getnewaddress(): 1}
         assert_raises_jsonrpc(
             -8, 'Invalid parameter, sequence number is out of range',
@@ -199,14 +200,14 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # 10. invalid parameters - sequence number out of range
         inputs = [
-            {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967296}]
+            {'utxid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967296}]
         outputs = {self.nodes[0].getnewaddress(): 1}
         assert_raises_jsonrpc(
             -8, 'Invalid parameter, sequence number is out of range',
                               self.nodes[0].createrawtransaction, inputs, outputs)
 
         inputs = [
-            {'txid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967294}]
+            {'utxid': "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000", 'vout': 1, 'sequence': 4294967294}]
         outputs = {self.nodes[0].getnewaddress(): 1}
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)

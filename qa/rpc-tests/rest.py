@@ -57,6 +57,7 @@ class RESTTest (BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 3
+        self.extra_args = [['-txindex']] * self.num_nodes
 
     def setup_network(self, split=False):
         super().setup_network()
@@ -85,8 +86,9 @@ class RESTTest (BitcoinTestFramework):
         # load the latest 0.1 tx over the REST API
         json_string = http_get_call(
             url.hostname, url.port, '/rest/tx/' + txid + self.FORMAT_SEPARATOR + "json")
+
         json_obj = json.loads(json_string)
-        vintx = json_obj['vin'][0]['txid']
+        vintx = json_obj['vin'][0]['utxid']
             # get the vin to later check for utxo (should be spent by then)
         # get n of 0.1 outpoint
         n = 0
@@ -168,7 +170,7 @@ class RESTTest (BitcoinTestFramework):
         json_string = http_get_call(
             url.hostname, url.port, '/rest/tx/' + txid + self.FORMAT_SEPARATOR + "json")
         json_obj = json.loads(json_string)
-        vintx = json_obj['vin'][0]['txid']
+        vintx = json_obj['vin'][0]['utxid']
             # get the vin to later check for utxo (should be spent by then)
         # get n of 0.1 outpoint
         n = 0

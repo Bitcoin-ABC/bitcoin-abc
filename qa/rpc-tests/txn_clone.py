@@ -61,7 +61,7 @@ class TxnMallTest(BitcoinTestFramework):
         # Construct a clone of tx1, to be malleated
         rawtx1 = self.nodes[0].getrawtransaction(txid1, 1)
         clone_inputs = [
-            {"txid": rawtx1["vin"][0]["txid"], "vout":rawtx1["vin"][0]["vout"]}]
+            {"utxid": rawtx1["vin"][0]["utxid"], "vout":rawtx1["vin"][0]["vout"]}]
         clone_outputs = {rawtx1[
             "vout"][0]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][0]["value"],
             rawtx1["vout"][1]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][1]["value"]}

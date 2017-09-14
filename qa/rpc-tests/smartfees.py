@@ -46,12 +46,12 @@ def small_txpuzzle_randfee(from_node, conflist, unconflist, amount, min_fee, fee
     while total_in <= (amount + fee) and len(conflist) > 0:
         t = conflist.pop(0)
         total_in += t["amount"]
-        inputs.append({"txid": t["txid"], "vout": t["vout"]})
+        inputs.append({"utxid": t["utxid"], "vout": t["vout"]})
     if total_in <= amount + fee:
         while total_in <= (amount + fee) and len(unconflist) > 0:
             t = unconflist.pop(0)
             total_in += t["amount"]
-            inputs.append({"txid": t["txid"], "vout": t["vout"]})
+            inputs.append({"utxid": t["utxid"], "vout": t["vout"]})
         if total_in <= amount + fee:
             raise RuntimeError(
                 "Insufficient funds: need %d, have %d" % (amount + fee, total_in))
@@ -72,8 +72,8 @@ def small_txpuzzle_randfee(from_node, conflist, unconflist, amount, min_fee, fee
     completetx += rawtx[10 + 82 * inputnum:]
     txid = from_node.sendrawtransaction(completetx, True)
     unconflist.append(
-        {"txid": txid, "vout": 0, "amount": total_in - amount - fee})
-    unconflist.append({"txid": txid, "vout": 1, "amount": amount})
+        {"utxid": txid, "vout": 0, "amount": total_in - amount - fee})
+    unconflist.append({"utxid": txid, "vout": 1, "amount": amount})
 
     return (completetx, fee)
 
@@ -87,7 +87,7 @@ def split_inputs(from_node, txins, txouts, initial_split=False):
     '''
     prevtxout = txins.pop()
     inputs = []
-    inputs.append({"txid": prevtxout["txid"], "vout": prevtxout["vout"]})
+    inputs.append({"utxid": prevtxout["utxid"], "vout": prevtxout["vout"]})
     half_change = satoshi_round(prevtxout["amount"] / 2)
     rem_change = prevtxout["amount"] - half_change - Decimal("0.00001000")
     outputs = OrderedDict([(P2SH_1, half_change), (P2SH_2, rem_change)])
@@ -100,8 +100,8 @@ def split_inputs(from_node, txins, txouts, initial_split=False):
     else:
         completetx = rawtx[0:82] + SCRIPT_SIG[prevtxout["vout"]] + rawtx[84:]
     txid = from_node.sendrawtransaction(completetx, True)
-    txouts.append({"txid": txid, "vout": 0, "amount": half_change})
-    txouts.append({"txid": txid, "vout": 1, "amount": rem_change})
+    txouts.append({"utxid": txid, "vout": 0, "amount": half_change})
+    txouts.append({"utxid": txid, "vout": 1, "amount": rem_change})
 
 
 def check_estimates(node, fees_seen, max_invalid, print_estimates=True):
@@ -253,7 +253,7 @@ class EstimateFeeTest(BitcoinTestFramework):
             # update which txouts are confirmed
             newmem = []
             for utx in self.memutxo:
-                if utx["txid"] in mined:
+                if utx["utxid"] in mined:
                     self.confutxo.append(utx)
                 else:
                     newmem.append(utx)

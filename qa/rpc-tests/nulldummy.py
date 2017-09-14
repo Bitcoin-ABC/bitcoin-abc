@@ -82,8 +82,8 @@ class NULLDUMMYTest(BitcoinTestFramework):
             "Test 3: Non-NULLDUMMY base transactions should be accepted in a block before activation [431]")
         self.block_submit(self.nodes[0], [test2tx], False, True)
 
-    def create_transaction(self, node, txid, to_address, amount):
-        inputs = [{"txid": txid, "vout": 0}]
+    def create_transaction(self, node, utxid, to_address, amount):
+        inputs = [{"utxid": utxid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
         signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")

@@ -44,7 +44,7 @@ class BIP9SoftForksTest(ComparisonTestFramework):
 
     def create_transaction(self, node, coinbase, to_address, amount):
         from_txid = node.getblock(coinbase)['tx'][0]
-        inputs = [{"txid": from_txid, "vout": 0}]
+        inputs = [{"utxid": from_txid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
         tx = CTransaction()

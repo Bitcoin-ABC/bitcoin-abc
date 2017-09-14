@@ -56,10 +56,10 @@ class TxnMallTest(BitcoinTestFramework):
         # but don't broadcast:
         doublespend_fee = Decimal('-.02')
         rawtx_input_0 = {}
-        rawtx_input_0["txid"] = fund_foo_txid
+        rawtx_input_0["utxid"] = fund_foo_txid
         rawtx_input_0["vout"] = find_output(self.nodes[0], fund_foo_txid, 1219)
         rawtx_input_1 = {}
-        rawtx_input_1["txid"] = fund_bar_txid
+        rawtx_input_1["utxid"] = fund_bar_txid
         rawtx_input_1["vout"] = find_output(self.nodes[0], fund_bar_txid, 29)
         inputs = [rawtx_input_0, rawtx_input_1]
         change_address = self.nodes[0].getnewaddress()

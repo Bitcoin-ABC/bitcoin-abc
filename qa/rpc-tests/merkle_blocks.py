@@ -18,7 +18,7 @@ class MerkleBlockTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 4
         # Nodes 0/1 are "wallet" nodes, Nodes 2/3 are used for testing
-        self.extra_args = [[], [], [], ["-txindex"]]
+        self.extra_args = [["-txindex"]] * 4
 
     def setup_network(self):
         self.setup_nodes()
@@ -73,13 +73,10 @@ class MerkleBlockTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
 
-        txid_spent = txin_spent["txid"]
-        txid_unspent = txid1 if txin_spent["txid"] != txid1 else txid2
+        txid_spent = txin_spent["utxid"]
+        txid_unspent = txid1 if txin_spent["utxid"] != txid1 else txid2
 
-        # We can't find the block from a fully-spent tx
-        assert_raises(
-            JSONRPCException, self.nodes[2].gettxoutproof, [txid_spent])
-        # ...but we can if we specify the block
+        # We can find the proof if we specify the block
         assert_equal(self.nodes[2].verifytxoutproof(
             self.nodes[2].gettxoutproof([txid_spent], blockhash)), [txid_spent])
         # ...or if the first tx is not fully-spent

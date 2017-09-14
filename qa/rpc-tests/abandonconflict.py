@@ -15,7 +15,9 @@ class AbandonConflictTest(BitcoinTestFramework):
         super().__init__()
         self.num_nodes = 2
         self.setup_clean_chain = False
-        self.extra_args = [["-minrelaytxfee=0.00001"], []]
+        self.extra_args = [["-minrelaytxfee=0.00001",
+                            "-txindex", "-reindex-chainstate"],
+                           ["-txindex", "-reindex-chainstate"]]
 
     def run_test(self):
         self.nodes[1].generate(100)
@@ -49,8 +51,8 @@ class AbandonConflictTest(BitcoinTestFramework):
 
         inputs = []
         # spend 10btc outputs from txA and txB
-        inputs.append({"txid": txA, "vout": nA})
-        inputs.append({"txid": txB, "vout": nB})
+        inputs.append({"utxid": txA, "vout": nA})
+        inputs.append({"utxid": txB, "vout": nB})
         outputs = {}
 
         outputs[self.nodes[0].getnewaddress()] = Decimal("14.99998")
@@ -65,8 +67,8 @@ class AbandonConflictTest(BitcoinTestFramework):
 
         # Create a child tx spending AB1 and C
         inputs = []
-        inputs.append({"txid": txAB1, "vout": nAB})
-        inputs.append({"txid": txC, "vout": nC})
+        inputs.append({"utxid": txAB1, "vout": nAB})
+        inputs.append({"utxid": txC, "vout": nC})
         outputs = {}
         outputs[self.nodes[0].getnewaddress()] = Decimal("24.9996")
         signed2 = self.nodes[0].signrawtransaction(
@@ -83,6 +85,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Note had to make sure tx did not have AllowFree priority
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
+                                   "-txindex",
                                    "-logtimemicros",
                                    "-minrelaytxfee=0.0001"])
 
@@ -99,7 +102,7 @@ class AbandonConflictTest(BitcoinTestFramework):
             0].getunconfirmedbalance() + self.nodes[0].getbalance()
         assert_equal(unconfbalance, newbalance)
         # Also shouldn't show up in listunspent
-        assert(not txABC2 in [utxo["txid"]
+        assert(not txABC2 in [utxo["utxid"]
                for utxo in self.nodes[0].listunspent(0)])
         balance = newbalance
 
@@ -114,6 +117,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # from wallet on startup once abandoned
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
+                                   "-txindex",
                                    "-logtimemicros",
                                    "-minrelaytxfee=0.00001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -137,6 +141,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Remove using high relay fee again
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
+                                   "-txindex",
                                    "-logtimemicros",
                                    "-minrelaytxfee=0.0001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -147,7 +152,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Create a double spend of AB1 by spending again from only A's 10 output
         # Mine double spend from node 1
         inputs = []
-        inputs.append({"txid": txA, "vout": nA})
+        inputs.append({"utxid": txA, "vout": nA})
         outputs = {}
         outputs[self.nodes[1].getnewaddress()] = Decimal("9.9999")
         tx = self.nodes[0].createrawtransaction(inputs, outputs)

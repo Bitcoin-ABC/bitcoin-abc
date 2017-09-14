@@ -524,7 +524,7 @@ def gather_inputs(from_node, amount_needed, confirmations_required=1):
         t = utxo.pop()
         total_in += t["amount"]
         inputs.append(
-            {"txid": t["txid"], "vout": t["vout"], "address": t["address"]})
+            {"utxid": t["utxid"], "vout": t["vout"], "address": t["address"]})
     if total_in < amount_needed:
         raise RuntimeError(
             "Insufficient funds: need %d, have %d" % (amount_needed, total_in))
@@ -762,7 +762,7 @@ def create_confirmed_utxos(fee, node, count, age=101):
     for i in range(iterations):
         t = utxos.pop()
         inputs = []
-        inputs.append({"txid": t["txid"], "vout": t["vout"]})
+        inputs.append({"utxid": t["utxid"], "vout": t["vout"]})
         outputs = {}
         send_value = t['amount'] - fee
         outputs[addr1] = satoshi_round(send_value / 2)
@@ -804,7 +804,7 @@ def gen_return_txouts():
 
 
 def create_tx(node, coinbase, to_address, amount):
-    inputs = [{"txid": coinbase, "vout": 0}]
+    inputs = [{"utxid": coinbase, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
     signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
@@ -820,7 +820,7 @@ def create_lots_of_big_transactions(node, txouts, utxos, num, fee):
     txids = []
     for _ in range(num):
         t = utxos.pop()
-        inputs = [{"txid": t["txid"], "vout": t["vout"]}]
+        inputs = [{"utxid": t["utxid"], "vout": t["vout"]}]
         outputs = {}
         change = t['amount'] - fee
         outputs[addr] = satoshi_round(change)
