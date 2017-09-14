@@ -2106,7 +2106,7 @@ static UniValue listsinceblock(const Config &config,
 
     for (std::map<txid_t, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); it++) {
-        CWalletTx tx = (*it).second;
+        CWalletTx &tx = (*it).second;
 
         if (depth == -1 || tx.GetDepthInMainChain() < depth) {
             ListTransactions(tx, "*", 0, true, transactions, filter);

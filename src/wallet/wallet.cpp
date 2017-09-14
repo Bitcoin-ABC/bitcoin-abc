@@ -1206,6 +1206,7 @@ bool CWallet::AbandonTransaction(const txid_t &hashTx) {
 
     // Can't mark abandoned if confirmed or in mempool.
     const CWalletTx *origtx = GetWalletTx(hashTx);
+    const utxid_t origUtxid = origtx->tx->GetUtxid(MALFIX_MODE_LEGACY);
     assert(origtx);
     if (origtx->GetDepthInMainChain() > 0 || origtx->InMempool()) {
         return false;
@@ -1218,7 +1219,7 @@ bool CWallet::AbandonTransaction(const txid_t &hashTx) {
         todo.erase(now);
         done.insert(now);
         assert(mapWallet.count(now));
-        CWalletTx wtx = mapWallet[now];
+        CWalletTx &wtx = mapWallet[now];
         utxid_t utxid = wtx.tx->GetUtxid(MALFIX_MODE_LEGACY);
 
         int currentconfirm = wtx.GetDepthInMainChain();
@@ -1238,7 +1239,7 @@ bool CWallet::AbandonTransaction(const txid_t &hashTx) {
             // Iterate over all its outputs, and mark transactions in the wallet
             // that spend them abandoned too.
             TxSpends::const_iterator iter =
-                mapTxSpends.lower_bound(COutPoint(utxid, 0));
+                mapTxSpends.lower_bound(COutPoint(origUtxid, 0));
             while (iter != mapTxSpends.end() && iter->first.utxid == utxid) {
                 if (!done.count(iter->second)) {
                     todo.insert(iter->second);
