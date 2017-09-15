@@ -77,7 +77,7 @@ void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
             in.push_back(Pair("coinbase", HexStr(txin.scriptSig.begin(),
                                                  txin.scriptSig.end())));
         } else {
-            in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
+            in.push_back(Pair("utxid", txin.prevout.utxid.GetHex()));
             in.push_back(Pair("vout", (int64_t)txin.prevout.n));
             UniValue o(UniValue::VOBJ);
             o.push_back(Pair("asm", ScriptToAsmStr(txin.scriptSig, true)));
@@ -132,8 +132,6 @@ static UniValue getrawtransaction(const Config &config,
             "\nNOTE: By default this function only works for mempool "
             "transactions. If the -txindex option is\n"
             "enabled, it also works for blockchain transactions.\n"
-            "DEPRECATED: for now, it also works for transactions with unspent "
-            "outputs.\n"
 
             "\nReturn the raw transaction data.\n"
             "\nIf verbose is 'true', returns an Object with information about "
@@ -164,7 +162,7 @@ static UniValue getrawtransaction(const Config &config,
             "  \"locktime\" : ttt,       (numeric) The lock time\n"
             "  \"vin\" : [               (array of json objects)\n"
             "     {\n"
-            "       \"txid\": \"id\",    (string) The transaction id\n"
+            "       \"utxid\": \"id\",   (string) The transaction id\n"
             "       \"vout\": n,         (numeric) \n"
             "       \"scriptSig\": {     (json object) The script\n"
             "         \"asm\": \"asm\",  (string) asm\n"
@@ -210,7 +208,7 @@ static UniValue getrawtransaction(const Config &config,
 
     LOCK(cs_main);
 
-    uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    txid_t hash = txid_t(ParseHashV(request.params[0], "parameter 1"));
 
     // Accept either a bool (true) or a num (>=1) to indicate verbose output.
     bool fVerbose = false;
@@ -232,7 +230,7 @@ static UniValue getrawtransaction(const Config &config,
 
     CTransactionRef tx;
     uint256 hashBlock;
-    if (!GetTransaction(config, hash, tx, hashBlock, true)) {
+    if (!GetTransaction(config, hash, tx, hashBlock)) {
         throw JSONRPCError(
             RPC_INVALID_ADDRESS_OR_KEY,
             std::string(fTxIndex ? "No such mempool or blockchain transaction"
@@ -261,13 +259,10 @@ static UniValue gettxoutproof(const Config &config,
             "gettxoutproof [\"txid\",...] ( blockhash )\n"
             "\nReturns a hex-encoded proof that \"txid\" was included in a "
             "block.\n"
-            "\nNOTE: By default this function only works sometimes. This is "
-            "when there is an\n"
-            "unspent output in the utxo for this transaction. To make it "
-            "always work,\n"
-            "you need to maintain a transaction index, using the -txindex "
-            "command line option or\n"
-            "specify the block in which the transaction is included manually "
+            "\nNOTE: This function only works if a transaction index is "
+            "maintained using the\n"
+            "-txindex command line option or\n"
+            "by specifying the block in which the transaction is included manually "
             "(by blockhash).\n"
             "\nArguments:\n"
             "1. \"txids\"       (string) A json array of txids to filter\n"
@@ -282,8 +277,8 @@ static UniValue gettxoutproof(const Config &config,
             "hex-encoded data for the proof.\n");
     }
 
-    std::set<uint256> setTxids;
-    uint256 oneTxid;
+    std::set<txid_t> setTxids;
+    txid_t oneTxid;
     UniValue txids = request.params[0].get_array();
     for (unsigned int idx = 0; idx < txids.size(); idx++) {
         const UniValue &txid = txids[idx];
@@ -292,7 +287,7 @@ static UniValue gettxoutproof(const Config &config,
                                std::string("Invalid txid ") + txid.get_str());
         }
 
-        uint256 hash(uint256S(txid.get_str()));
+        txid_t hash(uint256S(txid.get_str()));
         if (setTxids.count(hash)) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
@@ -314,17 +309,17 @@ static UniValue gettxoutproof(const Config &config,
         if (!mapBlockIndex.count(hashBlock))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
         pblockindex = mapBlockIndex[hashBlock];
-    } else {
-        const Coin &coin = AccessByTxid(*pcoinsTip, oneTxid);
-        if (!coin.IsSpent() && coin.GetHeight() > 0 &&
-            int64_t(coin.GetHeight()) <= chainActive.Height()) {
-            pblockindex = chainActive[coin.GetHeight()];
-        }
     }
 
     if (pblockindex == nullptr) {
+
+        if (!fTxIndex) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Missing blockhash parameter.");
+        }
+
         CTransactionRef tx;
-        if (!GetTransaction(config, oneTxid, tx, hashBlock, false) ||
+        if (!GetTransaction(config, oneTxid, tx, hashBlock) ||
             hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");
@@ -426,7 +421,7 @@ static UniValue createrawtransaction(const Config &config,
             "json objects\n"
             "     [\n"
             "       {\n"
-            "         \"txid\":\"id\",    (string, required) The transaction "
+            "         \"utxid\":\"id\",   (string, required) The unspent transaction "
             "id\n"
             "         \"vout\":n,         (numeric, required) The output "
             "number\n"
@@ -455,16 +450,16 @@ static UniValue createrawtransaction(const Config &config,
 
             "\nExamples:\n" +
             HelpExampleCli("createrawtransaction",
-                           "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" "
+                           "\"[{\\\"utxid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" "
                            "\"{\\\"address\\\":0.01}\"") +
             HelpExampleCli("createrawtransaction",
-                           "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" "
+                           "\"[{\\\"utxid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" "
                            "\"{\\\"data\\\":\\\"00010203\\\"}\"") +
             HelpExampleRpc("createrawtransaction",
-                           "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", "
+                           "\"[{\\\"utxid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", "
                            "\"{\\\"address\\\":0.01}\"") +
             HelpExampleRpc("createrawtransaction",
-                           "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", "
+                           "\"[{\\\"utxid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", "
                            "\"{\\\"data\\\":\\\"00010203\\\"}\""));
     }
 
@@ -495,7 +490,7 @@ static UniValue createrawtransaction(const Config &config,
         const UniValue &input = inputs[idx];
         const UniValue &o = input.get_obj();
 
-        uint256 txid = ParseHashO(o, "txid");
+        utxid_t txid = utxid_t(ParseHashO(o, "utxid"));
 
         const UniValue &vout_v = find_value(o, "vout");
         if (!vout_v.isNum()) {
@@ -590,7 +585,7 @@ static UniValue decoderawtransaction(const Config &config,
             "  \"locktime\" : ttt,       (numeric) The lock time\n"
             "  \"vin\" : [               (array of json objects)\n"
             "     {\n"
-            "       \"txid\": \"id\",    (string) The transaction id\n"
+            "       \"utxid\": \"id\",   (string) The transaction id\n"
             "       \"vout\": n,         (numeric) The output number\n"
             "       \"scriptSig\": {     (json object) The script\n"
             "         \"asm\": \"asm\",  (string) asm\n"
@@ -703,7 +698,7 @@ static UniValue decodescript(const Config &config,
 static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
                             const std::string &strMessage) {
     UniValue entry(UniValue::VOBJ);
-    entry.push_back(Pair("txid", txin.prevout.hash.ToString()));
+    entry.push_back(Pair("utxid", txin.prevout.utxid.ToString()));
     entry.push_back(Pair("vout", (uint64_t)txin.prevout.n));
     entry.push_back(Pair("scriptSig",
                          HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
@@ -718,7 +713,7 @@ static UniValue signrawtransaction(const Config &config,
         request.params.size() > 4) {
         throw std::runtime_error(
             "signrawtransaction \"hexstring\" ( "
-            "[{\"txid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\","
+            "[{\"utxid\":\"id\",\"vout\":n,\"scriptPubKey\":\"hex\","
             "\"redeemScript\":\"hex\"},...] [\"privatekey1\",...] sighashtype "
             ")\n"
             "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
@@ -743,7 +738,7 @@ static UniValue signrawtransaction(const Config &config,
             "     [               (json array of json objects, or 'null' if "
             "none provided)\n"
             "       {\n"
-            "         \"txid\":\"id\",             (string, required) The "
+            "         \"utxid\":\"id\",            (string, required) The "
             "transaction id\n"
             "         \"vout\":n,                  (numeric, required) The "
             "output number\n"
@@ -892,14 +887,14 @@ static UniValue signrawtransaction(const Config &config,
             if (!p.isObject()) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                    "expected object with "
-                                   "{\"txid'\",\"vout\",\"scriptPubKey\"}");
+                                   "{\"utxid'\",\"vout\",\"scriptPubKey\"}");
             }
 
             UniValue prevOut = p.get_obj();
 
             RPCTypeCheckObj(prevOut,
                             {
-                                {"txid", UniValueType(UniValue::VSTR)},
+                                {"utxid", UniValueType(UniValue::VSTR)},
                                 {"vout", UniValueType(UniValue::VNUM)},
                                 {"scriptPubKey", UniValueType(UniValue::VSTR)},
                                 // "amount" is also required but check is done
@@ -908,7 +903,7 @@ static UniValue signrawtransaction(const Config &config,
                                 // (which are valid JSON)
                             });
 
-            uint256 txid = ParseHashO(prevOut, "txid");
+            const utxid_t utxid = utxid_t(ParseHashO(prevOut, "utxid"));
 
             int nOut = find_value(prevOut, "vout").get_int();
             if (nOut < 0) {
@@ -916,7 +911,7 @@ static UniValue signrawtransaction(const Config &config,
                                    "vout must be positive");
             }
 
-            COutPoint out(txid, nOut);
+            COutPoint out(utxid, nOut);
             std::vector<uint8_t> pkData(ParseHexO(prevOut, "scriptPubKey"));
             CScript scriptPubKey(pkData.begin(), pkData.end());
 
@@ -958,7 +953,7 @@ static UniValue signrawtransaction(const Config &config,
             if (fGivenKeys && scriptPubKey.IsPayToScriptHash()) {
                 RPCTypeCheckObj(
                     prevOut, {
-                                 {"txid", UniValueType(UniValue::VSTR)},
+                                 {"utxid", UniValueType(UniValue::VSTR)},
                                  {"vout", UniValueType(UniValue::VNUM)},
                                  {"scriptPubKey", UniValueType(UniValue::VSTR)},
                                  {"redeemScript", UniValueType(UniValue::VSTR)},
@@ -1092,7 +1087,7 @@ static UniValue sendrawtransaction(const Config &config,
             "\nExamples:\n"
             "\nCreate a transaction\n" +
             HelpExampleCli("createrawtransaction",
-                           "\"[{\\\"txid\\\" : "
+                           "\"[{\\\"utxid\\\" : "
                            "\\\"mytxid\\\",\\\"vout\\\":0}]\" "
                            "\"{\\\"myaddress\\\":0.01}\"") +
             "Sign the transaction, and get back the hex\n" +
@@ -1113,7 +1108,8 @@ static UniValue sendrawtransaction(const Config &config,
     }
 
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
-    const uint256 &txid = tx->GetId();
+    const utxid_t &utxid = tx->GetUtxid(MALFIX_MODE_LEGACY);
+    const txid_t &txid = tx->GetId();
 
     bool fLimitFree = false;
     CAmount nMaxRawTxFee = maxTxFee;
@@ -1124,7 +1120,7 @@ static UniValue sendrawtransaction(const Config &config,
     CCoinsViewCache &view = *pcoinsTip;
     bool fHaveChain = false;
     for (size_t o = 0; !fHaveChain && o < tx->vout.size(); o++) {
-        const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
+        const Coin &existingCoin = view.AccessCoin(COutPoint(utxid, o));
         fHaveChain = !existingCoin.IsSpent();
     }
 

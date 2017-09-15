@@ -331,10 +331,10 @@ static UniValue prioritisetransaction(const Config &config,
 
     LOCK(cs_main);
 
-    uint256 hash = ParseHashStr(request.params[0].get_str(), "txid");
+    txid_t txid(ParseHashStr(request.params[0].get_str(), "txid"));
     CAmount nAmount = request.params[2].get_int64();
 
-    mempool.PrioritiseTransaction(hash, request.params[0].get_str(),
+    mempool.PrioritiseTransaction(txid, request.params[0].get_str(),
                                   request.params[1].get_real(), nAmount);
     return true;
 }
@@ -681,13 +681,20 @@ static UniValue getblocktemplate(const Config &config,
     UniValue aCaps(UniValue::VARR);
     aCaps.push_back("proposal");
 
+    // Is Malleability Fix active?
+    const MalFixMode malFixMode = (VersionBitsState(pindexPrev, consensusParams,
+                                   Consensus::DEPLOYMENT_MALFIX,
+                                   versionbitscache) == THRESHOLD_ACTIVE)
+                                ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
     UniValue transactions(UniValue::VARR);
-    std::map<uint256, int64_t> setTxIndex;
+    std::map<utxid_t, int64_t> setTxIndex;
     int i = 0;
     for (const auto &it : pblock->vtx) {
         const CTransaction &tx = *it;
         uint256 txId = tx.GetId();
-        setTxIndex[txId] = i++;
+        utxid_t txUTXId = tx.GetUtxid(malFixMode);
+        setTxIndex[txUTXId] = i++;
 
         if (tx.IsCoinBase()) {
             continue;
@@ -701,8 +708,8 @@ static UniValue getblocktemplate(const Config &config,
 
         UniValue deps(UniValue::VARR);
         for (const CTxIn &in : tx.vin) {
-            if (setTxIndex.count(in.prevout.hash))
-                deps.push_back(setTxIndex[in.prevout.hash]);
+            if (setTxIndex.count(in.prevout.utxid))
+                deps.push_back(setTxIndex[in.prevout.utxid]);
         }
         entry.push_back(Pair("depends", deps));
 

@@ -19,7 +19,7 @@ class WalletTest (BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [['-usehd={:d}'.format(i % 2 == 0)]
+        self.extra_args =  [['-usehd={:d}'.format(i % 2 == 0), '-txindex']
                            for i in range(4)]
 
     def setup_network(self):
@@ -70,7 +70,7 @@ class WalletTest (BitcoinTestFramework):
 
         # Exercise locking of unspent outputs
         unspent_0 = self.nodes[2].listunspent()[0]
-        unspent_0 = {"txid": unspent_0["txid"], "vout": unspent_0["vout"]}
+        unspent_0 = {'utxid': unspent_0['utxid'], "vout": unspent_0["vout"]}
         self.nodes[2].lockunspent(False, [unspent_0])
         assert_raises_message(JSONRPCException, "Insufficient funds", self.nodes[
                               2].sendtoaddress, self.nodes[2].getnewaddress(), 20)
@@ -98,7 +98,7 @@ class WalletTest (BitcoinTestFramework):
         for utxo in node0utxos:
             inputs = []
             outputs = {}
-            inputs.append({"txid": utxo["txid"], "vout": utxo["vout"]})
+            inputs.append({'utxid': utxo['utxid'], "vout": utxo["vout"]})
             outputs[self.nodes[2].getnewaddress("from1")] = utxo["amount"] - 3
             raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
             txns_to_send.append(
@@ -183,7 +183,7 @@ class WalletTest (BitcoinTestFramework):
         # 3. sign and send
         # 4. check if recipient (node0) can list the zero value tx
         usp = self.nodes[1].listunspent()
-        inputs = [{"txid": usp[0]['txid'], "vout":usp[0]['vout']}]
+        inputs = [{'utxid': usp[0]['utxid'], "vout":usp[0]['vout']}]
         outputs = {
             self.nodes[1].getnewaddress(): 49.998, self.nodes[0].getnewaddress(): 11.11}
 
@@ -204,14 +204,14 @@ class WalletTest (BitcoinTestFramework):
             0].listunspent()  # zero value tx must be in listunspents output
         found = False
         for uTx in unspentTxs:
-            if uTx['txid'] == zeroValueTxid:
+            if uTx['utxid'] == zeroValueTxid:
                 found = True
                 assert_equal(uTx['amount'], Decimal('0'))
         assert(found)
 
         # do some -walletbroadcast tests
         stop_nodes(self.nodes)
-        extra_args = [["-walletbroadcast=0"] for i in range(3)]
+        extra_args = [["-txindex", "-walletbroadcast=0"] for i in range(3)]
         self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
@@ -242,7 +242,11 @@ class WalletTest (BitcoinTestFramework):
 
         # restart the nodes with -walletbroadcast=1
         stop_nodes(self.nodes)
-        self.nodes = start_nodes(3, self.options.tmpdir)
+        extra_args = [["-txindex", "-walletbroadcast=1"] for i in range(3)]
+
+        self.nodes = start_nodes(3, self.options.tmpdir, extra_args)
+
+
         connect_nodes_bi(self.nodes, 0, 1)
         connect_nodes_bi(self.nodes, 1, 2)
         connect_nodes_bi(self.nodes, 0, 2)
@@ -358,7 +362,7 @@ class WalletTest (BitcoinTestFramework):
             stop_nodes(self.nodes)
             # set lower ancestor limit for later
             self.nodes = start_nodes(3, self.options.tmpdir,
-                                     [[m, "-limitancestorcount=" + str(chainlimit)]] * 3)
+                                     [[m, "-txindex", "-limitancestorcount=" + str(chainlimit)]] * 3)
             while m == '-reindex' and [block_count] * 3 != [self.nodes[i].getblockcount() for i in range(3)]:
                 # reindex will leave rpc warm up "early"; Wait for it to finish
                 time.sleep(0.1)
@@ -383,7 +387,7 @@ class WalletTest (BitcoinTestFramework):
         self.nodes[0].generate(1)
         node0_balance = self.nodes[0].getbalance()
         # Split into two chains
-        rawtx = self.nodes[0].createrawtransaction([{"txid": singletxid, "vout": 0}], {
+        rawtx = self.nodes[0].createrawtransaction([{'utxid': singletxid, "vout": 0}], {
                                                    chain_addrs[0]: node0_balance / 2 - Decimal('0.01'), chain_addrs[1]: node0_balance / 2 - Decimal('0.01')})
         signedtx = self.nodes[0].signrawtransaction(
             rawtx, None, None, "ALL|FORKID")
@@ -418,7 +422,7 @@ class WalletTest (BitcoinTestFramework):
         # SelectCoinsMinConf
         stop_node(self.nodes[0], 0)
         self.nodes[0] = start_node(0, self.options.tmpdir, [
-                                   "-walletrejectlongchains", "-limitancestorcount=" + str(2 * chainlimit)])
+                        "-txindex", "-walletrejectlongchains", "-limitancestorcount=" + str(2 * chainlimit)])
 
         # wait for loadmempool
         timeout = 10

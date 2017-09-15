@@ -122,14 +122,14 @@ void CCoinsViewCache::AddCoin(const COutPoint &outpoint, Coin coin,
     cachedCoinsUsage += it->second.coin.DynamicMemoryUsage();
 }
 
-void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight) {
+void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight, MalFixMode malFixMode) {
     bool fCoinbase = tx.IsCoinBase();
-    const uint256 &txid = tx.GetHash();
+    const utxid_t &utxid = tx.GetUtxid(malFixMode);
     for (size_t i = 0; i < tx.vout.size(); ++i) {
         // Pass fCoinbase as the possible_overwrite flag to AddCoin, in order to
         // correctly deal with the pre-BIP30 occurrances of duplicate coinbase
         // transactions.
-        cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase),
+        cache.AddCoin(COutPoint(utxid, i), Coin(tx.vout[i], nHeight, fCoinbase),
                       fCoinbase);
     }
 }
@@ -319,19 +319,3 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
     return tx.ComputePriority(dResult);
 }
 
-// TODO: merge with similar definition in undo.h.
-static const size_t MAX_OUTPUTS_PER_TX =
-    MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), SER_NETWORK, PROTOCOL_VERSION);
-
-const Coin &AccessByTxid(const CCoinsViewCache &view, const uint256 &txid) {
-    COutPoint iter(txid, 0);
-    while (iter.n < MAX_OUTPUTS_PER_TX) {
-        const Coin &alternate = view.AccessCoin(iter);
-        if (!alternate.IsSpent()) {
-            return alternate;
-        }
-        ++iter.n;
-    }
-
-    return coinEmpty;
-}

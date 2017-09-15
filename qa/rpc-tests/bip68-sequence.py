@@ -81,7 +81,7 @@ class BIP68Test(BitcoinTestFramework):
         # input to mature.
         sequence_value = SEQUENCE_LOCKTIME_DISABLE_FLAG | 1
         tx1.vin = [
-            CTxIn(COutPoint(int(utxo["txid"], 16), utxo["vout"]), nSequence=sequence_value)]
+            CTxIn(COutPoint(int(utxo["utxid"], 16), utxo["vout"]), nSequence=sequence_value)]
         tx1.vout = [CTxOut(value, CScript([b'a']))]
 
         tx1_signed = self.nodes[0].signrawtransaction(
@@ -201,7 +201,7 @@ class BIP68Test(BitcoinTestFramework):
                                 (cur_time - orig_time) >> SEQUENCE_LOCKTIME_GRANULARITY) + 1
                         sequence_value |= SEQUENCE_LOCKTIME_TYPE_FLAG
                 tx.vin.append(
-                    CTxIn(COutPoint(int(utxos[j]["txid"], 16), utxos[j]["vout"]), nSequence=sequence_value))
+                    CTxIn(COutPoint(int(utxos[j]["utxid"], 16), utxos[j]["vout"]), nSequence=sequence_value))
                 value += utxos[j]["amount"] * COIN
             # Overestimate the size of the tx - signatures should be less than
             # 120 bytes, and leave 50 for the output
@@ -326,7 +326,7 @@ class BIP68Test(BitcoinTestFramework):
 
         utxos = self.nodes[0].listunspent()
         tx5.vin.append(
-            CTxIn(COutPoint(int(utxos[0]["txid"], 16), utxos[0]["vout"]), nSequence=1))
+            CTxIn(COutPoint(int(utxos[0]["utxid"], 16), utxos[0]["vout"]), nSequence=1))
         tx5.vout[0].nValue += int(utxos[0]["amount"] * COIN)
         raw_tx5 = self.nodes[0].signrawtransaction(
             ToHex(tx5), None, None, "ALL|FORKID")["hex"]

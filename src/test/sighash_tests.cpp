@@ -102,7 +102,7 @@ static void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
     for (int in = 0; in < ins; in++) {
         tx.vin.push_back(CTxIn());
         CTxIn &txin = tx.vin.back();
-        txin.prevout.hash = GetRandHash();
+        txin.prevout.utxid = utxid_t(GetRandHash());
         txin.prevout.n = insecure_rand() % 4;
         RandomScript(txin.scriptSig);
         txin.nSequence =

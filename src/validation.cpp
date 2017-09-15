@@ -633,7 +633,9 @@ static bool AcceptToMemoryPoolWorker(
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
-    const uint256 txid = tx.GetId();
+    const txid_t txid = tx.GetId();
+    const utxid_t utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
+
     if (pfMissingInputs) {
         *pfMissingInputs = false;
     }
@@ -697,7 +699,7 @@ static bool AcceptToMemoryPoolWorker(
 
             // Do we already have it?
             for (size_t out = 0; out < tx.vout.size(); out++) {
-                COutPoint outpoint(txid, out);
+                COutPoint outpoint(utxid, out);
                 bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
                 if (view.HaveCoin(outpoint)) {
                     if (!had_coin_in_cache) {
@@ -962,10 +964,8 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 
 /** Return transaction in txOut, and if it was found inside a block, its hash is
  * placed in hashBlock */
-bool GetTransaction(const Config &config, const uint256 &txid,
-                    CTransactionRef &txOut, uint256 &hashBlock,
-                    bool fAllowSlow) {
-    CBlockIndex *pindexSlow = nullptr;
+bool GetTransaction(const Config &config, const txid_t &txid,
+                    CTransactionRef &txOut, uint256 &hashBlock) {
 
     LOCK(cs_main);
 
@@ -995,29 +995,6 @@ bool GetTransaction(const Config &config, const uint256 &txid,
             if (txOut->GetId() != txid)
                 return error("%s: txid mismatch", __func__);
             return true;
-        }
-    }
-
-    // use coin database to locate block that contains transaction, and scan it
-    if (fAllowSlow) {
-        const Coin &coin = AccessByTxid(*pcoinsTip, txid);
-        if (!coin.IsSpent()) {
-            pindexSlow = chainActive[coin.GetHeight()];
-        }
-    }
-
-    if (pindexSlow) {
-        auto &params = config.GetChainParams().GetConsensus();
-
-        CBlock block;
-        if (ReadBlockFromDisk(block, pindexSlow, params)) {
-            for (const auto &tx : block.vtx) {
-                if (tx->GetId() == txid) {
-                    txOut = tx;
-                    hashBlock = pindexSlow->GetBlockHash();
-                    return true;
-                }
-            }
         }
     }
 
@@ -1247,7 +1224,7 @@ static void InvalidBlockFound(CBlockIndex *pindex,
 }
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight) {
+                 CTxUndo &txundo, int nHeight, MalFixMode malFixMode) {
     // Mark inputs spent.
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
@@ -1260,12 +1237,12 @@ void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
     }
 
     // Add outputs.
-    AddCoins(inputs, tx, nHeight);
+    AddCoins(inputs, tx, nHeight, malFixMode);
 }
 
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight) {
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight, MalFixMode malFixMode) {
     CTxUndo txundo;
-    UpdateCoins(tx, inputs, txundo, nHeight);
+    UpdateCoins(tx, inputs, txundo, nHeight, malFixMode);
 }
 
 bool CScriptCheck::operator()() {
@@ -1521,17 +1498,27 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
         // this information only in undo records for the last spend of a
         // transactions' outputs. This implies that it must be present for some
         // other output of the same tx.
-        const Coin &alternate = AccessByTxid(view, out.hash);
-        if (alternate.IsSpent()) {
+        COutPoint iter(out.utxid, 0);
+        while (iter.n < MAX_OUTPUTS_PER_TX) {
+            const Coin &alternate = view.AccessCoin(iter);
+            if (!alternate.IsSpent()) {
+
+                // This is somewhat ugly, but hopefully utility is limited. This is only
+                // useful when working from legacy on disck data. In any case, putting
+                // the correct information in there doesn't hurt.
+                const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
+                                                alternate.IsCoinBase());
+                break;
+            }
+            ++iter.n;
+        }
+
+        if (iter.n == MAX_OUTPUTS_PER_TX) {
             // Adding output for transaction without known metadata
             return DISCONNECT_FAILED;
         }
 
-        // This is somewhat ugly, but hopefully utility is limited. This is only
-        // useful when working from legacy on disck data. In any case, putting
-        // the correct information in there doesn't hurt.
-        const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
-                                        alternate.IsCoinBase());
+
     }
 
     view.AddCoin(out, undo, undo.IsCoinBase());
@@ -1545,7 +1532,8 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
  */
 static DisconnectResult DisconnectBlock(const CBlock &block,
                                         const CBlockIndex *pindex,
-                                        CCoinsViewCache &view) {
+                                        CCoinsViewCache &view,
+                                        MalFixMode malFixMode) {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
     CBlockUndo blockUndo;
@@ -1560,12 +1548,12 @@ static DisconnectResult DisconnectBlock(const CBlock &block,
         return DISCONNECT_FAILED;
     }
 
-    return ApplyBlockUndo(blockUndo, block, pindex, view);
+    return ApplyBlockUndo(blockUndo, block, pindex, view, malFixMode);
 }
 
 DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
                                 const CBlock &block, const CBlockIndex *pindex,
-                                CCoinsViewCache &view) {
+                                CCoinsViewCache &view, MalFixMode malFixMode) {
     bool fClean = true;
 
     if (blockUndo.vtxundo.size() + 1 != block.vtx.size()) {
@@ -1577,7 +1565,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     size_t i = block.vtx.size();
     while (i-- > 0) {
         const CTransaction &tx = *(block.vtx[i]);
-        uint256 txid = tx.GetId();
+        utxid_t utxid = tx.GetUtxid(malFixMode);
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
@@ -1586,7 +1574,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
                 continue;
             }
 
-            COutPoint out(txid, o);
+            COutPoint out(utxid, o);
             Coin coin;
             bool is_spent = view.SpendCoin(out, &coin);
             if (!is_spent || tx.vout[o] != coin.GetTxOut()) {
@@ -1753,6 +1741,13 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         return true;
     }
 
+
+    // Is Malleability Fix active?
+    const MalFixMode malFixMode = (VersionBitsState(pindex->pprev, chainparams.GetConsensus(),
+                          Consensus::DEPLOYMENT_MALFIX, versionbitscache) == THRESHOLD_ACTIVE)
+                          ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
+
     bool fScriptChecks = true;
     if (!hashAssumeValid.IsNull()) {
         // We've been configured with the hash of a block which has been
@@ -1840,7 +1835,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
+                if (view.HaveCoin(COutPoint(tx->GetUtxid(malFixMode), o))) {
                     return state.DoS(
                         100,
                         error("ConnectBlock(): tried to overwrite transaction"),
@@ -1906,7 +1901,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     CDiskTxPos pos(pindex->GetBlockPos(),
                    GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
+    std::vector<std::pair<txid_t, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
@@ -1975,7 +1970,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             blockundo.vtxundo.push_back(CTxUndo());
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(),
-                    pindex->nHeight);
+                    pindex->nHeight, malFixMode);
 
         vPos.push_back(std::make_pair(tx.GetId(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -2053,7 +2048,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
 
     // Watch for changes to the previous coinbase transaction.
-    static uint256 hashPrevBestCoinBase;
+    static txid_t hashPrevBestCoinBase;
     GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
     hashPrevBestCoinBase = block.vtx[0]->GetId();
 
@@ -2322,11 +2317,16 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
         return AbortNode(state, "Failed to read block");
     }
 
+    // Was Malleability Fix active when the block was created?
+    const MalFixMode malFixMode = (VersionBitsState(pindexDelete->pprev, consensusParams,
+                                   Consensus::DEPLOYMENT_MALFIX, versionbitscache) == THRESHOLD_ACTIVE)
+                                ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
-        if (DisconnectBlock(block, pindexDelete, view) != DISCONNECT_OK) {
+        if (DisconnectBlock(block, pindexDelete, view, malFixMode) != DISCONNECT_OK) {
             return error("DisconnectTip(): DisconnectBlock %s failed",
                          pindexDelete->GetBlockHash().ToString());
         }
@@ -2345,7 +2345,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
 
     if (!fBare) {
         // Resurrect mempool transactions from the disconnected block.
-        std::vector<uint256> vHashUpdate;
+        std::vector<txid_t> vHashUpdate;
         for (const auto &it : block.vtx) {
             const CTransaction &tx = *it;
             // ignore validation errors in resurrected transactions
@@ -4110,7 +4110,15 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
         if (nCheckLevel >= 3 && pindex == pindexState &&
             (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <=
                 nCoinCacheUsage) {
-            DisconnectResult res = DisconnectBlock(block, pindex, coins);
+
+            // Was Malleability Fix active when the block was created?
+            const MalFixMode malFixMode = (VersionBitsState(pindex->pprev,
+                                           config.GetChainParams().GetConsensus(),
+                                           Consensus::DEPLOYMENT_MALFIX, versionbitscache)
+                                           == THRESHOLD_ACTIVE)
+                                        ? MALFIX_MODE_ACTIVE : MALFIX_MODE_INACTIVE;
+
+            DisconnectResult res = DisconnectBlock(block, pindex, coins, malFixMode);
             if (res == DISCONNECT_FAILED) {
                 return error("VerifyDB(): *** irrecoverable inconsistency in "
                              "block data at %d, hash=%s",
@@ -4853,7 +4861,7 @@ bool LoadMempool(const Config &config) {
             }
             if (ShutdownRequested()) return false;
         }
-        std::map<uint256, CAmount> mapDeltas;
+        std::map<txid_t, CAmount> mapDeltas;
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {

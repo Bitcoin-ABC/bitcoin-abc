@@ -10,7 +10,6 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-
 # Create one-input, one-output, no-fee transaction:
 
 
@@ -53,7 +52,7 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Create a block-height-locked transaction which will be invalid after
         # reorg
         timelock_tx = self.nodes[0].createrawtransaction(
-            [{"txid": coinbase_txids[0], "vout": 0}], {node0_address: 49.99})
+            [{"utxid": coinbase_txids[0], "vout": 0}], {node0_address: 49.99})
         # Set the time lock
         timelock_tx = timelock_tx.replace("ffffffff", "11111191", 1)
         timelock_tx = timelock_tx[:-8] + hex(

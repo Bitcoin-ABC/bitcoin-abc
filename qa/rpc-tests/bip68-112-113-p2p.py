@@ -113,7 +113,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         return node.sendrawtransaction(ToHex(self.sign_transaction(node, self.create_transaction(node, node.getblock(coinbases.pop())['tx'][0], self.nodeaddress, amount))))
 
     def create_transaction(self, node, txid, to_address, amount):
-        inputs = [{"txid": txid, "vout": 0}]
+        inputs = [{"utxid": txid, "vout": 0}]
         outputs = {to_address: amount}
         rawtx = node.createrawtransaction(inputs, outputs)
         tx = CTransaction()

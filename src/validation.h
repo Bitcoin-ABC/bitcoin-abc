@@ -315,9 +315,8 @@ bool IsInitialBlockDownload();
  */
 std::string GetWarnings(const std::string &strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(const Config &config, const uint256 &hash,
-                    CTransactionRef &tx, uint256 &hashBlock,
-                    bool fAllowSlow = false);
+bool GetTransaction(const Config &config, const txid_t &hash,
+                    CTransactionRef &tx, uint256 &hashBlock);
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
@@ -428,9 +427,10 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
                                   const CCoinsViewCache &inputs, int flags);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
+void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight,
+                 MalFixMode MalFixMode);
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight);
+                 CTxUndo &txundo, int nHeight, MalFixMode MalFixMode);
 
 /** Transaction validation functions */
 

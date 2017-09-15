@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(rpc_togglenetwork) {
 BOOST_AUTO_TEST_CASE(rpc_rawsign) {
     UniValue r;
     // input is a 1-of-2 multisig (so is output):
-    std::string prevout = "[{\"txid\":"
+    std::string prevout = "[{\"utxid\":"
                           "\"b4cc287e58f87cdae59417329f710f3ecd75a4ee1d2872b724"
                           "8f50977c8493f3\","
                           "\"vout\":1,\"scriptPubKey\":"
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
     // (We will re-use the tx + keys from the above rpc_rawsign test for
     // simplicity.)
     UniValue r;
-    std::string prevout = "[{\"txid\":"
+    std::string prevout = "[{\"utxid\":"
                           "\"b4cc287e58f87cdae59417329f710f3ecd75a4ee1d2872b724"
                           "8f50977c8493f3\","
                           "\"vout\":1,\"scriptPubKey\":"
@@ -196,13 +196,13 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
 BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
     BOOST_CHECK_NO_THROW(
         CallRPC("createrawtransaction "
-                "[{\"txid\":"
+                "[{\"utxid\":"
                 "\"a3b807410df0b60fcb9736768df5823938b2f838694939ba45f3c0a1bff1"
                 "50ed\",\"vout\":0}] {\"data\":\"68656c6c6f776f726c64\"}"));
 
     // Allow more than one data transaction output
     BOOST_CHECK_NO_THROW(CallRPC("createrawtransaction "
-                                 "[{\"txid\":"
+                                 "[{\"utxid\":"
                                  "\"a3b807410df0b60fcb9736768df5823938b2f838694"
                                  "939ba45f3c0a1bff150ed\",\"vout\":0}] "
                                  "{\"data\":\"68656c6c6f776f726c64\",\"data\":"
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
     // Key not "data" (bad address)
     BOOST_CHECK_THROW(
         CallRPC("createrawtransaction "
-                "[{\"txid\":"
+                "[{\"utxid\":"
                 "\"a3b807410df0b60fcb9736768df5823938b2f838694939ba45f3c0a1bff1"
                 "50ed\",\"vout\":0}] {\"somedata\":\"68656c6c6f776f726c64\"}"),
         std::runtime_error);
@@ -219,13 +219,13 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
     // Bad hex encoding of data output
     BOOST_CHECK_THROW(
         CallRPC("createrawtransaction "
-                "[{\"txid\":"
+                "[{\"utxid\":"
                 "\"a3b807410df0b60fcb9736768df5823938b2f838694939ba45f3c0a1bff1"
                 "50ed\",\"vout\":0}] {\"data\":\"12345\"}"),
         std::runtime_error);
     BOOST_CHECK_THROW(
         CallRPC("createrawtransaction "
-                "[{\"txid\":"
+                "[{\"utxid\":"
                 "\"a3b807410df0b60fcb9736768df5823938b2f838694939ba45f3c0a1bff1"
                 "50ed\",\"vout\":0}] {\"data\":\"12345g\"}"),
         std::runtime_error);
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
     // Data 81 bytes long
     BOOST_CHECK_NO_THROW(
         CallRPC("createrawtransaction "
-                "[{\"txid\":"
+                "[{\"utxid\":"
                 "\"a3b807410df0b60fcb9736768df5823938b2f838694939ba45f3c0a1bff1"
                 "50ed\",\"vout\":0}] "
                 "{\"data\":"

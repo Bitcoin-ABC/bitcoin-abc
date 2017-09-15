@@ -34,13 +34,13 @@ static CBlock BuildBlockTestCase() {
     block.hashPrevBlock = GetRandHash();
     block.nBits = 0x207fffff;
 
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
     tx.vin[0].prevout.n = 0;
     block.vtx[1] = MakeTransactionRef(tx);
 
     tx.vin.resize(10);
     for (size_t i = 0; i < tx.vin.size(); i++) {
-        tx.vin[i].prevout.hash = GetRandHash();
+        tx.vin[i].prevout.utxid = utxid_t(GetRandHash());
         tx.vin[i].prevout.n = 0;
     }
     block.vtx[2] = MakeTransactionRef(tx);
@@ -140,7 +140,7 @@ public:
     TestHeaderAndShortIDs(const CBlock &block)
         : TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block)) {}
 
-    uint64_t GetShortID(const uint256 &txhash) const {
+    uint64_t GetShortID(const txid_t &txhash) const {
         CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
         stream << *this;
         CBlockHeaderAndShortTxIDs base;
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
 
-    uint256 txhash;
+    txid_t  txhash;
 
     // Test with pre-forwarding tx 1, but not coinbase
     {
@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
 
-    uint256 txhash;
+    txid_t txhash;
 
     // Test with pre-forwarding coinbase + tx 2 with tx 1 in mempool
     {

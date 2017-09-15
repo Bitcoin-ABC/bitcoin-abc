@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         CMutableTransaction tx;
         tx.vin.resize(1);
         tx.vin[0].prevout.n = 0;
-        tx.vin[0].prevout.hash = GetRandHash();
+        tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         CMutableTransaction tx;
         tx.vin.resize(1);
         tx.vin[0].prevout.n = 0;
-        tx.vin[0].prevout.hash = txPrev->GetId();
+        tx.vin[0].prevout.utxid = txPrev->GetUtxid(MALFIX_MODE_LEGACY);
         tx.vout.resize(1);
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vin.resize(2777);
         for (unsigned int j = 0; j < tx.vin.size(); j++) {
             tx.vin[j].prevout.n = j;
-            tx.vin[j].prevout.hash = txPrev->GetId();
+            tx.vin[j].prevout.utxid = txPrev->GetUtxid(MALFIX_MODE_LEGACY);
         }
         SignSignature(keystore, *txPrev, tx, 0, SIGHASH_ALL);
         // Re-use same signature for other inputs

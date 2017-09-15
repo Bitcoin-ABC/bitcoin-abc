@@ -364,11 +364,11 @@ UniValue removeprunedfunds(const Config &config,
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    uint256 hash;
+    txid_t hash;
     hash.SetHex(request.params[0].get_str());
-    std::vector<uint256> vHash;
+    std::vector<txid_t> vHash;
     vHash.push_back(hash);
-    std::vector<uint256> vHashOut;
+    std::vector<txid_t> vHashOut;
 
     if (pwalletMain->ZapSelectTx(vHash, vHashOut) != DB_LOAD_OK) {
         throw JSONRPCError(RPC_WALLET_ERROR,

@@ -9,6 +9,7 @@
 #include "clientversion.h"
 #include "consensus/validation.h"
 #include "core_io.h"
+#include "hash.h"
 #include "key.h"
 #include "keystore.h"
 #include "policy/policy.h"
@@ -74,7 +75,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
+                COutPoint outpoint(utxid_t(uint256S(vinput[0].get_str())),
                                    vinput[1].get_int());
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
@@ -165,7 +166,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     fValid = false;
                     break;
                 }
-                COutPoint outpoint(uint256S(vinput[0].get_str()),
+                COutPoint outpoint(utxid_t(uint256S(vinput[0].get_str())),
                                    vinput[1].get_int());
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
@@ -276,7 +277,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[0].vout[1].nValue = 50 * CENT;
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
-    AddCoins(coinsRet, dummyTransactions[0], 0);
+    AddCoins(coinsRet, dummyTransactions[0], 0, MALFIX_MODE_LEGACY);
 
     dummyTransactions[1].vout.resize(2);
     dummyTransactions[1].vout[0].nValue = 21 * CENT;
@@ -285,7 +286,7 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
     dummyTransactions[1].vout[1].nValue = 22 * CENT;
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
-    AddCoins(coinsRet, dummyTransactions[1], 0);
+    AddCoins(coinsRet, dummyTransactions[1], 0, MALFIX_MODE_LEGACY);
 
     return dummyTransactions;
 }
@@ -299,14 +300,14 @@ BOOST_AUTO_TEST_CASE(test_Get) {
 
     CMutableTransaction t1;
     t1.vin.resize(3);
-    t1.vin[0].prevout.hash = dummyTransactions[0].GetId();
+    t1.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[0].prevout.n = 1;
     t1.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
-    t1.vin[1].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[1].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[1].prevout.n = 0;
     t1.vin[1].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
-    t1.vin[2].prevout.hash = dummyTransactions[1].GetId();
+    t1.vin[2].prevout.utxid = dummyTransactions[1].GetUtxid(MALFIX_MODE_LEGACY);
     t1.vin[2].prevout.n = 1;
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
@@ -340,7 +341,7 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     CMutableTransaction inputm;
     inputm.nVersion = 1;
     inputm.vin.resize(1);
-    inputm.vin[0].prevout.hash = output->GetId();
+    inputm.vin[0].prevout.utxid = output->GetUtxid(MALFIX_MODE_LEGACY);
     inputm.vin[0].prevout.n = 0;
     inputm.vout.resize(1);
     inputm.vout[0].nValue = 1;
@@ -528,7 +529,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
     CMutableTransaction t;
     t.vin.resize(1);
-    t.vin[0].prevout.hash = dummyTransactions[0].GetId();
+    t.vin[0].prevout.utxid = dummyTransactions[0].GetUtxid(MALFIX_MODE_LEGACY);
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
     t.vout.resize(1);
@@ -633,6 +634,107 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vout[0].scriptPubKey = CScript() << OP_RETURN;
     t.vout[1].scriptPubKey = CScript() << OP_RETURN;
     BOOST_CHECK(!IsStandardTx(t, reason));
+}
+
+
+/** Tests TXIDs and UTXIDs at and around MalFix activation **/
+BOOST_AUTO_TEST_CASE(test_utxid) {
+
+    // use some real tx
+    auto txdata = ParseHex(
+        "01000000018bea4e3b7d7aa69d604dba0a6ad4020ed62bc1f280825188b2361249f0"
+        "4487f1000000008c4930460221008949a28ed8aefecf7719b51dafc86e0fb04f4d85"
+        "7b3e0851e3d216782d84777e022100a190621ee0b6895b1c9f8e5de46971ce219dc4"
+        "eeaaeb45e295c708cecb29f3db014104afe87d055cda9cb9de677e219cbba3a40e5a"
+        "a0f9eb778454f152aff5b0c26503e5844beff57796f226a695866624806f91360ae0"
+        "ca69aaca831e7b1b7a9c0cbaffffffff03206db008000000001976a9145101805db0"
+        "f6ad47cebe74b140fcb965b271c83388ace8b71400000000001976a91404d075b3f5"
+        "01deeef5565143282b6cfe8fad5e9488ace10d0000000000001976a91485ba01a16d"
+        "5759c7e4833ee0446eb19e0cf79f6588ac00000000");
+
+    {
+        CDataStream s(txdata, SER_DISK, CLIENT_VERSION);
+        const CTransaction tx(deserialize_type(), s);
+
+        // v1 transaction; all (u)txids are just full hash
+        auto expectedHash = Hash(txdata.begin(), txdata.end());
+
+        BOOST_CHECK(tx.GetId() == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_ACTIVE) == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_INACTIVE) == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_LEGACY) == expectedHash);
+    }
+
+    // set version= 3
+    txdata[0] = 3;
+    {
+        CDataStream s(txdata, SER_DISK, CLIENT_VERSION);
+        const CTransaction tx(deserialize_type(), s);
+
+        // v3 transaction; txids and MALFIX inactive is still full hash
+        auto expectedHash = Hash(txdata.begin(), txdata.end());
+        BOOST_CHECK(tx.GetId() == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_INACTIVE) == expectedHash);
+
+        // with malfix active, cut out input script
+        txdata.erase(txdata.begin()+ 4+1+32+4, txdata.begin()+4+1+32+4+140+1);
+        auto expectedUtxid = Hash(txdata.begin(), txdata.end());
+
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_ACTIVE) == expectedUtxid);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_LEGACY) == expectedUtxid);
+    }
+
+
+    // We'll do another one with two inputs
+    txdata = ParseHex(
+        "0200000002ef641dc6569408bbe980a38511f80da5de37dd08e60618e80d9d538889"
+        "68fe00490000006b4830450221008a32e6d488970d6769619d311834deb2e50e877d"
+        "b45158911be4922f51a351c30220787edbf4c118b8cec7169626ce9e4b19be7314c3"
+        "6191ad3acc2a4c381705c199012102caa3d96f8e4cee70c9e09f6177efe64a14a3f5"
+        "df3a472ff49c00fd881ca5aa5cfeffffff41a3083de0e8279d5591073be8fc5d2f2c"
+        "acc5c7c4789dfa0e54521da48870e5000000006a47304402203552f9d39c90aa9600"
+        "a47fb922feb13823666b3970ef47bdb0be7b4173c324e402200ae5d60dba3f93bba9"
+        "e85927f972dcfaddb61336e75166e15a8a79d367010e45012102d2cdc40e350eda7e"
+        "c62b30cc9725039ad873d738453da9394c32c2625d9445f7feffffff0200e1f50500"
+        "0000001976a9140d8bec3161ce0325100dc08b4b4ccea39846eff788acf5940f0000"
+        "0000001976a914f840c86fce837bef7e711eef6951baae69070f8e88ac3d470700");
+
+    {
+        CDataStream s(txdata, SER_DISK, CLIENT_VERSION);
+        const CTransaction tx(deserialize_type(), s);
+
+        // v2 transaction; all (u)txids are just full hash
+        auto expectedHash = Hash(txdata.begin(), txdata.end());
+
+        BOOST_CHECK(tx.GetId() == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_ACTIVE) == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_INACTIVE) == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_LEGACY) == expectedHash);
+    }
+
+
+    // set version= 5
+    txdata[0] = 5;
+    {
+        CDataStream s(txdata, SER_DISK, CLIENT_VERSION);
+        const CTransaction tx(deserialize_type(), s);
+
+        // v3 transaction; txids and MALFIX inactive is still full hash
+        auto expectedHash = Hash(txdata.begin(), txdata.end());
+        BOOST_CHECK(tx.GetId() == expectedHash);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_INACTIVE) == expectedHash);
+
+        // with malfix active, cut out both input scripts
+        txdata.erase(txdata.begin()+ 4+1+32+4,
+                     txdata.begin()+ 4+1+32+4 +1+107);
+        txdata.erase(txdata.begin()+ 4+1+32+4 +4+32+4,
+                     txdata.begin()+ 4+1+32+4 +4+32+4 +1+106);
+        auto expectedUtxid = Hash(txdata.begin(), txdata.end());
+
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_ACTIVE) == expectedUtxid);
+        BOOST_CHECK(tx.GetUtxid(MALFIX_MODE_LEGACY) == expectedUtxid);
+    }
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

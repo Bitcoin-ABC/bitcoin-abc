@@ -13,6 +13,8 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 2
+        self.extra_args =  [['-txindex']] * 2
+
 
     def run_test(self):
         self.log.info("Mining blocks...")

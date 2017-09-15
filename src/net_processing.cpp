@@ -1055,6 +1055,9 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
 static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     switch (inv.type) {
         case MSG_TX: {
+
+            const txid_t txid(inv.hash);
+
             assert(recentRejects);
             if (chainActive.Tip()->GetBlockHash() !=
                 hashRecentRejectsChainTip) {
@@ -1066,16 +1069,10 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
                 recentRejects->reset();
             }
 
-            // Use pcoinsTip->HaveCoinInCache as a quick approximation to
-            // exclude requesting or processing some txs which have already been
-            // included in a block. As this is best effort, we only check for
-            // output 0 and 1. This works well enough in practice and we get
-            // diminishing returns with 2 onward.
-            return recentRejects->contains(inv.hash) ||
-                   mempool.exists(inv.hash) ||
-                   mapOrphanTransactions.count(inv.hash) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 0)) ||
-                   pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 1));
+
+            return recentRejects->contains(txid) ||
+                   mempool.exists(txid) ||
+                   mapOrphanTransactions.count(txid);
         }
         case MSG_BLOCK:
             return mapBlockIndex.count(inv.hash);
@@ -1309,6 +1306,8 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                     }
                 }
             } else if (inv.type == MSG_TX) {
+
+                const txid_t txid(inv.hash);
                 // Send stream from relay memory
                 bool push = false;
                 auto mi = mapRelay.find(inv.hash);
@@ -1319,7 +1318,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                     push = true;
                 } else if (pfrom->timeLastMempoolReq) {
-                    auto txinfo = mempool.info(inv.hash);
+                    auto txinfo = mempool.info(txid);
                     // To protect privacy, do not answer getdata using the
                     // mempool when that TX couldn't have been INVed in reply to
                     // a MEMPOOL request.
@@ -2072,6 +2071,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         CInv inv(MSG_TX, tx.GetId());
         pfrom->AddInventoryKnown(inv);
 
+        const utxid_t &utxid = tx.GetUtxid(MALFIX_MODE_LEGACY);
+
         LOCK(cs_main);
 
         bool fMissingInputs = false;
@@ -2088,7 +2089,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             mempool.check(pcoinsTip);
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
-                vWorkQueue.emplace_back(inv.hash, i);
+                vWorkQueue.emplace_back(utxid, i);
             }
 
             pfrom->nLastTXTime = GetTime();
@@ -2113,6 +2114,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     const CTransactionRef &porphanTx = (*mi)->second.tx;
                     const CTransaction &orphanTx = *porphanTx;
                     const uint256 &orphanId = orphanTx.GetId();
+                    const utxid_t &orphanUTXId = orphanTx.GetUtxid(MALFIX_MODE_LEGACY);
+
                     NodeId fromPeer = (*mi)->second.fromPeer;
                     bool fMissingInputs2 = false;
                     // Use a dummy CValidationState so someone can't setup nodes
@@ -2128,10 +2131,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                                            porphanTx, true, &fMissingInputs2,
                                            &lRemovedTxn)) {
                         LogPrint("mempool", "   accepted orphan tx %s\n",
-                                 orphanId.ToString());
+                                 orphanUTXId.ToString());
                         RelayTransaction(orphanTx, connman);
                         for (size_t i = 0; i < orphanTx.vout.size(); i++) {
-                            vWorkQueue.emplace_back(orphanId, i);
+                            vWorkQueue.emplace_back(orphanUTXId, i);
                         }
                         vEraseQueue.push_back(orphanId);
                     } else if (!fMissingInputs2) {
@@ -2166,45 +2169,23 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 EraseOrphanTx(hash);
             }
         } else if (fMissingInputs) {
-            // It may be the case that the orphans parents have all been
-            // rejected.
-            bool fRejectedParents = false;
-            for (const CTxIn &txin : tx.vin) {
-                if (recentRejects->contains(txin.prevout.hash)) {
-                    fRejectedParents = true;
-                    break;
-                }
-            }
-            if (!fRejectedParents) {
-                uint32_t nFetchFlags = GetFetchFlags(
-                    pfrom, chainActive.Tip(), chainparams.GetConsensus());
-                for (const CTxIn &txin : tx.vin) {
-                    CInv _inv(MSG_TX | nFetchFlags, txin.prevout.hash);
-                    pfrom->AddInventoryKnown(_inv);
-                    if (!AlreadyHave(_inv)) {
-                        pfrom->AskFor(_inv);
-                    }
-                }
-                AddOrphanTx(ptx, pfrom->GetId());
 
-                // DoS prevention: do not allow mapOrphanTransactions to grow
-                // unbounded
-                unsigned int nMaxOrphanTx = (unsigned int)std::max(
-                    int64_t(0),
-                    GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-                unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
-                if (nEvicted > 0) {
-                    LogPrint("mempool", "mapOrphan overflow, removed %u tx\n",
-                             nEvicted);
-                }
-            } else {
-                LogPrint("mempool",
-                         "not keeping orphan with rejected parents %s\n",
-                         tx.GetId().ToString());
-                // We will continue to reject this tx since it has rejected
-                // parents so avoid re-requesting it from other peers.
-                recentRejects->insert(tx.GetId());
-            }
+            // Pre MalFix, we would fetch the missing input transactions
+            // from this peer, but post-malfix, we can't as we don't have
+            // the ids
+
+            AddOrphanTx(ptx, pfrom->GetId());
+
+            // DoS prevention: do not allow mapOrphanTransactions to grow
+            // unbounded
+            unsigned int nMaxOrphanTx = (unsigned int)std::max(
+                (int64_t)0,
+                GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
+            unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
+            if (nEvicted > 0)
+                LogPrint("mempool", "mapOrphan overflow, removed %u tx\n",
+                         nEvicted);
+
         } else {
             if (!state.CorruptionPossible()) {
                 // Do not use rejection cache for witness transactions or
@@ -2212,7 +2193,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 // malleated. See https://github.com/bitcoin/bitcoin/issues/8279
                 // for details.
                 assert(recentRejects);
-                recentRejects->insert(tx.GetId());
+                recentRejects->insert(inv.hash);
                 if (RecursiveDynamicUsage(*ptx) < 100000) {
                     AddToCompactExtraTransactions(ptx);
                 }
@@ -3231,8 +3212,8 @@ class CompareInvMempoolOrder {
 public:
     CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
 
-    bool operator()(std::set<uint256>::iterator a,
-                    std::set<uint256>::iterator b) {
+    bool operator()(std::set<txid_t>::iterator a,
+                    std::set<txid_t>::iterator b) {
         /* As std::make_heap produces a max-heap, we want the entries with the
          * fewest ancestors/highest fee to sort later. */
         return mp->CompareDepthAndScore(*b, *a);
@@ -3587,18 +3568,17 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             LOCK(pto->cs_filter);
 
             for (const auto &txinfo : vtxinfo) {
-                const uint256 &txid = txinfo.tx->GetId();
+                const txid_t &txid = txinfo.tx->GetId();
                 CInv inv(MSG_TX, txid);
                 pto->setInventoryTxToSend.erase(txid);
                 if (filterrate) {
-                    if (txinfo.feeRate.GetFeePerK() < filterrate) {
-                        continue;
-                    }
+                    if (txinfo.feeRate.GetFeePerK() < filterrate) continue;
                 }
                 if (pto->pfilter) {
                     if (!pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) {
                         continue;
                     }
+
                 }
                 pto->filterInventoryKnown.insert(txid);
                 vInv.push_back(inv);
@@ -3614,9 +3594,9 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         // Determine transactions to relay
         if (fSendTrickle) {
             // Produce a vector with all candidates for sending
-            std::vector<std::set<uint256>::iterator> vInvTx;
+            std::vector<std::set<txid_t>::iterator> vInvTx;
             vInvTx.reserve(pto->setInventoryTxToSend.size());
-            for (std::set<uint256>::iterator it =
+            for (std::set<txid_t>::iterator it =
                      pto->setInventoryTxToSend.begin();
                  it != pto->setInventoryTxToSend.end(); it++) {
                 vInvTx.push_back(it);
@@ -3642,9 +3622,9 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 // Fetch the top element from the heap
                 std::pop_heap(vInvTx.begin(), vInvTx.end(),
                               compareInvMempoolOrder);
-                std::set<uint256>::iterator it = vInvTx.back();
+                std::set<txid_t>::iterator it = vInvTx.back();
                 vInvTx.pop_back();
-                uint256 hash = *it;
+                txid_t hash = *it;
                 // Remove it from the to-be-sent set
                 pto->setInventoryTxToSend.erase(it);
                 // Check if not in the filter already

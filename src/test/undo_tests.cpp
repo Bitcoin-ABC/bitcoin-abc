@@ -19,13 +19,13 @@ static void UpdateUTXOSet(const CBlock &block, CCoinsViewCache &view,
     CValidationState state;
 
     auto &coinbaseTx = *block.vtx[0];
-    UpdateCoins(coinbaseTx, view, nHeight);
+    UpdateCoins(coinbaseTx, view, nHeight, MALFIX_MODE_LEGACY);
 
     for (size_t i = 1; i < block.vtx.size(); i++) {
         auto &tx = *block.vtx[1];
 
         blockundo.vtxundo.push_back(CTxUndo());
-        UpdateCoins(tx, view, blockundo.vtxundo.back(), nHeight);
+        UpdateCoins(tx, view, blockundo.vtxundo.back(), nHeight, MALFIX_MODE_LEGACY);
     }
 
     view.SetBestBlock(block.GetHash());
@@ -36,11 +36,11 @@ static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
                       const CChainParams &chainparams, uint32_t nHeight) {
     CBlockIndex pindex;
     pindex.nHeight = nHeight;
-    ApplyBlockUndo(blockUndo, block, &pindex, view);
+    ApplyBlockUndo(blockUndo, block, &pindex, view, MALFIX_MODE_LEGACY);
 }
 
-static bool HasSpendableCoin(const CCoinsViewCache &view, const uint256 &txid) {
-    return !view.AccessCoin(COutPoint(txid, 0)).IsSpent();
+static bool HasSpendableCoin(const CCoinsViewCache &view, const utxid_t &utxid) {
+    return !view.AccessCoin(COutPoint(utxid, 0)).IsSpent();
 }
 
 BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
@@ -67,16 +67,16 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     block.vtx[0] = MakeTransactionRef(tx);
 
     tx.vout[0].scriptPubKey = CScript() << OP_TRUE;
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.utxid = utxid_t(GetRandHash());
     tx.vin[0].prevout.n = 0;
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL;
     tx.vin[0].scriptSig.resize(0);
     tx.nVersion = 2;
 
     auto prevTx0 = CTransaction(tx);
-    AddCoins(view, prevTx0, 100);
+    AddCoins(view, prevTx0, 100, MALFIX_MODE_LEGACY);
 
-    tx.vin[0].prevout.hash = prevTx0.GetId();
+    tx.vin[0].prevout.utxid = prevTx0.GetUtxid(MALFIX_MODE_LEGACY);
     auto tx0 = CTransaction(tx);
     block.vtx[1] = MakeTransactionRef(tx0);
 
@@ -85,16 +85,16 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     UpdateUTXOSet(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.GetHash());
-    BOOST_CHECK(HasSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(HasSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(HasSpendableCoin(view, coinbaseTx.GetUtxid(MALFIX_MODE_LEGACY)));
+    BOOST_CHECK(HasSpendableCoin(view, tx0.GetUtxid(MALFIX_MODE_LEGACY)));
+    BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetUtxid(MALFIX_MODE_LEGACY)));
 
     UndoBlock(block, view, blockundo, chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.hashPrevBlock);
-    BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetId()));
-    BOOST_CHECK(!HasSpendableCoin(view, tx0.GetId()));
-    BOOST_CHECK(HasSpendableCoin(view, prevTx0.GetId()));
+    BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetUtxid(MALFIX_MODE_LEGACY)));
+    BOOST_CHECK(!HasSpendableCoin(view, tx0.GetUtxid(MALFIX_MODE_LEGACY)));
+    BOOST_CHECK(HasSpendableCoin(view, prevTx0.GetUtxid(MALFIX_MODE_LEGACY)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

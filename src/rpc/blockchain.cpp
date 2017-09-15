@@ -421,8 +421,8 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
-        if (mempool.exists(txin.prevout.hash)) {
-            setDepends.insert(txin.prevout.hash.ToString());
+        if (mempool.exists(txin.prevout.utxid)) {
+            setDepends.insert(txin.prevout.utxid.ToString());
         }
     }
 
@@ -446,11 +446,11 @@ UniValue mempoolToJSON(bool fVerbose = false) {
         }
         return o;
     } else {
-        std::vector<uint256> vtxids;
+        std::vector<txid_t> vtxids;
         mempool.queryHashes(vtxids);
 
         UniValue a(UniValue::VARR);
-        for (const uint256 &txid : vtxids) {
+        for (const txid_t &txid : vtxids) {
             a.push_back(txid.ToString());
         }
 
@@ -523,11 +523,11 @@ UniValue getmempoolancestors(const Config &config,
         fVerbose = request.params[1].get_bool();
     }
 
-    uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    txid_t txid = (txid_t) ParseHashV(request.params[0], "parameter 1");
 
     LOCK(mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
+    CTxMemPool::txiter it = mempool.mapTx.find(txid);
     if (it == mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
@@ -590,11 +590,11 @@ UniValue getmempooldescendants(const Config &config,
     bool fVerbose = false;
     if (request.params.size() > 1) fVerbose = request.params[1].get_bool();
 
-    uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    txid_t txid(ParseHashV(request.params[0], "parameter 1"));
 
     LOCK(mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
+    CTxMemPool::txiter it = mempool.mapTx.find(txid);
     if (it == mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
@@ -641,11 +641,11 @@ UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("getmempoolentry", "\"mytxid\""));
     }
 
-    uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    txid_t txid(ParseHashV(request.params[0], "parameter 1"));
 
     LOCK(mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
+    CTxMemPool::txiter it = mempool.mapTx.find(txid);
     if (it == mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
@@ -867,7 +867,7 @@ struct CCoinsStats {
           nDiskSize(0), nTotalAmount(0) {}
 };
 
-static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
+static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const utxid_t &hash,
                        const std::map<uint32_t, Coin> &outputs) {
     assert(!outputs.empty());
     ss << hash;
@@ -899,18 +899,18 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats) {
         stats.nHeight = mapBlockIndex.find(stats.hashBlock)->second->nHeight;
     }
     ss << stats.hashBlock;
-    uint256 prevkey;
+    utxid_t prevkey;
     std::map<uint32_t, Coin> outputs;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         COutPoint key;
         Coin coin;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
-            if (!outputs.empty() && key.hash != prevkey) {
+            if (!outputs.empty() && key.utxid != prevkey) {
                 ApplyStats(stats, ss, prevkey, outputs);
                 outputs.clear();
             }
-            prevkey = key.hash;
+            prevkey = key.utxid;
             outputs[key.n] = std::move(coin);
         } else {
             return error("%s: unable to read value", __func__);
@@ -1040,7 +1040,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
             "gettxout \"txid\" n ( include_mempool )\n"
             "\nReturns details about an unspent transaction output.\n"
             "\nArguments:\n"
-            "1. \"txid\"       (string, required) The transaction id\n"
+            "1. \"utxid\"       (string, required) The Unspent transaction id\n"
             "2. n              (numeric, required) vout number\n"
             "3. include_mempool  (boolean, optional) Whether to include the "
             "mempool\n"
@@ -1081,7 +1081,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     UniValue ret(UniValue::VOBJ);
 
     std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    utxid_t hash(uint256S(strHash));
     int n = request.params[1].get_int();
     COutPoint out(hash, n);
     bool fMempool = true;
@@ -1322,6 +1322,9 @@ UniValue getblockchaininfo(const Config &config,
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     BIP9SoftForkDescPushBack(bip9_softforks, "csv", consensusParams,
                              Consensus::DEPLOYMENT_CSV);
+    /* Not actually a softfork, but we can ignore the terminology for info requests */
+    BIP9SoftForkDescPushBack(bip9_softforks, "malfix", consensusParams,
+                             Consensus::DEPLOYMENT_MALFIX);
     obj.push_back(Pair("softforks", softforks));
     obj.push_back(Pair("bip9_softforks", bip9_softforks));
 

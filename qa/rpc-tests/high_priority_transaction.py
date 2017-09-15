@@ -32,7 +32,7 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         txids = []
         for _ in range(num):
             t = utxos.pop()
-            inputs = [{"txid": t["txid"], "vout": t["vout"]}]
+            inputs = [{"utxid": t["utxid"], "vout": t["vout"]}]
             outputs = {}
             change = t['amount'] - fee
             outputs[addr] = satoshi_round(change)

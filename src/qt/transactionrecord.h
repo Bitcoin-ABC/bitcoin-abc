@@ -7,12 +7,14 @@
 
 #include "amount.h"
 #include "uint256.h"
+#include "primitives/transaction.h"
 
 #include <QList>
 #include <QString>
 
 class CWallet;
 class CWalletTx;
+
 
 /**
  * UI model for transaction status. The transaction status is the part of a
@@ -102,11 +104,11 @@ public:
         : hash(), time(0), type(Other), address(""), debit(0), credit(0),
           idx(0) {}
 
-    TransactionRecord(uint256 _hash, qint64 _time)
+    TransactionRecord(txid_t _hash, qint64 _time)
         : hash(_hash), time(_time), type(Other), address(""), debit(0),
           credit(0), idx(0) {}
 
-    TransactionRecord(uint256 _hash, qint64 _time, Type _type,
+    TransactionRecord(txid_t _hash, qint64 _time, Type _type,
                       const std::string &_address, const CAmount &_debit,
                       const CAmount &_credit)
         : hash(_hash), time(_time), type(_type), address(_address),
@@ -120,7 +122,7 @@ public:
 
     /** @name Immutable transaction attributes
       @{*/
-    uint256 hash;
+    txid_t hash;
     qint64 time;
     Type type;
     std::string address;
