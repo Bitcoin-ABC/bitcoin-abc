@@ -79,7 +79,12 @@ BitcoinGUI::BitcoinGUI(const Config *configIn,
                        const NetworkStyle *networkStyle, QWidget *parent)
     : QMainWindow(parent), enableWallet(false), platformStyle(_platformStyle),
       config(configIn) {
-    GUIUtil::restoreWindowGeometry("nWindow", QSize(850, 550), this);
+    QSettings settings;
+    if (!restoreGeometry(settings.value("MainWindowGeometry").toByteArray())) {
+        // Restore failed (perhaps missing setting), center the window
+        move(QApplication::desktop()->availableGeometry().center() -
+             frameGeometry().center());
+    }
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
 #ifdef ENABLE_WALLET
@@ -218,7 +223,8 @@ BitcoinGUI::~BitcoinGUI() {
     // Unsubscribe from notifications from core
     unsubscribeFromCoreSignals();
 
-    GUIUtil::saveWindowGeometry("nWindow", this);
+    QSettings settings;
+    settings.setValue("MainWindowGeometry", saveGeometry());
     // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
     if (trayIcon) {
         trayIcon->hide();
