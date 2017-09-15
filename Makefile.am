@@ -7,10 +7,12 @@ SUBDIRS = src
 if ENABLE_MAN
 SUBDIRS += doc/man
 endif
+
+export PYTHONPATH
+
 .PHONY: deploy FORCE
 
 GZIP_ENV="-9n"
-export PYTHONPATH
 
 if BUILD_BITCOIN_LIBS
 pkgconfigdir = $(libdir)/pkgconfig
