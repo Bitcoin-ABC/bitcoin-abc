@@ -112,17 +112,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
         // recommended
         settings.setValue("nFeeRadio", 0);
     }
-    // compatibility
-    if (!settings.contains("nCustomFeeRadio") &&
-        settings.contains("nTransactionFee") &&
-        settings.value("nTransactionFee").toLongLong() > 0) {
-        // total at least
-        settings.setValue("nCustomFeeRadio", 1);
-    }
-    if (!settings.contains("nCustomFeeRadio")) {
-        // per kilobyte
-        settings.setValue("nCustomFeeRadio", 0);
-    }
     if (!settings.contains("nTransactionFee")) {
         settings.setValue("nTransactionFee",
                           qint64(DEFAULT_PAY_TX_FEE / SATOSHI));
@@ -136,8 +125,6 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
         ->button(
             std::max<int>(0, std::min(1, settings.value("nFeeRadio").toInt())))
         ->setChecked(true);
-    ui->groupCustomFee->setId(ui->radioCustomPerKilobyte, 0);
-    ui->groupCustomFee->button(0)->setChecked(true);
     ui->customFee->setValue(
         int64_t(settings.value("nTransactionFee").toLongLong()) * SATOSHI);
     ui->checkBoxMinimumFee->setChecked(
@@ -201,8 +188,6 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
                 &SendCoinsDialog::updateFeeSectionControls);
         connect(ui->groupFee, buttonClickedEvent, this,
                 &SendCoinsDialog::coinControlUpdateLabels);
-        connect(ui->groupCustomFee, buttonClickedEvent, this,
-                &SendCoinsDialog::coinControlUpdateLabels);
         connect(ui->customFee, &BitcoinAmountField::valueChanged, this,
                 &SendCoinsDialog::coinControlUpdateLabels);
         connect(ui->checkBoxMinimumFee, &QCheckBox::stateChanged, this,
@@ -232,7 +217,6 @@ SendCoinsDialog::~SendCoinsDialog() {
     QSettings settings;
     settings.setValue("fFeeSectionMinimized", fFeeMinimized);
     settings.setValue("nFeeRadio", ui->groupFee->checkedId());
-    settings.setValue("nCustomFeeRadio", ui->groupCustomFee->checkedId());
     settings.setValue("nTransactionFee",
                       qint64(ui->customFee->value() / SATOSHI));
     settings.setValue("fPayOnlyMinFee", ui->checkBoxMinimumFee->isChecked());
@@ -778,7 +762,6 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
 }
 
 void SendCoinsDialog::setMinimumFee() {
-    ui->radioCustomPerKilobyte->setChecked(true);
     ui->customFee->setValue(model->wallet().getRequiredFee(1000));
 }
 
@@ -788,7 +771,7 @@ void SendCoinsDialog::updateFeeSectionControls() {
     ui->labelFeeEstimation->setEnabled(ui->radioSmartFee->isChecked());
     ui->checkBoxMinimumFee->setEnabled(ui->radioCustomFee->isChecked());
     ui->labelMinFeeWarning->setEnabled(ui->radioCustomFee->isChecked());
-    ui->radioCustomPerKilobyte->setEnabled(
+    ui->labelCustomPerKilobyte->setEnabled(
         ui->radioCustomFee->isChecked() &&
         !ui->checkBoxMinimumFee->isChecked());
     ui->customFee->setEnabled(ui->radioCustomFee->isChecked() &&
@@ -807,7 +790,7 @@ void SendCoinsDialog::updateFeeMinimizedLabel() {
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
                 ui->customFee->value()) +
-            ((ui->radioCustomPerKilobyte->isChecked()) ? "/kB" : ""));
+            "/kB");
     }
 }
 
