@@ -516,6 +516,7 @@ public:
     uint64_t nRecvBytes;
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
     bool fWhitelisted;
+    bool fUsesCashMagic;
     double dPingTime;
     double dPingWait;
     double dMinPing;

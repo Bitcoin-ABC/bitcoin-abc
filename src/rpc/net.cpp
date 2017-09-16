@@ -67,7 +67,7 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue getpeerinfo(const Config &config,
                             const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 0)
+    if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
             "getpeerinfo\n"
             "\nReturns data about each connected network node as a json array "
@@ -138,11 +138,13 @@ static UniValue getpeerinfo(const Config &config,
             "\nExamples:\n" +
             HelpExampleCli("getpeerinfo", "") +
             HelpExampleRpc("getpeerinfo", ""));
+    }
 
-    if (!g_connman)
+    if (!g_connman) {
         throw JSONRPCError(
             RPC_CLIENT_P2P_DISABLED,
             "Error: Peer-to-peer functionality missing or disabled");
+    }
 
     std::vector<CNodeStats> vstats;
     g_connman->GetNodeStats(vstats);
@@ -155,8 +157,9 @@ static UniValue getpeerinfo(const Config &config,
         bool fStateStats = GetNodeStateStats(stats.nodeid, statestats);
         obj.push_back(Pair("id", stats.nodeid));
         obj.push_back(Pair("addr", stats.addrName));
-        if (!(stats.addrLocal.empty()))
+        if (!(stats.addrLocal.empty())) {
             obj.push_back(Pair("addrlocal", stats.addrLocal));
+        }
         obj.push_back(Pair("services", strprintf("%016x", stats.nServices)));
         obj.push_back(Pair("relaytxes", stats.fRelayTxes));
         obj.push_back(Pair("lastsend", stats.nLastSend));
@@ -165,12 +168,15 @@ static UniValue getpeerinfo(const Config &config,
         obj.push_back(Pair("bytesrecv", stats.nRecvBytes));
         obj.push_back(Pair("conntime", stats.nTimeConnected));
         obj.push_back(Pair("timeoffset", stats.nTimeOffset));
-        if (stats.dPingTime > 0.0)
+        if (stats.dPingTime > 0.0) {
             obj.push_back(Pair("pingtime", stats.dPingTime));
-        if (stats.dMinPing < std::numeric_limits<int64_t>::max() / 1e6)
+        }
+        if (stats.dMinPing < std::numeric_limits<int64_t>::max() / 1e6) {
             obj.push_back(Pair("minping", stats.dMinPing));
-        if (stats.dPingWait > 0.0)
+        }
+        if (stats.dPingWait > 0.0) {
             obj.push_back(Pair("pingwait", stats.dPingWait));
+        }
         obj.push_back(Pair("version", stats.nVersion));
         // Use the sanitized form of subver here, to avoid tricksy remote peers
         // from corrupting or modifying the JSON output by putting special
@@ -190,16 +196,21 @@ static UniValue getpeerinfo(const Config &config,
             obj.push_back(Pair("inflight", heights));
         }
         obj.push_back(Pair("whitelisted", stats.fWhitelisted));
+        obj.push_back(Pair("cashmagic", stats.fUsesCashMagic));
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);
         for (const mapMsgCmdSize::value_type &i : stats.mapSendBytesPerMsgCmd) {
-            if (i.second > 0) sendPerMsgCmd.push_back(Pair(i.first, i.second));
+            if (i.second > 0) {
+                sendPerMsgCmd.push_back(Pair(i.first, i.second));
+            }
         }
         obj.push_back(Pair("bytessent_per_msg", sendPerMsgCmd));
 
         UniValue recvPerMsgCmd(UniValue::VOBJ);
         for (const mapMsgCmdSize::value_type &i : stats.mapRecvBytesPerMsgCmd) {
-            if (i.second > 0) recvPerMsgCmd.push_back(Pair(i.first, i.second));
+            if (i.second > 0) {
+                recvPerMsgCmd.push_back(Pair(i.first, i.second));
+            }
         }
         obj.push_back(Pair("bytesrecv_per_msg", recvPerMsgCmd));
 

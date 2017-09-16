@@ -670,6 +670,7 @@ void CNode::copyStats(CNodeStats &stats) {
         X(nRecvBytes);
     }
     X(fWhitelisted);
+    X(fUsesCashMagic);
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer. Merely reporting
@@ -2647,9 +2648,7 @@ void CConnman::GetNodeStats(std::vector<CNodeStats> &vstats) {
     vstats.clear();
     LOCK(cs_vNodes);
     vstats.reserve(vNodes.size());
-    for (std::vector<CNode *>::iterator it = vNodes.begin(); it != vNodes.end();
-         ++it) {
-        CNode *pnode = *it;
+    for (CNode *pnode : vNodes) {
         vstats.emplace_back();
         pnode->copyStats(vstats.back());
     }
