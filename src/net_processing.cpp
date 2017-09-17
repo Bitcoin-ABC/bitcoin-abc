@@ -1547,8 +1547,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->fClient = !(nServices & NODE_NETWORK);
         {
             LOCK(pfrom->cs_filter);
-            pfrom->fRelayTxes =
-                fRelay; // set to true after we get the first filter* message
+            // set to true after we get the first filter* message
+            pfrom->fRelayTxes = fRelay;
         }
 
         // Change version
@@ -3135,9 +3135,9 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
     // This is a new peer. Before doing anything, we need to detect what magic
     // the peer is using.
     if (pfrom->nVersion == 0 &&
-        memcmp(msg.hdr.pchMessageStart, chainparams.CashMessageStart(),
+        memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(),
                CMessageHeader::MESSAGE_START_SIZE) == 0) {
-        pfrom->fUsesCashMagic = true;
+        pfrom->fUsesCashMagic = false;
     }
 
     // Scan for message start
