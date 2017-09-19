@@ -262,35 +262,36 @@ CTxDestination DecodeLegacyDestination(const std::string &str,
 }
 } // namespace
 
-void CBitcoinSecret::SetKey(const CKey &vchSecret) {
-    assert(vchSecret.IsValid());
-    SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(),
-            vchSecret.size());
-    if (vchSecret.IsCompressed()) vchData.push_back(1);
+CKey DecodeSecret(const std::string &str) {
+    CKey key;
+    std::vector<unsigned char> data;
+    if (DecodeBase58Check(str, data)) {
+        const std::vector<unsigned char> &privkey_prefix =
+            Params().Base58Prefix(CChainParams::SECRET_KEY);
+        if ((data.size() == 32 + privkey_prefix.size() ||
+             (data.size() == 33 + privkey_prefix.size() && data.back() == 1)) &&
+            std::equal(privkey_prefix.begin(), privkey_prefix.end(),
+                       data.begin())) {
+            bool compressed = data.size() == 33 + privkey_prefix.size();
+            key.Set(data.begin() + privkey_prefix.size(),
+                    data.begin() + privkey_prefix.size() + 32, compressed);
+        }
+    }
+    memory_cleanse(data.data(), data.size());
+    return key;
 }
 
-CKey CBitcoinSecret::GetKey() {
-    CKey ret;
-    assert(vchData.size() >= 32);
-    ret.Set(vchData.begin(), vchData.begin() + 32,
-            vchData.size() > 32 && vchData[32] == 1);
+std::string EncodeSecret(const CKey &key) {
+    assert(key.IsValid());
+    std::vector<unsigned char> data =
+        Params().Base58Prefix(CChainParams::SECRET_KEY);
+    data.insert(data.end(), key.begin(), key.end());
+    if (key.IsCompressed()) {
+        data.push_back(1);
+    }
+    std::string ret = EncodeBase58Check(data);
+    memory_cleanse(data.data(), data.size());
     return ret;
-}
-
-bool CBitcoinSecret::IsValid() const {
-    bool fExpectedFormat =
-        vchData.size() == 32 || (vchData.size() == 33 && vchData[32] == 1);
-    bool fCorrectVersion =
-        vchVersion == Params().Base58Prefix(CChainParams::SECRET_KEY);
-    return fExpectedFormat && fCorrectVersion;
-}
-
-bool CBitcoinSecret::SetString(const char *pszSecret) {
-    return CBase58Data::SetString(pszSecret) && IsValid();
-}
-
-bool CBitcoinSecret::SetString(const std::string &strSecret) {
-    return SetString(strSecret.c_str());
 }
 
 std::string EncodeLegacyAddr(const CTxDestination &dest,

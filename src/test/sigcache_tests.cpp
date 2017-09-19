@@ -68,13 +68,9 @@ BOOST_AUTO_TEST_CASE(sig_pubkey_hash_variations) {
 
     TestCachingTransactionSignatureChecker testChecker(checker);
 
-    CBitcoinSecret bsecret1, bsecret1C;
-    BOOST_CHECK(bsecret1.SetString(strSecret1));
-    BOOST_CHECK(bsecret1C.SetString(strSecret1C));
-
-    CKey key1 = bsecret1.GetKey();
+    CKey key1 = DecodeSecret(strSecret1);
     BOOST_CHECK(key1.IsCompressed() == false);
-    CKey key1C = bsecret1C.GetKey();
+    CKey key1C = DecodeSecret(strSecret1C);
     BOOST_CHECK(key1C.IsCompressed() == true);
 
     CPubKey pubkey1 = key1.GetPubKey();
