@@ -12,8 +12,8 @@
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <dstencode.h>
 #include <init.h>
+#include <key_io.h>
 #include <miner.h>
 #include <net.h>
 #include <policy/policy.h>

@@ -281,12 +281,12 @@ add_library(common
 	consensus/merkle.cpp
 	coins.cpp
 	compressor.cpp
-	dstencode.cpp
 	feerate.cpp
 	globals.cpp
 	core_read.cpp
 	core_write.cpp
 	key.cpp
+	key_io.cpp
 	keystore.cpp
 	netaddress.cpp
 	netbase.cpp

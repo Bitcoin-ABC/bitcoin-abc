@@ -3,15 +3,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <base58.h>
 #include <chain.h>
 #include <coins.h>
 #include <config.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <dstencode.h>
 #include <index/txindex.h>
 #include <init.h>
+#include <key_io.h>
 #include <keystore.h>
 #include <merkleblock.h>
 #include <net.h>

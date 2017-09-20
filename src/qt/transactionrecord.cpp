@@ -5,11 +5,11 @@
 #include <qt/transactionrecord.h>
 
 #include <cashaddrenc.h>
-#include <chain.h>
+#include <chain.h>       // For MAX_BLOCK_TIME_GAP
 #include <chainparams.h> // For Params()
 #include <consensus/consensus.h>
-#include <dstencode.h>
 #include <interfaces/wallet.h>
+#include <key_io.h>
 #include <timedata.h>
 #include <validation.h>
 #include <wallet/finaltx.h>

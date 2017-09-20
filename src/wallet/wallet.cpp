@@ -10,10 +10,10 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
-#include <dstencode.h>
 #include <fs.h>
 #include <init.h>
 #include <key.h>
+#include <key_io.h>
 #include <keystore.h>
 #include <net.h>
 #include <policy/policy.h>

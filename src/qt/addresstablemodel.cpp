@@ -5,8 +5,8 @@
 #include <qt/addresstablemodel.h>
 
 #include <cashaddrenc.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <qt/guiutil.h>
 #include <qt/walletmodel.h>
 #include <wallet/wallet.h>

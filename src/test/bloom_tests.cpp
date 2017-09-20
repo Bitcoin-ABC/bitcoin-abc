@@ -4,10 +4,10 @@
 
 #include <bloom.h>
 
-#include <base58.h>
 #include <clientversion.h>
 #include <consensus/merkle.h>
 #include <key.h>
+#include <key_io.h>
 #include <merkleblock.h>
 #include <random.h>
 #include <serialize.h>

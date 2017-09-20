@@ -6,8 +6,8 @@
 #include <qt/forms/ui_coincontroldialog.h>
 
 #include <cashaddrenc.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <policy/policy.h>
 #include <qt/addresstablemodel.h>
 #include <qt/bitcoinunits.h>
@@ -15,7 +15,6 @@
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/walletmodel.h>
-#include <txmempool.h>
 #include <validation.h> // For mempool
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h>

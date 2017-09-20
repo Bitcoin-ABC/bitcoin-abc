@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <base58.h>
 #include <clientversion.h>
 #include <key.h>
+#include <key_io.h>
 #include <streams.h>
 #include <uint256.h>
 #include <util.h>

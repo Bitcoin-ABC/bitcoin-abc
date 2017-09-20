@@ -6,7 +6,7 @@
 
 #include <chainparams.h>
 #include <config.h>
-#include <dstencode.h>
+#include <key_io.h>
 #include <qt/guiutil.h>
 
 namespace {

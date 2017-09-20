@@ -6,8 +6,8 @@
 
 #include <cashaddrenc.h>
 #include <chainparams.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <policy/policy.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>

@@ -136,7 +136,6 @@ BITCOIN_CORE_H = \
   core_memusage.h \
   cuckoocache.h \
   diskblockpos.h \
-  dstencode.h \
   fs.h \
   globals.h \
   httprpc.h \
@@ -149,6 +148,7 @@ BITCOIN_CORE_H = \
   interfaces/node.h \
   interfaces/wallet.h \
   key.h \
+  key_io.h \
   keystore.h \
   dbwrapper.h \
   limitedmap.h \
@@ -418,12 +418,12 @@ libbitcoin_common_a_SOURCES = \
   config.cpp \
   coins.cpp \
   compressor.cpp \
-  dstencode.cpp \
   feerate.cpp \
   globals.cpp \
   core_read.cpp \
   core_write.cpp \
   key.cpp \
+  key_io.cpp \
   keystore.cpp \
   netaddress.cpp \
   netbase.cpp \

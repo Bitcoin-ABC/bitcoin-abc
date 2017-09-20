@@ -5,9 +5,9 @@
 #include <qt/walletmodel.h>
 
 #include <cashaddrenc.h>
-#include <dstencode.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <qt/addresstablemodel.h>
 #include <qt/guiconstants.h>
 #include <qt/paymentserver.h>

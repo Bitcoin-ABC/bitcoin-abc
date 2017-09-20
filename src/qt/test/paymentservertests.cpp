@@ -12,7 +12,6 @@
 #include <script/standard.h>
 #include <util.h>
 #include <utilstrencodings.h>
-
 #include <qt/test/paymentrequestdata.h>
 
 #include <openssl/x509.h>

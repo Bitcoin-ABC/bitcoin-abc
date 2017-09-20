@@ -7,8 +7,8 @@
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <consensus/consensus.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/paymentserver.h>

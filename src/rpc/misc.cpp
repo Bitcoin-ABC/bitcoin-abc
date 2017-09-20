@@ -3,13 +3,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <base58.h>
 #include <chain.h>
 #include <clientversion.h>
 #include <config.h>
 #include <core_io.h>
-#include <dstencode.h>
 #include <init.h>
+#include <key_io.h>
 #include <net.h>
 #include <netbase.h>
 #include <rpc/blockchain.h>

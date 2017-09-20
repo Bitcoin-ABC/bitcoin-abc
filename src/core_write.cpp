@@ -5,7 +5,7 @@
 #include <core_io.h>
 
 #include <config.h>
-#include <dstencode.h>
+#include <key_io.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <script/sigencoding.h>

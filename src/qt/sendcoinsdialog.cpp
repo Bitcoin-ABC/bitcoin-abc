@@ -6,8 +6,8 @@
 #include <qt/sendcoinsdialog.h>
 
 #include <chainparams.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <qt/addresstablemodel.h>
 #include <qt/bitcoinunits.h>
 #include <qt/clientmodel.h>
@@ -16,7 +16,6 @@
 #include <qt/optionsmodel.h>
 #include <qt/platformstyle.h>
 #include <qt/sendcoinsentry.h>
-#include <qt/walletmodel.h>
 #include <txmempool.h>
 #include <ui_interface.h>
 #include <wallet/coincontrol.h>

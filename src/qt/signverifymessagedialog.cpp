@@ -5,8 +5,8 @@
 #include <qt/forms/ui_signverifymessagedialog.h>
 #include <qt/signverifymessagedialog.h>
 
-#include <dstencode.h>
 #include <init.h>
+#include <key_io.h>
 #include <qt/addressbookpage.h>
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>

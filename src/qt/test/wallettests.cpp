@@ -3,8 +3,8 @@
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <dstencode.h>
 #include <interfaces/node.h>
+#include <key_io.h>
 #include <qt/bitcoinamountfield.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
