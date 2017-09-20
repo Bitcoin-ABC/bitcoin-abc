@@ -67,81 +67,13 @@ inline bool DecodeBase58Check(const char *psz, std::vector<uint8_t> &vchRet);
 inline bool DecodeBase58Check(const std::string &str,
                               std::vector<uint8_t> &vchRet);
 
-/**
- * Base class for all base58-encoded data
- */
-class CBase58Data {
-protected:
-    //! the version byte(s)
-    std::vector<uint8_t> vchVersion;
-
-    //! the actually encoded data
-    typedef std::vector<uint8_t, zero_after_free_allocator<uint8_t>>
-        vector_uchar;
-    vector_uchar vchData;
-
-    CBase58Data();
-    void SetData(const std::vector<uint8_t> &vchVersionIn, const void *pdata,
-                 size_t nSize);
-    void SetData(const std::vector<uint8_t> &vchVersionIn,
-                 const uint8_t *pbegin, const uint8_t *pend);
-
-public:
-    bool SetString(const char *psz, unsigned int nVersionBytes = 1);
-    bool SetString(const std::string &str);
-    std::string ToString() const;
-    int CompareTo(const CBase58Data &b58) const;
-
-    bool operator==(const CBase58Data &b58) const {
-        return CompareTo(b58) == 0;
-    }
-    bool operator<=(const CBase58Data &b58) const {
-        return CompareTo(b58) <= 0;
-    }
-    bool operator>=(const CBase58Data &b58) const {
-        return CompareTo(b58) >= 0;
-    }
-    bool operator<(const CBase58Data &b58) const { return CompareTo(b58) < 0; }
-    bool operator>(const CBase58Data &b58) const { return CompareTo(b58) > 0; }
-};
-
 CKey DecodeSecret(const std::string &str);
 std::string EncodeSecret(const CKey &key);
 
-template <typename K, int Size, CChainParams::Base58Type Type>
-class CBitcoinExtKeyBase : public CBase58Data {
-public:
-    void SetKey(const K &key) {
-        uint8_t vch[Size];
-        key.Encode(vch);
-        SetData(Params().Base58Prefix(Type), vch, vch + Size);
-    }
-
-    K GetKey() {
-        K ret;
-        if (vchData.size() == Size) {
-            // If base58 encoded data does not hold an ext key, return a
-            // !IsValid() key
-            ret.Decode(vchData.data());
-        }
-        return ret;
-    }
-
-    CBitcoinExtKeyBase(const K &key) { SetKey(key); }
-
-    CBitcoinExtKeyBase(const std::string &strBase58c) {
-        SetString(strBase58c.c_str(), Params().Base58Prefix(Type).size());
-    }
-
-    CBitcoinExtKeyBase() {}
-};
-
-typedef CBitcoinExtKeyBase<CExtKey, BIP32_EXTKEY_SIZE,
-                           CChainParams::EXT_SECRET_KEY>
-    CBitcoinExtKey;
-typedef CBitcoinExtKeyBase<CExtPubKey, BIP32_EXTKEY_SIZE,
-                           CChainParams::EXT_PUBLIC_KEY>
-    CBitcoinExtPubKey;
+CExtKey DecodeExtKey(const std::string &str);
+std::string EncodeExtKey(const CExtKey &extkey);
+CExtPubKey DecodeExtPubKey(const std::string &str);
+std::string EncodeExtPubKey(const CExtPubKey &extpubkey);
 
 std::string EncodeLegacyAddr(const CTxDestination &dest, const CChainParams &);
 CTxDestination DecodeLegacyAddr(const std::string &str,

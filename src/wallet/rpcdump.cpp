@@ -839,10 +839,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             CExtKey masterKey;
             masterKey.SetMaster(key.begin(), key.size());
 
-            CBitcoinExtKey b58extkey;
-            b58extkey.SetKey(masterKey);
-
-            file << "# extended private masterkey: " << b58extkey.ToString()
+            file << "# extended private masterkey: " << EncodeExtKey(masterKey)
                  << "\n\n";
         }
     }
