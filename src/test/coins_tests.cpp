@@ -48,7 +48,7 @@ public:
         return true;
     }
 
-    bool HaveCoin(const COutPoint outpoint) const {
+    bool HaveCoin(const COutPoint &outpoint) const {
         Coin coin;
         return GetCoin(outpoint, coin);
     }
@@ -96,7 +96,7 @@ public:
     CCoinsMap &map() { return cacheCoins; }
     size_t &usage() { return cachedCoinsUsage; }
 };
-}
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(coins_tests, BasicTestingSetup)
 
