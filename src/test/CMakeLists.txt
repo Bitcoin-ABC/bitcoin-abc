@@ -30,14 +30,14 @@ function(gen_json_header NAME)
 endfunction()
 
 gen_json_header(JSON_HEADERS
-	data/script_tests.json
-	data/base58_keys_valid.json
 	data/base58_encode_decode.json
-	data/base58_keys_invalid.json
 	data/blockfilters.json
+	data/key_io_valid.json
+	data/key_io_invalid.json
+	data/script_tests.json
+	data/sighash.json
 	data/tx_invalid.json
 	data/tx_valid.json
-	data/sighash.json
 )
 
 include(TestSuite)
@@ -84,6 +84,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	hash_tests.cpp
 	inv_tests.cpp
 	jsonutil.cpp
+	key_io_tests.cpp
 	key_tests.cpp
 	lcg_tests.cpp
 	limitedmap_tests.cpp
