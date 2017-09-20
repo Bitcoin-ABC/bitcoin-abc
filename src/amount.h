@@ -11,13 +11,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <type_traits>
 
 struct Amount {
 private:
     int64_t amount;
 
 public:
+    Amount() : amount(0) {}
     Amount(int _camount) : amount(_camount) {}
     Amount(int64_t _camount) : amount(_camount) {}
     Amount(const Amount &_camount) : amount(_camount.amount) {}
@@ -63,11 +63,19 @@ public:
         return Amount(a.amount - b.amount);
     }
     // Implemented for allowing COIN as a base unit.
-    template <typename T, typename std::enable_if<(std::is_integral<T>::value),
-                                                  T>::type = 0>
-    friend Amount operator*(const T a, const Amount b) {
+    friend Amount operator*(const int64_t a, const Amount b) {
         return Amount(a * b.amount);
     }
+    friend Amount operator*(const int a, const Amount b) {
+        return Amount(a * b.amount);
+    }
+    // DO NOT IMPLEMENT
+    friend Amount operator*(const double a, const Amount b) = delete;
+    int64_t operator/(const Amount b) const { return amount / b.amount; }
+    Amount operator/(const int64_t b) const { return Amount(amount / b); }
+    Amount operator/(const int b) const { return Amount(amount / b); }
+    // DO NOT IMPLEMENT
+    Amount operator/(const double b) const = delete;
 
     // ostream support
     friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {

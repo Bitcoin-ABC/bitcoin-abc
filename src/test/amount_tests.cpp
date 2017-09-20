@@ -7,23 +7,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-// Snippit to allow compile time introspection for multiplication operator
-// Used to ensure that certain operations are not implemented on Amount
-namespace Check {
-class No {
-public:
-    bool b[2];
-};
-template <typename T, typename Arg> No operator*(const T &, const Arg &);
-
-bool Check(...);
-No &Check(const No &);
-
-template <typename T, typename Arg = T> struct MultiplicationExists {
-    enum { value = (sizeof(Check(*(T *)(0) * *(Arg *)(0))) != sizeof(No)) };
-};
-} // namespace Check
-
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(CAmountTests) {
@@ -64,12 +47,10 @@ BOOST_AUTO_TEST_CASE(CAmountTests) {
     BOOST_CHECK_EQUAL(10 * Amount(10), Amount(100));
     BOOST_CHECK_EQUAL(-1 * Amount(1), Amount(-1));
 
-    // The C preprocessor will now allow passing a template type into a macro
-    // directly, so we must define these aliases.
-    using impl_int = Check::MultiplicationExists<int64_t, Amount>;
-    using impl_float = Check::MultiplicationExists<double, Amount>;
-    BOOST_CHECK(impl_int::value);
-    BOOST_CHECK(!impl_float::value);
+    BOOST_CHECK_EQUAL(Amount(10) / 3, Amount(3));
+    BOOST_CHECK_EQUAL(10 * COIN / COIN, 10.0);
+    BOOST_CHECK_EQUAL(Amount(10) / -3, Amount(-3));
+    BOOST_CHECK_EQUAL(-10 * COIN / (-1 * COIN), 10.0);
 
     BOOST_CHECK_EQUAL(Amount(100).GetSatoshis() / 10, 10);
     // This should probably be Banker's rounding,
