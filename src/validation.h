@@ -581,8 +581,7 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
  */
 class CScriptCheck {
 private:
-    CScript scriptPubKey;
-    Amount amount;
+    CTxOut m_tx_out;
     const CTransaction *ptxTo;
     unsigned int nIn;
     uint32_t nFlags;
@@ -595,28 +594,25 @@ private:
 
 public:
     CScriptCheck()
-        : amount(), ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
+        : ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
           error(ScriptError::UNKNOWN), txdata(), pTxLimitSigChecks(nullptr),
           pBlockLimitSigChecks(nullptr) {}
 
-    CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
-                 const CTransaction &txToIn, unsigned int nInIn,
-                 uint32_t nFlagsIn, bool cacheIn,
+    CScriptCheck(const CTxOut &outIn, const CTransaction &txToIn,
+                 unsigned int nInIn, uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn,
                  TxSigCheckLimiter *pTxLimitSigChecksIn = nullptr,
                  CheckInputsLimiter *pBlockLimitSigChecksIn = nullptr)
-        : scriptPubKey(scriptPubKeyIn), amount(amountIn), ptxTo(&txToIn),
-          nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn),
-          error(ScriptError::UNKNOWN), txdata(txdataIn),
+        : m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn),
+          cacheStore(cacheIn), error(ScriptError::UNKNOWN), txdata(txdataIn),
           pTxLimitSigChecks(pTxLimitSigChecksIn),
           pBlockLimitSigChecks(pBlockLimitSigChecksIn) {}
 
     bool operator()();
 
     void swap(CScriptCheck &check) {
-        scriptPubKey.swap(check.scriptPubKey);
         std::swap(ptxTo, check.ptxTo);
-        std::swap(amount, check.amount);
+        std::swap(m_tx_out, check.m_tx_out);
         std::swap(nIn, check.nIn);
         std::swap(nFlags, check.nFlags);
         std::swap(cacheStore, check.cacheStore);

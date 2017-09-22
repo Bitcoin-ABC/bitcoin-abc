@@ -996,9 +996,9 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight) {
 
 bool CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
-    if (!VerifyScript(scriptSig, scriptPubKey, nFlags,
-                      CachingTransactionSignatureChecker(ptxTo, nIn, amount,
-                                                         cacheStore, txdata),
+    if (!VerifyScript(scriptSig, m_tx_out.scriptPubKey, nFlags,
+                      CachingTransactionSignatureChecker(
+                          ptxTo, nIn, m_tx_out.nValue, cacheStore, txdata),
                       metrics, &error)) {
         return false;
     }
@@ -1072,12 +1072,10 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
         // check that our caching is not introducing consensus failures through
         // additional data in, eg, the coins being spent being checked as a part
         // of CScriptCheck.
-        const CScript &scriptPubKey = coin.GetTxOut().scriptPubKey;
-        const Amount amount = coin.GetTxOut().nValue;
 
         // Verify signature
-        CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
-                           txdata, &txLimitSigChecks, pBlockLimitSigChecks);
+        CScriptCheck check(coin.GetTxOut(), tx, i, flags, sigCacheStore, txdata,
+                           &txLimitSigChecks, pBlockLimitSigChecks);
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
         } else if (!check()) {
@@ -1094,7 +1092,7 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
                 // NOT_STANDARD instead of CONSENSUS to avoid downstream users
                 // splitting the network between upgraded and non-upgraded nodes
                 // by banning CONSENSUS-failing data providers.
-                CScriptCheck check2(scriptPubKey, amount, tx, i, mandatoryFlags,
+                CScriptCheck check2(coin.GetTxOut(), tx, i, mandatoryFlags,
                                     sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
