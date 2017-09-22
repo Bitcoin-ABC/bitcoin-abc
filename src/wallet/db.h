@@ -158,6 +158,9 @@ public:
                  bool fFlushOnCloseIn = true);
     ~CDB() { Close(); }
 
+    CDB(const CDB &) = delete;
+    CDB &operator=(const CDB &) = delete;
+
     void Flush();
     void Close();
     static bool Recover(const std::string &filename, void *callbackDataIn,
@@ -179,10 +182,6 @@ public:
                                    std::string &warningStr,
                                    std::string &errorStr,
                                    CDBEnv::recoverFunc_type recoverFunc);
-
-private:
-    CDB(const CDB &);
-    void operator=(const CDB &);
 
 public:
     template <typename K, typename T> bool Read(const K &key, T &value) {

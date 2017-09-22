@@ -51,6 +51,9 @@ public:
     Arena(void *base, size_t size, size_t alignment);
     virtual ~Arena();
 
+    Arena(const Arena &other) = delete;       // non construction-copyable
+    Arena &operator=(const Arena &) = delete; // non copyable
+
     /** Memory statistics. */
     struct Stats {
         size_t used;
@@ -89,11 +92,6 @@ public:
     bool addressInArena(void *ptr) const { return ptr >= base && ptr < end; }
 
 private:
-    // non construction-copyable
-    Arena(const Arena &other) = delete;
-    // non copyable
-    Arena &operator=(const Arena &) = delete;
-
     /**
      * Map of chunk address to chunk information. This class makes use of the
      * sorted order to merge previous and next chunks during deallocation.
@@ -165,6 +163,9 @@ public:
                         LockingFailed_Callback lf_cb_in = nullptr);
     ~LockedPool();
 
+    LockedPool(const LockedPool &other) = delete; // non construction-copyable
+    LockedPool &operator=(const LockedPool &) = delete; // non copyable
+
     /**
      * Allocate size bytes from this arena.
      * Returns pointer on success, or 0 if memory is full or the application
@@ -183,11 +184,6 @@ public:
     Stats stats() const;
 
 private:
-    // non construction-copyable
-    LockedPool(const LockedPool &other) = delete;
-    // non copyable
-    LockedPool &operator=(const LockedPool &) = delete;
-
     std::unique_ptr<LockedPageAllocator> allocator;
 
     /** Create an arena from locked pages */

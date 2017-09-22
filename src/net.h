@@ -761,12 +761,11 @@ public:
           uint64_t nLocalHostNonceIn, const CAddress &addrBindIn,
           const std::string &addrNameIn = "", bool fInboundIn = false);
     ~CNode();
+    CNode(const CNode &) = delete;
+    CNode &operator=(const CNode &) = delete;
 
 private:
-    CNode(const CNode &);
-    void operator=(const CNode &);
     const NodeId id;
-
     const uint64_t nLocalHostNonce;
     // Services offered to this peer
     const ServiceFlags nLocalServices;

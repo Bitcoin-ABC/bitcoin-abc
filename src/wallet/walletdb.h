@@ -162,6 +162,8 @@ public:
     explicit CWalletDB(CWalletDBWrapper &dbw, const char *pszMode = "r+",
                        bool _fFlushOnClose = true)
         : batch(dbw, pszMode, _fFlushOnClose), m_dbw(dbw) {}
+    CWalletDB(const CWalletDB &) = delete;
+    CWalletDB &operator=(const CWalletDB &) = delete;
 
     bool WriteName(const CTxDestination &address, const std::string &strName);
     bool EraseName(const CTxDestination &address);
@@ -265,9 +267,6 @@ public:
 private:
     CDB batch;
     CWalletDBWrapper &m_dbw;
-
-    CWalletDB(const CWalletDB &);
-    void operator=(const CWalletDB &);
 };
 
 //! Compacts BDB state so that wallet.dat is self-contained (if there are
