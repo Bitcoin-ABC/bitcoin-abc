@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(1), 1);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), 121);
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), 999);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), 1e3);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), 9e3);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), 1000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9000), 9000);
 
     feeRate = CFeeRate(-1000);
     // Must always just return -1 * arg
@@ -87,8 +87,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(1), -1);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), -121);
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), -999);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), -1e3);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), -9e3);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), -1000);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9000), -9000);
 
     feeRate = CFeeRate(123);
     // Truncates the result, if not integer
@@ -99,8 +99,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), 14);
     BOOST_CHECK_EQUAL(feeRate.GetFee(122), 15);
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), 122);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), 123);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), 1107);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), 123);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9000), 1107);
 
     feeRate = CFeeRate(-123);
     // Truncates the result, if not integer

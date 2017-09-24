@@ -79,7 +79,7 @@ struct CompareValueOnly {
 
 std::string COutput::ToString() const {
     return strprintf("COutput(%s, %d, %d) [%s]", tx->GetId().ToString(), i,
-                     nDepth, FormatMoney(tx->tx->vout[i].nValue));
+                     nDepth, FormatMoney(tx->tx->vout[i].nValue.GetSatoshis()));
 }
 
 const CWalletTx *CWallet::GetWalletTx(const uint256 &hash) const {
@@ -1369,7 +1369,7 @@ CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const {
         const CWalletTx &prev = (*mi).second;
         if (txin.prevout.n < prev.tx->vout.size()) {
             if (IsMine(prev.tx->vout[txin.prevout.n]) & filter) {
-                return prev.tx->vout[txin.prevout.n].nValue;
+                return prev.tx->vout[txin.prevout.n].nValue.GetSatoshis();
             }
         }
     }
@@ -1388,7 +1388,7 @@ CAmount CWallet::GetCredit(const CTxOut &txout,
                                  ": value out of range");
     }
 
-    return (IsMine(txout) & filter) ? txout.nValue : 0;
+    return (IsMine(txout) & filter) ? txout.nValue.GetSatoshis() : 0;
 }
 
 bool CWallet::IsChange(const CTxOut &txout) const {
@@ -1421,7 +1421,7 @@ CAmount CWallet::GetChange(const CTxOut &txout) const {
                                  ": value out of range");
     }
 
-    return (IsChange(txout) ? txout.nValue : 0);
+    return (IsChange(txout) ? txout.nValue.GetSatoshis() : 0);
 }
 
 bool CWallet::IsMine(const CTransaction &tx) const {
@@ -1621,7 +1621,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
     CAmount nDebit = GetDebit(filter);
     // debit>0 means we signed/sent this transaction.
     if (nDebit > 0) {
-        CAmount nValueOut = tx->GetValueOut();
+        CAmount nValueOut = tx->GetValueOut().GetSatoshis();
         nFee = nDebit - nValueOut;
     }
 
@@ -1652,7 +1652,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
             address = CNoDestination();
         }
 
-        COutputEntry output = {address, txout.nValue, (int)i};
+        COutputEntry output = {address, txout.nValue.GetSatoshis(), (int)i};
 
         // If we are debited by the transaction, add the output as a "sent"
         // entry.
@@ -2375,7 +2375,7 @@ bool CWallet::SelectCoinsMinConf(
         }
 
         int i = output.i;
-        CAmount n = pcoin->tx->vout[i].nValue;
+        CAmount n = pcoin->tx->vout[i].nValue.GetSatoshis();
 
         std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>> coin =
             std::make_pair(n, std::make_pair(pcoin, i));
@@ -2467,7 +2467,7 @@ bool CWallet::SelectCoins(
                 continue;
             }
 
-            nValueRet += out.tx->tx->vout[out.i].nValue;
+            nValueRet += out.tx->tx->vout[out.i].nValue.GetSatoshis();
             setCoinsRet.insert(std::make_pair(out.tx, out.i));
         }
 
@@ -2497,7 +2497,8 @@ bool CWallet::SelectCoins(
             return false;
         }
 
-        nValueFromPresetInputs += pcoin->tx->vout[outpoint.n].nValue;
+        nValueFromPresetInputs +=
+            pcoin->tx->vout[outpoint.n].nValue.GetSatoshis();
         setPresetCoins.insert(std::make_pair(pcoin, outpoint.n));
     }
 
@@ -2565,7 +2566,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, CAmount &nFeeRet,
     // Turn the txout set into a CRecipient vector.
     for (size_t idx = 0; idx < tx.vout.size(); idx++) {
         const CTxOut &txOut = tx.vout[idx];
-        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue,
+        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue.GetSatoshis(),
                                 setSubtractFeeFromOutputs.count(idx) == 1};
         vecSend.push_back(recipient);
     }
@@ -2750,7 +2751,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             for (const auto &pcoin : setCoins) {
-                CAmount nCredit = pcoin.first->tx->vout[pcoin.second].nValue;
+                CAmount nCredit =
+                    pcoin.first->tx->vout[pcoin.second].nValue.GetSatoshis();
                 // The coin age after the next block (depth+1) is used instead
                 // of the current, reflecting an assumption the user would
                 // accept a bit more delay for a chance at a free transaction.
@@ -2807,8 +2809,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // change and deduct from the recipient.
                 if (nSubtractFeeFromAmount > 0 &&
                     newTxOut.IsDust(dustRelayFee)) {
-                    CAmount nDust = newTxOut.GetDustThreshold(dustRelayFee) -
-                                    newTxOut.nValue;
+                    Amount nDust = newTxOut.GetDustThreshold(dustRelayFee) -
+                                   newTxOut.nValue;
                     // Raise change until no more dust.
                     newTxOut.nValue += nDust;
                     // Subtract from first recipient.
@@ -2906,7 +2908,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             if (coinControl && coinControl->fOverrideFeeRate) {
-                nFeeNeeded = coinControl->nFeeRate.GetFee(nBytes);
+                nFeeNeeded = coinControl->nFeeRate.GetFee(nBytes).GetSatoshis();
             }
 
             // If we made it here and we aren't even able to meet the relay fee
@@ -2971,12 +2973,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     coin.first->tx->vout[coin.second].scriptPubKey;
                 SignatureData sigdata;
 
-                if (!ProduceSignature(
-                        TransactionSignatureCreator(
-                            this, &txNewConst, nIn,
-                            coin.first->tx->vout[coin.second].nValue,
-                            nHashType),
-                        scriptPubKey, sigdata)) {
+                if (!ProduceSignature(TransactionSignatureCreator(
+                                          this, &txNewConst, nIn,
+                                          coin.first->tx->vout[coin.second]
+                                              .nValue.GetSatoshis(),
+                                          nHashType),
+                                      scriptPubKey, sigdata)) {
                     strFailReason = _("Signing transaction failed");
                     return false;
                 } else {
@@ -3091,8 +3093,8 @@ bool CWallet::AddAccountingEntry(const CAccountingEntry &acentry,
 }
 
 CAmount CWallet::GetRequiredFee(unsigned int nTxBytes) {
-    return std::max(minTxFee.GetFee(nTxBytes),
-                    ::minRelayTxFee.GetFee(nTxBytes));
+    return std::max(minTxFee.GetFee(nTxBytes), ::minRelayTxFee.GetFee(nTxBytes))
+        .GetSatoshis();
 }
 
 CAmount CWallet::GetMinimumFee(unsigned int nTxBytes,
@@ -3100,7 +3102,7 @@ CAmount CWallet::GetMinimumFee(unsigned int nTxBytes,
                                const CTxMemPool &pool) {
     // payTxFee is the user-set global for desired feerate.
     return GetMinimumFee(nTxBytes, nConfirmTarget, pool,
-                         payTxFee.GetFee(nTxBytes));
+                         payTxFee.GetFee(nTxBytes).GetSatoshis());
 }
 
 CAmount CWallet::GetMinimumFee(unsigned int nTxBytes,
@@ -3111,11 +3113,12 @@ CAmount CWallet::GetMinimumFee(unsigned int nTxBytes,
     if (nFeeNeeded == 0) {
         int estimateFoundTarget = nConfirmTarget;
         nFeeNeeded = pool.estimateSmartFee(nConfirmTarget, &estimateFoundTarget)
-                         .GetFee(nTxBytes);
+                         .GetFee(nTxBytes)
+                         .GetSatoshis();
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallbackFee.
         if (nFeeNeeded == 0) {
-            nFeeNeeded = fallbackFee.GetFee(nTxBytes);
+            nFeeNeeded = fallbackFee.GetFee(nTxBytes).GetSatoshis();
         }
     }
 
@@ -3468,11 +3471,11 @@ std::map<CTxDestination, CAmount> CWallet::GetAddressBalances() {
                 continue;
             }
 
-            CAmount n =
+            Amount n =
                 IsSpent(walletEntry.first, i) ? 0 : pcoin->tx->vout[i].nValue;
 
             if (!balances.count(addr)) balances[addr] = 0;
-            balances[addr] += n;
+            balances[addr] += n.GetSatoshis();
         }
     }
 
@@ -3931,7 +3934,7 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
         "-paytxfee=<amt>",
         strprintf(
             _("Fee (in %s/kB) to add to transactions you send (default: %s)"),
-            CURRENCY_UNIT, FormatMoney(payTxFee.GetFeePerK())));
+            CURRENCY_UNIT, FormatMoney(payTxFee.GetFeePerK().GetSatoshis())));
     strUsage += HelpMessageOpt(
         "-rescan",
         _("Rescan the block chain for missing wallet transactions on startup"));
@@ -4401,7 +4404,6 @@ bool CWallet::BackupWallet(const std::string &strDest) {
                         LogPrintf("cannot backup to wallet source file %s\n",
                                   pathDest.string());
                         return false;
-
                     }
 
 #if BOOST_VERSION >= 104000

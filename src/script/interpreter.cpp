@@ -31,7 +31,7 @@ inline bool set_error(ScriptError *ret, const ScriptError serror) {
     return false;
 }
 
-} // anon namespace
+} // namespace
 
 bool CastToBool(const valtype &vch) {
     for (size_t i = 0; i < vch.size(); i++) {
@@ -1339,7 +1339,7 @@ uint256 GetOutputsHash(const CTransaction &txTo) {
     return ss.GetHash();
 }
 
-} // anon namespace
+} // namespace
 
 PrecomputedTransactionData::PrecomputedTransactionData(
     const CTransaction &txTo) {
@@ -1350,7 +1350,7 @@ PrecomputedTransactionData::PrecomputedTransactionData(
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
-                      const CAmount &amount,
+                      const Amount &amount,
                       const PrecomputedTransactionData *cache, uint32_t flags) {
     if ((nHashType & SIGHASH_FORKID) &&
         (flags & SCRIPT_ENABLE_SIGHASH_FORKID)) {
@@ -1389,7 +1389,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
         // nSequence may already be contain in hashSequence.
         ss << txTo.vin[nIn].prevout;
         ss << static_cast<const CScriptBase &>(scriptCode);
-        ss << amount;
+        ss << amount.GetSatoshis();
         ss << txTo.vin[nIn].nSequence;
         // Outputs (none/one/all, depending on flags)
         ss << hashOutputs;

@@ -668,7 +668,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         }
 
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount &amount = coin.GetTxOut().nValue;
+        const CAmount amount = coin.GetTxOut().nValue.GetSatoshis();
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:

@@ -122,7 +122,7 @@ bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, uint32_t nHashType,
-                      const CAmount &amount,
+                      const Amount &amount,
                       const PrecomputedTransactionData *cache = nullptr,
                       uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID);
 
@@ -149,7 +149,7 @@ class TransactionSignatureChecker : public BaseSignatureChecker {
 private:
     const CTransaction *txTo;
     unsigned int nIn;
-    const CAmount amount;
+    const Amount amount;
     const PrecomputedTransactionData *txdata;
 
 protected:
@@ -159,10 +159,10 @@ protected:
 
 public:
     TransactionSignatureChecker(const CTransaction *txToIn, unsigned int nInIn,
-                                const CAmount &amountIn)
+                                const Amount &amountIn)
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(nullptr) {}
     TransactionSignatureChecker(const CTransaction *txToIn, unsigned int nInIn,
-                                const CAmount &amountIn,
+                                const Amount &amountIn,
                                 const PrecomputedTransactionData &txdataIn)
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
@@ -178,8 +178,7 @@ private:
 
 public:
     MutableTransactionSignatureChecker(const CMutableTransaction *txToIn,
-                                       unsigned int nInIn,
-                                       const CAmount &amount)
+                                       unsigned int nInIn, const Amount &amount)
         : TransactionSignatureChecker(&txTo, nInIn, amount), txTo(*txToIn) {}
 };
 

@@ -721,7 +721,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
-                std::max(CWallet::fallbackFee.GetFeePerK(),
+                std::max(CWallet::fallbackFee.GetFeePerK().GetSatoshis(),
                          CWallet::GetRequiredFee(1000))) +
             "/kB");
         // (Smart fee not initialized yet. This usually takes a few blocks...)
@@ -731,7 +731,8 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
-                std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))) +
+                std::max(feeRate.GetFeePerK().GetSatoshis(),
+                         CWallet::GetRequiredFee(1000))) +
             "/kB");
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(

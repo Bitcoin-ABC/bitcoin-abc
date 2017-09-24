@@ -51,7 +51,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                 TransactionRecord sub(hash, nTime);
                 CTxDestination address;
                 sub.idx = i; // vout index
-                sub.credit = txout.nValue;
+                sub.credit = txout.nValue.GetSatoshis();
                 sub.involvesWatchAddress = mine & ISMINE_WATCH_ONLY;
                 if (ExtractDestination(txout.scriptPubKey, address) &&
                     IsMine(*wallet, address)) {
@@ -101,7 +101,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             //
             // Debit
             //
-            CAmount nTxFee = nDebit - wtx.tx->GetValueOut();
+            Amount nTxFee = nDebit - wtx.tx->GetValueOut();
 
             for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++) {
                 const CTxOut &txout = wtx.tx->vout[nOut];
@@ -126,10 +126,10 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                     sub.address = mapValue["to"];
                 }
 
-                CAmount nValue = txout.nValue;
+                CAmount nValue = txout.nValue.GetSatoshis();
                 /* Add fee to first output */
                 if (nTxFee > 0) {
-                    nValue += nTxFee;
+                    nValue += nTxFee.GetSatoshis();
                     nTxFee = 0;
                 }
                 sub.debit = -nValue;

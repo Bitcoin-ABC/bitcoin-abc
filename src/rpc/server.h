@@ -27,7 +27,7 @@ void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
 void OnPreCommand(std::function<void(const CRPCCommand &)> slot);
 void OnPostCommand(std::function<void(const CRPCCommand &)> slot);
-}
+} // namespace RPCServer
 
 class CBlockIndex;
 class Config;
@@ -191,9 +191,9 @@ public:
     UniValue execute(Config &config, const JSONRPCRequest &request) const;
 
     /**
-    * Returns a list of registered commands
-    * @returns List of registered commands.
-    */
+     * Returns a list of registered commands
+     * @returns List of registered commands.
+     */
     std::vector<std::string> listCommands() const;
 
     /**
@@ -217,8 +217,8 @@ extern std::vector<uint8_t> ParseHexV(const UniValue &v, std::string strName);
 extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 
 extern int64_t nWalletUnlockTime;
-extern CAmount AmountFromValue(const UniValue &value);
-extern UniValue ValueFromAmount(const CAmount &amount);
+extern Amount AmountFromValue(const UniValue &value);
+extern UniValue ValueFromAmount(const Amount &amount);
 extern double GetDifficulty(const CBlockIndex *blockindex = nullptr);
 extern std::string HelpRequiringPassphrase();
 extern std::string HelpExampleCli(const std::string &methodname,

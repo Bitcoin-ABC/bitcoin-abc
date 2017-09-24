@@ -81,7 +81,7 @@ int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 
 uint256 hashAssumeValid;
 
-CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
+CFeeRate minRelayTxFee = CFeeRate(Amount(int64_t(DEFAULT_MIN_RELAY_TX_FEE)));
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
@@ -490,7 +490,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     }
 
     // Check for negative or overflow output values
-    CAmount nValueOut = 0;
+    Amount nValueOut = 0;
     for (const auto &txout : tx.vout) {
         if (txout.nValue < 0) {
             return state.DoS(100, false, REJECT_INVALID,
@@ -802,7 +802,7 @@ static bool AcceptToMemoryPoolWorker(
         int64_t nSigOpsCount =
             GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
 
-        CAmount nValueOut = tx.GetValueOut();
+        CAmount nValueOut = tx.GetValueOut().GetSatoshis();
         CAmount nFees = nValueIn - nValueOut;
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
         CAmount nModifiedFees = nFees;
@@ -843,7 +843,8 @@ static bool AcceptToMemoryPoolWorker(
         CAmount mempoolRejectFee =
             pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                            1000000)
-                .GetFee(nSize);
+                .GetFee(nSize)
+                .GetSatoshis();
         if (mempoolRejectFee > 0 && nModifiedFees < mempoolRejectFee) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "mempool min fee not met", false,
@@ -1382,7 +1383,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         }
 
         // Check for negative or overflow input values
-        nValueIn += coin.GetTxOut().nValue;
+        nValueIn += coin.GetTxOut().nValue.GetSatoshis();
         if (!MoneyRange(coin.GetTxOut().nValue) || !MoneyRange(nValueIn)) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-inputvalues-outofrange");
@@ -1390,14 +1391,14 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     }
 
     if (nValueIn < tx.GetValueOut()) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout",
-                         false, strprintf("value in (%s) < value out (%s)",
-                                          FormatMoney(nValueIn),
-                                          FormatMoney(tx.GetValueOut())));
+        return state.DoS(
+            100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
+            strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn),
+                      FormatMoney(tx.GetValueOut().GetSatoshis())));
     }
 
     // Tally transaction fees
-    CAmount nTxFee = nValueIn - tx.GetValueOut();
+    CAmount nTxFee = nValueIn - tx.GetValueOut().GetSatoshis();
     if (nTxFee < 0) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
     }
@@ -1458,7 +1459,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         // additional data in, eg, the coins being spent being checked as a part
         // of CScriptCheck.
         const CScript &scriptPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount amount = coin.GetTxOut().nValue;
+        const CAmount amount = coin.GetTxOut().nValue.GetSatoshis();
 
         // Verify signature
         CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
@@ -2047,7 +2048,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         }
 
         if (!tx.IsCoinBase()) {
-            nFees += view.GetValueIn(tx) - tx.GetValueOut();
+            Amount fee = view.GetValueIn(tx) - tx.GetValueOut();
+            nFees += fee.GetSatoshis();
 
             // Don't cache results if we're actually connecting blocks (still
             // consult the cache, though).

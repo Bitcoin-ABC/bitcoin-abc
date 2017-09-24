@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
         }
     }
 
-    std::vector<CAmount> origFeeEst;
+    std::vector<Amount> origFeeEst;
     // Highest feerate is 10*baseRate and gets in all blocks, second highest
     // feerate is 9*baseRate and gets in 9/10 blocks = 90%, third highest
     // feerate is 8*base rate, and gets in 8/10 blocks = 80%, so estimateFee(1)

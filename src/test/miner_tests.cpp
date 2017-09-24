@@ -27,7 +27,8 @@
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
-static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
+static CFeeRate blockMinFeeRate =
+    CFeeRate(Amount(int64_t(DEFAULT_BLOCK_MIN_TX_FEE)));
 
 static struct {
     uint8_t extranonce;
@@ -138,7 +139,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
-    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - 1;
+    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize).GetSatoshis() - 1;
 
     tx.vin[0].prevout.hash = hashFreeTx;
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000 - feeToUse;
@@ -180,7 +181,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // This tx can't be mined by itself.
     tx.vin[0].prevout.hash = hashFreeTx2;
     tx.vout.resize(1);
-    feeToUse = blockMinFeeRate.GetFee(freeTxSize);
+    feeToUse = blockMinFeeRate.GetFee(freeTxSize).GetSatoshis();
     tx.vout[0].nValue = 5000000000LL - 100000000 - feeToUse;
     uint256 hashLowFeeTx2 = tx.GetId();
     mempool.addUnchecked(hashLowFeeTx2,

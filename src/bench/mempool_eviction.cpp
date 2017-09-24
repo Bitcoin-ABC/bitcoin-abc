@@ -19,7 +19,8 @@ static void AddTx(const CTransaction &tx, const CAmount &nFee,
     LockPoints lp;
     pool.addUnchecked(tx.GetId(),
                       CTxMemPoolEntry(MakeTransactionRef(tx), nFee, nTime,
-                                      dPriority, nHeight, tx.GetValueOut(),
+                                      dPriority, nHeight,
+                                      tx.GetValueOut().GetSatoshis(),
                                       spendsCoinbase, sigOpCost, lp));
 }
 

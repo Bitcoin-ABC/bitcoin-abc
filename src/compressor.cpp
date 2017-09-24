@@ -139,7 +139,8 @@ bool CScriptCompressor::Decompress(unsigned int nSize,
 // - 1) + 9
 // (this is decodable, as d is in [1-9] and e is in [0-9])
 
-uint64_t CTxOutCompressor::CompressAmount(uint64_t n) {
+uint64_t CTxOutCompressor::CompressAmount(Amount amt) {
+    uint64_t n = amt.GetSatoshis();
     if (n == 0) {
         return 0;
     }
@@ -158,7 +159,7 @@ uint64_t CTxOutCompressor::CompressAmount(uint64_t n) {
     }
 }
 
-uint64_t CTxOutCompressor::DecompressAmount(uint64_t x) {
+Amount CTxOutCompressor::DecompressAmount(uint64_t x) {
     // x = 0  OR  x = 1+10*(9*n + d - 1) + e  OR  x = 1+10*(n - 1) + 9
     if (x == 0) {
         return 0;
@@ -181,5 +182,5 @@ uint64_t CTxOutCompressor::DecompressAmount(uint64_t x) {
         n *= 10;
         e--;
     }
-    return n;
+    return Amount(int64_t(n));
 }

@@ -113,12 +113,11 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
 
                 uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(
-                    VerifyScript(
-                        tx.vin[i].scriptSig,
-                        mapprevOutScriptPubKeys[tx.vin[i].prevout],
-                        verify_flags,
-                        TransactionSignatureChecker(&tx, i, amount, txdata),
-                        &err),
+                    VerifyScript(tx.vin[i].scriptSig,
+                                 mapprevOutScriptPubKeys[tx.vin[i].prevout],
+                                 verify_flags, TransactionSignatureChecker(
+                                                   &tx, i, amount, txdata),
+                                 &err),
                     strTest);
                 BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK,
                                     ScriptErrorString(err));
@@ -491,12 +490,11 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, 0, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0,
-        CombineSignatures(output1->vout[0].scriptPubKey,
-                          MutableTransactionSignatureChecker(
-                              &input1, 0, output1->vout[0].nValue),
-                          DataFromTransaction(input1, 0),
-                          DataFromTransaction(input2, 0)));
+        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
+                                     MutableTransactionSignatureChecker(
+                                         &input1, 0, output1->vout[0].nValue),
+                                     DataFromTransaction(input1, 0),
+                                     DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 
     // P2SH 2-of-2 multisig
@@ -512,12 +510,11 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, SCRIPT_VERIFY_P2SH, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0,
-        CombineSignatures(output1->vout[0].scriptPubKey,
-                          MutableTransactionSignatureChecker(
-                              &input1, 0, output1->vout[0].nValue),
-                          DataFromTransaction(input1, 0),
-                          DataFromTransaction(input2, 0)));
+        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
+                                     MutableTransactionSignatureChecker(
+                                         &input1, 0, output1->vout[0].nValue),
+                                     DataFromTransaction(input1, 0),
+                                     DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, SCRIPT_VERIFY_P2SH, true);
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 }
@@ -545,8 +542,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     BOOST_CHECK(IsStandardTx(t, reason));
 
     // Check dust with default relay fee:
-    CAmount nDustThreshold = 182 * dustRelayFee.GetFeePerK() / 1000 * 3;
-    BOOST_CHECK_EQUAL(nDustThreshold, 546);
+    Amount nDustThreshold = 3 * 182 * dustRelayFee.GetFeePerK() / 1000;
+    BOOST_CHECK_EQUAL(nDustThreshold, Amount(546));
     // dust:
     t.vout[0].nValue = nDustThreshold - 1;
     BOOST_CHECK(!IsStandardTx(t, reason));
@@ -563,7 +560,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // not dust:
     t.vout[0].nValue = 672;
     BOOST_CHECK(IsStandardTx(t, reason));
-    dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
+    dustRelayFee = CFeeRate(Amount(int64_t(DUST_RELAY_TX_FEE)));
 
     t.vout[0].scriptPubKey = CScript() << OP_1;
     BOOST_CHECK(!IsStandardTx(t, reason));
@@ -591,8 +588,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // Data payload can be encoded in any way...
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("");
     BOOST_CHECK(IsStandardTx(t, reason));
-    t.vout[0].scriptPubKey = CScript()
-                             << OP_RETURN << ParseHex("00") << ParseHex("01");
+    t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("00")
+                                       << ParseHex("01");
     BOOST_CHECK(IsStandardTx(t, reason));
     // OP_RESERVED *is* considered to be a PUSHDATA type opcode by IsPushOnly()!
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << OP_RESERVED << -1 << 0

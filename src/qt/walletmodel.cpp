@@ -57,14 +57,14 @@ WalletModel::~WalletModel() {
 
 CAmount WalletModel::getBalance(const CCoinControl *coinControl) const {
     if (coinControl) {
-        CAmount nBalance = 0;
+        Amount nBalance = 0;
         std::vector<COutput> vCoins;
         wallet->AvailableCoins(vCoins, true, coinControl);
         for (const COutput &out : vCoins) {
             if (out.fSpendable) nBalance += out.tx->tx->vout[out.i].nValue;
         }
 
-        return nBalance;
+        return nBalance.GetSatoshis();
     }
 
     return wallet->GetBalance();

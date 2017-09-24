@@ -205,15 +205,15 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                     }
                 }
 
-                strHTML +=
-                    "<b>" + tr("Debit") + ":</b> " +
-                    BitcoinUnits::formatHtmlWithUnit(unit, -txout.nValue) +
-                    "<br>";
+                strHTML += "<b>" + tr("Debit") + ":</b> " +
+                           BitcoinUnits::formatHtmlWithUnit(
+                               unit, -txout.nValue.GetSatoshis()) +
+                           "<br>";
                 if (toSelf)
-                    strHTML +=
-                        "<b>" + tr("Credit") + ":</b> " +
-                        BitcoinUnits::formatHtmlWithUnit(unit, txout.nValue) +
-                        "<br>";
+                    strHTML += "<b>" + tr("Credit") + ":</b> " +
+                               BitcoinUnits::formatHtmlWithUnit(
+                                   unit, txout.nValue.GetSatoshis()) +
+                               "<br>";
             }
 
             if (fAllToMe) {
@@ -228,10 +228,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                            "<br>";
             }
 
-            CAmount nTxFee = nDebit - wtx.tx->GetValueOut();
+            Amount nTxFee = nDebit - wtx.tx->GetValueOut();
             if (nTxFee > 0)
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " +
-                           BitcoinUnits::formatHtmlWithUnit(unit, -nTxFee) +
+                           BitcoinUnits::formatHtmlWithUnit(
+                               unit, -nTxFee.GetSatoshis()) +
                            "<br>";
         } else {
             //
@@ -355,7 +356,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                         QString::fromStdString(EncodeDestination(address));
                 }
                 strHTML = strHTML + " " + tr("Amount") + "=" +
-                          BitcoinUnits::formatHtmlWithUnit(unit, vout.nValue);
+                          BitcoinUnits::formatHtmlWithUnit(
+                              unit, vout.nValue.GetSatoshis());
                 strHTML =
                     strHTML + " IsMine=" +
                     (wallet->IsMine(vout) & ISMINE_SPENDABLE ? tr("true")

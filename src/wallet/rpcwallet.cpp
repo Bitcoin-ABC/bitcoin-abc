@@ -483,7 +483,7 @@ static UniValue sendtoaddress(const Config &config,
     }
 
     // Amount
-    CAmount nAmount = AmountFromValue(request.params[1]);
+    CAmount nAmount = AmountFromValue(request.params[1]).GetSatoshis();
     if (nAmount <= 0) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
@@ -714,7 +714,7 @@ static UniValue getreceivedbyaddress(const Config &config,
         for (const CTxOut &txout : wtx.tx->vout) {
             if (txout.scriptPubKey == scriptPubKey) {
                 if (wtx.GetDepthInMainChain() >= nMinDepth) {
-                    nAmount += txout.nValue;
+                    nAmount += txout.nValue.GetSatoshis();
                 }
             }
         }
@@ -788,7 +788,7 @@ static UniValue getreceivedbyaccount(const Config &config,
             if (ExtractDestination(txout.scriptPubKey, address) &&
                 IsMine(*pwalletMain, address) && setAddress.count(address)) {
                 if (wtx.GetDepthInMainChain() >= nMinDepth) {
-                    nAmount += txout.nValue;
+                    nAmount += txout.nValue.GetSatoshis();
                 }
             }
         }
@@ -978,7 +978,7 @@ static UniValue movecmd(const Config &config, const JSONRPCRequest &request) {
 
     std::string strFrom = AccountFromValue(request.params[0]);
     std::string strTo = AccountFromValue(request.params[1]);
-    CAmount nAmount = AmountFromValue(request.params[2]);
+    CAmount nAmount = AmountFromValue(request.params[2]).GetSatoshis();
     if (nAmount <= 0) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
@@ -1067,7 +1067,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
     }
-    CAmount nAmount = AmountFromValue(request.params[2]);
+    CAmount nAmount = AmountFromValue(request.params[2]).GetSatoshis();
     if (nAmount <= 0) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
@@ -1230,7 +1230,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         destinations.insert(dest);
 
         CScript scriptPubKey = GetScriptForDestination(dest);
-        CAmount nAmount = AmountFromValue(sendTo[name_]);
+        CAmount nAmount = AmountFromValue(sendTo[name_]).GetSatoshis();
         if (nAmount <= 0) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
         }
@@ -1403,7 +1403,7 @@ static UniValue ListReceived(const Config &config, const UniValue &params,
             }
 
             tallyitem &item = mapTally[address];
-            item.nAmount += txout.nValue;
+            item.nAmount += txout.nValue.GetSatoshis();
             item.nConf = std::min(item.nConf, nDepth);
             item.txids.push_back(wtx.GetId());
             if (mine & ISMINE_WATCH_ONLY) {
@@ -2236,7 +2236,9 @@ static UniValue gettransaction(const Config &config,
     CAmount nCredit = wtx.GetCredit(filter);
     CAmount nDebit = wtx.GetDebit(filter);
     CAmount nNet = nCredit - nDebit;
-    CAmount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : 0);
+    CAmount nFee =
+        (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : Amount(0))
+            .GetSatoshis();
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe(filter)) {
@@ -2846,7 +2848,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     // Amount
-    CAmount nAmount = AmountFromValue(request.params[0]);
+    CAmount nAmount = AmountFromValue(request.params[0]).GetSatoshis();
 
     payTxFee = CFeeRate(nAmount, 1000);
     return true;

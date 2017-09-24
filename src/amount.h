@@ -111,37 +111,37 @@ extern const std::string CURRENCY_UNIT;
  * for the creation of coins out of thin air modification could lead to a fork.
  */
 static const Amount MAX_MONEY = 21000000 * COIN;
-inline bool MoneyRange(const CAmount &nValue) {
+inline bool MoneyRange(const Amount nValue) {
     return (nValue >= 0 && nValue <= MAX_MONEY);
 }
 
 /**
- * Fee rate in satoshis per kilobyte: CAmount / kB
+ * Fee rate in satoshis per kilobyte: Amount / kB
  */
 class CFeeRate {
 private:
     // unit is satoshis-per-1,000-bytes
-    CAmount nSatoshisPerK;
+    Amount nSatoshisPerK;
 
 public:
     /** Fee rate of 0 satoshis per kB */
     CFeeRate() : nSatoshisPerK(0) {}
-    explicit CFeeRate(const CAmount &_nSatoshisPerK)
+    explicit CFeeRate(const Amount _nSatoshisPerK)
         : nSatoshisPerK(_nSatoshisPerK) {}
     /**
      * Constructor for a fee rate in satoshis per kB. The size in bytes must not
      * exceed (2^63 - 1)
      */
-    CFeeRate(const CAmount &nFeePaid, size_t nBytes);
+    CFeeRate(const Amount nFeePaid, size_t nBytes);
     CFeeRate(const CFeeRate &other) { nSatoshisPerK = other.nSatoshisPerK; }
     /**
      * Return the fee in satoshis for the given size in bytes.
      */
-    CAmount GetFee(size_t nBytes) const;
+    Amount GetFee(size_t nBytes) const;
     /**
      * Return the fee in satoshis for a size of 1000 bytes
      */
-    CAmount GetFeePerK() const { return GetFee(1000); }
+    Amount GetFeePerK() const { return GetFee(1000); }
     friend bool operator<(const CFeeRate &a, const CFeeRate &b) {
         return a.nSatoshisPerK < b.nSatoshisPerK;
     }

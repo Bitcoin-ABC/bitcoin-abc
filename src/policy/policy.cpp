@@ -140,6 +140,7 @@ bool AreInputsStandard(const CTransaction &tx,
     return true;
 }
 
-CFeeRate incrementalRelayFee = CFeeRate(DEFAULT_INCREMENTAL_RELAY_FEE);
-CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
+CFeeRate incrementalRelayFee =
+    CFeeRate(Amount(int64_t(DEFAULT_INCREMENTAL_RELAY_FEE)));
+CFeeRate dustRelayFee = CFeeRate(Amount(int64_t(DUST_RELAY_TX_FEE)));
 unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;

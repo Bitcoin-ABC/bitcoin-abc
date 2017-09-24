@@ -125,12 +125,12 @@ public:
  */
 class CTxOut {
 public:
-    CAmount nValue;
+    Amount nValue;
     CScript scriptPubKey;
 
     CTxOut() { SetNull(); }
 
-    CTxOut(const CAmount &nValueIn, CScript scriptPubKeyIn);
+    CTxOut(const Amount &nValueIn, CScript scriptPubKeyIn);
 
     ADD_SERIALIZE_METHODS;
 
@@ -147,7 +147,7 @@ public:
 
     bool IsNull() const { return (nValue == -1); }
 
-    CAmount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
+    Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
         // "Dust" is defined in terms of CTransaction::minRelayTxFee, which has
         // units satoshis-per-kilobyte. If you'd pay more than 1/3 in fees to
         // spend something, then we consider it dust. A typical spendable
@@ -269,7 +269,7 @@ public:
     uint256 GetHash() const;
 
     // Return sum of txouts.
-    CAmount GetValueOut() const;
+    Amount GetValueOut() const;
     // GetValueIn() is a method on CCoinsViewCache, because
     // inputs must be known to compute value in.
 

@@ -800,7 +800,8 @@ static UniValue getblocktemplate(const Config &config,
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
     result.push_back(
-        Pair("coinbasevalue", (int64_t)pblock->vtx[0]->vout[0].nValue));
+        Pair("coinbasevalue",
+             (int64_t)pblock->vtx[0]->vout[0].nValue.GetSatoshis()));
     result.push_back(
         Pair("longpollid", chainActive.Tip()->GetBlockHash().GetHex() +
                                i64tostr(nTransactionsUpdatedLast)));

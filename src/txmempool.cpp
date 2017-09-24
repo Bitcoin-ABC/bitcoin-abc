@@ -40,7 +40,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx,
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nModFeesWithDescendants = nFee;
-    CAmount nValueIn = tx->GetValueOut() + nFee;
+    Amount nValueIn = tx->GetValueOut() + nFee;
     assert(inChainInputValue <= nValueIn);
 
     feeDelta = 0;
@@ -837,7 +837,7 @@ public:
         return counta < countb;
     }
 };
-}
+} // namespace
 
 std::vector<CTxMemPool::indexed_transaction_set::const_iterator>
 CTxMemPool::GetSortedDepthAndScore() const {
@@ -1125,7 +1125,7 @@ CTxMemPool::GetMemPoolChildren(txiter entry) const {
 CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
     LOCK(cs);
     if (!blockSinceLastRollingFeeBump || rollingMinimumFeeRate == 0)
-        return CFeeRate(rollingMinimumFeeRate);
+        return CFeeRate(Amount(int64_t(rollingMinimumFeeRate)));
 
     int64_t time = GetTime();
     if (time > lastRollingFeeUpdate + 10) {
@@ -1141,18 +1141,19 @@ CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
         lastRollingFeeUpdate = time;
 
         if (rollingMinimumFeeRate <
-            (double)incrementalRelayFee.GetFeePerK() / 2) {
+            (double)incrementalRelayFee.GetFeePerK().GetSatoshis() / 2) {
             rollingMinimumFeeRate = 0;
             return CFeeRate(0);
         }
     }
-    return std::max(CFeeRate(rollingMinimumFeeRate), incrementalRelayFee);
+    return std::max(CFeeRate(Amount(int64_t(rollingMinimumFeeRate))),
+                    incrementalRelayFee);
 }
 
 void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {
     AssertLockHeld(cs);
-    if (rate.GetFeePerK() > rollingMinimumFeeRate) {
-        rollingMinimumFeeRate = rate.GetFeePerK();
+    if (rate.GetFeePerK().GetSatoshis() > rollingMinimumFeeRate) {
+        rollingMinimumFeeRate = rate.GetFeePerK().GetSatoshis();
         blockSinceLastRollingFeeBump = false;
     }
 }

@@ -152,7 +152,7 @@ BuildSpendingTransaction(const CScript &scriptSig,
 
 static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
                    int flags, const std::string &message, int scriptError,
-                   CAmount nValue) {
+                   Amount nValue) {
     bool expect = (scriptError == SCRIPT_ERR_OK);
     if (flags & SCRIPT_VERIFY_CLEANSTACK) {
         flags |= SCRIPT_VERIFY_P2SH;
@@ -160,14 +160,15 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
 
     ScriptError err;
     CMutableTransaction txCredit =
-        BuildCreditingTransaction(scriptPubKey, nValue);
+        BuildCreditingTransaction(scriptPubKey, nValue.GetSatoshis());
     CMutableTransaction tx = BuildSpendingTransaction(scriptSig, txCredit);
     CMutableTransaction tx2 = tx;
-    BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, flags,
-                                     MutableTransactionSignatureChecker(
-                                         &tx, 0, txCredit.vout[0].nValue),
-                                     &err) == expect,
-                        message);
+    BOOST_CHECK_MESSAGE(
+        VerifyScript(scriptSig, scriptPubKey, flags,
+                     MutableTransactionSignatureChecker(
+                         &tx, 0, txCredit.vout[0].nValue.GetSatoshis()),
+                     &err) == expect,
+        message);
     BOOST_CHECK_MESSAGE(
         err == scriptError,
         std::string(FormatScriptError(err)) + " where " +
@@ -181,7 +182,7 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
         if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(),
-                                    txCredit.vout[0].nValue,
+                                    txCredit.vout[0].nValue.GetSatoshis(),
                                     (const uint8_t *)&stream[0], stream.size(),
                                     0, libconsensus_flags, nullptr) == expect,
                                 message);
@@ -408,7 +409,7 @@ std::string JSONPrettyPrint(const UniValue &univalue) {
 
     return ret;
 }
-}
+} // namespace
 
 BOOST_AUTO_TEST_CASE(script_build) {
     const KeyData keys;
@@ -1084,7 +1085,7 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
-        CAmount nValue = 0;
+        Amount nValue = 0;
         unsigned int pos = 0;
         if (test.size() > 0 && test[pos].isArray()) {
             nValue = AmountFromValue(test[pos][0]);
@@ -1107,7 +1108,7 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
         int scriptError = ParseScriptError(test[pos++].get_str());
 
         DoTest(scriptPubKey, scriptSig, scriptflags, strTest, scriptError,
-               nValue);
+               nValue.GetSatoshis());
     }
 }
 

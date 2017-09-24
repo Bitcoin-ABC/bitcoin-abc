@@ -129,7 +129,7 @@ MapRelay mapRelay;
 /** Expiration-time ordered list of (expire time, relay map entry) pairs,
  * protected by cs_main). */
 std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
-} // anon namespace
+} // namespace
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -667,7 +667,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
     }
 }
 
-} // anon namespace
+} // namespace
 
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     LOCK(cs_main);
@@ -3797,16 +3797,18 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
         !(pto->fWhitelisted &&
           GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY))) {
-        CAmount currentFilter =
+        Amount currentFilter =
             mempool
                 .GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                            1000000)
                 .GetFeePerK();
         int64_t timeNow = GetTimeMicros();
         if (timeNow > pto->nextSendTimeFeeFilter) {
-            static CFeeRate default_feerate(DEFAULT_MIN_RELAY_TX_FEE);
+            static CFeeRate default_feerate =
+                CFeeRate(Amount(int64_t(DEFAULT_MIN_RELAY_TX_FEE)));
             static FeeFilterRounder filterRounder(default_feerate);
-            CAmount filterToSend = filterRounder.round(currentFilter);
+            Amount filterToSend =
+                filterRounder.round(currentFilter.GetSatoshis());
             // If we don't allow free transactions, then we always have a fee
             // filter of at least minRelayTxFee
             if (GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
@@ -3817,7 +3819,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             if (filterToSend != pto->lastSentFeeFilter) {
                 connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
-                pto->lastSentFeeFilter = filterToSend;
+                pto->lastSentFeeFilter = filterToSend.GetSatoshis();
             }
             pto->nextSendTimeFeeFilter =
                 PoissonNextSend(timeNow, AVG_FEEFILTER_BROADCAST_INTERVAL);

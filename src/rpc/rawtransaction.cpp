@@ -555,7 +555,7 @@ static UniValue createrawtransaction(const Config &config,
             }
 
             CScript scriptPubKey = GetScriptForDestination(destination);
-            CAmount nAmount = AmountFromValue(sendTo[name_]);
+            CAmount nAmount = AmountFromValue(sendTo[name_]).GetSatoshis();
 
             CTxOut out(nAmount, scriptPubKey);
             rawTx.vout.push_back(out);
@@ -1027,7 +1027,7 @@ static UniValue signrawtransaction(const Config &config,
         }
 
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount &amount = coin.GetTxOut().nValue;
+        const CAmount &amount = coin.GetTxOut().nValue.GetSatoshis();
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
