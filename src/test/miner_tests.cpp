@@ -2,13 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "miner.h"
+
 #include "chainparams.h"
 #include "coins.h"
 #include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
-#include "miner.h"
 #include "policy/policy.h"
 #include "pubkey.h"
 #include "script/standard.h"
@@ -615,7 +616,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 2,
-            chainActive.Tip()->GetMedianTimePast(),
             chainActive.Tip()->GetMedianTimePast()));
     }
 
@@ -646,8 +646,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 1,
-            chainActive.Tip()->GetMedianTimePast() + 1,
-            chainActive.Tip()->GetMedianTimePast()));
+            chainActive.Tip()->GetMedianTimePast() + 1));
     }
 
     // mempool-dependent transactions (not added)
@@ -726,12 +725,12 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // We are working on a fake chain and need to protect ourselves.
     LOCK(cs_main);
 
-    // Activate UAHF
-    const int64_t hfStartTime =
-        config.GetChainParams().GetConsensus().uahfStartTime;
+    // Activate UAHF the dirty way
+    const int64_t uahfHeight =
+        config.GetChainParams().GetConsensus().uahfHeight;
     auto pindex = chainActive.Tip();
     for (size_t i = 0; pindex && i < 5; i++) {
-        pindex->nTime = hfStartTime;
+        pindex->nHeight = uahfHeight + 5 - i;
         pindex = pindex->pprev;
     }
 

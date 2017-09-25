@@ -172,12 +172,11 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     pblock->nTime = GetAdjustedTime();
-    nMedianTimePast = pindexPrev->GetMedianTimePast();
     nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(*config, pindexPrev);
 
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
-            ? nMedianTimePast
+            ? pindexPrev->GetMedianTimePast()
             : pblock->GetBlockTime();
 
     addPriorityTxs();
@@ -278,7 +277,7 @@ bool BlockAssembler::TestPackageTransactions(
         CValidationState state;
         if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                         chainparams.GetConsensus(), nHeight,
-                                        nLockTimeCutoff, nMedianTimePast)) {
+                                        nLockTimeCutoff)) {
             return false;
         }
 
@@ -329,7 +328,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     CValidationState state;
     if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                     chainparams.GetConsensus(), nHeight,
-                                    nLockTimeCutoff, nMedianTimePast)) {
+                                    nLockTimeCutoff)) {
         return false;
     }
 

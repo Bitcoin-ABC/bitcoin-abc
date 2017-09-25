@@ -141,7 +141,7 @@ public:
                      "c8cdd950c");
 
         // Aug, 1 hard fork
-        consensus.uahfStartTime = 1501590000;
+        consensus.uahfHeight = 478559;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -307,7 +307,7 @@ public:
                      "c52f7e1dd");
 
         // Aug, 1 hard fork
-        consensus.uahfStartTime = 1501590000;
+        consensus.uahfHeight = 1155876;
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
@@ -426,7 +426,7 @@ public:
         consensus.defaultAssumeValid = uint256S("0x00");
 
         // Hard fork is always enabled on regtest.
-        consensus.uahfStartTime = 0;
+        consensus.uahfHeight = 0;
 
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;

@@ -605,9 +605,8 @@ static bool IsCurrentForFeeEstimation() {
     return true;
 }
 
-static bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           config.GetChainParams().GetConsensus().uahfStartTime;
+static bool IsUAHFenabled(const Config &config, int nHeight) {
+    return nHeight >= config.GetChainParams().GetConsensus().uahfHeight;
 }
 
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
@@ -615,7 +614,7 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
         return false;
     }
 
-    return IsUAHFenabled(config, pindexPrev->GetMedianTimePast());
+    return IsUAHFenabled(config, pindexPrev->nHeight);
 }
 
 bool IsUAHFenabledForCurrentBlock(const Config &config) {
@@ -3362,8 +3361,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader &block,
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state,
                                 const Consensus::Params &consensusParams,
-                                int nHeight, int64_t nLockTimeCutoff,
-                                int64_t nMedianTimePast) {
+                                int nHeight, int64_t nLockTimeCutoff) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
@@ -3371,7 +3369,7 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    if (IsUAHFenabled(config, nMedianTimePast) &&
+    if (IsUAHFenabled(config, nHeight) &&
         nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
         for (const CTxOut &o : tx.vout) {
             if (o.scriptPubKey.IsCommitment(
@@ -3410,14 +3408,12 @@ bool ContextualCheckTransactionForCurrentBlock(
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                        ? nMedianTimePast
+                                        ? chainActive.Tip()->GetMedianTimePast()
                                         : GetAdjustedTime();
 
     return ContextualCheckTransaction(config, tx, state, consensusParams,
-                                      nBlockHeight, nLockTimeCutoff,
-                                      nMedianTimePast);
+                                      nBlockHeight, nLockTimeCutoff);
 }
 
 bool ContextualCheckBlock(const Config &config, const CBlock &block,
@@ -3443,8 +3439,7 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
     // Check that all transactions are finalized
     for (const auto &tx : block.vtx) {
         if (!ContextualCheckTransaction(config, *tx, state, consensusParams,
-                                        nHeight, nLockTimeCutoff,
-                                        nMedianTimePast)) {
+                                        nHeight, nLockTimeCutoff)) {
             // state set by ContextualCheckTransaction.
             return false;
         }
