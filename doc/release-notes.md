@@ -1,6 +1,6 @@
 Bitcoin XBC version 0.15.0 is now available from:
 
-  <https://www.bitcoin-xbc.org/>
+  <https://www.bitcoincashxbc.org/>
 
 This release includes the following features and fixes:
 
