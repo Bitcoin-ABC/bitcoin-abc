@@ -22,6 +22,8 @@ Bitcoin XBC uses XBC units of account (other compatible clients may use other ab
 
 Bitcoin XBC is incompatible with Bitcoin Core, if you have previously installed Bitcoin Core please backup or rename your 'Bitcoin' data directory before installing Bitcoin XBC.
 
+www.bitcoincashxbc.org
+
 License
 -------
 
