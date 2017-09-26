@@ -103,9 +103,10 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
 
     hlayout->addWidget(typeWidget);
 
-    addressWidget = new QLineEdit(this);
-    addressWidget->setPlaceholderText(tr("Enter address or label to search"));
-    hlayout->addWidget(addressWidget);
+    search_widget = new QLineEdit(this);
+    search_widget->setPlaceholderText(
+        tr("Enter address, transaction id, or label to search"));
+    hlayout->addWidget(search_widget);
 
     amountWidget = new QLineEdit(this);
     amountWidget->setPlaceholderText(tr("Min amount"));
@@ -192,10 +193,10 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle,
             SLOT(start()));
     connect(amount_typing_delay, SIGNAL(timeout()), this,
             SLOT(changedAmount()));
-    connect(addressWidget, SIGNAL(textChanged(QString)), prefix_typing_delay,
+    connect(search_widget, SIGNAL(textChanged(QString)), prefix_typing_delay,
             SLOT(start()));
     connect(prefix_typing_delay, SIGNAL(timeout()), this,
-            SLOT(changedPrefix()));
+            SLOT(changedSearch()));
 
     connect(view, SIGNAL(doubleClicked(QModelIndex)), this,
             SIGNAL(doubleClicked(QModelIndex)));
@@ -348,12 +349,12 @@ void TransactionView::chooseWatchonly(int idx) {
             watchOnlyWidget->itemData(idx).toInt()));
 }
 
-void TransactionView::changedPrefix() {
+void TransactionView::changedSearch() {
     if (!transactionProxyModel) {
         return;
     }
 
-    transactionProxyModel->setAddressPrefix(addressWidget->text());
+    transactionProxyModel->setSearchString(search_widget->text());
 }
 
 void TransactionView::changedAmount() {
