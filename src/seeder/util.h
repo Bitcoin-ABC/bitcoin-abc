@@ -1,18 +1,18 @@
-#ifndef _UTIL_H_
-#define _UTIL_H_ 1
+#ifndef BITCOIN_SEEDER_UTIL_H
+#define BITCOIN_SEEDER_UTIL_H
 
+#include <cstdarg>
 #include <errno.h>
 #include <openssl/sha.h>
 #include <pthread.h>
-#include <stdarg.h>
 
 #include "uint256.h"
 
 #define loop for (;;)
 #define BEGIN(a) ((char *)&(a))
 #define END(a) ((char *)&((&(a))[1]))
-#define UBEGIN(a) ((unsigned char *)&(a))
-#define UEND(a) ((unsigned char *)&((&(a))[1]))
+#define UBEGIN(a) ((uint8_t *)&(a))
+#define UEND(a) ((uint8_t *)&((&(a))[1]))
 #define ARRAYLEN(array) (sizeof(array) / sizeof((array)[0]))
 
 #define WSAGetLastError() errno
@@ -33,7 +33,7 @@ protected:
     pthread_rwlock_t mutex;
 
 public:
-    explicit CCriticalSection() { pthread_rwlock_init(&mutex, NULL); }
+    explicit CCriticalSection() { pthread_rwlock_init(&mutex, nullptr); }
     ~CCriticalSection() { pthread_rwlock_destroy(&mutex); }
     void Enter(bool fShared = false) {
         if (fShared) {
@@ -66,25 +66,25 @@ public:
     if (CCriticalBlock criticalblock = CCriticalBlock(cs, true))
 
 template <typename T1> inline uint256 Hash(const T1 pbegin, const T1 pend) {
-    static unsigned char pblank[1];
+    static uint8_t pblank[1];
     uint256 hash1;
-    SHA256((pbegin == pend ? pblank : (unsigned char *)&pbegin[0]),
-           (pend - pbegin) * sizeof(pbegin[0]), (unsigned char *)&hash1);
+    SHA256((pbegin == pend ? pblank : (uint8_t *)&pbegin[0]),
+           (pend - pbegin) * sizeof(pbegin[0]), (uint8_t *)&hash1);
     uint256 hash2;
-    SHA256((unsigned char *)&hash1, sizeof(hash1), (unsigned char *)&hash2);
+    SHA256((uint8_t *)&hash1, sizeof(hash1), (uint8_t *)&hash2);
     return hash2;
 }
 
-void static inline Sleep(int nMilliSec) {
+static inline void Sleep(int nMilliSec) {
     struct timespec wa;
     wa.tv_sec = nMilliSec / 1000;
     wa.tv_nsec = (nMilliSec % 1000) * 1000000;
-    nanosleep(&wa, NULL);
+    nanosleep(&wa, nullptr);
 }
 
 std::string vstrprintf(const std::string &format, va_list ap);
 
-std::string static inline strprintf(const std::string &format, ...) {
+static inline std::string strprintf(const std::string &format, ...) {
     va_list arg_ptr;
     va_start(arg_ptr, format);
     std::string ret = vstrprintf(format, arg_ptr);
@@ -92,17 +92,17 @@ std::string static inline strprintf(const std::string &format, ...) {
     return ret;
 }
 
-bool static inline error(std::string err, ...) {
+static inline bool error(std::string err, ...) {
     return false;
 }
 
-bool static inline my_printf(std::string err, ...) {
+static inline bool my_printf(std::string err, ...) {
     return true;
 }
 
-std::vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid = NULL);
+std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid = nullptr);
 std::string DecodeBase32(const std::string &str);
-std::string EncodeBase32(const unsigned char *pch, size_t len);
+std::string EncodeBase32(const uint8_t *pch, size_t len);
 std::string EncodeBase32(const std::string &str);
 
 #endif

@@ -2,8 +2,8 @@
 // Copyright (c) 2011 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_SERIALIZE_H
-#define BITCOIN_SERIALIZE_H
+#ifndef BITCOIN_SEEDER_SERIALIZE_H
+#define BITCOIN_SEEDER_SERIALIZE_H
 
 #include <cassert>
 #include <climits>
@@ -41,7 +41,7 @@ typedef unsigned long long uint64;
 #define mlock(p, n) VirtualLock((p), (n));
 #define munlock(p, n) VirtualUnlock((p), (n));
 #else
-#include <limits.h>
+#include <climits>
 #include <sys/mman.h>
 /* This comes from limits.h if it's not defined there set a sane default */
 #ifndef PAGESIZE
@@ -138,7 +138,7 @@ inline unsigned int GetSerializeSize(char a, int, int = 0) {
 inline unsigned int GetSerializeSize(signed char a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(unsigned char a, int, int = 0) {
+inline unsigned int GetSerializeSize(uint8_t a, int, int = 0) {
     return sizeof(a);
 }
 inline unsigned int GetSerializeSize(signed short a, int, int = 0) {
@@ -181,7 +181,7 @@ inline void Serialize(Stream &s, signed char a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, unsigned char a, int, int = 0) {
+inline void Serialize(Stream &s, uint8_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
@@ -234,7 +234,7 @@ inline void Unserialize(Stream &s, signed char &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, unsigned char &a, int, int = 0) {
+inline void Unserialize(Stream &s, uint8_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
@@ -302,31 +302,31 @@ inline void Unserialize(Stream &s, bool &a, int, int = 0) {
 //
 inline unsigned int GetSizeOfCompactSize(uint64 nSize) {
     if (nSize < 253)
-        return sizeof(unsigned char);
+        return sizeof(uint8_t);
     else if (nSize <= USHRT_MAX)
-        return sizeof(unsigned char) + sizeof(unsigned short);
+        return sizeof(uint8_t) + sizeof(unsigned short);
     else if (nSize <= UINT_MAX)
-        return sizeof(unsigned char) + sizeof(unsigned int);
+        return sizeof(uint8_t) + sizeof(unsigned int);
     else
-        return sizeof(unsigned char) + sizeof(uint64);
+        return sizeof(uint8_t) + sizeof(uint64);
 }
 
 template <typename Stream> void WriteCompactSize(Stream &os, uint64 nSize) {
     if (nSize < 253) {
-        unsigned char chSize = nSize;
+        uint8_t chSize = nSize;
         WRITEDATA(os, chSize);
     } else if (nSize <= USHRT_MAX) {
-        unsigned char chSize = 253;
+        uint8_t chSize = 253;
         unsigned short xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
     } else if (nSize <= UINT_MAX) {
-        unsigned char chSize = 254;
+        uint8_t chSize = 254;
         unsigned int xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
     } else {
-        unsigned char chSize = 255;
+        uint8_t chSize = 255;
         uint64 xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
@@ -335,7 +335,7 @@ template <typename Stream> void WriteCompactSize(Stream &os, uint64 nSize) {
 }
 
 template <typename Stream> uint64 ReadCompactSize(Stream &is) {
-    unsigned char chSize;
+    uint8_t chSize;
     READDATA(is, chSize);
     uint64 nSizeRet = 0;
     if (chSize < 253) {
@@ -399,7 +399,7 @@ protected:
 
 public:
     explicit CFixedFieldString(const std::string &str)
-        : pcstr(&str), pstr(NULL) {}
+        : pcstr(&str), pstr(nullptr) {}
     explicit CFixedFieldString(std::string &str) : pcstr(&str), pstr(&str) {}
 
     unsigned int GetSerializeSize(int, int = 0) const { return LEN; }
@@ -411,7 +411,7 @@ public:
     }
 
     template <typename Stream> void Unserialize(Stream &s, int, int = 0) {
-        if (pstr == NULL)
+        if (pstr == nullptr)
             throw std::ios_base::failure("CFixedFieldString::Unserialize : "
                                          "trying to unserialize to const "
                                          "string");
@@ -676,18 +676,17 @@ inline void Unserialize(Stream &is, std::vector<T, A> &v, int nType,
 //
 inline unsigned int GetSerializeSize(const CScript &v, int nType,
                                      int nVersion) {
-    return GetSerializeSize((const std::vector<unsigned char> &)v, nType,
-                            nVersion);
+    return GetSerializeSize((const std::vector<uint8_t> &)v, nType, nVersion);
 }
 
 template <typename Stream>
 void Serialize(Stream &os, const CScript &v, int nType, int nVersion) {
-    Serialize(os, (const std::vector<unsigned char> &)v, nType, nVersion);
+    Serialize(os, (const std::vector<uint8_t> &)v, nType, nVersion);
 }
 
 template <typename Stream>
 void Unserialize(Stream &is, CScript &v, int nType, int nVersion) {
-    Unserialize(is, (std::vector<unsigned char> &)v, nType, nVersion);
+    Unserialize(is, (std::vector<uint8_t> &)v, nType, nVersion);
 }
 
 //
@@ -902,12 +901,12 @@ template <typename T> struct secure_allocator : public std::allocator<T> {
     T *allocate(std::size_t n, const void *hint = 0) {
         T *p;
         p = std::allocator<T>::allocate(n, hint);
-        if (p != NULL) mlock(p, sizeof(T) * n);
+        if (p != nullptr) mlock(p, sizeof(T) * n);
         return p;
     }
 
     void deallocate(T *p, std::size_t n) {
-        if (p != NULL) {
+        if (p != nullptr) {
             memset(p, 0, sizeof(T) * n);
             munlock(p, sizeof(T) * n);
         }
@@ -975,8 +974,8 @@ public:
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const std::vector<unsigned char> &vchIn,
-                int nTypeIn = SER_NETWORK, int nVersionIn = PROTOCOL_VERSION)
+    CDataStream(const std::vector<uint8_t> &vchIn, int nTypeIn = SER_NETWORK,
+                int nVersionIn = PROTOCOL_VERSION)
         : vch((char *)&vchIn.begin()[0], (char *)&vchIn.end()[0]) {
         Init(nTypeIn, nVersionIn);
     }
@@ -1217,22 +1216,22 @@ public:
 // n=256000     109804 seconds
 #include <iostream>
 int main(int argc, char *argv[]) {
-    vector<unsigned char> vch(0xcc, 250);
+    vector<uint8_t> vch(0xcc, 250);
     printf("CDataStream:\n");
     for (int n = 1000; n <= 4500000; n *= 2) {
         CDataStream ss;
-        time_t nStart = time(NULL);
+        time_t nStart = time(nullptr);
         for (int i = 0; i < n; i++)
             ss.write((char *)&vch[0], vch.size());
-        printf("n=%-10d %d seconds\n", n, time(NULL) - nStart);
+        printf("n=%-10d %d seconds\n", n, time(nullptr) - nStart);
     }
     printf("stringstream:\n");
     for (int n = 1000; n <= 4500000; n *= 2) {
         stringstream ss;
-        time_t nStart = time(NULL);
+        time_t nStart = time(nullptr);
         for (int i = 0; i < n; i++)
             ss.write((char *)&vch[0], vch.size());
-        printf("n=%-10d %d seconds\n", n, time(NULL) - nStart);
+        printf("n=%-10d %d seconds\n", n, time(nullptr) - nStart);
     }
 }
 #endif
@@ -1256,7 +1255,7 @@ public:
 
     typedef FILE element_type;
 
-    CAutoFile(FILE *filenew = NULL, int nTypeIn = SER_DISK,
+    CAutoFile(FILE *filenew = nullptr, int nTypeIn = SER_DISK,
               int nVersionIn = PROTOCOL_VERSION) {
         file = filenew;
         nType = nTypeIn;
@@ -1268,14 +1267,15 @@ public:
     ~CAutoFile() { fclose(); }
 
     void fclose() {
-        if (file != NULL && file != stdin && file != stdout && file != stderr)
+        if (file != nullptr && file != stdin && file != stdout &&
+            file != stderr)
             ::fclose(file);
-        file = NULL;
+        file = nullptr;
     }
 
     FILE *release() {
         FILE *ret = file;
-        file = NULL;
+        file = nullptr;
         return ret;
     }
     operator FILE *() { return file; }
@@ -1283,7 +1283,7 @@ public:
     FILE &operator*() { return *file; }
     FILE **operator&() { return &file; }
     FILE *operator=(FILE *pnew) { return file = pnew; }
-    bool operator!() { return (file == NULL); }
+    bool operator!() { return (file == nullptr); }
 
     //
     // Stream subset
@@ -1314,7 +1314,7 @@ public:
     CAutoFile &read(char *pch, int nSize) {
         if (!file)
             throw std::ios_base::failure(
-                "CAutoFile::read : file handle is NULL");
+                "CAutoFile::read : file handle is nullptr");
         if (fread(pch, 1, nSize, file) != nSize)
             setstate(std::ios::failbit, feof(file)
                                             ? "CAutoFile::read : end of file"
@@ -1325,7 +1325,7 @@ public:
     CAutoFile &write(const char *pch, int nSize) {
         if (!file)
             throw std::ios_base::failure(
-                "CAutoFile::write : file handle is NULL");
+                "CAutoFile::write : file handle is nullptr");
         if (fwrite(pch, 1, nSize, file) != nSize)
             setstate(std::ios::failbit, "CAutoFile::write : write failed");
         return (*this);
@@ -1340,7 +1340,7 @@ public:
         // Serialize to this stream
         if (!file)
             throw std::ios_base::failure(
-                "CAutoFile::operator<< : file handle is NULL");
+                "CAutoFile::operator<< : file handle is nullptr");
         ::Serialize(*this, obj, nType, nVersion);
         return (*this);
     }
@@ -1349,7 +1349,7 @@ public:
         // Unserialize from this stream
         if (!file)
             throw std::ios_base::failure(
-                "CAutoFile::operator>> : file handle is NULL");
+                "CAutoFile::operator>> : file handle is nullptr");
         ::Unserialize(*this, obj, nType, nVersion);
         return (*this);
     }

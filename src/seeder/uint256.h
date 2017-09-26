@@ -2,12 +2,12 @@
 // Copyright (c) 2011 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_UINT256_H
-#define BITCOIN_UINT256_H
+#ifndef BITCOIN_SEEDER_UINT256_H
+#define BITCOIN_SEEDER_UINT256_H
 
 #include "serialize.h"
 
-#include <limits.h>
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -249,8 +249,7 @@ public:
     std::string GetHex() const {
         char psz[sizeof(pn) * 2 + 1];
         for (int i = 0; i < sizeof(pn); i++)
-            sprintf(psz + i * 2, "%02x",
-                    ((unsigned char *)pn)[sizeof(pn) - i - 1]);
+            sprintf(psz + i * 2, "%02x", ((uint8_t *)pn)[sizeof(pn) - i - 1]);
         return std::string(psz, psz + sizeof(pn) * 2);
     }
 
@@ -275,15 +274,15 @@ public:
             0, 0,   0,   0,   0,   0,   0,   0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         const char *pbegin = psz;
-        while (phexdigit[(unsigned char)*psz] || *psz == '0')
+        while (phexdigit[(uint8_t)*psz] || *psz == '0')
             psz++;
         psz--;
-        unsigned char *p1 = (unsigned char *)pn;
-        unsigned char *pend = p1 + WIDTH * 4;
+        uint8_t *p1 = (uint8_t *)pn;
+        uint8_t *pend = p1 + WIDTH * 4;
         while (psz >= pbegin && p1 < pend) {
-            *p1 = phexdigit[(unsigned char)*psz--];
+            *p1 = phexdigit[(uint8_t)*psz--];
             if (psz >= pbegin) {
-                *p1 |= (phexdigit[(unsigned char)*psz--] << 4);
+                *p1 |= (phexdigit[(uint8_t)*psz--] << 4);
                 p1++;
             }
         }
@@ -293,9 +292,9 @@ public:
 
     std::string ToString() const { return (GetHex()); }
 
-    unsigned char *begin() { return (unsigned char *)&pn[0]; }
+    uint8_t *begin() { return (uint8_t *)&pn[0]; }
 
-    unsigned char *end() { return (unsigned char *)&pn[WIDTH]; }
+    uint8_t *end() { return (uint8_t *)&pn[WIDTH]; }
 
     unsigned int size() { return sizeof(pn); }
 
@@ -371,7 +370,7 @@ public:
 
     explicit uint160(const std::string &str) { SetHex(str); }
 
-    explicit uint160(const std::vector<unsigned char> &vch) {
+    explicit uint160(const std::vector<uint8_t> &vch) {
         if (vch.size() == sizeof(pn))
             memcpy(pn, &vch[0], sizeof(pn));
         else
@@ -558,7 +557,7 @@ public:
 
     explicit uint256(const std::string &str) { SetHex(str); }
 
-    explicit uint256(const std::vector<unsigned char> &vch) {
+    explicit uint256(const std::vector<uint8_t> &vch) {
         if (vch.size() == sizeof(pn))
             memcpy(pn, &vch[0], sizeof(pn));
         else

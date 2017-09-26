@@ -1,14 +1,16 @@
-#include <math.h>
-#include <stdint.h>
-
-#include <deque>
-#include <map>
-#include <set>
-#include <vector>
+#ifndef BITCOIN_SEEDER_DB_H
+#define BITCOIN_SEEDER_DB_H
 
 #include "netbase.h"
 #include "protocol.h"
 #include "util.h"
+
+#include <cmath>
+#include <cstdint>
+#include <deque>
+#include <map>
+#include <set>
+#include <vector>
 
 #define MIN_RETRY 1000
 
@@ -18,7 +20,7 @@ static inline int GetRequireHeight(const bool testnet = fTestNet) {
     return testnet ? 500000 : 350000;
 }
 
-std::string static inline ToString(const CService &ip) {
+static inline std::string ToString(const CService &ip) {
     std::string str = ip.ToString();
     while (str.size() < 22)
         str += ' ';
@@ -162,9 +164,9 @@ public:
 
     friend class CAddrDb;
 
-    IMPLEMENT_SERIALIZE(unsigned char version = 4; READWRITE(version);
-                        READWRITE(ip); READWRITE(services); READWRITE(lastTry);
-                        unsigned char tried = ourLastTry != 0; READWRITE(tried);
+    IMPLEMENT_SERIALIZE(uint8_t version = 4; READWRITE(version); READWRITE(ip);
+                        READWRITE(services); READWRITE(lastTry);
+                        uint8_t tried = ourLastTry != 0; READWRITE(tried);
                         if (tried) {
                             READWRITE(ourLastTry);
                             READWRITE(ignoreTill);
@@ -216,39 +218,45 @@ struct CServiceResult {
 class CAddrDb {
 private:
     mutable CCriticalSection cs;
-    int nId; // number of address id's
-    std::map<int, CAddrInfo>
-        idToInfo;                   // map address id to address info (b,c,d,e)
-    std::map<CService, int> ipToId; // map ip to id (b,c,d,e)
-    std::deque<int> ourId; // sequence of tried nodes, in order we have tried
-                           // connecting to them (c,d)
-    std::set<int> unkId;   // set of nodes not yet tried (b)
-    std::set<int> goodId;  // set of good nodes  (d, good e)
+    // number of address id's
+    int nId;
+    // map address id to address info (b,c,d,e)
+    std::map<int, CAddrInfo> idToInfo;
+    // map ip to id (b,c,d,e)
+    std::map<CService, int> ipToId;
+    // sequence of tried nodes, in order we have tried connecting to them (c,d)
+    std::deque<int> ourId;
+    // set of nodes not yet tried (b)
+    std::set<int> unkId;
+    // set of good nodes  (d, good e)
+    std::set<int> goodId;
     int nDirty;
 
 protected:
     // internal routines that assume proper locks are acquired
-    void Add_(const CAddress &addr, bool force); // add an address
-    bool Get_(CServiceResult &ip, int &wait);    // get an IP to test (must call
-                                                 // Good_, Bad_, or Skipped_ on
-                                                 // result afterwards)
+    // add an address
+    void Add_(const CAddress &addr, bool force);
+    // get an IP to test (must call Good_, Bad_, or Skipped_ on result
+    // afterwards)
+    bool Get_(CServiceResult &ip, int &wait);
     bool GetMany_(std::vector<CServiceResult> &ips, int max, int &wait);
-    void
-    Good_(const CService &ip, int clientV, std::string clientSV,
-          int blocks); // mark an IP as good (must have been returned by Get_)
-    void Bad_(const CService &ip, int ban); // mark an IP as bad (and optionally
-                                            // ban it) (must have been returned
-                                            // by Get_)
-    void Skipped_(const CService &ip); // mark an IP as skipped (must have been
-                                       // returned by Get_)
-    int Lookup_(const CService &ip);   // look up id of an IP
-    void
-    GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
-            const bool *nets); // get a random set of IPs (shared lock only)
+    // mark an IP as good (must have been returned by Get_)
+    void Good_(const CService &ip, int clientV, std::string clientSV,
+               int blocks);
+    // mark an IP as bad (and optionally ban it) (must have been returned by
+    // Get_)
+    void Bad_(const CService &ip, int ban);
+    // mark an IP as skipped (must have been returned by Get_)
+    void Skipped_(const CService &ip);
+    // look up id of an IP
+    int Lookup_(const CService &ip);
+    // get a random set of IPs (shared lock only)
+    void GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
+                 const bool *nets);
 
 public:
-    std::map<CService, time_t>
-        banned; // nodes that are banned, with their unban time (a)
+    // nodes that are banned, with their unban time (a)
+    std::map<CService, time_t> banned;
 
     void GetStats(CAddrDbStats &stats) {
         SHARED_CRITICAL_BLOCK(cs) {
@@ -257,7 +265,7 @@ public:
             stats.nTracked = ourId.size();
             stats.nGood = goodId.size();
             stats.nNew = unkId.size();
-            stats.nAge = time(NULL) - idToInfo[ourId[0]].ourLastTry;
+            stats.nAge = time(nullptr) - idToInfo[ourId[0]].ourLastTry;
         }
     }
 
@@ -395,3 +403,5 @@ public:
         GetIPs_(ips, requestedFlags, max, nets);
     }
 };
+
+#endif

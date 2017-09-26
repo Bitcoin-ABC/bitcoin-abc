@@ -1,18 +1,16 @@
-#include <algorithm>
-
-#define __STDC_FORMAT_MACROS
-#include <atomic>
-#include <getopt.h>
-#include <inttypes.h>
-#include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "bitcoin.h"
 #include "db.h"
 
-using namespace std;
+#include <algorithm>
+#include <atomic>
+#include <cstdio>
+#include <cstdlib>
+#include <getopt.h>
+#include <pthread.h>
+#include <signal.h>
+
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 bool fTestNet = false;
 
@@ -33,9 +31,9 @@ public:
     std::set<uint64_t> filter_whitelist;
 
     CDnsSeedOpts()
-        : nThreads(96), nDnsThreads(4), nPort(53), mbox(NULL), ns(NULL),
-          host(NULL), tor(NULL), fUseTestNet(false), fWipeBan(false),
-          fWipeIgnore(false), ipv4_proxy(NULL), ipv6_proxy(NULL) {}
+        : nThreads(96), nDnsThreads(4), nPort(53), mbox(nullptr), ns(nullptr),
+          host(nullptr), tor(nullptr), fUseTestNet(false), fWipeBan(false),
+          fWipeIgnore(false), ipv4_proxy(nullptr), ipv6_proxy(nullptr) {}
 
     void ParseCommandLine(int argc, char **argv) {
         static const char *help =
@@ -100,19 +98,19 @@ public:
                 }
 
                 case 't': {
-                    int n = strtol(optarg, NULL, 10);
+                    int n = strtol(optarg, nullptr, 10);
                     if (n > 0 && n < 1000) nThreads = n;
                     break;
                 }
 
                 case 'd': {
-                    int n = strtol(optarg, NULL, 10);
+                    int n = strtol(optarg, nullptr, 10);
                     if (n > 0 && n < 1000) nDnsThreads = n;
                     break;
                 }
 
                 case 'p': {
-                    int p = strtol(optarg, NULL, 10);
+                    int p = strtol(optarg, nullptr, 10);
                     if (p > 0 && p < 65536) nPort = p;
                     break;
                 }
@@ -161,7 +159,7 @@ public:
             filter_whitelist.insert(NODE_NETWORK | NODE_BITCOIN_CASH |
                                     NODE_BLOOM | NODE_XTHIN);
         }
-        if (host != NULL && ns == NULL) showHelp = true;
+        if (host != nullptr && ns == nullptr) showHelp = true;
         if (showHelp) fprintf(stderr, help, argv[0]);
     }
 };
@@ -178,14 +176,14 @@ extern "C" void *ThreadCrawler(void *data) {
         std::vector<CServiceResult> ips;
         int wait = 5;
         db.GetMany(ips, 16, wait);
-        int64 now = time(NULL);
+        int64 now = time(nullptr);
         if (ips.empty()) {
             wait *= 1000;
             wait += rand() % (500 * *nThreads);
             Sleep(wait);
             continue;
         }
-        vector<CAddress> addr;
+        std::vector<CAddress> addr;
         for (int i = 0; i < ips.size(); i++) {
             CServiceResult &res = ips[i];
             res.nBanTime = 0;
@@ -193,9 +191,9 @@ extern "C" void *ThreadCrawler(void *data) {
             res.nHeight = 0;
             res.strClientV = "";
             bool getaddr = res.ourLastSuccess + 86400 < now;
-            res.fGood =
-                TestNode(res.service, res.nBanTime, res.nClientV,
-                         res.strClientV, res.nHeight, getaddr ? &addr : NULL);
+            res.fGood = TestNode(res.service, res.nBanTime, res.nClientV,
+                                 res.strClientV, res.nHeight,
+                                 getaddr ? &addr : nullptr);
         }
         db.ResultMany(ips);
         db.Add(addr);
@@ -228,7 +226,7 @@ public:
             nets[NET_IPV4] = true;
             nets[NET_IPV6] = true;
         }
-        time_t now = time(NULL);
+        time_t now = time(nullptr);
         FlagSpecificData &thisflag = perflag[requestedFlags];
         thisflag.cacheHits++;
         if (force ||
@@ -237,24 +235,23 @@ public:
             (thisflag.cacheHits * thisflag.cacheHits * 20 >
                  thisflag.cache.size() &&
              (now - thisflag.cacheTime > 5))) {
-            set<CNetAddr> ips;
+            std::set<CNetAddr> ips;
             db.GetIPs(ips, requestedFlags, 1000, nets);
             dbQueries++;
             thisflag.cache.clear();
             thisflag.nIPv4 = 0;
             thisflag.nIPv6 = 0;
             thisflag.cache.reserve(ips.size());
-            for (set<CNetAddr>::iterator it = ips.begin(); it != ips.end();
-                 it++) {
+            for (auto &ip : ips) {
                 struct in_addr addr;
                 struct in6_addr addr6;
-                if ((*it).GetInAddr(&addr)) {
+                if (ip.GetInAddr(&addr)) {
                     addr_t a;
                     a.v = 4;
                     memcpy(&a.data.v4, &addr, 4);
                     thisflag.cache.push_back(a);
                     thisflag.nIPv4++;
-                } else if ((*it).GetIn6Addr(&addr6)) {
+                } else if (ip.GetIn6Addr(&addr6)) {
                     addr_t a;
                     a.v = 6;
                     memcpy(&a.data.v6, &addr6, 16);
@@ -328,7 +325,7 @@ extern "C" int GetIPList(void *data, char *requestedHostname, addr_t *addr,
     return max;
 }
 
-vector<CDnsThread *> dnsThread;
+std::vector<CDnsThread *> dnsThread;
 
 extern "C" void *ThreadDNS(void *arg) {
     CDnsThread *thread = (CDnsThread *)arg;
@@ -351,11 +348,14 @@ int StatCompare(const CAddrReport &a, const CAddrReport &b) {
 extern "C" void *ThreadDumper(void *) {
     int count = 0;
     do {
-        Sleep(100000 << count); // First 100s, than 200s, 400s, 800s, 1600s, and
-                                // then 3200s forever
-        if (count < 5) count++;
+        // First 100s, than 200s, 400s, 800s, 1600s, and then 3200s forever
+        Sleep(100000 << count);
+        if (count < 5) {
+            count++;
+        }
+
         {
-            vector<CAddrReport> v = db.GetAll();
+            std::vector<CAddrReport> v = db.GetAll();
             sort(v.begin(), v.end(), StatCompare);
             FILE *f = fopen("dnsseed.dat.new", "w+");
             if (f) {
@@ -370,9 +370,7 @@ extern "C" void *ThreadDumper(void *) {
                        "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
                        "%%(30d)  blocks      svcs  version\n");
             double stat[5] = {0, 0, 0, 0, 0};
-            for (vector<CAddrReport>::const_iterator it = v.begin();
-                 it < v.end(); it++) {
-                CAddrReport rep = *it;
+            for (CAddrReport rep : v) {
                 fprintf(
                     d,
                     "%-47s  %4d  %11" PRId64
@@ -392,8 +390,8 @@ extern "C" void *ThreadDumper(void *) {
             fclose(d);
             FILE *ff = fopen("dnsstats.log", "a");
             fprintf(ff, "%llu %g %g %g %g %g\n",
-                    (unsigned long long)(time(NULL)), stat[0], stat[1], stat[2],
-                    stat[3], stat[4]);
+                    (unsigned long long)(time(nullptr)), stat[0], stat[1],
+                    stat[2], stat[3], stat[4]);
             fclose(ff);
         }
     } while (1);
@@ -404,7 +402,7 @@ extern "C" void *ThreadStats(void *) {
     bool first = true;
     do {
         char c[256];
-        time_t tim = time(NULL);
+        time_t tim = time(nullptr);
         struct tm *tmp = localtime(&tim);
         strftime(c, 256, "[%y-%m-%d %H:%M:%S]", tmp);
         CAddrDbStats stats;
@@ -432,17 +430,18 @@ extern "C" void *ThreadStats(void *) {
     return nullptr;
 }
 
-static const string mainnet_seeds[] = {
+static const std::string mainnet_seeds[] = {
     "seed.bitcoinabc.org", "seed-abc.bitcoinforks.org", "seed.bitprim.org",
     "seed.deadalnix.me",   "seeder.criptolayer.net",    ""};
-static const string testnet_seeds[] = {"testnet-seed.bitcoinabc.org",
-                                       "testnet-seed-abc.bitcoinforks.org",
-                                       "testnet-seed.bitcoinunlimited.info",
-                                       "testnet-seed.bitprim.org",
-                                       "testnet-seed.deadalnix.me",
-                                       "testnet-seeder.criptolayer.net",
-                                       ""};
-static const string *seeds = mainnet_seeds;
+static const std::string testnet_seeds[] = {
+    "testnet-seed.bitcoinabc.org",
+    "testnet-seed-abc.bitcoinforks.org",
+    "testnet-seed.bitcoinunlimited.info",
+    "testnet-seed.bitprim.org",
+    "testnet-seed.deadalnix.me",
+    "testnet-seeder.criptolayer.net",
+    ""};
+static const std::string *seeds = mainnet_seeds;
 
 extern "C" void *ThreadSeeder(void *) {
     if (!fTestNet) {
@@ -450,11 +449,10 @@ extern "C" void *ThreadSeeder(void *) {
     }
     do {
         for (int i = 0; seeds[i] != ""; i++) {
-            vector<CNetAddr> ips;
+            std::vector<CNetAddr> ips;
             LookupHost(seeds[i].c_str(), ips);
-            for (vector<CNetAddr>::iterator it = ips.begin(); it != ips.end();
-                 it++) {
-                db.Add(CService(*it, GetDefaultPort()), true);
+            for (auto &ip : ips) {
+                db.Add(CService(ip, GetDefaultPort()), true);
             }
         }
         Sleep(1800000);
@@ -464,7 +462,7 @@ extern "C" void *ThreadSeeder(void *) {
 
 int main(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
-    setbuf(stdout, NULL);
+    setbuf(stdout, nullptr);
     CDnsSeedOpts opts;
     opts.ParseCommandLine(argc, argv);
     printf("Supporting whitelisted filters: ");
@@ -537,14 +535,14 @@ int main(int argc, char **argv) {
         dnsThread.clear();
         for (int i = 0; i < opts.nDnsThreads; i++) {
             dnsThread.push_back(new CDnsThread(&opts, i));
-            pthread_create(&threadDns, NULL, ThreadDNS, dnsThread[i]);
+            pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
             printf(".");
             Sleep(20);
         }
         printf("done\n");
     }
     printf("Starting seeder...");
-    pthread_create(&threadSeed, NULL, ThreadSeeder, NULL);
+    pthread_create(&threadSeed, nullptr, ThreadSeeder, nullptr);
     printf("done\n");
     printf("Starting %i crawler threads...", opts.nThreads);
     pthread_attr_t attr_crawler;
@@ -556,8 +554,8 @@ int main(int argc, char **argv) {
     }
     pthread_attr_destroy(&attr_crawler);
     printf("done\n");
-    pthread_create(&threadStats, NULL, ThreadStats, NULL);
-    pthread_create(&threadDump, NULL, ThreadDumper, NULL);
+    pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
+    pthread_create(&threadDump, nullptr, ThreadDumper, nullptr);
     void *res;
     pthread_join(threadDump, &res);
     return 0;

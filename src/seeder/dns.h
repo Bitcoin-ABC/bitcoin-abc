@@ -1,13 +1,13 @@
-#ifndef _DNS_H_
-#define _DNS_H_ 1
+#ifndef BITCOIN_SEEDER_DNS_H
+#define BITCOIN_SEEDER_DNS_H 1
 
 #include <stdint.h>
 
 typedef struct {
     int v;
     union {
-        unsigned char v4[4];
-        unsigned char v6[16];
+        uint8_t v4[4];
+        uint8_t v6[16];
     } data;
 } addr_t;
 

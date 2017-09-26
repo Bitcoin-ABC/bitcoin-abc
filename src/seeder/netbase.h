@@ -1,14 +1,14 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_NETBASE_H
-#define BITCOIN_NETBASE_H
-
-#include <string>
-#include <vector>
+#ifndef BITCOIN_SEEDER_NETBASE_H
+#define BITCOIN_SEEDER_NETBASE_H
 
 #include "compat.h"
 #include "serialize.h"
+
+#include <string>
+#include <vector>
 
 extern int nConnectTimeout;
 
@@ -34,7 +34,7 @@ extern bool fNameLookup;
 /** IP address (IPv6, or IPv4 using mapped IPv6 range (::FFFF:0:0/96)) */
 class CNetAddr {
 protected:
-    unsigned char ip[16]; // in network byte order
+    uint8_t ip[16]; // in network byte order
 
 public:
     CNetAddr();
@@ -70,8 +70,8 @@ public:
     unsigned int GetByte(int n) const;
     uint64 GetHash() const;
     bool GetInAddr(struct in_addr *pipv4Addr) const;
-    std::vector<unsigned char> GetGroup() const;
-    int GetReachabilityFrom(const CNetAddr *paddrPartner = NULL) const;
+    std::vector<uint8_t> GetGroup() const;
+    int GetReachabilityFrom(const CNetAddr *paddrPartner = nullptr) const;
     void print() const;
 
     CNetAddr(const struct in6_addr &pipv6Addr);
@@ -108,7 +108,7 @@ public:
     friend bool operator==(const CService &a, const CService &b);
     friend bool operator!=(const CService &a, const CService &b);
     friend bool operator<(const CService &a, const CService &b);
-    std::vector<unsigned char> GetKey() const;
+    std::vector<uint8_t> GetKey() const;
     std::string ToString() const;
     std::string ToStringPort() const;
     std::string ToStringIPPort() const;

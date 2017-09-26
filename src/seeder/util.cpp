@@ -1,9 +1,8 @@
 #include "util.h"
-#include <stdio.h>
 
-using namespace std;
+#include <cstdio>
 
-string vstrprintf(const std::string &format, va_list ap) {
+std::string vstrprintf(const std::string &format, va_list ap) {
     char buffer[50000];
     char *p = buffer;
     int limit = sizeof(buffer);
@@ -17,21 +16,21 @@ string vstrprintf(const std::string &format, va_list ap) {
         if (p != buffer) delete[] p;
         limit *= 2;
         p = new char[limit];
-        if (p == NULL) throw std::bad_alloc();
+        if (p == nullptr) throw std::bad_alloc();
     }
-    string str(p, p + ret);
+    std::string str(p, p + ret);
     if (p != buffer) delete[] p;
     return str;
 }
 
-string EncodeBase32(const unsigned char *pch, size_t len) {
+std::string EncodeBase32(const uint8_t *pch, size_t len) {
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
-    string strRet = "";
+    std::string strRet = "";
     strRet.reserve((len + 4) / 5 * 8);
 
     int mode = 0, left = 0;
-    const unsigned char *pchEnd = pch + len;
+    const uint8_t *pchEnd = pch + len;
 
     while (pch < pchEnd) {
         int enc = *(pch++);
@@ -79,11 +78,11 @@ string EncodeBase32(const unsigned char *pch, size_t len) {
     return strRet;
 }
 
-string EncodeBase32(const string &str) {
-    return EncodeBase32((const unsigned char *)str.c_str(), str.size());
+std::string EncodeBase32(const std::string &str) {
+    return EncodeBase32((const uint8_t *)str.c_str(), str.size());
 }
 
-vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
+std::vector<uint8_t> DecodeBase32(const char *p, bool *pfInvalid) {
     static const int decode32_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -103,14 +102,14 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
 
     if (pfInvalid) *pfInvalid = false;
 
-    vector<unsigned char> vchRet;
+    std::vector<uint8_t> vchRet;
     vchRet.reserve((strlen(p)) * 5 / 8);
 
     int mode = 0;
     int left = 0;
 
     while (1) {
-        int dec = decode32_table[(unsigned char)*p];
+        int dec = decode32_table[(uint8_t)*p];
         if (dec == -1) break;
         p++;
         switch (mode) {
@@ -173,25 +172,24 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
             case 2: // 8n+2 base32 characters processed: require '======'
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
                     p[3] != '=' || p[4] != '=' || p[5] != '=' ||
-                    decode32_table[(unsigned char)p[6]] != -1)
+                    decode32_table[(uint8_t)p[6]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 4: // 8n+4 base32 characters processed: require '===='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    p[3] != '=' || decode32_table[(unsigned char)p[4]] != -1)
+                    p[3] != '=' || decode32_table[(uint8_t)p[4]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 5: // 8n+5 base32 characters processed: require '==='
                 if (left || p[0] != '=' || p[1] != '=' || p[2] != '=' ||
-                    decode32_table[(unsigned char)p[3]] != -1)
+                    decode32_table[(uint8_t)p[3]] != -1)
                     *pfInvalid = true;
                 break;
 
             case 7: // 8n+7 base32 characters processed: require '='
-                if (left || p[0] != '=' ||
-                    decode32_table[(unsigned char)p[1]] != -1)
+                if (left || p[0] != '=' || decode32_table[(uint8_t)p[1]] != -1)
                     *pfInvalid = true;
                 break;
         }
@@ -199,7 +197,7 @@ vector<unsigned char> DecodeBase32(const char *p, bool *pfInvalid) {
     return vchRet;
 }
 
-string DecodeBase32(const string &str) {
-    vector<unsigned char> vchRet = DecodeBase32(str.c_str());
-    return string((const char *)&vchRet[0], vchRet.size());
+std::string DecodeBase32(const std::string &str) {
+    std::vector<uint8_t> vchRet = DecodeBase32(str.c_str());
+    return std::string((const char *)&vchRet[0], vchRet.size());
 }

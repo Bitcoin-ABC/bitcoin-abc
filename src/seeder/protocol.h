@@ -7,8 +7,8 @@
 #error This header can only be compiled as C++.
 #endif
 
-#ifndef __INCLUDED_PROTOCOL_H__
-#define __INCLUDED_PROTOCOL_H__
+#ifndef BITCOIN_SEEDER_PROTOCOL_H
+#define BITCOIN_SEEDER_PROTOCOL_H
 
 #include "netbase.h"
 #include "serialize.h"
@@ -29,7 +29,7 @@ static inline unsigned short GetDefaultPort(const bool testnet = fTestNet) {
 //  (4) size
 //  (4) checksum
 
-extern unsigned char pchMessageStart[4];
+extern uint8_t pchMessageStart[4];
 
 class CMessageHeader {
 public:

@@ -1,14 +1,13 @@
-#include <algorithm>
+#include "bitcoin.h"
 
 #include "db.h"
 #include "netbase.h"
-#include "protocol.h"
 #include "serialize.h"
 #include "uint256.h"
 
-#define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
+#include <algorithm>
 
-using namespace std;
+#define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
 
 class CNode {
     SOCKET sock;
@@ -17,19 +16,14 @@ class CNode {
     unsigned int nHeaderStart;
     unsigned int nMessageStart;
     int nVersion;
-    string strSubVer;
+    std::string strSubVer;
     int nStartingHeight;
-    vector<CAddress> *vAddr;
+    std::vector<CAddress> *vAddr;
     int ban;
     int64 doneAfter;
     CAddress you;
 
-    int GetTimeout() {
-        if (you.IsTor())
-            return 120;
-        else
-            return 30;
-    }
+    int GetTimeout() { return you.IsTor() ? 120 : 30; }
 
     void BeginMessage(const char *pszCommand) {
         if (nHeaderStart != -1) AbortMessage();
@@ -79,13 +73,13 @@ class CNode {
     }
 
     void PushVersion() {
-        int64 nTime = time(NULL);
+        int64 nTime = time(nullptr);
         uint64 nLocalNonce = BITCOIN_SEED_NONCE;
         int64 nLocalServices = 0;
         CAddress me(CService("0.0.0.0"));
         BeginMessage("version");
         int nBestHeight = GetRequireHeight();
-        string ver = "/bitcoin-seeder:0.01/";
+        std::string ver = "/bitcoin-seeder:0.01/";
         vSend << PROTOCOL_VERSION << nLocalServices << nTime << you << me
               << nLocalNonce << ver << nBestHeight;
         EndMessage();
@@ -96,13 +90,13 @@ class CNode {
         if (vAddr) {
             BeginMessage("getaddr");
             EndMessage();
-            doneAfter = time(NULL) + GetTimeout();
+            doneAfter = time(nullptr) + GetTimeout();
         } else {
-            doneAfter = time(NULL) + 1;
+            doneAfter = time(nullptr) + 1;
         }
     }
 
-    bool ProcessMessage(string strCommand, CDataStream &vRecv) {
+    bool ProcessMessage(std::string strCommand, CDataStream &vRecv) {
         //    printf("%s: RECV %s\n", ToString(you).c_str(),
         //    strCommand.c_str());
         if (strCommand == "version") {
@@ -120,27 +114,27 @@ class CNode {
                 BeginMessage("verack");
                 EndMessage();
             }
-            vSend.SetVersion(min(nVersion, PROTOCOL_VERSION));
+            vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             if (nVersion < 209) {
-                this->vRecv.SetVersion(min(nVersion, PROTOCOL_VERSION));
+                this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
                 GotVersion();
             }
             return false;
         }
 
         if (strCommand == "verack") {
-            this->vRecv.SetVersion(min(nVersion, PROTOCOL_VERSION));
+            this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             GotVersion();
             return false;
         }
 
         if (strCommand == "addr" && vAddr) {
-            vector<CAddress> vAddrNew;
+            std::vector<CAddress> vAddrNew;
             vRecv >> vAddrNew;
             // printf("%s: got %i addresses\n", ToString(you).c_str(),
             // (int)vAddrNew.size());
-            int64 now = time(NULL);
-            vector<CAddress>::iterator it = vAddrNew.begin();
+            int64 now = time(nullptr);
+            std::vector<CAddress>::iterator it = vAddrNew.begin();
             if (vAddrNew.size() > 1) {
                 if (doneAfter == 0 || doneAfter > now + 1) doneAfter = now + 1;
             }
@@ -180,8 +174,8 @@ class CNode {
                 break;
             }
             vRecv.erase(vRecv.begin(), pstart);
-            vector<char> vHeaderSave(vRecv.begin(),
-                                     vRecv.begin() + nHeaderSize);
+            std::vector<char> vHeaderSave(vRecv.begin(),
+                                          vRecv.begin() + nHeaderSize);
             CMessageHeader hdr;
             vRecv >> hdr;
             if (!hdr.IsValid()) {
@@ -189,7 +183,7 @@ class CNode {
                 ban = 100000;
                 return true;
             }
-            string strCommand = hdr.GetCommand();
+            std::string strCommand = hdr.GetCommand();
             unsigned int nMessageSize = hdr.nMessageSize;
             if (nMessageSize > MAX_SIZE) {
                 // printf("%s: BAD (message too large)\n",
@@ -220,14 +214,14 @@ class CNode {
     }
 
 public:
-    CNode(const CService &ip, vector<CAddress> *vAddrIn)
+    CNode(const CService &ip, std::vector<CAddress> *vAddrIn)
         : you(ip), nHeaderStart(-1), nMessageStart(-1), vAddr(vAddrIn), ban(0),
           doneAfter(0), nVersion(0) {
         vSend.SetType(SER_NETWORK);
         vSend.SetVersion(0);
         vRecv.SetType(SER_NETWORK);
         vRecv.SetVersion(0);
-        if (time(NULL) > 1329696000) {
+        if (time(nullptr) > 1329696000) {
             vSend.SetVersion(209);
             vRecv.SetVersion(209);
         }
@@ -238,9 +232,9 @@ public:
         PushVersion();
         Send();
         int64 now;
-        while (now = time(NULL), ban == 0 &&
-                                     (doneAfter == 0 || doneAfter > now) &&
-                                     sock != INVALID_SOCKET) {
+        while (now = time(nullptr), ban == 0 &&
+                                        (doneAfter == 0 || doneAfter > now) &&
+                                        sock != INVALID_SOCKET) {
             char pchBuf[0x10000];
             fd_set set;
             FD_ZERO(&set);
@@ -253,7 +247,7 @@ public:
                 wa.tv_sec = GetTimeout();
                 wa.tv_usec = 0;
             }
-            int ret = select(sock + 1, &set, NULL, &set, &wa);
+            int ret = select(sock + 1, &set, nullptr, &set, &wa);
             if (ret != 1) {
                 if (!doneAfter) res = false;
                 break;
@@ -293,7 +287,8 @@ public:
 };
 
 bool TestNode(const CService &cip, int &ban, int &clientV,
-              std::string &clientSV, int &blocks, vector<CAddress> *vAddr) {
+              std::string &clientSV, int &blocks,
+              std::vector<CAddress> *vAddr) {
     try {
         CNode node(cip, vAddr);
         bool ret = node.Run();
@@ -316,7 +311,7 @@ bool TestNode(const CService &cip, int &ban, int &clientV,
 /*
 int main(void) {
   CService ip("bitcoin.sipa.be", 8333, true);
-  vector<CAddress> vAddr;
+  std::vector<CAddress> vAddr;
   vAddr.clear();
   int ban = 0;
   bool ret = TestNode(ip, ban, vAddr);

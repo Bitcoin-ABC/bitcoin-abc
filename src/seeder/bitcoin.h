@@ -1,5 +1,5 @@
-#ifndef _BITCOIN_H_
-#define _BITCOIN_H_ 1
+#ifndef BITCOIN_SEEDER_BITCOIN_H
+#define BITCOIN_SEEDER_BITCOIN_H
 
 #include "protocol.h"
 

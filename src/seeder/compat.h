@@ -2,8 +2,8 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef _BITCOIN_COMPAT_H
-#define _BITCOIN_COMPAT_H 1
+#ifndef BITCOIN_SEEDER_COMPAT_H
+#define BITCOIN_SEEDER_COMPAT_H
 
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501

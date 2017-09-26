@@ -3,12 +3,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
+#include "protocol.h"
+#include "netbase.h"
+#include "util.h"
+
 #include <stdexcept>
 #include <vector>
-
-#include "netbase.h"
-#include "protocol.h"
-#include "util.h"
 
 #ifndef WIN32
 #include <arpa/inet.h>

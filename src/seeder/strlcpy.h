@@ -13,11 +13,11 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef BITCOIN_STRLCPY_H
-#define BITCOIN_STRLCPY_H
+#ifndef BITCOIN_SEEDER_STRLCPY_H
+#define BITCOIN_SEEDER_STRLCPY_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters

@@ -1,8 +1,9 @@
+#include "dns.h"
+
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <netinet/in.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +12,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-#include "dns.h"
 
 #define BUFLEN 512
 
@@ -35,7 +34,7 @@ struct in6_pktinfo {
 
 union control_data {
     struct cmsghdr cmsg;
-    unsigned char data[DSTADDR_DATASIZE];
+    uint8_t data[DSTADDR_DATASIZE];
 };
 
 typedef enum { CLASS_IN = 1, QCLASS_ANY = 255 } dns_class;
@@ -55,8 +54,8 @@ typedef enum {
 // -1: premature end of input, forward reference, component > 63 char, invalid
 // character
 // -2: insufficient space in output
-int static parse_name(const unsigned char **inpos, const unsigned char *inend,
-                      const unsigned char *inbuf, char *buf, size_t bufsize) {
+static int parse_name(const uint8_t **inpos, const uint8_t *inend,
+                      const uint8_t *inbuf, char *buf, size_t bufsize) {
     size_t bufused = 0;
     int init = 1;
     do {
@@ -78,7 +77,7 @@ int static parse_name(const unsigned char **inpos, const unsigned char *inend,
             if (*inpos == inend) return -1;
             int ref = ((octet - 0xC0) << 8) + *((*inpos)++);
             if (ref < 0 || ref >= (*inpos) - inbuf - 2) return -1;
-            const unsigned char *newbuf = inbuf + ref;
+            const uint8_t *newbuf = inbuf + ref;
             return parse_name(&newbuf, (*inpos) - 2, inbuf, buf + bufused,
                               bufsize - bufused);
         }
@@ -99,8 +98,8 @@ int static parse_name(const unsigned char **inpos, const unsigned char *inend,
 // -1: component > 63 characters
 // -2: insufficent space in output
 // -3: two subsequent dots
-int static write_name(unsigned char **outpos, const unsigned char *outend,
-                      const char *name, int offset) {
+static int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
+                      int offset) {
     while (*name != 0) {
         char *dot = strchr(name, '.');
         const char *fin = dot;
@@ -126,10 +125,10 @@ int static write_name(unsigned char **outpos, const unsigned char *outend,
     return 0;
 }
 
-int static write_record(unsigned char **outpos, const unsigned char *outend,
+static int write_record(uint8_t **outpos, const uint8_t *outend,
                         const char *name, int offset, dns_type typ,
                         dns_class cls, int ttl) {
-    unsigned char *oldpos = *outpos;
+    uint8_t *oldpos = *outpos;
     int error = 0;
     // name
     int ret = write_name(outpos, outend, name, offset);
@@ -158,11 +157,11 @@ error:
     return error;
 }
 
-int static write_record_a(unsigned char **outpos, const unsigned char *outend,
+static int write_record_a(uint8_t **outpos, const uint8_t *outend,
                           const char *name, int offset, dns_class cls, int ttl,
                           const addr_t *ip) {
     if (ip->v != 4) return -6;
-    unsigned char *oldpos = *outpos;
+    uint8_t *oldpos = *outpos;
     int error = 0;
     int ret = write_record(outpos, outend, name, offset, TYPE_A, cls, ttl);
     if (ret) return ret;
@@ -182,12 +181,11 @@ error:
     return error;
 }
 
-int static write_record_aaaa(unsigned char **outpos,
-                             const unsigned char *outend, const char *name,
-                             int offset, dns_class cls, int ttl,
-                             const addr_t *ip) {
+static int write_record_aaaa(uint8_t **outpos, const uint8_t *outend,
+                             const char *name, int offset, dns_class cls,
+                             int ttl, const addr_t *ip) {
     if (ip->v != 6) return -6;
-    unsigned char *oldpos = *outpos;
+    uint8_t *oldpos = *outpos;
     int error = 0;
     int ret = write_record(outpos, outend, name, offset, TYPE_AAAA, cls, ttl);
     if (ret) return ret;
@@ -207,10 +205,9 @@ error:
     return error;
 }
 
-int static write_record_ns(unsigned char **outpos, const unsigned char *outend,
-                           char *name, int offset, dns_class cls, int ttl,
-                           const char *ns) {
-    unsigned char *oldpos = *outpos;
+static int write_record_ns(uint8_t **outpos, const uint8_t *outend, char *name,
+                           int offset, dns_class cls, int ttl, const char *ns) {
+    uint8_t *oldpos = *outpos;
     int ret = write_record(outpos, outend, name, offset, TYPE_NS, cls, ttl);
     if (ret) return ret;
     int error = 0;
@@ -219,7 +216,7 @@ int static write_record_ns(unsigned char **outpos, const unsigned char *outend,
         goto error;
     }
     (*outpos) += 2;
-    unsigned char *curpos = *outpos;
+    uint8_t *curpos = *outpos;
     ret = write_name(outpos, outend, ns, -1);
     if (ret) {
         error = ret;
@@ -233,12 +230,12 @@ error:
     return error;
 }
 
-int static write_record_soa(unsigned char **outpos, const unsigned char *outend,
-                            char *name, int offset, dns_class cls, int ttl,
+static int write_record_soa(uint8_t **outpos, const uint8_t *outend, char *name,
+                            int offset, dns_class cls, int ttl,
                             const char *mname, const char *rname,
                             uint32_t serial, uint32_t refresh, uint32_t retry,
                             uint32_t expire, uint32_t minimum) {
-    unsigned char *oldpos = *outpos;
+    uint8_t *oldpos = *outpos;
     int ret = write_record(outpos, outend, name, offset, TYPE_SOA, cls, ttl);
     if (ret) return ret;
     int error = 0;
@@ -247,7 +244,7 @@ int static write_record_soa(unsigned char **outpos, const unsigned char *outend,
         goto error;
     }
     (*outpos) += 2;
-    unsigned char *curpos = *outpos;
+    uint8_t *curpos = *outpos;
     ret = write_name(outpos, outend, mname, -1);
     if (ret) {
         error = ret;
@@ -290,8 +287,8 @@ error:
     return error;
 }
 
-ssize_t static dnshandle(dns_opt_t *opt, const unsigned char *inbuf,
-                         size_t insize, unsigned char *outbuf) {
+static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
+                         uint8_t *outbuf) {
     int error = 0;
     if (insize < 12) // DNS header
         return -1;
@@ -327,8 +324,8 @@ ssize_t static dnshandle(dns_opt_t *opt, const unsigned char *inbuf,
         error = 4;
         goto error;
     }
-    const unsigned char *inpos = inbuf + 12;
-    const unsigned char *inend = inbuf + insize;
+    const uint8_t *inpos = inbuf + 12;
+    const uint8_t *inend = inbuf + insize;
     char name[256];
     int offset = inpos - inbuf;
     int ret = parse_name(&inpos, inend, inbuf, name, 256);
@@ -369,8 +366,8 @@ ssize_t static dnshandle(dns_opt_t *opt, const unsigned char *inbuf,
     int cls = (inpos[2] << 8) + inpos[3];
     inpos += 4;
 
-    unsigned char *outpos = outbuf + (inpos - inbuf);
-    unsigned char *outend = outbuf + BUFLEN;
+    uint8_t *outpos = outbuf + (inpos - inbuf);
+    uint8_t *outend = outbuf + BUFLEN;
 
     //   printf("DNS: Request host='%s' type=%i class=%i\n", name, typ, cls);
 
@@ -381,7 +378,7 @@ ssize_t static dnshandle(dns_opt_t *opt, const unsigned char *inbuf,
     if (!((typ == TYPE_NS || typ == QTYPE_ANY) &&
           (cls == CLASS_IN || cls == QCLASS_ANY))) {
         // authority section will be necessary, either NS or SOA
-        unsigned char *newpos = outpos;
+        uint8_t *newpos = outpos;
         write_record_ns(&newpos, outend, "", offset, CLASS_IN, 0, opt->ns);
         max_auth_size = newpos - outpos;
 
@@ -520,7 +517,7 @@ int dnsserver(dns_opt_t *opt) {
             return -2;
     }
 
-    unsigned char inbuf[BUFLEN], outbuf[BUFLEN];
+    uint8_t inbuf[BUFLEN], outbuf[BUFLEN];
     struct iovec iov[1] = {
         {
             .iov_base = inbuf, .iov_len = sizeof(inbuf),
@@ -537,7 +534,7 @@ int dnsserver(dns_opt_t *opt) {
     };
     for (; 1; ++(opt->nRequests)) {
         ssize_t insize = recvmsg(listenSocket, &msg, 0);
-        //    unsigned char *addr = (unsigned char*)&si_other.sin_addr.s_addr;
+        //    uint8_t *addr = (uint8_t*)&si_other.sin_addr.s_addr;
         //    printf("DNS: Request %llu from %i.%i.%i.%i:%i of %i bytes\n",
         //    (unsigned long long)(opt->nRequests), addr[0], addr[1], addr[2],
         //    addr[3], ntohs(si_other.sin_port), (int)insize);
