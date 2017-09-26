@@ -1,6 +1,7 @@
 Bitcoin ABC
 ===========
 
+[![Build Status](https://travis-ci.org/xcsdt562a/bcc.svg?branch=master)](https://travis-ci.org/xcsdt562a/bcc)
 https://bitcoinabc.org
 
 What is Bitcoin?
