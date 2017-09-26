@@ -385,9 +385,7 @@ libbitcoin_seeder_a_SOURCES = \
   seeder/netbase.h \
   seeder/protocol.cpp \
   seeder/protocol.h \
-  seeder/serialize.h \
   seeder/strlcpy.h \
-  seeder/uint256.h \
   seeder/util.cpp \
   seeder/util.h
 
@@ -444,7 +442,9 @@ bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
 bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bitcoin_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-bitcoin_seeder_LDADD = $(LIBBITCOIN_SEEDER)
+bitcoin_seeder_LDADD = \
+  $(LIBBITCOIN_SEEDER) \
+  $(LIBBITCOIN_UTIL)
 
 bitcoin_seeder_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 #

@@ -3,6 +3,7 @@
 #include "db.h"
 #include "netbase.h"
 #include "serialize.h"
+#include "streams.h"
 #include "uint256.h"
 
 #include <algorithm>
@@ -166,7 +167,8 @@ class CNode {
             CDataStream::iterator pstart =
                 search(vRecv.begin(), vRecv.end(), BEGIN(pchMessageStart),
                        END(pchMessageStart));
-            int nHeaderSize = vRecv.GetSerializeSize(CMessageHeader());
+            int nHeaderSize = GetSerializeSize(
+                CMessageHeader(), vRecv.GetType(), vRecv.GetVersion());
             if (vRecv.end() - pstart < nHeaderSize) {
                 if (vRecv.size() > nHeaderSize) {
                     vRecv.erase(vRecv.begin(), vRecv.end() - nHeaderSize);
@@ -204,7 +206,7 @@ class CNode {
                 if (nChecksum != hdr.nChecksum) continue;
             }
             CDataStream vMsg(vRecv.begin(), vRecv.begin() + nMessageSize,
-                             vRecv.nType, vRecv.nVersion);
+                             vRecv.GetType(), vRecv.GetVersion());
             vRecv.ignore(nMessageSize);
             if (ProcessMessage(strCommand, vMsg)) return true;
             //      printf("%s: done processing %s\n", ToString(you).c_str(),
@@ -215,17 +217,15 @@ class CNode {
 
 public:
     CNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-        : you(ip), nHeaderStart(-1), nMessageStart(-1), vAddr(vAddrIn), ban(0),
+        : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), you(ip),
+          nHeaderStart(-1), nMessageStart(-1), vAddr(vAddrIn), ban(0),
           doneAfter(0), nVersion(0) {
-        vSend.SetType(SER_NETWORK);
-        vSend.SetVersion(0);
-        vRecv.SetType(SER_NETWORK);
-        vRecv.SetVersion(0);
         if (time(nullptr) > 1329696000) {
             vSend.SetVersion(209);
             vRecv.SetVersion(209);
         }
     }
+
     bool Run() {
         bool res = true;
         if (!ConnectSocket(you, sock)) return false;

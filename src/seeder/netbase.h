@@ -81,7 +81,12 @@ public:
     friend bool operator!=(const CNetAddr &a, const CNetAddr &b);
     friend bool operator<(const CNetAddr &a, const CNetAddr &b);
 
-    IMPLEMENT_SERIALIZE(READWRITE(FLATDATA(ip));)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(FLATDATA(ip));
+    }
 };
 
 /** A combination of a network address (CNetAddr) and a (TCP) port */
@@ -117,10 +122,18 @@ public:
     CService(const struct in6_addr &ipv6Addr, unsigned short port);
     CService(const struct sockaddr_in6 &addr);
 
-    IMPLEMENT_SERIALIZE(CService *pthis = const_cast<CService *>(this);
-                        READWRITE(FLATDATA(ip));
-                        unsigned short portN = htons(port); READWRITE(portN);
-                        if (fRead) pthis->port = ntohs(portN);)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        CService *pthis = const_cast<CService *>(this);
+        READWRITE(FLATDATA(ip));
+        unsigned short portN = htons(port);
+        READWRITE(portN);
+        if (ser_action.ForRead()) {
+            pthis->port = ntohs(portN);
+        }
+    }
 };
 
 enum Network ParseNetwork(std::string net);

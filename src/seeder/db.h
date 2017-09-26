@@ -5,6 +5,7 @@
 #include "protocol.h"
 #include "sync.h"
 #include "util.h"
+#include "version.h"
 
 #include <cmath>
 #include <cstdint>
@@ -44,8 +45,14 @@ public:
         weight = weight * f + (1.0 - f);
     }
 
-    IMPLEMENT_SERIALIZE(READWRITE(weight); READWRITE(count);
-                        READWRITE(reliability);)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(weight);
+        READWRITE(count);
+        READWRITE(reliability);
+    }
 
     friend class CAddrInfo;
 };
@@ -165,27 +172,37 @@ public:
 
     friend class CAddrDb;
 
-    IMPLEMENT_SERIALIZE(uint8_t version = 4; READWRITE(version); READWRITE(ip);
-                        READWRITE(services); READWRITE(lastTry);
-                        uint8_t tried = ourLastTry != 0; READWRITE(tried);
-                        if (tried) {
-                            READWRITE(ourLastTry);
-                            READWRITE(ignoreTill);
-                            READWRITE(stat2H);
-                            READWRITE(stat8H);
-                            READWRITE(stat1D);
-                            READWRITE(stat1W);
-                            if (version >= 1)
-                                READWRITE(stat1M);
-                            else if (!fWrite)
-                                *((CAddrStat *)(&stat1M)) = stat1W;
-                            READWRITE(total);
-                            READWRITE(success);
-                            READWRITE(clientVersion);
-                            if (version >= 2) READWRITE(clientSubVersion);
-                            if (version >= 3) READWRITE(blocks);
-                            if (version >= 4) READWRITE(ourLastSuccess);
-                        })
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        uint8_t version = 4;
+        READWRITE(version);
+        READWRITE(ip);
+        READWRITE(services);
+        READWRITE(lastTry);
+        uint8_t tried = ourLastTry != 0;
+        READWRITE(tried);
+        if (tried) {
+            READWRITE(ourLastTry);
+            READWRITE(ignoreTill);
+            READWRITE(stat2H);
+            READWRITE(stat8H);
+            READWRITE(stat1D);
+            READWRITE(stat1W);
+            if (version >= 1) {
+                READWRITE(stat1M);
+            } else if (!ser_action.ForRead()) {
+                *((CAddrStat *)(&stat1M)) = stat1W;
+            }
+            READWRITE(total);
+            READWRITE(success);
+            READWRITE(clientVersion);
+            if (version >= 2) READWRITE(clientSubVersion);
+            if (version >= 3) READWRITE(blocks);
+            if (version >= 4) READWRITE(ourLastSuccess);
+        }
+    }
 };
 
 class CAddrDbStats {
@@ -299,53 +316,57 @@ public:
     // assume that only happens at startup, single-threaded)
     // this way, dumping does not interfere with GetIPs_, which is called from
     // the DNS thread
-    IMPLEMENT_SERIALIZE(({
-                            int nVersion = 0;
-                            READWRITE(nVersion);
-                            LOCK(cs);
-                            if (fWrite) {
-                                CAddrDb *db = const_cast<CAddrDb *>(this);
-                                int n = ourId.size() + unkId.size();
-                                READWRITE(n);
-                                for (std::deque<int>::const_iterator it =
-                                         ourId.begin();
-                                     it != ourId.end(); it++) {
-                                    std::map<int, CAddrInfo>::iterator ci =
-                                        db->idToInfo.find(*it);
-                                    READWRITE((*ci).second);
-                                }
-                                for (std::set<int>::const_iterator it =
-                                         unkId.begin();
-                                     it != unkId.end(); it++) {
-                                    std::map<int, CAddrInfo>::iterator ci =
-                                        db->idToInfo.find(*it);
-                                    READWRITE((*ci).second);
-                                }
-                            } else {
-                                CAddrDb *db = const_cast<CAddrDb *>(this);
-                                db->nId = 0;
-                                int n;
-                                READWRITE(n);
-                                for (int i = 0; i < n; i++) {
-                                    CAddrInfo info;
-                                    READWRITE(info);
-                                    if (!info.GetBanTime()) {
-                                        int id = db->nId++;
-                                        db->idToInfo[id] = info;
-                                        db->ipToId[info.ip] = id;
-                                        if (info.ourLastTry) {
-                                            db->ourId.push_back(id);
-                                            if (info.IsGood())
-                                                db->goodId.insert(id);
-                                        } else {
-                                            db->unkId.insert(id);
-                                        }
-                                    }
-                                }
-                                db->nDirty++;
-                            }
-                            READWRITE(banned);
-                        });)
+    template <typename Stream> void Serialize(Stream &s) const {
+        LOCK(cs);
+
+        int nVersion = 0;
+        s << nVersion;
+
+        CAddrDb *db = const_cast<CAddrDb *>(this);
+        int n = ourId.size() + unkId.size();
+        s << n;
+        for (std::deque<int>::const_iterator it = ourId.begin();
+             it != ourId.end(); it++) {
+            std::map<int, CAddrInfo>::iterator ci = db->idToInfo.find(*it);
+            s << (*ci).second;
+        }
+        for (std::set<int>::const_iterator it = unkId.begin();
+             it != unkId.end(); it++) {
+            std::map<int, CAddrInfo>::iterator ci = db->idToInfo.find(*it);
+            s << (*ci).second;
+        }
+        s << banned;
+    }
+
+    template <typename Stream> void Unserialize(Stream &s) {
+        LOCK(cs);
+
+        int nVersion;
+        s >> nVersion;
+
+        CAddrDb *db = const_cast<CAddrDb *>(this);
+        db->nId = 0;
+        int n;
+        s >> n;
+        for (int i = 0; i < n; i++) {
+            CAddrInfo info;
+            s >> info;
+            if (!info.GetBanTime()) {
+                int id = db->nId++;
+                db->idToInfo[id] = info;
+                db->ipToId[info.ip] = id;
+                if (info.ourLastTry) {
+                    db->ourId.push_back(id);
+                    if (info.IsGood()) db->goodId.insert(id);
+                } else {
+                    db->unkId.insert(id);
+                }
+            }
+        }
+        db->nDirty++;
+
+        s >> banned;
+    }
 
     void Add(const CAddress &addr, bool fForce = false) {
         LOCK(cs);

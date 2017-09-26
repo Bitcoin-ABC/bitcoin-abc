@@ -1,5 +1,7 @@
 #include "bitcoin.h"
+#include "clientversion.h"
 #include "db.h"
+#include "streams.h"
 
 #include <algorithm>
 #include <atomic>
@@ -360,7 +362,7 @@ extern "C" void *ThreadDumper(void *) {
             FILE *f = fopen("dnsseed.dat.new", "w+");
             if (f) {
                 {
-                    CAutoFile cf(f);
+                    CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
                     cf << db;
                 }
                 rename("dnsseed.dat.new", "dnsseed.dat");
@@ -434,12 +436,9 @@ static const std::string mainnet_seeds[] = {
     "seed.bitcoinabc.org", "seed-abc.bitcoinforks.org", "seed.bitprim.org",
     "seed.deadalnix.me",   "seeder.criptolayer.net",    ""};
 static const std::string testnet_seeds[] = {
-    "testnet-seed.bitcoinabc.org",
-    "testnet-seed-abc.bitcoinforks.org",
-    "testnet-seed.bitprim.org",
-    "testnet-seed.deadalnix.me",
-    "testnet-seeder.criptolayer.net",
-    ""};
+    "testnet-seed.bitcoinabc.org",    "testnet-seed-abc.bitcoinforks.org",
+    "testnet-seed.bitprim.org",       "testnet-seed.deadalnix.me",
+    "testnet-seeder.criptolayer.net", ""};
 static const std::string *seeds = mainnet_seeds;
 
 extern "C" void *ThreadSeeder(void *) {
@@ -521,7 +520,7 @@ int main(int argc, char **argv) {
     FILE *f = fopen("dnsseed.dat", "r");
     if (f) {
         printf("Loading dnsseed.dat...");
-        CAutoFile cf(f);
+        CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
         cf >> db;
         if (opts.fWipeBan) db.banned.clear();
         if (opts.fWipeIgnore) db.ResetIgnores();

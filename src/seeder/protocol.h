@@ -39,10 +39,17 @@ public:
     std::string GetCommand() const;
     bool IsValid() const;
 
-    IMPLEMENT_SERIALIZE(READWRITE(FLATDATA(pchMessageStart));
-                        READWRITE(FLATDATA(pchCommand));
-                        READWRITE(nMessageSize);
-                        if (nVersion >= 209) READWRITE(nChecksum);)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(FLATDATA(pchMessageStart));
+        READWRITE(FLATDATA(pchCommand));
+        READWRITE(nMessageSize);
+        if (s.GetVersion() >= 209) {
+            READWRITE(nChecksum);
+        }
+    }
 
     // TODO: make private (improves encapsulation)
 public:
@@ -68,14 +75,26 @@ public:
 
     void Init();
 
-    IMPLEMENT_SERIALIZE(CAddress *pthis = const_cast<CAddress *>(this);
-                        CService *pip = (CService *)pthis;
-                        if (fRead) pthis->Init();
-                        if (nType & SER_DISK) READWRITE(nVersion);
-                        if ((nType & SER_DISK) ||
-                            (nVersion >= 31402 && !(nType & SER_GETHASH)))
-                            READWRITE(nTime);
-                        READWRITE(nServices); READWRITE(*pip);)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        int nVersion = s.GetVersion();
+        CAddress *pthis = const_cast<CAddress *>(this);
+        CService *pip = (CService *)pthis;
+        if (ser_action.ForRead()) {
+            pthis->Init();
+        }
+        if (s.GetType() & SER_DISK) {
+            READWRITE(nVersion);
+        }
+        if ((s.GetType() & SER_DISK) ||
+            (nVersion >= 31402 && !(s.GetType() & SER_GETHASH))) {
+            READWRITE(nTime);
+        }
+        READWRITE(nServices);
+        READWRITE(*pip);
+    }
 
     void print() const;
 
@@ -93,7 +112,13 @@ public:
     CInv(int typeIn, const uint256 &hashIn);
     CInv(const std::string &strType, const uint256 &hashIn);
 
-    IMPLEMENT_SERIALIZE(READWRITE(type); READWRITE(hash);)
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(type);
+        READWRITE(hash);
+    }
 
     friend bool operator<(const CInv &a, const CInv &b);
 
