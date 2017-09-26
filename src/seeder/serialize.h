@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <climits>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <map>
@@ -19,13 +20,6 @@
 #include <boost/tuple/tuple_io.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
-#else
-typedef long long int64;
-typedef unsigned long long uint64;
-#endif
 #if defined(_MSC_VER) && _MSC_VER < 1300
 #define for if (false); else for
 #endif
@@ -132,37 +126,28 @@ enum {
 #define WRITEDATA(s, obj) s.write((char *)&(obj), sizeof(obj))
 #define READDATA(s, obj) s.read((char *)&(obj), sizeof(obj))
 
-inline unsigned int GetSerializeSize(char a, int, int = 0) {
-    return sizeof(a);
-}
-inline unsigned int GetSerializeSize(signed char a, int, int = 0) {
+inline unsigned int GetSerializeSize(int8_t a, int, int = 0) {
     return sizeof(a);
 }
 inline unsigned int GetSerializeSize(uint8_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(signed short a, int, int = 0) {
+inline unsigned int GetSerializeSize(int16_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(unsigned short a, int, int = 0) {
+inline unsigned int GetSerializeSize(uint16_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(signed int a, int, int = 0) {
+inline unsigned int GetSerializeSize(int32_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(unsigned int a, int, int = 0) {
+inline unsigned int GetSerializeSize(uint32_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(signed long a, int, int = 0) {
+inline unsigned int GetSerializeSize(int64_t a, int, int = 0) {
     return sizeof(a);
 }
-inline unsigned int GetSerializeSize(unsigned long a, int, int = 0) {
-    return sizeof(a);
-}
-inline unsigned int GetSerializeSize(int64 a, int, int = 0) {
-    return sizeof(a);
-}
-inline unsigned int GetSerializeSize(uint64 a, int, int = 0) {
+inline unsigned int GetSerializeSize(uint64_t a, int, int = 0) {
     return sizeof(a);
 }
 inline unsigned int GetSerializeSize(float a, int, int = 0) {
@@ -173,11 +158,7 @@ inline unsigned int GetSerializeSize(double a, int, int = 0) {
 }
 
 template <typename Stream>
-inline void Serialize(Stream &s, char a, int, int = 0) {
-    WRITEDATA(s, a);
-}
-template <typename Stream>
-inline void Serialize(Stream &s, signed char a, int, int = 0) {
+inline void Serialize(Stream &s, int8_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
@@ -185,35 +166,27 @@ inline void Serialize(Stream &s, uint8_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, signed short a, int, int = 0) {
+inline void Serialize(Stream &s, int16_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, unsigned short a, int, int = 0) {
+inline void Serialize(Stream &s, uint16_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, signed int a, int, int = 0) {
+inline void Serialize(Stream &s, int32_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, unsigned int a, int, int = 0) {
+inline void Serialize(Stream &s, uint32_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, signed long a, int, int = 0) {
+inline void Serialize(Stream &s, int64_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
-inline void Serialize(Stream &s, unsigned long a, int, int = 0) {
-    WRITEDATA(s, a);
-}
-template <typename Stream>
-inline void Serialize(Stream &s, int64 a, int, int = 0) {
-    WRITEDATA(s, a);
-}
-template <typename Stream>
-inline void Serialize(Stream &s, uint64 a, int, int = 0) {
+inline void Serialize(Stream &s, uint64_t a, int, int = 0) {
     WRITEDATA(s, a);
 }
 template <typename Stream>
@@ -226,11 +199,7 @@ inline void Serialize(Stream &s, double a, int, int = 0) {
 }
 
 template <typename Stream>
-inline void Unserialize(Stream &s, char &a, int, int = 0) {
-    READDATA(s, a);
-}
-template <typename Stream>
-inline void Unserialize(Stream &s, signed char &a, int, int = 0) {
+inline void Unserialize(Stream &s, int8_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
@@ -238,35 +207,27 @@ inline void Unserialize(Stream &s, uint8_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, signed short &a, int, int = 0) {
+inline void Unserialize(Stream &s, int16_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, unsigned short &a, int, int = 0) {
+inline void Unserialize(Stream &s, uint16_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, signed int &a, int, int = 0) {
+inline void Unserialize(Stream &s, int32_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, unsigned int &a, int, int = 0) {
+inline void Unserialize(Stream &s, uint32_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, signed long &a, int, int = 0) {
+inline void Unserialize(Stream &s, int64_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
-inline void Unserialize(Stream &s, unsigned long &a, int, int = 0) {
-    READDATA(s, a);
-}
-template <typename Stream>
-inline void Unserialize(Stream &s, int64 &a, int, int = 0) {
-    READDATA(s, a);
-}
-template <typename Stream>
-inline void Unserialize(Stream &s, uint64 &a, int, int = 0) {
+inline void Unserialize(Stream &s, uint64_t &a, int, int = 0) {
     READDATA(s, a);
 }
 template <typename Stream>
@@ -300,61 +261,62 @@ inline void Unserialize(Stream &s, bool &a, int, int = 0) {
 //  size <= UINT_MAX   -- 5 bytes  (254 + 4 bytes)
 //  size >  UINT_MAX   -- 9 bytes  (255 + 8 bytes)
 //
-inline unsigned int GetSizeOfCompactSize(uint64 nSize) {
+inline unsigned int GetSizeOfCompactSize(uint64_t nSize) {
     if (nSize < 253)
         return sizeof(uint8_t);
     else if (nSize <= USHRT_MAX)
-        return sizeof(uint8_t) + sizeof(unsigned short);
+        return sizeof(uint8_t) + sizeof(uint16_t);
     else if (nSize <= UINT_MAX)
-        return sizeof(uint8_t) + sizeof(unsigned int);
+        return sizeof(uint8_t) + sizeof(uint32_t);
     else
-        return sizeof(uint8_t) + sizeof(uint64);
+        return sizeof(uint8_t) + sizeof(uint64_t);
 }
 
-template <typename Stream> void WriteCompactSize(Stream &os, uint64 nSize) {
+template <typename Stream> void WriteCompactSize(Stream &os, uint64_t nSize) {
     if (nSize < 253) {
         uint8_t chSize = nSize;
         WRITEDATA(os, chSize);
     } else if (nSize <= USHRT_MAX) {
         uint8_t chSize = 253;
-        unsigned short xSize = nSize;
+        uint16_t xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
     } else if (nSize <= UINT_MAX) {
         uint8_t chSize = 254;
-        unsigned int xSize = nSize;
+        uint32_t xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
     } else {
         uint8_t chSize = 255;
-        uint64 xSize = nSize;
+        uint64_t xSize = nSize;
         WRITEDATA(os, chSize);
         WRITEDATA(os, xSize);
     }
     return;
 }
 
-template <typename Stream> uint64 ReadCompactSize(Stream &is) {
+template <typename Stream> uint64_t ReadCompactSize(Stream &is) {
     uint8_t chSize;
     READDATA(is, chSize);
-    uint64 nSizeRet = 0;
+    uint64_t nSizeRet = 0;
     if (chSize < 253) {
         nSizeRet = chSize;
     } else if (chSize == 253) {
-        unsigned short xSize;
+        uint16_t xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
     } else if (chSize == 254) {
-        unsigned int xSize;
+        uint32_t xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
     } else {
-        uint64 xSize;
+        uint64_t xSize;
         READDATA(is, xSize);
         nSizeRet = xSize;
     }
-    if (nSizeRet > (uint64)MAX_SIZE)
+    if (nSizeRet > uint64_t(MAX_SIZE)) {
         throw std::ios_base::failure("ReadCompactSize() : size too large");
+    }
     return nSizeRet;
 }
 

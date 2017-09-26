@@ -20,7 +20,7 @@ class CNode {
     int nStartingHeight;
     std::vector<CAddress> *vAddr;
     int ban;
-    int64 doneAfter;
+    int64_t doneAfter;
     CAddress you;
 
     int GetTimeout() { return you.IsTor() ? 120 : 30; }
@@ -73,9 +73,9 @@ class CNode {
     }
 
     void PushVersion() {
-        int64 nTime = time(nullptr);
-        uint64 nLocalNonce = BITCOIN_SEED_NONCE;
-        int64 nLocalServices = 0;
+        int64_t nTime = time(nullptr);
+        uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
+        int64_t nLocalServices = 0;
         CAddress me(CService("0.0.0.0"));
         BeginMessage("version");
         int nBestHeight = GetRequireHeight();
@@ -100,10 +100,10 @@ class CNode {
         //    printf("%s: RECV %s\n", ToString(you).c_str(),
         //    strCommand.c_str());
         if (strCommand == "version") {
-            int64 nTime;
+            int64_t nTime;
             CAddress addrMe;
             CAddress addrFrom;
-            uint64 nNonce = 1;
+            uint64_t nNonce = 1;
             vRecv >> nVersion >> you.nServices >> nTime >> addrMe;
             if (nVersion == 10300) nVersion = 300;
             if (nVersion >= 106 && !vRecv.empty()) vRecv >> addrFrom >> nNonce;
@@ -133,7 +133,7 @@ class CNode {
             vRecv >> vAddrNew;
             // printf("%s: got %i addresses\n", ToString(you).c_str(),
             // (int)vAddrNew.size());
-            int64 now = time(nullptr);
+            int64_t now = time(nullptr);
             std::vector<CAddress>::iterator it = vAddrNew.begin();
             if (vAddrNew.size() > 1) {
                 if (doneAfter == 0 || doneAfter > now + 1) doneAfter = now + 1;
@@ -231,7 +231,7 @@ public:
         if (!ConnectSocket(you, sock)) return false;
         PushVersion();
         Send();
-        int64 now;
+        int64_t now;
         while (now = time(nullptr), ban == 0 &&
                                         (doneAfter == 0 || doneAfter > now) &&
                                         sock != INVALID_SOCKET) {

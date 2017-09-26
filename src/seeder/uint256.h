@@ -8,16 +8,10 @@
 #include "serialize.h"
 
 #include <climits>
+#include <cstdint>
 #include <string>
 #include <vector>
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
-#else
-typedef long long int64;
-typedef unsigned long long uint64;
-#endif
 #if defined(_MSC_VER) && _MSC_VER < 1300
 #define for if (false); else for
 #endif
@@ -53,7 +47,7 @@ public:
         return ret;
     }
 
-    base_uint &operator=(uint64 b) {
+    base_uint &operator=(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
         for (int i = 2; i < WIDTH; i++)
@@ -79,19 +73,19 @@ public:
         return *this;
     }
 
-    base_uint &operator^=(uint64 b) {
+    base_uint &operator^=(uint64_t b) {
         pn[0] ^= (unsigned int)b;
         pn[1] ^= (unsigned int)(b >> 32);
         return *this;
     }
 
-    base_uint &operator&=(uint64 b) {
+    base_uint &operator&=(uint64_t b) {
         pn[0] &= (unsigned int)b;
         pn[1] &= (unsigned int)(b >> 32);
         return *this;
     }
 
-    base_uint &operator|=(uint64 b) {
+    base_uint &operator|=(uint64_t b) {
         pn[0] |= (unsigned int)b;
         pn[1] |= (unsigned int)(b >> 32);
         return *this;
@@ -126,9 +120,9 @@ public:
     }
 
     base_uint &operator+=(const base_uint &b) {
-        uint64 carry = 0;
+        uint64_t carry = 0;
         for (int i = 0; i < WIDTH; i++) {
-            uint64 n = carry + pn[i] + b.pn[i];
+            uint64_t n = carry + pn[i] + b.pn[i];
             pn[i] = n & 0xffffffff;
             carry = n >> 32;
         }
@@ -140,14 +134,14 @@ public:
         return *this;
     }
 
-    base_uint &operator+=(uint64 b64) {
+    base_uint &operator+=(uint64_t b64) {
         base_uint b;
         b = b64;
         *this += b;
         return *this;
     }
 
-    base_uint &operator-=(uint64 b64) {
+    base_uint &operator-=(uint64_t b64) {
         base_uint b;
         b = b64;
         *this += -b;
@@ -230,7 +224,7 @@ public:
         return true;
     }
 
-    friend inline bool operator==(const base_uint &a, uint64 b) {
+    friend inline bool operator==(const base_uint &a, uint64_t b) {
         if (a.pn[0] != (unsigned int)b) return false;
         if (a.pn[1] != (unsigned int)(b >> 32)) return false;
         for (int i = 2; i < base_uint::WIDTH; i++)
@@ -242,7 +236,7 @@ public:
         return (!(a == b));
     }
 
-    friend inline bool operator!=(const base_uint &a, uint64 b) {
+    friend inline bool operator!=(const base_uint &a, uint64_t b) {
         return (!(a == b));
     }
 
@@ -353,14 +347,14 @@ public:
         return *this;
     }
 
-    uint160(uint64 b) {
+    uint160(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
         for (int i = 2; i < WIDTH; i++)
             pn[i] = 0;
     }
 
-    uint160 &operator=(uint64 b) {
+    uint160 &operator=(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
         for (int i = 2; i < WIDTH; i++)
@@ -378,10 +372,10 @@ public:
     }
 };
 
-inline bool operator==(const uint160 &a, uint64 b) {
+inline bool operator==(const uint160 &a, uint64_t b) {
     return (base_uint160)a == b;
 }
-inline bool operator!=(const uint160 &a, uint64 b) {
+inline bool operator!=(const uint160 &a, uint64_t b) {
     return (base_uint160)a != b;
 }
 inline const uint160 operator<<(const base_uint160 &a, unsigned int shift) {
@@ -540,14 +534,14 @@ public:
         return *this;
     }
 
-    uint256(uint64 b) {
+    uint256(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
         for (int i = 2; i < WIDTH; i++)
             pn[i] = 0;
     }
 
-    uint256 &operator=(uint64 b) {
+    uint256 &operator=(uint64_t b) {
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
         for (int i = 2; i < WIDTH; i++)
@@ -565,10 +559,10 @@ public:
     }
 };
 
-inline bool operator==(const uint256 &a, uint64 b) {
+inline bool operator==(const uint256 &a, uint64_t b) {
     return (base_uint256)a == b;
 }
-inline bool operator!=(const uint256 &a, uint64 b) {
+inline bool operator!=(const uint256 &a, uint64_t b) {
     return (base_uint256)a != b;
 }
 inline const uint256 operator<<(const base_uint256 &a, unsigned int shift) {

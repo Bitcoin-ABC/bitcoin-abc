@@ -68,7 +68,7 @@ public:
     std::string ToString() const;
     std::string ToStringIP() const;
     unsigned int GetByte(int n) const;
-    uint64 GetHash() const;
+    uint64_t GetHash() const;
     bool GetInAddr(struct in_addr *pipv4Addr) const;
     std::vector<uint8_t> GetGroup() const;
     int GetReachabilityFrom(const CNetAddr *paddrPartner = nullptr) const;

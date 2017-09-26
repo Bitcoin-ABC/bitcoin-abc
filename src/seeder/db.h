@@ -36,7 +36,7 @@ private:
 public:
     CAddrStat() : weight(0), count(0), reliability(0) {}
 
-    void Update(bool good, int64 age, double tau) {
+    void Update(bool good, int64_t age, double tau) {
         double f = exp(-age / tau);
         reliability = reliability * f + (good ? (1.0 - f) : 0);
         count = count * f + 1;
@@ -65,10 +65,10 @@ class CAddrInfo {
 private:
     CService ip;
     uint64_t services;
-    int64 lastTry;
-    int64 ourLastTry;
-    int64 ourLastSuccess;
-    int64 ignoreTill;
+    int64_t lastTry;
+    int64_t ourLastTry;
+    int64_t ourLastSuccess;
+    int64_t ignoreTill;
     CAddrStat stat2H;
     CAddrStat stat8H;
     CAddrStat stat1D;
@@ -204,7 +204,7 @@ struct CServiceResult {
     int nHeight;
     int nClientV;
     std::string strClientV;
-    int64 ourLastSuccess;
+    int64_t ourLastSuccess;
 };
 
 //             seen nodes

@@ -81,7 +81,7 @@ public:
 
     // TODO: make private (improves encapsulation)
 public:
-    uint64 nServices;
+    uint64_t nServices;
 
     // disk and network only
     unsigned int nTime;
