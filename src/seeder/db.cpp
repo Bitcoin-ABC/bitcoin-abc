@@ -36,14 +36,14 @@ void CAddrInfo::Update(bool good) {
 
 bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
     int64_t now = time(nullptr);
-    int cont = 0;
-    int tot = unkId.size() + ourId.size();
+    size_t tot = unkId.size() + ourId.size();
     if (tot == 0) {
         wait = 5;
         return false;
     }
+
     do {
-        int rnd = rand() % tot;
+        size_t rnd = rand() % tot;
         int ret;
         if (rnd < unkId.size()) {
             std::set<int>::iterator it = unkId.end();
@@ -52,10 +52,12 @@ bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
             unkId.erase(it);
         } else {
             ret = ourId.front();
-            if (time(nullptr) - idToInfo[ret].ourLastTry < MIN_RETRY)
+            if (time(nullptr) - idToInfo[ret].ourLastTry < MIN_RETRY) {
                 return false;
+            }
             ourId.pop_front();
         }
+
         if (idToInfo[ret].ignoreTill && idToInfo[ret].ignoreTill < now) {
             ourId.push_back(ret);
             idToInfo[ret].ourLastTry = now;
@@ -65,6 +67,7 @@ bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
             break;
         }
     } while (1);
+
     nDirty++;
     return true;
 }
@@ -133,14 +136,17 @@ void CAddrDb::Skipped_(const CService &addr) {
 }
 
 void CAddrDb::Add_(const CAddress &addr, bool force) {
-    if (!force && !addr.IsRoutable()) return;
+    if (!force && !addr.IsRoutable()) {
+        return;
+    }
     CService ipp(addr);
     if (banned.count(ipp)) {
         time_t bantime = banned[ipp];
-        if (force || (bantime < time(nullptr) && addr.nTime > bantime))
+        if (force || (bantime < time(nullptr) && addr.nTime > bantime)) {
             banned.erase(ipp);
-        else
+        } else {
             return;
+        }
     }
     if (ipToId.count(ipp)) {
         CAddrInfo &ai = idToInfo[ipToId[ipp]];
@@ -154,6 +160,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
         }
         return;
     }
+
     CAddrInfo ai;
     ai.ip = ipp;
     ai.services = addr.nServices;
@@ -169,41 +176,54 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     nDirty++;
 }
 
-void CAddrDb::GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
-                      const bool *nets) {
+void CAddrDb::GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags,
+                      uint32_t max, const bool *nets) {
     if (goodId.size() == 0) {
         int id = -1;
         if (ourId.size() == 0) {
-            if (unkId.size() == 0) return;
+            if (unkId.size() == 0) {
+                return;
+            }
             id = *unkId.begin();
         } else {
             id = *ourId.begin();
         }
+
         if (id >= 0 &&
             (idToInfo[id].services & requestedFlags) == requestedFlags) {
             ips.insert(idToInfo[id].ip);
         }
         return;
     }
+
     std::vector<int> goodIdFiltered;
-    for (std::set<int>::const_iterator it = goodId.begin(); it != goodId.end();
-         it++) {
-        if ((idToInfo[*it].services & requestedFlags) == requestedFlags)
-            goodIdFiltered.push_back(*it);
+    for (auto &id : goodId) {
+        if ((idToInfo[id].services & requestedFlags) == requestedFlags) {
+            goodIdFiltered.push_back(id);
+        }
     }
 
-    if (!goodIdFiltered.size()) return;
+    if (!goodIdFiltered.size()) {
+        return;
+    }
 
-    if (max > goodIdFiltered.size() / 2) max = goodIdFiltered.size() / 2;
-    if (max < 1) max = 1;
+    if (max > goodIdFiltered.size() / 2) {
+        max = goodIdFiltered.size() / 2;
+    }
+
+    if (max < 1) {
+        max = 1;
+    }
 
     std::set<int> ids;
     while (ids.size() < max) {
         ids.insert(goodIdFiltered[rand() % goodIdFiltered.size()]);
     }
-    for (std::set<int>::const_iterator it = ids.begin(); it != ids.end();
-         it++) {
-        CService &ip = idToInfo[*it].ip;
-        if (nets[ip.GetNetwork()]) ips.insert(ip);
+
+    for (auto &id : ids) {
+        CService &ip = idToInfo[id].ip;
+        if (nets[ip.GetNetwork()]) {
+            ips.insert(ip);
+        }
     }
 }

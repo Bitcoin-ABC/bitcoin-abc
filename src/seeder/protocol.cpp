@@ -93,21 +93,24 @@ CInv::CInv() {
     hash.SetNull();
 }
 
-CInv::CInv(int typeIn, const uint256 &hashIn) {
+CInv::CInv(uint32_t typeIn, const uint256 &hashIn) {
     type = typeIn;
     hash = hashIn;
 }
 
 CInv::CInv(const std::string &strType, const uint256 &hashIn) {
-    int i;
+    size_t i;
     for (i = 1; i < ARRAYLEN(ppszTypeName); i++) {
         if (strType == ppszTypeName[i]) {
             type = i;
             break;
         }
     }
-    if (i == ARRAYLEN(ppszTypeName))
+
+    if (i == ARRAYLEN(ppszTypeName)) {
         throw std::out_of_range("CInv::CInv(string, uint256) : unknown type");
+    }
+
     hash = hashIn;
 }
 

@@ -33,9 +33,10 @@ public:
     std::set<uint64_t> filter_whitelist;
 
     CDnsSeedOpts()
-        : nThreads(96), nDnsThreads(4), nPort(53), mbox(nullptr), ns(nullptr),
-          host(nullptr), tor(nullptr), fUseTestNet(false), fWipeBan(false),
-          fWipeIgnore(false), ipv4_proxy(nullptr), ipv6_proxy(nullptr) {}
+        : nThreads(96), nPort(53), nDnsThreads(4), fUseTestNet(false),
+          fWipeBan(false), fWipeIgnore(false), mbox(nullptr), ns(nullptr),
+          host(nullptr), tor(nullptr), ipv4_proxy(nullptr),
+          ipv6_proxy(nullptr) {}
 
     void ParseCommandLine(int argc, char **argv) {
         static const char *help =
@@ -185,8 +186,9 @@ extern "C" void *ThreadCrawler(void *data) {
             Sleep(wait);
             continue;
         }
+
         std::vector<CAddress> addr;
-        for (int i = 0; i < ips.size(); i++) {
+        for (size_t i = 0; i < ips.size(); i++) {
             CServiceResult &res = ips[i];
             res.nBanTime = 0;
             res.nClientV = 0;
@@ -197,14 +199,16 @@ extern "C" void *ThreadCrawler(void *data) {
                                  res.strClientV, res.nHeight,
                                  getaddr ? &addr : nullptr);
         }
+
         db.ResultMany(ips);
         db.Add(addr);
     } while (1);
     return nullptr;
 }
 
-extern "C" int GetIPList(void *thread, char *requestedHostname, addr_t *addr,
-                         int max, int ipv4, int ipv6);
+extern "C" uint32_t GetIPList(void *thread, char *requestedHostname,
+                              addr_t *addr, uint32_t max, uint32_t ipv4,
+                              uint32_t ipv6);
 
 class CDnsThread {
 public:
@@ -283,8 +287,8 @@ public:
     void run() { dnsserver(&dns_opt); }
 };
 
-extern "C" int GetIPList(void *data, char *requestedHostname, addr_t *addr,
-                         int max, int ipv4, int ipv6) {
+extern "C" uint32_t GetIPList(void *data, char *requestedHostname, addr_t *addr,
+                              uint32_t max, uint32_t ipv4, uint32_t ipv6) {
     CDnsThread *thread = (CDnsThread *)data;
 
     uint64_t requestedFlags = 0;
@@ -296,28 +300,37 @@ extern "C" int GetIPList(void *data, char *requestedHostname, addr_t *addr,
         if (*pEnd == '.' && pEnd <= requestedHostname + 17 &&
             std::find(thread->filterWhitelist.begin(),
                       thread->filterWhitelist.end(),
-                      flags) != thread->filterWhitelist.end())
+                      flags) != thread->filterWhitelist.end()) {
             requestedFlags = flags;
-        else
+        } else {
             return 0;
-    } else if (strcasecmp(requestedHostname, thread->dns_opt.host))
+        }
+    } else if (strcasecmp(requestedHostname, thread->dns_opt.host)) {
         return 0;
+    }
     thread->cacheHit(requestedFlags);
     auto &thisflag = thread->perflag[requestedFlags];
-    unsigned int size = thisflag.cache.size();
-    unsigned int maxmax =
-        (ipv4 ? thisflag.nIPv4 : 0) + (ipv6 ? thisflag.nIPv6 : 0);
-    if (max > size) max = size;
-    if (max > maxmax) max = maxmax;
-    int i = 0;
+    uint32_t size = thisflag.cache.size();
+    uint32_t maxmax = (ipv4 ? thisflag.nIPv4 : 0) + (ipv6 ? thisflag.nIPv6 : 0);
+    if (max > size) {
+        max = size;
+    }
+    if (max > maxmax) {
+        max = maxmax;
+    }
+    uint32_t i = 0;
     while (i < max) {
-        int j = i + (rand() % (size - i));
+        uint32_t j = i + (rand() % (size - i));
         do {
             bool ok = (ipv4 && thisflag.cache[j].v == 4) ||
                       (ipv6 && thisflag.cache[j].v == 6);
-            if (ok) break;
+            if (ok) {
+                break;
+            }
             j++;
-            if (j == size) j = i;
+            if (j == size) {
+                j = i;
+            }
         } while (1);
         addr[i] = thisflag.cache[j];
         thisflag.cache[j] = thisflag.cache[i];

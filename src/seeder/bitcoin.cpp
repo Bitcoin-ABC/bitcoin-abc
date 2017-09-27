@@ -10,12 +10,14 @@
 
 #define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
 
+static const uint32_t allones(-1);
+
 class CNode {
     SOCKET sock;
     CDataStream vSend;
     CDataStream vRecv;
-    unsigned int nHeaderStart;
-    unsigned int nMessageStart;
+    uint32_t nHeaderStart;
+    uint32_t nMessageStart;
     int nVersion;
     std::string strSubVer;
     int nStartingHeight;
@@ -27,7 +29,9 @@ class CNode {
     int GetTimeout() { return you.IsTor() ? 120 : 30; }
 
     void BeginMessage(const char *pszCommand) {
-        if (nHeaderStart != -1) AbortMessage();
+        if (nHeaderStart != allones) {
+            AbortMessage();
+        }
         nHeaderStart = vSend.size();
         vSend << CMessageHeader(pszCommand, 0);
         nMessageStart = vSend.size();
@@ -35,15 +39,19 @@ class CNode {
     }
 
     void AbortMessage() {
-        if (nHeaderStart == -1) return;
+        if (nHeaderStart == allones) {
+            return;
+        }
         vSend.resize(nHeaderStart);
-        nHeaderStart = -1;
-        nMessageStart = -1;
+        nHeaderStart = allones;
+        nMessageStart = allones;
     }
 
     void EndMessage() {
-        if (nHeaderStart == -1) return;
-        unsigned int nSize = vSend.size() - nMessageStart;
+        if (nHeaderStart == allones) {
+            return;
+        }
+        uint32_t nSize = vSend.size() - nMessageStart;
         memcpy((char *)&vSend[nHeaderStart] +
                    offsetof(CMessageHeader, nMessageSize),
                &nSize, sizeof(nSize));
@@ -57,13 +65,17 @@ class CNode {
                        offsetof(CMessageHeader, nChecksum),
                    &nChecksum, sizeof(nChecksum));
         }
-        nHeaderStart = -1;
-        nMessageStart = -1;
+        nHeaderStart = allones;
+        nMessageStart = allones;
     }
 
     void Send() {
-        if (sock == INVALID_SOCKET) return;
-        if (vSend.empty()) return;
+        if (sock == INVALID_SOCKET) {
+            return;
+        }
+        if (vSend.empty()) {
+            return;
+        }
         int nBytes = send(sock, &vSend[0], vSend.size(), 0);
         if (nBytes > 0) {
             vSend.erase(vSend.begin(), vSend.begin() + nBytes);
@@ -162,12 +174,15 @@ class CNode {
     }
 
     bool ProcessMessages() {
-        if (vRecv.empty()) return false;
+        if (vRecv.empty()) {
+            return false;
+        }
+
         do {
             CDataStream::iterator pstart =
                 search(vRecv.begin(), vRecv.end(), BEGIN(pchMessageStart),
                        END(pchMessageStart));
-            int nHeaderSize = GetSerializeSize(
+            uint32_t nHeaderSize = GetSerializeSize(
                 CMessageHeader(), vRecv.GetType(), vRecv.GetVersion());
             if (vRecv.end() - pstart < nHeaderSize) {
                 if (vRecv.size() > nHeaderSize) {
@@ -217,9 +232,9 @@ class CNode {
 
 public:
     CNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-        : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), you(ip),
-          nHeaderStart(-1), nMessageStart(-1), vAddr(vAddrIn), ban(0),
-          doneAfter(0), nVersion(0) {
+        : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
+          nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
+          you(ip) {
         if (time(nullptr) > 1329696000) {
             vSend.SetVersion(209);
             vRecv.SetVersion(209);

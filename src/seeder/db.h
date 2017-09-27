@@ -24,8 +24,9 @@ static inline int GetRequireHeight(const bool testnet = fTestNet) {
 
 static inline std::string ToString(const CService &ip) {
     std::string str = ip.ToString();
-    while (str.size() < 22)
+    while (str.size() < 22) {
         str += ' ';
+    }
     return str;
 }
 
@@ -128,8 +129,11 @@ public:
 
         return false;
     }
+
     int GetBanTime() const {
-        if (IsGood()) return 0;
+        if (IsGood()) {
+            return 0;
+        }
         if (clientVersion && clientVersion < 31900) {
             return 604800;
         }
@@ -147,8 +151,11 @@ public:
         }
         return 0;
     }
+
     int GetIgnoreTime() const {
-        if (IsGood()) return 0;
+        if (IsGood()) {
+            return 0;
+        }
         if (stat1M.reliability - stat1M.weight + 1.0 < 0.20 &&
             stat1M.count > 2) {
             return 10 * 86400;
@@ -183,25 +190,27 @@ public:
         READWRITE(lastTry);
         uint8_t tried = ourLastTry != 0;
         READWRITE(tried);
-        if (tried) {
-            READWRITE(ourLastTry);
-            READWRITE(ignoreTill);
-            READWRITE(stat2H);
-            READWRITE(stat8H);
-            READWRITE(stat1D);
-            READWRITE(stat1W);
-            if (version >= 1) {
-                READWRITE(stat1M);
-            } else if (!ser_action.ForRead()) {
-                *((CAddrStat *)(&stat1M)) = stat1W;
-            }
-            READWRITE(total);
-            READWRITE(success);
-            READWRITE(clientVersion);
-            if (version >= 2) READWRITE(clientSubVersion);
-            if (version >= 3) READWRITE(blocks);
-            if (version >= 4) READWRITE(ourLastSuccess);
+        if (!tried) {
+            return;
         }
+
+        READWRITE(ourLastTry);
+        READWRITE(ignoreTill);
+        READWRITE(stat2H);
+        READWRITE(stat8H);
+        READWRITE(stat1D);
+        READWRITE(stat1W);
+        if (version >= 1) {
+            READWRITE(stat1M);
+        } else if (!ser_action.ForRead()) {
+            *((CAddrStat *)(&stat1M)) = stat1W;
+        }
+        READWRITE(total);
+        READWRITE(success);
+        READWRITE(clientVersion);
+        if (version >= 2) READWRITE(clientSubVersion);
+        if (version >= 3) READWRITE(blocks);
+        if (version >= 4) READWRITE(ourLastSuccess);
     }
 };
 
@@ -225,14 +234,15 @@ struct CServiceResult {
     int64_t ourLastSuccess;
 };
 
-//             seen nodes
-//            /          \
-// (a) banned nodes       available nodes--------------
-//                       /       |                     \
-//               tracked nodes   (b) unknown nodes   (e) active nodes
-//              /           \
-//     (d) good nodes   (c) non-good nodes
-
+/**
+ *             seen nodes
+ *            /          \
+ * (a) banned nodes       available nodes--------------
+ *                       /       |                     \
+ *               tracked nodes   (b) unknown nodes   (e) active nodes
+ *              /           \
+ *     (d) good nodes   (c) non-good nodes
+ */
 class CAddrDb {
 private:
     mutable CCriticalSection cs;
@@ -269,7 +279,7 @@ protected:
     // look up id of an IP
     int Lookup_(const CService &ip);
     // get a random set of IPs (shared lock only)
-    void GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
+    void GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, uint32_t max,
                  const bool *nets);
 
 public:
@@ -313,9 +323,8 @@ public:
     //   CAddrInfo[n]
     //   banned
     // acquires a shared lock (this does not suffice for read mode, but we
-    // assume that only happens at startup, single-threaded)
-    // this way, dumping does not interfere with GetIPs_, which is called from
-    // the DNS thread
+    // assume that only happens at startup, single-threaded) this way, dumping
+    // does not interfere with GetIPs_, which is called from the DNS thread
     template <typename Stream> void Serialize(Stream &s) const {
         LOCK(cs);
 
@@ -372,41 +381,50 @@ public:
         LOCK(cs);
         Add_(addr, fForce);
     }
+
     void Add(const std::vector<CAddress> &vAddr, bool fForce = false) {
         LOCK(cs);
         for (size_t i = 0; i < vAddr.size(); i++) {
             Add_(vAddr[i], fForce);
         }
     }
+
     void Good(const CService &addr, int clientVersion,
               std::string clientSubVersion, int blocks) {
         LOCK(cs);
         Good_(addr, clientVersion, clientSubVersion, blocks);
     }
+
     void Skipped(const CService &addr) {
         LOCK(cs);
         Skipped_(addr);
     }
+
     void Bad(const CService &addr, int ban = 0) {
         LOCK(cs);
         Bad_(addr, ban);
     }
+
     bool Get(CServiceResult &ip, int &wait) {
         LOCK(cs);
         return Get_(ip, wait);
     }
+
     void GetMany(std::vector<CServiceResult> &ips, int max, int &wait) {
         LOCK(cs);
         while (max > 0) {
             CServiceResult ip = {};
-            if (!Get_(ip, wait)) return;
+            if (!Get_(ip, wait)) {
+                return;
+            }
             ips.push_back(ip);
             max--;
         }
     }
+
     void ResultMany(const std::vector<CServiceResult> &ips) {
         LOCK(cs);
-        for (int i = 0; i < ips.size(); i++) {
+        for (size_t i = 0; i < ips.size(); i++) {
             if (ips[i].fGood) {
                 Good_(ips[i].service, ips[i].nClientV, ips[i].strClientV,
                       ips[i].nHeight);
@@ -415,7 +433,8 @@ public:
             }
         }
     }
-    void GetIPs(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
+
+    void GetIPs(std::set<CNetAddr> &ips, uint64_t requestedFlags, uint32_t max,
                 const bool *nets) {
         LOCK(cs);
         GetIPs_(ips, requestedFlags, max, nets);
