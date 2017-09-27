@@ -37,7 +37,7 @@ public:
 
     void ParseCommandLine(int argc, char **argv) {
         static const char *help =
-            "Bitcoin-seeder\n"
+            "Bitcoin-cash-seeder\n"
             "Usage: %s -h <host> -n <ns> [-m <mbox>] [-t <threads>] [-p "
             "<port>]\n"
             "\n"
