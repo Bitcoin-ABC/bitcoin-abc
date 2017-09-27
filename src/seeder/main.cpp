@@ -5,14 +5,12 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
 #include <pthread.h>
 #include <signal.h>
-
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
 
 bool fTestNet = false;
 
