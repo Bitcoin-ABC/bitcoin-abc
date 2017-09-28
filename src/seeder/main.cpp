@@ -436,7 +436,6 @@ static const std::string mainnet_seeds[] = {
 static const std::string testnet_seeds[] = {
     "testnet-seed.bitcoinabc.org",
     "testnet-seed-abc.bitcoinforks.org",
-    "testnet-seed.bitcoinunlimited.info",
     "testnet-seed.bitprim.org",
     "testnet-seed.deadalnix.me",
     "testnet-seeder.criptolayer.net",

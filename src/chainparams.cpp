@@ -339,10 +339,6 @@ public:
         // bitcoinforks seeders
         vSeeds.push_back(CDNSSeedData(
             "bitcoinforks.org", "testnet-seed-abc.bitcoinforks.org", true));
-        // BU seeder
-        vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
-                                      "testnet-seed.bitcoinunlimited.info",
-                                      true));
         // Bitprim
         vSeeds.push_back(
             CDNSSeedData("bitprim.org", "testnet-seed.bitprim.org", true));
