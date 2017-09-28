@@ -27,44 +27,6 @@
 #define INVALID_SOCKET (SOCKET)(~0)
 #define SOCKET_ERROR -1
 
-// Wrapper to automatically initialize mutex
-class CCriticalSection {
-protected:
-    pthread_rwlock_t mutex;
-
-public:
-    explicit CCriticalSection() { pthread_rwlock_init(&mutex, nullptr); }
-    ~CCriticalSection() { pthread_rwlock_destroy(&mutex); }
-    void Enter(bool fShared = false) {
-        if (fShared) {
-            pthread_rwlock_rdlock(&mutex);
-        } else {
-            pthread_rwlock_wrlock(&mutex);
-        }
-    }
-    void Leave() { pthread_rwlock_unlock(&mutex); }
-};
-
-// Automatically leave critical section when leaving block, needed for exception
-// safety
-class CCriticalBlock {
-protected:
-    CCriticalSection *pcs;
-
-public:
-    CCriticalBlock(CCriticalSection &cs, bool fShared = false) : pcs(&cs) {
-        pcs->Enter(fShared);
-    }
-    operator bool() const { return true; }
-    ~CCriticalBlock() { pcs->Leave(); }
-};
-
-#define CRITICAL_BLOCK(cs)                                                     \
-    if (CCriticalBlock criticalblock = CCriticalBlock(cs))
-
-#define SHARED_CRITICAL_BLOCK(cs)                                              \
-    if (CCriticalBlock criticalblock = CCriticalBlock(cs, true))
-
 template <typename T1> inline uint256 Hash(const T1 pbegin, const T1 pend) {
     static uint8_t pblank[1];
     uint256 hash1;

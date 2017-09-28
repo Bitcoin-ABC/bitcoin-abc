@@ -3,6 +3,7 @@
 
 #include "netbase.h"
 #include "protocol.h"
+#include "sync.h"
 #include "util.h"
 
 #include <cmath>
@@ -259,14 +260,13 @@ public:
     std::map<CService, time_t> banned;
 
     void GetStats(CAddrDbStats &stats) {
-        SHARED_CRITICAL_BLOCK(cs) {
-            stats.nBanned = banned.size();
-            stats.nAvail = idToInfo.size();
-            stats.nTracked = ourId.size();
-            stats.nGood = goodId.size();
-            stats.nNew = unkId.size();
-            stats.nAge = time(nullptr) - idToInfo[ourId[0]].ourLastTry;
-        }
+        LOCK(cs);
+        stats.nBanned = banned.size();
+        stats.nAvail = idToInfo.size();
+        stats.nTracked = ourId.size();
+        stats.nGood = goodId.size();
+        stats.nNew = unkId.size();
+        stats.nAge = time(nullptr) - idToInfo[ourId[0]].ourLastTry;
     }
 
     void ResetIgnores() {
@@ -278,13 +278,12 @@ public:
 
     std::vector<CAddrReport> GetAll() {
         std::vector<CAddrReport> ret;
-        SHARED_CRITICAL_BLOCK(cs) {
-            for (std::deque<int>::const_iterator it = ourId.begin();
-                 it != ourId.end(); it++) {
-                const CAddrInfo &info = idToInfo[*it];
-                if (info.success > 0) {
-                    ret.push_back(info.GetReport());
-                }
+        LOCK(cs);
+        for (std::deque<int>::const_iterator it = ourId.begin();
+             it != ourId.end(); it++) {
+            const CAddrInfo &info = idToInfo[*it];
+            if (info.success > 0) {
+                ret.push_back(info.GetReport());
             }
         }
         return ret;
@@ -303,103 +302,101 @@ public:
     IMPLEMENT_SERIALIZE(({
                             int nVersion = 0;
                             READWRITE(nVersion);
-                            SHARED_CRITICAL_BLOCK(cs) {
-                                if (fWrite) {
-                                    CAddrDb *db = const_cast<CAddrDb *>(this);
-                                    int n = ourId.size() + unkId.size();
-                                    READWRITE(n);
-                                    for (std::deque<int>::const_iterator it =
-                                             ourId.begin();
-                                         it != ourId.end(); it++) {
-                                        std::map<int, CAddrInfo>::iterator ci =
-                                            db->idToInfo.find(*it);
-                                        READWRITE((*ci).second);
-                                    }
-                                    for (std::set<int>::const_iterator it =
-                                             unkId.begin();
-                                         it != unkId.end(); it++) {
-                                        std::map<int, CAddrInfo>::iterator ci =
-                                            db->idToInfo.find(*it);
-                                        READWRITE((*ci).second);
-                                    }
-                                } else {
-                                    CAddrDb *db = const_cast<CAddrDb *>(this);
-                                    db->nId = 0;
-                                    int n;
-                                    READWRITE(n);
-                                    for (int i = 0; i < n; i++) {
-                                        CAddrInfo info;
-                                        READWRITE(info);
-                                        if (!info.GetBanTime()) {
-                                            int id = db->nId++;
-                                            db->idToInfo[id] = info;
-                                            db->ipToId[info.ip] = id;
-                                            if (info.ourLastTry) {
-                                                db->ourId.push_back(id);
-                                                if (info.IsGood())
-                                                    db->goodId.insert(id);
-                                            } else {
-                                                db->unkId.insert(id);
-                                            }
+                            LOCK(cs);
+                            if (fWrite) {
+                                CAddrDb *db = const_cast<CAddrDb *>(this);
+                                int n = ourId.size() + unkId.size();
+                                READWRITE(n);
+                                for (std::deque<int>::const_iterator it =
+                                         ourId.begin();
+                                     it != ourId.end(); it++) {
+                                    std::map<int, CAddrInfo>::iterator ci =
+                                        db->idToInfo.find(*it);
+                                    READWRITE((*ci).second);
+                                }
+                                for (std::set<int>::const_iterator it =
+                                         unkId.begin();
+                                     it != unkId.end(); it++) {
+                                    std::map<int, CAddrInfo>::iterator ci =
+                                        db->idToInfo.find(*it);
+                                    READWRITE((*ci).second);
+                                }
+                            } else {
+                                CAddrDb *db = const_cast<CAddrDb *>(this);
+                                db->nId = 0;
+                                int n;
+                                READWRITE(n);
+                                for (int i = 0; i < n; i++) {
+                                    CAddrInfo info;
+                                    READWRITE(info);
+                                    if (!info.GetBanTime()) {
+                                        int id = db->nId++;
+                                        db->idToInfo[id] = info;
+                                        db->ipToId[info.ip] = id;
+                                        if (info.ourLastTry) {
+                                            db->ourId.push_back(id);
+                                            if (info.IsGood())
+                                                db->goodId.insert(id);
+                                        } else {
+                                            db->unkId.insert(id);
                                         }
                                     }
-                                    db->nDirty++;
                                 }
-                                READWRITE(banned);
+                                db->nDirty++;
                             }
+                            READWRITE(banned);
                         });)
 
     void Add(const CAddress &addr, bool fForce = false) {
-        CRITICAL_BLOCK(cs)
+        LOCK(cs);
         Add_(addr, fForce);
     }
     void Add(const std::vector<CAddress> &vAddr, bool fForce = false) {
-        CRITICAL_BLOCK(cs)
-        for (int i = 0; i < vAddr.size(); i++)
+        LOCK(cs);
+        for (size_t i = 0; i < vAddr.size(); i++) {
             Add_(vAddr[i], fForce);
+        }
     }
     void Good(const CService &addr, int clientVersion,
               std::string clientSubVersion, int blocks) {
-        CRITICAL_BLOCK(cs)
+        LOCK(cs);
         Good_(addr, clientVersion, clientSubVersion, blocks);
     }
     void Skipped(const CService &addr) {
-        CRITICAL_BLOCK(cs)
+        LOCK(cs);
         Skipped_(addr);
     }
     void Bad(const CService &addr, int ban = 0) {
-        CRITICAL_BLOCK(cs)
+        LOCK(cs);
         Bad_(addr, ban);
     }
     bool Get(CServiceResult &ip, int &wait) {
-        CRITICAL_BLOCK(cs)
+        LOCK(cs);
         return Get_(ip, wait);
     }
     void GetMany(std::vector<CServiceResult> &ips, int max, int &wait) {
-        CRITICAL_BLOCK(cs) {
-            while (max > 0) {
-                CServiceResult ip = {};
-                if (!Get_(ip, wait)) return;
-                ips.push_back(ip);
-                max--;
-            }
+        LOCK(cs);
+        while (max > 0) {
+            CServiceResult ip = {};
+            if (!Get_(ip, wait)) return;
+            ips.push_back(ip);
+            max--;
         }
     }
     void ResultMany(const std::vector<CServiceResult> &ips) {
-        CRITICAL_BLOCK(cs) {
-            for (int i = 0; i < ips.size(); i++) {
-                if (ips[i].fGood) {
-                    Good_(ips[i].service, ips[i].nClientV, ips[i].strClientV,
-                          ips[i].nHeight);
-                } else {
-                    Bad_(ips[i].service, ips[i].nBanTime);
-                }
+        LOCK(cs);
+        for (int i = 0; i < ips.size(); i++) {
+            if (ips[i].fGood) {
+                Good_(ips[i].service, ips[i].nClientV, ips[i].strClientV,
+                      ips[i].nHeight);
+            } else {
+                Bad_(ips[i].service, ips[i].nBanTime);
             }
         }
     }
     void GetIPs(std::set<CNetAddr> &ips, uint64_t requestedFlags, int max,
                 const bool *nets) {
-        SHARED_CRITICAL_BLOCK(cs)
+        LOCK(cs);
         GetIPs_(ips, requestedFlags, max, nets);
     }
 };
