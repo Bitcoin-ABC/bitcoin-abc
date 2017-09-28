@@ -24,6 +24,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "validation.h"
+#include "warnings.h"
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
@@ -1265,6 +1266,8 @@ UniValue getblockchaininfo(const Config &config,
             "        },\n"
             "     }, ...\n"
             "  ]\n"
+            "  \"warnings\" : \"...\",           (string) any network and "
+            "blockchain warnings.\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getblockchaininfo", "") +
@@ -1304,6 +1307,7 @@ UniValue getblockchaininfo(const Config &config,
 
         obj.pushKV("pruneheight", block->nHeight);
     }
+    obj.pushKV("warnings", GetWarnings("statusbar"));
     return obj;
 }
 

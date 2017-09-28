@@ -11,3 +11,4 @@ This release includes the following features and fixes:
    the genesis block.
  - Various minor fixes to RPC parameter validation
  - Minor wallet performance improvements
+ - `errors` in getmininginfo rpc commmand has been deprecated.  Use `warnings` now instead.

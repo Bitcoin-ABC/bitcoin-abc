@@ -234,12 +234,16 @@ static UniValue getmininginfo(const Config &config,
             "  \"currentblocktx\": nnn,     (numeric) The last block "
             "transaction\n"
             "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
-            "  \"errors\": \"...\"            (string) Current errors\n"
             "  \"networkhashps\": nnn,      (numeric) The network hashes per "
             "second\n"
             "  \"pooledtx\": n              (numeric) The size of the mempool\n"
             "  \"chain\": \"xxxx\",           (string) current network name as "
             "defined in BIP70 (main, test, regtest)\n"
+            "  \"warnings\": \"...\"          (string) any network and "
+            "blockchain warnings\n"
+            "  \"errors\": \"...\"            (string) DEPRECATED. Same as "
+            "warnings. Only shown when bitcoind is started with "
+            "-deprecatedrpc=getmininginfo\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getmininginfo", "") +
@@ -256,10 +260,14 @@ static UniValue getmininginfo(const Config &config,
     obj.pushKV("blockprioritypercentage",
                uint8_t(gArgs.GetArg("-blockprioritypercentage",
                                     DEFAULT_BLOCK_PRIORITY_PERCENTAGE)));
-    obj.pushKV("errors", GetWarnings("statusbar"));
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
     obj.pushKV("pooledtx", uint64_t(g_mempool.size()));
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
+    if (IsDeprecatedRPCEnabled(gArgs, "getmininginfo")) {
+        obj.pushKV("errors", GetWarnings("statusbar"));
+    } else {
+        obj.pushKV("warnings", GetWarnings("statusbar"));
+    }
     return obj;
 }
 

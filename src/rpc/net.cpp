@@ -563,8 +563,8 @@ static UniValue getnetworkinfo(const Config &config,
             "  }\n"
             "  ,...\n"
             "  ]\n"
-            "  \"warnings\": \"...\"                    "
-            "(string) any network warnings\n"
+            "  \"warnings\": \"...\"                    (string) any network "
+            "and blockchain warnings\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getnetworkinfo", "") +
