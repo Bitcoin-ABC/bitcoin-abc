@@ -7,12 +7,15 @@
 #include <amount.h>
 #include <chain.h>
 #include <consensus/validation.h>
+#include <init.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
 #include <net.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
+#include <rpc/server.h>
+#include <scheduler.h>
 #include <script/ismine.h>
 #include <script/standard.h>
 #include <support/allocators/secure.h>
@@ -23,7 +26,10 @@
 #include <validation.h>
 #include <wallet/fees.h>
 #include <wallet/finaltx.h>
+#include <wallet/rpcdump.h>
+#include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
+#include <wallet/walletutil.h>
 
 #include <memory>
 #include <string>
@@ -485,6 +491,23 @@ namespace {
         WalletClientImpl(Chain &chain,
                          std::vector<std::string> wallet_filenames)
             : m_chain(chain), m_wallet_filenames(std::move(wallet_filenames)) {}
+
+        void registerRpcs() override {
+            RegisterWalletRPCCommands(::tableRPC);
+            RegisterDumpRPCCommands(::tableRPC);
+        }
+        bool verify(const CChainParams &chainParams) override {
+            return VerifyWallets(chainParams, m_chain, m_wallet_filenames);
+        }
+        bool load(const CChainParams &chainParams) override {
+            return LoadWallets(chainParams, m_chain, m_wallet_filenames);
+        }
+        void start(CScheduler &scheduler) override {
+            return StartWallets(scheduler);
+        }
+        void flush() override { return FlushWallets(); }
+        void stop() override { return StopWallets(); }
+        ~WalletClientImpl() override { UnloadWallets(); }
 
         Chain &m_chain;
         std::vector<std::string> m_wallet_filenames;

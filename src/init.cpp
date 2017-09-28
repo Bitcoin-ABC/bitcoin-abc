@@ -23,6 +23,7 @@
 #include <httprpc.h>
 #include <httpserver.h>
 #include <index/txindex.h>
+#include <interfaces/chain.h>
 #include <key.h>
 #include <miner.h>
 #include <net.h>
@@ -178,7 +179,9 @@ void Shutdown(InitInterfaces &interfaces) {
     StopREST();
     StopRPC();
     StopHTTPServer();
-    g_wallet_init_interface.Flush();
+    for (const auto &client : interfaces.chain_clients) {
+        client->flush();
+    }
     StopMapPort();
 
     // Because these depend on each-other, we make sure that neither can be
@@ -238,7 +241,9 @@ void Shutdown(InitInterfaces &interfaces) {
         pcoinsdbview.reset();
         pblocktree.reset();
     }
-    g_wallet_init_interface.Stop();
+    for (const auto &client : interfaces.chain_clients) {
+        client->stop();
+    }
 
 #if ENABLE_ZMQ
     if (g_zmq_notification_interface) {
@@ -258,7 +263,7 @@ void Shutdown(InitInterfaces &interfaces) {
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
-    g_wallet_init_interface.Close();
+    interfaces.chain_clients.clear();
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -1888,12 +1893,20 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
     GetMainSignals().RegisterWithMempoolSignals(g_mempool);
 
+    // Create client interfaces for wallets that are supposed to be loaded
+    // according to -wallet and -disablewallet options. This only constructs
+    // the interfaces, it doesn't load wallet data. Wallets actually get loaded
+    // when load() and start() interface methods are called below.
+    g_wallet_init_interface.Construct(interfaces);
+
     /**
      * Register RPC commands regardless of -server setting so they will be
      * available in the GUI RPC console even if external calls are disabled.
      */
     RegisterAllRPCCommands(config, rpcServer, tableRPC);
-    g_wallet_init_interface.RegisterRPC(tableRPC);
+    for (const auto &client : interfaces.chain_clients) {
+        client->registerRpcs();
+    }
     g_rpc_interfaces = &interfaces;
 #if ENABLE_ZMQ
     RegisterZMQRPCCommands(tableRPC);
@@ -1914,8 +1927,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 5: verify wallet database integrity
-    if (!g_wallet_init_interface.Verify(chainparams, *interfaces.chain)) {
-        return false;
+    for (const auto &client : interfaces.chain_clients) {
+        if (!client->verify(chainparams)) {
+            return false;
+        }
     }
 
     // Step 6: network initialization
@@ -2308,8 +2323,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 9: load wallet
-    if (!g_wallet_init_interface.Open(chainparams, *interfaces.chain)) {
-        return false;
+    for (const auto &client : interfaces.chain_clients) {
+        if (!client->load(chainparams)) {
+            return false;
+        }
     }
 
     // Step 10: data directory maintenance
@@ -2466,7 +2483,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     SetRPCWarmupFinished();
     uiInterface.InitMessage(_("Done loading"));
 
-    g_wallet_init_interface.Start(scheduler);
+    for (const auto &client : interfaces.chain_clients) {
+        client->start(scheduler);
+    }
 
     scheduler.scheduleEvery(
         [] {

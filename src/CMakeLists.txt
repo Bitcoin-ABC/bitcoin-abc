@@ -500,6 +500,9 @@ add_subdirectory(bench)
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
 	target_link_libraries(server wallet)
+	# There is a circular dependency between wallet and server, see:
+	# https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
+	target_link_libraries(wallet server)
 else()
 	target_sources(server PRIVATE dummywallet.cpp)
 endif()
