@@ -1251,10 +1251,16 @@ UniValue getblockchaininfo(const Config &config,
             "verification progress [0..1]\n"
             "  \"chainwork\": \"xxxx\"           (string) total amount of work "
             "in active chain, in hexadecimal\n"
+            "  \"size_on_disk\": xxxxxx,       (numeric) the estimated size of "
+            "the block and undo files on disk\n"
             "  \"pruned\": xx,                 (boolean) if the blocks are "
             "subject to pruning\n"
             "  \"pruneheight\": xxxxxx,        (numeric) lowest-height "
-            "complete block stored\n"
+            "complete block stored (only present if pruning is enabled)\n"
+            "  \"automatic_pruning\": xx,      (boolean) whether automatic "
+            "pruning is enabled (only present if pruning is enabled)\n"
+            "  \"prune_target_size\": xxxxxx,  (numeric) the target size "
+            "used by pruning (only present if automatic pruning is enabled)\n"
             "  \"softforks\": [                (array) status of softforks in "
             "progress\n"
             "     {\n"
@@ -1288,7 +1294,25 @@ UniValue getblockchaininfo(const Config &config,
                GuessVerificationProgress(config.GetChainParams().TxData(),
                                          chainActive.Tip()));
     obj.pushKV("chainwork", chainActive.Tip()->nChainWork.GetHex());
+    obj.pushKV("size_on_disk", CalculateCurrentUsage());
     obj.pushKV("pruned", fPruneMode);
+
+    if (fPruneMode) {
+        CBlockIndex *block = chainActive.Tip();
+        assert(block);
+        while (block->pprev && (block->pprev->nStatus.hasData())) {
+            block = block->pprev;
+        }
+
+        obj.pushKV("pruneheight", block->nHeight);
+
+        // if 0, execution bypasses the whole if block.
+        bool automatic_pruning = (gArgs.GetArg("-prune", 0) != 1);
+        obj.pushKV("automatic_pruning", automatic_pruning);
+        if (automatic_pruning) {
+            obj.pushKV("prune_target_size", nPruneTarget);
+        }
+    }
 
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -1300,14 +1324,6 @@ UniValue getblockchaininfo(const Config &config,
     softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
     obj.pushKV("softforks", softforks);
 
-    if (fPruneMode) {
-        CBlockIndex *block = chainActive.Tip();
-        while (block && block->pprev && block->pprev->nStatus.hasData()) {
-            block = block->pprev;
-        }
-
-        obj.pushKV("pruneheight", block->nHeight);
-    }
     obj.pushKV("warnings", GetWarnings("statusbar"));
     return obj;
 }

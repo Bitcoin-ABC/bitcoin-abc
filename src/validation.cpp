@@ -4088,7 +4088,9 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
 /**
  * Calculate the amount of disk space the block & undo files currently use.
  */
-static uint64_t CalculateCurrentUsage() {
+uint64_t CalculateCurrentUsage() {
+    LOCK(cs_LastBlockFile);
+
     uint64_t retval = 0;
     for (const CBlockFileInfo &file : vinfoBlockFile) {
         retval += file.nSize + file.nUndoSize;
@@ -4101,6 +4103,8 @@ static uint64_t CalculateCurrentUsage() {
  * Prune a block file (modify associated database entries)
  */
 void PruneOneBlockFile(const int fileNumber) {
+    LOCK(cs_LastBlockFile);
+
     for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
         CBlockIndex *pindex = it.second;
         if (pindex->nFile == fileNumber) {
@@ -5411,6 +5415,8 @@ std::string CBlockFileInfo::ToString() const {
 }
 
 CBlockFileInfo *GetBlockFileInfo(size_t n) {
+    LOCK(cs_LastBlockFile);
+
     return &vinfoBlockFile.at(n);
 }
 

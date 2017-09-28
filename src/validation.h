@@ -425,6 +425,11 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 double GuessVerificationProgress(const ChainTxData &data, CBlockIndex *pindex);
 
 /**
+ * Calculate the amount of disk space the block & undo files currently use.
+ */
+uint64_t CalculateCurrentUsage();
+
+/**
  * Mark one block file as pruned.
  */
 void PruneOneBlockFile(const int fileNumber);
