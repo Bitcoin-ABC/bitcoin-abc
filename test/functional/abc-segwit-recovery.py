@@ -41,7 +41,7 @@ from test_framework.util import (
 TEST_TIME = int(time.time())
 
 # Error due to non clean stack
-CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Script did not clean its stack)'
+CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Extra items left on stack after execution)'
 RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR + " (code 64)"
 EVAL_FALSE_ERROR = 'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
 RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR + "ent) (code 64)"
