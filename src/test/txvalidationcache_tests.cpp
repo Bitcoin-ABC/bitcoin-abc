@@ -30,9 +30,10 @@ static bool ToMemPool(const CMutableTransaction &tx) {
     LOCK(cs_main);
 
     CValidationState state;
-    return AcceptToMemoryPool(GetConfig(), g_mempool, state,
-                              MakeTransactionRef(tx), nullptr, true,
-                              Amount::zero());
+    return AcceptToMemoryPool(
+        GetConfig(), g_mempool, state, MakeTransactionRef(tx),
+        nullptr /* pfMissingInputs */, true /* bypass_limits */,
+        Amount::zero() /* nAbsurdFee */);
 }
 
 BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {

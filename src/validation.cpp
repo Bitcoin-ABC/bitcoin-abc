@@ -532,7 +532,7 @@ static bool
 AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                          CValidationState &state, const CTransactionRef &ptx,
                          bool *pfMissingInputs, int64_t nAcceptTime,
-                         bool fOverrideMempoolLimit, const Amount nAbsurdFee,
+                         bool bypass_limits, const Amount nAbsurdFee,
                          std::vector<COutPoint> &coins_to_uncache,
                          bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
@@ -699,8 +699,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
         // No transactions are allowed below minRelayTxFee except from
         // disconnected blocks
-        if (!fOverrideMempoolLimit &&
-            nModifiedFees < minRelayTxFee.GetFee(nSize)) {
+        if (!bypass_limits && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "min relay fee not met");
         }
@@ -710,7 +709,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                     1000000)
                 .GetFee(nSize);
-        if (!fOverrideMempoolLimit && mempoolRejectFee > Amount::zero() &&
+        if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
             nModifiedFees < mempoolRejectFee) {
             return state.DoS(
                 0, false, REJECT_INSUFFICIENTFEE, "mempool min fee not met",
@@ -800,7 +799,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         pool.addUnchecked(txid, entry, setAncestors);
 
         // Trim mempool and check if tx was trimmed.
-        if (!fOverrideMempoolLimit) {
+        if (!bypass_limits) {
             pool.LimitSize(
                 gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
                 gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 *
@@ -823,13 +822,13 @@ static bool
 AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
                            CValidationState &state, const CTransactionRef &tx,
                            bool *pfMissingInputs, int64_t nAcceptTime,
-                           bool fOverrideMempoolLimit, const Amount nAbsurdFee,
+                           bool bypass_limits, const Amount nAbsurdFee,
                            bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
-        config, pool, state, tx, pfMissingInputs, nAcceptTime,
-        fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache, test_accept);
+        config, pool, state, tx, pfMissingInputs, nAcceptTime, bypass_limits,
+        nAbsurdFee, coins_to_uncache, test_accept);
     if (!res) {
         for (const COutPoint &outpoint : coins_to_uncache) {
             pcoinsTip->Uncache(outpoint);
@@ -846,11 +845,11 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
 
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
-                        bool *pfMissingInputs, bool fOverrideMempoolLimit,
+                        bool *pfMissingInputs, bool bypass_limits,
                         const Amount nAbsurdFee, bool test_accept) {
     return AcceptToMemoryPoolWithTime(config, pool, state, tx, pfMissingInputs,
-                                      GetTime(), fOverrideMempoolLimit,
-                                      nAbsurdFee, test_accept);
+                                      GetTime(), bypass_limits, nAbsurdFee,
+                                      test_accept);
 }
 
 /**
@@ -5520,7 +5519,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
                 LOCK(cs_main);
                 AcceptToMemoryPoolWithTime(
                     config, pool, state, tx, nullptr /* pfMissingInputs */,
-                    nTime, false /* fOverrideMempoolLimit */,
+                    nTime, false /* bypass_limits */,
                     Amount::zero() /* nAbsurdFee */, false /* test_accept */);
                 if (state.IsValid()) {
                     ++count;

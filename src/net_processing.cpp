@@ -2786,8 +2786,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         nodestate->m_tx_download.m_tx_in_flight.erase(txid);
         EraseTxRequest(txid);
 
-        if (!AlreadyHave(inv) && AcceptToMemoryPool(config, g_mempool, state,
-                                                    ptx, &fMissingInputs)) {
+        if (!AlreadyHave(inv) &&
+            AcceptToMemoryPool(config, g_mempool, state, ptx, &fMissingInputs,
+                               false /* bypass_limits */,
+                               Amount::zero() /* nAbsurdFee */)) {
             g_mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
@@ -2832,7 +2834,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     }
 
                     if (AcceptToMemoryPool(config, g_mempool, stateDummy,
-                                           porphanTx, &fMissingInputs2)) {
+                                           porphanTx, &fMissingInputs2,
+                                           false /* bypass_limits */,
+                                           Amount::zero() /* nAbsurdFee */)) {
                         LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                                  orphanId.ToString());
                         RelayTransaction(orphanTx, connman);

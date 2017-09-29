@@ -1179,7 +1179,8 @@ static UniValue sendrawtransaction(const Config &config,
             CValidationState state;
             bool fMissingInputs;
             if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
-                                    &fMissingInputs, false, nMaxRawTxFee)) {
+                                    &fMissingInputs, false /* bypass_limits */,
+                                    nMaxRawTxFee)) {
                 if (state.IsInvalid()) {
                     throw JSONRPCError(RPC_TRANSACTION_REJECTED,
                                        FormatStateMessage(state));
@@ -1291,8 +1292,7 @@ static UniValue testmempoolaccept(const Config &config,
         LOCK(cs_main);
         test_accept_res = AcceptToMemoryPool(
             config, g_mempool, state, std::move(tx), &missing_inputs,
-            /* bypass_limits */ false, max_raw_tx_fee,
-            /* test_accept */ true);
+            false /* bypass_limits */, max_raw_tx_fee, true /* test_accept */);
     }
     result_0.pushKV("allowed", test_accept_res);
     if (!test_accept_res) {

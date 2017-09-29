@@ -449,10 +449,8 @@ void PruneBlockFilesManual(int nManualPruneHeight);
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
-                        bool *pfMissingInputs,
-                        bool fOverrideMempoolLimit = false,
-                        const Amount nAbsurdFee = Amount::zero(),
-                        bool test_accept = false)
+                        bool *pfMissingInputs, bool bypass_limits,
+                        const Amount nAbsurdFee, bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Convert CValidationState to a human-readable message for logging */
