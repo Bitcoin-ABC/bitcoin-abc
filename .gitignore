@@ -4,6 +4,7 @@
 src/bitcoin
 src/bitcoind
 src/bitcoin-cli
+src/bitcoin-seeder
 src/bitcoin-tx
 src/test/test_bitcoin
 src/test/test_bitcoin_fuzzy
