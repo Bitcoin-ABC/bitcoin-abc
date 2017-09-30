@@ -6,9 +6,9 @@
 # Generate seeds.txt from Pieter's DNS seeder
 #
 
-NSEEDS=512
+NSEEDS = 512
 
-MAX_SEEDS_PER_ASN=2
+MAX_SEEDS_PER_ASN = 2
 
 MIN_BLOCKS = 337600
 
@@ -27,15 +27,26 @@ import sys
 import dns.resolver
 import collections
 
-PATTERN_IPV4 = re.compile(r"^((\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})):(\d+)$")
+PATTERN_IPV4 = re.compile(
+    r"^((\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})):(\d+)$")
 PATTERN_IPV6 = re.compile(r"^\[([0-9a-z:]+)\]:(\d+)$")
-PATTERN_ONION = re.compile(r"^([abcdefghijklmnopqrstuvwxyz234567]{16}\.onion):(\d+)$")
-PATTERN_AGENT = re.compile(r"^(/Satoshi:0.12.(0|1|99)/|/Satoshi:0.13.(0|1|2|99)/)$")
+PATTERN_ONION = re.compile(
+    r"^([abcdefghijklmnopqrstuvwxyz234567]{16}\.onion):(\d+)$")
+# Used to only select nodes with a user agent string compatible with the
+# BCC/UAHF specification.
+PATTERN_AGENT = re.compile(
+    r"^(/BitcoinABC:0.14.(4|5|6|7)\(\S+\)/|/BitcoinXT:0.11.0G\(\S+\)/|/BUCash:1.1.0\(\S+\)/|/Classic:1.3.1\(\S+\)/)")
+
 
 def parseline(line):
     sline = line.split()
     if len(sline) < 11:
-       return None
+        return None
+    # All BCC clients apart BU and Classic has a space in the useragent string
+    if len(sline) == 13:
+        sline[11] = sline[11] + sline[12]
+    if len(sline) == 14:
+        sline[11] = sline[11] + sline[12] + sline[13]
     m = PATTERN_IPV4.match(sline[0])
     sortkey = None
     ip = None
@@ -51,18 +62,18 @@ def parseline(line):
                 port = int(m.group(2))
         else:
             net = 'ipv6'
-            if m.group(1) in ['::']: # Not interested in localhost
+            if m.group(1) in ['::']:  # Not interested in localhost
                 return None
             ipstr = m.group(1)
-            sortkey = ipstr # XXX parse IPv6 into number, could use name_to_ipv6 from generate-seeds
+            sortkey = ipstr  # XXX parse IPv6 into number, could use name_to_ipv6 from generate-seeds
             port = int(m.group(2))
     else:
         # Do IPv4 sanity check
         ip = 0
-        for i in range(0,4):
-            if int(m.group(i+2)) < 0 or int(m.group(i+2)) > 255:
+        for i in range(0, 4):
+            if int(m.group(i + 2)) < 0 or int(m.group(i + 2)) > 255:
                 return None
-            ip = ip + (int(m.group(i+2)) << (8*(3-i)))
+            ip = ip + (int(m.group(i + 2)) << (8 * (3 - i)))
         if ip == 0:
             return None
         net = 'ipv4'
@@ -99,14 +110,17 @@ def parseline(line):
         'sortkey': sortkey,
     }
 
+
 def filtermultiport(ips):
     '''Filter out hosts with more nodes per IP'''
     hist = collections.defaultdict(list)
     for ip in ips:
         hist[ip['sortkey']].append(ip)
-    return [value[0] for (key,value) in list(hist.items()) if len(value)==1]
+    return [value[0] for (key, value) in list(hist.items()) if len(value) == 1]
 
 # Based on Greg Maxwell's seed_filter.py
+
+
 def filterbyasn(ips, max_per_asn, max_total):
     # Sift out ips by type
     ips_ipv4 = [ip for ip in ips if ip['net'] == 'ipv4']
@@ -120,7 +134,8 @@ def filterbyasn(ips, max_per_asn, max_total):
         if len(result) == max_total:
             break
         try:
-            asn = int([x.to_text() for x in dns.resolver.query('.'.join(reversed(ip['ip'].split('.'))) + '.origin.asn.cymru.com', 'TXT').response.answer][0].split('\"')[1].split(' ')[0])
+            asn = int([x.to_text()
+                       for x in dns.resolver.query('.'.join(reversed(ip['ip'].split('.'))) + '.origin.asn.cymru.com', 'TXT').response.answer][0].split('\"')[1].split(' ')[0])
             if asn not in asn_count:
                 asn_count[asn] = 0
             if asn_count[asn] == max_per_asn:
@@ -128,7 +143,8 @@ def filterbyasn(ips, max_per_asn, max_total):
             asn_count[asn] += 1
             result.append(ip)
         except:
-            sys.stderr.write('ERR: Could not resolve ASN for "' + ip['ip'] + '"\n')
+            sys.stderr.write(
+                'ERR: Could not resolve ASN for "' + ip['ip'] + '"\n')
 
     # TODO: filter IPv6 by ASN
 
@@ -136,6 +152,7 @@ def filterbyasn(ips, max_per_asn, max_total):
     result.extend(ips_ipv6)
     result.extend(ips_onion)
     return result
+
 
 def main():
     lines = sys.stdin.readlines()
@@ -150,15 +167,20 @@ def main():
     # Require service bit 1.
     ips = [ip for ip in ips if (ip['service'] & 1) == 1]
     # Require at least 50% 30-day uptime.
-    ips = [ip for ip in ips if ip['uptime'] > 50]
+    # TODO set it back to 50% once nodes will have enough uptime.
+    ips = [ip for ip in ips if ip['uptime'] > 0]
     # Require a known and recent user agent.
     ips = [ip for ip in ips if PATTERN_AGENT.match(ip['agent'])]
     # Sort by availability (and use last success as tie breaker)
-    ips.sort(key=lambda x: (x['uptime'], x['lastsuccess'], x['ip']), reverse=True)
+    ips.sort(key=lambda x:
+             (x['uptime'], x['lastsuccess'], x['ip']), reverse=True)
     # Filter out hosts with multiple bitcoin ports, these are likely abusive
     ips = filtermultiport(ips)
     # Look up ASNs and limit results, both per ASN and globally.
-    ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
+    # TODO during this bootstrap phase we need any BCC full nodes
+    # active on the network, uncomment the following line once the
+    # BCC chain will be consolidated.
+    # ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
     # Sort the results by IP address (for deterministic output).
     ips.sort(key=lambda x: (x['net'], x['sortkey']))
 
@@ -167,6 +189,7 @@ def main():
             print('[%s]:%i' % (ip['ip'], ip['port']))
         else:
             print('%s:%i' % (ip['ip'], ip['port']))
+
 
 if __name__ == '__main__':
     main()

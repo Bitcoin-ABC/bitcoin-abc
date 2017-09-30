@@ -10,9 +10,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
-using namespace std;
-
-typedef vector<unsigned char> valtype;
+typedef std::vector<uint8_t> valtype;
 
 bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
 unsigned nMaxDatacarrierBytes = MAX_OP_RETURN_RELAY;
@@ -43,22 +41,22 @@ const char *GetTxnOutputType(txnouttype t) {
  * types.
  */
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
-            vector<vector<unsigned char>> &vSolutionsRet) {
+            std::vector<std::vector<uint8_t>> &vSolutionsRet) {
     // Templates
-    static multimap<txnouttype, CScript> mTemplates;
+    static std::multimap<txnouttype, CScript> mTemplates;
     if (mTemplates.empty()) {
         // Standard tx, sender provides pubkey, receiver adds signature
         mTemplates.insert(
-            make_pair(TX_PUBKEY, CScript() << OP_PUBKEY << OP_CHECKSIG));
+            std::make_pair(TX_PUBKEY, CScript() << OP_PUBKEY << OP_CHECKSIG));
 
         // Bitcoin address tx, sender provides hash of pubkey, receiver provides
         // signature and pubkey
-        mTemplates.insert(make_pair(
+        mTemplates.insert(std::make_pair(
             TX_PUBKEYHASH, CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH
                                      << OP_EQUALVERIFY << OP_CHECKSIG));
 
         // Sender provides N pubkeys, receivers provides M signatures
-        mTemplates.insert(make_pair(
+        mTemplates.insert(std::make_pair(
             TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS
                                    << OP_SMALLINTEGER << OP_CHECKMULTISIG));
     }
@@ -70,8 +68,8 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
     // it is always OP_HASH160 20 [20 byte hash] OP_EQUAL
     if (scriptPubKey.IsPayToScriptHash()) {
         typeRet = TX_SCRIPTHASH;
-        vector<unsigned char> hashBytes(scriptPubKey.begin() + 2,
-                                        scriptPubKey.begin() + 22);
+        std::vector<uint8_t> hashBytes(scriptPubKey.begin() + 2,
+                                       scriptPubKey.begin() + 22);
         vSolutionsRet.push_back(hashBytes);
         return true;
     }
@@ -94,7 +92,7 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
         vSolutionsRet.clear();
 
         opcodetype opcode1, opcode2;
-        vector<unsigned char> vch1, vch2;
+        std::vector<uint8_t> vch1, vch2;
 
         // Compare
         CScript::const_iterator pc1 = script1.begin();
@@ -105,8 +103,8 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
                 typeRet = tplate.first;
                 if (typeRet == TX_MULTISIG) {
                     // Additional checks for TX_MULTISIG:
-                    unsigned char m = vSolutionsRet.front()[0];
-                    unsigned char n = vSolutionsRet.back()[0];
+                    uint8_t m = vSolutionsRet.front()[0];
+                    uint8_t n = vSolutionsRet.back()[0];
                     if (m < 1 || n < 1 || m > n ||
                         vSolutionsRet.size() - 2 != n)
                         return false;
@@ -154,7 +152,7 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
 
 bool ExtractDestination(const CScript &scriptPubKey,
                         CTxDestination &addressRet) {
-    vector<valtype> vSolutions;
+    std::vector<valtype> vSolutions;
     txnouttype whichType;
     if (!Solver(scriptPubKey, whichType, vSolutions)) return false;
 
@@ -176,11 +174,11 @@ bool ExtractDestination(const CScript &scriptPubKey,
 }
 
 bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,
-                         vector<CTxDestination> &addressRet,
+                         std::vector<CTxDestination> &addressRet,
                          int &nRequiredRet) {
     addressRet.clear();
     typeRet = TX_NONSTANDARD;
-    vector<valtype> vSolutions;
+    std::vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, typeRet, vSolutions)) return false;
     if (typeRet == TX_NULL_DATA) {
         // This is data, not addresses
@@ -244,7 +242,7 @@ CScript GetScriptForDestination(const CTxDestination &dest) {
 }
 
 CScript GetScriptForRawPubKey(const CPubKey &pubKey) {
-    return CScript() << std::vector<unsigned char>(pubKey.begin(), pubKey.end())
+    return CScript() << std::vector<uint8_t>(pubKey.begin(), pubKey.end())
                      << OP_CHECKSIG;
 }
 

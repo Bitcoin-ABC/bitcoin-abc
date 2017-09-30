@@ -24,7 +24,7 @@ protected:
 public:
     base_blob() { memset(data, 0, sizeof(data)); }
 
-    explicit base_blob(const std::vector<unsigned char> &vch);
+    explicit base_blob(const std::vector<uint8_t> &vch);
 
     bool IsNull() const {
         for (int i = 0; i < WIDTH; i++)
@@ -53,13 +53,13 @@ public:
     void SetHex(const std::string &str);
     std::string ToString() const;
 
-    unsigned char *begin() { return &data[0]; }
+    uint8_t *begin() { return &data[0]; }
 
-    unsigned char *end() { return &data[WIDTH]; }
+    uint8_t *end() { return &data[WIDTH]; }
 
-    const unsigned char *begin() const { return &data[0]; }
+    const uint8_t *begin() const { return &data[0]; }
 
-    const unsigned char *end() const { return &data[WIDTH]; }
+    const uint8_t *end() const { return &data[WIDTH]; }
 
     unsigned int size() const { return sizeof(data); }
 
@@ -89,8 +89,7 @@ class uint160 : public base_blob<160> {
 public:
     uint160() {}
     uint160(const base_blob<160> &b) : base_blob<160>(b) {}
-    explicit uint160(const std::vector<unsigned char> &vch)
-        : base_blob<160>(vch) {}
+    explicit uint160(const std::vector<uint8_t> &vch) : base_blob<160>(vch) {}
 };
 
 /**
@@ -103,8 +102,7 @@ class uint256 : public base_blob<256> {
 public:
     uint256() {}
     uint256(const base_blob<256> &b) : base_blob<256>(b) {}
-    explicit uint256(const std::vector<unsigned char> &vch)
-        : base_blob<256>(vch) {}
+    explicit uint256(const std::vector<uint8_t> &vch) : base_blob<256>(vch) {}
 
     /**
      * A cheap hash function that just returns 64 bits from the result, it can

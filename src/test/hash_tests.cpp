@@ -45,19 +45,19 @@ BOOST_AUTO_TEST_CASE(murmurhash3) {
 #undef T
 }
 
-/*
-   SipHash-2-4 output with
-   k = 00 01 02 ...
-   and
-   in = (empty string)
-   in = 00 (1 byte)
-   in = 00 01 (2 bytes)
-   in = 00 01 02 (3 bytes)
-   ...
-   in = 00 01 02 ... 3e (63 bytes)
-
-   from: https://131002.net/siphash/siphash24.c
-*/
+/**
+ * SipHash-2-4 output with
+ * k = 00 01 02 ...
+ * and
+ * in = (empty string)
+ * in = 00 (1 byte)
+ * in = 00 01 (2 bytes)
+ * in = 00 01 02 (3 bytes)
+ * ...
+ * in = 00 01 02 ... 3e (63 bytes)
+ *
+ * from: https://131002.net/siphash/siphash24.c
+ */
 uint64_t siphash_4_2_testvec[] = {
     0x726fdb47dd0e0e31, 0x74f839c593dc67fd, 0x0d6c8009d9a94f5a,
     0x85676696d7fb7e2d, 0xcf2794e0277187b7, 0x18765564cd99a68d,
@@ -85,21 +85,21 @@ uint64_t siphash_4_2_testvec[] = {
 BOOST_AUTO_TEST_CASE(siphash) {
     CSipHasher hasher(0x0706050403020100ULL, 0x0F0E0D0C0B0A0908ULL);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x726fdb47dd0e0e31ull);
-    static const unsigned char t0[1] = {0};
+    static const uint8_t t0[1] = {0};
     hasher.Write(t0, 1);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x74f839c593dc67fdull);
-    static const unsigned char t1[7] = {1, 2, 3, 4, 5, 6, 7};
+    static const uint8_t t1[7] = {1, 2, 3, 4, 5, 6, 7};
     hasher.Write(t1, 7);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x93f5f5799a932462ull);
     hasher.Write(0x0F0E0D0C0B0A0908ULL);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x3f2acc7f57c29bdbull);
-    static const unsigned char t2[2] = {16, 17};
+    static const uint8_t t2[2] = {16, 17};
     hasher.Write(t2, 2);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x4bc1b3f0968dd39cull);
-    static const unsigned char t3[9] = {18, 19, 20, 21, 22, 23, 24, 25, 26};
+    static const uint8_t t3[9] = {18, 19, 20, 21, 22, 23, 24, 25, 26};
     hasher.Write(t3, 9);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x2f2e6163076bcfadull);
-    static const unsigned char t4[5] = {27, 28, 29, 30, 31};
+    static const uint8_t t4[5] = {27, 28, 29, 30, 31};
     hasher.Write(t4, 5);
     BOOST_CHECK_EQUAL(hasher.Finalize(), 0x7127512f72f27cceull);
     hasher.Write(0x2726252423222120ULL);
@@ -137,6 +137,66 @@ BOOST_AUTO_TEST_CASE(siphash) {
     ss << tx;
     BOOST_CHECK_EQUAL(SipHashUint256(1, 2, ss.GetHash()),
                       0x79751e980c2a0a35ULL);
+
+    // Check consistency between CSipHasher and SipHashUint256[Extra].
+    FastRandomContext ctx;
+    for (int i = 0; i < 16; ++i) {
+        uint64_t k1 = ctx.rand64();
+        uint64_t k2 = ctx.rand64();
+        uint256 x = GetRandHash();
+        uint32_t n = ctx.rand32();
+        uint8_t nb[4];
+        WriteLE32(nb, n);
+        CSipHasher sip256(k1, k2);
+        sip256.Write(x.begin(), 32);
+        CSipHasher sip288 = sip256;
+        sip288.Write(nb, 4);
+        BOOST_CHECK_EQUAL(SipHashUint256(k1, k2, x), sip256.Finalize());
+        BOOST_CHECK_EQUAL(SipHashUint256Extra(k1, k2, x, n), sip288.Finalize());
+    }
+}
+
+namespace {
+class CDummyObject {
+    uint32_t value;
+
+public:
+    CDummyObject() : value(0) {}
+
+    uint32_t GetValue() { return value; }
+
+    template <typename Stream> void Serialize(Stream &s) const {
+        int nVersionDummy = 0;
+        ::Serialize(s, VARINT(nVersionDummy));
+        ::Serialize(s, VARINT(value));
+    }
+
+    template <typename Stream> void Unserialize(Stream &s) {
+        int nVersionDummy;
+        ::Unserialize(s, VARINT(nVersionDummy));
+        ::Unserialize(s, VARINT(value));
+    }
+};
+}
+
+BOOST_AUTO_TEST_CASE(hashverifier_tests) {
+    std::vector<uint8_t> data = ParseHex("4223");
+    CDataStream ss(data, SER_DISK, CLIENT_VERSION);
+
+    CHashVerifier<CDataStream> verifier(&ss);
+
+    CDummyObject dummy;
+    verifier >> dummy;
+    uint256 checksum = verifier.GetHash();
+    BOOST_CHECK_EQUAL(dummy.GetValue(), 0x23);
+
+    CHashWriter h0(SER_DISK, CLIENT_VERSION);
+    h0 << CDataStream(data, SER_DISK, CLIENT_VERSION);
+    BOOST_CHECK(h0.GetHash() == checksum);
+
+    CHashWriter h1(SER_DISK, CLIENT_VERSION);
+    h1 << dummy;
+    BOOST_CHECK(h1.GetHash() != checksum);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

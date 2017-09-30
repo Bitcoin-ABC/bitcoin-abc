@@ -7,7 +7,9 @@ from test_framework.mininode import *
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
+
 class TestNode(NodeConnCB):
+
     def __init__(self):
         NodeConnCB.__init__(self)
         self.connection = None
@@ -70,32 +72,29 @@ class TestNode(NodeConnCB):
         self.lastInv = []
         self.send_message(msg_mempool())
 
+
 class P2PMempoolTests(BitcoinTestFramework):
 
     def __init__(self):
         super().__init__()
         self.setup_clean_chain = True
-        self.num_nodes = 2
-
-    def setup_network(self):
-        # Start a node with maxuploadtarget of 200 MB (/24h)
-        self.nodes = []
-        self.nodes.append(start_node(0, self.options.tmpdir, ["-debug", "-peerbloomfilters=0"]))
+        self.num_nodes = 1
+        self.extra_args = [["-peerbloomfilters=0"]]
 
     def run_test(self):
-        #connect a mininode
+        # connect a mininode
         aTestNode = TestNode()
         node = NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], aTestNode)
         aTestNode.add_connection(node)
         NetworkThread().start()
         aTestNode.wait_for_verack()
 
-        #request mempool
+        # request mempool
         aTestNode.send_mempool()
         aTestNode.wait_for_disconnect()
 
-        #mininode must be disconnected at this point
+        # mininode must be disconnected at this point
         assert_equal(len(self.nodes[0].getpeerinfo()), 0)
-    
+
 if __name__ == '__main__':
     P2PMempoolTests().main()

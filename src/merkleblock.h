@@ -98,7 +98,7 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(nTransactions);
         READWRITE(vHash);
-        std::vector<unsigned char> vBytes;
+        std::vector<uint8_t> vBytes;
         if (ser_action.ForRead()) {
             READWRITE(vBytes);
             CPartialMerkleTree &us = *(const_cast<CPartialMerkleTree *>(this));

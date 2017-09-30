@@ -22,13 +22,17 @@ uint64_t GlobalConfig::GetMaxBlockSize() const {
     return nMaxBlockSize;
 }
 
-bool GlobalConfig::SetUAHFStartTime(int64_t uahfStartTime) {
-    nUAHFStartTime = uahfStartTime;
+bool GlobalConfig::SetBlockPriorityPercentage(int64_t blockPriorityPercentage) {
+    // blockPriorityPercentage has to belong to [0..100]
+    if ((blockPriorityPercentage < 0) || (blockPriorityPercentage > 100)) {
+        return false;
+    }
+    nBlockPriorityPercentage = blockPriorityPercentage;
     return true;
 }
 
-int64_t GlobalConfig::GetUAHFStartTime() const {
-    return nUAHFStartTime;
+uint8_t GlobalConfig::GetBlockPriorityPercentage() const {
+    return nBlockPriorityPercentage;
 }
 
 const CChainParams &GlobalConfig::GetChainParams() const {

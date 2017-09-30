@@ -27,8 +27,7 @@ public:
     virtual const BaseSignatureChecker &Checker() const = 0;
 
     /** Create a singular (non-script) signature. */
-    virtual bool CreateSig(std::vector<unsigned char> &vchSig,
-                           const CKeyID &keyid,
+    virtual bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                            const CScript &scriptCode) const = 0;
 };
 
@@ -46,7 +45,7 @@ public:
                                 const CAmount &amountIn,
                                 uint32_t nHashTypeIn = SIGHASH_ALL);
     const BaseSignatureChecker &Checker() const { return checker; }
-    bool CreateSig(std::vector<unsigned char> &vchSig, const CKeyID &keyid,
+    bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                    const CScript &scriptCode) const;
 };
 
@@ -70,7 +69,7 @@ public:
     DummySignatureCreator(const CKeyStore *keystoreIn)
         : BaseSignatureCreator(keystoreIn) {}
     const BaseSignatureChecker &Checker() const;
-    bool CreateSig(std::vector<unsigned char> &vchSig, const CKeyID &keyid,
+    bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                    const CScript &scriptCode) const;
 };
 

@@ -12,7 +12,6 @@
 #include "test/test_bitcoin.h"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
@@ -88,9 +87,9 @@ BOOST_AUTO_TEST_CASE(rpc_rawparams) {
     BOOST_CHECK_THROW(CallRPC("signrawtransaction ff00"), std::runtime_error);
     BOOST_CHECK_NO_THROW(CallRPC(std::string("signrawtransaction ") + rawtx));
     BOOST_CHECK_NO_THROW(CallRPC(std::string("signrawtransaction ") + rawtx +
-                                 " null null NONE|ANYONECANPAY"));
+                                 " null null NONE|FORKID|ANYONECANPAY"));
     BOOST_CHECK_NO_THROW(CallRPC(std::string("signrawtransaction ") + rawtx +
-                                 " [] [] NONE|ANYONECANPAY"));
+                                 " [] [] NONE|FORKID|ANYONECANPAY"));
     BOOST_CHECK_THROW(CallRPC(std::string("signrawtransaction ") + rawtx +
                               " null null badenum"),
                       std::runtime_error);
@@ -135,6 +134,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign) {
                           "8f50977c8493f3\","
                           "\"vout\":1,\"scriptPubKey\":"
                           "\"a914b10c9df5f7edf436c697f02f1efdba4cf399615187\","
+                          "\"amount\":3.14159,"
                           "\"redeemScript\":"
                           "\"512103debedc17b3df2badbcdd86d5feb4562b86fe182e5998"
                           "abd8bcd4f122c6155b1b21027e940bb73ab8732bfdf7f9216ece"
@@ -152,6 +152,45 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign) {
     r = CallRPC(std::string("signrawtransaction ") + notsigned + " " + prevout +
                 " " + "[" + privkey1 + "," + privkey2 + "]");
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == true);
+}
+
+BOOST_AUTO_TEST_CASE(rpc_rawsign_missing_amount) {
+    // Old format, missing amount parameter for prevout should generate
+    // an RPC error.  This is because of new replay-protected tx's require
+    // nonzero amount present in signed tx.
+    // See: https://github.com/Bitcoin-ABC/bitcoin-abc/issues/63
+    // (We will re-use the tx + keys from the above rpc_rawsign test for
+    // simplicity.)
+    UniValue r;
+    std::string prevout = "[{\"txid\":"
+                          "\"b4cc287e58f87cdae59417329f710f3ecd75a4ee1d2872b724"
+                          "8f50977c8493f3\","
+                          "\"vout\":1,\"scriptPubKey\":"
+                          "\"a914b10c9df5f7edf436c697f02f1efdba4cf399615187\","
+                          "\"redeemScript\":"
+                          "\"512103debedc17b3df2badbcdd86d5feb4562b86fe182e5998"
+                          "abd8bcd4f122c6155b1b21027e940bb73ab8732bfdf7f9216ece"
+                          "fca5b94d6df834e77e108f68e66f126044c052ae\"}]";
+    r = CallRPC(std::string("createrawtransaction ") + prevout + " " +
+                "{\"3HqAe9LtNBjnsfM4CyYaWTnvCaUYT7v4oZ\":11}");
+    std::string notsigned = r.get_str();
+    std::string privkey1 =
+        "\"KzsXybp9jX64P5ekX1KUxRQ79Jht9uzW7LorgwE65i5rWACL6LQe\"";
+    std::string privkey2 =
+        "\"Kyhdf5LuKTRx4ge69ybABsiUAWjVRK4XGxAKk2FQLp2HjGMy87Z4\"";
+    bool exceptionThrownDueToMissingAmount = false,
+         errorWasMissingAmount = false;
+    try {
+        r = CallRPC(std::string("signrawtransaction ") + notsigned + " " +
+                    prevout + " " + "[" + privkey1 + "," + privkey2 + "]");
+    } catch (const std::runtime_error &e) {
+        exceptionThrownDueToMissingAmount = true;
+        if (std::string(e.what()).find("amount") != std::string::npos) {
+            errorWasMissingAmount = true;
+        }
+    }
+    BOOST_CHECK(exceptionThrownDueToMissingAmount == true);
+    BOOST_CHECK(errorWasMissingAmount == true);
 }
 
 BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
@@ -444,26 +483,23 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
 BOOST_AUTO_TEST_CASE(rpc_convert_values_generatetoaddress) {
     UniValue result;
 
-    BOOST_CHECK_NO_THROW(
-        result = RPCConvertValues("generatetoaddress",
-                                  boost::assign::list_of("101")(
-                                      "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a")));
+    BOOST_CHECK_NO_THROW(result = RPCConvertValues(
+                             "generatetoaddress",
+                             {"101", "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a"}));
     BOOST_CHECK_EQUAL(result[0].get_int(), 101);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a");
 
-    BOOST_CHECK_NO_THROW(
-        result = RPCConvertValues("generatetoaddress",
-                                  boost::assign::list_of("101")(
-                                      "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU")));
+    BOOST_CHECK_NO_THROW(result = RPCConvertValues(
+                             "generatetoaddress",
+                             {"101", "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU"}));
     BOOST_CHECK_EQUAL(result[0].get_int(), 101);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU");
 
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
-                             boost::assign::list_of("1")(
-                                 "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a")("9")));
+                             {"1", "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a", "9"}));
     BOOST_CHECK_EQUAL(result[0].get_int(), 1);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a");
@@ -471,8 +507,7 @@ BOOST_AUTO_TEST_CASE(rpc_convert_values_generatetoaddress) {
 
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
-                             boost::assign::list_of("1")(
-                                 "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU")("9")));
+                             {"1", "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU", "9"}));
     BOOST_CHECK_EQUAL(result[0].get_int(), 1);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU");

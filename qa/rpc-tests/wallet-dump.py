@@ -65,17 +65,19 @@ class WalletDumpTest(BitcoinTestFramework):
         # longer than the default 30 seconds due to an expensive
         # CWallet::TopUpKeyPool call, and the encryptwallet RPC made later in
         # the test often takes even longer.
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, self.extra_args, timewait=60)
+        self.nodes = start_nodes(
+            self.num_nodes, self.options.tmpdir, self.extra_args, timewait=60)
 
-    def run_test (self):
+    def run_test(self):
         tmpdir = self.options.tmpdir
 
         # generate 20 addresses to compare against the dump
         test_addr_count = 20
         addrs = []
-        for i in range(0,test_addr_count):
+        for i in range(0, test_addr_count):
             addr = self.nodes[0].getnewaddress()
-            vaddr= self.nodes[0].validateaddress(addr) #required to get hd keypath
+            vaddr = self.nodes[0].validateaddress(
+                addr)  # required to get hd keypath
             addrs.append(vaddr)
         # Should be a no-op:
         self.nodes[0].keypoolrefill()
@@ -85,11 +87,13 @@ class WalletDumpTest(BitcoinTestFramework):
 
         found_addr, found_addr_chg, found_addr_rsv, hd_master_addr_unenc = \
             read_dump(tmpdir + "/node0/wallet.unencrypted.dump", addrs, None)
-        assert_equal(found_addr, test_addr_count)  # all keys must be in the dump
+        assert_equal(found_addr, test_addr_count)
+                     # all keys must be in the dump
         assert_equal(found_addr_chg, 50)  # 50 blocks where mined
-        assert_equal(found_addr_rsv, 90 + 1)  # keypool size (TODO: fix off-by-one)
+        assert_equal(found_addr_rsv, 90 + 1)
+                     # keypool size (TODO: fix off-by-one)
 
-        #encrypt wallet, restart, unlock and dump
+        # encrypt wallet, restart, unlock and dump
         self.nodes[0].encryptwallet('test')
         bitcoinabc_processes[0].wait()
         self.nodes[0] = start_node(0, self.options.tmpdir, self.extra_args[0])
@@ -99,10 +103,13 @@ class WalletDumpTest(BitcoinTestFramework):
         self.nodes[0].dumpwallet(tmpdir + "/node0/wallet.encrypted.dump")
 
         found_addr, found_addr_chg, found_addr_rsv, hd_master_addr_enc = \
-            read_dump(tmpdir + "/node0/wallet.encrypted.dump", addrs, hd_master_addr_unenc)
+            read_dump(
+                tmpdir + "/node0/wallet.encrypted.dump", addrs, hd_master_addr_unenc)
         assert_equal(found_addr, test_addr_count)
-        assert_equal(found_addr_chg, 90 + 1 + 50)  # old reserve keys are marked as change now
-        assert_equal(found_addr_rsv, 90 + 1)  # keypool size (TODO: fix off-by-one)
+        assert_equal(found_addr_chg, 90 + 1 + 50)
+                     # old reserve keys are marked as change now
+        assert_equal(found_addr_rsv, 90 + 1)
+                     # keypool size (TODO: fix off-by-one)
 
 if __name__ == '__main__':
-    WalletDumpTest().main ()
+    WalletDumpTest().main()

@@ -3,19 +3,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "crypto/aes.h"
+#include "crypto/chacha20.h"
 #include "crypto/hmac_sha256.h"
 #include "crypto/hmac_sha512.h"
 #include "crypto/ripemd160.h"
 #include "crypto/sha1.h"
 #include "crypto/sha256.h"
 #include "crypto/sha512.h"
+#include "random.h"
 #include "test/test_bitcoin.h"
 #include "test/test_random.h"
 #include "utilstrencodings.h"
 
 #include <vector>
 
-#include <boost/assign/list_of.hpp>
 #include <boost/test/unit_test.hpp>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
@@ -29,7 +30,7 @@ void TestVector(const Hasher &h, const In &in, const Out &out) {
     hash.resize(out.size());
     {
         // Test that writing the whole input string at once works.
-        Hasher(h).Write((unsigned char *)&in[0], in.size()).Finalize(&hash[0]);
+        Hasher(h).Write((uint8_t *)&in[0], in.size()).Finalize(&hash[0]);
         BOOST_CHECK(hash == out);
     }
     for (int i = 0; i < 32; i++) {
@@ -38,14 +39,14 @@ void TestVector(const Hasher &h, const In &in, const Out &out) {
         size_t pos = 0;
         while (pos < in.size()) {
             size_t len = insecure_rand() % ((in.size() - pos + 1) / 2 + 1);
-            hasher.Write((unsigned char *)&in[pos], len);
+            hasher.Write((uint8_t *)&in[pos], len);
             pos += len;
             if (pos > 0 && pos + 2 * out.size() > in.size() &&
                 pos < in.size()) {
                 // Test that writing the rest at once to a copy of a hasher
                 // works.
                 Hasher(hasher)
-                    .Write((unsigned char *)&in[pos], in.size() - pos)
+                    .Write((uint8_t *)&in[pos], in.size() - pos)
                     .Finalize(&hash[0]);
                 BOOST_CHECK(hash == out);
             }
@@ -70,24 +71,24 @@ void TestRIPEMD160(const std::string &in, const std::string &hexout) {
 
 void TestHMACSHA256(const std::string &hexkey, const std::string &hexin,
                     const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
+    std::vector<uint8_t> key = ParseHex(hexkey);
     TestVector(CHMAC_SHA256(&key[0], key.size()), ParseHex(hexin),
                ParseHex(hexout));
 }
 
 void TestHMACSHA512(const std::string &hexkey, const std::string &hexin,
                     const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
+    std::vector<uint8_t> key = ParseHex(hexkey);
     TestVector(CHMAC_SHA512(&key[0], key.size()), ParseHex(hexin),
                ParseHex(hexout));
 }
 
 void TestAES128(const std::string &hexkey, const std::string &hexin,
                 const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> buf, buf2;
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> buf, buf2;
 
     assert(key.size() == 16);
     assert(in.size() == 16);
@@ -104,10 +105,10 @@ void TestAES128(const std::string &hexkey, const std::string &hexin,
 
 void TestAES256(const std::string &hexkey, const std::string &hexin,
                 const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> buf;
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> buf;
 
     assert(key.size() == 32);
     assert(in.size() == 16);
@@ -124,11 +125,11 @@ void TestAES256(const std::string &hexkey, const std::string &hexin,
 void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
                    bool pad, const std::string &hexin,
                    const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> iv = ParseHex(hexiv);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> realout(in.size() + AES_BLOCKSIZE);
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> iv = ParseHex(hexiv);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
 
     // Encrypt the plaintext and verify that it equals the cipher
     AES128CBCEncrypt enc(&key[0], &iv[0], pad);
@@ -139,7 +140,7 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
                         HexStr(realout) + std::string(" != ") + hexout);
 
     // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<unsigned char> decrypted(correctout.size());
+    std::vector<uint8_t> decrypted(correctout.size());
     AES128CBCDecrypt dec(&key[0], &iv[0], pad);
     size = dec.Decrypt(&correctout[0], correctout.size(), &decrypted[0]);
     decrypted.resize(size);
@@ -149,14 +150,13 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
 
     // Encrypt and re-decrypt substrings of the plaintext and verify that they
     // equal each-other
-    for (std::vector<unsigned char>::iterator i(in.begin()); i != in.end();
-         ++i) {
-        std::vector<unsigned char> sub(i, in.end());
-        std::vector<unsigned char> subout(sub.size() + AES_BLOCKSIZE);
+    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+        std::vector<uint8_t> sub(i, in.end());
+        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
         int _size = enc.Encrypt(&sub[0], sub.size(), &subout[0]);
         if (_size != 0) {
             subout.resize(_size);
-            std::vector<unsigned char> subdecrypted(subout.size());
+            std::vector<uint8_t> subdecrypted(subout.size());
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
@@ -170,11 +170,11 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
 void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
                    bool pad, const std::string &hexin,
                    const std::string &hexout) {
-    std::vector<unsigned char> key = ParseHex(hexkey);
-    std::vector<unsigned char> iv = ParseHex(hexiv);
-    std::vector<unsigned char> in = ParseHex(hexin);
-    std::vector<unsigned char> correctout = ParseHex(hexout);
-    std::vector<unsigned char> realout(in.size() + AES_BLOCKSIZE);
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    std::vector<uint8_t> iv = ParseHex(hexiv);
+    std::vector<uint8_t> in = ParseHex(hexin);
+    std::vector<uint8_t> correctout = ParseHex(hexout);
+    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
 
     // Encrypt the plaintext and verify that it equals the cipher
     AES256CBCEncrypt enc(&key[0], &iv[0], pad);
@@ -185,7 +185,7 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
                         HexStr(realout) + std::string(" != ") + hexout);
 
     // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<unsigned char> decrypted(correctout.size());
+    std::vector<uint8_t> decrypted(correctout.size());
     AES256CBCDecrypt dec(&key[0], &iv[0], pad);
     size = dec.Decrypt(&correctout[0], correctout.size(), &decrypted[0]);
     decrypted.resize(size);
@@ -195,14 +195,13 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
 
     // Encrypt and re-decrypt substrings of the plaintext and verify that they
     // equal each-other
-    for (std::vector<unsigned char>::iterator i(in.begin()); i != in.end();
-         ++i) {
-        std::vector<unsigned char> sub(i, in.end());
-        std::vector<unsigned char> subout(sub.size() + AES_BLOCKSIZE);
+    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+        std::vector<uint8_t> sub(i, in.end());
+        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
         int _size = enc.Encrypt(&sub[0], sub.size(), &subout[0]);
         if (_size != 0) {
             subout.resize(_size);
-            std::vector<unsigned char> subdecrypted(subout.size());
+            std::vector<uint8_t> subdecrypted(subout.size());
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
@@ -213,14 +212,27 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
     }
 }
 
+void TestChaCha20(const std::string &hexkey, uint64_t nonce, uint64_t seek,
+                  const std::string &hexout) {
+    std::vector<uint8_t> key = ParseHex(hexkey);
+    ChaCha20 rng(key.data(), key.size());
+    rng.SetIV(nonce);
+    rng.Seek(seek);
+    std::vector<uint8_t> out = ParseHex(hexout);
+    std::vector<uint8_t> outres;
+    outres.resize(out.size());
+    rng.Output(outres.data(), outres.size());
+    BOOST_CHECK(out == outres);
+}
+
 std::string LongTestString(void) {
     std::string ret;
     for (int i = 0; i < 200000; i++) {
-        ret += (unsigned char)(i);
-        ret += (unsigned char)(i >> 4);
-        ret += (unsigned char)(i >> 8);
-        ret += (unsigned char)(i >> 12);
-        ret += (unsigned char)(i >> 16);
+        ret += uint8_t(i);
+        ret += uint8_t(i >> 4);
+        ret += uint8_t(i >> 8);
+        ret += uint8_t(i >> 12);
+        ret += uint8_t(i >> 16);
     }
     return ret;
 }
@@ -551,6 +563,69 @@ BOOST_AUTO_TEST_CASE(aes_cbc_testvectors) {
         "39F23369A9D9BACFA530E26304231461", true,
         "f69f2445df4f9b17ad2b417be66c3710",
         "b2eb05e2c39be9fcda6c19078c6a9d1b3f461796d6b0d6b2e0c2a72b4d80e644");
+}
+
+BOOST_AUTO_TEST_CASE(chacha20_testvector) {
+    // Test vector from RFC 7539
+    TestChaCha20(
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        0x4a000000UL, 1, "224f51f3401bd9e12fde276fb8631ded8c131f823d2c06e27e4fc"
+                         "aec9ef3cf788a3b0aa372600a92b57974cded2b9334794cba40c6"
+                         "3e34cdea212c4cf07d41b769a6749f3f630f4122cafe28ec4dc47"
+                         "e26d4346d70b98c73f3e9c53ac40c5945398b6eda1a832c89c167"
+                         "eacd901d7e2bf363");
+
+    // Test vectors from
+    // https://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-04#section-7
+    TestChaCha20(
+        "0000000000000000000000000000000000000000000000000000000000000000", 0,
+        0, "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da4"
+           "1597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586");
+    TestChaCha20(
+        "0000000000000000000000000000000000000000000000000000000000000001", 0,
+        0, "4540f05a9f1fb296d7736e7b208e3c96eb4fe1834688d2604f450952ed432d41bbe"
+           "2a0b6ea7566d2a5d1e7e20d42af2c53d792b1c43fea817e9ad275ae546963");
+    TestChaCha20(
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        0x0100000000000000ULL, 0, "de9cba7bf3d69ef5e786dc63973f653a0b49e015adbf"
+                                  "f7134fcb7df137821031e85a050278a7084527214f73"
+                                  "efc7fa5b5277062eb7a0433e445f41e3");
+    TestChaCha20(
+        "0000000000000000000000000000000000000000000000000000000000000000", 1,
+        0, "ef3fdfd6c61578fbf5cf35bd3dd33b8009631634d21e42ac33960bd138e50d32111"
+           "e4caf237ee53ca8ad6426194a88545ddc497a0b466e7d6bbdb0041b2f586b");
+    TestChaCha20(
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        0x0706050403020100ULL, 0,
+        "f798a189f195e66982105ffb640bb7757f579da31602fc93ec01ac56f85ac3c134a454"
+        "7b733b46413042c9440049176905d3be59ea1c53f15916155c2be8241a38008b9a26bc"
+        "35941e2444177c8ade6689de95264986d95889fb60e84629c9bd9a5acb1cc118be563e"
+        "b9b3a4a472f82e09a7e778492b562ef7130e88dfe031c79db9d4f7c7a899151b9a4750"
+        "32b63fc385245fe054e3dd5a97a5f576fe064025d3ce042c566ab2c507b138db853e3d"
+        "6959660996546cc9c4a6eafdc777c040d70eaf46f76dad3979e5c5360c3317166a1c89"
+        "4c94a371876a94df7628fe4eaaf2ccb27d5aaae0ad7ad0f9d4b6ad3b54098746d4524d"
+        "38407a6deb3ab78fab78c9");
+}
+
+BOOST_AUTO_TEST_CASE(countbits_tests) {
+    FastRandomContext ctx;
+    for (int i = 0; i <= 64; ++i) {
+        if (i == 0) {
+            // Check handling of zero.
+            BOOST_CHECK_EQUAL(CountBits(0), 0);
+        } else if (i < 10) {
+            for (uint64_t j = 1 << (i - 1); (j >> i) == 0; ++j) {
+                // Exhaustively test up to 10 bits
+                BOOST_CHECK_EQUAL(CountBits(j), i);
+            }
+        } else {
+            for (int k = 0; k < 1000; k++) {
+                // Randomly test 1000 samples of each length above 10 bits.
+                uint64_t j = uint64_t(1) << (i - 1) | ctx.randbits(i - 1);
+                BOOST_CHECK_EQUAL(CountBits(j), i);
+            }
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

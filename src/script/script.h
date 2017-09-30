@@ -34,8 +34,8 @@ static const int MAX_SCRIPT_SIZE = 10000;
 // otherwise as UNIX timestamp. Thresold is Tue Nov 5 00:53:20 1985 UTC
 static const unsigned int LOCKTIME_THRESHOLD = 500000000;
 
-template <typename T> std::vector<unsigned char> ToByteVector(const T &in) {
-    return std::vector<unsigned char>(in.begin(), in.end());
+template <typename T> std::vector<uint8_t> ToByteVector(const T &in) {
+    return std::vector<uint8_t>(in.begin(), in.end());
 }
 
 /** Script opcodes */
@@ -206,8 +206,7 @@ public:
 
     static const size_t nDefaultMaxNumSize = 4;
 
-    explicit CScriptNum(const std::vector<unsigned char> &vch,
-                        bool fRequireMinimal,
+    explicit CScriptNum(const std::vector<uint8_t> &vch, bool fRequireMinimal,
                         const size_t nMaxNumSize = nDefaultMaxNumSize) {
         if (vch.size() > nMaxNumSize) {
             throw scriptnum_error("script number overflow");
@@ -332,12 +331,12 @@ public:
         return m_value;
     }
 
-    std::vector<unsigned char> getvch() const { return serialize(m_value); }
+    std::vector<uint8_t> getvch() const { return serialize(m_value); }
 
-    static std::vector<unsigned char> serialize(const int64_t &value) {
-        if (value == 0) return std::vector<unsigned char>();
+    static std::vector<uint8_t> serialize(const int64_t &value) {
+        if (value == 0) return std::vector<uint8_t>();
 
-        std::vector<unsigned char> result;
+        std::vector<uint8_t> result;
         const bool neg = value < 0;
         uint64_t absvalue = neg ? -value : value;
 
@@ -364,7 +363,7 @@ public:
     }
 
 private:
-    static int64_t set_vch(const std::vector<unsigned char> &vch) {
+    static int64_t set_vch(const std::vector<uint8_t> &vch) {
         if (vch.empty()) return 0;
 
         int64_t result = 0;
@@ -382,7 +381,7 @@ private:
     int64_t m_value;
 };
 
-typedef prevector<28, unsigned char> CScriptBase;
+typedef prevector<28, uint8_t> CScriptBase;
 
 /** Serialized script, used inside transaction inputs and outputs */
 class CScript : public CScriptBase {
@@ -402,10 +401,10 @@ public:
     CScript() {}
     CScript(const_iterator pbegin, const_iterator pend)
         : CScriptBase(pbegin, pend) {}
-    CScript(std::vector<unsigned char>::const_iterator pbegin,
-            std::vector<unsigned char>::const_iterator pend)
+    CScript(std::vector<uint8_t>::const_iterator pbegin,
+            std::vector<uint8_t>::const_iterator pend)
         : CScriptBase(pbegin, pend) {}
-    CScript(const unsigned char *pbegin, const unsigned char *pend)
+    CScript(const uint8_t *pbegin, const uint8_t *pend)
         : CScriptBase(pbegin, pend) {}
 
     CScript &operator+=(const CScript &b) {
@@ -423,14 +422,14 @@ public:
 
     explicit CScript(opcodetype b) { operator<<(b); }
     explicit CScript(const CScriptNum &b) { operator<<(b); }
-    explicit CScript(const std::vector<unsigned char> &b) { operator<<(b); }
+    explicit CScript(const std::vector<uint8_t> &b) { operator<<(b); }
 
     CScript &operator<<(int64_t b) { return push_int64(b); }
 
     CScript &operator<<(opcodetype opcode) {
         if (opcode < 0 || opcode > 0xff)
             throw std::runtime_error("CScript::operator<<(): invalid opcode");
-        insert(end(), (unsigned char)opcode);
+        insert(end(), uint8_t(opcode));
         return *this;
     }
 
@@ -439,12 +438,12 @@ public:
         return *this;
     }
 
-    CScript &operator<<(const std::vector<unsigned char> &b) {
+    CScript &operator<<(const std::vector<uint8_t> &b) {
         if (b.size() < OP_PUSHDATA1) {
-            insert(end(), (unsigned char)b.size());
+            insert(end(), uint8_t(b.size()));
         } else if (b.size() <= 0xff) {
             insert(end(), OP_PUSHDATA1);
-            insert(end(), (unsigned char)b.size());
+            insert(end(), uint8_t(b.size()));
         } else if (b.size() <= 0xffff) {
             insert(end(), OP_PUSHDATA2);
             uint8_t data[2];
@@ -470,7 +469,7 @@ public:
     }
 
     bool GetOp(iterator &pc, opcodetype &opcodeRet,
-               std::vector<unsigned char> &vchRet) {
+               std::vector<uint8_t> &vchRet) {
         // Wrapper so it can be called with either iterator or const_iterator.
         const_iterator pc2 = pc;
         bool fRet = GetOp2(pc2, opcodeRet, &vchRet);
@@ -486,7 +485,7 @@ public:
     }
 
     bool GetOp(const_iterator &pc, opcodetype &opcodeRet,
-               std::vector<unsigned char> &vchRet) const {
+               std::vector<uint8_t> &vchRet) const {
         return GetOp2(pc, opcodeRet, &vchRet);
     }
 
@@ -495,7 +494,7 @@ public:
     }
 
     bool GetOp2(const_iterator &pc, opcodetype &opcodeRet,
-                std::vector<unsigned char> *pvchRet) const {
+                std::vector<uint8_t> *pvchRet) const {
         opcodeRet = OP_INVALIDOPCODE;
         if (pvchRet) pvchRet->clear();
         if (pc >= end()) return false;
@@ -590,9 +589,8 @@ public:
 
     bool IsPayToScriptHash() const;
     bool IsPayToWitnessScriptHash() const;
-    bool IsCommitment(const std::vector<unsigned char> &data) const;
-    bool IsWitnessProgram(int &version,
-                          std::vector<unsigned char> &program) const;
+    bool IsCommitment(const std::vector<uint8_t> &data) const;
+    bool IsWitnessProgram(int &version, std::vector<uint8_t> &program) const;
 
     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it
      * consensus-critical). */
@@ -618,7 +616,7 @@ public:
 struct CScriptWitness {
     // Note that this encodes the data elements being pushed, rather than
     // encoding them as a CScript that pushes them.
-    std::vector<std::vector<unsigned char>> stack;
+    std::vector<std::vector<uint8_t>> stack;
 
     // Some compilers complain without a default constructor
     CScriptWitness() {}

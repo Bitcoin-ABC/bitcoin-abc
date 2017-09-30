@@ -82,6 +82,7 @@ extern double NSAppKitVersionNumber;
 #endif
 
 namespace GUIUtil {
+const QString URI_SCHEME("bitcoincash");
 
 QString dateTimeStr(const QDateTime &date) {
     return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") +
@@ -114,7 +115,7 @@ static const uint8_t dummydata[] = {
 
 // Generate a dummy address with invalid CRC, starting with the network prefix.
 static std::string DummyAddress(const CChainParams &params) {
-    std::vector<unsigned char> sourcedata =
+    std::vector<uint8_t> sourcedata =
         params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
     sourcedata.insert(sourcedata.end(), dummydata,
                       dummydata + sizeof(dummydata));
@@ -151,8 +152,8 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
 }
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
-    // return if URI is not valid or is no bitcoin: URI
-    if (!uri.isValid() || uri.scheme() != QString("bitcoin")) return false;
+    // return if URI is not valid or is no bitcoincash: URI
+    if (!uri.isValid() || uri.scheme() != URI_SCHEME) return false;
 
     SendCoinsRecipient rv;
     rv.address = uri.path();
@@ -204,20 +205,20 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
 }
 
 bool parseBitcoinURI(QString uri, SendCoinsRecipient *out) {
-    // Convert bitcoin:// to bitcoin:
+    // Convert bitcoincash:// to bitcoincash:
     //
-    //    Cannot handle this later, because bitcoin://
+    //    Cannot handle this later, because bitcoincash://
     //    will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if (uri.startsWith("bitcoin://", Qt::CaseInsensitive)) {
-        uri.replace(0, 10, "bitcoin:");
+    if (uri.startsWith(URI_SCHEME + "://", Qt::CaseInsensitive)) {
+        uri.replace(0, URI_SCHEME.length() + 3, URI_SCHEME + ":");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
 }
 
 QString formatBitcoinURI(const SendCoinsRecipient &info) {
-    QString ret = QString("bitcoin:%1").arg(info.address);
+    QString ret = (URI_SCHEME + ":%1").arg(info.address);
     int paramCount = 0;
 
     if (info.amount) {
@@ -576,7 +577,7 @@ TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(
 }
 
 #ifdef WIN32
-boost::filesystem::path static StartupShortcutPath() {
+static boost::filesystem::path StartupShortcutPath() {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
         return GetSpecialFolderPath(CSIDL_STARTUP) / "Bitcoin.lnk";
@@ -666,7 +667,7 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 // Follow the Desktop Application Autostart Spec:
 // http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
 
-boost::filesystem::path static GetAutostartDir() {
+static boost::filesystem::path GetAutostartDir() {
     namespace fs = boost::filesystem;
 
     char *pszConfigHome = getenv("XDG_CONFIG_HOME");
@@ -676,7 +677,7 @@ boost::filesystem::path static GetAutostartDir() {
     return fs::path();
 }
 
-boost::filesystem::path static GetAutostartFilePath() {
+static boost::filesystem::path GetAutostartFilePath() {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
         return GetAutostartDir() / "bitcoin.desktop";
@@ -742,13 +743,15 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 
+// NB: caller must release returned ref if it's not NULL
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
                                               CFURLRef findUrl);
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
                                               CFURLRef findUrl) {
+    LSSharedFileListItemRef foundItem = nullptr;
     // loop through the list of startup items and try to find the bitcoin app
     CFArrayRef listSnapshot = LSSharedFileListCopySnapshot(list, nullptr);
-    for (int i = 0; i < CFArrayGetCount(listSnapshot); i++) {
+    for (int i = 0; !foundItem && i < CFArrayGetCount(listSnapshot); ++i) {
         LSSharedFileListItemRef item =
             (LSSharedFileListItemRef)CFArrayGetValueAtIndex(listSnapshot, i);
         UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction |
@@ -773,14 +776,14 @@ LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,
 
         if (currentItemURL && CFEqual(currentItemURL, findUrl)) {
             // found
-            CFRelease(currentItemURL);
-            return item;
+            CFRetain(foundItem = item);
         }
         if (currentItemURL) {
             CFRelease(currentItemURL);
         }
     }
-    return nullptr;
+    CFRelease(listSnapshot);
+    return foundItem;
 }
 
 bool GetStartOnSystemStartup() {
@@ -789,7 +792,13 @@ bool GetStartOnSystemStartup() {
         nullptr, kLSSharedFileListSessionLoginItems, nullptr);
     LSSharedFileListItemRef foundItem =
         findStartupItemInList(loginItems, bitcoinAppUrl);
-    return !!foundItem; // return boolified object
+    // findStartupItemInList retains the item it returned, need to release
+    if (foundItem) {
+        CFRelease(foundItem);
+    }
+    CFRelease(loginItems);
+    CFRelease(bitcoinAppUrl);
+    return foundItem;
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart) {
@@ -808,6 +817,12 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
         // remove item
         LSSharedFileListItemRemove(loginItems, foundItem);
     }
+    // findStartupItemInList retains the item it returned, need to release
+    if (foundItem) {
+        CFRelease(foundItem);
+    }
+    CFRelease(loginItems);
+    CFRelease(bitcoinAppUrl);
     return true;
 }
 #pragma GCC diagnostic pop

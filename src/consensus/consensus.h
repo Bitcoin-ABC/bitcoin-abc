@@ -24,8 +24,6 @@ static const uint64_t MAX_TX_SIGOPS_COUNT = 20000;
 /** Coinbase transaction outputs can only be spent after this number of new
  * blocks (network rule) */
 static const int COINBASE_MATURITY = 100;
-/** Timestamp at which the UAHF starts. */
-static const uint64_t DEFAULT_UAHF_START_TIME = 1501590000;
 
 /** Flags for nSequence and nLockTime locks */
 enum {

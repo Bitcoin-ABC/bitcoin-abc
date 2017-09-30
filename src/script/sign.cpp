@@ -12,7 +12,7 @@
 #include "script/standard.h"
 #include "uint256.h"
 
-typedef std::vector<unsigned char> valtype;
+typedef std::vector<uint8_t> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
     const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
@@ -20,7 +20,7 @@ TransactionSignatureCreator::TransactionSignatureCreator(
     : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
       amount(amountIn), nHashType(nHashTypeIn), checker(txTo, nIn, amountIn) {}
 
-bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
+bool TransactionSignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
                                             const CKeyID &address,
                                             const CScript &scriptCode) const {
     CKey key;
@@ -39,7 +39,7 @@ bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
 
 static bool Sign1(const CKeyID &address, const BaseSignatureCreator &creator,
                   const CScript &scriptCode, std::vector<valtype> &ret) {
-    std::vector<unsigned char> vchSig;
+    std::vector<uint8_t> vchSig;
     if (!creator.CreateSig(vchSig, address, scriptCode)) {
         return false;
     }
@@ -106,8 +106,8 @@ static bool SignStep(const BaseSignatureCreator &creator,
         case TX_SCRIPTHASH:
             if (creator.KeyStore().GetCScript(uint160(vSolutions[0]),
                                               scriptRet)) {
-                ret.push_back(std::vector<unsigned char>(scriptRet.begin(),
-                                                         scriptRet.end()));
+                ret.push_back(
+                    std::vector<uint8_t>(scriptRet.begin(), scriptRet.end()));
                 return true;
             }
 
@@ -155,22 +155,15 @@ bool ProduceSignature(const BaseSignatureCreator &creator,
         solved = solved && SignStep(creator, script, result, whichType) &&
                  whichType != TX_SCRIPTHASH;
         result.push_back(
-            std::vector<unsigned char>(subscript.begin(), subscript.end()));
+            std::vector<uint8_t>(subscript.begin(), subscript.end()));
     }
 
     sigdata.scriptSig = PushAll(result);
 
     // Test solution
-    // Because we have no good way to get nHashType here, we just try with and
-    // without enabling it. One of the two must pass.
-    // TODO: Remove after the fork.
     return solved &&
-           (VerifyScript(sigdata.scriptSig, fromPubKey,
-                         STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker()) ||
-            VerifyScript(sigdata.scriptSig, fromPubKey,
-                         STANDARD_SCRIPT_VERIFY_FLAGS |
-                             SCRIPT_ENABLE_SIGHASH_FORKID,
-                         creator.Checker()));
+           VerifyScript(sigdata.scriptSig, fromPubKey,
+                        STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());
 }
 
 SignatureData DataFromTransaction(const CMutableTransaction &tx,
@@ -245,14 +238,8 @@ static std::vector<valtype> CombineMultisig(
                 continue;
             }
 
-            // If the transaction is using SIGHASH_FORKID, we ned to set the
-            // apropriate flags.
-            // TODO: Remove after the Hard Fork.
-            uint32_t flags = STANDARD_SCRIPT_VERIFY_FLAGS;
-            if (sig.back() & SIGHASH_FORKID) {
-                flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-            }
-            if (checker.CheckSig(sig, pubkey, scriptPubKey, flags)) {
+            if (checker.CheckSig(sig, pubkey, scriptPubKey,
+                                 STANDARD_SCRIPT_VERIFY_FLAGS)) {
                 sigs[pubkey] = sig;
                 break;
             }
@@ -286,7 +273,7 @@ struct Stacks {
     explicit Stacks(const std::vector<valtype> &scriptSigStack_)
         : script(scriptSigStack_) {}
     explicit Stacks(const SignatureData &data) {
-        EvalScript(script, data.scriptSig, SCRIPT_VERIFY_STRICTENC,
+        EvalScript(script, data.scriptSig, MANDATORY_SCRIPT_VERIFY_FLAGS,
                    BaseSignatureChecker());
     }
 
@@ -334,7 +321,7 @@ static Stacks CombineSignatures(const CScript &scriptPubKey,
             CScript pubKey2(spk.begin(), spk.end());
 
             txnouttype txType2;
-            std::vector<std::vector<unsigned char>> vSolutions2;
+            std::vector<std::vector<uint8_t>> vSolutions2;
             Solver(pubKey2, txType2, vSolutions2);
             sigs1.script.pop_back();
             sigs2.script.pop_back();
@@ -356,7 +343,7 @@ SignatureData CombineSignatures(const CScript &scriptPubKey,
                                 const SignatureData &scriptSig1,
                                 const SignatureData &scriptSig2) {
     txnouttype txType;
-    std::vector<std::vector<unsigned char>> vSolutions;
+    std::vector<std::vector<uint8_t>> vSolutions;
     Solver(scriptPubKey, txType, vSolutions);
 
     return CombineSignatures(scriptPubKey, checker, txType, vSolutions,
@@ -370,8 +357,8 @@ class DummySignatureChecker : public BaseSignatureChecker {
 public:
     DummySignatureChecker() {}
 
-    bool CheckSig(const std::vector<unsigned char> &scriptSig,
-                  const std::vector<unsigned char> &vchPubKey,
+    bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                  const std::vector<uint8_t> &vchPubKey,
                   const CScript &scriptCode, uint32_t flags) const {
         return true;
     }
@@ -383,7 +370,7 @@ const BaseSignatureChecker &DummySignatureCreator::Checker() const {
     return dummyChecker;
 }
 
-bool DummySignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
+bool DummySignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
                                       const CKeyID &keyid,
                                       const CScript &scriptCode) const {
     // Create a dummy signature that is a valid DER-encoding
@@ -396,6 +383,6 @@ bool DummySignatureCreator::CreateSig(std::vector<unsigned char> &vchSig,
     vchSig[4 + 33] = 0x02;
     vchSig[5 + 33] = 32;
     vchSig[6 + 33] = 0x01;
-    vchSig[6 + 33 + 32] = SIGHASH_ALL;
+    vchSig[6 + 33 + 32] = SIGHASH_ALL | SIGHASH_FORKID;
     return true;
 }

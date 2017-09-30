@@ -5,6 +5,7 @@
 #include "globals.h"
 
 #include "consensus/consensus.h"
+#include "policy/policy.h"
 
 uint64_t nMaxBlockSize = DEFAULT_MAX_BLOCK_SIZE;
-int64_t nUAHFStartTime = DEFAULT_UAHF_START_TIME;
+uint64_t nBlockPriorityPercentage = DEFAULT_BLOCK_PRIORITY_PERCENTAGE;

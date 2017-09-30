@@ -7,7 +7,7 @@
 
 #include <string>
 
-unsigned int ParseScriptFlags(std::string strFlags);
-std::string FormatScriptFlags(unsigned int flags);
+uint32_t ParseScriptFlags(std::string strFlags);
+std::string FormatScriptFlags(uint32_t flags);
 
 #endif // BITCOIN_TEST_SCRIPTFLAGS_H

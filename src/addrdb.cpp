@@ -23,7 +23,7 @@ CBanDB::CBanDB() {
 bool CBanDB::Write(const banmap_t &banSet) {
     // Generate random temporary filename
     unsigned short randv = 0;
-    GetRandBytes((unsigned char *)&randv, sizeof(randv));
+    GetRandBytes((uint8_t *)&randv, sizeof(randv));
     std::string tmpfn = strprintf("banlist.dat.%04x", randv);
 
     // serialize banlist, checksum data up to that point, then append csum
@@ -69,7 +69,7 @@ bool CBanDB::Read(banmap_t &banSet) {
     uint64_t dataSize = 0;
     // Don't try to resize to a negative number if file is small
     if (fileSize >= sizeof(uint256)) dataSize = fileSize - sizeof(uint256);
-    std::vector<unsigned char> vchData;
+    std::vector<uint8_t> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
 
@@ -89,7 +89,7 @@ bool CBanDB::Read(banmap_t &banSet) {
     if (hashIn != hashTmp)
         return error("%s: Checksum mismatch, data corrupted", __func__);
 
-    unsigned char pchMsgTmp[4];
+    uint8_t pchMsgTmp[4];
     try {
         // de-serialize file header (network specific magic number) and ..
         ssBanlist >> FLATDATA(pchMsgTmp);
@@ -114,7 +114,7 @@ CAddrDB::CAddrDB() {
 bool CAddrDB::Write(const CAddrMan &addr) {
     // Generate random temporary filename
     unsigned short randv = 0;
-    GetRandBytes((unsigned char *)&randv, sizeof(randv));
+    GetRandBytes((uint8_t *)&randv, sizeof(randv));
     std::string tmpfn = strprintf("peers.dat.%04x", randv);
 
     // serialize addresses, checksum data up to that point, then append csum
@@ -159,7 +159,7 @@ bool CAddrDB::Read(CAddrMan &addr) {
     uint64_t dataSize = 0;
     // Don't try to resize to a negative number if file is small
     if (fileSize >= sizeof(uint256)) dataSize = fileSize - sizeof(uint256);
-    std::vector<unsigned char> vchData;
+    std::vector<uint8_t> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
 
@@ -183,7 +183,7 @@ bool CAddrDB::Read(CAddrMan &addr) {
 }
 
 bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
-    unsigned char pchMsgTmp[4];
+    uint8_t pchMsgTmp[4];
     try {
         // de-serialize file header (network specific magic number) and ..
         ssPeers >> FLATDATA(pchMsgTmp);

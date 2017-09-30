@@ -74,8 +74,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     tx.nVersion = 2;
 
     auto prevTx0 = CTransaction(tx);
-    view.ModifyNewCoins(prevTx0.GetId(), prevTx0.IsCoinBase())
-        ->FromTx(prevTx0, 100);
+    AddCoins(view, prevTx0, 100);
 
     tx.vin[0].prevout.hash = prevTx0.GetId();
     auto tx0 = CTransaction(tx);

@@ -36,8 +36,7 @@ and confirm again balances are correct.
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from random import randint
-import logging
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO, stream=sys.stdout)
+
 
 class WalletBackupTest(BitcoinTestFramework):
 
@@ -46,21 +45,21 @@ class WalletBackupTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 4
         # nodes 1, 2,3 are spenders, let's give them a keypool=100
-        self.extra_args = [["-keypool=100"], ["-keypool=100"], ["-keypool=100"], []]
+        self.extra_args = [
+            ["-keypool=100"], ["-keypool=100"], ["-keypool=100"], []]
 
     # This mirrors how the network was setup in the bash test
-    def setup_network(self, split=False):
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, self.extra_args)
+    def setup_network(self):
+        self.setup_nodes()
         connect_nodes(self.nodes[0], 3)
         connect_nodes(self.nodes[1], 3)
         connect_nodes(self.nodes[2], 3)
         connect_nodes(self.nodes[2], 0)
-        self.is_network_split=False
         self.sync_all()
 
     def one_send(self, from_node, to_address):
-        if (randint(1,2) == 1):
-            amount = Decimal(randint(1,10)) / Decimal(10)
+        if (randint(1, 2) == 1):
+            amount = Decimal(randint(1, 10)) / Decimal(10)
             self.nodes[from_node].sendtoaddress(to_address, amount)
 
     def do_one_round(self):
@@ -102,7 +101,7 @@ class WalletBackupTest(BitcoinTestFramework):
         os.remove(self.options.tmpdir + "/node2/regtest/wallet.dat")
 
     def run_test(self):
-        logging.info("Generating initial blockchain")
+        self.log.info("Generating initial blockchain")
         self.nodes[0].generate(1)
         sync_blocks(self.nodes)
         self.nodes[1].generate(1)
@@ -117,12 +116,12 @@ class WalletBackupTest(BitcoinTestFramework):
         assert_equal(self.nodes[2].getbalance(), 50)
         assert_equal(self.nodes[3].getbalance(), 0)
 
-        logging.info("Creating transactions")
+        self.log.info("Creating transactions")
         # Five rounds of sending each other transactions.
         for i in range(5):
             self.do_one_round()
 
-        logging.info("Backing up")
+        self.log.info("Backing up")
         tmpdir = self.options.tmpdir
         self.nodes[0].backupwallet(tmpdir + "/node0/wallet.bak")
         self.nodes[0].dumpwallet(tmpdir + "/node0/wallet.dump")
@@ -131,7 +130,7 @@ class WalletBackupTest(BitcoinTestFramework):
         self.nodes[2].backupwallet(tmpdir + "/node2/wallet.bak")
         self.nodes[2].dumpwallet(tmpdir + "/node2/wallet.dump")
 
-        logging.info("More transactions")
+        self.log.info("More transactions")
         for i in range(5):
             self.do_one_round()
 
@@ -149,10 +148,10 @@ class WalletBackupTest(BitcoinTestFramework):
         # 114 are mature, so the sum of all wallets should be 114 * 50 = 5700.
         assert_equal(total, 5700)
 
-        ##
+        #
         # Test restoring spender wallets from backups
-        ##
-        logging.info("Restoring using wallet.dat")
+        #
+        self.log.info("Restoring using wallet.dat")
         self.stop_three()
         self.erase_three()
 
@@ -161,11 +160,14 @@ class WalletBackupTest(BitcoinTestFramework):
         shutil.rmtree(self.options.tmpdir + "/node2/regtest/chainstate")
 
         # Restore wallets from backup
-        shutil.copyfile(tmpdir + "/node0/wallet.bak", tmpdir + "/node0/regtest/wallet.dat")
-        shutil.copyfile(tmpdir + "/node1/wallet.bak", tmpdir + "/node1/regtest/wallet.dat")
-        shutil.copyfile(tmpdir + "/node2/wallet.bak", tmpdir + "/node2/regtest/wallet.dat")
+        shutil.copyfile(
+            tmpdir + "/node0/wallet.bak", tmpdir + "/node0/regtest/wallet.dat")
+        shutil.copyfile(
+            tmpdir + "/node1/wallet.bak", tmpdir + "/node1/regtest/wallet.dat")
+        shutil.copyfile(
+            tmpdir + "/node2/wallet.bak", tmpdir + "/node2/regtest/wallet.dat")
 
-        logging.info("Re-starting nodes")
+        self.log.info("Re-starting nodes")
         self.start_three()
         sync_blocks(self.nodes)
 
@@ -173,11 +175,11 @@ class WalletBackupTest(BitcoinTestFramework):
         assert_equal(self.nodes[1].getbalance(), balance1)
         assert_equal(self.nodes[2].getbalance(), balance2)
 
-        logging.info("Restoring using dumped wallet")
+        self.log.info("Restoring using dumped wallet")
         self.stop_three()
         self.erase_three()
 
-        #start node2 with no chain
+        # start node2 with no chain
         shutil.rmtree(self.options.tmpdir + "/node2/regtest/blocks")
         shutil.rmtree(self.options.tmpdir + "/node2/regtest/chainstate")
 

@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<unsigned char> vch = ParseHex("03614e9b050000000000000001");
+    std::vector<uint8_t> vch = ParseHex("03614e9b050000000000000001");
     std::vector<char> expected(vch.size());
 
     for (unsigned int i = 0; i < vch.size(); i++)
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize_with_tweak) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<unsigned char> vch = ParseHex("03ce4299050000000100008001");
+    std::vector<uint8_t> vch = ParseHex("03ce4299050000000100008001");
     std::vector<char> expected(vch.size());
 
     for (unsigned int i = 0; i < vch.size(); i++)
@@ -110,17 +110,17 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_key) {
 
     CKey key = vchSecret.GetKey();
     CPubKey pubkey = key.GetPubKey();
-    std::vector<unsigned char> vchPubKey(pubkey.begin(), pubkey.end());
+    std::vector<uint8_t> vchPubKey(pubkey.begin(), pubkey.end());
 
     CBloomFilter filter(2, 0.001, 0, BLOOM_UPDATE_ALL);
     filter.insert(vchPubKey);
     uint160 hash = pubkey.GetID();
-    filter.insert(std::vector<unsigned char>(hash.begin(), hash.end()));
+    filter.insert(std::vector<uint8_t>(hash.begin(), hash.end()));
 
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<unsigned char> vch = ParseHex("038fc16b080000000000000001");
+    std::vector<uint8_t> vch = ParseHex("038fc16b080000000000000001");
     std::vector<char> expected(vch.size());
 
     for (unsigned int i = 0; i < vch.size(); i++)
@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
 
     // and one which spends it
     // (e2769b09e784f32f62ef849763d4f45b98e07ba658647343b915ff832b110436)
-    unsigned char ch[] = {
+    uint8_t ch[] = {
         0x01, 0x00, 0x00, 0x00, 0x01, 0x6b, 0xff, 0x7f, 0xcd, 0x4f, 0x85, 0x65,
         0xef, 0x40, 0x6d, 0xd5, 0xd6, 0x3d, 0x4f, 0xf9, 0x4f, 0x31, 0x8f, 0xe8,
         0x20, 0x27, 0xfd, 0x4d, 0xc4, 0x51, 0xb0, 0x44, 0x74, 0x01, 0x9f, 0x74,
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
         0x00, 0x19, 0x76, 0xa9, 0x14, 0xc1, 0x09, 0x32, 0x48, 0x3f, 0xec, 0x93,
         0xed, 0x51, 0xf5, 0xfe, 0x95, 0xe7, 0x25, 0x59, 0xf2, 0xcc, 0x70, 0x43,
         0xf9, 0x88, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00};
-    std::vector<unsigned char> vch(ch, ch + sizeof(ch) - 1);
+    std::vector<uint8_t> vch(ch, ch + sizeof(ch) - 1);
     CDataStream spendStream(vch, SER_DISK, CLIENT_VERSION);
     CTransaction spendingTx(deserialize, spendStream);
 
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(bloom_match) {
                                     "ba58f3bdaab65e73b7e9260b"),
                            0);
     {
-        std::vector<unsigned char> data(32 + sizeof(unsigned int));
+        std::vector<uint8_t> data(32 + sizeof(unsigned int));
         memcpy(&data[0], prevOutPoint.hash.begin(), 32);
         memcpy(&data[32], &prevOutPoint.n, sizeof(unsigned int));
         filter.insert(data);
@@ -680,7 +680,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_3_and_serialize) {
     CDataStream merkleStream(SER_NETWORK, PROTOCOL_VERSION);
     merkleStream << merkleBlock;
 
-    std::vector<unsigned char> vch =
+    std::vector<uint8_t> vch =
         ParseHex("0100000079cda856b143d9db2c1caff01d1aecc8630d30625d10e8b4b8b00"
                  "00000000000b50cc069d6a3e33e3ff84a5c41d9d3febe7c770fdcc96b2c3f"
                  "f60abe184f196367291b4d4c86041b8fa45d630100000001b50cc069d6a3e"
@@ -1049,9 +1049,9 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
                                    0)));
 }
 
-static std::vector<unsigned char> RandomData() {
+static std::vector<uint8_t> RandomData() {
     uint256 r = GetRandHash();
-    return std::vector<unsigned char>(r.begin(), r.end());
+    return std::vector<uint8_t>(r.begin(), r.end());
 }
 
 BOOST_AUTO_TEST_CASE(rolling_bloom) {
@@ -1060,7 +1060,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
 
     // Overfill:
     static const int DATASIZE = 399;
-    std::vector<unsigned char> data[DATASIZE];
+    std::vector<uint8_t> data[DATASIZE];
     for (int i = 0; i < DATASIZE; i++) {
         data[i] = RandomData();
         rb1.insert(data[i]);
@@ -1100,7 +1100,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
 
     // Insert 999 more random entries:
     for (int i = 0; i < 999; i++) {
-        std::vector<unsigned char> d = RandomData();
+        std::vector<uint8_t> d = RandomData();
         rb1.insert(d);
         BOOST_CHECK(rb1.contains(d));
     }

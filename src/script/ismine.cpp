@@ -11,11 +11,9 @@
 #include "script/sign.h"
 #include "script/standard.h"
 
-using namespace std;
+typedef std::vector<uint8_t> valtype;
 
-typedef vector<unsigned char> valtype;
-
-unsigned int HaveKeys(const vector<valtype> &pubkeys,
+unsigned int HaveKeys(const std::vector<valtype> &pubkeys,
                       const CKeyStore &keystore) {
     unsigned int nResult = 0;
     for (const valtype &pubkey : pubkeys) {
@@ -43,7 +41,7 @@ isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest,
 
 isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
                   bool &isInvalid) {
-    vector<valtype> vSolutions;
+    std::vector<valtype> vSolutions;
     txnouttype whichType;
     if (!Solver(scriptPubKey, whichType, vSolutions)) {
         if (keystore.HaveWatchOnly(scriptPubKey))
@@ -81,8 +79,9 @@ isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
             // (somebody else has a key that can spend them) enable
             // spend-out-from-under-you attacks, especially in shared-wallet
             // situations.
-            vector<valtype> keys(vSolutions.begin() + 1,
-                                 vSolutions.begin() + vSolutions.size() - 1);
+            std::vector<valtype> keys(vSolutions.begin() + 1,
+                                      vSolutions.begin() + vSolutions.size() -
+                                          1);
             if (HaveKeys(keys, keystore) == keys.size())
                 return ISMINE_SPENDABLE;
             break;

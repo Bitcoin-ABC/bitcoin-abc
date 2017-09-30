@@ -71,13 +71,13 @@ void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
                             void *cs);
 void DeleteLock(void *cs);
 #else
-void static inline EnterCritical(const char *pszName, const char *pszFile,
+static inline void EnterCritical(const char *pszName, const char *pszFile,
                                  int nLine, void *cs, bool fTry = false) {}
-void static inline LeaveCritical() {}
-void static inline AssertLockHeldInternal(const char *pszName,
+static inline void LeaveCritical() {}
+static inline void AssertLockHeldInternal(const char *pszName,
                                           const char *pszFile, int nLine,
                                           void *cs) {}
-void static inline DeleteLock(void *cs) {}
+static inline void DeleteLock(void *cs) {}
 #endif
 #define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
 

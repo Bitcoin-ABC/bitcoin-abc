@@ -13,8 +13,6 @@
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()
 #include <univalue.h>
 
-using namespace std;
-
 class CRPCConvertParam {
 public:
     std::string methodName; //!< method whose params want conversion
@@ -115,6 +113,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"setnetworkactive", 0, "state"},
     {"getmempoolancestors", 1, "verbose"},
     {"getmempooldescendants", 1, "verbose"},
+    {"disconnectnode", 1, "nodeid"},
     // Echo with conversion (For testing only)
     {"echojson", 0, "arg0"},
     {"echojson", 1, "arg1"},
@@ -166,7 +165,7 @@ UniValue ParseNonRFCJSONValue(const std::string &strVal) {
     UniValue jVal;
     if (!jVal.read(std::string("[") + strVal + std::string("]")) ||
         !jVal.isArray() || jVal.size() != 1)
-        throw runtime_error(string("Error parsing JSON:") + strVal);
+        throw std::runtime_error(std::string("Error parsing JSON:") + strVal);
     return jVal[0];
 }
 

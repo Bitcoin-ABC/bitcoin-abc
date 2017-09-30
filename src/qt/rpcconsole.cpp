@@ -94,7 +94,7 @@ Q_SIGNALS:
 class QtRPCTimerBase : public QObject, public RPCTimerBase {
     Q_OBJECT
 public:
-    QtRPCTimerBase(boost::function<void(void)> &_func, int64_t millis)
+    QtRPCTimerBase(std::function<void(void)> &_func, int64_t millis)
         : func(_func) {
         timer.setSingleShot(true);
         connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
@@ -106,14 +106,14 @@ private Q_SLOTS:
 
 private:
     QTimer timer;
-    boost::function<void(void)> func;
+    std::function<void(void)> func;
 };
 
 class QtRPCTimerInterface : public RPCTimerInterface {
 public:
     ~QtRPCTimerInterface() {}
     const char *Name() { return "Qt"; }
-    RPCTimerBase *NewTimer(boost::function<void(void)> &func, int64_t millis) {
+    RPCTimerBase *NewTimer(std::function<void(void)> &func, int64_t millis) {
         return new QtRPCTimerBase(func, millis);
     }
 };
@@ -268,9 +268,12 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                         // assume eating space state
                         state = STATE_EATING_SPACES;
                 }
-                if (breakParsing) break;
-                // FALLTHROUGH
+
+                if (breakParsing) {
+                    break;
+                }
             }
+            // FALLTHROUGH
             case STATE_ARGUMENT: // In or after argument
             case STATE_EATING_SPACES_IN_ARG:
             case STATE_EATING_SPACES_IN_BRACKETS:

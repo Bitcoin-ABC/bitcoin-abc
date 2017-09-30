@@ -221,10 +221,15 @@ enum FlushStateMode {
 };
 
 // See definition for documentation
-bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode,
+static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight = 0);
-void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                            int nManualPruneHeight);
+static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                   int nManualPruneHeight);
+static bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                        const CCoinsViewCache &view, bool fScriptChecks,
+                        uint32_t flags, bool cacheStore,
+                        const PrecomputedTransactionData &txdata,
+                        std::vector<CScriptCheck> *pvChecks = nullptr);
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
@@ -602,7 +607,8 @@ static bool IsCurrentForFeeEstimation() {
 }
 
 static bool IsUAHFenabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >= config.GetUAHFStartTime();
+    return nMedianTimePast >=
+           config.GetChainParams().GetConsensus().uahfStartTime;
 }
 
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
@@ -868,11 +874,6 @@ static bool AcceptToMemoryPoolWorker(
                 GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
-        const bool hasUAHF = IsUAHFenabledForCurrentBlock(config);
-        if (hasUAHF) {
-            scriptVerifyFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-        }
-
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
         PrecomputedTransactionData txdata(tx);
@@ -891,20 +892,9 @@ static bool AcceptToMemoryPoolWorker(
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks, however allowing such transactions into the mempool
         // can be exploited as a DoS attack.
-        //
-        // SCRIPT_ENABLE_SIGHASH_FORKID is also added as to ensure we do not
-        // filter out transactions using the antireplay feature.
         {
-            // Depending on the UAHF activation, we require SIGHASH_FORKID or
-            // not.
-            // TODO: Cleanup after the Hard Fork.
-            uint32_t mandatoryFlags = MANDATORY_SCRIPT_VERIFY_FLAGS;
-            if (hasUAHF) {
-                mandatoryFlags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-            }
-
-            if (!CheckInputs(tx, state, view, true, mandatoryFlags, true,
-                             txdata)) {
+            if (!CheckInputs(tx, state, view, true,
+                             MANDATORY_SCRIPT_VERIFY_FLAGS, true, txdata)) {
                 return error(
                     "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed "
                     "against MANDATORY but not STANDARD flags %s, %s",
@@ -1258,28 +1248,19 @@ static void InvalidBlockFound(CBlockIndex *pindex,
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
                  CTxUndo &txundo, int nHeight) {
-    // mark inputs spent
+    // Mark inputs spent.
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn &txin : tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
-            unsigned nPos = txin.prevout.n;
-
-            if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
-                assert(false);
-            // mark an outpoint spent, and construct undo information
-            txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
-            coins->Spend(nPos);
-            if (coins->vout.size() == 0) {
-                CTxInUndo &undo = txundo.vprevout.back();
-                undo.nHeight = coins->nHeight;
-                undo.fCoinBase = coins->fCoinBase;
-                undo.nVersion = coins->nVersion;
-            }
+            txundo.vprevout.emplace_back();
+            bool is_spent =
+                inputs.SpendCoin(txin.prevout, &txundo.vprevout.back());
+            assert(is_spent);
         }
     }
-    // add outputs
-    inputs.ModifyNewCoins(tx.GetId(), tx.IsCoinBase())->FromTx(tx, nHeight);
+
+    // Add outputs.
+    AddCoins(inputs, tx, nHeight);
 }
 
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight) {
@@ -1360,11 +1341,17 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 }
 } // namespace Consensus
 
-bool CheckInputs(const CTransaction &tx, CValidationState &state,
-                 const CCoinsViewCache &inputs, bool fScriptChecks,
-                 unsigned int flags, bool cacheStore,
-                 const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks) {
+/**
+ * Check whether all inputs of this transaction are valid (no double spends,
+ * scripts & sigs, amounts). This does not modify the UTXO set. If pvChecks is
+ * not nullptr, script checks are pushed onto it instead of being performed
+ * inline.
+ */
+static bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                        const CCoinsViewCache &inputs, bool fScriptChecks,
+                        uint32_t flags, bool cacheStore,
+                        const PrecomputedTransactionData &txdata,
+                        std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
 
     if (!Consensus::CheckTxInputs(tx, state, inputs, GetSpendHeight(inputs))) {
@@ -1413,20 +1400,11 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 // or non-null dummy arguments; if so, don't trigger DoS
                 // protection to avoid splitting the network between upgraded
                 // and non-upgraded nodes.
-                uint32_t mandatoryFlags =
-                    flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
                 CScriptCheck check2(scriptPubKey, amount, tx, i,
-                                    mandatoryFlags &
-                                        ~SCRIPT_ENABLE_SIGHASH_FORKID,
+                                    flags &
+                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
                                     cacheStore, txdata);
-                // We also need to check with and without the forkid flag. Some
-                // node may not have caught up yet with the tip of the chain and
-                // may be relying transaction we do not consider valid.
-                CScriptCheck check3(scriptPubKey, amount, tx, i,
-                                    mandatoryFlags |
-                                        SCRIPT_ENABLE_SIGHASH_FORKID,
-                                    cacheStore, txdata);
-                if (check2() || check3()) {
+                if (check2()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
                         strprintf("non-mandatory-script-verify-flag (%s)",
@@ -1488,18 +1466,18 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CDiskBlockPos &pos,
 
     // Read block
     uint256 hashChecksum;
+    // We need a CHashVerifier as reserializing may lose data
+    CHashVerifier<CAutoFile> verifier(&filein);
     try {
-        filein >> blockundo;
+        verifier << hashBlock;
+        verifier >> blockundo;
         filein >> hashChecksum;
     } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
 
     // Verify checksum
-    CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-    hasher << hashBlock;
-    hasher << blockundo;
-    if (hashChecksum != hasher.GetHash()) {
+    if (hashChecksum != verifier.GetHash()) {
         return error("%s: Checksum mismatch", __func__);
     }
 
@@ -1528,40 +1506,35 @@ bool AbortNode(CValidationState &state, const std::string &strMessage,
 
 } // anon namespace
 
-/** Apply the undo operation of a CTxInUndo to the given chain state. */
-DisconnectResult ApplyTxInUndo(const CTxInUndo &undo, CCoinsViewCache &view,
+/** Restore the UTXO in a Coin at a given COutPoint. */
+DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
                                const COutPoint &out) {
     bool fClean = true;
 
-    CCoinsModifier coins = view.ModifyCoins(out.hash);
-    if (undo.nHeight != 0) {
-        // undo data contains height: this is the last output of the prevout tx
-        // being spent
-        if (!coins->IsPruned()) {
-            // Overwriting existing transaction.
-            fClean = false;
-        }
-        coins->fCoinBase = undo.fCoinBase;
-        coins->nHeight = undo.nHeight;
-        coins->nVersion = undo.nVersion;
-    } else {
-        if (coins->IsPruned()) {
-            // Adding output to missing transaction.
-            fClean = false;
-        }
-    }
-
-    if (coins->IsAvailable(out.n)) {
-        // Overwriting existing output.
+    if (view.HaveCoin(out)) {
+        // Overwriting transaction output.
         fClean = false;
     }
 
-    if (coins->vout.size() < out.n + 1) {
-        coins->vout.resize(out.n + 1);
+    if (undo.GetHeight() == 0) {
+        // Missing undo metadata (height and coinbase). Older versions included
+        // this information only in undo records for the last spend of a
+        // transactions' outputs. This implies that it must be present for some
+        // other output of the same tx.
+        const Coin &alternate = AccessByTxid(view, out.hash);
+        if (alternate.IsSpent()) {
+            // Adding output for transaction without known metadata
+            return DISCONNECT_FAILED;
+        }
+
+        // This is somewhat ugly, but hopefully utility is limited. This is only
+        // useful when working from legacy on disck data. In any case, putting
+        // the correct information in there doesn't hurt.
+        const_cast<Coin &>(undo) = Coin(undo.GetTxOut(), alternate.GetHeight(),
+                                        alternate.IsCoinBase());
     }
 
-    coins->vout[out.n] = undo.txout;
-
+    view.AddCoin(out, undo, undo.IsCoinBase());
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
@@ -1608,26 +1581,18 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
-        {
-            CCoinsModifier outs = view.ModifyCoins(txid);
-            outs->ClearUnspendable();
-
-            CCoins outsBlock(tx, pindex->nHeight);
-            // The CCoins serialization does not serialize negative numbers. No
-            // network rules currently depend on the version here, so an
-            // inconsistency is harmless but it must be corrected before txout
-            // nversion ever influences a network rule.
-            if (outsBlock.nVersion < 0) {
-                outs->nVersion = outsBlock.nVersion;
+        for (size_t o = 0; o < tx.vout.size(); o++) {
+            if (tx.vout[o].scriptPubKey.IsUnspendable()) {
+                continue;
             }
 
-            if (*outs != outsBlock) {
-                // Transaction mismatch.
+            COutPoint out(txid, o);
+            Coin coin;
+            bool is_spent = view.SpendCoin(out, &coin);
+            if (!is_spent || tx.vout[o] != coin.GetTxOut()) {
+                // transaction output mismatch
                 fClean = false;
             }
-
-            // Remove outputs.
-            outs->Clear();
         }
 
         // Restore inputs.
@@ -1644,8 +1609,8 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
 
         for (size_t j = tx.vin.size(); j-- > 0;) {
             const COutPoint &out = tx.vin[j].prevout;
-            const CTxInUndo &undo = txundo.vprevout[j];
-            DisconnectResult res = ApplyTxInUndo(undo, view, out);
+            const Coin &undo = txundo.vprevout[j];
+            DisconnectResult res = UndoCoinSpend(undo, view, out);
             if (res == DISCONNECT_FAILED) {
                 return DISCONNECT_FAILED;
             }
@@ -1659,7 +1624,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     return fClean ? DISCONNECT_OK : DISCONNECT_UNCLEAN;
 }
 
-void static FlushBlockFile(bool fFinalize = false) {
+static void FlushBlockFile(bool fFinalize = false) {
     LOCK(cs_LastBlockFile);
 
     CDiskBlockPos posOld(nLastBlockFile, 0);
@@ -1926,8 +1891,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     CBlockUndo blockundo;
 
-    CCheckQueueControl<CScriptCheck> control(
-        fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : nullptr);
+    CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
+                                                           : nullptr);
 
     std::vector<int> prevheights;
     CAmount nFees = 0;
@@ -1997,7 +1962,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             std::vector<CScriptCheck> vChecks;
             if (!CheckInputs(tx, state, view, fScriptChecks, flags,
                              fCacheResults, PrecomputedTransactionData(tx),
-                             nScriptCheckThreads ? &vChecks : nullptr)) {
+                             &vChecks)) {
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                              tx.GetId().ToString(), FormatStateMessage(state));
             }
@@ -2097,22 +2062,16 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     LogPrint("bench", "    - Callbacks: %.2fms [%.2fs]\n",
              0.001 * (nTime6 - nTime5), nTimeCallbacks * 0.000001);
 
-    // If this block activates UAHF, we clear the mempool. This ensure that
-    // we'll only get replay protected transaction in the mempool going forward.
-    if (!hasUAHF && IsUAHFenabled(config, pindex)) {
-        mempool.clear();
-    }
-
     return true;
 }
 
 /**
  * Update the on-disk chain state.
- * The caches and indexes are flushed depending on the mode we're called with
- * if they're too large, if it's been a while since the last write,
- * or always and in all cases if we're in prune mode and are deleting files.
+ * The caches and indexes are flushed depending on the mode we're called with if
+ * they're too large, if it's been a while since the last write, or always and
+ * in all cases if we're in prune mode and are deleting files.
  */
-bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode,
+static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight) {
     int64_t nMempoolUsage = mempool.DynamicMemoryUsage();
     const CChainParams &chainparams = Params();
@@ -2223,16 +2182,18 @@ bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode,
         // Flush best chain related state. This can only be done if the blocks /
         // block index write was also done.
         if (fDoFullFlush) {
-            // Typical CCoins structures on disk are around 128 bytes in size.
+            // Typical Coin structures on disk are around 48 bytes in size.
             // Pushing a new one to the database can cause it to be written
             // twice (once in the log, and once in the tables). This is already
             // an overestimation, as most will delete an existing entry or
             // overwrite one. Still, use a conservative safety factor of 2.
-            if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
+            if (!CheckDiskSpace(48 * 2 * 2 * pcoinsTip->GetCacheSize())) {
                 return state.Error("out of disk space");
+            }
             // Flush the chainstate (which may refer to block index entries).
-            if (!pcoinsTip->Flush())
+            if (!pcoinsTip->Flush()) {
                 return AbortNode(state, "Failed to write to coin database");
+            }
             nLastFlush = nNow;
         }
         if (fDoFullFlush ||
@@ -2328,7 +2289,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     }
     LogPrintf(
         "%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu "
-        "date='%s' progress=%f cache=%.1fMiB(%utx)",
+        "date='%s' progress=%f cache=%.1fMiB(%utxo)",
         __func__, chainActive.Tip()->GetBlockHash().ToString(),
         chainActive.Height(), chainActive.Tip()->nVersion,
         log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
@@ -2380,15 +2341,6 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED)) {
         return false;
-    }
-
-    // If this block was the activation of the UAHF, then we need to remove
-    // transactions that are valid only on the HF chain. There is no easy way to
-    // do this so we'll just discard the whole mempool and then add the
-    // transaction of the block we just disconnected back.
-    if (IsUAHFenabled(config, pindexDelete) &&
-        !IsUAHFenabled(config, pindexDelete->pprev)) {
-        mempool.clear();
     }
 
     if (!fBare) {
@@ -3386,29 +3338,6 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 
-    if (IsUAHFenabled(config, pindexPrev)) {
-        // If UAHF is enabled for the curent block, but not for the previous
-        // block, we must check that the block is larger than 1MB.
-        if (!IsUAHFenabled(config, pindexPrev->pprev)) {
-            const uint64_t currentBlockSize =
-                ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-            if (currentBlockSize <= LEGACY_MAX_BLOCK_SIZE) {
-                return state.DoS(100, false, REJECT_INVALID,
-                                 "bad-blk-too-small", false,
-                                 "size limits failed");
-            }
-        }
-    } else {
-        // When UAHF is not enabled, block cannot be bigger than
-        // LEGACY_MAX_BLOCK_SIZE .
-        const uint64_t currentBlockSize =
-            ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-        if (currentBlockSize > LEGACY_MAX_BLOCK_SIZE) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length",
-                             false, "size limits failed");
-        }
-    }
-
     const int64_t nMedianTimePast =
         pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();
 
@@ -3799,14 +3728,18 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
     }
 }
 
-/* Calculate the block/rev files to delete based on height specified by user
- * with RPC command pruneblockchain */
-void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                            int nManualPruneHeight) {
+/**
+ * Calculate the block/rev files to delete based on height specified by user
+ * with RPC command pruneblockchain.
+ */
+static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
+                                   int nManualPruneHeight) {
     assert(fPruneMode && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
-    if (chainActive.Tip() == nullptr) return;
+    if (chainActive.Tip() == nullptr) {
+        return;
+    }
 
     // last block to prune is the lesser of (user-specified height,
     // MIN_BLOCKS_TO_KEEP from the tip)
@@ -3816,8 +3749,9 @@ void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
     int count = 0;
     for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
         if (vinfoBlockFile[fileNumber].nSize == 0 ||
-            vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
+            vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
             continue;
+        }
         PruneOneBlockFile(fileNumber);
         setFilesToPrune.insert(fileNumber);
         count++;
@@ -3839,7 +3773,7 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
     if (chainActive.Tip() == nullptr || nPruneTarget == 0) {
         return;
     }
-    if ((uint64_t)chainActive.Tip()->nHeight <= nPruneAfterHeight) {
+    if (uint64_t(chainActive.Tip()->nHeight) <= nPruneAfterHeight) {
         return;
     }
 
@@ -3858,16 +3792,20 @@ void FindFilesToPrune(std::set<int> &setFilesToPrune,
             nBytesToPrune = vinfoBlockFile[fileNumber].nSize +
                             vinfoBlockFile[fileNumber].nUndoSize;
 
-            if (vinfoBlockFile[fileNumber].nSize == 0) continue;
+            if (vinfoBlockFile[fileNumber].nSize == 0) {
+                continue;
+            }
 
-            if (nCurrentUsage + nBuffer <
-                nPruneTarget) // are we below our target?
+            // are we below our target?
+            if (nCurrentUsage + nBuffer < nPruneTarget) {
                 break;
+            }
 
             // don't prune files that could have a block within
             // MIN_BLOCKS_TO_KEEP of the main chain's tip but keep scanning
-            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
+            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune) {
                 continue;
+            }
 
             PruneOneBlockFile(fileNumber);
             // Queue up the files for removal
@@ -3948,7 +3886,7 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
     return pindexNew;
 }
 
-bool static LoadBlockIndexDB(const CChainParams &chainparams) {
+static bool LoadBlockIndexDB(const CChainParams &chainparams) {
     if (!pblocktree->LoadBlockIndexGuts(InsertBlockIndex)) return false;
 
     boost::this_thread::interruption_point();
@@ -4401,7 +4339,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
             unsigned int nSize = 0;
             try {
                 // Locate a header.
-                unsigned char buf[CMessageHeader::MESSAGE_START_SIZE];
+                uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
                 blkdat.FindByte(chainparams.MessageStart()[0]);
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> FLATDATA(buf);
@@ -4530,7 +4468,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
     return nLoaded > 0;
 }
 
-void static CheckBlockIndex(const Consensus::Params &consensusParams) {
+static void CheckBlockIndex(const Consensus::Params &consensusParams) {
     if (!fCheckBlockIndex) {
         return;
     }

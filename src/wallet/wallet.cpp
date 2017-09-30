@@ -212,9 +212,8 @@ bool CWallet::AddKeyPubKey(const CKey &secret, const CPubKey &pubkey) {
         .WriteKey(pubkey, secret.GetPrivKey(), mapKeyMetadata[pubkey.GetID()]);
 }
 
-bool CWallet::AddCryptedKey(
-    const CPubKey &vchPubKey,
-    const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
+                            const std::vector<uint8_t> &vchCryptedSecret) {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret)) {
         return false;
     }
@@ -243,9 +242,8 @@ bool CWallet::LoadKeyMetadata(const CTxDestination &keyID,
     return true;
 }
 
-bool CWallet::LoadCryptedKey(
-    const CPubKey &vchPubKey,
-    const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey,
+                             const std::vector<uint8_t> &vchCryptedSecret) {
     return CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret);
 }
 
@@ -2322,7 +2320,7 @@ static void ApproximateBestSubset(
                 // degenerate behavior and it is important that the rng is fast.
                 // We do not use a constant random sequence, because there may
                 // be some privacy improvement by making the selection random.
-                if (nPass == 0 ? insecure_rand.rand32() & 1 : !vfIncluded[i]) {
+                if (nPass == 0 ? insecure_rand.randbool() : !vfIncluded[i]) {
                     nTotal += vValue[i].first;
                     vfIncluded[i] = true;
                     if (nTotal >= nTargetValue) {
@@ -2598,7 +2596,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, CAmount &nFeeRet,
 
     // Copy output sizes from new transaction; they may have had the fee
     // subtracted from them.
-    for (unsigned int idx = 0; idx < tx.vout.size(); idx++) {
+    for (size_t idx = 0; idx < tx.vout.size(); idx++) {
         tx.vout[idx].nValue = wtx.tx->vout[idx].nValue;
     }
 
@@ -2965,14 +2963,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         }
 
         if (sign) {
-            uint32_t nHashType = SIGHASH_ALL;
-            // If we already forked, use replay protected tx by default.
-            // It is ok to use GetConfig here, because we'll just use replay
-            // protected transaction only fairly soon anyway, so we can just
-            // remove that call.
-            if (IsUAHFenabledForCurrentBlock(GetConfig())) {
-                nHashType |= SIGHASH_FORKID;
-            }
+            uint32_t nHashType = SIGHASH_ALL | SIGHASH_FORKID;
 
             CTransaction txNewConst(txNew);
             int nIn = 0;

@@ -62,7 +62,7 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::State &state) {
         prevector<PREVECTOR_SIZE, uint8_t> p;
         PrevectorJob() {}
         PrevectorJob(FastRandomContext &insecure_rand) {
-            p.resize(insecure_rand.rand32() % (PREVECTOR_SIZE * 2));
+            p.resize(insecure_rand.randrange(PREVECTOR_SIZE * 2));
         }
         bool operator()() { return true; }
         void swap(PrevectorJob &x) { p.swap(x.p); };

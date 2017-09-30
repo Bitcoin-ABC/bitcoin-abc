@@ -32,11 +32,6 @@ DEFAULT_MAX_BLOCK_SIZE = eval(
     re.search(r'DEFAULT_MAX_BLOCK_SIZE = (.+);',
               _consensus_h_contents).group(1))
 
-# Start time is simple integer constant, so does not need evaluation.
-DEFAULT_UAHF_START_TIME = int(
-    re.search(r'DEFAULT_UAHF_START_TIME = (.+);',
-              _consensus_h_contents).group(1))
-
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
 # that violate current consensus.

@@ -585,7 +585,7 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins,
                 if (nCheckFrequency != 0) assert(!coin.IsSpent());
                 if (coin.IsSpent() ||
                     (coin.IsCoinBase() &&
-                     ((signed long)nMemPoolHeight) - coin.GetHeight() <
+                     int64_t(nMemPoolHeight) - coin.GetHeight() <
                          COINBASE_MATURITY)) {
                     txToRemove.insert(it);
                     break;
@@ -1017,21 +1017,25 @@ CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView *baseIn,
                                      const CTxMemPool &mempoolIn)
     : CCoinsViewBacked(baseIn), mempool(mempoolIn) {}
 
-bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
+bool CCoinsViewMemPool::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     // If an entry in the mempool exists, always return that one, as it's
     // guaranteed to never conflict with the underlying cache, and it cannot
     // have pruned entries (as it contains full) transactions. First checking
     // the underlying cache risks returning a pruned entry instead.
-    CTransactionRef ptx = mempool.get(txid);
+    CTransactionRef ptx = mempool.get(outpoint.hash);
     if (ptx) {
-        coins = CCoins(*ptx, MEMPOOL_HEIGHT);
-        return true;
+        if (outpoint.n < ptx->vout.size()) {
+            coin = Coin(ptx->vout[outpoint.n], MEMPOOL_HEIGHT, false);
+            return true;
+        }
+        return false;
     }
-    return (base->GetCoins_DONOTUSE(txid, coins) && !coins.IsPruned());
+
+    return base->GetCoin(outpoint, coin) && !coin.IsSpent();
 }
 
-bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {
-    return mempool.exists(txid) || base->HaveCoins_DONOTUSE(txid);
+bool CCoinsViewMemPool::HaveCoin(const COutPoint &outpoint) const {
+    return mempool.exists(outpoint) || base->HaveCoin(outpoint);
 }
 
 size_t CTxMemPool::DynamicMemoryUsage() const {
@@ -1192,12 +1196,9 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
                     if (exists(txin.prevout.hash)) {
                         continue;
                     }
-
-                    auto iter =
-                        mapNextTx.lower_bound(COutPoint(txin.prevout.hash, 0));
-                    if (iter == mapNextTx.end() ||
-                        iter->first->hash != txin.prevout.hash)
+                    if (!mapNextTx.count(txin.prevout)) {
                         pvNoSpendsRemaining->push_back(txin.prevout);
+                    }
                 }
             }
         }
@@ -1216,3 +1217,7 @@ bool CTxMemPool::TransactionWithinChainLimit(const uint256 &txid,
     return it == mapTx.end() || (it->GetCountWithAncestors() < chainLimit &&
                                  it->GetCountWithDescendants() < chainLimit);
 }
+
+SaltedTxidHasher::SaltedTxidHasher()
+    : k0(GetRand(std::numeric_limits<uint64_t>::max())),
+      k1(GetRand(std::numeric_limits<uint64_t>::max())) {}

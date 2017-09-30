@@ -17,9 +17,9 @@ class CCoinsViewCache;
 /** Default for -blockmaxsize, which controls the maximum size of block the
  * mining code will create **/
 static const uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE = 2 * ONE_MEGABYTE;
-/** Default for -blockprioritysize, maximum space for zero/low-fee transactions
- * **/
-static const uint64_t DEFAULT_BLOCK_PRIORITY_SIZE = 0;
+/** Default for -blockprioritypercentage, define the amount of block space
+ * reserved to high priority transactions **/
+static const uint64_t DEFAULT_BLOCK_PRIORITY_PERCENTAGE = 5;
 /** Default for -blockmintxfee, which sets the minimum feerate for a transaction
  * in blocks created by mining code **/
 static const unsigned int DEFAULT_BLOCK_MIN_TX_FEE = 1000;
@@ -59,11 +59,11 @@ static const unsigned int DUST_RELAY_TX_FEE = 1000;
  */
 static const unsigned int STANDARD_SCRIPT_VERIFY_FLAGS =
     MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_DERSIG |
-    SCRIPT_VERIFY_STRICTENC | SCRIPT_VERIFY_MINIMALDATA |
-    SCRIPT_VERIFY_NULLDUMMY | SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
-    SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_NULLFAIL |
-    SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY |
-    SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM;
+    SCRIPT_VERIFY_MINIMALDATA | SCRIPT_VERIFY_NULLDUMMY |
+    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS | SCRIPT_VERIFY_CLEANSTACK |
+    SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
+    SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_VERIFY_LOW_S |
+    SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM;
 
 /** For convenience, standard but not mandatory verify flags. */
 static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS =

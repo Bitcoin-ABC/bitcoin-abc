@@ -398,7 +398,7 @@
         <translation>툴바 색인표</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and bitcoin: URIs)</source>
+        <source>Request payments (generates QR codes and %1 URIs)</source>
         <translation>지불 요청하기 (QR코드와 비트코인이 생성됩니다: URIs)</translation>
     </message>
     <message>
@@ -410,8 +410,8 @@
         <translation>한번 이상 사용된 받는 주소와 주소 제목의 목록을 보여줍니다.</translation>
     </message>
     <message>
-        <source>Open a bitcoin: URI or payment request</source>
-        <translation>bitcoin: URI 또는 지불요청 열기</translation>
+        <source>Open a %1 URI or payment request</source>
+        <translation>%1 URI 또는 지불요청 열기</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1198,8 +1198,8 @@
         <translation>지불 요청 오류</translation>
     </message>
     <message>
-        <source>Cannot start bitcoin: click-to-pay handler</source>
-        <translation>비트코인을 시작할 수 없습니다: 지급제어기를 클릭하시오</translation>
+        <source>Cannot start %1 click-to-pay handler</source>
+        <translation>비트코인을 시작할 수 %1 지급제어기를 클릭하시오</translation>
     </message>
     <message>
         <source>URI handling</source>
@@ -1908,7 +1908,7 @@
         <translation>사용된 주소 목록에 새 주소를 추가하기 위해 라벨 이름을 입력해 주세요. </translation>
     </message>
     <message>
-        <source>A message that was attached to the bitcoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
+        <source>A message that was attached to the %1 URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Bitcoin network.</source>
         <translation>비트코인에 첨부된 메시지: 참고용으로 거래와 함께 저장될 URI. 메모: 이 메시지는 비트코인 네트워크로 전송되지 않습니다.</translation>
     </message>
     <message>

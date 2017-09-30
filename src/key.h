@@ -29,7 +29,7 @@
  * CPrivKey is a serialized private key, with all parameters included (279
  * bytes)
  */
-typedef std::vector<unsigned char, secure_allocator<unsigned char>> CPrivKey;
+typedef std::vector<uint8_t, secure_allocator<uint8_t>> CPrivKey;
 
 /** An encapsulated private key. */
 class CKey {
@@ -44,10 +44,10 @@ private:
     bool fCompressed;
 
     //! The actual byte data
-    std::vector<unsigned char, secure_allocator<unsigned char>> keydata;
+    std::vector<uint8_t, secure_allocator<uint8_t>> keydata;
 
     //! Check whether the 32-byte array pointed to be vch is valid keydata.
-    bool static Check(const unsigned char *vch);
+    static bool Check(const uint8_t *vch);
 
 public:
     //! Construct an invalid private key.
@@ -70,7 +70,7 @@ public:
         if (size_t(pend - pbegin) != keydata.size()) {
             fValid = false;
         } else if (Check(&pbegin[0])) {
-            memcpy(keydata.data(), (unsigned char *)&pbegin[0], keydata.size());
+            memcpy(keydata.data(), (uint8_t *)&pbegin[0], keydata.size());
             fValid = true;
             fCompressed = fCompressedIn;
         } else {
@@ -80,8 +80,8 @@ public:
 
     //! Simple read-only vector-like interface.
     unsigned int size() const { return (fValid ? keydata.size() : 0); }
-    const unsigned char *begin() const { return keydata.data(); }
-    const unsigned char *end() const { return keydata.data() + size(); }
+    const uint8_t *begin() const { return keydata.data(); }
+    const uint8_t *end() const { return keydata.data() + size(); }
 
     //! Check whether this private key is valid.
     bool IsValid() const { return fValid; }
@@ -113,7 +113,7 @@ public:
      * Create a DER-serialized signature.
      * The test_case parameter tweaks the deterministic nonce.
      */
-    bool Sign(const uint256 &hash, std::vector<unsigned char> &vchSig,
+    bool Sign(const uint256 &hash, std::vector<uint8_t> &vchSig,
               uint32_t test_case = 0) const;
 
     /**
@@ -127,8 +127,7 @@ public:
      * odd y,
      *                  add 0x04 for compressed keys.
      */
-    bool SignCompact(const uint256 &hash,
-                     std::vector<unsigned char> &vchSig) const;
+    bool SignCompact(const uint256 &hash, std::vector<uint8_t> &vchSig) const;
 
     //! Derive BIP32 child key.
     bool Derive(CKey &keyChild, ChainCode &ccChild, unsigned int nChild,
@@ -145,8 +144,8 @@ public:
 };
 
 struct CExtKey {
-    unsigned char nDepth;
-    unsigned char vchFingerprint[4];
+    uint8_t nDepth;
+    uint8_t vchFingerprint[4];
     unsigned int nChild;
     ChainCode chaincode;
     CKey key;
@@ -159,21 +158,21 @@ struct CExtKey {
                a.key == b.key;
     }
 
-    void Encode(unsigned char code[BIP32_EXTKEY_SIZE]) const;
-    void Decode(const unsigned char code[BIP32_EXTKEY_SIZE]);
+    void Encode(uint8_t code[BIP32_EXTKEY_SIZE]) const;
+    void Decode(const uint8_t code[BIP32_EXTKEY_SIZE]);
     bool Derive(CExtKey &out, unsigned int nChild) const;
     CExtPubKey Neuter() const;
-    void SetMaster(const unsigned char *seed, unsigned int nSeedLen);
+    void SetMaster(const uint8_t *seed, unsigned int nSeedLen);
     template <typename Stream> void Serialize(Stream &s) const {
         unsigned int len = BIP32_EXTKEY_SIZE;
         ::WriteCompactSize(s, len);
-        unsigned char code[BIP32_EXTKEY_SIZE];
+        uint8_t code[BIP32_EXTKEY_SIZE];
         Encode(code);
         s.write((const char *)&code[0], len);
     }
     template <typename Stream> void Unserialize(Stream &s) {
         unsigned int len = ::ReadCompactSize(s);
-        unsigned char code[BIP32_EXTKEY_SIZE];
+        uint8_t code[BIP32_EXTKEY_SIZE];
         s.read((char *)&code[0], len);
         Decode(code);
     }
