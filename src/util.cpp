@@ -556,8 +556,8 @@ void ReadConfigFile(const std::string &confPath) {
              it != end; ++it) {
             // Don't overwrite existing settings so command line settings
             // override bitcoinabc.conf
-            string strKey = string("-") + it->string_key;
-            string strValue = it->value[0];
+            std::string strKey = std::string("-") + it->string_key;
+            std::string strValue = it->value[0];
             InterpretNegativeSetting(strKey, strValue);
             if (mapArgs.count(strKey) == 0) mapArgs[strKey] = strValue;
             _mapMultiArgs[strKey].push_back(strValue);
