@@ -1477,6 +1477,8 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
                       unsigned int nIn, SigHashType sigHashType,
                       const Amount amount,
                       const PrecomputedTransactionData *cache, uint32_t flags) {
+    assert(nIn < txTo.vin.size());
+
     if (flags & SCRIPT_ENABLE_REPLAY_PROTECTION) {
         // Legacy chain's value for fork id must be of the form 0xffxxxx.
         // By xoring with 0xdead, we ensure that the value will be different
@@ -1535,10 +1537,6 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 
     static const uint256 one(uint256S(
         "0000000000000000000000000000000000000000000000000000000000000001"));
-    if (nIn >= txTo.vin.size()) {
-        //  nIn out of range
-        return one;
-    }
 
     // Check for invalid use of SIGHASH_SINGLE
     if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
