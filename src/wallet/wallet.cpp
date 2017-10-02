@@ -4396,6 +4396,14 @@ bool CWallet::BackupWallet(const std::string &strDest) {
                 }
 
                 try {
+
+                    if (boost::filesystem::equivalent(pathSrc, pathDest)) {
+                        LogPrintf("cannot backup to wallet source file %s\n",
+                                  pathDest.string());
+                        return false;
+
+                    }
+
 #if BOOST_VERSION >= 104000
                     boost::filesystem::copy_file(
                         pathSrc, pathDest,
