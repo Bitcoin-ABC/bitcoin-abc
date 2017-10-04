@@ -411,8 +411,6 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             new CNode(id, nLocalServices, GetBestHeight(), hSocket, addrConnect,
                       CalculateKeyedNetGroup(addrConnect), nonce, addr_bind,
                       pszDest ? pszDest : "", false);
-        pnode->nServicesExpected =
-            ServiceFlags(addrConnect.nServices & nRelevantServices);
         pnode->AddRef();
 
         return pnode;
@@ -668,7 +666,7 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.cleanSubVer = cleanSubVer;
     }
     stats.fInbound = fInbound;
-    stats.fAddnode = fAddnode;
+    stats.m_manual_connection = m_manual_connection;
     stats.nStartingHeight = nStartingHeight;
     {
         LOCK(cs_vSend);
@@ -1004,12 +1002,12 @@ bool CConnman::AttemptToEvictConnection() {
                 continue;
             }
             NodeEvictionCandidate candidate = {
-                node->id,
+                node->GetId(),
                 node->nTimeConnected,
                 node->nMinPingUsecTime,
                 node->nLastBlockTime,
                 node->nLastTXTime,
-                (node->nServices & nRelevantServices) == nRelevantServices,
+                HasAllDesirableServiceFlags(node->nServices),
                 node->fRelayTxes,
                 node->pfilter != nullptr,
                 node->addr,
@@ -1684,9 +1682,9 @@ void CConnman::ThreadDNSAddressSeed() {
         LOCK(cs_vNodes);
         int nRelevant = 0;
         for (auto pnode : vNodes) {
-            nRelevant +=
-                pnode->fSuccessfullyConnected &&
-                ((pnode->nServices & nRelevantServices) == nRelevantServices);
+            nRelevant += pnode->fSuccessfullyConnected && !pnode->fFeeler &&
+                         !pnode->fOneShot && !pnode->m_manual_connection &&
+                         !pnode->fInbound;
         }
         if (nRelevant >= 2) {
             LogPrintf("P2P peers available. Skipped DNS seeding.\n");
@@ -1706,7 +1704,8 @@ void CConnman::ThreadDNSAddressSeed() {
         } else {
             std::vector<CNetAddr> vIPs;
             std::vector<CAddress> vAdd;
-            ServiceFlags requiredServiceBits = nRelevantServices;
+            ServiceFlags requiredServiceBits =
+                GetDesirableServiceFlags(NODE_NONE);
             std::string host = GetDNSHost(seed, &requiredServiceBits);
             CNetAddr resolveSource;
             if (!resolveSource.SetInternal(host)) {
@@ -1773,7 +1772,8 @@ void CConnman::ThreadOpenConnections() {
             ProcessOneShot();
             for (const std::string &strAddr : gArgs.GetArgs("-connect")) {
                 CAddress addr(CService(), NODE_NONE);
-                OpenNetworkConnection(addr, false, nullptr, strAddr.c_str());
+                OpenNetworkConnection(addr, false, nullptr, strAddr.c_str(),
+                                      false, false, true);
                 for (int i = 0; i < 10 && i < nLoop; i++) {
                     if (!interruptNet.sleep_for(
                             std::chrono::milliseconds(500))) {
@@ -1832,7 +1832,7 @@ void CConnman::ThreadOpenConnections() {
         {
             LOCK(cs_vNodes);
             for (CNode *pnode : vNodes) {
-                if (!pnode->fInbound && !pnode->fAddnode) {
+                if (!pnode->fInbound && !pnode->m_manual_connection) {
                     // Netgroups for inbound and addnode peers are not excluded
                     // because our goal here is to not use multiple of our
                     // limited outbound slots on a single netgroup but inbound
@@ -1895,20 +1895,19 @@ void CConnman::ThreadOpenConnections() {
                 continue;
             }
 
-            // only connect to full nodes
-            if ((addr.nServices & REQUIRED_SERVICES) != REQUIRED_SERVICES) {
-                continue;
-            }
-
             // only consider very recently tried nodes after 30 failed attempts
             if (nANow - addr.nLastTry < 600 && nTries < 30) {
                 continue;
             }
 
-            // only consider nodes missing relevant services after 40 failed
-            // attempts and only if less than half the outbound are up.
-            if ((addr.nServices & nRelevantServices) != nRelevantServices &&
-                (nTries < 40 || nOutbound >= (nMaxOutbound >> 1))) {
+            // for non-feelers, require all the services we'll want,
+            // for feelers, only require they be a full node (only because most
+            // SPV clients don't have a good address DB available)
+            if (!fFeeler && !HasAllDesirableServiceFlags(addr.nServices)) {
+                continue;
+            }
+
+            if (fFeeler && !MayHaveUsefulAddressDB(addr.nServices)) {
                 continue;
             }
 
@@ -2053,7 +2052,7 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
                                      bool fCountFailure,
                                      CSemaphoreGrant *grantOutbound,
                                      const char *pszDest, bool fOneShot,
-                                     bool fFeeler, bool fAddnode) {
+                                     bool fFeeler, bool manual_connection) {
     //
     // Initiate outbound network connection
     //
@@ -2086,8 +2085,8 @@ bool CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     if (fFeeler) {
         pnode->fFeeler = true;
     }
-    if (fAddnode) {
-        pnode->fAddnode = true;
+    if (manual_connection) {
+        pnode->m_manual_connection = true;
     }
 
     m_msgproc->InitializeNode(*config, pnode);
@@ -2860,7 +2859,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       nLocalHostNonce(nLocalHostNonceIn), nLocalServices(nLocalServicesIn),
       nMyStartingHeight(nMyStartingHeightIn), nSendVersion(0) {
     nServices = NODE_NONE;
-    nServicesExpected = NODE_NONE;
     hSocket = hSocketIn;
     nRecvVersion = INIT_PROTO_VERSION;
     nLastSend = 0;
@@ -2873,7 +2871,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     strSubVer = "";
     fWhitelisted = false;
     fOneShot = false;
-    fAddnode = false;
+    m_manual_connection = false;
     // set by version message
     fClient = false;
     fFeeler = false;

@@ -455,7 +455,8 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageGroup(_("Connection options:"));
     strUsage += HelpMessageOpt(
         "-addnode=<ip>",
-        _("Add a node to connect to and attempt to keep the connection open"));
+        _("Add a node to connect to and attempt to keep the connection open "
+          "(see the `addnode` RPC command help for more info)"));
     strUsage += HelpMessageOpt(
         "-banscore=<n>",
         strprintf(
@@ -468,10 +469,10 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt("-bind=<addr>",
                                _("Bind to given address and always listen on "
                                  "it. Use [host]:port notation for IPv6"));
-    strUsage +=
-        HelpMessageOpt("-connect=<ip>",
-                       _("Connect only to the specified node(s); -noconnect or "
-                         "-connect=0 alone to disable automatic connections"));
+    strUsage += HelpMessageOpt(
+        "-connect=<ip>", _("Connect only to the specified node(s); -connect=0 "
+                           "disables automatic connections (the rules for this "
+                           "peer are the same as for -addnode)"));
     strUsage += HelpMessageOpt("-discover",
                                _("Discover own IP addresses (default: 1 when "
                                  "listening and no -externalip or -proxy)"));
@@ -1259,7 +1260,6 @@ void InitLogging() {
 
 namespace { // Variables internal to initialization process only
 
-ServiceFlags nRelevantServices = NODE_NETWORK;
 int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
@@ -2233,7 +2233,6 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
-    connOptions.nRelevantServices = nRelevantServices;
     connOptions.nMaxConnections = nMaxConnections;
     connOptions.nMaxOutbound =
         std::min(MAX_OUTBOUND_CONNECTIONS, connOptions.nMaxConnections);

@@ -1428,17 +1428,19 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         if (!pfrom->fInbound) {
             connman->SetServices(pfrom->addr, nServices);
         }
-        if (pfrom->nServicesExpected & ~nServices) {
-            LogPrint(BCLog::NET, "peer=%d does not offer the expected services "
-                                 "(%08x offered, %08x expected); "
-                                 "disconnecting\n",
-                     pfrom->GetId(), nServices, pfrom->nServicesExpected);
+        if (!pfrom->fInbound && !pfrom->fFeeler &&
+            !pfrom->m_manual_connection &&
+            !HasAllDesirableServiceFlags(nServices)) {
+            LogPrint(
+                BCLog::NET, "peer=%d does not offer the expected services "
+                            "(%08x offered, %08x expected); disconnecting\n",
+                pfrom->GetId(), nServices, GetDesirableServiceFlags(nServices));
             connman->PushMessage(
                 pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION)
                     .Make(NetMsgType::REJECT, strCommand, REJECT_NONSTANDARD,
                           strprintf("Expected to offer services %08x",
-                                    pfrom->nServicesExpected)));
+                                    GetDesirableServiceFlags(nServices))));
             pfrom->fDisconnect = true;
             return false;
         }
@@ -1659,7 +1661,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 return true;
             }
 
-            if ((addr.nServices & REQUIRED_SERVICES) != REQUIRED_SERVICES) {
+            // We only bother storing full nodes, though this may include things
+            // which we would not make an outbound connection to, in part
+            // because we may make feeler connections to them.
+            if (!MayHaveUsefulAddressDB(addr.nServices)) {
                 continue;
             }
 
@@ -2995,8 +3000,8 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman) {
         if (pnode->fWhitelisted) {
             LogPrintf("Warning: not punishing whitelisted peer %s!\n",
                       pnode->addr.ToString());
-        } else if (pnode->fAddnode) {
-            LogPrintf("Warning: not punishing addnoded peer %s!\n",
+        } else if (pnode->m_manual_connection) {
+            LogPrintf("Warning: not punishing manually-connected peer %s!\n",
                       pnode->addr.ToString());
         } else {
             pnode->fDisconnect = true;

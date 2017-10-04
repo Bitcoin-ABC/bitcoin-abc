@@ -85,8 +85,6 @@ static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
-static const ServiceFlags REQUIRED_SERVICES = ServiceFlags(NODE_NETWORK);
-
 // Default 24-hour ban.
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
 static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;
@@ -127,7 +125,6 @@ public:
 
     struct Options {
         ServiceFlags nLocalServices = NODE_NONE;
-        ServiceFlags nRelevantServices = NODE_NONE;
         int nMaxConnections = 0;
         int nMaxOutbound = 0;
         int nMaxAddnode = 0;
@@ -146,7 +143,6 @@ public:
 
     void Init(const Options &connOptions) {
         nLocalServices = connOptions.nLocalServices;
-        nRelevantServices = connOptions.nRelevantServices;
         nMaxConnections = connOptions.nMaxConnections;
         nMaxOutbound =
             std::min(connOptions.nMaxOutbound, connOptions.nMaxConnections);
@@ -174,7 +170,7 @@ public:
                                CSemaphoreGrant *grantOutbound = nullptr,
                                const char *strDest = nullptr,
                                bool fOneShot = false, bool fFeeler = false,
-                               bool fAddnode = false);
+                               bool manual_connection = false);
     bool CheckIncomingNonce(uint64_t nonce);
 
     bool ForNode(NodeId id, std::function<bool(CNode *pnode)> func);
@@ -391,9 +387,6 @@ private:
     /** Services this instance offers */
     ServiceFlags nLocalServices;
 
-    /** Services this instance cares about */
-    ServiceFlags nRelevantServices;
-
     CSemaphore *semOutbound;
     CSemaphore *semAddnode;
     int nMaxConnections;
@@ -518,7 +511,7 @@ public:
     int nVersion;
     std::string cleanSubVer;
     bool fInbound;
-    bool fAddnode;
+    bool m_manual_connection;
     int nStartingHeight;
     uint64_t nSendBytes;
     mapMsgCmdSize mapSendBytesPerMsgCmd;
@@ -595,8 +588,6 @@ class CNode {
 public:
     // socket
     std::atomic<ServiceFlags> nServices;
-    // Services expected from a peer, otherwise it will be disconnected
-    ServiceFlags nServicesExpected;
     SOCKET hSocket;
     // Total size of all vSendMsg entries.
     size_t nSendSize;
@@ -640,7 +631,7 @@ public:
     // If true this node is being used as a short lived feeler.
     bool fFeeler;
     bool fOneShot;
-    bool fAddnode;
+    bool m_manual_connection;
     bool fClient;
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected;

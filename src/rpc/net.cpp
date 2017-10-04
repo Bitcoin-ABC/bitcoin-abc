@@ -110,7 +110,8 @@ static UniValue getpeerinfo(const Config &config,
             "    \"inbound\": true|false,     (boolean) Inbound (true) or "
             "Outbound (false)\n"
             "    \"addnode\": true|false,     (boolean) Whether connection was "
-            "due to addnode and is using an addnode slot\n"
+            "due to addnode/-connect or if it was an automatic/inbound "
+            "connection\n"
             "    \"startingheight\": n,       (numeric) The starting height "
             "(block) of the peer\n"
             "    \"banscore\": n,             (numeric) The ban score\n"
@@ -189,7 +190,7 @@ static UniValue getpeerinfo(const Config &config,
         // characters in their ver message.
         obj.push_back(Pair("subver", stats.cleanSubVer));
         obj.push_back(Pair("inbound", stats.fInbound));
-        obj.push_back(Pair("addnode", stats.fAddnode));
+        obj.push_back(Pair("addnode", stats.m_manual_connection));
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         if (fStateStats) {
             obj.push_back(Pair("banscore", statestats.nMisbehavior));
@@ -235,6 +236,10 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
             "addnode \"node\" \"add|remove|onetry\"\n"
             "\nAttempts add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
+            "Nodes added using addnode (or -connect) are protected from DoS "
+            "disconnection and are not required to be\n"
+            "full nodes/support SegWit as other outbound peers are (though "
+            "such peers will not be synced from).\n"
             "\nArguments:\n"
             "1. \"node\"     (string, required) The node (see getpeerinfo for "
             "nodes)\n"
@@ -254,7 +259,8 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
 
     if (strCommand == "onetry") {
         CAddress addr;
-        g_connman->OpenNetworkConnection(addr, false, nullptr, strNode.c_str());
+        g_connman->OpenNetworkConnection(addr, false, nullptr, strNode.c_str(),
+                                         false, false, true);
         return NullUniValue;
     }
 
