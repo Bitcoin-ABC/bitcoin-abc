@@ -130,7 +130,7 @@ public:
         return false;
     }
 
-    int GetBanTime() const {
+    int64_t GetBanTime() const {
         if (IsGood()) {
             return 0;
         }
@@ -152,7 +152,7 @@ public:
         return 0;
     }
 
-    int GetIgnoreTime() const {
+    int64_t GetIgnoreTime() const {
         if (IsGood()) {
             return 0;
         }
@@ -284,7 +284,7 @@ protected:
 
 public:
     // nodes that are banned, with their unban time (a)
-    std::map<CService, time_t> banned;
+    std::map<CService, int64_t> banned;
 
     void GetStats(CAddrDbStats &stats) {
         LOCK(cs);

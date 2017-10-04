@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 void CAddrInfo::Update(bool good) {
-    uint32_t now = time(nullptr);
+    int64_t now = time(nullptr);
     if (ourLastTry == 0) ourLastTry = now - MIN_RETRY;
     int age = now - ourLastTry;
     lastTry = now;
@@ -18,7 +18,7 @@ void CAddrInfo::Update(bool good) {
     stat1D.Update(good, age, 3600 * 24);
     stat1W.Update(good, age, 3600 * 24 * 7);
     stat1M.Update(good, age, 3600 * 24 * 30);
-    int ign = GetIgnoreTime();
+    int64_t ign = GetIgnoreTime();
     if (ign && (ignoreTill == 0 || ignoreTill < ign + now))
         ignoreTill = ign + now;
     //  printf("%s: got %s result: success=%i/%i; 2H:%.2f%%-%.2f%%(%.2f)
