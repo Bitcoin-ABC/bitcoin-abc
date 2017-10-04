@@ -1088,9 +1088,10 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
 }
 
 static void ProcessGetData(const Config &config, CNode *pfrom,
-                           const Consensus::Params &consensusParams,
                            CConnman *connman,
                            const std::atomic<bool> &interruptMsgProc) {
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
@@ -1345,9 +1346,9 @@ inline static void SendBlockTransactions(const CBlock &block,
 
 static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
-                           int64_t nTimeReceived,
-                           const CChainParams &chainparams, CConnman *connman,
+                           int64_t nTimeReceived, CConnman *connman,
                            const std::atomic<bool> &interruptMsgProc) {
+    const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
     if (gArgs.IsArgSet("-dropmessagestest") &&
@@ -1812,8 +1813,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(),
                                    vInv.end());
-        ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
-                       interruptMsgProc);
+        ProcessGetData(config, pfrom, connman, interruptMsgProc);
     }
 
     else if (strCommand == NetMsgType::GETBLOCKS) {
@@ -1927,8 +1927,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             inv.type = MSG_BLOCK;
             inv.hash = req.blockhash;
             pfrom->vRecvGetData.push_back(inv);
-            ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
-                           interruptMsgProc);
+            ProcessGetData(config, pfrom, connman, interruptMsgProc);
             return true;
         }
 
@@ -2421,14 +2420,14 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
-                                  blockTxnMsg, nTimeReceived, chainparams,
-                                  connman, interruptMsgProc);
+                                  blockTxnMsg, nTimeReceived, connman,
+                                  interruptMsgProc);
         }
 
         if (fRevertToHeaderProcessing) {
             return ProcessMessage(config, pfrom, NetMsgType::HEADERS,
-                                  vHeadersMsg, nTimeReceived, chainparams,
-                                  connman, interruptMsgProc);
+                                  vHeadersMsg, nTimeReceived, connman,
+                                  interruptMsgProc);
         }
 
         if (fBlockReconstructed) {
@@ -3031,8 +3030,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fMoreWork = false;
 
     if (!pfrom->vRecvGetData.empty()) {
-        ProcessGetData(config, pfrom, chainparams.GetConsensus(), connman,
-                       interruptMsgProc);
+        ProcessGetData(config, pfrom, connman, interruptMsgProc);
     }
 
     if (pfrom->fDisconnect) {
@@ -3112,7 +3110,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fRet = false;
     try {
         fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
-                              chainparams, connman, interruptMsgProc);
+                              connman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
         }
