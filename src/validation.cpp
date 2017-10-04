@@ -4053,7 +4053,8 @@ bool ProcessNewBlock(const Config &config,
 
         if (!ret) {
             GetMainSignals().BlockChecked(*pblock, state);
-            return error("%s: AcceptBlock FAILED", __func__);
+            return error("%s: AcceptBlock FAILED (%s)", __func__,
+                         state.GetDebugMessage());
         }
     }
 
