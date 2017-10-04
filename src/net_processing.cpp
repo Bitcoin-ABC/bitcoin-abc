@@ -3402,14 +3402,15 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman,
         } else if (pnode->m_manual_connection) {
             LogPrintf("Warning: not punishing manually-connected peer %s!\n",
                       pnode->addr.ToString());
-        } else {
+        } else if (pnode->addr.IsLocal()) {
+            // Disconnect but don't ban _this_ local node
+            LogPrintf("Warning: disconnecting but not banning local peer %s!\n",
+                      pnode->addr.ToString());
             pnode->fDisconnect = true;
-            if (pnode->addr.IsLocal()) {
-                LogPrintf("Warning: not banning local peer %s!\n",
-                          pnode->addr.ToString());
-            } else {
-                connman->Ban(pnode->addr, BanReasonNodeMisbehaving);
-            }
+        } else {
+            // Disconnect and ban all nodes sharing the address
+            connman->Ban(pnode->addr, BanReasonNodeMisbehaving);
+            connman->DisconnectNode(pnode->addr);
         }
         return true;
     }
@@ -3476,6 +3477,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
 
         // Make sure we ban where that come from for some time.
         connman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
+        connman->DisconnectNode(pfrom->addr);
 
         pfrom->fDisconnect = true;
         return false;
@@ -3508,6 +3510,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
                    hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE),
             pfrom->GetId());
         connman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
+        connman->DisconnectNode(pfrom->addr);
         return fMoreWork;
     }
 

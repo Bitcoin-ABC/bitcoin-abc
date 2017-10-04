@@ -1390,6 +1390,7 @@ void RPCConsole::banSelectedNode(int bantime) {
             clientModel->getPeerTableModel()->getNodeStats(detailNodeRow);
         if (stats) {
             m_node.ban(stats->nodeStats.addr, BanReasonManuallyAdded, bantime);
+            m_node.disconnect(stats->nodeStats.addr);
         }
     }
     clearSelectedNode();

@@ -575,15 +575,6 @@ void CConnman::Ban(const CSubNet &subNet, const BanReason &banReason,
         clientInterface->BannedListChanged();
     }
 
-    {
-        LOCK(cs_vNodes);
-        for (CNode *pnode : vNodes) {
-            if (subNet.Match(static_cast<CNetAddr>(pnode->addr))) {
-                pnode->fDisconnect = true;
-            }
-        }
-    }
-
     if (banReason == BanReasonManuallyAdded) {
         // Store banlist to disk immediately if user requested ban.
         DumpBanlist();
@@ -2733,6 +2724,23 @@ bool CConnman::DisconnectNode(const std::string &strNode) {
     }
     return false;
 }
+
+bool CConnman::DisconnectNode(const CSubNet &subnet) {
+    bool disconnected = false;
+    LOCK(cs_vNodes);
+    for (CNode *pnode : vNodes) {
+        if (subnet.Match(pnode->addr)) {
+            pnode->fDisconnect = true;
+            disconnected = true;
+        }
+    }
+    return disconnected;
+}
+
+bool CConnman::DisconnectNode(const CNetAddr &addr) {
+    return DisconnectNode(CSubNet(addr));
+}
+
 bool CConnman::DisconnectNode(NodeId id) {
     LOCK(cs_vNodes);
     for (CNode *pnode : vNodes) {
