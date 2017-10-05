@@ -113,16 +113,15 @@ bool DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
 
 } // namespace
 
-CBanDB::CBanDB(const CChainParams &chainParamsIn) : chainParams(chainParamsIn) {
-    pathBanlist = GetDataDir() / "banlist.dat";
-}
+CBanDB::CBanDB(fs::path ban_list_path, const CChainParams &_chainParams)
+    : m_ban_list_path(std::move(ban_list_path)), chainParams(_chainParams) {}
 
 bool CBanDB::Write(const banmap_t &banSet) {
-    return SerializeFileDB(chainParams, "banlist", pathBanlist, banSet);
+    return SerializeFileDB(chainParams, "banlist", m_ban_list_path, banSet);
 }
 
 bool CBanDB::Read(banmap_t &banSet) {
-    return DeserializeFileDB(chainParams, pathBanlist, banSet);
+    return DeserializeFileDB(chainParams, m_ban_list_path, banSet);
 }
 
 CAddrDB::CAddrDB(const CChainParams &chainParamsIn)

@@ -481,10 +481,10 @@ void BanMan::DumpBanlist() {
     }
 
     int64_t nStart = GetTimeMillis();
-    CBanDB bandb(params);
+
     banmap_t banmap;
     GetBanned(banmap);
-    if (bandb.Write(banmap)) {
+    if (m_ban_db.Write(banmap)) {
         SetBannedSetDirty(false);
     }
 
@@ -2518,9 +2518,10 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     return true;
 }
 
-BanMan::BanMan(const CChainParams &_params,
+BanMan::BanMan(fs::path ban_file, const CChainParams &chainParams,
                CClientUIInterface *client_interface)
-    : clientInterface(client_interface), params(_params) {
+    : clientInterface(client_interface),
+      m_ban_db(std::move(ban_file), chainParams) {
     if (clientInterface) {
         clientInterface->InitMessage(_("Loading banlist..."));
     }
@@ -2528,9 +2529,8 @@ BanMan::BanMan(const CChainParams &_params,
     // Load addresses from banlist.dat
     int64_t nStart = GetTimeMillis();
     setBannedIsDirty = false;
-    CBanDB bandb(params);
     banmap_t banmap;
-    if (bandb.Read(banmap)) {
+    if (m_ban_db.Read(banmap)) {
         // thread save setter
         SetBanned(banmap);
         // no need to write down, just read data

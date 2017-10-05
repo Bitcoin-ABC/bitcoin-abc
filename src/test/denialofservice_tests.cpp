@@ -229,7 +229,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
-    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
+    auto banman = std::make_unique<BanMan>(GetDataDir() / "banlist.dat",
+                                           config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), banman.get(), scheduler, false);
@@ -293,7 +294,8 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
-    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
+    auto banman = std::make_unique<BanMan>(GetDataDir() / "banlist.dat",
+                                           config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), banman.get(), scheduler, false);
@@ -345,7 +347,8 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
-    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
+    auto banman = std::make_unique<BanMan>(GetDataDir() / "banlist.dat",
+                                           config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
         connman.get(), banman.get(), scheduler, false);

@@ -1944,7 +1944,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // need to reindex later.
 
     assert(!g_banman);
-    g_banman = std::make_unique<BanMan>(config.GetChainParams(), &uiInterface);
+    g_banman = std::make_unique<BanMan>(GetDataDir() / "banlist.dat",
+                                        config.GetChainParams(), &uiInterface);
     assert(!g_connman);
     g_connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
