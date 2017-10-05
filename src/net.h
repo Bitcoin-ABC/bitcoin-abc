@@ -35,6 +35,7 @@
 #include <arpa/inet.h>
 #endif
 
+class BanMan;
 class Config;
 class CNode;
 class CScheduler;
@@ -90,10 +91,6 @@ static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
-// Default 24-hour ban.
-// NOTE: When adjusting this, update rpcnet:setban's help ("24h")
-static constexpr unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;
-
 typedef int64_t NodeId;
 
 struct AddedNodeInfo {
@@ -116,54 +113,6 @@ struct CSerializedNetMsg {
 
     std::vector<uint8_t> data;
     std::string command;
-};
-
-class BanMan {
-public:
-    // Denial-of-service detection/prevention
-    // The idea is to detect peers that are behaving
-    // badly and disconnect/ban them, but do it in a
-    // one-coding-mistake-won't-shatter-the-entire-network
-    // way.
-    // IMPORTANT:  There should be nothing I can give a
-    // node that it will forward on that will make that
-    // node's peers drop it. If there is, an attacker
-    // can isolate a node and/or try to split the network.
-    // Dropping a node for sending stuff that is invalid
-    // now but might be valid in a later version is also
-    // dangerous, because it can cause a network split
-    // between nodes running old code and nodes running
-    // new code.
-    ~BanMan();
-    BanMan(fs::path ban_file, const CChainParams &chainParams,
-           CClientUIInterface *client_interface, int64_t default_ban_time);
-    void Ban(const CNetAddr &netAddr, const BanReason &reason,
-             int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    void Ban(const CSubNet &subNet, const BanReason &reason,
-             int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    // needed for unit testing
-    void ClearBanned();
-    bool IsBanned(CNetAddr ip);
-    bool IsBanned(CSubNet subnet);
-    bool Unban(const CNetAddr &ip);
-    bool Unban(const CSubNet &ip);
-    void GetBanned(banmap_t &banmap);
-    void DumpBanlist();
-
-private:
-    void SetBanned(const banmap_t &banmap);
-    bool BannedSetIsDirty();
-    //! set the "dirty" flag for the banlist
-    void SetBannedSetDirty(bool dirty = true);
-    //! clean unused entries (if bantime has expired)
-    void SweepBanned();
-
-    banmap_t setBanned;
-    CCriticalSection cs_setBanned;
-    bool setBannedIsDirty;
-    CClientUIInterface *clientInterface = nullptr;
-    CBanDB m_ban_db;
-    int64_t m_default_ban_time;
 };
 
 class NetEventsInterface;

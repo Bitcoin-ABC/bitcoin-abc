@@ -340,9 +340,10 @@ target_link_libraries(bitcoinconsensus common)
 
 # Bitcoin server facilities
 add_library(server
-	addrman.cpp
 	addrdb.cpp
+	addrman.cpp
 	avalanche.cpp
+	banman.cpp
 	bloom.cpp
 	blockencodings.cpp
 	blockfilter.cpp

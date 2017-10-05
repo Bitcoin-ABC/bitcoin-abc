@@ -4,6 +4,7 @@
 
 #include <test/test_bitcoin.h>
 
+#include <banman.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
