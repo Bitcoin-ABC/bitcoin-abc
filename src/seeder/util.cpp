@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-std::string vstrprintf(const std::string &format, va_list ap) {
+std::string vstrprintf(const char *format, va_list ap) {
     char buffer[50000];
     char *p = buffer;
     int limit = sizeof(buffer);
@@ -10,7 +10,7 @@ std::string vstrprintf(const std::string &format, va_list ap) {
     loop {
         va_list arg_ptr;
         va_copy(arg_ptr, ap);
-        ret = vsnprintf(p, limit, format.c_str(), arg_ptr);
+        ret = vsnprintf(p, limit, format, arg_ptr);
         va_end(arg_ptr);
         if (ret >= 0 && ret < limit) break;
         if (p != buffer) delete[] p;

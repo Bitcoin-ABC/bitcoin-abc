@@ -44,9 +44,9 @@ static inline void Sleep(int nMilliSec) {
     nanosleep(&wa, nullptr);
 }
 
-std::string vstrprintf(const std::string &format, va_list ap);
+std::string vstrprintf(const char *format, va_list ap);
 
-static inline std::string strprintf(const std::string &format, ...) {
+static inline std::string strprintf(const char *format, ...) {
     va_list arg_ptr;
     va_start(arg_ptr, format);
     std::string ret = vstrprintf(format, arg_ptr);
