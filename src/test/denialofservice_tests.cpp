@@ -73,8 +73,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     std::atomic<bool> interruptDummy(false);
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic =
-        std::make_unique<PeerLogicValidation>(connman.get(), scheduler, false);
+    auto peerLogic = std::make_unique<PeerLogicValidation>(
+        connman.get(), nullptr, scheduler, false);
 
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -154,8 +154,8 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
-    auto peerLogic =
-        std::make_unique<PeerLogicValidation>(connman.get(), scheduler, false);
+    auto peerLogic = std::make_unique<PeerLogicValidation>(
+        connman.get(), nullptr, scheduler, false);
 
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -229,11 +229,12 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
+    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic =
-        std::make_unique<PeerLogicValidation>(connman.get(), scheduler, false);
+    auto peerLogic = std::make_unique<PeerLogicValidation>(
+        connman.get(), banman.get(), scheduler, false);
 
-    connman->ClearBanned();
+    banman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
     CNode dummyNode1(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr1, 0, 0,
                      CAddress(), "", true);
@@ -250,9 +251,9 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
     }
-    BOOST_CHECK(connman->IsBanned(addr1));
+    BOOST_CHECK(banman->IsBanned(addr1));
     // Different IP, not banned.
-    BOOST_CHECK(!connman->IsBanned(ip(0xa0b0c001 | 0x0000ff00)));
+    BOOST_CHECK(!banman->IsBanned(ip(0xa0b0c001 | 0x0000ff00)));
 
     CAddress addr2(ip(0xa0b0c002), NODE_NONE);
     CNode dummyNode2(id++, NODE_NETWORK, 0, INVALID_SOCKET, addr2, 1, 1,
@@ -270,9 +271,9 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
         peerLogic->SendMessages(config, &dummyNode2, interruptDummy);
     }
     // 2 not banned yet...
-    BOOST_CHECK(!connman->IsBanned(addr2));
+    BOOST_CHECK(!banman->IsBanned(addr2));
     // ... but 1 still should be.
-    BOOST_CHECK(connman->IsBanned(addr1));
+    BOOST_CHECK(banman->IsBanned(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode2.GetId(), 50, "");
@@ -281,7 +282,7 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
         LOCK2(cs_main, dummyNode2.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode2, interruptDummy);
     }
-    BOOST_CHECK(connman->IsBanned(addr2));
+    BOOST_CHECK(banman->IsBanned(addr2));
 
     bool dummy;
     peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
@@ -292,11 +293,12 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
+    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic =
-        std::make_unique<PeerLogicValidation>(connman.get(), scheduler, false);
+    auto peerLogic = std::make_unique<PeerLogicValidation>(
+        connman.get(), banman.get(), scheduler, false);
 
-    connman->ClearBanned();
+    banman->ClearBanned();
     // because 11 is my favorite number.
     gArgs.ForceSetArg("-banscore", "111");
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -314,7 +316,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
     }
-    BOOST_CHECK(!connman->IsBanned(addr1));
+    BOOST_CHECK(!banman->IsBanned(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode1.GetId(), 10, "");
@@ -323,7 +325,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
     }
-    BOOST_CHECK(!connman->IsBanned(addr1));
+    BOOST_CHECK(!banman->IsBanned(addr1));
     {
         LOCK(cs_main);
         Misbehaving(dummyNode1.GetId(), 1, "");
@@ -332,7 +334,7 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
     }
-    BOOST_CHECK(connman->IsBanned(addr1));
+    BOOST_CHECK(banman->IsBanned(addr1));
     gArgs.ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
 
     bool dummy;
@@ -343,11 +345,12 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
 
+    auto banman = std::make_unique<BanMan>(config.GetChainParams(), nullptr);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic =
-        std::make_unique<PeerLogicValidation>(connman.get(), scheduler, false);
+    auto peerLogic = std::make_unique<PeerLogicValidation>(
+        connman.get(), banman.get(), scheduler, false);
 
-    connman->ClearBanned();
+    banman->ClearBanned();
     int64_t nStartTime = GetTime();
     // Overrides future calls to GetTime()
     SetMockTime(nStartTime);
@@ -368,13 +371,13 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
         LOCK2(cs_main, dummyNode.cs_sendProcessing);
         peerLogic->SendMessages(config, &dummyNode, interruptDummy);
     }
-    BOOST_CHECK(connman->IsBanned(addr));
+    BOOST_CHECK(banman->IsBanned(addr));
 
     SetMockTime(nStartTime + 60 * 60);
-    BOOST_CHECK(connman->IsBanned(addr));
+    BOOST_CHECK(banman->IsBanned(addr));
 
     SetMockTime(nStartTime + 60 * 60 * 24 + 1);
-    BOOST_CHECK(!connman->IsBanned(addr));
+    BOOST_CHECK(!banman->IsBanned(addr));
 
     bool dummy;
     peerLogic->FinalizeNode(config, dummyNode.GetId(), dummy);

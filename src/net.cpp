@@ -41,9 +41,6 @@
 // Dump addresses to peers.dat every 15 minutes (900s)
 static constexpr int DUMP_PEERS_INTERVAL = 15 * 60;
 
-// Dump addresses to banlist.dat every 15 minutes (900s)
-static constexpr int DUMP_BANS_INTERVAL = 60 * 15;
-
 // We add a random period time (0 to 1 seconds) to feeler connections to prevent
 // synchronization.
 #define FEELER_SLEEP_WINDOW 1
@@ -475,7 +472,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     return pnode;
 }
 
-void CConnman::DumpBanlist() {
+void BanMan::DumpBanlist() {
     // Clean unused entries (if bantime has expired)
     SweepBanned();
 
@@ -484,8 +481,7 @@ void CConnman::DumpBanlist() {
     }
 
     int64_t nStart = GetTimeMillis();
-
-    CBanDB bandb(config->GetChainParams());
+    CBanDB bandb(params);
     banmap_t banmap;
     GetBanned(banmap);
     if (bandb.Write(banmap)) {
@@ -506,7 +502,7 @@ void CNode::CloseSocketDisconnect() {
     }
 }
 
-void CConnman::ClearBanned() {
+void BanMan::ClearBanned() {
     {
         LOCK(cs_setBanned);
         setBanned.clear();
@@ -520,7 +516,7 @@ void CConnman::ClearBanned() {
     }
 }
 
-bool CConnman::IsBanned(CNetAddr ip) {
+bool BanMan::IsBanned(CNetAddr ip) {
     LOCK(cs_setBanned);
     for (const auto &it : setBanned) {
         CSubNet subNet = it.first;
@@ -534,7 +530,7 @@ bool CConnman::IsBanned(CNetAddr ip) {
     return false;
 }
 
-bool CConnman::IsBanned(CSubNet subnet) {
+bool BanMan::IsBanned(CSubNet subnet) {
     LOCK(cs_setBanned);
 
     banmap_t::iterator i = setBanned.find(subnet);
@@ -548,14 +544,14 @@ bool CConnman::IsBanned(CSubNet subnet) {
     return false;
 }
 
-void CConnman::Ban(const CNetAddr &addr, const BanReason &banReason,
-                   int64_t bantimeoffset, bool sinceUnixEpoch) {
+void BanMan::Ban(const CNetAddr &addr, const BanReason &banReason,
+                 int64_t bantimeoffset, bool sinceUnixEpoch) {
     CSubNet subNet(addr);
     Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
 }
 
-void CConnman::Ban(const CSubNet &subNet, const BanReason &banReason,
-                   int64_t bantimeoffset, bool sinceUnixEpoch) {
+void BanMan::Ban(const CSubNet &subNet, const BanReason &banReason,
+                 int64_t bantimeoffset, bool sinceUnixEpoch) {
     CBanEntry banEntry(GetTime());
     banEntry.banReason = banReason;
     if (bantimeoffset <= 0) {
@@ -584,12 +580,12 @@ void CConnman::Ban(const CSubNet &subNet, const BanReason &banReason,
     }
 }
 
-bool CConnman::Unban(const CNetAddr &addr) {
+bool BanMan::Unban(const CNetAddr &addr) {
     CSubNet subNet(addr);
     return Unban(subNet);
 }
 
-bool CConnman::Unban(const CSubNet &subNet) {
+bool BanMan::Unban(const CSubNet &subNet) {
     {
         LOCK(cs_setBanned);
         if (!setBanned.erase(subNet)) {
@@ -607,7 +603,7 @@ bool CConnman::Unban(const CSubNet &subNet) {
     return true;
 }
 
-void CConnman::GetBanned(banmap_t &banMap) {
+void BanMan::GetBanned(banmap_t &banMap) {
     LOCK(cs_setBanned);
     // Sweep the banlist so expired bans are not returned
     SweepBanned();
@@ -615,13 +611,13 @@ void CConnman::GetBanned(banmap_t &banMap) {
     banMap = setBanned;
 }
 
-void CConnman::SetBanned(const banmap_t &banMap) {
+void BanMan::SetBanned(const banmap_t &banMap) {
     LOCK(cs_setBanned);
     setBanned = banMap;
     setBannedIsDirty = true;
 }
 
-void CConnman::SweepBanned() {
+void BanMan::SweepBanned() {
     int64_t now = GetTime();
     bool notifyUI = false;
     {
@@ -650,12 +646,12 @@ void CConnman::SweepBanned() {
     }
 }
 
-bool CConnman::BannedSetIsDirty() {
+bool BanMan::BannedSetIsDirty() {
     LOCK(cs_setBanned);
     return setBannedIsDirty;
 }
 
-void CConnman::SetBannedSetDirty(bool dirty) {
+void BanMan::SetBannedSetDirty(bool dirty) {
     // Reuse setBanned lock for the isDirty flag.
     LOCK(cs_setBanned);
     setBannedIsDirty = dirty;
@@ -1195,7 +1191,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     // sockets on all platforms.  Set it again here just to be sure.
     SetSocketNoDelay(hSocket);
 
-    if (IsBanned(addr) && !whitelisted) {
+    if (m_banman && m_banman->IsBanned(addr) && !whitelisted) {
         LogPrint(BCLog::NET, "connection from %s dropped (banned)\n",
                  addr.ToString());
         CloseSocket(hSocket);
@@ -2111,7 +2107,8 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     if (!pszDest) {
         if (IsLocal(addrConnect) ||
             FindNode(static_cast<CNetAddr>(addrConnect)) ||
-            IsBanned(addrConnect) || FindNode(addrConnect.ToStringIPPort())) {
+            (m_banman && m_banman->IsBanned(addrConnect)) ||
+            FindNode(addrConnect.ToStringIPPort())) {
             return;
         }
     } else if (FindNode(std::string(pszDest))) {
@@ -2437,30 +2434,6 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
             DumpAddresses();
         }
     }
-    if (clientInterface) {
-        clientInterface->InitMessage(_("Loading banlist..."));
-    }
-    // Load addresses from banlist.dat
-    nStart = GetTimeMillis();
-    CBanDB bandb(config->GetChainParams());
-    banmap_t banmap;
-    if (bandb.Read(banmap)) {
-        // thread save setter
-        SetBanned(banmap);
-        // no need to write down, just read data
-        SetBannedSetDirty(false);
-        // sweep out unused entries
-        SweepBanned();
-
-        LogPrint(BCLog::NET,
-                 "Loaded %d banned node ips/subnets from banlist.dat  %dms\n",
-                 banmap.size(), GetTimeMillis() - nStart);
-    } else {
-        LogPrintf("Invalid or missing banlist.dat; recreating\n");
-        // force write
-        SetBannedSetDirty(true);
-        DumpBanlist();
-    }
 
     uiInterface.InitMessage(_("Starting network threads..."));
 
@@ -2542,14 +2515,42 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         },
         DUMP_PEERS_INTERVAL * 1000);
 
-    scheduler.scheduleEvery(
-        [this]() {
-            this->DumpBanlist();
-            return true;
-        },
-        DUMP_BANS_INTERVAL * 1000);
-
     return true;
+}
+
+BanMan::BanMan(const CChainParams &_params,
+               CClientUIInterface *client_interface)
+    : clientInterface(client_interface), params(_params) {
+    if (clientInterface) {
+        clientInterface->InitMessage(_("Loading banlist..."));
+    }
+
+    // Load addresses from banlist.dat
+    int64_t nStart = GetTimeMillis();
+    setBannedIsDirty = false;
+    CBanDB bandb(params);
+    banmap_t banmap;
+    if (bandb.Read(banmap)) {
+        // thread save setter
+        SetBanned(banmap);
+        // no need to write down, just read data
+        SetBannedSetDirty(false);
+        // sweep out unused entries
+        SweepBanned();
+
+        LogPrint(BCLog::NET,
+                 "Loaded %d banned node ips/subnets from banlist.dat  %dms\n",
+                 banmap.size(), GetTimeMillis() - nStart);
+    } else {
+        LogPrintf("Invalid or missing banlist.dat; recreating\n");
+        // force write
+        SetBannedSetDirty(true);
+        DumpBanlist();
+    }
+}
+
+BanMan::~BanMan() {
+    DumpBanlist();
 }
 
 class CNetCleanup {
@@ -2606,7 +2607,6 @@ void CConnman::Stop() {
 
     if (fAddressesInitialized) {
         DumpAddresses();
-        DumpBanlist();
         fAddressesInitialized = false;
     }
 
