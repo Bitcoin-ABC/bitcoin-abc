@@ -555,7 +555,7 @@ void BanMan::Ban(const CSubNet &subNet, const BanReason &banReason,
     CBanEntry banEntry(GetTime());
     banEntry.banReason = banReason;
     if (bantimeoffset <= 0) {
-        bantimeoffset = gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
+        bantimeoffset = m_default_ban_time;
         sinceUnixEpoch = false;
     }
     banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime()) + bantimeoffset;
@@ -2519,9 +2519,10 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 }
 
 BanMan::BanMan(fs::path ban_file, const CChainParams &chainParams,
-               CClientUIInterface *client_interface)
+               CClientUIInterface *client_interface, int64_t default_ban_time)
     : clientInterface(client_interface),
-      m_ban_db(std::move(ban_file), chainParams) {
+      m_ban_db(std::move(ban_file), chainParams),
+      m_default_ban_time(default_ban_time) {
     if (clientInterface) {
         clientInterface->InitMessage(_("Loading banlist..."));
     }
