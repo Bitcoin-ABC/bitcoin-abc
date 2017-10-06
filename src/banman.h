@@ -44,7 +44,6 @@ public:
              int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
     void Ban(const CSubNet &subNet, const BanReason &banReason,
              int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-    // needed for unit testing
     void ClearBanned();
     bool IsBanned(CNetAddr netAddr);
     bool IsBanned(CSubNet subNet);
@@ -61,12 +60,12 @@ private:
     //! clean unused entries (if bantime has expired)
     void SweepBanned();
 
-    banmap_t m_banned;
     CCriticalSection m_cs_banned;
-    bool m_is_dirty;
+    banmap_t m_banned GUARDED_BY(m_cs_banned);
+    bool m_is_dirty GUARDED_BY(m_cs_banned);
     CClientUIInterface *m_client_interface = nullptr;
     CBanDB m_ban_db;
-    int64_t m_default_ban_time;
+    const int64_t m_default_ban_time;
 };
 
 extern std::unique_ptr<BanMan> g_banman;
