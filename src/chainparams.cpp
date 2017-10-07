@@ -234,7 +234,10 @@ public:
                                   "3af35a100370c64632a983")},
                 // UAHF fork block
                 {478559, uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d42"
-                                  "4bd9f15ff20136191a5eec")}}};
+                                  "4bd9f15ff20136191a5eec")},
+                // Sept 30, 2017
+                {490000, uint256S("0x0000000000000000018ade0e75b4c21db72f05db1e"
+                                  "4fffb870c26d6c765dc6d1")}}};
 
         // Data as of block
         // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
