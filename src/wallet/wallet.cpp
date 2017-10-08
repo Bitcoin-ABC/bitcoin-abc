@@ -4288,7 +4288,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (IsArgSet("-mintxfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         if (!ParseMoney(GetArg("-mintxfee", ""), n) || 0 == n) {
             return InitError(AmountErrMsg("mintxfee", GetArg("-mintxfee", "")));
         }
@@ -4303,7 +4303,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (IsArgSet("-fallbackfee")) {
-        CAmount nFeePerK = 0;
+        Amount nFeePerK = 0;
         if (!ParseMoney(GetArg("-fallbackfee", ""), nFeePerK)) {
             return InitError(
                 strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'"),
@@ -4320,7 +4320,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (IsArgSet("-paytxfee")) {
-        CAmount nFeePerK = 0;
+        Amount nFeePerK = 0;
         if (!ParseMoney(GetArg("-paytxfee", ""), nFeePerK)) {
             return InitError(AmountErrMsg("paytxfee", GetArg("-paytxfee", "")));
         }
@@ -4341,7 +4341,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (IsArgSet("-maxtxfee")) {
-        CAmount nMaxFee = 0;
+        Amount nMaxFee = 0;
         if (!ParseMoney(GetArg("-maxtxfee", ""), nMaxFee)) {
             return InitError(AmountErrMsg("maxtxfee", GetArg("-maxtxfee", "")));
         }
@@ -4351,7 +4351,7 @@ bool CWallet::ParameterInteraction() {
                           "be paid on a single transaction."));
         }
 
-        maxTxFee = nMaxFee;
+        maxTxFee = nMaxFee.GetSatoshis();
         if (CFeeRate(maxTxFee, 1000) < ::minRelayTxFee) {
             return InitError(
                 strprintf(_("Invalid amount for -maxtxfee=<amount>: '%s' (must "

@@ -81,8 +81,8 @@ int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 
 uint256 hashAssumeValid;
 
-CFeeRate minRelayTxFee = CFeeRate(Amount(int64_t(DEFAULT_MIN_RELAY_TX_FEE)));
-CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
+CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
+CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE.GetSatoshis();
 
 CTxMemPool mempool(::minRelayTxFee);
 

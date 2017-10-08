@@ -103,11 +103,11 @@ BlockAssembler::BlockAssembler(const Config &_config,
                                const CChainParams &_chainparams)
     : chainparams(_chainparams), config(&_config) {
     if (IsArgSet("-blockmintxfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         ParseMoney(GetArg("-blockmintxfee", ""), n);
         blockMinFeeRate = CFeeRate(n);
     } else {
-        blockMinFeeRate = CFeeRate(Amount(int64_t(DEFAULT_BLOCK_MIN_TX_FEE)));
+        blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
     LOCK(cs_main);

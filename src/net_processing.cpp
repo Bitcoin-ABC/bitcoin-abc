@@ -3805,7 +3805,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         int64_t timeNow = GetTimeMicros();
         if (timeNow > pto->nextSendTimeFeeFilter) {
             static CFeeRate default_feerate =
-                CFeeRate(Amount(int64_t(DEFAULT_MIN_RELAY_TX_FEE)));
+                CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
             static FeeFilterRounder filterRounder(default_feerate);
             Amount filterToSend =
                 filterRounder.round(currentFilter.GetSatoshis());

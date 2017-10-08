@@ -27,8 +27,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
-static CFeeRate blockMinFeeRate =
-    CFeeRate(Amount(int64_t(DEFAULT_BLOCK_MIN_TX_FEE)));
+static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
 
 static struct {
     uint8_t extranonce;
