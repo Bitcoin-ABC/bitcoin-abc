@@ -704,9 +704,9 @@ public:
     // Whether the node uses the bitcoin cash magic to communicate.
     std::atomic<bool> fUsesCashMagic;
     // Minimum fee rate with which to filter inv's to this node
-    CAmount minFeeFilter;
+    Amount minFeeFilter;
     CCriticalSection cs_feeFilter;
-    CAmount lastSentFeeFilter;
+    Amount lastSentFeeFilter;
     int64_t nextSendTimeFeeFilter;
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn,
