@@ -19,6 +19,7 @@ add_library(wallet
 	rpcwallet.cpp
 	wallet.cpp
 	walletdb.cpp
+	walletutil.cpp
 )
 
 target_link_libraries(wallet util univalue Event ${BDBXX_LIBRARY})

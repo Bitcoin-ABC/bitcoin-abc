@@ -836,16 +836,16 @@ bool CWalletDB::RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
 }
 
 bool CWalletDB::VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &dataDir,
+                                  const fs::path &walletDir,
                                   std::string &errorStr) {
-    return CDB::VerifyEnvironment(walletFile, dataDir, errorStr);
+    return CDB::VerifyEnvironment(walletFile, walletDir, errorStr);
 }
 
 bool CWalletDB::VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &dataDir,
+                                   const fs::path &walletDir,
                                    std::string &warningStr,
                                    std::string &errorStr) {
-    return CDB::VerifyDatabaseFile(walletFile, dataDir, warningStr, errorStr,
+    return CDB::VerifyDatabaseFile(walletFile, walletDir, warningStr, errorStr,
                                    CWalletDB::Recover);
 }
 

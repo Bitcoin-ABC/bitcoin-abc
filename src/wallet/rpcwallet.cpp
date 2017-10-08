@@ -21,11 +21,10 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validation.h"
-#include "wallet.h"
 #include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "walletdb.h"
+#include "wallet/walletutil.h"
 // Input src/init.h (not wallet/init.h) for StartShutdown
 #include <init.h>
 
