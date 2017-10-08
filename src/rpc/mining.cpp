@@ -705,8 +705,8 @@ static UniValue getblocktemplate(const Config &config,
         entry.push_back(Pair("depends", deps));
 
         int index_in_template = i - 1;
-        entry.push_back(
-            Pair("fee", pblocktemplate->vTxFees[index_in_template]));
+        entry.push_back(Pair(
+            "fee", pblocktemplate->vTxFees[index_in_template].GetSatoshis()));
         int64_t nTxSigOps = pblocktemplate->vTxSigOpsCount[index_in_template];
         entry.push_back(Pair("sigops", nTxSigOps));
 

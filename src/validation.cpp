@@ -4975,7 +4975,7 @@ void DumpMempool(void) {
     {
         LOCK(mempool.cs);
         for (const auto &i : mempool.mapDeltas) {
-            mapDeltas[i.first] = i.second.second;
+            mapDeltas[i.first] = i.second.second.GetSatoshis();
         }
         vinfo = mempool.infoAll();
     }
@@ -4998,7 +4998,7 @@ void DumpMempool(void) {
         for (const auto &i : vinfo) {
             file << *(i.tx);
             file << (int64_t)i.nTime;
-            file << (int64_t)i.nFeeDelta;
+            file << (int64_t)i.nFeeDelta.GetSatoshis();
             mapDeltas.erase(i.tx->GetId());
         }
 

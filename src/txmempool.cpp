@@ -22,11 +22,10 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
-CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx,
-                                 const CAmount &_nFee, int64_t _nTime,
-                                 double _entryPriority,
+CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
+                                 int64_t _nTime, double _entryPriority,
                                  unsigned int _entryHeight,
-                                 CAmount _inChainInputValue,
+                                 Amount _inChainInputValue,
                                  bool _spendsCoinbase, int64_t _sigOpsCount,
                                  LockPoints lp)
     : tx(_tx), nFee(_nFee), nTime(_nTime), entryPriority(_entryPriority),
@@ -56,15 +55,16 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
 }
 
 double CTxMemPoolEntry::GetPriority(unsigned int currentHeight) const {
-    double deltaPriority =
-        ((double)(currentHeight - entryHeight) * inChainInputValue) / nModSize;
+    double deltaPriority = double((currentHeight - entryHeight) *
+                                  inChainInputValue.GetSatoshis()) /
+                           nModSize;
     double dResult = entryPriority + deltaPriority;
     // This should only happen if it was called with a height below entry height
     if (dResult < 0) dResult = 0;
     return dResult;
 }
 
-void CTxMemPoolEntry::UpdateFeeDelta(int64_t newFeeDelta) {
+void CTxMemPoolEntry::UpdateFeeDelta(Amount newFeeDelta) {
     nModFeesWithDescendants += newFeeDelta - feeDelta;
     nModFeesWithAncestors += newFeeDelta - feeDelta;
     feeDelta = newFeeDelta;
@@ -105,7 +105,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     // setAllDescendants now contains all in-mempool descendants of updateIt.
     // Update and add to cached descendant map
     int64_t modifySize = 0;
-    CAmount modifyFee = 0;
+    Amount modifyFee = 0;
     int64_t modifyCount = 0;
     for (txiter cit : setAllDescendants) {
         if (!setExclude.count(cit->GetTx().GetId())) {
@@ -263,7 +263,7 @@ void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,
     }
     const int64_t updateCount = (add ? 1 : -1);
     const int64_t updateSize = updateCount * it->GetTxSize();
-    const CAmount updateFee = updateCount * it->GetModifiedFee();
+    const Amount updateFee = updateCount * it->GetModifiedFee();
     for (txiter ancestorIt : setAncestors) {
         mapTx.modify(ancestorIt, update_descendant_state(updateSize, updateFee,
                                                          updateCount));
@@ -274,7 +274,7 @@ void CTxMemPool::UpdateEntryForAncestors(txiter it,
                                          const setEntries &setAncestors) {
     int64_t updateCount = setAncestors.size();
     int64_t updateSize = 0;
-    CAmount updateFee = 0;
+    Amount updateFee = 0;
     int64_t updateSigOpsCount = 0;
     for (txiter ancestorIt : setAncestors) {
         updateSize += ancestorIt->GetTxSize();
@@ -308,7 +308,7 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
             CalculateDescendants(removeIt, setDescendants);
             setDescendants.erase(removeIt); // don't update state for self
             int64_t modifySize = -((int64_t)removeIt->GetTxSize());
-            CAmount modifyFee = -removeIt->GetModifiedFee();
+            Amount modifyFee = -1 * removeIt->GetModifiedFee();
             int modifySigOps = -removeIt->GetSigOpCount();
             for (txiter dit : setDescendants) {
                 mapTx.modify(dit, update_ancestor_state(modifySize, modifyFee,
@@ -353,7 +353,7 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
 }
 
 void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
-                                            CAmount modifyFee,
+                                            Amount modifyFee,
                                             int64_t modifyCount) {
     nSizeWithDescendants += modifySize;
     assert(int64_t(nSizeWithDescendants) > 0);
@@ -362,7 +362,7 @@ void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
     assert(int64_t(nCountWithDescendants) > 0);
 }
 
-void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, CAmount modifyFee,
+void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                                           int64_t modifyCount,
                                           int modifySigOps) {
     nSizeWithAncestors += modifySize;
@@ -418,11 +418,11 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
     // Update transaction for any feeDelta created by PrioritiseTransaction
     // TODO: refactor so that the fee delta is calculated before inserting into
     // mapTx.
-    std::map<uint256, std::pair<double, CAmount>>::const_iterator pos =
+    std::map<uint256, std::pair<double, Amount>>::const_iterator pos =
         mapDeltas.find(hash);
     if (pos != mapDeltas.end()) {
-        const std::pair<double, CAmount> &deltas = pos->second;
-        if (deltas.second) {
+        const std::pair<double, Amount> &deltas = pos->second;
+        if (deltas.second != 0) {
             mapTx.modify(newit, update_fee_delta(deltas.second));
         }
     }
@@ -732,7 +732,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                                   nNoLimit, nNoLimit, dummy);
         uint64_t nCountCheck = setAncestors.size() + 1;
         uint64_t nSizeCheck = it->GetTxSize();
-        CAmount nFeesCheck = it->GetModifiedFee();
+        Amount nFeesCheck = it->GetModifiedFee();
         int64_t nSigOpCheck = it->GetSigOpCount();
 
         for (txiter ancestorIt : setAncestors) {
@@ -958,10 +958,10 @@ bool CTxMemPool::ReadFeeEstimates(CAutoFile &filein) {
 void CTxMemPool::PrioritiseTransaction(const uint256 hash,
                                        const std::string strHash,
                                        double dPriorityDelta,
-                                       const CAmount &nFeeDelta) {
+                                       const Amount nFeeDelta) {
     {
         LOCK(cs);
-        std::pair<double, CAmount> &deltas = mapDeltas[hash];
+        std::pair<double, Amount> &deltas = mapDeltas[hash];
         deltas.first += dPriorityDelta;
         deltas.second += nFeeDelta;
         txiter it = mapTx.find(hash);
@@ -992,12 +992,12 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
 }
 
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta,
-                             CAmount &nFeeDelta) const {
+                             Amount nFeeDelta) const {
     LOCK(cs);
-    std::map<uint256, std::pair<double, CAmount>>::const_iterator pos =
+    std::map<uint256, std::pair<double, Amount>>::const_iterator pos =
         mapDeltas.find(hash);
     if (pos == mapDeltas.end()) return;
-    const std::pair<double, CAmount> &deltas = pos->second;
+    const std::pair<double, Amount> &deltas = pos->second;
     dPriorityDelta += deltas.first;
     nFeeDelta += deltas.second;
 }

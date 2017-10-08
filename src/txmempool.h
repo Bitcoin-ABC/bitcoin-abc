@@ -82,7 +82,7 @@ class CTxMemPoolEntry {
 private:
     CTransactionRef tx;
     //!< Cached to avoid expensive parent-transaction lookups
-    CAmount nFee;
+    Amount nFee;
     //!< ... and avoid recomputing tx size
     size_t nTxSize;
     //!< ... and modified size for priority
@@ -96,14 +96,14 @@ private:
     //!< Chain height when entering the mempool
     unsigned int entryHeight;
     //!< Sum of all txin values that are already in blockchain
-    CAmount inChainInputValue;
+    Amount inChainInputValue;
     //!< keep track of transactions that spend a coinbase
     bool spendsCoinbase;
     //!< Total sigop plus P2SH sigops count
     int64_t sigOpCount;
     //!< Used for determining the priority of the transaction for mining in a
     //! block
-    int64_t feeDelta;
+    Amount feeDelta;
     //!< Track the height and time at which tx was final
     LockPoints lockPoints;
 
@@ -117,18 +117,18 @@ private:
     //!< ... and size
     uint64_t nSizeWithDescendants;
     //!< ... and total fees (all including us)
-    CAmount nModFeesWithDescendants;
+    Amount nModFeesWithDescendants;
 
     // Analogous statistics for ancestor transactions
     uint64_t nCountWithAncestors;
     uint64_t nSizeWithAncestors;
-    CAmount nModFeesWithAncestors;
+    Amount nModFeesWithAncestors;
     int64_t nSigOpCountWithAncestors;
 
 public:
-    CTxMemPoolEntry(const CTransactionRef &_tx, const CAmount &_nFee,
+    CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
                     int64_t _nTime, double _entryPriority,
-                    unsigned int _entryHeight, CAmount _inChainInputValue,
+                    unsigned int _entryHeight, Amount _inChainInputValue,
                     bool spendsCoinbase, int64_t nSigOpsCost, LockPoints lp);
 
     CTxMemPoolEntry(const CTxMemPoolEntry &other);
@@ -140,38 +140,36 @@ public:
      * priority. Only inputs that were originally in-chain will age.
      */
     double GetPriority(unsigned int currentHeight) const;
-    const CAmount &GetFee() const { return nFee; }
+    const Amount GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
     int64_t GetSigOpCount() const { return sigOpCount; }
-    int64_t GetModifiedFee() const { return nFee + feeDelta; }
+    Amount GetModifiedFee() const { return nFee + feeDelta; }
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state, if this entry is not dirty.
-    void UpdateDescendantState(int64_t modifySize, CAmount modifyFee,
+    void UpdateDescendantState(int64_t modifySize, Amount modifyFee,
                                int64_t modifyCount);
     // Adjusts the ancestor state
-    void UpdateAncestorState(int64_t modifySize, CAmount modifyFee,
+    void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                              int64_t modifyCount, int modifySigOps);
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
-    void UpdateFeeDelta(int64_t feeDelta);
+    void UpdateFeeDelta(Amount feeDelta);
     // Update the LockPoints after a reorg
     void UpdateLockPoints(const LockPoints &lp);
 
     uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
-    CAmount GetModFeesWithDescendants() const {
-        return nModFeesWithDescendants;
-    }
+    Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
 
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
 
     uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
     uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
-    CAmount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
+    Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
     int64_t GetSigOpCountWithAncestors() const {
         return nSigOpCountWithAncestors;
     }
@@ -182,7 +180,7 @@ public:
 
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
 struct update_descendant_state {
-    update_descendant_state(int64_t _modifySize, CAmount _modifyFee,
+    update_descendant_state(int64_t _modifySize, Amount _modifyFee,
                             int64_t _modifyCount)
         : modifySize(_modifySize), modifyFee(_modifyFee),
           modifyCount(_modifyCount) {}
@@ -193,12 +191,12 @@ struct update_descendant_state {
 
 private:
     int64_t modifySize;
-    CAmount modifyFee;
+    Amount modifyFee;
     int64_t modifyCount;
 };
 
 struct update_ancestor_state {
-    update_ancestor_state(int64_t _modifySize, CAmount _modifyFee,
+    update_ancestor_state(int64_t _modifySize, Amount _modifyFee,
                           int64_t _modifyCount, int64_t _modifySigOpsCost)
         : modifySize(_modifySize), modifyFee(_modifyFee),
           modifyCount(_modifyCount), modifySigOpsCost(_modifySigOpsCost) {}
@@ -210,18 +208,18 @@ struct update_ancestor_state {
 
 private:
     int64_t modifySize;
-    CAmount modifyFee;
+    Amount modifyFee;
     int64_t modifyCount;
     int64_t modifySigOpsCost;
 };
 
 struct update_fee_delta {
-    update_fee_delta(int64_t _feeDelta) : feeDelta(_feeDelta) {}
+    update_fee_delta(Amount _feeDelta) : feeDelta(_feeDelta) {}
 
     void operator()(CTxMemPoolEntry &e) { e.UpdateFeeDelta(feeDelta); }
 
 private:
-    int64_t feeDelta;
+    Amount feeDelta;
 };
 
 struct update_lock_points {
@@ -252,13 +250,15 @@ public:
         bool fUseADescendants = UseDescendantScore(a);
         bool fUseBDescendants = UseDescendantScore(b);
 
-        double aModFee = fUseADescendants ? a.GetModFeesWithDescendants()
-                                          : a.GetModifiedFee();
+        double aModFee = (fUseADescendants ? a.GetModFeesWithDescendants()
+                                           : a.GetModifiedFee())
+                             .GetSatoshis();
         double aSize =
             fUseADescendants ? a.GetSizeWithDescendants() : a.GetTxSize();
 
-        double bModFee = fUseBDescendants ? b.GetModFeesWithDescendants()
-                                          : b.GetModifiedFee();
+        double bModFee = (fUseBDescendants ? b.GetModFeesWithDescendants()
+                                           : b.GetModifiedFee())
+                             .GetSatoshis();
         double bSize =
             fUseBDescendants ? b.GetSizeWithDescendants() : b.GetTxSize();
 
@@ -274,8 +274,10 @@ public:
 
     // Calculate which score to use for an entry (avoiding division).
     bool UseDescendantScore(const CTxMemPoolEntry &a) {
-        double f1 = (double)a.GetModifiedFee() * a.GetSizeWithDescendants();
-        double f2 = (double)a.GetModFeesWithDescendants() * a.GetTxSize();
+        double f1 = double(a.GetSizeWithDescendants() *
+                           a.GetModifiedFee().GetSatoshis());
+        double f2 =
+            double(a.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
         return f2 > f1;
     }
 };
@@ -287,8 +289,9 @@ public:
 class CompareTxMemPoolEntryByScore {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) {
-        double f1 = (double)a.GetModifiedFee() * b.GetTxSize();
-        double f2 = (double)b.GetModifiedFee() * a.GetTxSize();
+        double f1 =
+            double(b.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
+        double f2 = double(a.GetTxSize() * b.GetModifiedFee().GetSatoshis());
         if (f1 == f2) {
             return b.GetTx().GetId() < a.GetTx().GetId();
         }
@@ -306,10 +309,10 @@ public:
 class CompareTxMemPoolEntryByAncestorFee {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) {
-        double aFees = a.GetModFeesWithAncestors();
+        double aFees = double(a.GetModFeesWithAncestors().GetSatoshis());
         double aSize = a.GetSizeWithAncestors();
 
-        double bFees = b.GetModFeesWithAncestors();
+        double bFees = double(b.GetModFeesWithAncestors().GetSatoshis());
         double bSize = b.GetSizeWithAncestors();
 
         // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).
@@ -346,7 +349,7 @@ struct TxMempoolInfo {
     CFeeRate feeRate;
 
     /** The fee delta. */
-    int64_t nFeeDelta;
+    Amount nFeeDelta;
 };
 
 /**
@@ -550,7 +553,7 @@ private:
 
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx;
-    std::map<uint256, std::pair<double, CAmount>> mapDeltas;
+    std::map<uint256, std::pair<double, Amount>> mapDeltas;
 
     /** Create a new CTxMemPool.
      */
@@ -603,9 +606,9 @@ public:
 
     /** Affect CreateNewBlock prioritisation of transactions */
     void PrioritiseTransaction(const uint256 hash, const std::string strHash,
-                               double dPriorityDelta, const CAmount &nFeeDelta);
+                               double dPriorityDelta, const Amount nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
-                     CAmount &nFeeDelta) const;
+                     Amount nFeeDelta) const;
     void ClearPrioritisation(const uint256 hash);
 
 public:

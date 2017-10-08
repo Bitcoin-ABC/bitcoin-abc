@@ -414,10 +414,12 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
         Pair("currentpriority", e.GetPriority(chainActive.Height())));
     info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
     info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
-    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+    info.push_back(
+        Pair("descendantfees", e.GetModFeesWithDescendants().GetSatoshis()));
     info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
     info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
-    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
+    info.push_back(
+        Pair("ancestorfees", e.GetModFeesWithAncestors().GetSatoshis()));
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
