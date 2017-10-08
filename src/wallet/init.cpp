@@ -12,6 +12,7 @@
 #include "validation.h"
 #include "wallet/rpcwallet.h"
 #include "wallet/wallet.h"
+#include "wallet/walletutil.h"
 #include "walletinitinterface.h"
 
 class WalletInit : public WalletInitInterface {
@@ -102,6 +103,10 @@ std::string WalletInit::GetHelpString(bool showDebug) {
         "-walletbroadcast",
         _("Make the wallet broadcast transactions") + " " +
             strprintf(_("(default: %d)"), DEFAULT_WALLETBROADCAST));
+    strUsage += HelpMessageOpt(
+        "-walletdir=<dir>",
+        _("Specify directory to hold wallets (default: <datadir>/wallets if it "
+          "exists, otherwise <datadir>)"));
     strUsage += HelpMessageOpt("-walletnotify=<cmd>",
                                _("Execute command when a wallet transaction "
                                  "changes (%s in cmd is replaced by TxID)"));
@@ -301,6 +306,14 @@ bool WalletInit::Verify(const CChainParams &chainParams) {
         return true;
     }
 
+    if (gArgs.IsArgSet("-walletdir") && !fs::is_directory(GetWalletDir())) {
+        return InitError(strprintf(
+            _("Error: Specified wallet directory \"%s\" does not exist."),
+            gArgs.GetArg("-walletdir", "").c_str()));
+    }
+
+    LogPrintf("Using wallet directory %s\n", GetWalletDir().string());
+
     uiInterface.InitMessage(_("Verifying wallet(s)..."));
 
     // Keep track of each wallet absolute path to detect duplicates.
@@ -320,7 +333,7 @@ bool WalletInit::Verify(const CChainParams &chainParams) {
                                        walletFile));
         }
 
-        fs::path wallet_path = fs::absolute(walletFile, GetDataDir());
+        fs::path wallet_path = fs::absolute(walletFile, GetWalletDir());
 
         if (fs::exists(wallet_path) && (!fs::is_regular_file(wallet_path) ||
                                         fs::is_symlink(wallet_path))) {
@@ -336,7 +349,7 @@ bool WalletInit::Verify(const CChainParams &chainParams) {
         }
 
         std::string strError;
-        if (!CWalletDB::VerifyEnvironment(walletFile, GetDataDir().string(),
+        if (!CWalletDB::VerifyEnvironment(walletFile, GetWalletDir().string(),
                                           strError)) {
             return InitError(strError);
         }
@@ -354,7 +367,7 @@ bool WalletInit::Verify(const CChainParams &chainParams) {
 
         std::string strWarning;
         bool dbV = CWalletDB::VerifyDatabaseFile(
-            walletFile, GetDataDir().string(), strWarning, strError);
+            walletFile, GetWalletDir().string(), strWarning, strError);
         if (!strWarning.empty()) {
             InitWarning(strWarning);
         }

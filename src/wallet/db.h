@@ -171,11 +171,11 @@ public:
     static bool PeriodicFlush(CWalletDBWrapper &dbw);
     /* verifies the database environment */
     static bool VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &dataDir,
+                                  const fs::path &walletDir,
                                   std::string &errorStr);
     /* verifies the database file */
     static bool VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &dataDir,
+                                   const fs::path &walletDir,
                                    std::string &warningStr,
                                    std::string &errorStr,
                                    CDBEnv::recoverFunc_type recoverFunc);
