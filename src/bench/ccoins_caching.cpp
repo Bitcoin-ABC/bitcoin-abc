@@ -84,8 +84,8 @@ static void CCoinsCaching(benchmark::State &state) {
     while (state.KeepRunning()) {
         bool success = AreInputsStandard(t1, coins);
         assert(success);
-        CAmount value = coins.GetValueIn(t1);
-        assert(value == (50 + 21 + 22) * CENT.GetSatoshis());
+        Amount value = coins.GetValueIn(t1);
+        assert(value == (50 + 21 + 22) * CENT);
     }
 }
 

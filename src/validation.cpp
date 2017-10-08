@@ -729,7 +729,7 @@ static bool AcceptToMemoryPoolWorker(
         CCoinsView dummy;
         CCoinsViewCache view(&dummy);
 
-        CAmount nValueIn = 0;
+        Amount nValueIn = 0;
         LockPoints lp;
         {
             LOCK(pool.cs);
@@ -802,14 +802,14 @@ static bool AcceptToMemoryPoolWorker(
         int64_t nSigOpsCount =
             GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
 
-        CAmount nValueOut = tx.GetValueOut().GetSatoshis();
-        CAmount nFees = nValueIn - nValueOut;
+        Amount nValueOut = tx.GetValueOut();
+        Amount nFees = nValueIn - nValueOut;
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
-        CAmount nModifiedFees = nFees;
+        CAmount nModifiedFees = nFees.GetSatoshis();
         double nPriorityDummy = 0;
         pool.ApplyDeltas(txid, nPriorityDummy, nModifiedFees);
 
-        CAmount inChainInputValue;
+        Amount inChainInputValue;
         double dPriority =
             view.GetPriority(tx, chainActive.Height(), inChainInputValue);
 
@@ -824,9 +824,10 @@ static bool AcceptToMemoryPoolWorker(
             }
         }
 
-        CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, dPriority,
-                              chainActive.Height(), inChainInputValue,
-                              fSpendsCoinbase, nSigOpsCount, lp);
+        CTxMemPoolEntry entry(ptx, nFees.GetSatoshis(), nAcceptTime, dPriority,
+                              chainActive.Height(),
+                              inChainInputValue.GetSatoshis(), fSpendsCoinbase,
+                              nSigOpsCount, lp);
         unsigned int nSize = entry.GetTxSize();
 
         // Check that the transaction doesn't have an excessive number of

@@ -260,7 +260,7 @@ public:
      * @param[in] tx	transaction for which we are checking input total
      * @return	Sum of value of all inputs (scriptSigs)
      */
-    CAmount GetValueIn(const CTransaction &tx) const;
+    Amount GetValueIn(const CTransaction &tx) const;
 
     //! Check whether all prevouts of the transaction are present in the UTXO
     //! set represented by this view
@@ -272,7 +272,7 @@ public:
      * that will age and increase priority as new blocks are added to the chain.
      */
     double GetPriority(const CTransaction &tx, int nHeight,
-                       CAmount &inChainInputValue) const;
+                       Amount &inChainInputValue) const;
 
     const CTxOut &GetOutputFor(const CTxIn &input) const;
 

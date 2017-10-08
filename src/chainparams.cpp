@@ -27,7 +27,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                  const CScript &genesisOutputScript,
                                  uint32_t nTime, uint32_t nNonce,
                                  uint32_t nBits, int32_t nVersion,
-                                 const CAmount &genesisReward) {
+                                 const Amount genesisReward) {
     CMutableTransaction txNew;
     txNew.nVersion = 1;
     txNew.vin.resize(1);
@@ -66,7 +66,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce,
                                  uint32_t nBits, int32_t nVersion,
-                                 const CAmount &genesisReward) {
+                                 const Amount genesisReward) {
     const char *pszTimestamp =
         "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript =
@@ -160,7 +160,7 @@ public:
         nPruneAfterHeight = 100000;
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1,
-                                     50 * COIN.GetSatoshis());
+                                     50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
                uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3"
@@ -323,8 +323,8 @@ public:
         nDefaultPort = 18333;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1,
-                                     50 * COIN.GetSatoshis());
+        genesis =
+            CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
                uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f4087195"
@@ -442,8 +442,7 @@ public:
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1,
-                                     50 * COIN.GetSatoshis());
+        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
                uint256S("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b"
