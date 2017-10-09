@@ -80,7 +80,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
             "\nAdds a private key (as returned by dumpprivkey) to your wallet. "
             "Requires a new wallet backup.\n"
             "\nArguments:\n"
-            "1. \"bitcoinprivkey\"   (string, required) The private key (see "
+            "1. \"privkey\"   (string, required) The private key (see "
             "dumpprivkey)\n"
             "2. \"label\"            (string, optional, default=\"\") An "
             "optional label\n"
