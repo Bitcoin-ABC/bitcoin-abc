@@ -2796,66 +2796,75 @@ bool CChainState::ActivateBestChain(const Config &config,
             SyncWithValidationInterfaceQueue();
         }
 
-        const CBlockIndex *pindexFork;
-        bool fInitialDownload;
         {
             LOCK(cs_main);
+            CBlockIndex *starting_tip = chainActive.Tip();
+            bool blocks_connected = false;
+            do {
+                // We absolutely may not unlock cs_main until we've made forward
+                // progress (with the exception of shutdown due to hardware
+                // issues, low disk space, etc).
 
-            // Destructed before cs_main is unlocked.
-            ConnectTrace connectTrace(g_mempool);
+                // Destructed before cs_main is unlocked
+                ConnectTrace connectTrace(g_mempool);
 
-            CBlockIndex *pindexOldTip = chainActive.Tip();
-            if (pindexMostWork == nullptr) {
-                pindexMostWork = FindMostWorkChain();
-            }
+                if (pindexMostWork == nullptr) {
+                    pindexMostWork = FindMostWorkChain();
+                }
 
-            // Whether we have anything to do at all.
-            if (pindexMostWork == nullptr ||
-                pindexMostWork == chainActive.Tip()) {
+                // Whether we have anything to do at all.
+                if (pindexMostWork == nullptr ||
+                    pindexMostWork == chainActive.Tip()) {
+                    break;
+                }
+
+                bool fInvalidFound = false;
+                std::shared_ptr<const CBlock> nullBlockPtr;
+                if (!ActivateBestChainStep(
+                        config, state, pindexMostWork,
+                        pblock && pblock->GetHash() ==
+                                      pindexMostWork->GetBlockHash()
+                            ? pblock
+                            : nullBlockPtr,
+                        fInvalidFound, connectTrace)) {
+                    return false;
+                }
+                blocks_connected = true;
+
+                if (fInvalidFound) {
+                    // Wipe cache, we may need another branch now.
+                    pindexMostWork = nullptr;
+                }
+
+                pindexNewTip = chainActive.Tip();
+                for (const PerBlockConnectTrace &trace :
+                     connectTrace.GetBlocksConnected()) {
+                    assert(trace.pblock && trace.pindex);
+                    GetMainSignals().BlockConnected(trace.pblock, trace.pindex,
+                                                    trace.conflictedTxs);
+                }
+            } while (!chainActive.Tip() ||
+                     (starting_tip && CBlockIndexWorkComparator()(
+                                          chainActive.Tip(), starting_tip)));
+
+            if (!blocks_connected) {
                 return true;
             }
 
-            bool fInvalidFound = false;
-            std::shared_ptr<const CBlock> nullBlockPtr;
-            if (!ActivateBestChainStep(
-                    config, state, pindexMostWork,
-                    pblock &&
-                            pblock->GetHash() == pindexMostWork->GetBlockHash()
-                        ? pblock
-                        : nullBlockPtr,
-                    fInvalidFound, connectTrace)) {
-                return false;
+            const CBlockIndex *pindexFork = chainActive.FindFork(starting_tip);
+            bool fInitialDownload = IsInitialBlockDownload();
+
+            // Notify external listeners about the new tip.
+            // Enqueue while holding cs_main to ensure that UpdatedBlockTip is
+            // called in the order in which blocks are connected
+            if (pindexFork != pindexNewTip) {
+                // Notify ValidationInterface subscribers
+                GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
+                                                 fInitialDownload);
+
+                // Always notify the UI if a new block tip was connected
+                uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
             }
-
-            if (fInvalidFound) {
-                // Wipe cache, we may need another branch now.
-                pindexMostWork = nullptr;
-            }
-
-            pindexNewTip = chainActive.Tip();
-            pindexFork = chainActive.FindFork(pindexOldTip);
-            fInitialDownload = IsInitialBlockDownload();
-
-            for (const PerBlockConnectTrace &trace :
-                 connectTrace.GetBlocksConnected()) {
-                assert(trace.pblock && trace.pindex);
-                GetMainSignals().BlockConnected(trace.pblock, trace.pindex,
-                                                trace.conflictedTxs);
-            }
-        }
-
-        // When we reach this point, we switched to a new tip (stored in
-        // pindexNewTip).
-
-        // Notifications/callbacks that can run without cs_main
-
-        // Notify external listeners about the new tip.
-        GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
-                                         fInitialDownload);
-
-        // Always notify the UI if a new block tip was connected
-        if (pindexFork != pindexNewTip) {
-            uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
         }
 
         if (nStopAtHeight && pindexNewTip &&
