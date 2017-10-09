@@ -144,7 +144,7 @@ bool DecodeBase58Check(const char *psz, std::vector<uint8_t> &vchRet) {
     }
     // re-calculate the checksum, ensure it matches the included 4-byte checksum
     uint256 hash = Hash(vchRet.begin(), vchRet.end() - 4);
-    if (memcmp(&hash, &vchRet.end()[-4], 4) != 0) {
+    if (memcmp(&hash, &vchRet[vchRet.size() - 4], 4) != 0) {
         vchRet.clear();
         return false;
     }
