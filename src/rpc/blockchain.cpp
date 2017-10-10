@@ -1505,7 +1505,9 @@ UniValue mempoolInfoToJSON() {
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
     ret.pushKV("mempoolminfee",
-               ValueFromAmount(g_mempool.GetMinFee(maxmempool).GetFeePerK()));
+               ValueFromAmount(
+                   std::max(g_mempool.GetMinFee(maxmempool), ::minRelayTxFee)
+                       .GetFeePerK()));
 
     return ret;
 }
