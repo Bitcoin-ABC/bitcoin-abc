@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 struct Amount {
 private:
@@ -18,11 +19,13 @@ private:
 
 public:
     Amount() : amount(0) {}
-    Amount(int _camount) : amount(_camount) {}
-    Amount(int64_t _camount) : amount(_camount) {}
+
+    template <typename T> Amount(T _camount) : amount(_camount) {
+        static_assert(std::is_integral<T>(),
+                      "Only integer types can be used as amounts");
+    }
+
     Amount(const Amount &_camount) : amount(_camount.amount) {}
-    // Disable implicit construction from a floating-point value.
-    Amount(double _camount) = delete;
 
     // Allow access to underlying value for non-monetary operations
     int64_t GetSatoshis() const { return amount; }
