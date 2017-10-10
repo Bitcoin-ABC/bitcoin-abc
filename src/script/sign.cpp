@@ -16,7 +16,7 @@ typedef std::vector<uint8_t> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
     const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
-    const CAmount amountIn, uint32_t nHashTypeIn)
+    const Amount amountIn, uint32_t nHashTypeIn)
     : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
       amount(amountIn), nHashType(nHashTypeIn), checker(txTo, nIn, amountIn) {}
 
@@ -182,7 +182,7 @@ void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
 
 bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
-                   const CAmount amount, uint32_t nHashType) {
+                   const Amount amount, uint32_t nHashType) {
     assert(nIn < txTo.vin.size());
 
     CTransaction txToConst(txTo);

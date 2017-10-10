@@ -1349,8 +1349,7 @@ PrecomputedTransactionData::PrecomputedTransactionData(
 }
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
-                      unsigned int nIn, uint32_t nHashType,
-                      const Amount &amount,
+                      unsigned int nIn, uint32_t nHashType, const Amount amount,
                       const PrecomputedTransactionData *cache, uint32_t flags) {
     if ((nHashType & SIGHASH_FORKID) &&
         (flags & SCRIPT_ENABLE_SIGHASH_FORKID)) {
