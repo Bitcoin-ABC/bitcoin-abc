@@ -2990,11 +2990,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         LogPrint(BCLog::NET, "received block %s peer=%d\n",
                  pblock->GetHash().ToString(), pfrom->GetId());
 
-        // Process all blocks from whitelisted peers, even if not requested,
-        // unless we're still syncing with the network. Such an unrequested
-        // block may still be processed, subject to the conditions in
-        // AcceptBlock().
-        bool forceProcessing = pfrom->fWhitelisted && !IsInitialBlockDownload();
+        bool forceProcessing = false;
         const uint256 hash(pblock->GetHash());
         {
             LOCK(cs_main);
