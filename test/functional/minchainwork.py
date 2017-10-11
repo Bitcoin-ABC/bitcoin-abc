@@ -81,6 +81,13 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
 
         self.log.info("Verifying nodes are all synced")
+
+        # Because nodes in regtest are all manual connections (eg using
+        # addnode), node1 should not have disconnected node0. If not for that,
+        # we'd expect node1 to have disconnected node0 for serving an
+        # insufficient work chain, in which case we'd need to reconnect them to
+        # continue the test.
+
         self.sync_all()
         self.log.info("Blockcounts: %s", [
                       n.getblockcount() for n in self.nodes])

@@ -43,6 +43,55 @@ static NodeId id = 0;
 
 BOOST_FIXTURE_TEST_SUITE(DoS_tests, TestingSetup)
 
+// Test eviction of an outbound peer whose chain never advances
+// Mock a node connection, and use mocktime to simulate a peer which never sends
+// any headers messages. PeerLogic should decide to evict that outbound peer,
+// after the appropriate timeouts.
+// Note that we protect 4 outbound nodes from being subject to this logic; this
+// test takes advantage of that protection only being applied to nodes which
+// send headers with sufficient work.
+BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
+    const Config &config = GetConfig();
+    std::atomic<bool> interruptDummy(false);
+
+    // Mock an outbound peer
+    CAddress addr1(ip(0xa0b0c001), NODE_NONE);
+    CNode dummyNode1(id++, ServiceFlags(NODE_NETWORK), 0, INVALID_SOCKET, addr1,
+                     0, 0, CAddress(), "",
+                     /*fInboundIn=*/false);
+    dummyNode1.SetSendVersion(PROTOCOL_VERSION);
+
+    peerLogic->InitializeNode(config, &dummyNode1);
+    dummyNode1.nVersion = 1;
+    dummyNode1.fSuccessfullyConnected = true;
+
+    // This test requires that we have a chain with non-zero work.
+    BOOST_CHECK(chainActive.Tip() != nullptr);
+    BOOST_CHECK(chainActive.Tip()->nChainWork > 0);
+
+    // Test starts here
+    // should result in getheaders
+    peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+    BOOST_CHECK(dummyNode1.vSendMsg.size() > 0);
+    dummyNode1.vSendMsg.clear();
+
+    int64_t nStartTime = GetTime();
+    // Wait 21 minutes
+    SetMockTime(nStartTime + 21 * 60);
+    // should result in getheaders
+    peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+    BOOST_CHECK(dummyNode1.vSendMsg.size() > 0);
+    // Wait 3 more minutes
+    SetMockTime(nStartTime + 24 * 60);
+    // should result in disconnect
+    peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+    BOOST_CHECK(dummyNode1.fDisconnect == true);
+    SetMockTime(0);
+
+    bool dummy;
+    peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
+}
+
 BOOST_AUTO_TEST_CASE(DoS_banning) {
     const Config &config = GetConfig();
     std::atomic<bool> interruptDummy(false);
@@ -78,6 +127,10 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     Misbehaving(dummyNode2.GetId(), 50, "");
     peerLogic->SendMessages(config, &dummyNode2, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr2));
+
+    bool dummy;
+    peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
+    peerLogic->FinalizeNode(config, dummyNode2.GetId(), dummy);
 }
 
 BOOST_AUTO_TEST_CASE(DoS_banscore) {
@@ -104,6 +157,9 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
     BOOST_CHECK(connman->IsBanned(addr1));
     gArgs.ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
+
+    bool dummy;
+    peerLogic->FinalizeNode(config, dummyNode1.GetId(), dummy);
 }
 
 BOOST_AUTO_TEST_CASE(DoS_bantime) {
@@ -132,6 +188,9 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
 
     SetMockTime(nStartTime + 60 * 60 * 24 + 1);
     BOOST_CHECK(!connman->IsBanned(addr));
+
+    bool dummy;
+    peerLogic->FinalizeNode(config, dummyNode.GetId(), dummy);
 }
 
 CTransactionRef RandomOrphan() {

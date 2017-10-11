@@ -126,11 +126,16 @@ int nPreferredDownload = 0;
 /** Number of peers from which we're downloading blocks. */
 int nPeersWithValidatedDownloads = 0;
 
+/** Number of outbound peers with m_chain_sync.m_protect. */
+int g_outbound_peers_with_protect_from_disconnect = 0;
+
 /** Relay map, protected by cs_main. */
 typedef std::map<uint256, CTransactionRef> MapRelay;
 MapRelay mapRelay;
-/** Expiration-time ordered list of (expire time, relay map entry) pairs,
- * protected by cs_main). */
+/**
+ * Expiration-time ordered list of (expire time, relay map entry) pairs,
+ * protected by cs_main).
+ */
 std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
 } // namespace
 
@@ -208,6 +213,35 @@ struct CNodeState {
      */
     bool fSupportsDesiredCmpctVersion;
 
+    /**
+     * State used to enforce CHAIN_SYNC_TIMEOUT
+     * Only in effect for outbound, non-manual connections,
+     * with m_protect == false
+     * Algorithm: if a peer's best known block has less work than our tip, set a
+     * timeout CHAIN_SYNC_TIMEOUT seconds in the future:
+     *   - If at timeout their best known block now has more work than our tip
+     * when the timeout was set, then either reset the timeout or clear it
+     * (after comparing against our current tip's work)
+     *   - If at timeout their best known block still has less work than our tip
+     * did when the timeout was set, then send a getheaders message, and set a
+     * shorter timeout, HEADERS_RESPONSE_TIME seconds in future. If their best
+     * known block is still behind when that new timeout is reached, disconnect.
+     */
+    struct ChainSyncTimeoutState {
+        //! A timeout used for checking whether our peer has sufficiently
+        //! synced.
+        int64_t m_timeout;
+        //! A header with the work we require on our peer's chain.
+        const CBlockIndex *m_work_header;
+        //! After timeout is reached, set to true after sending getheaders.
+        bool m_sent_getheaders;
+        //! Whether this peer is protected from disconnection due to a bad/slow
+        //! chain.
+        bool m_protect;
+    };
+
+    ChainSyncTimeoutState m_chain_sync;
+
     CNodeState(CAddress addrIn, std::string addrNameIn)
         : address(addrIn), name(addrNameIn) {
         fCurrentlyConnected = false;
@@ -229,6 +263,7 @@ struct CNodeState {
         fPreferHeaderAndIDs = false;
         fProvidesHeaderAndIDs = false;
         fSupportsDesiredCmpctVersion = false;
+        m_chain_sync = {0, nullptr, false, false};
     }
 };
 
@@ -587,6 +622,13 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
 } // namespace
 
+// Returns true for outbound peers, excluding manual connections, feelers, and
+// one-shots.
+bool IsOutboundDisconnectionCandidate(const CNode *node) {
+    return !(node->fInbound || node->m_manual_connection || node->fFeeler ||
+             node->fOneShot);
+}
+
 void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
     CAddress addr = pnode->addr;
     std::string addrName = pnode->GetAddrName();
@@ -625,6 +667,9 @@ void PeerLogicValidation::FinalizeNode(const Config &config, NodeId nodeid,
     nPreferredDownload -= state->fPreferredDownload;
     nPeersWithValidatedDownloads -= (state->nBlocksInFlightValidHeaders != 0);
     assert(nPeersWithValidatedDownloads >= 0);
+    g_outbound_peers_with_protect_from_disconnect -=
+        state->m_chain_sync.m_protect;
+    assert(g_outbound_peers_with_protect_from_disconnect >= 0);
 
     mapNodeState.erase(nodeid);
 
@@ -633,6 +678,7 @@ void PeerLogicValidation::FinalizeNode(const Config &config, NodeId nodeid,
         assert(mapBlocksInFlight.empty());
         assert(nPreferredDownload == 0);
         assert(nPeersWithValidatedDownloads == 0);
+        assert(g_outbound_peers_with_protect_from_disconnect == 0);
     }
     LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
@@ -2650,6 +2696,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             assert(pindexLast);
             UpdateBlockAvailability(pfrom->GetId(), pindexLast->GetBlockHash());
 
+            // From here, pindexBestKnownBlock should be guaranteed to be
+            // non-null, because it is set in UpdateBlockAvailability. Some
+            // nullptr checks are still present, however, as
+            // belt-and-suspenders.
+
             if (nCount == MAX_HEADERS_RESULTS) {
                 // Headers message had its maximum size; the peer may have more
                 // headers.
@@ -2737,12 +2788,50 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     }
                 }
             }
+            // If we're in IBD, we want outbound peers that will serve us a
+            // useful chain. Disconnect peers that are on chains with
+            // insufficient work.
+            if (IsInitialBlockDownload() && nCount != MAX_HEADERS_RESULTS) {
+                // When nCount < MAX_HEADERS_RESULTS, we know we have no more
+                // headers to fetch from this peer.
+                if (nodestate->pindexBestKnownBlock &&
+                    nodestate->pindexBestKnownBlock->nChainWork <
+                        nMinimumChainWork) {
+                    // This peer has too little work on their headers chain to
+                    // help us sync -- disconnect if using an outbound slot
+                    // (unless whitelisted or addnode).
+                    // Note: We compare their tip to nMinimumChainWork (rather
+                    // than chainActive.Tip()) because we won't start block
+                    // download until we have a headers chain that has at least
+                    // nMinimumChainWork, even if a peer has a chain past our
+                    // tip, as an anti-DoS measure.
+                    if (IsOutboundDisconnectionCandidate(pfrom)) {
+                        LogPrintf("Disconnecting outbound peer %d -- headers "
+                                  "chain has insufficient work\n",
+                                  pfrom->GetId());
+                        pfrom->fDisconnect = true;
+                    }
+                }
+            }
+            if (!pfrom->fDisconnect &&
+                IsOutboundDisconnectionCandidate(pfrom) &&
+                nodestate->pindexBestKnownBlock != nullptr) {
+                // If this is an outbound peer, check to see if we should
+                // protect it from the bad/lagging chain logic.
+                if (g_outbound_peers_with_protect_from_disconnect <
+                        MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT &&
+                    nodestate->pindexBestKnownBlock->nChainWork >=
+                        chainActive.Tip()->nChainWork &&
+                    !nodestate->m_chain_sync.m_protect) {
+                    nodestate->m_chain_sync.m_protect = true;
+                    ++g_outbound_peers_with_protect_from_disconnect;
+                }
+            }
         }
     }
 
-    else if (strCommand == NetMsgType::BLOCK && !fImporting &&
-             !fReindex) // Ignore blocks received while importing
-    {
+    else if (strCommand == NetMsgType::BLOCK && !fImporting && !fReindex) {
+        // Ignore blocks received while importing.
         std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
         vRecv >> *pblock;
 
@@ -3156,6 +3245,90 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     SendRejectsAndCheckIfBanned(pfrom, connman);
 
     return fMoreWork;
+}
+
+void PeerLogicValidation::ConsiderEviction(CNode *pto,
+                                           int64_t time_in_seconds) {
+    AssertLockHeld(cs_main);
+
+    CNodeState &state = *State(pto->GetId());
+    const CNetMsgMaker msgMaker(pto->GetSendVersion());
+
+    if (!state.m_chain_sync.m_protect &&
+        IsOutboundDisconnectionCandidate(pto) && state.fSyncStarted) {
+        // This is an outbound peer subject to disconnection if they don't
+        // announce a block with as much work as the current tip within
+        // CHAIN_SYNC_TIMEOUT + HEADERS_RESPONSE_TIME seconds (note: if their
+        // chain has more work than ours, we should sync to it, unless it's
+        // invalid, in which case we should find that out and disconnect from
+        // them elsewhere).
+        if (state.pindexBestKnownBlock != nullptr &&
+            state.pindexBestKnownBlock->nChainWork >=
+                chainActive.Tip()->nChainWork) {
+            if (state.m_chain_sync.m_timeout != 0) {
+                state.m_chain_sync.m_timeout = 0;
+                state.m_chain_sync.m_work_header = nullptr;
+                state.m_chain_sync.m_sent_getheaders = false;
+            }
+        } else if (state.m_chain_sync.m_timeout == 0 ||
+                   (state.m_chain_sync.m_work_header != nullptr &&
+                    state.pindexBestKnownBlock != nullptr &&
+                    state.pindexBestKnownBlock->nChainWork >=
+                        state.m_chain_sync.m_work_header->nChainWork)) {
+            // Our best block known by this peer is behind our tip, and we're
+            // either noticing that for the first time, OR this peer was able to
+            // catch up to some earlier point where we checked against our tip.
+            // Either way, set a new timeout based on current tip.
+            state.m_chain_sync.m_timeout = time_in_seconds + CHAIN_SYNC_TIMEOUT;
+            state.m_chain_sync.m_work_header = chainActive.Tip();
+            state.m_chain_sync.m_sent_getheaders = false;
+        } else if (state.m_chain_sync.m_timeout > 0 &&
+                   time_in_seconds > state.m_chain_sync.m_timeout) {
+            // No evidence yet that our peer has synced to a chain with work
+            // equal to that of our tip, when we first detected it was behind.
+            // Send a single getheaders message to give the peer a chance to
+            // update us.
+            if (state.m_chain_sync.m_sent_getheaders) {
+                // They've run out of time to catch up!
+                LogPrintf(
+                    "Disconnecting outbound peer %d for old chain, best known "
+                    "block = %s\n",
+                    pto->GetId(),
+                    state.pindexBestKnownBlock != nullptr
+                        ? state.pindexBestKnownBlock->GetBlockHash().ToString()
+                        : "<none>");
+                pto->fDisconnect = true;
+            } else {
+                LogPrint(
+                    BCLog::NET, "sending getheaders to outbound peer=%d to "
+                                "verify chain work (current best known "
+                                "block:%s, benchmark blockhash: %s)\n",
+                    pto->GetId(),
+                    state.pindexBestKnownBlock != nullptr
+                        ? state.pindexBestKnownBlock->GetBlockHash().ToString()
+                        : "<none>",
+                    state.m_chain_sync.m_work_header->GetBlockHash()
+                        .ToString());
+                connman->PushMessage(
+                    pto,
+                    msgMaker.Make(NetMsgType::GETHEADERS,
+                                  chainActive.GetLocator(
+                                      state.m_chain_sync.m_work_header->pprev),
+                                  uint256()));
+                state.m_chain_sync.m_sent_getheaders = true;
+                // 2 minutes
+                constexpr int64_t HEADERS_RESPONSE_TIME = 120;
+                // Bump the timeout to allow a response, which could clear the
+                // timeout (if the response shows the peer has synced), reset
+                // the timeout (if the peer syncs to the required work but not
+                // to our tip), or result in disconnect (if we advance to the
+                // timeout and pindexBestKnownBlock has not sufficiently
+                // progressed)
+                state.m_chain_sync.m_timeout =
+                    time_in_seconds + HEADERS_RESPONSE_TIME;
+            }
+        }
+    }
 }
 
 class CompareInvMempoolOrder {
@@ -3712,6 +3885,10 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             state.nHeadersSyncTimeout = std::numeric_limits<int64_t>::max();
         }
     }
+
+    // Check that outbound peers have reasonable chains GetTime() is used by
+    // this anti-DoS logic so we can test this using mocktime.
+    ConsiderEviction(pto, GetTime());
 
     //
     // Message: getdata (blocks)
