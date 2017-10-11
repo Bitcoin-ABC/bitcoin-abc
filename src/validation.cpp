@@ -523,7 +523,6 @@ static bool AcceptToMemoryPoolWorker(
         CCoinsView dummy;
         CCoinsViewCache view(&dummy);
 
-        Amount nValueIn = Amount::zero();
         LockPoints lp;
         CCoinsViewMemPool viewMemPool(pcoinsTip.get(), pool);
         view.SetBackend(viewMemPool);
@@ -566,8 +565,6 @@ static bool AcceptToMemoryPoolWorker(
         // Bring the best block into scope.
         view.GetBestBlock();
 
-        nValueIn = view.GetValueIn(tx);
-
         // We have all inputs cached now, so switch back to dummy, so we don't
         // need to keep lock on mempool.
         view.SetBackend(dummy);
@@ -581,6 +578,13 @@ static bool AcceptToMemoryPoolWorker(
             return state.DoS(0, false, REJECT_NONSTANDARD, "non-BIP68-final");
         }
 
+        Amount nFees = Amount::zero();
+        if (!Consensus::CheckTxInputs(tx, state, view, GetSpendHeight(view),
+                                      nFees)) {
+            return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
+                         tx.GetId().ToString(), FormatStateMessage(state));
+        }
+
         // Check for non-standard pay-to-script-hash in inputs
         if (fRequireStandard && !AreInputsStandard(tx, view)) {
             return state.Invalid(false, REJECT_NONSTANDARD,
@@ -590,8 +594,6 @@ static bool AcceptToMemoryPoolWorker(
         int64_t nSigOpsCount =
             GetTransactionSigOpCount(tx, view, STANDARD_SCRIPT_VERIFY_FLAGS);
 
-        Amount nValueOut = tx.GetValueOut();
-        Amount nFees = nValueIn - nValueOut;
         // nModifiedFees includes any fee deltas from PrioritiseTransaction
         Amount nModifiedFees = nFees;
         double nPriorityDummy = 0;
@@ -1177,13 +1179,6 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
-
-    // This call does all the inexpensive checks on all the inputs. Only if ALL
-    // inputs pass do we perform expensive ECDSA signature checks. Helps prevent
-    // CPU exhaustion attacks.
-    if (!Consensus::CheckTxInputs(tx, state, inputs, GetSpendHeight(inputs))) {
-        return false;
-    }
 
     if (pvChecks) {
         pvChecks->reserve(tx.vin.size());
@@ -1823,9 +1818,19 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
             continue;
         }
 
-        if (!view.HaveInputs(tx)) {
-            return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
-                             REJECT_INVALID, "bad-txns-inputs-missingorspent");
+        Amount txfee = Amount::zero();
+        if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight,
+                                      txfee)) {
+            return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
+                         tx.GetId().ToString(), FormatStateMessage(state));
+        }
+        nFees += txfee;
+        if (!MoneyRange(nFees)) {
+            return state.DoS(
+                100,
+                error("%s: accumulated fee in the block out of range.",
+                      __func__),
+                REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
         }
 
         // Check that transaction is BIP68 final BIP68 lock checks (as
@@ -1856,9 +1861,6 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
         }
-
-        Amount fee = view.GetValueIn(tx) - tx.GetValueOut();
-        nFees += fee;
 
         // Don't cache results if we're actually connecting blocks (still
         // consult the cache, though).

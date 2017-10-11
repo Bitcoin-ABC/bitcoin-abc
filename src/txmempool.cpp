@@ -681,6 +681,18 @@ void CTxMemPool::clear() {
     _clear();
 }
 
+static void CheckInputsAndUpdateCoins(const CTransaction &tx,
+                                      CCoinsViewCache &mempoolDuplicate,
+                                      const int64_t spendheight) {
+    CValidationState state;
+    Amount txfee = Amount::zero();
+    bool fCheckResult =
+        tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate,
+                                                    spendheight, txfee);
+    assert(fCheckResult);
+    UpdateCoins(mempoolDuplicate, tx, 1000000);
+}
+
 void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
     LOCK(cs);
     if (nCheckFrequency == 0) {
@@ -699,7 +711,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
     uint64_t innerUsage = 0;
 
     CCoinsViewCache mempoolDuplicate(const_cast<CCoinsViewCache *>(pcoins));
-    const int64_t nSpendHeight = GetSpendHeight(mempoolDuplicate);
+    const int64_t spendheight = GetSpendHeight(mempoolDuplicate);
 
     std::list<const CTxMemPoolEntry *> waitingOnDependants;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
@@ -787,12 +799,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
         if (fDependsWait) {
             waitingOnDependants.push_back(&(*it));
         } else {
-            CValidationState state;
-            bool fCheckResult = tx.IsCoinBase() ||
-                                Consensus::CheckTxInputs(
-                                    tx, state, mempoolDuplicate, nSpendHeight);
-            assert(fCheckResult);
-            UpdateCoins(mempoolDuplicate, tx, 1000000);
+            CheckInputsAndUpdateCoins(tx, mempoolDuplicate, spendheight);
         }
     }
 
@@ -806,12 +813,8 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
             stepsSinceLastRemove++;
             assert(stepsSinceLastRemove < waitingOnDependants.size());
         } else {
-            bool fCheckResult =
-                entry->GetTx().IsCoinBase() ||
-                Consensus::CheckTxInputs(entry->GetTx(), state,
-                                         mempoolDuplicate, nSpendHeight);
-            assert(fCheckResult);
-            UpdateCoins(mempoolDuplicate, entry->GetTx(), 1000000);
+            CheckInputsAndUpdateCoins(entry->GetTx(), mempoolDuplicate,
+                                      spendheight);
             stepsSinceLastRemove = 0;
         }
     }
