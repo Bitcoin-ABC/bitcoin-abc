@@ -78,7 +78,7 @@ class WalletHDTest(BitcoinTestFramework):
         shutil.rmtree(os.path.join(tmpdir, "node1/regtest/blocks"))
         shutil.rmtree(os.path.join(tmpdir, "node1/regtest/chainstate"))
         shutil.copyfile(os.path.join(tmpdir, "hd.bak"),
-                        os.path.join(tmpdir, "node1/regtest/wallet.dat"))
+                        os.path.join(tmpdir, "node1/regtest/wallets/wallet.dat"))
         self.start_node(1)
 
         # Assert that derivation is deterministic
