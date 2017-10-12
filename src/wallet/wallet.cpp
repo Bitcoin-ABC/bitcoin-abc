@@ -3048,6 +3048,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 CTxOut txout(recipient.nAmount, recipient.scriptPubKey);
 
                 if (recipient.fSubtractFeeFromAmount) {
+                    assert(nSubtractFeeFromAmount != 0);
                     // Subtract fee equally from each selected recipient.
                     txout.nValue -= nFeeRet / int(nSubtractFeeFromAmount);
 
