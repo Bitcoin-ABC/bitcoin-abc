@@ -436,44 +436,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         std::runtime_error);
     g_mempool.clear();
 
-    // Invalid (pre-p2sh) txn in mempool, template creation fails.
-    std::array<int64_t, CBlockIndex::nMedianTimeSpan> times;
-    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
-        // Trick the MedianTimePast.
-        times[i] = chainActive.Tip()
-                       ->GetAncestor(chainActive.Tip()->nHeight - i)
-                       ->nTime;
-        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime =
-            P2SH_ACTIVATION_TIME;
-    }
-
-    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
-    tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vout[0].nValue = BLOCKSUBSIDY - LOWFEE;
-    script = CScript() << OP_0;
-    tx.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(script));
-    hash = tx.GetId();
-    g_mempool.addUnchecked(
-        hash,
-        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    tx.vin[0].prevout = COutPoint(hash, 0);
-    tx.vin[0].scriptSig = CScript()
-                          << std::vector<uint8_t>(script.begin(), script.end());
-    tx.vout[0].nValue -= LOWFEE;
-    hash = tx.GetId();
-    g_mempool.addUnchecked(
-        hash,
-        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
-    BOOST_CHECK_THROW(
-        BlockAssembler(config, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
-    g_mempool.clear();
-    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
-        // Restore the MedianTimePast.
-        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime =
-            times[i];
-    }
-
     // Double spend txn pair in mempool, template creation fails.
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vin[0].scriptSig = CScript() << OP_1;
@@ -523,6 +485,30 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK(
         pblocktemplate =
             BlockAssembler(config, g_mempool).CreateNewBlock(scriptPubKey));
+
+    // Invalid p2sh txn in mempool, template creation fails
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
+    tx.vin[0].scriptSig = CScript() << OP_1;
+    tx.vout[0].nValue = BLOCKSUBSIDY - LOWFEE;
+    script = CScript() << OP_0;
+    tx.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(script));
+    hash = tx.GetId();
+    g_mempool.addUnchecked(
+        hash,
+        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    tx.vin[0].prevout = COutPoint(hash, 0);
+    tx.vin[0].scriptSig = CScript()
+                          << std::vector<uint8_t>(script.begin(), script.end());
+    tx.vout[0].nValue -= LOWFEE;
+    hash = tx.GetId();
+    g_mempool.addUnchecked(
+        hash,
+        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
+    BOOST_CHECK_THROW(
+        BlockAssembler(config, g_mempool).CreateNewBlock(scriptPubKey),
+        std::runtime_error);
+    g_mempool.clear();
+
     // Delete the dummy blocks again.
     while (chainActive.Tip()->nHeight > nHeight) {
         CBlockIndex *del = chainActive.Tip();

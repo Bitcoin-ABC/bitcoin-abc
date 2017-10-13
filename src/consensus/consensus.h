@@ -32,8 +32,6 @@ static const uint64_t MAX_TX_SIGOPS_COUNT = 20000;
 static const int COINBASE_MATURITY = 100;
 /** Coinbase scripts have their own script size limit. */
 static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
-/** Activation time for P2SH (April 1st 2012) */
-static const int64_t P2SH_ACTIVATION_TIME = 1333234914;
 
 /** Flags for nSequence and nLockTime locks */
 /** Interpret sequence numbers as relative lock-time constraints. */

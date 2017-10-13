@@ -1557,8 +1557,8 @@ static uint32_t GetNextBlockScriptFlags(const Config &config,
 
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
-    // P2SH didn't become active until Apr 1 2012
-    if (pindex->GetMedianTimePast() >= P2SH_ACTIVATION_TIME) {
+    // Start enforcing P2SH (BIP16)
+    if ((pindex->nHeight + 1) >= consensusParams.BIP16Height) {
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
