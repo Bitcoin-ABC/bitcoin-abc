@@ -303,8 +303,12 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, num_j
 
     if len(test_list) > 1 and num_jobs > 1:
         # Populate cache
-        subprocess.check_output(
-            [os.path.join(tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir=%s", "cache") % tmpdir])
+        try:
+            subprocess.check_output(
+                [os.path.join(tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir=%s", "cache") % tmpdir])
+        except Exception as e:
+            print(e.output)
+            raise e
 
     # Run Tests
     time0 = time.time()
