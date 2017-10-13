@@ -136,7 +136,14 @@ uint64_t PolyMod(const data &v) {
         }
     }
 
-    return c;
+    /**
+     * PolyMod computes what value to xor into the final values to make the
+     * checksum 0. However, if we required that the checksum was 0, it would be
+     * the case that appending a 0 to a valid list of values would result in a
+     * new valid list. For that reason, cashaddr requires the resulting checksum
+     * to be 1 instead.
+     */
+    return c ^ 1;
 }
 
 /**
@@ -166,26 +173,19 @@ data ExpandPrefix(const std::string &prefix) {
 /**
  * Verify a checksum.
  */
-bool VerifyChecksum(const std::string &prefix, const data &values) {
-    /**
-     * PolyMod computes what value to xor into the final values to make the
-     * checksum 0. However, if we required that the checksum was 0, it would be
-     * the case that appending a 0 to a valid list of values would result in a
-     * new valid list. For that reason, cashaddr requires the resulting checksum
-     * to be 1 instead.
-     */
-    return PolyMod(Cat(ExpandPrefix(prefix), values)) == 1;
+bool VerifyChecksum(const std::string &prefix, const data &payload) {
+    return PolyMod(Cat(ExpandPrefix(prefix), payload)) == 0;
 }
 
 /**
  * Create a checksum.
  */
-data CreateChecksum(const std::string &prefix, const data &values) {
-    data enc = Cat(ExpandPrefix(prefix), values);
+data CreateChecksum(const std::string &prefix, const data &payload) {
+    data enc = Cat(ExpandPrefix(prefix), payload);
     // Append 8 zeroes.
     enc.resize(enc.size() + 8);
     // Determine what to XOR into those 8 zeroes.
-    uint64_t mod = PolyMod(enc) ^ 1;
+    uint64_t mod = PolyMod(enc);
     data ret(8);
     for (size_t i = 0; i < 8; ++i) {
         // Convert the 5-bit groups in mod to checksum values.
@@ -202,9 +202,9 @@ namespace cashaddr {
 /**
  * Encode a cashaddr string.
  */
-std::string Encode(const std::string &prefix, const data &values) {
-    data checksum = CreateChecksum(prefix, values);
-    data combined = Cat(values, checksum);
+std::string Encode(const std::string &prefix, const data &payload) {
+    data checksum = CreateChecksum(prefix, payload);
+    data combined = Cat(payload, checksum);
     std::string ret = prefix + ':';
 
     ret.reserve(ret.size() + combined.size());
