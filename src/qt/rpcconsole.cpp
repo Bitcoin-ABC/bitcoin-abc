@@ -1137,20 +1137,6 @@ void RPCConsole::on_sldGraphRange_valueChanged(int value) {
     setTrafficGraphRange(mins);
 }
 
-QString RPCConsole::FormatBytes(quint64 bytes) {
-    if (bytes < 1024) {
-        return QString(tr("%1 B")).arg(bytes);
-    }
-    if (bytes < 1024 * 1024) {
-        return QString(tr("%1 KB")).arg(bytes / 1024);
-    }
-    if (bytes < 1024 * 1024 * 1024) {
-        return QString(tr("%1 MB")).arg(bytes / 1024 / 1024);
-    }
-
-    return QString(tr("%1 GB")).arg(bytes / 1024 / 1024 / 1024);
-}
-
 void RPCConsole::setTrafficGraphRange(int mins) {
     ui->trafficGraph->setGraphRangeMins(mins);
     ui->lblGraphRange->setText(GUIUtil::formatDurationStr(mins * 60));
@@ -1158,8 +1144,8 @@ void RPCConsole::setTrafficGraphRange(int mins) {
 
 void RPCConsole::updateTrafficStats(quint64 totalBytesIn,
                                     quint64 totalBytesOut) {
-    ui->lblBytesIn->setText(FormatBytes(totalBytesIn));
-    ui->lblBytesOut->setText(FormatBytes(totalBytesOut));
+    ui->lblBytesIn->setText(GUIUtil::formatBytes(totalBytesIn));
+    ui->lblBytesOut->setText(GUIUtil::formatBytes(totalBytesOut));
 }
 
 void RPCConsole::peerSelected(const QItemSelection &selected,
@@ -1265,8 +1251,10 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
             ? GUIUtil::formatDurationStr(GetSystemTimeInSeconds() -
                                          stats->nodeStats.nLastRecv)
             : tr("never"));
-    ui->peerBytesSent->setText(FormatBytes(stats->nodeStats.nSendBytes));
-    ui->peerBytesRecv->setText(FormatBytes(stats->nodeStats.nRecvBytes));
+    ui->peerBytesSent->setText(
+        GUIUtil::formatBytes(stats->nodeStats.nSendBytes));
+    ui->peerBytesRecv->setText(
+        GUIUtil::formatBytes(stats->nodeStats.nRecvBytes));
     ui->peerConnTime->setText(GUIUtil::formatDurationStr(
         GetSystemTimeInSeconds() - stats->nodeStats.nTimeConnected));
     ui->peerPingTime->setText(
