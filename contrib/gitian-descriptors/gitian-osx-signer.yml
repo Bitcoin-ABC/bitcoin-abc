@@ -1,7 +1,7 @@
 ---
 name: "bitcoin-dmg-signer"
 suites:
-- "trusty"
+- "xenial"
 architectures:
 - "amd64"
 packages:

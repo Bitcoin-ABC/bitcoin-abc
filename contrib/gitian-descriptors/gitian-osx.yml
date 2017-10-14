@@ -2,7 +2,7 @@
 name: "bitcoin-abc-0.15-osx"
 enable_cache: true
 suites:
-- "trusty"
+- "xenial"
 architectures:
 - "amd64"
 packages:

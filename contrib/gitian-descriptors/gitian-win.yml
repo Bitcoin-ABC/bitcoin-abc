@@ -2,7 +2,7 @@
 name: "bitcoin-abc-0.15-win"
 enable_cache: true
 suites:
-- "trusty"
+- "xenial"
 architectures:
 - "amd64"
 packages:
