@@ -2878,6 +2878,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     m_manual_connection = false;
     // set by version message
     fClient = false;
+    // set by version message
+    m_limited_node = false;
     fFeeler = false;
     fSuccessfullyConnected = false;
     fDisconnect = false;

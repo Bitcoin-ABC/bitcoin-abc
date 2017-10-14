@@ -667,6 +667,8 @@ public:
     bool fOneShot;
     bool m_manual_connection;
     bool fClient;
+    // after BIP159
+    bool m_limited_node;
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected;
     std::atomic_bool fDisconnect;
