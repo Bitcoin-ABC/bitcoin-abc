@@ -5,6 +5,8 @@ suites:
 - "xenial"
 architectures:
 - "amd64"
+multiarch:
+- "i386"
 packages:
 - "curl"
 - "g++-aarch64-linux-gnu"
@@ -29,6 +31,8 @@ packages:
 - "bsdmainutils"
 - "ca-certificates"
 - "python"
+- "libc6-dev:i386"
+- "libstdc++6:i386"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
