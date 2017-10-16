@@ -124,7 +124,7 @@ bool AppInit(int argc, char *argv[]) {
                         "Error: Command line contains unexpected token '%s', "
                         "see bitcoind -h for a list of options.\n",
                         argv[i]);
-                exit(EXIT_FAILURE);
+                return false;
             }
         }
 
@@ -137,17 +137,17 @@ bool AppInit(int argc, char *argv[]) {
         if (!AppInitBasicSetup()) {
             // InitError will have been called with detailed error, which ends
             // up on console
-            exit(1);
+            return false;
         }
         if (!AppInitParameterInteraction(config, rpcServer)) {
             // InitError will have been called with detailed error, which ends
             // up on console
-            exit(1);
+            return false;
         }
         if (!AppInitSanityChecks()) {
             // InitError will have been called with detailed error, which ends
             // up on console
-            exit(1);
+            return false;
         }
         if (gArgs.GetBoolArg("-daemon", false)) {
 #if HAVE_DECL_DAEMON
@@ -178,7 +178,7 @@ bool AppInit(int argc, char *argv[]) {
         // Lock data directory after daemonization
         if (!AppInitLockDataDirectory()) {
             // If locking the data directory failed, exit immediately
-            exit(EXIT_FAILURE);
+            return false;
         }
         fRet = AppInitMain(config, httpRPCRequestProcessor);
     } catch (const std::exception &e) {
