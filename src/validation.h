@@ -374,6 +374,9 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
 /** Check is UAHF has activated. */
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
 
+/** Check is Cash HF has activated. */
+bool IsCashHFEnabled(const Config &config, const CBlockIndex *pindexPrev);
+
 /** (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from mempool
  * **/

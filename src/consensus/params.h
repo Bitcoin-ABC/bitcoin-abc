@@ -73,6 +73,9 @@ struct Params {
     }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
+
+    /** Activation time at which the cash HF kicks in. */
+    int64_t cashHardForkActivationTime;
 };
 } // namespace Consensus
 
