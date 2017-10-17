@@ -76,7 +76,7 @@ class NodeConn(asyncore.dispatcher):
     def __init__(self):
         super().__init__(map=mininode_socket_map)
 
-    def peer_connect(self, dstaddr, dstport, net="regtest", services=NODE_NETWORK, send_version=True):
+    def peer_connect(self, dstaddr, dstport, net="regtest"):
         self.dstaddr = dstaddr
         self.dstport = dstport
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,16 +86,6 @@ class NodeConn(asyncore.dispatcher):
         self.state = "connecting"
         self.network = net
         self.disconnect = False
-
-        if send_version:
-            # stuff version msg into sendbuf
-            vt = msg_version()
-            vt.nServices = services
-            vt.addrTo.ip = self.dstaddr
-            vt.addrTo.port = self.dstport
-            vt.addrFrom.ip = "0.0.0.0"
-            vt.addrFrom.port = 0
-            self.send_message(vt, True)
 
         logger.info('Connecting to Bitcoin Node: %s:%d' %
                     (self.dstaddr, self.dstport))
@@ -290,6 +280,19 @@ class NodeConnCB(NodeConn):
 
         # The network services received from the peer
         self.nServices = 0
+
+    def peer_connect(self, *args, services=NODE_NETWORK, send_version=True, **kwargs):
+        super().peer_connect(*args, **kwargs)
+
+        if send_version:
+            # Send a version msg
+            vt = msg_version()
+            vt.nServices = services
+            vt.addrTo.ip = self.dstaddr
+            vt.addrTo.port = self.dstport
+            vt.addrFrom.ip = "0.0.0.0"
+            vt.addrFrom.port = 0
+            self.send_message(vt, True)
 
     # Message receiving methods
 
