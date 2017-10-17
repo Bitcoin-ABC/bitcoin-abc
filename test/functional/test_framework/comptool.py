@@ -44,7 +44,7 @@ class RejectResult():
         return '%i:%s' % (self.code, self.reason or '*')
 
 
-class TestNode(NodeConnCB):
+class TestNode(P2PInterface):
 
     def __init__(self, block_store, tx_store):
         super().__init__()

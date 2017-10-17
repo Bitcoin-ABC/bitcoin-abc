@@ -93,7 +93,7 @@ from test_framework.blocktools import create_block, create_coinbase
 direct_fetch_response_time = 0.05
 
 
-class TestNode(NodeConnCB):
+class TestNode(P2PInterface):
     def __init__(self):
         super().__init__()
         self.block_announced = False
