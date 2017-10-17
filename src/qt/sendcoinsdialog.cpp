@@ -597,7 +597,8 @@ void SendCoinsDialog::processSendCoinsReturn(
             msgParams.first =
                 tr("A fee higher than %1 is considered an absurdly high fee.")
                     .arg(BitcoinUnits::formatWithUnit(
-                        model->getOptionsModel()->getDisplayUnit(), maxTxFee));
+                        model->getOptionsModel()->getDisplayUnit(),
+                        maxTxFee.GetSatoshis()));
             break;
         case WalletModel::PaymentRequestExpired:
             msgParams.first = tr("Payment request expired.");

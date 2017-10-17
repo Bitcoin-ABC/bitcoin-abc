@@ -196,7 +196,7 @@ extern size_t nCoinCacheUsage;
 extern CFeeRate minRelayTxFee;
 /** Absolute maximum transaction fee (in satoshis) used by wallet and mempool
  * (rejects high fee in sendrawtransaction) */
-extern CAmount maxTxFee;
+extern Amount maxTxFee;
 /** If the tip is older than this (in seconds), the node is considered to be in
  * initial block download. */
 extern int64_t nMaxTipAge;
@@ -322,7 +322,7 @@ bool GetTransaction(const Config &config, const uint256 &hash,
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
+Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
 /** Guess verification progress (as a fraction between 0.0=genesis and
  * 1.0=current tip). */
@@ -385,7 +385,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         bool fLimitFree, bool *pfMissingInputs,
                         std::list<CTransactionRef> *plTxnReplaced = nullptr,
                         bool fOverrideMempoolLimit = false,
-                        const CAmount nAbsurdFee = 0);
+                        const Amount nAbsurdFee = Amount(0));
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);
@@ -509,7 +509,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags,
 class CScriptCheck {
 private:
     CScript scriptPubKey;
-    CAmount amount;
+    Amount amount;
     const CTransaction *ptxTo;
     unsigned int nIn;
     uint32_t nFlags;
@@ -522,7 +522,7 @@ public:
         : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
 
-    CScriptCheck(const CScript &scriptPubKeyIn, const CAmount amountIn,
+    CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
                  const CTransaction &txToIn, unsigned int nInIn,
                  uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn)

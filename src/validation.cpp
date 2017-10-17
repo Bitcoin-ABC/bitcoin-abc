@@ -82,7 +82,7 @@ int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 uint256 hashAssumeValid;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
-CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE.GetSatoshis();
+Amount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
 
@@ -677,7 +677,7 @@ static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced,
-    bool fOverrideMempoolLimit, const CAmount &nAbsurdFee,
+    bool fOverrideMempoolLimit, const Amount nAbsurdFee,
     std::vector<COutPoint> &coins_to_uncache) {
     AssertLockHeld(cs_main);
 
@@ -849,7 +849,7 @@ static bool AcceptToMemoryPoolWorker(
                              strprintf("%d", nSigOpsCount));
         }
 
-        CAmount mempoolRejectFee =
+        Amount mempoolRejectFee =
             pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                            1000000)
                 .GetFee(nSize)
@@ -897,7 +897,7 @@ static bool AcceptToMemoryPoolWorker(
             dFreeCount += nSize;
         }
 
-        if (nAbsurdFee && nFees > nAbsurdFee) {
+        if (nAbsurdFee != 0 && nFees > nAbsurdFee) {
             return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
                                  strprintf("%d > %d", nFees, nAbsurdFee));
         }
@@ -1011,7 +1011,7 @@ static bool AcceptToMemoryPoolWithTime(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = nullptr,
-    bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0) {
+    bool fOverrideMempoolLimit = false, const Amount nAbsurdFee = 0) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
@@ -1033,7 +1033,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
                         std::list<CTransactionRef> *plTxnReplaced,
-                        bool fOverrideMempoolLimit, const CAmount nAbsurdFee) {
+                        bool fOverrideMempoolLimit, const Amount nAbsurdFee) {
     return AcceptToMemoryPoolWithTime(config, pool, state, tx, fLimitFree,
                                       pfMissingInputs, GetTime(), plTxnReplaced,
                                       fOverrideMempoolLimit, nAbsurdFee);
@@ -1165,16 +1165,15 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
     return true;
 }
 
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
+Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64) return 0;
 
-    CAmount nSubsidy = 50 * COIN.GetSatoshis();
+    Amount nSubsidy = 50 * COIN;
     // Subsidy is cut in half every 210,000 blocks which will occur
     // approximately every 4 years.
-    nSubsidy >>= halvings;
-    return nSubsidy;
+    return Amount(nSubsidy.GetSatoshis() >> halvings);
 }
 
 bool IsInitialBlockDownload() {
@@ -1373,8 +1372,8 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         return state.Invalid(false, 0, "", "Inputs unavailable");
     }
 
-    CAmount nValueIn = 0;
-    CAmount nFees = 0;
+    Amount nValueIn = 0;
+    Amount nFees = 0;
     for (size_t i = 0; i < tx.vin.size(); i++) {
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin &coin = inputs.AccessCoin(prevout);
@@ -1407,7 +1406,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     }
 
     // Tally transaction fees
-    CAmount nTxFee = nValueIn - tx.GetValueOut().GetSatoshis();
+    Amount nTxFee = nValueIn - tx.GetValueOut();
     if (nTxFee < 0) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
     }
@@ -1468,7 +1467,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         // additional data in, eg, the coins being spent being checked as a part
         // of CScriptCheck.
         const CScript &scriptPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount amount = coin.GetTxOut().nValue.GetSatoshis();
+        const Amount amount = coin.GetTxOut().nValue;
 
         // Verify signature
         CScriptCheck check(scriptPubKey, amount, tx, i, flags, sigCacheStore,
@@ -2008,7 +2007,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                                                            : nullptr);
 
     std::vector<int> prevheights;
-    CAmount nFees = 0;
+    Amount nFees = 0;
     int nInputs = 0;
 
     // Sigops counting. We need to do it again because of P2SH.
@@ -2104,7 +2103,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs - 1),
              nTimeConnect * 0.000001);
 
-    CAmount blockReward =
+    Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
     if (block.vtx[0]->GetValueOut() > blockReward) {
         return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
@@ -4942,8 +4941,8 @@ bool LoadMempool(const Config &config) {
             file >> nTime;
             file >> nFeeDelta;
 
-            CAmount amountdelta = nFeeDelta;
-            if (amountdelta) {
+            Amount amountdelta = nFeeDelta;
+            if (amountdelta != 0) {
                 mempool.PrioritiseTransaction(tx->GetId(),
                                               tx->GetId().ToString(),
                                               prioritydummy, amountdelta);
@@ -4963,7 +4962,7 @@ bool LoadMempool(const Config &config) {
             }
             if (ShutdownRequested()) return false;
         }
-        std::map<uint256, CAmount> mapDeltas;
+        std::map<uint256, Amount> mapDeltas;
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {
@@ -4986,7 +4985,7 @@ bool LoadMempool(const Config &config) {
 void DumpMempool(void) {
     int64_t start = GetTimeMicros();
 
-    std::map<uint256, CAmount> mapDeltas;
+    std::map<uint256, Amount> mapDeltas;
     std::vector<TxMempoolInfo> vinfo;
 
     {

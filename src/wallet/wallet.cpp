@@ -1805,7 +1805,7 @@ void CWallet::ReacceptWalletTransactions() {
 
         LOCK(mempool.cs);
         CValidationState state;
-        wtx.AcceptToMemoryPool(maxTxFee, state);
+        wtx.AcceptToMemoryPool(maxTxFee.GetSatoshis(), state);
     }
 }
 
@@ -1817,7 +1817,7 @@ bool CWalletTx::RelayWalletTransaction(CConnman *connman) {
 
     CValidationState state;
     // GetDepthInMainChain already catches known conflicts.
-    if (InMempool() || AcceptToMemoryPool(maxTxFee, state)) {
+    if (InMempool() || AcceptToMemoryPool(maxTxFee.GetSatoshis(), state)) {
         LogPrintf("Relaying wtx %s\n", GetId().ToString());
         if (connman) {
             CInv inv(MSG_TX, GetId());
@@ -3053,7 +3053,7 @@ bool CWallet::CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
 
     if (fBroadcastTransactions) {
         // Broadcast
-        if (!wtxNew.AcceptToMemoryPool(maxTxFee, state)) {
+        if (!wtxNew.AcceptToMemoryPool(maxTxFee.GetSatoshis(), state)) {
             LogPrintf("CommitTransaction(): Transaction cannot be "
                       "broadcast immediately, %s\n",
                       state.GetRejectReason());
@@ -3127,7 +3127,7 @@ CAmount CWallet::GetMinimumFee(unsigned int nTxBytes,
 
     // But always obey the maximum.
     if (nFeeNeeded > maxTxFee) {
-        nFeeNeeded = maxTxFee;
+        nFeeNeeded = maxTxFee.GetSatoshis();
     }
 
     return nFeeNeeded;

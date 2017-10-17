@@ -1112,7 +1112,7 @@ static UniValue sendrawtransaction(const Config &config,
     const uint256 &txid = tx->GetId();
 
     bool fLimitFree = false;
-    CAmount nMaxRawTxFee = maxTxFee;
+    CAmount nMaxRawTxFee = maxTxFee.GetSatoshis();
     if (request.params.size() > 1 && request.params[1].get_bool()) {
         nMaxRawTxFee = 0;
     }
