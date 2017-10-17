@@ -617,11 +617,6 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsUAHFenabled(config, pindexPrev->nHeight);
 }
 
-bool IsUAHFenabledForCurrentBlock(const Config &config) {
-    AssertLockHeld(cs_main);
-    return IsUAHFenabled(config, chainActive.Tip());
-}
-
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
 // were somehow broken and returning the wrong scriptPubKeys
 static bool CheckInputsFromMempoolAndCache(const CTransaction &tx,

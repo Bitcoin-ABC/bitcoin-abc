@@ -734,8 +734,6 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
         pindex = pindex->pprev;
     }
 
-    BOOST_CHECK(IsUAHFenabledForCurrentBlock(config));
-
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);
     CheckBlockMaxSize(chainparams, 0, 1000);
