@@ -86,6 +86,7 @@ public:
     const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
         return base58Prefixes[type];
     }
+    const std::string &CashAddrPrefix() const { return cashaddrPrefix; }
     const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData &Checkpoints() const { return checkpointData; }
     const ChainTxData &TxData() const { return chainTxData; }
@@ -100,6 +101,7 @@ protected:
     uint64_t nPruneAfterHeight;
     std::vector<CDNSSeedData> vSeeds;
     std::vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
+    std::string cashaddrPrefix;
     std::string strNetworkID;
     CBlock genesis;
     std::vector<SeedSpec6> vFixedSeeds;
