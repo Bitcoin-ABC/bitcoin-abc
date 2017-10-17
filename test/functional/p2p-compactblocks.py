@@ -20,7 +20,7 @@ Only testing Version 1 compact blocks (txids)
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
 
 
-class TestNode(NodeConnCB):
+class TestNode(P2PInterface):
     def __init__(self):
         super().__init__()
         self.last_sendcmpct = []

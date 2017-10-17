@@ -22,8 +22,7 @@ from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.blocktools import mine_big_block
 
 
-class TestNode(NodeConnCB):
-
+class TestNode(P2PInterface):
     def __init__(self):
         super().__init__()
         self.block_receive_map = defaultdict(int)

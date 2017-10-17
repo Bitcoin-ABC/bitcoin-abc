@@ -30,7 +30,7 @@ class PreviousSpendableOutput():
 
 
 # TestNode: A peer we use to send messages to bitcoind, and store responses.
-class TestNode(NodeConnCB):
+class TestNode(P2PInterface):
 
     def __init__(self):
         self.last_sendcmpct = None

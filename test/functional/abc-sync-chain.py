@@ -14,8 +14,7 @@ import random
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.mininode import (CBlockHeader,
                                      NetworkThread,
-                                     NodeConn,
-                                     NodeConnCB,
+                                     P2PInterface,
                                      msg_block,
                                      msg_headers)
 from test_framework.test_framework import BitcoinTestFramework
@@ -25,7 +24,7 @@ from test_framework.util import assert_equal, wait_until, p2p_port
 NUM_IBD_BLOCKS = 50
 
 
-class BaseNode(NodeConnCB):
+class BaseNode(P2PInterface):
     def send_header(self, block):
         msg = msg_headers()
         msg.headers = [CBlockHeader(block)]
