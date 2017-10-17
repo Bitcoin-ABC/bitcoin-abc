@@ -20,14 +20,14 @@ static void BenchLockedPool(benchmark::State &state) {
 
     std::vector<void *> addr;
     for (int x = 0; x < ASIZE; ++x)
-        addr.push_back(0);
+        addr.push_back(nullptr);
     uint32_t s = 0x12345678;
     while (state.KeepRunning()) {
         for (int x = 0; x < BITER; ++x) {
             int idx = s & (addr.size() - 1);
             if (s & 0x80000000) {
                 b.free(addr[idx]);
-                addr[idx] = 0;
+                addr[idx] = nullptr;
             } else if (!addr[idx]) {
                 addr[idx] = b.alloc((s >> 16) & (MSIZE - 1));
             }
@@ -41,4 +41,4 @@ static void BenchLockedPool(benchmark::State &state) {
     addr.clear();
 }
 
-BENCHMARK(BenchLockedPool);
+BENCHMARK(BenchLockedPool, 530);

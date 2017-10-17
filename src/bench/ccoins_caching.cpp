@@ -87,4 +87,4 @@ static void CCoinsCaching(benchmark::State &state) {
     }
 }
 
-BENCHMARK(CCoinsCaching);
+BENCHMARK(CCoinsCaching, 170 * 1000);

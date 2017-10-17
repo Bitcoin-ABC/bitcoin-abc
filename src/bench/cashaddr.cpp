@@ -28,5 +28,5 @@ static void CashAddrDecode(benchmark::State &state) {
     }
 }
 
-BENCHMARK(CashAddrEncode);
-BENCHMARK(CashAddrDecode);
+BENCHMARK(CashAddrEncode, 800 * 1000);
+BENCHMARK(CashAddrDecode, 800 * 1000);
