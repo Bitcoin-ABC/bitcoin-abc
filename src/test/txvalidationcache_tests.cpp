@@ -187,17 +187,15 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     spend_tx.vout[3].nValue = 11 * CENT.GetSatoshis();
     spend_tx.vout[3].scriptPubKey = p2sh_scriptPubKey;
 
-    // Sign, with a non-DER signature
+    // Sign, and push an extra element on the stack.
     {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(p2pk_scriptPubKey, spend_tx, 0,
                                      SIGHASH_ALL | SIGHASH_FORKID,
                                      coinbaseTxns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
-        // Negate S to ensure the signature is valid but non standard.
-        NegateSignatureS(vchSig);
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
-        spend_tx.vin[0].scriptSig << vchSig;
+        spend_tx.vin[0].scriptSig << OP_TRUE << vchSig;
     }
 
     LOCK(cs_main);
@@ -209,27 +207,27 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     {
         PrecomputedTransactionData ptd_spend_tx(spend_tx);
 
-        BOOST_CHECK(
-            !CheckInputs(spend_tx, state, pcoinsTip, true,
-                         MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_LOW_S,
-                         true, true, ptd_spend_tx, nullptr));
+        BOOST_CHECK(!CheckInputs(spend_tx, state, pcoinsTip, true,
+                                 MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                     SCRIPT_VERIFY_CLEANSTACK,
+                                 true, true, ptd_spend_tx, nullptr));
 
         // If we call again asking for scriptchecks (as happens in
         // ConnectBlock), we should add a script check object for this -- we're
         // not caching invalidity (if that changes, delete this test case).
         std::vector<CScriptCheck> scriptchecks;
-        BOOST_CHECK(
-            CheckInputs(spend_tx, state, pcoinsTip, true,
-                        MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_LOW_S,
-                        true, true, ptd_spend_tx, &scriptchecks));
+        BOOST_CHECK(CheckInputs(spend_tx, state, pcoinsTip, true,
+                                MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                    SCRIPT_VERIFY_CLEANSTACK,
+                                true, true, ptd_spend_tx, &scriptchecks));
         BOOST_CHECK_EQUAL(scriptchecks.size(), 1);
 
-        // Test that CheckInputs returns true iff LOW_S-enforcing flags are not
-        // present. Don't add these checks to the cache, so that we can test
+        // Test that CheckInputs returns true iff cleanstack-enforcing flags are
+        // not present. Don't add these checks to the cache, so that we can test
         // later that block validation works fine in the absence of cached
         // successes.
-        ValidateCheckInputsForAllFlags(spend_tx, SCRIPT_VERIFY_LOW_S, false,
-                                       false);
+        ValidateCheckInputsForAllFlags(spend_tx, SCRIPT_VERIFY_CLEANSTACK,
+                                       false, false);
 
         // And if we produce a block with this tx, it should be valid (LOW_S not
         // enabled yet), even though there's no cache entry.

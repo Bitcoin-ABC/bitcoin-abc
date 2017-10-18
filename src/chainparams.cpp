@@ -439,7 +439,7 @@ public:
         // Hard fork is always enabled on regtest.
         consensus.uahfHeight = 0;
 
-        // Nov, 13 hard fork
+        // Nov, 13 hard fork is always on on regtest.
         consensus.cashHardForkActivationTime = 0;
 
         pchMessageStart[0] = 0xfa;
