@@ -289,8 +289,7 @@ public:
 class CompareTxMemPoolEntryByScore {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) {
-        double f1 =
-            double(b.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
+        double f1 = double(b.GetTxSize() * a.GetModifiedFee().GetSatoshis());
         double f2 = double(a.GetTxSize() * b.GetModifiedFee().GetSatoshis());
         if (f1 == f2) {
             return b.GetTx().GetId() < a.GetTx().GetId();
