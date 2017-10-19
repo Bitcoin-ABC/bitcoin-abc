@@ -1022,9 +1022,19 @@ static bool CompareNodeTXTime(const NodeEvictionCandidate &a,
     return a.nTimeConnected > b.nTimeConnected;
 }
 
+//! Sort an array by the specified comparator, then erase the last K elements.
+template <typename T, typename Comparator>
+static void EraseLastKElements(std::vector<T> &elements, Comparator comparator,
+                               size_t k) {
+    std::sort(elements.begin(), elements.end(), comparator);
+    size_t eraseSize = std::min(k, elements.size());
+    elements.erase(elements.end() - eraseSize, elements.end());
+}
+
 /**
- * Try to find a connection to evict when the node is full. Extreme care must be
- * taken to avoid opening the node to attacker triggered network partitioning.
+ * Try to find a connection to evict when the node is full.
+ * Extreme care must be taken to avoid opening the node to attacker triggered
+ * network partitioning.
  * The strategy used here is to protect a small number of peers for each of
  * several distinct characteristics which are difficult to forge. In order to
  * partition a node the attacker must be simultaneously better at all of them
@@ -1054,74 +1064,26 @@ bool CConnman::AttemptToEvictConnection() {
         }
     }
 
-    if (vEvictionCandidates.empty()) {
-        return false;
-    }
-
     // Protect connections with certain characteristics
 
-    // Deterministically select 4 peers to protect by netgroup. An attacker
-    // cannot predict which netgroups will be protected.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              CompareNetGroupKeyed);
-    vEvictionCandidates.erase(
-        vEvictionCandidates.end() -
-            std::min(4, static_cast<int>(vEvictionCandidates.size())),
-        vEvictionCandidates.end());
-
-    if (vEvictionCandidates.empty()) {
-        return false;
-    }
-
-    // Protect the 8 nodes with the lowest minimum ping time. An attacker cannot
-    // manipulate this metric without physically moving nodes closer to the
-    // target.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              ReverseCompareNodeMinPingTime);
-    vEvictionCandidates.erase(
-        vEvictionCandidates.end() -
-            std::min(8, static_cast<int>(vEvictionCandidates.size())),
-        vEvictionCandidates.end());
-
-    if (vEvictionCandidates.empty()) {
-        return false;
-    }
-
-    // Protect 4 nodes that most recently sent us transactions. An attacker
-    // cannot manipulate this metric without performing useful work.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              CompareNodeTXTime);
-    vEvictionCandidates.erase(
-        vEvictionCandidates.end() -
-            std::min(4, static_cast<int>(vEvictionCandidates.size())),
-        vEvictionCandidates.end());
-
-    if (vEvictionCandidates.empty()) {
-        return false;
-    }
-
-    // Protect 4 nodes that most recently sent us blocks. An attacker cannot
-    // manipulate this metric without performing useful work.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              CompareNodeBlockTime);
-    vEvictionCandidates.erase(
-        vEvictionCandidates.end() -
-            std::min(4, static_cast<int>(vEvictionCandidates.size())),
-        vEvictionCandidates.end());
-
-    if (vEvictionCandidates.empty()) {
-        return false;
-    }
-
+    // Deterministically select 4 peers to protect by netgroup.
+    // An attacker cannot predict which netgroups will be protected
+    EraseLastKElements(vEvictionCandidates, CompareNetGroupKeyed, 4);
+    // Protect the 8 nodes with the lowest minimum ping time.
+    // An attacker cannot manipulate this metric without physically moving nodes
+    // closer to the target.
+    EraseLastKElements(vEvictionCandidates, ReverseCompareNodeMinPingTime, 8);
+    // Protect 4 nodes that most recently sent us transactions.
+    // An attacker cannot manipulate this metric without performing useful work.
+    EraseLastKElements(vEvictionCandidates, CompareNodeTXTime, 4);
+    // Protect 4 nodes that most recently sent us blocks.
+    // An attacker cannot manipulate this metric without performing useful work.
+    EraseLastKElements(vEvictionCandidates, CompareNodeBlockTime, 4);
     // Protect the half of the remaining nodes which have been connected the
     // longest. This replicates the non-eviction implicit behavior, and
     // precludes attacks that start later.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              ReverseCompareNodeTimeConnected);
-    vEvictionCandidates.erase(
-        vEvictionCandidates.end() -
-            static_cast<int>(vEvictionCandidates.size() / 2),
-        vEvictionCandidates.end());
+    EraseLastKElements(vEvictionCandidates, ReverseCompareNodeTimeConnected,
+                       vEvictionCandidates.size() / 2);
 
     if (vEvictionCandidates.empty()) {
         return false;
@@ -1134,15 +1096,15 @@ bool CConnman::AttemptToEvictConnection() {
     int64_t nMostConnectionsTime = 0;
     std::map<uint64_t, std::vector<NodeEvictionCandidate>> mapNetGroupNodes;
     for (const NodeEvictionCandidate &node : vEvictionCandidates) {
-        mapNetGroupNodes[node.nKeyedNetGroup].push_back(node);
-        int64_t grouptime =
-            mapNetGroupNodes[node.nKeyedNetGroup][0].nTimeConnected;
-        size_t groupsize = mapNetGroupNodes[node.nKeyedNetGroup].size();
-
-        if (groupsize > nMostConnections ||
-            (groupsize == nMostConnections &&
+        std::vector<NodeEvictionCandidate> &group =
+            mapNetGroupNodes[node.nKeyedNetGroup];
+        group.push_back(node);
+        int64_t grouptime = group[0].nTimeConnected;
+        size_t group_size = group.size();
+        if (group_size > nMostConnections ||
+            (group_size == nMostConnections &&
              grouptime > nMostConnectionsTime)) {
-            nMostConnections = groupsize;
+            nMostConnections = group_size;
             nMostConnectionsTime = grouptime;
             naMostConnections = node.nKeyedNetGroup;
         }
