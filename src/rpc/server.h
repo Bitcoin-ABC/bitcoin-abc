@@ -219,7 +219,6 @@ extern std::vector<uint8_t> ParseHexO(const UniValue &o, std::string strKey);
 extern int64_t nWalletUnlockTime;
 extern Amount AmountFromValue(const UniValue &value);
 extern UniValue ValueFromAmount(const Amount &amount);
-extern double GetDifficulty(const CBlockIndex *blockindex = nullptr);
 extern std::string HelpRequiringPassphrase();
 extern std::string HelpExampleCli(const std::string &methodname,
                                   const std::string &args);

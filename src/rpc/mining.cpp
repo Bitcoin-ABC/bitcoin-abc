@@ -17,6 +17,7 @@
 #include "net.h"
 #include "policy/policy.h"
 #include "pow.h"
+#include "rpc/blockchain.h"
 #include "rpc/server.h"
 #include "txmempool.h"
 #include "util.h"
@@ -24,10 +25,10 @@
 #include "validation.h"
 #include "validationinterface.h"
 
+#include <univalue.h>
+
 #include <cstdint>
 #include <memory>
-
-#include <univalue.h>
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
@@ -286,7 +287,7 @@ static UniValue getmininginfo(const Config &config,
     obj.push_back(Pair("blocks", int(chainActive.Height())));
     obj.push_back(Pair("currentblocksize", uint64_t(nLastBlockSize)));
     obj.push_back(Pair("currentblocktx", uint64_t(nLastBlockTx)));
-    obj.push_back(Pair("difficulty", double(GetDifficulty())));
+    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
     obj.push_back(Pair("blockprioritypercentage",
                        uint8_t(GetArg("-blockprioritypercentage",
                                       DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));

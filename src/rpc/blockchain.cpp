@@ -44,31 +44,31 @@ extern void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
 void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex *blockindex) {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (blockindex == nullptr) {
-        if (chainActive.Tip() == nullptr) {
-            return 1.0;
-        }
-
-        blockindex = chainActive.Tip();
-    }
-
-    int nShift = (blockindex->nBits >> 24) & 0xff;
-
-    double dDiff = double(0x0000ffff) / double(blockindex->nBits & 0x00ffffff);
+static double GetDifficultyFromBits(uint32_t nBits) {
+    int nShift = (nBits >> 24) & 0xff;
+    double dDiff = 0x0000ffff / double(nBits & 0x00ffffff);
 
     while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
+
     while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
 
     return dDiff;
+}
+
+double GetDifficulty(const CBlockIndex *blockindex) {
+    // Floating point number that is a multiple of the minimum difficulty,
+    // minimum difficulty = 1.0.
+    if (blockindex == nullptr) {
+        return 1.0;
+    }
+
+    return GetDifficultyFromBits(blockindex->nBits);
 }
 
 UniValue blockheaderToJSON(const CBlockIndex *blockindex) {
@@ -365,7 +365,7 @@ UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
     }
 
     LOCK(cs_main);
-    return GetDifficulty();
+    return GetDifficulty(chainActive.Tip());
 }
 
 std::string EntryDescriptionString() {
@@ -1306,7 +1306,7 @@ UniValue getblockchaininfo(const Config &config,
         Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
     obj.push_back(
         Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty", double(GetDifficulty())));
+    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
     obj.push_back(
         Pair("mediantime", int64_t(chainActive.Tip()->GetMedianTimePast())));
     obj.push_back(

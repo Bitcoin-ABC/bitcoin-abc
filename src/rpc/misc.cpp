@@ -11,6 +11,7 @@
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
+#include "rpc/blockchain.h"
 #include "rpc/server.h"
 #include "timedata.h"
 #include "util.h"
@@ -21,9 +22,9 @@
 #include "wallet/walletdb.h"
 #endif
 
-#include <cstdint>
-
 #include <univalue.h>
+
+#include <cstdint>
 
 /**
  * @note Do not add or change anything in the information returned by this
@@ -106,7 +107,7 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
                                               CConnman::CONNECTIONS_ALL)));
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                                  : std::string())));
-    obj.push_back(Pair("difficulty", (double)GetDifficulty()));
+    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
     obj.push_back(Pair("testnet", Params().NetworkIDString() ==
                                       CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
