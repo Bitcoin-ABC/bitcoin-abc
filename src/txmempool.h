@@ -607,7 +607,7 @@ public:
     void PrioritiseTransaction(const uint256 hash, const std::string strHash,
                                double dPriorityDelta, const Amount nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
-                     Amount nFeeDelta) const;
+                     Amount &nFeeDelta) const;
     void ClearPrioritisation(const uint256 hash);
 
 public:

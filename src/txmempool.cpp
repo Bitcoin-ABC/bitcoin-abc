@@ -992,7 +992,7 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
 }
 
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta,
-                             Amount nFeeDelta) const {
+                             Amount &nFeeDelta) const {
     LOCK(cs);
     std::map<uint256, std::pair<double, Amount>>::const_iterator pos =
         mapDeltas.find(hash);
