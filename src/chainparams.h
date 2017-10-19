@@ -14,15 +14,6 @@
 #include <memory>
 #include <vector>
 
-struct CDNSSeedData {
-    std::string host;
-    bool supportsServiceBitsFiltering;
-    CDNSSeedData(const std::string &strHost,
-                 bool supportsServiceBitsFilteringIn)
-        : host(strHost),
-          supportsServiceBitsFiltering(supportsServiceBitsFilteringIn) {}
-};
-
 struct SeedSpec6 {
     uint8_t addr[16];
     uint16_t port;
@@ -77,7 +68,8 @@ public:
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
-    const std::vector<CDNSSeedData> &DNSSeeds() const { return vSeeds; }
+    /** Return the list of hostnames to look up for DNS seeds */
+    const std::vector<std::string> &DNSSeeds() const { return vSeeds; }
     const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
         return base58Prefixes[type];
     }
@@ -94,7 +86,7 @@ protected:
     CMessageHeader::MessageMagic netMagic;
     int nDefaultPort;
     uint64_t nPruneAfterHeight;
-    std::vector<CDNSSeedData> vSeeds;
+    std::vector<std::string> vSeeds;
     std::vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
     std::string cashaddrPrefix;
     std::string strNetworkID;

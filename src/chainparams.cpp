@@ -160,20 +160,23 @@ public:
                uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
                         "7afdeda33b"));
 
-        // Note that of those with the service bits flag, most only support a
-        // subset of possible options.
+        // Note that of those which support the service bits prefix, most only
+        // support a subset of possible options. This is fine at runtime as
+        // we'll fall back to using them as a oneshot if they dont support the
+        // service bits we want, but we should get them updated to support all
+        // service bits wanted by any release ASAP to avoid it where possible.
         // Bitcoin ABC seeder
-        vSeeds.emplace_back("seed.bitcoinabc.org", true);
+        vSeeds.emplace_back("seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("seed-abc.bitcoinforks.org", true);
+        vSeeds.emplace_back("seed-abc.bitcoinforks.org");
         // BU backed seeder
-        vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info", true);
+        vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info");
         // Bitprim
-        vSeeds.emplace_back("seed.bitprim.org", true);
+        vSeeds.emplace_back("seed.bitprim.org");
         // Amaury SÉCHET
-        vSeeds.emplace_back("seed.deadalnix.me", true);
+        vSeeds.emplace_back("seed.deadalnix.me");
         // criptolayer.net
-        vSeeds.emplace_back("seeder.criptolayer.net", true);
+        vSeeds.emplace_back("seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
@@ -324,15 +327,15 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
-        vSeeds.emplace_back("testnet-seed.bitcoinabc.org", true);
+        vSeeds.emplace_back("testnet-seed.bitcoinabc.org");
         // bitcoinforks seeders
-        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org", true);
+        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org");
         // Bitprim
-        vSeeds.emplace_back("testnet-seed.bitprim.org", true);
+        vSeeds.emplace_back("testnet-seed.bitprim.org");
         // Amaury SÉCHET
-        vSeeds.emplace_back("testnet-seed.deadalnix.me", true);
+        vSeeds.emplace_back("testnet-seed.deadalnix.me");
         // criptolayer.net
-        vSeeds.emplace_back("testnet-seeder.criptolayer.net", true);
+        vSeeds.emplace_back("testnet-seeder.criptolayer.net");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
