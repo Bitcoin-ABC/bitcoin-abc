@@ -812,6 +812,9 @@ bool GetTransaction(const Config &config, const TxId &txid,
 
             return true;
         }
+
+        // transaction not found in index, nothing more can be done
+        return false;
     }
 
     // use coin database to locate block that contains transaction, and scan it
