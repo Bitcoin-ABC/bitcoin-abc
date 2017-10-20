@@ -169,8 +169,9 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
         BOOST_CHECK(mpool.estimateFee(i) == CFeeRate(0) ||
                     mpool.estimateFee(i).GetFeePerK() >
                         origFeeEst[i - 1] - deltaFee);
-        BOOST_CHECK(mpool.estimateSmartFee(i, &answerFound).GetFeePerK() >
-                    origFeeEst[answerFound - 1] - deltaFee);
+        Amount a1 = mpool.estimateSmartFee(i, &answerFound).GetFeePerK();
+        Amount a2 = origFeeEst[answerFound - 1] - deltaFee;
+        BOOST_CHECK(a1 > a2);
     }
 
     // Mine all those transactions
