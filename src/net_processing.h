@@ -6,6 +6,7 @@
 #ifndef BITCOIN_NET_PROCESSING_H
 #define BITCOIN_NET_PROCESSING_H
 
+#include "consensus/params.h"
 #include "net.h"
 #include "validationinterface.h"
 
@@ -44,14 +45,26 @@ static constexpr int32_t MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT = 4;
  */
 // 20 minutes
 static constexpr int64_t CHAIN_SYNC_TIMEOUT = 20 * 60;
+/** How frequently to check for stale tips, in seconds */
+// 10 minutes
+static constexpr int64_t STALE_CHECK_INTERVAL = 10 * 60;
+/**
+ * How frequently to check for extra outbound peers and disconnect, in seconds.
+ */
+static constexpr int64_t EXTRA_PEER_CHECK_INTERVAL = 45;
+/**
+ * Minimum time an outbound-peer-eviction candidate must be connected for, in
+ * order to evict, in seconds.
+ */
+static constexpr int64_t MINIMUM_CONNECT_TIME = 30;
 
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
 private:
-    CConnman *connman;
+    CConnman *const connman;
 
 public:
-    explicit PeerLogicValidation(CConnman *connman);
+    explicit PeerLogicValidation(CConnman *connman, CScheduler &scheduler);
 
     void
     BlockConnected(const std::shared_ptr<const CBlock> &pblock,
@@ -84,6 +97,13 @@ public:
                       std::atomic<bool> &interrupt) override;
 
     void ConsiderEviction(CNode *pto, int64_t time_in_seconds);
+    void
+    CheckForStaleTipAndEvictPeers(const Consensus::Params &consensusParams);
+    void EvictExtraOutboundPeers(int64_t time_in_seconds);
+
+private:
+    //! Next time to check for stale tip
+    int64_t m_stale_tip_check_time;
 };
 
 struct CNodeStateStats {

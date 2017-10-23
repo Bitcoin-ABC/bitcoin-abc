@@ -36,6 +36,16 @@
 #include <memory>
 #include <thread>
 
+void CConnmanTest::AddNode(CNode &node) {
+    LOCK(g_connman->cs_vNodes);
+    g_connman->vNodes.push_back(&node);
+}
+
+void CConnmanTest::ClearNodes() {
+    LOCK(g_connman->cs_vNodes);
+    g_connman->vNodes.clear();
+}
+
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
@@ -100,7 +110,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // Deterministic randomness for tests.
     g_connman = std::unique_ptr<CConnman>(new CConnman(config, 0x1337, 0x1337));
     connman = g_connman.get();
-    peerLogic.reset(new PeerLogicValidation(connman));
+    peerLogic.reset(new PeerLogicValidation(connman, scheduler));
 }
 
 TestingSetup::~TestingSetup() {

@@ -1821,7 +1821,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                      GetRand(std::numeric_limits<uint64_t>::max())));
     CConnman &connman = *g_connman;
 
-    peerLogic.reset(new PeerLogicValidation(&connman));
+    peerLogic.reset(new PeerLogicValidation(&connman, scheduler));
     RegisterValidationInterface(peerLogic.get());
 
     if (gArgs.IsArgSet("-onlynet")) {
