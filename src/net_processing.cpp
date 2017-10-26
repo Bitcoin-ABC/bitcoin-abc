@@ -1395,7 +1395,8 @@ inline static void SendBlockTransactions(const CBlock &block,
 
 static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
                                   CConnman *connman,
-                                  const std::vector<CBlockHeader> &headers) {
+                                  const std::vector<CBlockHeader> &headers,
+                                  bool punish_duplicate_invalid) {
     const CChainParams &chainparams = config.GetChainParams();
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
     size_t nCount = headers.size();
@@ -1459,12 +1460,50 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     }
 
     CValidationState state;
-    if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast)) {
+    CBlockHeader first_invalid_header;
+    if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast,
+                                &first_invalid_header)) {
         int nDoS;
         if (state.IsInvalid(nDoS)) {
             if (nDoS > 0) {
                 LOCK(cs_main);
                 Misbehaving(pfrom, nDoS, state.GetRejectReason());
+            }
+            if (punish_duplicate_invalid &&
+                mapBlockIndex.find(first_invalid_header.GetHash()) !=
+                    mapBlockIndex.end()) {
+                // Goal: don't allow outbound peers to use up our outbound
+                // connection slots if they are on incompatible chains.
+                //
+                // We ask the caller to set punish_invalid appropriately based
+                // on the peer and the method of header delivery (compact blocks
+                // are allowed to be invalid in some circumstances, under BIP
+                // 152).
+                // Here, we try to detect the narrow situation that we have a
+                // valid block header (ie it was valid at the time the header
+                // was received, and hence stored in mapBlockIndex) but know the
+                // block is invalid, and that a peer has announced that same
+                // block as being on its active chain. Disconnect the peer in
+                // such a situation.
+                //
+                // Note: if the header that is invalid was not accepted to our
+                // mapBlockIndex at all, that may also be grounds for
+                // disconnecting the peer, as the chain they are on is likely to
+                // be incompatible. However, there is a circumstance where that
+                // does not hold: if the header's timestamp is more than 2 hours
+                // ahead of our current time. In that case, the header may
+                // become valid in the future, and we don't want to disconnect a
+                // peer merely for serving us one too-far-ahead block header, to
+                // prevent an attacker from splitting the network by mining a
+                // block right at the 2 hour boundary.
+                //
+                // TODO: update the DoS logic (or, rather, rewrite the
+                // DoS-interface between validation and net_processing) so that
+                // the interface is cleaner, and so that we disconnect on all
+                // the reasons that a peer's headers chain is incompatible with
+                // ours (eg block->nVersion softforks, MTP violations, etc), and
+                // not just the duplicate-invalid case.
+                pfrom->fDisconnect = true;
             }
             return error("invalid header received");
         }
@@ -2524,7 +2563,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // well
         // without cs_main.
         bool fRevertToHeaderProcessing = false;
-        CDataStream vHeadersMsg(SER_NETWORK, PROTOCOL_VERSION);
 
         // Keep a CBlock for "optimistic" compactblock reconstructions (see
         // below)
@@ -2669,12 +2707,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     return true;
                 } else {
                     // If this was an announce-cmpctblock, we want the same
-                    // treatment as a header message. Dirty hack to process as
-                    // if it were just a headers message (TODO: move message
-                    // handling into their own functions)
-                    std::vector<CBlock> headers;
-                    headers.push_back(cmpctblock.header);
-                    vHeadersMsg << headers;
+                    // treatment as a header message.
                     fRevertToHeaderProcessing = true;
                 }
             }
@@ -2687,9 +2720,15 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         if (fRevertToHeaderProcessing) {
-            return ProcessMessage(config, pfrom, NetMsgType::HEADERS,
-                                  vHeadersMsg, nTimeReceived, connman,
-                                  interruptMsgProc);
+            // Headers received from HB compact block peers are permitted to be
+            // relayed before full validation (see BIP 152), so we don't want to
+            // disconnect the peer if the header turns out to be for an invalid
+            // block.
+            // Note that if a peer tries to build on an invalid chain, that will
+            // be detected and the peer will be banned.
+            return ProcessHeadersMessage(config, pfrom, connman,
+                                         {cmpctblock.header},
+                                         /*punish_duplicate_invalid=*/false);
         }
 
         if (fBlockReconstructed) {
@@ -2822,7 +2861,13 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             ReadCompactSize(vRecv);
         }
 
-        return ProcessHeadersMessage(config, pfrom, connman, headers);
+        // Headers received via a HEADERS message should be valid, and reflect
+        // the chain the peer is on. If we receive a known-invalid header,
+        // disconnect the peer if it is using one of our outbound connection
+        // slots.
+        bool should_punish = !pfrom->fInbound && !pfrom->m_manual_connection;
+        return ProcessHeadersMessage(config, pfrom, connman, headers,
+                                     should_punish);
     }
 
     else if (strCommand == NetMsgType::BLOCK && !fImporting && !fReindex) {

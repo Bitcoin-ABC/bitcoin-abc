@@ -313,18 +313,20 @@ bool ProcessNewBlock(const Config &config,
  *
  * Call without cs_main held.
  *
- * @param[in]  config  The global config.
- * @param[in]  block   The block headers themselves.
- * @param[out] state   This may be set to an Error state if any error occurred
- *                     processing them.
- * @param[out] ppindex If set, the pointer will be set to point to the last new
- *                     block index object for the given headers.
+ * @param[in]  config        The config.
+ * @param[in]  block         The block headers themselves.
+ * @param[out] state         This may be set to an Error state if any error
+ *                           occurred processing them.
+ * @param[out] ppindex       If set, the pointer will be set to point to the
+ *                           last new block index object for the given headers.
+ * @param[out] first_invalid First header that fails validation, if one exists.
  * @return True if block headers were accepted as valid.
  */
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
                             CValidationState &state,
-                            const CBlockIndex **ppindex = nullptr);
+                            const CBlockIndex **ppindex = nullptr,
+                            CBlockHeader *first_invalid = nullptr);
 
 /**
  * Check whether enough disk space is available for an incoming block.

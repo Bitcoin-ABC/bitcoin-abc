@@ -3393,13 +3393,21 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &headers,
                             CValidationState &state,
-                            const CBlockIndex **ppindex) {
+                            const CBlockIndex **ppindex,
+                            CBlockHeader *first_invalid) {
+    if (first_invalid != nullptr) {
+        first_invalid->SetNull();
+    }
+
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
             if (!AcceptBlockHeader(config, header, state, &pindex)) {
+                if (first_invalid) {
+                    *first_invalid = header;
+                }
                 return false;
             }
 
