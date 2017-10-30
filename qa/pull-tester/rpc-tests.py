@@ -34,10 +34,14 @@ sys.path.append("qa/pull-tester/")
 from tests_config import *
 
 BOLD = ("", "")
+RED = ("", "")
+GREEN = ("", "")
 if os.name == 'posix':
     # primitive formatting on supported
     # terminal via ANSI escape sequences:
     BOLD = ('\033[0m', '\033[1m')
+    RED = ("\033[0m", "\033[31m")
+    GREEN = ("\033[0m", "\033[32m")
 
 RPC_TESTS_DIR = SRCDIR + '/qa/rpc-tests/'
 
@@ -241,8 +245,12 @@ def runtests():
         print('\n' + BOLD[1] + name + BOLD[0] + ":")
         print('' if passed else stdout + '\n', end='')
         print('' if stderr == '' else 'stderr:\n' + stderr + '\n', end='')
-        results += "%s | %s | %s s\n" % (
+        result = "%s | %s | %s s\n" % (
             name.ljust(max_len_name), str(passed).ljust(6), duration)
+        if passed:
+            results += GREEN[1] + result + GREEN[0]
+        else:
+            results += RED[1] + result + RED[0]
         print("Pass: %s%s%s, Duration: %s s\n" %
               (BOLD[1], passed, BOLD[0], duration))
     results += BOLD[1] + "\n%s | %s | %s s (accumulated)" % (
@@ -311,7 +319,8 @@ class RPCTestHandler:
                     passed = stderr == "" and proc.returncode == 0
                     self.num_running -= 1
                     self.jobs.remove(j)
-                    return name, stdout, stderr, passed, int(time.time() - time0)
+                    return name, stdout, stderr, passed, int(
+                        time.time() - time0)
             print('.', end='', flush=True)
 
 
