@@ -114,6 +114,10 @@ std::string ListLogCategories();
 /** Return true if str parses as a log category and set the flag */
 bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
 
+// Be conservative when using LogPrintf/error or other things which
+// unconditionally log to debug.log! It should not be the case that an inbound
+// peer can fill up a users disk with debug.log entries.
+
 #define LogPrint(category, ...)                                                \
     do {                                                                       \
         if (LogAcceptCategory((category))) {                                   \
