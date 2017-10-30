@@ -17,13 +17,13 @@ BOOST_FIXTURE_TEST_SUITE(policyestimator_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     CTxMemPool mpool(CFeeRate(1000));
     TestMemPoolEntryHelper entry;
-    CAmount basefee(2000);
-    CAmount deltaFee(100);
-    std::vector<CAmount> feeV;
+    Amount basefee(2000);
+    Amount deltaFee(100);
+    std::vector<Amount> feeV;
 
     // Populate vectors of increasing fees
     for (int j = 0; j < 10; j++) {
-        feeV.push_back(basefee * (j + 1));
+        feeV.push_back((j + 1) * basefee);
     }
 
     // Store the hashes of transactions that have been added to the mempool by
@@ -234,7 +234,8 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                     mpool.estimateFee(i).GetFeePerK());
         BOOST_CHECK(mpool.estimateSmartFee(i).GetFeePerK() >=
                     mpool.GetMinFee(1).GetFeePerK());
-        BOOST_CHECK(mpool.estimateSmartPriority(i) == INF_PRIORITY);
+        BOOST_CHECK(mpool.estimateSmartPriority(i) ==
+                    double(INF_PRIORITY.GetSatoshis()));
     }
 }
 

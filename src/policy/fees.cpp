@@ -343,11 +343,12 @@ CBlockPolicyEstimator::CBlockPolicyEstimator(const CFeeRate &_minRelayFee)
                         ? CFeeRate(Amount(int64_t(MIN_FEERATE)))
                         : _minRelayFee;
     std::vector<double> vfeelist;
-    for (double bucketBoundary = minTrackedFee.GetFeePerK().GetSatoshis();
-         bucketBoundary <= MAX_FEERATE; bucketBoundary *= FEE_SPACING) {
-        vfeelist.push_back(bucketBoundary);
+    for (Amount bucketBoundary = minTrackedFee.GetFeePerK();
+         bucketBoundary <= MAX_FEERATE;
+         bucketBoundary += bucketBoundary / FEE_SPACING_FRACTION) {
+        vfeelist.push_back(double(bucketBoundary.GetSatoshis()));
     }
-    vfeelist.push_back(INF_FEERATE);
+    vfeelist.push_back(double(INF_FEERATE.GetSatoshis()));
     feeStats.Initialize(vfeelist, MAX_BLOCK_CONFIRMS, DEFAULT_DECAY);
 }
 
@@ -535,7 +536,7 @@ double CBlockPolicyEstimator::estimateSmartPriority(int confTarget,
                        1000000)
             .GetFeePerK();
     if (minPoolFee > 0) {
-        return INF_PRIORITY;
+        return double(INF_PRIORITY.GetSatoshis());
     }
 
     return -1;
@@ -560,15 +561,15 @@ void CBlockPolicyEstimator::Read(CAutoFile &filein, int nFileVersion) {
 FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee) {
     Amount minFeeLimit =
         std::max(Amount(1), minIncrementalFee.GetFeePerK() / 2);
-    feeset.insert(0);
-    for (double bucketBoundary = minFeeLimit.GetSatoshis();
-         bucketBoundary <= MAX_FEERATE; bucketBoundary *= FEE_SPACING) {
+    feeset.insert(Amount(0));
+    for (Amount bucketBoundary = minFeeLimit; bucketBoundary <= MAX_FEERATE;
+         bucketBoundary += bucketBoundary / FEE_SPACING_FRACTION) {
         feeset.insert(bucketBoundary);
     }
 }
 
-CAmount FeeFilterRounder::round(CAmount currentMinFee) {
-    std::set<double>::iterator it = feeset.lower_bound(currentMinFee);
+Amount FeeFilterRounder::round(const Amount currentMinFee) {
+    std::set<Amount>::iterator it = feeset.lower_bound(currentMinFee);
     if ((it != feeset.begin() && insecure_rand.rand32() % 3 != 0) ||
         it == feeset.end()) {
         it--;

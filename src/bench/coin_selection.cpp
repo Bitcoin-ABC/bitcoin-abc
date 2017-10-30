@@ -7,7 +7,7 @@
 
 #include <set>
 
-static void addCoin(const CAmount &nValue, const CWallet &wallet,
+static void addCoin(const Amount nValue, const CWallet &wallet,
                     std::vector<COutput> &vCoins) {
     int nInput = 0;
 
