@@ -1590,8 +1590,8 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
                                 &first_invalid_header)) {
         int nDoS;
         if (state.IsInvalid(nDoS)) {
+            LOCK(cs_main);
             if (nDoS > 0) {
-                LOCK(cs_main);
                 Misbehaving(pfrom, nDoS, state.GetRejectReason());
             }
             if (punish_duplicate_invalid &&
