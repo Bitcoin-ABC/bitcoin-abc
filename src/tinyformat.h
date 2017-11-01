@@ -551,7 +551,8 @@ namespace detail {
     // whereas a naive implementation based on inheritance does not.
     class FormatArg {
     public:
-        FormatArg() {}
+        FormatArg()
+            : m_value(nullptr), m_formatImpl(nullptr), m_toIntImpl(nullptr) {}
 
         template <typename T>
         explicit FormatArg(const T &value)
@@ -560,10 +561,16 @@ namespace detail {
 
         void format(std::ostream &out, const char *fmtBegin, const char *fmtEnd,
                     int ntrunc) const {
+            assert(m_value);
+            assert(m_formatImpl);
             m_formatImpl(out, fmtBegin, fmtEnd, ntrunc, m_value);
         }
 
-        int toInt() const { return m_toIntImpl(m_value); }
+        int toInt() const {
+            assert(m_value);
+            assert(m_toIntImpl);
+            return m_toIntImpl(m_value);
+        }
 
     private:
         template <typename T>
