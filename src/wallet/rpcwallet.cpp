@@ -2328,7 +2328,7 @@ static UniValue walletpassphrase(const Config &config,
         return NullUniValue;
     }
 
-    if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 2)) {
+    if (request.fHelp || request.params.size() != 2) {
         throw std::runtime_error(RPCHelpMan{
             "walletpassphrase",
             "\nStores the wallet decryption key in memory for 'timeout' "
@@ -2436,7 +2436,7 @@ static UniValue walletpassphrasechange(const Config &config,
         return NullUniValue;
     }
 
-    if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 2)) {
+    if (request.fHelp || request.params.size() != 2) {
         throw std::runtime_error(RPCHelpMan{
             "walletpassphrasechange",
             "\nChanges the wallet passphrase from 'oldpassphrase' to "
@@ -2503,7 +2503,7 @@ static UniValue walletlock(const Config &config,
         return NullUniValue;
     }
 
-    if (pwallet->IsCrypted() && (request.fHelp || request.params.size() != 0)) {
+    if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(RPCHelpMan{
             "walletlock",
             "\nRemoves the wallet encryption key from memory, locking the "
@@ -2556,8 +2556,7 @@ static UniValue encryptwallet(const Config &config,
         return NullUniValue;
     }
 
-    if (!pwallet->IsCrypted() &&
-        (request.fHelp || request.params.size() != 1)) {
+    if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(RPCHelpMan{
             "encryptwallet",
             "\nEncrypts the wallet with 'passphrase'. This is for first time "
