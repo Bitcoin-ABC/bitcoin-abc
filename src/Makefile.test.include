@@ -81,6 +81,7 @@ BITCOIN_TESTS =\
   test/bloom_tests.cpp \
   test/bswap_tests.cpp \
   test/cashaddr_tests.cpp \
+  test/cashaddrenc_tests.cpp \
   test/coins_tests.cpp \
   test/compress_tests.cpp \
   test/config_tests.cpp \
