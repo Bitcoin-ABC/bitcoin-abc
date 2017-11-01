@@ -59,17 +59,6 @@ std::string ArrayToString(const uint8_t A[], unsigned int width) {
     return Stream.str();
 }
 
-inline uint160 uint160S(const char *str) {
-    uint160 rv;
-    rv.SetHex(str);
-    return rv;
-}
-inline uint160 uint160S(const std::string &str) {
-    uint160 rv;
-    rv.SetHex(str);
-    return rv;
-}
-
 // constructors, equality, inequality
 BOOST_AUTO_TEST_CASE(basics) {
     BOOST_CHECK(1 == 0 + 1);
