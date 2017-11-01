@@ -20,6 +20,7 @@
 #include <sys/types.h>
 
 #include <event2/buffer.h>
+#include <event2/bufferevent.h>
 #include <event2/event.h>
 #include <event2/http.h>
 #include <event2/keyvalq_struct.h>
@@ -208,6 +209,17 @@ static std::string RequestMethodString(HTTPRequest::RequestMethod m) {
 static void http_request_cb(struct evhttp_request *req, void *arg) {
     Config &config = *reinterpret_cast<Config *>(arg);
 
+    // Disable reading to work around a libevent bug, fixed in 2.2.0.
+    if (event_get_version_number() >= 0x02010600 &&
+        event_get_version_number() < 0x02020001) {
+        evhttp_connection *conn = evhttp_request_get_connection(req);
+        if (conn) {
+            bufferevent *bev = evhttp_connection_get_bufferevent(conn);
+            if (bev) {
+                bufferevent_disable(bev, EV_READ);
+            }
+        }
+    }
     std::unique_ptr<HTTPRequest> hreq(new HTTPRequest(req));
 
     LogPrint(BCLog::HTTP, "Received a %s request for %s from %s\n",
@@ -585,10 +597,22 @@ void HTTPRequest::WriteReply(int nStatus, const std::string &strReply) {
     struct evbuffer *evb = evhttp_request_get_output_buffer(req);
     assert(evb);
     evbuffer_add(evb, strReply.data(), strReply.size());
-    HTTPEvent *ev = new HTTPEvent(eventBase, true,
-                                  std::bind(evhttp_send_reply, req, nStatus,
-                                            (const char *)nullptr,
-                                            (struct evbuffer *)nullptr));
+    auto req_copy = req;
+    HTTPEvent *ev = new HTTPEvent(eventBase, true, [req_copy, nStatus] {
+        evhttp_send_reply(req_copy, nStatus, nullptr, nullptr);
+        // Re-enable reading from the socket. This is the second part of the
+        // libevent workaround above.
+        if (event_get_version_number() >= 0x02010600 &&
+            event_get_version_number() < 0x02020001) {
+            evhttp_connection *conn = evhttp_request_get_connection(req_copy);
+            if (conn) {
+                bufferevent *bev = evhttp_connection_get_bufferevent(conn);
+                if (bev) {
+                    bufferevent_enable(bev, EV_READ | EV_WRITE);
+                }
+            }
+        }
+    });
     ev->trigger(nullptr);
     replySent = true;
     // transferred back to main thread.
