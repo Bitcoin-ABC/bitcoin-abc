@@ -6,3 +6,6 @@ This release includes the following features and fixes:
  - Added parameter `include_removed` to `listsinceblock` for better tracking of
    transactions during a reorg. See `bitcoin-cli help listsinceblock` for more
    details.
+ - `listsinceblock` will now throw an error if an unknown `blockhash` argument
+   value is passed, instead of returning a list of all wallet transactions since
+   the genesis block.
