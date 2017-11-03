@@ -73,15 +73,14 @@ namespace {
         std::string getWarnings(const std::string &type) override {
             return GetWarnings(type);
         }
-        bool baseInitialize(Config &config, RPCServer &rpcServer) override {
-            return AppInitBasicSetup() &&
-                   AppInitParameterInteraction(config, rpcServer) &&
+        bool baseInitialize(Config &config) override {
+            return AppInitBasicSetup() && AppInitParameterInteraction(config) &&
                    AppInitSanityChecks() && AppInitLockDataDirectory();
         }
         bool
-        appInitMain(Config &config,
+        appInitMain(Config &config, RPCServer &rpcServer,
                     HTTPRPCRequestProcessor &httpRPCRequestProcessor) override {
-            return AppInitMain(config, httpRPCRequestProcessor);
+            return AppInitMain(config, rpcServer, httpRPCRequestProcessor);
         }
         void appShutdown() override {
             Interrupt();

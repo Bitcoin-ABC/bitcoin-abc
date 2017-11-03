@@ -137,7 +137,7 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             return false;
         }
-        if (!AppInitParameterInteraction(config, rpcServer)) {
+        if (!AppInitParameterInteraction(config)) {
             // InitError will have been called with detailed error, which ends
             // up on console
             return false;
@@ -178,7 +178,7 @@ bool AppInit(int argc, char *argv[]) {
             // If locking the data directory failed, exit immediately
             return false;
         }
-        fRet = AppInitMain(config, httpRPCRequestProcessor);
+        fRet = AppInitMain(config, rpcServer, httpRPCRequestProcessor);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {

@@ -1359,7 +1359,7 @@ bool AppInitBasicSetup() {
     return true;
 }
 
-bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
+bool AppInitParameterInteraction(Config &config) {
     const CChainParams &chainparams = config.GetChainParams();
     // Step 2: parameter interactions
 
@@ -1598,9 +1598,6 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
         fPruneMode = true;
     }
 
-    RegisterAllRPCCommands(config, rpcServer, tableRPC);
-    g_wallet_init_interface->RegisterRPC(tableRPC);
-
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -1745,7 +1742,7 @@ bool AppInitLockDataDirectory() {
     return true;
 }
 
-bool AppInitMain(Config &config,
+bool AppInitMain(Config &config, RPCServer &rpcServer,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     // Step 4a: application initialization
     const CChainParams &chainparams = config.GetChainParams();
@@ -1814,6 +1811,13 @@ bool AppInitMain(Config &config,
 
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
     GetMainSignals().RegisterWithMempoolSignals(g_mempool);
+
+    /**
+     * Register RPC commands regardless of -server setting so they will be
+     * available in the GUI RPC console even if external calls are disabled.
+     */
+    RegisterAllRPCCommands(config, rpcServer, tableRPC);
+    g_wallet_init_interface->RegisterRPC(tableRPC);
 
     /**
      * Start the RPC server.  It will be started in "warmup" mode and not

@@ -47,7 +47,7 @@ bool AppInitBasicSetup();
  * @pre Parameters should be parsed and config file should be read,
  * AppInitBasicSetup should have been called.
  */
-bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer);
+bool AppInitParameterInteraction(Config &config);
 /**
  * Initialization sanity checks: ecc init, sanity checks, dir lock.
  * @note This can be done before daemonization.
@@ -70,7 +70,7 @@ bool AppInitLockDataDirectory();
  * @pre Parameters should be parsed and config file should be read,
  * AppInitLockDataDirectory should have been called.
  */
-bool AppInitMain(Config &config,
+bool AppInitMain(Config &config, RPCServer &rpcServer,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
 /** The help message mode determines what help message to show */
