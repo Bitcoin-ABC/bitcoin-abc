@@ -862,7 +862,7 @@ struct CCoinsStats {
     uint64_t nBogoSize;
     uint256 hashSerialized;
     uint64_t nDiskSize;
-    CAmount nTotalAmount;
+    Amount nTotalAmount;
 
     CCoinsStats()
         : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0),
