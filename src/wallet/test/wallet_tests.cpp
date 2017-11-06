@@ -594,6 +594,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         vpwallets[0] = &wallet;
         ::importwallet(GetConfig(), request);
 
+        LOCK(wallet.cs_wallet);
         BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3);
         BOOST_CHECK_EQUAL(coinbaseTxns.size(), 103);
         for (size_t i = 0; i < coinbaseTxns.size(); ++i) {
@@ -638,6 +639,7 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
     SetMockTime(mockTime);
     CBlockIndex *block = nullptr;
     if (blockTime > 0) {
+        LOCK(cs_main);
         auto inserted = mapBlockIndex.emplace(GetRandHash(), new CBlockIndex);
         assert(inserted.second);
         const uint256 &hash = inserted.first->first;
@@ -651,6 +653,7 @@ static int64_t AddTx(CWallet &wallet, uint32_t lockTime, int64_t mockTime,
         wtx.SetMerkleBranch(block, 0);
     }
     wallet.AddToWallet(wtx);
+    LOCK(wallet.cs_wallet);
     return wallet.mapWallet.at(wtx.GetId()).nTimeSmart;
 }
 
@@ -685,6 +688,7 @@ BOOST_AUTO_TEST_CASE(ComputeTimeSmart) {
 
 BOOST_AUTO_TEST_CASE(LoadReceiveRequests) {
     CTxDestination dest = CKeyID();
+    LOCK(pwalletMain->cs_wallet);
     pwalletMain->AddDestData(dest, "misc", "val_misc");
     pwalletMain->AddDestData(dest, "rr0", "val_rr0");
     pwalletMain->AddDestData(dest, "rr1", "val_rr1");
@@ -727,6 +731,7 @@ public:
                                               changePos, error));
         CValidationState state;
         BOOST_CHECK(wallet->CommitTransaction(wtx, reservekey, nullptr, state));
+        LOCK(wallet->cs_wallet);
         auto it = wallet->mapWallet.find(wtx.GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
         CreateAndProcessBlock({CMutableTransaction(*it->second.tx)},
