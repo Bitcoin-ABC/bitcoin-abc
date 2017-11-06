@@ -333,6 +333,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     sortedOrder[2] = tx1.GetId().ToString(); // 10000
     sortedOrder[3] = tx4.GetId().ToString(); // 15000
     sortedOrder[4] = tx2.GetId().ToString(); // 20000
+    LOCK(pool.cs);
     CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest1");
 
     /* low fee but with high fee child */
@@ -560,6 +561,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     }
     sortedOrder[4] = tx3.GetId().ToString(); // 0
 
+    LOCK(pool.cs);
     CheckSort<ancestor_score>(pool, sortedOrder,
                               "MempoolAncestorIndexingTest1");
 
