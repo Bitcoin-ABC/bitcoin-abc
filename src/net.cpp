@@ -620,21 +620,30 @@ void CConnman::SetBanned(const banmap_t &banMap) {
 
 void CConnman::SweepBanned() {
     int64_t now = GetTime();
-
-    LOCK(cs_setBanned);
-    banmap_t::iterator it = setBanned.begin();
-    while (it != setBanned.end()) {
-        CSubNet subNet = (*it).first;
-        CBanEntry banEntry = (*it).second;
-        if (now > banEntry.nBanUntil) {
-            setBanned.erase(it++);
-            setBannedIsDirty = true;
-            LogPrint(BCLog::NET,
-                     "%s: Removed banned node ip/subnet from banlist.dat: %s\n",
-                     __func__, subNet.ToString());
-        } else {
-            ++it;
+    bool notifyUI = false;
+    {
+        LOCK(cs_setBanned);
+        banmap_t::iterator it = setBanned.begin();
+        while (it != setBanned.end()) {
+            CSubNet subNet = (*it).first;
+            CBanEntry banEntry = (*it).second;
+            if (now > banEntry.nBanUntil) {
+                setBanned.erase(it++);
+                setBannedIsDirty = true;
+                notifyUI = true;
+                LogPrint(
+                    BCLog::NET,
+                    "%s: Removed banned node ip/subnet from banlist.dat: %s\n",
+                    __func__, subNet.ToString());
+            } else {
+                ++it;
+            }
         }
+    }
+
+    // update UI
+    if (notifyUI && clientInterface) {
+        clientInterface->BannedListChanged();
     }
 }
 
