@@ -1,6 +1,7 @@
 #include "bitcoin.h"
 #include "clientversion.h"
 #include "db.h"
+#include "dns.h"
 #include "streams.h"
 
 #include <algorithm>
