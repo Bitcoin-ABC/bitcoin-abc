@@ -326,28 +326,28 @@ void TxConfirmStats::removeTx(unsigned int entryHeight,
 // are never double tracked, but it is of no harm to try to remove them again.
 bool CBlockPolicyEstimator::removeTx(uint256 hash) {
     std::map<uint256, TxStatsInfo>::iterator pos = mapMemPoolTxs.find(hash);
-    if (pos != mapMemPoolTxs.end()) {
-        feeStats.removeTx(pos->second.blockHeight, nBestSeenHeight,
-                          pos->second.bucketIndex);
-        mapMemPoolTxs.erase(hash);
-        return true;
-    } else {
+    if (pos == mapMemPoolTxs.end()) {
         return false;
     }
+
+    feeStats.removeTx(pos->second.blockHeight, nBestSeenHeight,
+                      pos->second.bucketIndex);
+    mapMemPoolTxs.erase(hash);
+    return true;
 }
 
 CBlockPolicyEstimator::CBlockPolicyEstimator(const CFeeRate &_minRelayFee)
     : nBestSeenHeight(0), trackedTxs(0), untrackedTxs(0) {
-    static_assert(MIN_FEERATE > 0, "Min feerate must be nonzero");
-    minTrackedFee = _minRelayFee < CFeeRate(Amount(int64_t(MIN_FEERATE)))
-                        ? CFeeRate(Amount(int64_t(MIN_FEERATE)))
-                        : _minRelayFee;
+    static_assert(MIN_FEERATE > Amount(0), "Min feerate must be nonzero");
+    CFeeRate minFeeRate(MIN_FEERATE);
+    minTrackedFee = _minRelayFee < minFeeRate ? minFeeRate : _minRelayFee;
     std::vector<double> vfeelist;
-    for (Amount bucketBoundary = minTrackedFee.GetFeePerK();
-         bucketBoundary <= MAX_FEERATE;
-         bucketBoundary += bucketBoundary / FEE_SPACING_FRACTION) {
-        vfeelist.push_back(double(bucketBoundary.GetSatoshis()));
+    for (double bucketBoundary = minTrackedFee.GetFeePerK().GetSatoshis();
+         bucketBoundary <= double(MAX_FEERATE.GetSatoshis());
+         bucketBoundary *= FEE_SPACING) {
+        vfeelist.push_back(bucketBoundary);
     }
+
     vfeelist.push_back(double(INF_FEERATE.GetSatoshis()));
     feeStats.Initialize(vfeelist, MAX_BLOCK_CONFIRMS, DEFAULT_DECAY);
 }
@@ -562,17 +562,19 @@ FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee) {
     Amount minFeeLimit =
         std::max(Amount(1), minIncrementalFee.GetFeePerK() / 2);
     feeset.insert(Amount(0));
-    for (Amount bucketBoundary = minFeeLimit; bucketBoundary <= MAX_FEERATE;
-         bucketBoundary += bucketBoundary / FEE_SPACING_FRACTION) {
-        feeset.insert(bucketBoundary);
+    for (double bucketBoundary = minFeeLimit.GetSatoshis();
+         bucketBoundary <= double(MAX_FEERATE.GetSatoshis());
+         bucketBoundary *= FEE_SPACING) {
+        feeset.insert(Amount(int64_t(bucketBoundary)));
     }
 }
 
 Amount FeeFilterRounder::round(const Amount currentMinFee) {
-    std::set<Amount>::iterator it = feeset.lower_bound(currentMinFee);
+    auto it = feeset.lower_bound(currentMinFee);
     if ((it != feeset.begin() && insecure_rand.rand32() % 3 != 0) ||
         it == feeset.end()) {
         it--;
     }
+
     return *it;
 }
