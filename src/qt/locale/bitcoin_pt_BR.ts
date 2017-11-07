@@ -3802,10 +3802,6 @@
         <translation>Retransmitir P2SH não multisig (padrão: %u)</translation>
     </message>
     <message>
-        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
-        <translation>Ativar opção full-RBF nas transações enviadas (padrão: %u)</translation>
-    </message>
-    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>Defina o tamanho da chave para piscina&lt;n&gt; (padrão: %u)</translation>
     </message>

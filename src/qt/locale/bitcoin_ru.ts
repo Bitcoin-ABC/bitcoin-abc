@@ -3806,10 +3806,6 @@
         <translation>Транслировать не-P2SH мультиподпись (по умолчанию: %u)</translation>
     </message>
     <message>
-        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
-        <translation>Отправлять транзакции с включенным full-RBF (по умолчанию: %u)</translation>
-    </message>
-    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>Установить размер пула ключей в &lt;n&gt; (по умолчанию: %u)</translation>
     </message>
