@@ -76,14 +76,6 @@ static void InitMessage(const std::string &message) {
     LogPrintf("init message: %s\n", message);
 }
 
-/**
- * Translate string to current locale using Qt.
- */
-const std::function<std::string(const char *)> G_TRANSLATION_FUN =
-    [](const char *psz) {
-        return QCoreApplication::translate("bitcoin-abc", psz).toStdString();
-    };
-
 static QString GetLangTerritory() {
     QSettings settings;
     // Get desired locale (e.g. "de_DE")
@@ -273,6 +265,10 @@ void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
             &QWidget::close);
 }
 
+bool BitcoinApplication::baseInitialize(Config &config) {
+    return m_node.baseInitialize(config);
+}
+
 void BitcoinApplication::startThread() {
     if (coreThread) {
         return;
@@ -401,7 +397,9 @@ void BitcoinApplication::initializeResult(bool success) {
     qWarning() << "Platform customization:" << platformStyle->getName();
 #ifdef ENABLE_WALLET
     PaymentServer::LoadRootCAs();
-    paymentServer->setOptionsModel(optionsModel);
+    if (paymentServer) {
+        paymentServer->setOptionsModel(optionsModel);
+    }
 #endif
 
     clientModel = new ClientModel(m_node, optionsModel);
@@ -432,19 +430,23 @@ void BitcoinApplication::initializeResult(bool success) {
         window->show();
     }
     Q_EMIT splashFinished(window);
+    Q_EMIT windowShown(window);
 
 #ifdef ENABLE_WALLET
     // Now that initialization/startup is done, process any command-line
     // bitcoincash: URIs or payment requests:
-    connect(paymentServer, &PaymentServer::receivedPaymentRequest, window,
-            &BitcoinGUI::handlePaymentRequest);
-    connect(window, &BitcoinGUI::receivedURI, paymentServer,
-            &PaymentServer::handleURIOrFile);
-    connect(
-        paymentServer, &PaymentServer::message,
-        [this](const QString &title, const QString &message,
-               unsigned int style) { window->message(title, message, style); });
-    QTimer::singleShot(100, paymentServer, &PaymentServer::uiReady);
+    if (paymentServer) {
+        connect(paymentServer, &PaymentServer::receivedPaymentRequest, window,
+                &BitcoinGUI::handlePaymentRequest);
+        connect(window, &BitcoinGUI::receivedURI, paymentServer,
+                &PaymentServer::handleURIOrFile);
+        connect(paymentServer, &PaymentServer::message,
+                [this](const QString &title, const QString &message,
+                       unsigned int style) {
+                    window->message(title, message, style);
+                });
+        QTimer::singleShot(100, paymentServer, &PaymentServer::uiReady);
+    }
 #endif
 
     pollShutdownTimer->start(200);
@@ -555,7 +557,7 @@ static void MigrateSettings() {
     }
 }
 
-int main(int argc, char *argv[]) {
+int GuiMain(int argc, char *argv[]) {
 #ifdef WIN32
     util::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
@@ -764,7 +766,7 @@ int main(int argc, char *argv[]) {
         // initialization/shutdown thread. This is acceptable because this
         // function only contains steps that are quick to execute, so the GUI
         // thread won't be held up.
-        if (!node->baseInitialize(config)) {
+        if (!app.baseInitialize(config)) {
             // A dialog with detailed error will have been shown by InitError()
             return EXIT_FAILURE;
         }

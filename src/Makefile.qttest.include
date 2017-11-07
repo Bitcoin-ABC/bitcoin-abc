@@ -6,6 +6,7 @@ bin_PROGRAMS += qt/test/test_bitcoin-qt
 TESTS += qt/test/test_bitcoin-qt
 
 TEST_QT_MOC_CPP = \
+  qt/test/moc_apptests.cpp \
   qt/test/moc_bitcoinaddressvalidatortests.cpp \
   qt/test/moc_compattests.cpp \
   qt/test/moc_guiutiltests.cpp \
@@ -21,6 +22,7 @@ endif
 
 TEST_QT_H = \
   qt/test/addressbooktests.h \
+  qt/test/apptests.h \
   qt/test/bitcoinaddressvalidatortests.h \
   qt/test/compattests.h \
   qt/test/guiutiltests.h \
@@ -41,6 +43,7 @@ qt_test_test_bitcoin_qt_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_
   $(QT_INCLUDES) $(QT_TEST_INCLUDES) $(PROTOBUF_CFLAGS)
 
 qt_test_test_bitcoin_qt_SOURCES = \
+  qt/test/apptests.cpp \
   qt/test/bitcoinaddressvalidatortests.cpp \
   qt/test/compattests.cpp \
   qt/test/guiutiltests.cpp \

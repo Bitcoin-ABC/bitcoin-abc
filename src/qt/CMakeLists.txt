@@ -80,6 +80,7 @@ protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
 
 add_library(bitcoin-qt-base
 	bantablemodel.cpp
+	bitcoin.cpp
 	bitcoinaddressvalidator.cpp
 	bitcoinamountfield.cpp
 	bitcoingui.cpp
@@ -283,7 +284,7 @@ if(BUILD_BITCOIN_WALLET)
 endif()
 
 # The executable
-add_executable(bitcoin-qt WIN32 bitcoin.cpp)
+add_executable(bitcoin-qt WIN32 main.cpp)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoin-qt PRIVATE res/bitcoin-qt-res.rc)
 endif()

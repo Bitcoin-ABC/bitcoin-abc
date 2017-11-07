@@ -8,9 +8,12 @@
 
 #include <chainparams.h>
 #include <compat/setenv.h>
+#include <interfaces/node.h>
 #include <key.h>
 #include <util/system.h>
 
+#include <qt/bitcoin.h>
+#include <qt/test/apptests.h>
 #include <qt/test/bitcoinaddressvalidatortests.h>
 #include <qt/test/compattests.h>
 #include <qt/test/guiutiltests.h>
@@ -48,7 +51,7 @@ extern void noui_connect();
 int main(int argc, char *argv[]) {
     SetupEnvironment();
     SetupNetworking();
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(CBaseChainParams::REGTEST);
     noui_connect();
     ClearDatadirCache();
     fs::path pathTemp =
@@ -57,6 +60,7 @@ int main(int argc, char *argv[]) {
                                               (int)GetRand(100000));
     fs::create_directories(pathTemp);
     gArgs.ForceSetArg("-datadir", pathTemp.string());
+    auto node = interfaces::MakeNode();
 
     bool fInvalid = false;
 
@@ -67,13 +71,17 @@ int main(int argc, char *argv[]) {
 
     // Don't remove this, it's needed to access
     // QApplication:: and QCoreApplication:: in the tests
-    QApplication app(argc, argv);
+    BitcoinApplication app(*node, argc, argv);
     app.setApplicationName("BitcoinABC-Qt-test");
 
     // This is necessary to initialize openssl on the test framework
     // (at least on Darwin).
     SSL_library_init();
 
+    AppTests app_tests(app);
+    if (QTest::qExec(&app_tests) != 0) {
+        fInvalid = true;
+    }
     URITests test1;
     if (QTest::qExec(&test1) != 0) {
         fInvalid = true;
