@@ -292,7 +292,7 @@ public:
     mutable CAmount nWatchCreditCached;
     mutable CAmount nImmatureWatchCreditCached;
     mutable CAmount nAvailableWatchCreditCached;
-    mutable CAmount nChangeCached;
+    mutable Amount nChangeCached;
 
     CWalletTx() { Init(nullptr); }
 
@@ -399,7 +399,7 @@ public:
     CAmount GetAvailableCredit(bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool &fUseCache = true) const;
-    CAmount GetChange() const;
+    Amount GetChange() const;
 
     void GetAmounts(std::list<COutputEntry> &listReceived,
                     std::list<COutputEntry> &listSent, CAmount &nFee,
@@ -906,7 +906,7 @@ public:
     isminetype IsMine(const CTxOut &txout) const;
     CAmount GetCredit(const CTxOut &txout, const isminefilter &filter) const;
     bool IsChange(const CTxOut &txout) const;
-    CAmount GetChange(const CTxOut &txout) const;
+    Amount GetChange(const CTxOut &txout) const;
     bool IsMine(const CTransaction &tx) const;
     /** should probably be renamed to IsRelevantToMe */
     bool IsFromMe(const CTransaction &tx) const;
@@ -914,7 +914,7 @@ public:
     /** Returns whether all of the inputs match the filter */
     bool IsAllFromMe(const CTransaction &tx, const isminefilter &filter) const;
     CAmount GetCredit(const CTransaction &tx, const isminefilter &filter) const;
-    CAmount GetChange(const CTransaction &tx) const;
+    Amount GetChange(const CTransaction &tx) const;
     void SetBestChain(const CBlockLocator &loc) override;
 
     DBErrors LoadWallet(bool &fFirstRunRet);

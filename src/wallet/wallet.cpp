@@ -1414,13 +1414,13 @@ bool CWallet::IsChange(const CTxOut &txout) const {
     return false;
 }
 
-CAmount CWallet::GetChange(const CTxOut &txout) const {
+Amount CWallet::GetChange(const CTxOut &txout) const {
     if (!MoneyRange(txout.nValue)) {
         throw std::runtime_error(std::string(__func__) +
                                  ": value out of range");
     }
 
-    return (IsChange(txout) ? txout.nValue.GetSatoshis() : 0);
+    return (IsChange(txout) ? txout.nValue : 0);
 }
 
 bool CWallet::IsMine(const CTransaction &tx) const {
@@ -1491,8 +1491,8 @@ CAmount CWallet::GetCredit(const CTransaction &tx,
     return nCredit;
 }
 
-CAmount CWallet::GetChange(const CTransaction &tx) const {
-    CAmount nChange = 0;
+Amount CWallet::GetChange(const CTransaction &tx) const {
+    Amount nChange = 0;
     for (const CTxOut &txout : tx.vout) {
         nChange += GetChange(txout);
         if (!MoneyRange(nChange)) {
@@ -1990,7 +1990,7 @@ CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
     return nCredit;
 }
 
-CAmount CWalletTx::GetChange() const {
+Amount CWalletTx::GetChange() const {
     if (fChangeCached) {
         return nChangeCached;
     }

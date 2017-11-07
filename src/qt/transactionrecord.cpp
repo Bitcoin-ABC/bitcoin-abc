@@ -90,7 +90,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
 
         if (fAllFromMe && fAllToMe) {
             // Payment to self
-            CAmount nChange = wtx.GetChange();
+            CAmount nChange = wtx.GetChange().GetSatoshis();
 
             parts.append(
                 TransactionRecord(hash, nTime, TransactionRecord::SendToSelf,
