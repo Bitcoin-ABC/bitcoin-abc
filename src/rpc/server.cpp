@@ -26,8 +26,6 @@
 #include <set>
 #include <unordered_map>
 
-using namespace RPCServer;
-
 static bool fRPCRunning = false;
 static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started");
