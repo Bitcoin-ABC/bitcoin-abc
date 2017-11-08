@@ -44,16 +44,13 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
-        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
-                         REJECT_INVALID, "bad-txns-nonfinal", false,
-                         "non-final transaction");
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-nonfinal", false, "non-final transaction");
     }
 
     if (IsMagneticAnomalyEnabled(params, nHeight)) {
         // Size limit
         if (::GetSerializeSize(tx, PROTOCOL_VERSION) < MIN_TX_SIZE) {
-            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
-                             REJECT_INVALID, "bad-txns-undersize");
+            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-undersize");
         }
     }
 
@@ -160,10 +157,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
                    Amount &txfee) {
     // are the actual inputs available?
     if (!inputs.HaveInputs(tx)) {
-        return state.DoS(0, ValidationInvalidReason::TX_MISSING_INPUTS, false,
-                         REJECT_INVALID, "bad-txns-inputs-missingorspent",
-                         false,
-                         strprintf("%s: inputs missing/spent", __func__));
+        return state.DoS(0, ValidationInvalidReason::TX_MISSING_INPUTS, false, REJECT_INVALID, "bad-txns-inputs-missingorspent", false, strprintf("%s: inputs missing/spent", __func__));
     }
 
     Amount nValueIn = Amount::zero();
@@ -175,35 +169,25 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase() &&
             nSpendHeight - coin.GetHeight() < COINBASE_MATURITY) {
-            return state.DoS(0, ValidationInvalidReason::TX_MISSING_INPUTS,
-                             false, REJECT_INVALID,
-                             "bad-txns-premature-spend-of-coinbase", false,
-                             strprintf("tried to spend coinbase at depth %d",
-                                       nSpendHeight - coin.GetHeight()));
+            return state.DoS(0, ValidationInvalidReason::TX_MISSING_INPUTS, false, REJECT_INVALID, "bad-txns-premature-spend-of-coinbase", false, strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.GetHeight()));
         }
 
         // Check for negative or overflow input values
         nValueIn += coin.GetTxOut().nValue;
         if (!MoneyRange(coin.GetTxOut().nValue) || !MoneyRange(nValueIn)) {
-            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
-                             REJECT_INVALID, "bad-txns-inputvalues-outofrange");
+            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
         }
     }
 
     const Amount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {
-        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
-                         REJECT_INVALID, "bad-txns-in-belowout", false,
-                         strprintf("value in (%s) < value out (%s)",
-                                   FormatMoney(nValueIn),
-                                   FormatMoney(value_out)));
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-in-belowout", false, strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(value_out)));
     }
 
     // Tally transaction fees
     const Amount txfee_aux = nValueIn - value_out;
     if (!MoneyRange(txfee_aux)) {
-        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
-                         REJECT_INVALID, "bad-txns-fee-outofrange");
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-fee-outofrange");
     }
 
     txfee = txfee_aux;
