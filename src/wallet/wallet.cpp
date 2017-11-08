@@ -1804,7 +1804,7 @@ void CWallet::ReacceptWalletTransactions() {
 
         LOCK(mempool.cs);
         CValidationState state;
-        wtx.AcceptToMemoryPool(maxTxFee.GetSatoshis(), state);
+        wtx.AcceptToMemoryPool(maxTxFee, state);
     }
 }
 
@@ -1816,7 +1816,7 @@ bool CWalletTx::RelayWalletTransaction(CConnman *connman) {
 
     CValidationState state;
     // GetDepthInMainChain already catches known conflicts.
-    if (InMempool() || AcceptToMemoryPool(maxTxFee.GetSatoshis(), state)) {
+    if (InMempool() || AcceptToMemoryPool(maxTxFee, state)) {
         LogPrintf("Relaying wtx %s\n", GetId().ToString());
         if (connman) {
             CInv inv(MSG_TX, GetId());
@@ -3056,7 +3056,7 @@ bool CWallet::CommitTransaction(CWalletTx &wtxNew, CReserveKey &reservekey,
 
     if (fBroadcastTransactions) {
         // Broadcast
-        if (!wtxNew.AcceptToMemoryPool(maxTxFee.GetSatoshis(), state)) {
+        if (!wtxNew.AcceptToMemoryPool(maxTxFee, state)) {
             LogPrintf("CommitTransaction(): Transaction cannot be "
                       "broadcast immediately, %s\n",
                       state.GetRejectReason());
@@ -4486,7 +4486,7 @@ int CMerkleTx::GetBlocksToMaturity() const {
     return std::max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
 }
 
-bool CMerkleTx::AcceptToMemoryPool(const CAmount &nAbsurdFee,
+bool CMerkleTx::AcceptToMemoryPool(const Amount nAbsurdFee,
                                    CValidationState &state) {
     return ::AcceptToMemoryPool(GetConfig(), mempool, state, tx, true, nullptr,
                                 nullptr, false, nAbsurdFee);
