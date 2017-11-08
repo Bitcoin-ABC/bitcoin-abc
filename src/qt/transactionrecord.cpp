@@ -34,9 +34,9 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                                         const CWalletTx &wtx) {
     QList<TransactionRecord> parts;
     int64_t nTime = wtx.GetTxTime();
-    CAmount nCredit = wtx.GetCredit(ISMINE_ALL).GetSatoshis();
-    CAmount nDebit = wtx.GetDebit(ISMINE_ALL);
-    CAmount nNet = nCredit - nDebit;
+    Amount nCredit = wtx.GetCredit(ISMINE_ALL);
+    Amount nDebit = wtx.GetDebit(ISMINE_ALL);
+    CAmount nNet = (nCredit - nDebit).GetSatoshis();
     uint256 hash = wtx.GetId();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
@@ -92,9 +92,10 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             // Payment to self
             CAmount nChange = wtx.GetChange().GetSatoshis();
 
-            parts.append(
-                TransactionRecord(hash, nTime, TransactionRecord::SendToSelf,
-                                  "", -(nDebit - nChange), nCredit - nChange));
+            parts.append(TransactionRecord(hash, nTime,
+                                           TransactionRecord::SendToSelf, "",
+                                           -(nDebit - nChange).GetSatoshis(),
+                                           (nCredit - nChange).GetSatoshis()));
             // maybe pass to TransactionRecord as constructor argument
             parts.last().involvesWatchAddress = involvesWatchAddress;
         } else if (fAllFromMe) {

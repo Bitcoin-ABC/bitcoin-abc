@@ -2233,9 +2233,9 @@ static UniValue gettransaction(const Config &config,
 
     const CWalletTx &wtx = pwalletMain->mapWallet[hash];
 
-    CAmount nCredit = wtx.GetCredit(filter).GetSatoshis();
-    CAmount nDebit = wtx.GetDebit(filter);
-    CAmount nNet = nCredit - nDebit;
+    Amount nCredit = wtx.GetCredit(filter);
+    Amount nDebit = wtx.GetDebit(filter);
+    CAmount nNet = (nCredit - nDebit).GetSatoshis();
     CAmount nFee =
         (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : Amount(0))
             .GetSatoshis();
