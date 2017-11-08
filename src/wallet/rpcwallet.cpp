@@ -1617,7 +1617,7 @@ void ListTransactions(const CWalletTx &wtx, const std::string &strAccount,
             entry.push_back(Pair("account", strSentAccount));
             MaybePushAddress(entry, s.destination);
             entry.push_back(Pair("category", "send"));
-            entry.push_back(Pair("amount", ValueFromAmount(-s.amount)));
+            entry.push_back(Pair("amount", ValueFromAmount(-1 * s.amount)));
             if (pwalletMain->mapAddressBook.count(s.destination)) {
                 entry.push_back(Pair(
                     "label", pwalletMain->mapAddressBook[s.destination].name));
@@ -1923,12 +1923,12 @@ static UniValue listaccounts(const Config &config,
         includeWatchonly = includeWatchonly | ISMINE_WATCH_ONLY;
     }
 
-    std::map<std::string, CAmount> mapAccountBalances;
+    std::map<std::string, Amount> mapAccountBalances;
     for (const std::pair<CTxDestination, CAddressBookData> &entry :
          pwalletMain->mapAddressBook) {
         // This address belongs to me
         if (IsMine(*pwalletMain, entry.first) & includeWatchonly) {
-            mapAccountBalances[entry.second.name] = 0;
+            mapAccountBalances[entry.second.name] = Amount(0);
         }
     }
 
@@ -1946,7 +1946,7 @@ static UniValue listaccounts(const Config &config,
         }
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount,
                        includeWatchonly);
-        mapAccountBalances[strSentAccount] -= nFee.GetSatoshis();
+        mapAccountBalances[strSentAccount] -= nFee;
         for (const COutputEntry &s : listSent) {
             mapAccountBalances[strSentAccount] -= s.amount;
         }
@@ -1969,7 +1969,7 @@ static UniValue listaccounts(const Config &config,
     }
 
     UniValue ret(UniValue::VOBJ);
-    for (const std::pair<std::string, CAmount> &accountBalance :
+    for (const std::pair<std::string, Amount> &accountBalance :
          mapAccountBalances) {
         ret.push_back(
             Pair(accountBalance.first, ValueFromAmount(accountBalance.second)));
