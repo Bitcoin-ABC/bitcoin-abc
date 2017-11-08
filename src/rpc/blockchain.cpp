@@ -36,7 +36,7 @@ struct CUpdatedBlock {
     int height;
 };
 
-static std::mutex cs_blockchange;
+static CWaitableCriticalSection cs_blockchange;
 static std::condition_variable cond_blockchange;
 static CUpdatedBlock latestblock;
 
@@ -216,7 +216,7 @@ UniValue waitfornewblock(const Config &config, const JSONRPCRequest &request) {
 
     CUpdatedBlock block;
     {
-        std::unique_lock<std::mutex> lock(cs_blockchange);
+        WAIT_LOCK(cs_blockchange, lock);
         block = latestblock;
         if (timeout) {
             cond_blockchange.wait_for(
@@ -274,7 +274,7 @@ UniValue waitforblock(const Config &config, const JSONRPCRequest &request) {
 
     CUpdatedBlock block;
     {
-        std::unique_lock<std::mutex> lock(cs_blockchange);
+        WAIT_LOCK(cs_blockchange, lock);
         if (timeout) {
             cond_blockchange.wait_for(
                 lock, std::chrono::milliseconds(timeout), [&hash] {
@@ -328,7 +328,7 @@ UniValue waitforblockheight(const Config &config,
 
     CUpdatedBlock block;
     {
-        std::unique_lock<std::mutex> lock(cs_blockchange);
+        WAIT_LOCK(cs_blockchange, lock);
         if (timeout) {
             cond_blockchange.wait_for(
                 lock, std::chrono::milliseconds(timeout), [&height] {

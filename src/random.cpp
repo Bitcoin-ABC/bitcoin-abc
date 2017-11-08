@@ -11,6 +11,7 @@
 #include "compat.h" // for Windows API
 #include <wincrypt.h>
 #endif
+#include "sync.h"             // for WAIT_LOCK
 #include "util.h"             // for LogPrint()
 #include "utilstrencodings.h" // for GetTime()
 
@@ -299,7 +300,7 @@ void RandAddSeedSleep() {
     memory_cleanse(&nPerfCounter2, sizeof(nPerfCounter2));
 }
 
-static std::mutex cs_rng_state;
+static CWaitableCriticalSection cs_rng_state;
 static uint8_t rng_state[32] = {0};
 static uint64_t rng_counter = 0;
 
@@ -309,7 +310,7 @@ static void AddDataToRng(void *data, size_t len) {
     hasher.Write((const uint8_t *)data, len);
     uint8_t buf[64];
     {
-        std::unique_lock<std::mutex> lock(cs_rng_state);
+        WAIT_LOCK(cs_rng_state, lock);
         hasher.Write(rng_state, sizeof(rng_state));
         hasher.Write((const uint8_t *)&rng_counter, sizeof(rng_counter));
         ++rng_counter;
@@ -340,7 +341,7 @@ void GetStrongRandBytes(uint8_t *out, int num) {
 
     // Combine with and update state
     {
-        std::unique_lock<std::mutex> lock(cs_rng_state);
+        WAIT_LOCK(cs_rng_state, lock);
         hasher.Write(rng_state, sizeof(rng_state));
         hasher.Write((const uint8_t *)&rng_counter, sizeof(rng_counter));
         ++rng_counter;

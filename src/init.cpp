@@ -952,7 +952,7 @@ static CConditionVariable condvar_GenesisWait;
 static void BlockNotifyGenesisWait(bool, const CBlockIndex *pBlockIndex) {
     if (pBlockIndex != nullptr) {
         {
-            WaitableLock lock_GenesisWait(cs_GenesisWait);
+            LOCK(cs_GenesisWait);
             fHaveGenesis = true;
         }
         condvar_GenesisWait.notify_all();
@@ -2248,9 +2248,12 @@ bool AppInitMain(Config &config,
 
     // Wait for genesis block to be processed
     {
-        WaitableLock lock(cs_GenesisWait);
-        while (!fHaveGenesis) {
-            condvar_GenesisWait.wait(lock);
+        WAIT_LOCK(cs_GenesisWait, lock);
+        // We previously could hang here if StartShutdown() is called prior to
+        // ThreadImport getting started, so instead we just wait on a timer to
+        // check ShutdownRequested() regularly.
+        while (!fHaveGenesis && !ShutdownRequested()) {
+            condvar_GenesisWait.wait_for(lock, std::chrono::milliseconds(500));
         }
         uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
     }

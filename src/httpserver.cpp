@@ -71,7 +71,7 @@ private:
 template <typename WorkItem> class WorkQueue {
 private:
     /** Mutex protects entire object */
-    std::mutex cs;
+    CWaitableCriticalSection cs;
     std::condition_variable cond;
     std::deque<std::unique_ptr<WorkItem>> queue;
     bool running;
@@ -101,7 +101,7 @@ public:
 
     /** Enqueue a work item */
     bool Enqueue(WorkItem *item) {
-        std::unique_lock<std::mutex> lock(cs);
+        LOCK(cs);
         if (queue.size() >= maxDepth) {
             return false;
         }
@@ -116,7 +116,7 @@ public:
         while (true) {
             std::unique_ptr<WorkItem> i;
             {
-                std::unique_lock<std::mutex> lock(cs);
+                WAIT_LOCK(cs, lock);
                 while (running && queue.empty())
                     cond.wait(lock);
                 if (!running) break;
@@ -129,7 +129,7 @@ public:
 
     /** Interrupt and exit loops */
     void Interrupt() {
-        std::unique_lock<std::mutex> lock(cs);
+        LOCK(cs);
         running = false;
         cond.notify_all();
     }

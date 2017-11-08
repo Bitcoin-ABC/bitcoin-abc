@@ -111,6 +111,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	sigutil.cpp
 	skiplist_tests.cpp
 	streams_tests.cpp
+	sync_tests.cpp
 	test_bitcoin.cpp
 	test_bitcoin_main.cpp
 	testutil.cpp
