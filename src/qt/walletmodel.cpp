@@ -67,15 +67,15 @@ CAmount WalletModel::getBalance(const CCoinControl *coinControl) const {
         return nBalance.GetSatoshis();
     }
 
-    return wallet->GetBalance();
+    return wallet->GetBalance().GetSatoshis();
 }
 
 CAmount WalletModel::getUnconfirmedBalance() const {
-    return wallet->GetUnconfirmedBalance();
+    return wallet->GetUnconfirmedBalance().GetSatoshis();
 }
 
 CAmount WalletModel::getImmatureBalance() const {
-    return wallet->GetImmatureBalance();
+    return wallet->GetImmatureBalance().GetSatoshis();
 }
 
 bool WalletModel::haveWatchOnly() const {
@@ -83,15 +83,15 @@ bool WalletModel::haveWatchOnly() const {
 }
 
 CAmount WalletModel::getWatchBalance() const {
-    return wallet->GetWatchOnlyBalance();
+    return wallet->GetWatchOnlyBalance().GetSatoshis();
 }
 
 CAmount WalletModel::getWatchUnconfirmedBalance() const {
-    return wallet->GetUnconfirmedWatchOnlyBalance();
+    return wallet->GetUnconfirmedWatchOnlyBalance().GetSatoshis();
 }
 
 CAmount WalletModel::getWatchImmatureBalance() const {
-    return wallet->GetImmatureWatchOnlyBalance();
+    return wallet->GetImmatureWatchOnlyBalance().GetSatoshis();
 }
 
 void WalletModel::updateStatus() {
@@ -248,7 +248,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
         transaction.newPossibleKeyChange(wallet);
 
-        CAmount nFeeRequired = 0;
+        Amount nFeeRequired = 0;
         int nChangePosRet = -1;
         std::string strFailReason;
 
@@ -257,12 +257,13 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         bool fCreated = wallet->CreateTransaction(vecSend, *newTx, *keyChange,
                                                   nFeeRequired, nChangePosRet,
                                                   strFailReason, coinControl);
-        transaction.setTransactionFee(nFeeRequired);
+        transaction.setTransactionFee(nFeeRequired.GetSatoshis());
         if (fSubtractFeeFromAmount && fCreated)
             transaction.reassignAmounts(nChangePosRet);
 
         if (!fCreated) {
-            if (!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance) {
+            if (!fSubtractFeeFromAmount &&
+                (total + nFeeRequired.GetSatoshis()) > nBalance) {
                 return SendCoinsReturn(AmountWithFeeExceedsBalance);
             }
             Q_EMIT message(tr("Send Coins"),
@@ -274,7 +275,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         // reject absurdly high fee. (This can never happen because the wallet
         // caps the fee at maxTxFee. This merely serves as a belt-and-suspenders
         // check)
-        if (nFeeRequired > maxTxFee) return AbsurdFee;
+        if (nFeeRequired > Amount(maxTxFee)) return AbsurdFee;
     }
 
     return SendCoinsReturn(OK);
