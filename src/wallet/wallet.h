@@ -287,11 +287,11 @@ public:
     mutable Amount nDebitCached;
     mutable Amount nCreditCached;
     mutable Amount nImmatureCreditCached;
-    mutable CAmount nAvailableCreditCached;
-    mutable CAmount nWatchDebitCached;
-    mutable CAmount nWatchCreditCached;
-    mutable CAmount nImmatureWatchCreditCached;
-    mutable CAmount nAvailableWatchCreditCached;
+    mutable Amount nAvailableCreditCached;
+    mutable Amount nWatchDebitCached;
+    mutable Amount nWatchCreditCached;
+    mutable Amount nImmatureWatchCreditCached;
+    mutable Amount nAvailableWatchCreditCached;
     mutable Amount nChangeCached;
 
     CWalletTx() { Init(nullptr); }
@@ -396,18 +396,18 @@ public:
     Amount GetDebit(const isminefilter &filter) const;
     Amount GetCredit(const isminefilter &filter) const;
     Amount GetImmatureCredit(bool fUseCache = true) const;
-    CAmount GetAvailableCredit(bool fUseCache = true) const;
-    CAmount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
-    CAmount GetAvailableWatchOnlyCredit(const bool &fUseCache = true) const;
+    Amount GetAvailableCredit(bool fUseCache = true) const;
+    Amount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
+    Amount GetAvailableWatchOnlyCredit(const bool &fUseCache = true) const;
     Amount GetChange() const;
 
     void GetAmounts(std::list<COutputEntry> &listReceived,
-                    std::list<COutputEntry> &listSent, CAmount &nFee,
+                    std::list<COutputEntry> &listSent, Amount &nFee,
                     std::string &strSentAccount,
                     const isminefilter &filter) const;
 
-    void GetAccountAmounts(const std::string &strAccount, CAmount &nReceived,
-                           CAmount &nSent, CAmount &nFee,
+    void GetAccountAmounts(const std::string &strAccount, Amount &nReceived,
+                           Amount &nSent, Amount &nFee,
                            const isminefilter &filter) const;
 
     bool IsFromMe(const isminefilter &filter) const {

@@ -1608,7 +1608,7 @@ int CWalletTx::GetRequestCount() const {
 }
 
 void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
-                           std::list<COutputEntry> &listSent, CAmount &nFee,
+                           std::list<COutputEntry> &listSent, Amount &nFee,
                            std::string &strSentAccount,
                            const isminefilter &filter) const {
     nFee = 0;
@@ -1621,7 +1621,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
     // debit>0 means we signed/sent this transaction.
     if (nDebit > 0) {
         Amount nValueOut = tx->GetValueOut();
-        nFee = (nDebit - nValueOut).GetSatoshis();
+        nFee = (nDebit - nValueOut);
     }
 
     // Sent/received.
@@ -1667,12 +1667,12 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
 }
 
 void CWalletTx::GetAccountAmounts(const std::string &strAccount,
-                                  CAmount &nReceived, CAmount &nSent,
-                                  CAmount &nFee,
+                                  Amount &nReceived, Amount &nSent,
+                                  Amount &nFee,
                                   const isminefilter &filter) const {
     nReceived = nSent = nFee = 0;
 
-    CAmount allFee;
+    Amount allFee;
     std::string strSentAccount;
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;
@@ -1914,7 +1914,7 @@ Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
     return 0;
 }
 
-CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const {
+Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     if (pwallet == 0) {
         return 0;
     }
@@ -1929,13 +1929,12 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const {
         return nAvailableCreditCached;
     }
 
-    CAmount nCredit = 0;
+    Amount nCredit = 0;
     uint256 hashTx = GetId();
     for (unsigned int i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(hashTx, i)) {
             const CTxOut &txout = tx->vout[i];
-            nCredit +=
-                pwallet->GetCredit(txout, ISMINE_SPENDABLE).GetSatoshis();
+            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit)) {
                 throw std::runtime_error(
                     "CWalletTx::GetAvailableCredit() : value out of range");
@@ -1948,7 +1947,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     return nCredit;
 }
 
-CAmount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
+Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
     if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain()) {
         if (fUseCache && fImmatureWatchCreditCached) {
             return nImmatureWatchCreditCached;
@@ -1963,7 +1962,7 @@ CAmount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
     return 0;
 }
 
-CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
+Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
     if (pwallet == 0) {
         return 0;
     }
@@ -2139,7 +2138,7 @@ void CWallet::ResendWalletTransactions(int64_t nBestBlockTime,
 CAmount CWallet::GetBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    CAmount nTotal = 0;
+    Amount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
@@ -2148,13 +2147,13 @@ CAmount CWallet::GetBalance() const {
         }
     }
 
-    return nTotal;
+    return nTotal.GetSatoshis();
 }
 
 CAmount CWallet::GetUnconfirmedBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    CAmount nTotal = 0;
+    Amount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
@@ -2164,7 +2163,7 @@ CAmount CWallet::GetUnconfirmedBalance() const {
         }
     }
 
-    return nTotal;
+    return nTotal.GetSatoshis();
 }
 
 CAmount CWallet::GetImmatureBalance() const {
@@ -2183,7 +2182,7 @@ CAmount CWallet::GetImmatureBalance() const {
 CAmount CWallet::GetWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    CAmount nTotal = 0;
+    Amount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
@@ -2192,13 +2191,13 @@ CAmount CWallet::GetWatchOnlyBalance() const {
         }
     }
 
-    return nTotal;
+    return nTotal.GetSatoshis();
 }
 
 CAmount CWallet::GetUnconfirmedWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    CAmount nTotal = 0;
+    Amount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
@@ -2208,20 +2207,20 @@ CAmount CWallet::GetUnconfirmedWatchOnlyBalance() const {
         }
     }
 
-    return nTotal;
+    return nTotal.GetSatoshis();
 }
 
 CAmount CWallet::GetImmatureWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    CAmount nTotal = 0;
+    Amount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
         nTotal += pcoin->GetImmatureWatchOnlyCredit();
     }
 
-    return nTotal;
+    return nTotal.GetSatoshis();
 }
 
 void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
@@ -3610,10 +3609,10 @@ Amount CWallet::GetAccountBalance(CWalletDB &walletdb,
             continue;
         }
 
-        CAmount nReceived, nSent, nFee;
+        Amount nReceived, nSent, nFee;
         wtx.GetAccountAmounts(strAccount, nReceived, nSent, nFee, filter);
 
-        if (nReceived != 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
+        if (nReceived != Amount(0) && wtx.GetDepthInMainChain() >= nMinDepth) {
             nBalance += nReceived;
         }
 
