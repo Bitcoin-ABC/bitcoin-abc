@@ -34,7 +34,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                                         const CWalletTx &wtx) {
     QList<TransactionRecord> parts;
     int64_t nTime = wtx.GetTxTime();
-    CAmount nCredit = wtx.GetCredit(ISMINE_ALL);
+    CAmount nCredit = wtx.GetCredit(ISMINE_ALL).GetSatoshis();
     CAmount nDebit = wtx.GetDebit(ISMINE_ALL);
     CAmount nNet = nCredit - nDebit;
     uint256 hash = wtx.GetId();
