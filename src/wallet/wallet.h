@@ -286,7 +286,7 @@ public:
     mutable bool fChangeCached;
     mutable Amount nDebitCached;
     mutable Amount nCreditCached;
-    mutable CAmount nImmatureCreditCached;
+    mutable Amount nImmatureCreditCached;
     mutable CAmount nAvailableCreditCached;
     mutable CAmount nWatchDebitCached;
     mutable CAmount nWatchCreditCached;
@@ -395,7 +395,7 @@ public:
     //! filter decides which addresses will count towards the debit
     Amount GetDebit(const isminefilter &filter) const;
     Amount GetCredit(const isminefilter &filter) const;
-    CAmount GetImmatureCredit(bool fUseCache = true) const;
+    Amount GetImmatureCredit(bool fUseCache = true) const;
     CAmount GetAvailableCredit(bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool &fUseCache = true) const;
