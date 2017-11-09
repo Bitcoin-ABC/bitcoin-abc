@@ -221,8 +221,7 @@ public:
         std::map<TxId, CWalletTx>::iterator mi =
             wallet->mapWallet.find(rec->txid);
         if (mi != wallet->mapWallet.end()) {
-            std::string strHex =
-                EncodeHexTx(static_cast<CTransaction>(mi->second));
+            std::string strHex = EncodeHexTx(*mi->second.tx);
             return QString::fromStdString(strHex);
         }
         return QString();

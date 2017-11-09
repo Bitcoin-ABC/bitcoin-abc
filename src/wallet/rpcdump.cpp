@@ -392,7 +392,7 @@ UniValue importprunedfunds(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    if (pwallet->IsMine(wtx)) {
+    if (pwallet->IsMine(*wtx.tx)) {
         pwallet->AddToWallet(wtx, false);
         return NullUniValue;
     }
