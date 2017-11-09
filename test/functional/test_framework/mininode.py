@@ -38,7 +38,7 @@ from test_framework.siphash import siphash256
 from test_framework.cdefs import MAX_BLOCK_SIGOPS_PER_MB
 from test_framework.util import hex_str_to_bytes, bytes_to_hex_str, wait_until
 
-BIP0031_VERSION = 60000
+MIN_VERSION_SUPPORTED = 60001
 MY_VERSION = 70014  # past bip-31 for ping/pong
 MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
 # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
@@ -982,22 +982,6 @@ class msg_getaddr():
         return "msg_getaddr()"
 
 
-class msg_ping_prebip31():
-    command = b"ping"
-
-    def __init__(self):
-        pass
-
-    def deserialize(self, f):
-        pass
-
-    def serialize(self):
-        return b""
-
-    def __repr__(self):
-        return "msg_ping() (pre-bip31)"
-
-
 class msg_ping():
     command = b"ping"
 
@@ -1246,8 +1230,7 @@ class NodeConnCB():
     """Callback and helper functions for P2P connection to a bitcoind node.
 
     Individual testcases should subclass this and override the on_* methods
-    if they want to alter message handling behaviour.
-    """
+    if they want to alter message handling behaviour."""
 
     def __init__(self):
         # Track whether we have a P2P connection open to the node
@@ -1262,25 +1245,13 @@ class NodeConnCB():
         # A count of the number of ping messages we've sent to the node
         self.ping_counter = 1
 
-        # deliver_sleep_time is helpful for debugging race conditions in p2p
-        # tests; it causes message delivery to sleep for the specified time
-        # before acquiring the global lock and delivering the next message.
-        self.deliver_sleep_time = None
-
     # Message receiving methods
 
     def deliver(self, conn, message):
         """Receive message and dispatch message to appropriate callback.
 
         We keep a count of how many of each message type has been received
-        and the most recent message of each type.
-
-        Optionally waits for deliver_sleep_time before dispatching message.
-        """
-
-        deliver_sleep = self.get_deliver_sleep_time()
-        if deliver_sleep is not None:
-            time.sleep(deliver_sleep)
+        and the most recent message of each type."""
         with mininode_lock:
             try:
                 command = message.command.decode('ascii')
@@ -1291,10 +1262,6 @@ class NodeConnCB():
                 print("ERROR delivering %s (%s)" % (repr(message),
                                                     sys.exc_info()[0]))
                 raise
-
-    def get_deliver_sleep_time(self):
-        with mininode_lock:
-            return self.deliver_sleep_time
 
     # Callback methods. Can be overridden by subclasses in individual test
     # cases to provide custom message handling behaviour.
@@ -1349,19 +1316,16 @@ class NodeConnCB():
             conn.send_message(want)
 
     def on_ping(self, conn, message):
-        if conn.ver_send > BIP0031_VERSION:
-            conn.send_message(msg_pong(message.nonce))
+        conn.send_message(msg_pong(message.nonce))
 
     def on_verack(self, conn, message):
         conn.ver_recv = conn.ver_send
         self.verack_received = True
 
     def on_version(self, conn, message):
-        if message.nVersion >= 209:
-            conn.send_message(msg_verack())
-        conn.ver_send = min(MY_VERSION, message.nVersion)
-        if message.nVersion < 209:
-            conn.ver_recv = conn.ver_send
+        assert message.nVersion >= MIN_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(
+            message.nVersion, MIN_VERSION_SUPPORTED)
+        conn.send_message(msg_verack())
         conn.nServices = message.nServices
 
     # Connection helper methods
@@ -1426,11 +1390,11 @@ class NodeConnCB():
         wait_until(test_function, timeout=timeout, lock=mininode_lock)
         self.ping_counter += 1
 
-# The actual NodeConn class
-# This class provides an interface for a p2p connection to a specified node
-
 
 class NodeConn(asyncore.dispatcher):
+    """The actual NodeConn class
+
+    This class provides an interface for a p2p connection to a specified node."""
     messagemap = {
         b"version": msg_version,
         b"verack": msg_verack,
@@ -1561,43 +1525,27 @@ class NodeConn(asyncore.dispatcher):
                     return None
                 if self.recvbuf[:4] != self.MAGIC_BYTES[self.network]:
                     raise ValueError("got garbage %s" % repr(self.recvbuf))
-                if self.ver_recv < 209:
-                    if len(self.recvbuf) < 4 + 12 + 4:
-                        return None
-                    command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
-                    msglen = struct.unpack(
-                        "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
-                    checksum = None
-                    if len(self.recvbuf) < 4 + 12 + 4 + msglen:
-                        return None
-                    msg = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + msglen]
-                    self.recvbuf = self.recvbuf[4 + 12 + 4 + msglen:]
-                else:
-                    if len(self.recvbuf) < 4 + 12 + 4 + 4:
-                        return None
-                    command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
-                    msglen = struct.unpack(
-                        "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
-                    checksum = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + 4]
-                    if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
-                        return None
-                    msg = self.recvbuf[4 + 12 + 4 + 4:4 + 12 + 4 + 4 + msglen]
-                    h = sha256(sha256(msg))
-                    if checksum != h[:4]:
-                        raise ValueError(
-                            "got bad checksum " + repr(self.recvbuf))
-                    self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
+                if len(self.recvbuf) < 4 + 12 + 4 + 4:
+                    return
+                command = self.recvbuf[4:4+12].split(b"\x00", 1)[0]
+                msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
+                checksum = self.recvbuf[4+12+4:4+12+4+4]
+                if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
+                    return
+                msg = self.recvbuf[4+12+4+4:4+12+4+4+msglen]
+                h = sha256(sha256(msg))
+                if checksum != h[:4]:
+                    raise ValueError("got bad checksum " + repr(self.recvbuf))
+                self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
                 if command not in self.messagemap:
-                    logger.warning("Received unknown command from %s:%d: '%s' %s" % (
+                    raise ValueError("Received unknown command from %s:%d: '%s' %s" % (
                         self.dstaddr, self.dstport, command, repr(msg)))
-                    raise ValueError("Unknown command: '%s'" % (command))
                 f = BytesIO(msg)
                 m = self.messagemap[command]()
                 m.deserialize(f)
                 return m
-
         except Exception as e:
-            logger.exception('got_data:', repr(e))
+            logger.exception('Error reading message:', repr(e))
             raise
 
     def send_message(self, message, pushbuf=False):
@@ -1610,10 +1558,9 @@ class NodeConn(asyncore.dispatcher):
         tmsg += command
         tmsg += b"\x00" * (12 - len(command))
         tmsg += struct.pack("<I", len(data))
-        if self.ver_send >= 209:
-            th = sha256(data)
-            h = sha256(th)
-            tmsg += h[:4]
+        th = sha256(data)
+        h = sha256(th)
+        tmsg += h[:4]
         tmsg += data
         with mininode_lock:
             if (len(self.sendbuf) == 0 and not pushbuf):
@@ -1627,9 +1574,6 @@ class NodeConn(asyncore.dispatcher):
             self.last_sent = time.time()
 
     def got_message(self, message):
-        if message.command == b"version":
-            if message.nVersion <= BIP0031_VERSION:
-                self.messagemap[b'ping'] = msg_ping_prebip31
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(self.messagemap[b'ping']())
         self._log_message("receive", message)
@@ -1664,14 +1608,3 @@ class NetworkThread(Thread):
             [obj.handle_close() for obj in disconnected]
             asyncore.loop(0.1, use_poll=True, map=mininode_socket_map, count=1)
         logger.debug("Network thread closing")
-
-
-# An exception we can raise if we detect a potential disconnect
-# (p2p or rpc) before the test is complete
-class EarlyDisconnectError(Exception):
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
