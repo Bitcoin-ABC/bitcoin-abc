@@ -169,11 +169,17 @@ void WalletInit::AddWalletOptions() const {
 }
 
 bool WalletInit::ParameterInteraction() const {
-    const bool is_multiwallet = gArgs.GetArgs("-wallet").size() > 1;
-
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
+        for (const std::string &wallet : gArgs.GetArgs("-wallet")) {
+            LogPrintf("%s: parameter interaction: -disablewallet -> ignoring "
+                      "-wallet=%s\n",
+                      __func__, wallet);
+        }
+
         return true;
     }
+
+    const bool is_multiwallet = gArgs.GetArgs("-wallet").size() > 1;
 
     if (gArgs.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY) &&
         gArgs.SoftSetBoolArg("-walletbroadcast", false)) {
