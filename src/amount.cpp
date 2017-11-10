@@ -7,7 +7,7 @@
 
 #include "tinyformat.h"
 
-const std::string CURRENCY_UNIT = "BCC";
+const std::string CURRENCY_UNIT = "BCH";
 
 std::string Amount::ToString() const {
     return strprintf("%d.%08d %s", amount / COIN.GetSatoshis(),

@@ -56,7 +56,7 @@ public:
      * @note Source: https://en.bitcoin.it/wiki/Units.
      * Please add only sensible ones.
      */
-    enum Unit { BCC, mBCC, uBCC };
+    enum Unit { BCH, mBCH, uBCH };
 
     enum SeparatorStyle { separatorNever, separatorStandard, separatorAlways };
 
