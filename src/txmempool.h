@@ -133,7 +133,7 @@ public:
                                int64_t modifyCount, int64_t modifySigOpCount);
     // Adjusts the ancestor state
     void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
-                             int64_t modifyCount, int modifySigOps);
+                             int64_t modifyCount, int64_t modifySigOps);
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
     void UpdateFeeDelta(Amount feeDelta);

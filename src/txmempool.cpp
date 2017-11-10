@@ -377,7 +377,7 @@ void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
 
 void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                                           int64_t modifyCount,
-                                          int modifySigOps) {
+                                          int64_t modifySigOps) {
     nSizeWithAncestors += modifySize;
     assert(int64_t(nSizeWithAncestors) > 0);
     nModFeesWithAncestors += modifyFee;
