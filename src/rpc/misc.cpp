@@ -4,10 +4,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "rpc/misc.h"
-
 #include "base58.h"
 #include "clientversion.h"
 #include "config.h"
+#include "dstencode.h"
 #include "init.h"
 #include "net.h"
 #include "netbase.h"

@@ -9,8 +9,8 @@
 #include "paymentserver.h"
 #include "transactionrecord.h"
 
-#include "base58.h"
 #include "consensus/consensus.h"
+#include "dstencode.h"
 #include "script/script.h"
 #include "timedata.h"
 #include "util.h"

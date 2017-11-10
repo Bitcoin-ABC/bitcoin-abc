@@ -1574,6 +1574,7 @@ bool AppInitParameterInteraction(Config &config) {
             }
         }
     }
+
     return true;
 }
 

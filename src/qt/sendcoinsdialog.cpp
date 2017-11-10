@@ -15,8 +15,8 @@
 #include "sendcoinsentry.h"
 #include "walletmodel.h"
 
-#include "base58.h"
 #include "chainparams.h"
+#include "dstencode.h"
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "validation.h" // mempool and minRelayTxFee

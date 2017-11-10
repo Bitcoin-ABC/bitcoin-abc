@@ -112,6 +112,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
+  dstencode.h \
   globals.h \
   httprpc.h \
   httpserver.h \
@@ -325,8 +326,11 @@ libbitcoin_common_a_SOURCES = \
   cashaddr.cpp \
   cashaddrenc.cpp \
   chainparams.cpp \
+  config.cpp \
   coins.cpp \
   compressor.cpp \
+  dstencode.cpp \
+  globals.cpp \
   core_read.cpp \
   core_write.cpp \
   key.cpp \

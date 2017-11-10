@@ -9,6 +9,7 @@
 #include "qvalidatedlineedit.h"
 #include "walletmodel.h"
 
+#include "dstencode.h"
 #include "init.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"

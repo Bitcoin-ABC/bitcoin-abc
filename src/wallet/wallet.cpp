@@ -5,12 +5,12 @@
 
 #include "wallet/wallet.h"
 
-#include "base58.h"
 #include "chain.h"
 #include "checkpoints.h"
 #include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
+#include "dstencode.h"
 #include "key.h"
 #include "keystore.h"
 #include "net.h"

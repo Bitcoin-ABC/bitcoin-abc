@@ -12,7 +12,7 @@
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 
-#include "base58.h"
+#include "dstencode.h"
 #include "keystore.h"
 #include "net.h" // for g_connman
 #include "sync.h"

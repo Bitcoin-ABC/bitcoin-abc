@@ -4,7 +4,7 @@
 
 #include "core_io.h"
 
-#include "base58.h"
+#include "dstencode.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
 #include "script/standard.h"

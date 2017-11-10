@@ -7,10 +7,12 @@
 #endif
 
 #include "base58.h"
+#include "chainparams.h"
 #include "clientversion.h"
 #include "coins.h"
 #include "consensus/consensus.h"
 #include "core_io.h"
+#include "dstencode.h"
 #include "keystore.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"
