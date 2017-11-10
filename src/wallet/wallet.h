@@ -42,17 +42,17 @@ extern bool fSendFreeTransactions;
 
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 100;
 //! -paytxfee default
-static const CAmount DEFAULT_TRANSACTION_FEE = 0;
+static const Amount DEFAULT_TRANSACTION_FEE(0);
 //! -fallbackfee default
-static const CAmount DEFAULT_FALLBACK_FEE = 20000;
+static const Amount DEFAULT_FALLBACK_FEE(20000);
 //! -mintxfee default
-static const CAmount DEFAULT_TRANSACTION_MINFEE = 1000;
+static const Amount DEFAULT_TRANSACTION_MINFEE(1000);
 //! minimum recommended increment for BIP 125 replacement txs
-static const CAmount WALLET_INCREMENTAL_RELAY_FEE = 5000;
+static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000);
 //! target minimum change amount
-static const CAmount MIN_CHANGE = CENT.GetSatoshis();
+static const Amount MIN_CHANGE = CENT;
 //! final minimum change amount after paying for fees
-static const CAmount MIN_FINAL_CHANGE = MIN_CHANGE / 2;
+static const Amount MIN_FINAL_CHANGE = MIN_CHANGE / 2;
 //! Default for -spendzeroconfchange
 static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
 //! Default for -sendfreetransactions

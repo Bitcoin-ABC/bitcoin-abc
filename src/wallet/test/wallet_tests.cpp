@@ -240,11 +240,11 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         // test small change avoidance
 
         empty_wallet();
-        add_coin(MIN_CHANGE * 1 / 10);
-        add_coin(MIN_CHANGE * 2 / 10);
-        add_coin(MIN_CHANGE * 3 / 10);
-        add_coin(MIN_CHANGE * 4 / 10);
-        add_coin(MIN_CHANGE * 5 / 10);
+        add_coin(1 * MIN_CHANGE / 10);
+        add_coin(2 * MIN_CHANGE / 10);
+        add_coin(3 * MIN_CHANGE / 10);
+        add_coin(4 * MIN_CHANGE / 10);
+        add_coin(5 * MIN_CHANGE / 10);
 
         // try making 1 * MIN_CHANGE from the 1.5 * MIN_CHANGE we'll get change
         // smaller than MIN_CHANGE whatever happens, so can expect MIN_CHANGE
@@ -263,8 +263,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(nValueRet, 1 * MIN_CHANGE);
 
         // if we add more small coins:
-        add_coin(MIN_CHANGE * 6 / 10);
-        add_coin(MIN_CHANGE * 7 / 10);
+        add_coin(6 * MIN_CHANGE / 10);
+        add_coin(7 * MIN_CHANGE / 10);
 
         // and try again to make 1.0 * MIN_CHANGE
         BOOST_CHECK(wallet.SelectCoinsMinConf(1 * MIN_CHANGE, 1, 1, 0, vCoins,
@@ -294,9 +294,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
 
         // sometimes it will fail, and so we use the next biggest coin:
         empty_wallet();
-        add_coin(MIN_CHANGE * 5 / 10);
-        add_coin(MIN_CHANGE * 6 / 10);
-        add_coin(MIN_CHANGE * 7 / 10);
+        add_coin(5 * MIN_CHANGE / 10);
+        add_coin(6 * MIN_CHANGE / 10);
+        add_coin(7 * MIN_CHANGE / 10);
         add_coin(1111 * MIN_CHANGE);
         BOOST_CHECK(wallet.SelectCoinsMinConf(1 * MIN_CHANGE, 1, 1, 0, vCoins,
                                               setCoinsRet, nValueRet));
@@ -307,9 +307,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         // but sometimes it's possible, and we use an exact subset (0.4 + 0.6 =
         // 1.0)
         empty_wallet();
-        add_coin(MIN_CHANGE * 4 / 10);
-        add_coin(MIN_CHANGE * 6 / 10);
-        add_coin(MIN_CHANGE * 8 / 10);
+        add_coin(4 * MIN_CHANGE / 10);
+        add_coin(6 * MIN_CHANGE / 10);
+        add_coin(8 * MIN_CHANGE / 10);
         add_coin(1111 * MIN_CHANGE);
         BOOST_CHECK(wallet.SelectCoinsMinConf(MIN_CHANGE, 1, 1, 0, vCoins,
                                               setCoinsRet, nValueRet));
@@ -320,20 +320,20 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
 
         // test avoiding small change
         empty_wallet();
-        add_coin(MIN_CHANGE * 5 / 100);
-        add_coin(MIN_CHANGE * 1);
-        add_coin(MIN_CHANGE * 100);
+        add_coin(5 * MIN_CHANGE / 100);
+        add_coin(1 * MIN_CHANGE);
+        add_coin(100 * MIN_CHANGE);
 
         // trying to make 100.01 from these three coins
-        BOOST_CHECK(wallet.SelectCoinsMinConf(MIN_CHANGE * 10001 / 100, 1, 1, 0,
+        BOOST_CHECK(wallet.SelectCoinsMinConf(10001 * MIN_CHANGE / 100, 1, 1, 0,
                                               vCoins, setCoinsRet, nValueRet));
         // we should get all coins
-        BOOST_CHECK_EQUAL(nValueRet, MIN_CHANGE * 10105 / 100);
+        BOOST_CHECK_EQUAL(nValueRet, 10105 * MIN_CHANGE / 100);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 3U);
 
         // but if we try to make 99.9, we should take the bigger of the two
         // small coins to avoid small change
-        BOOST_CHECK(wallet.SelectCoinsMinConf(MIN_CHANGE * 9990 / 100, 1, 1, 0,
+        BOOST_CHECK(wallet.SelectCoinsMinConf(9990 * MIN_CHANGE / 100, 1, 1, 0,
                                               vCoins, setCoinsRet, nValueRet));
         BOOST_CHECK_EQUAL(nValueRet, 101 * MIN_CHANGE);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
@@ -350,8 +350,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
                                                   setCoinsRet, nValueRet));
             if (amt - 2000 < MIN_CHANGE) {
                 // needs more than one input:
-                uint16_t returnSize =
-                    std::ceil((2000.0 + MIN_CHANGE) / amt.GetSatoshis());
+                uint16_t returnSize = std::ceil(
+                    (2000.0 + MIN_CHANGE.GetSatoshis()) / amt.GetSatoshis());
                 Amount returnValue = returnSize * amt;
                 BOOST_CHECK_EQUAL(nValueRet, returnValue);
                 BOOST_CHECK_EQUAL(setCoinsRet.size(), returnSize);

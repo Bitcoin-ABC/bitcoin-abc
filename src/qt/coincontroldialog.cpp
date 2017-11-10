@@ -536,7 +536,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool)
                       .GetSatoshis();
         if (nPayFee > 0 && coinControl->nMinimumTotalFee > nPayFee)
-            nPayFee = coinControl->nMinimumTotalFee;
+            nPayFee = coinControl->nMinimumTotalFee.GetSatoshis();
 
         // Allow free? (require at least hard-coded threshold and default to
         // that if no estimate)

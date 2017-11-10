@@ -18,7 +18,7 @@ public:
     //! criteria
     bool fAllowWatchOnly;
     //! Minimum absolute fee (not per kilobyte)
-    CAmount nMinimumTotalFee;
+    Amount nMinimumTotalFee;
     //! Override estimated feerate
     bool fOverrideFeeRate;
     //! Feerate to use if overrideFeeRate is true
