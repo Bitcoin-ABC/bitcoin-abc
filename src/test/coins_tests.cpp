@@ -552,12 +552,12 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
 }
 
 static const COutPoint OUTPOINT;
-static const CAmount PRUNED = -1;
-static const CAmount ABSENT = -2;
-static const CAmount FAIL = -3;
-static const CAmount VALUE1 = 100;
-static const CAmount VALUE2 = 200;
-static const CAmount VALUE3 = 300;
+static const Amount PRUNED = -1;
+static const Amount ABSENT = -2;
+static const Amount FAIL = -3;
+static const Amount VALUE1 = 100;
+static const Amount VALUE2 = 200;
+static const Amount VALUE3 = 300;
 static const char DIRTY = CCoinsCacheEntry::DIRTY;
 static const char FRESH = CCoinsCacheEntry::FRESH;
 static const char NO_ENTRY = -1;
@@ -566,7 +566,7 @@ static const auto FLAGS = {char(0), FRESH, DIRTY, char(DIRTY | FRESH)};
 static const auto CLEAN_FLAGS = {char(0), FRESH};
 static const auto ABSENT_FLAGS = {NO_ENTRY};
 
-static void SetCoinValue(CAmount value, Coin &coin) {
+static void SetCoinValue(const Amount value, Coin &coin) {
     assert(value != ABSENT);
     coin.Clear();
     assert(coin.IsSpent());
@@ -578,7 +578,7 @@ static void SetCoinValue(CAmount value, Coin &coin) {
     }
 }
 
-size_t InsertCoinMapEntry(CCoinsMap &map, CAmount value, char flags) {
+size_t InsertCoinMapEntry(CCoinsMap &map, const Amount value, char flags) {
     if (value == ABSENT) {
         assert(flags == NO_ENTRY);
         return 0;
@@ -592,7 +592,7 @@ size_t InsertCoinMapEntry(CCoinsMap &map, CAmount value, char flags) {
     return inserted.first->second.coin.DynamicMemoryUsage();
 }
 
-void GetCoinMapEntry(const CCoinsMap &map, CAmount &value, char &flags) {
+void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags) {
     auto it = map.find(OUTPOINT);
     if (it == map.end()) {
         value = ABSENT;
@@ -608,7 +608,7 @@ void GetCoinMapEntry(const CCoinsMap &map, CAmount &value, char &flags) {
     }
 }
 
-void WriteCoinViewEntry(CCoinsView &view, CAmount value, char flags) {
+void WriteCoinViewEntry(CCoinsView &view, const Amount value, char flags) {
     CCoinsMap map;
     InsertCoinMapEntry(map, value, flags);
     view.BatchWrite(map, {});
@@ -616,7 +616,7 @@ void WriteCoinViewEntry(CCoinsView &view, CAmount value, char flags) {
 
 class SingleEntryCacheTest {
 public:
-    SingleEntryCacheTest(CAmount base_value, CAmount cache_value,
+    SingleEntryCacheTest(const Amount base_value, const Amount cache_value,
                          char cache_flags) {
         WriteCoinViewEntry(base, base_value,
                            base_value == ABSENT ? NO_ENTRY : DIRTY);
@@ -629,14 +629,14 @@ public:
     CCoinsViewCacheTest cache{&base};
 };
 
-void CheckAccessCoin(CAmount base_value, CAmount cache_value,
-                     CAmount expected_value, char cache_flags,
+void CheckAccessCoin(const Amount base_value, const Amount cache_value,
+                     const Amount expected_value, char cache_flags,
                      char expected_flags) {
     SingleEntryCacheTest test(base_value, cache_value, cache_flags);
     test.cache.AccessCoin(OUTPOINT);
     test.cache.SelfTest();
 
-    CAmount result_value;
+    Amount result_value;
     char result_flags;
     GetCoinMapEntry(test.cache.map(), result_value, result_flags);
     BOOST_CHECK_EQUAL(result_value, expected_value);
@@ -680,14 +680,14 @@ BOOST_AUTO_TEST_CASE(coin_access) {
     CheckAccessCoin(VALUE1, VALUE2, VALUE2, DIRTY | FRESH, DIRTY | FRESH);
 }
 
-void CheckSpendCoin(CAmount base_value, CAmount cache_value,
-                    CAmount expected_value, char cache_flags,
+void CheckSpendCoin(Amount base_value, Amount cache_value,
+                    Amount expected_value, char cache_flags,
                     char expected_flags) {
     SingleEntryCacheTest test(base_value, cache_value, cache_flags);
     test.cache.SpendCoin(OUTPOINT);
     test.cache.SelfTest();
 
-    CAmount result_value;
+    Amount result_value;
     char result_flags;
     GetCoinMapEntry(test.cache.map(), result_value, result_flags);
     BOOST_CHECK_EQUAL(result_value, expected_value);
@@ -732,12 +732,12 @@ BOOST_AUTO_TEST_CASE(coin_spend) {
     CheckSpendCoin(VALUE1, VALUE2, ABSENT, DIRTY | FRESH, NO_ENTRY);
 }
 
-void CheckAddCoinBase(CAmount base_value, CAmount cache_value,
-                      CAmount modify_value, CAmount expected_value,
+void CheckAddCoinBase(Amount base_value, Amount cache_value,
+                      Amount modify_value, Amount expected_value,
                       char cache_flags, char expected_flags, bool coinbase) {
     SingleEntryCacheTest test(base_value, cache_value, cache_flags);
 
-    CAmount result_value;
+    Amount result_value;
     char result_flags;
     try {
         CTxOut output;
@@ -761,7 +761,7 @@ void CheckAddCoinBase(CAmount base_value, CAmount cache_value,
 // while still verifying that the CoinsViewCache::AddCoin implementation ignores
 // base values.
 template <typename... Args> void CheckAddCoin(Args &&... args) {
-    for (CAmount base_value : {ABSENT, PRUNED, VALUE1}) {
+    for (Amount base_value : {ABSENT, PRUNED, VALUE1}) {
         CheckAddCoinBase(base_value, std::forward<Args>(args)...);
     }
 }
@@ -796,12 +796,12 @@ BOOST_AUTO_TEST_CASE(coin_add) {
     CheckAddCoin(VALUE2, VALUE3, VALUE3, DIRTY | FRESH, DIRTY | FRESH, true);
 }
 
-void CheckWriteCoin(CAmount parent_value, CAmount child_value,
-                    CAmount expected_value, char parent_flags, char child_flags,
+void CheckWriteCoin(Amount parent_value, Amount child_value,
+                    Amount expected_value, char parent_flags, char child_flags,
                     char expected_flags) {
     SingleEntryCacheTest test(ABSENT, parent_value, parent_flags);
 
-    CAmount result_value;
+    Amount result_value;
     char result_flags;
     try {
         WriteCoinViewEntry(test.cache, child_value, child_flags);
@@ -881,8 +881,8 @@ BOOST_AUTO_TEST_CASE(coin_write) {
     // they would be too repetitive (the parent cache is never updated in these
     // cases). The loop below covers these cases and makes sure the parent cache
     // is always left unchanged.
-    for (CAmount parent_value : {ABSENT, PRUNED, VALUE1}) {
-        for (CAmount child_value : {ABSENT, PRUNED, VALUE2}) {
+    for (Amount parent_value : {ABSENT, PRUNED, VALUE1}) {
+        for (Amount child_value : {ABSENT, PRUNED, VALUE2}) {
             for (char parent_flags :
                  parent_value == ABSENT ? ABSENT_FLAGS : FLAGS) {
                 for (char child_flags :

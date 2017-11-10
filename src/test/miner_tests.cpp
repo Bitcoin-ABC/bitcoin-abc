@@ -138,7 +138,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
-    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize).GetSatoshis() - 1;
+    Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - Amount(1);
 
     tx.vin[0].prevout.hash = hashFreeTx;
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000 - feeToUse;
@@ -180,7 +180,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // This tx can't be mined by itself.
     tx.vin[0].prevout.hash = hashFreeTx2;
     tx.vout.resize(1);
-    feeToUse = blockMinFeeRate.GetFee(freeTxSize).GetSatoshis();
+    feeToUse = blockMinFeeRate.GetFee(freeTxSize);
     tx.vout[0].nValue = 5000000000LL - 100000000 - feeToUse;
     uint256 hashLowFeeTx2 = tx.GetId();
     mempool.addUnchecked(hashLowFeeTx2,
@@ -303,10 +303,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         pblocktemplate =
             BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey));
 
-    const CAmount BLOCKSUBSIDY = 50 * COIN.GetSatoshis();
-    const CAmount LOWFEE = CENT.GetSatoshis();
-    const CAmount HIGHFEE = COIN.GetSatoshis();
-    const CAmount HIGHERFEE = 4 * COIN.GetSatoshis();
+    const Amount BLOCKSUBSIDY = 50 * COIN;
+    const Amount LOWFEE = CENT;
+    const Amount HIGHFEE = COIN;
+    const Amount HIGHERFEE = 4 * COIN;
 
     // block sigops > limit: 1000 CHECKMULTISIG + 1
     tx.vin.resize(1);

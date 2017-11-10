@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
 
     ScriptError err;
     CKey key[4];
-    CAmount amount = 0;
+    Amount amount(0);
     for (int i = 0; i < 4; i++)
         key[i].MakeNewKey(true);
 

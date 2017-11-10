@@ -9,7 +9,7 @@
 #include <list>
 #include <vector>
 
-static void AddTx(const CTransaction &tx, const CAmount &nFee,
+static void AddTx(const CTransaction &tx, const Amount &nFee,
                   CTxMemPool &pool) {
     int64_t nTime = 0;
     double dPriority = 10.0;

@@ -454,7 +454,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     uint64_t tx7Size = GetTransactionSize(tx7);
 
     /* set the fee to just below tx2's feerate when including ancestor */
-    CAmount fee = (20000 / tx2Size) * (tx7Size + tx6Size) - 1;
+    Amount fee((20000 / tx2Size) * (tx7Size + tx6Size) - 1);
 
     // CTxMemPoolEntry entry7(tx7, fee, 2, 10.0, 1, true);
     pool.addUnchecked(tx7.GetId(), entry.Fee(fee).FromTx(tx7));

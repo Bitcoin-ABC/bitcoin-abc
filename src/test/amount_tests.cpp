@@ -9,7 +9,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
 
-BOOST_AUTO_TEST_CASE(CAmountTests) {
+BOOST_AUTO_TEST_CASE(AmountTests) {
     BOOST_CHECK(Amount(2) <= Amount(2));
     BOOST_CHECK(Amount(2) <= Amount(3));
 

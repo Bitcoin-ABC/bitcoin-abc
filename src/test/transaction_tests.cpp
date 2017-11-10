@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     break;
                 }
 
-                CAmount amount = 0;
+                Amount amount(0);
                 if (mapprevOutValues.count(tx.vin[i].prevout)) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     break;
                 }
 
-                CAmount amount = 0;
+                Amount amount(0);
                 if (mapprevOutValues.count(tx.vin[i].prevout)) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }

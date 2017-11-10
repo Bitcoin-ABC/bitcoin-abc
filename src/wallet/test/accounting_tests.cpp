@@ -14,7 +14,7 @@ extern CWallet *pwalletMain;
 
 BOOST_FIXTURE_TEST_SUITE(accounting_tests, WalletTestingSetup)
 
-static void GetResults(std::map<CAmount, CAccountingEntry> &results) {
+static void GetResults(std::map<Amount, CAccountingEntry> &results) {
     std::list<CAccountingEntry> aes;
 
     results.clear();
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     std::vector<CWalletTx *> vpwtx;
     CWalletTx wtx;
     CAccountingEntry ae;
-    std::map<CAmount, CAccountingEntry> results;
+    std::map<Amount, CAccountingEntry> results;
 
     LOCK(pwalletMain->cs_wallet);
 
