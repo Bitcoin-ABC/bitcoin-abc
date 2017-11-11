@@ -704,8 +704,8 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             "\nDumps all wallet keys in a human-readable format to a "
             "server-side file. This does not allow overwriting existing "
             "files.\n"
-            "Imported scripts are not currently included in wallet dumps, "
-            "these must be backed up separately.\n"
+            "Imported scripts are included in the dumpsfile, but corresponding "
+            "addresses may not be added automatically by importwallet.\n"
             "Note that if your wallet contains keys which are not derived from "
             "your HD seed (e.g. imported keys), these are not covered by\n"
             "only backing up the seed itself, and must be backed up too (e.g. "
@@ -752,6 +752,9 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     std::map<CTxDestination, int64_t> mapKeyBirth;
     const std::map<CKeyID, int64_t> &mapKeyPool = pwallet->GetAllReserveKeys();
     pwallet->GetKeyBirthTimes(mapKeyBirth);
+
+    std::set<CScriptID> scripts = pwallet->GetCScripts();
+    // TODO: include scripts in GetKeyBirthTimes() output instead of separate
 
     // sort time/key pairs
     std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
@@ -817,6 +820,23 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
                 (pwallet->mapKeyMetadata[keyid].hdKeypath.size() > 0
                      ? " hdkeypath=" + pwallet->mapKeyMetadata[keyid].hdKeypath
                      : ""));
+        }
+    }
+    file << "\n";
+    for (const CScriptID &scriptid : scripts) {
+        CScript script;
+        std::string create_time = "0";
+        std::string address = EncodeDestination(scriptid);
+        // get birth times for scripts with metadata
+        auto it = pwallet->m_script_metadata.find(scriptid);
+        if (it != pwallet->m_script_metadata.end()) {
+            create_time = EncodeDumpTime(it->second.nCreateTime);
+        }
+        if (pwallet->GetCScript(scriptid, script)) {
+            file << strprintf("%s %s script=1",
+                              HexStr(script.begin(), script.end()),
+                              create_time);
+            file << strprintf(" # addr=%s\n", address);
         }
     }
     file << "\n";

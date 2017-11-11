@@ -38,6 +38,7 @@ public:
     //! https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki
     virtual bool AddCScript(const CScript &redeemScript) = 0;
     virtual bool HaveCScript(const CScriptID &hash) const = 0;
+    virtual std::set<CScriptID> GetCScripts() const = 0;
     virtual bool GetCScript(const CScriptID &hash,
                             CScript &redeemScriptOut) const = 0;
 
@@ -69,6 +70,7 @@ public:
     bool GetKey(const CKeyID &address, CKey &keyOut) const override;
     virtual bool AddCScript(const CScript &redeemScript) override;
     virtual bool HaveCScript(const CScriptID &hash) const override;
+    std::set<CScriptID> GetCScripts() const override;
     virtual bool GetCScript(const CScriptID &hash,
                             CScript &redeemScriptOut) const override;
 
