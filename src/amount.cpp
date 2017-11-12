@@ -21,7 +21,7 @@ CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
     if (nSize > 0) {
         nSatoshisPerK = 1000 * nFeePaid / nSize;
     } else {
-        nSatoshisPerK = 0;
+        nSatoshisPerK = Amount(0);
     }
 }
 
@@ -31,11 +31,11 @@ Amount CFeeRate::GetFee(size_t nBytes_) const {
 
     Amount nFee = nSize * nSatoshisPerK / 1000;
 
-    if (nFee == 0 && nSize != 0) {
-        if (nSatoshisPerK > 0) {
+    if (nFee == Amount(0) && nSize != 0) {
+        if (nSatoshisPerK > Amount(0)) {
             nFee = Amount(1);
         }
-        if (nSatoshisPerK < 0) {
+        if (nSatoshisPerK < Amount(0)) {
             nFee = Amount(-1);
         }
     }

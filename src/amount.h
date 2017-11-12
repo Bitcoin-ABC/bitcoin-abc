@@ -20,7 +20,8 @@ private:
 public:
     constexpr Amount() : amount(0) {}
 
-    template <typename T> constexpr Amount(T _camount) : amount(_camount) {
+    template <typename T>
+    explicit constexpr Amount(T _camount) : amount(_camount) {
         static_assert(std::is_integral<T>(),
                       "Only integer types can be used as amounts");
     }
@@ -108,8 +109,8 @@ public:
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static const Amount COIN = 100000000;
-static const Amount CENT = 1000000;
+static const Amount COIN(100000000);
+static const Amount CENT(1000000);
 
 extern const std::string CURRENCY_UNIT;
 
@@ -125,7 +126,7 @@ extern const std::string CURRENCY_UNIT;
  */
 static const Amount MAX_MONEY = 21000000 * COIN;
 inline bool MoneyRange(const Amount nValue) {
-    return (nValue >= 0 && nValue <= MAX_MONEY);
+    return (nValue >= Amount(0) && nValue <= MAX_MONEY);
 }
 
 /**
