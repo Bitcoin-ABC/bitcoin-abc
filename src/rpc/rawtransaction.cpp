@@ -555,7 +555,7 @@ static UniValue createrawtransaction(const Config &config,
             }
 
             CScript scriptPubKey = GetScriptForDestination(destination);
-            Amount nAmount = AmountFromValue(sendTo[name_]);
+            CAmount nAmount = AmountFromValue(sendTo[name_]).GetSatoshis();
 
             CTxOut out(nAmount, scriptPubKey);
             rawTx.vout.push_back(out);
@@ -1027,7 +1027,7 @@ static UniValue signrawtransaction(const Config &config,
         }
 
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const Amount amount = coin.GetTxOut().nValue;
+        const CAmount &amount = coin.GetTxOut().nValue.GetSatoshis();
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
@@ -1112,7 +1112,7 @@ static UniValue sendrawtransaction(const Config &config,
     const uint256 &txid = tx->GetId();
 
     bool fLimitFree = false;
-    Amount nMaxRawTxFee = maxTxFee;
+    CAmount nMaxRawTxFee = maxTxFee;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
         nMaxRawTxFee = 0;
     }

@@ -1,17 +1,16 @@
 #include "dns.h"
 
-#include <cctype>
-#include <cstdbool>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <netinet/in.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #define BUFLEN 512
@@ -21,6 +20,11 @@
 #define DSTADDR_DATASIZE (CMSG_SPACE(sizeof(struct in6_addr)))
 #define dstaddr(x) (CMSG_DATA(x))
 #elif defined IPV6_PKTINFO
+struct in6_pktinfo {
+    struct in6_addr ipi6_addr; /* src/dst IPv6 address */
+    unsigned int ipi6_ifindex; /* send/recv interface index */
+};
+
 #define DSTADDR_SOCKOPT IPV6_PKTINFO
 #define DSTADDR_DATASIZE (CMSG_SPACE(sizeof(struct in6_pktinfo)))
 #define dstaddr(x) (&(((struct in6_pktinfo *)(CMSG_DATA(x)))->ipi6_addr))
@@ -97,7 +101,7 @@ static int parse_name(const uint8_t **inpos, const uint8_t *inend,
 static int write_name(uint8_t **outpos, const uint8_t *outend, const char *name,
                       int offset) {
     while (*name != 0) {
-        const char *dot = strchr(name, '.');
+        char *dot = strchr(name, '.');
         const char *fin = dot;
         if (!dot) fin = name + strlen(name);
         if (fin - name > 63) return -1;
@@ -201,80 +205,60 @@ error:
     return error;
 }
 
-static int write_record_ns(uint8_t **outpos, const uint8_t *outend,
-                           const char *name, int offset, dns_class cls, int ttl,
-                           const char *ns) {
+static int write_record_ns(uint8_t **outpos, const uint8_t *outend, char *name,
+                           int offset, dns_class cls, int ttl, const char *ns) {
     uint8_t *oldpos = *outpos;
     int ret = write_record(outpos, outend, name, offset, TYPE_NS, cls, ttl);
-    if (ret) {
-        return ret;
-    }
-
-    // Predeclare to avoid jumping over declaration.
-    uint8_t *curpos;
-
+    if (ret) return ret;
     int error = 0;
     if (outend - *outpos < 2) {
         error = -5;
         goto error;
     }
-
     (*outpos) += 2;
-    curpos = *outpos;
+    uint8_t *curpos = *outpos;
     ret = write_name(outpos, outend, ns, -1);
     if (ret) {
         error = ret;
         goto error;
     }
-
     curpos[-2] = (*outpos - curpos) >> 8;
     curpos[-1] = (*outpos - curpos) & 0xFF;
     return 0;
-
 error:
     *outpos = oldpos;
     return error;
 }
 
-static int write_record_soa(uint8_t **outpos, const uint8_t *outend,
-                            const char *name, int offset, dns_class cls,
-                            int ttl, const char *mname, const char *rname,
+static int write_record_soa(uint8_t **outpos, const uint8_t *outend, char *name,
+                            int offset, dns_class cls, int ttl,
+                            const char *mname, const char *rname,
                             uint32_t serial, uint32_t refresh, uint32_t retry,
                             uint32_t expire, uint32_t minimum) {
     uint8_t *oldpos = *outpos;
     int ret = write_record(outpos, outend, name, offset, TYPE_SOA, cls, ttl);
-    if (ret) {
-        return ret;
-    }
-
-    // Predeclare variable to not jump over declarations.
-    uint8_t *curpos;
-
+    if (ret) return ret;
     int error = 0;
     if (outend - *outpos < 2) {
         error = -5;
         goto error;
     }
-
     (*outpos) += 2;
-    curpos = *outpos;
+    uint8_t *curpos = *outpos;
     ret = write_name(outpos, outend, mname, -1);
     if (ret) {
         error = ret;
         goto error;
     }
-
     ret = write_name(outpos, outend, rname, -1);
     if (ret) {
         error = ret;
         goto error;
     }
-
     if (outend - *outpos < 20) {
         error = -5;
         goto error;
     }
-
     *((*outpos)++) = (serial >> 24) & 0xFF;
     *((*outpos)++) = (serial >> 16) & 0xFF;
     *((*outpos)++) = (serial >> 8) & 0xFF;
@@ -298,7 +282,6 @@ static int write_record_soa(uint8_t **outpos, const uint8_t *outend,
     curpos[-2] = (*outpos - curpos) >> 8;
     curpos[-1] = (*outpos - curpos) & 0xFF;
     return 0;
-
 error:
     *outpos = oldpos;
     return error;
@@ -307,16 +290,8 @@ error:
 static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
                          uint8_t *outbuf) {
     int error = 0;
-    if (insize < 12) {
-        // DNS header
+    if (insize < 12) // DNS header
         return -1;
-    }
-
-    // Predeclare various variables to avoid jumping over declarations.
-    int have_ns = 0;
-    int max_auth_size = 0;
-    int nquestion = 0;
-
     // copy id
     outbuf[0] = inbuf[0];
     outbuf[1] = inbuf[1];
@@ -326,194 +301,176 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
     // clear error
     outbuf[3] &= ~15;
     // check qr
-    if (inbuf[2] & 128) {
-        /* printf("Got response?\n"); */
+    if (inbuf[2] & 128) { /* printf("Got response?\n"); */
         error = 1;
         goto error;
     }
-
     // check opcode
-    if (((inbuf[2] & 120) >> 3) != 0) {
-        /* printf("Opcode nonzero?\n"); */
+    if (((inbuf[2] & 120) >> 3) != 0) { /* printf("Opcode nonzero?\n"); */
         error = 4;
         goto error;
     }
-
     // unset TC
     outbuf[2] &= ~2;
     // unset RA
     outbuf[3] &= ~128;
     // check questions
-    nquestion = (inbuf[4] << 8) + inbuf[5];
-    if (nquestion == 0) {
-        /* printf("No questions?\n"); */
+    int nquestion = (inbuf[4] << 8) + inbuf[5];
+    if (nquestion == 0) { /* printf("No questions?\n"); */
         error = 0;
         goto error;
     }
-
-    if (nquestion > 1) {
-        /* printf("Multiple questions %i?\n", nquestion); */
+    if (nquestion > 1) { /* printf("Multiple questions %i?\n", nquestion); */
         error = 4;
         goto error;
     }
+    const uint8_t *inpos = inbuf + 12;
+    const uint8_t *inend = inbuf + insize;
+    char name[256];
+    int offset = inpos - inbuf;
+    int ret = parse_name(&inpos, inend, inbuf, name, 256);
+    if (ret == -1) {
+        error = 1;
+        goto error;
+    }
+    if (ret == -2) {
+        error = 5;
+        goto error;
+    }
+    int namel = strlen(name), hostl = strlen(opt->host);
+    if (strcasecmp(name, opt->host) &&
+        (namel < hostl + 2 || name[namel - hostl - 1] != '.' ||
+         strcasecmp(name + namel - hostl, opt->host))) {
+        error = 5;
+        goto error;
+    }
+    if (inend - inpos < 4) {
+        error = 1;
+        goto error;
+    }
+    // copy question to output
+    memcpy(outbuf + 12, inbuf + 12, inpos + 4 - (inbuf + 12));
+    // set counts
+    outbuf[4] = 0;
+    outbuf[5] = 1;
+    outbuf[6] = 0;
+    outbuf[7] = 0;
+    outbuf[8] = 0;
+    outbuf[9] = 0;
+    outbuf[10] = 0;
+    outbuf[11] = 0;
+    // set qr
+    outbuf[2] |= 128;
 
-    {
-        const uint8_t *inpos = inbuf + 12;
-        const uint8_t *inend = inbuf + insize;
-        char name[256];
-        int offset = inpos - inbuf;
-        int ret = parse_name(&inpos, inend, inbuf, name, 256);
-        if (ret == -1) {
-            error = 1;
-            goto error;
-        }
+    int typ = (inpos[0] << 8) + inpos[1];
+    int cls = (inpos[2] << 8) + inpos[3];
+    inpos += 4;
 
-        if (ret == -2) {
-            error = 5;
-            goto error;
-        }
+    uint8_t *outpos = outbuf + (inpos - inbuf);
+    uint8_t *outend = outbuf + BUFLEN;
 
-        int namel = strlen(name), hostl = strlen(opt->host);
-        if (strcasecmp(name, opt->host) &&
-            (namel < hostl + 2 || name[namel - hostl - 1] != '.' ||
-             strcasecmp(name + namel - hostl, opt->host))) {
-            error = 5;
-            goto error;
-        }
+    //   printf("DNS: Request host='%s' type=%i class=%i\n", name, typ, cls);
 
-        if (inend - inpos < 4) {
-            error = 1;
-            goto error;
-        }
+    // calculate max size of authority section
 
-        // copy question to output
-        memcpy(outbuf + 12, inbuf + 12, inpos + 4 - (inbuf + 12));
-        // set counts
-        outbuf[4] = 0;
-        outbuf[5] = 1;
-        outbuf[6] = 0;
-        outbuf[7] = 0;
-        outbuf[8] = 0;
-        outbuf[9] = 0;
-        outbuf[10] = 0;
-        outbuf[11] = 0;
-        // set qr
-        outbuf[2] |= 128;
+    int max_auth_size = 0;
 
-        int typ = (inpos[0] << 8) + inpos[1];
-        int cls = (inpos[2] << 8) + inpos[3];
-        inpos += 4;
+    if (!((typ == TYPE_NS || typ == QTYPE_ANY) &&
+          (cls == CLASS_IN || cls == QCLASS_ANY))) {
+        // authority section will be necessary, either NS or SOA
+        uint8_t *newpos = outpos;
+        write_record_ns(&newpos, outend, "", offset, CLASS_IN, 0, opt->ns);
+        max_auth_size = newpos - outpos;
 
-        uint8_t *outpos = outbuf + (inpos - inbuf);
-        uint8_t *outend = outbuf + BUFLEN;
-
-        //   printf("DNS: Request host='%s' type=%i class=%i\n", name, typ,
-        //   cls);
-
-        // calculate max size of authority section
-
-        if (!((typ == TYPE_NS || typ == QTYPE_ANY) &&
-              (cls == CLASS_IN || cls == QCLASS_ANY))) {
-            // authority section will be necessary, either NS or SOA
-            uint8_t *newpos = outpos;
-            write_record_ns(&newpos, outend, "", offset, CLASS_IN, 0, opt->ns);
-            max_auth_size = newpos - outpos;
-
-            newpos = outpos;
-            write_record_soa(&newpos, outend, "", offset, CLASS_IN, opt->nsttl,
-                             opt->ns, opt->mbox, time(NULL), 604800, 86400,
-                             2592000, 604800);
-            if (max_auth_size < newpos - outpos)
-                max_auth_size = newpos - outpos;
-            //    printf("Authority section will claim %i bytes max\n",
-            //    max_auth_size);
-        }
-
-        // Answer section
-
-        // NS records
-        if ((typ == TYPE_NS || typ == QTYPE_ANY) &&
-            (cls == CLASS_IN || cls == QCLASS_ANY)) {
-            int ret2 = write_record_ns(&outpos, outend - max_auth_size, "",
-                                       offset, CLASS_IN, opt->nsttl, opt->ns);
-            //    printf("wrote NS record: %i\n", ret2);
-            if (!ret2) {
-                outbuf[7]++;
-                have_ns++;
-            }
-        }
-
-        // SOA records
-        if ((typ == TYPE_SOA || typ == QTYPE_ANY) &&
-            (cls == CLASS_IN || cls == QCLASS_ANY) && opt->mbox) {
-            int ret2 =
-                write_record_soa(&outpos, outend - max_auth_size, "", offset,
-                                 CLASS_IN, opt->nsttl, opt->ns, opt->mbox,
-                                 time(NULL), 604800, 86400, 2592000, 604800);
-            //    printf("wrote SOA record: %i\n", ret2);
-            if (!ret2) {
-                outbuf[7]++;
-            }
-        }
-
-        // A/AAAA records
-        if ((typ == TYPE_A || typ == TYPE_AAAA || typ == QTYPE_ANY) &&
-            (cls == CLASS_IN || cls == QCLASS_ANY)) {
-            addr_t addr[32];
-            int naddr = opt->cb((void *)opt, name, addr, 32,
-                                typ == TYPE_A || typ == QTYPE_ANY,
-                                typ == TYPE_AAAA || typ == QTYPE_ANY);
-            int n = 0;
-            while (n < naddr) {
-                int ret = 1;
-                if (addr[n].v == 4) {
-                    ret = write_record_a(&outpos, outend - max_auth_size, "",
-                                         offset, CLASS_IN, opt->datattl,
-                                         &addr[n]);
-                } else if (addr[n].v == 6) {
-                    ret = write_record_aaaa(&outpos, outend - max_auth_size, "",
-                                            offset, CLASS_IN, opt->datattl,
-                                            &addr[n]);
-                }
-
-                //      printf("wrote A record: %i\n", ret);
-                if (ret) {
-                    break;
-                }
-
-                n++;
-                outbuf[7]++;
-            }
-        }
-
-        // Authority section
-        if (!have_ns && outbuf[7]) {
-            int ret2 = write_record_ns(&outpos, outend, "", offset, CLASS_IN,
-                                       opt->nsttl, opt->ns);
-            //    printf("wrote NS record: %i\n", ret2);
-            if (!ret2) {
-                outbuf[9]++;
-            }
-        } else if (!outbuf[7]) {
-            // Didn't include any answers, so reply with SOA as this is a
-            // negative response. If we replied with NS above we'd create a bad
-            // horizontal referral loop, as the NS response indicates where the
-            // resolver should try next.
-            int ret2 = write_record_soa(
-                &outpos, outend, "", offset, CLASS_IN, opt->nsttl, opt->ns,
-                opt->mbox, time(NULL), 604800, 86400, 2592000, 604800);
-            //    printf("wrote SOA record: %i\n", ret2);
-            if (!ret2) {
-                outbuf[9]++;
-            }
-        }
-
-        // set AA
-        outbuf[2] |= 4;
-
-        return outpos - outbuf;
+        newpos = outpos;
+        write_record_soa(&newpos, outend, "", offset, CLASS_IN, opt->nsttl,
+                         opt->ns, opt->mbox, time(NULL), 604800, 86400, 2592000,
+                         604800);
+        if (max_auth_size < newpos - outpos) max_auth_size = newpos - outpos;
+        //    printf("Authority section will claim %i bytes max\n",
+        //    max_auth_size);
     }
 
+    // Answer section
+
+    int have_ns = 0;
+
+    // NS records
+    if ((typ == TYPE_NS || typ == QTYPE_ANY) &&
+        (cls == CLASS_IN || cls == QCLASS_ANY)) {
+        int ret2 = write_record_ns(&outpos, outend - max_auth_size, "", offset,
+                                   CLASS_IN, opt->nsttl, opt->ns);
+        //    printf("wrote NS record: %i\n", ret2);
+        if (!ret2) {
+            outbuf[7]++;
+            have_ns++;
+        }
+    }
+
+    // SOA records
+    if ((typ == TYPE_SOA || typ == QTYPE_ANY) &&
+        (cls == CLASS_IN || cls == QCLASS_ANY) && opt->mbox) {
+        int ret2 = write_record_soa(&outpos, outend - max_auth_size, "", offset,
+                                    CLASS_IN, opt->nsttl, opt->ns, opt->mbox,
+                                    time(NULL), 604800, 86400, 2592000, 604800);
+        //    printf("wrote SOA record: %i\n", ret2);
+        if (!ret2) {
+            outbuf[7]++;
+        }
+    }
+
+    // A/AAAA records
+    if ((typ == TYPE_A || typ == TYPE_AAAA || typ == QTYPE_ANY) &&
+        (cls == CLASS_IN || cls == QCLASS_ANY)) {
+        addr_t addr[32];
+        int naddr = opt->cb((void *)opt, name, addr, 32,
+                            typ == TYPE_A || typ == QTYPE_ANY,
+                            typ == TYPE_AAAA || typ == QTYPE_ANY);
+        int n = 0;
+        while (n < naddr) {
+            int ret = 1;
+            if (addr[n].v == 4)
+                ret = write_record_a(&outpos, outend - max_auth_size, "",
+                                     offset, CLASS_IN, opt->datattl, &addr[n]);
+            else if (addr[n].v == 6)
+                ret =
+                    write_record_aaaa(&outpos, outend - max_auth_size, "",
+                                      offset, CLASS_IN, opt->datattl, &addr[n]);
+            //      printf("wrote A record: %i\n", ret);
+            if (!ret) {
+                n++;
+                outbuf[7]++;
+            } else
+                break;
+        }
+    }
+
+    // Authority section
+    if (!have_ns && outbuf[7]) {
+        int ret2 = write_record_ns(&outpos, outend, "", offset, CLASS_IN,
+                                   opt->nsttl, opt->ns);
+        //    printf("wrote NS record: %i\n", ret2);
+        if (!ret2) {
+            outbuf[9]++;
+        }
+    } else if (!outbuf[7]) {
+        // Didn't include any answers, so reply with SOA as this is a negative
+        // response. If we replied with NS above we'd create a bad horizontal
+        // referral loop, as the NS response indicates where the resolver should
+        // try next.
+        int ret2 = write_record_soa(&outpos, outend, "", offset, CLASS_IN,
+                                    opt->nsttl, opt->ns, opt->mbox, time(NULL),
+                                    604800, 86400, 2592000, 604800);
+        //    printf("wrote SOA record: %i\n", ret2);
+        if (!ret2) {
+            outbuf[9]++;
+        }
+    }
+
+    // set AA
+    outbuf[2] |= 4;
+
+    return outpos - outbuf;
 error:
     // set error
     outbuf[3] |= error & 0xF;
@@ -566,16 +523,15 @@ int dnsserver(dns_opt_t *opt) {
             .iov_base = inbuf, .iov_len = sizeof(inbuf),
         },
     };
-
     union control_data cmsg;
-    msghdr msg;
-    msg.msg_name = &si_other;
-    msg.msg_namelen = sizeof(si_other);
-    msg.msg_iov = iov;
-    msg.msg_iovlen = 1;
-    msg.msg_control = &cmsg;
-    msg.msg_controllen = sizeof(cmsg);
-
+    struct msghdr msg = {
+        .msg_name = &si_other,
+        .msg_namelen = sizeof(si_other),
+        .msg_iov = iov,
+        .msg_iovlen = 1,
+        .msg_control = &cmsg,
+        .msg_controllen = sizeof(cmsg),
+    };
     for (; 1; ++(opt->nRequests)) {
         ssize_t insize = recvmsg(listenSocket, &msg, 0);
         //    uint8_t *addr = (uint8_t*)&si_other.sin_addr.s_addr;

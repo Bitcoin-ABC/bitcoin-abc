@@ -323,7 +323,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-blocksonly",
             strprintf(
-                _("Whether to operate in a blocks only mode (default: %d)"),
+                _("Whether to operate in a blocks only mode (default: %u)"),
                 DEFAULT_BLOCKSONLY));
     strUsage += HelpMessageOpt(
         "-assumevalid=<hex>",
@@ -355,7 +355,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     if (showDebug)
         strUsage += HelpMessageOpt(
             "-feefilter", strprintf("Tell other nodes to filter invs to us by "
-                                    "our mempool min fee (default: %d)",
+                                    "our mempool min fee (default: %u)",
                                     DEFAULT_FEEFILTER));
     strUsage += HelpMessageOpt(
         "-loadblock=<file>",
@@ -417,7 +417,7 @@ std::string HelpMessage(HelpMessageMode mode) {
 #endif
     strUsage += HelpMessageOpt(
         "-txindex", strprintf(_("Maintain a full transaction index, used by "
-                                "the getrawtransaction rpc call (default: %d)"),
+                                "the getrawtransaction rpc call (default: %u)"),
                               DEFAULT_TXINDEX));
 
     strUsage += HelpMessageGroup(_("Connection options:"));
@@ -445,7 +445,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                                  "listening and no -externalip or -proxy)"));
     strUsage += HelpMessageOpt(
         "-dns", _("Allow DNS lookups for -addnode, -seednode and -connect") +
-                    " " + strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
+                    " " + strprintf(_("(default: %u)"), DEFAULT_NAME_LOOKUP));
     strUsage += HelpMessageOpt(
         "-dnsseed", _("Query for peer addresses via DNS lookup, if low on "
                       "addresses (default: 1 unless -connect/-noconnect)"));
@@ -454,7 +454,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-forcednsseed",
         strprintf(
-            _("Always query for peer addresses via DNS lookup (default: %d)"),
+            _("Always query for peer addresses via DNS lookup (default: %u)"),
             DEFAULT_FORCEDNSSEED));
     strUsage +=
         HelpMessageOpt("-listen", _("Accept connections from outside (default: "
@@ -492,12 +492,12 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)"));
     strUsage +=
         HelpMessageOpt("-permitbaremultisig",
-                       strprintf(_("Relay non-P2SH multisig (default: %d)"),
+                       strprintf(_("Relay non-P2SH multisig (default: %u)"),
                                  DEFAULT_PERMIT_BAREMULTISIG));
     strUsage += HelpMessageOpt(
         "-peerbloomfilters",
         strprintf(_("Support filtering of blocks and transaction with bloom "
-                    "filters (default: %d)"),
+                    "filters (default: %u)"),
                   DEFAULT_PEERBLOOMFILTERS));
     strUsage += HelpMessageOpt(
         "-port=<port>",
@@ -510,7 +510,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-proxyrandomize",
         strprintf(_("Randomize credentials for every proxy connection. This "
-                    "enables Tor stream isolation (default: %d)"),
+                    "enables Tor stream isolation (default: %u)"),
                   DEFAULT_PROXYRANDOMIZE));
     strUsage += HelpMessageOpt(
         "-seednode=<ip>",
@@ -601,24 +601,24 @@ std::string HelpMessage(HelpMessageMode mode) {
             strprintf(
                 "Do a full consistency check for mapBlockIndex, "
                 "setBlockIndexCandidates, chainActive and mapBlocksUnlinked "
-                "occasionally. Also sets -checkmempool (default: %d)",
+                "occasionally. Also sets -checkmempool (default: %u)",
                 Params(CBaseChainParams::MAIN).DefaultConsistencyChecks()));
         strUsage += HelpMessageOpt(
             "-checkmempool=<n>",
             strprintf(
-                "Run checks every <n> transactions (default: %d)",
+                "Run checks every <n> transactions (default: %u)",
                 Params(CBaseChainParams::MAIN).DefaultConsistencyChecks()));
         strUsage += HelpMessageOpt(
             "-checkpoints", strprintf("Disable expensive verification for "
-                                      "known chain history (default: %d)",
+                                      "known chain history (default: %u)",
                                       DEFAULT_CHECKPOINTS_ENABLED));
         strUsage += HelpMessageOpt(
             "-disablesafemode", strprintf("Disable safemode, override a real "
-                                          "safe mode event (default: %d)",
+                                          "safe mode event (default: %u)",
                                           DEFAULT_DISABLE_SAFEMODE));
         strUsage += HelpMessageOpt(
             "-testsafemode",
-            strprintf("Force safe mode (default: %d)", DEFAULT_TESTSAFEMODE));
+            strprintf("Force safe mode (default: %u)", DEFAULT_TESTSAFEMODE));
         strUsage +=
             HelpMessageOpt("-dropmessagestest=<n>",
                            "Randomly drop 1 of every <n> network messages");
@@ -628,7 +628,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-stopafterblockimport",
             strprintf(
-                "Stop running after importing blocks from disk (default: %d)",
+                "Stop running after importing blocks from disk (default: %u)",
                 DEFAULT_STOPAFTERBLOCKIMPORT));
         strUsage += HelpMessageOpt(
             "-limitancestorcount=<n>",
@@ -677,17 +677,17 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Show all debugging options (usage: --help -help-debug)"));
     strUsage += HelpMessageOpt(
         "-logips",
-        strprintf(_("Include IP addresses in debug output (default: %d)"),
+        strprintf(_("Include IP addresses in debug output (default: %u)"),
                   DEFAULT_LOGIPS));
     strUsage += HelpMessageOpt(
         "-logtimestamps",
-        strprintf(_("Prepend debug output with timestamp (default: %d)"),
+        strprintf(_("Prepend debug output with timestamp (default: %u)"),
                   DEFAULT_LOGTIMESTAMPS));
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-logtimemicros",
             strprintf(
-                "Add microsecond precision to debug timestamps (default: %d)",
+                "Add microsecond precision to debug timestamps (default: %u)",
                 DEFAULT_LOGTIMEMICROS));
         strUsage += HelpMessageOpt(
             "-mocktime=<n>",
@@ -700,7 +700,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage +=
             HelpMessageOpt("-relaypriority",
                            strprintf("Require high priority for relaying free "
-                                     "or low-fee transactions (default: %d)",
+                                     "or low-fee transactions (default: %u)",
                                      DEFAULT_RELAYPRIORITY));
         strUsage += HelpMessageOpt(
             "-maxsigcachesize=<n>",
@@ -734,7 +734,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-printpriority", strprintf("Log transaction priority and fee per "
-                                        "kB when mining blocks (default: %d)",
+                                        "kB when mining blocks (default: %u)",
                                         DEFAULT_PRINTPRIORITY));
     }
     strUsage += HelpMessageOpt("-shrinkdebugfile",
@@ -748,7 +748,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-acceptnonstdtxn",
             strprintf(
-                "Relay and mine \"non-standard\" transactions (%sdefault: %d)",
+                "Relay and mine \"non-standard\" transactions (%sdefault: %u)",
                 "testnet/regtest only; ",
                 !Params(CBaseChainParams::TESTNET).RequireStandard()));
         strUsage +=
@@ -776,7 +776,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                                  DEFAULT_BYTES_PER_SIGOP));
     strUsage += HelpMessageOpt(
         "-datacarrier",
-        strprintf(_("Relay and mine data carrier transactions (default: %d)"),
+        strprintf(_("Relay and mine data carrier transactions (default: %u)"),
                   DEFAULT_ACCEPT_DATACARRIER));
     strUsage += HelpMessageOpt(
         "-datacarriersize",
@@ -808,7 +808,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt("-server",
                                _("Accept command line and JSON-RPC commands"));
     strUsage += HelpMessageOpt(
-        "-rest", strprintf(_("Accept public REST requests (default: %d)"),
+        "-rest", strprintf(_("Accept public REST requests (default: %u)"),
                            DEFAULT_REST_ENABLE));
     strUsage += HelpMessageOpt(
         "-rpcbind=<addr>",

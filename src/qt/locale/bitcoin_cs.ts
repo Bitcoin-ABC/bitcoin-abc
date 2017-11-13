@@ -3810,6 +3810,10 @@
         <translation>Přeposílat ne-P2SH multisig (výchozí: %u)</translation>
     </message>
     <message>
+        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
+        <translation>Posílat transakce se zapnutým plným RBF (= replace-by-fee) (výchozí: %u)</translation>
+    </message>
+    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>Nastavit zásobník klíčů na velikost &lt;n&gt; (výchozí: %u)</translation>
     </message>

@@ -137,14 +137,11 @@ public:
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x00000000000000000553279251628c470a5b51de3bbbf336b208530"
-                     "25ffbf270");
+            uint256S("0x000000000000000004694d6c74b532faf99fc072181f870bfb4a6c9"
+                     "930f7440c");
 
         // Aug, 1 hard fork
         consensus.uahfHeight = 478559;
-
-        // Nov, 13 hard fork
-        consensus.cashHardForkActivationTime = 1510600000;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -198,7 +195,6 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
-        cashaddrPrefix = "bitcoincash";
 
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
@@ -316,9 +312,6 @@ public:
         // Aug, 1 hard fork
         consensus.uahfHeight = 1155876;
 
-        // Nov, 13 hard fork
-        consensus.cashHardForkActivationTime = 1510600000;
-
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
         pchMessageStart[2] = 0x09;
@@ -364,7 +357,6 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-        cashaddrPrefix = "xbctest";
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -439,9 +431,6 @@ public:
         // Hard fork is always enabled on regtest.
         consensus.uahfHeight = 0;
 
-        // Nov, 13 hard fork is always on on regtest.
-        consensus.cashHardForkActivationTime = 0;
-
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;
         pchMessageStart[2] = 0xb5;
@@ -484,7 +473,6 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-        cashaddrPrefix = "xbcreg";
     }
 
     void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,

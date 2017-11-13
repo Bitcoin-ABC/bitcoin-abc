@@ -17,13 +17,13 @@ BOOST_FIXTURE_TEST_SUITE(policyestimator_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     CTxMemPool mpool(CFeeRate(1000));
     TestMemPoolEntryHelper entry;
-    Amount basefee(2000);
-    Amount deltaFee(100);
-    std::vector<Amount> feeV;
+    CAmount basefee(2000);
+    CAmount deltaFee(100);
+    std::vector<CAmount> feeV;
 
     // Populate vectors of increasing fees
     for (int j = 0; j < 10; j++) {
-        feeV.push_back((j + 1) * basefee);
+        feeV.push_back(basefee * (j + 1));
     }
 
     // Store the hashes of transactions that have been added to the mempool by
@@ -169,9 +169,8 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
         BOOST_CHECK(mpool.estimateFee(i) == CFeeRate(0) ||
                     mpool.estimateFee(i).GetFeePerK() >
                         origFeeEst[i - 1] - deltaFee);
-        Amount a1 = mpool.estimateSmartFee(i, &answerFound).GetFeePerK();
-        Amount a2 = origFeeEst[answerFound - 1] - deltaFee;
-        BOOST_CHECK(a1 > a2);
+        BOOST_CHECK(mpool.estimateSmartFee(i, &answerFound).GetFeePerK() >
+                    origFeeEst[answerFound - 1] - deltaFee);
     }
 
     // Mine all those transactions
@@ -234,8 +233,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                     mpool.estimateFee(i).GetFeePerK());
         BOOST_CHECK(mpool.estimateSmartFee(i).GetFeePerK() >=
                     mpool.GetMinFee(1).GetFeePerK());
-        BOOST_CHECK(mpool.estimateSmartPriority(i) ==
-                    double(INF_PRIORITY.GetSatoshis()));
+        BOOST_CHECK(mpool.estimateSmartPriority(i) == INF_PRIORITY);
     }
 }
 

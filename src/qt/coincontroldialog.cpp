@@ -533,8 +533,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             if (nAmount - nPayAmount == 0) nBytes -= 34;
 
         // Fee
-        nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool)
-                      .GetSatoshis();
+        nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
         if (nPayFee > 0 && coinControl->nMinimumTotalFee > nPayFee)
             nPayFee = coinControl->nMinimumTotalFee;
 
@@ -640,16 +639,15 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // how many satoshis the estimated fee can vary per byte we guess wrong
     double dFeeVary;
-    if (payTxFee.GetFeePerK() > Amount(0)) {
+    if (payTxFee.GetFeePerK() > 0) {
         dFeeVary = (double)std::max(CWallet::GetRequiredFee(1000),
-                                    payTxFee.GetFeePerK())
-                       .GetSatoshis() /
+                                    payTxFee.GetFeePerK().GetSatoshis()) /
                    1000;
     } else {
-        dFeeVary = (double)std::max(
-                       CWallet::GetRequiredFee(1000),
-                       mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK())
-                       .GetSatoshis() /
+        dFeeVary = (double)std::max(CWallet::GetRequiredFee(1000),
+                                    mempool.estimateSmartFee(nTxConfirmTarget)
+                                        .GetFeePerK()
+                                        .GetSatoshis()) /
                    1000;
     }
     QString toolTip4 =

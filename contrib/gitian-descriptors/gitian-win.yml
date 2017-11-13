@@ -1,5 +1,5 @@
 ---
-name: "bitcoin-abc-0.16-win"
+name: "bitcoin-abc-0.15-win"
 enable_cache: true
 suites:
 - "xenial"
@@ -27,7 +27,7 @@ alternatives:
 - "package" : "i686-w64-mingw32-g++"
   "path" : "/usr/bin/i686-w64-mingw32-g++-posix"
 - "package" : "x86_64-w64-mingw32-gcc"
-  "path" : "/usr/bin/x86_64-w64-mingw32-gcc-posix"
+  "path" : "/usr/bin/x86_64-w64-mingw32-g++-posix"
 - "package" : "x86_64-w64-mingw32-g++"
   "path" : "/usr/bin/x86_64-w64-mingw32-g++-posix"
 remotes:

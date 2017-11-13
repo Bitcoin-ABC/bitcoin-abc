@@ -7,7 +7,7 @@
 
 #include <set>
 
-static void addCoin(const Amount nValue, const CWallet &wallet,
+static void addCoin(const CAmount &nValue, const CWallet &wallet,
                     std::vector<COutput> &vCoins) {
     int nInput = 0;
 
@@ -46,13 +46,13 @@ static void CoinSelection(benchmark::State &state) {
 
         // Add coins.
         for (int i = 0; i < 1000; i++)
-            addCoin(1000 * COIN, wallet, vCoins);
-        addCoin(3 * COIN, wallet, vCoins);
+            addCoin(1000 * COIN.GetSatoshis(), wallet, vCoins);
+        addCoin(3 * COIN.GetSatoshis(), wallet, vCoins);
 
         std::set<std::pair<const CWalletTx *, unsigned int>> setCoinsRet;
-        Amount nValueRet;
-        bool success = wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
-                                                 setCoinsRet, nValueRet);
+        CAmount nValueRet;
+        bool success = wallet.SelectCoinsMinConf(
+            1003 * COIN.GetSatoshis(), 1, 6, 0, vCoins, setCoinsRet, nValueRet);
         assert(success);
         assert(nValueRet == 1003 * COIN);
         assert(setCoinsRet.size() == 2);

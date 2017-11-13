@@ -199,11 +199,11 @@ bool CWalletDB::WriteAccountingEntry_Backend(const CAccountingEntry &acentry) {
     return WriteAccountingEntry(++nAccountingEntryNumber, acentry);
 }
 
-Amount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
+CAmount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
     std::list<CAccountingEntry> entries;
     ListAccountCreditDebit(strAccount, entries);
 
-    Amount nCreditDebit = 0;
+    CAmount nCreditDebit = 0;
     for (const CAccountingEntry &entry : entries) {
         nCreditDebit += entry.nCreditDebit;
     }

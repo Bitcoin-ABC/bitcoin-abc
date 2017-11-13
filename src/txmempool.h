@@ -289,7 +289,8 @@ public:
 class CompareTxMemPoolEntryByScore {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) {
-        double f1 = double(b.GetTxSize() * a.GetModifiedFee().GetSatoshis());
+        double f1 =
+            double(b.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
         double f2 = double(a.GetTxSize() * b.GetModifiedFee().GetSatoshis());
         if (f1 == f2) {
             return b.GetTx().GetId() < a.GetTx().GetId();
@@ -607,7 +608,7 @@ public:
     void PrioritiseTransaction(const uint256 hash, const std::string strHash,
                                double dPriorityDelta, const Amount nFeeDelta);
     void ApplyDeltas(const uint256 hash, double &dPriorityDelta,
-                     Amount &nFeeDelta) const;
+                     Amount nFeeDelta) const;
     void ClearPrioritisation(const uint256 hash);
 
 public:

@@ -547,6 +547,9 @@ static const char UNUSED *bitcoin_strings[] = {
         "Send transactions as zero-fee transactions if possible (default: %u)"),
     QT_TRANSLATE_NOOP(
         "bitcoin-core",
+        "Send transactions with full-RBF opt-in enabled (default: %u)"),
+    QT_TRANSLATE_NOOP(
+        "bitcoin-core",
         "Set database cache size in megabytes (%d to %d, default: %d)"),
     QT_TRANSLATE_NOOP("bitcoin-core", "Set key pool size to <n> (default: %u)"),
     QT_TRANSLATE_NOOP("bitcoin-core",

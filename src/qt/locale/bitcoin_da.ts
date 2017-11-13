@@ -3810,6 +3810,10 @@
         <translation>Videresend ikke-P2SH multisig (standard: %u)</translation>
     </message>
     <message>
+        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
+        <translation>Send transaktioner med fuld-RBF opt-in aktiveret (standard: %u)</translation>
+    </message>
+    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>Sæt nøglepuljestørrelse til &lt;n&gt; (standard: %u)
 </translation>
