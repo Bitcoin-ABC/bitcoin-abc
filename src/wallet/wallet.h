@@ -480,7 +480,7 @@ public:
 class CAccountingEntry {
 public:
     std::string strAccount;
-    Amount nCreditDebit;
+    CAmount nCreditDebit;
     int64_t nTime;
     std::string strOtherAccount;
     std::string strComment;
