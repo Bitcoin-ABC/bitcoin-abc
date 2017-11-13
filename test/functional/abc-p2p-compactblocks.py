@@ -273,7 +273,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Check that compact block also work for big blocks
         node = self.nodes[0]
         peer = TestNode()
-        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer))
+        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), peer))
 
         # Wait for connection to be etablished
         peer.wait_for_verack()
