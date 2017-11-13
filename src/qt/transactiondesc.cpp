@@ -218,7 +218,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
 
             if (fAllToMe) {
                 // Payment to self
-                CAmount nChange = wtx.GetChange().GetSatoshis();
+                CAmount nChange = wtx.GetChange();
                 CAmount nValue = nCredit - nChange;
                 strHTML += "<b>" + tr("Total debit") + ":</b> " +
                            BitcoinUnits::formatHtmlWithUnit(unit, -nValue) +
