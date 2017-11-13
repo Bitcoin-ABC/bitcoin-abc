@@ -28,7 +28,7 @@ bool CBanDB::Write(const banmap_t &banSet) {
 
     // serialize banlist, checksum data up to that point, then append csum
     CDataStream ssBanlist(SER_DISK, CLIENT_VERSION);
-    ssBanlist << FLATDATA(Params().MessageStart());
+    ssBanlist << FLATDATA(Params().DiskMagic());
     ssBanlist << banSet;
     uint256 hash = Hash(ssBanlist.begin(), ssBanlist.end());
     ssBanlist << hash;
@@ -95,7 +95,7 @@ bool CBanDB::Read(banmap_t &banSet) {
         ssBanlist >> FLATDATA(pchMsgTmp);
 
         // ... verify the network matches ours
-        if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
+        if (memcmp(pchMsgTmp, Params().DiskMagic(), sizeof(pchMsgTmp)))
             return error("%s: Invalid network magic number", __func__);
 
         // de-serialize ban data
@@ -119,7 +119,7 @@ bool CAddrDB::Write(const CAddrMan &addr) {
 
     // serialize addresses, checksum data up to that point, then append csum
     CDataStream ssPeers(SER_DISK, CLIENT_VERSION);
-    ssPeers << FLATDATA(Params().MessageStart());
+    ssPeers << FLATDATA(Params().DiskMagic());
     ssPeers << addr;
     uint256 hash = Hash(ssPeers.begin(), ssPeers.end());
     ssPeers << hash;
@@ -189,7 +189,7 @@ bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
         ssPeers >> FLATDATA(pchMsgTmp);
 
         // ... verify the network matches ours
-        if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
+        if (memcmp(pchMsgTmp, Params().DiskMagic(), sizeof(pchMsgTmp)))
             return error("%s: Invalid network magic number", __func__);
 
         // de-serialize address data into one CAddrMan object

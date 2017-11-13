@@ -18,7 +18,8 @@
 #include <cstdint>
 #include <string>
 
-/** Message header.
+/**
+ * Message header.
  * (4) message start.
  * (12) command.
  * (4) size.
@@ -37,14 +38,14 @@ public:
         HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE +
                       CHECKSUM_SIZE
     };
-    typedef uint8_t MessageStartChars[MESSAGE_START_SIZE];
+    typedef uint8_t MessageMagic[MESSAGE_START_SIZE];
 
-    CMessageHeader(const MessageStartChars &pchMessageStartIn);
-    CMessageHeader(const MessageStartChars &pchMessageStartIn,
+    CMessageHeader(const MessageMagic &pchMessageStartIn);
+    CMessageHeader(const MessageMagic &pchMessageStartIn,
                    const char *pszCommand, unsigned int nMessageSizeIn);
 
     std::string GetCommand() const;
-    bool IsValid(const MessageStartChars &messageStart) const;
+    bool IsValid(const MessageMagic &messageStart) const;
 
     ADD_SERIALIZE_METHODS;
 

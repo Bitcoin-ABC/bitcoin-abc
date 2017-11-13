@@ -3135,7 +3135,7 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
     // This is a new peer. Before doing anything, we need to detect what magic
     // the peer is using.
     if (pfrom->nVersion == 0 &&
-        memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(),
+        memcmp(msg.hdr.pchMessageStart, chainparams.DiskMagic(),
                CMessageHeader::MESSAGE_START_SIZE) == 0) {
         pfrom->fUsesCashMagic = false;
     }

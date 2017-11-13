@@ -151,14 +151,14 @@ public:
          * normal data. The characters are rarely used upper ASCII, not valid as
          * UTF-8, and produce a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xf9;
-        pchMessageStart[1] = 0xbe;
-        pchMessageStart[2] = 0xb4;
-        pchMessageStart[3] = 0xd9;
-        pchCashMessageStart[0] = 0xe3;
-        pchCashMessageStart[1] = 0xe1;
-        pchCashMessageStart[2] = 0xf3;
-        pchCashMessageStart[3] = 0xe8;
+        diskMagic[0] = 0xf9;
+        diskMagic[1] = 0xbe;
+        diskMagic[2] = 0xb4;
+        diskMagic[3] = 0xd9;
+        netMagic[0] = 0xe3;
+        netMagic[1] = 0xe1;
+        netMagic[2] = 0xf3;
+        netMagic[3] = 0xe8;
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
 
@@ -319,14 +319,14 @@ public:
         // Nov, 13 hard fork
         consensus.cashHardForkActivationTime = 1510600000;
 
-        pchMessageStart[0] = 0x0b;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x09;
-        pchMessageStart[3] = 0x07;
-        pchCashMessageStart[0] = 0xf4;
-        pchCashMessageStart[1] = 0xe5;
-        pchCashMessageStart[2] = 0xf3;
-        pchCashMessageStart[3] = 0xf4;
+        diskMagic[0] = 0x0b;
+        diskMagic[1] = 0x11;
+        diskMagic[2] = 0x09;
+        diskMagic[3] = 0x07;
+        netMagic[0] = 0xf4;
+        netMagic[1] = 0xe5;
+        netMagic[2] = 0xf3;
+        netMagic[3] = 0xf4;
         nDefaultPort = 18333;
         nPruneAfterHeight = 1000;
 
@@ -442,14 +442,14 @@ public:
         // Nov, 13 hard fork is always on on regtest.
         consensus.cashHardForkActivationTime = 0;
 
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
-        pchCashMessageStart[0] = 0xda;
-        pchCashMessageStart[1] = 0xb5;
-        pchCashMessageStart[2] = 0xbf;
-        pchCashMessageStart[3] = 0xfa;
+        diskMagic[0] = 0xfa;
+        diskMagic[1] = 0xbf;
+        diskMagic[2] = 0xb5;
+        diskMagic[3] = 0xda;
+        netMagic[0] = 0xda;
+        netMagic[1] = 0xb5;
+        netMagic[2] = 0xbf;
+        netMagic[3] = 0xfa;
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
 

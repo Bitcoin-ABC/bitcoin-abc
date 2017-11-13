@@ -59,12 +59,8 @@ public:
     };
 
     const Consensus::Params &GetConsensus() const { return consensus; }
-    const CMessageHeader::MessageStartChars &MessageStart() const {
-        return pchMessageStart;
-    }
-    const CMessageHeader::MessageStartChars &CashMessageStart() const {
-        return pchCashMessageStart;
-    }
+    const CMessageHeader::MessageMagic &DiskMagic() const { return diskMagic; }
+    const CMessageHeader::MessageMagic &NetMagic() const { return netMagic; }
     int GetDefaultPort() const { return nDefaultPort; }
 
     const CBlock &GenesisBlock() const { return genesis; }
@@ -95,8 +91,8 @@ protected:
     CChainParams() {}
 
     Consensus::Params consensus;
-    CMessageHeader::MessageStartChars pchMessageStart;
-    CMessageHeader::MessageStartChars pchCashMessageStart;
+    CMessageHeader::MessageMagic diskMagic;
+    CMessageHeader::MessageMagic netMagic;
     int nDefaultPort;
     uint64_t nPruneAfterHeight;
     std::vector<CDNSSeedData> vSeeds;

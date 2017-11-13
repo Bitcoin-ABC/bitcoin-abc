@@ -14,7 +14,7 @@
 #include "amount.h"
 #include "chain.h"
 #include "coins.h"
-#include "protocol.h" // For CMessageHeader::MessageStartChars
+#include "protocol.h" // For CMessageHeader::MessageMagic
 #include "script/script_error.h"
 #include "sync.h"
 #include "versionbits.h"
@@ -548,7 +548,7 @@ public:
 
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
-                      const CMessageHeader::MessageStartChars &messageStart);
+                      const CMessageHeader::MessageMagic &messageStart);
 bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
                        const Consensus::Params &consensusParams);
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,

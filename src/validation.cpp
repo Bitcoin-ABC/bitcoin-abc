@@ -1109,7 +1109,7 @@ bool GetTransaction(const Config &config, const uint256 &txid,
 //
 
 bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
-                      const CMessageHeader::MessageStartChars &messageStart) {
+                      const CMessageHeader::MessageMagic &messageStart) {
     // Open history file to append
     CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
@@ -1519,7 +1519,7 @@ namespace {
 
 bool UndoWriteToDisk(const CBlockUndo &blockundo, CDiskBlockPos &pos,
                      const uint256 &hashBlock,
-                     const CMessageHeader::MessageStartChars &messageStart) {
+                     const CMessageHeader::MessageMagic &messageStart) {
     // Open history file to append
     CAutoFile fileout(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull()) return error("%s: OpenUndoFile failed", __func__);
@@ -2140,7 +2140,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                 return error("ConnectBlock(): FindUndoPos failed");
             }
             if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
-                                 chainparams.MessageStart())) {
+                                 chainparams.DiskMagic())) {
                 return AbortNode(state, "Failed to write undo data");
             }
 
@@ -3677,8 +3677,7 @@ static bool AcceptBlock(const Config &config,
             return error("AcceptBlock(): FindBlockPos failed");
         }
         if (dbp == nullptr) {
-            if (!WriteBlockToDisk(block, blockPos,
-                                  chainparams.MessageStart())) {
+            if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
                 AbortNode(state, "Failed to write block");
             }
         }
@@ -4398,8 +4397,7 @@ bool InitBlockIndex(const Config &config) {
                               block.GetBlockTime())) {
                 return error("LoadBlockIndex(): FindBlockPos failed");
             }
-            if (!WriteBlockToDisk(block, blockPos,
-                                  chainparams.MessageStart())) {
+            if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
                 return error(
                     "LoadBlockIndex(): writing genesis block to disk failed");
             }
@@ -4449,10 +4447,10 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
             try {
                 // Locate a header.
                 uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
-                blkdat.FindByte(chainparams.MessageStart()[0]);
+                blkdat.FindByte(chainparams.DiskMagic()[0]);
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> FLATDATA(buf);
-                if (memcmp(buf, chainparams.MessageStart(),
+                if (memcmp(buf, chainparams.DiskMagic(),
                            CMessageHeader::MESSAGE_START_SIZE)) {
                     continue;
                 }

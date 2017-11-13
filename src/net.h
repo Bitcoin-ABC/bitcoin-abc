@@ -546,7 +546,7 @@ public:
     // Time (in microseconds) of message receipt.
     int64_t nTime;
 
-    CNetMessage(const CMessageHeader::MessageStartChars &pchMessageStartIn,
+    CNetMessage(const CMessageHeader::MessageMagic &pchMessageStartIn,
                 int nTypeIn, int nVersionIn)
         : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
           vRecv(nTypeIn, nVersionIn) {
@@ -752,10 +752,9 @@ public:
     void SetSendVersion(int nVersionIn);
     int GetSendVersion() const;
 
-    const CMessageHeader::MessageStartChars &
+    const CMessageHeader::MessageMagic &
     GetMagic(const CChainParams &params) const {
-        return fUsesCashMagic ? params.CashMessageStart()
-                              : params.MessageStart();
+        return fUsesCashMagic ? params.NetMagic() : params.DiskMagic();
     }
 
     CService GetAddrLocal() const;
