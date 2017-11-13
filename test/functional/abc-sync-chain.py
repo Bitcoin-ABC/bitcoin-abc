@@ -45,7 +45,7 @@ class SyncChainTest(BitcoinTestFramework):
     def run_test(self):
         node0conn = BaseNode()
         node0conn.add_connection(
-            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], node0conn))
+            NodeConn('127.0.0.1', p2p_port(0), node0conn))
 
         NetworkThread().start()
         node0conn.wait_for_verack()
