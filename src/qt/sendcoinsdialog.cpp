@@ -218,8 +218,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
                 SLOT(updateGlobalFeeVariables()));
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
-        ui->customFee->setSingleStep(
-            CWallet::GetRequiredFee(1000).GetSatoshis());
+        ui->customFee->setSingleStep(CWallet::GetRequiredFee(1000));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -635,7 +634,7 @@ void SendCoinsDialog::on_buttonMinimizeFee_clicked() {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(CWallet::GetRequiredFee(1000).GetSatoshis());
+    ui->customFee->setValue(CWallet::GetRequiredFee(1000));
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -706,7 +705,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         CWallet::GetRequiredFee(1000).GetSatoshis()) +
+                         CWallet::GetRequiredFee(1000)) +
                      "/kB"));
 }
 
@@ -723,9 +722,8 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
-                std::max(CWallet::fallbackFee.GetFeePerK(),
-                         CWallet::GetRequiredFee(1000))
-                    .GetSatoshis()) +
+                std::max(CWallet::fallbackFee.GetFeePerK().GetSatoshis(),
+                         CWallet::GetRequiredFee(1000))) +
             "/kB");
         // (Smart fee not initialized yet. This usually takes a few blocks...)
         ui->labelSmartFee2->show();
@@ -734,8 +732,8 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
-                std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))
-                    .GetSatoshis()) +
+                std::max(feeRate.GetFeePerK().GetSatoshis(),
+                         CWallet::GetRequiredFee(1000))) +
             "/kB");
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(

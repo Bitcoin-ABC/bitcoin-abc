@@ -377,7 +377,7 @@ static UniValue getaddressesbyaccount(const Config &config,
 
 static void SendMoney(const CTxDestination &address, CAmount nValue,
                       bool fSubtractFeeFromAmount, CWalletTx &wtxNew) {
-    Amount curBalance = pwalletMain->GetBalance();
+    CAmount curBalance = pwalletMain->GetBalance();
 
     // Check amount
     if (nValue <= 0) {
@@ -399,7 +399,7 @@ static void SendMoney(const CTxDestination &address, CAmount nValue,
 
     // Create and send the transaction
     CReserveKey reservekey(pwalletMain);
-    Amount nFeeRequired;
+    CAmount nFeeRequired;
     std::string strError;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
@@ -546,7 +546,7 @@ static UniValue listaddressgroupings(const Config &config,
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     UniValue jsonGroupings(UniValue::VARR);
-    std::map<CTxDestination, Amount> balances =
+    std::map<CTxDestination, CAmount> balances =
         pwalletMain->GetAddressBalances();
     for (const std::set<CTxDestination> &grouping :
          pwalletMain->GetAddressGroupings()) {
@@ -1260,7 +1260,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     // Send
     CReserveKey keyChange(pwalletMain);
-    Amount nFeeRequired(0);
+    CAmount nFeeRequired = 0;
     int nChangePosRet = -1;
     std::string strFailReason;
     bool fCreated = pwalletMain->CreateTransaction(
@@ -3315,7 +3315,7 @@ static UniValue fundrawtransaction(const Config &config,
         setSubtractFeeFromOutputs.insert(pos);
     }
 
-    Amount nFeeOut;
+    CAmount nFeeOut;
     std::string strFailReason;
 
     if (!pwalletMain->FundTransaction(

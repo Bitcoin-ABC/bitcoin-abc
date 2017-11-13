@@ -794,8 +794,8 @@ public:
      */
     int64_t IncOrderPosNext(CWalletDB *pwalletdb = nullptr);
     DBErrors ReorderTransactions();
-    bool AccountMove(std::string strFrom, std::string strTo,
-                     const Amount nAmount, std::string strComment = "");
+    bool AccountMove(std::string strFrom, std::string strTo, CAmount nAmount,
+                     std::string strComment = "");
     bool GetAccountPubkey(CPubKey &pubKey, std::string strAccount,
                           bool bForceNew = false);
 
@@ -814,18 +814,18 @@ public:
                                   CConnman *connman) override;
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime,
                                                         CConnman *connman);
-    Amount GetBalance() const;
-    Amount GetUnconfirmedBalance() const;
-    Amount GetImmatureBalance() const;
-    Amount GetWatchOnlyBalance() const;
-    Amount GetUnconfirmedWatchOnlyBalance() const;
-    Amount GetImmatureWatchOnlyBalance() const;
+    CAmount GetBalance() const;
+    CAmount GetUnconfirmedBalance() const;
+    CAmount GetImmatureBalance() const;
+    CAmount GetWatchOnlyBalance() const;
+    CAmount GetUnconfirmedWatchOnlyBalance() const;
+    CAmount GetImmatureWatchOnlyBalance() const;
 
     /**
      * Insert additional inputs into the transaction by calling
      * CreateTransaction();
      */
-    bool FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
+    bool FundTransaction(CMutableTransaction &tx, CAmount &nFeeRet,
                          bool overrideEstimatedFeeRate,
                          const CFeeRate &specificFeeRate, int &nChangePosInOut,
                          std::string &strFailReason, bool includeWatching,
@@ -842,7 +842,7 @@ public:
      */
     bool CreateTransaction(const std::vector<CRecipient> &vecSend,
                            CWalletTx &wtxNew, CReserveKey &reservekey,
-                           Amount &nFeeRet, int &nChangePosInOut,
+                           CAmount &nFeeRet, int &nChangePosInOut,
                            std::string &strFailReason,
                            const CCoinControl *coinControl = nullptr,
                            bool sign = true);
@@ -862,21 +862,21 @@ public:
      * Estimate the minimum fee considering user set parameters and the required
      * fee
      */
-    static Amount GetMinimumFee(unsigned int nTxBytes,
-                                unsigned int nConfirmTarget,
-                                const CTxMemPool &pool);
+    static CAmount GetMinimumFee(unsigned int nTxBytes,
+                                 unsigned int nConfirmTarget,
+                                 const CTxMemPool &pool);
     /**
      * Estimate the minimum fee considering required fee and targetFee or if 0
      * then fee estimation for nConfirmTarget
      */
-    static Amount GetMinimumFee(unsigned int nTxBytes,
-                                unsigned int nConfirmTarget,
-                                const CTxMemPool &pool, Amount targetFee);
+    static CAmount GetMinimumFee(unsigned int nTxBytes,
+                                 unsigned int nConfirmTarget,
+                                 const CTxMemPool &pool, CAmount targetFee);
     /**
      * Return the minimum required fee taking into account the floating relay
      * fee and user set minimum transaction fee
      */
-    static Amount GetRequiredFee(unsigned int nTxBytes);
+    static CAmount GetRequiredFee(unsigned int nTxBytes);
 
     bool NewKeyPool();
     bool TopUpKeyPool(unsigned int kpSize = 0);
@@ -888,7 +888,7 @@ public:
     void GetAllReserveKeys(std::set<CKeyID> &setAddress) const;
 
     std::set<std::set<CTxDestination>> GetAddressGroupings();
-    std::map<CTxDestination, Amount> GetAddressBalances();
+    std::map<CTxDestination, CAmount> GetAddressBalances();
 
     Amount GetAccountBalance(const std::string &strAccount, int nMinDepth,
                              const isminefilter &filter);
