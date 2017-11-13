@@ -198,7 +198,7 @@ static const double MIN_SUCCESS_PCT = .95;
 static const double SUFFICIENT_FEETXS = 1;
 
 // Minimum and Maximum values for tracking feerates
-static constexpr Amount MIN_FEERATE(10);
+static constexpr double MIN_FEERATE = 10;
 static const Amount MAX_FEERATE(int64_t(1e7));
 static const Amount INF_FEERATE(MAX_MONEY);
 static const Amount INF_PRIORITY(int64_t(1e9) * MAX_MONEY);
@@ -207,7 +207,7 @@ static const Amount INF_PRIORITY(int64_t(1e9) * MAX_MONEY);
 // able to give accurate estimates over a large range of potential feerates.
 // Therefore it makes sense to exponentially space the buckets
 /** Spacing of FeeRate buckets */
-static const double FEE_SPACING = 1.1;
+static const int64_t FEE_SPACING_FRACTION = 10;
 
 /**
  * We want to be able to estimate feerates that are needed on tx's to be

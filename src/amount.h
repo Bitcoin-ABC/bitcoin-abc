@@ -18,14 +18,14 @@ private:
     int64_t amount;
 
 public:
-    constexpr Amount() : amount(0) {}
+    Amount() : amount(0) {}
 
-    template <typename T> constexpr Amount(T _camount) : amount(_camount) {
+    template <typename T> Amount(T _camount) : amount(_camount) {
         static_assert(std::is_integral<T>(),
                       "Only integer types can be used as amounts");
     }
 
-    constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
+    Amount(const Amount &_camount) : amount(_camount.amount) {}
 
     // Allow access to underlying value for non-monetary operations
     int64_t GetSatoshis() const { return amount; }
@@ -41,48 +41,44 @@ public:
         amount -= a.amount;
         return *this;
     }
-    friend constexpr bool operator<(const Amount a, const Amount b) {
+    friend bool operator<(const Amount a, const Amount b) {
         return a.amount < b.amount;
     }
-    friend constexpr bool operator==(const Amount a, const Amount b) {
+    friend bool operator==(const Amount a, const Amount b) {
         return a.amount == b.amount;
     }
-    friend constexpr bool operator>(const Amount a, const Amount b) {
+    friend bool operator>(const Amount a, const Amount b) {
         return b.amount < a.amount;
     }
-    friend constexpr bool operator!=(const Amount a, const Amount b) {
+    friend bool operator!=(const Amount a, const Amount b) {
         return !(a.amount == b.amount);
     }
-    friend constexpr bool operator<=(const Amount a, const Amount b) {
+    friend bool operator<=(const Amount a, const Amount b) {
         return !(a.amount > b.amount);
     }
-    friend constexpr bool operator>=(const Amount a, const Amount b) {
+    friend bool operator>=(const Amount a, const Amount b) {
         return !(a.amount < b.amount);
     }
-    friend constexpr Amount operator+(const Amount a, const Amount b) {
+    friend Amount operator+(const Amount a, const Amount b) {
         return Amount(a.amount + b.amount);
     }
-    friend constexpr Amount operator-(const Amount a, const Amount b) {
+    friend Amount operator-(const Amount a, const Amount b) {
         return Amount(a.amount - b.amount);
     }
     // Implemented for allowing COIN as a base unit.
-    friend constexpr Amount operator*(const int64_t a, const Amount b) {
+    friend Amount operator*(const int64_t a, const Amount b) {
         return Amount(a * b.amount);
     }
-    friend constexpr Amount operator*(const int a, const Amount b) {
+    friend Amount operator*(const int a, const Amount b) {
         return Amount(a * b.amount);
     }
     // DO NOT IMPLEMENT
-    friend constexpr Amount operator*(const double a, const Amount b) = delete;
-    constexpr int64_t operator/(const Amount b) const {
-        return amount / b.amount;
-    }
-    constexpr Amount operator/(const int64_t b) const {
-        return Amount(amount / b);
-    }
-    constexpr Amount operator/(const int b) const { return Amount(amount / b); }
+    friend Amount operator*(const double a, const Amount b) = delete;
+    int64_t operator/(const Amount b) const { return amount / b.amount; }
+    Amount operator/(const int64_t b) const { return Amount(amount / b); }
+    Amount operator/(const int b) const { return Amount(amount / b); }
     // DO NOT IMPLEMENT
-    constexpr Amount operator/(const double b) const = delete;
+    Amount operator/(const double b) const = delete;
 
     // ostream support
     friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
