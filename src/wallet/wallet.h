@@ -157,7 +157,7 @@ static inline void WriteOrderPos(const int64_t &nOrderPos,
 
 struct COutputEntry {
     CTxDestination destination;
-    Amount amount;
+    CAmount amount;
     int vout;
 };
 
