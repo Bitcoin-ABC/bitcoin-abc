@@ -4,4 +4,3 @@ Bitcoin ABC version 0.16.1 is now available from:
 
 This release includes the following features and fixes:
 
-- Update seeds
