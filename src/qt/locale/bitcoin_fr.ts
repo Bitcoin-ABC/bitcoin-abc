@@ -3806,6 +3806,10 @@
         <translation>Relayer les multisignatures non-P2SH (par défaut : %u)</translation>
     </message>
     <message>
+        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
+        <translation>Envoyer des transactions avec « RBF opt-in » complet activé (par défaut : %u)</translation>
+    </message>
+    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>Définir la taille de la réserve de clés à &lt;n&gt; (par défaut : %u)</translation>
     </message>
