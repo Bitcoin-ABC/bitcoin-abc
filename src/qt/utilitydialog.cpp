@@ -84,12 +84,12 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
         if (showDebug) {
             strUsage += HelpMessageOpt(
                 "-allowselfsignedrootcertificates",
-                strprintf("Allow self signed root certificates (default: %u)",
+                strprintf("Allow self signed root certificates (default: %d)",
                           DEFAULT_SELFSIGNED_ROOTCERTS));
         }
         strUsage += HelpMessageOpt(
             "-choosedatadir",
-            strprintf(tr("Choose data directory on startup (default: %u)")
+            strprintf(tr("Choose data directory on startup (default: %d)")
                           .toStdString(),
                       DEFAULT_CHOOSE_DATADIR));
         strUsage += HelpMessageOpt(
@@ -104,7 +104,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
         strUsage += HelpMessageOpt(
             "-splash",
             strprintf(
-                tr("Show splash screen on startup (default: %u)").toStdString(),
+                tr("Show splash screen on startup (default: %d)").toStdString(),
                 DEFAULT_SPLASHSCREEN));
         strUsage += HelpMessageOpt(
             "-resetguisettings",

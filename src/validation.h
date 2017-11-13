@@ -58,14 +58,14 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = 1000;
+static const Amount DEFAULT_MIN_RELAY_TX_FEE(1000);
 //! -maxtxfee default
-static const CAmount DEFAULT_TRANSACTION_MAXFEE = 0.1 * COIN;
+static const Amount DEFAULT_TRANSACTION_MAXFEE(COIN / 10);
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
-static const CAmount HIGH_TX_FEE_PER_KB = 0.01 * COIN;
+static const Amount HIGH_TX_FEE_PER_KB(COIN / 100);
 /** -maxtxfee will warn if called with a higher fee than this amount (in
  * satoshis */
-static const CAmount HIGH_MAX_TX_FEE = 100 * HIGH_TX_FEE_PER_KB;
+static const Amount HIGH_MAX_TX_FEE(100 * HIGH_TX_FEE_PER_KB);
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
 static const unsigned int DEFAULT_ANCESTOR_LIMIT = 25;
 /** Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool
@@ -196,7 +196,7 @@ extern size_t nCoinCacheUsage;
 extern CFeeRate minRelayTxFee;
 /** Absolute maximum transaction fee (in satoshis) used by wallet and mempool
  * (rejects high fee in sendrawtransaction) */
-extern CAmount maxTxFee;
+extern Amount maxTxFee;
 /** If the tip is older than this (in seconds), the node is considered to be in
  * initial block download. */
 extern int64_t nMaxTipAge;
@@ -322,7 +322,7 @@ bool GetTransaction(const Config &config, const uint256 &hash,
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
+Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
 /** Guess verification progress (as a fraction between 0.0=genesis and
  * 1.0=current tip). */
@@ -373,7 +373,9 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
 
 /** Check is UAHF has activated. */
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
-bool IsUAHFenabledForCurrentBlock(const Config &config);
+
+/** Check is Cash HF has activated. */
+bool IsCashHFEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
 /** (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from mempool
@@ -383,7 +385,7 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         bool fLimitFree, bool *pfMissingInputs,
                         std::list<CTransactionRef> *plTxnReplaced = nullptr,
                         bool fOverrideMempoolLimit = false,
-                        const CAmount nAbsurdFee = 0);
+                        const Amount nAbsurdFee = Amount(0));
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);
@@ -426,6 +428,24 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx,
  */
 uint64_t GetTransactionSigOpCount(const CTransaction &tx,
                                   const CCoinsViewCache &inputs, int flags);
+
+/**
+ * Check whether all inputs of this transaction are valid (no double spends,
+ * scripts & sigs, amounts). This does not modify the UTXO set.
+ *
+ * If pvChecks is not nullptr, script checks are pushed onto it instead of being
+ * performed inline. Any script checks which are not necessary (eg due to script
+ * execution cache hits) are, obviously, not pushed onto pvChecks/run.
+ *
+ * Setting sigCacheStore/scriptCacheStore to false will remove elements from the
+ * corresponding cache which are matched. This is useful for checking blocks
+ * where we will likely never need the cache entry again.
+ */
+bool CheckInputs(const CTransaction &tx, CValidationState &state,
+                 const CCoinsViewCache &view, bool fScriptChecks,
+                 uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+                 const PrecomputedTransactionData &txdata,
+                 std::vector<CScriptCheck> *pvChecks = nullptr);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
@@ -489,7 +509,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags,
 class CScriptCheck {
 private:
     CScript scriptPubKey;
-    CAmount amount;
+    Amount amount;
     const CTransaction *ptxTo;
     unsigned int nIn;
     uint32_t nFlags;
@@ -502,7 +522,7 @@ public:
         : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
 
-    CScriptCheck(const CScript &scriptPubKeyIn, const CAmount amountIn,
+    CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
                  const CTransaction &txToIn, unsigned int nInIn,
                  uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn)
@@ -554,8 +574,7 @@ bool CheckBlock(const Config &Config, const CBlock &block,
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state,
                                 const Consensus::Params &consensusParams,
-                                int nHeight, int64_t nLockTimeCutoff,
-                                int64_t nMedianTimePast);
+                                int nHeight, int64_t nLockTimeCutoff);
 
 /**
  * This is a variant of ContextualCheckTransaction which computes the contextual

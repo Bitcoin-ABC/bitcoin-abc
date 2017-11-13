@@ -153,52 +153,56 @@ BOOST_AUTO_TEST_CASE(util_GetArg) {
 
 BOOST_AUTO_TEST_CASE(util_FormatMoney) {
     BOOST_CHECK_EQUAL(FormatMoney(0), "0.00");
-    BOOST_CHECK_EQUAL(FormatMoney((COIN / 10000) * 123456789), "12345.6789");
-    BOOST_CHECK_EQUAL(FormatMoney(-COIN), "-1.00");
+    BOOST_CHECK_EQUAL(FormatMoney((COIN.GetSatoshis() / 10000) * 123456789),
+                      "12345.6789");
+    BOOST_CHECK_EQUAL(FormatMoney(-COIN.GetSatoshis()), "-1.00");
 
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 100000000), "100000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 10000000), "10000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 1000000), "1000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 100000), "100000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 10000), "10000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 1000), "1000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 100), "100.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN * 10), "10.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN), "1.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10), "0.10");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100), "0.01");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 1000), "0.001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10000), "0.0001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100000), "0.00001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 1000000), "0.000001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10000000), "0.0000001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100000000), "0.00000001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100000000),
+                      "100000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10000000),
+                      "10000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 1000000), "1000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100000), "100000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10000), "10000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 1000), "1000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100), "100.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10), "10.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis()), "1.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10), "0.10");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100), "0.01");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 1000), "0.001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10000), "0.0001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100000), "0.00001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 1000000), "0.000001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10000000), "0.0000001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100000000),
+                      "0.00000001");
 }
 
 BOOST_AUTO_TEST_CASE(util_ParseMoney) {
-    CAmount ret = 0;
+    Amount ret = 0;
     BOOST_CHECK(ParseMoney("0.0", ret));
     BOOST_CHECK_EQUAL(ret, 0);
 
     BOOST_CHECK(ParseMoney("12345.6789", ret));
-    BOOST_CHECK_EQUAL(ret, (COIN / 10000) * 123456789);
+    BOOST_CHECK_EQUAL(ret, 123456789 * (COIN / 10000));
 
     BOOST_CHECK(ParseMoney("100000000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 100000000);
+    BOOST_CHECK_EQUAL(ret, 100000000 * COIN);
     BOOST_CHECK(ParseMoney("10000000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 10000000);
+    BOOST_CHECK_EQUAL(ret, 10000000 * COIN);
     BOOST_CHECK(ParseMoney("1000000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 1000000);
+    BOOST_CHECK_EQUAL(ret, 1000000 * COIN);
     BOOST_CHECK(ParseMoney("100000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 100000);
+    BOOST_CHECK_EQUAL(ret, 100000 * COIN);
     BOOST_CHECK(ParseMoney("10000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 10000);
+    BOOST_CHECK_EQUAL(ret, 10000 * COIN);
     BOOST_CHECK(ParseMoney("1000.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 1000);
+    BOOST_CHECK_EQUAL(ret, 1000 * COIN);
     BOOST_CHECK(ParseMoney("100.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 100);
+    BOOST_CHECK_EQUAL(ret, 100 * COIN);
     BOOST_CHECK(ParseMoney("10.00", ret));
-    BOOST_CHECK_EQUAL(ret, COIN * 10);
+    BOOST_CHECK_EQUAL(ret, 10 * COIN);
     BOOST_CHECK(ParseMoney("1.00", ret));
     BOOST_CHECK_EQUAL(ret, COIN);
     BOOST_CHECK(ParseMoney("1", ret));
@@ -617,6 +621,63 @@ BOOST_AUTO_TEST_CASE(test_ParseFixedPoint) {
     BOOST_CHECK(!ParseFixedPoint("1.1e", 8, &amount));
     BOOST_CHECK(!ParseFixedPoint("1.1e-", 8, &amount));
     BOOST_CHECK(!ParseFixedPoint("1.", 8, &amount));
+}
+
+template <int F, int T>
+static void CheckConvertBits(const std::vector<uint8_t> &in,
+                             const std::vector<uint8_t> &expected) {
+    std::vector<uint8_t> outpad;
+    bool ret = ConvertBits<F, T, true>(outpad, in.begin(), in.end());
+    BOOST_CHECK(ret);
+    BOOST_CHECK(outpad == expected);
+
+    const bool dopad = (in.size() * F) % T;
+    std::vector<uint8_t> outnopad;
+    ret = ConvertBits<F, T, false>(outnopad, in.begin(), in.end());
+    BOOST_CHECK(ret != dopad);
+
+    if (dopad) {
+        // We should have skipped the last digit.
+        outnopad.push_back(expected.back());
+    }
+
+    BOOST_CHECK(outnopad == expected);
+
+    // Check the other way around.
+    std::vector<uint8_t> orignopad;
+    ret = ConvertBits<T, F, false>(orignopad, expected.begin(), expected.end());
+    BOOST_CHECK(ret == !((expected.size() * T) % F));
+    BOOST_CHECK(orignopad == in);
+
+    // Check with padding. We may get an extra 0 in that case.
+    std::vector<uint8_t> origpad;
+    ret = ConvertBits<T, F, true>(origpad, expected.begin(), expected.end());
+    BOOST_CHECK(ret);
+
+    if (dopad) {
+        BOOST_CHECK_EQUAL(origpad.back(), 0);
+        origpad.pop_back();
+    }
+
+    BOOST_CHECK(origpad == in);
+}
+
+BOOST_AUTO_TEST_CASE(test_ConvertBits) {
+    CheckConvertBits<8, 5>({}, {});
+    CheckConvertBits<8, 5>({0xff}, {0x1f, 0x1c});
+    CheckConvertBits<8, 5>({0xff, 0xff}, {0x1f, 0x1f, 0x1f, 0x10});
+    CheckConvertBits<8, 5>({0xff, 0xff, 0xff}, {0x1f, 0x1f, 0x1f, 0x1f, 0x1e});
+    CheckConvertBits<8, 5>({0xff, 0xff, 0xff, 0xff},
+                           {0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x18});
+    CheckConvertBits<8, 5>({0xff, 0xff, 0xff, 0xff, 0xff},
+                           {0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f});
+    CheckConvertBits<8, 5>({0xff, 0xff, 0xff, 0xff, 0xff},
+                           {0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f});
+    CheckConvertBits<8, 5>({0xff, 0xff, 0xff, 0xff, 0xff},
+                           {0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f});
+    CheckConvertBits<8, 5>({0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef},
+                           {0x00, 0x04, 0x11, 0x14, 0x0a, 0x19, 0x1c, 0x09,
+                            0x15, 0x0f, 0x06, 0x1e, 0x1e});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

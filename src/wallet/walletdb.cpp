@@ -199,11 +199,11 @@ bool CWalletDB::WriteAccountingEntry_Backend(const CAccountingEntry &acentry) {
     return WriteAccountingEntry(++nAccountingEntryNumber, acentry);
 }
 
-CAmount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
+Amount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
     std::list<CAccountingEntry> entries;
     ListAccountCreditDebit(strAccount, entries);
 
-    CAmount nCreditDebit = 0;
+    Amount nCreditDebit = 0;
     for (const CAccountingEntry &entry : entries) {
         nCreditDebit += entry.nCreditDebit;
     }
@@ -286,13 +286,12 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
             std::string strAddress;
             ssKey >> strAddress;
             ssValue >>
-                pwallet->mapAddressBook[CBitcoinAddress(strAddress).Get()].name;
+                pwallet->mapAddressBook[DecodeDestination(strAddress)].name;
         } else if (strType == "purpose") {
             std::string strAddress;
             ssKey >> strAddress;
             ssValue >>
-                pwallet->mapAddressBook[CBitcoinAddress(strAddress).Get()]
-                    .purpose;
+                pwallet->mapAddressBook[DecodeDestination(strAddress)].purpose;
         } else if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
@@ -479,8 +478,8 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
             ssKey >> strAddress;
             ssKey >> strKey;
             ssValue >> strValue;
-            if (!pwallet->LoadDestData(CBitcoinAddress(strAddress).Get(),
-                                       strKey, strValue)) {
+            if (!pwallet->LoadDestData(DecodeDestination(strAddress), strKey,
+                                       strValue)) {
                 strErr = "Error reading wallet database: LoadDestData failed";
                 return false;
             }

@@ -44,31 +44,31 @@ extern void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
 void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex *blockindex) {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (blockindex == nullptr) {
-        if (chainActive.Tip() == nullptr) {
-            return 1.0;
-        }
-
-        blockindex = chainActive.Tip();
-    }
-
-    int nShift = (blockindex->nBits >> 24) & 0xff;
-
-    double dDiff = double(0x0000ffff) / double(blockindex->nBits & 0x00ffffff);
+static double GetDifficultyFromBits(uint32_t nBits) {
+    int nShift = (nBits >> 24) & 0xff;
+    double dDiff = 0x0000ffff / double(nBits & 0x00ffffff);
 
     while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
+
     while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
 
     return dDiff;
+}
+
+double GetDifficulty(const CBlockIndex *blockindex) {
+    // Floating point number that is a multiple of the minimum difficulty,
+    // minimum difficulty = 1.0.
+    if (blockindex == nullptr) {
+        return 1.0;
+    }
+
+    return GetDifficultyFromBits(blockindex->nBits);
 }
 
 UniValue blockheaderToJSON(const CBlockIndex *blockindex) {
@@ -365,7 +365,7 @@ UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
     }
 
     LOCK(cs_main);
-    return GetDifficulty();
+    return GetDifficulty(chainActive.Tip());
 }
 
 std::string EntryDescriptionString() {
@@ -414,10 +414,12 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
         Pair("currentpriority", e.GetPriority(chainActive.Height())));
     info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
     info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
-    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+    info.push_back(
+        Pair("descendantfees", e.GetModFeesWithDescendants().GetSatoshis()));
     info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
     info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
-    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
+    info.push_back(
+        Pair("ancestorfees", e.GetModFeesWithAncestors().GetSatoshis()));
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
@@ -860,7 +862,7 @@ struct CCoinsStats {
     uint64_t nBogoSize;
     uint256 hashSerialized;
     uint64_t nDiskSize;
-    CAmount nTotalAmount;
+    Amount nTotalAmount;
 
     CCoinsStats()
         : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0),
@@ -877,9 +879,9 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
     for (const auto output : outputs) {
         ss << VARINT(output.first + 1);
         ss << *(const CScriptBase *)(&output.second.GetTxOut().scriptPubKey);
-        ss << VARINT(output.second.GetTxOut().nValue);
+        ss << VARINT(output.second.GetTxOut().nValue.GetSatoshis());
         stats.nTransactionOutputs++;
-        stats.nTotalAmount += output.second.GetTxOut().nValue;
+        stats.nTotalAmount += output.second.GetTxOut().nValue.GetSatoshis();
         stats.nBogoSize +=
             32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
             8 /* amount */ + 2 /* scriptPubKey len */ +
@@ -1304,7 +1306,7 @@ UniValue getblockchaininfo(const Config &config,
         Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
     obj.push_back(
         Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty", double(GetDifficulty())));
+    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
     obj.push_back(
         Pair("mediantime", int64_t(chainActive.Tip()->GetMedianTimePast())));
     obj.push_back(

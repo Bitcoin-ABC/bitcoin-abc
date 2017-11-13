@@ -54,7 +54,7 @@ void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
 
     UniValue a(UniValue::VARR);
     for (const CTxDestination &addr : addresses) {
-        a.push_back(CBitcoinAddress(addr).ToString());
+        a.push_back(EncodeDestination(addr));
     }
 
     out.push_back(Pair("addresses", a));
@@ -491,7 +491,7 @@ static UniValue createrawtransaction(const Config &config,
         rawTx.nLockTime = nLockTime;
     }
 
-    for (unsigned int idx = 0; idx < inputs.size(); idx++) {
+    for (size_t idx = 0; idx < inputs.size(); idx++) {
         const UniValue &input = inputs[idx];
         const UniValue &o = input.get_obj();
 
@@ -521,17 +521,16 @@ static UniValue createrawtransaction(const Config &config,
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
                     "Invalid parameter, sequence number is out of range");
-            } else {
-                nSequence = (uint32_t)seqNr64;
             }
+
+            nSequence = uint32_t(seqNr64);
         }
 
         CTxIn in(COutPoint(txid, nOutput), CScript(), nSequence);
-
         rawTx.vin.push_back(in);
     }
 
-    std::set<CBitcoinAddress> setAddress;
+    std::set<CTxDestination> destinations;
     std::vector<std::string> addrList = sendTo.getKeys();
     for (const std::string &name_ : addrList) {
         if (name_ == "data") {
@@ -541,24 +540,22 @@ static UniValue createrawtransaction(const Config &config,
             CTxOut out(0, CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
-            CBitcoinAddress address(name_);
-            if (!address.IsValid()) {
+            CTxDestination destination = DecodeDestination(name_);
+            if (!IsValidDestination(destination)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    std::string("Invalid Bitcoin address: ") +
                                        name_);
             }
 
-            if (setAddress.count(address)) {
+            if (!destinations.insert(destination).second) {
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
                     std::string("Invalid parameter, duplicated address: ") +
                         name_);
             }
 
-            setAddress.insert(address);
-
-            CScript scriptPubKey = GetScriptForDestination(address.Get());
-            CAmount nAmount = AmountFromValue(sendTo[name_]);
+            CScript scriptPubKey = GetScriptForDestination(destination);
+            Amount nAmount = AmountFromValue(sendTo[name_]);
 
             CTxOut out(nAmount, scriptPubKey);
             rawTx.vout.push_back(out);
@@ -690,8 +687,7 @@ static UniValue decodescript(const Config &config,
     if (type.isStr() && type.get_str() != "scripthash") {
         // P2SH cannot be wrapped in a P2SH. If this script is already a P2SH,
         // don't return the address for a P2SH of the P2SH.
-        r.push_back(
-            Pair("p2sh", CBitcoinAddress(CScriptID(script)).ToString()));
+        r.push_back(Pair("p2sh", EncodeDestination(CScriptID(script))));
     }
 
     return r;
@@ -1031,7 +1027,7 @@ static UniValue signrawtransaction(const Config &config,
         }
 
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount &amount = coin.GetTxOut().nValue;
+        const Amount amount = coin.GetTxOut().nValue;
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
@@ -1116,7 +1112,7 @@ static UniValue sendrawtransaction(const Config &config,
     const uint256 &txid = tx->GetId();
 
     bool fLimitFree = false;
-    CAmount nMaxRawTxFee = maxTxFee;
+    Amount nMaxRawTxFee = maxTxFee;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
         nMaxRawTxFee = 0;
     }

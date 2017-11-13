@@ -72,6 +72,10 @@ static boost::filesystem::detail::utf8_codecvt_facet utf8;
 #endif
 
 #if defined(Q_OS_MAC)
+// These Mac includes must be done in the global namespace
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreServices/CoreServices.h>
+
 extern double NSAppKitVersionNumber;
 #if !defined(NSAppKitVersionNumber10_8)
 #define NSAppKitVersionNumber10_8 1187
@@ -115,14 +119,16 @@ static const uint8_t dummydata[] = {
 
 // Generate a dummy address with invalid CRC, starting with the network prefix.
 static std::string DummyAddress(const CChainParams &params) {
-    std::vector<uint8_t> sourcedata =
+    std::vector<unsigned char> sourcedata =
         params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
     sourcedata.insert(sourcedata.end(), dummydata,
                       dummydata + sizeof(dummydata));
     for (int i = 0; i < 256; ++i) { // Try every trailing byte
         std::string s = EncodeBase58(sourcedata.data(),
                                      sourcedata.data() + sourcedata.size());
-        if (!CBitcoinAddress(s).IsValid()) return s;
+        if (!IsValidDestinationString(s)) {
+            return s;
+        }
         sourcedata[sourcedata.size() - 1] += 1;
     }
     return "";
@@ -246,7 +252,7 @@ QString formatBitcoinURI(const SendCoinsRecipient &info) {
 }
 
 bool isDust(const QString &address, const CAmount &amount) {
-    CTxDestination dest = CBitcoinAddress(address.toStdString()).Get();
+    CTxDestination dest = DecodeDestination(address.toStdString());
     CScript script = GetScriptForDestination(dest);
     CTxOut txOut(amount, script);
     return txOut.IsDust(dustRelayFee);
@@ -739,9 +745,6 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 // based on:
 // https://github.com/Mozketo/LaunchAtLoginController/blob/master/LaunchAtLoginController.m
-
-#include <CoreFoundation/CoreFoundation.h>
-#include <CoreServices/CoreServices.h>
 
 // NB: caller must release returned ref if it's not NULL
 LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list,

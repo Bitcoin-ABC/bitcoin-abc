@@ -89,6 +89,8 @@ You can add the repository and install using the following commands:
     sudo apt-get update
     sudo apt-get install libdb4.8-dev libdb4.8++-dev
 
+For Debian, BerkeleyDB 4.8 can be installed by following the instructions in the “Berkeley DB” section below.
+
 Ubuntu and Debian have their own libdb-dev and libdb++-dev packages, but these will install
 BerkeleyDB 5.1 or later, which break binary wallet compatibility with the distributed executables which
 are based on BerkeleyDB 4.8. If you do not care about wallet compatibility,
@@ -170,21 +172,23 @@ It is recommended to use Berkeley DB 4.8. If you have to build it yourself:
 ```bash
 BITCOIN_ROOT=$(pwd)
 
-# Pick some path to install BDB to, here we create a directory within the bitcoin directory
-BDB_PREFIX="${BITCOIN_ROOT}/db4"
-mkdir -p $BDB_PREFIX
+# Pick some path to install BDB to, here we install in /usr/local/db4
+BDB_PREFIX="/usr/local/db4"
+sudo mkdir -p $BDB_PREFIX
+
+cd $BDB_PREFIX/..
 
 # Fetch the source and verify that it is not tampered with
-wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
+sudo wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
 echo '12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.30.NC.tar.gz' | sha256sum -c
 # -> db-4.8.30.NC.tar.gz: OK
-tar -xzvf db-4.8.30.NC.tar.gz
+sudo tar -xzvf db-4.8.30.NC.tar.gz
 
 # Build the library and install to our prefix
 cd db-4.8.30.NC/build_unix/
 #  Note: Do a static build so that it can be embedded into the executable, instead of having to find a .so at runtime
-../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
-make install
+sudo ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
+sudo make install
 
 # Configure Bitcoin ABC to use our own-built instance of BDB
 cd $BITCOIN_ROOT

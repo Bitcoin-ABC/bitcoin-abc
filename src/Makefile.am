@@ -24,6 +24,9 @@ BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) $(BOOST_CPPFLAG
 BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
 BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
 
+BITCOIN_SEEDER_INCLUDES = -I$(srcdir)/seeder
+BITCOIN_SEEDER_INCLUDES += $(BITCOIN_INCLUDES)
+
 LIBBITCOIN_SERVER=libbitcoin_server.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
 LIBBITCOIN_CONSENSUS=libbitcoin_consensus.a
@@ -38,6 +41,9 @@ LIBBITCOIN_ZMQ=libbitcoin_zmq.a
 endif
 if BUILD_BITCOIN_LIBS
 LIBBITCOINCONSENSUS=libbitcoinconsensus.la
+endif
+if BUILD_BITCOIN_SEEDER
+LIBBITCOIN_SEEDER=libbitcoin_seeder.a
 endif
 if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
@@ -55,6 +61,7 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_CONSENSUS) \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
+  $(LIBBITCOIN_SEEDER) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_ZMQ)
 
@@ -69,6 +76,10 @@ if BUILD_BITCOINABC
   bin_PROGRAMS += bitcoinabc
 endif
 
+if BUILD_BITCOIN_SEEDER
+  bin_PROGRAMS += bitcoin-seeder
+endif
+
 if BUILD_BITCOIN_UTILS
   bin_PROGRAMS += bitcoin-cli bitcoin-tx
 endif
@@ -81,6 +92,8 @@ BITCOIN_CORE_H = \
   base58.h \
   bloom.h \
   blockencodings.h \
+  cashaddr.h \
+  cashaddrenc.h \
   chain.h \
   chainparams.h \
   chainparamsbase.h \
@@ -130,6 +143,7 @@ BITCOIN_CORE_H = \
   rpc/server.h \
   rpc/register.h \
   scheduler.h \
+  script/scriptcache.h \
   script/sigcache.h \
   script/sign.h \
   script/standard.h \
@@ -208,6 +222,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
   rpc/server.cpp \
+  script/scriptcache.cpp \
   script/sigcache.cpp \
   script/ismine.cpp \
   timedata.cpp \
@@ -307,6 +322,8 @@ libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   amount.cpp \
   base58.cpp \
+  cashaddr.cpp \
+  cashaddrenc.cpp \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
@@ -357,6 +374,25 @@ libbitcoin_cli_a_SOURCES = \
   rpc/client.cpp \
   $(BITCOIN_CORE_H)
 
+# seeder library
+libbitcoin_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
+libbitcoin_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libbitcoin_seeder_a_SOURCES = \
+  seeder/bitcoin.cpp \
+  seeder/bitcoin.h \
+  seeder/compat.h \
+  seeder/db.cpp \
+  seeder/db.h \
+  seeder/dns.cpp \
+  seeder/dns.h \
+  seeder/netbase.cpp \
+  seeder/netbase.h \
+  seeder/protocol.cpp \
+  seeder/protocol.h \
+  seeder/strlcpy.h \
+  seeder/util.cpp \
+  seeder/util.h
+
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
@@ -380,6 +416,7 @@ bitcoinabc_LDADD = \
   $(LIBBITCOIN_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
+  $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
@@ -402,6 +439,20 @@ bitcoin_cli_LDADD = \
   $(LIBBITCOIN_CRYPTO)
 
 bitcoin_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+#
+
+# bitcoin-seeder binary #
+bitcoin_seeder_SOURCES = seeder/main.cpp
+bitcoin_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
+bitcoin_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bitcoin_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+bitcoin_seeder_LDADD = \
+  $(LIBBITCOIN_SEEDER) \
+  $(LIBBITCOIN_UTIL) \
+  $(LIBBITCOIN_CRYPTO)
+
+bitcoin_seeder_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 #
 
 # bitcoin-tx binary #

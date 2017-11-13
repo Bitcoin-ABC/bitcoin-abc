@@ -37,7 +37,7 @@ BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 static const CWallet wallet;
 static std::vector<COutput> vCoins;
 
-static void add_coin(const CAmount &nValue, int nAge = 6 * 24,
+static void add_coin(const Amount nValue, int nAge = 6 * 24,
                      bool fIsFromMe = false, int nInput = 0) {
     static int nextLockTime = 0;
     CMutableTransaction tx;
@@ -74,7 +74,7 @@ static bool equal_sets(CoinSet a, CoinSet b) {
 
 BOOST_AUTO_TEST_CASE(coin_selection_tests) {
     CoinSet setCoinsRet, setCoinsRet2;
-    CAmount nValueRet;
+    Amount nValueRet;
 
     LOCK(wallet.cs_wallet);
 
@@ -85,8 +85,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         // with an empty wallet we can't even pay one cent
         BOOST_CHECK(!wallet.SelectCoinsMinConf(1 * CENT, 1, 6, 0, vCoins,
                                                setCoinsRet, nValueRet));
-
-        add_coin(1 * CENT, 4); // add a new 1 cent coin
+        // add a new 1 cent coin
+        add_coin(1 * CENT, 4);
 
         // with a new 1 cent coin, we still can't find a mature 1 cent
         BOOST_CHECK(!wallet.SelectCoinsMinConf(1 * CENT, 1, 6, 0, vCoins,
@@ -96,8 +96,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK(wallet.SelectCoinsMinConf(1 * CENT, 1, 1, 0, vCoins,
                                               setCoinsRet, nValueRet));
         BOOST_CHECK_EQUAL(nValueRet, 1 * CENT);
-
-        add_coin(2 * CENT); // add a mature 2 cent coin
+        // add a mature 2 cent coin
+        add_coin(2 * CENT);
 
         // we can't make 3 cents of mature coins
         BOOST_CHECK(!wallet.SelectCoinsMinConf(3 * CENT, 1, 6, 0, vCoins,
@@ -189,7 +189,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(nValueRet, 20 * CENT);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
 
-        add_coin(5 * CENT); // now we have 5+6+7+8+20+30 = 75 cents total
+        // now we have 5+6+7+8+20+30 = 75 cents total
+        add_coin(5 * CENT);
 
         // now if we try making 16 cents again, the smaller coins can make 5+6+7
         // = 18 cents, better than the next biggest coin, 20
@@ -199,7 +200,8 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(nValueRet, 18 * CENT);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 3U);
 
-        add_coin(18 * CENT); // now we have 5+6+7+8+18+20+30
+        // now we have 5+6+7+8+18+20+30
+        add_coin(18 * CENT);
 
         // and now if we try making 16 cents again, the smaller coins can make
         // 5+6+7 = 18 cents, the same as the next biggest coin, 18
@@ -337,7 +339,7 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
         // test with many inputs
-        for (CAmount amt = 1500; amt < COIN; amt *= 10) {
+        for (Amount amt = 1500; amt < COIN; amt = 10 * amt) {
             empty_wallet();
             // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
             // bytes per input)
@@ -348,8 +350,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
                                                   setCoinsRet, nValueRet));
             if (amt - 2000 < MIN_CHANGE) {
                 // needs more than one input:
-                uint16_t returnSize = std::ceil((2000.0 + MIN_CHANGE) / amt);
-                CAmount returnValue = amt * returnSize;
+                uint16_t returnSize =
+                    std::ceil((2000.0 + MIN_CHANGE) / amt.GetSatoshis());
+                Amount returnValue = returnSize * amt;
                 BOOST_CHECK_EQUAL(nValueRet, returnValue);
                 BOOST_CHECK_EQUAL(setCoinsRet.size(), returnSize);
             } else {
@@ -415,7 +418,7 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
 
 BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
     CoinSet setCoinsRet;
-    CAmount nValueRet;
+    Amount nValueRet;
 
     LOCK(wallet.cs_wallet);
 
@@ -423,13 +426,13 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
 
     // Test vValue sort order
     for (int i = 0; i < 1000; i++) {
-        add_coin(1000 * COIN);
+        add_coin(1000 * COIN.GetSatoshis());
     }
-    add_coin(3 * COIN);
+    add_coin(3 * COIN.GetSatoshis());
 
     BOOST_CHECK(wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
                                           setCoinsRet, nValueRet));
-    BOOST_CHECK_EQUAL(nValueRet, 1003 * COIN);
+    BOOST_CHECK_EQUAL(nValueRet, 1003 * COIN.GetSatoshis());
     BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
     empty_wallet();
@@ -451,7 +454,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
         BOOST_CHECK_EQUAL(oldTip, wallet.ScanForWalletTransactions(oldTip));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(),
+                          100 * COIN.GetSatoshis());
     }
 
     // Prune the older block file.
@@ -465,7 +469,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
         BOOST_CHECK_EQUAL(newTip, wallet.ScanForWalletTransactions(oldTip));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN.GetSatoshis());
     }
 
     // Verify importmulti RPC returns failure for a key whose creation time is

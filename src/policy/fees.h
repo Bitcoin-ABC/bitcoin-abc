@@ -198,10 +198,10 @@ static const double MIN_SUCCESS_PCT = .95;
 static const double SUFFICIENT_FEETXS = 1;
 
 // Minimum and Maximum values for tracking feerates
-static constexpr double MIN_FEERATE = 10;
-static const double MAX_FEERATE = 1e7;
-static const double INF_FEERATE = MAX_MONEY;
-static const double INF_PRIORITY = 1e9 * MAX_MONEY;
+static constexpr Amount MIN_FEERATE(10);
+static const Amount MAX_FEERATE(int64_t(1e7));
+static const Amount INF_FEERATE(MAX_MONEY);
+static const Amount INF_PRIORITY(int64_t(1e9) * MAX_MONEY);
 
 // We have to lump transactions into buckets based on feerate, but we want to be
 // able to give accurate estimates over a large range of potential feerates.
@@ -297,10 +297,10 @@ public:
     FeeFilterRounder(const CFeeRate &minIncrementalFee);
 
     /** Quantize a minimum fee for privacy purpose before broadcast **/
-    CAmount round(CAmount currentMinFee);
+    Amount round(const Amount currentMinFee);
 
 private:
-    std::set<double> feeset;
+    std::set<Amount> feeset;
     FastRandomContext insecure_rand;
 };
 #endif /*BITCOIN_POLICYESTIMATOR_H */

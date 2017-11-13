@@ -26,8 +26,8 @@ static void microTask(CScheduler &s, boost::mutex &mutex, int &counter,
         boost::chrono::system_clock::time_point::min();
     if (rescheduleTime != noTime) {
         CScheduler::Function f =
-            boost::bind(&microTask, boost::ref(s), boost::ref(mutex),
-                        boost::ref(counter), -delta + 1, noTime);
+            boost::bind(&microTask, std::ref(s), std::ref(mutex),
+                        std::ref(counter), -delta + 1, noTime);
         s.schedule(f, rescheduleTime);
     }
 }
@@ -77,9 +77,9 @@ BOOST_AUTO_TEST_CASE(manythreads) {
             now + boost::chrono::microseconds(500 + randomMsec(rng));
         int whichCounter = zeroToNine(rng);
         CScheduler::Function f = boost::bind(
-            &microTask, boost::ref(microTasks),
-            boost::ref(counterMutex[whichCounter]),
-            boost::ref(counter[whichCounter]), randomDelta(rng), tReschedule);
+            &microTask, std::ref(microTasks),
+            std::ref(counterMutex[whichCounter]),
+            std::ref(counter[whichCounter]), randomDelta(rng), tReschedule);
         microTasks.schedule(f, t);
     }
     nTasks = microTasks.getQueueInfo(first, last);
@@ -108,9 +108,9 @@ BOOST_AUTO_TEST_CASE(manythreads) {
             now + boost::chrono::microseconds(500 + randomMsec(rng));
         int whichCounter = zeroToNine(rng);
         CScheduler::Function f = boost::bind(
-            &microTask, boost::ref(microTasks),
-            boost::ref(counterMutex[whichCounter]),
-            boost::ref(counter[whichCounter]), randomDelta(rng), tReschedule);
+            &microTask, std::ref(microTasks),
+            std::ref(counterMutex[whichCounter]),
+            std::ref(counter[whichCounter]), randomDelta(rng), tReschedule);
         microTasks.schedule(f, t);
     }
 

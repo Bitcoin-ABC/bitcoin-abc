@@ -154,7 +154,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-void ImportAddress(const CBitcoinAddress &address, const std::string &strLabel);
+void ImportAddress(const CTxDestination &dest, const std::string &strLabel);
 void ImportScript(const CScript &script, const std::string &strLabel,
                   bool isRedeemScript) {
     if (!isRedeemScript && ::IsMine(*pwalletMain, script) == ISMINE_SPENDABLE)
@@ -173,7 +173,7 @@ void ImportScript(const CScript &script, const std::string &strLabel,
             !pwalletMain->AddCScript(script))
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Error adding p2sh redeemScript to wallet");
-        ImportAddress(CBitcoinAddress(CScriptID(script)), strLabel);
+        ImportAddress(CScriptID(script), strLabel);
     } else {
         CTxDestination destination;
         if (ExtractDestination(script, destination)) {
@@ -182,13 +182,12 @@ void ImportScript(const CScript &script, const std::string &strLabel,
     }
 }
 
-void ImportAddress(const CBitcoinAddress &address,
-                   const std::string &strLabel) {
-    CScript script = GetScriptForDestination(address.Get());
+void ImportAddress(const CTxDestination &dest, const std::string &strLabel) {
+    CScript script = GetScriptForDestination(dest);
     ImportScript(script, strLabel, false);
     // add to address book or update label
-    if (address.IsValid())
-        pwalletMain->SetAddressBook(address.Get(), strLabel, "receive");
+    if (IsValidDestination(dest))
+        pwalletMain->SetAddressBook(dest, strLabel, "receive");
 }
 
 UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
@@ -241,13 +240,14 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    CBitcoinAddress address(request.params[0].get_str());
-    if (address.IsValid()) {
-        if (fP2SH)
+    CTxDestination dest = DecodeDestination(request.params[0].get_str());
+    if (IsValidDestination(dest)) {
+        if (fP2SH) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Cannot use the p2sh flag with an address - use "
                                "a script instead");
-        ImportAddress(address, strLabel);
+        }
+        ImportAddress(dest, strLabel);
     } else if (IsHex(request.params[0].get_str())) {
         std::vector<uint8_t> data(ParseHex(request.params[0].get_str()));
         ImportScript(CScript(data.begin(), data.end()), strLabel, fP2SH);
@@ -430,7 +430,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
-    ImportAddress(CBitcoinAddress(pubKey.GetID()), strLabel);
+    ImportAddress(pubKey.GetID(), strLabel);
     ImportScript(GetScriptForRawPubKey(pubKey), strLabel, false);
 
     if (fRescan) {
@@ -501,7 +501,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         CKeyID keyid = pubkey.GetID();
         if (pwalletMain->HaveKey(keyid)) {
             LogPrintf("Skipping import of %s (key already present)\n",
-                      CBitcoinAddress(keyid).ToString());
+                      EncodeDestination(keyid));
             continue;
         }
         int64_t nTime = DecodeDumpTime(vstr[1]);
@@ -516,7 +516,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 fLabel = true;
             }
         }
-        LogPrintf("Importing %s...\n", CBitcoinAddress(keyid).ToString());
+        LogPrintf("Importing %s...\n", EncodeDestination(keyid));
         if (!pwalletMain->AddKeyPubKey(key, pubkey)) {
             fGood = false;
             continue;
@@ -570,17 +570,20 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked();
 
     std::string strAddress = request.params[0].get_str();
-    CBitcoinAddress address;
-    if (!address.SetString(strAddress))
+    CTxDestination dest = DecodeDestination(strAddress);
+    if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
-    CKeyID keyID;
-    if (!address.GetKeyID(keyID))
+    }
+    const CKeyID *keyID = boost::get<CKeyID>(&dest);
+    if (!keyID) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
+    }
     CKey vchSecret;
-    if (!pwalletMain->GetKey(keyID, vchSecret))
+    if (!pwalletMain->GetKey(*keyID, vchSecret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " +
                                                  strAddress + " is not known");
+    }
     return CBitcoinSecret(vchSecret).ToString();
 }
 
@@ -653,7 +656,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
          it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
-        std::string strAddr = CBitcoinAddress(keyid).ToString();
+        std::string strAddr = EncodeDestination(keyid);
         CKey key;
         if (pwalletMain->GetKey(keyid, key)) {
             file << strprintf("%s %s ", CBitcoinSecret(key).ToString(),
@@ -721,15 +724,15 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
 
         // Parse the output.
         CScript script;
-        CBitcoinAddress address;
+        CTxDestination dest;
 
         if (!isScript) {
-            address = CBitcoinAddress(output);
-            if (!address.IsValid()) {
+            dest = DecodeDestination(output);
+            if (!IsValidDestination(dest)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Invalid address");
             }
-            script = GetScriptForDestination(address.Get());
+            script = GetScriptForDestination(dest);
         } else {
             if (!IsHex(output)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -801,10 +804,8 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                                    "Error adding p2sh redeemScript to wallet");
             }
 
-            CBitcoinAddress redeemAddress =
-                CBitcoinAddress(CScriptID(redeemScript));
-            CScript redeemDestination =
-                GetScriptForDestination(redeemAddress.Get());
+            CTxDestination redeem_dest = CScriptID(redeemScript);
+            CScript redeemDestination = GetScriptForDestination(redeem_dest);
 
             if (::IsMine(*pwalletMain, redeemDestination) == ISMINE_SPENDABLE) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
@@ -821,8 +822,8 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
             }
 
             // add to address book or update label
-            if (address.IsValid()) {
-                pwalletMain->SetAddressBook(address.Get(), label, "receive");
+            if (IsValidDestination(dest)) {
+                pwalletMain->SetAddressBook(dest, label, "receive");
             }
 
             // Import private keys.
@@ -888,30 +889,27 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                                        "Pubkey is not a valid public key");
                 }
 
-                CBitcoinAddress pubKeyAddress = CBitcoinAddress(pubKey.GetID());
+                CTxDestination pubkey_dest = pubKey.GetID();
 
                 // Consistency check.
-                if (!isScript && !(pubKeyAddress.Get() == address.Get())) {
+                if (!isScript && !(pubkey_dest == dest)) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Consistency check failed");
                 }
 
                 // Consistency check.
                 if (isScript) {
-                    CBitcoinAddress scriptAddress;
                     CTxDestination destination;
 
                     if (ExtractDestination(script, destination)) {
-                        scriptAddress = CBitcoinAddress(destination);
-                        if (!(scriptAddress.Get() == pubKeyAddress.Get())) {
+                        if (!(destination == pubkey_dest)) {
                             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                                "Consistency check failed");
                         }
                     }
                 }
 
-                CScript pubKeyScript =
-                    GetScriptForDestination(pubKeyAddress.Get());
+                CScript pubKeyScript = GetScriptForDestination(pubkey_dest);
 
                 if (::IsMine(*pwalletMain, pubKeyScript) == ISMINE_SPENDABLE) {
                     throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already "
@@ -929,9 +927,8 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                 }
 
                 // add to address book or update label
-                if (pubKeyAddress.IsValid()) {
-                    pwalletMain->SetAddressBook(pubKeyAddress.Get(), label,
-                                                "receive");
+                if (IsValidDestination(pubkey_dest)) {
+                    pwalletMain->SetAddressBook(pubkey_dest, label, "receive");
                 }
 
                 // TODO Is this necessary?
@@ -978,22 +975,20 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
                 CPubKey pubKey = key.GetPubKey();
                 assert(key.VerifyPubKey(pubKey));
 
-                CBitcoinAddress pubKeyAddress = CBitcoinAddress(pubKey.GetID());
+                CTxDestination pubkey_dest = pubKey.GetID();
 
                 // Consistency check.
-                if (!isScript && !(pubKeyAddress.Get() == address.Get())) {
+                if (!isScript && !(pubkey_dest == dest)) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Consistency check failed");
                 }
 
                 // Consistency check.
                 if (isScript) {
-                    CBitcoinAddress scriptAddress;
                     CTxDestination destination;
 
                     if (ExtractDestination(script, destination)) {
-                        scriptAddress = CBitcoinAddress(destination);
-                        if (!(scriptAddress.Get() == pubKeyAddress.Get())) {
+                        if (!(destination == pubkey_dest)) {
                             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                                "Consistency check failed");
                         }
@@ -1039,9 +1034,8 @@ UniValue ProcessImport(const UniValue &data, const int64_t timestamp) {
 
                 if (scriptPubKey.getType() == UniValue::VOBJ) {
                     // add to address book or update label
-                    if (address.IsValid()) {
-                        pwalletMain->SetAddressBook(address.Get(), label,
-                                                    "receive");
+                    if (IsValidDestination(dest)) {
+                        pwalletMain->SetAddressBook(dest, label, "receive");
                     }
                 }
 

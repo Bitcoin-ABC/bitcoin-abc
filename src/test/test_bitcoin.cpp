@@ -17,6 +17,7 @@
 #include "random.h"
 #include "rpc/register.h"
 #include "rpc/server.h"
+#include "script/scriptcache.h"
 #include "script/sigcache.h"
 #include "txdb.h"
 #include "txmempool.h"
@@ -52,6 +53,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
     SetupEnvironment();
     SetupNetworking();
     InitSignatureCache();
+    InitScriptExecutionCache();
     // Don't want to write to debug.log file.
     fPrintToDebugLog = false;
     fCheckBlockIndex = true;
@@ -172,12 +174,12 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn,
                                                CTxMemPool *pool) {
     // Hack to assume either it's completely dependent on other mempool txs or
     // not at all.
-    CAmount inChainValue =
-        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : 0;
+    Amount inChainValue =
+        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : Amount(0);
 
     return CTxMemPoolEntry(MakeTransactionRef(txn), nFee, nTime, dPriority,
-                           nHeight, inChainValue, spendsCoinbase, sigOpCost,
-                           lp);
+                           nHeight, inChainValue.GetSatoshis(), spendsCoinbase,
+                           sigOpCost, lp);
 }
 
 void Shutdown(void *parg) {

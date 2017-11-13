@@ -1,8 +1,8 @@
 ---
-name: "bitcoin-abc-0.15-win"
+name: "bitcoin-abc-0.16-win"
 enable_cache: true
 suites:
-- "trusty"
+- "xenial"
 architectures:
 - "amd64"
 packages:
@@ -21,14 +21,23 @@ packages:
 - "zip"
 - "ca-certificates"
 - "python"
+alternatives:
+- "package" : "i686-w64-mingw32-gcc"
+  "path" : "/usr/bin/i686-w64-mingw32-gcc-posix"
+- "package" : "i686-w64-mingw32-g++"
+  "path" : "/usr/bin/i686-w64-mingw32-g++-posix"
+- "package" : "x86_64-w64-mingw32-gcc"
+  "path" : "/usr/bin/x86_64-w64-mingw32-gcc-posix"
+- "package" : "x86_64-w64-mingw32-g++"
+  "path" : "/usr/bin/x86_64-w64-mingw32-g++-posix"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
 files: []
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
-  CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests"
+  HOSTS="x86_64-w64-mingw32 i686-w64-mingw32"
+  CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --without-seeder"
   FAKETIME_HOST_PROGS="g++ ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
   HOST_CFLAGS="-O2 -g"

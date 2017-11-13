@@ -7,6 +7,7 @@
 #define BITCOIN_CONSENSUS_PARAMS_H
 
 #include "uint256.h"
+
 #include <map>
 #include <string>
 
@@ -47,6 +48,8 @@ struct Params {
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
     int BIP66Height;
+    /** Block height at which UAHF kicks in */
+    int uahfHeight;
     /** Block height at which OP_RETURN replay protection stops */
     int antiReplayOpReturnSunsetHeight;
     /** Committed OP_RETURN value for replay protection */
@@ -72,8 +75,8 @@ struct Params {
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
 
-    /** The time at which UAHF starts. */
-    int64_t uahfStartTime;
+    /** Activation time at which the cash HF kicks in. */
+    int64_t cashHardForkActivationTime;
 };
 } // namespace Consensus
 

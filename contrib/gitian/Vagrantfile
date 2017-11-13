@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # This needs to be the same as the current Gitian linux build target for lxc
+  # or someone needs to fix Gitian to correctly handle building on a different
+  # distribution than the lxc container has.
+  config.vm.box = "abc-xenial"
+
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.synced_folder '../..', '/vagrant'
+
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = true
+  
+    # Customize the amount of memory on the VM:
+    vb.memory = "8048"
+    vb.cpus = 4
+  end
+  
+  # Provision with the associated shell script
+  config.vm.provision "shell", path: "provisioner.sh"
+end

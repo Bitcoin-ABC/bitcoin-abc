@@ -27,7 +27,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                  const CScript &genesisOutputScript,
                                  uint32_t nTime, uint32_t nNonce,
                                  uint32_t nBits, int32_t nVersion,
-                                 const CAmount &genesisReward) {
+                                 const Amount genesisReward) {
     CMutableTransaction txNew;
     txNew.nVersion = 1;
     txNew.vin.resize(1);
@@ -66,7 +66,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp,
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce,
                                  uint32_t nBits, int32_t nVersion,
-                                 const CAmount &genesisReward) {
+                                 const Amount genesisReward) {
     const char *pszTimestamp =
         "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript =
@@ -131,17 +131,20 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x000000000000000000000000000000000000000000756697b2e44d3"
-                     "745086353");
+            uint256S("0x000000000000000000000000000000000000000000796b6d5908f8d"
+                     "b26c3cf44");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x000000000000000002d8cae5936d502defc09c5ac317201a61955dd"
-                     "c8cdd950c");
+            uint256S("0x00000000000000000553279251628c470a5b51de3bbbf336b208530"
+                     "25ffbf270");
 
         // Aug, 1 hard fork
-        consensus.uahfStartTime = 1501590000;
+        consensus.uahfHeight = 478559;
+
+        // Nov, 13 hard fork
+        consensus.cashHardForkActivationTime = 1510600000;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -195,6 +198,7 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+        cashaddrPrefix = "bitcoincash";
 
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
@@ -234,7 +238,10 @@ public:
                                   "3af35a100370c64632a983")},
                 // UAHF fork block
                 {478559, uint256S("0x000000000000000000651ef99cb9fcbe0dadde1d42"
-                                  "4bd9f15ff20136191a5eec")}}};
+                                  "4bd9f15ff20136191a5eec")},
+                // Sept 30, 2017
+                {490000, uint256S("0x0000000000000000018ade0e75b4c21db72f05db1e"
+                                  "4fffb870c26d6c765dc6d1")}}};
 
         // Data as of block
         // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
@@ -297,17 +304,20 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
-            uint256S("0x0000000000000000000000000000000000000000000000287612691"
-                     "ad473cdd2");
+            uint256S("0x0000000000000000000000000000000000000000000000288002666"
+                     "863267524");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid =
-            uint256S("0x0000000000000407b4c5a5d8204f05d584f1463004c8edea89376b1"
-                     "c52f7e1dd");
+            uint256S("0x00000000ba37a638c096da8e1a843df68f4cc9754124f11034a0b61"
+                     "3bbf4ca3e");
 
         // Aug, 1 hard fork
-        consensus.uahfStartTime = 1501590000;
+        consensus.uahfHeight = 1155876;
+
+        // Nov, 13 hard fork
+        consensus.cashHardForkActivationTime = 1510600000;
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
@@ -339,10 +349,6 @@ public:
         // bitcoinforks seeders
         vSeeds.push_back(CDNSSeedData(
             "bitcoinforks.org", "testnet-seed-abc.bitcoinforks.org", true));
-        // BU seeder
-        vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
-                                      "testnet-seed.bitcoinunlimited.info",
-                                      true));
         // Bitprim
         vSeeds.push_back(
             CDNSSeedData("bitprim.org", "testnet-seed.bitprim.org", true));
@@ -358,6 +364,7 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        cashaddrPrefix = "xbctest";
         vFixedSeeds = std::vector<SeedSpec6>(
             pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -430,7 +437,10 @@ public:
         consensus.defaultAssumeValid = uint256S("0x00");
 
         // Hard fork is always enabled on regtest.
-        consensus.uahfStartTime = 0;
+        consensus.uahfHeight = 0;
+
+        // Nov, 13 hard fork is always on on regtest.
+        consensus.cashHardForkActivationTime = 0;
 
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;
@@ -474,6 +484,7 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        cashaddrPrefix = "xbcreg";
     }
 
     void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
@@ -493,15 +504,20 @@ const CChainParams &Params() {
 }
 
 CChainParams &Params(const std::string &chain) {
-    if (chain == CBaseChainParams::MAIN)
+    if (chain == CBaseChainParams::MAIN) {
         return mainParams;
-    else if (chain == CBaseChainParams::TESTNET)
+    }
+
+    if (chain == CBaseChainParams::TESTNET) {
         return testNetParams;
-    else if (chain == CBaseChainParams::REGTEST)
+    }
+
+    if (chain == CBaseChainParams::REGTEST) {
         return regTestParams;
-    else
-        throw std::runtime_error(
-            strprintf("%s: Unknown chain %s.", __func__, chain));
+    }
+
+    throw std::runtime_error(
+        strprintf("%s: Unknown chain %s.", __func__, chain));
 }
 
 void SelectParams(const std::string &network) {

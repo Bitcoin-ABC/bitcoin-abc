@@ -194,8 +194,8 @@ static void RegisterLoad(const std::string &strInput) {
     RegisterSetJson(key, valStr);
 }
 
-static CAmount ExtractAndValidateValue(const std::string &strValue) {
-    CAmount value;
+static Amount ExtractAndValidateValue(const std::string &strValue) {
+    Amount value;
     if (!ParseMoney(strValue, value)) {
         throw std::runtime_error("invalid TX output value");
     }
@@ -273,17 +273,15 @@ static void MutateTxAddOutAddr(CMutableTransaction &tx,
     }
 
     // Extract and validate VALUE
-    CAmount value = ExtractAndValidateValue(vStrInputParts[0]);
+    Amount value = ExtractAndValidateValue(vStrInputParts[0]);
 
     // extract and validate ADDRESS
     std::string strAddr = vStrInputParts[1];
-    CBitcoinAddress addr(strAddr);
-    if (!addr.IsValid()) {
+    CTxDestination destination = DecodeDestination(strAddr);
+    if (!IsValidDestination(destination)) {
         throw std::runtime_error("invalid TX output address");
     }
-
-    // build standard output script via GetScriptForDestination()
-    CScript scriptPubKey = GetScriptForDestination(addr.Get());
+    CScript scriptPubKey = GetScriptForDestination(destination);
 
     // construct TxOut, append to transaction output list
     CTxOut txout(value, scriptPubKey);
@@ -301,7 +299,7 @@ static void MutateTxAddOutPubKey(CMutableTransaction &tx,
     }
 
     // Extract and validate VALUE
-    CAmount value = ExtractAndValidateValue(vStrInputParts[0]);
+    Amount value = ExtractAndValidateValue(vStrInputParts[0]);
 
     // Extract and validate PUBKEY
     CPubKey pubkey(ParseHex(vStrInputParts[1]));
@@ -310,7 +308,6 @@ static void MutateTxAddOutPubKey(CMutableTransaction &tx,
     }
 
     CScript scriptPubKey = GetScriptForRawPubKey(pubkey);
-    CBitcoinAddress addr(scriptPubKey);
 
     // Extract and validate FLAGS
     bool bScriptHash = false;
@@ -320,10 +317,9 @@ static void MutateTxAddOutPubKey(CMutableTransaction &tx,
     }
 
     if (bScriptHash) {
-        // Get the address for the redeem script, then call
-        // GetScriptForDestination() to construct a P2SH scriptPubKey.
-        CBitcoinAddress redeemScriptAddr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(redeemScriptAddr.Get());
+        // Get the ID for the script, and then construct a P2SH destination for
+        // it.
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
@@ -343,7 +339,7 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
     }
 
     // Extract and validate VALUE
-    CAmount value = ExtractAndValidateValue(vStrInputParts[0]);
+    Amount value = ExtractAndValidateValue(vStrInputParts[0]);
 
     // Extract REQUIRED
     uint32_t required = stoul(vStrInputParts[1]);
@@ -387,10 +383,9 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
     CScript scriptPubKey = GetScriptForMultisig(required, pubkeys);
 
     if (bScriptHash) {
-        // Get the address for the redeem script, then call
-        // GetScriptForDestination() to construct a P2SH scriptPubKey.
-        CBitcoinAddress addr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(addr.Get());
+        // Get the ID for the script, and then construct a P2SH destination for
+        // it.
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
@@ -400,7 +395,7 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
 
 static void MutateTxAddOutData(CMutableTransaction &tx,
                                const std::string &strInput) {
-    CAmount value = 0;
+    Amount value = 0;
 
     // separate [VALUE:]DATA in string
     size_t pos = strInput.find(':');
@@ -436,7 +431,7 @@ static void MutateTxAddOutScript(CMutableTransaction &tx,
         throw std::runtime_error("TX output missing separator");
 
     // Extract and validate VALUE
-    CAmount value = ExtractAndValidateValue(vStrInputParts[0]);
+    Amount value = ExtractAndValidateValue(vStrInputParts[0]);
 
     // extract and validate script
     std::string strScript = vStrInputParts[1];
@@ -450,8 +445,7 @@ static void MutateTxAddOutScript(CMutableTransaction &tx,
     }
 
     if (bScriptHash) {
-        CBitcoinAddress addr(scriptPubKey);
-        scriptPubKey = GetScriptForDestination(addr.Get());
+        scriptPubKey = GetScriptForDestination(CScriptID(scriptPubKey));
     }
 
     // construct TxOut, append to transaction output list
@@ -538,15 +532,16 @@ std::vector<uint8_t> ParseHexUO(std::map<std::string, UniValue> &o,
     return ParseHexUV(o[strKey], strKey);
 }
 
-static CAmount AmountFromValue(const UniValue &value) {
+static Amount AmountFromValue(const UniValue &value) {
     if (!value.isNum() && !value.isStr()) {
         throw std::runtime_error("Amount is not a number or string");
     }
 
-    CAmount amount;
-    if (!ParseFixedPoint(value.getValStr(), 8, &amount)) {
+    int64_t n;
+    if (!ParseFixedPoint(value.getValStr(), 8, &n)) {
         throw std::runtime_error("Invalid amount");
     }
+    Amount amount = Amount(n);
 
     if (!MoneyRange(amount)) {
         throw std::runtime_error("Amount out of range");
@@ -674,29 +669,31 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         }
 
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const CAmount &amount = coin.GetTxOut().nValue;
+        const Amount amount = coin.GetTxOut().nValue;
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.vout.size())) {
-            ProduceSignature(MutableTransactionSignatureCreator(
-                                 &keystore, &mergedTx, i, amount, nHashType),
-                             prevPubKey, sigdata);
+            ProduceSignature(
+                MutableTransactionSignatureCreator(
+                    &keystore, &mergedTx, i, amount.GetSatoshis(), nHashType),
+                prevPubKey, sigdata);
         }
 
         // ... and merge in other signatures:
         for (const CTransaction &txv : txVariants) {
-            sigdata = CombineSignatures(
-                prevPubKey,
-                MutableTransactionSignatureChecker(&mergedTx, i, amount),
-                sigdata, DataFromTransaction(txv, i));
+            sigdata = CombineSignatures(prevPubKey,
+                                        MutableTransactionSignatureChecker(
+                                            &mergedTx, i, amount.GetSatoshis()),
+                                        sigdata, DataFromTransaction(txv, i));
         }
 
         UpdateTransaction(mergedTx, i, sigdata);
 
-        if (!VerifyScript(
-                txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
-                MutableTransactionSignatureChecker(&mergedTx, i, amount))) {
+        if (!VerifyScript(txin.scriptSig, prevPubKey,
+                          STANDARD_SCRIPT_VERIFY_FLAGS,
+                          MutableTransactionSignatureChecker(
+                              &mergedTx, i, amount.GetSatoshis()))) {
             fComplete = false;
         }
     }

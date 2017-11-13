@@ -18,14 +18,9 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
     def __init__(self):
         super().__init__()
         self.setup_clean_chain = True
-        self.is_network_split = False
-        self.num_nodes = 2
+        self.num_nodes = 1
+        self.extra_args = [["-blockprioritypercentage=0", "-limitfreerelay=2"]]
 
-    def setup_nodes(self):
-        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, extra_args=[
-            ["-blockprioritypercentage=0", "-limitfreerelay=2"],
-            ["-limitfreerelay=2"]
-        ])
 
     def create_small_transactions(self, node, utxos, num, fee):
         addr = node.getnewaddress()
@@ -84,22 +79,27 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
             "Assert that all high prio transactions haven't been mined")
         assert_equal(self.nodes[0].getmempoolinfo()['bytes'], mempool_size_pre)
 
+        # restart with default blockprioritypercentage
+        stop_nodes(self.nodes)
+        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
+                [["-limitfreerelay=2"]])
+
         # second test step: default reserved prio space in block (100K).
         # the mempool size is about 25K this means that all txns will be
         # included in the soon to be mined block
-        txids = self.generate_high_priotransactions(self.nodes[1], 150)
-        mempool_size_pre = self.nodes[1].getmempoolinfo()['bytes']
-        mempool = self.nodes[1].getrawmempool(True)
+        txids = self.generate_high_priotransactions(self.nodes[0], 150)
+        mempool_size_pre = self.nodes[0].getmempoolinfo()['bytes']
+        mempool = self.nodes[0].getrawmempool(True)
         # assert that all the txns are in the mempool and that all of them are hiprio
         for i in txids:
             assert(i in mempool)
             assert(mempool[i]['currentpriority'] > hiprio_threshold)
 
         # mine one block
-        self.nodes[1].generate(1)
+        self.nodes[0].generate(1)
 
         self.log.info("Assert that all high prio transactions have been mined")
-        assert(self.nodes[1].getmempoolinfo()['bytes'] == 0)
+        assert(self.nodes[0].getmempoolinfo()['bytes'] == 0)
 
 
 if __name__ == '__main__':

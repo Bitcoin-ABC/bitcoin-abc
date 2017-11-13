@@ -208,6 +208,31 @@ int CBase58Data::CompareTo(const CBase58Data &b58) const {
 }
 
 namespace {
+/**
+ * base58-encoded Bitcoin addresses.
+ * Public-key-hash-addresses have version 0 (or 111 testnet).
+ * The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the
+ * serialized public key.
+ * Script-hash-addresses have version 5 (or 196 testnet).
+ * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the
+ * serialized redemption script.
+ */
+class CBitcoinAddress : public CBase58Data {
+public:
+    bool Set(const CKeyID &id);
+    bool Set(const CScriptID &id);
+    bool Set(const CTxDestination &dest);
+    bool IsValid() const;
+    bool IsValid(const CChainParams &params) const;
+
+    CBitcoinAddress() {}
+    CBitcoinAddress(const CTxDestination &dest) { Set(dest); }
+    CBitcoinAddress(const std::string &strAddress) { SetString(strAddress); }
+    CBitcoinAddress(const char *pszAddress) { SetString(pszAddress); }
+
+    CTxDestination Get() const;
+};
+
 class CBitcoinAddressVisitor : public boost::static_visitor<bool> {
 private:
     CBitcoinAddress *addr;
@@ -262,22 +287,6 @@ CTxDestination CBitcoinAddress::Get() const {
     }
 }
 
-bool CBitcoinAddress::GetKeyID(CKeyID &keyID) const {
-    if (!IsValid() ||
-        vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS)) {
-        return false;
-    }
-    uint160 id;
-    memcpy(&id, &vchData[0], 20);
-    keyID = CKeyID(id);
-    return true;
-}
-
-bool CBitcoinAddress::IsScript() const {
-    return IsValid() &&
-           vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
-}
-
 void CBitcoinSecret::SetKey(const CKey &vchSecret) {
     assert(vchSecret.IsValid());
     SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(),
@@ -307,4 +316,22 @@ bool CBitcoinSecret::SetString(const char *pszSecret) {
 
 bool CBitcoinSecret::SetString(const std::string &strSecret) {
     return SetString(strSecret.c_str());
+}
+
+std::string EncodeDestination(const CTxDestination &dest) {
+    CBitcoinAddress addr(dest);
+    return addr.IsValid() ? addr.ToString() : "";
+}
+
+CTxDestination DecodeDestination(const std::string &str) {
+    return CBitcoinAddress(str).Get();
+}
+
+bool IsValidDestinationString(const std::string &str,
+                              const CChainParams &params) {
+    return CBitcoinAddress(str).IsValid(params);
+}
+
+bool IsValidDestinationString(const std::string &str) {
+    return CBitcoinAddress(str).IsValid();
 }

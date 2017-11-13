@@ -68,11 +68,12 @@ public:
  *  * CNoDestination: no destination set
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
- *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
+ *  A CTxDestination is the internal data type encoded in a bitcoin address
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 
 const char *GetTxnOutputType(txnouttype t);
+bool IsValidDestination(const CTxDestination &dest);
 
 bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
             std::vector<std::vector<uint8_t>> &vSolutionsRet);

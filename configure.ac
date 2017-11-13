@@ -1,8 +1,8 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 0)
-define(_CLIENT_VERSION_MINOR, 15)
-define(_CLIENT_VERSION_REVISION, 0)
+define(_CLIENT_VERSION_MINOR, 16)
+define(_CLIENT_VERSION_REVISION, 1)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2017)
@@ -18,6 +18,7 @@ BITCOIN_DAEMON_NAME=bitcoinabc
 BITCOIN_GUI_NAME=bitcoin-qt
 BITCOIN_CLI_NAME=bitcoin-cli
 BITCOIN_TX_NAME=bitcoin-tx
+BITCOIN_SEEDER_NAME=bitcoin-seeder
 
 AC_CANONICAL_HOST
 
@@ -292,6 +293,12 @@ if test "x$CXXFLAGS_overridden" = "xno"; then
   AX_CHECK_COMPILE_FLAG([-Wself-assign],[CXXFLAGS="$CXXFLAGS -Wno-self-assign"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wunused-local-typedef],[CXXFLAGS="$CXXFLAGS -Wno-unused-local-typedef"],,[[$CXXFLAG_WERROR]])
   AX_CHECK_COMPILE_FLAG([-Wdeprecated-register],[CXXFLAGS="$CXXFLAGS -Wno-deprecated-register"],,[[$CXXFLAG_WERROR]])
+
+  # Check for optional instruction set support. Enabling these does _not_ imply that all code will
+  # be compiled with them, rather that specific objects/libs may use them after checking for runtime
+  # compatibility.
+  AX_CHECK_COMPILE_FLAG([-msse4.2],[[enable_sse42=yes; SSE42_CXXFLAGS="-msse4.2"]],,[[$CXXFLAG_WERROR]])
+
 fi
 CPPFLAGS="$CPPFLAGS -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS"
 
@@ -312,6 +319,12 @@ AC_ARG_WITH([daemon],
   [build bitcoinabc daemon (default=yes)])],
   [build_bitcoinabc=$withval],
   [build_bitcoinabc=yes])
+
+AC_ARG_WITH([seeder],
+  [AS_HELP_STRING([--with-seeder],
+  [build seeder (default=yes)])],
+  [build_bitcoin_seeder=$withval],
+  [build_bitcoin_seeder=yes])
 
 use_pkgconfig=yes
 case $host in
@@ -700,7 +713,7 @@ BITCOIN_QT_INIT
 dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
 BITCOIN_QT_CONFIGURE([$use_pkgconfig], [qt5])
 
-if test x$build_bitcoin_utils$build_bitcoinabc$bitcoin_enable_qt$use_tests$use_bench = xnonononono; then
+if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$build_bitcoin_seeder$use_tests$use_bench = xnononononono; then
     use_boost=no
 else
     use_boost=yes
@@ -1006,6 +1019,10 @@ AC_MSG_CHECKING([whether to build bitcoinabc])
 AM_CONDITIONAL([BUILD_BITCOINABC], [test x$build_bitcoinabc = xyes])
 AC_MSG_RESULT($build_bitcoinabc)
 
+AC_MSG_CHECKING([whether to build bitcoin-seeder])
+AM_CONDITIONAL([BUILD_BITCOIN_SEEDER], [test x$build_bitcoin_seeder = xyes])
+AC_MSG_RESULT($build_bitcoin_seeder)
+
 AC_MSG_CHECKING([whether to build utils (bitcoin-cli bitcoin-tx)])
 AM_CONDITIONAL([BUILD_BITCOIN_UTILS], [test x$build_bitcoin_utils = xyes])
 AC_MSG_RESULT($build_bitcoin_utils)
@@ -1134,8 +1151,8 @@ else
   AC_MSG_RESULT([no])
 fi
 
-if test x$build_bitcoin_utils$build_bitcoin_libs$build_bitcoinabc$bitcoin_enable_qt$use_bench$use_tests = xnononononono; then
-  AC_MSG_ERROR([No targets! Please specify at least one of: --with-utils --with-libs --with-daemon --with-gui --enable-bench or --enable-tests])
+if test x$build_bitcoin_utils$build_bitcoin_libs$build_bitcoind$bitcoin_enable_qt$use_bench$use_tests = xnononononono; then
+  AC_MSG_ERROR([No targets! Please specify at least one of: --with-utils --with-libs --with-daemon --with-seeder --with-gui --enable-bench or --enable-tests])
 fi
 
 AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
@@ -1150,6 +1167,7 @@ AM_CONDITIONAL([USE_QRCODE], [test x$use_qr = xyes])
 AM_CONDITIONAL([USE_LCOV],[test x$use_lcov = xyes])
 AM_CONDITIONAL([GLIBC_BACK_COMPAT],[test x$use_glibc_compat = xyes])
 AM_CONDITIONAL([HARDEN],[test x$use_hardening = xyes])
+AM_CONDITIONAL([ENABLE_SSE42],[test x$enable_sse42 = xyes])
 
 AC_DEFINE(CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MAJOR, [Major version])
 AC_DEFINE(CLIENT_VERSION_MINOR, _CLIENT_VERSION_MINOR, [Minor version])
@@ -1174,6 +1192,7 @@ AC_SUBST(BITCOIN_DAEMON_NAME)
 AC_SUBST(BITCOIN_GUI_NAME)
 AC_SUBST(BITCOIN_CLI_NAME)
 AC_SUBST(BITCOIN_TX_NAME)
+AC_SUBST(BITCOIN_SEEDER_NAME)
 
 AC_SUBST(RELDFLAGS)
 AC_SUBST(ERROR_CXXFLAGS)
@@ -1182,6 +1201,7 @@ AC_SUBST(HARDENED_CPPFLAGS)
 AC_SUBST(HARDENED_LDFLAGS)
 AC_SUBST(PIC_FLAGS)
 AC_SUBST(PIE_FLAGS)
+AC_SUBST(SSE42_CXXFLAGS)
 AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(USE_UPNP)
 AC_SUBST(USE_QRCODE)

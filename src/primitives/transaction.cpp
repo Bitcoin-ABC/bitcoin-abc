@@ -40,14 +40,16 @@ std::string CTxIn::ToString() const {
     return str;
 }
 
-CTxOut::CTxOut(const CAmount &nValueIn, CScript scriptPubKeyIn) {
+CTxOut::CTxOut(const Amount &nValueIn, CScript scriptPubKeyIn) {
     nValue = nValueIn;
     scriptPubKey = scriptPubKeyIn;
 }
 
 std::string CTxOut::ToString() const {
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN,
-                     nValue % COIN, HexStr(scriptPubKey).substr(0, 30));
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)",
+                     nValue.GetSatoshis() / COIN.GetSatoshis(),
+                     nValue.GetSatoshis() % COIN.GetSatoshis(),
+                     HexStr(scriptPubKey).substr(0, 30));
 }
 
 CMutableTransaction::CMutableTransaction()
@@ -82,8 +84,8 @@ CTransaction::CTransaction(CMutableTransaction &&tx)
     : nVersion(tx.nVersion), vin(std::move(tx.vin)), vout(std::move(tx.vout)),
       nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
-CAmount CTransaction::GetValueOut() const {
-    CAmount nValueOut = 0;
+Amount CTransaction::GetValueOut() const {
+    Amount nValueOut = 0;
     for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end();
          ++it) {
         nValueOut += it->nValue;

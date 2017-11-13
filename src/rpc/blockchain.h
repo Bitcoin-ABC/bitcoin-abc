@@ -7,9 +7,12 @@
 
 #include <univalue.h>
 
+class CBlockIndex;
 class Config;
 class JSONRPCRequest;
 
 UniValue getblockchaininfo(const Config &config, const JSONRPCRequest &request);
+
+double GetDifficulty(const CBlockIndex *blockindex);
 
 #endif // BITCOIN_RPCBLOCKCHAIN_H

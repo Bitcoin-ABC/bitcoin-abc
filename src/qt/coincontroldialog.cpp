@@ -493,11 +493,12 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         nQuantity++;
 
         // Amount
-        nAmount += out.tx->tx->vout[out.i].nValue;
+        nAmount += out.tx->tx->vout[out.i].nValue.GetSatoshis();
 
         // Priority
         dPriorityInputs +=
-            (double)out.tx->tx->vout[out.i].nValue * (out.nDepth + 1);
+            (double)out.tx->tx->vout[out.i].nValue.GetSatoshis() *
+            (out.nDepth + 1);
 
         // Bytes
         CTxDestination address;
@@ -532,7 +533,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             if (nAmount - nPayAmount == 0) nBytes -= 34;
 
         // Fee
-        nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
+        nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool)
+                      .GetSatoshis();
         if (nPayFee > 0 && coinControl->nMinimumTotalFee > nPayFee)
             nPayFee = coinControl->nMinimumTotalFee;
 
@@ -563,7 +565,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
                 if (txout.IsDust(dustRelayFee)) {
                     // dust-change will be raised until no dust
                     if (CoinControlDialog::fSubtractFeeFromAmount) {
-                        nChange = txout.GetDustThreshold(dustRelayFee);
+                        nChange =
+                            txout.GetDustThreshold(dustRelayFee).GetSatoshis();
                     } else {
                         nPayFee += nChange;
                         nChange = 0;
@@ -637,16 +640,17 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // how many satoshis the estimated fee can vary per byte we guess wrong
     double dFeeVary;
-    if (payTxFee.GetFeePerK() > 0) {
+    if (payTxFee.GetFeePerK() > Amount(0)) {
         dFeeVary = (double)std::max(CWallet::GetRequiredFee(1000),
-                                    payTxFee.GetFeePerK()) /
+                                    payTxFee.GetFeePerK())
+                       .GetSatoshis() /
                    1000;
     } else {
-        dFeeVary =
-            (double)std::max(
-                CWallet::GetRequiredFee(1000),
-                mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK()) /
-            1000;
+        dFeeVary = (double)std::max(
+                       CWallet::GetRequiredFee(1000),
+                       mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK())
+                       .GetSatoshis() /
+                   1000;
     }
     QString toolTip4 =
         tr("Can vary +/- %1 satoshi(s) per input.").arg(dFeeVary);
@@ -724,7 +728,7 @@ void CoinControlDialog::updateView() {
         CAmount nSum = 0;
         int nChildren = 0;
         for (const COutput &out : coins.second) {
-            nSum += out.tx->tx->vout[out.i].nValue;
+            nSum += out.tx->tx->vout[out.i].nValue.GetSatoshis();
             nChildren++;
 
             CCoinControlWidgetItem *itemOutput;
@@ -741,14 +745,13 @@ void CoinControlDialog::updateView() {
             QString sAddress = "";
             if (ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey,
                                    outputAddress)) {
-                sAddress = QString::fromStdString(
-                    CBitcoinAddress(outputAddress).ToString());
+                sAddress =
+                    QString::fromStdString(EncodeDestination(outputAddress));
 
                 // if listMode or change => show bitcoin address. In tree mode,
                 // address is not shown again for direct wallet address outputs
-                if (!treeMode || (!(sAddress == sWalletAddress))) {
+                if (!treeMode || (!(sAddress == sWalletAddress)))
                     itemOutput->setText(COLUMN_ADDRESS, sAddress);
-                }
             }
 
             // label
@@ -770,12 +773,14 @@ void CoinControlDialog::updateView() {
             // amount
             itemOutput->setText(
                 COLUMN_AMOUNT,
-                BitcoinUnits::format(nDisplayUnit,
-                                     out.tx->tx->vout[out.i].nValue));
+                BitcoinUnits::format(
+                    nDisplayUnit,
+                    out.tx->tx->vout[out.i].nValue.GetSatoshis()));
             // padding so that sorting works correctly
             itemOutput->setData(
                 COLUMN_AMOUNT, Qt::UserRole,
-                QVariant((qlonglong)out.tx->tx->vout[out.i].nValue));
+                QVariant(
+                    (qlonglong)out.tx->tx->vout[out.i].nValue.GetSatoshis()));
 
             // date
             itemOutput->setText(COLUMN_DATE,

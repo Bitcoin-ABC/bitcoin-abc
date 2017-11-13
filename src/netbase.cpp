@@ -79,10 +79,11 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
             portOut = n;
         }
     }
-    if (in.size() > 0 && in[0] == '[' && in[in.size() - 1] == ']')
+    if (in.size() > 0 && in[0] == '[' && in[in.size() - 1] == ']') {
         hostOut = in.substr(1, in.size() - 2);
-    else
+    } else {
         hostOut = in;
+    }
 }
 
 static bool LookupIntern(const char *pszName, std::vector<CNetAddr> &vIP,

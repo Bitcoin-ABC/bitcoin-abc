@@ -6,9 +6,9 @@
 #ifndef BITCOIN_VALIDATIONINTERFACE_H
 #define BITCOIN_VALIDATIONINTERFACE_H
 
-#include <boost/shared_ptr.hpp>
-#include <boost/signals2/signal.hpp>
 #include <memory>
+
+#include <boost/signals2/signal.hpp>
 
 class CBlock;
 class CBlockIndex;
@@ -43,7 +43,7 @@ protected:
     virtual void ResendWalletTransactions(int64_t nBestBlockTime,
                                           CConnman *connman) {}
     virtual void BlockChecked(const CBlock &, const CValidationState &) {}
-    virtual void GetScriptForMining(boost::shared_ptr<CReserveScript> &){};
+    virtual void GetScriptForMining(std::shared_ptr<CReserveScript> &){};
     virtual void ResetRequestCount(const uint256 &hash){};
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
@@ -90,7 +90,7 @@ struct CMainSignals {
     boost::signals2::signal<void(const CBlock &, const CValidationState &)>
         BlockChecked;
     /** Notifies listeners that a key for mining is required (coinbase) */
-    boost::signals2::signal<void(boost::shared_ptr<CReserveScript> &)>
+    boost::signals2::signal<void(std::shared_ptr<CReserveScript> &)>
         ScriptForMining;
     /** Notifies listeners that a block has been successfully mined */
     boost::signals2::signal<void(const uint256 &)> BlockFound;

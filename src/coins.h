@@ -170,12 +170,12 @@ protected:
 
 public:
     CCoinsViewBacked(CCoinsView *viewIn);
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
-    bool HaveCoin(const COutPoint &outpoint) const;
-    uint256 GetBestBlock() const;
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
+    bool HaveCoin(const COutPoint &outpoint) const override;
+    uint256 GetBestBlock() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
-    CCoinsViewCursor *Cursor() const;
+    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
 };
 
@@ -260,7 +260,7 @@ public:
      * @param[in] tx	transaction for which we are checking input total
      * @return	Sum of value of all inputs (scriptSigs)
      */
-    CAmount GetValueIn(const CTransaction &tx) const;
+    Amount GetValueIn(const CTransaction &tx) const;
 
     //! Check whether all prevouts of the transaction are present in the UTXO
     //! set represented by this view
@@ -272,7 +272,7 @@ public:
      * that will age and increase priority as new blocks are added to the chain.
      */
     double GetPriority(const CTransaction &tx, int nHeight,
-                       CAmount &inChainInputValue) const;
+                       Amount &inChainInputValue) const;
 
     const CTxOut &GetOutputFor(const CTxIn &input) const;
 

@@ -72,7 +72,7 @@ static bool verify_flags(unsigned int flags) {
 }
 
 static int verify_script(const uint8_t *scriptPubKey,
-                         unsigned int scriptPubKeyLen, CAmount amount,
+                         unsigned int scriptPubKeyLen, Amount amount,
                          const uint8_t *txTo, unsigned int txToLen,
                          unsigned int nIn, unsigned int flags,
                          bitcoinconsensus_error *err) {
@@ -105,7 +105,7 @@ int bitcoinconsensus_verify_script_with_amount(
     const uint8_t *scriptPubKey, unsigned int scriptPubKeyLen, int64_t amount,
     const uint8_t *txTo, unsigned int txToLen, unsigned int nIn,
     unsigned int flags, bitcoinconsensus_error *err) {
-    CAmount am(amount);
+    Amount am(amount);
     return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
                            nIn, flags, err);
 }
@@ -120,7 +120,7 @@ int bitcoinconsensus_verify_script(const uint8_t *scriptPubKey,
         return set_error(err, bitcoinconsensus_ERR_AMOUNT_REQUIRED);
     }
 
-    CAmount am(0);
+    Amount am(0);
     return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
                            nIn, flags, err);
 }

@@ -218,7 +218,8 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
                 SLOT(updateGlobalFeeVariables()));
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
-        ui->customFee->setSingleStep(CWallet::GetRequiredFee(1000));
+        ui->customFee->setSingleStep(
+            CWallet::GetRequiredFee(1000).GetSatoshis());
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -597,7 +598,8 @@ void SendCoinsDialog::processSendCoinsReturn(
             msgParams.first =
                 tr("A fee higher than %1 is considered an absurdly high fee.")
                     .arg(BitcoinUnits::formatWithUnit(
-                        model->getOptionsModel()->getDisplayUnit(), maxTxFee));
+                        model->getOptionsModel()->getDisplayUnit(),
+                        maxTxFee.GetSatoshis()));
             break;
         case WalletModel::PaymentRequestExpired:
             msgParams.first = tr("Payment request expired.");
@@ -633,7 +635,7 @@ void SendCoinsDialog::on_buttonMinimizeFee_clicked() {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(CWallet::GetRequiredFee(1000));
+    ui->customFee->setValue(CWallet::GetRequiredFee(1000).GetSatoshis());
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -704,7 +706,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         CWallet::GetRequiredFee(1000)) +
+                         CWallet::GetRequiredFee(1000).GetSatoshis()) +
                      "/kB"));
 }
 
@@ -722,7 +724,8 @@ void SendCoinsDialog::updateSmartFeeLabel() {
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
                 std::max(CWallet::fallbackFee.GetFeePerK(),
-                         CWallet::GetRequiredFee(1000))) +
+                         CWallet::GetRequiredFee(1000))
+                    .GetSatoshis()) +
             "/kB");
         // (Smart fee not initialized yet. This usually takes a few blocks...)
         ui->labelSmartFee2->show();
@@ -731,7 +734,8 @@ void SendCoinsDialog::updateSmartFeeLabel() {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),
-                std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))) +
+                std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))
+                    .GetSatoshis()) +
             "/kB");
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(
@@ -828,21 +832,18 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
         CoinControlDialog::coinControl->destChange = CNoDestination();
         ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
 
-        CBitcoinAddress addr = CBitcoinAddress(text.toStdString());
+        const CTxDestination dest = DecodeDestination(text.toStdString());
 
         if (text.isEmpty()) {
             // Nothing entered
             ui->labelCoinControlChangeLabel->setText("");
-        } else if (!addr.IsValid()) {
+        } else if (!IsValidDestination(dest)) {
             // Invalid address
             ui->labelCoinControlChangeLabel->setText(
                 tr("Warning: Invalid Bitcoin address"));
         } else {
             // Valid address
-            CKeyID keyid;
-            addr.GetKeyID(keyid);
-            // Unknown change address
-            if (!model->havePrivKey(keyid)) {
+            if (!model->IsSpendable(dest)) {
                 ui->labelCoinControlChangeLabel->setText(
                     tr("Warning: Unknown change address"));
 
@@ -856,7 +857,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                     QMessageBox::Cancel);
 
                 if (btnRetVal == QMessageBox::Yes)
-                    CoinControlDialog::coinControl->destChange = addr.Get();
+                    CoinControlDialog::coinControl->destChange = dest;
                 else {
                     ui->lineEditCoinControlChange->setText("");
                     ui->labelCoinControlChangeLabel->setStyleSheet(
@@ -876,7 +877,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                 else
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
 
-                CoinControlDialog::coinControl->destChange = addr.Get();
+                CoinControlDialog::coinControl->destChange = dest;
             }
         }
     }

@@ -28,6 +28,7 @@
 #include "rpc/register.h"
 #include "rpc/server.h"
 #include "scheduler.h"
+#include "script/scriptcache.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
 #include "timedata.h"
@@ -322,7 +323,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-blocksonly",
             strprintf(
-                _("Whether to operate in a blocks only mode (default: %u)"),
+                _("Whether to operate in a blocks only mode (default: %d)"),
                 DEFAULT_BLOCKSONLY));
     strUsage += HelpMessageOpt(
         "-assumevalid=<hex>",
@@ -354,7 +355,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     if (showDebug)
         strUsage += HelpMessageOpt(
             "-feefilter", strprintf("Tell other nodes to filter invs to us by "
-                                    "our mempool min fee (default: %u)",
+                                    "our mempool min fee (default: %d)",
                                     DEFAULT_FEEFILTER));
     strUsage += HelpMessageOpt(
         "-loadblock=<file>",
@@ -416,7 +417,7 @@ std::string HelpMessage(HelpMessageMode mode) {
 #endif
     strUsage += HelpMessageOpt(
         "-txindex", strprintf(_("Maintain a full transaction index, used by "
-                                "the getrawtransaction rpc call (default: %u)"),
+                                "the getrawtransaction rpc call (default: %d)"),
                               DEFAULT_TXINDEX));
 
     strUsage += HelpMessageGroup(_("Connection options:"));
@@ -444,7 +445,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                                  "listening and no -externalip or -proxy)"));
     strUsage += HelpMessageOpt(
         "-dns", _("Allow DNS lookups for -addnode, -seednode and -connect") +
-                    " " + strprintf(_("(default: %u)"), DEFAULT_NAME_LOOKUP));
+                    " " + strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
     strUsage += HelpMessageOpt(
         "-dnsseed", _("Query for peer addresses via DNS lookup, if low on "
                       "addresses (default: 1 unless -connect/-noconnect)"));
@@ -453,7 +454,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-forcednsseed",
         strprintf(
-            _("Always query for peer addresses via DNS lookup (default: %u)"),
+            _("Always query for peer addresses via DNS lookup (default: %d)"),
             DEFAULT_FORCEDNSSEED));
     strUsage +=
         HelpMessageOpt("-listen", _("Accept connections from outside (default: "
@@ -491,12 +492,12 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)"));
     strUsage +=
         HelpMessageOpt("-permitbaremultisig",
-                       strprintf(_("Relay non-P2SH multisig (default: %u)"),
+                       strprintf(_("Relay non-P2SH multisig (default: %d)"),
                                  DEFAULT_PERMIT_BAREMULTISIG));
     strUsage += HelpMessageOpt(
         "-peerbloomfilters",
         strprintf(_("Support filtering of blocks and transaction with bloom "
-                    "filters (default: %u)"),
+                    "filters (default: %d)"),
                   DEFAULT_PEERBLOOMFILTERS));
     strUsage += HelpMessageOpt(
         "-port=<port>",
@@ -509,7 +510,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt(
         "-proxyrandomize",
         strprintf(_("Randomize credentials for every proxy connection. This "
-                    "enables Tor stream isolation (default: %u)"),
+                    "enables Tor stream isolation (default: %d)"),
                   DEFAULT_PROXYRANDOMIZE));
     strUsage += HelpMessageOpt(
         "-seednode=<ip>",
@@ -600,24 +601,24 @@ std::string HelpMessage(HelpMessageMode mode) {
             strprintf(
                 "Do a full consistency check for mapBlockIndex, "
                 "setBlockIndexCandidates, chainActive and mapBlocksUnlinked "
-                "occasionally. Also sets -checkmempool (default: %u)",
+                "occasionally. Also sets -checkmempool (default: %d)",
                 Params(CBaseChainParams::MAIN).DefaultConsistencyChecks()));
         strUsage += HelpMessageOpt(
             "-checkmempool=<n>",
             strprintf(
-                "Run checks every <n> transactions (default: %u)",
+                "Run checks every <n> transactions (default: %d)",
                 Params(CBaseChainParams::MAIN).DefaultConsistencyChecks()));
         strUsage += HelpMessageOpt(
             "-checkpoints", strprintf("Disable expensive verification for "
-                                      "known chain history (default: %u)",
+                                      "known chain history (default: %d)",
                                       DEFAULT_CHECKPOINTS_ENABLED));
         strUsage += HelpMessageOpt(
             "-disablesafemode", strprintf("Disable safemode, override a real "
-                                          "safe mode event (default: %u)",
+                                          "safe mode event (default: %d)",
                                           DEFAULT_DISABLE_SAFEMODE));
         strUsage += HelpMessageOpt(
             "-testsafemode",
-            strprintf("Force safe mode (default: %u)", DEFAULT_TESTSAFEMODE));
+            strprintf("Force safe mode (default: %d)", DEFAULT_TESTSAFEMODE));
         strUsage +=
             HelpMessageOpt("-dropmessagestest=<n>",
                            "Randomly drop 1 of every <n> network messages");
@@ -627,7 +628,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-stopafterblockimport",
             strprintf(
-                "Stop running after importing blocks from disk (default: %u)",
+                "Stop running after importing blocks from disk (default: %d)",
                 DEFAULT_STOPAFTERBLOCKIMPORT));
         strUsage += HelpMessageOpt(
             "-limitancestorcount=<n>",
@@ -676,17 +677,17 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Show all debugging options (usage: --help -help-debug)"));
     strUsage += HelpMessageOpt(
         "-logips",
-        strprintf(_("Include IP addresses in debug output (default: %u)"),
+        strprintf(_("Include IP addresses in debug output (default: %d)"),
                   DEFAULT_LOGIPS));
     strUsage += HelpMessageOpt(
         "-logtimestamps",
-        strprintf(_("Prepend debug output with timestamp (default: %u)"),
+        strprintf(_("Prepend debug output with timestamp (default: %d)"),
                   DEFAULT_LOGTIMESTAMPS));
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-logtimemicros",
             strprintf(
-                "Add microsecond precision to debug timestamps (default: %u)",
+                "Add microsecond precision to debug timestamps (default: %d)",
                 DEFAULT_LOGTIMEMICROS));
         strUsage += HelpMessageOpt(
             "-mocktime=<n>",
@@ -699,12 +700,16 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage +=
             HelpMessageOpt("-relaypriority",
                            strprintf("Require high priority for relaying free "
-                                     "or low-fee transactions (default: %u)",
+                                     "or low-fee transactions (default: %d)",
                                      DEFAULT_RELAYPRIORITY));
         strUsage += HelpMessageOpt(
             "-maxsigcachesize=<n>",
             strprintf("Limit size of signature cache to <n> MiB (default: %u)",
                       DEFAULT_MAX_SIG_CACHE_SIZE));
+        strUsage += HelpMessageOpt(
+            "-maxscriptcachesize=<n>",
+            strprintf("Limit size of script cache to <n> MiB (default: %u)",
+                      DEFAULT_MAX_SCRIPT_CACHE_SIZE));
         strUsage += HelpMessageOpt(
             "-maxtipage=<n>",
             strprintf("Maximum tip age in seconds to consider node in initial "
@@ -729,7 +734,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-printpriority", strprintf("Log transaction priority and fee per "
-                                        "kB when mining blocks (default: %u)",
+                                        "kB when mining blocks (default: %d)",
                                         DEFAULT_PRINTPRIORITY));
     }
     strUsage += HelpMessageOpt("-shrinkdebugfile",
@@ -743,7 +748,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage += HelpMessageOpt(
             "-acceptnonstdtxn",
             strprintf(
-                "Relay and mine \"non-standard\" transactions (%sdefault: %u)",
+                "Relay and mine \"non-standard\" transactions (%sdefault: %d)",
                 "testnet/regtest only; ",
                 !Params(CBaseChainParams::TESTNET).RequireStandard()));
         strUsage +=
@@ -771,7 +776,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                                  DEFAULT_BYTES_PER_SIGOP));
     strUsage += HelpMessageOpt(
         "-datacarrier",
-        strprintf(_("Relay and mine data carrier transactions (default: %u)"),
+        strprintf(_("Relay and mine data carrier transactions (default: %d)"),
                   DEFAULT_ACCEPT_DATACARRIER));
     strUsage += HelpMessageOpt(
         "-datacarriersize",
@@ -803,7 +808,7 @@ std::string HelpMessage(HelpMessageMode mode) {
     strUsage += HelpMessageOpt("-server",
                                _("Accept command line and JSON-RPC commands"));
     strUsage += HelpMessageOpt(
-        "-rest", strprintf(_("Accept public REST requests (default: %u)"),
+        "-rest", strprintf(_("Accept public REST requests (default: %d)"),
                            DEFAULT_REST_ENABLE));
     strUsage += HelpMessageOpt(
         "-rpcbind=<addr>",
@@ -1385,7 +1390,7 @@ bool AppInitParameterInteraction(Config &config) {
     // BIP 125 replacement in the mempool and the amount the mempool min fee
     // increases above the feerate of txs evicted due to mempool limiting.
     if (IsArgSet("-incrementalrelayfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         if (!ParseMoney(GetArg("-incrementalrelayfee", ""), n))
             return InitError(AmountErrMsg("incrementalrelayfee",
                                           GetArg("-incrementalrelayfee", "")));
@@ -1458,7 +1463,7 @@ bool AppInitParameterInteraction(Config &config) {
     // can cheaply fill blocks using 1-satoshi-fee transactions. It should be
     // set above the real cost to you of processing a transaction.
     if (IsArgSet("-minrelaytxfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         if (!ParseMoney(GetArg("-minrelaytxfee", ""), n) || 0 == n)
             return InitError(
                 AmountErrMsg("minrelaytxfee", GetArg("-minrelaytxfee", "")));
@@ -1476,7 +1481,7 @@ bool AppInitParameterInteraction(Config &config) {
     // TODO: Harmonize which arguments need sanity checking and where that
     // happens.
     if (IsArgSet("-blockmintxfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         if (!ParseMoney(GetArg("-blockmintxfee", ""), n))
             return InitError(
                 AmountErrMsg("blockmintxfee", GetArg("-blockmintxfee", "")));
@@ -1485,7 +1490,7 @@ bool AppInitParameterInteraction(Config &config) {
     // Feerate used to define dust.  Shouldn't be changed lightly as old
     // implementations may inadvertently create non-standard transactions.
     if (IsArgSet("-dustrelayfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         if (!ParseMoney(GetArg("-dustrelayfee", ""), n) || 0 == n)
             return InitError(
                 AmountErrMsg("dustrelayfee", GetArg("-dustrelayfee", "")));
@@ -1656,12 +1661,14 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
               nMaxConnections, nFD);
 
     InitSignatureCache();
+    InitScriptExecutionCache();
 
     LogPrintf("Using %u threads for script verification\n",
               nScriptCheckThreads);
     if (nScriptCheckThreads) {
-        for (int i = 0; i < nScriptCheckThreads - 1; i++)
+        for (int i = 0; i < nScriptCheckThreads - 1; i++) {
             threadGroup.create_thread(&ThreadScriptCheck);
+        }
     }
 
     // Start the lightweight task scheduler thread
@@ -2124,7 +2131,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     }
 
     threadGroup.create_thread(
-        boost::bind(&ThreadImport, boost::ref(config), vImportFiles));
+        boost::bind(&ThreadImport, std::ref(config), vImportFiles));
 
     // Wait for genesis block to be processed
     {

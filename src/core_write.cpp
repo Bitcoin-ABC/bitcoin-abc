@@ -176,9 +176,8 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 
     UniValue a(UniValue::VARR);
     for (const CTxDestination &addr : addresses) {
-        a.push_back(CBitcoinAddress(addr).ToString());
+        a.push_back(EncodeDestination(addr));
     }
-
     out.pushKV("addresses", a);
 }
 
@@ -218,7 +217,8 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
 
         UniValue out(UniValue::VOBJ);
 
-        UniValue outValue(UniValue::VNUM, FormatMoney(txout.nValue));
+        UniValue outValue(UniValue::VNUM,
+                          FormatMoney(txout.nValue.GetSatoshis()));
         out.pushKV("value", outValue);
         out.pushKV("n", (int64_t)i);
 

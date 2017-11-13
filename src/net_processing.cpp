@@ -129,7 +129,7 @@ MapRelay mapRelay;
 /** Expiration-time ordered list of (expire time, relay map entry) pairs,
  * protected by cs_main). */
 std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
-} // anon namespace
+} // namespace
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -667,7 +667,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
     }
 }
 
-} // anon namespace
+} // namespace
 
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     LOCK(cs_main);
@@ -1547,8 +1547,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->fClient = !(nServices & NODE_NETWORK);
         {
             LOCK(pfrom->cs_filter);
-            pfrom->fRelayTxes =
-                fRelay; // set to true after we get the first filter* message
+            // set to true after we get the first filter* message
+            pfrom->fRelayTxes = fRelay;
         }
 
         // Change version
@@ -3020,7 +3020,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     else if (strCommand == NetMsgType::FEEFILTER) {
-        CAmount newFeeFilter = 0;
+        Amount newFeeFilter = 0;
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
             {
@@ -3135,9 +3135,9 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
     // This is a new peer. Before doing anything, we need to detect what magic
     // the peer is using.
     if (pfrom->nVersion == 0 &&
-        memcmp(msg.hdr.pchMessageStart, chainparams.CashMessageStart(),
+        memcmp(msg.hdr.pchMessageStart, chainparams.MessageStart(),
                CMessageHeader::MESSAGE_START_SIZE) == 0) {
-        pfrom->fUsesCashMagic = true;
+        pfrom->fUsesCashMagic = false;
     }
 
     // Scan for message start
@@ -3578,7 +3578,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         if (fSendTrickle && pto->fSendMempool) {
             auto vtxinfo = mempool.infoAll();
             pto->fSendMempool = false;
-            CAmount filterrate = 0;
+            Amount filterrate = 0;
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;
@@ -3590,7 +3590,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 const uint256 &txid = txinfo.tx->GetId();
                 CInv inv(MSG_TX, txid);
                 pto->setInventoryTxToSend.erase(txid);
-                if (filterrate) {
+                if (filterrate != 0) {
                     if (txinfo.feeRate.GetFeePerK() < filterrate) {
                         continue;
                     }
@@ -3621,7 +3621,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                  it != pto->setInventoryTxToSend.end(); it++) {
                 vInvTx.push_back(it);
             }
-            CAmount filterrate = 0;
+            Amount filterrate = 0;
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;
@@ -3656,7 +3656,8 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 if (!txinfo.tx) {
                     continue;
                 }
-                if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {
+                if (filterrate != 0 &&
+                    txinfo.feeRate.GetFeePerK() < filterrate) {
                     continue;
                 }
                 if (pto->pfilter &&
@@ -3797,16 +3798,18 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
         !(pto->fWhitelisted &&
           GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY))) {
-        CAmount currentFilter =
+        Amount currentFilter =
             mempool
                 .GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                            1000000)
                 .GetFeePerK();
         int64_t timeNow = GetTimeMicros();
         if (timeNow > pto->nextSendTimeFeeFilter) {
-            static CFeeRate default_feerate(DEFAULT_MIN_RELAY_TX_FEE);
+            static CFeeRate default_feerate =
+                CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
             static FeeFilterRounder filterRounder(default_feerate);
-            CAmount filterToSend = filterRounder.round(currentFilter);
+            Amount filterToSend =
+                filterRounder.round(currentFilter.GetSatoshis());
             // If we don't allow free transactions, then we always have a fee
             // filter of at least minRelayTxFee
             if (GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
@@ -3817,7 +3820,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             if (filterToSend != pto->lastSentFeeFilter) {
                 connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
-                pto->lastSentFeeFilter = filterToSend;
+                pto->lastSentFeeFilter = filterToSend.GetSatoshis();
             }
             pto->nextSendTimeFeeFilter =
                 PoissonNextSend(timeNow, AVG_FEEFILTER_BROADCAST_INTERVAL);

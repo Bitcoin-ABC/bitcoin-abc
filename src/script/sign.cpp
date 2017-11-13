@@ -16,7 +16,7 @@ typedef std::vector<uint8_t> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
     const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
-    const CAmount &amountIn, uint32_t nHashTypeIn)
+    const Amount amountIn, uint32_t nHashTypeIn)
     : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
       amount(amountIn), nHashType(nHashTypeIn), checker(txTo, nIn, amountIn) {}
 
@@ -182,7 +182,7 @@ void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
 
 bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
-                   const CAmount &amount, uint32_t nHashType) {
+                   const Amount amount, uint32_t nHashType) {
     assert(nIn < txTo.vin.size());
 
     CTransaction txToConst(txTo);
@@ -203,8 +203,8 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
     assert(txin.prevout.n < txFrom.vout.size());
     const CTxOut &txout = txFrom.vout[txin.prevout.n];
 
-    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, txout.nValue,
-                         nHashType);
+    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn,
+                         txout.nValue.GetSatoshis(), nHashType);
 }
 
 static std::vector<valtype> CombineMultisig(
@@ -283,7 +283,7 @@ struct Stacks {
         return result;
     }
 };
-}
+} // namespace
 
 static Stacks CombineSignatures(const CScript &scriptPubKey,
                                 const BaseSignatureChecker &checker,
@@ -364,7 +364,7 @@ public:
     }
 };
 const DummySignatureChecker dummyChecker;
-}
+} // namespace
 
 const BaseSignatureChecker &DummySignatureCreator::Checker() const {
     return dummyChecker;

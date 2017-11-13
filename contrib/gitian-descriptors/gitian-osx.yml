@@ -1,8 +1,8 @@
 ---
-name: "bitcoin-abc-0.15-osx"
+name: "bitcoin-abc-0.16-osx"
 enable_cache: true
 suites:
-- "trusty"
+- "xenial"
 architectures:
 - "amd64"
 packages:

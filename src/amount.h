@@ -9,13 +9,101 @@
 #include "serialize.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <string>
+#include <type_traits>
+
+struct Amount {
+private:
+    int64_t amount;
+
+public:
+    constexpr Amount() : amount(0) {}
+
+    template <typename T> constexpr Amount(T _camount) : amount(_camount) {
+        static_assert(std::is_integral<T>(),
+                      "Only integer types can be used as amounts");
+    }
+
+    constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
+
+    // Allow access to underlying value for non-monetary operations
+    int64_t GetSatoshis() const { return amount; }
+
+    /*
+     * Implement standard operators
+     */
+    Amount &operator+=(const Amount a) {
+        amount += a.amount;
+        return *this;
+    }
+    Amount &operator-=(const Amount a) {
+        amount -= a.amount;
+        return *this;
+    }
+    friend constexpr bool operator<(const Amount a, const Amount b) {
+        return a.amount < b.amount;
+    }
+    friend constexpr bool operator==(const Amount a, const Amount b) {
+        return a.amount == b.amount;
+    }
+    friend constexpr bool operator>(const Amount a, const Amount b) {
+        return b.amount < a.amount;
+    }
+    friend constexpr bool operator!=(const Amount a, const Amount b) {
+        return !(a.amount == b.amount);
+    }
+    friend constexpr bool operator<=(const Amount a, const Amount b) {
+        return !(a.amount > b.amount);
+    }
+    friend constexpr bool operator>=(const Amount a, const Amount b) {
+        return !(a.amount < b.amount);
+    }
+    friend constexpr Amount operator+(const Amount a, const Amount b) {
+        return Amount(a.amount + b.amount);
+    }
+    friend constexpr Amount operator-(const Amount a, const Amount b) {
+        return Amount(a.amount - b.amount);
+    }
+    // Implemented for allowing COIN as a base unit.
+    friend constexpr Amount operator*(const int64_t a, const Amount b) {
+        return Amount(a * b.amount);
+    }
+    friend constexpr Amount operator*(const int a, const Amount b) {
+        return Amount(a * b.amount);
+    }
+    // DO NOT IMPLEMENT
+    friend constexpr Amount operator*(const double a, const Amount b) = delete;
+    constexpr int64_t operator/(const Amount b) const {
+        return amount / b.amount;
+    }
+    constexpr Amount operator/(const int64_t b) const {
+        return Amount(amount / b);
+    }
+    constexpr Amount operator/(const int b) const { return Amount(amount / b); }
+    // DO NOT IMPLEMENT
+    constexpr Amount operator/(const double b) const = delete;
+
+    // ostream support
+    friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
+        return stream << ca.amount;
+    }
+    std::string ToString() const;
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(amount);
+    }
+};
 
 /** Amount in satoshis (Can be negative) */
 typedef int64_t CAmount;
 
-static const CAmount COIN = 100000000;
-static const CAmount CENT = 1000000;
+static const Amount COIN = 100000000;
+static const Amount CENT = 1000000;
 
 extern const std::string CURRENCY_UNIT;
 
@@ -29,38 +117,38 @@ extern const std::string CURRENCY_UNIT;
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  */
-static const CAmount MAX_MONEY = 21000000 * COIN;
-inline bool MoneyRange(const CAmount &nValue) {
+static const Amount MAX_MONEY = 21000000 * COIN;
+inline bool MoneyRange(const Amount nValue) {
     return (nValue >= 0 && nValue <= MAX_MONEY);
 }
 
 /**
- * Fee rate in satoshis per kilobyte: CAmount / kB
+ * Fee rate in satoshis per kilobyte: Amount / kB
  */
 class CFeeRate {
 private:
     // unit is satoshis-per-1,000-bytes
-    CAmount nSatoshisPerK;
+    Amount nSatoshisPerK;
 
 public:
     /** Fee rate of 0 satoshis per kB */
     CFeeRate() : nSatoshisPerK(0) {}
-    explicit CFeeRate(const CAmount &_nSatoshisPerK)
+    explicit CFeeRate(const Amount _nSatoshisPerK)
         : nSatoshisPerK(_nSatoshisPerK) {}
     /**
      * Constructor for a fee rate in satoshis per kB. The size in bytes must not
      * exceed (2^63 - 1)
      */
-    CFeeRate(const CAmount &nFeePaid, size_t nBytes);
+    CFeeRate(const Amount nFeePaid, size_t nBytes);
     CFeeRate(const CFeeRate &other) { nSatoshisPerK = other.nSatoshisPerK; }
     /**
      * Return the fee in satoshis for the given size in bytes.
      */
-    CAmount GetFee(size_t nBytes) const;
+    Amount GetFee(size_t nBytes) const;
     /**
      * Return the fee in satoshis for a size of 1000 bytes
      */
-    CAmount GetFeePerK() const { return GetFee(1000); }
+    Amount GetFeePerK() const { return GetFee(1000); }
     friend bool operator<(const CFeeRate &a, const CFeeRate &b) {
         return a.nSatoshisPerK < b.nSatoshisPerK;
     }

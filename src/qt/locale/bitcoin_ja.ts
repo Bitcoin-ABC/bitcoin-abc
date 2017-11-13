@@ -3811,10 +3811,6 @@
         <translation>P2SHでないマルチシグトランザクションをリレーする (初期値: %u)</translation>
     </message>
     <message>
-        <source>Send transactions with full-RBF opt-in enabled (default: %u)</source>
-        <translation>full-RBF opt-in を利用してトランザクションを送信する (初期値: %u)</translation>
-    </message>
-    <message>
         <source>Set key pool size to &lt;n&gt; (default: %u)</source>
         <translation>key pool のサイズを &lt;n&gt; (初期値: %u) にセット</translation>
     </message>

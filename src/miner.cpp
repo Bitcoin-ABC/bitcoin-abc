@@ -103,7 +103,7 @@ BlockAssembler::BlockAssembler(const Config &_config,
                                const CChainParams &_chainparams)
     : chainparams(_chainparams), config(&_config) {
     if (IsArgSet("-blockmintxfee")) {
-        CAmount n = 0;
+        Amount n = 0;
         ParseMoney(GetArg("-blockmintxfee", ""), n);
         blockMinFeeRate = CFeeRate(n);
     } else {
@@ -172,12 +172,11 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     pblock->nTime = GetAdjustedTime();
-    nMedianTimePast = pindexPrev->GetMedianTimePast();
     nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(*config, pindexPrev);
 
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
-            ? nMedianTimePast
+            ? pindexPrev->GetMedianTimePast()
             : pblock->GetBlockTime();
 
     addPriorityTxs();
@@ -200,7 +199,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
-    pblocktemplate->vTxFees[0] = -nFees;
+    pblocktemplate->vTxFees[0] = -1 * nFees;
 
     uint64_t nSerializeSize =
         GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
@@ -278,7 +277,7 @@ bool BlockAssembler::TestPackageTransactions(
         CValidationState state;
         if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                         chainparams.GetConsensus(), nHeight,
-                                        nLockTimeCutoff, nMedianTimePast)) {
+                                        nLockTimeCutoff)) {
             return false;
         }
 
@@ -329,7 +328,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     CValidationState state;
     if (!ContextualCheckTransaction(*config, it->GetTx(), state,
                                     chainparams.GetConsensus(), nHeight,
-                                    nLockTimeCutoff, nMedianTimePast)) {
+                                    nLockTimeCutoff)) {
         return false;
     }
 
@@ -349,7 +348,7 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     bool fPrintPriority = GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
     if (fPrintPriority) {
         double dPriority = iter->GetPriority(nHeight);
-        CAmount dummy;
+        Amount dummy;
         mempool.ApplyDeltas(iter->GetTx().GetId(), dPriority, dummy);
         LogPrintf(
             "priority %.1f fee %s txid %s\n", dPriority,
@@ -487,7 +486,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
         assert(!inBlock.count(iter));
 
         uint64_t packageSize = iter->GetSizeWithAncestors();
-        CAmount packageFees = iter->GetModFeesWithAncestors();
+        Amount packageFees = iter->GetModFeesWithAncestors();
         int64_t packageSigOps = iter->GetSigOpCountWithAncestors();
         if (fUsingModified) {
             packageSize = modit->nSizeWithAncestors;
@@ -582,7 +581,7 @@ void BlockAssembler::addPriorityTxs() {
              mempool.mapTx.begin();
          mi != mempool.mapTx.end(); ++mi) {
         double dPriority = mi->GetPriority(nHeight);
-        CAmount dummy;
+        Amount dummy;
         mempool.ApplyDeltas(mi->GetTx().GetId(), dPriority, dummy);
         vecPriority.push_back(TxCoinAgePriority(dPriority, mi));
     }

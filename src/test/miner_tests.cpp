@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "miner.h"
+
 #include "chainparams.h"
 #include "coins.h"
 #include "config.h"
@@ -16,7 +17,6 @@
 #include "uint256.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "validation.h"
 #include "validation.h"
 
 #include "test/test_bitcoin.h"
@@ -138,7 +138,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
-    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - 1;
+    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize).GetSatoshis() - 1;
 
     tx.vin[0].prevout.hash = hashFreeTx;
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000 - feeToUse;
@@ -180,7 +180,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // This tx can't be mined by itself.
     tx.vin[0].prevout.hash = hashFreeTx2;
     tx.vout.resize(1);
-    feeToUse = blockMinFeeRate.GetFee(freeTxSize);
+    feeToUse = blockMinFeeRate.GetFee(freeTxSize).GetSatoshis();
     tx.vout[0].nValue = 5000000000LL - 100000000 - feeToUse;
     uint256 hashLowFeeTx2 = tx.GetId();
     mempool.addUnchecked(hashLowFeeTx2,
@@ -303,10 +303,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         pblocktemplate =
             BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey));
 
-    const CAmount BLOCKSUBSIDY = 50 * COIN;
-    const CAmount LOWFEE = CENT;
-    const CAmount HIGHFEE = COIN;
-    const CAmount HIGHERFEE = 4 * COIN;
+    const CAmount BLOCKSUBSIDY = 50 * COIN.GetSatoshis();
+    const CAmount LOWFEE = CENT.GetSatoshis();
+    const CAmount HIGHFEE = COIN.GetSatoshis();
+    const CAmount HIGHERFEE = 4 * COIN.GetSatoshis();
 
     // block sigops > limit: 1000 CHECKMULTISIG + 1
     tx.vin.resize(1);
@@ -616,7 +616,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 2,
-            chainActive.Tip()->GetMedianTimePast(),
             chainActive.Tip()->GetMedianTimePast()));
     }
 
@@ -647,8 +646,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         BOOST_CHECK(ContextualCheckTransaction(
             config, tx, state, chainparams.GetConsensus(),
             chainActive.Tip()->nHeight + 1,
-            chainActive.Tip()->GetMedianTimePast() + 1,
-            chainActive.Tip()->GetMedianTimePast()));
+            chainActive.Tip()->GetMedianTimePast() + 1));
     }
 
     // mempool-dependent transactions (not added)
@@ -727,16 +725,14 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // We are working on a fake chain and need to protect ourselves.
     LOCK(cs_main);
 
-    // Activate UAHF
-    const int64_t hfStartTime =
-        config.GetChainParams().GetConsensus().uahfStartTime;
+    // Activate UAHF the dirty way
+    const int64_t uahfHeight =
+        config.GetChainParams().GetConsensus().uahfHeight;
     auto pindex = chainActive.Tip();
     for (size_t i = 0; pindex && i < 5; i++) {
-        pindex->nTime = hfStartTime;
+        pindex->nHeight = uahfHeight + 5 - i;
         pindex = pindex->pprev;
     }
-
-    BOOST_CHECK(IsUAHFenabledForCurrentBlock(config));
 
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);

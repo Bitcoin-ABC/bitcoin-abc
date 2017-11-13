@@ -48,7 +48,7 @@ public:
         return true;
     }
 
-    bool HaveCoin(const COutPoint outpoint) const {
+    bool HaveCoin(const COutPoint &outpoint) const {
         Coin coin;
         return GetCoin(outpoint, coin);
     }
@@ -96,7 +96,7 @@ public:
     CCoinsMap &map() { return cacheCoins; }
     size_t &usage() { return cachedCoinsUsage; }
 };
-}
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(coins_tests, BasicTestingSetup)
 
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
             if (insecure_rand() % 5 == 0 || coin.IsSpent()) {
                 CTxOut txout;
-                txout.nValue = insecure_rand();
+                txout.nValue = Amount(int64_t(insecure_rand()));
                 if (insecure_rand() % 16 == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + (insecure_rand() & 0x3F),
                                               OP_RETURN);
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
     std::set<COutPoint> duplicate_coins;
     std::set<COutPoint> utxoset;
 
-    for (unsigned int i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
+    for (int64_t i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
         uint32_t randiter = insecure_rand();
 
         // 19/20 txs add a new transaction
@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss1 >> c1;
     BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c1.GetHeight(), 203998);
-    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, 60000000000ULL);
+    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, Amount(60000000000LL));
     BOOST_CHECK_EQUAL(HexStr(c1.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "816115944e077fe7c803cfa57f29b36bf87c1d35"))))));
@@ -514,7 +514,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss2 >> c2;
     BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
     BOOST_CHECK_EQUAL(c2.GetHeight(), 120891);
-    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, 110397ULL);
+    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, Amount(110397LL));
     BOOST_CHECK_EQUAL(HexStr(c2.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "8c988f1a4a4de2161e0f50aac7f17e7f9555caa4"))))));
@@ -525,7 +525,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss3 >> c3;
     BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c3.GetHeight(), 0);
-    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, 0);
+    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount(0));
     BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0);
 
     // scriptPubKey that ends beyond the end of the stream
@@ -601,7 +601,7 @@ void GetCoinMapEntry(const CCoinsMap &map, CAmount &value, char &flags) {
         if (it->second.coin.IsSpent()) {
             value = PRUNED;
         } else {
-            value = it->second.coin.GetTxOut().nValue;
+            value = it->second.coin.GetTxOut().nValue.GetSatoshis();
         }
         flags = it->second.flags;
         assert(flags != NO_ENTRY);

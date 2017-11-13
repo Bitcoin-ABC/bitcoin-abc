@@ -270,19 +270,19 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
 
     // Create some dummy input transactions
     dummyTransactions[0].vout.resize(2);
-    dummyTransactions[0].vout[0].nValue = 11 * CENT;
+    dummyTransactions[0].vout[0].nValue = 11 * CENT.GetSatoshis();
     dummyTransactions[0].vout[0].scriptPubKey
         << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
-    dummyTransactions[0].vout[1].nValue = 50 * CENT;
+    dummyTransactions[0].vout[1].nValue = 50 * CENT.GetSatoshis();
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
     AddCoins(coinsRet, dummyTransactions[0], 0);
 
     dummyTransactions[1].vout.resize(2);
-    dummyTransactions[1].vout[0].nValue = 21 * CENT;
+    dummyTransactions[1].vout[0].nValue = 21 * CENT.GetSatoshis();
     dummyTransactions[1].vout[0].scriptPubKey =
         GetScriptForDestination(key[2].GetPubKey().GetID());
-    dummyTransactions[1].vout[1].nValue = 22 * CENT;
+    dummyTransactions[1].vout[1].nValue = 22 * CENT.GetSatoshis();
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
     AddCoins(coinsRet, dummyTransactions[1], 0);
@@ -311,11 +311,12 @@ BOOST_AUTO_TEST_CASE(test_Get) {
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
     t1.vout.resize(2);
-    t1.vout[0].nValue = 90 * CENT;
+    t1.vout[0].nValue = 90 * CENT.GetSatoshis();
     t1.vout[0].scriptPubKey << OP_1;
 
     BOOST_CHECK(AreInputsStandard(t1, coins));
-    BOOST_CHECK_EQUAL(coins.GetValueIn(t1), (50 + 21 + 22) * CENT);
+    BOOST_CHECK_EQUAL(coins.GetValueIn(t1),
+                      (50 + 21 + 22) * CENT.GetSatoshis());
 }
 
 void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
@@ -532,7 +533,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
     t.vout.resize(1);
-    t.vout[0].nValue = 90 * CENT;
+    t.vout[0].nValue = 90 * CENT.GetSatoshis();
     CKey key;
     key.MakeNewKey(true);
     t.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
@@ -541,8 +542,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     BOOST_CHECK(IsStandardTx(t, reason));
 
     // Check dust with default relay fee:
-    CAmount nDustThreshold = 182 * dustRelayFee.GetFeePerK() / 1000 * 3;
-    BOOST_CHECK_EQUAL(nDustThreshold, 546);
+    Amount nDustThreshold = 3 * 182 * dustRelayFee.GetFeePerK() / 1000;
+    BOOST_CHECK_EQUAL(nDustThreshold, Amount(546));
     // dust:
     t.vout[0].nValue = nDustThreshold - 1;
     BOOST_CHECK(!IsStandardTx(t, reason));
