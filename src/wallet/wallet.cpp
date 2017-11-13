@@ -1360,7 +1360,7 @@ isminetype CWallet::IsMine(const CTxIn &txin) const {
 
 // Note that this function doesn't distinguish between a 0-valued input, and a
 // not-"is mine" (according to the filter) input.
-Amount CWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const {
+CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const {
     LOCK(cs_wallet);
     std::map<uint256, CWalletTx>::const_iterator mi =
         mapWallet.find(txin.prevout.hash);
@@ -1437,9 +1437,9 @@ bool CWallet::IsFromMe(const CTransaction &tx) const {
     return GetDebit(tx, ISMINE_ALL) > 0;
 }
 
-Amount CWallet::GetDebit(const CTransaction &tx,
-                         const isminefilter &filter) const {
-    Amount nDebit = 0;
+CAmount CWallet::GetDebit(const CTransaction &tx,
+                          const isminefilter &filter) const {
+    CAmount nDebit = 0;
     for (const CTxIn &txin : tx.vin) {
         nDebit += GetDebit(txin, filter);
         if (!MoneyRange(nDebit)) {
@@ -1617,11 +1617,11 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
     strSentAccount = strFromAccount;
 
     // Compute fee:
-    Amount nDebit = GetDebit(filter);
+    CAmount nDebit = GetDebit(filter);
     // debit>0 means we signed/sent this transaction.
     if (nDebit > 0) {
-        Amount nValueOut = tx->GetValueOut();
-        nFee = (nDebit - nValueOut).GetSatoshis();
+        CAmount nValueOut = tx->GetValueOut().GetSatoshis();
+        nFee = nDebit - nValueOut;
     }
 
     // Sent/received.
@@ -1631,7 +1631,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
         // Only need to handle txouts if AT LEAST one of these is true:
         //   1) they debit from us (sent)
         //   2) the output is to us (received)
-        if (nDebit > Amount(0)) {
+        if (nDebit > 0) {
             // Don't report 'change' txouts
             if (pwallet->IsChange(txout)) {
                 continue;
@@ -1655,7 +1655,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
 
         // If we are debited by the transaction, add the output as a "sent"
         // entry.
-        if (nDebit > Amount(0)) {
+        if (nDebit > 0) {
             listSent.push_back(output);
         }
 
@@ -1840,16 +1840,15 @@ std::set<uint256> CWalletTx::GetConflicts() const {
     return result;
 }
 
-Amount CWalletTx::GetDebit(const isminefilter &filter) const {
+CAmount CWalletTx::GetDebit(const isminefilter &filter) const {
     if (tx->vin.empty()) return 0;
 
-    Amount debit = 0;
+    CAmount debit = 0;
     if (filter & ISMINE_SPENDABLE) {
         if (fDebitCached) {
             debit += nDebitCached;
         } else {
-            nDebitCached =
-                pwallet->GetDebit(*this, ISMINE_SPENDABLE).GetSatoshis();
+            nDebitCached = pwallet->GetDebit(*this, ISMINE_SPENDABLE);
             fDebitCached = true;
             debit += nDebitCached;
         }
@@ -1859,10 +1858,9 @@ Amount CWalletTx::GetDebit(const isminefilter &filter) const {
         if (fWatchDebitCached) {
             debit += nWatchDebitCached;
         } else {
-            nWatchDebitCached =
-                pwallet->GetDebit(*this, ISMINE_WATCH_ONLY).GetSatoshis();
+            nWatchDebitCached = pwallet->GetDebit(*this, ISMINE_WATCH_ONLY);
             fWatchDebitCached = true;
-            debit += Amount(nWatchDebitCached);
+            debit += nWatchDebitCached;
         }
     }
 
