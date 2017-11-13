@@ -14,7 +14,7 @@
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty
- * adjustment + Emergency Difficulty Adjustment (EDA).
+ * adjustement + Emergency Difficulty Adjustement (EDA).
  */
 static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
                                        const CBlockHeader *pblock,
@@ -55,13 +55,13 @@ static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
         return pindex->nBits;
     }
 
-    // We can't go below the minimum, so bail early.
+    // We can't go bellow the minimum, so early bail.
     uint32_t nBits = pindexPrev->nBits;
     if (nBits == nProofOfWorkLimit) {
         return nProofOfWorkLimit;
     }
 
-    // If producing the last 6 blocks took less than 12h, we keep the same
+    // If producing the last 6 block took less than 12h, we keep the same
     // difficulty.
     const CBlockIndex *pindex6 = pindexPrev->GetAncestor(nHeight - 7);
     assert(pindex6);
@@ -71,15 +71,14 @@ static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
         return nBits;
     }
 
-    // If producing the last 6 blocks took more than 12h, increase the
-    // difficulty target by 1/4 (which reduces the difficulty by 20%).
-    // This ensures that the chain does not get stuck in case we lose
-    // hashrate abruptly.
+    // If producing the last 6 block took more than 12h, increase the difficulty
+    // target by 1/4 (which reduces the difficulty by 20%). This ensure the
+    // chain do not get stuck in case we lose hashrate abruptly.
     arith_uint256 nPow;
     nPow.SetCompact(nBits);
     nPow += (nPow >> 2);
 
-    // Make sure we do not go below allowed values.
+    // Make sure we do not go bellow allowed values.
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
     if (nPow > bnPowLimit) nPow = bnPowLimit;
 
@@ -159,7 +158,7 @@ bool CheckProofOfWork(uint256 hash, uint32_t nBits,
 }
 
 /**
- * Compute a target based on the work done between 2 blocks and the time
+ * Compute the a target based on the work done between 2 blocks and the time
  * required to produce that work.
  */
 static arith_uint256 ComputeTarget(const CBlockIndex *pindexFirst,
@@ -176,9 +175,9 @@ static arith_uint256 ComputeTarget(const CBlockIndex *pindexFirst,
     work *= params.nPowTargetSpacing;
 
     // In order to avoid difficulty cliffs, we bound the amplitude of the
-    // adjustment we are going to do to a factor in [0.5, 2].
-    int64_t nActualTimespan =
-        int64_t(pindexLast->nTime) - int64_t(pindexFirst->nTime);
+    // adjustement we are going to do.
+    assert(pindexLast->nTime > pindexFirst->nTime);
+    int64_t nActualTimespan = pindexLast->nTime - pindexFirst->nTime;
     if (nActualTimespan > 288 * params.nPowTargetSpacing) {
         nActualTimespan = 288 * params.nPowTargetSpacing;
     } else if (nActualTimespan < 72 * params.nPowTargetSpacing) {
@@ -203,7 +202,7 @@ static const CBlockIndex *GetSuitableBlock(const CBlockIndex *pindex) {
     assert(pindex->nHeight >= 3);
 
     /**
-     * In order to avoid a block with a very skewed timestamp having too much
+     * In order to avoid a block is a very skewed timestamp to have too much
      * influence, we select the median of the 3 top most blocks as a starting
      * point.
      */
@@ -253,7 +252,7 @@ uint32_t GetNextCashWorkRequired(const CBlockIndex *pindexPrev,
         return UintToArith256(params.powLimit).GetCompact();
     }
 
-    // Compute the difficulty based on the full adjustment interval.
+    // Compute the difficulty based on the full adjustement interval.
     const uint32_t nHeight = pindexPrev->nHeight;
     assert(nHeight >= params.DifficultyAdjustmentInterval());
 
