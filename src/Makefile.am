@@ -383,7 +383,7 @@ libbitcoin_seeder_a_SOURCES = \
   seeder/compat.h \
   seeder/db.cpp \
   seeder/db.h \
-  seeder/dns.cpp \
+  seeder/dns.c \
   seeder/dns.h \
   seeder/netbase.cpp \
   seeder/netbase.h \

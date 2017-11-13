@@ -1,17 +1,17 @@
 #ifndef BITCOIN_SEEDER_DNS_H
 #define BITCOIN_SEEDER_DNS_H 1
 
-#include <cstdint>
+#include <stdint.h>
 
-struct addr_t {
+typedef struct {
     int v;
     union {
         uint8_t v4[4];
         uint8_t v6[16];
     } data;
-};
+} addr_t;
 
-struct dns_opt_t {
+typedef struct {
     int port;
     int datattl;
     int nsttl;
@@ -22,8 +22,8 @@ struct dns_opt_t {
                    uint32_t max, uint32_t ipv4, uint32_t ipv6);
     // stats
     uint64_t nRequests;
-};
+} dns_opt_t;
 
-int dnsserver(dns_opt_t *opt);
+extern int dnsserver(dns_opt_t *opt);
 
 #endif
