@@ -670,7 +670,6 @@ void CNode::copyStats(CNodeStats &stats) {
         X(nRecvBytes);
     }
     X(fWhitelisted);
-    X(fUsesCashMagic);
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer. Merely reporting
@@ -707,7 +706,7 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes,
     while (nBytes > 0) {
         // Get current incomplete message, or create a new one.
         if (vRecvMsg.empty() || vRecvMsg.back().complete()) {
-            vRecvMsg.push_back(CNetMessage(GetMagic(Params()), SER_NETWORK,
+            vRecvMsg.push_back(CNetMessage(Params().NetMagic(), SER_NETWORK,
                                            INIT_PROTO_VERSION));
         }
 
@@ -2843,8 +2842,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     nPingUsecStart = 0;
     nPingUsecTime = 0;
     fPingQueued = false;
-    // set when etablishing connection
-    fUsesCashMagic = true;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
     minFeeFilter = Amount(0);
     lastSentFeeFilter = Amount(0);
@@ -2929,8 +2926,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     std::vector<uint8_t> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);
     uint256 hash = Hash(msg.data.data(), msg.data.data() + nMessageSize);
-    CMessageHeader hdr(pnode->GetMagic(Params()), msg.command.c_str(),
-                       nMessageSize);
+    CMessageHeader hdr(Params().NetMagic(), msg.command.c_str(), nMessageSize);
     memcpy(hdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
     CVectorWriter{SER_NETWORK, INIT_PROTO_VERSION, serializedHeader, 0, hdr};

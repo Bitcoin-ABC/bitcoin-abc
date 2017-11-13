@@ -1599,9 +1599,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                   pfrom->addr.ToString().c_str(), cleanSubVer, pfrom->nVersion,
                   pfrom->nStartingHeight, addrMe.ToString(), pfrom->id,
                   remoteAddr);
-        if (pfrom->fUsesCashMagic) {
-            LogPrintf("peer %d uses CASH magic in its headers\n", pfrom->id);
-        }
 
         int64_t nTimeOffset = nTime - GetTime();
         pfrom->nTimeOffset = nTimeOffset;
@@ -3130,16 +3127,8 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
 
     msg.SetVersion(pfrom->GetRecvVersion());
 
-    // This is a new peer. Before doing anything, we need to detect what magic
-    // the peer is using.
-    if (pfrom->nVersion == 0 &&
-        memcmp(msg.hdr.pchMessageStart, chainparams.DiskMagic(),
-               CMessageHeader::MESSAGE_START_SIZE) == 0) {
-        pfrom->fUsesCashMagic = false;
-    }
-
     // Scan for message start
-    if (memcmp(msg.hdr.pchMessageStart, pfrom->GetMagic(chainparams),
+    if (memcmp(msg.hdr.pchMessageStart, chainparams.NetMagic(),
                CMessageHeader::MESSAGE_START_SIZE) != 0) {
         LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
                   SanitizeString(msg.hdr.GetCommand()), pfrom->id);
@@ -3149,7 +3138,7 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
 
     // Read header
     CMessageHeader &hdr = msg.hdr;
-    if (!hdr.IsValid(pfrom->GetMagic(chainparams))) {
+    if (!hdr.IsValid(chainparams.NetMagic())) {
         LogPrintf("PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n",
                   SanitizeString(hdr.GetCommand()), pfrom->id);
         return fMoreWork;
