@@ -10,7 +10,6 @@
 #include "chain.h"
 #include "primitives/block.h"
 #include "uint256.h"
-#include "util.h"
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty
@@ -96,11 +95,6 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
     // Special rule for regtest: we never retarget.
     if (params.fPowNoRetargeting) {
         return pindexPrev->nBits;
-    }
-
-    if (pindexPrev->GetMedianTimePast() >=
-        GetArg("-newdaaactivationtime", params.cashHardForkActivationTime)) {
-        return GetNextCashWorkRequired(pindexPrev, pblock, params);
     }
 
     return GetNextEDAWorkRequired(pindexPrev, pblock, params);
