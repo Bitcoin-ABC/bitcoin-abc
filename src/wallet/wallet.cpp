@@ -2569,7 +2569,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, CAmount &nFeeRet,
     // Turn the txout set into a CRecipient vector.
     for (size_t idx = 0; idx < tx.vout.size(); idx++) {
         const CTxOut &txOut = tx.vout[idx];
-        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue,
+        CRecipient recipient = {txOut.scriptPubKey, txOut.nValue.GetSatoshis(),
                                 setSubtractFeeFromOutputs.count(idx) == 1};
         vecSend.push_back(recipient);
     }
@@ -2628,11 +2628,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                                 CAmount &nFeeRet, int &nChangePosInOut,
                                 std::string &strFailReason,
                                 const CCoinControl *coinControl, bool sign) {
-    Amount nValue = 0;
+    CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
-        if (nValue < Amount(0) || recipient.nAmount < Amount(0)) {
+        if (nValue < 0 || recipient.nAmount < 0) {
             strFailReason = _("Transaction amounts must not be negative");
             return false;
         }
@@ -2702,7 +2702,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             wtxNew.fFromMe = true;
             bool fFirst = true;
 
-            Amount nValueToSelect = nValue;
+            CAmount nValueToSelect = nValue;
             if (nSubtractFeeFromAmount == 0) {
                 nValueToSelect += nFeeRet;
             }

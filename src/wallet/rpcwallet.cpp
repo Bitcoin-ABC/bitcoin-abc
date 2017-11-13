@@ -1212,7 +1212,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::set<CTxDestination> destinations;
     std::vector<CRecipient> vecSend;
 
-    Amount totalAmount = 0;
+    CAmount totalAmount = 0;
     std::vector<std::string> keys = sendTo.getKeys();
     for (const std::string &name_ : keys) {
         CTxDestination dest = DecodeDestination(name_);
@@ -1230,8 +1230,8 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         destinations.insert(dest);
 
         CScript scriptPubKey = GetScriptForDestination(dest);
-        Amount nAmount = AmountFromValue(sendTo[name_]);
-        if (nAmount <= Amount(0)) {
+        CAmount nAmount = AmountFromValue(sendTo[name_]).GetSatoshis();
+        if (nAmount <= 0) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
         }
         totalAmount += nAmount;
