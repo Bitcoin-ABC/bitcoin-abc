@@ -3585,16 +3585,16 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
     return ret;
 }
 
-Amount CWallet::GetAccountBalance(const std::string &strAccount, int nMinDepth,
-                                  const isminefilter &filter) {
+CAmount CWallet::GetAccountBalance(const std::string &strAccount, int nMinDepth,
+                                   const isminefilter &filter) {
     CWalletDB walletdb(strWalletFile);
     return GetAccountBalance(walletdb, strAccount, nMinDepth, filter);
 }
 
-Amount CWallet::GetAccountBalance(CWalletDB &walletdb,
-                                  const std::string &strAccount, int nMinDepth,
-                                  const isminefilter &filter) {
-    Amount nBalance = 0;
+CAmount CWallet::GetAccountBalance(CWalletDB &walletdb,
+                                   const std::string &strAccount, int nMinDepth,
+                                   const isminefilter &filter) {
+    CAmount nBalance = 0;
 
     // Tally wallet transactions.
     for (std::map<uint256, CWalletTx>::iterator it = mapWallet.begin();

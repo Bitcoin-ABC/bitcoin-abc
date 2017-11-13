@@ -890,10 +890,11 @@ public:
     std::set<std::set<CTxDestination>> GetAddressGroupings();
     std::map<CTxDestination, CAmount> GetAddressBalances();
 
-    Amount GetAccountBalance(const std::string &strAccount, int nMinDepth,
-                             const isminefilter &filter);
-    Amount GetAccountBalance(CWalletDB &walletdb, const std::string &strAccount,
-                             int nMinDepth, const isminefilter &filter);
+    CAmount GetAccountBalance(const std::string &strAccount, int nMinDepth,
+                              const isminefilter &filter);
+    CAmount GetAccountBalance(CWalletDB &walletdb,
+                              const std::string &strAccount, int nMinDepth,
+                              const isminefilter &filter);
     std::set<CTxDestination>
     GetAccountAddresses(const std::string &strAccount) const;
 

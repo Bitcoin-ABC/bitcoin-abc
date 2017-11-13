@@ -910,7 +910,7 @@ static UniValue getbalance(const Config &config,
 
     std::string strAccount = AccountFromValue(request.params[0]);
 
-    Amount nBalance =
+    CAmount nBalance =
         pwalletMain->GetAccountBalance(strAccount, nMinDepth, filter);
 
     return ValueFromAmount(nBalance);
@@ -1092,7 +1092,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked();
 
     // Check funds
-    Amount nBalance =
+    CAmount nBalance =
         pwalletMain->GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
     if (nAmount > nBalance) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
@@ -1251,7 +1251,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked();
 
     // Check funds
-    Amount nBalance =
+    CAmount nBalance =
         pwalletMain->GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
     if (totalAmount > nBalance) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
