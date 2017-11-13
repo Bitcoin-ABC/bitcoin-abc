@@ -875,7 +875,7 @@ static UniValue getbalance(const Config &config,
         // unspent TxOuts paying to the wallet, and then subtracts the values of
         // TxIns spending from the wallet. This also has fewer restrictions on
         // which unconfirmed transactions are considered trusted.
-        Amount nBalance = 0;
+        CAmount nBalance = 0;
         for (std::map<uint256, CWalletTx>::iterator it =
                  pwalletMain->mapWallet.begin();
              it != pwalletMain->mapWallet.end(); ++it) {
@@ -889,7 +889,7 @@ static UniValue getbalance(const Config &config,
                 continue;
             }
 
-            Amount allFee;
+            CAmount allFee;
             std::string strSentAccount;
             std::list<COutputEntry> listReceived;
             std::list<COutputEntry> listSent;
@@ -1595,7 +1595,7 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
 void ListTransactions(const CWalletTx &wtx, const std::string &strAccount,
                       int nMinDepth, bool fLong, UniValue &ret,
                       const isminefilter &filter) {
-    Amount nFee;
+    CAmount nFee;
     std::string strSentAccount;
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;
@@ -1606,7 +1606,7 @@ void ListTransactions(const CWalletTx &wtx, const std::string &strAccount,
     bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
 
     // Sent
-    if ((!listSent.empty() || nFee != Amount(0)) &&
+    if ((!listSent.empty() || nFee != 0) &&
         (fAllAccounts || strAccount == strSentAccount)) {
         for (const COutputEntry &s : listSent) {
             UniValue entry(UniValue::VOBJ);
@@ -1623,7 +1623,7 @@ void ListTransactions(const CWalletTx &wtx, const std::string &strAccount,
                     "label", pwalletMain->mapAddressBook[s.destination].name));
             }
             entry.push_back(Pair("vout", s.vout));
-            entry.push_back(Pair("fee", ValueFromAmount(-1 * nFee)));
+            entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
             if (fLong) {
                 WalletTxToJSON(wtx, entry);
             }
@@ -1936,7 +1936,7 @@ static UniValue listaccounts(const Config &config,
              pwalletMain->mapWallet.begin();
          it != pwalletMain->mapWallet.end(); ++it) {
         const CWalletTx &wtx = (*it).second;
-        Amount nFee;
+        CAmount nFee;
         std::string strSentAccount;
         std::list<COutputEntry> listReceived;
         std::list<COutputEntry> listSent;
@@ -1946,7 +1946,7 @@ static UniValue listaccounts(const Config &config,
         }
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount,
                        includeWatchonly);
-        mapAccountBalances[strSentAccount] -= nFee.GetSatoshis();
+        mapAccountBalances[strSentAccount] -= nFee;
         for (const COutputEntry &s : listSent) {
             mapAccountBalances[strSentAccount] -= s.amount;
         }
