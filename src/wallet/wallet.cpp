@@ -1380,14 +1380,14 @@ isminetype CWallet::IsMine(const CTxOut &txout) const {
     return ::IsMine(*this, txout.scriptPubKey);
 }
 
-Amount CWallet::GetCredit(const CTxOut &txout,
-                          const isminefilter &filter) const {
+CAmount CWallet::GetCredit(const CTxOut &txout,
+                           const isminefilter &filter) const {
     if (!MoneyRange(txout.nValue)) {
         throw std::runtime_error(std::string(__func__) +
                                  ": value out of range");
     }
 
-    return (IsMine(txout) & filter) ? txout.nValue : Amount(0);
+    return (IsMine(txout) & filter) ? txout.nValue.GetSatoshis() : 0;
 }
 
 bool CWallet::IsChange(const CTxOut &txout) const {
@@ -1477,9 +1477,9 @@ bool CWallet::IsAllFromMe(const CTransaction &tx,
     return true;
 }
 
-Amount CWallet::GetCredit(const CTransaction &tx,
-                          const isminefilter &filter) const {
-    Amount nCredit = 0;
+CAmount CWallet::GetCredit(const CTransaction &tx,
+                           const isminefilter &filter) const {
+    CAmount nCredit = 0;
     for (const CTxOut &txout : tx.vout) {
         nCredit += GetCredit(txout, filter);
         if (!MoneyRange(nCredit)) {
@@ -1867,14 +1867,14 @@ CAmount CWalletTx::GetDebit(const isminefilter &filter) const {
     return debit;
 }
 
-Amount CWalletTx::GetCredit(const isminefilter &filter) const {
+CAmount CWalletTx::GetCredit(const isminefilter &filter) const {
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (IsCoinBase() && GetBlocksToMaturity() > 0) {
         return 0;
     }
 
-    Amount credit = 0;
+    CAmount credit = 0;
     if (filter & ISMINE_SPENDABLE) {
         // GetBalance can assume transactions in mapWallet won't change.
         if (fCreditCached) {
@@ -1890,8 +1890,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
         if (fWatchCreditCached) {
             credit += nWatchCreditCached;
         } else {
-            nWatchCreditCached =
-                pwallet->GetCredit(*this, ISMINE_WATCH_ONLY).GetSatoshis();
+            nWatchCreditCached = pwallet->GetCredit(*this, ISMINE_WATCH_ONLY);
             fWatchCreditCached = true;
             credit += nWatchCreditCached;
         }
@@ -1903,8 +1902,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
 CAmount CWalletTx::GetImmatureCredit(bool fUseCache) const {
     if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain()) {
         if (fUseCache && fImmatureCreditCached) return nImmatureCreditCached;
-        nImmatureCreditCached =
-            pwallet->GetCredit(*this, ISMINE_SPENDABLE).GetSatoshis();
+        nImmatureCreditCached = pwallet->GetCredit(*this, ISMINE_SPENDABLE);
         fImmatureCreditCached = true;
         return nImmatureCreditCached;
     }
@@ -1932,8 +1930,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     for (unsigned int i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(hashTx, i)) {
             const CTxOut &txout = tx->vout[i];
-            nCredit +=
-                pwallet->GetCredit(txout, ISMINE_SPENDABLE).GetSatoshis();
+            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit)) {
                 throw std::runtime_error(
                     "CWalletTx::GetAvailableCredit() : value out of range");
@@ -1953,7 +1950,7 @@ CAmount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
         }
 
         nImmatureWatchCreditCached =
-            pwallet->GetCredit(*this, ISMINE_WATCH_ONLY).GetSatoshis();
+            pwallet->GetCredit(*this, ISMINE_WATCH_ONLY);
         fImmatureWatchCreditCached = true;
         return nImmatureWatchCreditCached;
     }
@@ -1976,7 +1973,7 @@ CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
         return nAvailableWatchCreditCached;
     }
 
-    Amount nCredit = 0;
+    CAmount nCredit = 0;
     for (unsigned int i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
             const CTxOut &txout = tx->vout[i];
@@ -1988,9 +1985,9 @@ CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
         }
     }
 
-    nAvailableWatchCreditCached = nCredit.GetSatoshis();
+    nAvailableWatchCreditCached = nCredit;
     fAvailableWatchCreditCached = true;
-    return nCredit.GetSatoshis();
+    return nCredit;
 }
 
 Amount CWalletTx::GetChange() const {

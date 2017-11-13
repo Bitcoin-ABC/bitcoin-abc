@@ -285,7 +285,7 @@ public:
     mutable bool fAvailableWatchCreditCached;
     mutable bool fChangeCached;
     mutable CAmount nDebitCached;
-    mutable Amount nCreditCached;
+    mutable CAmount nCreditCached;
     mutable CAmount nImmatureCreditCached;
     mutable CAmount nAvailableCreditCached;
     mutable CAmount nWatchDebitCached;
@@ -394,7 +394,7 @@ public:
 
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter &filter) const;
-    Amount GetCredit(const isminefilter &filter) const;
+    CAmount GetCredit(const isminefilter &filter) const;
     CAmount GetImmatureCredit(bool fUseCache = true) const;
     CAmount GetAvailableCredit(bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool &fUseCache = true) const;
@@ -904,7 +904,7 @@ public:
      */
     CAmount GetDebit(const CTxIn &txin, const isminefilter &filter) const;
     isminetype IsMine(const CTxOut &txout) const;
-    Amount GetCredit(const CTxOut &txout, const isminefilter &filter) const;
+    CAmount GetCredit(const CTxOut &txout, const isminefilter &filter) const;
     bool IsChange(const CTxOut &txout) const;
     Amount GetChange(const CTxOut &txout) const;
     bool IsMine(const CTransaction &tx) const;
@@ -913,7 +913,7 @@ public:
     CAmount GetDebit(const CTransaction &tx, const isminefilter &filter) const;
     /** Returns whether all of the inputs match the filter */
     bool IsAllFromMe(const CTransaction &tx, const isminefilter &filter) const;
-    Amount GetCredit(const CTransaction &tx, const isminefilter &filter) const;
+    CAmount GetCredit(const CTransaction &tx, const isminefilter &filter) const;
     Amount GetChange(const CTransaction &tx) const;
     void SetBestChain(const CBlockLocator &loc) override;
 
