@@ -67,7 +67,7 @@ class CTxMemPool;
 
 struct TestMemPoolEntryHelper {
     // Default values
-    Amount nFee;
+    CAmount nFee;
     int64_t nTime;
     double dPriority;
     unsigned int nHeight;
@@ -84,7 +84,7 @@ struct TestMemPoolEntryHelper {
     CTxMemPoolEntry FromTx(const CTransaction &tx, CTxMemPool *pool = nullptr);
 
     // Change the default value
-    TestMemPoolEntryHelper &Fee(Amount _fee) {
+    TestMemPoolEntryHelper &Fee(CAmount _fee) {
         nFee = _fee;
         return *this;
     }

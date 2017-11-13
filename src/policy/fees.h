@@ -199,15 +199,15 @@ static const double SUFFICIENT_FEETXS = 1;
 
 // Minimum and Maximum values for tracking feerates
 static constexpr double MIN_FEERATE = 10;
-static const Amount MAX_FEERATE(int64_t(1e7));
-static const Amount INF_FEERATE(MAX_MONEY);
-static const Amount INF_PRIORITY(int64_t(1e9) * MAX_MONEY);
+static const double MAX_FEERATE = 1e7;
+static const double INF_FEERATE = MAX_MONEY.GetSatoshis();
+static const double INF_PRIORITY = 1e9 * MAX_MONEY.GetSatoshis();
 
 // We have to lump transactions into buckets based on feerate, but we want to be
 // able to give accurate estimates over a large range of potential feerates.
 // Therefore it makes sense to exponentially space the buckets
 /** Spacing of FeeRate buckets */
-static const int64_t FEE_SPACING_FRACTION = 10;
+static const double FEE_SPACING = 1.1;
 
 /**
  * We want to be able to estimate feerates that are needed on tx's to be
@@ -297,10 +297,10 @@ public:
     FeeFilterRounder(const CFeeRate &minIncrementalFee);
 
     /** Quantize a minimum fee for privacy purpose before broadcast **/
-    Amount round(const Amount currentMinFee);
+    CAmount round(CAmount currentMinFee);
 
 private:
-    std::set<Amount> feeset;
+    std::set<double> feeset;
     FastRandomContext insecure_rand;
 };
 #endif /*BITCOIN_POLICYESTIMATOR_H */
