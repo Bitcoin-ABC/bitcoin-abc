@@ -5,7 +5,7 @@
 """
 The OutputChecker class offers a way for tests to check for expected
 strings in captured output streams (it is used by abc-cmdline.py for
-checking captured stderr output of bitcoind processes at the moment).
+checking captured stderr output of bitcoinabc processes at the moment).
 """
 
 import tempfile

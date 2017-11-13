@@ -13,7 +13,7 @@ How to Upgrade
 If you are running an older version, shut it down. Wait
 until it has completely shut down (which might take a few minutes for older
 versions), then run the installer (on Windows) or just copy over
-/Applications/Bitcoin-Qt (on Mac) or bitcoind/bitcoin-qt (on Linux).
+/Applications/Bitcoin-Qt (on Mac) or bitcoinabc/bitcoin-qt (on Linux).
 
 The first time you run after the upgrade a re-indexing process will be
 started that will take anywhere from 30 minutes to several hours,
@@ -90,7 +90,7 @@ Important Bug Fixes
 
 Privacy leak: the position of the "change" output in most transactions was not being
 properly randomized, making network analysis of the transaction graph to identify
-users' wallets easier. 
+users' wallets easier.
 
 Zero-confirmation transaction vulnerability: accepting zero-confirmation transactions
 (transactions that have not yet been included in a block) from somebody you do not

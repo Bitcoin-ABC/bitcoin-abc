@@ -69,7 +69,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
             assert(outputchecker.contains(
                 'Error: Excessive block size must be > 1,000,000 bytes (1MB)'))
             assert_equal(
-                'bitcoind exited with status 1 during initialization', str(e))
+                'bitcoinabc exited with status 1 during initialization', str(e))
         else:
             raise AssertionError("Must not accept excessiveblocksize"
                                  " value < %d bytes" % LEGACY_MAX_BLOCK_SIZE)
@@ -86,7 +86,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
             assert(outputchecker.contains(
                 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR))
             assert_equal(
-                'bitcoind exited with status 1 during initialization', str(e))
+                'bitcoinabc exited with status 1 during initialization', str(e))
         else:
             raise AssertionError('Must not accept excessiveblocksize'
                                  ' below blockmaxsize')

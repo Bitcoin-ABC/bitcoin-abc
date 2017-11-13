@@ -24,14 +24,15 @@ class HTTPBasicsTest (BitcoinTestFramework):
 
     def setup_chain(self):
         super().setup_chain()
-        # Append rpcauth to bitcoin.conf before initialization
+        #Append rpcauth to bitcoinabc.conf before initialization
         rpcauth = "rpcauth=rt:93648e835a54c573682c2eb19f882535$7681e9c5b74bdd85e78166031d2058e1069b3ed7ed967c93fc63abba06f31144"
         rpcauth2 = "rpcauth=rt2:f8607b1a88861fac29dfccf9b52ff9f$ff36a0c23c8c62b4846112e50fa888416e94c17bfd4c42f88fd8f55ec6a3137e"
-        with open(os.path.join(self.options.tmpdir + "/node0", "bitcoin.conf"), 'a', encoding='utf8') as f:
-            f.write(rpcauth + "\n")
-            f.write(rpcauth2 + "\n")
+        with open(os.path.join(self.options.tmpdir+"/node0", "bitcoinabc.conf"), 'a', encoding='utf8') as f:
+            f.write(rpcauth+"\n")
+            f.write(rpcauth2+"\n")
 
-    def run_test(self):
+    def setup_network(self):
+        self.nodes = self.setup_nodes()
 
         #
         # Check correctness of the rpcauth config option #
@@ -59,7 +60,7 @@ class HTTPBasicsTest (BitcoinTestFramework):
         assert_equal(resp.status == 401, False)
         conn.close()
 
-        # Use new authpair to confirm both work
+        #Use new authpair to confirm both work
         headers = {"Authorization": "Basic " + str_to_b64str(authpairnew)}
 
         conn = http.client.HTTPConnection(url.hostname, url.port)

@@ -104,17 +104,13 @@ class BitcoinTestFramework(object):
     def main(self):
 
         parser = optparse.OptionParser(usage="%prog [options]")
-        parser.add_option(
-            "--nocleanup", dest="nocleanup", default=False, action="store_true",
-                          help="Leave bitcoinds and test.* datadir on exit or error")
-        parser.add_option(
-            "--noshutdown", dest="noshutdown", default=False, action="store_true",
-                          help="Don't stop bitcoinds after the test execution")
-        parser.add_option(
-            "--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
-                          help="Source directory containing bitcoind/bitcoin-cli (default: %default)")
-        parser.add_option(
-            "--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
+        parser.add_option("--nocleanup", dest="nocleanup", default=False, action="store_true",
+                          help="Leave bitcoinabcs and test.* datadir on exit or error")
+        parser.add_option("--noshutdown", dest="noshutdown", default=False, action="store_true",
+                          help="Don't stop bitcoinabcs after the test execution")
+        parser.add_option("--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__))+"/../../../src"),
+                          help="Source directory containing bitcoinabc/bitcoin-cli (default: %default)")
+        parser.add_option("--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__))+"/../../cache"),
                           help="Directory for caching pregenerated datadirs")
         parser.add_option(
             "--tmpdir", dest="tmpdir", default=tempfile.mkdtemp(prefix="test"),
@@ -172,8 +168,12 @@ class BitcoinTestFramework(object):
             self.log.info("Stopping nodes")
             stop_nodes(self.nodes)
         else:
+<<<<<<< HEAD
+            print("Note: bitcoinabcs were not stopped and may still be running")
+=======
             self.log.info(
                 "Note: bitcoinds were not stopped and may still be running")
+>>>>>>> 67d83e7ce1657c3e59f7c2678eaeb30158abf1d5
 
         if not self.options.nocleanup and not self.options.noshutdown and success:
             self.log.info("Cleaning up")
@@ -235,7 +235,7 @@ class BitcoinTestFramework(object):
             rpc_handler.setLevel(logging.DEBUG)
             rpc_logger.addHandler(rpc_handler)
 
-# Test framework for doing p2p comparison testing, which sets up some bitcoind
+# Test framework for doing p2p comparison testing, which sets up some bitcoinabc
 # binaries:
 # 1 binary: test binary
 # 2 binaries: 1 test binary, 1 ref binary
@@ -251,11 +251,11 @@ class ComparisonTestFramework(BitcoinTestFramework):
 
     def add_options(self, parser):
         parser.add_option("--testbinary", dest="testbinary",
-                          default=os.getenv("BITCOIND", "bitcoind"),
-                          help="bitcoind binary to test")
+                          default=os.getenv("BITCOINABC", "bitcoinabc"),
+                          help="bitcoinabc binary to test")
         parser.add_option("--refbinary", dest="refbinary",
-                          default=os.getenv("BITCOIND", "bitcoind"),
-                          help="bitcoind binary to use for reference nodes (if any)")
+                          default=os.getenv("BITCOINABC", "bitcoinabc"),
+                          help="bitcoinabc binary to use for reference nodes (if any)")
 
     def setup_network(self):
         extra_args = [['-whitelist=127.0.0.1']] * self.num_nodes

@@ -1,0 +1,92 @@
+#!/sbin/runscript
+
+# backward compatibility for existing gentoo layout
+#
+if [ -d "/var/lib/bitcoin/.bitcoin" ]; then
+	BITCOINABC_DEFAULT_DATADIR="/var/lib/bitcoin/.bitcoinabc"
+else
+	BITCOINABC_DEFAULT_DATADIR="/var/lib/bitcoinabc"
+fi
+
+BITCOINABC_CONFIGFILE=${BITCOINABC_CONFIGFILE:-/etc/bitcoinabc/bitcoinabc.conf}
+BITCOINABC_PIDDIR=${BITCOINABC_PIDDIR:-/var/run/bitcoinabc}
+BITCOINABC_PIDFILE=${BITCOINABC_PIDFILE:-${BITCOINABC_PIDDIR}/bitcoinabc.pid}
+BITCOINABC_DATADIR=${BITCOINABC_DATADIR:-${BITCOINABC_DEFAULT_DATADIR}}
+BITCOINABC_USER=${BITCOINABC_USER:-${BITCOIN_USER:-bitcoin}}
+BITCOINABC_GROUP=${BITCOINABC_GROUP:-bitcoin}
+BITCOINABC_BIN=${BITCOINABC_BIN:-/usr/bin/bitcoinabc}
+BITCOINABC_NICE=${BITCOINABC_NICE:-${NICELEVEL:-0}}
+BITCOINABC_OPTS="${BITCOINABC_OPTS:-${BITCOIN_OPTS}}"
+
+name="Bitcoin ABC Daemon"
+description="Bitcoin cryptocurrency P2P network daemon"
+
+command="/usr/bin/bitcoinabc"
+command_args="-pid=\"${BITCOINABC_PIDFILE}\" \
+		-conf=\"${BITCOINABC_CONFIGFILE}\" \
+		-datadir=\"${BITCOINABC_DATADIR}\" \
+		-daemon \
+		${BITCOINABC_OPTS}"
+
+required_files="${BITCOINABC_CONFIGFILE}"
+start_stop_daemon_args="-u ${BITCOINABC_USER} \
+			-N ${BITCOINABC_NICE} -w 2000"
+pidfile="${BITCOINABC_PIDFILE}"
+
+# The retry schedule to use when stopping the daemon. Could be either
+# a timeout in seconds or multiple signal/timeout pairs (like
+# "SIGKILL/180 SIGTERM/300")
+retry="${BITCOINABC_SIGTERM_TIMEOUT}"
+
+depend() {
+	need localmount net
+}
+
+# verify
+# 1) that the datadir exists and is writable (or create it)
+# 2) that a directory for the pid exists and is writable
+# 3) ownership and permissions on the config file
+start_pre() {
+	checkpath \
+	-d \
+	--mode 0750 \
+	--owner "${BITCOINABC_USER}:${BITCOINABC_GROUP}" \
+	"${BITCOINABC_DATADIR}"
+
+	checkpath \
+	-d \
+	--mode 0755 \
+	--owner "${BITCOINABC_USER}:${BITCOINABC_GROUP}" \
+	"${BITCOINABC_PIDDIR}"
+
+	checkpath -f \
+	-o ${BITCOINABC_USER}:${BITCOINABC_GROUP} \
+	-m 0660 \
+	${BITCOINABC_CONFIGFILE}
+
+	checkconfig || return 1
+}
+
+checkconfig()
+{
+	if ! grep -qs '^rpcpassword=' "${BITCOINABC_CONFIGFILE}" ; then
+		eerror ""
+		eerror "ERROR: You must set a secure rpcpassword to run bitcoinabc."
+		eerror "The setting must appear in ${BITCOINABC_CONFIGFILE}"
+		eerror ""
+		eerror "This password is security critical to securing wallets "
+		eerror "and must not be the same as the rpcuser setting."
+		eerror "You can generate a suitable random password using the following"
+		eerror "command from the shell:"
+		eerror ""
+		eerror "bash -c 'tr -dc a-zA-Z0-9 < /dev/urandom | head -c32 && echo'"
+		eerror ""
+		eerror "It is also recommended that you also set alertnotify so you are "
+		eerror "notified of problems:"
+		eerror ""
+		eerror "ie: alertnotify=echo %%s | mail -s \"Bitcoin Alert\"" \
+			"admin@foo.com"
+		eerror ""
+		return 1
+	fi
+}

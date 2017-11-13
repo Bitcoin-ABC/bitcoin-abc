@@ -47,9 +47,9 @@ RPC_TESTS_DIR = SRCDIR + '/qa/rpc-tests/'
 
 # If imported values are not defined then set to zero (or disabled)
 if 'ENABLE_WALLET' not in vars():
-    ENABLE_WALLET = 0
-if 'ENABLE_BITCOIND' not in vars():
-    ENABLE_BITCOIND = 0
+    ENABLE_WALLET=0
+if 'ENABLE_BITCOINABC' not in vars():
+    ENABLE_BITCOINABC=0
 if 'ENABLE_UTILS' not in vars():
     ENABLE_UTILS = 0
 if 'ENABLE_ZMQ' not in vars():
@@ -79,9 +79,9 @@ for arg in sys.argv[1:]:
     else:
         opts.add(arg)
 
-# Set env vars
-if "BITCOIND" not in os.environ:
-    os.environ["BITCOIND"] = BUILDDIR + '/src/bitcoind' + EXEEXT
+#Set env vars
+if "BITCOINABC" not in os.environ:
+    os.environ["BITCOINABC"] = BUILDDIR + '/src/bitcoinabc' + EXEEXT
 
 if EXEEXT == ".exe" and "-win" not in opts:
     # https://github.com/bitcoin/bitcoin/commit/d52802551752140cf41f0d9a225a43e84404d3e9
@@ -90,9 +90,8 @@ if EXEEXT == ".exe" and "-win" not in opts:
         "Win tests currently disabled by default.  Use -win option to enable")
     sys.exit(0)
 
-if not (ENABLE_WALLET == 1 and ENABLE_UTILS == 1 and ENABLE_BITCOIND == 1):
-    print(
-        "No rpc tests to run. Wallet, utils, and bitcoind must all be enabled")
+if not (ENABLE_WALLET == 1 and ENABLE_UTILS == 1 and ENABLE_BITCOINABC == 1):
+    print("No rpc tests to run. Wallet, utils, and bitcoinabc must all be enabled")
     sys.exit(0)
 
 # python3-zmq may not be installed. Handle this gracefully and with some
@@ -279,7 +278,7 @@ class RPCTestHandler:
         self.test_list = test_list
         self.flags = flags
         self.num_running = 0
-        # In case there is a graveyard of zombie bitcoinds, we can apply a
+        # In case there is a graveyard of zombie bitcoinabcs, we can apply a
         # pseudorandom offset to hopefully jump over them.
         # (625 is PORT_RANGE/MAX_NODES)
         self.portseed_offset = int(time.time() * 1000) % 625

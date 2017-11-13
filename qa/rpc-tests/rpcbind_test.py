@@ -33,10 +33,9 @@ class RPCBindTest(BitcoinTestFramework):
         base_args = ['-disablewallet', '-nolisten']
         if allow_ips:
             base_args += ['-rpcallowip=' + x for x in allow_ips]
-        binds = ['-rpcbind=' + addr for addr in addresses]
-        self.nodes = start_nodes(
-            self.num_nodes, self.options.tmpdir, [base_args + binds], connect_to)
-        pid = bitcoind_processes[0].pid
+        binds = ['-rpcbind='+addr for addr in addresses]
+        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, [base_args + binds], connect_to)
+        pid = bitcoinabc_processes[0].pid
         assert_equal(set(get_bind_addrs(pid)), set(expected))
         stop_nodes(self.nodes)
 

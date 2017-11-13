@@ -53,15 +53,15 @@ Build Bitcoin ABC
 Running
 -------
 
-Bitcoin ABC is now available at `./src/bitcoind`
+Bitcoin ABC is now available at `./src/bitcoinabc`
 
 Before running, it's recommended you create an RPC configuration file.
 
-    echo -e "rpcuser=bitcoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+    echo -e "rpcuser=bitcoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Bitcoinabc/bitcoinabc.conf"
 
-    chmod 600 "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/Bitcoinabc/bitcoinabc.conf"
 
-The first time you run bitcoind, it will start downloading the blockchain. This process could take several hours.
+The first time you run bitcoinabc, it will start downloading the blockchain. This process could take several hours.
 
 You can monitor the download process by looking at the debug.log file:
 
@@ -70,7 +70,7 @@ You can monitor the download process by looking at the debug.log file:
 Other commands:
 -------
 
-    ./src/bitcoind -daemon # Starts the bitcoin daemon.
+    ./src/bitcoinabc -daemon # Starts the bitcoin daemon.
     ./src/bitcoin-cli --help # Outputs a list of command-line options.
     ./src/bitcoin-cli help # Outputs a list of RPC commands when the daemon is running.
 

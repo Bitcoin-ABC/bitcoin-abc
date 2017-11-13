@@ -17,7 +17,7 @@ The wallet encryption feature introduced in Bitcoin version 0.4.0 did not suffic
 managed to get a copy of your encrypted wallet.dat file might be able to recover some or all of the unencrypted keys and steal the
 associated coins.
 
-If you have a previously encrypted wallet.dat, the first time you run bitcoin-qt or bitcoind the wallet will be rewritten, Bitcoin will
+If you have a previously encrypted wallet.dat, the first time you run bitcoin-qt or bitcoinabc the wallet will be rewritten, Bitcoin will
 shut down, and you will be prompted to restart it to run with the new, properly encrypted file.
 
 If you had a previously encrypted wallet.dat that might have been copied or stolen (for example, you backed it up to a public
@@ -32,7 +32,7 @@ new private keys are properly backed up you should:
 
 2. Run it again, then ask it for a new bitcoin address.
 Bitcoin-Qt: Address Book, then New Address...
-bitcoind: run the 'walletpassphrase' RPC command to unlock the wallet,  then run the 'getnewaddress' RPC command.
+bitcoinabc: run the 'walletpassphrase' RPC command to unlock the wallet,  then run the 'getnewaddress' RPC command.
 
 3. If your encrypted wallet.dat may have been copied or stolen, send  all of your bitcoins to the new bitcoin address.
 

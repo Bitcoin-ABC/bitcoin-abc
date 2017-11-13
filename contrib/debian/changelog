@@ -284,7 +284,7 @@ bitcoin (0.3.24~dfsg-1) unstable; urgency=low
 
   [ Jonas Smedegaard ]
   * Improve various usage hints:
-    + Explicitly mention in long description that bitcoind contains
+    + Explicitly mention in long description that bitcoinabc contains
       daemon and command-line interface.
     + Extend README.Debian with section on lack of GUI, and add primary
       headline.
@@ -365,7 +365,7 @@ bitcoin (0.3.20.01~dfsg-1) unstable; urgency=low
   * Add myself as uploader.
 
   [ Jonas Smedegaard ]
-  * Add wrapper for bitcoind to ease initial startup.
+  * Add wrapper for bitcoinabc to ease initial startup.
   * Update patches:
     + Drop patch 2002: Applied upstream.
     + Add patch 1005 to add phtread linker option.
@@ -373,7 +373,7 @@ bitcoin (0.3.20.01~dfsg-1) unstable; urgency=low
     + Refresh patches.
   * Extend copyright years in rules file header.
   * Rewrite copyright file using draft svn166 of DEP5 format.
-  * Rename binary package to bitcoind (from bincoin-cli).
+  * Rename binary package to bitcoinabc (from bincoin-cli).
     Closes: bug#614025. Thanks to Luke-Jr.
 
  -- Jonas Smedegaard <dr@jones.dk>  Tue, 01 Mar 2011 15:55:04 +0100
@@ -407,8 +407,8 @@ bitcoin (0.3.19~dfsg-5) unstable; urgency=low
 bitcoin (0.3.19~dfsg-4) unstable; urgency=low
 
   [ Micah Anderson ]
-  * Provide example bitcoin.conf.
-  * Add bitcoind(1) and bitcoin.conf(5) man pages.
+  * Provide example bitcoinabc.conf.
+  * Add bitcoinabc(1) and bitcoinabc.conf(5) man pages.
 
   [ Jonas Smedegaard ]
   * Ease backporting:

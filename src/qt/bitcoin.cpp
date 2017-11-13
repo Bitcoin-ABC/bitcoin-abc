@@ -669,7 +669,7 @@ int main(int argc, char *argv[]) {
     /// directory. User language is set up: pick a data directory.
     if (!Intro::pickDataDirectory()) return EXIT_SUCCESS;
 
-    /// 6. Determine availability of data directory and parse bitcoin.conf
+    /// 6. Determine availability of data directory and parse bitcoinabc.conf
     /// - Do not call GetDataDir(true) before this step finishes.
     if (!boost::filesystem::is_directory(GetDataDir(false))) {
         QMessageBox::critical(
