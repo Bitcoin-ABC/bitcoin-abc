@@ -397,7 +397,7 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
 
 static void MutateTxAddOutData(CMutableTransaction &tx,
                                const std::string &strInput) {
-    Amount value = 0;
+    Amount value(0);
 
     // separate [VALUE:]DATA in string
     size_t pos = strInput.find(':');
@@ -636,7 +636,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
             CTxOut txout;
             txout.scriptPubKey = scriptPubKey;
-            txout.nValue = 0;
+            txout.nValue = Amount(0);
             if (prevOut.exists("amount")) {
                 txout.nValue = AmountFromValue(prevOut["amount"]);
             }
@@ -676,26 +676,24 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.vout.size())) {
-            ProduceSignature(
-                MutableTransactionSignatureCreator(
-                    &keystore, &mergedTx, i, amount.GetSatoshis(), nHashType),
-                prevPubKey, sigdata);
+            ProduceSignature(MutableTransactionSignatureCreator(
+                                 &keystore, &mergedTx, i, amount, nHashType),
+                             prevPubKey, sigdata);
         }
 
         // ... and merge in other signatures:
         for (const CTransaction &txv : txVariants) {
-            sigdata = CombineSignatures(prevPubKey,
-                                        MutableTransactionSignatureChecker(
-                                            &mergedTx, i, amount.GetSatoshis()),
-                                        sigdata, DataFromTransaction(txv, i));
+            sigdata = CombineSignatures(
+                prevPubKey,
+                MutableTransactionSignatureChecker(&mergedTx, i, amount),
+                sigdata, DataFromTransaction(txv, i));
         }
 
         UpdateTransaction(mergedTx, i, sigdata);
 
-        if (!VerifyScript(txin.scriptSig, prevPubKey,
-                          STANDARD_SCRIPT_VERIFY_FLAGS,
-                          MutableTransactionSignatureChecker(
-                              &mergedTx, i, amount.GetSatoshis()))) {
+        if (!VerifyScript(
+                txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
+                MutableTransactionSignatureChecker(&mergedTx, i, amount))) {
             fComplete = false;
         }
     }
