@@ -3945,14 +3945,14 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
         strUsage += HelpMessageOpt(
             "-sendfreetransactions",
             strprintf(_("Send transactions as zero-fee transactions if "
-                        "possible (default: %d)"),
+                        "possible (default: %u)"),
                       DEFAULT_SEND_FREE_TRANSACTIONS));
     }
 
     strUsage +=
         HelpMessageOpt("-spendzeroconfchange",
                        strprintf(_("Spend unconfirmed change when sending "
-                                   "transactions (default: %d)"),
+                                   "transactions (default: %u)"),
                                  DEFAULT_SPEND_ZEROCONF_CHANGE));
     strUsage +=
         HelpMessageOpt("-txconfirmtarget=<n>",
@@ -3964,7 +3964,7 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
         "-usehd",
         _("Use hierarchical deterministic key generation (HD) after BIP32. "
           "Only has effect during wallet creation/first start") +
-            " " + strprintf(_("(default: %d)"), DEFAULT_USE_HD_WALLET));
+            " " + strprintf(_("(default: %u)"), DEFAULT_USE_HD_WALLET));
     strUsage += HelpMessageOpt("-upgradewallet",
                                _("Upgrade wallet to latest format on startup"));
     strUsage +=
@@ -3974,7 +3974,7 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
     strUsage += HelpMessageOpt(
         "-walletbroadcast",
         _("Make the wallet broadcast transactions") + " " +
-            strprintf(_("(default: %d)"), DEFAULT_WALLETBROADCAST));
+            strprintf(_("(default: %u)"), DEFAULT_WALLETBROADCAST));
     strUsage += HelpMessageOpt("-walletnotify=<cmd>",
                                _("Execute command when a wallet transaction "
                                  "changes (%s in cmd is replaced by TxID)"));
@@ -3995,16 +3995,16 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
                       DEFAULT_WALLET_DBLOGSIZE));
         strUsage += HelpMessageOpt(
             "-flushwallet",
-            strprintf("Run a thread to flush wallet periodically (default: %d)",
+            strprintf("Run a thread to flush wallet periodically (default: %u)",
                       DEFAULT_FLUSHWALLET));
         strUsage += HelpMessageOpt(
             "-privdb", strprintf("Sets the DB_PRIVATE flag in the wallet db "
-                                 "environment (default: %d)",
+                                 "environment (default: %u)",
                                  DEFAULT_WALLET_PRIVDB));
         strUsage += HelpMessageOpt(
             "-walletrejectlongchains",
             strprintf(_("Wallet will not create transactions that violate "
-                        "mempool chain limits (default: %d)"),
+                        "mempool chain limits (default: %u)"),
                       DEFAULT_WALLET_REJECT_LONG_CHAINS));
     }
 
