@@ -6,6 +6,7 @@
 #include "txdb.h"
 
 #include "chainparams.h"
+#include "config.h"
 #include "hash.h"
 #include "pow.h"
 #include "uint256.h"
@@ -221,6 +222,8 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 
 bool CBlockTreeDB::LoadBlockIndexGuts(
     std::function<CBlockIndex *(const uint256 &)> insertBlockIndex) {
+    const Config &config = GetConfig();
+
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
 
     pcursor->Seek(std::make_pair(DB_BLOCK_INDEX, uint256()));
@@ -254,9 +257,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
         pindexNew->nTx = diskindex.nTx;
 
         if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits,
-                              Params().GetConsensus()))
+                              config)) {
             return error("LoadBlockIndex(): CheckProofOfWork failed: %s",
                          pindexNew->ToString());
+        }
 
         pcursor->Next();
     }

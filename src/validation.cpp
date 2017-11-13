@@ -1147,8 +1147,7 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits,
-                          config.GetChainParams().GetConsensus())) {
+    if (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         return error("ReadBlockFromDisk: Errors in block header at %s",
                      pos.ToString());
     }
@@ -3195,12 +3194,8 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
 
 static bool CheckBlockHeader(const Config &config, const CBlockHeader &block,
                              CValidationState &state, bool fCheckPOW = true) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
     // Check proof of work matches claimed amount
-    if (fCheckPOW &&
-        !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
+    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
     }
@@ -3354,8 +3349,7 @@ static bool ContextualCheckBlockHeader(const Config &config,
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
 
     // Check proof of work
-    if (block.nBits !=
-        GetNextWorkRequired(pindexPrev, &block, consensusParams)) {
+    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, config)) {
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
                          "incorrect proof of work");
     }

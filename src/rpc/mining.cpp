@@ -132,26 +132,32 @@ static UniValue generateBlocks(const Config &config,
         std::unique_ptr<CBlockTemplate> pblocktemplate(
             BlockAssembler(config, Params())
                 .CreateNewBlock(coinbaseScript->reserveScript));
+
         if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
         }
+
         CBlock *pblock = &pblocktemplate->block;
+
         {
             LOCK(cs_main);
             IncrementExtraNonce(config, pblock, chainActive.Tip(), nExtraNonce);
         }
+
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount &&
-               !CheckProofOfWork(pblock->GetHash(), pblock->nBits,
-                                 Params().GetConsensus())) {
+               !CheckProofOfWork(pblock->GetHash(), pblock->nBits, config)) {
             ++pblock->nNonce;
             --nMaxTries;
         }
+
         if (nMaxTries == 0) {
             break;
         }
+
         if (pblock->nNonce == nInnerLoopCount) {
             continue;
         }
+
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(config, shared_pblock, true, nullptr)) {
@@ -669,8 +675,11 @@ static UniValue getblocktemplate(const Config &config,
         // Need to update only after we know CreateNewBlock succeeded
         pindexPrev = pindexPrevNew;
     }
-    CBlock *pblock = &pblocktemplate->block; // pointer for convenience
-    const Consensus::Params &consensusParams = Params().GetConsensus();
+
+    // pointer for convenience
+    CBlock *pblock = &pblocktemplate->block;
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     // Update nTime
     UpdateTime(pblock, config, pindexPrev);

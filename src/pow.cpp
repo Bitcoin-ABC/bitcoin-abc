@@ -8,6 +8,9 @@
 
 #include "arith_uint256.h"
 #include "chain.h"
+#include "chainparams.h"
+#include "config.h"
+#include "consensus/params.h"
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
@@ -18,7 +21,9 @@
  */
 static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
                                        const CBlockHeader *pblock,
-                                       const Consensus::Params &params) {
+                                       const Config &config) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     // Only change once per difficulty adjustment interval
     uint32_t nHeight = pindexPrev->nHeight + 1;
     if (nHeight % params.DifficultyAdjustmentInterval() == 0) {
@@ -29,7 +34,7 @@ static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
         assert(pindexFirst);
 
         return CalculateNextWorkRequired(pindexPrev,
-                                         pindexFirst->GetBlockTime(), params);
+                                         pindexFirst->GetBlockTime(), config);
     }
 
     const uint32_t nProofOfWorkLimit =
@@ -87,8 +92,9 @@ static uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
 }
 
 uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
-                             const CBlockHeader *pblock,
-                             const Consensus::Params &params) {
+                             const CBlockHeader *pblock, const Config &config) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     // Genesis block
     if (pindexPrev == nullptr) {
         return UintToArith256(params.powLimit).GetCompact();
@@ -100,15 +106,17 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
     }
 
     if (pindexPrev->GetMedianTimePast() >= params.cashHardForkActivationTime) {
-        return GetNextCashWorkRequired(pindexPrev, pblock, params);
+        return GetNextCashWorkRequired(pindexPrev, pblock, config);
     }
 
-    return GetNextEDAWorkRequired(pindexPrev, pblock, params);
+    return GetNextEDAWorkRequired(pindexPrev, pblock, config);
 }
 
 uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
                                    int64_t nFirstBlockTime,
-                                   const Consensus::Params &params) {
+                                   const Config &config) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     if (params.fPowNoRetargeting) {
         return pindexPrev->nBits;
     }
@@ -135,8 +143,7 @@ uint32_t CalculateNextWorkRequired(const CBlockIndex *pindexPrev,
     return bnNew.GetCompact();
 }
 
-bool CheckProofOfWork(uint256 hash, uint32_t nBits,
-                      const Consensus::Params &params) {
+bool CheckProofOfWork(uint256 hash, uint32_t nBits, const Config &config) {
     bool fNegative;
     bool fOverflow;
     arith_uint256 bnTarget;
@@ -145,7 +152,8 @@ bool CheckProofOfWork(uint256 hash, uint32_t nBits,
 
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow ||
-        bnTarget > UintToArith256(params.powLimit)) {
+        bnTarget >
+            UintToArith256(config.GetChainParams().GetConsensus().powLimit)) {
         return false;
     }
 
@@ -239,7 +247,9 @@ static const CBlockIndex *GetSuitableBlock(const CBlockIndex *pindex) {
  */
 uint32_t GetNextCashWorkRequired(const CBlockIndex *pindexPrev,
                                  const CBlockHeader *pblock,
-                                 const Consensus::Params &params) {
+                                 const Config &config) {
+    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+
     // This cannot handle the genesis block and early blocks in general.
     assert(pindexPrev);
 

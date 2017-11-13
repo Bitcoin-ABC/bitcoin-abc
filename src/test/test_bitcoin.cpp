@@ -26,12 +26,10 @@
 
 #include "test/testutil.h"
 
-#include <cstdio>
-#include <iostream>
-
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstdio>
 #include <functional>
 #include <list>
 #include <memory>
@@ -149,8 +147,7 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     unsigned int extraNonce = 0;
     IncrementExtraNonce(config, &block, chainActive.Tip(), extraNonce);
 
-    while (!CheckProofOfWork(block.GetHash(), block.nBits,
-                             chainparams.GetConsensus())) {
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         ++block.nNonce;
     }
 
