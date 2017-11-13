@@ -563,9 +563,10 @@ private:
      * if they are not ours.
      */
     bool SelectCoins(
-        const std::vector<COutput> &vAvailableCoins, const Amount nTargetValue,
+        const std::vector<COutput> &vAvailableCoins,
+        const CAmount &nTargetValue,
         std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-        Amount &nValueRet, const CCoinControl *coinControl = nullptr) const;
+        CAmount &nValueRet, const CCoinControl *coinControl = nullptr) const;
 
     CWalletDB *pwalletdbEncryption;
 
@@ -713,10 +714,10 @@ public:
      * assembled.
      */
     bool SelectCoinsMinConf(
-        const Amount nTargetValue, int nConfMine, int nConfTheirs,
+        const CAmount &nTargetValue, int nConfMine, int nConfTheirs,
         uint64_t nMaxAncestors, std::vector<COutput> vCoins,
         std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-        Amount &nValueRet) const;
+        CAmount &nValueRet) const;
 
     bool IsSpent(const uint256 &hash, unsigned int n) const;
 

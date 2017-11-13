@@ -69,9 +69,10 @@ const uint256 CMerkleTx::ABANDON_HASH(uint256S(
 
 struct CompareValueOnly {
     bool operator()(
-        const std::pair<Amount, std::pair<const CWalletTx *, unsigned int>> &t1,
-        const std::pair<Amount, std::pair<const CWalletTx *, unsigned int>> &t2)
-        const {
+        const std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>>
+            &t1,
+        const std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>>
+            &t2) const {
         return t1.first < t2.first;
     }
 };
@@ -2296,10 +2297,10 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlyConfirmed,
 }
 
 static void ApproximateBestSubset(
-    std::vector<std::pair<Amount, std::pair<const CWalletTx *, unsigned int>>>
+    std::vector<std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>>>
         vValue,
-    const Amount nTotalLower, const Amount nTargetValue,
-    std::vector<char> &vfBest, Amount &nBest, int iterations = 1000) {
+    const CAmount &nTotalLower, const CAmount &nTargetValue,
+    std::vector<char> &vfBest, CAmount &nBest, int iterations = 1000) {
     std::vector<char> vfIncluded;
 
     vfBest.assign(vValue.size(), true);
@@ -2309,7 +2310,7 @@ static void ApproximateBestSubset(
 
     for (int nRep = 0; nRep < iterations && nBest != nTargetValue; nRep++) {
         vfIncluded.assign(vValue.size(), false);
-        Amount nTotal = 0;
+        CAmount nTotal = 0;
         bool fReachedTarget = false;
         for (int nPass = 0; nPass < 2 && !fReachedTarget; nPass++) {
             for (size_t i = 0; i < vValue.size(); i++) {
@@ -2338,21 +2339,21 @@ static void ApproximateBestSubset(
 }
 
 bool CWallet::SelectCoinsMinConf(
-    const Amount nTargetValue, const int nConfMine, const int nConfTheirs,
+    const CAmount &nTargetValue, const int nConfMine, const int nConfTheirs,
     const uint64_t nMaxAncestors, std::vector<COutput> vCoins,
     std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-    Amount &nValueRet) const {
+    CAmount &nValueRet) const {
     setCoinsRet.clear();
     nValueRet = 0;
 
     // List of values less than target
-    std::pair<Amount, std::pair<const CWalletTx *, unsigned int>>
+    std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>>
         coinLowestLarger;
-    coinLowestLarger.first = MAX_MONEY;
+    coinLowestLarger.first = std::numeric_limits<CAmount>::max();
     coinLowestLarger.second.first = nullptr;
-    std::vector<std::pair<Amount, std::pair<const CWalletTx *, unsigned int>>>
+    std::vector<std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>>>
         vValue;
-    Amount nTotalLower = 0;
+    CAmount nTotalLower = 0;
 
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
 
@@ -2374,9 +2375,9 @@ bool CWallet::SelectCoinsMinConf(
         }
 
         int i = output.i;
-        Amount n = pcoin->tx->vout[i].nValue.GetSatoshis();
+        CAmount n = pcoin->tx->vout[i].nValue.GetSatoshis();
 
-        std::pair<Amount, std::pair<const CWalletTx *, unsigned int>> coin =
+        std::pair<CAmount, std::pair<const CWalletTx *, unsigned int>> coin =
             std::make_pair(n, std::make_pair(pcoin, i));
 
         if (n == nTargetValue) {
@@ -2414,7 +2415,7 @@ bool CWallet::SelectCoinsMinConf(
     std::sort(vValue.begin(), vValue.end(), CompareValueOnly());
     std::reverse(vValue.begin(), vValue.end());
     std::vector<char> vfBest;
-    Amount nBest;
+    CAmount nBest;
 
     ApproximateBestSubset(vValue, nTotalLower, nTargetValue, vfBest, nBest);
     if (nBest != nTargetValue && nTotalLower >= nTargetValue + MIN_CHANGE) {
@@ -2452,9 +2453,9 @@ bool CWallet::SelectCoinsMinConf(
 }
 
 bool CWallet::SelectCoins(
-    const std::vector<COutput> &vAvailableCoins, const Amount nTargetValue,
+    const std::vector<COutput> &vAvailableCoins, const CAmount &nTargetValue,
     std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
-    Amount &nValueRet, const CCoinControl *coinControl) const {
+    CAmount &nValueRet, const CCoinControl *coinControl) const {
     std::vector<COutput> vCoins(vAvailableCoins);
 
     // coin control -> return all selected outputs (we want all selected to go
@@ -2475,7 +2476,7 @@ bool CWallet::SelectCoins(
 
     // Calculate value from preset inputs and store them.
     std::set<std::pair<const CWalletTx *, uint32_t>> setPresetCoins;
-    Amount nValueFromPresetInputs = 0;
+    CAmount nValueFromPresetInputs = 0;
 
     std::vector<COutPoint> vPresetInputs;
     if (coinControl) {
@@ -2741,7 +2742,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             // Choose coins to use.
-            Amount nValueIn = 0;
+            CAmount nValueIn = 0;
             setCoins.clear();
             if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
                              nValueIn, coinControl)) {
@@ -2763,7 +2764,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 dPriority += (double)nCredit * age;
             }
 
-            const Amount nChange = nValueIn - nValueToSelect;
+            const CAmount nChange = nValueIn - nValueToSelect;
             if (nChange > 0) {
                 // Fill a vout to ourself.
                 // TODO: pass in scriptChange instead of reservekey so change
@@ -2833,7 +2834,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // the fee.
                 if (newTxOut.IsDust(dustRelayFee)) {
                     nChangePosInOut = -1;
-                    nFeeRet += nChange.GetSatoshis();
+                    nFeeRet += nChange;
                     reservekey.ReturnKey();
                 } else {
                     if (nChangePosInOut == -1) {
