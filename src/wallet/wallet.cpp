@@ -1902,7 +1902,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
     return credit;
 }
 
-Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
+CAmount CWalletTx::GetImmatureCredit(bool fUseCache) const {
     if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain()) {
         if (fUseCache && fImmatureCreditCached) return nImmatureCreditCached;
         nImmatureCreditCached =
@@ -2170,14 +2170,14 @@ CAmount CWallet::GetUnconfirmedBalance() const {
 CAmount CWallet::GetImmatureBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal = 0;
+    CAmount nTotal = 0;
     for (std::map<uint256, CWalletTx>::const_iterator it = mapWallet.begin();
          it != mapWallet.end(); ++it) {
         const CWalletTx *pcoin = &(*it).second;
         nTotal += pcoin->GetImmatureCredit();
     }
 
-    return nTotal.GetSatoshis();
+    return nTotal;
 }
 
 CAmount CWallet::GetWatchOnlyBalance() const {
