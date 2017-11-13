@@ -153,13 +153,10 @@ public:
             }
         }
         if (filter_whitelist.empty()) {
-            filter_whitelist.insert(NODE_NETWORK | NODE_BITCOIN_CASH);
-            filter_whitelist.insert(NODE_NETWORK | NODE_BITCOIN_CASH |
-                                    NODE_BLOOM);
-            filter_whitelist.insert(NODE_NETWORK | NODE_BITCOIN_CASH |
-                                    NODE_XTHIN);
-            filter_whitelist.insert(NODE_NETWORK | NODE_BITCOIN_CASH |
-                                    NODE_BLOOM | NODE_XTHIN);
+            filter_whitelist.insert(NODE_NETWORK);
+            filter_whitelist.insert(NODE_NETWORK | NODE_BLOOM);
+            filter_whitelist.insert(NODE_NETWORK | NODE_XTHIN);
+            filter_whitelist.insert(NODE_NETWORK | NODE_BLOOM | NODE_XTHIN);
         }
         if (host != nullptr && ns == nullptr) showHelp = true;
         if (showHelp) fprintf(stderr, help, argv[0]);
