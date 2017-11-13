@@ -99,8 +99,7 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return pindexPrev->nBits;
     }
 
-    if (pindexPrev->GetMedianTimePast() >=
-        GetArg("-newdaaactivationtime", params.cashHardForkActivationTime)) {
+    if (pindexPrev->GetMedianTimePast() >= params.cashHardForkActivationTime) {
         return GetNextCashWorkRequired(pindexPrev, pblock, params);
     }
 

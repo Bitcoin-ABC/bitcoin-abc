@@ -4,3 +4,4 @@ Bitcoin ABC version 0.16.2 is now available from:
 
 This release includes the following features and fixes:
 
+ - Remove the newdaaactivationtime configuration.
