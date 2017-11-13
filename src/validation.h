@@ -373,6 +373,7 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
 
 /** Check is UAHF has activated. */
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
+bool IsUAHFenabledForCurrentBlock(const Config &config);
 
 /** (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from mempool
