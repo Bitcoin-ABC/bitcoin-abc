@@ -91,11 +91,11 @@ static void SetupCliArgs() {
                    "until EOF/Ctrl-D (recommended for sensitive information "
                    "such as passphrases)"),
                  false, OptionsCategory::OPTIONS);
-    gArgs.AddArg("-rpcwallet=<walletname>",
-                 _("Send RPC for non-default wallet on RPC server (argument is "
-                   "wallet filename in bitcoind directory, required if "
-                   "bitcoind/-Qt runs with multiple wallets)"),
-                 false, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
+        "-rpcwallet=<walletname>",
+        _("Send RPC for non-default wallet on RPC server (needs to exactly "
+          "match corresponding -wallet option passed to bitcoind)"),
+        false, OptionsCategory::OPTIONS);
 }
 
 //////////////////////////////////////////////////////////////////////////////

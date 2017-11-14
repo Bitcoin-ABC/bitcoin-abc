@@ -16,6 +16,15 @@ This release includes the following features and fixes:
  - An `initialblockdownload` boolean has been added to the `getblockchaininfo` RPC to indicate whether the node is currently in IBD or not.
  - The '-usehd' option has been removed. It is no longer possible to create a non HD wallet.
 
+External wallet files
+---------------------
+
+The `-wallet=<path>` option now accepts full paths instead of requiring wallets
+to be located in the -walletdir directory. When wallets are located in
+different directories, wallet data will be stored independently, so data from
+every wallet is not mixed into the same <walletdir>/database/log.??????????
+files.
+
 Transaction index changes
 -------------------------
 

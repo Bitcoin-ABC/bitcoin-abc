@@ -88,10 +88,13 @@ void WalletInit::AddWalletOptions() const {
     gArgs.AddArg("-upgradewallet",
                  _("Upgrade wallet to latest format on startup"), false,
                  OptionsCategory::WALLET);
-    gArgs.AddArg("-wallet=<file>",
-                 _("Specify wallet file (within data directory)") + " " +
-                     strprintf(_("(default: %s)"), DEFAULT_WALLET_DAT),
-                 false, OptionsCategory::WALLET);
+    gArgs.AddArg(
+        "-wallet=<path>",
+        _("Specify wallet database path. Can be specified multiple times to "
+          "load multiple wallets. Path is interpreted relative to <walletdir> "
+          "if it is not absolute, and will be created if it does not exist.") +
+            " " + strprintf(_("(default: %s)"), DEFAULT_WALLET_DAT),
+        false, OptionsCategory::WALLET);
     gArgs.AddArg("-walletbroadcast",
                  _("Make the wallet broadcast transactions") + " " +
                      strprintf(_("(default: %d)"), DEFAULT_WALLETBROADCAST),
@@ -323,19 +326,6 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
     std::set<fs::path> wallet_paths;
 
     for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
-        if (fs::path(walletFile).filename() != walletFile) {
-            return InitError(
-                strprintf(_("Error loading wallet %s. -wallet parameter must "
-                            "only specify a filename (not a path)."),
-                          walletFile));
-        }
-
-        if (SanitizeString(walletFile, SAFE_CHARS_FILENAME) != walletFile) {
-            return InitError(strprintf(_("Error loading wallet %s. Invalid "
-                                         "characters in -wallet filename."),
-                                       walletFile));
-        }
-
         fs::path wallet_path = fs::absolute(walletFile, GetWalletDir());
 
         if (fs::exists(wallet_path) && (!fs::is_regular_file(wallet_path) ||
