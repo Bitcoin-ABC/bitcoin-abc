@@ -14,7 +14,8 @@
 
 namespace {
 static std::unique_ptr<CWallet> LoadWallet(CWalletDB *db) {
-    std::unique_ptr<CWallet> wallet(new CWallet(Params()));
+    std::unique_ptr<CWallet> wallet(
+        new CWallet(Params(), "dummy", CWalletDBWrapper::CreateDummy()));
     DBErrors res = db->LoadWallet(wallet.get());
     BOOST_CHECK(res == DBErrors::LOAD_OK);
     return wallet;
@@ -24,7 +25,7 @@ static std::unique_ptr<CWallet> LoadWallet(CWalletDB *db) {
 BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletTestingSetup)
 
 BOOST_AUTO_TEST_CASE(write_erase_name) {
-    CWalletDB walletdb(pwalletMain->GetDBHandle(), "cr+");
+    CWalletDB walletdb(m_wallet.GetDBHandle(), "cr+");
 
     CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
     CTxDestination dst2 = CKeyID(uint160S("f00d"));
@@ -48,7 +49,7 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
 }
 
 BOOST_AUTO_TEST_CASE(write_erase_purpose) {
-    CWalletDB walletdb(pwalletMain->GetDBHandle(), "cr+");
+    CWalletDB walletdb(m_wallet.GetDBHandle(), "cr+");
 
     CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
     CTxDestination dst2 = CKeyID(uint160S("f00d"));
@@ -72,7 +73,7 @@ BOOST_AUTO_TEST_CASE(write_erase_purpose) {
 }
 
 BOOST_AUTO_TEST_CASE(write_erase_destdata) {
-    CWalletDB walletdb(pwalletMain->GetDBHandle(), "cr+");
+    CWalletDB walletdb(m_wallet.GetDBHandle(), "cr+");
 
     CTxDestination dst1 = CKeyID(uint160S("c0ffee"));
     CTxDestination dst2 = CKeyID(uint160S("f00d"));
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(write_erase_destdata) {
 }
 
 BOOST_AUTO_TEST_CASE(no_dest_fails) {
-    CWalletDB walletdb(pwalletMain->GetDBHandle(), "cr+");
+    CWalletDB walletdb(m_wallet.GetDBHandle(), "cr+");
 
     CTxDestination dst = CNoDestination{};
     BOOST_CHECK(!walletdb.WriteName(dst, "name"));

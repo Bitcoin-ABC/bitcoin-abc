@@ -224,14 +224,14 @@ public:
                          std::vector<TxId> &txIdsOut);
     /* Try to (very carefully!) recover wallet database (with a possible key
      * type filter) */
-    static bool Recover(const std::string &filename, void *callbackDataIn,
+    static bool Recover(const fs::path &wallet_path, void *callbackDataIn,
                         bool (*recoverKVcallback)(void *callbackData,
                                                   CDataStream ssKey,
                                                   CDataStream ssValue),
                         std::string &out_backup_filename);
     /* Recover convenience-function to bypass the key filter callback, called
      * when verify fails, recovers everything */
-    static bool Recover(const std::string &filename,
+    static bool Recover(const fs::path &wallet_path,
                         std::string &out_backup_filename);
     /* Recover filter (used as callback), will only let keys (cryptographical
      * keys) as KV/key-type pass through */
@@ -241,12 +241,10 @@ public:
      * key) type */
     static bool IsKeyType(const std::string &strType);
     /* verifies the database environment */
-    static bool VerifyEnvironment(const std::string &walletFile,
-                                  const fs::path &walletDir,
+    static bool VerifyEnvironment(const fs::path &wallet_path,
                                   std::string &errorStr);
     /* verifies the database file */
-    static bool VerifyDatabaseFile(const std::string &walletFile,
-                                   const fs::path &walletDir,
+    static bool VerifyDatabaseFile(const fs::path &wallet_path,
                                    std::string &warningStr,
                                    std::string &errorStr);
 

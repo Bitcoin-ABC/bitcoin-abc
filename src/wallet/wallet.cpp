@@ -4198,17 +4198,18 @@ CWallet::GetDestValues(const std::string &prefix) const {
 }
 
 CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
-                                       const std::string walletFile) {
+                                       const std::string &name,
+                                       const fs::path &path) {
+    const std::string &walletFile = name;
+
     // Needed to restore wallet transaction meta data after -zapwallettxes
     std::vector<CWalletTx> vWtx;
 
     if (gArgs.GetBoolArg("-zapwallettxes", false)) {
         uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
-        std::unique_ptr<CWalletDBWrapper> dbw(
-            new CWalletDBWrapper(&bitdb, walletFile));
-        std::unique_ptr<CWallet> tempWallet =
-            std::make_unique<CWallet>(chainParams, std::move(dbw));
+        std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
+            chainParams, name, CWalletDBWrapper::Create(path));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             InitError(
@@ -4221,9 +4222,8 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
     int64_t nStart = GetTimeMillis();
     bool fFirstRun = true;
-    std::unique_ptr<CWalletDBWrapper> dbw(
-        new CWalletDBWrapper(&bitdb, walletFile));
-    CWallet *walletInstance = new CWallet(chainParams, std::move(dbw));
+    CWallet *walletInstance =
+        new CWallet(chainParams, name, CWalletDBWrapper::Create(path));
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DBErrors::LOAD_OK) {
         if (nLoadWalletRet == DBErrors::CORRUPT) {

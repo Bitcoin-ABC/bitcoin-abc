@@ -13,6 +13,7 @@
 #include <streams.h>
 #include <tinyformat.h>
 #include <ui_interface.h>
+#include <util.h>
 #include <utilstrencodings.h>
 #include <validationinterface.h>
 #include <wallet/crypter.h>
@@ -732,6 +733,14 @@ private:
      */
     bool AddWatchOnly(const CScript &dest) override;
 
+    /**
+     * Wallet filename from wallet=<path> command line or config option.
+     * Used in debug logs and to send RPCs to the right wallet instance when
+     * more than one wallet is loaded.
+     */
+    std::string m_name;
+
+    /** Internal database handle. */
     std::unique_ptr<CWalletDBWrapper> dbw;
 
     /**
@@ -763,13 +772,7 @@ public:
     /**
      * Get a name for this wallet for logging/debugging purposes.
      */
-    std::string GetName() const {
-        if (dbw) {
-            return dbw->GetName();
-        } else {
-            return "dummy";
-        }
-    }
+    std::string GetName() const { return m_name; }
 
     void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool);
 
@@ -783,16 +786,11 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
-    // Create wallet with dummy database handle
-    explicit CWallet(const CChainParams &chainParamsIn)
-        : dbw(new CWalletDBWrapper()), chainParams(chainParamsIn) {
-        SetNull();
-    }
-
-    // Create wallet with passed-in database handle
-    CWallet(const CChainParams &chainParamsIn,
+    /** Construct wallet with specified name and database implementation. */
+    CWallet(const CChainParams &chainParamsIn, std::string name,
             std::unique_ptr<CWalletDBWrapper> dbw_in)
-        : dbw(std::move(dbw_in)), chainParams(chainParamsIn) {
+        : m_name(std::move(name)), dbw(std::move(dbw_in)),
+          chainParams(chainParamsIn) {
         SetNull();
     }
 
@@ -1195,7 +1193,8 @@ public:
      * in case of an error.
      */
     static CWallet *CreateWalletFromFile(const CChainParams &chainParams,
-                                         const std::string walletFile);
+                                         const std::string &name,
+                                         const fs::path &path);
 
     /**
      * Wallet post-init setup

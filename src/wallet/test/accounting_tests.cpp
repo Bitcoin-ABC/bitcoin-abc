@@ -12,13 +12,13 @@
 
 BOOST_FIXTURE_TEST_SUITE(accounting_tests, WalletTestingSetup)
 
-static void GetResults(CWallet *wallet,
+static void GetResults(CWallet &wallet,
                        std::map<Amount, CAccountingEntry> &results) {
     std::list<CAccountingEntry> aes;
 
     results.clear();
-    BOOST_CHECK(wallet->ReorderTransactions() == DBErrors::LOAD_OK);
-    wallet->ListAccountCreditDebit("", aes);
+    BOOST_CHECK(wallet.ReorderTransactions() == DBErrors::LOAD_OK);
+    wallet.ListAccountCreditDebit("", aes);
     for (CAccountingEntry &ae : aes) {
         results[ae.nOrderPos * SATOSHI] = ae;
     }
@@ -30,28 +30,28 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     CAccountingEntry ae;
     std::map<Amount, CAccountingEntry> results;
 
-    LOCK(pwalletMain->cs_wallet);
+    LOCK(m_wallet.cs_wallet);
 
     ae.strAccount = "";
     ae.nCreditDebit = SATOSHI;
     ae.nTime = 1333333333;
     ae.strOtherAccount = "b";
     ae.strComment = "";
-    pwalletMain->AddAccountingEntry(ae);
+    m_wallet.AddAccountingEntry(ae);
 
     wtx.mapValue["comment"] = "z";
-    pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
+    m_wallet.AddToWallet(wtx);
+    vpwtx.push_back(&m_wallet.mapWallet.at(wtx.GetId()));
     vpwtx[0]->nTimeReceived = (unsigned int)1333333335;
     vpwtx[0]->nOrderPos = -1;
 
     ae.nTime = 1333333336;
     ae.strOtherAccount = "c";
-    pwalletMain->AddAccountingEntry(ae);
+    m_wallet.AddAccountingEntry(ae);
 
-    GetResults(pwalletMain.get(), results);
+    GetResults(m_wallet, results);
 
-    BOOST_CHECK(pwalletMain->nOrderPosNext == 3);
+    BOOST_CHECK(m_wallet.nOrderPosNext == 3);
     BOOST_CHECK(2 == results.size());
     BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
     BOOST_CHECK(results[Amount::zero()].strComment.empty());
@@ -61,13 +61,13 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     ae.nTime = 1333333330;
     ae.strOtherAccount = "d";
-    ae.nOrderPos = pwalletMain->IncOrderPosNext();
-    pwalletMain->AddAccountingEntry(ae);
+    ae.nOrderPos = m_wallet.IncOrderPosNext();
+    m_wallet.AddAccountingEntry(ae);
 
-    GetResults(pwalletMain.get(), results);
+    GetResults(m_wallet, results);
 
     BOOST_CHECK(results.size() == 3);
-    BOOST_CHECK(pwalletMain->nOrderPosNext == 4);
+    BOOST_CHECK(m_wallet.nOrderPosNext == 4);
     BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
     BOOST_CHECK(1 == vpwtx[0]->nOrderPos);
     BOOST_CHECK(results[2 * SATOSHI].nTime == 1333333336);
@@ -81,8 +81,8 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
         --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
-    pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
+    m_wallet.AddToWallet(wtx);
+    vpwtx.push_back(&m_wallet.mapWallet.at(wtx.GetId()));
     vpwtx[1]->nTimeReceived = (unsigned int)1333333336;
 
     wtx.mapValue["comment"] = "x";
@@ -92,15 +92,15 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
         --tx.nLockTime;
         wtx.SetTx(MakeTransactionRef(std::move(tx)));
     }
-    pwalletMain->AddToWallet(wtx);
-    vpwtx.push_back(&pwalletMain->mapWallet.at(wtx.GetId()));
+    m_wallet.AddToWallet(wtx);
+    vpwtx.push_back(&m_wallet.mapWallet.at(wtx.GetId()));
     vpwtx[2]->nTimeReceived = (unsigned int)1333333329;
     vpwtx[2]->nOrderPos = -1;
 
-    GetResults(pwalletMain.get(), results);
+    GetResults(m_wallet, results);
 
     BOOST_CHECK(results.size() == 3);
-    BOOST_CHECK(pwalletMain->nOrderPosNext == 6);
+    BOOST_CHECK(m_wallet.nOrderPosNext == 6);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
     BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
@@ -112,12 +112,12 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     ae.nTime = 1333333334;
     ae.strOtherAccount = "e";
     ae.nOrderPos = -1;
-    pwalletMain->AddAccountingEntry(ae);
+    m_wallet.AddAccountingEntry(ae);
 
-    GetResults(pwalletMain.get(), results);
+    GetResults(m_wallet, results);
 
     BOOST_CHECK(results.size() == 4);
-    BOOST_CHECK(pwalletMain->nOrderPosNext == 7);
+    BOOST_CHECK(m_wallet.nOrderPosNext == 7);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
     BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
