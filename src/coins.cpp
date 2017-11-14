@@ -273,10 +273,10 @@ const CTxOut &CCoinsViewCache::GetOutputFor(const CTxIn &input) const {
 
 Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
     if (tx.IsCoinBase()) {
-        return 0;
+        return Amount(0);
     }
 
-    Amount nResult = 0;
+    Amount nResult(0);
     for (size_t i = 0; i < tx.vin.size(); i++) {
         nResult += GetOutputFor(tx.vin[i]).nValue;
     }
