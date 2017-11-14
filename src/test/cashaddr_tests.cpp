@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_valid) {
         "PREFIX:X64NX6HZ",
         "p:gpf8m4h7",
         "bitcoincash:qpzry9x8gf2tvdw0s3jn54khce6mua7lcw20ayyn",
-        "xbctest:testnetaddressa4dxsgzr",
-        "xbcreg:555555555555555555555555555555555555555555555n5nuyrz8",
+        "bchtest:testnetaddress4d6njnut",
+        "bchreg:555555555555555555555555555555555555555555555udxmlmrz",
     };
 
     for (const std::string &str : CASES) {
@@ -59,8 +59,8 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_invalid) {
         "pref1x:6m8cxv73",
         "prefix:",
         ":u9wsx07j",
-        "xbcreg:555555555555555555x55555555555555555555555555n5nuyrz8",
-        "xbcreg:555555555555555555555555555555551555555555555n5nuyrz8",
+        "bchreg:555555555555555555x55555555555555555555555555udxmlmrz",
+        "bchreg:555555555555555555555555555555551555555555555udxmlmrz",
         "pre:fix:x32nx6hz",
         "prefixx64nx6hz",
     };
