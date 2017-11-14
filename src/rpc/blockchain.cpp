@@ -881,7 +881,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
         ss << *(const CScriptBase *)(&output.second.GetTxOut().scriptPubKey);
         ss << VARINT(output.second.GetTxOut().nValue.GetSatoshis());
         stats.nTransactionOutputs++;
-        stats.nTotalAmount += output.second.GetTxOut().nValue.GetSatoshis();
+        stats.nTotalAmount += output.second.GetTxOut().nValue;
         stats.nBogoSize +=
             32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
             8 /* amount */ + 2 /* scriptPubKey len */ +

@@ -114,12 +114,15 @@ void RPCTypeCheckObj(const UniValue &o,
 Amount AmountFromValue(const UniValue &value) {
     if (!value.isNum() && !value.isStr())
         throw JSONRPCError(RPC_TYPE_ERROR, "Amount is not a number or string");
-    CAmount amount;
-    if (!ParseFixedPoint(value.getValStr(), 8, &amount))
+
+    int64_t n;
+    if (!ParseFixedPoint(value.getValStr(), 8, &n))
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
-    if (!MoneyRange(amount))
+
+    Amount amt(n);
+    if (!MoneyRange(amt))
         throw JSONRPCError(RPC_TYPE_ERROR, "Amount out of range");
-    return Amount(amount);
+    return amt;
 }
 
 UniValue ValueFromAmount(const Amount &amount) {

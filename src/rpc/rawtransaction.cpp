@@ -538,7 +538,7 @@ static UniValue createrawtransaction(const Config &config,
             std::vector<uint8_t> data =
                 ParseHexV(sendTo[name_].getValStr(), "Data");
 
-            CTxOut out(0, CScript() << OP_RETURN << data);
+            CTxOut out(Amount(0), CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
             CTxDestination destination = DecodeDestination(name_);
@@ -929,7 +929,7 @@ static UniValue signrawtransaction(const Config &config,
 
                 CTxOut txout;
                 txout.scriptPubKey = scriptPubKey;
-                txout.nValue = 0;
+                txout.nValue = Amount(0);
                 if (prevOut.exists("amount")) {
                     txout.nValue =
                         AmountFromValue(find_value(prevOut, "amount"));
@@ -1115,7 +1115,7 @@ static UniValue sendrawtransaction(const Config &config,
     bool fLimitFree = false;
     Amount nMaxRawTxFee = maxTxFee;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
-        nMaxRawTxFee = 0;
+        nMaxRawTxFee = Amount(0);
     }
 
     CCoinsViewCache &view = *pcoinsTip;

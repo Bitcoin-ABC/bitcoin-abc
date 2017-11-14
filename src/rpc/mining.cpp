@@ -331,7 +331,7 @@ static UniValue prioritisetransaction(const Config &config,
     LOCK(cs_main);
 
     uint256 hash = ParseHashStr(request.params[0].get_str(), "txid");
-    Amount nAmount = request.params[2].get_int64();
+    Amount nAmount(request.params[2].get_int64());
 
     mempool.PrioritiseTransaction(hash, request.params[0].get_str(),
                                   request.params[1].get_real(), nAmount);
@@ -948,7 +948,7 @@ static UniValue estimatefee(const Config &config,
     }
 
     CFeeRate feeRate = mempool.estimateFee(nBlocks);
-    if (feeRate == CFeeRate(0)) {
+    if (feeRate == CFeeRate(Amount(0))) {
         return -1.0;
     }
 
@@ -1022,9 +1022,10 @@ static UniValue estimatesmartfee(const Config &config,
     UniValue result(UniValue::VOBJ);
     int answerFound;
     CFeeRate feeRate = mempool.estimateSmartFee(nBlocks, &answerFound);
-    result.push_back(Pair(
-        "feerate",
-        feeRate == CFeeRate(0) ? -1.0 : ValueFromAmount(feeRate.GetFeePerK())));
+    result.push_back(
+        Pair("feerate", feeRate == CFeeRate(Amount(0))
+                            ? -1.0
+                            : ValueFromAmount(feeRate.GetFeePerK())));
     result.push_back(Pair("blocks", answerFound));
     return result;
 }
