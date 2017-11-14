@@ -33,8 +33,8 @@ public:
         fAllowOtherInputs = false;
         fAllowWatchOnly = false;
         setSelected.clear();
-        nMinimumTotalFee = 0;
-        nFeeRate = CFeeRate(0);
+        nMinimumTotalFee = Amount(0);
+        nFeeRate = CFeeRate(Amount(0));
         fOverrideFeeRate = false;
         nConfirmTarget = 0;
     }

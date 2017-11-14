@@ -54,7 +54,7 @@ static void add_coin(const Amount nValue, int nAge = 6 * 24,
         new CWalletTx(&wallet, MakeTransactionRef(std::move(tx))));
     if (fIsFromMe) {
         wtx->fDebitCached = true;
-        wtx->nDebitCached = 1;
+        wtx->nDebitCached = Amount(1);
     }
     COutput output(wtx.get(), nInput, nAge, true, true);
     vCoins.push_back(output);
@@ -339,16 +339,16 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
         // test with many inputs
-        for (Amount amt = 1500; amt < COIN; amt = 10 * amt) {
+        for (Amount amt = Amount(1500); amt < COIN; amt = 10 * amt) {
             empty_wallet();
             // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
             // bytes per input)
             for (uint16_t j = 0; j < 676; j++) {
                 add_coin(amt);
             }
-            BOOST_CHECK(wallet.SelectCoinsMinConf(2000, 1, 1, 0, vCoins,
+            BOOST_CHECK(wallet.SelectCoinsMinConf(Amount(2000), 1, 1, 0, vCoins,
                                                   setCoinsRet, nValueRet));
-            if (amt - 2000 < MIN_CHANGE) {
+            if (amt - Amount(2000) < MIN_CHANGE) {
                 // needs more than one input:
                 uint16_t returnSize = std::ceil(
                     (2000.0 + MIN_CHANGE.GetSatoshis()) / amt.GetSatoshis());
@@ -426,13 +426,13 @@ BOOST_AUTO_TEST_CASE(ApproximateBestSubset) {
 
     // Test vValue sort order
     for (int i = 0; i < 1000; i++) {
-        add_coin(1000 * COIN.GetSatoshis());
+        add_coin(1000 * COIN);
     }
-    add_coin(3 * COIN.GetSatoshis());
+    add_coin(3 * COIN);
 
     BOOST_CHECK(wallet.SelectCoinsMinConf(1003 * COIN, 1, 6, 0, vCoins,
                                           setCoinsRet, nValueRet));
-    BOOST_CHECK_EQUAL(nValueRet, 1003 * COIN.GetSatoshis());
+    BOOST_CHECK_EQUAL(nValueRet, 1003 * COIN);
     BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
     empty_wallet();
@@ -454,8 +454,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
         BOOST_CHECK_EQUAL(oldTip, wallet.ScanForWalletTransactions(oldTip));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(),
-                          100 * COIN.GetSatoshis());
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
     }
 
     // Prune the older block file.
@@ -469,7 +468,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
         BOOST_CHECK_EQUAL(newTip, wallet.ScanForWalletTransactions(oldTip));
-        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN.GetSatoshis());
+        BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
     }
 
     // Verify importmulti RPC returns failure for a key whose creation time is
