@@ -83,6 +83,12 @@ public:
     constexpr Amount operator/(const int b) const { return Amount(amount / b); }
     // DO NOT IMPLEMENT
     constexpr Amount operator/(const double b) const = delete;
+    constexpr Amount operator%(const int64_t b) const {
+        return Amount(amount % b);
+    }
+    constexpr Amount operator%(const int b) const { return Amount(amount % b); }
+    // DO NOT IMPLEMENT
+    constexpr Amount operator%(const double b) const = delete;
 
     // ostream support
     friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
