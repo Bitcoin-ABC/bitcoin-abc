@@ -460,14 +460,14 @@ CFeeRate CBlockPolicyEstimator::estimateFee(int confTarget) {
     // It's not possible to get reasonable estimates for confTarget of 1
     if (confTarget <= 1 ||
         (unsigned int)confTarget > feeStats.GetMaxConfirms()) {
-        return CFeeRate(0);
+        return CFeeRate(Amount(0));
     }
 
     double median = feeStats.EstimateMedianVal(
         confTarget, SUFFICIENT_FEETXS, MIN_SUCCESS_PCT, true, nBestSeenHeight);
 
     if (median < 0) {
-        return CFeeRate(0);
+        return CFeeRate(Amount(0));
     }
 
     return CFeeRate(Amount(int64_t(median)));
@@ -482,7 +482,7 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
     // Return failure if trying to analyze a target we're not tracking
     if (confTarget <= 0 ||
         (unsigned int)confTarget > feeStats.GetMaxConfirms()) {
-        return CFeeRate(0);
+        return CFeeRate(Amount(0));
     }
 
     // It's not possible to get reasonable estimates for confTarget of 1
@@ -508,12 +508,12 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
         pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000)
             .GetFeePerK();
-    if (minPoolFee > 0 && minPoolFee > int64_t(median)) {
+    if (minPoolFee > Amount(0) && minPoolFee > Amount(int64_t(median))) {
         return CFeeRate(minPoolFee);
     }
 
     if (median < 0) {
-        return CFeeRate(0);
+        return CFeeRate(Amount(0));
     }
 
     return CFeeRate(Amount(int64_t(median)));
@@ -535,7 +535,7 @@ double CBlockPolicyEstimator::estimateSmartPriority(int confTarget,
         pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000)
             .GetFeePerK();
-    if (minPoolFee > 0) {
+    if (minPoolFee > Amount(0)) {
         return double(INF_PRIORITY.GetSatoshis());
     }
 

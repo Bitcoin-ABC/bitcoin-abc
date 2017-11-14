@@ -141,11 +141,11 @@ public:
     }
 
     void SetNull() {
-        nValue = -1;
+        nValue = Amount(-1);
         scriptPubKey.clear();
     }
 
-    bool IsNull() const { return (nValue == -1); }
+    bool IsNull() const { return (nValue == Amount(-1)); }
 
     Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
         // "Dust" is defined in terms of CTransaction::minRelayTxFee, which has
@@ -157,7 +157,7 @@ public:
         // txout is 31 bytes big, and will need a CTxIn of at least 67 bytes to
         // spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
         // (in satoshis).
-        if (scriptPubKey.IsUnspendable()) return 0;
+        if (scriptPubKey.IsUnspendable()) return Amount(0);
 
         size_t nSize = GetSerializeSize(*this, SER_DISK, 0);
 
