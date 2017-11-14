@@ -42,7 +42,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
     Amount nValueIn = tx->GetValueOut() + nFee;
     assert(inChainInputValue <= nValueIn);
 
-    feeDelta = 0;
+    feeDelta = Amount(0);
 
     nCountWithAncestors = 1;
     nSizeWithAncestors = GetTxSize();
@@ -105,7 +105,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     // setAllDescendants now contains all in-mempool descendants of updateIt.
     // Update and add to cached descendant map
     int64_t modifySize = 0;
-    Amount modifyFee = 0;
+    Amount modifyFee(0);
     int64_t modifyCount = 0;
     for (txiter cit : setAllDescendants) {
         if (!setExclude.count(cit->GetTx().GetId())) {
@@ -274,7 +274,7 @@ void CTxMemPool::UpdateEntryForAncestors(txiter it,
                                          const setEntries &setAncestors) {
     int64_t updateCount = setAncestors.size();
     int64_t updateSize = 0;
-    Amount updateFee = 0;
+    Amount updateFee(0);
     int64_t updateSigOpsCount = 0;
     for (txiter ancestorIt : setAncestors) {
         updateSize += ancestorIt->GetTxSize();
@@ -422,7 +422,7 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
         mapDeltas.find(hash);
     if (pos != mapDeltas.end()) {
         const std::pair<double, Amount> &deltas = pos->second;
-        if (deltas.second != 0) {
+        if (deltas.second != Amount(0)) {
             mapTx.modify(newit, update_fee_delta(deltas.second));
         }
     }
@@ -1143,7 +1143,7 @@ CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
         if (rollingMinimumFeeRate <
             (double)incrementalRelayFee.GetFeePerK().GetSatoshis() / 2) {
             rollingMinimumFeeRate = 0;
-            return CFeeRate(0);
+            return CFeeRate(Amount(0));
         }
     }
     return std::max(CFeeRate(Amount(int64_t(rollingMinimumFeeRate))),
@@ -1163,7 +1163,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
     LOCK(cs);
 
     unsigned nTxnRemoved = 0;
-    CFeeRate maxFeeRateRemoved(0);
+    CFeeRate maxFeeRateRemoved(Amount(0));
     while (!mapTx.empty() && DynamicMemoryUsage() > sizelimit) {
         indexed_transaction_set::index<descendant_score>::type::iterator it =
             mapTx.get<descendant_score>().begin();
@@ -1205,7 +1205,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         }
     }
 
-    if (maxFeeRateRemoved > CFeeRate(0))
+    if (maxFeeRateRemoved > CFeeRate(Amount(0)))
         LogPrint("mempool",
                  "Removed %u txn, rolling minimum fee bumped to %s\n",
                  nTxnRemoved, maxFeeRateRemoved.ToString());
