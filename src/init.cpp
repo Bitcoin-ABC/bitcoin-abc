@@ -1390,7 +1390,7 @@ bool AppInitParameterInteraction(Config &config) {
     // BIP 125 replacement in the mempool and the amount the mempool min fee
     // increases above the feerate of txs evicted due to mempool limiting.
     if (IsArgSet("-incrementalrelayfee")) {
-        Amount n = 0;
+        Amount n(0);
         if (!ParseMoney(GetArg("-incrementalrelayfee", ""), n))
             return InitError(AmountErrMsg("incrementalrelayfee",
                                           GetArg("-incrementalrelayfee", "")));
@@ -1463,8 +1463,9 @@ bool AppInitParameterInteraction(Config &config) {
     // can cheaply fill blocks using 1-satoshi-fee transactions. It should be
     // set above the real cost to you of processing a transaction.
     if (IsArgSet("-minrelaytxfee")) {
-        Amount n = 0;
-        if (!ParseMoney(GetArg("-minrelaytxfee", ""), n) || 0 == n)
+        Amount n(0);
+        auto parsed = ParseMoney(GetArg("-minrelaytxfee", ""), n);
+        if (!parsed || Amount(0) == n)
             return InitError(
                 AmountErrMsg("minrelaytxfee", GetArg("-minrelaytxfee", "")));
         // High fee check is done afterward in CWallet::ParameterInteraction()
@@ -1481,7 +1482,7 @@ bool AppInitParameterInteraction(Config &config) {
     // TODO: Harmonize which arguments need sanity checking and where that
     // happens.
     if (IsArgSet("-blockmintxfee")) {
-        Amount n = 0;
+        Amount n(0);
         if (!ParseMoney(GetArg("-blockmintxfee", ""), n))
             return InitError(
                 AmountErrMsg("blockmintxfee", GetArg("-blockmintxfee", "")));
@@ -1490,8 +1491,9 @@ bool AppInitParameterInteraction(Config &config) {
     // Feerate used to define dust.  Shouldn't be changed lightly as old
     // implementations may inadvertently create non-standard transactions.
     if (IsArgSet("-dustrelayfee")) {
-        Amount n = 0;
-        if (!ParseMoney(GetArg("-dustrelayfee", ""), n) || 0 == n)
+        Amount n(0);
+        auto parsed = ParseMoney(GetArg("-dustrelayfee", ""), n);
+        if (!parsed || Amount(0) == n)
             return InitError(
                 AmountErrMsg("dustrelayfee", GetArg("-dustrelayfee", "")));
         dustRelayFee = CFeeRate(n);

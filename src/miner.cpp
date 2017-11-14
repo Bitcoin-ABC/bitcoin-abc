@@ -103,7 +103,7 @@ BlockAssembler::BlockAssembler(const Config &_config,
                                const CChainParams &_chainparams)
     : chainparams(_chainparams), config(&_config) {
     if (IsArgSet("-blockmintxfee")) {
-        Amount n = 0;
+        Amount n(0);
         ParseMoney(GetArg("-blockmintxfee", ""), n);
         blockMinFeeRate = CFeeRate(n);
     } else {
@@ -124,7 +124,7 @@ void BlockAssembler::resetBlock() {
 
     // These counters do not include coinbase tx.
     nBlockTx = 0;
-    nFees = 0;
+    nFees = Amount(0);
 
     lastFewTxs = 0;
     blockFinished = false;
@@ -155,7 +155,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // Add dummy coinbase tx as first transaction.
     pblock->vtx.emplace_back();
     // updated at end
-    pblocktemplate->vTxFees.push_back(-1);
+    pblocktemplate->vTxFees.push_back(Amount(-1));
     // updated at end
     pblocktemplate->vTxSigOpsCount.push_back(-1);
 

@@ -2846,8 +2846,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     // set when etablishing connection
     fUsesCashMagic = true;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
-    minFeeFilter = 0;
-    lastSentFeeFilter = 0;
+    minFeeFilter = Amount(0);
+    lastSentFeeFilter = Amount(0);
     nextSendTimeFeeFilter = 0;
     fPauseRecv = false;
     fPauseSend = false;

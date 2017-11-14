@@ -3020,7 +3020,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     else if (strCommand == NetMsgType::FEEFILTER) {
-        Amount newFeeFilter = 0;
+        Amount newFeeFilter(0);
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
             {
@@ -3578,7 +3578,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         if (fSendTrickle && pto->fSendMempool) {
             auto vtxinfo = mempool.infoAll();
             pto->fSendMempool = false;
-            Amount filterrate = 0;
+            Amount filterrate(0);
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;
@@ -3590,7 +3590,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 const uint256 &txid = txinfo.tx->GetId();
                 CInv inv(MSG_TX, txid);
                 pto->setInventoryTxToSend.erase(txid);
-                if (filterrate != 0) {
+                if (filterrate != Amount(0)) {
                     if (txinfo.feeRate.GetFeePerK() < filterrate) {
                         continue;
                     }
@@ -3621,7 +3621,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                  it != pto->setInventoryTxToSend.end(); it++) {
                 vInvTx.push_back(it);
             }
-            Amount filterrate = 0;
+            Amount filterrate(0);
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;
@@ -3656,7 +3656,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 if (!txinfo.tx) {
                     continue;
                 }
-                if (filterrate != 0 &&
+                if (filterrate != Amount(0) &&
                     txinfo.feeRate.GetFeePerK() < filterrate) {
                     continue;
                 }
@@ -3808,8 +3808,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             static CFeeRate default_feerate =
                 CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
             static FeeFilterRounder filterRounder(default_feerate);
-            Amount filterToSend =
-                filterRounder.round(currentFilter.GetSatoshis());
+            Amount filterToSend = filterRounder.round(currentFilter);
             // If we don't allow free transactions, then we always have a fee
             // filter of at least minRelayTxFee
             if (GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
@@ -3820,7 +3819,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             if (filterToSend != pto->lastSentFeeFilter) {
                 connman.PushMessage(
                     pto, msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
-                pto->lastSentFeeFilter = filterToSend.GetSatoshis();
+                pto->lastSentFeeFilter = filterToSend;
             }
             pto->nextSendTimeFeeFilter =
                 PoissonNextSend(timeNow, AVG_FEEFILTER_BROADCAST_INTERVAL);
