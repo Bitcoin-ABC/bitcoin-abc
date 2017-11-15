@@ -59,8 +59,7 @@ public:
     }
 };
 
-int64_t UpdateTime(CBlockHeader *pblock,
-                   const Consensus::Params &consensusParams,
+int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
                    const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime =
@@ -69,6 +68,9 @@ int64_t UpdateTime(CBlockHeader *pblock,
     if (nOldTime < nNewTime) {
         pblock->nTime = nNewTime;
     }
+
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     // Updating time can change work required on testnet:
     if (consensusParams.fPowAllowMinDifficultyBlocks) {
@@ -209,7 +211,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     // Fill in header.
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
-    UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
+    UpdateTime(pblock, *config, pindexPrev);
     pblock->nBits =
         GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;
