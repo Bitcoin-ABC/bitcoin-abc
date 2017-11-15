@@ -5,6 +5,7 @@
 
 #include "chain.h"
 #include "chainparams.h"
+#include "config.h"
 #include "httpserver.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
@@ -201,29 +202,36 @@ static bool rest_headers(Config &config, HTTPRequest *req,
 
 static bool rest_block(HTTPRequest *req, const std::string &strURIPart,
                        bool showTxDetails) {
-    if (!CheckWarmup(req)) return false;
+    if (!CheckWarmup(req)) {
+        return false;
+    }
+
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
 
     uint256 hash;
-    if (!ParseHashStr(hashStr, hash))
+    if (!ParseHashStr(hashStr, hash)) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
+    }
 
     CBlock block;
     CBlockIndex *pblockindex = nullptr;
     {
         LOCK(cs_main);
-        if (mapBlockIndex.count(hash) == 0)
+        if (mapBlockIndex.count(hash) == 0) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
+        }
 
         pblockindex = mapBlockIndex[hash];
         if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) &&
-            pblockindex->nTx > 0)
+            pblockindex->nTx > 0) {
             return RESTERR(req, HTTP_NOT_FOUND,
                            hashStr + " not available (pruned data)");
+        }
 
-        if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus()))
+        if (!ReadBlockFromDisk(block, pblockindex, GetConfig())) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
+        }
     }
 
     CDataStream ssBlock(SER_NETWORK,

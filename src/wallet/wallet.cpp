@@ -1745,7 +1745,7 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
         }
 
         CBlock block;
-        if (ReadBlockFromDisk(block, pindex, Params().GetConsensus())) {
+        if (ReadBlockFromDisk(block, pindex, GetConfig())) {
             for (size_t posInBlock = 0; posInBlock < block.vtx.size();
                  ++posInBlock) {
                 AddToWalletIfInvolvingMe(*block.vtx[posInBlock], pindex,

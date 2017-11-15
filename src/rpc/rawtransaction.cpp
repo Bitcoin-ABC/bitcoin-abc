@@ -339,7 +339,7 @@ static UniValue gettxoutproof(const Config &config,
     }
 
     CBlock block;
-    if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) {
+    if (!ReadBlockFromDisk(block, pblockindex, config)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
 

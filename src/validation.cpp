@@ -1084,10 +1084,8 @@ bool GetTransaction(const Config &config, const uint256 &txid,
     }
 
     if (pindexSlow) {
-        auto &params = config.GetChainParams().GetConsensus();
-
         CBlock block;
-        if (ReadBlockFromDisk(block, pindexSlow, params)) {
+        if (ReadBlockFromDisk(block, pindexSlow, config)) {
             for (const auto &tx : block.vtx) {
                 if (tx->GetId() == txid) {
                     txOut = tx;
@@ -1110,8 +1108,9 @@ bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
                       const CMessageHeader::MessageMagic &messageStart) {
     // Open history file to append
     CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-    if (fileout.IsNull())
+    if (fileout.IsNull()) {
         return error("WriteBlockToDisk: OpenBlockFile failed");
+    }
 
     // Write index header
     unsigned int nSize = GetSerializeSize(fileout, block);
@@ -1119,7 +1118,10 @@ bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
 
     // Write block
     long fileOutPos = ftell(fileout.Get());
-    if (fileOutPos < 0) return error("WriteBlockToDisk: ftell failed");
+    if (fileOutPos < 0) {
+        return error("WriteBlockToDisk: ftell failed");
+    }
+
     pos.nPos = (unsigned int)fileOutPos;
     fileout << block;
 
@@ -1127,14 +1129,15 @@ bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
 }
 
 bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
-                       const Consensus::Params &consensusParams) {
+                       const Config &config) {
     block.SetNull();
 
     // Open history file to read
     CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (filein.IsNull())
+    if (filein.IsNull()) {
         return error("ReadBlockFromDisk: OpenBlockFile failed for %s",
                      pos.ToString());
+    }
 
     // Read block
     try {
@@ -1145,21 +1148,27 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    if (!CheckProofOfWork(block.GetHash(), block.nBits,
+                          config.GetChainParams().GetConsensus())) {
         return error("ReadBlockFromDisk: Errors in block header at %s",
                      pos.ToString());
+    }
 
     return true;
 }
 
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Consensus::Params &consensusParams) {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), consensusParams))
+                       const Config &config) {
+    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), config)) {
         return false;
-    if (block.GetHash() != pindex->GetBlockHash())
+    }
+
+    if (block.GetHash() != pindex->GetBlockHash()) {
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() "
                      "doesn't match index for %s at %s",
                      pindex->ToString(), pindex->GetBlockPos().ToString());
+    }
+
     return true;
 }
 
@@ -2423,13 +2432,12 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
  */
 static bool DisconnectTip(const Config &config, CValidationState &state,
                           bool fBare = false) {
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
     CBlockIndex *pindexDelete = chainActive.Tip();
     assert(pindexDelete);
+
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindexDelete, consensusParams)) {
+    if (!ReadBlockFromDisk(block, pindexDelete, config)) {
         return AbortNode(state, "Failed to read block");
     }
 
@@ -2523,12 +2531,13 @@ static bool ConnectTip(const Config &config, CValidationState &state,
     if (!pblock) {
         std::shared_ptr<CBlock> pblockNew = std::make_shared<CBlock>();
         connectTrace.blocksConnected.emplace_back(pindexNew, pblockNew);
-        if (!ReadBlockFromDisk(*pblockNew, pindexNew,
-                               chainparams.GetConsensus()))
+        if (!ReadBlockFromDisk(*pblockNew, pindexNew, config)) {
             return AbortNode(state, "Failed to read block");
+        }
     } else {
         connectTrace.blocksConnected.emplace_back(pindexNew, pblock);
     }
+
     const CBlock &blockConnecting = *connectTrace.blocksConnected.back().second;
     // Apply the block atomically to the chain state.
     int64_t nTime2 = GetTimeMicros();
@@ -4182,7 +4191,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
         CBlock block;
 
         // check level 0: read from disk
-        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) {
+        if (!ReadBlockFromDisk(block, pindex, config)) {
             return error(
                 "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                 pindex->nHeight, pindex->GetBlockHash().ToString());
@@ -4257,7 +4266,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                                                 (double)nCheckDepth * 50))));
             pindex = chainActive.Next(pindex);
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus())) {
+            if (!ReadBlockFromDisk(block, pindex, config)) {
                 return error(
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
@@ -4538,7 +4547,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                         std::shared_ptr<CBlock> pblockrecursive =
                             std::make_shared<CBlock>();
                         if (ReadBlockFromDisk(*pblockrecursive, it->second,
-                                              chainparams.GetConsensus())) {
+                                              config)) {
                             LogPrint(
                                 "reindex",
                                 "%s: Processing out of order child %s of %s\n",

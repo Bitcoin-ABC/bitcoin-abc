@@ -550,9 +550,9 @@ public:
 bool WriteBlockToDisk(const CBlock &block, CDiskBlockPos &pos,
                       const CMessageHeader::MessageMagic &messageStart);
 bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
-                       const Consensus::Params &consensusParams);
+                       const Config &config);
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Consensus::Params &consensusParams);
+                       const Config &config);
 
 /** Functions for validating blocks and updating the block tree */
 

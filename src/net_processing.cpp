@@ -1228,8 +1228,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 if (send && (mi->second->nStatus & BLOCK_HAVE_DATA)) {
                     // Send block from disk
                     CBlock block;
-                    if (!ReadBlockFromDisk(block, (*mi).second,
-                                           consensusParams)) {
+                    if (!ReadBlockFromDisk(block, (*mi).second, config)) {
                         assert(!"cannot load block from disk");
                     }
 
@@ -1983,8 +1982,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
 
         CBlock block;
-        bool ret =
-            ReadBlockFromDisk(block, it->second, chainparams.GetConsensus());
+        bool ret = ReadBlockFromDisk(block, it->second, config);
         assert(ret);
 
         SendBlockTransactions(block, req, pfrom, connman);
@@ -3477,8 +3475,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 }
                 if (!fGotBlockFromCache) {
                     CBlock block;
-                    bool ret =
-                        ReadBlockFromDisk(block, pBestIndex, consensusParams);
+                    bool ret = ReadBlockFromDisk(block, pBestIndex, config);
                     assert(ret);
                     CBlockHeaderAndShortTxIDs cmpctblock(block);
                     connman.PushMessage(
