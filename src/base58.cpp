@@ -259,8 +259,6 @@ CTxDestination DecodeDestination(const std::string &str,
 }
 } // namespace
 
-} // namespace
-
 void CBitcoinSecret::SetKey(const CKey &vchSecret) {
     assert(vchSecret.IsValid());
     SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(),
