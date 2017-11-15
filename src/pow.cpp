@@ -14,6 +14,7 @@
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
+#include "validation.h"
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty
@@ -105,7 +106,7 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return pindexPrev->nBits;
     }
 
-    if (pindexPrev->GetMedianTimePast() >= params.cashHardForkActivationTime) {
+    if (IsCashHFEnabled(config, pindexPrev)) {
         return GetNextCashWorkRequired(pindexPrev, pblock, config);
     }
 
