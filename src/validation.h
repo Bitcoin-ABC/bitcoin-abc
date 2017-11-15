@@ -586,14 +586,12 @@ bool ContextualCheckTransactionForCurrentBlock(
     const Config &config, const CTransaction &tx, CValidationState &state,
     const Consensus::Params &consensusParams, int flags = -1);
 
-/** Context-dependent validity checks.
- *  By "context", we mean only the previous block headers, but not the UTXO
- *  set; UTXO-related validity checks are done in ConnectBlock(). */
-bool ContextualCheckBlockHeader(const CBlockHeader &block,
-                                CValidationState &state,
-                                const Consensus::Params &consensusParams,
-                                const CBlockIndex *pindexPrev,
-                                int64_t nAdjustedTime);
+/**
+ * Context-dependent validity checks.
+ *
+ * By "context", we mean only the previous block headers, but not the UTXO set;
+ * UTXO-related validity checks are done in ConnectBlock().
+ */
 bool ContextualCheckBlock(const Config &config, const CBlock &block,
                           CValidationState &state,
                           const Consensus::Params &consensusParams,

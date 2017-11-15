@@ -3343,11 +3343,14 @@ static bool CheckIndexAgainstCheckpoint(const CBlockIndex *pindexPrev,
     return true;
 }
 
-bool ContextualCheckBlockHeader(const CBlockHeader &block,
-                                CValidationState &state,
-                                const Consensus::Params &consensusParams,
-                                const CBlockIndex *pindexPrev,
-                                int64_t nAdjustedTime) {
+static bool ContextualCheckBlockHeader(const Config &config,
+                                       const CBlockHeader &block,
+                                       CValidationState &state,
+                                       const CBlockIndex *pindexPrev,
+                                       int64_t nAdjustedTime) {
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
 
     // Check proof of work
@@ -3535,8 +3538,7 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                          state.GetRejectReason().c_str());
         }
 
-        if (!ContextualCheckBlockHeader(block, state,
-                                        chainparams.GetConsensus(), pindexPrev,
+        if (!ContextualCheckBlockHeader(config, block, state, pindexPrev,
                                         GetAdjustedTime())) {
             return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s",
                          __func__, hash.ToString(), FormatStateMessage(state));
@@ -3761,8 +3763,8 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     indexDummy.nHeight = pindexPrev->nHeight + 1;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
-    if (!ContextualCheckBlockHeader(block, state, chainparams.GetConsensus(),
-                                    pindexPrev, GetAdjustedTime())) {
+    if (!ContextualCheckBlockHeader(config, block, state, pindexPrev,
+                                    GetAdjustedTime())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
     }
