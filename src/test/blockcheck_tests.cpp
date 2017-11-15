@@ -17,8 +17,7 @@ BOOST_FIXTURE_TEST_SUITE(blockcheck_tests, BasicTestingSetup)
 static void RunCheckOnBlockImpl(const GlobalConfig &config, const CBlock &block,
                                 CValidationState &state, bool expected) {
     block.fChecked = false;
-    const Consensus::Params &params = config.GetChainParams().GetConsensus();
-    bool fValid = CheckBlock(config, block, state, params, false, false);
+    bool fValid = CheckBlock(config, block, state, false, false);
 
     BOOST_CHECK_EQUAL(fValid, expected);
     BOOST_CHECK_EQUAL(fValid, state.IsValid());

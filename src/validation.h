@@ -557,12 +557,8 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 /** Functions for validating blocks and updating the block tree */
 
 /** Context-independent validity checks */
-bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
-                      const Consensus::Params &consensusParams,
-                      bool fCheckPOW = true);
 bool CheckBlock(const Config &Config, const CBlock &block,
-                CValidationState &state,
-                const Consensus::Params &consensusParams, bool fCheckPOW = true,
+                CValidationState &state, bool fCheckPOW = true,
                 bool fCheckMerkleRoot = true);
 
 /**

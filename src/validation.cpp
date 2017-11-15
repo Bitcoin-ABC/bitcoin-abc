@@ -1875,8 +1875,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
-    if (!CheckBlock(config, block, state, chainparams.GetConsensus(),
-                    !fJustCheck, !fJustCheck)) {
+    if (!CheckBlock(config, block, state, !fJustCheck, !fJustCheck)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
@@ -3195,21 +3194,23 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
     return true;
 }
 
-bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
-                      const Consensus::Params &consensusParams,
-                      bool fCheckPOW) {
+static bool CheckBlockHeader(const Config &config, const CBlockHeader &block,
+                             CValidationState &state, bool fCheckPOW = true) {
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+
     // Check proof of work matches claimed amount
     if (fCheckPOW &&
-        !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+        !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
+    }
 
     return true;
 }
 
 bool CheckBlock(const Config &config, const CBlock &block,
-                CValidationState &state,
-                const Consensus::Params &consensusParams, bool fCheckPOW,
+                CValidationState &state, bool fCheckPOW,
                 bool fCheckMerkleRoot) {
     // These are checks that are independent of context.
     if (block.fChecked) {
@@ -3218,7 +3219,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW)) {
+    if (!CheckBlockHeader(config, block, state, fCheckPOW)) {
         return false;
     }
 
@@ -3512,7 +3513,7 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
             return true;
         }
 
-        if (!CheckBlockHeader(block, state, chainparams.GetConsensus())) {
+        if (!CheckBlockHeader(config, block, state)) {
             return error("%s: Consensus::CheckBlockHeader: %s, %s", __func__,
                          hash.ToString(), FormatStateMessage(state));
         }
@@ -3653,7 +3654,7 @@ static bool AcceptBlock(const Config &config,
     }
 
     const CChainParams &chainparams = config.GetChainParams();
-    if (!CheckBlock(config, block, state, chainparams.GetConsensus()) ||
+    if (!CheckBlock(config, block, state) ||
         !ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
                               pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
@@ -3717,8 +3718,7 @@ bool ProcessNewBlock(const Config &config,
         CValidationState state;
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
         // belt-and-suspenders.
-        bool ret =
-            CheckBlock(config, *pblock, state, chainparams.GetConsensus());
+        bool ret = CheckBlock(config, *pblock, state);
 
         LOCK(cs_main);
 
@@ -3768,8 +3768,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
     }
-    if (!CheckBlock(config, block, state, chainparams.GetConsensus(), fCheckPOW,
-                    fCheckMerkleRoot)) {
+    if (!CheckBlock(config, block, state, fCheckPOW, fCheckMerkleRoot)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
@@ -4200,8 +4199,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
         }
 
         // check level 1: verify block validity
-        if (nCheckLevel >= 1 &&
-            !CheckBlock(config, block, state, chainparams.GetConsensus())) {
+        if (nCheckLevel >= 1 && !CheckBlock(config, block, state)) {
             return error("%s: *** found bad block at %d, hash=%s (%s)\n",
                          __func__, pindex->nHeight,
                          pindex->GetBlockHash().ToString(),
