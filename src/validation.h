@@ -593,25 +593,30 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
                           const Consensus::Params &consensusParams,
                           const CBlockIndex *pindexPrev);
 
-/** Check a block is completely valid from start to finish (only works on top of
- * our current best block, with cs_main held) */
+/**
+ * Check a block is completely valid from start to finish (only works on top of
+ * our current best block, with cs_main held)
+ */
 bool TestBlockValidity(const Config &config, CValidationState &state,
-                       const CChainParams &chainparams, const CBlock &block,
-                       CBlockIndex *pindexPrev, bool fCheckPOW = true,
-                       bool fCheckMerkleRoot = true);
+                       const CBlock &block, CBlockIndex *pindexPrev,
+                       bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
-/** When there are blocks in the active chain with missing data, rewind the
- * chainstate and remove them from the block index */
-bool RewindBlockIndex(const Config &config, const CChainParams &params);
+/**
+ * When there are blocks in the active chain with missing data, rewind the
+ * chainstate and remove them from the block index.
+ */
+bool RewindBlockIndex(const Config &config);
 
-/** RAII wrapper for VerifyDB: Verify consistency of the block and coin
- * databases */
+/**
+ * RAII wrapper for VerifyDB: Verify consistency of the block and coin
+ * databases.
+ */
 class CVerifyDB {
 public:
     CVerifyDB();
     ~CVerifyDB();
-    bool VerifyDB(const Config &config, const CChainParams &chainparams,
-                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
+    bool VerifyDB(const Config &config, CCoinsView *coinsview, int nCheckLevel,
+                  int nCheckDepth);
 };
 
 /** Find the last common block between the parameter chain and a locator. */

@@ -1998,7 +1998,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
                 if (!fReindex && chainActive.Tip() != nullptr) {
                     uiInterface.InitMessage(_("Rewinding blocks..."));
-                    if (!RewindBlockIndex(config, chainparams)) {
+                    if (!RewindBlockIndex(config)) {
                         strLoadError = _("Unable to rewind the database to a "
                                          "pre-fork state. You will need to "
                                          "redownload the blockchain");
@@ -2032,7 +2032,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                 }
 
                 if (!CVerifyDB().VerifyDB(
-                        config, chainparams, pcoinsdbview,
+                        config, pcoinsdbview,
                         GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                         GetArg("-checkblocks", DEFAULT_CHECKBLOCKS))) {
                     strLoadError = _("Corrupted block database detected");

@@ -217,8 +217,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         GetSigOpCountWithoutP2SH(*pblock->vtx[0]);
 
     CValidationState state;
-    if (!TestBlockValidity(*config, state, chainparams, *pblock, pindexPrev,
-                           false, false)) {
+    if (!TestBlockValidity(*config, state, *pblock, pindexPrev, false, false)) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
                                            __func__,
                                            FormatStateMessage(state)));

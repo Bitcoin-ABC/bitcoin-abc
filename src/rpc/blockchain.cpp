@@ -1153,8 +1153,7 @@ UniValue verifychain(const Config &config, const JSONRPCRequest &request) {
         nCheckDepth = request.params[1].get_int();
     }
 
-    return CVerifyDB().VerifyDB(config, Params(), pcoinsTip, nCheckLevel,
-                                nCheckDepth);
+    return CVerifyDB().VerifyDB(config, pcoinsTip, nCheckLevel, nCheckDepth);
 }
 
 /** Implementation of IsSuperMajority with better feedback */

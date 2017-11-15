@@ -3747,10 +3747,11 @@ bool ProcessNewBlock(const Config &config,
 }
 
 bool TestBlockValidity(const Config &config, CValidationState &state,
-                       const CChainParams &chainparams, const CBlock &block,
-                       CBlockIndex *pindexPrev, bool fCheckPOW,
-                       bool fCheckMerkleRoot) {
+                       const CBlock &block, CBlockIndex *pindexPrev,
+                       bool fCheckPOW, bool fCheckMerkleRoot) {
     AssertLockHeld(cs_main);
+    const CChainParams &chainparams = config.GetChainParams();
+
     assert(pindexPrev && pindexPrev == chainActive.Tip());
     if (fCheckpointsEnabled &&
         !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
@@ -4138,9 +4139,8 @@ CVerifyDB::~CVerifyDB() {
     uiInterface.ShowProgress("", 100);
 }
 
-bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
-                         CCoinsView *coinsview, int nCheckLevel,
-                         int nCheckDepth) {
+bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
+                         int nCheckLevel, int nCheckDepth) {
     LOCK(cs_main);
     if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr) {
         return true;
@@ -4151,12 +4151,17 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
         // suffices until the year 19000
         nCheckDepth = 1000000000;
     }
+
     if (nCheckDepth > chainActive.Height()) {
         nCheckDepth = chainActive.Height();
     }
+
     nCheckLevel = std::max(0, std::min(4, nCheckLevel));
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth,
               nCheckLevel);
+
+    const CChainParams &chainparams = config.GetChainParams();
+
     CCoinsViewCache coins(coinsview);
     CBlockIndex *pindexState = chainActive.Tip();
     CBlockIndex *pindexFailure = nullptr;
@@ -4191,6 +4196,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
                       pindex->nHeight);
             break;
         }
+
         CBlock block;
 
         // check level 0: read from disk
@@ -4290,7 +4296,7 @@ bool CVerifyDB::VerifyDB(const Config &config, const CChainParams &chainparams,
     return true;
 }
 
-bool RewindBlockIndex(const Config &config, const CChainParams &params) {
+bool RewindBlockIndex(const Config &config) {
     LOCK(cs_main);
 
     int nHeight = chainActive.Height() + 1;
@@ -4334,7 +4340,7 @@ bool RewindBlockIndex(const Config &config, const CChainParams &params) {
 
     PruneBlockIndexCandidates();
 
-    CheckBlockIndex(params.GetConsensus());
+    CheckBlockIndex(config.GetChainParams().GetConsensus());
 
     if (!FlushStateToDisk(state, FLUSH_STATE_ALWAYS)) {
         return false;
