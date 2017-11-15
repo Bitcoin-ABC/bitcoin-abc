@@ -726,7 +726,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Pipamilian:</translation>
@@ -752,8 +752,8 @@
         <translation>Gumana king gulut bilang daemon at tumanggap commands</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Kapilubluban ning Bitcoin</translation>
+        <source>Bitcoin ABC</source>
+        <translation>ABC Bitcoin</translation>
     </message>
     <message>
         <source>Block creation options:</source>

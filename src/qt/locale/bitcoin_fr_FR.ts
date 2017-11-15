@@ -1636,7 +1636,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Options :</translation>
@@ -1662,8 +1662,8 @@
         <translation>Impossible de démarrer le serveur HTTP. Voir le journal de débogage pour plus de détails.</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Bitcoin Core</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>&lt;category&gt; can be:</source>

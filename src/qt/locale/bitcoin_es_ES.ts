@@ -2864,7 +2864,7 @@
     </message>
 </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Opciones:
@@ -2925,8 +2925,8 @@
         <translation>No se ha podido comenzar el servidor HTTP. Ver debug log para detalles.</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Bitcoin Core</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>The %s developers</source>

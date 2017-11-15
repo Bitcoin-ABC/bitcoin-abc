@@ -478,14 +478,14 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Opsiynau:</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Craidd Bitcoin</translation>
+        <source>Bitcoin ABC</source>
+        <translation>ABC Bitcoin</translation>
     </message>
     <message>
         <source>Information</source>

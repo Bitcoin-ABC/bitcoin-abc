@@ -778,14 +778,14 @@
     </message>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Opsionet:</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Berthama Bitcoin</translation>
+        <source>Bitcoin ABC</source>
+        <translation>ABC Bitcoin</translation>
     </message>
     <message>
         <source>Information</source>

@@ -2949,7 +2949,7 @@
     </message>
 </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>选项：
@@ -3012,8 +3012,8 @@
         <translation>无法启动HTTP服务，查看日志获取更多信息</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Bitcoin Core</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>The %s developers</source>

@@ -2984,7 +2984,7 @@
     </message>
 </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Seçenekler:</translation>
@@ -3054,8 +3054,8 @@
         <translation>HTTP sunucusu başlatılamadı. Ayrıntılar için debug.log dosyasına bakınız.</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Bitcoin Çekirdeği</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>The %s developers</source>

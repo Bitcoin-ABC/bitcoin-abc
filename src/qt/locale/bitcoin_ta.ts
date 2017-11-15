@@ -706,9 +706,9 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
-        <source>Bitcoin Core</source>
+        <source>Bitcoin ABC</source>
         <translation>Bitcoin மையம்</translation>
     </message>
     <message>

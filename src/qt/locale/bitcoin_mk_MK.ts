@@ -572,14 +572,14 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Опции:</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Биткоин Core</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Биткоин ABC</translation>
     </message>
     <message>
         <source>Warning</source>

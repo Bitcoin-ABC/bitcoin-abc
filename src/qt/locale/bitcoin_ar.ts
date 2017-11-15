@@ -1922,7 +1922,7 @@
     </message>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>خيارات: </translation>
@@ -1932,7 +1932,7 @@
         <translation>حدد مجلد المعلومات</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
+        <source>Bitcoin ABC</source>
         <translation>جوهر البيت كوين</translation>
     </message>
     <message>

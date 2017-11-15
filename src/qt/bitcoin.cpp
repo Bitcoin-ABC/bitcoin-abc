@@ -94,7 +94,7 @@ static void InitMessage(const std::string &message) {
  * Translate string to current locale using Qt.
  */
 static std::string Translate(const char *psz) {
-    return QCoreApplication::translate("bitcoin-core", psz).toStdString();
+    return QCoreApplication::translate("bitcoin-abc", psz).toStdString();
 }
 
 static QString GetLangTerritory() {
@@ -174,13 +174,14 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
 }
 #endif
 
-/** Class encapsulating Bitcoin Core startup and shutdown.
+/**
+ * Class encapsulating Bitcoin ABC startup and shutdown.
  * Allows running startup and shutdown in a different thread from the UI thread.
  */
-class BitcoinCore : public QObject {
+class BitcoinABC : public QObject {
     Q_OBJECT
 public:
-    explicit BitcoinCore();
+    explicit BitcoinABC();
 
 public Q_SLOTS:
     void initialize(Config *config);
@@ -262,14 +263,14 @@ private:
 
 #include "bitcoin.moc"
 
-BitcoinCore::BitcoinCore() : QObject() {}
+BitcoinABC::BitcoinABC() : QObject() {}
 
-void BitcoinCore::handleRunawayException(const std::exception *e) {
+void BitcoinABC::handleRunawayException(const std::exception *e) {
     PrintExceptionContinue(e, "Runaway exception");
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
-void BitcoinCore::initialize(Config *cfg) {
+void BitcoinABC::initialize(Config *cfg) {
     Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running AppInit2 in thread";
@@ -297,7 +298,7 @@ void BitcoinCore::initialize(Config *cfg) {
     }
 }
 
-void BitcoinCore::shutdown() {
+void BitcoinABC::shutdown() {
     try {
         qDebug() << __func__ << ": Running Shutdown in thread";
         Interrupt(threadGroup);
@@ -386,7 +387,7 @@ void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
 void BitcoinApplication::startThread() {
     if (coreThread) return;
     coreThread = new QThread(this);
-    BitcoinCore *executor = new BitcoinCore();
+    BitcoinABC *executor = new BitcoinABC();
     executor->moveToThread(coreThread);
 
     /*  communication to and from thread */

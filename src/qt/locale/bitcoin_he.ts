@@ -1618,7 +1618,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>אפשרויות:</translation>
@@ -1648,7 +1648,7 @@
         <translation>ריצה כסוכן ברקע וקבלת פקודות</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
+        <source>Bitcoin ABC</source>
         <translation>ליבת ביטקוין</translation>
     </message>
     <message>

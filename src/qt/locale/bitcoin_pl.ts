@@ -2429,7 +2429,7 @@ Zwróć uwagę, że poprawnie zweryfikowana wiadomość potwierdza to, że nadaw
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Opcje:</translation>
@@ -2487,8 +2487,8 @@ Zwróć uwagę, że poprawnie zweryfikowana wiadomość potwierdza to, że nadaw
         <translation>Uruchomienie serwera HTTP nie powiodło się. Zobacz dziennik debugowania, aby uzyskać więcej szczegółów.</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>Rdzeń Bitcoina</translation>
+        <source>Bitcoin ABC</source>
+        <translation>ABC Bitcoina</translation>
     </message>
     <message>
         <source>The %s developers</source>

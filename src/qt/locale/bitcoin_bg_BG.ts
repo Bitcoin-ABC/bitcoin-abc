@@ -418,9 +418,9 @@
     </message>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
-        <source>Bitcoin Core</source>
+        <source>Bitcoin ABC</source>
         <translation>Биткойн ядро</translation>
     </message>
     </context>

@@ -2988,7 +2988,7 @@
     </message>
 </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>オプション:</translation>
@@ -3058,7 +3058,7 @@
         <translation>HTTPサーバを開始できませんでした。詳細はデバッグログをご確認ください。</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
+        <source>Bitcoin ABC</source>
         <translation>Bitcoin のコア</translation>
     </message>
     <message>

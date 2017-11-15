@@ -598,14 +598,14 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>bitcoin-core</name>
+    <name>bitcoin-abc</name>
     <message>
         <source>Options:</source>
         <translation>Opciones:</translation>
     </message>
     <message>
-        <source>Bitcoin Core</source>
-        <translation>nucleo Bitcoin</translation>
+        <source>Bitcoin ABC</source>
+        <translation>ABC Bitcoin</translation>
     </message>
     <message>
         <source>&lt;category&gt; can be:</source>
