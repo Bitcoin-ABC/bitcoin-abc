@@ -61,8 +61,6 @@ static const bool DEFAULT_DISABLE_WALLET = false;
 //! if set, all keys will be derived by using BIP32
 static const bool DEFAULT_USE_HD_WALLET = true;
 
-extern const char *DEFAULT_WALLET_DAT;
-
 static const int64_t TIMESTAMP_MIN = 0;
 
 class CBlockIndex;

@@ -48,7 +48,6 @@ bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
 OutputType g_address_type = OutputType::NONE;
 OutputType g_change_type = OutputType::NONE;
 
-const char *DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 /**
