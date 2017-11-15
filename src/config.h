@@ -38,6 +38,20 @@ private:
     bool useCashAddr;
 };
 
+// Dummy for subclassing in unittests
+class DummyConfig : public Config {
+public:
+    bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
+    uint64_t GetMaxBlockSize() const override { return 0; }
+    bool SetBlockPriorityPercentage(int64_t blockPriorityPercentage) override {
+        return false;
+    }
+    uint8_t GetBlockPriorityPercentage() const override { return 0; }
+    const CChainParams &GetChainParams() const override;
+    void SetCashAddrEncoding(bool) override {}
+    bool UseCashAddrEncoding() const override { return false; }
+};
+
 // Temporary woraround.
 const Config &GetConfig();
 

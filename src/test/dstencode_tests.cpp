@@ -11,20 +11,11 @@
 
 namespace {
 
-class DummyCfg : public Config {
+class DstCfgDummy : public DummyConfig {
 public:
-    DummyCfg() : useCashAddr(false) {}
-    virtual bool SetMaxBlockSize(uint64_t maxBlockSize) { return false; }
-    virtual uint64_t GetMaxBlockSize() const { return 0; }
-    virtual bool SetBlockPriorityPercentage(int64_t blockPriorityPercentage) {
-        return false;
-    }
-    virtual uint8_t GetBlockPriorityPercentage() const { return 0; }
-    virtual const CChainParams &GetChainParams() const {
-        return Params(CBaseChainParams::MAIN);
-    }
-    virtual void SetCashAddrEncoding(bool b) { useCashAddr = b; }
-    virtual bool UseCashAddrEncoding() const { return useCashAddr; }
+    DstCfgDummy() : useCashAddr(false) {}
+    void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
+    bool UseCashAddrEncoding() const override { return useCashAddr; }
 
 private:
     bool useCashAddr;
@@ -50,7 +41,7 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
     std::string base58_script = "3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC";
 
     const CChainParams &params = Params(CBaseChainParams::MAIN);
-    DummyCfg cfg;
+    DstCfgDummy cfg;
 
     // Check encoding
     cfg.SetCashAddrEncoding(true);
