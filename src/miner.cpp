@@ -275,8 +275,7 @@ bool BlockAssembler::TestPackageTransactions(
     uint64_t nPotentialBlockSize = nBlockSize;
     for (const CTxMemPool::txiter it : package) {
         CValidationState state;
-        if (!ContextualCheckTransaction(*config, it->GetTx(), state,
-                                        chainparams.GetConsensus(), nHeight,
+        if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
                                         nLockTimeCutoff)) {
             return false;
         }
@@ -326,8 +325,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     // Must check that lock times are still valid. This can be removed once MTP
     // is always enforced as long as reorgs keep the mempool consistent.
     CValidationState state;
-    if (!ContextualCheckTransaction(*config, it->GetTx(), state,
-                                    chainparams.GetConsensus(), nHeight,
+    if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
                                     nLockTimeCutoff)) {
         return false;
     }

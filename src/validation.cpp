@@ -704,8 +704,7 @@ static bool AcceptToMemoryPoolWorker(
     // be mined yet.
     CValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
-            config, tx, ctxState, config.GetChainParams().GetConsensus(),
-            STANDARD_LOCKTIME_VERIFY_FLAGS)) {
+            config, tx, ctxState, STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         // We copy the state from a dummy to ensure we don't increase the
         // ban score of peer for transaction that could be valid in the future.
         return state.DoS(
@@ -3389,15 +3388,17 @@ static bool ContextualCheckBlockHeader(const Config &config,
 }
 
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
-                                CValidationState &state,
-                                const Consensus::Params &consensusParams,
-                                int nHeight, int64_t nLockTimeCutoff) {
+                                CValidationState &state, int nHeight,
+                                int64_t nLockTimeCutoff) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
     }
+
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     if (IsUAHFenabled(config, nHeight) &&
         nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
@@ -3413,9 +3414,10 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
     return true;
 }
 
-bool ContextualCheckTransactionForCurrentBlock(
-    const Config &config, const CTransaction &tx, CValidationState &state,
-    const Consensus::Params &consensusParams, int flags) {
+bool ContextualCheckTransactionForCurrentBlock(const Config &config,
+                                               const CTransaction &tx,
+                                               CValidationState &state,
+                                               int flags) {
     AssertLockHeld(cs_main);
 
     // By convention a negative value for flags indicates that the current
@@ -3442,8 +3444,8 @@ bool ContextualCheckTransactionForCurrentBlock(
                                         ? chainActive.Tip()->GetMedianTimePast()
                                         : GetAdjustedTime();
 
-    return ContextualCheckTransaction(config, tx, state, consensusParams,
-                                      nBlockHeight, nLockTimeCutoff);
+    return ContextualCheckTransaction(config, tx, state, nBlockHeight,
+                                      nLockTimeCutoff);
 }
 
 bool ContextualCheckBlock(const Config &config, const CBlock &block,
@@ -3468,8 +3470,8 @@ bool ContextualCheckBlock(const Config &config, const CBlock &block,
 
     // Check that all transactions are finalized
     for (const auto &tx : block.vtx) {
-        if (!ContextualCheckTransaction(config, *tx, state, consensusParams,
-                                        nHeight, nLockTimeCutoff)) {
+        if (!ContextualCheckTransaction(config, *tx, state, nHeight,
+                                        nLockTimeCutoff)) {
             // state set by ContextualCheckTransaction.
             return false;
         }

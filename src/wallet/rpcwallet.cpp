@@ -705,9 +705,8 @@ static UniValue getreceivedbyaddress(const Config &config,
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
-                config, *wtx.tx, state,
-                config.GetChainParams().GetConsensus())) {
+            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
+                                                       state)) {
             continue;
         }
 
@@ -777,9 +776,8 @@ static UniValue getreceivedbyaccount(const Config &config,
         const CWalletTx &wtx = (*it).second;
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
-                config, *wtx.tx, state,
-                config.GetChainParams().GetConsensus())) {
+            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
+                                                       state)) {
             continue;
         }
 
@@ -881,9 +879,8 @@ static UniValue getbalance(const Config &config,
              it != pwalletMain->mapWallet.end(); ++it) {
             const CWalletTx &wtx = (*it).second;
             CValidationState state;
-            if (!ContextualCheckTransactionForCurrentBlock(
-                    config, wtx, state,
-                    config.GetChainParams().GetConsensus()) ||
+            if (!ContextualCheckTransactionForCurrentBlock(config, wtx,
+                                                           state) ||
                 wtx.GetBlocksToMaturity() > 0 ||
                 wtx.GetDepthInMainChain() < 0) {
                 continue;
@@ -1380,9 +1377,8 @@ static UniValue ListReceived(const Config &config, const UniValue &params,
 
         CValidationState state;
         if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(
-                config, *wtx.tx, state,
-                config.GetChainParams().GetConsensus())) {
+            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
+                                                       state)) {
             continue;
         }
 

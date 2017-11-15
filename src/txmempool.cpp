@@ -565,9 +565,8 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins,
 
         auto &config = GetConfig();
         CValidationState state;
-        if (!ContextualCheckTransactionForCurrentBlock(
-                config, tx, state, config.GetChainParams().GetConsensus(),
-                flags) ||
+        if (!ContextualCheckTransactionForCurrentBlock(config, tx, state,
+                                                       flags) ||
             !CheckSequenceLocks(tx, flags, &lp, validLP)) {
             // Note if CheckSequenceLocks fails the LockPoints may still be
             // invalid. So it's critical that we remove the tx and not depend on
