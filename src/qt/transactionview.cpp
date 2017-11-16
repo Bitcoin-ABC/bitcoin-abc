@@ -333,7 +333,7 @@ void TransactionView::changedPrefix(const QString &prefix) {
 
 void TransactionView::changedAmount(const QString &amount) {
     if (!transactionProxyModel) return;
-    CAmount amount_parsed = 0;
+    CAmount amount_parsed(0);
     if (BitcoinUnits::parse(model->getOptionsModel()->getDisplayUnit(), amount,
                             &amount_parsed)) {
         transactionProxyModel->setMinAmount(amount_parsed);

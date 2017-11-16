@@ -90,7 +90,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
 
         if (fAllFromMe && fAllToMe) {
             // Payment to self
-            CAmount nChange = wtx.GetChange().GetSatoshis();
+            Amount nChange = wtx.GetChange();
 
             parts.append(TransactionRecord(hash, nTime,
                                            TransactionRecord::SendToSelf, "",
@@ -127,13 +127,13 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                     sub.address = mapValue["to"];
                 }
 
-                CAmount nValue = txout.nValue.GetSatoshis();
+                Amount nValue = txout.nValue;
                 /* Add fee to first output */
-                if (nTxFee > 0) {
-                    nValue += nTxFee.GetSatoshis();
-                    nTxFee = 0;
+                if (nTxFee > Amount(0)) {
+                    nValue += nTxFee;
+                    nTxFee = Amount(0);
                 }
-                sub.debit = -nValue;
+                sub.debit = -nValue.GetSatoshis();
 
                 parts.append(sub);
             }

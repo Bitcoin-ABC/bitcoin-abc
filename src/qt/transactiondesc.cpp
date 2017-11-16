@@ -133,11 +133,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
     //
     // Amount
     //
-    if (wtx.IsCoinBase() && nCredit == 0) {
+    if (wtx.IsCoinBase() && nCredit == Amount(0)) {
         //
         // Coinbase
         //
-        Amount nUnmatured = 0;
+        Amount nUnmatured(0);
         for (const CTxOut &txout : wtx.tx->vout) {
             nUnmatured += wallet->GetCredit(txout, ISMINE_ALL);
         }
@@ -232,7 +232,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
             }
 
             Amount nTxFee = nDebit - wtx.tx->GetValueOut();
-            if (nTxFee > 0)
+            if (nTxFee > Amount(0))
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " +
                            BitcoinUnits::formatHtmlWithUnit(
                                unit, -nTxFee.GetSatoshis()) +

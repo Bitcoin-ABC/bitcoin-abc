@@ -572,7 +572,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
         }
 
         // Extract and check amounts
-        CTxOut txOut(sendingTo.second, sendingTo.first);
+        CTxOut txOut(Amount(sendingTo.second), sendingTo.first);
         if (txOut.IsDust(dustRelayFee)) {
             Q_EMIT message(
                 tr("Payment request error"),
@@ -802,7 +802,7 @@ bool PaymentServer::verifySize(qint64 requestSize) {
 }
 
 bool PaymentServer::verifyAmount(const CAmount &requestAmount) {
-    bool fVerified = MoneyRange(requestAmount);
+    bool fVerified = MoneyRange(Amount(requestAmount));
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request amount out "
                               "of allowed range (%2, allowed 0 - %3).")

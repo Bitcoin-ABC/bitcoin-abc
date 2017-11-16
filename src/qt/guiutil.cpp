@@ -260,7 +260,7 @@ QString formatBitcoinURI(const SendCoinsRecipient &info) {
 bool isDust(const QString &address, const CAmount &amount) {
     CTxDestination dest = DecodeDestination(address.toStdString());
     CScript script = GetScriptForDestination(dest);
-    CTxOut txOut(amount, script);
+    CTxOut txOut(Amount(amount), script);
     return txOut.IsDust(dustRelayFee);
 }
 

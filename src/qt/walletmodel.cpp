@@ -57,7 +57,7 @@ WalletModel::~WalletModel() {
 
 CAmount WalletModel::getBalance(const CCoinControl *coinControl) const {
     if (coinControl) {
-        Amount nBalance = 0;
+        Amount nBalance(0);
         std::vector<COutput> vCoins;
         wallet->AvailableCoins(vCoins, true, coinControl);
         for (const COutput &out : vCoins) {
@@ -206,7 +206,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                 CScript scriptPubKey(scriptStr,
                                      scriptStr + out.script().size());
                 CAmount nAmount = out.amount();
-                CRecipient recipient = {scriptPubKey, nAmount,
+                CRecipient recipient = {scriptPubKey, Amount(nAmount),
                                         rcp.fSubtractFeeFromAmount};
                 vecSend.push_back(recipient);
             }
@@ -226,7 +226,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
             CScript scriptPubKey = GetScriptForDestination(
                 DecodeDestination(rcp.address.toStdString()));
-            CRecipient recipient = {scriptPubKey, rcp.amount,
+            CRecipient recipient = {scriptPubKey, Amount(rcp.amount),
                                     rcp.fSubtractFeeFromAmount};
             vecSend.push_back(recipient);
 
@@ -248,7 +248,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
         transaction.newPossibleKeyChange(wallet);
 
-        Amount nFeeRequired = 0;
+        Amount nFeeRequired(0);
         int nChangePosRet = -1;
         std::string strFailReason;
 
