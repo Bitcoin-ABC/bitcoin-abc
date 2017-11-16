@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     size_t nwritten = fwrite(chainparams.DiskMagic(),
                              CMessageHeader::MESSAGE_START_SIZE, 1, fp);
 
-    BOOST_CHECK_EQUAL(nwritten, 1);
+    BOOST_CHECK_EQUAL(nwritten, 1UL);
 
     CTransaction empty_tx;
     size_t empty_tx_size = GetSerializeSize(empty_tx, SER_DISK, CLIENT_VERSION);

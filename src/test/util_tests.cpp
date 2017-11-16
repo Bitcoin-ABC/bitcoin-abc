@@ -152,37 +152,33 @@ BOOST_AUTO_TEST_CASE(util_GetArg) {
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatMoney) {
-    BOOST_CHECK_EQUAL(FormatMoney(0), "0.00");
-    BOOST_CHECK_EQUAL(FormatMoney((COIN.GetSatoshis() / 10000) * 123456789),
-                      "12345.6789");
-    BOOST_CHECK_EQUAL(FormatMoney(-COIN.GetSatoshis()), "-1.00");
+    BOOST_CHECK_EQUAL(FormatMoney(Amount(0)), "0.00");
+    BOOST_CHECK_EQUAL(FormatMoney(123456789 * (COIN / 10000)), "12345.6789");
+    BOOST_CHECK_EQUAL(FormatMoney(-1 * COIN), "-1.00");
 
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100000000),
-                      "100000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10000000),
-                      "10000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 1000000), "1000000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100000), "100000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10000), "10000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 1000), "1000.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 100), "100.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() * 10), "10.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis()), "1.00");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10), "0.10");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100), "0.01");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 1000), "0.001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10000), "0.0001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100000), "0.00001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 1000000), "0.000001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 10000000), "0.0000001");
-    BOOST_CHECK_EQUAL(FormatMoney(COIN.GetSatoshis() / 100000000),
-                      "0.00000001");
+    BOOST_CHECK_EQUAL(FormatMoney(100000000 * COIN), "100000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(10000000 * COIN), "10000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(1000000 * COIN), "1000000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(100000 * COIN), "100000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(10000 * COIN), "10000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(1000 * COIN), "1000.00");
+    BOOST_CHECK_EQUAL(FormatMoney(100 * COIN), "100.00");
+    BOOST_CHECK_EQUAL(FormatMoney(10 * COIN), "10.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN), "1.00");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10), "0.10");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100), "0.01");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 1000), "0.001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10000), "0.0001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100000), "0.00001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 1000000), "0.000001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 10000000), "0.0000001");
+    BOOST_CHECK_EQUAL(FormatMoney(COIN / 100000000), "0.00000001");
 }
 
 BOOST_AUTO_TEST_CASE(util_ParseMoney) {
-    Amount ret = 0;
+    Amount ret(0);
     BOOST_CHECK(ParseMoney("0.0", ret));
-    BOOST_CHECK_EQUAL(ret, 0);
+    BOOST_CHECK_EQUAL(ret, Amount(0));
 
     BOOST_CHECK(ParseMoney("12345.6789", ret));
     BOOST_CHECK_EQUAL(ret, 123456789 * (COIN / 10000));
