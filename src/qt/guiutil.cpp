@@ -6,9 +6,11 @@
 
 #include "bitcoinaddressvalidator.h"
 #include "bitcoinunits.h"
+#include "dstencode.h"
 #include "qvalidatedlineedit.h"
 #include "walletmodel.h"
 
+#include "config.h"
 #include "dstencode.h"
 #include "init.h"
 #include "policy/policy.h"
@@ -17,6 +19,7 @@
 #include "script/script.h"
 #include "script/standard.h"
 #include "util.h"
+#include "utilstrencodings.h"
 
 #ifdef WIN32
 #ifdef _WIN32_WINNT
@@ -112,27 +115,29 @@ QFont fixedPitchFont() {
 #endif
 }
 
-// Just some dummy data to generate an convincing random-looking (but
-// consistent) address
-static const uint8_t dummydata[] = {
-    0xeb, 0x15, 0x23, 0x1d, 0xfc, 0xeb, 0x60, 0x92, 0x58, 0x86, 0xb6, 0x7d,
-    0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1, 0x72, 0xc0, 0x66, 0x47};
+static std::string MakeAddrInvalid(std::string addr) {
+    if (addr.size() < 2) {
+        return "";
+    }
 
-// Generate a dummy address with invalid CRC, starting with the network prefix.
-static std::string DummyAddress(const CChainParams &params) {
-    std::vector<unsigned char> sourcedata =
-        params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
-    sourcedata.insert(sourcedata.end(), dummydata,
-                      dummydata + sizeof(dummydata));
-    for (int i = 0; i < 256; ++i) { // Try every trailing byte
-        std::string s = EncodeBase58(sourcedata.data(),
-                                     sourcedata.data() + sourcedata.size());
-        if (!IsValidDestinationString(s)) {
-            return s;
-        }
-        sourcedata[sourcedata.size() - 1] += 1;
+    // Checksum is at the end of the address. Swapping chars to make it invalid.
+    std::swap(addr[addr.size() - 1], addr[addr.size() - 2]);
+    if (!IsValidDestinationString(addr)) {
+        return addr;
     }
     return "";
+}
+
+std::string DummyAddress(const CChainParams &params, const Config &cfg) {
+
+    // Just some dummy data to generate an convincing random-looking (but
+    // consistent) address
+    static const std::vector<uint8_t> dummydata = {
+        0xeb, 0x15, 0x23, 0x1d, 0xfc, 0xeb, 0x60, 0x92, 0x58, 0x86,
+        0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
+
+    const CTxDestination dstKey = CKeyID(uint160(dummydata));
+    return MakeAddrInvalid(EncodeDestination(dstKey, params, cfg));
 }
 
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
@@ -142,9 +147,9 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
-    widget->setPlaceholderText(
-        QObject::tr("Enter a Bitcoin address (e.g. %1)")
-            .arg(QString::fromStdString(DummyAddress(Params()))));
+    widget->setPlaceholderText(QObject::tr("Enter a Bitcoin address (e.g. %1)")
+                                   .arg(QString::fromStdString(DummyAddress(
+                                       Params(), GlobalConfig()))));
 #endif
     widget->setValidator(new BitcoinAddressEntryValidator(parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
