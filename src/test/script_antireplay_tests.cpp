@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(test_antireplay) {
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript();
     tx.vout.resize(1);
-    tx.vout[0].nValue = 1;
+    tx.vout[0].nValue = Amount(1);
     tx.vout[0].scriptPubKey = CScript();
 
     {
