@@ -97,30 +97,33 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     tx.vin[0].prevout.hash = txFirst[0]->GetId();
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
-    tx.vout[0].nValue = 5000000000LL - 1000;
+    tx.vout[0].nValue = Amount(5000000000LL - 1000);
     // This tx has a low fee: 1000 satoshis.
     // Save this txid for later use.
     uint256 hashParentTx = tx.GetId();
-    mempool.addUnchecked(
-        hashParentTx,
-        entry.Fee(1000).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    mempool.addUnchecked(hashParentTx, entry.Fee(Amount(1000))
+                                           .Time(GetTime())
+                                           .SpendsCoinbase(true)
+                                           .FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis.
     tx.vin[0].prevout.hash = txFirst[1]->GetId();
-    tx.vout[0].nValue = 5000000000LL - 10000;
+    tx.vout[0].nValue = Amount(5000000000LL - 10000);
     uint256 hashMediumFeeTx = tx.GetId();
-    mempool.addUnchecked(
-        hashMediumFeeTx,
-        entry.Fee(10000).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    mempool.addUnchecked(hashMediumFeeTx, entry.Fee(Amount(10000))
+                                              .Time(GetTime())
+                                              .SpendsCoinbase(true)
+                                              .FromTx(tx));
 
     // This tx has a high fee, but depends on the first transaction.
     tx.vin[0].prevout.hash = hashParentTx;
     // 50k satoshi fee.
-    tx.vout[0].nValue = 5000000000LL - 1000 - 50000;
+    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     uint256 hashHighFeeTx = tx.GetId();
-    mempool.addUnchecked(
-        hashHighFeeTx,
-        entry.Fee(50000).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
+    mempool.addUnchecked(hashHighFeeTx, entry.Fee(Amount(50000))
+                                            .Time(GetTime())
+                                            .SpendsCoinbase(false)
+                                            .FromTx(tx));
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
         BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey);
@@ -131,9 +134,9 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // Test that a package below the block min tx fee doesn't get included
     tx.vin[0].prevout.hash = hashHighFeeTx;
     // 0 fee.
-    tx.vout[0].nValue = 5000000000LL - 1000 - 50000;
+    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     uint256 hashFreeTx = tx.GetId();
-    mempool.addUnchecked(hashFreeTx, entry.Fee(0).FromTx(tx));
+    mempool.addUnchecked(hashFreeTx, entry.Fee(Amount(0)).FromTx(tx));
     size_t freeTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
     // Calculate a fee on child transaction that will put the package just
@@ -141,7 +144,7 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - Amount(1);
 
     tx.vin[0].prevout.hash = hashFreeTx;
-    tx.vout[0].nValue = 5000000000LL - 1000 - 50000 - feeToUse;
+    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000) - feeToUse;
     uint256 hashLowFeeTx = tx.GetId();
     mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse).FromTx(tx));
     pblocktemplate =
@@ -157,9 +160,10 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // transaction and replace with a higher fee transaction
     mempool.removeRecursive(tx);
     // Now we should be just over the min relay fee.
-    tx.vout[0].nValue -= 2;
+    tx.vout[0].nValue -= Amount(2);
     hashLowFeeTx = tx.GetId();
-    mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse + 2).FromTx(tx));
+    mempool.addUnchecked(hashLowFeeTx,
+                         entry.Fee(feeToUse + Amount(2)).FromTx(tx));
     pblocktemplate =
         BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[4]->GetId() == hashFreeTx);
@@ -170,18 +174,18 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // 0-fee transaction that has 2 outputs.
     tx.vin[0].prevout.hash = txFirst[2]->GetId();
     tx.vout.resize(2);
-    tx.vout[0].nValue = 5000000000LL - 100000000;
-    // 1BCH output.
-    tx.vout[1].nValue = 100000000;
+    tx.vout[0].nValue = Amount(5000000000LL - 100000000);
+    // 1BCC output.
+    tx.vout[1].nValue = Amount(100000000);
     uint256 hashFreeTx2 = tx.GetId();
     mempool.addUnchecked(hashFreeTx2,
-                         entry.Fee(0).SpendsCoinbase(true).FromTx(tx));
+                         entry.Fee(Amount(0)).SpendsCoinbase(true).FromTx(tx));
 
     // This tx can't be mined by itself.
     tx.vin[0].prevout.hash = hashFreeTx2;
     tx.vout.resize(1);
     feeToUse = blockMinFeeRate.GetFee(freeTxSize);
-    tx.vout[0].nValue = 5000000000LL - 100000000 - feeToUse;
+    tx.vout[0].nValue = Amount(5000000000LL) - Amount(100000000) - feeToUse;
     uint256 hashLowFeeTx2 = tx.GetId();
     mempool.addUnchecked(hashLowFeeTx2,
                          entry.Fee(feeToUse).SpendsCoinbase(false).FromTx(tx));
@@ -198,8 +202,8 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // as well.
     tx.vin[0].prevout.n = 1;
     // 10k satoshi fee.
-    tx.vout[0].nValue = 100000000 - 10000;
-    mempool.addUnchecked(tx.GetId(), entry.Fee(10000).FromTx(tx));
+    tx.vout[0].nValue = Amount(100000000 - 10000);
+    mempool.addUnchecked(tx.GetId(), entry.Fee(Amount(10000)).FromTx(tx));
     pblocktemplate =
         BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == hashLowFeeTx2);
@@ -255,7 +259,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     CScript script;
     uint256 hash;
     TestMemPoolEntryHelper entry;
-    entry.nFee = 11;
+    entry.nFee = Amount(11);
     entry.dPriority = 111.0;
     entry.nHeight = 11;
 
@@ -417,7 +421,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin.resize(1);
     tx.vin[0].prevout.SetNull();
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_1;
-    tx.vout[0].nValue = 0;
+    tx.vout[0].nValue = Amount(0);
     hash = tx.GetId();
     // Give it a fee so it'll get mined.
     mempool.addUnchecked(
@@ -681,7 +685,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // into the template because we still check IsFinalTx in CreateNewBlock, but
     // relative locked txs will if inconsistently added to mempool. For now
     // these will still generate a valid template until BIP68 soft fork.
-    BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 3);
+    BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 3UL);
     // However if we advance height by 1 and time by 512, all of them should be
     // mined.
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
@@ -695,7 +699,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK(
         pblocktemplate =
             BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey));
-    BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 5);
+    BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 5UL);
 
     chainActive.Tip()->nHeight--;
     SetMockTime(0);
