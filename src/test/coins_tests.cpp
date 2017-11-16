@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             tx.vin.resize(1);
             tx.vout.resize(1);
             // Keep txs unique unless intended to duplicate.
-            tx.vout[0].nValue = i;
+            tx.vout[0].nValue = Amount(i);
             // Random sizes so we can test memory usage accounting
             tx.vout[0].scriptPubKey.assign(insecure_rand() & 0x3F, 0);
             unsigned int height = insecure_rand();
@@ -500,7 +500,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     Coin c1;
     ss1 >> c1;
     BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
-    BOOST_CHECK_EQUAL(c1.GetHeight(), 203998);
+    BOOST_CHECK_EQUAL(c1.GetHeight(), 203998U);
     BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, Amount(60000000000LL));
     BOOST_CHECK_EQUAL(HexStr(c1.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
@@ -552,12 +552,12 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
 }
 
 static const COutPoint OUTPOINT;
-static const Amount PRUNED = -1;
-static const Amount ABSENT = -2;
-static const Amount FAIL = -3;
-static const Amount VALUE1 = 100;
-static const Amount VALUE2 = 200;
-static const Amount VALUE3 = 300;
+static const Amount PRUNED(-1);
+static const Amount ABSENT(-2);
+static const Amount FAIL(-3);
+static const Amount VALUE1(100);
+static const Amount VALUE2(200);
+static const Amount VALUE3(300);
 static const char DIRTY = CCoinsCacheEntry::DIRTY;
 static const char FRESH = CCoinsCacheEntry::FRESH;
 static const char NO_ENTRY = -1;
@@ -601,7 +601,7 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags) {
         if (it->second.coin.IsSpent()) {
             value = PRUNED;
         } else {
-            value = it->second.coin.GetTxOut().nValue.GetSatoshis();
+            value = it->second.coin.GetTxOut().nValue;
         }
         flags = it->second.flags;
         assert(flags != NO_ENTRY);
