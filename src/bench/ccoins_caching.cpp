@@ -30,19 +30,19 @@ SetupDummyInputs(CBasicKeyStore &keystoreRet, CCoinsViewCache &coinsRet) {
 
     // Create some dummy input transactions
     dummyTransactions[0].vout.resize(2);
-    dummyTransactions[0].vout[0].nValue = 11 * CENT.GetSatoshis();
+    dummyTransactions[0].vout[0].nValue = 11 * CENT;
     dummyTransactions[0].vout[0].scriptPubKey
         << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
-    dummyTransactions[0].vout[1].nValue = 50 * CENT.GetSatoshis();
+    dummyTransactions[0].vout[1].nValue = 50 * CENT;
     dummyTransactions[0].vout[1].scriptPubKey
         << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
     AddCoins(coinsRet, dummyTransactions[0], 0);
 
     dummyTransactions[1].vout.resize(2);
-    dummyTransactions[1].vout[0].nValue = 21 * CENT.GetSatoshis();
+    dummyTransactions[1].vout[0].nValue = 21 * CENT;
     dummyTransactions[1].vout[0].scriptPubKey =
         GetScriptForDestination(key[2].GetPubKey().GetID());
-    dummyTransactions[1].vout[1].nValue = 22 * CENT.GetSatoshis();
+    dummyTransactions[1].vout[1].nValue = 22 * CENT;
     dummyTransactions[1].vout[1].scriptPubKey =
         GetScriptForDestination(key[3].GetPubKey().GetID());
     AddCoins(coinsRet, dummyTransactions[1], 0);
@@ -77,7 +77,7 @@ static void CCoinsCaching(benchmark::State &state) {
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
     t1.vout.resize(2);
-    t1.vout[0].nValue = 90 * CENT.GetSatoshis();
+    t1.vout[0].nValue = 90 * CENT;
     t1.vout[0].scriptPubKey << OP_1;
 
     // Benchmark.
