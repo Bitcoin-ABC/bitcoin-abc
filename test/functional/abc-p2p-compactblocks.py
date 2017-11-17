@@ -39,17 +39,17 @@ class TestNode(NodeConnCB):
         self.last_headers = None
         super().__init__()
 
-    def on_sendcmpct(self, conn, message):
+    def on_sendcmpct(self, message):
         self.last_sendcmpct = message
 
-    def on_cmpctblock(self, conn, message):
+    def on_cmpctblock(self, message):
         self.last_cmpctblock = message
         self.last_cmpctblock.header_and_shortids.header.calc_sha256()
 
-    def on_getheaders(self, conn, message):
+    def on_getheaders(self, message):
         self.last_getheaders = message
 
-    def on_headers(self, conn, message):
+    def on_headers(self, message):
         self.last_headers = message
         for x in self.last_headers.headers:
             x.calc_sha256()
@@ -273,7 +273,7 @@ class FullBlockTest(ComparisonTestFramework):
         # Check that compact block also work for big blocks
         node = self.nodes[0]
         peer = TestNode()
-        peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), peer))
+        peer.peer_connect('127.0.0.1', p2p_port(0))
 
         # Wait for connection to be etablished
         peer.wait_for_verack()
