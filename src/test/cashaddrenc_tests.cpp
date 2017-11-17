@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 
             std::string encoded = EncodeCashAddr(dst, Params(net));
             CTxDestination decoded = DecodeCashAddr(encoded, Params(otherNet));
-            BOOST_CHECK(decoded != dst);
+            BOOST_CHECK(!(decoded == dst));
             BOOST_CHECK(decoded == invalidDst);
         }
     }
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(check_padding) {
         if (i & 0x03) {
             BOOST_CHECK(dst == nodst);
         } else {
-            BOOST_CHECK(dst != nodst);
+            BOOST_CHECK(!(dst == nodst));
         }
     }
 }
