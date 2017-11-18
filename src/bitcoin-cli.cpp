@@ -257,6 +257,9 @@ public:
     /** Create a simulated `getinfo` request. */
     UniValue PrepareRequest(const std::string &method,
                             const std::vector<std::string> &args) override {
+        if (!args.empty()) {
+            throw std::runtime_error("-getinfo takes no arguments");
+        }
         UniValue result(UniValue::VARR);
         result.push_back(
             JSONRPCRequestObj("getnetworkinfo", NullUniValue, ID_NETWORKINFO));
