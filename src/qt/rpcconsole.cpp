@@ -414,11 +414,46 @@ void RPCExecutor::request(const QString &command) {
     try {
         std::string result;
         std::string executableCommand = command.toStdString() + "\n";
+
+        // Catch the console-only-help command before RPC call is executed and
+        // reply with help text as-if a RPC reply.
+        if (executableCommand == "help-console\n") {
+            Q_EMIT reply(
+                RPCConsole::CMD_REPLY,
+                QString(("\n"
+                         "This console accepts RPC commands using the standard "
+                         "syntax.\n"
+                         "   example:    getblockhash 0\n\n"
+
+                         "This console can also accept RPC commands using "
+                         "parenthesized syntax.\n"
+                         "   example:    getblockhash(0)\n\n"
+
+                         "Commands may be nested when specified with the "
+                         "parenthesized syntax.\n"
+                         "   example:    getblock(getblockhash(0) 1)\n\n"
+
+                         "A space or a comma can be used to delimit arguments "
+                         "for either syntax.\n"
+                         "   example:    getblockhash 0\n"
+                         "               getblockhash,0\n\n"
+
+                         "Named results can be queried with a non-quoted key "
+                         "string in brackets.\n"
+                         "   example:    getblock(getblockhash(0) true)[tx]\n\n"
+
+                         "Results without keys can be queried using an integer "
+                         "in brackets.\n"
+                         "   example:    "
+                         "getblock(getblockhash(0),true)[tx][0]\n\n")));
+            return;
+        }
         if (!RPCConsole::RPCExecuteCommandLine(result, executableCommand)) {
             Q_EMIT reply(RPCConsole::CMD_ERROR,
                          QString("Parse error: unbalanced ' or \""));
             return;
         }
+
         Q_EMIT reply(RPCConsole::CMD_REPLY, QString::fromStdString(result));
     } catch (UniValue &objError) {
         try // Nice formatting for standard-format error
@@ -709,6 +744,7 @@ void RPCConsole::setClientModel(ClientModel *model) {
             wordList << ("help " + commandList[i]).c_str();
         }
 
+        wordList << "help-console";
         wordList.sort();
         autoCompleter = new QCompleter(wordList, this);
         autoCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
@@ -823,13 +859,17 @@ void RPCConsole::clear(bool clearHistory) {
                 "%1 to clear screen.")
                  .arg("<b>" + clsKey + "</b>") +
              "<br>" +
-             tr("Type <b>help</b> for an overview of available commands.")) +
-                "<br><span class=\"secwarning\">" +
-                tr("WARNING: Scammers have been active, telling users to type "
-                   "commands here, stealing their wallet contents. Do not use "
-                   "this console without fully understanding the ramification "
-                   "of a command.") +
-                "</span>",
+             tr("Type %1 for an overview of available commands.")
+                 .arg("<b>help</b>") +
+             "<br>" +
+             tr("For more information on using this console type %1.")
+                 .arg("<b>help-console</b>") +
+             "<br><span class=\"secwarning\"><br>" +
+             tr("WARNING: Scammers have been active, telling users to type "
+                "commands here, stealing their wallet contents. Do not use "
+                "this console without fully understanding the ramification "
+                "of a command.") +
+             "</span>"),
             true);
 }
 
