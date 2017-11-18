@@ -5,6 +5,8 @@
 #ifndef BITCOIN_WALLET_TEST_FIXTURE_H
 #define BITCOIN_WALLET_TEST_FIXTURE_H
 
+#include <wallet/wallet.h>
+
 #include <test/test_bitcoin.h>
 
 /**
@@ -14,6 +16,8 @@ struct WalletTestingSetup : public TestingSetup {
     explicit WalletTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN);
     ~WalletTestingSetup();
+
+    std::unique_ptr<CWallet> pwalletMain;
 };
 
 #endif

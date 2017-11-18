@@ -8,9 +8,6 @@
 #include <rpc/server.h>
 #include <wallet/db.h>
 #include <wallet/rpcdump.h>
-#include <wallet/wallet.h>
-
-std::unique_ptr<CWallet> pwalletMain;
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName) {
@@ -29,7 +26,6 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
 
 WalletTestingSetup::~WalletTestingSetup() {
     UnregisterValidationInterface(pwalletMain.get());
-    pwalletMain.reset();
 
     bitdb.Flush(true);
     bitdb.Reset();
