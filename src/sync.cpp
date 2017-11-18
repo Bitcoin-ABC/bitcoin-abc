@@ -8,10 +8,13 @@
 #include "utilstrencodings.h"
 
 #include <cstdio>
-
-#include <boost/thread.hpp>
+#include <set>
 
 #ifdef DEBUG_LOCKCONTENTION
+#if !defined(HAVE_THREAD_LOCAL)
+static_assert(false, "thread_local is not supported");
+#endif
+
 void PrintLockContention(const char *pszName, const char *pszFile, int nLine) {
     LogPrintf("LOCKCONTENTION: %s\n", pszName);
     LogPrintf("Locker: %s:%d\n", pszFile, nLine);
@@ -45,9 +48,8 @@ struct CLockLocation {
                (fTry ? " (TRY)" : "");
     }
 
-    bool fTry;
-
 private:
+    bool fTry;
     std::string mutexName;
     std::string sourceFile;
     int sourceLine;
@@ -68,10 +70,10 @@ struct LockData {
 
     LockOrders lockorders;
     InvLockOrders invlockorders;
-    boost::mutex dd_mutex;
+    std::mutex dd_mutex;
 } static lockdata;
 
-boost::thread_specific_ptr<LockStack> lockstack;
+static thread_local std::unique_ptr<LockStack> lockstack;
 
 static void
 potential_deadlock_detected(const std::pair<void *, void *> &mismatch,
@@ -101,13 +103,13 @@ potential_deadlock_detected(const std::pair<void *, void *> &mismatch,
 }
 
 static void push_lock(void *c, const CLockLocation &locklocation) {
-    if (lockstack.get() == nullptr) {
+    if (!lockstack) {
         lockstack.reset(new LockStack);
     }
 
-    boost::unique_lock<boost::mutex> lock(lockdata.dd_mutex);
+    std::lock_guard<std::mutex> lock(lockdata.dd_mutex);
 
-    (*lockstack).push_back(std::make_pair(c, locklocation));
+    lockstack->push_back(std::make_pair(c, locklocation));
 
     for (const std::pair<void *, CLockLocation> &i : (*lockstack)) {
         if (i.first == c) break;
@@ -161,8 +163,9 @@ void DeleteLock(void *cs) {
         // We're already shutting down.
         return;
     }
-    boost::unique_lock<boost::mutex> lock(lockdata.dd_mutex);
-    std::pair<void *, void *> item = std::make_pair(cs, (void *)0);
+
+    std::lock_guard<std::mutex> lock(lockdata.dd_mutex);
+    std::pair<void *, void *> item = std::make_pair(cs, nullptr);
     LockOrders::iterator it = lockdata.lockorders.lower_bound(item);
     while (it != lockdata.lockorders.end() && it->first.first == cs) {
         std::pair<void *, void *> invitem =
