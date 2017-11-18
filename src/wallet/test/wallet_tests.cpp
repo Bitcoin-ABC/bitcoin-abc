@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-extern CWallet *pwalletMain;
+extern std::unique_ptr<CWallet> pwalletMain;
 
 // how many times to run all the tests to have a chance to catch errors that
 // only show up with particular random shuffles
