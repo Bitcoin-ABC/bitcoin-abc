@@ -360,13 +360,12 @@ public:
     mutable bool fInMempool;
     mutable Amount nChangeCached;
 
-    CWalletTx(const CWallet *pwalletIn, CTransactionRef arg)
-        : tx(std::move(arg)) {
-        Init(pwalletIn);
+    CWalletTx(const CWallet *wallet, CTransactionRef arg)
+        : pwallet(wallet), tx(std::move(arg)) {
+        Init();
     }
 
-    void Init(const CWallet *pwalletIn) {
-        pwallet = pwalletIn;
+    void Init() {
         mapValue.clear();
         vOrderForm.clear();
         fTimeReceivedIsTxTime = false;
@@ -438,7 +437,7 @@ public:
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        Init(nullptr);
+        Init();
 
         //! Used to be vMerkleBranch
         std::vector<uint256> dummy_vector1;
