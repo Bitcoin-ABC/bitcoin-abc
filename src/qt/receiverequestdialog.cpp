@@ -114,7 +114,7 @@ void ReceiveRequestDialog::update() {
     if (target.isEmpty()) target = info.address;
     setWindowTitle(tr("Request payment to %1").arg(target));
 
-    QString uri = GUIUtil::formatBitcoinURI(info);
+    QString uri = GUIUtil::formatBitcoinURI(*cfg, info);
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
@@ -185,7 +185,7 @@ void ReceiveRequestDialog::update() {
 }
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked() {
-    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(info));
+    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(*cfg, info));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked() {

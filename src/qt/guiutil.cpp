@@ -10,6 +10,7 @@
 #include "qvalidatedlineedit.h"
 #include "walletmodel.h"
 
+#include "cashaddr.h"
 #include "config.h"
 #include "dstencode.h"
 #include "init.h"
@@ -165,12 +166,23 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
     widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 }
 
+static bool IsCashAddrEncoded(const QUrl &uri) {
+    const std::string addr = (uri.scheme() + ":" + uri.path()).toStdString();
+    auto decoded = cashaddr::Decode(addr);
+    return !decoded.first.empty();
+}
+
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
     // return if URI is not valid or is no bitcoincash: URI
     if (!uri.isValid() || uri.scheme() != URI_SCHEME) return false;
 
     SendCoinsRecipient rv;
-    rv.address = uri.path();
+    if (IsCashAddrEncoded(uri)) {
+        rv.address = uri.scheme() + ":" + uri.path();
+    } else {
+        // strip out uri scheme for base58 encoded addresses
+        rv.address = uri.path();
+    }
     // Trim any following forward slash which may have been added by the OS
     if (rv.address.endsWith("/")) {
         rv.address.truncate(rv.address.length() - 1);
@@ -232,8 +244,12 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out) {
     return parseBitcoinURI(uriInstance, out);
 }
 
-QString formatBitcoinURI(const SendCoinsRecipient &info) {
-    QString ret = (URI_SCHEME + ":%1").arg(info.address);
+QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info) {
+    QString ret = info.address;
+    if (!cfg.UseCashAddrEncoding()) {
+        // prefix address with uri scheme for base58 encoded addresses.
+        ret = (URI_SCHEME + ":%1").arg(ret);
+    }
     int paramCount = 0;
 
     if (info.amount) {
