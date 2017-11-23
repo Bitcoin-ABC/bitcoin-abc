@@ -95,8 +95,7 @@ static const bool DEFAULT_FORCEDNSSEED = true;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
-static const ServiceFlags REQUIRED_SERVICES =
-    ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH);
+static const ServiceFlags REQUIRED_SERVICES = ServiceFlags(NODE_NETWORK);
 
 // Default 24-hour ban.
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
@@ -582,6 +581,7 @@ class CNode {
 public:
     // socket
     std::atomic<ServiceFlags> nServices;
+    // Services expected from a peer, otherwise it will be disconnected
     ServiceFlags nServicesExpected;
     SOCKET hSocket;
     // Total size of all vSendMsg entries.
