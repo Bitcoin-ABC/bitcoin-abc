@@ -29,7 +29,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
+WalletView::WalletView(const PlatformStyle *_platformStyle, const Config *cfg,
+                       QWidget *parent)
     : QStackedWidget(parent), clientModel(0), walletModel(0),
       platformStyle(_platformStyle) {
     // Create tabs
@@ -51,7 +52,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent)
     vbox->addLayout(hbox_buttons);
     transactionsPage->setLayout(vbox);
 
-    receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);
+    receiveCoinsPage = new ReceiveCoinsDialog(platformStyle, cfg);
     sendCoinsPage = new SendCoinsDialog(platformStyle);
 
     usedSendingAddressesPage =

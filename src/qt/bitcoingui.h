@@ -31,6 +31,7 @@ class WalletModel;
 class HelpMessageDialog;
 class ModalOverlay;
 
+class Config;
 class CWallet;
 
 QT_BEGIN_NAMESPACE
@@ -51,7 +52,7 @@ public:
     static const QString DEFAULT_WALLET;
     static const std::string DEFAULT_UIPLATFORM;
 
-    explicit BitcoinGUI(const PlatformStyle *platformStyle,
+    explicit BitcoinGUI(const Config *, const PlatformStyle *platformStyle,
                         const NetworkStyle *networkStyle, QWidget *parent = 0);
     ~BitcoinGUI();
 
@@ -130,6 +131,7 @@ private:
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
+    const Config *cfg;
 
     /** Create the main UI actions. */
     void createActions();

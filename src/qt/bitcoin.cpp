@@ -216,7 +216,7 @@ public:
     /// Create options model
     void createOptionsModel(bool resetSettings);
     /// Create main window
-    void createWindow(const NetworkStyle *networkStyle);
+    void createWindow(const Config *, const NetworkStyle *networkStyle);
     /// Create splash screen
     void createSplashScreen(const NetworkStyle *networkStyle);
 
@@ -364,8 +364,9 @@ void BitcoinApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(nullptr, resetSettings);
 }
 
-void BitcoinApplication::createWindow(const NetworkStyle *networkStyle) {
-    window = new BitcoinGUI(platformStyle, networkStyle, 0);
+void BitcoinApplication::createWindow(const Config *config,
+                                      const NetworkStyle *networkStyle) {
+    window = new BitcoinGUI(config, platformStyle, networkStyle, 0);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window,
@@ -773,7 +774,7 @@ int main(int argc, char *argv[]) {
         app.createSplashScreen(networkStyle.data());
 
     try {
-        app.createWindow(networkStyle.data());
+        app.createWindow(&config, networkStyle.data());
         app.requestInitialize(config);
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
         WinShutdownMonitor::registerShutdownBlockReason(

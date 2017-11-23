@@ -15,6 +15,7 @@
 #include <QPoint>
 #include <QVariant>
 
+class Config;
 class OptionsModel;
 class PlatformStyle;
 class WalletModel;
@@ -40,7 +41,7 @@ public:
     };
 
     explicit ReceiveCoinsDialog(const PlatformStyle *platformStyle,
-                                QWidget *parent = 0);
+                                const Config *cfg, QWidget *parent = 0);
     ~ReceiveCoinsDialog();
 
     void setModel(WalletModel *model);
@@ -59,6 +60,7 @@ private:
     WalletModel *model;
     QMenu *contextMenu;
     const PlatformStyle *platformStyle;
+    const Config *cfg;
 
     QModelIndex selectedRow();
     void copyColumnToClipboard(int column);
