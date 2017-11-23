@@ -59,7 +59,8 @@ std::vector<uint8_t> PackAddrData(const T &id, uint8_t type) {
     // hash, with version byte.  Add half a byte(4) so integer math provides
     // the next multiple-of-5 that would fit all the data.
     converted.reserve(((size + 1) * 8 + 4) / 5);
-    ConvertBits<8, 5, true>(converted, std::begin(data), std::end(data));
+    ConvertBits<8, 5, true>([&](uint8_t c) { converted.push_back(c); },
+                            std::begin(data), std::end(data));
 
     return converted;
 }
@@ -125,7 +126,8 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
 
     std::vector<uint8_t> data;
     data.reserve(payload.size() * 5 / 8);
-    if (!ConvertBits<5, 8, false>(data, begin(payload), end(payload))) {
+    if (!ConvertBits<5, 8, false>([&](uint8_t c) { data.push_back(c); },
+                                  begin(payload), end(payload))) {
         return {};
     }
 

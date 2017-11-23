@@ -1433,13 +1433,15 @@ template <int F, int T>
 static void CheckConvertBits(const std::vector<uint8_t> &in,
                              const std::vector<uint8_t> &expected) {
     std::vector<uint8_t> outpad;
-    bool ret = ConvertBits<F, T, true>(outpad, in.begin(), in.end());
+    bool ret = ConvertBits<F, T, true>([&](uint8_t c) { outpad.push_back(c); },
+                                       in.begin(), in.end());
     BOOST_CHECK(ret);
     BOOST_CHECK(outpad == expected);
 
     const bool dopad = (in.size() * F) % T;
     std::vector<uint8_t> outnopad;
-    ret = ConvertBits<F, T, false>(outnopad, in.begin(), in.end());
+    ret = ConvertBits<F, T, false>([&](uint8_t c) { outnopad.push_back(c); },
+                                   in.begin(), in.end());
     BOOST_CHECK(ret != (dopad && !outpad.empty() && outpad.back()));
 
     if (dopad) {
@@ -1452,11 +1454,13 @@ static void CheckConvertBits(const std::vector<uint8_t> &in,
     // Check the other way around.
     // Check with padding. We may get an extra 0 in that case.
     std::vector<uint8_t> origpad;
-    ret = ConvertBits<T, F, true>(origpad, expected.begin(), expected.end());
+    ret = ConvertBits<T, F, true>([&](uint8_t c) { origpad.push_back(c); },
+                                  expected.begin(), expected.end());
     BOOST_CHECK(ret);
 
     std::vector<uint8_t> orignopad;
-    ret = ConvertBits<T, F, false>(orignopad, expected.begin(), expected.end());
+    ret = ConvertBits<T, F, false>([&](uint8_t c) { orignopad.push_back(c); },
+                                   expected.begin(), expected.end());
     BOOST_CHECK(ret != ((expected.size() * T) % F && !origpad.empty() &&
                         origpad.back()));
     BOOST_CHECK(orignopad == in);
