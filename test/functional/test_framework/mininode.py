@@ -78,7 +78,7 @@ class NodeConnCB():
 
     # Message receiving methods
 
-    def deliver(self, conn, message):
+    def on_message(self, conn, message):
         """Receive message and dispatch message to appropriate callback.
 
         We keep a count of how many of each message type has been received
@@ -261,6 +261,7 @@ class NodeConn(asyncore.dispatcher):
     # Connection and disconnection methods
 
     def handle_connect(self):
+        """asyncore callback when a connection is opened."""
         if self.state != "connected":
             logger.debug("Connected & Listening: %s:%d" %
                          (self.dstaddr, self.dstport))
@@ -268,6 +269,7 @@ class NodeConn(asyncore.dispatcher):
             self.cb.on_open(self)
 
     def handle_close(self):
+        """asyncore callback when a connection is closed."""
         logger.debug("Closing connection to: %s:%d" %
                      (self.dstaddr, self.dstport))
         self.state = "closed"
@@ -280,7 +282,7 @@ class NodeConn(asyncore.dispatcher):
         self.cb.on_close(self)
 
     def disconnect_node(self):
-        """ Disconnect the p2p connection.
+        """Disconnect the p2p connection.
 
         Called by the test logic thread. Causes the p2p connection
         to be disconnected on the next iteration of the asyncore loop."""
@@ -288,22 +290,25 @@ class NodeConn(asyncore.dispatcher):
 
     # Socket read methods
 
-    def readable(self):
-        return True
-
     def handle_read(self):
+        """asyncore callback when data is read from the socket."""
         with mininode_lock:
             t = self.recv(READ_BUFFER_SIZE)
             if len(t) > 0:
                 self.recvbuf += t
 
         while True:
-            msg = self.got_data()
+            msg = self._on_data()
             if msg == None:
                 break
-            self.got_message(msg)
+            self.on_message(msg)
 
-    def got_data(self):
+    def _on_data(self):
+        """Try to read P2P messages from the recv buffer.
+
+        This method reads data from the buffer in a loop. It deserializes,
+        parses and verifies the P2P header, then passes the P2P payload to
+        the on_message callback for processing."""
         try:
             with mininode_lock:
                 if len(self.recvbuf) < 4:
@@ -328,24 +333,27 @@ class NodeConn(asyncore.dispatcher):
                 f = BytesIO(msg)
                 m = MESSAGEMAP[command]()
                 m.deserialize(f)
+                self._log_message("receive", m)
                 return m
         except Exception as e:
             logger.exception('Error reading message:', repr(e))
             raise
 
-    def got_message(self, message):
-        self._log_message("receive", message)
-        self.cb.deliver(self, message)
+    def on_message(self, message):
+        """Callback for processing a P2P payload. Calls into NodeConnCB."""
+        self.cb.on_message(self, message)
 
     # Socket write methods
 
     def writable(self):
+        """asyncore method to determine whether the handle_write() callback should be called on the next loop."""
         with mininode_lock:
             pre_connection = self.state == "connecting"
             length = len(self.sendbuf)
         return (length > 0 or pre_connection)
 
     def handle_write(self):
+        """asyncore callback when data should be written to the socket."""
         with mininode_lock:
             # asyncore does not expose socket connection, only the first read/write
             # event, thus we must check connection manually here to know when we
@@ -363,6 +371,10 @@ class NodeConn(asyncore.dispatcher):
             self.sendbuf = self.sendbuf[sent:]
 
     def send_message(self, message, pushbuf=False):
+        """Send a P2P message over the socket.
+
+        This method takes a P2P payload, builds the P2P header and adds
+        the message to the send buffer to be sent over the socket."""
         if self.state != "connected" and not pushbuf:
             raise IOError('Not connected, no pushbuf')
         self._log_message("send", message)
@@ -389,6 +401,7 @@ class NodeConn(asyncore.dispatcher):
     # Class utility methods
 
     def _log_message(self, direction, msg):
+        """Logs a message being sent or received over the connection."""
         if direction == "send":
             log_message = "Send message to "
         elif direction == "receive":
