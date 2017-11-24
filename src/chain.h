@@ -13,6 +13,7 @@
 #include "tinyformat.h"
 #include "uint256.h"
 
+#include <unordered_map>
 #include <vector>
 
 class CBlockFileInfo {
@@ -352,6 +353,16 @@ public:
     CBlockIndex *GetAncestor(int height);
     const CBlockIndex *GetAncestor(int height) const;
 };
+
+/**
+ * Maintain a map of CBlockIndex for all known headers.
+ */
+struct BlockHasher {
+    size_t operator()(const uint256 &hash) const { return hash.GetCheapHash(); }
+};
+
+typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
+extern BlockMap mapBlockIndex;
 
 arith_uint256 GetBlockProof(const CBlockIndex &block);
 

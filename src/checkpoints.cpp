@@ -6,8 +6,6 @@
 
 #include "chain.h"
 #include "chainparams.h"
-#include "uint256.h"
-#include "validation.h"
 
 #include <cstdint>
 
@@ -22,8 +20,11 @@ CBlockIndex *GetLastCheckpoint(const CCheckpointData &data) {
          boost::adaptors::reverse(checkpoints)) {
         const uint256 &hash = i.second;
         BlockMap::const_iterator t = mapBlockIndex.find(hash);
-        if (t != mapBlockIndex.end()) return t->second;
+        if (t != mapBlockIndex.end()) {
+            return t->second;
+        }
     }
+
     return nullptr;
 }
 

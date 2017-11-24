@@ -20,6 +20,7 @@
 #include "versionbits.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <exception>
 #include <map>
@@ -28,10 +29,7 @@
 #include <utility>
 #include <vector>
 
-#include <atomic>
-
 #include <boost/filesystem/path.hpp>
-#include <unordered_map>
 
 class CBlockIndex;
 class CBlockTreeDB;
@@ -167,15 +165,9 @@ static const int MAX_UNCONNECTING_HEADERS = 10;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
-struct BlockHasher {
-    size_t operator()(const uint256 &hash) const { return hash.GetCheapHash(); }
-};
-
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
-typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
-extern BlockMap mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic;
