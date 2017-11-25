@@ -142,6 +142,7 @@ BITCOIN_CORE_H = \
   rpc/misc.h \
   rpc/protocol.h \
   rpc/server.h \
+  rpc/tojson.h \
   rpc/register.h \
   scheduler.h \
   script/scriptcache.h \

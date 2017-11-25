@@ -11,6 +11,7 @@
 #include "primitives/transaction.h"
 #include "rpc/blockchain.h"
 #include "rpc/server.h"
+#include "rpc/tojson.h"
 #include "streams.h"
 #include "sync.h"
 #include "txmempool.h"
@@ -57,15 +58,8 @@ struct CCoin {
     }
 };
 
-extern void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
-                     UniValue &entry);
-extern UniValue blockToJSON(const CBlock &block, const CBlockIndex *blockindex,
-                            bool txDetails = false);
 extern UniValue mempoolInfoToJSON();
 extern UniValue mempoolToJSON(bool fVerbose = false);
-extern void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
-                               bool fIncludeHex);
-extern UniValue blockheaderToJSON(const CBlockIndex *blockindex);
 
 static bool RESTERR(HTTPRequest *req, enum HTTPStatusCode status,
                     std::string message) {
@@ -272,7 +266,8 @@ static bool rest_block(const Config &config, HTTPRequest *req,
         }
 
         case RF_JSON: {
-            UniValue objBlock = blockToJSON(block, pblockindex, showTxDetails);
+            UniValue objBlock =
+                blockToJSON(config, block, pblockindex, showTxDetails);
             std::string strJSON = objBlock.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
             req->WriteReply(HTTP_OK, strJSON);
@@ -429,7 +424,7 @@ static bool rest_tx(Config &config, HTTPRequest *req,
 
         case RF_JSON: {
             UniValue objTx(UniValue::VOBJ);
-            TxToJSON(*tx, hashBlock, objTx);
+            TxToJSON(config, *tx, hashBlock, objTx);
             std::string strJSON = objTx.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
             req->WriteReply(HTTP_OK, strJSON);
@@ -646,7 +641,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
 
                 // include the script in a json output
                 UniValue o(UniValue::VOBJ);
-                ScriptPubKeyToJSON(coin.out.scriptPubKey, o, true);
+                ScriptPubKeyToJSON(config, coin.out.scriptPubKey, o, true);
                 utxo.push_back(Pair("scriptPubKey", o));
                 utxos.push_back(utxo);
             }

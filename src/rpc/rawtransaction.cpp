@@ -17,6 +17,7 @@
 #include "policy/policy.h"
 #include "primitives/transaction.h"
 #include "rpc/server.h"
+#include "rpc/tojson.h"
 #include "script/script.h"
 #include "script/script_error.h"
 #include "script/sign.h"
@@ -33,8 +34,8 @@
 
 #include <univalue.h>
 
-void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
-                        bool fIncludeHex) {
+void ScriptPubKeyToJSON(const Config &config, const CScript &scriptPubKey,
+                        UniValue &out, bool fIncludeHex) {
     txnouttype type;
     std::vector<CTxDestination> addresses;
     int nRequired;
@@ -61,8 +62,8 @@ void ScriptPubKeyToJSON(const CScript &scriptPubKey, UniValue &out,
     out.push_back(Pair("addresses", a));
 }
 
-void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
-              UniValue &entry) {
+void TxToJSON(const Config &config, const CTransaction &tx,
+              const uint256 hashBlock, UniValue &entry) {
     entry.push_back(Pair("txid", tx.GetId().GetHex()));
     entry.push_back(Pair("hash", tx.GetHash().GetHex()));
     entry.push_back(Pair(
@@ -99,7 +100,7 @@ void TxToJSON(const CTransaction &tx, const uint256 hashBlock,
         out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
         out.push_back(Pair("n", (int64_t)i));
         UniValue o(UniValue::VOBJ);
-        ScriptPubKeyToJSON(txout.scriptPubKey, o, true);
+        ScriptPubKeyToJSON(config, txout.scriptPubKey, o, true);
         out.push_back(Pair("scriptPubKey", o));
         vout.push_back(out);
     }
@@ -250,7 +251,7 @@ static UniValue getrawtransaction(const Config &config,
 
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("hex", strHex));
-    TxToJSON(*tx, hashBlock, result);
+    TxToJSON(config, *tx, hashBlock, result);
     return result;
 }
 
@@ -636,7 +637,7 @@ static UniValue decoderawtransaction(const Config &config,
     }
 
     UniValue result(UniValue::VOBJ);
-    TxToJSON(CTransaction(std::move(mtx)), uint256(), result);
+    TxToJSON(config, CTransaction(std::move(mtx)), uint256(), result);
 
     return result;
 }
@@ -680,7 +681,7 @@ static UniValue decodescript(const Config &config,
         // Empty scripts are valid.
     }
 
-    ScriptPubKeyToJSON(script, r, false);
+    ScriptPubKeyToJSON(config, script, r, false);
 
     UniValue type;
     type = find_value(r, "type");
