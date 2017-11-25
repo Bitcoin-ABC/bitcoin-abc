@@ -34,7 +34,7 @@ void CAddrInfo::Update(bool good) {
     //  stat1W.weight), stat1W.count);
 }
 
-bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
+bool CAddrDb::Get_(CSeederServiceResult &ip, int &wait) {
     int64_t now = time(nullptr);
     size_t tot = unkId.size() + ourId.size();
     if (tot == 0) {
@@ -72,13 +72,13 @@ bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
     return true;
 }
 
-int CAddrDb::Lookup_(const CService &ip) {
+int CAddrDb::Lookup_(const CSeederService &ip) {
     if (ipToId.count(ip)) return ipToId[ip];
     return -1;
 }
 
-void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
-                    int blocks) {
+void CAddrDb::Good_(const CSeederService &addr, int clientV,
+                    std::string clientSV, int blocks) {
     int id = Lookup_(addr);
     if (id == -1) return;
     unkId.erase(id);
@@ -97,7 +97,7 @@ void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
     ourId.push_back(id);
 }
 
-void CAddrDb::Bad_(const CService &addr, int ban) {
+void CAddrDb::Bad_(const CSeederService &addr, int ban) {
     int id = Lookup_(addr);
     if (id == -1) return;
     unkId.erase(id);
@@ -126,7 +126,7 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
     nDirty++;
 }
 
-void CAddrDb::Skipped_(const CService &addr) {
+void CAddrDb::Skipped_(const CSeederService &addr) {
     int id = Lookup_(addr);
     if (id == -1) return;
     unkId.erase(id);
@@ -139,7 +139,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     if (!force && !addr.IsRoutable()) {
         return;
     }
-    CService ipp(addr);
+    CSeederService ipp(addr);
     if (banned.count(ipp)) {
         time_t bantime = banned[ipp];
         if (force || (bantime < time(nullptr) && addr.nTime > bantime)) {
@@ -221,7 +221,7 @@ void CAddrDb::GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags,
     }
 
     for (auto &id : ids) {
-        CService &ip = idToInfo[id].ip;
+        CSeederService &ip = idToInfo[id].ip;
         if (nets[ip.GetNetwork()]) {
             ips.insert(ip);
         }

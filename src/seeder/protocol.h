@@ -67,10 +67,10 @@ enum ServiceFlags : uint64_t {
     NODE_BITCOIN_CASH = (1 << 5),
 };
 
-class CAddress : public CService {
+class CAddress : public CSeederService {
 public:
     CAddress();
-    CAddress(CService ipIn,
+    CAddress(CSeederService ipIn,
              uint64_t nServicesIn = NODE_NETWORK | NODE_BITCOIN_CASH);
 
     void Init();
@@ -81,7 +81,7 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
         CAddress *pthis = const_cast<CAddress *>(this);
-        CService *pip = (CService *)pthis;
+        CSeederService *pip = (CSeederService *)pthis;
         if (ser_action.ForRead()) {
             pthis->Init();
         }

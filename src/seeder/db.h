@@ -22,7 +22,7 @@ static inline int GetRequireHeight(const bool testnet = fTestNet) {
     return testnet ? 500000 : 350000;
 }
 
-static inline std::string ToString(const CService &ip) {
+static inline std::string ToString(const CSeederService &ip) {
     std::string str = ip.ToString();
     while (str.size() < 22) {
         str += ' ';
@@ -60,7 +60,7 @@ public:
 
 class CAddrReport {
 public:
-    CService ip;
+    CSeederService ip;
     int clientVersion;
     int blocks;
     double uptime[5];
@@ -72,7 +72,7 @@ public:
 
 class CAddrInfo {
 private:
-    CService ip;
+    CSeederService ip;
     uint64_t services;
     int64_t lastTry;
     int64_t ourLastTry;
@@ -223,8 +223,8 @@ public:
     int nAge;
 };
 
-struct CServiceResult {
-    CService service;
+struct CSeederServiceResult {
+    CSeederService service;
     bool fGood;
     int nBanTime;
     int nHeight;
@@ -250,7 +250,7 @@ private:
     // map address id to address info (b,c,d,e)
     std::map<int, CAddrInfo> idToInfo;
     // map ip to id (b,c,d,e)
-    std::map<CService, int> ipToId;
+    std::map<CSeederService, int> ipToId;
     // sequence of tried nodes, in order we have tried connecting to them (c,d)
     std::deque<int> ourId;
     // set of nodes not yet tried (b)
@@ -265,25 +265,25 @@ protected:
     void Add_(const CAddress &addr, bool force);
     // get an IP to test (must call Good_, Bad_, or Skipped_ on result
     // afterwards)
-    bool Get_(CServiceResult &ip, int &wait);
-    bool GetMany_(std::vector<CServiceResult> &ips, int max, int &wait);
+    bool Get_(CSeederServiceResult &ip, int &wait);
+    bool GetMany_(std::vector<CSeederServiceResult> &ips, int max, int &wait);
     // mark an IP as good (must have been returned by Get_)
-    void Good_(const CService &ip, int clientV, std::string clientSV,
+    void Good_(const CSeederService &ip, int clientV, std::string clientSV,
                int blocks);
     // mark an IP as bad (and optionally ban it) (must have been returned by
     // Get_)
-    void Bad_(const CService &ip, int ban);
+    void Bad_(const CSeederService &ip, int ban);
     // mark an IP as skipped (must have been returned by Get_)
-    void Skipped_(const CService &ip);
+    void Skipped_(const CSeederService &ip);
     // look up id of an IP
-    int Lookup_(const CService &ip);
+    int Lookup_(const CSeederService &ip);
     // get a random set of IPs (shared lock only)
     void GetIPs_(std::set<CNetAddr> &ips, uint64_t requestedFlags, uint32_t max,
                  const bool *nets);
 
 public:
     // nodes that are banned, with their unban time (a)
-    std::map<CService, int64_t> banned;
+    std::map<CSeederService, int64_t> banned;
 
     void GetStats(CAddrDbStats &stats) {
         LOCK(cs);
@@ -388,31 +388,31 @@ public:
         }
     }
 
-    void Good(const CService &addr, int clientVersion,
+    void Good(const CSeederService &addr, int clientVersion,
               std::string clientSubVersion, int blocks) {
         LOCK(cs);
         Good_(addr, clientVersion, clientSubVersion, blocks);
     }
 
-    void Skipped(const CService &addr) {
+    void Skipped(const CSeederService &addr) {
         LOCK(cs);
         Skipped_(addr);
     }
 
-    void Bad(const CService &addr, int ban = 0) {
+    void Bad(const CSeederService &addr, int ban = 0) {
         LOCK(cs);
         Bad_(addr, ban);
     }
 
-    bool Get(CServiceResult &ip, int &wait) {
+    bool Get(CSeederServiceResult &ip, int &wait) {
         LOCK(cs);
         return Get_(ip, wait);
     }
 
-    void GetMany(std::vector<CServiceResult> &ips, int max, int &wait) {
+    void GetMany(std::vector<CSeederServiceResult> &ips, int max, int &wait) {
         LOCK(cs);
         while (max > 0) {
-            CServiceResult ip = {};
+            CSeederServiceResult ip = {};
             if (!Get_(ip, wait)) {
                 return;
             }
@@ -421,7 +421,7 @@ public:
         }
     }
 
-    void ResultMany(const std::vector<CServiceResult> &ips) {
+    void ResultMany(const std::vector<CSeederServiceResult> &ips) {
         LOCK(cs);
         for (size_t i = 0; i < ips.size(); i++) {
             if (ips[i].fGood) {

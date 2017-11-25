@@ -172,7 +172,7 @@ CAddrDb db;
 extern "C" void *ThreadCrawler(void *data) {
     int *nThreads = (int *)data;
     do {
-        std::vector<CServiceResult> ips;
+        std::vector<CSeederServiceResult> ips;
         int wait = 5;
         db.GetMany(ips, 16, wait);
         int64_t now = time(nullptr);
@@ -185,7 +185,7 @@ extern "C" void *ThreadCrawler(void *data) {
 
         std::vector<CAddress> addr;
         for (size_t i = 0; i < ips.size(); i++) {
-            CServiceResult &res = ips[i];
+            CSeederServiceResult &res = ips[i];
             res.nBanTime = 0;
             res.nClientV = 0;
             res.nHeight = 0;
@@ -452,14 +452,14 @@ static const std::string *seeds = mainnet_seeds;
 
 extern "C" void *ThreadSeeder(void *) {
     if (!fTestNet) {
-        db.Add(CService("kjy2eqzk4zwi5zd3.onion", 8333), true);
+        db.Add(CSeederService("kjy2eqzk4zwi5zd3.onion", 8333), true);
     }
     do {
         for (int i = 0; seeds[i] != ""; i++) {
             std::vector<CNetAddr> ips;
             LookupHost(seeds[i].c_str(), ips);
             for (auto &ip : ips) {
-                db.Add(CService(ip, GetDefaultPort()), true);
+                db.Add(CSeederService(ip, GetDefaultPort()), true);
             }
         }
         Sleep(1800000);
@@ -482,14 +482,14 @@ int main(int argc, char **argv) {
     }
     printf("\n");
     if (opts.tor) {
-        CService service(opts.tor, 9050);
+        CSeederService service(opts.tor, 9050);
         if (service.IsValid()) {
             printf("Using Tor proxy at %s\n", service.ToStringIPPort().c_str());
             SetProxy(NET_TOR, service);
         }
     }
     if (opts.ipv4_proxy) {
-        CService service(opts.ipv4_proxy, 9050);
+        CSeederService service(opts.ipv4_proxy, 9050);
         if (service.IsValid()) {
             printf("Using IPv4 proxy at %s\n",
                    service.ToStringIPPort().c_str());
@@ -497,7 +497,7 @@ int main(int argc, char **argv) {
         }
     }
     if (opts.ipv6_proxy) {
-        CService service(opts.ipv6_proxy, 9050);
+        CSeederService service(opts.ipv6_proxy, 9050);
         if (service.IsValid()) {
             printf("Using IPv6 proxy at %s\n",
                    service.ToStringIPPort().c_str());

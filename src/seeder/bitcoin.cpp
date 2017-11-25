@@ -89,7 +89,7 @@ class CNode {
         int64_t nTime = time(nullptr);
         uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
         int64_t nLocalServices = 0;
-        CAddress me(CService("0.0.0.0"));
+        CAddress me(CSeederService("0.0.0.0"));
         BeginMessage("version");
         int nBestHeight = GetRequireHeight();
         std::string ver = "/bitcoin-cash-seeder:0.15/";
@@ -231,7 +231,7 @@ class CNode {
     }
 
 public:
-    CNode(const CService &ip, std::vector<CAddress> *vAddrIn)
+    CNode(const CSeederService &ip, std::vector<CAddress> *vAddrIn)
         : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
           nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
           you(ip) {
@@ -301,7 +301,7 @@ public:
     int GetStartingHeight() { return nStartingHeight; }
 };
 
-bool TestNode(const CService &cip, int &ban, int &clientV,
+bool TestNode(const CSeederService &cip, int &ban, int &clientV,
               std::string &clientSV, int &blocks,
               std::vector<CAddress> *vAddr) {
     try {
@@ -325,7 +325,7 @@ bool TestNode(const CService &cip, int &ban, int &clientV,
 
 /*
 int main(void) {
-  CService ip("bitcoin.sipa.be", 8333, true);
+  CSeederService ip("bitcoin.sipa.be", 8333, true);
   std::vector<CAddress> vAddr;
   vAddr.clear();
   int ban = 0;

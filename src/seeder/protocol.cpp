@@ -70,11 +70,12 @@ bool CMessageHeader::IsValid() const {
     return true;
 }
 
-CAddress::CAddress() : CService() {
+CAddress::CAddress() : CSeederService() {
     Init();
 }
 
-CAddress::CAddress(CService ipIn, uint64_t nServicesIn) : CService(ipIn) {
+CAddress::CAddress(CSeederService ipIn, uint64_t nServicesIn)
+    : CSeederService(ipIn) {
     Init();
     nServices = nServicesIn;
 }
