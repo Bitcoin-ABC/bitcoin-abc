@@ -2741,7 +2741,8 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
     }
 
     if (fBlocksDisconnected) {
-        mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1,
+        mempool.removeForReorg(config, pcoinsTip,
+                               chainActive.Tip()->nHeight + 1,
                                STANDARD_LOCKTIME_VERIFY_FLAGS);
         LimitMempoolSize(
             mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
@@ -2927,7 +2928,8 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
         if (!DisconnectTip(config, state)) {
-            mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1,
+            mempool.removeForReorg(config, pcoinsTip,
+                                   chainActive.Tip()->nHeight + 1,
                                    STANDARD_LOCKTIME_VERIFY_FLAGS);
             return false;
         }
@@ -2951,7 +2953,7 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
     }
 
     InvalidChainFound(pindex);
-    mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1,
+    mempool.removeForReorg(config, pcoinsTip, chainActive.Tip()->nHeight + 1,
                            STANDARD_LOCKTIME_VERIFY_FLAGS);
     uiInterface.NotifyBlockTip(IsInitialBlockDownload(), pindex->pprev);
     return true;
