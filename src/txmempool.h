@@ -20,11 +20,9 @@
 #include "random.h"
 #include "sync.h"
 
-#undef foreach
-#include "boost/multi_index/hashed_index.hpp"
-#include "boost/multi_index/ordered_index.hpp"
-#include "boost/multi_index_container.hpp"
-
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 #include <boost/signals2/signal.hpp>
 
 class CAutoFile;
