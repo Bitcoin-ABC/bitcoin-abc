@@ -1,3 +1,4 @@
+#include "address.h"
 #include "bitcoin.h"
 #include "clientversion.h"
 #include "db.h"
@@ -12,8 +13,6 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <signal.h>
-
-bool fTestNet = false;
 
 class CDnsSeedOpts {
 public:
@@ -183,7 +182,7 @@ extern "C" void *ThreadCrawler(void *data) {
             continue;
         }
 
-        std::vector<CAddress> addr;
+        std::vector<CSeederAddress> addr;
         for (size_t i = 0; i < ips.size(); i++) {
             CSeederServiceResult &res = ips[i];
             res.nBanTime = 0;
@@ -507,10 +506,10 @@ int main(int argc, char **argv) {
     bool fDNS = true;
     if (opts.fUseTestNet) {
         printf("Using testnet.\n");
-        pchMessageStart[0] = 0xf4;
-        pchMessageStart[1] = 0xe5;
-        pchMessageStart[2] = 0xf3;
-        pchMessageStart[3] = 0xf4;
+        netMagic[0] = 0xf4;
+        netMagic[1] = 0xe5;
+        netMagic[2] = 0xf3;
+        netMagic[3] = 0xf4;
         seeds = testnet_seeds;
         fTestNet = true;
     }

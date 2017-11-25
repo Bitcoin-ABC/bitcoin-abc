@@ -17,22 +17,10 @@
 #include <cstdint>
 #include <string>
 
-extern bool fTestNet;
-static inline unsigned short GetDefaultPort(const bool testnet = fTestNet) {
-    return testnet ? 18333 : 8333;
-}
-
-//
-// Message header
-//  (4) message start
-//  (12) command
-//  (4) size
-//  (4) checksum
-
-extern uint8_t pchMessageStart[4];
-
 class CMessageHeader {
 public:
+    typedef uint8_t MessageMagic[4];
+
     CMessageHeader();
     CMessageHeader(const char *pszCommand, unsigned int nMessageSizeIn);
 
@@ -54,7 +42,7 @@ public:
     // TODO: make private (improves encapsulation)
 public:
     enum { COMMAND_SIZE = 12 };
-    char pchMessageStart[sizeof(::pchMessageStart)];
+    MessageMagic pchMessageStart;
     char pchCommand[COMMAND_SIZE];
     unsigned int nMessageSize;
     unsigned int nChecksum;
@@ -65,45 +53,6 @@ enum ServiceFlags : uint64_t {
     NODE_BLOOM = (1 << 2),
     NODE_XTHIN = (1 << 4),
     NODE_BITCOIN_CASH = (1 << 5),
-};
-
-class CAddress : public CSeederService {
-public:
-    CAddress();
-    CAddress(CSeederService ipIn,
-             uint64_t nServicesIn = NODE_NETWORK | NODE_BITCOIN_CASH);
-
-    void Init();
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        int nVersion = s.GetVersion();
-        CAddress *pthis = const_cast<CAddress *>(this);
-        CSeederService *pip = (CSeederService *)pthis;
-        if (ser_action.ForRead()) {
-            pthis->Init();
-        }
-        if (s.GetType() & SER_DISK) {
-            READWRITE(nVersion);
-        }
-        if ((s.GetType() & SER_DISK) ||
-            (nVersion >= 31402 && !(s.GetType() & SER_GETHASH))) {
-            READWRITE(nTime);
-        }
-        READWRITE(nServices);
-        READWRITE(*pip);
-    }
-
-    void print() const;
-
-    // TODO: make private (improves encapsulation)
-public:
-    uint64_t nServices;
-
-    // disk and network only
-    unsigned int nTime;
 };
 
 class CInv {

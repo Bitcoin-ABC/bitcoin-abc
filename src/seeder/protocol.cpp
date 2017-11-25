@@ -70,25 +70,6 @@ bool CMessageHeader::IsValid() const {
     return true;
 }
 
-CAddress::CAddress() : CSeederService() {
-    Init();
-}
-
-CAddress::CAddress(CSeederService ipIn, uint64_t nServicesIn)
-    : CSeederService(ipIn) {
-    Init();
-    nServices = nServicesIn;
-}
-
-void CAddress::Init() {
-    nServices = NODE_NETWORK | NODE_BITCOIN_CASH;
-    nTime = 100000000;
-}
-
-void CAddress::print() const {
-    printf("CAddress(%s)\n", ToString().c_str());
-}
-
 CInv::CInv() {
     type = 0;
     hash.SetNull();

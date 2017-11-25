@@ -1,6 +1,8 @@
 #ifndef BITCOIN_SEEDER_DB_H
 #define BITCOIN_SEEDER_DB_H
 
+#include "address.h"
+#include "bitcoin.h"
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
@@ -262,7 +264,7 @@ private:
 protected:
     // internal routines that assume proper locks are acquired
     // add an address
-    void Add_(const CAddress &addr, bool force);
+    void Add_(const CSeederAddress &addr, bool force);
     // get an IP to test (must call Good_, Bad_, or Skipped_ on result
     // afterwards)
     bool Get_(CSeederServiceResult &ip, int &wait);
@@ -376,12 +378,12 @@ public:
         s >> banned;
     }
 
-    void Add(const CAddress &addr, bool fForce = false) {
+    void Add(const CSeederAddress &addr, bool fForce = false) {
         LOCK(cs);
         Add_(addr, fForce);
     }
 
-    void Add(const std::vector<CAddress> &vAddr, bool fForce = false) {
+    void Add(const std::vector<CSeederAddress> &vAddr, bool fForce = false) {
         LOCK(cs);
         for (size_t i = 0; i < vAddr.size(); i++) {
             Add_(vAddr[i], fForce);
