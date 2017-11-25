@@ -218,8 +218,8 @@ static bool rest_headers(Config &config, HTTPRequest *req,
     return true;
 }
 
-static bool rest_block(HTTPRequest *req, const std::string &strURIPart,
-                       bool showTxDetails) {
+static bool rest_block(const Config &config, HTTPRequest *req,
+                       const std::string &strURIPart, bool showTxDetails) {
     if (!CheckWarmup(req)) {
         return false;
     }
@@ -247,7 +247,7 @@ static bool rest_block(HTTPRequest *req, const std::string &strURIPart,
                            hashStr + " not available (pruned data)");
         }
 
-        if (!ReadBlockFromDisk(block, pblockindex, GetConfig())) {
+        if (!ReadBlockFromDisk(block, pblockindex, config)) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
         }
     }
@@ -293,12 +293,12 @@ static bool rest_block(HTTPRequest *req, const std::string &strURIPart,
 
 static bool rest_block_extended(Config &config, HTTPRequest *req,
                                 const std::string &strURIPart) {
-    return rest_block(req, strURIPart, true);
+    return rest_block(config, req, strURIPart, true);
 }
 
 static bool rest_block_notxdetails(Config &config, HTTPRequest *req,
                                    const std::string &strURIPart) {
-    return rest_block(req, strURIPart, false);
+    return rest_block(config, req, strURIPart, false);
 }
 
 static bool rest_chaininfo(Config &config, HTTPRequest *req,
