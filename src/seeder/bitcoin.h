@@ -2,7 +2,7 @@
 #define BITCOIN_SEEDER_BITCOIN_H
 
 #include "address.h"
-#include "protocol.h"
+#include "messageheader.h"
 
 #include <string>
 #include <vector>
@@ -18,7 +18,7 @@ static inline unsigned short GetDefaultPort(const bool testnet = fTestNet) {
 }
 
 // The network magic to use.
-extern CMessageHeader::MessageMagic netMagic;
+extern CSeederMessageHeader::MessageMagic netMagic;
 
 bool TestNode(const CService &cip, int &ban, int &client, std::string &clientSV,
               int &blocks, std::vector<CSeederAddress> *vAddr);

@@ -1,12 +1,10 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2011 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file license.txt or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2017 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "protocol.h"
-#include "netbase.h"
-#include "util.h"
+#include "messageheader.h"
 
+#include <cstring>
 #include <stdexcept>
 #include <vector>
 
@@ -16,7 +14,7 @@
 
 uint8_t pchMessageStart[4] = {0xe3, 0xe1, 0xf3, 0xe8};
 
-CMessageHeader::CMessageHeader() {
+CSeederMessageHeader::CSeederMessageHeader() {
     memcpy(pchMessageStart, ::pchMessageStart, sizeof(pchMessageStart));
     memset(pchCommand, 0, sizeof(pchCommand));
     pchCommand[1] = 1;
@@ -24,22 +22,22 @@ CMessageHeader::CMessageHeader() {
     nChecksum = 0;
 }
 
-CMessageHeader::CMessageHeader(const char *pszCommand,
-                               unsigned int nMessageSizeIn) {
+CSeederMessageHeader::CSeederMessageHeader(const char *pszCommand,
+                                           unsigned int nMessageSizeIn) {
     memcpy(pchMessageStart, ::pchMessageStart, sizeof(pchMessageStart));
     strncpy(pchCommand, pszCommand, COMMAND_SIZE);
     nMessageSize = nMessageSizeIn;
     nChecksum = 0;
 }
 
-std::string CMessageHeader::GetCommand() const {
+std::string CSeederMessageHeader::GetCommand() const {
     if (pchCommand[COMMAND_SIZE - 1] == 0)
         return std::string(pchCommand, pchCommand + strlen(pchCommand));
     else
         return std::string(pchCommand, pchCommand + COMMAND_SIZE);
 }
 
-bool CMessageHeader::IsValid() const {
+bool CSeederMessageHeader::IsValid() const {
     // Check start string
     if (memcmp(pchMessageStart, ::pchMessageStart, sizeof(pchMessageStart)) !=
         0)
@@ -57,8 +55,8 @@ bool CMessageHeader::IsValid() const {
 
     // Message size
     if (nMessageSize > MAX_SIZE) {
-        printf("CMessageHeader::IsValid() : (%s, %u bytes) nMessageSize > "
-               "MAX_SIZE\n",
+        printf("CSeederMessageHeader::IsValid() : (%s, %u bytes) nMessageSize "
+               "> MAX_SIZE\n",
                GetCommand().c_str(), nMessageSize);
         return false;
     }
