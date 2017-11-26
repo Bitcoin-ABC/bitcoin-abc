@@ -27,10 +27,10 @@ class CNode {
     int nVersion;
     std::string strSubVer;
     int nStartingHeight;
-    std::vector<CSeederAddress> *vAddr;
+    std::vector<CAddress> *vAddr;
     int ban;
     int64_t doneAfter;
-    CSeederAddress you;
+    CAddress you;
 
     int GetTimeout() { return you.IsTor() ? 120 : 30; }
 
@@ -97,7 +97,7 @@ class CNode {
         uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
         int64_t nLocalServices = 0;
         CService myService;
-        CSeederAddress me(myService);
+        CAddress me(myService, ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH));
         BeginMessage("version");
         int nBestHeight = GetRequireHeight();
         std::string ver = "/bitcoin-cash-seeder:0.15/";
@@ -122,10 +122,12 @@ class CNode {
         //    strCommand.c_str());
         if (strCommand == "version") {
             int64_t nTime;
-            CSeederAddress addrMe;
-            CSeederAddress addrFrom;
+            CAddress addrMe;
+            CAddress addrFrom;
             uint64_t nNonce = 1;
-            vRecv >> nVersion >> you.nServices >> nTime >> addrMe;
+            uint64_t nServiceInt;
+            vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+            you.nServices = ServiceFlags(nServiceInt);
             if (nVersion == 10300) nVersion = 300;
             if (nVersion >= 106 && !vRecv.empty()) vRecv >> addrFrom >> nNonce;
             if (nVersion >= 106 && !vRecv.empty()) vRecv >> strSubVer;
@@ -150,17 +152,17 @@ class CNode {
         }
 
         if (strCommand == "addr" && vAddr) {
-            std::vector<CSeederAddress> vAddrNew;
+            std::vector<CAddress> vAddrNew;
             vRecv >> vAddrNew;
             // printf("%s: got %i addresses\n", ToString(you).c_str(),
             // (int)vAddrNew.size());
             int64_t now = time(nullptr);
-            std::vector<CSeederAddress>::iterator it = vAddrNew.begin();
+            std::vector<CAddress>::iterator it = vAddrNew.begin();
             if (vAddrNew.size() > 1) {
                 if (doneAfter == 0 || doneAfter > now + 1) doneAfter = now + 1;
             }
             while (it != vAddrNew.end()) {
-                CSeederAddress &addr = *it;
+                CAddress &addr = *it;
                 //        printf("%s: got address %s\n", ToString(you).c_str(),
                 //        addr.ToString().c_str(), (int)(vAddr->size()));
                 it++;
@@ -238,10 +240,10 @@ class CNode {
     }
 
 public:
-    CNode(const CService &ip, std::vector<CSeederAddress> *vAddrIn)
+    CNode(const CService &ip, std::vector<CAddress> *vAddrIn)
         : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
           nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
-          you(ip) {
+          you(ip, ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH)) {
         if (time(nullptr) > 1329696000) {
             vSend.SetVersion(209);
             vRecv.SetVersion(209);
@@ -310,7 +312,7 @@ public:
 
 bool TestNode(const CService &cip, int &ban, int &clientV,
               std::string &clientSV, int &blocks,
-              std::vector<CSeederAddress> *vAddr) {
+              std::vector<CAddress> *vAddr) {
     try {
         CNode node(cip, vAddr);
         bool ret = node.Run();
@@ -333,7 +335,7 @@ bool TestNode(const CService &cip, int &ban, int &clientV,
 /*
 int main(void) {
   CService ip("bitcoin.sipa.be", 8333, true);
-  std::vector<CSeederAddress> vAddr;
+  std::vector<CAddress> vAddr;
   vAddr.clear();
   int ban = 0;
   bool ret = TestNode(ip, ban, vAddr);

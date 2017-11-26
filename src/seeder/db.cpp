@@ -135,7 +135,7 @@ void CAddrDb::Skipped_(const CService &addr) {
     nDirty++;
 }
 
-void CAddrDb::Add_(const CSeederAddress &addr, bool force) {
+void CAddrDb::Add_(const CAddress &addr, bool force) {
     if (!force && !addr.IsRoutable()) {
         return;
     }

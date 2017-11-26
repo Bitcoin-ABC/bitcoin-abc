@@ -312,8 +312,6 @@ libbitcoin_consensus_a_SOURCES = \
   script/script_error.h \
   serialize.h \
   tinyformat.h \
-  uint256.cpp \
-  uint256.h \
   utilstrencodings.cpp \
   utilstrencodings.h \
   version.h
@@ -362,6 +360,8 @@ libbitcoin_util_a_SOURCES = \
   support/cleanse.cpp \
   sync.cpp \
   threadinterrupt.cpp \
+  uint256.cpp \
+  uint256.h \
   util.cpp \
   utilmoneystr.cpp \
   utilstrencodings.cpp \
@@ -383,8 +383,6 @@ libbitcoin_cli_a_SOURCES = \
 libbitcoin_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
 libbitcoin_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_seeder_a_SOURCES = \
-  seeder/address.cpp \
-  seeder/address.h \
   seeder/bitcoin.cpp \
   seeder/bitcoin.h \
   seeder/compat.h \
@@ -396,7 +394,6 @@ libbitcoin_seeder_a_SOURCES = \
   seeder/messageheader.h \
   seeder/netbase.cpp \
   seeder/netbase.h \
-  seeder/protocol.h \
   seeder/strlcpy.h \
   seeder/util.cpp \
   seeder/util.h

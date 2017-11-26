@@ -1,8 +1,8 @@
-#include "address.h"
 #include "bitcoin.h"
 #include "clientversion.h"
 #include "db.h"
 #include "dns.h"
+#include "protocol.h"
 #include "streams.h"
 
 #include <algorithm>
@@ -182,7 +182,7 @@ extern "C" void *ThreadCrawler(void *data) {
             continue;
         }
 
-        std::vector<CSeederAddress> addr;
+        std::vector<CAddress> addr;
         for (size_t i = 0; i < ips.size(); i++) {
             CServiceResult &res = ips[i];
             res.nBanTime = 0;
@@ -457,7 +457,8 @@ extern "C" void *ThreadSeeder(void *) {
             std::vector<CNetAddr> ips;
             LookupHost(seeds[i].c_str(), ips, MAX_HOSTS_PER_SEED, true);
             for (auto &ip : ips) {
-                db.Add(CSeederAddress(CService(ip, GetDefaultPort())), true);
+                db.Add(CAddress(CService(ip, GetDefaultPort()), ServiceFlags()),
+                       true);
             }
         }
         Sleep(1800000);

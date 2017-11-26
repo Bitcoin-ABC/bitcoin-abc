@@ -246,7 +246,9 @@ extern const char *BLOCKTXN;
 /* Get a vector of all valid message types (see above) */
 const std::vector<std::string> &getAllNetMessageTypes();
 
-/** nServices flags */
+/**
+ * nServices flags.
+ */
 enum ServiceFlags : uint64_t {
     // Nothing
     NODE_NONE = 0,
@@ -284,7 +286,9 @@ enum ServiceFlags : uint64_t {
     // BIP process.
 };
 
-/** A CService with information about it as peer */
+/**
+ * A CService with information about it as peer.
+ */
 class CAddress : public CService {
 public:
     CAddress();
