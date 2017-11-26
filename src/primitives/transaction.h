@@ -13,8 +13,10 @@
 
 static const int SERIALIZE_TRANSACTION = 0x00;
 
-/** An outpoint - a combination of a transaction hash and an index n into its
- * vout */
+/**
+ * An outpoint - a combination of a transaction hash and an index n into its
+ * vout.
+ */
 class COutPoint {
 public:
     uint256 hash;
@@ -56,9 +58,10 @@ public:
     std::string ToString() const;
 };
 
-/** An input of a transaction.  It contains the location of the previous
- * transaction's output that it claims and a signature that matches the
- * output's public key.
+/**
+ * An input of a transaction. It contains the location of the previous
+ * transaction's output that it claims and a signature that matches the output's
+ * public key.
  */
 class CTxIn {
 public:
@@ -66,31 +69,40 @@ public:
     CScript scriptSig;
     uint32_t nSequence;
 
-    /* Setting nSequence to this value for every input in a transaction
-     * disables nLockTime. */
+    /**
+     * Setting nSequence to this value for every input in a transaction disables
+     * nLockTime.
+     */
     static const uint32_t SEQUENCE_FINAL = 0xffffffff;
 
     /* Below flags apply in the context of BIP 68*/
-    /* If this flag set, CTxIn::nSequence is NOT interpreted as a
-     * relative lock-time. */
+    /**
+     * If this flag set, CTxIn::nSequence is NOT interpreted as a relative
+     * lock-time.
+     */
     static const uint32_t SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31);
 
-    /* If CTxIn::nSequence encodes a relative lock-time and this flag
-     * is set, the relative lock-time has units of 512 seconds,
-     * otherwise it specifies blocks with a granularity of 1. */
+    /**
+     * If CTxIn::nSequence encodes a relative lock-time and this flag is set,
+     * the relative lock-time has units of 512 seconds, otherwise it specifies
+     * blocks with a granularity of 1.
+     */
     static const uint32_t SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22);
 
-    /* If CTxIn::nSequence encodes a relative lock-time, this mask is
-     * applied to extract that lock-time from the sequence field. */
+    /**
+     * If CTxIn::nSequence encodes a relative lock-time, this mask is applied to
+     * extract that lock-time from the sequence field.
+     */
     static const uint32_t SEQUENCE_LOCKTIME_MASK = 0x0000ffff;
 
-    /* In order to use the same number of bits to encode roughly the
-     * same wall-clock duration, and because blocks are naturally
-     * limited to occur every 600s on average, the minimum granularity
-     * for time-based relative lock-time is fixed at 512 seconds.
-     * Converting from CTxIn::nSequence to seconds is performed by
-     * multiplying by 512 = 2^9, or equivalently shifting up by
-     * 9 bits. */
+    /**
+     * In order to use the same number of bits to encode roughly the same
+     * wall-clock duration, and because blocks are naturally limited to occur
+     * every 600s on average, the minimum granularity for time-based relative
+     * lock-time is fixed at 512 seconds. Converting from CTxIn::nSequence to
+     * seconds is performed by multiplying by 512 = 2^9, or equivalently
+     * shifting up by 9 bits.
+     */
     static const int SEQUENCE_LOCKTIME_GRANULARITY = 9;
 
     CTxIn() { nSequence = SEQUENCE_FINAL; }
@@ -148,15 +160,17 @@ public:
     bool IsNull() const { return (nValue == Amount(-1)); }
 
     Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
-        // "Dust" is defined in terms of CTransaction::minRelayTxFee, which has
-        // units satoshis-per-kilobyte. If you'd pay more than 1/3 in fees to
-        // spend something, then we consider it dust. A typical spendable
-        // non-segwit txout is 34 bytes big, and will need a CTxIn of at least
-        // 148 bytes to spend: so dust is a spendable txout less than
-        // 546*minRelayTxFee/1000 (in satoshis). A typical spendable segwit
-        // txout is 31 bytes big, and will need a CTxIn of at least 67 bytes to
-        // spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
-        // (in satoshis).
+        /**
+         * "Dust" is defined in terms of CTransaction::minRelayTxFee, which has
+         * units satoshis-per-kilobyte. If you'd pay more than 1/3 in fees to
+         * spend something, then we consider it dust. A typical spendable
+         * non-segwit txout is 34 bytes big, and will need a CTxIn of at least
+         * 148 bytes to spend: so dust is a spendable txout less than
+         * 546*minRelayTxFee/1000 (in satoshis). A typical spendable segwit
+         * txout is 31 bytes big, and will need a CTxIn of at least 67 bytes to
+         * spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
+         * (in satoshis).
+         */
         if (scriptPubKey.IsUnspendable()) return Amount(0);
 
         size_t nSize = GetSerializeSize(*this, SER_DISK, 0);
@@ -212,8 +226,9 @@ inline void SerializeTransaction(const TxType &tx, Stream &s) {
     s << tx.nLockTime;
 }
 
-/** The basic transaction that is broadcasted on the network and contained in
- * blocks.  A transaction can contain multiple inputs and outputs.
+/**
+ * The basic transaction that is broadcasted on the network and contained in
+ * blocks. A transaction can contain multiple inputs and outputs.
  */
 class CTransaction {
 public:
@@ -254,9 +269,11 @@ public:
         SerializeTransaction(*this, s);
     }
 
-    /** This deserializing constructor is provided instead of an Unserialize
+    /**
+     * This deserializing constructor is provided instead of an Unserialize
      * method. Unserialize is not possible, since it would require overwriting
-     * const fields. */
+     * const fields.
+     */
     template <typename Stream>
     CTransaction(deserialize_type, Stream &s)
         : CTransaction(CMutableTransaction(deserialize, s)) {}
@@ -328,7 +345,8 @@ public:
         Unserialize(s);
     }
 
-    /** Compute the hash of this CMutableTransaction. This is computed on the
+    /**
+     * Compute the hash of this CMutableTransaction. This is computed on the
      * fly, as opposed to GetId() in CTransaction, which uses a cached result.
      */
     uint256 GetId() const;

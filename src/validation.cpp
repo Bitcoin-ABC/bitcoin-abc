@@ -159,10 +159,11 @@ std::set<CBlockIndex *> setDirtyBlockIndex;
 std::set<int> setDirtyFileInfo;
 } // namespace
 
-/* Use this class to start tracking transactions that are removed from the
+/**
+ * Use this class to start tracking transactions that are removed from the
  * mempool and pass all those transactions through SyncTransaction when the
  * object goes out of scope. This is currently only used to call SyncTransaction
- * on conflicts removed from the mempool during block connection.  Applied in
+ * on conflicts removed from the mempool during block connection. Applied in
  * ActivateBestChain around ActivateBestStep which in turn calls:
  * ConnectTip->removeForBlock->removeConflicts
  */

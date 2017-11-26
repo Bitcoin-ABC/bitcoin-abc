@@ -293,9 +293,9 @@ public:
 
     uint256 GetBlockHash() const { return *phashBlock; }
 
-    int64_t GetBlockTime() const { return (int64_t)nTime; }
+    int64_t GetBlockTime() const { return int64_t(nTime); }
 
-    int64_t GetBlockTimeMax() const { return (int64_t)nTimeMax; }
+    int64_t GetBlockTimeMax() const { return int64_t(nTimeMax); }
 
     enum { nMedianTimeSpan = 11 };
 
@@ -438,7 +438,9 @@ public:
     }
 };
 
-/** An in-memory indexed chain of blocks. */
+/**
+ * An in-memory indexed chain of blocks.
+ */
 class CChain {
 private:
     std::vector<CBlockIndex *> vChain;

@@ -41,8 +41,9 @@ const char *GETBLOCKTXN = "getblocktxn";
 const char *BLOCKTXN = "blocktxn";
 };
 
-/** All known message types. Keep this in the same order as the list of
- * messages above and in protocol.h.
+/**
+ * All known message types. Keep this in the same order as the list of messages
+ * above and in protocol.h.
  */
 static const std::string allNetMessageTypes[] = {
     NetMsgType::VERSION,     NetMsgType::VERACK,     NetMsgType::ADDR,

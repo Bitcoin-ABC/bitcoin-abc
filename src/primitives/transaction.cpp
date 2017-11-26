@@ -30,12 +30,14 @@ std::string CTxIn::ToString() const {
     std::string str;
     str += "CTxIn(";
     str += prevout.ToString();
-    if (prevout.IsNull())
+    if (prevout.IsNull()) {
         str += strprintf(", coinbase %s", HexStr(scriptSig));
-    else
+    } else {
         str += strprintf(", scriptSig=%s", HexStr(scriptSig).substr(0, 24));
-    if (nSequence != SEQUENCE_FINAL)
+    }
+    if (nSequence != SEQUENCE_FINAL) {
         str += strprintf(", nSequence=%u", nSequence);
+    }
     str += ")";
     return str;
 }
