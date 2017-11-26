@@ -70,29 +70,11 @@ public:
     }
 };
 
-enum Network ParseNetwork(std::string net);
-void SplitHostPort(std::string in, int &portOut, std::string &hostOut);
 bool SetProxy(enum Network net, CSeederService addrProxy,
               int nSocksVersion = 5);
-bool GetProxy(enum Network net, CSeederService &addrProxy);
-bool IsProxy(const CNetAddr &addr);
-bool SetNameProxy(CSeederService addrProxy, int nSocksVersion = 5);
-bool GetNameProxy();
 bool LookupHost(const char *pszName, std::vector<CNetAddr> &vIP,
                 unsigned int nMaxSolutions = 0, bool fAllowLookup = true);
-bool LookupHostNumeric(const char *pszName, std::vector<CNetAddr> &vIP,
-                       unsigned int nMaxSolutions = 0);
-bool Lookup(const char *pszName, CSeederService &addr, int portDefault = 0,
-            bool fAllowLookup = true);
-bool Lookup(const char *pszName, std::vector<CSeederService> &vAddr,
-            int portDefault = 0, bool fAllowLookup = true,
-            unsigned int nMaxSolutions = 0);
-bool LookupNumeric(const char *pszName, CSeederService &addr,
-                   int portDefault = 0);
 bool ConnectSocket(const CSeederService &addr, SOCKET &hSocketRet,
                    int nTimeout = nConnectTimeout);
-bool ConnectSocketByName(CSeederService &addr, SOCKET &hSocketRet,
-                         const char *pszDest, int portDefault = 0,
-                         int nTimeout = nConnectTimeout);
 
 #endif

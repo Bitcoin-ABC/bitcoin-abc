@@ -24,15 +24,7 @@ bool fNameLookup = false;
 
 static const uint8_t pchIPv4[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
 
-enum Network ParseNetwork(std::string net) {
-    boost::to_lower(net);
-    if (net == "ipv4") return NET_IPV4;
-    if (net == "ipv6") return NET_IPV6;
-    if (net == "tor") return NET_TOR;
-    return NET_UNROUTABLE;
-}
-
-void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
+static void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
     size_t colon = in.find_last_of(':');
     // if a : is found, and it either follows a [...], or no other : is in the
     // string, treat it as port separator
@@ -121,13 +113,9 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr> &vIP,
     return LookupIntern(pszHost, vIP, nMaxSolutions, fAllowLookup);
 }
 
-bool LookupHostNumeric(const char *pszName, std::vector<CNetAddr> &vIP,
-                       unsigned int nMaxSolutions) {
-    return LookupHost(pszName, vIP, nMaxSolutions, false);
-}
-
-bool Lookup(const char *pszName, std::vector<CSeederService> &vAddr,
-            int portDefault, bool fAllowLookup, unsigned int nMaxSolutions) {
+static bool Lookup(const char *pszName, std::vector<CSeederService> &vAddr,
+                   int portDefault, bool fAllowLookup,
+                   unsigned int nMaxSolutions) {
     if (pszName[0] == 0) return false;
     int port = portDefault;
     std::string hostname = "";
@@ -143,17 +131,13 @@ bool Lookup(const char *pszName, std::vector<CSeederService> &vAddr,
     return true;
 }
 
-bool Lookup(const char *pszName, CSeederService &addr, int portDefault,
-            bool fAllowLookup) {
+static bool Lookup(const char *pszName, CSeederService &addr, int portDefault,
+                   bool fAllowLookup) {
     std::vector<CSeederService> vService;
     bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1);
     if (!fRet) return false;
     addr = vService[0];
     return true;
-}
-
-bool LookupNumeric(const char *pszName, CSeederService &addr, int portDefault) {
-    return Lookup(pszName, addr, portDefault, false);
 }
 
 static bool Socks4(const CSeederService &addrDest, SOCKET &hSocket) {
@@ -414,32 +398,6 @@ bool SetProxy(enum Network net, CSeederService addrProxy, int nSocksVersion) {
     return true;
 }
 
-bool GetProxy(enum Network net, CSeederService &addrProxy) {
-    assert(net >= 0 && net < NET_MAX);
-    if (!proxyInfo[net].second) return false;
-    addrProxy = proxyInfo[net].first;
-    return true;
-}
-
-bool SetNameProxy(CSeederService addrProxy, int nSocksVersion) {
-    if (nSocksVersion != 0 && nSocksVersion != 5) return false;
-    if (nSocksVersion != 0 && !addrProxy.IsValid()) return false;
-    nameproxyInfo = std::make_pair(addrProxy, nSocksVersion);
-    return true;
-}
-
-bool GetNameProxy() {
-    return nameproxyInfo.second != 0;
-}
-
-bool IsProxy(const CNetAddr &addr) {
-    for (int i = 0; i < NET_MAX; i++) {
-        if (proxyInfo[i].second && (addr == (CNetAddr)proxyInfo[i].first))
-            return true;
-    }
-    return false;
-}
-
 bool ConnectSocket(const CSeederService &addrDest, SOCKET &hSocketRet,
                    int nTimeout) {
     const proxyType &proxy = proxyInfo[addrDest.GetNetwork()];
@@ -464,40 +422,6 @@ bool ConnectSocket(const CSeederService &addrDest, SOCKET &hSocketRet,
             break;
         default:
             return false;
-    }
-
-    hSocketRet = hSocket;
-    return true;
-}
-
-bool ConnectSocketByName(CSeederService &addr, SOCKET &hSocketRet,
-                         const char *pszDest, int portDefault, int nTimeout) {
-    std::string strDest;
-    int port = portDefault;
-    SplitHostPort(std::string(pszDest), port, strDest);
-
-    SOCKET hSocket = INVALID_SOCKET;
-    CSeederService addrResolved;
-    if (Lookup(strDest.c_str(), addrResolved, port,
-               fNameLookup && !nameproxyInfo.second)) {
-        if (addrResolved.IsValid()) {
-            addr = addrResolved;
-            return ConnectSocket(addr, hSocketRet, nTimeout);
-        }
-    }
-
-    addr = CSeederService("0.0.0.0:0");
-    if (!nameproxyInfo.second) return false;
-    if (!ConnectSocketDirectly(nameproxyInfo.first, hSocket, nTimeout))
-        return false;
-
-    switch (nameproxyInfo.second) {
-        default:
-        case 4:
-            return false;
-        case 5:
-            if (!Socks5(strDest, port, hSocket)) return false;
-            break;
     }
 
     hSocketRet = hSocket;
