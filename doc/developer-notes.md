@@ -500,22 +500,28 @@ Git and GitHub tips
 Committing Changes
 --------------------
 
-First, you'll need Arcanist installed:
+First, clone the repo from https://reviews.bitcoinabc.org/source/bitcoin-abc/
+If you cloned from Github or elsewhere, your upstream origin will be incorrect and you will not be able to push changes.
+
+Then, you'll need Arcanist installed:
 ```
 sudo apt-get install arcanist
 ```
 
-Then, setup Arcanist with your reviews.bitcoinabc.org account:
+And setup Arcanist with your reviews.bitcoinabc.org account:
 ```
 arc install-certificate
 ```
+
+Don't forget to add your SSH key to your account:
+https://reviews.bitcoinabc.org/settings/user/<username>/page/ssh/
 
 Now you can submit changes for review:
 ```
 arc diff
 ```
 
-And submit them once they are approved:
+And push them once they are approved:
 ```
 arc land
 ```
