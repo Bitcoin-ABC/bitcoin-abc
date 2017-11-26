@@ -4,12 +4,12 @@
 
 #include "address.h"
 
-CSeederAddress::CSeederAddress() : CSeederService() {
+CSeederAddress::CSeederAddress() : CService() {
     Init();
 }
 
-CSeederAddress::CSeederAddress(CSeederService ipIn, uint64_t nServicesIn)
-    : CSeederService(ipIn) {
+CSeederAddress::CSeederAddress(CService ipIn, uint64_t nServicesIn)
+    : CService(ipIn) {
     Init();
     nServices = nServicesIn;
 }

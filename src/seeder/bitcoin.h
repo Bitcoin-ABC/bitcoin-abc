@@ -20,8 +20,7 @@ static inline unsigned short GetDefaultPort(const bool testnet = fTestNet) {
 // The network magic to use.
 extern CMessageHeader::MessageMagic netMagic;
 
-bool TestNode(const CSeederService &cip, int &ban, int &client,
-              std::string &clientSV, int &blocks,
-              std::vector<CSeederAddress> *vAddr);
+bool TestNode(const CService &cip, int &ban, int &client, std::string &clientSV,
+              int &blocks, std::vector<CSeederAddress> *vAddr);
 
 #endif

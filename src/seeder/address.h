@@ -8,10 +8,10 @@
 #include "netbase.h"
 #include "protocol.h"
 
-class CSeederAddress : public CSeederService {
+class CSeederAddress : public CService {
 public:
     CSeederAddress();
-    CSeederAddress(CSeederService ipIn,
+    CSeederAddress(CService ipIn,
                    uint64_t nServicesIn = NODE_NETWORK | NODE_BITCOIN_CASH);
 
     void Init();
@@ -22,7 +22,7 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         int nVersion = s.GetVersion();
         CSeederAddress *pthis = const_cast<CSeederAddress *>(this);
-        CSeederService *pip = (CSeederService *)pthis;
+        CService *pip = (CService *)pthis;
         if (ser_action.ForRead()) {
             pthis->Init();
         }
