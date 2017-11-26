@@ -55,31 +55,4 @@ enum ServiceFlags : uint64_t {
     NODE_BITCOIN_CASH = (1 << 5),
 };
 
-class CInv {
-public:
-    CInv();
-    CInv(uint32_t typeIn, const uint256 &hashIn);
-    CInv(const std::string &strType, const uint256 &hashIn);
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(type);
-        READWRITE(hash);
-    }
-
-    friend bool operator<(const CInv &a, const CInv &b);
-
-    bool IsKnownType() const;
-    const char *GetCommand() const;
-    std::string ToString() const;
-    void print() const;
-
-    // TODO: make private (improves encapsulation)
-public:
-    uint32_t type;
-    uint256 hash;
-};
-
 #endif // __INCLUDED_PROTOCOL_H__
