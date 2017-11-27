@@ -26,11 +26,11 @@ public:
 class GlobalConfig final : public Config {
 public:
     GlobalConfig();
-    bool SetMaxBlockSize(uint64_t maxBlockSize);
-    uint64_t GetMaxBlockSize() const;
-    bool SetBlockPriorityPercentage(int64_t blockPriorityPercentage);
-    uint8_t GetBlockPriorityPercentage() const;
-    const CChainParams &GetChainParams() const;
+    bool SetMaxBlockSize(uint64_t maxBlockSize) override;
+    uint64_t GetMaxBlockSize() const override;
+    bool SetBlockPriorityPercentage(int64_t blockPriorityPercentage) override;
+    uint8_t GetBlockPriorityPercentage() const override;
+    const CChainParams &GetChainParams() const override;
     void SetCashAddrEncoding(bool) override;
     bool UseCashAddrEncoding() const override;
 
