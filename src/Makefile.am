@@ -391,7 +391,6 @@ libbitcoin_seeder_a_SOURCES = \
   seeder/dns.cpp \
   seeder/dns.h \
   seeder/strlcpy.h \
-  seeder/util.cpp \
   seeder/util.h
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
