@@ -251,10 +251,16 @@ public:
     }
 
     bool Run() {
-        bool res = true;
-        if (!ConnectSocket(you, sock)) return false;
+        bool proxyConnectionFailed = false;
+        if (!ConnectSocket(you, sock, nConnectTimeout,
+                           &proxyConnectionFailed)) {
+            return false;
+        }
+
         PushVersion();
         Send();
+
+        bool res = true;
         int64_t now;
         while (now = time(nullptr), ban == 0 &&
                                         (doneAfter == 0 || doneAfter > now) &&
