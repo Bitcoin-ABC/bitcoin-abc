@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     // serialization format is:
     // message start magic, size of block, block
 
-    size_t nwritten = fwrite(chainparams.DiskMagic(),
+    size_t nwritten = fwrite(std::begin(chainparams.DiskMagic()),
                              CMessageHeader::MESSAGE_START_SIZE, 1, fp);
 
     BOOST_CHECK_EQUAL(nwritten, 1UL);

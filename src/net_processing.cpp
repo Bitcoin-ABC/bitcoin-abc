@@ -3128,7 +3128,8 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
     msg.SetVersion(pfrom->GetRecvVersion());
 
     // Scan for message start
-    if (memcmp(msg.hdr.pchMessageStart, chainparams.NetMagic(),
+    if (memcmp(std::begin(msg.hdr.pchMessageStart),
+               std::begin(chainparams.NetMagic()),
                CMessageHeader::MESSAGE_START_SIZE) != 0) {
         LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
                   SanitizeString(msg.hdr.GetCommand()), pfrom->id);

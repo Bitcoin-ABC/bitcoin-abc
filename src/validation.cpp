@@ -4461,7 +4461,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 blkdat.FindByte(chainparams.DiskMagic()[0]);
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> FLATDATA(buf);
-                if (memcmp(buf, chainparams.DiskMagic(),
+                if (memcmp(buf, std::begin(chainparams.DiskMagic()),
                            CMessageHeader::MESSAGE_START_SIZE)) {
                     continue;
                 }

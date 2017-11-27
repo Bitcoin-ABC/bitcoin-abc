@@ -15,6 +15,7 @@
 #include "uint256.h"
 #include "version.h"
 
+#include <array>
 #include <cstdint>
 #include <string>
 
@@ -38,7 +39,7 @@ public:
         HEADER_SIZE = MESSAGE_START_SIZE + COMMAND_SIZE + MESSAGE_SIZE_SIZE +
                       CHECKSUM_SIZE
     };
-    typedef uint8_t MessageMagic[MESSAGE_START_SIZE];
+    typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
     CMessageHeader(const MessageMagic &pchMessageStartIn);
     CMessageHeader(const MessageMagic &pchMessageStartIn,
@@ -57,7 +58,7 @@ public:
         READWRITE(FLATDATA(pchChecksum));
     }
 
-    char pchMessageStart[MESSAGE_START_SIZE];
+    MessageMagic pchMessageStart;
     char pchCommand[COMMAND_SIZE];
     uint32_t nMessageSize;
     uint8_t pchChecksum[CHECKSUM_SIZE];
