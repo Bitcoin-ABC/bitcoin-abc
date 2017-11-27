@@ -4,7 +4,7 @@
             "type": "clang-format",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|leveldb)/)",
+                "(^src/(secp256k1|univalue|leveldb)/)",
                 "(^src/chainparamsseeds\\.h$)"
             ]
         },
