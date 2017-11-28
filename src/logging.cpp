@@ -9,6 +9,7 @@
 #include "utiltime.h"
 
 bool fLogIPs = DEFAULT_LOGIPS;
+const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
 
 /**
  * NOTE: the logger instance is leaked on exit. This is ugly, but will be
@@ -32,21 +33,35 @@ static int FileWriteStr(const std::string &str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
-void BCLog::Logger::OpenDebugLog() {
+fs::path BCLog::Logger::GetDebugLogPath() {
+    fs::path logfile(gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    if (logfile.is_absolute()) {
+        return logfile;
+    } else {
+        return GetDataDir() / logfile;
+    }
+}
+
+bool BCLog::Logger::OpenDebugLog() {
     std::lock_guard<std::mutex> scoped_lock(m_file_mutex);
 
     assert(m_fileout == nullptr);
-    fs::path pathDebug = GetDataDir() / "debug.log";
+    fs::path pathDebug = GetDebugLogPath();
+
     m_fileout = fsbridge::fopen(pathDebug, "a");
-    if (m_fileout) {
-        // Unbuffered.
-        setbuf(m_fileout, nullptr);
-        // Dump buffered messages from before we opened the log.
-        while (!m_msgs_before_open.empty()) {
-            FileWriteStr(m_msgs_before_open.front(), m_fileout);
-            m_msgs_before_open.pop_front();
-        }
+    if (!m_fileout) {
+        return false;
     }
+
+    // Unbuffered.
+    setbuf(m_fileout, nullptr);
+    // Dump buffered messages from before we opened the log.
+    while (!m_msgs_before_open.empty()) {
+        FileWriteStr(m_msgs_before_open.front(), m_fileout);
+        m_msgs_before_open.pop_front();
+    }
+
+    return true;
 }
 
 struct CLogCategoryDesc {
@@ -161,7 +176,7 @@ int BCLog::Logger::LogPrintStr(const std::string &str) {
             // Reopen the log file, if requested.
             if (m_reopen_file) {
                 m_reopen_file = false;
-                fs::path pathDebug = GetDataDir() / "debug.log";
+                fs::path pathDebug = GetDebugLogPath();
                 if (fsbridge::freopen(pathDebug, "a", m_fileout) != nullptr) {
                     // unbuffered.
                     setbuf(m_fileout, nullptr);
@@ -178,7 +193,7 @@ void BCLog::Logger::ShrinkDebugFile() {
     // Amount of debug.log to save at end when shrinking (must fit in memory)
     constexpr size_t RECENT_DEBUG_HISTORY_SIZE = 10 * 1000000;
     // Scroll debug.log if it's getting too big.
-    fs::path pathLog = GetDataDir() / "debug.log";
+    fs::path pathLog = GetDebugLogPath();
     FILE *file = fsbridge::fopen(pathLog, "r");
     // If debug.log file is more than 10% bigger the RECENT_DEBUG_HISTORY_SIZE
     // trim it down by saving only the last RECENT_DEBUG_HISTORY_SIZE bytes.
