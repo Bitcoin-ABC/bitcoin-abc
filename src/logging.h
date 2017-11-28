@@ -21,6 +21,7 @@ static const bool DEFAULT_LOGIPS = false;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
 
 extern bool fLogIPs;
+extern const char *const DEFAULT_DEBUGLOGFILE;
 
 namespace BCLog {
 
@@ -84,7 +85,8 @@ public:
     /** Send a string to the log output */
     int LogPrintStr(const std::string &str);
 
-    void OpenDebugLog();
+    fs::path GetDebugLogPath();
+    bool OpenDebugLog();
     void ShrinkDebugFile();
 
     void EnableCategory(LogFlags category);

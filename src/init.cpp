@@ -406,6 +406,12 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-loadblock=<file>",
         _("Imports blocks from external blk000??.dat file on startup"));
     strUsage += HelpMessageOpt(
+        "-debuglogfile=<file>",
+        strprintf(
+            _("Specify location of debug log file: this can be an absolute "
+              "path or a path relative to the data directory (default: %s)"),
+            DEFAULT_DEBUGLOGFILE));
+    strUsage += HelpMessageOpt(
         "-maxorphantx=<n>", strprintf(_("Keep at most <n> unconnectable "
                                         "transactions in memory (default: %u)"),
                                       DEFAULT_MAX_ORPHAN_TRANSACTIONS));
@@ -1787,7 +1793,10 @@ bool AppInitMain(Config &config,
     }
 
     if (logger.m_print_to_file) {
-        logger.OpenDebugLog();
+        if (!logger.OpenDebugLog()) {
+            return InitError(strprintf("Could not open debug log file %s",
+                                       logger.GetDebugLogPath().string()));
+        }
     }
 
     if (!logger.m_log_timestamps) {
