@@ -252,6 +252,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         return txs
 
     def get_tests(self):
+        self.log.info("Generate blocks in the past for coinbase outputs.")
         # Enough to build up to 1000 blocks 10 minutes apart without worrying
         # about getting into the future
         long_past_time = int(time.time()) - 600 * 1000
@@ -271,7 +272,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         # CSV is not activated yet.
         assert_equal(get_csv_status(self.nodes[0]), False)
 
-        # 489 more version 4 blocks
+        # Generate 489 more version 4 blocks
         test_blocks = self.generate_blocks(489)
         # Test #1
         yield TestInstance(test_blocks, sync_every_block=False)
@@ -287,6 +288,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         for i in range(16):
             bip68inputs.append(self.send_generic_input_tx(
                 self.nodes[0], self.coinbase_blocks))
+
         # 2 sets of 16 inputs with 10 OP_CSV OP_DROP (actually will be prepended to spending scriptSig)
         bip112basicinputs = []
         for j in range(2):
@@ -295,6 +297,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
                 inputs.append(self.send_generic_input_tx(
                     self.nodes[0], self.coinbase_blocks))
             bip112basicinputs.append(inputs)
+
         # 2 sets of 16 varied inputs with (relative_lock_time) OP_CSV OP_DROP (actually will be prepended to spending scriptSig)
         bip112diverseinputs = []
         for j in range(2):
@@ -303,9 +306,11 @@ class BIP68_112_113Test(ComparisonTestFramework):
                 inputs.append(self.send_generic_input_tx(
                     self.nodes[0], self.coinbase_blocks))
             bip112diverseinputs.append(inputs)
+
         # 1 special input with -1 OP_CSV OP_DROP (actually will be prepended to spending scriptSig)
         bip112specialinput = self.send_generic_input_tx(
             self.nodes[0], self.coinbase_blocks)
+
         # 1 normal input
         bip113input = self.send_generic_input_tx(
             self.nodes[0], self.coinbase_blocks)
@@ -324,7 +329,9 @@ class BIP68_112_113Test(ComparisonTestFramework):
         test_blocks = self.generate_blocks(2)
         # Test #2
         yield TestInstance(test_blocks, sync_every_block=False)
-        # Not yet activated, height = 574 (will activate for block 576, not 575)
+
+        self.log.info(
+            "Not yet activated, height = 574 (will activate for block 576, not 575)")
         assert_equal(get_csv_status(self.nodes[0]), False)
 
         # Test both version 1 and version 2 transactions for all tests
@@ -368,12 +375,11 @@ class BIP68_112_113Test(ComparisonTestFramework):
         bip112tx_special_v1 = self.create_bip112special(bip112specialinput, 1)
         bip112tx_special_v2 = self.create_bip112special(bip112specialinput, 2)
 
-        ### TESTING ###
-        ##################################
-        ### Before Soft Forks Activate ###
-        ##################################
-        # All txs should pass
-        ### Version 1 txs ###
+        self.log.info("TESTING")
+
+        self.log.info("Pre-Soft Fork Tests. All txs should pass.")
+        self.log.info("Test version 1 txs")
+
         success_txs = []
         # add BIP113 tx and -1 CSV tx
         # = MTP of prior block (not <) but < time put on current block
@@ -402,7 +408,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
         yield TestInstance([[self.create_test_block(success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        ### Version 2 txs ###
+        self.log.info("Test version 2 txs")
+
         success_txs = []
         # add BIP113 tx and -1 CSV tx
         # = MTP of prior block (not <) but < time put on current block
@@ -442,10 +449,9 @@ class BIP68_112_113Test(ComparisonTestFramework):
         assert_equal(get_csv_status(self.nodes[0]), True)
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        #################################
-        ### After Soft Forks Activate ###
-        #################################
-        ### BIP 113 ###
+        self.log.info("Post-Soft Fork Tests.")
+
+        self.log.info("BIP 113 tests")
         # BIP 113 tests should now fail regardless of version number
         # if nLockTime isn't satisfied by new rules
         # = MTP of prior block (not <) but < time put on current block
@@ -475,16 +481,17 @@ class BIP68_112_113Test(ComparisonTestFramework):
         # Test #10
         yield TestInstance(test_blocks, sync_every_block=False)
 
-        ### BIP 68 ###
-        ### Version 1 txs ###
-        # All still pass
+        self.log.info("BIP 68 tests")
+        self.log.info("Test version 1 txs - all should still pass")
+
         success_txs = []
         success_txs.extend(all_rlt_txs(bip68txs_v1))
         # Test #11
         yield TestInstance([[self.create_test_block(success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        ### Version 2 txs ###
+        self.log.info("Test version 2 txs")
+
         bip68success_txs = []
         # All txs with SEQUENCE_LOCKTIME_DISABLE_FLAG set pass
         for b25 in range(2):
@@ -536,8 +543,9 @@ class BIP68_112_113Test(ComparisonTestFramework):
         yield TestInstance([[self.create_test_block(bip68success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        ### BIP 112 ###
-        ### Version 1 txs ###
+        self.log.info("BIP 112 tests")
+        self.log.info("Test version 1 txs")
+
         # -1 OP_CSV tx should fail
         # Test #29
         yield TestInstance([[self.create_test_block_spend_utxos(self.nodes[0], [bip112tx_special_v1]), False]])
@@ -572,7 +580,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
             # Test #31 - Test #78
             yield TestInstance([[self.create_test_block_spend_utxos(self.nodes[0], [tx]), False]])
 
-        ### Version 2 txs ###
+        self.log.info("Version 2 txs")
+
         # -1 OP_CSV tx should fail
         # Test #79
         yield TestInstance([[self.create_test_block_spend_utxos(self.nodes[0], [bip112tx_special_v2]), False]])
