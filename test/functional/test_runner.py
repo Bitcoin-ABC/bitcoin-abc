@@ -16,6 +16,7 @@ For a description of arguments recognized by test scripts, see
 """
 
 import argparse
+from collections import deque
 import configparser
 import datetime
 import os
@@ -104,11 +105,12 @@ class TestCase():
         log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
         log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
         test_argv = t.split()
-        tmpdir = [os.path.join("--tmpdir={}", "{}_{}").format(
-                  self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)]
+        testdir = os.path.join("{}", "{}_{}").format(
+            self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)
+        tmpdir_arg = ["--tmpdir={}".format(testdir)]
         name = t
         time0 = time.time()
-        process = subprocess.Popen([os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir,
+        process = subprocess.Popen([os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir_arg,
                                    universal_newlines=True,
                                    stdout=log_stdout,
                                    stderr=log_stderr)
@@ -125,7 +127,7 @@ class TestCase():
         else:
             status = "Failed"
 
-        return TestResult(self.test_num, name, status, int(time.time() - time0), stdout, stderr)
+        return TestResult(self.test_num, name, testdir, status, int(time.time() - time0), stdout, stderr)
 
 
 def on_ci():
@@ -150,6 +152,8 @@ def main():
                                      epilog='''
     Help text and arguments for individual test script:''',
                                      formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('--combinedlogslen', '-c', type=int, default=0,
+                        help='print a combined log (of length n lines) from all test nodes and test framework to the console on failure.')
     parser.add_argument('--coverage', action='store_true',
                         help='generate a basic coverage report for the RPC interface')
     parser.add_argument(
@@ -294,10 +298,10 @@ def main():
                                    "cache"), ignore_errors=True)
 
     run_tests(test_list, build_dir, tests_dir, args.junitouput,
-              tmpdir, args.jobs, args.coverage, passon_args, build_timings)
+              tmpdir, args.jobs, args.coverage, passon_args, args.combinedlogslen, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, enable_coverage=False, args=[], build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -340,7 +344,8 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, ena
     runtime = int(time.time() - time0)
 
     max_len_name = len(max(test_list, key=len))
-    print_results(test_results, max_len_name, runtime)
+    print_results(test_results, tests_dir, max_len_name,
+                  runtime, combined_logs_len)
     save_results_as_junit(test_results, junitouput, runtime)
 
     if (build_timings is not None):
@@ -487,7 +492,7 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
     return test_results
 
 
-def print_results(test_results, max_len_name, runtime):
+def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_len):
     results = "\n" + BOLD[1] + "{} | {} | {}\n\n".format(
         "TEST".ljust(max_len_name), "STATUS   ", "DURATION") + BOLD[0]
 
@@ -501,6 +506,18 @@ def print_results(test_results, max_len_name, runtime):
         test_result.padding = max_len_name
         results += str(test_result)
 
+        testdir = test_result.testdir
+        if combined_logs_len and os.path.isdir(testdir):
+            # Print the final `combinedlogslen` lines of the combined logs
+            print('{}Combine the logs and print the last {} lines ...{}'.format(
+                BOLD[1], combined_logs_len, BOLD[0]))
+            print('\n============')
+            print('{}Combined log for {}:{}'.format(BOLD[1], testdir, BOLD[0]))
+            print('============\n')
+            combined_logs, _ = subprocess.Popen([os.path.join(
+                tests_dir, 'combine_logs.py'), '-c', testdir], universal_newlines=True, stdout=subprocess.PIPE).communicate()
+            print("\n".join(deque(combined_logs.splitlines(), combined_logs_len)))
+
     status = TICK + "Passed" if all_passed else CROSS + "Failed"
     results += BOLD[1] + "\n{} | {} | {} s (accumulated) \n".format(
         "ALL".ljust(max_len_name), status.ljust(9), time_sum) + BOLD[0]
@@ -513,9 +530,10 @@ class TestResult():
     Simple data structure to store test result values and print them properly
     """
 
-    def __init__(self, num, name, status, time, stdout, stderr):
+    def __init__(self, num, name, testdir, status, time, stdout, stderr):
         self.num = num
         self.name = name
+        self.testdir = testdir
         self.status = status
         self.time = time
         self.padding = 0
