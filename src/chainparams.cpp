@@ -144,7 +144,7 @@ public:
         consensus.uahfHeight = 478559;
 
         // Nov, 13 hard fork
-        consensus.cashHardForkActivationTime = 1510600000;
+        consensus.daaHeight = 504031;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -317,7 +317,7 @@ public:
         consensus.uahfHeight = 1155876;
 
         // Nov, 13 hard fork
-        consensus.cashHardForkActivationTime = 1510600000;
+        consensus.daaHeight = 1188697;
 
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
@@ -440,7 +440,7 @@ public:
         consensus.uahfHeight = 0;
 
         // Nov, 13 hard fork is always on on regtest.
-        consensus.cashHardForkActivationTime = 0;
+        consensus.daaHeight = 0;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

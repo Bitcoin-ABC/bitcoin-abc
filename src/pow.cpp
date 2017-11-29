@@ -106,7 +106,7 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return pindexPrev->nBits;
     }
 
-    if (IsCashHFEnabled(config, pindexPrev)) {
+    if (IsDAAEnabled(config, pindexPrev)) {
         return GetNextCashWorkRequired(pindexPrev, pblock, config);
     }
 

@@ -617,17 +617,16 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsUAHFenabled(config, pindexPrev->nHeight);
 }
 
-static bool IsCashHFEnabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           config.GetChainParams().GetConsensus().cashHardForkActivationTime;
+static bool IsDAAEnabled(const Config &config, int nHeight) {
+    return nHeight >= config.GetChainParams().GetConsensus().daaHeight;
 }
 
-bool IsCashHFEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsCashHFEnabled(config, pindexPrev->GetMedianTimePast());
+    return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
@@ -1838,11 +1837,11 @@ static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
 
-    // If the Cash HF is enabled, we start rejecting transaction that use a high
+    // If the DAA HF is enabled, we start rejecting transaction that use a high
     // s in their signature. We also make sure that signature that are supposed
     // to fail (for instance in multisig or other forms of smart contracts) are
     // null.
-    if (IsCashHFEnabled(config, pindex->pprev)) {
+    if (IsDAAEnabled(config, pindex->pprev)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
@@ -3352,6 +3351,7 @@ static bool ContextualCheckBlockHeader(const Config &config,
 
     // Check proof of work
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, config)) {
+        LogPrintf("bad bits after height: %d\n", pindexPrev->nHeight);
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
                          "incorrect proof of work");
     }
