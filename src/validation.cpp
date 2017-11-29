@@ -1636,6 +1636,18 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
+    // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
+    // ContextualCheckBlockHeader() here. This means that if we add a new
+    // consensus rule that is enforced in one of those two functions, then we
+    // may have let in a block that violates the rule prior to updating the
+    // software, and we would NOT be enforcing the rule here. Fully solving
+    // upgrade from one software version to the next after a consensus rule
+    // change is potentially tricky and issue-specific (see RewindBlockIndex()
+    // for one general approach that was used for BIP 141 deployment).
+    // Also, currently the rule against blocks more than 2 hours in the future
+    // is enforced in ContextualCheckBlockHeader(); we wouldn't want to
+    // re-enforce that rule here (at least until we make it impossible for
+    // GetAdjustedTime() to go backward).
     BlockValidationOptions validationOptions =
         BlockValidationOptions(!fJustCheck, !fJustCheck);
     if (!CheckBlock(config, block, state, validationOptions)) {
@@ -3529,6 +3541,11 @@ bool CheckBlock(const Config &config, const CBlock &block,
  * Context-dependent validity checks.
  * By "context", we mean only the previous block headers, but not the UTXO
  * set; UTXO-related validity checks are done in ConnectBlock().
+ * NOTE: This function is not currently invoked by ConnectBlock(), so we
+ * should consider upgrade issues if we change which consensus rules are
+ * enforced in this function (eg by adding a new consensus rule). See comment
+ * in ConnectBlock().
+ * Note that -reindex-chainstate skips the validation that happens here!
  */
 static bool ContextualCheckBlockHeader(const Config &config,
                                        const CBlockHeader &block,
@@ -3601,6 +3618,13 @@ static bool ContextualCheckBlockHeader(const Config &config,
     return true;
 }
 
+/**
+ * NOTE: This function is not currently invoked by ConnectBlock(), so we
+ * should consider upgrade issues if we change which consensus rules are
+ * enforced in this function (eg by adding a new consensus rule). See comment
+ * in ConnectBlock().
+ * Note that -reindex-chainstate skips the validation that happens here!
+ */
 bool ContextualCheckTransactionForCurrentBlock(const Config &config,
                                                const CTransaction &tx,
                                                CValidationState &state,
