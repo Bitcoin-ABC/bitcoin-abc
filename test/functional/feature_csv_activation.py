@@ -243,7 +243,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # height of the next block to build
         self.tipheight = 82
         self.last_block_time = long_past_time
-        self.tip = int("0x" + self.nodes[0].getbestblockhash(), 0)
+        self.tip = int(self.nodes[0].getbestblockhash(), 16)
         self.nodeaddress = self.nodes[0].getnewaddress()
 
         # CSV is not activated yet.
@@ -258,6 +258,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         assert_equal(get_csv_status(self.nodes[0]), False)
 
         # Inputs at height = 572
+        #
         # Put inputs for all tests in the chain at height 572 (tip now = 571) (time increases by 600s per block)
         # Note we reuse inputs for v1 and v2 txs so must test these separately
         # 16 normal inputs
@@ -296,7 +297,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # 1 block generated for inputs to be in chain at height 572
         inputblockhash = self.nodes[0].generate(1)[0]
         self.nodes[0].setmocktime(0)
-        self.tip = int("0x" + inputblockhash, 0)
+        self.tip = int(inputblockhash, 16)
         self.tipheight += 1
         self.last_block_time += 600
         assert_equal(len(self.nodes[0].getblock(
@@ -571,7 +572,8 @@ class BIP68_112_113Test(BitcoinTestFramework):
             [self.create_test_block_spend_utxos(self.nodes[0], success_txs)])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        ## SEQUENCE_LOCKTIME_DISABLE_FLAG is unset in argument to OP_CSV for all remaining txs ##
+        # SEQUENCE_LOCKTIME_DISABLE_FLAG is unset in argument to OP_CSV for all remaining txs ##
+
         # All txs with nSequence 9 should fail either due to earlier mismatch
         # or failing the CSV check
         fail_txs = all_rlt_txs(bip112txs_vary_nSequence_9_v2)
@@ -656,8 +658,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         self.sync_blocks([self.create_test_block(spend_txs)])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
-        # Missing aspects of test
-        # Testing empty stack fails
+        # TODO: Test empty stack fails
 
 
 if __name__ == '__main__':
