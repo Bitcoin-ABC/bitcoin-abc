@@ -344,9 +344,9 @@ public:
         s << nUBuckets;
         std::map<int, int> mapUnkIds;
         int nIds = 0;
-        for (const std::pair<int, CAddrInfo> p : mapInfo) {
-            mapUnkIds[p.first] = nIds;
-            const CAddrInfo &info = p.second;
+        for (const auto &entry : mapInfo) {
+            mapUnkIds[entry.first] = nIds;
+            const CAddrInfo &info = entry.second;
             if (info.nRefCount) {
                 // this means nNew was wrong, oh ow
                 assert(nIds != nNew);
@@ -355,8 +355,8 @@ public:
             }
         }
         nIds = 0;
-        for (const std::pair<int, CAddrInfo> p : mapInfo) {
-            const CAddrInfo &info = p.second;
+        for (const auto &entry : mapInfo) {
+            const CAddrInfo &info = entry.second;
             if (info.fInTried) {
                 // this means nTried was wrong, oh ow
                 assert(nIds != nTried);

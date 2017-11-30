@@ -717,10 +717,10 @@ static UniValue listbanned(const Config &config,
     g_connman->GetBanned(banMap);
 
     UniValue bannedAddresses(UniValue::VARR);
-    for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++) {
-        CBanEntry banEntry = (*it).second;
+    for (const auto &entry : banMap) {
+        const CBanEntry &banEntry = entry.second;
         UniValue rec(UniValue::VOBJ);
-        rec.pushKV("address", (*it).first.ToString());
+        rec.pushKV("address", entry.first.ToString());
         rec.pushKV("banned_until", banEntry.nBanUntil);
         rec.pushKV("ban_created", banEntry.nCreateTime);
         rec.pushKV("ban_reason", banEntry.banReasonToString());

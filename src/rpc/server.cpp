@@ -223,11 +223,9 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
     std::vector<std::pair<std::string, const ContextFreeRPCCommand *>>
         vCommands;
 
-    for (std::map<std::string, const ContextFreeRPCCommand *>::const_iterator
-             mi = mapCommands.begin();
-         mi != mapCommands.end(); ++mi) {
+    for (const auto &entry : mapCommands) {
         vCommands.push_back(
-            std::make_pair(mi->second->category + mi->first, mi->second));
+            std::make_pair(entry.second->category + entry.first, entry.second));
     }
     sort(vCommands.begin(), vCommands.end());
 

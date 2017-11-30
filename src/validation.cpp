@@ -4105,8 +4105,8 @@ uint64_t CalculateCurrentUsage() {
 void PruneOneBlockFile(const int fileNumber) {
     LOCK(cs_LastBlockFile);
 
-    for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
-        CBlockIndex *pindex = it.second;
+    for (const auto &entry : mapBlockIndex) {
+        CBlockIndex *pindex = entry.second;
         if (pindex->nFile == fileNumber) {
             pindex->nStatus = pindex->nStatus.withData(false).withUndo(false);
             pindex->nFile = 0;
@@ -4816,8 +4816,8 @@ bool RewindBlockIndex(const Config &config) {
     // We do this after actual disconnecting, otherwise we'll end up writing the
     // lack of data to disk before writing the chainstate, resulting in a
     // failure to continue if interrupted.
-    for (const std::pair<uint256, CBlockIndex *> &p : mapBlockIndex) {
-        CBlockIndex *pindexIter = p.second;
+    for (const auto &entry : mapBlockIndex) {
+        CBlockIndex *pindexIter = entry.second;
         if (pindexIter->IsValid(BlockValidity::TRANSACTIONS) &&
             pindexIter->nChainTx) {
             setBlockIndexCandidates.insert(pindexIter);
@@ -5108,8 +5108,8 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
-        forward.emplace(it.second->pprev, it.second);
+    for (auto &entry : mapBlockIndex) {
+        forward.emplace(entry.second->pprev, entry.second);
     }
 
     assert(forward.size() == mapBlockIndex.size());
