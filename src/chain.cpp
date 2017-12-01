@@ -93,12 +93,12 @@ static inline int GetSkipHeight(int height) {
                         : InvertLowestOne(height);
 }
 
-CBlockIndex *CBlockIndex::GetAncestor(int height) {
+const CBlockIndex *CBlockIndex::GetAncestor(int height) const {
     if (height > nHeight || height < 0) {
         return nullptr;
     }
 
-    CBlockIndex *pindexWalk = this;
+    const CBlockIndex *pindexWalk = this;
     int heightWalk = nHeight;
     while (heightWalk > height) {
         int heightSkip = GetSkipHeight(heightWalk);
@@ -119,8 +119,9 @@ CBlockIndex *CBlockIndex::GetAncestor(int height) {
     return pindexWalk;
 }
 
-const CBlockIndex *CBlockIndex::GetAncestor(int height) const {
-    return const_cast<CBlockIndex *>(this)->GetAncestor(height);
+CBlockIndex *CBlockIndex::GetAncestor(int height) {
+    return const_cast<CBlockIndex *>(
+        const_cast<const CBlockIndex *>(this)->GetAncestor(height));
 }
 
 void CBlockIndex::BuildSkip() {
