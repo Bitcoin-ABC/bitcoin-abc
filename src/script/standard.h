@@ -117,6 +117,10 @@ bool ExtractDestination(const CScript &scriptPubKey,
  * addressRet is populated with a single value and nRequiredRet is set to 1.
  * Returns true if successful. Currently does not extract address from
  * pay-to-witness scripts.
+ *
+ * Note: this function confuses destinations (a subset of CScripts that are
+ * encodable as an address) with key identifiers (of keys involved in a
+ * CScript), and its use should be phased out.
  */
 bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,
                          std::vector<CTxDestination> &addressRet,
