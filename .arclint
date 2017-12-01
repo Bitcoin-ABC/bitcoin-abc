@@ -1,11 +1,13 @@
 {
     "linters": {
+        "generated": {
+            "type": "generated"
+        },
         "clang-format": {
             "type": "clang-format",
             "include": "(^src/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
-                "(^src/chainparamsseeds\\.h$)"
+                "(^src/(secp256k1|univalue|leveldb)/)"
             ]
         },
         "autopep8": {
