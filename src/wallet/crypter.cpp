@@ -270,6 +270,7 @@ bool CCryptoKeyStore::AddCryptedKey(
     }
 
     mapCryptedKeys[vchPubKey.GetID()] = make_pair(vchPubKey, vchCryptedSecret);
+    ImplicitlyLearnRelatedKeyScripts(vchPubKey);
     return true;
 }
 
