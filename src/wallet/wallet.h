@@ -99,6 +99,16 @@ enum WalletFeature {
     FEATURE_LATEST = FEATURE_COMPRPUBKEY,
 };
 
+enum class OutputType {
+    NONE,
+    LEGACY,
+
+    DEFAULT = LEGACY,
+};
+
+extern OutputType g_address_type;
+extern OutputType g_change_type;
+
 /** A key pool entry */
 class CKeyPool {
 public:
@@ -1230,6 +1240,28 @@ public:
      * deadlock
      */
     void BlockUntilSyncedToCurrentChain();
+
+    /**
+     * Explicitly make the wallet learn the related scripts for outputs to the
+     * given key. This is purely to make the wallet file compatible with older
+     * software, as CBasicKeyStore automatically does this implicitly for all
+     * keys now.
+     */
+    void LearnRelatedScripts(const CPubKey &key, OutputType);
+
+    /**
+     * Same as LearnRelatedScripts, but when the OutputType is not known (and
+     * could be anything).
+     */
+    void LearnAllRelatedScripts(const CPubKey &key);
+
+    /**
+     * Get a destination of the requested type (if possible) to the specified
+     * script. This function will automatically add the necessary scripts to the
+     * wallet.
+     */
+    CTxDestination AddAndGetDestinationForScript(const CScript &script,
+                                                 OutputType);
 };
 
 /** A key allocated from the key pool. */
@@ -1341,5 +1373,20 @@ public:
         }
     }
 };
+
+OutputType ParseOutputType(const std::string &str,
+                           OutputType default_type = OutputType::DEFAULT);
+const std::string &FormatOutputType(OutputType type);
+
+/**
+ * Get a destination of the requested type (if possible) to the specified key.
+ * The caller must make sure LearnRelatedScripts has been called beforehand.
+ */
+CTxDestination GetDestinationForKey(const CPubKey &key, OutputType);
+
+/**
+ * Get all destinations (potentially) supported by the wallet for the given key.
+ */
+std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
 
 #endif // BITCOIN_WALLET_WALLET_H

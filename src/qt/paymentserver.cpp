@@ -704,30 +704,29 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
     payment.add_transactions(transaction.data(), transaction.size());
 
     // Create a new refund address, or re-use:
-    std::string label =
-        tr("Refund from %1").arg(recipient.authenticatedMerchant).toStdString();
-    std::set<CTxDestination> refundAddresses =
-        walletModel->wallet().getLabelAddresses(label);
-    if (!refundAddresses.empty()) {
-        CScript s = GetScriptForDestination(*refundAddresses.begin());
+    CPubKey newKey;
+    if (walletModel->wallet().getKeyFromPool(false /* internal */, newKey)) {
+        // BIP70 requests encode the scriptPubKey directly, so we are not
+        // restricted to address types supported by the receiver. As a result,
+        // we choose the address format we also use for change. Despite an
+        // actual payment and not change, this is a close match: it's the output
+        // type we use subject to privacy issues, but not restricted by what
+        // other software supports.
+        walletModel->wallet().learnRelatedScripts(newKey, g_change_type);
+        CTxDestination dest = GetDestinationForKey(newKey, g_change_type);
+        std::string label = tr("Refund from %1")
+                                .arg(recipient.authenticatedMerchant)
+                                .toStdString();
+        walletModel->wallet().setAddressBook(dest, label, "refund");
+
+        CScript s = GetScriptForDestination(dest);
         payments::Output *refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
     } else {
-        CPubKey newKey;
-        if (walletModel->wallet().getKeyFromPool(false /* internal */,
-                                                 newKey)) {
-            CKeyID keyID = newKey.GetID();
-            walletModel->wallet().setAddressBook(keyID, label, "refund");
-
-            CScript s = GetScriptForDestination(keyID);
-            payments::Output *refund_to = payment.add_refund_to();
-            refund_to->set_script(&s[0], s.size());
-        } else {
-            // This should never happen, because sending coins should have just
-            // unlocked the wallet and refilled the keypool.
-            qWarning() << "PaymentServer::fetchPaymentACK: Error getting "
-                          "refund key, refund_to not set";
-        }
+        // This should never happen, because sending coins should have
+        // just unlocked the wallet and refilled the keypool.
+        qWarning() << "PaymentServer::fetchPaymentACK: Error getting refund "
+                      "key, refund_to not set";
     }
 
     int length = payment.ByteSize();

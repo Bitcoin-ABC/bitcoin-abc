@@ -148,7 +148,7 @@ public:
         if (idx >= 0 && idx < cachedAddressTable.size()) {
             return &cachedAddressTable[idx];
         } else {
-            return 0;
+            return nullptr;
         }
     }
 };
@@ -343,7 +343,9 @@ QString AddressTableModel::addRow(const QString &type, const QString &label,
                 return QString();
             }
         }
-        strAddress = EncodeDestination(newKey.GetID());
+        walletModel->wallet().learnRelatedScripts(newKey, g_address_type);
+        strAddress =
+            EncodeDestination(GetDestinationForKey(newKey, g_address_type));
     } else {
         return QString();
     }

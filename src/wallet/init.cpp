@@ -278,6 +278,9 @@ bool WalletInit::ParameterInteraction() const {
     bSpendZeroConfChange =
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
+    g_address_type = OutputType::DEFAULT;
+    g_change_type = OutputType::DEFAULT;
+
     return true;
 }
 

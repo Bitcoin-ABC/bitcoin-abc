@@ -114,6 +114,9 @@ void TestGUI() {
     }
 #endif
 
+    g_address_type = OutputType::LEGACY;
+    g_change_type = OutputType::LEGACY;
+
     // Set up wallet and chain with 105 blocks (5 mature blocks for spending).
     TestChain100Setup test;
     for (int i = 0; i < 5; ++i) {
@@ -125,8 +128,9 @@ void TestGUI() {
     wallet.LoadWallet(firstRun);
     {
         LOCK(wallet.cs_wallet);
-        wallet.SetAddressBook(test.coinbaseKey.GetPubKey().GetID(), "",
-                              "receive");
+        wallet.SetAddressBook(
+            GetDestinationForKey(test.coinbaseKey.GetPubKey(), g_address_type),
+            "", "receive");
         wallet.AddKeyPubKey(test.coinbaseKey, test.coinbaseKey.GetPubKey());
     }
     {

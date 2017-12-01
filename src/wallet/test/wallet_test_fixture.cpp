@@ -14,6 +14,8 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName),
       m_wallet(Params(), "mock", CWalletDBWrapper::CreateMock()) {
     bool fFirstRun;
+    g_address_type = OutputType::DEFAULT;
+    g_change_type = OutputType::DEFAULT;
     m_wallet.LoadWallet(fFirstRun);
     RegisterValidationInterface(&m_wallet);
 

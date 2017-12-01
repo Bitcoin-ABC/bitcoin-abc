@@ -29,6 +29,8 @@ class TxnMallTest(BitcoinTestFramework):
         disconnect_nodes(self.nodes[2], self.nodes[1])
 
     def run_test(self):
+        output_type = "legacy"
+
         # All nodes should start with 1,250 BTC:
         starting_balance = 1250
         for i in range(4):
@@ -39,11 +41,11 @@ class TxnMallTest(BitcoinTestFramework):
         # Assign coins to foo and bar accounts:
         self.nodes[0].settxfee(.001)
 
-        node0_address_foo = self.nodes[0].getnewaddress("foo")
+        node0_address_foo = self.nodes[0].getnewaddress("foo", output_type)
         fund_foo_txid = self.nodes[0].sendfrom("", node0_address_foo, 1219)
         fund_foo_tx = self.nodes[0].gettransaction(fund_foo_txid)
 
-        node0_address_bar = self.nodes[0].getnewaddress("bar")
+        node0_address_bar = self.nodes[0].getnewaddress("bar", output_type)
         fund_bar_txid = self.nodes[0].sendfrom("", node0_address_bar, 29)
         fund_bar_tx = self.nodes[0].gettransaction(fund_bar_txid)
 
@@ -123,6 +125,7 @@ class TxnMallTest(BitcoinTestFramework):
         # Send clone and its parent to miner
         self.nodes[2].sendrawtransaction(fund_foo_tx["hex"])
         txid1_clone = self.nodes[2].sendrawtransaction(tx1_clone["hex"])
+
         # ... mine a block...
         self.nodes[2].generate(1)
 

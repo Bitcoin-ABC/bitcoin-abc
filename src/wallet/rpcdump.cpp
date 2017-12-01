@@ -151,12 +151,18 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         CKeyID vchAddress = pubkey.GetID();
         {
             pwallet->MarkDirty();
-            pwallet->SetAddressBook(vchAddress, strLabel, "receive");
+            // We don't know which corresponding address will be used; label
+            // them all
+            for (const auto &dest : GetAllDestinationsForKey(pubkey)) {
+                pwallet->SetAddressBook(dest, strLabel, "receive");
+            }
 
             // Don't throw error in case a key is already there
             if (pwallet->HaveKey(vchAddress)) {
                 return NullUniValue;
             }
+
+            pwallet->LearnAllRelatedScripts(pubkey);
 
             // whenever a key is imported, we need to scan the whole chain
             pwallet->UpdateTimeFirstKey(1);
@@ -541,8 +547,11 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     {
         LOCK2(cs_main, pwallet->cs_wallet);
 
-        ImportAddress(pwallet, pubKey.GetID(), strLabel);
+        for (const auto &dest : GetAllDestinationsForKey(pubKey)) {
+            ImportAddress(pwallet, dest, strLabel);
+        }
         ImportScript(pwallet, GetScriptForRawPubKey(pubKey), strLabel, false);
+        pwallet->LearnAllRelatedScripts(pubKey);
     }
     if (fRescan) {
         pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);

@@ -45,6 +45,9 @@ std::vector<CWalletRef> vpwallets;
 CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
 bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
 
+OutputType g_address_type = OutputType::NONE;
+OutputType g_change_type = OutputType::NONE;
+
 const char *DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
@@ -900,9 +903,10 @@ bool CWallet::GetLabelDestination(CTxDestination &dest,
         if (!account.vchPubKey.IsValid()) {
             bForceNew = true;
         } else {
-            // Check if the current key has been used.
-            CScript scriptPubKey =
-                GetScriptForDestination(account.vchPubKey.GetID());
+            // Check if the current key has been used (TODO: check other
+            // addresses with the same key)
+            CScript scriptPubKey = GetScriptForDestination(
+                GetDestinationForKey(account.vchPubKey, g_address_type));
             for (std::map<TxId, CWalletTx>::iterator it = mapWallet.begin();
                  it != mapWallet.end() && account.vchPubKey.IsValid(); ++it) {
                 for (const CTxOut &txout : (*it).second.tx->vout) {
@@ -921,11 +925,12 @@ bool CWallet::GetLabelDestination(CTxDestination &dest,
             return false;
         }
 
-        dest = account.vchPubKey.GetID();
+        LearnRelatedScripts(account.vchPubKey, g_address_type);
+        dest = GetDestinationForKey(account.vchPubKey, g_address_type);
         SetAddressBook(dest, label, "receive");
         walletdb.WriteAccount(label, account);
     } else {
-        dest = account.vchPubKey.GetID();
+        dest = GetDestinationForKey(account.vchPubKey, g_address_type);
     }
 
     return true;
@@ -2955,7 +2960,9 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            scriptChange = GetScriptForDestination(vchPubKey.GetID());
+            LearnRelatedScripts(vchPubKey, g_change_type);
+            scriptChange = GetScriptForDestination(
+                GetDestinationForKey(vchPubKey, g_change_type));
         }
         CTxOut change_prototype_txout(Amount::zero(), scriptChange);
         size_t change_prototype_size =
@@ -4506,4 +4513,57 @@ bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
         nAbsurdFee);
     fInMempool = ret;
     return ret;
+}
+
+static const std::string OUTPUT_TYPE_STRING_LEGACY = "legacy";
+
+OutputType ParseOutputType(const std::string &type, OutputType default_type) {
+    if (type.empty()) {
+        return default_type;
+    } else if (type == OUTPUT_TYPE_STRING_LEGACY) {
+        return OutputType::LEGACY;
+    } else {
+        return OutputType::NONE;
+    }
+}
+
+const std::string &FormatOutputType(OutputType type) {
+    switch (type) {
+        case OutputType::LEGACY:
+            return OUTPUT_TYPE_STRING_LEGACY;
+        default:
+            assert(false);
+    }
+}
+
+void CWallet::LearnRelatedScripts(const CPubKey &key, OutputType type) {
+    // Nothing to do...
+}
+
+void CWallet::LearnAllRelatedScripts(const CPubKey &key) {
+    // Nothing to do...
+}
+
+CTxDestination GetDestinationForKey(const CPubKey &key, OutputType type) {
+    switch (type) {
+        case OutputType::LEGACY:
+            return key.GetID();
+        default:
+            assert(false);
+    }
+}
+
+std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
+    return std::vector<CTxDestination>{key.GetID()};
+}
+
+CTxDestination CWallet::AddAndGetDestinationForScript(const CScript &script,
+                                                      OutputType type) {
+    // Note that scripts over 520 bytes are not yet supported.
+    switch (type) {
+        case OutputType::LEGACY:
+            return CScriptID(script);
+        default:
+            assert(false);
+    }
 }
