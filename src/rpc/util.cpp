@@ -33,7 +33,7 @@ CPubKey AddrToPubKey(const CChainParams &chainparams, CKeyStore *const keystore,
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid address: " + addr_in);
     }
-    CKeyID key = boost::get<CKeyID>(dest);
+    CKeyID key = GetKeyForDestination(*keystore, dest);
     if (key.IsNull()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            strprintf("%s does not refer to a key", addr_in));

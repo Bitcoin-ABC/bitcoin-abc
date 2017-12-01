@@ -733,12 +733,12 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");
     }
-    const CKeyID *keyID = boost::get<CKeyID>(&dest);
-    if (!keyID) {
+    auto keyid = GetKeyForDestination(*pwallet, dest);
+    if (keyid.IsNull()) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
     }
     CKey vchSecret;
-    if (!pwallet->GetKey(*keyID, vchSecret)) {
+    if (!pwallet->GetKey(keyid, vchSecret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " +
                                                  strAddress + " is not known");
     }
