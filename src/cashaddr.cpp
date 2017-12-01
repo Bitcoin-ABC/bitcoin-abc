@@ -292,4 +292,9 @@ std::pair<std::string, data> Decode(const std::string &str) {
     return {prefix, data(values.begin(), values.end() - 8)};
 }
 
+std::vector<uint8_t> EncodingCharset() {
+    const size_t size = 32;
+    return std::vector<uint8_t>(CHARSET, CHARSET + size);
+}
+
 } // namespace cashaddr

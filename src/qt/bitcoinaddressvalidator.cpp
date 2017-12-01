@@ -1,9 +1,11 @@
 // Copyright (c) 2011-2014 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "bitcoinaddressvalidator.h"
 
+#include "cashaddr.h"
 #include "dstencode.h"
 
 /* Base58 characters are:
@@ -14,9 +16,44 @@
   - All upper-case letters except for 'I' and 'O'
   - All lower-case letters except for 'l'
 */
+static bool ValidLegacyInput(const QString &input) {
+    // Alphanumeric and not a 'forbidden' character
+    for (QChar ch : input) {
+        if (!(((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') ||
+               (ch >= 'A' && ch <= 'Z')) &&
+              ch != 'l' && ch != 'I' && ch != '0' && ch != 'O'))
+            return false;
+    }
+    return true;
+}
 
-BitcoinAddressEntryValidator::BitcoinAddressEntryValidator(QObject *parent)
-    : QValidator(parent) {}
+static bool ValidCashaddrInput(const QString &prefix, const QString &input) {
+
+    std::vector<uint8_t> charset = cashaddr::EncodingCharset();
+
+    // Input may be incomplete. We're checking if it so far looks good.
+
+    for (int i = 0; i < input.size(); ++i) {
+        char ch = std::tolower(input[i].toLatin1());
+
+        // Does the input have the right prefix?
+        if (i < prefix.size()) {
+            if (ch != prefix[i].toLatin1()) {
+                return false;
+            }
+            continue;
+        }
+
+        // Payload, must use cashaddr charset.
+        if (std::find(begin(charset), end(charset), ch) == end(charset)) {
+            return false;
+        }
+    }
+    return true;
+}
+BitcoinAddressEntryValidator::BitcoinAddressEntryValidator(
+    const std::string &cashaddrprefix, QObject *parent)
+    : QValidator(parent), cashaddrprefix(cashaddrprefix) {}
 
 QValidator::State BitcoinAddressEntryValidator::validate(QString &input,
                                                          int &pos) const {
@@ -53,20 +90,10 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input,
     }
 
     // Validation
-    QValidator::State state = QValidator::Acceptable;
-    for (int idx = 0; idx < input.size(); ++idx) {
-        int ch = input.at(idx).unicode();
-
-        if (((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') ||
-             (ch >= 'A' && ch <= 'Z')) &&
-            ch != 'l' && ch != 'I' && ch != '0' && ch != 'O') {
-            // Alphanumeric and not a 'forbidden' character
-        } else {
-            state = QValidator::Invalid;
-        }
-    }
-
-    return state;
+    const QString cashPrefix = QString::fromStdString(cashaddrprefix) + ":";
+    return (ValidLegacyInput(input) || ValidCashaddrInput(cashPrefix, input))
+               ? QValidator::Acceptable
+               : QValidator::Invalid;
 }
 
 BitcoinAddressCheckValidator::BitcoinAddressCheckValidator(QObject *parent)
