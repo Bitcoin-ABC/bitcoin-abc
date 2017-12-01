@@ -3959,6 +3959,7 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {
             // TODO: This should be unnecessary
             m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
         }
+        LearnAllRelatedScripts(keypool.vchPubKey);
         walletdb.ErasePool(index);
         it = setKeyPool->erase(it);
     }
