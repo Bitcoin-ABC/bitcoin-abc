@@ -144,3 +144,12 @@ bool CBasicKeyStore::HaveWatchOnly() const {
     LOCK(cs_KeyStore);
     return (!setWatchOnly.empty());
 }
+
+CKeyID GetKeyForDestination(const CKeyStore &store,
+                            const CTxDestination &dest) {
+    // Only supports destinations which map to single public keys, i.e. P2PKH.
+    if (auto id = boost::get<CKeyID>(&dest)) {
+        return *id;
+    }
+    return CKeyID();
+}

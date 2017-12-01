@@ -84,4 +84,9 @@ typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
 typedef std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>
     CryptedKeyMap;
 
+/**
+ * Return the CKeyID of the key involved in a script (if there is a unique one).
+ */
+CKeyID GetKeyForDestination(const CKeyStore &store, const CTxDestination &dest);
+
 #endif // BITCOIN_KEYSTORE_H
