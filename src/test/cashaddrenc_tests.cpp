@@ -238,12 +238,10 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
 
     for (size_t i = 0; i < hash.size(); ++i) {
         const CTxDestination dstKey = CKeyID(uint160(hash[i]));
-        const CTxDestination dstScript = CScriptID(uint160(hash[i]));
+        BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr(dstKey, params));
 
-        BOOST_CHECK_EQUAL(pubkey[i],
-                          EncodeCashAddr(CKeyID(uint160(hash[i])), params));
-        BOOST_CHECK_EQUAL(script[i],
-                          EncodeCashAddr(CScriptID(uint160(hash[i])), params));
+        const CTxDestination dstScript = CScriptID(uint160(hash[i]));
+        BOOST_CHECK_EQUAL(script[i], EncodeCashAddr(dstScript, params));
     }
 }
 
