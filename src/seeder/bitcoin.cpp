@@ -12,7 +12,7 @@
 bool fTestNet;
 
 // The network magic to use.
-CSeederMessageHeader::MessageMagic netMagic = {0xe3, 0xe1, 0xf3, 0xe8};
+CMessageHeader::MessageMagic netMagic = {0xe3, 0xe1, 0xf3, 0xe8};
 
 #define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
 
@@ -39,7 +39,7 @@ class CNode {
             AbortMessage();
         }
         nHeaderStart = vSend.size();
-        vSend << CSeederMessageHeader(pszCommand, 0);
+        vSend << CMessageHeader(netMagic, pszCommand, 0);
         nMessageStart = vSend.size();
         //    printf("%s: SEND %s\n", ToString(you).c_str(), pszCommand);
     }
@@ -59,17 +59,16 @@ class CNode {
         }
         uint32_t nSize = vSend.size() - nMessageStart;
         memcpy((char *)&vSend[nHeaderStart] +
-                   offsetof(CSeederMessageHeader, nMessageSize),
+                   offsetof(CMessageHeader, nMessageSize),
                &nSize, sizeof(nSize));
         if (vSend.GetVersion() >= 209) {
             uint256 hash = Hash(vSend.begin() + nMessageStart, vSend.end());
             unsigned int nChecksum = 0;
             memcpy(&nChecksum, &hash, sizeof(nChecksum));
             assert(nMessageStart - nHeaderStart >=
-                   offsetof(CSeederMessageHeader, nChecksum) +
-                       sizeof(nChecksum));
+                   offsetof(CMessageHeader, pchChecksum) + sizeof(nChecksum));
             memcpy((char *)&vSend[nHeaderStart] +
-                       offsetof(CSeederMessageHeader, nChecksum),
+                       offsetof(CMessageHeader, pchChecksum),
                    &nChecksum, sizeof(nChecksum));
         }
         nHeaderStart = allones;
@@ -192,7 +191,7 @@ class CNode {
             CDataStream::iterator pstart = search(
                 vRecv.begin(), vRecv.end(), BEGIN(netMagic), END(netMagic));
             uint32_t nHeaderSize = GetSerializeSize(
-                CSeederMessageHeader(), vRecv.GetType(), vRecv.GetVersion());
+                CMessageHeader(netMagic), vRecv.GetType(), vRecv.GetVersion());
             if (vRecv.end() - pstart < nHeaderSize) {
                 if (vRecv.size() > nHeaderSize) {
                     vRecv.erase(vRecv.begin(), vRecv.end() - nHeaderSize);
@@ -202,9 +201,9 @@ class CNode {
             vRecv.erase(vRecv.begin(), pstart);
             std::vector<char> vHeaderSave(vRecv.begin(),
                                           vRecv.begin() + nHeaderSize);
-            CSeederMessageHeader hdr;
+            CMessageHeader hdr(netMagic);
             vRecv >> hdr;
-            if (!hdr.IsValid()) {
+            if (!hdr.IsValid(netMagic)) {
                 // printf("%s: BAD (invalid header)\n", ToString(you).c_str());
                 ban = 100000;
                 return true;
@@ -225,9 +224,10 @@ class CNode {
             if (vRecv.GetVersion() >= 209) {
                 uint256 hash =
                     Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
-                unsigned int nChecksum = 0;
-                memcpy(&nChecksum, &hash, sizeof(nChecksum));
-                if (nChecksum != hdr.nChecksum) continue;
+                if (memcmp(hash.begin(), hdr.pchChecksum,
+                           CMessageHeader::CHECKSUM_SIZE) != 0) {
+                    continue;
+                }
             }
             CDataStream vMsg(vRecv.begin(), vRecv.begin() + nMessageSize,
                              vRecv.GetType(), vRecv.GetVersion());

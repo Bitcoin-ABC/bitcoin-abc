@@ -390,8 +390,6 @@ libbitcoin_seeder_a_SOURCES = \
   seeder/db.h \
   seeder/dns.cpp \
   seeder/dns.h \
-  seeder/messageheader.cpp \
-  seeder/messageheader.h \
   seeder/strlcpy.h \
   seeder/util.cpp \
   seeder/util.h
