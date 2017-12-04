@@ -54,15 +54,16 @@ struct COrphanTx {
     int64_t nTimeExpire;
 };
 
-std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(cs_main);
+static CCriticalSection g_cs_orphans;
+std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 std::map<COutPoint,
          std::set<std::map<uint256, COrphanTx>::iterator, IteratorComparator>>
-    mapOrphanTransactionsByPrev GUARDED_BY(cs_main);
-void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
+void EraseOrphansFor(NodeId peer);
 
-static size_t vExtraTxnForCompactIt = 0;
+static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
 static std::vector<std::pair<uint256, CTransactionRef>>
-    vExtraTxnForCompact GUARDED_BY(cs_main);
+    vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
 
 // SHA256("main address relay")[0:8]
 static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
@@ -137,7 +138,7 @@ int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
 int g_outbound_peers_with_protect_from_disconnect = 0;
 
 /** When our tip was last updated. */
-int64_t g_last_tip_update = 0;
+std::atomic<int64_t> g_last_tip_update(0);
 
 /** Relay map. */
 typedef std::map<uint256, CTransactionRef> MapRelay;
@@ -760,7 +761,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
 //
 
 static void AddToCompactExtraTransactions(const CTransactionRef &tx)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
     size_t max_extra_txn = gArgs.GetArg("-blockreconstructionextratxn",
                                         DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);
     if (max_extra_txn <= 0) {
@@ -777,7 +778,7 @@ static void AddToCompactExtraTransactions(const CTransactionRef &tx)
 }
 
 bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
     const uint256 &txid = tx->GetId();
     if (mapOrphanTransactions.count(txid)) {
         return false;
@@ -812,7 +813,7 @@ bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
     return true;
 }
 
-static int EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+static int EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
     std::map<uint256, COrphanTx>::iterator it =
         mapOrphanTransactions.find(hash);
     if (it == mapOrphanTransactions.end()) {
@@ -833,6 +834,7 @@ static int EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
 }
 
 void EraseOrphansFor(NodeId peer) {
+    LOCK(g_cs_orphans);
     int nErased = 0;
     std::map<uint256, COrphanTx>::iterator iter = mapOrphanTransactions.begin();
     while (iter != mapOrphanTransactions.end()) {
@@ -848,8 +850,9 @@ void EraseOrphansFor(NodeId peer) {
     }
 }
 
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
+    LOCK(g_cs_orphans);
+
     unsigned int nEvicted = 0;
     static int64_t nNextSweep;
     int64_t nNow = GetTime();
@@ -976,7 +979,7 @@ PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn,
 void PeerLogicValidation::BlockConnected(
     const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex,
     const std::vector<CTransactionRef> &vtxConflicted) {
-    LOCK(cs_main);
+    LOCK(g_cs_orphans);
 
     std::vector<uint256> vOrphanErase;
 
@@ -1167,6 +1170,13 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
                 recentRejects->reset();
             }
 
+            {
+                LOCK(g_cs_orphans);
+                if (mapOrphanTransactions.count(inv.hash)) {
+                    return true;
+                }
+            }
+
             // Use pcoinsTip->HaveCoinInCache as a quick approximation to
             // exclude requesting or processing some txs which have already been
             // included in a block. As this is best effort, we only check for
@@ -1174,7 +1184,6 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             // diminishing returns with 2 onward.
             return recentRejects->contains(inv.hash) ||
                    g_mempool.exists(inv.hash) ||
-                   mapOrphanTransactions.count(inv.hash) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 0)) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 1));
         }
@@ -2459,7 +2468,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         CInv inv(MSG_TX, tx.GetId());
         pfrom->AddInventoryKnown(inv);
 
-        LOCK(cs_main);
+        LOCK2(cs_main, g_cs_orphans);
 
         bool fMissingInputs = false;
         CValidationState state;
@@ -2718,7 +2727,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         bool fBlockReconstructed = false;
 
         {
-            LOCK(cs_main);
+            LOCK2(cs_main, g_cs_orphans);
             // If AcceptBlockHeader returned true, it set pindex
             assert(pindex);
             UpdateBlockAvailability(pfrom->GetId(), pindex->GetBlockHash());
