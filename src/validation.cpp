@@ -45,6 +45,7 @@
 #include "warnings.h"
 
 #include <atomic>
+#include <future>
 #include <sstream>
 #include <thread>
 
@@ -2856,6 +2857,17 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
     CBlockIndex *pindexNewTip = nullptr;
     do {
         boost::this_thread::interruption_point();
+
+        if (GetMainSignals().CallbacksPending() > 10) {
+            // Block until the validation queue drains. This should largely
+            // never happen in normal operation, however may happen during
+            // reindex, causing memory blowup  if we run too far ahead.
+            std::promise<void> promise;
+            CallFunctionInValidationInterfaceQueue(
+                [&promise] { promise.set_value(); });
+            promise.get_future().wait();
+        }
+
         if (ShutdownRequested()) {
             break;
         }
