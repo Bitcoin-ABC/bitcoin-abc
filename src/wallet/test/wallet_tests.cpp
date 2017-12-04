@@ -461,14 +461,14 @@ static void AddKey(CWallet &wallet, const CKey &key) {
 }
 
 BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
-    LOCK(cs_main);
-
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *const nullBlock = nullptr;
     CBlockIndex *oldTip = chainActive.Tip();
     GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = chainActive.Tip();
+
+    LOCK(cs_main);
 
     // Verify ScanForWalletTransactions picks up transactions in both the old
     // and new block files.
@@ -547,8 +547,6 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
 // importwallet RPC would start the scan at the latest block with timestamp less
 // than or equal to key birthday.
 BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
-    LOCK(cs_main);
-
     // Create two blocks with same timestamp to verify that importwallet rescan
     // will pick up both blocks, not just the first.
     const int64_t BLOCK_TIME = chainActive.Tip()->GetBlockTimeMax() + 5;
@@ -570,6 +568,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         *CreateAndProcessBlock({},
                                GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
              .vtx[0]);
+
+    LOCK(cs_main);
 
     // Import key into wallet and call dumpwallet to create backup file.
     {
@@ -733,11 +733,17 @@ public:
                                               changePos, error));
         CValidationState state;
         BOOST_CHECK(wallet->CommitTransaction(wtx, reservekey, nullptr, state));
+        CMutableTransaction blocktx;
+        {
+            LOCK(wallet->cs_wallet);
+            blocktx =
+                CMutableTransaction(*wallet->mapWallet.at(wtx.GetId()).tx);
+        }
+        CreateAndProcessBlock({CMutableTransaction(blocktx)},
+                              GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
         LOCK(wallet->cs_wallet);
         auto it = wallet->mapWallet.find(wtx.GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
-        CreateAndProcessBlock({CMutableTransaction(*it->second.tx)},
-                              GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
         it->second.SetMerkleBranch(chainActive.Tip(), 1);
         return it->second;
     }
@@ -747,7 +753,6 @@ public:
 
 BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
     std::string coinbaseAddress = coinbaseKey.GetPubKey().GetID().ToString();
-    LOCK2(cs_main, wallet->cs_wallet);
 
     // Confirm ListCoins initially returns 1 coin grouped under coinbaseKey
     // address.
@@ -778,6 +783,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
     BOOST_CHECK_EQUAL(available.size(), 2);
     for (const auto &group : list) {
         for (const auto &coin : group.second) {
+            LOCK(wallet->cs_wallet);
             wallet->LockCoin(COutPoint(coin.tx->GetId(), coin.i));
         }
     }
