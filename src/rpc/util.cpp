@@ -11,6 +11,10 @@
 #include <tinyformat.h>
 #include <utilstrencodings.h>
 
+#include <univalue.h>
+
+#include <boost/variant/static_visitor.hpp>
+
 // Converts a hex string to a public key if possible
 CPubKey HexToPubKey(const std::string &hex_in) {
     if (!IsHex(hex_in)) {
@@ -83,4 +87,29 @@ CScript CreateMultisigRedeemscript(const int required,
     }
 
     return result;
+}
+
+class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
+public:
+    explicit DescribeAddressVisitor() {}
+
+    UniValue operator()(const CNoDestination &dest) const {
+        return UniValue(UniValue::VOBJ);
+    }
+
+    UniValue operator()(const CKeyID &keyID) const {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", false);
+        return obj;
+    }
+
+    UniValue operator()(const CScriptID &scriptID) const {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", true);
+        return obj;
+    }
+};
+
+UniValue DescribeAddress(const CTxDestination &dest) {
+    return boost::apply_visitor(DescribeAddressVisitor(), dest);
 }

@@ -12,11 +12,14 @@ class CChainParams;
 class CKeyStore;
 class CPubKey;
 class CScript;
+class UniValue;
 
 CPubKey HexToPubKey(const std::string &hex_in);
 CPubKey AddrToPubKey(const CChainParams &chainparams, CKeyStore *const keystore,
                      const std::string &addr_in);
 CScript CreateMultisigRedeemscript(const int required,
                                    const std::vector<CPubKey> &pubkeys);
+
+UniValue DescribeAddress(const CTxDestination &dest);
 
 #endif // BITCOIN_RPC_UTIL_H
