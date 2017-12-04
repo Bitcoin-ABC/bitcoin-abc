@@ -83,6 +83,8 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
 Q_DECLARE_METATYPE(CAmount)
+Q_DECLARE_METATYPE(Amount)
+
 // Config is non-copyable so we can only register pointers to it
 Q_DECLARE_METATYPE(Config *)
 
