@@ -239,7 +239,7 @@ struct BlockHasher {
 };
 
 typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
-extern BlockMap mapBlockIndex;
+extern BlockMap &mapBlockIndex;
 
 arith_uint256 GetBlockProof(const CBlockIndex &block);
 

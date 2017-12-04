@@ -439,8 +439,6 @@ void PruneOneBlockFile(const int fileNumber);
  */
 void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune);
 
-/** Create a new block index entry for a given block hash */
-CBlockIndex *InsertBlockIndex(uint256 hash);
 /** Flush all state, indexes and buffers to disk. */
 void FlushStateToDisk();
 /** Prune block files and flush state to disk. */
@@ -666,7 +664,7 @@ const CBlockIndex *GetFinalizedBlock();
 bool IsBlockFinalized(const CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */
-extern CChain chainActive;
+extern CChain &chainActive;
 
 /**
  * Global variable that points to the coins database (protected by cs_main)
