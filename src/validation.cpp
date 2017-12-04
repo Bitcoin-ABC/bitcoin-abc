@@ -2850,6 +2850,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
     // far from a guarantee. Things in the P2P/RPC will often end up calling
     // us in the middle of ProcessNewBlock - do not assume pblock is set
     // sanely for performance or correctness!
+    AssertLockNotHeld(cs_main);
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
@@ -3988,6 +3989,8 @@ static bool AcceptBlock(const Config &config,
 bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock) {
+    AssertLockNotHeld(cs_main);
+
     {
         if (fNewBlock) {
             *fNewBlock = false;
