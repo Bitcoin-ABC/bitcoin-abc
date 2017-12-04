@@ -114,6 +114,8 @@ public:
     // until queue is empty
     // Must be called after the CScheduler has no remaining processing threads!
     void EmptyQueue();
+
+    size_t CallbacksPending();
 };
 
 #endif
