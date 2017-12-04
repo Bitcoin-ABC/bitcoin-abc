@@ -33,12 +33,31 @@
 #include <malloc.h>
 #endif
 
-#ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
 public:
-    CWallet *const pwallet;
+    explicit DescribeAddressVisitor() {}
 
-    explicit DescribeAddressVisitor(CWallet *_pwallet) : pwallet(_pwallet) {}
+    UniValue operator()(const CNoDestination &dest) const {
+        return UniValue(UniValue::VOBJ);
+    }
+
+    UniValue operator()(const CKeyID &keyID) const {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", false);
+        return obj;
+    }
+
+    UniValue operator()(const CScriptID &scriptID) const {
+        UniValue obj(UniValue::VOBJ);
+        obj.pushKV("isscript", true);
+        return obj;
+    }
+};
+
+#ifdef ENABLE_WALLET
+class DescribeWalletAddressVisitor : public boost::static_visitor<UniValue> {
+public:
+    CWallet *const pwallet;
 
     void ProcessSubScript(const CScript &subscript, UniValue &obj,
                           bool include_addresses = false) const {
@@ -53,7 +72,12 @@ public:
         UniValue a(UniValue::VARR);
         if (ExtractDestination(subscript, embedded)) {
             // Only when the script corresponds to an address.
-            UniValue subobj = boost::apply_visitor(*this, embedded);
+            UniValue subobj(UniValue::VOBJ);
+            UniValue detail =
+                boost::apply_visitor(DescribeAddressVisitor(), embedded);
+            subobj.pushKVs(detail);
+            UniValue wallet_detail = boost::apply_visitor(*this, embedded);
+            subobj.pushKVs(wallet_detail);
             subobj.pushKV("address", EncodeDestination(embedded));
             subobj.pushKV("scriptPubKey",
                           HexStr(subscript.begin(), subscript.end()));
@@ -92,6 +116,9 @@ public:
         }
     }
 
+    explicit DescribeWalletAddressVisitor(CWallet *_pwallet)
+        : pwallet(_pwallet) {}
+
     UniValue operator()(const CNoDestination &dest) const {
         return UniValue(UniValue::VOBJ);
     }
@@ -99,7 +126,6 @@ public:
     UniValue operator()(const CKeyID &keyID) const {
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
-        obj.pushKV("isscript", false);
         if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
             obj.pushKV("pubkey", HexStr(vchPubKey));
             obj.pushKV("iscompressed", vchPubKey.IsCompressed());
@@ -110,7 +136,6 @@ public:
     UniValue operator()(const CScriptID &scriptID) const {
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        obj.pushKV("isscript", true);
         if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
             ProcessSubScript(subscript, obj, true);
         }
@@ -212,9 +237,11 @@ static UniValue validateaddress(const Config &config,
         isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
         ret.pushKV("ismine", bool(mine & ISMINE_SPENDABLE));
         ret.pushKV("iswatchonly", bool(mine & ISMINE_WATCH_ONLY));
-        UniValue detail =
-            boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
+        UniValue detail = boost::apply_visitor(DescribeAddressVisitor(), dest);
         ret.pushKVs(detail);
+        UniValue wallet_detail =
+            boost::apply_visitor(DescribeWalletAddressVisitor(pwallet), dest);
+        ret.pushKVs(wallet_detail);
         if (pwallet && pwallet->mapAddressBook.count(dest)) {
             ret.pushKV("account", pwallet->mapAddressBook[dest].name);
         }
