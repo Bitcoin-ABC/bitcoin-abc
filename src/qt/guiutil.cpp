@@ -200,10 +200,11 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
             fShouldReturnFalse = false;
         } else if (i->first == "amount") {
             if (!i->second.isEmpty()) {
-                if (!BitcoinUnits::parse(BitcoinUnits::BCH, i->second,
-                                         &rv.amount)) {
+                Amount amt;
+                if (!BitcoinUnits::parse(BitcoinUnits::BCH, i->second, &amt)) {
                     return false;
                 }
+                rv.amount = amt.GetSatoshis();
             }
             fShouldReturnFalse = false;
         }
@@ -259,10 +260,10 @@ QString formatBitcoinURI(const SendCoinsRecipient &info) {
     return ret;
 }
 
-bool isDust(const QString &address, const CAmount &amount) {
+bool isDust(const QString &address, const Amount amount) {
     CTxDestination dest = DecodeDestination(address.toStdString());
     CScript script = GetScriptForDestination(dest);
-    CTxOut txOut(Amount(amount), script);
+    CTxOut txOut(amount, script);
     return txOut.IsDust(dustRelayFee);
 }
 

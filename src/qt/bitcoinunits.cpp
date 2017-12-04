@@ -83,7 +83,7 @@ int BitcoinUnits::decimals(int unit) {
     }
 }
 
-QString BitcoinUnits::format(int unit, const CAmount &nIn, bool fPlus,
+QString BitcoinUnits::format(int unit, const Amount nIn, bool fPlus,
                              SeparatorStyle separators) {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.
@@ -91,7 +91,7 @@ QString BitcoinUnits::format(int unit, const CAmount &nIn, bool fPlus,
         // Refuse to format invalid unit
         return QString();
     }
-    qint64 n = (qint64)nIn;
+    qint64 n = (qint64)nIn.GetSatoshis();
     qint64 coin = factor(unit);
     int num_decimals = decimals(unit);
     qint64 n_abs = (n > 0 ? n : -n);
@@ -129,13 +129,13 @@ QString BitcoinUnits::format(int unit, const CAmount &nIn, bool fPlus,
 // Please take care to use formatHtmlWithUnit instead, when
 // appropriate.
 
-QString BitcoinUnits::formatWithUnit(int unit, const CAmount &amount,
+QString BitcoinUnits::formatWithUnit(int unit, const Amount amount,
                                      bool plussign, SeparatorStyle separators) {
     return format(unit, amount, plussign, separators) + QString(" ") +
            name(unit);
 }
 
-QString BitcoinUnits::formatHtmlWithUnit(int unit, const CAmount &amount,
+QString BitcoinUnits::formatHtmlWithUnit(int unit, const Amount amount,
                                          bool plussign,
                                          SeparatorStyle separators) {
     QString str(formatWithUnit(unit, amount, plussign, separators));
@@ -143,7 +143,7 @@ QString BitcoinUnits::formatHtmlWithUnit(int unit, const CAmount &amount,
     return QString("<span style='white-space: nowrap;'>%1</span>").arg(str);
 }
 
-bool BitcoinUnits::parse(int unit, const QString &value, CAmount *val_out) {
+bool BitcoinUnits::parse(int unit, const QString &value, Amount *val_out) {
     if (!valid(unit) || value.isEmpty()) {
         // Refuse to parse invalid unit or empty string
         return false;
@@ -174,7 +174,7 @@ bool BitcoinUnits::parse(int unit, const QString &value, CAmount *val_out) {
         // Longer numbers will exceed 63 bits
         return false;
     }
-    CAmount retvalue(str.toLongLong(&ok));
+    Amount retvalue(str.toLongLong(&ok));
     if (val_out) {
         *val_out = retvalue;
     }
@@ -211,6 +211,6 @@ QVariant BitcoinUnits::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-CAmount BitcoinUnits::maxMoney() {
-    return MAX_MONEY.GetSatoshis();
+Amount BitcoinUnits::maxMoney() {
+    return MAX_MONEY;
 }

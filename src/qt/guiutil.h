@@ -58,7 +58,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out);
 QString formatBitcoinURI(const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
-bool isDust(const QString &address, const CAmount &amount);
+bool isDust(const QString &address, const Amount amount);
 
 // HTML escaping for rich text controls
 QString HtmlEscape(const QString &str, bool fMultiLine = false);

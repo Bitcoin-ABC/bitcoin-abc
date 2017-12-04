@@ -62,20 +62,20 @@ public:
 
     void stepBy(int steps) {
         bool valid = false;
-        CAmount val = value(&valid);
+        Amount val(value(&valid));
         val = val + steps * singleStep;
-        val = qMin(qMax(val, CAmount(0)), BitcoinUnits::maxMoney());
-        setValue(val);
+        val = qMin(qMax(val, Amount(0)), BitcoinUnits::maxMoney());
+        setValue(val.GetSatoshis());
     }
 
     void setDisplayUnit(int unit) {
         bool valid = false;
-        CAmount val = value(&valid);
+        Amount val(value(&valid));
 
         currentUnit = unit;
 
         if (valid)
-            setValue(val);
+            setValue(val.GetSatoshis());
         else
             clear();
     }
@@ -135,17 +135,17 @@ private:
      * @note Must return 0 if !valid.
      */
     CAmount parse(const QString &text, bool *valid_out = 0) const {
-        CAmount val = 0;
+        Amount val = 0;
         bool valid = BitcoinUnits::parse(currentUnit, text, &val);
         if (valid) {
-            if (val < 0 || val > BitcoinUnits::maxMoney()) {
+            if (val < Amount(0) || val > BitcoinUnits::maxMoney()) {
                 valid = false;
             }
         }
         if (valid_out) {
             *valid_out = valid;
         }
-        return valid ? val : 0;
+        return valid ? val.GetSatoshis() : 0;
     }
 
 protected:
