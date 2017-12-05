@@ -9,9 +9,9 @@
 #include <vector>
 
 class CBlock;
+class CMutableTransaction;
 class CScript;
 class CTransaction;
-struct CMutableTransaction;
 class uint256;
 class UniValue;
 

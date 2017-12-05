@@ -39,7 +39,7 @@ struct TestingSetup : public BasicTestingSetup {
 };
 
 class CBlock;
-struct CMutableTransaction;
+class CMutableTransaction;
 class CScript;
 
 //

@@ -182,7 +182,7 @@ public:
     std::string ToString() const;
 };
 
-struct CMutableTransaction;
+class CMutableTransaction;
 
 /**
  * Basic transaction serialization format:
@@ -302,8 +302,11 @@ public:
     std::string ToString() const;
 };
 
-/** A mutable version of CTransaction. */
-struct CMutableTransaction {
+/**
+ * A mutable version of CTransaction.
+ */
+class CMutableTransaction {
+public:
     int32_t nVersion;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;

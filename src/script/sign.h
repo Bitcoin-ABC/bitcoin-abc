@@ -10,10 +10,9 @@
 
 class CKeyID;
 class CKeyStore;
+class CMutableTransaction;
 class CScript;
 class CTransaction;
-
-struct CMutableTransaction;
 
 /** Virtual base class for signature creators. */
 class BaseSignatureCreator {
