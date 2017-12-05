@@ -225,39 +225,57 @@ AC_LANG_PUSH([C++])
 AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
 
 if test "x$enable_asan" = xyes; then
-	case $host in
-  	*mingw*)
-		AC_MSG_ERROR("Windows builds cannot use ASAN")
-		;;
-	esac
 	enable_debug=yes
-	CFLAGS="$CFLAGS -fsanitize=address -fno-omit-frame-pointer"
-	CXXFLAGS="$CXXFLAGS -fsanitize=address -fno-omit-frame-pointer"
-	LDFLAGS="$LDFLAGS -fsanitize=address"
+  asan_failed=no
+  AX_CHECK_COMPILE_FLAG([-fsanitize=address],
+    [CXXFLAGS="$CXXFLAGS -fsanitize=address"],
+    [asan_failed=yes])
+  AX_CHECK_LINK_FLAG([-fsanitize=address],
+    [LDFLAGS="$LDFLAGS -fsanitize=address"],
+    [asan_failed=yes])
+  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
+    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
+    [asan_failed=yes])
+
+  if test "x$asan_failed" = xyes; then
+    AC_MSG_ERROR("ASAN is not supported")
+  fi
 fi
 
 if test "x$enable_tsan" = xyes; then
-	case $host in
-  	*mingw*)
-		AC_MSG_ERROR("Windows builds cannot use TSAN")
-		;;
-	esac
-	enable_debug=yes
-	CFLAGS="$CFLAGS -fsanitize=thread -fno-omit-frame-pointer"
-	CXXFLAGS="$CXXFLAGS -fsanitize=thread -fno-omit-frame-pointer"
-	LDFLAGS="$LDFLAGS -fsanitize=thread"
+  enable_debug=yes
+  tsan_failed=no
+  AX_CHECK_COMPILE_FLAG([-fsanitize=thread],
+    [CXXFLAGS="$CXXFLAGS -fsanitize=thread"],
+    [tsan_failed=yes])
+  AX_CHECK_LINK_FLAG([-fsanitize=thread],
+    [LDFLAGS="$LDFLAGS -fsanitize=thread"],
+    [tsan_failed=yes])
+  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
+    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
+    [tsan_failed=yes])
+
+  if test "x$tsan_failed" = xyes; then
+    AC_MSG_ERROR("TSAN is not supported")
+  fi
 fi
 
 if test "x$enable_ubsan" = xyes; then
-	case $host in
-  	*mingw*)
-		AC_MSG_ERROR("Windows builds cannot use UBSAN")
-		;;
-	esac
-	enable_debug=yes
-	CFLAGS="$CFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
-	CXXFLAGS="$CXXFLAGS -fsanitize=undefined -fno-omit-frame-pointer"
-	LDFLAGS="$LDFLAGS -fsanitize=undefined"
+  enable_debug=yes
+  ubsan_failed=no
+  AX_CHECK_COMPILE_FLAG([-fsanitize=undefined],
+    [CXXFLAGS="$CXXFLAGS -fsanitize=undefined"],
+    [ubsan_failed=yes])
+  AX_CHECK_LINK_FLAG([-fsanitize=undefined],
+    [LDFLAGS="$LDFLAGS -fsanitize=undefined"],
+    [ubsan_failed=yes])
+  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
+    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
+    [ubsan_failed=yes])
+
+  if test "x$ubsan_failed" = xyes; then
+    AC_MSG_ERROR("UBSAN is not supported")
+  fi
 fi
 
 if test "x$enable_debug" = xyes; then
