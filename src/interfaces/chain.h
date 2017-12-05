@@ -208,8 +208,8 @@ public:
     //! the fee or for another reason.
     virtual bool broadcastTransaction(const Config &config,
                                       const CTransactionRef &tx,
-                                      std::string &err_string,
-                                      const Amount &max_tx_fee, bool relay) = 0;
+                                      const Amount &max_tx_fee, bool relay,
+                                      std::string &err_string) = 0;
 
     //! Calculate mempool ancestor and descendant counts for the given
     //! transaction.

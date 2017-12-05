@@ -1937,7 +1937,7 @@ bool CWalletTx::SubmitMemoryPoolAndRelay(std::string &err_string, bool relay) {
     // out-of-order is incorrect - it should be unmarked when
     // TransactionRemovedFromMempool fires.
     bool ret = pwallet->chain().broadcastTransaction(
-        GetConfig(), tx, err_string, pwallet->m_default_max_tx_fee, relay);
+        GetConfig(), tx, pwallet->m_default_max_tx_fee, relay, err_string);
     fInMempool |= ret;
     return ret;
 }

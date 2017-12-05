@@ -326,9 +326,8 @@ namespace {
         }
         bool broadcastTransaction(const Config &config,
                                   const CTransactionRef &tx,
-                                  std::string &err_string,
-                                  const Amount &max_tx_fee,
-                                  bool relay) override {
+                                  const Amount &max_tx_fee, bool relay,
+                                  std::string &err_string) override {
             const TransactionError err = BroadcastTransaction(
                 m_node, config, tx, err_string, max_tx_fee, relay,
                 /*wait_callback*/ false);
