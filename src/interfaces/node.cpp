@@ -304,17 +304,16 @@ namespace {
             return MakeWallet(
                 LoadWallet(params, *m_context->chain, name, error, warnings));
         }
-        WalletCreationStatus
+        std::unique_ptr<Wallet>
         createWallet(const CChainParams &params, const SecureString &passphrase,
                      uint64_t wallet_creation_flags, const std::string &name,
                      bilingual_str &error, std::vector<bilingual_str> &warnings,
-                     std::unique_ptr<Wallet> &result) override {
+                     WalletCreationStatus &status) override {
             std::shared_ptr<CWallet> wallet;
-            WalletCreationStatus status = CreateWallet(
-                params, *m_context->chain, passphrase, wallet_creation_flags,
-                name, error, warnings, wallet);
-            result = MakeWallet(wallet);
-            return status;
+            status = CreateWallet(params, *m_context->chain, passphrase,
+                                  wallet_creation_flags, name, error, warnings,
+                                  wallet);
+            return MakeWallet(wallet);
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage_connect(fn));

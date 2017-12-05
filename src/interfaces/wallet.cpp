@@ -310,11 +310,10 @@ namespace {
             }
             return {};
         }
-        TransactionError
-        fillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
-                 SigHashType sighash_type =
-                     SigHashType().withForkId() /* SIGHASH_ALL|FORKID */,
-                 bool sign = true, bool bip32derivs = false) override {
+        TransactionError fillPSBT(SigHashType sighash_type, bool sign,
+                                  bool bip32derivs,
+                                  PartiallySignedTransaction &psbtx,
+                                  bool &complete) override {
             return FillPSBT(m_wallet.get(), psbtx, complete, sighash_type, sign,
                             bip32derivs);
         }

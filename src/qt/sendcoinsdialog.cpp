@@ -445,8 +445,8 @@ void SendCoinsDialog::on_sendButton_clicked() {
         PartiallySignedTransaction psbtx(mtx);
         bool complete = false;
         const TransactionError err = model->wallet().fillPSBT(
-            psbtx, complete, SigHashType().withForkId(), false /* sign */,
-            true /* bip32derivs */);
+            SigHashType().withForkId(), false /* sign */,
+            true /* bip32derivs */, psbtx, complete);
         assert(!complete);
         assert(err == TransactionError::OK);
         // Serialize the PSBT

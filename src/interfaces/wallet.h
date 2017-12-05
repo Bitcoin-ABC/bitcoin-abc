@@ -188,11 +188,10 @@ public:
                                         bool &in_mempool, int &num_blocks) = 0;
 
     //! Fill PSBT.
-    virtual TransactionError
-    fillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
-             SigHashType sighash_type =
-                 SigHashType().withForkId() /* SIGHASH_ALL|FORKID */,
-             bool sign = true, bool bip32derivs = false) = 0;
+    virtual TransactionError fillPSBT(SigHashType sighash_type, bool sign,
+                                      bool bip32derivs,
+                                      PartiallySignedTransaction &psbtx,
+                                      bool &complete) = 0;
 
     //! Get balances.
     virtual WalletBalances getBalances() = 0;

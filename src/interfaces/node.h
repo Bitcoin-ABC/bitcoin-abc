@@ -216,11 +216,11 @@ public:
                std::vector<bilingual_str> &warnings) const = 0;
 
     //! Create a wallet from file
-    virtual WalletCreationStatus
+    virtual std::unique_ptr<Wallet>
     createWallet(const CChainParams &params, const SecureString &passphrase,
                  uint64_t wallet_creation_flags, const std::string &name,
                  bilingual_str &error, std::vector<bilingual_str> &warnings,
-                 std::unique_ptr<Wallet> &result) = 0;
+                 WalletCreationStatus &status) = 0;
 
     //! Register handler for init messages.
     using InitMessageFn = std::function<void(const std::string &message)>;
