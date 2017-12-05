@@ -84,8 +84,8 @@
 #include <boost/program_options/detail/config_file.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/thread.hpp>
+
 #include <openssl/conf.h>
-#include <openssl/crypto.h>
 #include <openssl/rand.h>
 
 // Work around clang compilation problem in Boost 1.46:
