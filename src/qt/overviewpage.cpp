@@ -165,7 +165,7 @@ OverviewPage::~OverviewPage() {
 void OverviewPage::setBalance(const interfaces::WalletBalances &balances) {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
     m_balances = balances;
-    if (walletModel->privateKeysDisabled()) {
+    if (walletModel->wallet().privateKeysDisabled()) {
         ui->labelBalance->setText(
             BitcoinUnits::formatWithUnit(unit, balances.watch_only_balance,
                                          false, BitcoinUnits::separatorAlways));
@@ -223,8 +223,8 @@ void OverviewPage::setBalance(const interfaces::WalletBalances &balances) {
     ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     // show watch-only immature balance
-    ui->labelWatchImmature->setVisible(!walletModel->privateKeysDisabled() &&
-                                       showWatchOnlyImmature);
+    ui->labelWatchImmature->setVisible(
+        !walletModel->wallet().privateKeysDisabled() && showWatchOnlyImmature);
 }
 
 // show/hide watch-only labels
@@ -283,11 +283,12 @@ void OverviewPage::setWalletModel(WalletModel *model) {
                 this, &OverviewPage::updateDisplayUnit);
 
         updateWatchOnlyLabels(wallet.haveWatchOnly() &&
-                              !model->privateKeysDisabled());
+                              !model->wallet().privateKeysDisabled());
         connect(model, &WalletModel::notifyWatchonlyChanged,
                 [this](bool showWatchOnly) {
-                    updateWatchOnlyLabels(showWatchOnly &&
-                                          !walletModel->privateKeysDisabled());
+                    updateWatchOnlyLabels(
+                        showWatchOnly &&
+                        !walletModel->wallet().privateKeysDisabled());
                 });
     }
 

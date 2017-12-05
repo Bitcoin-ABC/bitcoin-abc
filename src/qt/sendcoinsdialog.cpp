@@ -218,7 +218,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         updateMinFeeLabel();
         updateSmartFeeLabel();
 
-        if (model->privateKeysDisabled()) {
+        if (model->wallet().privateKeysDisabled()) {
             ui->sendButton->setText(tr("Cr&eate Unsigned"));
             ui->sendButton->setToolTip(
                 tr("Creates a Partially Signed Bitcoin Transaction (PSBT) for "
@@ -349,14 +349,14 @@ void SendCoinsDialog::on_sendButton_clicked() {
     }
 
     QString questionString;
-    if (model->privateKeysDisabled()) {
+    if (model->wallet().privateKeysDisabled()) {
         questionString.append(tr("Do you want to draft this transaction?"));
     } else {
         questionString.append(tr("Are you sure you want to send?"));
     }
 
     questionString.append("<br /><span style='font-size:10pt;'>");
-    if (model->privateKeysDisabled()) {
+    if (model->wallet().privateKeysDisabled()) {
         questionString.append(
             tr("Please, review your transaction proposal. This will produce a "
                "Partially Signed Bitcoin Transaction (PSBT) which you can copy "
@@ -420,10 +420,10 @@ void SendCoinsDialog::on_sendButton_clicked() {
         questionString = questionString.arg("<br /><br />" + formatted.at(0));
     }
 
-    const QString confirmation = model->privateKeysDisabled()
+    const QString confirmation = model->wallet().privateKeysDisabled()
                                      ? tr("Confirm transaction proposal")
                                      : tr("Confirm send coins");
-    const QString confirmButtonText = model->privateKeysDisabled()
+    const QString confirmButtonText = model->wallet().privateKeysDisabled()
                                           ? tr("Copy PSBT to clipboard")
                                           : tr("Send");
     SendConfirmationDialog confirmationDialog(
@@ -439,7 +439,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     }
 
     bool send_failure = false;
-    if (model->privateKeysDisabled()) {
+    if (model->wallet().privateKeysDisabled()) {
         CMutableTransaction mtx =
             CMutableTransaction{*(currentTransaction.getWtx())};
         PartiallySignedTransaction psbtx(mtx);
@@ -699,7 +699,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
     }
 
     // Include watch-only for wallets without private key
-    coin_control.fAllowWatchOnly = model->privateKeysDisabled();
+    coin_control.fAllowWatchOnly = model->wallet().privateKeysDisabled();
 
     // Calculate available amount to send.
     Amount amount = model->wallet().getAvailableBalance(coin_control);
@@ -771,7 +771,7 @@ void SendCoinsDialog::updateCoinControlState(CCoinControl &ctrl) {
         ctrl.m_feerate.reset();
     }
     // Include watch-only for wallets without private key
-    ctrl.fAllowWatchOnly = model->privateKeysDisabled();
+    ctrl.fAllowWatchOnly = model->wallet().privateKeysDisabled();
 }
 
 void SendCoinsDialog::updateSmartFeeLabel() {

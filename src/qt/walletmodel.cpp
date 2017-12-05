@@ -18,7 +18,7 @@
 #include <util/system.h> // for GetBoolArg
 #include <util/translation.h>
 #include <wallet/coincontrol.h>
-#include <wallet/wallet.h>
+#include <wallet/wallet.h> // for CRecipient
 
 #include <QDebug>
 #include <QSet>
@@ -202,9 +202,9 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
     bilingual_str error;
 
     auto &newTx = transaction.getWtx();
-    newTx = m_wallet->createTransaction(vecSend, coinControl,
-                                        !privateKeysDisabled() /* sign */,
-                                        nChangePosRet, nFeeRequired, error);
+    newTx = m_wallet->createTransaction(
+        vecSend, coinControl, !wallet().privateKeysDisabled() /* sign */,
+        nChangePosRet, nFeeRequired, error);
     transaction.setTransactionFee(nFeeRequired);
     if (fSubtractFeeFromAmount && newTx) {
         transaction.reassignAmounts(nChangePosRet);
@@ -502,14 +502,6 @@ bool WalletModel::saveReceiveRequest(const std::string &sAddress,
 
 bool WalletModel::isWalletEnabled() {
     return !gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET);
-}
-
-bool WalletModel::privateKeysDisabled() const {
-    return m_wallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
-}
-
-bool WalletModel::canGetAddresses() const {
-    return m_wallet->canGetAddresses();
 }
 
 QString WalletModel::getWalletName() const {
