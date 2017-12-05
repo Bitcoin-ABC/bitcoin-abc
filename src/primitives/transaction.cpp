@@ -60,16 +60,20 @@ CMutableTransaction::CMutableTransaction(const CTransaction &tx)
     : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout),
       nLockTime(tx.nLockTime) {}
 
-uint256 CMutableTransaction::GetId() const {
-    return SerializeHash(*this, SER_GETHASH, 0);
+static uint256 ComputeCMutableTransactionHash(const CMutableTransaction &tx) {
+    return SerializeHash(tx, SER_GETHASH, 0);
+}
+
+TxId CMutableTransaction::GetId() const {
+    return TxId(ComputeCMutableTransactionHash(*this));
+}
+
+TxHash CMutableTransaction::GetHash() const {
+    return TxHash(ComputeCMutableTransactionHash(*this));
 }
 
 uint256 CTransaction::ComputeHash() const {
     return SerializeHash(*this, SER_GETHASH, 0);
-}
-
-uint256 CTransaction::GetHash() const {
-    return GetId();
 }
 
 /**

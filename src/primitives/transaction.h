@@ -14,6 +14,21 @@
 static const int SERIALIZE_TRANSACTION = 0x00;
 
 /**
+ * A TxId is the identifier of a transaction. Currently identical to TxHash but
+ * differentiated for type safety.
+ */
+struct TxId : public uint256 {
+    explicit TxId(const uint256 &b) : uint256(b) {}
+};
+
+/**
+ * A TxHash is the double sha256 hash of the full transaction data.
+ */
+struct TxHash : public uint256 {
+    explicit TxHash(const uint256 &b) : uint256(b) {}
+};
+
+/**
  * An outpoint - a combination of a transaction hash and an index n into its
  * vout.
  */
@@ -280,10 +295,8 @@ public:
 
     bool IsNull() const { return vin.empty() && vout.empty(); }
 
-    const uint256 &GetId() const { return hash; }
-
-    // Compute a hash that includes both transaction and witness data
-    uint256 GetHash() const;
+    const TxId GetId() const { return TxId(hash); }
+    const TxHash GetHash() const { return TxHash(hash); }
 
     // Return sum of txouts.
     Amount GetValueOut() const;
@@ -346,10 +359,12 @@ public:
     }
 
     /**
-     * Compute the hash of this CMutableTransaction. This is computed on the
-     * fly, as opposed to GetId() in CTransaction, which uses a cached result.
+     * Compute the id and hash of this CMutableTransaction. This is computed on
+     * the fly, as opposed to GetId() and GetHash() in CTransaction, which uses
+     * a cached result.
      */
-    uint256 GetId() const;
+    TxId GetId() const;
+    TxHash GetHash() const;
 
     friend bool operator==(const CMutableTransaction &a,
                            const CMutableTransaction &b) {
