@@ -4579,6 +4579,11 @@ bool CMerkleTx::IsImmatureCoinBase() const {
 
 bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
                                    CValidationState &state) {
+    // Quick check to avoid re-setting fInMempool to false
+    if (g_mempool.exists(tx->GetId())) {
+        return false;
+    }
+
     // We must set fInMempool here - while it will be re-set to true by the
     // entered-mempool callback, if we did not there would be a race where a
     // user could call sendmoney in a loop and hit spurious out of funds errors
