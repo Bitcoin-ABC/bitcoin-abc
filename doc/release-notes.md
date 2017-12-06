@@ -6,3 +6,9 @@ This release includes the following features and fixes:
   - Add a `spentby` field to the following RPCs: `getrawmempool`,
   `getmempooldescendents`, `getmempoolsancestors`, `getmempoolentry`.
   - Default to use CashAddr in most places in the GUI even when `usecashaddr=0` is specified.
+
+
+Renamed script for creating JSON-RPC credentials
+-----------------------------
+The `share/rpcuser/rpcuser.py` script was renamed to `share/rpcauth/rpcauth.py`.
+This script can be used to create `rpcauth` credentials for a JSON-RPC user.
