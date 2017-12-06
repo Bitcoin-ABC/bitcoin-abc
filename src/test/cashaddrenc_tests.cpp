@@ -26,6 +26,17 @@ uint160 insecure_GetRandUInt160(FastRandomContext &rand) {
     return n;
 }
 
+std::vector<uint8_t> insecure_GetRandomByteArray(FastRandomContext &rand,
+                                                 size_t n) {
+    std::vector<uint8_t> out;
+    out.reserve(n);
+
+    for (size_t i = 0; i < n; i++) {
+        out.push_back(uint8_t(rand.randbits(8)));
+    }
+    return out;
+}
+
 class DstTypeChecker : public boost::static_visitor<void> {
 public:
     void operator()(const CKeyID &id) { isKey = true; }
@@ -50,9 +61,48 @@ private:
     bool isScript;
 };
 
+// Map all possible size bits in the version to the expected size of the
+// hash in bytes.
+const std::array<std::pair<uint8_t, uint32_t>, 8> valid_sizes = {
+    {{0, 20}, {1, 24}, {2, 28}, {3, 32}, {4, 40}, {5, 48}, {6, 56}, {7, 64}}};
+
 } // anon ns
 
 BOOST_FIXTURE_TEST_SUITE(cashaddrenc_tests, BasicTestingSetup)
+
+BOOST_AUTO_TEST_CASE(encode_decode_all_sizes) {
+    FastRandomContext rand(true);
+    const CChainParams &params = Params(CBaseChainParams::MAIN);
+
+    for (auto ps : valid_sizes) {
+        std::vector<uint8_t> data =
+            insecure_GetRandomByteArray(rand, ps.second);
+        CashAddrContent content = {PUBKEY_TYPE, data};
+        std::vector<uint8_t> packed_data = PackCashAddrContent(content);
+
+        // Check that the packed size is correct
+        BOOST_CHECK_EQUAL(packed_data[1] >> 2, ps.first);
+        std::string address =
+            cashaddr::Encode(params.CashAddrPrefix(), packed_data);
+
+        // Check that the address decodes properly
+        CashAddrContent decoded = DecodeCashAddrContent(address, params);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+            std::begin(content.hash), std::end(content.hash),
+            std::begin(decoded.hash), std::end(decoded.hash));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(check_packaddr_throws) {
+    FastRandomContext rand(true);
+
+    for (auto ps : valid_sizes) {
+        std::vector<uint8_t> data =
+            insecure_GetRandomByteArray(rand, ps.second - 1);
+        CashAddrContent content = {PUBKEY_TYPE, data};
+        BOOST_CHECK_THROW(PackCashAddrContent(content), std::runtime_error);
+    }
+}
 
 BOOST_AUTO_TEST_CASE(encode_decode) {
     std::vector<CTxDestination> toTest = {CNoDestination{},
@@ -126,7 +176,7 @@ BOOST_AUTO_TEST_CASE(check_padding) {
         data.push_back(1);
     }
 
-    BOOST_CHECK_EQUAL(data.size(), 34);
+    BOOST_CHECK_EQUAL(data.size(), 34UL);
 
     const CTxDestination nodst = CNoDestination{};
     const CChainParams params = Params(CBaseChainParams::MAIN);
@@ -161,14 +211,14 @@ BOOST_AUTO_TEST_CASE(check_type) {
         auto content = DecodeCashAddrContent(
             cashaddr::Encode(params.CashAddrPrefix(), data), params);
         BOOST_CHECK_EQUAL(content.type, v);
-        BOOST_CHECK_EQUAL(content.hash.size(), 20);
+        BOOST_CHECK_EQUAL(content.hash.size(), 20UL);
 
         // Check that using the reserved bit result in a failure.
         data[0] |= 0x10;
         content = DecodeCashAddrContent(
             cashaddr::Encode(params.CashAddrPrefix(), data), params);
         BOOST_CHECK_EQUAL(content.type, 0);
-        BOOST_CHECK_EQUAL(content.hash.size(), 0);
+        BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
     }
 }
 
@@ -179,15 +229,9 @@ BOOST_AUTO_TEST_CASE(check_size) {
     const CTxDestination nodst = CNoDestination{};
     const CChainParams params = Params(CBaseChainParams::MAIN);
 
-    // Mapp all possible size bits in the version to the expected size of the
-    // hash in bytes.
-    std::vector<std::pair<uint8_t, uint32_t>> sizes = {
-        {0, 20}, {1, 24}, {2, 28}, {3, 32}, {4, 40}, {5, 48}, {6, 56}, {7, 64},
-    };
-
     std::vector<uint8_t> data;
 
-    for (auto ps : sizes) {
+    for (auto ps : valid_sizes) {
         // Number of bytes required for a 5-bit packed version of a hash, with
         // version byte.  Add half a byte(4) so integer math provides the next
         // multiple-of-5 that would fit all the data.
@@ -209,7 +253,7 @@ BOOST_AUTO_TEST_CASE(check_size) {
             cashaddr::Encode(params.CashAddrPrefix(), data), params);
 
         BOOST_CHECK_EQUAL(content.type, 0);
-        BOOST_CHECK_EQUAL(content.hash.size(), 0);
+        BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
 
         data.pop_back();
         data.pop_back();
@@ -217,7 +261,7 @@ BOOST_AUTO_TEST_CASE(check_size) {
             cashaddr::Encode(params.CashAddrPrefix(), data), params);
 
         BOOST_CHECK_EQUAL(content.type, 0);
-        BOOST_CHECK_EQUAL(content.hash.size(), 0);
+        BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
     }
 }
 
