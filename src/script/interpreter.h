@@ -166,9 +166,9 @@ public:
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
                   const std::vector<uint8_t> &vchPubKey,
-                  const CScript &scriptCode, uint32_t flags) const;
-    bool CheckLockTime(const CScriptNum &nLockTime) const;
-    bool CheckSequence(const CScriptNum &nSequence) const;
+                  const CScript &scriptCode, uint32_t flags) const override;
+    bool CheckLockTime(const CScriptNum &nLockTime) const override;
+    bool CheckSequence(const CScriptNum &nSequence) const override;
 };
 
 class MutableTransactionSignatureChecker : public TransactionSignatureChecker {

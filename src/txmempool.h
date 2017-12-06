@@ -6,13 +6,6 @@
 #ifndef BITCOIN_TXMEMPOOL_H
 #define BITCOIN_TXMEMPOOL_H
 
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "amount.h"
 #include "coins.h"
 #include "indirectmap.h"
@@ -24,6 +17,13 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/signals2/signal.hpp>
+
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 class CAutoFile;
 class CBlockIndex;
@@ -795,8 +795,8 @@ protected:
 
 public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
-    bool HaveCoin(const COutPoint &outpoint) const;
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
+    bool HaveCoin(const COutPoint &outpoint) const override;
 };
 
 // We want to sort transactions by coin age priority

@@ -35,14 +35,16 @@ public:
     PeerLogicValidation(CConnman *connmanIn);
 
     virtual void SyncTransaction(const CTransaction &tx,
-                                 const CBlockIndex *pindex, int nPosInBlock);
+                                 const CBlockIndex *pindex,
+                                 int nPosInBlock) override;
     virtual void UpdatedBlockTip(const CBlockIndex *pindexNew,
                                  const CBlockIndex *pindexFork,
-                                 bool fInitialDownload);
+                                 bool fInitialDownload) override;
     virtual void BlockChecked(const CBlock &block,
-                              const CValidationState &state);
-    virtual void NewPoWValidBlock(const CBlockIndex *pindex,
-                                  const std::shared_ptr<const CBlock> &pblock);
+                              const CValidationState &state) override;
+    virtual void
+    NewPoWValidBlock(const CBlockIndex *pindex,
+                     const std::shared_ptr<const CBlock> &pblock) override;
 };
 
 struct CNodeStateStats {

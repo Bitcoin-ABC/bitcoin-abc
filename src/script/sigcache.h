@@ -53,7 +53,7 @@ public:
 
     bool VerifySignature(const std::vector<uint8_t> &vchSig,
                          const CPubKey &vchPubKey,
-                         const uint256 &sighash) const;
+                         const uint256 &sighash) const override;
 };
 
 void InitSignatureCache();

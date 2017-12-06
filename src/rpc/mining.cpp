@@ -841,7 +841,7 @@ public:
 
 protected:
     virtual void BlockChecked(const CBlock &block,
-                              const CValidationState &stateIn) {
+                              const CValidationState &stateIn) override {
         if (block.GetHash() != hash) {
             return;
         }

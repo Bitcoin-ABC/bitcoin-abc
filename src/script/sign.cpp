@@ -359,7 +359,7 @@ public:
 
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
                   const std::vector<uint8_t> &vchPubKey,
-                  const CScript &scriptCode, uint32_t flags) const {
+                  const CScript &scriptCode, uint32_t flags) const override {
         return true;
     }
 };

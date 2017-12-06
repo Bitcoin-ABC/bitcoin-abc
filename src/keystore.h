@@ -63,9 +63,9 @@ protected:
     WatchOnlySet setWatchOnly;
 
 public:
-    bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey);
-    bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const;
-    bool HaveKey(const CKeyID &address) const {
+    bool AddKeyPubKey(const CKey &key, const CPubKey &pubkey) override;
+    bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const override;
+    bool HaveKey(const CKeyID &address) const override {
         bool result;
         {
             LOCK(cs_KeyStore);
@@ -73,7 +73,7 @@ public:
         }
         return result;
     }
-    void GetKeys(std::set<CKeyID> &setAddress) const {
+    void GetKeys(std::set<CKeyID> &setAddress) const override {
         setAddress.clear();
         {
             LOCK(cs_KeyStore);
@@ -84,7 +84,7 @@ public:
             }
         }
     }
-    bool GetKey(const CKeyID &address, CKey &keyOut) const {
+    bool GetKey(const CKeyID &address, CKey &keyOut) const override {
         {
             LOCK(cs_KeyStore);
             KeyMap::const_iterator mi = mapKeys.find(address);
@@ -95,15 +95,15 @@ public:
         }
         return false;
     }
-    virtual bool AddCScript(const CScript &redeemScript);
-    virtual bool HaveCScript(const CScriptID &hash) const;
+    virtual bool AddCScript(const CScript &redeemScript) override;
+    virtual bool HaveCScript(const CScriptID &hash) const override;
     virtual bool GetCScript(const CScriptID &hash,
-                            CScript &redeemScriptOut) const;
+                            CScript &redeemScriptOut) const override;
 
-    virtual bool AddWatchOnly(const CScript &dest);
-    virtual bool RemoveWatchOnly(const CScript &dest);
-    virtual bool HaveWatchOnly(const CScript &dest) const;
-    virtual bool HaveWatchOnly() const;
+    virtual bool AddWatchOnly(const CScript &dest) override;
+    virtual bool RemoveWatchOnly(const CScript &dest) override;
+    virtual bool HaveWatchOnly(const CScript &dest) const override;
+    virtual bool HaveWatchOnly() const override;
 };
 
 typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;

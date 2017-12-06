@@ -43,9 +43,9 @@ public:
                                 const CTransaction *txToIn, unsigned int nInIn,
                                 const Amount amountIn,
                                 uint32_t nHashTypeIn = SIGHASH_ALL);
-    const BaseSignatureChecker &Checker() const { return checker; }
+    const BaseSignatureChecker &Checker() const override { return checker; }
     bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode) const;
+                   const CScript &scriptCode) const override;
 };
 
 class MutableTransactionSignatureCreator : public TransactionSignatureCreator {
@@ -66,9 +66,9 @@ class DummySignatureCreator : public BaseSignatureCreator {
 public:
     DummySignatureCreator(const CKeyStore *keystoreIn)
         : BaseSignatureCreator(keystoreIn) {}
-    const BaseSignatureChecker &Checker() const;
+    const BaseSignatureChecker &Checker() const override;
     bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode) const;
+                   const CScript &scriptCode) const override;
 };
 
 struct SignatureData {

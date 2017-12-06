@@ -18,6 +18,8 @@
 #include "wallet/rpcwallet.h"
 #include "wallet/walletdb.h"
 
+#include <boost/thread.hpp>
+
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -27,8 +29,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <boost/thread.hpp>
 
 extern CWallet *pwalletMain;
 
@@ -1078,7 +1078,7 @@ public:
     void ReturnKey();
     bool GetReservedKey(CPubKey &pubkey);
     void KeepKey();
-    void KeepScript() { KeepKey(); }
+    void KeepScript() override { KeepKey(); }
 };
 
 /**

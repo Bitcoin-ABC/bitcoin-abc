@@ -12,11 +12,6 @@
 #include "ui_interface.h"
 #include "util.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-#include <future>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -35,6 +30,11 @@
 #endif
 #endif
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <future>
+
 /** Maximum size of http request (request line + headers) */
 static const size_t MAX_HEADERS_SIZE = 8192;
 
@@ -45,7 +45,7 @@ public:
                  const std::string &_path, const HTTPRequestHandler &_func)
         : req(std::move(_req)), path(_path), func(_func), config(&_config) {}
 
-    void operator()() { func(*config, req.get(), path); }
+    void operator()() override { func(*config, req.get(), path); }
 
     std::unique_ptr<HTTPRequest> req;
 

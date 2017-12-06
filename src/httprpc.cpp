@@ -18,9 +18,9 @@
 #include "utilstrencodings.h"
 #include "utilstrencodings.h"
 
-#include <cstdio>
-
 #include <boost/algorithm/string.hpp> // boost::trim
+
+#include <cstdio>
 
 /** WWW-Authenticate to present with 401 Unauthorized response */
 static const char *WWW_AUTH_HEADER_DATA = "Basic realm=\"jsonrpc\"";
@@ -46,8 +46,9 @@ private:
 class HTTPRPCTimerInterface : public RPCTimerInterface {
 public:
     HTTPRPCTimerInterface(struct event_base *_base) : base(_base) {}
-    const char *Name() { return "HTTP"; }
-    RPCTimerBase *NewTimer(std::function<void(void)> &func, int64_t millis) {
+    const char *Name() override { return "HTTP"; }
+    RPCTimerBase *NewTimer(std::function<void(void)> &func,
+                           int64_t millis) override {
         return new HTTPRPCTimer(base, func, millis);
     }
 

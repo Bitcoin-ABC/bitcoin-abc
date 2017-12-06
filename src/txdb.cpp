@@ -11,9 +11,9 @@
 #include "pow.h"
 #include "uint256.h"
 
-#include <cstdint>
-
 #include <boost/thread.hpp>
+
+#include <cstdint>
 
 static const char DB_COIN = 'C';
 static const char DB_COINS = 'c';

@@ -19,7 +19,7 @@ public:
     explicit BitcoinAddressEntryValidator(const std::string &cashaddrprefix,
                                           QObject *parent);
 
-    State validate(QString &input, int &pos) const;
+    State validate(QString &input, int &pos) const override;
 
 private:
     std::string cashaddrprefix;
@@ -33,7 +33,7 @@ class BitcoinAddressCheckValidator : public QValidator {
 public:
     explicit BitcoinAddressCheckValidator(QObject *parent);
 
-    State validate(QString &input, int &pos) const;
+    State validate(QString &input, int &pos) const override;
 };
 
 #endif // BITCOIN_QT_BITCOINADDRESSVALIDATOR_H

@@ -28,11 +28,11 @@
 #include "wallet/coincontrol.h"
 #include "wallet/finaltx.h"
 
-#include <cassert>
-
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
+
+#include <cassert>
 
 CWallet *pwalletMain = nullptr;
 

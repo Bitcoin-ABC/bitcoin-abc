@@ -144,7 +144,7 @@ bool ShutdownRequested() {
 class CCoinsViewErrorCatcher : public CCoinsViewBacked {
 public:
     CCoinsViewErrorCatcher(CCoinsView *view) : CCoinsViewBacked(view) {}
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const {
+    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override {
         try {
             return CCoinsViewBacked::GetCoin(outpoint, coin);
         } catch (const std::runtime_error &e) {
