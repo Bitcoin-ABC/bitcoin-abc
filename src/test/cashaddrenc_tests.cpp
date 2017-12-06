@@ -188,9 +188,14 @@ BOOST_AUTO_TEST_CASE(check_size) {
     std::vector<uint8_t> data;
 
     for (auto ps : sizes) {
-        size_t expectedSize = (12 + ps.second * 8) / 5;
+        // Number of bytes required for a 5-bit packed version of a hash, with
+        // version byte.  Add half a byte(4) so integer math provides the next
+        // multiple-of-5 that would fit all the data.
+        size_t expectedSize = (8 * (1 + ps.second) + 4) / 5;
         data.resize(expectedSize);
         std::fill(begin(data), end(data), 0);
+        // After conversion from 8 bit packing to 5 bit packing, the size will
+        // be in the second 5-bit group, shifted left twice.
         data[1] = ps.first << 2;
 
         auto content = DecodeCashAddrContent(
