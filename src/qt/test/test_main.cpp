@@ -23,6 +23,8 @@
 #include <QObject>
 #include <QTest>
 
+#include <openssl/ssl.h>
+
 #if defined(QT_STATICPLUGIN) && QT_VERSION < 0x050000
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(qcncodecs)
@@ -47,6 +49,10 @@ int main(int argc, char *argv[]) {
     // QCoreApplication:: in the tests
     QCoreApplication app(argc, argv);
     app.setApplicationName("BitcoinABC-Qt-test");
+
+    // This is necessary to initialize openssl on the test framework
+    // (at least on Darwin).
+    SSL_library_init();
 
     URITests test1;
     if (QTest::qExec(&test1) != 0) fInvalid = true;
