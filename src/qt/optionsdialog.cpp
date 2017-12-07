@@ -323,7 +323,8 @@ QValidator::State ProxyAddressValidator::validate(QString &input,
                                                   int &pos) const {
     Q_UNUSED(pos);
     // Validate the proxy
-    CService serv(LookupNumeric(input.toStdString().c_str(), 9050));
+    CService serv(
+        LookupNumeric(input.toStdString().c_str(), DEFAULT_GUI_PROXY_PORT));
     proxyType addrProxy = proxyType(serv, true);
     if (addrProxy.IsValid()) return QValidator::Acceptable;
 
