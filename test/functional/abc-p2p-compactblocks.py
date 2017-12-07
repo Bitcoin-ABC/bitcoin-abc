@@ -269,14 +269,39 @@ class FullBlockTest(ComparisonTestFramework):
         for i in range(100):
             out.append(get_spendable_output())
 
-        # Check that compact block also work for big blocks
+        # There can be only one network thread running at a time.
+        # Adding a new P2P connection here will try to start the network thread
+        # at init, which will throw an assertion because it's already running.
+        # This requires a few steps to avoid this:
+        #   1/ Disconnect all the TestManager nodes
+        #   2/ Terminate the network thread
+        #   3/ Add the new P2P connection
+        #   4/ Reconnect all the TestManager nodes
+        #   5/ Restart the network thread
+
+        # Disconnect all the TestManager nodes
+        [n.disconnect_node() for n in self.test.p2p_connections]
+        self.test.wait_for_disconnections()
+        self.test.clear_all_connections()
+
+        # Wait for the network thread to terminate
+        network_thread_join()
+
+        # Add the new connection
         node = self.nodes[0]
-        peer = TestNode()
-        peer.peer_connect('127.0.0.1', p2p_port(0))
+        node.add_p2p_connection(TestNode())
+
+        # Reconnect TestManager nodes
+        self.test.add_all_connections(self.nodes)
+
+        # Restart the network thread
+        network_thread_start()
 
         # Wait for connection to be etablished
+        peer = node.p2p
         peer.wait_for_verack()
 
+        # Check that compact block also work for big blocks
         # Wait for SENDCMPCT
         def received_sendcmpct():
             return (peer.last_sendcmpct != None)
