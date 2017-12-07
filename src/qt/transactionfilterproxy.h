@@ -47,11 +47,11 @@ public:
     /** Set whether to show conflicted transactions. */
     void setShowInactive(bool showInactive);
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
 protected:
     bool filterAcceptsRow(int source_row,
-                          const QModelIndex &source_parent) const;
+                          const QModelIndex &source_parent) const override;
 
 private:
     QDateTime dateFrom;

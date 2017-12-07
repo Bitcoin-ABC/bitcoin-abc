@@ -24,8 +24,8 @@ public:
     ~SplashScreen();
 
 protected:
-    void paintEvent(QPaintEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 public Q_SLOTS:
     /** Slot to call finish() method as it's not defined as slot */

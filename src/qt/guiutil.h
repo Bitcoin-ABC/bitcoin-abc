@@ -152,7 +152,7 @@ public:
     explicit ToolTipToRichTextFilter(int size_threshold, QObject *parent = 0);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *evt);
+    bool eventFilter(QObject *obj, QEvent *evt) override;
 
 private:
     int size_threshold;
@@ -240,7 +240,7 @@ Q_SIGNALS:
     void clicked(const QPoint &point);
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
 class ClickableProgressBar : public QProgressBar {
@@ -253,7 +253,7 @@ Q_SIGNALS:
     void clicked(const QPoint &point);
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
 #if defined(Q_OS_MAC) && QT_VERSION >= 0x050000
@@ -261,7 +261,7 @@ protected:
 // https://bugreports.qt-project.org/browse/QTBUG-15631
 // QProgressBar uses around 10% CPU even when app is in background
 class ProgressBar : public ClickableProgressBar {
-    bool event(QEvent *e) {
+    bool event(QEvent *e) override {
         return (e->type() != QEvent::StyleAnimationUpdate)
                    ? QProgressBar::event(e)
                    : false;

@@ -36,7 +36,7 @@ public:
     CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type)
         : QTreeWidgetItem(parent, type) {}
 
-    bool operator<(const QTreeWidgetItem &other) const;
+    bool operator<(const QTreeWidgetItem &other) const override;
 };
 
 class CoinControlDialog : public QDialog {
