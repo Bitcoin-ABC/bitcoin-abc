@@ -13,7 +13,7 @@ import random
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.mininode import (CBlockHeader,
-                                     NetworkThread,
+                                     network_thread_start,
                                      P2PInterface,
                                      msg_block,
                                      msg_headers)
@@ -45,7 +45,7 @@ class SyncChainTest(BitcoinTestFramework):
         node0conn = BaseNode()
         node0conn.peer_connect('127.0.0.1', p2p_port(0))
 
-        NetworkThread().start()
+        network_thread_start()
         node0conn.wait_for_verack()
 
         node0 = self.nodes[0]

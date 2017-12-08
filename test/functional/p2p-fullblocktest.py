@@ -11,6 +11,7 @@ from test_framework.blocktools import *
 import time
 from test_framework.key import CECKey
 from test_framework.script import *
+from test_framework.mininode import network_thread_start
 import struct
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE, MAX_BLOCK_SIGOPS_PER_MB
 
@@ -79,8 +80,7 @@ class FullBlockTest(ComparisonTestFramework):
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
         self.test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):

@@ -9,7 +9,7 @@ and that it responds to getdata requests for blocks correctly:
     - send a block within 288 + 2 of the tip
     - disconnect peers who request blocks older than that."""
 from test_framework.messages import CInv, msg_getdata
-from test_framework.mininode import NODE_BLOOM, NODE_NETWORK_LIMITED, NODE_BITCOIN_CASH, NetworkThread, P2PInterface
+from test_framework.mininode import NODE_BLOOM, NODE_NETWORK_LIMITED, NODE_BITCOIN_CASH, network_thread_start, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -33,7 +33,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
-        NetworkThread().start()
+        network_thread_start()
         node.wait_for_verack()
 
         expected_services = NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED

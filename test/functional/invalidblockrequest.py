@@ -7,6 +7,7 @@ from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import *
 from test_framework.comptool import TestManager, TestInstance, RejectResult
 from test_framework.blocktools import *
+from test_framework.mininode import network_thread_start
 import copy
 import time
 
@@ -38,7 +39,7 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         self.block_time = None
         self.extra_args = [["-whitelist=127.0.0.1"]]
 
-        NetworkThread().start()  # Start up network handling in another thread
+        network_thread_start()
         test.run()
 
     def get_tests(self):
