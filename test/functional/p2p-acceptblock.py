@@ -88,8 +88,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         # min_work_node connects to node1 (whitelisted)
         min_work_node = self.nodes[1].add_p2p_connection(P2PInterface())
 
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
 
         # Test logic begins here
         test_node.wait_for_verack()
@@ -319,7 +318,7 @@ class AcceptBlockTest(BitcoinTestFramework):
             self.nodes[0].disconnect_p2ps()
             test_node = self.nodes[0].add_p2p_connection(P2PInterface())
 
-            NetworkThread().start()  # Start up network handling in another thread
+            network_thread_start()
             test_node.wait_for_verack()
 
         # We should have failed reorg and switched back to 290 (but have block 291)

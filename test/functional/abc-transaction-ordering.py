@@ -46,8 +46,7 @@ class TransactionOrderingTest(ComparisonTestFramework):
     def run_test(self):
         self.test = TestManager(self, self.options.tmpdir)
         self.test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         # Set the blocksize to 2MB as initial condition
         self.test.run()
 

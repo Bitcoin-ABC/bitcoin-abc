@@ -42,7 +42,7 @@ bip112tx_special - test negative argument to OP_CSV
 
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import *
-from test_framework.mininode import ToHex, FromHex, CTransaction, NetworkThread, COIN
+from test_framework.mininode import ToHex, FromHex, CTransaction, network_thread_start, COIN
 from test_framework.blocktools import create_coinbase, create_block, make_conform_to_ctor
 from test_framework.comptool import TestInstance, TestManager
 from test_framework.script import *
@@ -106,8 +106,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
         test.add_all_connections(self.nodes)
-        # Start up network handling in another thread
-        NetworkThread().start()
+        network_thread_start()
         test.run()
 
     def send_generic_input_tx(self, node, coinbases):
