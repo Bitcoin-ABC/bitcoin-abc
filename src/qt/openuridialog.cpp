@@ -28,7 +28,7 @@ QString OpenURIDialog::getURI() {
 
 void OpenURIDialog::accept() {
     SendCoinsRecipient rcp;
-    if (GUIUtil::parseBitcoinURI(getURI(), &rcp)) {
+    if (GUIUtil::parseBitcoinURI(GUIUtil::URI_SCHEME, getURI(), &rcp)) {
         /* Only accept value URIs */
         QDialog::accept();
     } else {

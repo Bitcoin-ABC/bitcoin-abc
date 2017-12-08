@@ -172,9 +172,12 @@ static bool IsCashAddrEncoded(const QUrl &uri) {
     return !decoded.first.empty();
 }
 
-bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
-    // return if URI is not valid or is no bitcoincash: URI
-    if (!uri.isValid() || uri.scheme() != URI_SCHEME) return false;
+bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
+                     SendCoinsRecipient *out) {
+    // return if URI has wrong scheme.
+    if (!uri.isValid() || uri.scheme() != scheme) {
+        return false;
+    }
 
     SendCoinsRecipient rv;
     if (IsCashAddrEncoded(uri)) {
@@ -231,17 +234,17 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out) {
     return true;
 }
 
-bool parseBitcoinURI(QString uri, SendCoinsRecipient *out) {
-    // Convert bitcoincash:// to bitcoincash:
+bool parseBitcoinURI(const QString &scheme, QString uri,
+                     SendCoinsRecipient *out) {
     //
     //    Cannot handle this later, because bitcoincash://
     //    will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if (uri.startsWith(URI_SCHEME + "://", Qt::CaseInsensitive)) {
-        uri.replace(0, URI_SCHEME.length() + 3, URI_SCHEME + ":");
+    if (uri.startsWith(scheme + "://", Qt::CaseInsensitive)) {
+        uri.replace(0, scheme.length() + 3, scheme + ":");
     }
     QUrl uriInstance(uri);
-    return parseBitcoinURI(uriInstance, out);
+    return parseBitcoinURI(scheme, uriInstance, out);
 }
 
 QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info) {

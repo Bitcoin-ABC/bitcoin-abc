@@ -53,8 +53,10 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
 // Parse "bitcoincash:" URI into recipient object, return true on successful
 // parsing
-bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out);
-bool parseBitcoinURI(QString uri, SendCoinsRecipient *out);
+bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
+                     SendCoinsRecipient *out);
+bool parseBitcoinURI(const QString &scheme, QString uri,
+                     SendCoinsRecipient *out);
 QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
