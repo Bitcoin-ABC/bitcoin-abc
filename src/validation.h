@@ -19,6 +19,8 @@
 #include "sync.h"
 #include "versionbits.h"
 
+#include <boost/filesystem/path.hpp>
+
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -28,8 +30,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <boost/filesystem/path.hpp>
 
 class CBlockIndex;
 class CBlockTreeDB;
