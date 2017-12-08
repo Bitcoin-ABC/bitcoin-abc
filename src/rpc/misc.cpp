@@ -259,18 +259,25 @@ static UniValue validateaddress(const Config &config,
             ret.pushKV("account", pwallet->mapAddressBook[dest].name);
         }
         if (pwallet) {
-            const auto &meta = pwallet->mapKeyMetadata;
-            const CKeyID *keyID = boost::get<CKeyID>(&dest);
-            auto it = keyID ? meta.find(*keyID) : meta.end();
-            if (it == meta.end()) {
-                it = meta.find(CScriptID(scriptPubKey));
+            const CKeyMetadata *meta = nullptr;
+            if (const CKeyID *key_id = boost::get<CKeyID>(&dest)) {
+                auto it = pwallet->mapKeyMetadata.find(*key_id);
+                if (it != pwallet->mapKeyMetadata.end()) {
+                    meta = &it->second;
+                }
             }
-            if (it != meta.end()) {
-                ret.pushKV("timestamp", it->second.nCreateTime);
-                if (!it->second.hdKeypath.empty()) {
-                    ret.pushKV("hdkeypath", it->second.hdKeypath);
-                    ret.pushKV("hdmasterkeyid",
-                               it->second.hdMasterKeyID.GetHex());
+            if (!meta) {
+                auto it =
+                    pwallet->m_script_metadata.find(CScriptID(scriptPubKey));
+                if (it != pwallet->m_script_metadata.end()) {
+                    meta = &it->second;
+                }
+            }
+            if (meta) {
+                ret.pushKV("timestamp", meta->nCreateTime);
+                if (!meta->hdKeypath.empty()) {
+                    ret.pushKV("hdkeypath", meta->hdKeypath);
+                    ret.pushKV("hdmasterkeyid", meta->hdMasterKeyID.GetHex());
                 }
             }
         }
