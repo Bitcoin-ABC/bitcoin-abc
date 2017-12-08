@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,6 +10,7 @@
 #include "amount.h"
 #include "key.h"
 #include "primitives/transaction.h"
+#include "script/standard.h" // for CTxDestination
 #include "wallet/db.h"
 
 #include <cstdint>
@@ -112,12 +114,12 @@ public:
               bool fFlushOnClose = true)
         : CDB(strFilename, pszMode, fFlushOnClose) {}
 
-    bool WriteName(const std::string &strAddress, const std::string &strName);
-    bool EraseName(const std::string &strAddress);
+    bool WriteName(const CTxDestination &address, const std::string &strName);
+    bool EraseName(const CTxDestination &address);
 
-    bool WritePurpose(const std::string &strAddress,
+    bool WritePurpose(const CTxDestination &address,
                       const std::string &purpose);
-    bool ErasePurpose(const std::string &strAddress);
+    bool ErasePurpose(const CTxDestination &address);
 
     bool WriteTx(const CWalletTx &wtx);
     bool EraseTx(uint256 hash);
@@ -157,10 +159,10 @@ public:
     bool WriteAccount(const std::string &strAccount, const CAccount &account);
 
     /// Write destination data key,value tuple to database.
-    bool WriteDestData(const std::string &address, const std::string &key,
+    bool WriteDestData(const CTxDestination &address, const std::string &key,
                        const std::string &value);
     /// Erase destination data tuple from wallet database.
-    bool EraseDestData(const std::string &address, const std::string &key);
+    bool EraseDestData(const CTxDestination &address, const std::string &key);
 
     Amount GetAccountCreditDebit(const std::string &strAccount);
     void ListAccountCreditDebit(const std::string &strAccount,
