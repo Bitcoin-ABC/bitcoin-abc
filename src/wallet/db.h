@@ -24,7 +24,7 @@
 static const unsigned int DEFAULT_WALLET_DBLOGSIZE = 100;
 static const bool DEFAULT_WALLET_PRIVDB = true;
 
-class CDBEnv {
+class BerkeleyEnvironment {
 private:
     bool fDbEnvInit;
     bool fMockDb;
@@ -38,8 +38,8 @@ public:
     std::map<std::string, int> mapFileUseCount;
     std::map<std::string, Db *> mapDb;
 
-    CDBEnv(const fs::path &env_directory);
-    ~CDBEnv();
+    BerkeleyEnvironment(const fs::path &env_directory);
+    ~BerkeleyEnvironment();
     void Reset();
 
     void MakeMock();
@@ -87,25 +87,25 @@ public:
     }
 };
 
-/** Get CDBEnv and database filename given a wallet path. */
-CDBEnv *GetWalletEnv(const fs::path &wallet_path,
-                     std::string &database_filename);
+/** Get BerkeleyEnvironment and database filename given a wallet path. */
+BerkeleyEnvironment *GetWalletEnv(const fs::path &wallet_path,
+                                  std::string &database_filename);
 
 /**
  * An instance of this class represents one database.
  * For BerkeleyDB this is just a (env, strFile) tuple.
  */
-class CWalletDBWrapper {
-    friend class CDB;
+class BerkeleyDatabase {
+    friend class BerkeleyBatch;
 
 public:
     /** Create dummy DB handle */
-    CWalletDBWrapper()
+    BerkeleyDatabase()
         : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
           nLastWalletUpdate(0), env(nullptr) {}
 
     /** Create DB handle to real database */
-    CWalletDBWrapper(const fs::path &wallet_path, bool mock = false)
+    BerkeleyDatabase(const fs::path &wallet_path, bool mock = false)
         : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0),
           nLastWalletUpdate(0) {
         env = GetWalletEnv(wallet_path, strFile);
@@ -117,23 +117,23 @@ public:
     }
 
     /** Return object for accessing database at specified path. */
-    static std::unique_ptr<CWalletDBWrapper> Create(const fs::path &path) {
-        return std::make_unique<CWalletDBWrapper>(path);
+    static std::unique_ptr<BerkeleyDatabase> Create(const fs::path &path) {
+        return std::make_unique<BerkeleyDatabase>(path);
     }
 
     /**
      * Return object for accessing dummy database with no read/write
      * capabilities.
      */
-    static std::unique_ptr<CWalletDBWrapper> CreateDummy() {
-        return std::make_unique<CWalletDBWrapper>();
+    static std::unique_ptr<BerkeleyDatabase> CreateDummy() {
+        return std::make_unique<BerkeleyDatabase>();
     }
 
     /**
      * Return object for accessing temporary in-memory database.
      */
-    static std::unique_ptr<CWalletDBWrapper> CreateMock() {
-        return std::make_unique<CWalletDBWrapper>("", true /* mock */);
+    static std::unique_ptr<BerkeleyDatabase> CreateMock() {
+        return std::make_unique<BerkeleyDatabase>("", true /* mock */);
     }
 
     /**
@@ -161,7 +161,7 @@ public:
 
 private:
     /** BerkeleyDB specific */
-    CDBEnv *env;
+    BerkeleyEnvironment *env;
     std::string strFile;
 
     /**
@@ -173,22 +173,23 @@ private:
 };
 
 /** RAII class that provides access to a Berkeley database */
-class CDB {
+class BerkeleyBatch {
 protected:
     Db *pdb;
     std::string strFile;
     DbTxn *activeTxn;
     bool fReadOnly;
     bool fFlushOnClose;
-    CDBEnv *env;
+    BerkeleyEnvironment *env;
 
 public:
-    explicit CDB(CWalletDBWrapper &dbw, const char *pszMode = "r+",
-                 bool fFlushOnCloseIn = true);
-    ~CDB() { Close(); }
+    explicit BerkeleyBatch(BerkeleyDatabase &database,
+                           const char *pszMode = "r+",
+                           bool fFlushOnCloseIn = true);
+    ~BerkeleyBatch() { Close(); }
 
-    CDB(const CDB &) = delete;
-    CDB &operator=(const CDB &) = delete;
+    BerkeleyBatch(const BerkeleyBatch &) = delete;
+    BerkeleyBatch &operator=(const BerkeleyBatch &) = delete;
 
     void Flush();
     void Close();
@@ -200,15 +201,15 @@ public:
 
     /* flush the wallet passively (TRY_LOCK)
        ideal to be called periodically */
-    static bool PeriodicFlush(CWalletDBWrapper &dbw);
+    static bool PeriodicFlush(BerkeleyDatabase &database);
     /* verifies the database environment */
     static bool VerifyEnvironment(const fs::path &file_path,
                                   std::string &errorStr);
     /* verifies the database file */
-    static bool VerifyDatabaseFile(const fs::path &file_path,
-                                   std::string &warningStr,
-                                   std::string &errorStr,
-                                   CDBEnv::recoverFunc_type recoverFunc);
+    static bool
+    VerifyDatabaseFile(const fs::path &file_path, std::string &warningStr,
+                       std::string &errorStr,
+                       BerkeleyEnvironment::recoverFunc_type recoverFunc);
 
 public:
     template <typename K, typename T> bool Read(const K &key, T &value) {
@@ -409,7 +410,8 @@ public:
         return Write(std::string("version"), nVersion);
     }
 
-    static bool Rewrite(CWalletDBWrapper &dbw, const char *pszSkip = nullptr);
+    static bool Rewrite(BerkeleyDatabase &database,
+                        const char *pszSkip = nullptr);
 };
 
 #endif // BITCOIN_WALLET_DB_H

@@ -44,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // Verify ScanForWalletTransactions picks up transactions in both the old
     // and new block files.
     {
-        CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // Verify ScanForWalletTransactions only picks transactions in the new block
     // file.
     {
-        CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // before the missing block, and success for a key whose creation time is
     // after.
     {
-        CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
         AddWallet(&wallet);
         UniValue keys;
         keys.setArray();
@@ -154,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 
     // Import key into wallet and call dumpwallet to create backup file.
     {
-        CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
         LOCK(wallet.cs_wallet);
         wallet.mapKeyMetadata[coinbaseKey.GetPubKey().GetID()].nCreateTime =
             KEY_TIME;
@@ -171,7 +171,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     // Call importwallet RPC and verify all blocks with timestamps >= BLOCK_TIME
     // were scanned, and no prior blocks were scanned.
     {
-        CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
 
         JSONRPCRequest request;
         request.params.setArray();
@@ -200,7 +200,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // function. Similar tests probably should be written for the other credit and
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
-    CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+    CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
     LOCK2(cs_main, wallet.cs_wallet);
     wtx.hashBlock = chainActive.Tip()->GetBlockHash();
@@ -293,7 +293,7 @@ public:
         g_address_type = OutputType::DEFAULT;
         g_change_type = OutputType::DEFAULT;
         wallet = std::make_unique<CWallet>(Params(), "mock",
-                                           CWalletDBWrapper::CreateMock());
+                                           WalletDatabase::CreateMock());
         bool firstRun;
         wallet->LoadWallet(firstRun);
         AddKey(*wallet, coinbaseKey);
