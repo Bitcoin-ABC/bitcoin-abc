@@ -5,24 +5,29 @@ The built-in one is located in `/Applications/Utilities/Terminal.app`.
 
 Preparation
 -----------
-Install the OS X command line tools:
+
+1.  Install Xcode from the app store if you don't have it already (it's a dependency for qt5)
+
+    NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
+
+2.  Install the OS X command line tools:
 
 `xcode-select --install`
 
 When the popup appears, click `Install`.
 
-Then install [Homebrew](http://brew.sh).
+3.  Install [Homebrew](http://brew.sh).
 
 Dependencies
 ----------------------
+
+Install dependencies:
 
     brew install automake berkeley-db4 libtool boost --c++11 miniupnpc openssl pkg-config protobuf --c++11 qt5 libevent
 
 In case you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
 
     brew install librsvg
-
-NOTE: Building with Qt4 is still supported, however, could result in a broken UI. Building with Qt5 is recommended.
 
 Build Bitcoin ABC
 -----------------
