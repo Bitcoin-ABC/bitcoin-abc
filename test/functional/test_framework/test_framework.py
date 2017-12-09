@@ -112,8 +112,9 @@ class BitcoinTestFramework():
 
         PortSeed.n = self.options.port_seed
 
-        os.environ['PATH'] = self.options.srcdir + ":" + \
-            self.options.srcdir + "/qt:" + os.environ['PATH']
+        os.environ['PATH'] = self.options.srcdir + os.pathsep + \
+            self.options.srcdir + os.path.sep + "qt" + os.pathsep + \
+            os.environ['PATH']
 
         check_json_precision()
 
@@ -173,11 +174,12 @@ class BitcoinTestFramework():
                 "Note: bitcoinds were not stopped and may still be running")
 
         if not self.options.nocleanup and not self.options.noshutdown and success != TestStatus.FAILED:
-            self.log.info("Cleaning up")
-            shutil.rmtree(self.options.tmpdir)
+            self.log.info("Cleaning up {} on exit".format(self.options.tmpdir))
+            cleanup_tree_on_exit = True
         else:
             self.log.warning(
                 "Not cleaning up dir {}".format(self.options.tmpdir))
+            cleanup_tree_on_exit = False
 
         if success == TestStatus.PASSED:
             self.log.info("Tests successful")
@@ -192,6 +194,8 @@ class BitcoinTestFramework():
                 os.path.dirname(os.path.realpath(__file__)) + "/../combine_logs.py"), self.options.tmpdir))
             exit_code = TEST_EXIT_FAILED
         logging.shutdown()
+        if cleanup_tree_on_exit:
+            shutil.rmtree(self.options.tmpdir)
         sys.exit(exit_code)
 
     # Methods to override in subclass test scripts.

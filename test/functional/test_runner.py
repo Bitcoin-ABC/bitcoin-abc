@@ -110,7 +110,7 @@ class TestCase():
         tmpdir_arg = ["--tmpdir={}".format(testdir)]
         name = t
         time0 = time.time()
-        process = subprocess.Popen([os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir_arg,
+        process = subprocess.Popen([sys.executable, os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir_arg,
                                    universal_newlines=True,
                                    stdout=log_stdout,
                                    stderr=log_stderr)
@@ -290,7 +290,7 @@ def main():
         # and exit.
         parser.print_help()
         subprocess.check_call(
-            [os.path.join(tests_dir, test_list[0]), '-h'])
+            [sys.executable, os.path.join(tests_dir, test_list[0]), '-h'])
         sys.exit(0)
 
     if not args.keepcache:
@@ -331,8 +331,8 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, ena
     if len(test_list) > 1 and num_jobs > 1:
         # Populate cache
         try:
-            subprocess.check_output(
-                [os.path.join(tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir={}", "cache") .format(tmpdir)])
+            subprocess.check_output([sys.executable, os.path.join(
+                tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir={}", "cache") .format(tmpdir)])
         except subprocess.CalledProcessError as e:
             sys.stdout.buffer.write(e.output)
             raise
@@ -514,7 +514,7 @@ def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_
             print('\n============')
             print('{}Combined log for {}:{}'.format(BOLD[1], testdir, BOLD[0]))
             print('============\n')
-            combined_logs, _ = subprocess.Popen([os.path.join(
+            combined_logs, _ = subprocess.Popen([sys.executable, os.path.join(
                 tests_dir, 'combine_logs.py'), '-c', testdir], universal_newlines=True, stdout=subprocess.PIPE).communicate()
             print("\n".join(deque(combined_logs.splitlines(), combined_logs_len)))
 
