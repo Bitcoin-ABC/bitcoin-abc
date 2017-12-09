@@ -495,35 +495,3 @@ Git and GitHub tips
   This will add an `upstream-pull` remote to your git repository, which can be fetched using `git fetch --all`
   or `git fetch upstream-pull`. Afterwards, you can use `upstream-pull/NUMBER/head` in arguments to `git show`,
   `git checkout` and anywhere a commit id would be acceptable to see the changes from pull request NUMBER.
-
-
-Committing Changes
---------------------
-
-First, clone the repo from https://reviews.bitcoinabc.org/source/bitcoin-abc/
-If you cloned from Github or elsewhere, your upstream origin will be incorrect and you will not be able to push changes.
-
-Then, you'll need Arcanist installed:
-```
-sudo apt-get install arcanist
-```
-
-And setup Arcanist with your reviews.bitcoinabc.org account:
-```
-arc install-certificate
-```
-
-Don't forget to add your SSH key to your account:
-https://reviews.bitcoinabc.org/settings/user/<username>/page/ssh/
-
-Now you can submit changes for review:
-```
-arc diff
-```
-
-And push them once they are approved:
-```
-arc land
-```
-
-Additional Arcanist setup information: https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/
