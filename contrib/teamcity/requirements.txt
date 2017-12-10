@@ -1,0 +1,4 @@
+# Teamcitybot.py was tested against the following versions
+junitparser==1.0.0
+phabricator==0.7.0
+pygit2==0.26.2
