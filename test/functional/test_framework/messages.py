@@ -41,10 +41,11 @@ COIN = 100000000
 
 NODE_NETWORK = (1 << 0)
 # NODE_GETUTXO = (1 << 1)
-# NODE_BLOOM = (1 << 2)
+NODE_BLOOM = (1 << 2)
 NODE_WITNESS = (1 << 3)
 NODE_XTHIN = (1 << 4)
 NODE_BITCOIN_CASH = (1 << 5)
+NODE_NETWORK_LIMITED = (1 << 10)
 
 # Howmuch data will be read from the network at once
 READ_BUFFER_SIZE = 8192

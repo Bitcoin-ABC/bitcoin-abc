@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 from test_framework.messages import CInv, msg_getdata, msg_verack
-from test_framework.mininode import NetworkThread, P2PInterface
+from test_framework.mininode import NODE_BLOOM, NODE_NETWORK_LIMITED, NODE_BITCOIN_CASH, NetworkThread, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -51,12 +51,8 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
     def run_test(self):
         # NODE_BLOOM & NODE_BITCOIN_CASH & NODE_NETWORK_LIMITED must now be signaled
-        # 1060 == 0x424 == 0100 0010 0100
-        #                   |     |   |
-        #                   |     |   ^--- NODE_BLOOM
-        #                   |     ^---- NODE_BITCOIN_CASH
-        #                   ^-- NODE_NETWORK_LIMITED
-        assert_equal(self.get_signalled_service_flags(), 1060)
+        assert_equal(self.get_signalled_service_flags(),
+                     NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
 
         # Now mine some blocks over the NODE_NETWORK_LIMITED + 2(racy buffer ext.) target
         firstblock = self.nodes[0].generate(1)[0]
@@ -74,11 +70,12 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
         # NODE_NETWORK_LIMITED must still be signaled after restart
         self.restart_node(0)
-        assert_equal(self.get_signalled_service_flags(), 1060)
+        assert_equal(self.get_signalled_service_flags(),
+                     NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
 
         # Test the RPC service flags
-        assert_equal(self.nodes[0].getnetworkinfo()[
-                     'localservices'], "0000000000000424")
+        assert_equal(int(self.nodes[0].getnetworkinfo()[
+                     'localservices'], 16), NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
 
         # getdata a block above the NODE_NETWORK_LIMITED threshold must be possible
         self.try_get_block_via_getdata(block_within_limited_range, False)
