@@ -17,11 +17,11 @@
 #include "validation.h" // For CheckRegularTransaction
 #include "wallet/wallet.h"
 
-#include <atomic>
-
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 #include <boost/version.hpp>
+
+#include <atomic>
 
 static uint64_t nAccountingEntryNumber = 0;
 
@@ -726,11 +726,15 @@ DBErrors CWalletDB::ZapWalletTx(CWallet *pwallet,
     // Build list of wallet TXs.
     std::vector<uint256> vTxHash;
     DBErrors err = FindWalletTx(pwallet, vTxHash, vWtx);
-    if (err != DB_LOAD_OK) return err;
+    if (err != DB_LOAD_OK) {
+        return err;
+    }
 
     // Erase each wallet TX.
     for (uint256 &hash : vTxHash) {
-        if (!EraseTx(hash)) return DB_CORRUPT;
+        if (!EraseTx(hash)) {
+            return DB_CORRUPT;
+        }
     }
 
     return DB_LOAD_OK;

@@ -588,8 +588,9 @@ bool TryCreateDirectory(const boost::filesystem::path &p) {
         return boost::filesystem::create_directory(p);
     } catch (const boost::filesystem::filesystem_error &) {
         if (!boost::filesystem::exists(p) ||
-            !boost::filesystem::is_directory(p))
+            !boost::filesystem::is_directory(p)) {
             throw;
+        }
     }
 
     // create_directory didn't create the directory, it had to have existed

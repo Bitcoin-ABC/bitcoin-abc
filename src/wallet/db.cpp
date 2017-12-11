@@ -11,15 +11,15 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
+#include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
+#include <boost/version.hpp>
+
 #include <cstdint>
 
 #ifndef WIN32
 #include <sys/stat.h>
 #endif
-
-#include <boost/filesystem.hpp>
-#include <boost/thread.hpp>
-#include <boost/version.hpp>
 
 //
 // CDB
@@ -28,15 +28,21 @@
 CDBEnv bitdb;
 
 void CDBEnv::EnvShutdown() {
-    if (!fDbEnvInit) return;
+    if (!fDbEnvInit) {
+        return;
+    }
 
     fDbEnvInit = false;
     int ret = dbenv->close(0);
-    if (ret != 0)
+    if (ret != 0) {
         LogPrintf("CDBEnv::EnvShutdown: Error %d shutting down database "
                   "environment: %s\n",
                   ret, DbEnv::strerror(ret));
-    if (!fMockDb) DbEnv((u_int32_t)0).remove(strPath.c_str(), 0);
+    }
+
+    if (!fMockDb) {
+        DbEnv(uint32_t(0)).remove(strPath.c_str(), 0);
+    }
 }
 
 void CDBEnv::Reset() {
@@ -61,7 +67,9 @@ void CDBEnv::Close() {
 }
 
 bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
-    if (fDbEnvInit) return true;
+    if (fDbEnvInit) {
+        return true;
+    }
 
     boost::this_thread::interruption_point();
 
@@ -73,7 +81,9 @@ bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
               pathErrorFile.string());
 
     unsigned int nEnvFlags = 0;
-    if (GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) nEnvFlags |= DB_PRIVATE;
+    if (GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) {
+        nEnvFlags |= DB_PRIVATE;
+    }
 
     dbenv->set_lg_dir(pathLogDir.string().c_str());
     // 1 MiB should be enough for just the wallet
@@ -92,10 +102,11 @@ bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
                     DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG | DB_INIT_MPOOL |
                         DB_INIT_TXN | DB_THREAD | DB_RECOVER | nEnvFlags,
                     S_IRUSR | S_IWUSR);
-    if (ret != 0)
+    if (ret != 0) {
         return error(
             "CDBEnv::Open: Error %d opening database environment: %s\n", ret,
             DbEnv::strerror(ret));
+    }
 
     fDbEnvInit = true;
     fMockDb = false;
@@ -103,8 +114,9 @@ bool CDBEnv::Open(const boost::filesystem::path &pathIn) {
 }
 
 void CDBEnv::MakeMock() {
-    if (fDbEnvInit)
+    if (fDbEnvInit) {
         throw std::runtime_error("CDBEnv::MakeMock: Already initialized");
+    }
 
     boost::this_thread::interruption_point();
 
@@ -117,13 +129,15 @@ void CDBEnv::MakeMock() {
     dbenv->set_lk_max_objects(10000);
     dbenv->set_flags(DB_AUTO_COMMIT, 1);
     dbenv->log_set_config(DB_LOG_IN_MEMORY, 1);
-    int ret = dbenv->open(nullptr, DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG |
-                                       DB_INIT_MPOOL | DB_INIT_TXN | DB_THREAD |
-                                       DB_PRIVATE,
-                          S_IRUSR | S_IWUSR);
-    if (ret > 0)
+    int ret =
+        dbenv->open(nullptr,
+                    DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG | DB_INIT_MPOOL |
+                        DB_INIT_TXN | DB_THREAD | DB_PRIVATE,
+                    S_IRUSR | S_IWUSR);
+    if (ret > 0) {
         throw std::runtime_error(strprintf(
             "CDBEnv::MakeMock: Error %d opening database environment.", ret));
+    }
 
     fDbEnvInit = true;
     fMockDb = true;
@@ -137,10 +151,11 @@ CDBEnv::Verify(const std::string &strFile,
 
     Db db(dbenv, 0);
     int result = db.verify(strFile.c_str(), nullptr, nullptr, 0);
-    if (result == 0)
+    if (result == 0) {
         return VERIFY_OK;
-    else if (recoverFunc == nullptr)
+    } else if (recoverFunc == nullptr) {
         return RECOVER_FAIL;
+    }
 
     // Try to recover:
     bool fRecovered = (*recoverFunc)(*this, strFile);
@@ -229,17 +244,22 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
     int ret;
     fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
     fFlushOnClose = fFlushOnCloseIn;
-    if (strFilename.empty()) return;
+    if (strFilename.empty()) {
+        return;
+    }
 
     bool fCreate = strchr(pszMode, 'c') != nullptr;
     unsigned int nFlags = DB_THREAD;
-    if (fCreate) nFlags |= DB_CREATE;
+    if (fCreate) {
+        nFlags |= DB_CREATE;
+    }
 
     {
         LOCK(bitdb.cs_db);
-        if (!bitdb.Open(GetDataDir()))
+        if (!bitdb.Open(GetDataDir())) {
             throw std::runtime_error(
                 "CDB: Failed to open database environment.");
+        }
 
         strFile = strFilename;
         ++bitdb.mapFileUseCount[strFile];
@@ -251,11 +271,12 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
             if (fMockDb) {
                 DbMpoolFile *mpf = pdb->get_mpf();
                 ret = mpf->set_flags(DB_MPOOL_NOFILE, 1);
-                if (ret != 0)
+                if (ret != 0) {
                     throw std::runtime_error(
                         strprintf("CDB: Failed to configure for no temp file "
                                   "backing for database %s",
                                   strFile));
+                }
             }
 
             ret =
@@ -426,7 +447,9 @@ void CDBEnv::Flush(bool fShutdown) {
     // Flush log data to the actual data file on all files that are not in use
     LogPrint("db", "CDBEnv::Flush: Flush(%s)%s\n", fShutdown ? "true" : "false",
              fDbEnvInit ? "" : " database not started");
-    if (!fDbEnvInit) return;
+    if (!fDbEnvInit) {
+        return;
+    }
     {
         LOCK(cs_db);
         std::map<std::string, int>::iterator mi = mapFileUseCount.begin();
@@ -456,9 +479,10 @@ void CDBEnv::Flush(bool fShutdown) {
             if (mapFileUseCount.empty()) {
                 dbenv->log_archive(&listp, DB_ARCH_REMOVE);
                 Close();
-                if (!fMockDb)
+                if (!fMockDb) {
                     boost::filesystem::remove_all(
                         boost::filesystem::path(strPath) / "database");
+                }
             }
         }
     }

@@ -19,8 +19,9 @@ boost::filesystem::path GetTempPath() {
 #ifdef WIN32
     char pszPath[MAX_PATH] = "";
 
-    if (GetTempPathA(MAX_PATH, pszPath))
+    if (GetTempPathA(MAX_PATH, pszPath)) {
         path = boost::filesystem::path(pszPath);
+    }
 #else
     path = boost::filesystem::path("/tmp");
 #endif

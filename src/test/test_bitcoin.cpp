@@ -26,6 +26,10 @@
 
 #include "test/testutil.h"
 
+#include <boost/filesystem.hpp>
+#include <boost/test/unit_test.hpp>
+#include <boost/thread.hpp>
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -34,10 +38,6 @@
 #include <list>
 #include <memory>
 #include <thread>
-
-#include <boost/filesystem.hpp>
-#include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 
 std::unique_ptr<CConnman> g_connman;
 uint256 insecure_rand_seed = GetRandHash();

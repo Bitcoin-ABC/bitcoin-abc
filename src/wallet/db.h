@@ -226,10 +226,12 @@ protected:
         datKey.set_flags(DB_DBT_MALLOC);
         datValue.set_flags(DB_DBT_MALLOC);
         int ret = pcursor->get(&datKey, &datValue, fFlags);
-        if (ret != 0)
+        if (ret != 0) {
             return ret;
-        else if (datKey.get_data() == nullptr || datValue.get_data() == nullptr)
+        } else if (datKey.get_data() == nullptr ||
+                   datValue.get_data() == nullptr) {
             return 99999;
+        }
 
         // Convert to streams
         ssKey.SetType(SER_DISK);

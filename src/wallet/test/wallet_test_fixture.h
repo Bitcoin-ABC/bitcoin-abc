@@ -7,7 +7,8 @@
 
 #include "test/test_bitcoin.h"
 
-/** Testing setup and teardown for wallet.
+/**
+ * Testing setup and teardown for wallet.
  */
 struct WalletTestingSetup : public TestingSetup {
     WalletTestingSetup(const std::string &chainName = CBaseChainParams::MAIN);
