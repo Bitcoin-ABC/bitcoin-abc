@@ -226,7 +226,7 @@ QList<std::pair<CScript, Amount>> PaymentRequestPlus::getPayTo() const {
             (const uint8_t *)details.outputs(i).script().data();
         CScript s(scriptStr, scriptStr + details.outputs(i).script().size());
 
-        result.append(std::make_pair(s, details.outputs(i).amount()));
+        result.append(std::make_pair(s, Amount(details.outputs(i).amount())));
     }
     return result;
 }

@@ -581,7 +581,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const {
                 rec->status.status != TransactionStatus::Immature) {
                 return COLOR_UNCONFIRMED;
             }
-            if (index.column() == Amount && (rec->credit + rec->debit) < 0) {
+            if (index.column() == Amount &&
+                (rec->credit + rec->debit) < ::Amount(0)) {
                 return COLOR_NEGATIVE;
             }
             if (index.column() == ToAddress) {

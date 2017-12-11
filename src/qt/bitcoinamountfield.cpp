@@ -135,7 +135,7 @@ private:
      * @note Must return 0 if !valid.
      */
     Amount parse(const QString &text, bool *valid_out = 0) const {
-        Amount val = 0;
+        Amount val(0);
         bool valid = BitcoinUnits::parse(currentUnit, text, &val);
         if (valid) {
             if (val < Amount(0) || val > BitcoinUnits::maxMoney()) {
@@ -178,7 +178,7 @@ protected:
         bool valid = false;
         Amount val = value(&valid);
         if (valid) {
-            if (val > 0) {
+            if (val > Amount(0)) {
                 rv |= StepDownEnabled;
             }
             if (val < BitcoinUnits::maxMoney()) {

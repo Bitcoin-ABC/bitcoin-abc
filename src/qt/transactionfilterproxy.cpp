@@ -33,8 +33,8 @@ bool TransactionFilterProxy::filterAcceptsRow(
         index.data(TransactionTableModel::WatchonlyRole).toBool();
     QString address = index.data(TransactionTableModel::AddressRole).toString();
     QString label = index.data(TransactionTableModel::LabelRole).toString();
-    qint64 amount =
-        llabs(index.data(TransactionTableModel::AmountRole).toLongLong());
+    Amount amount(
+        llabs(index.data(TransactionTableModel::AmountRole).toLongLong()));
     int status = index.data(TransactionTableModel::StatusRole).toInt();
 
     if (!showInactive && status == TransactionStatus::Conflicted) return false;

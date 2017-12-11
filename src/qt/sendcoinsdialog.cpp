@@ -140,7 +140,8 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
         ->button((int)std::max(
             0, std::min(1, settings.value("nCustomFeeRadio").toInt())))
         ->setChecked(true);
-    ui->customFee->setValue(settings.value("nTransactionFee").toLongLong());
+    ui->customFee->setValue(
+        Amount(settings.value("nTransactionFee").toLongLong()));
     ui->checkBoxMinimumFee->setChecked(
         settings.value("fPayOnlyMinFee").toBool());
     minimizeFeeSection(settings.value("fFeeSectionMinimized").toBool());
@@ -353,7 +354,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     QString questionString = tr("Are you sure you want to send?");
     questionString.append("<br /><br />%1");
 
-    if (txFee > 0) {
+    if (txFee > Amount(0)) {
         // append fee string if a fee is required
         questionString.append("<hr /><span style='color:#aa0000;'>");
         questionString.append(BitcoinUnits::formatHtmlWithUnit(
@@ -546,7 +547,8 @@ void SendCoinsDialog::setBalance(const Amount balance,
 }
 
 void SendCoinsDialog::updateDisplayUnit() {
-    setBalance(model->getBalance(), 0, 0, 0, 0, 0);
+    setBalance(model->getBalance(), Amount(0), Amount(0), Amount(0), Amount(0),
+               Amount(0));
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
@@ -680,8 +682,9 @@ void SendCoinsDialog::updateGlobalFeeVariables() {
         // coincontrol
         // set nMinimumTotalFee to 0 in case of user has selected that the fee
         // is per KB
-        CoinControlDialog::coinControl->nMinimumTotalFee = Amount(
-            ui->radioCustomAtLeast->isChecked() ? ui->customFee->value() : 0);
+        CoinControlDialog::coinControl->nMinimumTotalFee =
+            ui->radioCustomAtLeast->isChecked() ? ui->customFee->value()
+                                                : Amount(0);
     }
 }
 
@@ -908,7 +911,7 @@ void SendCoinsDialog::coinControlUpdateLabels() {
             qobject_cast<SendCoinsEntry *>(ui->entries->itemAt(i)->widget());
         if (entry && !entry->isHidden()) {
             SendCoinsRecipient rcp = entry->getValue();
-            CoinControlDialog::payAmounts.append(rcp.amount.GetSatoshis());
+            CoinControlDialog::payAmounts.append(rcp.amount);
             if (rcp.fSubtractFeeFromAmount)
                 CoinControlDialog::fSubtractFeeFromAmount = true;
         }

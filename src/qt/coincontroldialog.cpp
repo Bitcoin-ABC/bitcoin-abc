@@ -450,13 +450,13 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (!model) return;
 
     // nPayAmount
-    Amount nPayAmount = 0;
+    Amount nPayAmount(0);
     bool fDust = false;
     CMutableTransaction txDummy;
     for (const Amount amount : CoinControlDialog::payAmounts) {
         nPayAmount += amount;
 
-        if (amount > 0) {
+        if (amount > Amount(0)) {
             CTxOut txout(Amount(amount), (CScript)std::vector<uint8_t>(24, 0));
             txDummy.vout.push_back(txout);
             if (txout.IsDust(dustRelayFee)) fDust = true;
@@ -530,13 +530,17 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         // in the subtract fee from amount case, we can tell if zero change
         // already and subtract the bytes, so that fee calculation afterwards is
         // accurate
-        if (CoinControlDialog::fSubtractFeeFromAmount)
-            if (nAmount - nPayAmount == 0) nBytes -= 34;
+        if (CoinControlDialog::fSubtractFeeFromAmount) {
+            if (nAmount - nPayAmount == Amount(0)) {
+                nBytes -= 34;
+            }
+        }
 
         // Fee
         nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
-        if (nPayFee > 0 && coinControl->nMinimumTotalFee > nPayFee)
+        if (nPayFee > Amount(0) && coinControl->nMinimumTotalFee > nPayFee) {
             nPayFee = coinControl->nMinimumTotalFee;
+        }
 
         // Allow free? (require at least hard-coded threshold and default to
         // that if no estimate)
@@ -550,11 +554,13 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             std::max(mempoolEstimatePriority, AllowFreeThreshold());
         fAllowFree = (dPriority >= dPriorityNeeded);
 
-        if (fSendFreeTransactions)
-            if (fAllowFree && nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE)
-                nPayFee = 0;
+        if (fSendFreeTransactions) {
+            if (fAllowFree && nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE) {
+                nPayFee = Amount(0);
+            }
+        }
 
-        if (nPayAmount > 0) {
+        if (nPayAmount > Amount(0)) {
             nChange = nAmount - nPayAmount;
             if (!CoinControlDialog::fSubtractFeeFromAmount) nChange -= nPayFee;
 
@@ -568,12 +574,13 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
                         nChange = txout.GetDustThreshold(dustRelayFee);
                     } else {
                         nPayFee += nChange;
-                        nChange = 0;
+                        nChange = Amount(0);
                     }
                 }
             }
 
-            if (nChange == 0 && !CoinControlDialog::fSubtractFeeFromAmount) {
+            if (nChange == Amount(0) &&
+                !CoinControlDialog::fSubtractFeeFromAmount) {
                 nBytes -= 34;
             }
         }
@@ -598,13 +605,13 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     // enable/disable "dust" and "change"
     dialog->findChild<QLabel *>("labelCoinControlLowOutputText")
-        ->setEnabled(nPayAmount > 0);
+        ->setEnabled(nPayAmount > Amount(0));
     dialog->findChild<QLabel *>("labelCoinControlLowOutput")
-        ->setEnabled(nPayAmount > 0);
+        ->setEnabled(nPayAmount > Amount(0));
     dialog->findChild<QLabel *>("labelCoinControlChangeText")
-        ->setEnabled(nPayAmount > 0);
+        ->setEnabled(nPayAmount > Amount(0));
     dialog->findChild<QLabel *>("labelCoinControlChange")
-        ->setEnabled(nPayAmount > 0);
+        ->setEnabled(nPayAmount > Amount(0));
 
     // stats
     // Quantity
@@ -624,7 +631,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (nPayFee > Amount(0) && (coinControl->nMinimumTotalFee < nPayFee)) {
         l3->setText(ASYMP_UTF8 + l3->text());
         l4->setText(ASYMP_UTF8 + l4->text());
-        if (nChange > 0 && !CoinControlDialog::fSubtractFeeFromAmount) {
+        if (nChange > Amount(0) && !CoinControlDialog::fSubtractFeeFromAmount) {
             l8->setText(ASYMP_UTF8 + l8->text());
         }
     }
@@ -672,7 +679,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     // Insufficient funds
     QLabel *label = dialog->findChild<QLabel *>("labelCoinControlInsuffFunds");
     if (label) {
-        label->setVisible(nChange < 0);
+        label->setVisible(nChange < Amount(0));
     }
 }
 

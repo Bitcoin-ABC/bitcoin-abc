@@ -192,7 +192,7 @@ void WalletView::processNewTransaction(const QModelIndex &parent, int start,
 
     Q_EMIT incomingTransaction(date,
                                walletModel->getOptionsModel()->getDisplayUnit(),
-                               amount, type, address, label);
+                               Amount(amount), type, address, label);
 }
 
 void WalletView::gotoOverviewPage() {

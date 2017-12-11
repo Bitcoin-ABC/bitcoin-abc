@@ -589,7 +589,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
         recipient.amount += sendingTo.second;
         // Also verify that the final amount is still in a valid range after
         // adding additional amounts.
-        if (!verifyAmount(recipient.amount.GetSatoshis())) {
+        if (!verifyAmount(recipient.amount)) {
             Q_EMIT message(tr("Payment request rejected"),
                            tr("Invalid payment request."),
                            CClientUIInterface::MSG_ERROR);

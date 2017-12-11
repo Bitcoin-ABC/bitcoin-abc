@@ -122,12 +122,12 @@ void WalletModel::pollBalanceChanged() {
 }
 
 void WalletModel::checkBalanceChanged() {
-    Amount newBalance = getBalance();
-    Amount newUnconfirmedBalance = getUnconfirmedBalance();
-    Amount newImmatureBalance = getImmatureBalance();
-    Amount newWatchOnlyBalance = 0;
-    Amount newWatchUnconfBalance = 0;
-    Amount newWatchImmatureBalance = 0;
+    Amount newBalance(getBalance());
+    Amount newUnconfirmedBalance(getUnconfirmedBalance());
+    Amount newImmatureBalance(getImmatureBalance());
+    Amount newWatchOnlyBalance(0);
+    Amount newWatchUnconfBalance(0);
+    Amount newWatchImmatureBalance(0);
     if (haveWatchOnly()) {
         newWatchOnlyBalance = getWatchBalance();
         newWatchUnconfBalance = getWatchUnconfirmedBalance();
@@ -176,7 +176,7 @@ bool WalletModel::validateAddress(const QString &address) {
 WalletModel::SendCoinsReturn
 WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                                 const CCoinControl *coinControl) {
-    Amount total = 0;
+    Amount total(0);
     bool fSubtractFeeFromAmount = false;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<CRecipient> vecSend;
@@ -195,22 +195,22 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
         // PaymentRequest...
         if (rcp.paymentRequest.IsInitialized()) {
-            Amount subtotal = 0;
+            Amount subtotal(0);
             const payments::PaymentDetails &details =
                 rcp.paymentRequest.getDetails();
             for (int i = 0; i < details.outputs_size(); i++) {
                 const payments::Output &out = details.outputs(i);
                 if (out.amount() <= 0) continue;
-                subtotal += out.amount();
+                subtotal += Amount(out.amount());
                 const uint8_t *scriptStr = (const uint8_t *)out.script().data();
                 CScript scriptPubKey(scriptStr,
                                      scriptStr + out.script().size());
-                Amount nAmount = out.amount();
+                Amount nAmount = Amount(out.amount());
                 CRecipient recipient = {scriptPubKey, Amount(nAmount),
                                         rcp.fSubtractFeeFromAmount};
                 vecSend.push_back(recipient);
             }
-            if (subtotal <= 0) {
+            if (subtotal <= Amount(0)) {
                 return InvalidAmount;
             }
             total += subtotal;
@@ -218,7 +218,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
             if (!validateAddress(rcp.address)) {
                 return InvalidAddress;
             }
-            if (rcp.amount <= 0) {
+            if (rcp.amount <= Amount(0)) {
                 return InvalidAmount;
             }
             setAddress.insert(rcp.address);

@@ -88,7 +88,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                    GUIUtil::HtmlEscape(wtx.mapValue["from"]) + "<br>";
     } else {
         // Offline transaction
-        if (nNet > 0) {
+        if (nNet > Amount(0)) {
             // Credit
             CTxDestination address = DecodeDestination(rec->address);
             if (IsValidDestination(address)) {
@@ -150,7 +150,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
         else
             strHTML += "(" + tr("not accepted") + ")";
         strHTML += "<br>";
-    } else if (nNet > 0) {
+    } else if (nNet > Amount(0)) {
         //
         // Credit
         //
