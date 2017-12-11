@@ -2,9 +2,10 @@
 # Copyright (c) 2017 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+from test_framework.messages import CInv, msg_getdata, msg_verack
+from test_framework.mininode import NetworkThread, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import *
-from test_framework.mininode import *
+from test_framework.util import assert_equal
 
 
 class BaseNode(P2PInterface):
@@ -21,7 +22,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [['-prune=550']]
 
-    def getSignaledServiceFlags(self):
+    def get_signalled_service_flags(self):
         node = self.nodes[0].add_p2p_connection(BaseNode())
         NetworkThread().start()
         node.wait_for_verack()
@@ -30,7 +31,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         node.wait_for_disconnect()
         return services
 
-    def tryGetBlockViaGetData(self, blockhash, must_disconnect):
+    def try_get_block_via_getdata(self, blockhash, must_disconnect):
         node = self.nodes[0].add_p2p_connection(BaseNode())
         NetworkThread().start()
         node.wait_for_verack()
@@ -40,7 +41,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         node.send_message(getdata_request)
 
         if (must_disconnect):
-            # ensure we get disconnected
+            # Ensure we get disconnected
             node.wait_for_disconnect(5)
         else:
             # check if the peer sends us the requested block
@@ -55,35 +56,35 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         #                   |     |   ^--- NODE_BLOOM
         #                   |     ^---- NODE_BITCOIN_CASH
         #                   ^-- NODE_NETWORK_LIMITED
-        assert_equal(self.getSignaledServiceFlags(), 1060)
+        assert_equal(self.get_signalled_service_flags(), 1060)
 
-        # now mine some blocks over the NODE_NETWORK_LIMITED + 2(racy buffer ext.) target
+        # Now mine some blocks over the NODE_NETWORK_LIMITED + 2(racy buffer ext.) target
         firstblock = self.nodes[0].generate(1)[0]
         blocks = self.nodes[0].generate(292)
-        blockWithinLimitedRange = blocks[-1]
+        block_within_limited_range = blocks[-1]
 
-        # make sure we can max retrive block at tip-288
+        # Make sure we can max retrive block at tip-288
         # requesting block at height 2 (tip-289) must fail (ignored)
         # first block must lead to disconnect
-        self.tryGetBlockViaGetData(firstblock, True)
+        self.try_get_block_via_getdata(firstblock, True)
         # last block in valid range
-        self.tryGetBlockViaGetData(blocks[1], False)
+        self.try_get_block_via_getdata(blocks[1], False)
         # first block outside of the 288+2 limit
-        self.tryGetBlockViaGetData(blocks[0], True)
+        self.try_get_block_via_getdata(blocks[0], True)
 
         # NODE_NETWORK_LIMITED must still be signaled after restart
         self.restart_node(0)
-        assert_equal(self.getSignaledServiceFlags(), 1060)
+        assert_equal(self.get_signalled_service_flags(), 1060)
 
-        # test the RPC service flags
+        # Test the RPC service flags
         assert_equal(self.nodes[0].getnetworkinfo()[
                      'localservices'], "0000000000000424")
 
         # getdata a block above the NODE_NETWORK_LIMITED threshold must be possible
-        self.tryGetBlockViaGetData(blockWithinLimitedRange, False)
+        self.try_get_block_via_getdata(block_within_limited_range, False)
 
         # getdata a block below the NODE_NETWORK_LIMITED threshold must be ignored
-        self.tryGetBlockViaGetData(firstblock, True)
+        self.try_get_block_via_getdata(firstblock, True)
 
 
 if __name__ == '__main__':
