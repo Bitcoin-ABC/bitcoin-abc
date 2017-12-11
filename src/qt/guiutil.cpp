@@ -255,7 +255,7 @@ QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info) {
     }
     int paramCount = 0;
 
-    if (info.amount) {
+    if (info.amount != 0) {
         ret +=
             QString("?amount=%1")
                 .arg(BitcoinUnits::format(BitcoinUnits::BCH, info.amount, false,

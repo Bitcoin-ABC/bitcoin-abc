@@ -912,7 +912,7 @@ void SendCoinsDialog::coinControlUpdateLabels() {
             qobject_cast<SendCoinsEntry *>(ui->entries->itemAt(i)->widget());
         if (entry && !entry->isHidden()) {
             SendCoinsRecipient rcp = entry->getValue();
-            CoinControlDialog::payAmounts.append(rcp.amount);
+            CoinControlDialog::payAmounts.append(rcp.amount.GetSatoshis());
             if (rcp.fSubtractFeeFromAmount)
                 CoinControlDialog::fSubtractFeeFromAmount = true;
         }

@@ -30,11 +30,11 @@ unsigned int WalletModelTransaction::getTransactionSize() {
     return (!walletTransaction ? 0 : ::GetTransactionSize(*walletTransaction));
 }
 
-CAmount WalletModelTransaction::getTransactionFee() {
+Amount WalletModelTransaction::getTransactionFee() {
     return fee;
 }
 
-void WalletModelTransaction::setTransactionFee(const CAmount newFee) {
+void WalletModelTransaction::setTransactionFee(const Amount newFee) {
     fee = newFee;
 }
 
@@ -52,22 +52,22 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
                 subtotal += walletTransaction->tx->vout[i].nValue;
                 i++;
             }
-            rcp.amount = subtotal.GetSatoshis();
+            rcp.amount = subtotal;
         } else {
             // normal recipient (no payment request)
             if (i == nChangePosRet) i++;
-            rcp.amount = walletTransaction->tx->vout[i].nValue.GetSatoshis();
+            rcp.amount = walletTransaction->tx->vout[i].nValue;
             i++;
         }
     }
 }
 
-CAmount WalletModelTransaction::getTotalTransactionAmount() {
+Amount WalletModelTransaction::getTotalTransactionAmount() {
     Amount totalTransactionAmount(0);
     for (const SendCoinsRecipient &rcp : recipients) {
         totalTransactionAmount += rcp.amount;
     }
-    return totalTransactionAmount.GetSatoshis();
+    return totalTransactionAmount;
 }
 
 void WalletModelTransaction::newPossibleKeyChange(CWallet *wallet) {
