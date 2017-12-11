@@ -51,34 +51,19 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         assert_equal(self.get_signalled_service_flags(),
                      NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
 
-        # Now mine some blocks over the NODE_NETWORK_LIMITED + 2(racy buffer ext.) target
-        firstblock = self.nodes[0].generate(1)[0]
-        blocks = self.nodes[0].generate(292)
-        block_within_limited_range = blocks[-1]
-
-        # Make sure we can max retrive block at tip-288
-        # requesting block at height 2 (tip-289) must fail (ignored)
-        # first block must lead to disconnect
-        self.try_get_block_via_getdata(firstblock, True)
-        # last block in valid range
-        self.try_get_block_via_getdata(blocks[1], False)
-        # first block outside of the 288+2 limit
-        self.try_get_block_via_getdata(blocks[0], True)
-
-        # NODE_NETWORK_LIMITED must still be signaled after restart
-        self.restart_node(0)
-        assert_equal(self.get_signalled_service_flags(),
-                     NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
-
         # Test the RPC service flags
         assert_equal(int(self.nodes[0].getnetworkinfo()[
                      'localservices'], 16), NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED)
 
-        # getdata a block above the NODE_NETWORK_LIMITED threshold must be possible
-        self.try_get_block_via_getdata(block_within_limited_range, False)
+        # Now mine some blocks over the NODE_NETWORK_LIMITED + 2(racy buffer ext.) target
+        blocks = self.nodes[0].generate(292)
 
-        # getdata a block below the NODE_NETWORK_LIMITED threshold must be ignored
-        self.try_get_block_via_getdata(firstblock, True)
+        # Make sure we can max retrive block at tip-288
+        # requesting block at height 2 (tip-289) must fail (ignored)
+        # last block in valid range
+        self.try_get_block_via_getdata(blocks[1], False)
+        # first block outside of the 288+2 limit
+        self.try_get_block_via_getdata(blocks[0], True)
 
 
 if __name__ == '__main__':
