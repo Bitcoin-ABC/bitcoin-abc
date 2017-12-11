@@ -172,10 +172,10 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
                    _model->getImmatureBalance(), _model->getWatchBalance(),
                    _model->getWatchUnconfirmedBalance(),
                    _model->getWatchImmatureBalance());
-        connect(_model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount,
-                                              CAmount, CAmount, CAmount)),
-                this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount,
-                                      CAmount, CAmount)));
+        connect(_model, SIGNAL(balanceChanged(Amount, Amount, Amount, Amount,
+                                              Amount, Amount)),
+                this, SLOT(setBalance(Amount, Amount, Amount, Amount, Amount,
+                                      Amount)));
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
                 this, SLOT(updateDisplayUnit()));
         updateDisplayUnit();
@@ -309,7 +309,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
         return;
     }
 
-    CAmount txFee = currentTransaction.getTransactionFee();
+    Amount txFee = currentTransaction.getTransactionFee();
 
     // Format confirmation message
     QStringList formatted;
@@ -371,8 +371,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
 
     // add total amount in all subdivision units
     questionString.append("<hr />");
-    CAmount totalAmount =
-        currentTransaction.getTotalTransactionAmount() + txFee;
+    Amount totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
     QStringList alternativeUnits;
     for (BitcoinUnits::Unit u : BitcoinUnits::availableUnits()) {
         if (u != model->getOptionsModel()->getDisplayUnit())
@@ -529,12 +528,12 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv) {
     return true;
 }
 
-void SendCoinsDialog::setBalance(const CAmount &balance,
-                                 const CAmount &unconfirmedBalance,
-                                 const CAmount &immatureBalance,
-                                 const CAmount &watchBalance,
-                                 const CAmount &watchUnconfirmedBalance,
-                                 const CAmount &watchImmatureBalance) {
+void SendCoinsDialog::setBalance(const Amount balance,
+                                 const Amount unconfirmedBalance,
+                                 const Amount immatureBalance,
+                                 const Amount watchBalance,
+                                 const Amount watchUnconfirmedBalance,
+                                 const Amount watchImmatureBalance) {
     Q_UNUSED(unconfirmedBalance);
     Q_UNUSED(immatureBalance);
     Q_UNUSED(watchBalance);

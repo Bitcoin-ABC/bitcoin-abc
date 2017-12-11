@@ -55,11 +55,10 @@ public Q_SLOTS:
     void accept() override;
     SendCoinsEntry *addEntry();
     void updateTabsAndLabels();
-    void setBalance(const CAmount &balance, const CAmount &unconfirmedBalance,
-                    const CAmount &immatureBalance,
-                    const CAmount &watchOnlyBalance,
-                    const CAmount &watchUnconfBalance,
-                    const CAmount &watchImmatureBalance);
+    void setBalance(const Amount balance, const Amount unconfirmedBalance,
+                    const Amount immatureBalance, const Amount watchOnlyBalance,
+                    const Amount watchUnconfBalance,
+                    const Amount watchImmatureBalance);
 
 private:
     Ui::SendCoinsDialog *ui;
