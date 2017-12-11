@@ -74,7 +74,7 @@ public:
         currentUnit = unit;
 
         if (valid) {
-            setValue(val.GetSatoshis());
+            setValue(val);
         } else {
             clear();
         }
@@ -145,7 +145,7 @@ private:
         if (valid_out) {
             *valid_out = valid;
         }
-        return valid ? val.GetSatoshis() : 0;
+        return valid ? val : Amount(0);
     }
 
 protected:

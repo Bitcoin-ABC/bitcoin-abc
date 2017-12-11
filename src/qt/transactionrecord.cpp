@@ -36,7 +36,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
     int64_t nTime = wtx.GetTxTime();
     Amount nCredit = wtx.GetCredit(ISMINE_ALL);
     Amount nDebit = wtx.GetDebit(ISMINE_ALL);
-    CAmount nNet = (nCredit - nDebit).GetSatoshis();
+    Amount nNet = nCredit - nDebit;
     uint256 hash = wtx.GetId();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
@@ -51,7 +51,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                 TransactionRecord sub(hash, nTime);
                 CTxDestination address;
                 sub.idx = i; // vout index
-                sub.credit = txout.nValue.GetSatoshis();
+                sub.credit = txout.nValue;
                 sub.involvesWatchAddress = mine & ISMINE_WATCH_ONLY;
                 if (ExtractDestination(txout.scriptPubKey, address) &&
                     IsMine(*wallet, address)) {
@@ -92,10 +92,9 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             // Payment to self
             Amount nChange = wtx.GetChange();
 
-            parts.append(TransactionRecord(hash, nTime,
-                                           TransactionRecord::SendToSelf, "",
-                                           -(nDebit - nChange).GetSatoshis(),
-                                           (nCredit - nChange).GetSatoshis()));
+            parts.append(TransactionRecord(
+                hash, nTime, TransactionRecord::SendToSelf, "",
+                -1 * (nDebit - nChange), (nCredit - nChange)));
             // maybe pass to TransactionRecord as constructor argument
             parts.last().involvesWatchAddress = involvesWatchAddress;
         } else if (fAllFromMe) {
@@ -133,7 +132,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
                     nValue += nTxFee;
                     nTxFee = Amount(0);
                 }
-                sub.debit = -nValue.GetSatoshis();
+                sub.debit = -1 * nValue;
 
                 parts.append(sub);
             }

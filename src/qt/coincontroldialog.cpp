@@ -31,7 +31,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 
-QList<CAmount> CoinControlDialog::payAmounts;
+QList<Amount> CoinControlDialog::payAmounts;
 CCoinControl *CoinControlDialog::coinControl = new CCoinControl();
 bool CoinControlDialog::fSubtractFeeFromAmount = false;
 
@@ -450,10 +450,10 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (!model) return;
 
     // nPayAmount
-    CAmount nPayAmount = 0;
+    Amount nPayAmount = 0;
     bool fDust = false;
     CMutableTransaction txDummy;
-    for (const CAmount &amount : CoinControlDialog::payAmounts) {
+    for (const Amount amount : CoinControlDialog::payAmounts) {
         nPayAmount += amount;
 
         if (amount > 0) {
@@ -494,7 +494,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         nQuantity++;
 
         // Amount
-        nAmount += out.tx->tx->vout[out.i].nValue.GetSatoshis();
+        nAmount += out.tx->tx->vout[out.i].nValue;
 
         // Priority
         dPriorityInputs +=
@@ -536,7 +536,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         // Fee
         nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
         if (nPayFee > 0 && coinControl->nMinimumTotalFee > nPayFee)
-            nPayFee = coinControl->nMinimumTotalFee.GetSatoshis();
+            nPayFee = coinControl->nMinimumTotalFee;
 
         // Allow free? (require at least hard-coded threshold and default to
         // that if no estimate)
@@ -560,13 +560,12 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
             // Never create dust outputs; if we would, just add the dust to the
             // fee.
-            if (nChange > 0 && nChange < MIN_CHANGE.GetSatoshis()) {
+            if (nChange > Amount(0) && nChange < MIN_CHANGE) {
                 CTxOut txout(nChange, (CScript)std::vector<uint8_t>(24, 0));
                 if (txout.IsDust(dustRelayFee)) {
                     // dust-change will be raised until no dust
                     if (CoinControlDialog::fSubtractFeeFromAmount) {
-                        nChange =
-                            txout.GetDustThreshold(dustRelayFee).GetSatoshis();
+                        nChange = txout.GetDustThreshold(dustRelayFee);
                     } else {
                         nPayFee += nChange;
                         nChange = 0;
@@ -611,21 +610,17 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     // Quantity
     l1->setText(QString::number(nQuantity));
     // Amount
-    l2->setText(
-        BitcoinUnits::formatWithUnit(nDisplayUnit, nAmount.GetSatoshis()));
+    l2->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nAmount));
     // Fee
-    l3->setText(
-        BitcoinUnits::formatWithUnit(nDisplayUnit, nPayFee.GetSatoshis()));
+    l3->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nPayFee));
     // After Fee
-    l4->setText(
-        BitcoinUnits::formatWithUnit(nDisplayUnit, nAfterFee.GetSatoshis()));
+    l4->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nAfterFee));
     // Bytes
     l5->setText(((nBytes > 0) ? ASYMP_UTF8 : "") + QString::number(nBytes));
     // Dust
     l7->setText(fDust ? tr("yes") : tr("no"));
     // Change
-    l8->setText(
-        BitcoinUnits::formatWithUnit(nDisplayUnit, nChange.GetSatoshis()));
+    l8->setText(BitcoinUnits::formatWithUnit(nDisplayUnit, nChange));
     if (nPayFee > Amount(0) && (coinControl->nMinimumTotalFee < nPayFee)) {
         l3->setText(ASYMP_UTF8 + l3->text());
         l4->setText(ASYMP_UTF8 + l4->text());
@@ -777,9 +772,8 @@ void CoinControlDialog::updateView() {
             // amount
             itemOutput->setText(
                 COLUMN_AMOUNT,
-                BitcoinUnits::format(
-                    nDisplayUnit,
-                    out.tx->tx->vout[out.i].nValue.GetSatoshis()));
+                BitcoinUnits::format(nDisplayUnit,
+                                     out.tx->tx->vout[out.i].nValue));
             // padding so that sorting works correctly
             itemOutput->setData(
                 COLUMN_AMOUNT, Qt::UserRole,
@@ -828,8 +822,7 @@ void CoinControlDialog::updateView() {
             itemWalletAddress->setText(COLUMN_CHECKBOX,
                                        "(" + QString::number(nChildren) + ")");
             itemWalletAddress->setText(
-                COLUMN_AMOUNT,
-                BitcoinUnits::format(nDisplayUnit, nSum.GetSatoshis()));
+                COLUMN_AMOUNT, BitcoinUnits::format(nDisplayUnit, nSum));
             itemWalletAddress->setData(COLUMN_AMOUNT, Qt::UserRole,
                                        QVariant((qlonglong)nSum.GetSatoshis()));
         }

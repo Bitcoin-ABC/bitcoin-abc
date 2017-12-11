@@ -109,9 +109,9 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
                 SLOT(setEncryptionStatus(int)));
 
         // Pass through transaction notifications
-        connect(this, SIGNAL(incomingTransaction(QString, int, CAmount, QString,
+        connect(this, SIGNAL(incomingTransaction(QString, int, Amount, QString,
                                                  QString, QString)),
-                gui, SLOT(incomingTransaction(QString, int, CAmount, QString,
+                gui, SLOT(incomingTransaction(QString, int, Amount, QString,
                                               QString, QString)));
 
         // Connect HD enabled state signal

@@ -215,11 +215,10 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
             fShouldReturnFalse = false;
         } else if (i->first == "amount") {
             if (!i->second.isEmpty()) {
-                Amount amt;
-                if (!BitcoinUnits::parse(BitcoinUnits::BCH, i->second, &amt)) {
+                if (!BitcoinUnits::parse(BitcoinUnits::BCH, i->second,
+                                         &rv.amount)) {
                     return false;
                 }
-                rv.amount = amt.GetSatoshis();
             }
             fShouldReturnFalse = false;
         }

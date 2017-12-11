@@ -89,7 +89,7 @@ public:
     // Verify the payment request size is valid as per BIP70
     static bool verifySize(qint64 requestSize);
     // Verify the payment request amount is valid
-    static bool verifyAmount(const CAmount &requestAmount);
+    static bool verifyAmount(const Amount requestAmount);
 
 Q_SIGNALS:
     // Fired when a valid payment request is received

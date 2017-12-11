@@ -69,7 +69,7 @@ void TransactionFilterProxy::setTypeFilter(quint32 modes) {
     invalidateFilter();
 }
 
-void TransactionFilterProxy::setMinAmount(const CAmount &minimum) {
+void TransactionFilterProxy::setMinAmount(const Amount minimum) {
     this->minAmount = minimum;
     invalidateFilter();
 }

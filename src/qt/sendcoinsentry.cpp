@@ -161,7 +161,7 @@ SendCoinsRecipient SendCoinsEntry::getValue() {
     // Normal payment
     recipient.address = ui->payTo->text();
     recipient.label = ui->addAsLabel->text();
-    recipient.amount = ui->payAmount->value().GetSatoshis();
+    recipient.amount = ui->payAmount->value();
     recipient.message = ui->messageTextLabel->text();
     recipient.fSubtractFeeFromAmount =
         (ui->checkboxSubtractFeeFromAmount->checkState() == Qt::Checked);
