@@ -1,0 +1,214 @@
+# Copyright 2017 The LEVELDB Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file. See the AUTHORS file for names of contributors.
+
+cmake_minimum_required(VERSION 3.1)
+project(Leveldb VERSION 0.1.0 LANGUAGES C CXX)
+
+# This project can take advantage of C++11.
+set(CMAKE_CXX_STANDARD 11)
+
+option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
+
+include(TestBigEndian)
+test_big_endian(LEVELDB_IS_BIG_ENDIAN)
+
+include(CheckIncludeFile)
+check_include_file("unistd.h" HAVE_UNISTD_H)
+
+include(CheckIncludeFileCXX)
+check_include_file_cxx("atomic" LEVELDB_ATOMIC_PRESENT)
+
+include(CheckLibraryExists)
+check_library_exists(crc32c crc32c_value "" HAVE_CRC32C)
+check_library_exists(snappy snappy_compress "" HAVE_SNAPPY)
+
+include(CheckSymbolExists)
+check_symbol_exists(fdatasync "unistd.h" HAVE_FDATASYNC)
+
+configure_file(
+  port/port_config.h.cmake.in
+  include/port/port_config.h
+)
+
+include_directories(.)
+
+add_library(leveldb
+	db/builder.cc
+	db/c.cc
+	db/dbformat.cc
+	db/db_impl.cc
+	db/db_iter.cc
+	db/dumpfile.cc
+	db/filename.cc
+	db/log_reader.cc
+	db/log_writer.cc
+	db/memtable.cc
+	db/repair.cc
+	db/table_cache.cc
+	db/version_edit.cc
+	db/version_set.cc
+	db/write_batch.cc
+	table/block_builder.cc
+	table/block.cc
+	table/filter_block.cc
+	table/format.cc
+	table/iterator.cc
+	table/merger.cc
+	table/table_builder.cc
+	table/table.cc
+	table/two_level_iterator.cc
+	util/arena.cc
+	util/bloom.cc
+	util/cache.cc
+	util/coding.cc
+	util/comparator.cc
+	util/crc32c.cc
+	util/env.cc
+	util/env_posix.cc
+	util/filter_policy.cc
+	util/hash.cc
+	util/histogram.cc
+	util/logging.cc
+	util/options.cc
+	util/status.cc
+
+	# Always include that guy even when not using SSE or posix.
+	# TODO: proper support of SSE.
+	port/port_posix_sse.cc
+)
+
+target_include_directories(leveldb
+	PUBLIC
+		include
+		"${PROJECT_BINARY_DIR}/include"
+)
+
+# Select the proper port: posix or Windows.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(LEVELDB_PLATFORM WINDOWS)
+	set(LEVELDB_OS WINDOWS)
+	target_sources(leveldb
+		PRIVATE
+			util/env_win.cc
+			port/port_win.cc
+	)
+	target_compile_definitions(leveldb
+		PRIVATE
+			WINVER=0x0500
+			__USE_MINGW_ANSI_STDIO=1
+	)
+
+	find_package(SHLWAPI REQUIRED)
+	target_link_libraries(leveldb ${SHLWAPI_LIBRARY})
+	target_include_directories(leveldb PUBLIC ${SHLWAPI_INCLUDE_DIR})
+else()
+	set(LEVELDB_PLATFORM POSIX)
+	target_sources(leveldb
+		PRIVATE
+			port/port_posix.cc
+	)
+
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(Threads REQUIRED)
+	target_link_libraries(leveldb Threads::Threads)
+
+	# TODO: If the plateform supports SSE4.2 activate
+	# LEVELDB_PLATFORM_POSIX_SSE and the proper compiler flags.
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		set(LEVELDB_OS LINUX)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set(LEVELDB_OS MACOSX)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "(Solaris|SunOS)")
+		set(LEVELDB_OS SOLARIS)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+		set(LEVELDB_OS FREEBSD)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+		set(LEVELDB_OS NETBSD)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
+		set(LEVELDB_OS OPENBSD)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "DragonFly")
+		set(LEVELDB_OS DRAGONFLYBSD)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
+		set(LEVELDB_OS ANDROID)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "HPUX")
+		# No idea what's the proper system name is here.
+		set(LEVELDB_OS HPUX)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "iOS")
+		# No idea what's the proper system name is here.
+		set(LEVELDB_OS IOS)
+	else()
+		set(LEVELDB_OS LINUX)
+	endif()
+endif()
+
+target_compile_definitions(leveldb
+	PUBLIC
+		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
+		OS_${LEVELDB_OS}
+)
+
+# Right now this is not used but the latest version of leveldb uses this
+# so we might as well be ready for it.
+if (HAVE_CRC32C)
+  target_link_libraries(leveldb crc32c)
+endif (HAVE_CRC32C)
+if (HAVE_SNAPPY)
+  target_link_libraries(leveldb snappy)
+endif (HAVE_SNAPPY)
+
+# The libmemenv library.
+add_library(memenv helpers/memenv/memenv.cc)
+target_include_directories(memenv PUBLIC include)
+target_compile_definitions(memenv PUBLIC LEVELDB_PLATFORM_${LEVELDB_PLATFORM})
+
+if(LEVELDB_BUILD_TESTS)
+	enable_testing()
+
+	add_library(leveldb_test_base
+		util/testharness.cc
+		util/testutil.cc
+	)
+
+	target_link_libraries(leveldb_test_base leveldb)
+
+	function(create_leveldb_test NAME FILES)
+		add_executable(${NAME} ${FILES})
+		target_link_libraries(${NAME} leveldb_test_base)
+		add_test(NAME ${NAME} COMMAND ${NAME})
+	endfunction()
+
+	create_leveldb_test(autocompact_test db/autocompact_test.cc)
+	create_leveldb_test(corruption_test db/corruption_test.cc)
+	create_leveldb_test(db_test db/db_test.cc)
+	create_leveldb_test(dbformat_test db/dbformat_test.cc)
+	create_leveldb_test(fault_injection_test db/fault_injection_test.cc)
+	create_leveldb_test(filename_test db/filename_test.cc)
+	create_leveldb_test(log_test db/log_test.cc)
+	create_leveldb_test(recovery_test db/recovery_test.cc)
+	create_leveldb_test(skiplist_test db/skiplist_test.cc)
+	create_leveldb_test(version_edit_test db/version_edit_test.cc)
+	create_leveldb_test(version_set_test db/version_set_test.cc)
+	create_leveldb_test(write_batch_test db/write_batch_test.cc)
+	create_leveldb_test(issue178_test issues/issue178_test.cc)
+	create_leveldb_test(issue200_test issues/issue200_test.cc)
+	create_leveldb_test(filter_block_test table/filter_block_test.cc)
+	create_leveldb_test(table_test table/table_test.cc)
+	create_leveldb_test(arena_test util/arena_test.cc)
+	create_leveldb_test(bloom_test util/bloom_test.cc)
+	create_leveldb_test(cache_test util/cache_test.cc)
+	create_leveldb_test(coding_test util/coding_test.cc)
+	create_leveldb_test(crc32c_test util/crc32c_test.cc)
+	create_leveldb_test(env_test util/env_test.cc)
+	create_leveldb_test(hash_test util/hash_test.cc)
+
+	create_leveldb_test(memenv_test helpers/memenv/memenv_test.cc)
+	target_link_libraries(memenv_test memenv)
+
+	# These tests only work on posix
+	if(${LEVELDB_PLATFORM} MATCHES "POSIX")
+		create_leveldb_test(c_test db/c_test.c)
+		create_leveldb_test(env_posix_test util/env_posix_test.cc)
+	endif()
+endif(LEVELDB_BUILD_TESTS)
