@@ -6,6 +6,17 @@
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 
+# Version
+set(CLIENT_VERSION_MAJOR 0)
+set(CLIENT_VERSION_MINOR 16)
+set(CLIENT_VERSION_REVISION 2)
+set(CLIENT_VERSION_BUILD 0)
+
+# Copyright
+set(COPYRIGHT_YEAR 2017)
+set(COPYRIGHT_HOLDERS "The %s developers")
+set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
+
 # Endianness
 check_include_files("endian.h" HAVE_ENDIAN_H)
 check_include_files("sys/endian.h" HAVE_SYS_ENDIAN_H)
@@ -44,6 +55,8 @@ check_symbol_exists(__builtin_clz "" HAVE_DECL___BUILTIN_CLZ)
 check_symbol_exists(__builtin_clzl "" HAVE_DECL___BUILTIN_CLZL)
 check_symbol_exists(__builtin_clzll "" HAVE_DECL___BUILTIN_CLZLL)
 
+# Various system libraries
+check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 
 # Generate the config
-configure_file(bitcoin-config.h.cmake.in bitcoin-config.h)
+configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)
