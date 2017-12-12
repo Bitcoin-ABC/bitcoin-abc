@@ -12,3 +12,8 @@ Renamed script for creating JSON-RPC credentials
 -----------------------------
 The `share/rpcuser/rpcuser.py` script was renamed to `share/rpcauth/rpcauth.py`.
 This script can be used to create `rpcauth` credentials for a JSON-RPC user.
+
+Python Support
+--------------
+
+Support for Python 2 has been discontinued for all test files and tools.

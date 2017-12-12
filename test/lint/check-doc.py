@@ -50,7 +50,8 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-zmqpubhashblock',
 
 
 def main():
-    top_level = check_output(TOP_LEVEL, shell=True).decode().strip()
+    top_level = check_output(TOP_LEVEL, shell=True,
+                             universal_newlines=True).strip()
     source_files = []
     test_files = []
 
