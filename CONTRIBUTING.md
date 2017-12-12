@@ -85,8 +85,7 @@ cd bitcoin-abc
 arc install-certificate
 ```
 
-Then paste an API token from: 
-`https://reviews.bitcoinabc.org/settings/user/*username*/page/apitokens/`
+Follow instructions provided by `arc install-certificate` to provide your API token.
 
 6. Code formatting tools
 
