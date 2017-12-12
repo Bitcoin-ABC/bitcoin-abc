@@ -128,7 +128,7 @@ def main(args):
         sys.exit(1)
 
     arcconfig = get_arcconfig()
-    phabricatorUrl = urlparse.urljoin(arcconfig['conduit_uri'], "api")
+    phabricatorUrl = urlparse.urljoin(arcconfig['conduit_uri'], "api/")
     buildUrl = os.getenv('BUILD_URL', '')
 
     build_status = "success"
@@ -156,8 +156,7 @@ def main(args):
     if build_status != "success":
         task_body = create_task_body(buildUrl, revisionID, failures)
         create_task(phab, authorPHID, revisionID, task_body)
-
-    create_comment(phab, revisionID, build_status, buildUrl)
+        create_comment(phab, revisionID, build_status, buildUrl)
 
 
 if __name__ == "__main__":

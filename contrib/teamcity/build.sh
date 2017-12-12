@@ -1,6 +1,12 @@
-#!/bin/bash -euo pipefail
+#!/bin/bash
 
-BUILD_DIR=`git rev-parse --show-toplevel`/build
+set -eu
+
+TOPLEVEL=`git rev-parse --show-toplevel`
+if [[ -z "${TOPLEVEL}" ]]; then
+	echo "No .git directory found, assuming pwd"
+	TOPLEVEL=`pwd -P`
+fi
 
 # Report build status to phabricator
 report() {
@@ -14,11 +20,12 @@ report() {
 		echo "success" > build.status
 	fi
 
-	cd ${BUILD_DIR}
-	#./contrib/teamcity/teamcitybot.py build.status test_bitcoin.xml
+	cd ${TOPLEVEL}
+	./contrib/teamcity/teamcitybot.py "${BUILD_DIR}/build.status" "${BUILD_DIR}/test_bitcoin.xml"
 	exit $EXIT_CODE
 }
 
+BUILD_DIR="${TOPLEVEL}/build"
 mkdir -p ${BUILD_DIR}
 ## Configure and build
 cd ${BUILD_DIR}
