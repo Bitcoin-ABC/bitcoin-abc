@@ -222,6 +222,9 @@ public:
                bool fWipe = false, bool obfuscate = false);
     ~CDBWrapper();
 
+    CDBWrapper(const CDBWrapper &) = delete;
+    CDBWrapper &operator=(const CDBWrapper &) = delete;
+
     template <typename K, typename V> bool Read(const K &key, V &value) const {
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
