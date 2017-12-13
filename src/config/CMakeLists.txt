@@ -12,6 +12,8 @@ set(CLIENT_VERSION_MINOR 16)
 set(CLIENT_VERSION_REVISION 2)
 set(CLIENT_VERSION_BUILD 0)
 
+option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
+
 # Copyright
 set(COPYRIGHT_YEAR 2017)
 set(COPYRIGHT_HOLDERS "The %s developers")

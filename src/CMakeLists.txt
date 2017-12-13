@@ -66,3 +66,31 @@ prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
 
 find_package(Boost 1.55 REQUIRED ${BOOST_PACKAGES_REQUIRED})
 target_link_libraries(util univalue ${BOOST_LIBRARIES})
+
+# More completely unrelated features shared by all executables.
+# Because nothing says this is different from util than "common"
+add_library(common
+	amount.cpp
+	base58.cpp
+	cashaddr.cpp
+	cashaddrenc.cpp
+	chainparams.cpp
+	config.cpp
+	coins.cpp
+	compressor.cpp
+	dstencode.cpp
+	globals.cpp
+	core_read.cpp
+	core_write.cpp
+	key.cpp
+	keystore.cpp
+	netaddress.cpp
+	netbase.cpp
+	protocol.cpp
+	scheduler.cpp
+	script/sign.cpp
+	script/standard.cpp
+	warnings.cpp
+)
+
+target_link_libraries(common util secp256k1)

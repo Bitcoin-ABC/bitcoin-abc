@@ -145,8 +145,8 @@ endif()
 
 target_compile_definitions(leveldb
 	PUBLIC
-		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
 		OS_${LEVELDB_OS}
+		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
 )
 
 # Right now this is not used but the latest version of leveldb uses this
@@ -161,7 +161,11 @@ endif (HAVE_SNAPPY)
 # The libmemenv library.
 add_library(memenv helpers/memenv/memenv.cc)
 target_include_directories(memenv PUBLIC include)
-target_compile_definitions(memenv PUBLIC LEVELDB_PLATFORM_${LEVELDB_PLATFORM})
+target_compile_definitions(memenv
+	PUBLIC
+		OS_${LEVELDB_OS}
+		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
+)
 
 if(LEVELDB_BUILD_TESTS)
 	enable_testing()
