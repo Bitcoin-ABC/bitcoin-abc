@@ -6,6 +6,7 @@
 #include "ui_receiverequestdialog.h"
 
 #include "bitcoinunits.h"
+#include "config.h"
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
