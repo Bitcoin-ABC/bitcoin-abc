@@ -137,6 +137,8 @@ void ReceiveRequestDialog::update() {
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
+    int fontSize = cfg->UseCashAddrEncoding() ? 10 : 12;
+
     ui->lblQRCode->setText("");
     if (!uri.isEmpty()) {
         // limit URI length
@@ -169,7 +171,7 @@ void ReceiveRequestDialog::update() {
             painter.drawImage(0, 0,
                               qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
             QFont font = GUIUtil::fixedPitchFont();
-            font.setPixelSize(12);
+            font.setPixelSize(fontSize);
             painter.setFont(font);
             QRect paddedRect = qrAddrImage.rect();
             paddedRect.setHeight(QR_IMAGE_SIZE + 12);
