@@ -64,6 +64,15 @@ typedef unsigned int SOCKET;
 #else
 #define MAX_PATH 1024
 #endif
+#ifdef _MSC_VER
+#if !defined(ssize_t)
+#ifdef _WIN64
+typedef int64_t ssize_t;
+#else
+typedef int32_t ssize_t;
+#endif
+#endif
+#endif
 
 #if HAVE_DECL_STRNLEN == 0
 size_t strnlen(const char *start, size_t max_len);
