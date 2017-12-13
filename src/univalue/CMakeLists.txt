@@ -5,8 +5,6 @@ project(univalue)
 
 option(UNIVALUE_BUILD_TESTS "Build univalue's unit tests" ON)
 
-include_directories(include)
-
 # TODO: Version info
 add_library(univalue
 	lib/univalue.cpp
@@ -15,7 +13,12 @@ add_library(univalue
 	lib/univalue_write.cpp
 )
 
-target_include_directories(univalue PRIVATE lib)
+target_include_directories(univalue
+	PUBLIC
+		include
+	PRIVATE
+		lib
+)
 
 if(UNIVALUE_BUILD_TESTS)
 	enable_testing()
@@ -43,6 +46,7 @@ endif(UNIVALUE_BUILD_TESTS)
 
 # Generate lib/univalue_escapes.h
 add_executable(univalue_gen gen/gen.cpp)
+target_include_directories(univalue_gen PUBLIC include)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 add_custom_command(
@@ -50,4 +54,7 @@ add_custom_command(
 	COMMAND univalue_gen > ${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h
 	DEPENDS univalue_gen ${CMAKE_CURRENT_SOURCE_DIR}/lib/univalue_escapes.h
 )
-add_custom_target(generate_univalue_escapes_h DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h)
+add_custom_target(generate_univalue_escapes_h
+	DEPENDS
+		${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h
+)

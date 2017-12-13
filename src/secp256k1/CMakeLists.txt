@@ -6,10 +6,11 @@ project(secp256k1)
 option(SECP256K1_BUILD_TEST "Build secp256k1's unit tests" ON)
 
 # TODO: change this to include when possible
-include_directories(. include)
+include_directories(.)
 
 # The library
 add_library(secp256k1 src/secp256k1.c)
+target_include_directories(secp256k1 PUBLIC include)
 
 # We need to link in GMP
 find_package(GMP)
