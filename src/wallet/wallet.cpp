@@ -2825,7 +2825,7 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     if (nChangePosInOut != -1) {
         tx.vout.insert(tx.vout.begin() + nChangePosInOut,
                        tx_new->vout[nChangePosInOut]);
-        // we dont have the normal Create/Commit cycle, and dont want to
+        // We dont have the normal Create/Commit cycle, and dont want to
         // risk reusing change, so just remove the key from the keypool
         // here.
         if (!IsDeprecatedRPCEnabled(gArgs, "fundrawtransaction")) {
