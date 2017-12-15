@@ -7,7 +7,7 @@ import BitcoinABC.vcsRoots.*
 
 
 object Project : Project({
-    uuid = "0688f2d8-f1aa-450b-b3f0-34c279245928"
+    uuid = "1ddf9a64-4576-455b-b8c5-1be776a90759"
     id = "BitcoinABC"
     parentId = "_Root"
     name = "Bitcoin-ABC"
