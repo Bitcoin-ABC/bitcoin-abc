@@ -2,6 +2,7 @@
 
 set(CMAKE_CXX_STANDARD 11)
 
+# libraries
 add_subdirectory(config)
 add_subdirectory(crypto)
 add_subdirectory(leveldb)
@@ -45,7 +46,7 @@ target_include_directories(util
 )
 
 # Dependencies
-set(BOOST_PACKAGES_REQUIRED filesystem)
+set(BOOST_PACKAGES_REQUIRED filesystem program_options)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_USE_STATIC_LIBS ON)
@@ -65,7 +66,7 @@ endfunction(prepend)
 prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
 
 find_package(Boost 1.55 REQUIRED ${BOOST_PACKAGES_REQUIRED})
-target_link_libraries(util univalue ${BOOST_LIBRARIES})
+target_link_libraries(util univalue crypto ${BOOST_LIBRARIES})
 
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
@@ -94,3 +95,9 @@ add_library(common
 )
 
 target_link_libraries(common util secp256k1)
+
+# bitcoin-seeder
+option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
+if (BUILD_BITCOIN_SEEDER)
+	add_subdirectory(seeder)
+endif()

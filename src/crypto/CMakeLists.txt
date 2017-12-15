@@ -2,8 +2,6 @@
 
 project(crypto)
 
-set(CMAKE_CXX_STANDARD 11)
-
 # The library
 add_library(crypto
 	aes.cpp
@@ -27,3 +25,7 @@ target_include_directories(crypto
 )
 
 target_compile_definitions(crypto PUBLIC HAVE_CONFIG_H)
+
+# Dependencies
+find_package(OpenSSL REQUIRED)
+target_link_libraries(crypto ${OPENSSL_CRYPTO_LIBRARY})
