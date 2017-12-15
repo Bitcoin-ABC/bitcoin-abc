@@ -2,8 +2,15 @@
 
 set(CMAKE_CXX_STANDARD 11)
 
-# libraries
+# Ensure that WINDRES_PREPROC is enabled when using windres.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
+endif()
+
+# libtool style configure
 add_subdirectory(config)
+
+# libraries
 add_subdirectory(crypto)
 add_subdirectory(leveldb)
 add_subdirectory(secp256k1)
@@ -46,11 +53,18 @@ target_include_directories(util
 )
 
 # Dependencies
-set(BOOST_PACKAGES_REQUIRED filesystem program_options)
+set(BOOST_PACKAGES_REQUIRED chrono filesystem program_options)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_USE_STATIC_LIBS ON)
 	list(APPEND BOOST_PACKAGES_REQUIRED thread_win32)
+
+	find_package(SHLWAPI REQUIRED)
+	target_link_libraries(util ${SHLWAPI_LIBRARY})
+	target_include_directories(util PUBLIC ${SHLWAPI_INCLUDE_DIR})
+
+	find_library(WS2_32_LIBRARY NAMES ws2_32)
+	target_link_libraries(util ${WS2_32_LIBRARY})
 else()
 	list(APPEND BOOST_PACKAGES_REQUIRED date_time thread)
 endif()
@@ -98,6 +112,20 @@ target_link_libraries(common util secp256k1)
 
 # bitcoin-seeder
 option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
-if (BUILD_BITCOIN_SEEDER)
+if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
+endif()
+
+# bitcoin-cli
+option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
+if(BUILD_BITCOIN_CLI)
+	add_executable(bitcoin-cli bitcoin-cli.cpp rpc/client.cpp)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
+	endif()
+
+	# This require libevent
+	find_package(Event REQUIRED)
+	target_include_directories(bitcoin-cli PUBLIC ${EVENT_INCLUDE_DIR})
+	target_link_libraries(bitcoin-cli common ${EVENT_LIBRARY})
 endif()

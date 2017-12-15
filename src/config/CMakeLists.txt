@@ -6,6 +6,9 @@
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 
+# Package informations
+set(PACKAGE_NAME "Bitcoin ABC")
+
 # Version
 set(CLIENT_VERSION_MAJOR 0)
 set(CLIENT_VERSION_MINOR 16)
@@ -18,6 +21,7 @@ option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
 set(COPYRIGHT_YEAR 2017)
 set(COPYRIGHT_HOLDERS "The %s developers")
 set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
+string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
 
 # Endianness
 check_include_files("endian.h" HAVE_ENDIAN_H)
