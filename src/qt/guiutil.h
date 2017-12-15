@@ -35,7 +35,6 @@ QT_END_NAMESPACE
 /** Utility functions used by the Bitcoin Qt UI.
  */
 namespace GUIUtil {
-extern const QString URI_SCHEME;
 
 // Create human-readable string from date
 QString dateTimeStr(const QDateTime &datetime);
@@ -51,6 +50,8 @@ std::string DummyAddress(const CChainParams &params, const Config &cfg);
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
 void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
+QString bitcoinURIScheme(const CChainParams &, bool useCashAddr);
+QString bitcoinURIScheme(const Config &);
 // Parse "bitcoincash:" URI into recipient object, return true on successful
 // parsing
 bool parseBitcoinURI(const QString &scheme, const QUrl &uri,

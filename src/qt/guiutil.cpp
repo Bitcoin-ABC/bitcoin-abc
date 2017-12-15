@@ -91,7 +91,6 @@ extern double NSAppKitVersionNumber;
 #endif
 
 namespace GUIUtil {
-const QString URI_SCHEME("bitcoincash");
 
 QString dateTimeStr(const QDateTime &date) {
     return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") +
@@ -164,6 +163,17 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent) {
     amountValidator->setBottom(0.0);
     widget->setValidator(amountValidator);
     widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+}
+
+QString bitcoinURIScheme(const CChainParams &params, bool useCashAddr) {
+    if (!useCashAddr) {
+        return "bitcoincash";
+    }
+    return QString::fromStdString(params.CashAddrPrefix());
+}
+
+QString bitcoinURIScheme(const Config &cfg) {
+    return bitcoinURIScheme(cfg.GetChainParams(), cfg.UseCashAddrEncoding());
 }
 
 static bool IsCashAddrEncoded(const QUrl &uri) {
@@ -250,7 +260,7 @@ QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info) {
     QString ret = info.address;
     if (!cfg.UseCashAddrEncoding()) {
         // prefix address with uri scheme for base58 encoded addresses.
-        ret = (URI_SCHEME + ":%1").arg(ret);
+        ret = (bitcoinURIScheme(cfg) + ":%1").arg(ret);
     }
     int paramCount = 0;
 

@@ -173,11 +173,15 @@ void URITests::uriTestsCashAddr() {
 namespace {
 class UriTestConfig : public DummyConfig {
 public:
-    UriTestConfig(bool useCashAddr) : useCashAddr(useCashAddr) {}
+    UriTestConfig(bool useCashAddr)
+        : useCashAddr(useCashAddr), net(CBaseChainParams::MAIN) {}
     bool UseCashAddrEncoding() const override { return useCashAddr; }
+    const CChainParams &GetChainParams() const override { return Params(net); }
+    void SetChainParams(const std::string &n) { net = n; }
 
 private:
     bool useCashAddr;
+    std::string net;
 };
 
 } // anon ns
@@ -201,5 +205,28 @@ void URITests::uriTestFormatURI() {
         QString uri = GUIUtil::formatBitcoinURI(cfg, r);
         QVERIFY(uri ==
                 "bitcoincash:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=test");
+    }
+}
+
+void URITests::uriTestScheme() {
+    {
+        // cashaddr - scheme depends on selected chain params
+        UriTestConfig config(true);
+        config.SetChainParams(CBaseChainParams::MAIN);
+        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        config.SetChainParams(CBaseChainParams::TESTNET);
+        QVERIFY("bchtest" == GUIUtil::bitcoinURIScheme(config));
+        config.SetChainParams(CBaseChainParams::REGTEST);
+        QVERIFY("bchreg" == GUIUtil::bitcoinURIScheme(config));
+    }
+    {
+        // legacy - scheme is "bitcoincash" regardless of chain params
+        UriTestConfig config(false);
+        config.SetChainParams(CBaseChainParams::MAIN);
+        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        config.SetChainParams(CBaseChainParams::TESTNET);
+        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
+        config.SetChainParams(CBaseChainParams::REGTEST);
+        QVERIFY("bitcoincash" == GUIUtil::bitcoinURIScheme(config));
     }
 }
