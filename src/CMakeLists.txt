@@ -91,6 +91,7 @@ add_library(common
 	cashaddrenc.cpp
 	chainparams.cpp
 	config.cpp
+	consensus/merkle.cpp
 	coins.cpp
 	compressor.cpp
 	dstencode.cpp
@@ -101,6 +102,7 @@ add_library(common
 	keystore.cpp
 	netaddress.cpp
 	netbase.cpp
+	primitives/block.cpp
 	protocol.cpp
 	scheduler.cpp
 	script/sign.cpp
@@ -109,6 +111,22 @@ add_library(common
 )
 
 target_link_libraries(common util secp256k1)
+
+# libbitcoinconsensus
+add_library(bitcoinconsensus
+	arith_uint256.cpp
+	hash.cpp
+	primitives/transaction.cpp
+	pubkey.cpp
+	script/bitcoinconsensus.cpp
+	script/interpreter.cpp
+	script/script.cpp
+	script/script_error.cpp
+	uint256.cpp
+	utilstrencodings.cpp
+)
+
+target_link_libraries(bitcoinconsensus common)
 
 # bitcoin-seeder
 option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
@@ -128,4 +146,15 @@ if(BUILD_BITCOIN_CLI)
 	find_package(Event REQUIRED)
 	target_include_directories(bitcoin-cli PUBLIC ${EVENT_INCLUDE_DIR})
 	target_link_libraries(bitcoin-cli common ${EVENT_LIBRARY})
+endif()
+
+# bitcoin-tx
+option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
+if(BUILD_BITCOIN_TX)
+	add_executable(bitcoin-tx bitcoin-tx.cpp)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		target_sources(bitcoin-tx PRIVATE bitcoin-tx-res.rc)
+	endif()
+
+	target_link_libraries(bitcoin-tx bitcoinconsensus)
 endif()
