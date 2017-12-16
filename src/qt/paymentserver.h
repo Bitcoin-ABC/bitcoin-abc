@@ -128,6 +128,7 @@ protected:
 private:
     static bool readPaymentRequestFromFile(const QString &filename,
                                            PaymentRequestPlus &request);
+    bool handleURI(const QString &scheme, const QString &s);
     bool processPaymentRequest(const PaymentRequestPlus &request,
                                SendCoinsRecipient &recipient);
     void fetchRequest(const QUrl &url);
