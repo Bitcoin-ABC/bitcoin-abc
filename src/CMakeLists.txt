@@ -128,6 +128,69 @@ add_library(bitcoinconsensus
 
 target_link_libraries(bitcoinconsensus common)
 
+# Bitcoin server facilities
+add_library(server
+	addrman.cpp
+	addrdb.cpp
+	bloom.cpp
+	blockencodings.cpp
+	chain.cpp
+	checkpoints.cpp
+	config.cpp
+	globals.cpp
+	httprpc.cpp
+	httpserver.cpp
+	init.cpp
+	dbwrapper.cpp
+	merkleblock.cpp
+	miner.cpp
+	net.cpp
+	net_processing.cpp
+	noui.cpp
+	policy/fees.cpp
+	policy/policy.cpp
+	pow.cpp
+	rest.cpp
+	rpc/abc.cpp
+	rpc/blockchain.cpp
+	rpc/mining.cpp
+	rpc/misc.cpp
+	rpc/net.cpp
+	rpc/rawtransaction.cpp
+	rpc/server.cpp
+	script/scriptcache.cpp
+	script/sigcache.cpp
+	script/ismine.cpp
+	timedata.cpp
+	torcontrol.cpp
+	txdb.cpp
+	txmempool.cpp
+	ui_interface.cpp
+	validation.cpp
+	validationinterface.cpp
+	versionbits.cpp
+)
+
+# This require libevent
+find_package(Event REQUIRED)
+
+target_include_directories(server
+	PRIVATE
+		leveldb/helpers/memenv
+		${EVENT_INCLUDE_DIR}
+)
+
+target_link_libraries(server
+	${EVENT_LIBRARY}
+	bitcoinconsensus
+	leveldb
+	memenv
+)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_link_libraries(server ${EVENT_PTHREAD_LIBRARY})
+endif()
+
 # bitcoin-seeder
 option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 if(BUILD_BITCOIN_SEEDER)
@@ -142,9 +205,7 @@ if(BUILD_BITCOIN_CLI)
 		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
-	# This require libevent
-	find_package(Event REQUIRED)
-	target_include_directories(bitcoin-cli PUBLIC ${EVENT_INCLUDE_DIR})
+	target_include_directories(bitcoin-cli PRIVATE ${EVENT_INCLUDE_DIR})
 	target_link_libraries(bitcoin-cli common ${EVENT_LIBRARY})
 endif()
 
@@ -157,4 +218,11 @@ if(BUILD_BITCOIN_TX)
 	endif()
 
 	target_link_libraries(bitcoin-tx bitcoinconsensus)
+endif()
+
+# bitcoind
+add_executable(bitcoind bitcoind.cpp)
+target_link_libraries(bitcoind server)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()

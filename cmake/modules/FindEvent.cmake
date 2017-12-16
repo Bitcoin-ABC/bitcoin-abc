@@ -10,7 +10,11 @@ endif()
 
 find_path(EVENT_INCLUDE_DIR NAMES event.h)
 find_library(EVENT_LIBRARY NAMES event)
+find_library(EVENT_PTHREAD_LIBRARY event_pthreads)
 
 MESSAGE(STATUS "libevent: " ${EVENT_LIBRARY})
 
 mark_as_advanced(EVENT_INCLUDE_DIR EVENT_LIBRARIES)
+if(EVENT_INCLUDE_DIR AND EVENT_LIBRARIES)
+	set(EVENT_FOUND)
+endif()
