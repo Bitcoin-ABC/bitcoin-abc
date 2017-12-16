@@ -7,6 +7,27 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
 endif()
 
+# Enable warning
+include(AddCompilerFlags)
+
+add_c_compiler_flag(-Wnested-externs -Wstrict-prototypes)
+add_compiler_flag(
+	-Wall
+	-Wextra
+	-Wformat
+	-Wvla
+	-Wformat-security
+	-Wcast-align
+)
+
+option(EXTRA_WARNINGS "Enable extra warnings" OFF)
+if(EXTRA_WARNINGS)
+	add_compiler_flag(-Wshadow)
+	add_cxx_compiler_flag(-Wsuggest-override)
+else()
+	add_compiler_flag(-Wno-unused-parameter)
+endif()
+
 # libtool style configure
 add_subdirectory(config)
 

@@ -3,6 +3,15 @@
 cmake_minimum_required(VERSION 3.1)
 project(secp256k1)
 
+# libsecp256k1 use a different set of flags.
+add_compiler_flag(
+	-pedantic
+	-Wshadow
+	-Wno-unused-function
+	-Wno-nonnull
+	-Wno-nonnull-compare
+)
+
 # TODO: change this to include when possible
 include_directories(
 	.

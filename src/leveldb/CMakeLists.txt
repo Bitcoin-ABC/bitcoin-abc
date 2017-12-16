@@ -8,7 +8,10 @@ project(Leveldb VERSION 0.1.0 LANGUAGES C CXX)
 # This project can take advantage of C++11.
 set(CMAKE_CXX_STANDARD 11)
 
-option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
+# Remove some warnings for leveldb as they can get noisy.
+add_compiler_flag(-Wno-sign-compare -Wno-implicit-fallthrough)
+add_c_compiler_flag(-Wno-strict-prototypes)
+remove_compiler_flags(-Wstrict-prototypes)
 
 include(TestBigEndian)
 test_big_endian(LEVELDB_IS_BIG_ENDIAN)
@@ -167,6 +170,7 @@ target_compile_definitions(memenv
 		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
 )
 
+option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 if(LEVELDB_BUILD_TESTS)
 	enable_testing()
 

@@ -747,11 +747,12 @@ static UniValue getblocktemplate(const Config &config,
             case THRESHOLD_FAILED:
                 // Not exposed to GBT at all
                 break;
-            case THRESHOLD_LOCKED_IN:
-                // Ensure bit is set in block version
+            case THRESHOLD_LOCKED_IN:{
+                // Ensure bit is set in block version, then fallthrough to get
+                // vbavailable set.
                 pblock->nVersion |= VersionBitsMask(consensusParams, pos);
-
-            // FALLTHROUGH to get vbavailable set...
+            }
+            // FALLTHROUGH
             case THRESHOLD_STARTED: {
                 const struct BIP9DeploymentInfo &vbinfo =
                     VersionBitsDeploymentInfo[pos];
