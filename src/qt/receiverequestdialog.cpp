@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,6 +8,7 @@
 
 #include "bitcoinunits.h"
 #include "config.h"
+#include "dstencode.h"
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
@@ -104,8 +106,25 @@ void ReceiveRequestDialog::setModel(OptionsModel *_model) {
     update();
 }
 
+// Addresses are stored in the database with the encoding that the client was
+// configured with at the time of creation.
+//
+// This converts to clients current configuration.
+QString ToCurrentEncoding(const QString &addr, const Config &cfg) {
+    if (!IsValidDestinationString(addr.toStdString(), cfg.GetChainParams())) {
+        // We have something sketchy as input. Do not try to convert. 
+        return addr;
+    }
+    CTxDestination dst =
+        DecodeDestination(addr.toStdString(), cfg.GetChainParams());
+    return QString::fromStdString(
+        EncodeDestination(dst, cfg.GetChainParams(), cfg));
+}
+
 void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info) {
     this->info = _info;
+    // Display addresses with currently configured encoding.
+    this->info.address = ToCurrentEncoding(this->info.address, *cfg);
     update();
 }
 

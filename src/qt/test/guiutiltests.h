@@ -13,6 +13,7 @@ class GUIUtilTests : public QObject {
 
 private Q_SLOTS:
     void dummyAddressTest();
+    void toCurrentEncodingTest();
 };
 
 #endif // BITCOIN_QT_TEST_GUIUTILTESTS_H
