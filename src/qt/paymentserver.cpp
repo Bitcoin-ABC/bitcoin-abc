@@ -156,7 +156,9 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
 
     for (const QSslCertificate &cert : certList) {
         // Don't log nullptr certificates
-        if (cert.isNull()) continue;
+        if (cert.isNull()) {
+            continue;
+        }
 
         // Not yet active/valid, or expired certificate
         if (currentTime < cert.effectiveDate() ||
@@ -210,7 +212,9 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
 void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         QString arg(argv[i]);
-        if (arg.startsWith("-")) continue;
+        if (arg.startsWith("-")) {
+            continue;
+        }
 
         QString scheme = GUIUtil::bitcoinURIScheme(Params(), false);
         // If the bitcoincash: URI contains a payment request, we are not able
@@ -302,7 +306,9 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
     // Install global event filter to catch QFileOpenEvents
     // on Mac: sent when you click bitcoincash: links
     // other OSes: helpful when dealing with payment request files
-    if (parent) parent->installEventFilter(this);
+    if (parent) {
+        parent->installEventFilter(this);
+    }
 
     QString name = ipcServerName();
 
@@ -338,10 +344,11 @@ PaymentServer::~PaymentServer() {
 bool PaymentServer::eventFilter(QObject *object, QEvent *event) {
     if (event->type() == QEvent::FileOpen) {
         QFileOpenEvent *fileEvent = static_cast<QFileOpenEvent *>(event);
-        if (!fileEvent->file().isEmpty())
+        if (!fileEvent->file().isEmpty()) {
             handleURIOrFile(fileEvent->file());
-        else if (!fileEvent->url().isEmpty())
+        } else if (!fileEvent->url().isEmpty()) {
             handleURIOrFile(fileEvent->url().toString());
+        }
 
         return true;
     }
@@ -350,8 +357,12 @@ bool PaymentServer::eventFilter(QObject *object, QEvent *event) {
 }
 
 void PaymentServer::initNetManager() {
-    if (!optionsModel) return;
-    if (netManager != nullptr) delete netManager;
+    if (!optionsModel) {
+        return;
+    }
+    if (netManager != nullptr) {
+        delete netManager;
+    }
 
     // netManager is used to fetch paymentrequests given in bitcoincash: URIs
     netManager = new QNetworkAccessManager(this);
@@ -364,9 +375,10 @@ void PaymentServer::initNetManager() {
 
         qDebug() << "PaymentServer::initNetManager: Using SOCKS5 proxy"
                  << proxy.hostName() << ":" << proxy.port();
-    } else
+    } else {
         qDebug()
             << "PaymentServer::initNetManager: No active proxy server found.";
+    }
 
     connect(netManager, SIGNAL(finished(QNetworkReply *)), this,
             SLOT(netRequestFinished(QNetworkReply *)));
@@ -430,14 +442,16 @@ void PaymentServer::handleURIOrFile(const QString &s) {
                         tr("URI handling"),
                         tr("Invalid payment address %1").arg(recipient.address),
                         CClientUIInterface::MSG_ERROR);
-                } else
+                } else {
                     Q_EMIT receivedPaymentRequest(recipient);
-            } else
+                }
+            } else {
                 Q_EMIT message(
                     tr("URI handling"),
                     tr("URI cannot be parsed! This can be caused by an invalid "
                        "Bitcoin address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
+            }
 
             return;
         }
@@ -452,8 +466,9 @@ void PaymentServer::handleURIOrFile(const QString &s) {
                            tr("Payment request file cannot be read! This can "
                               "be caused by an invalid payment request file."),
                            CClientUIInterface::ICON_WARNING);
-        } else if (processPaymentRequest(request, recipient))
+        } else if (processPaymentRequest(request, recipient)) {
             Q_EMIT receivedPaymentRequest(recipient);
+        }
 
         return;
     }
@@ -462,8 +477,9 @@ void PaymentServer::handleURIOrFile(const QString &s) {
 void PaymentServer::handleURIConnection() {
     QLocalSocket *clientConnection = uriServer->nextPendingConnection();
 
-    while (clientConnection->bytesAvailable() < (int)sizeof(quint32))
+    while (clientConnection->bytesAvailable() < (int)sizeof(quint32)) {
         clientConnection->waitForReadyRead();
+    }
 
     connect(clientConnection, SIGNAL(disconnected()), clientConnection,
             SLOT(deleteLater()));
@@ -505,7 +521,9 @@ bool PaymentServer::readPaymentRequestFromFile(const QString &filename,
 
 bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
                                           SendCoinsRecipient &recipient) {
-    if (!optionsModel) return false;
+    if (!optionsModel) {
+        return false;
+    }
 
     if (request.IsInitialized()) {
         // Payment request network matches client network?
@@ -629,7 +647,9 @@ void PaymentServer::fetchPaymentACK(CWallet *wallet,
                                     QByteArray transaction) {
     const payments::PaymentDetails &details =
         recipient.paymentRequest.getDetails();
-    if (!details.has_payment_url()) return;
+    if (!details.has_payment_url()) {
+        return;
+    }
 
     QNetworkRequest netRequest;
     netRequest.setAttribute(QNetworkRequest::User, BIP70_MESSAGE_PAYMENTACK);
@@ -720,8 +740,9 @@ void PaymentServer::netRequestFinished(QNetworkReply *reply) {
             Q_EMIT message(tr("Payment request error"),
                            tr("Payment request cannot be parsed!"),
                            CClientUIInterface::MSG_ERROR);
-        } else if (processPaymentRequest(request, recipient))
+        } else if (processPaymentRequest(request, recipient)) {
             Q_EMIT receivedPaymentRequest(recipient);
+        }
 
         return;
     } else if (requestType == BIP70_MESSAGE_PAYMENTACK) {

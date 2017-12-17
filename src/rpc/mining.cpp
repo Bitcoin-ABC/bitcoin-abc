@@ -747,7 +747,7 @@ static UniValue getblocktemplate(const Config &config,
             case THRESHOLD_FAILED:
                 // Not exposed to GBT at all
                 break;
-            case THRESHOLD_LOCKED_IN:{
+            case THRESHOLD_LOCKED_IN: {
                 // Ensure bit is set in block version, then fallthrough to get
                 // vbavailable set.
                 pblock->nVersion |= VersionBitsMask(consensusParams, pos);
@@ -812,9 +812,9 @@ static UniValue getblocktemplate(const Config &config,
     result.push_back(
         Pair("coinbasevalue",
              (int64_t)pblock->vtx[0]->vout[0].nValue.GetSatoshis()));
-    result.push_back(
-        Pair("longpollid", chainActive.Tip()->GetBlockHash().GetHex() +
-                               i64tostr(nTransactionsUpdatedLast)));
+    result.push_back(Pair("longpollid",
+                          chainActive.Tip()->GetBlockHash().GetHex() +
+                              i64tostr(nTransactionsUpdatedLast)));
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(
         Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast() + 1));
@@ -1031,10 +1031,10 @@ static UniValue estimatesmartfee(const Config &config,
     UniValue result(UniValue::VOBJ);
     int answerFound;
     CFeeRate feeRate = mempool.estimateSmartFee(nBlocks, &answerFound);
-    result.push_back(
-        Pair("feerate", feeRate == CFeeRate(Amount(0))
-                            ? -1.0
-                            : ValueFromAmount(feeRate.GetFeePerK())));
+    result.push_back(Pair("feerate",
+                          feeRate == CFeeRate(Amount(0))
+                              ? -1.0
+                              : ValueFromAmount(feeRate.GetFeePerK())));
     result.push_back(Pair("blocks", answerFound));
     return result;
 }
