@@ -1653,11 +1653,14 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         ShrinkDebugFile();
     }
 
-    if (fPrintToDebugLog) OpenDebugLog();
+    if (fPrintToDebugLog) {
+        OpenDebugLog();
+    }
 
-    if (!fLogTimestamps)
+    if (!fLogTimestamps) {
         LogPrintf("Startup time: %s\n",
                   DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    }
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", GetDataDir().string());
     LogPrintf("Using config file %s\n",
@@ -1690,16 +1693,19 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
      */
     if (GetBoolArg("-server", false)) {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
-        if (!AppInitServers(config, threadGroup))
+        if (!AppInitServers(config, threadGroup)) {
             return InitError(
                 _("Unable to start HTTP server. See debug log for details."));
+        }
     }
 
     int64_t nStart;
 
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!CWallet::Verify()) return false;
+    if (!CWallet::Verify()) {
+        return false;
+    }
 #endif
     // Step 6: network initialization
 
@@ -1753,9 +1759,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     if (proxyArg != "" && proxyArg != "0") {
         CService resolved(LookupNumeric(proxyArg.c_str(), 9050));
         proxyType addrProxy = proxyType(resolved, proxyRandomize);
-        if (!addrProxy.IsValid())
+        if (!addrProxy.IsValid()) {
             return InitError(
                 strprintf(_("Invalid -proxy address: '%s'"), proxyArg));
+        }
 
         SetProxy(NET_IPV4, addrProxy);
         SetProxy(NET_IPV6, addrProxy);
@@ -1777,9 +1784,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         } else {
             CService resolved(LookupNumeric(onionArg.c_str(), 9050));
             proxyType addrOnion = proxyType(resolved, proxyRandomize);
-            if (!addrOnion.IsValid())
+            if (!addrOnion.IsValid()) {
                 return InitError(
                     strprintf(_("Invalid -onion address: '%s'"), onionArg));
+            }
             SetProxy(NET_TOR, addrOnion);
             SetLimited(NET_TOR, false);
         }
@@ -1796,8 +1804,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         if (mapMultiArgs.count("-bind")) {
             for (const std::string &strBind : mapMultiArgs.at("-bind")) {
                 CService addrBind;
-                if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
+                if (!Lookup(strBind.c_str(), addrBind, GetListenPort(),
+                            false)) {
                     return InitError(ResolveErrMsg("bind", strBind));
+                }
                 fBound |=
                     Bind(connman, addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
             }
@@ -1805,12 +1815,14 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         if (mapMultiArgs.count("-whitebind")) {
             for (const std::string &strBind : mapMultiArgs.at("-whitebind")) {
                 CService addrBind;
-                if (!Lookup(strBind.c_str(), addrBind, 0, false))
+                if (!Lookup(strBind.c_str(), addrBind, 0, false)) {
                     return InitError(ResolveErrMsg("whitebind", strBind));
-                if (addrBind.GetPort() == 0)
+                }
+                if (addrBind.GetPort() == 0) {
                     return InitError(strprintf(
                         _("Need to specify a port with -whitebind: '%s'"),
                         strBind));
+                }
                 fBound |= Bind(connman, addrBind,
                                (BF_EXPLICIT | BF_REPORT_ERROR | BF_WHITELIST));
             }
@@ -1823,9 +1835,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
             fBound |= Bind(connman, CService(inaddr_any, GetListenPort()),
                            !fBound ? BF_REPORT_ERROR : BF_NONE);
         }
-        if (!fBound)
+        if (!fBound) {
             return InitError(_("Failed to listen on any port. Use -listen=0 if "
                                "you want this."));
+        }
     }
 
     if (mapMultiArgs.count("-externalip")) {
@@ -1833,10 +1846,11 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
             CService addrLocal;
             if (Lookup(strAddr.c_str(), addrLocal, GetListenPort(),
                        fNameLookup) &&
-                addrLocal.IsValid())
+                addrLocal.IsValid()) {
                 AddLocal(addrLocal, LOCAL_MANUAL);
-            else
+            } else {
                 return InitError(ResolveErrMsg("externalip", strAddr));
+            }
         }
     }
 
@@ -1875,7 +1889,11 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         for (unsigned int i = 1; i < 10000; i++) {
             boost::filesystem::path source =
                 GetDataDir() / strprintf("blk%04u.dat", i);
-            if (!boost::filesystem::exists(source)) break;
+
+            if (!boost::filesystem::exists(source)) {
+                break;
+            }
+
             boost::filesystem::path dest =
                 blocksDir / strprintf("blk%05u.dat", i - 1);
             try {
@@ -1973,9 +1991,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                 // around).
                 if (!mapBlockIndex.empty() &&
                     mapBlockIndex.count(
-                        chainparams.GetConsensus().hashGenesisBlock) == 0)
+                        chainparams.GetConsensus().hashGenesisBlock) == 0) {
                     return InitError(_("Incorrect or no genesis block found. "
                                        "Wrong datadir for network?"));
+                }
 
                 // Initialize the block index (no-op if non-empty database was
                 // already loaded)
@@ -2045,7 +2064,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     break;
                 }
             } catch (const std::exception &e) {
-                if (fDebug) LogPrintf("%s\n", e.what());
+                if (fDebug) {
+                    LogPrintf("%s\n", e.what());
+                }
                 strLoadError = _("Error opening block database");
                 break;
             }
@@ -2119,7 +2140,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     // Step 10: import blocks
 
-    if (!CheckDiskSpace()) return false;
+    if (!CheckDiskSpace()) {
+        return false;
+    }
 
     // Either install a handler to notify us when genesis activates, or set
     // fHaveGenesis directly.
@@ -2157,8 +2180,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
     LogPrintf("nBestHeight = %d\n", chainActive.Height());
-    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION))
+    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) {
         StartTorControl(threadGroup, scheduler);
+    }
 
     Discover(threadGroup);
 
@@ -2184,8 +2208,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     connOptions.nMaxOutboundTimeframe = nMaxOutboundTimeframe;
     connOptions.nMaxOutboundLimit = nMaxOutboundLimit;
 
-    if (!connman.Start(scheduler, strNodeError, connOptions))
+    if (!connman.Start(scheduler, strNodeError, connOptions)) {
         return InitError(strNodeError);
+    }
 
     // Step 12: finished
 
@@ -2193,7 +2218,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     uiInterface.InitMessage(_("Done loading"));
 
 #ifdef ENABLE_WALLET
-    if (pwalletMain) pwalletMain->postInitProcess(threadGroup);
+    if (pwalletMain) {
+        pwalletMain->postInitProcess(threadGroup);
+    }
 #endif
 
     return !fRequestShutdown;
