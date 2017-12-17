@@ -64,5 +64,9 @@ check_symbol_exists(__builtin_clzll "" HAVE_DECL___BUILTIN_CLZLL)
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 
+# Activate wallet
+option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
+set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)

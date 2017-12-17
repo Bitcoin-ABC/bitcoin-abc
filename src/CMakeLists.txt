@@ -247,3 +247,9 @@ target_link_libraries(bitcoind server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()
+
+# Wallet
+if(BUILD_BITCOIN_WALLET)
+	add_subdirectory(wallet)
+	target_link_libraries(bitcoind wallet)
+endif()
