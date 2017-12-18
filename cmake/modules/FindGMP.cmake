@@ -2,6 +2,7 @@
 # GMP_FOUND - system has GMP lib
 # GMP_INCLUDE_DIR - the GMP include directory
 # GMP_LIBRARIES - Libraries needed to use GMP
+# GMPXX_LIBRARIES - Libraries needed to use GMP C++ API
 
 if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
 	# Already in cache, be silent
