@@ -195,16 +195,17 @@ static UniValue getnewaddress(const Config &config,
     return EncodeDestination(keyID);
 }
 
-CTxDestination GetLabelAddress(CWallet *const pwallet, const std::string &label,
-                               bool bForceNew = false) {
-    CPubKey pubKey;
-    if (!pwallet->GetLabelAddress(pubKey, label, bForceNew)) {
+CTxDestination GetLabelDestination(CWallet *const pwallet,
+                                   const std::string &label,
+                                   bool bForceNew = false) {
+    CTxDestination dest;
+    if (!pwallet->GetLabelDestination(dest, label, bForceNew)) {
         throw JSONRPCError(
             RPC_WALLET_KEYPOOL_RAN_OUT,
             "Error: Keypool ran out, please call keypoolrefill first");
     }
 
-    return pubKey.GetID();
+    return dest;
 }
 
 UniValue getlabeladdress(const Config &config, const JSONRPCRequest &request) {
@@ -239,7 +240,7 @@ UniValue getlabeladdress(const Config &config, const JSONRPCRequest &request) {
 
     UniValue ret(UniValue::VSTR);
 
-    ret = EncodeDestination(GetLabelAddress(pwallet, label));
+    ret = EncodeDestination(GetLabelDestination(pwallet, label));
     return ret;
 }
 
@@ -326,8 +327,8 @@ UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
         // current key' of another label:
         if (pwallet->mapAddressBook.count(dest)) {
             std::string old_label = pwallet->mapAddressBook[dest].name;
-            if (dest == GetLabelAddress(pwallet, old_label)) {
-                GetLabelAddress(pwallet, old_label, true);
+            if (dest == GetLabelDestination(pwallet, old_label)) {
+                GetLabelDestination(pwallet, old_label, true);
             }
         }
 

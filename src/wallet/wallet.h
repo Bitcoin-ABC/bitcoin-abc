@@ -970,8 +970,8 @@ public:
     DBErrors ReorderTransactions();
     bool AccountMove(std::string strFrom, std::string strTo,
                      const Amount nAmount, std::string strComment = "");
-    bool GetLabelAddress(CPubKey &pubKey, const std::string &label,
-                         bool bForceNew = false);
+    bool GetLabelDestination(CTxDestination &dest, const std::string &label,
+                             bool bForceNew = false);
 
     void MarkDirty();
     bool AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose = true);
