@@ -64,6 +64,12 @@ check_symbol_exists(__builtin_clzll "" HAVE_DECL___BUILTIN_CLZLL)
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 
+# OpenSSL functionality
+find_package(OpenSSL REQUIRED)
+set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
+set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
+check_symbol_exists(EVP_MD_CTX_new "openssl/evp.h" HAVE_DECL_EVP_MD_CTX_NEW)
+
 # Activate wallet
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
