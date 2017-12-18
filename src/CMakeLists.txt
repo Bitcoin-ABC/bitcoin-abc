@@ -2,6 +2,12 @@
 
 set(CMAKE_CXX_STANDARD 11)
 
+option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
+option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
+option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
+option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
+option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
+
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
@@ -213,13 +219,11 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # bitcoin-seeder
-option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
 endif()
 
 # bitcoin-cli
-option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 if(BUILD_BITCOIN_CLI)
 	add_executable(bitcoin-cli bitcoin-cli.cpp rpc/client.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -231,7 +235,6 @@ if(BUILD_BITCOIN_CLI)
 endif()
 
 # bitcoin-tx
-option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 if(BUILD_BITCOIN_TX)
 	add_executable(bitcoin-tx bitcoin-tx.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
