@@ -253,3 +253,9 @@ if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
 	target_link_libraries(bitcoind wallet)
 endif()
+
+# ZeroMQ
+if(BUILD_BITCOIN_ZMQ)
+	add_subdirectory(zmq)
+	target_link_libraries(bitcoind zmq)
+endif()

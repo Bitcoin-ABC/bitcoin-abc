@@ -68,5 +68,9 @@ check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
 
+# Activate ZeroMQ
+option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
+set(ENABLE_ZMQ ${BUILD_BITCOIN_ZMQ})
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)
