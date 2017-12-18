@@ -7,6 +7,7 @@ option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
 option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
 option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
+option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
 
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -268,3 +269,8 @@ endif()
 
 # Test suite.
 add_subdirectory(test)
+
+# Bitcoin-qt
+if(BUILD_BITCOIN_QT)
+	add_subdirectory(qt)
+endif()
