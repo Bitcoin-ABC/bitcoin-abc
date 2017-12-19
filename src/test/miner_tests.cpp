@@ -30,6 +30,18 @@
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
+// BOOST_CHECK_EXCEPTION predicates to check the specific validation error
+class HasReason {
+public:
+    HasReason(const std::string &reason) : m_reason(reason) {}
+    bool operator()(const std::runtime_error &e) const {
+        return std::string(e.what()).find(m_reason) != std::string::npos;
+    };
+
+private:
+    const std::string m_reason;
+};
+
 static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB);
 
 static BlockAssembler AssemblerForTest(const CChainParams &params,
@@ -343,9 +355,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         tx.vin[0].prevout = COutPoint(txid, 0);
     }
 
-    BOOST_CHECK_THROW(
+    BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
+        std::runtime_error, HasReason("bad-blk-sigops"));
     g_mempool.clear();
 
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
@@ -399,9 +411,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // Orphan in mempool, template creation fails.
     TxId txid = tx.GetId();
     g_mempool.addUnchecked(txid, entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
-    BOOST_CHECK_THROW(
+    BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
+        std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
     g_mempool.clear();
 
     // Child with higher priority than parent.
@@ -436,9 +448,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     g_mempool.addUnchecked(
         txid,
         entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
-    BOOST_CHECK_THROW(
+    // Should throw bad-tx-coinbase
+    BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
+        std::runtime_error, HasReason("bad-tx-coinbase"));
     g_mempool.clear();
 
     // Double spend txn pair in mempool, template creation fails.
@@ -455,9 +468,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     g_mempool.addUnchecked(
         txid,
         entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    BOOST_CHECK_THROW(
+    BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
+        std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
     g_mempool.clear();
 
     // Subsidy changing.
@@ -508,9 +521,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     g_mempool.addUnchecked(
         txid,
         entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
-    BOOST_CHECK_THROW(
+    // Should throw blk-bad-inputs
+    BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams, g_mempool).CreateNewBlock(scriptPubKey),
-        std::runtime_error);
+        std::runtime_error, HasReason("blk-bad-inputs"));
     g_mempool.clear();
 
     // Delete the dummy blocks again.
