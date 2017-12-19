@@ -1,5 +1,5 @@
-The [pull-tester](/qa/pull-tester/) folder contains a script to call
-multiple tests from the [rpc-tests](/qa/rpc-tests/) folder.
+The [pull-tester](/test/pull-tester/) folder contains a script to call
+multiple tests from the [rpc-tests](/test/rpc-tests/) folder.
 
 Every pull request to the bitcoin repository is built and run through
 the regression test suite. You can also run all or only individual
@@ -27,19 +27,19 @@ Running tests
 
 You can run any single test by calling
 
-    qa/pull-tester/rpc-tests.py <testname>
+    test/pull-tester/rpc-tests.py <testname>
 
 Or you can run any combination of tests by calling
 
-    qa/pull-tester/rpc-tests.py <testname1> <testname2> <testname3> ...
+    test/pull-tester/rpc-tests.py <testname1> <testname2> <testname3> ...
 
 Run the regression test suite with
 
-    qa/pull-tester/rpc-tests.py
+    test/pull-tester/rpc-tests.py
 
 Run all possible tests with
 
-    qa/pull-tester/rpc-tests.py -extended
+    test/pull-tester/rpc-tests.py --extended
 
 By default, tests will be run in parallel. To specify how many jobs to run,
 append `-parallel=n` (default n=4).
@@ -53,17 +53,27 @@ Possible options, which apply to each individual test run:
   --nocleanup           Leave bitcoinds and test.* datadir on exit or error
   --noshutdown          Don't stop bitcoinds after the test execution
   --srcdir=SRCDIR       Source directory containing bitcoind/bitcoin-cli
-                        (default: ../../src)
+                        (default: /Users/shammah/repos/bitcoin-abc/src)
+  --cachedir=CACHEDIR   Directory for caching pregenerated datadirs
   --tmpdir=TMPDIR       Root directory for datadirs
+  -l LOGLEVEL, --loglevel=LOGLEVEL
+                        log events at this level and higher to the console.
+                        Can be set to DEBUG, INFO, WARNING, ERROR or CRITICAL.
+                        Passing --loglevel DEBUG will output all logs to
+                        console. Note that logs at all levels are always
+                        written to the test_framework.log file in the
+                        temporary test directory.
   --tracerpc            Print out all RPC calls as they are made
+  --portseed=PORT_SEED  The seed to use for assigning port numbers (default:
+                        current process id)
   --coveragedir=COVERAGEDIR
                         Write tested RPC commands into this directory
 ```
 
 If you set the environment variable `PYTHON_DEBUG=1` you will get some debug
-output (example: `PYTHON_DEBUG=1 qa/pull-tester/rpc-tests.py wallet`).
+output (example: `PYTHON_DEBUG=1 test/pull-tester/rpc-tests.py wallet`).
 
-A 200-block -regtest blockchain and wallets for four nodes
+A 200-block `--regtest` blockchain and wallets for four nodes
 is created the first time a regression test is run and
 is stored in the cache/ directory. Each node has 25 mature
 blocks (25*50=1250 BTC) in its wallet.
@@ -83,5 +93,6 @@ killall bitcoind
 Writing tests
 =============
 You are encouraged to write tests for new or existing features.
-Further information about the test framework and individual rpc
-tests is found in [qa/rpc-tests](/qa/rpc-tests).
+
+Further information about the test framework and individual RPC
+tests is found in [test/rpc-tests](/test/rpc-tests).

@@ -12,7 +12,7 @@ forward all unrecognized arguments onto the individual test scripts.
 RPC tests are disabled on Windows by default. Use --force to run them anyway.
 
 For a description of arguments recognized by test scripts, see
-`qa/pull-tester/test_framework/test_framework.py:BitcoinTestFramework.main`.
+`test/pull-tester/test_framework/test_framework.py:BitcoinTestFramework.main`.
 
 """
 
@@ -191,7 +191,7 @@ def main():
             import zmq
         except ImportError:
             print("ERROR: \"import zmq\" failed. Use -nozmq to run without the ZMQ tests."
-                  "To run zmq tests, see dependency info in /qa/README.md.")
+                  "To run zmq tests, see dependency info in /test/README.md.")
             raise
 
     # Build list of tests
@@ -227,7 +227,7 @@ def main():
         # Print help for rpc-tests.py, then print help of the first script and exit.
         parser.print_help()
         subprocess.check_call(
-            (config["environment"]["SRCDIR"] + '/qa/rpc-tests/' + test_list[0]).split() + ['-h'])
+            (config["environment"]["SRCDIR"] + '/test/rpc-tests/' + test_list[0]).split() + ['-h'])
         sys.exit(0)
 
     run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
@@ -239,10 +239,9 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     if "BITCOIND" not in os.environ:
         os.environ["BITCOIND"] = build_dir + '/src/bitcoind' + exeext
 
-    tests_dir = src_dir + '/qa/rpc-tests/'
-
-    flags = ["--srcdir=" + src_dir] + args
-    flags.append("--cachedir={}/qa/cache".format(build_dir))
+    tests_dir = src_dir + '/test/rpc-tests/'
+    flags = ["--srcdir={}".format(src_dir)] + args
+    flags.append("--cachedir=%s/test/cache" % build_dir)
 
     if enable_coverage:
         coverage = RPCCoverage()
@@ -366,7 +365,7 @@ class RPCCoverage(object):
     After all tests complete, the commands run are combined and diff'd against
     the complete list to calculate uncovered RPC commands.
 
-    See also: qa/rpc-tests/test_framework/coverage.py
+    See also: test/rpc-tests/test_framework/coverage.py
 
     """
 
@@ -395,7 +394,7 @@ class RPCCoverage(object):
         Return a set of currently untested RPC commands.
 
         """
-        # This is shared from `qa/rpc-tests/test-framework/coverage.py`
+        # This is shared from `test/rpc-tests/test-framework/coverage.py`
         reference_filename = 'rpc_interface.txt'
         coverage_file_prefix = 'coverage.'
 

@@ -29,10 +29,4 @@ information or see https://opensource.org/licenses/MIT.
 Development Process
 -------------------
 
-This Github repository contains only source code of releases.
-
-Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/
-
-You can clone the active development version from here:
-
-    https://reviews.bitcoinabc.org/source/bitcoin-abc.git
+Please see [CONTRIBUTING](CONTRIBUTING.md)

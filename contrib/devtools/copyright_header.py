@@ -33,14 +33,17 @@ EXCLUDE = [
     'src/tinyformat.h',
     'src/leveldb/util/env_win.cc',
     'src/crypto/ctaes/bench.c',
-    'qa/rpc-tests/test_framework/bignum.py',
+    'test/rpc-tests/test_framework/bignum.py',
     # python init:
     '*__init__.py',
 ]
-EXCLUDE_COMPILED = re.compile('|'.join([fnmatch.translate(m) for m in EXCLUDE]))
+EXCLUDE_COMPILED = re.compile(
+    '|'.join([fnmatch.translate(m) for m in EXCLUDE]))
 
 INCLUDE = ['*.h', '*.cpp', '*.cc', '*.c', '*.py']
-INCLUDE_COMPILED = re.compile('|'.join([fnmatch.translate(m) for m in INCLUDE]))
+INCLUDE_COMPILED = re.compile(
+    '|'.join([fnmatch.translate(m) for m in INCLUDE]))
+
 
 def applies_to_file(filename):
     return ((EXCLUDE_COMPILED.match(filename) is None) and
@@ -50,11 +53,14 @@ def applies_to_file(filename):
 # obtain list of files in repo according to INCLUDE and EXCLUDE
 ################################################################################
 
+
 GIT_LS_CMD = 'git ls-files'
+
 
 def call_git_ls():
     out = subprocess.check_output(GIT_LS_CMD.split(' '))
     return [f for f in out.decode("utf-8").split('\n') if f != '']
+
 
 def get_filenames_to_examine():
     filenames = call_git_ls()
@@ -79,8 +85,10 @@ ANY_COPYRIGHT_STYLE_OR_YEAR_STYLE = ("%s %s" % (ANY_COPYRIGHT_STYLE,
 
 ANY_COPYRIGHT_COMPILED = re.compile(ANY_COPYRIGHT_STYLE_OR_YEAR_STYLE)
 
+
 def compile_copyright_regex(copyright_style, year_style, name):
     return re.compile('%s %s %s' % (copyright_style, year_style, name))
+
 
 EXPECTED_HOLDER_NAMES = [
     "Satoshi Nakamoto\n",
@@ -127,16 +135,20 @@ for holder_name in EXPECTED_HOLDER_NAMES:
 # search file contents for copyright message of particular category
 ################################################################################
 
+
 def get_count_of_copyrights_of_any_style_any_holder(contents):
     return len(ANY_COPYRIGHT_COMPILED.findall(contents))
+
 
 def file_has_dominant_style_copyright_for_holder(contents, holder_name):
     match = DOMINANT_STYLE_COMPILED[holder_name].search(contents)
     return match is not None
 
+
 def file_has_year_list_style_copyright_for_holder(contents, holder_name):
     match = YEAR_LIST_STYLE_COMPILED[holder_name].search(contents)
     return match is not None
+
 
 def file_has_without_c_style_copyright_for_holder(contents, holder_name):
     match = WITHOUT_C_STYLE_COMPILED[holder_name].search(contents)
@@ -146,8 +158,10 @@ def file_has_without_c_style_copyright_for_holder(contents, holder_name):
 # get file info
 ################################################################################
 
+
 def read_file(filename):
     return open(os.path.abspath(filename), 'r').read()
+
 
 def gather_file_info(filename):
     info = {}
@@ -179,13 +193,16 @@ def gather_file_info(filename):
 # report execution
 ################################################################################
 
+
 SEPARATOR = '-'.join(['' for _ in range(80)])
+
 
 def print_filenames(filenames, verbose):
     if not verbose:
         return
     for filename in filenames:
         print("\t%s" % filename)
+
 
 def print_report(file_infos, verbose):
     print(SEPARATOR)
@@ -260,6 +277,7 @@ def print_report(file_infos, verbose):
     print_filenames(unclassified_copyrights, verbose)
     print(SEPARATOR)
 
+
 def exec_report(base_directory, verbose):
     original_cwd = os.getcwd()
     os.chdir(base_directory)
@@ -271,6 +289,7 @@ def exec_report(base_directory, verbose):
 ################################################################################
 # report cmd
 ################################################################################
+
 
 REPORT_USAGE = """
 Produces a report of all copyright header notices found inside the source files
@@ -284,10 +303,11 @@ Arguments:
     [verbose] - Includes a list of every file of each subcategory in the report.
 """
 
+
 def report_cmd(argv):
     if len(argv) == 2:
         sys.exit(REPORT_USAGE)
-        
+
     base_directory = argv[2]
     if not os.path.exists(base_directory):
         sys.exit("*** bad <base_directory>: %s" % base_directory)
@@ -305,11 +325,14 @@ def report_cmd(argv):
 # query git for year of last change
 ################################################################################
 
+
 GIT_LOG_CMD = "git log --pretty=format:%%ai %s"
+
 
 def call_git_log(filename):
     out = subprocess.check_output((GIT_LOG_CMD % filename).split(' '))
     return out.decode("utf-8").split('\n')
+
 
 def get_git_change_years(filename):
     git_log_lines = call_git_log(filename)
@@ -318,6 +341,7 @@ def get_git_change_years(filename):
     # timestamp is in ISO 8601 format. e.g. "2016-09-05 14:25:32 -0600"
     return [line.split(' ')[0].split('-')[0] for line in git_log_lines]
 
+
 def get_most_recent_git_change_year(filename):
     return max(get_git_change_years(filename))
 
@@ -325,11 +349,13 @@ def get_most_recent_git_change_year(filename):
 # read and write to file
 ################################################################################
 
+
 def read_file_lines(filename):
     f = open(os.path.abspath(filename), 'r')
     file_lines = f.readlines()
     f.close()
     return file_lines
+
 
 def write_file_lines(filename, file_lines):
     f = open(os.path.abspath(filename), 'w')
@@ -340,11 +366,14 @@ def write_file_lines(filename, file_lines):
 # update header years execution
 ################################################################################
 
+
 COPYRIGHT = 'Copyright \(c\)'
 YEAR = "20[0-9][0-9]"
 YEAR_RANGE = '(%s)(-%s)?' % (YEAR, YEAR)
 HOLDER = 'The Bitcoin developers'
-UPDATEABLE_LINE_COMPILED = re.compile(' '.join([COPYRIGHT, YEAR_RANGE, HOLDER]))
+UPDATEABLE_LINE_COMPILED = re.compile(
+    ' '.join([COPYRIGHT, YEAR_RANGE, HOLDER]))
+
 
 def get_updatable_copyright_line(file_lines):
     index = 0
@@ -354,6 +383,7 @@ def get_updatable_copyright_line(file_lines):
         index = index + 1
     return None, None
 
+
 def parse_year_range(year_range):
     year_split = year_range.split('-')
     start_year = year_split[0]
@@ -361,10 +391,12 @@ def parse_year_range(year_range):
         return start_year, start_year
     return start_year, year_split[1]
 
+
 def year_range_to_str(start_year, end_year):
     if start_year == end_year:
         return start_year
     return "%s-%s" % (start_year, end_year)
+
 
 def create_updated_copyright_line(line, last_git_change_year):
     copyright_splitter = 'Copyright (c) '
@@ -383,6 +415,7 @@ def create_updated_copyright_line(line, last_git_change_year):
             year_range_to_str(start_year, last_git_change_year) + ' ' +
             ' '.join(space_split[1:]))
 
+
 def update_updatable_copyright(filename):
     file_lines = read_file_lines(filename)
     index, line = get_updatable_copyright_line(file_lines)
@@ -399,6 +432,7 @@ def update_updatable_copyright(filename):
     print_file_action_message(filename,
                               "Copyright updated! -> %s" % last_git_change_year)
 
+
 def exec_update_header_year(base_directory):
     original_cwd = os.getcwd()
     os.chdir(base_directory)
@@ -409,6 +443,7 @@ def exec_update_header_year(base_directory):
 ################################################################################
 # update cmd
 ################################################################################
+
 
 UPDATE_USAGE = """
 Updates all the copyright headers of "The Bitcoin developers" which were
@@ -439,13 +474,15 @@ Arguments:
     <base_directory> - The base directory of a bitcoin source code repository.
 """
 
+
 def print_file_action_message(filename, action):
     print("%-52s %s" % (filename, action))
+
 
 def update_cmd(argv):
     if len(argv) != 3:
         sys.exit(UPDATE_USAGE)
-    
+
     base_directory = argv[2]
     if not os.path.exists(base_directory):
         sys.exit("*** bad base_directory: %s" % base_directory)
@@ -455,10 +492,12 @@ def update_cmd(argv):
 # inserted copyright header format
 ################################################################################
 
+
 def get_header_lines(header, start_year, end_year):
     lines = header.split('\n')[1:-1]
     lines[0] = lines[0] % year_range_to_str(start_year, end_year)
     return [line + '\n' for line in lines]
+
 
 CPP_HEADER = '''
 // Copyright (c) %s The Bitcoin developers
@@ -466,8 +505,10 @@ CPP_HEADER = '''
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
 
+
 def get_cpp_header_lines_to_insert(start_year, end_year):
     return reversed(get_header_lines(CPP_HEADER, start_year, end_year))
+
 
 PYTHON_HEADER = '''
 # Copyright (c) %s The Bitcoin developers
@@ -475,12 +516,14 @@ PYTHON_HEADER = '''
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
 
+
 def get_python_header_lines_to_insert(start_year, end_year):
     return reversed(get_header_lines(PYTHON_HEADER, start_year, end_year))
 
 ################################################################################
 # query git for year of last change
 ################################################################################
+
 
 def get_git_change_year_range(filename):
     years = get_git_change_years(filename)
@@ -490,6 +533,7 @@ def get_git_change_year_range(filename):
 # check for existing core copyright
 ################################################################################
 
+
 def file_already_has_bitcoin_copyright(file_lines):
     index, _ = get_updatable_copyright_line(file_lines)
     return index != None
@@ -498,6 +542,7 @@ def file_already_has_bitcoin_copyright(file_lines):
 # insert header execution
 ################################################################################
 
+
 def file_has_hashbang(file_lines):
     if len(file_lines) < 1:
         return False
@@ -505,9 +550,10 @@ def file_has_hashbang(file_lines):
         return False
     return file_lines[0][:2] == '#!'
 
+
 def insert_python_header(filename, file_lines, start_year, end_year):
     if file_has_hashbang(file_lines):
-        insert_idx = 1 
+        insert_idx = 1
     else:
         insert_idx = 0
     header_lines = get_python_header_lines_to_insert(start_year, end_year)
@@ -515,11 +561,13 @@ def insert_python_header(filename, file_lines, start_year, end_year):
         file_lines.insert(insert_idx, line)
     write_file_lines(filename, file_lines)
 
+
 def insert_cpp_header(filename, file_lines, start_year, end_year):
     header_lines = get_cpp_header_lines_to_insert(start_year, end_year)
     for line in header_lines:
         file_lines.insert(0, line)
     write_file_lines(filename, file_lines)
+
 
 def exec_insert_header(filename, style):
     file_lines = read_file_lines(filename)
@@ -535,6 +583,7 @@ def exec_insert_header(filename, style):
 ################################################################################
 # insert cmd
 ################################################################################
+
 
 INSERT_USAGE = """
 Inserts a copyright header for "The Bitcoin developers" at the top of the
@@ -561,6 +610,7 @@ Arguments:
     <file> - A source file in the bitcoin repository.
 """
 
+
 def insert_cmd(argv):
     if len(argv) != 3:
         sys.exit(INSERT_USAGE)
@@ -571,16 +621,17 @@ def insert_cmd(argv):
     _, extension = os.path.splitext(filename)
     if extension not in ['.h', '.cpp', '.cc', '.c', '.py']:
         sys.exit("*** cannot insert for file extension %s" % extension)
-   
-    if extension == '.py': 
+
+    if extension == '.py':
         style = 'python'
     else:
         style = 'cpp'
     exec_insert_header(filename, style)
-         
+
 ################################################################################
 # UI
 ################################################################################
+
 
 USAGE = """
 copyright_header.py - utilities for managing copyright headers of 'The Bitcoin
