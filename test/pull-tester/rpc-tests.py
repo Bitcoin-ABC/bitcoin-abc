@@ -9,7 +9,7 @@ rpc-tests.py - run regression test suite
 This module calls down into individual test cases via subprocess. It will
 forward all unrecognized arguments onto the individual test scripts.
 
-RPC tests are disabled on Windows by default. Use --force to run them anyway.
+Functional tests are disabled on Windows by default. Use --force to run them anyway.
 
 For a description of arguments recognized by test scripts, see
 `test/pull-tester/test_framework/test_framework.py:BitcoinTestFramework.main`.
@@ -181,7 +181,7 @@ def main():
         sys.exit(0)
 
     if not (enable_wallet and enable_utils and enable_bitcoind):
-        print("No rpc tests to run. Wallet, utils, and bitcoind must all be enabled")
+        print("No functional tests to run. Wallet, utils, and bitcoind must all be enabled")
         print("Rerun `configure` with -enable-wallet, -with-utils and -with-daemon and rerun make")
         sys.exit(0)
 
@@ -227,7 +227,7 @@ def main():
         # Print help for rpc-tests.py, then print help of the first script and exit.
         parser.print_help()
         subprocess.check_call(
-            (config["environment"]["SRCDIR"] + '/test/rpc-tests/' + test_list[0]).split() + ['-h'])
+            (config["environment"]["SRCDIR"] + '/test/functional/' + test_list[0]).split() + ['-h'])
         sys.exit(0)
 
     run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
@@ -239,7 +239,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     if "BITCOIND" not in os.environ:
         os.environ["BITCOIND"] = build_dir + '/src/bitcoind' + exeext
 
-    tests_dir = src_dir + '/test/rpc-tests/'
+    tests_dir = src_dir + '/test/functional/'
     flags = ["--srcdir={}".format(src_dir)] + args
     flags.append("--cachedir=%s/test/cache" % build_dir)
 
@@ -260,7 +260,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     time_sum = 0
     time0 = time.time()
 
-    job_queue = RPCTestHandler(jobs, tests_dir, test_list, flags)
+    job_queue = TestHandler(jobs, tests_dir, test_list, flags)
 
     max_len_name = len(max(test_list, key=len))
     results = BOLD[1] + "%s | %s | %s\n\n" % (
@@ -296,8 +296,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
     sys.exit(not all_passed)
 
 
-class RPCTestHandler:
-
+class TestHandler:
     """
     Trigger the testscrips passed in via the list.
     """
@@ -365,7 +364,7 @@ class RPCCoverage(object):
     After all tests complete, the commands run are combined and diff'd against
     the complete list to calculate uncovered RPC commands.
 
-    See also: test/rpc-tests/test_framework/coverage.py
+    See also: test/functional/test_framework/coverage.py
 
     """
 
@@ -394,7 +393,7 @@ class RPCCoverage(object):
         Return a set of currently untested RPC commands.
 
         """
-        # This is shared from `test/rpc-tests/test-framework/coverage.py`
+        # This is shared from `test/functional/test-framework/coverage.py`
         reference_filename = 'rpc_interface.txt'
         coverage_file_prefix = 'coverage.'
 
