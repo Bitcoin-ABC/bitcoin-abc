@@ -8,9 +8,11 @@
 #   Quick and dirty script to read build output and report it to phabricator.
 
 
-import sys
+import collections
 import os
 import os.path
+import subprocess
+import sys
 import urlparse
 import json
 
@@ -99,6 +101,47 @@ def create_task(phab, guiltyPHID, revisionID, task_body):
     ])
 
 
+def execute_and_parse(script):
+    interesting_messages = {}
+    context = 10
+    backbuffer = collections.deque(maxlen=context)
+    keyphrases = ["error:"]
+
+    capture = 0
+    last_error = ""
+    p = subprocess.Popen(
+        script, bufsize=0, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+    for line in iter(p.stdout.readline, b''):
+        sys.stdout.write(line)
+        if capture > 0:
+            capture -= 1
+            if capture == 0:
+                interesting_messages.update({
+                    last_error: "".join(backbuffer)
+                })
+        else:
+            for phrase in keyphrases:
+                if phrase not in line:
+                    continue
+                capture = context // 2
+                last_error = line[0:100].strip()
+
+        backbuffer.append(line)
+    p.wait()
+
+    # We ended in the middle of capturing the context.  Add what we have to the list of errors.
+    if capture != 0:
+        interesting_messages.update({
+            last_error: "".join(backbuffer)
+        })
+    if p.returncode != 0:
+        interesting_messages.update({
+            "Non-zero exit code": "".join(backbuffer)
+        })
+
+    return interesting_messages
+
+
 def create_comment(phab, revisionID, build_status, buildUrl):
     status_verb = "failed"
     if build_status == "success":
@@ -117,33 +160,32 @@ def create_comment(phab, revisionID, build_status, buildUrl):
 
 
 def main(args):
-
     if len(args) < 2:
-        print("Please provide a list of junit reports as command line arguments.")
+        print("Usage: {} <script> [<output> ...]".format(args[0]))
+        print("")
+        print("  <script>: Script to run and parse output from.")
+        print("  <output>: Test result file for parsing.")
         sys.exit(1)
 
-    token = os.getenv("TEAMCITY_CONDUIT_TOKEN", None)
+    token = os.environ.get("TEAMCITY_CONDUIT_TOKEN", None)
     if not token:
         print("Please provide a conduit token in the environment variable ""TEAMCITY_CONDUIT_TOKEN""")
         sys.exit(1)
 
     arcconfig = get_arcconfig()
     phabricatorUrl = urlparse.urljoin(arcconfig['conduit_uri'], "api/")
-    buildUrl = os.getenv('BUILD_URL', '')
+    buildUrl = os.environ.get('BUILD_URL', '')
 
-    build_status = "success"
-    failures = {}
-    for arg in args:
+    failures = execute_and_parse(args[1])
+    for file in args[2:]:
         # All inputs may not exist if the build fails prematurely
         if not os.path.isfile(arg):
             continue
 
-        if arg.endswith(".status"):
-            with open(arg, "r") as f:
-                build_status = f.read().strip()
         elif arg.endswith(".xml"):
             failures.update(get_failures(arg))
 
+    build_status = "success"
     if len(failures) != 0:
         build_status = "failure"
 

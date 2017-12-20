@@ -26,7 +26,7 @@ object BitcoinABCMasterLinux : BuildType({
 
     steps {
         script {
-            scriptContent = "./contrib/teamcity/build.sh"
+            scriptContent = "./contrib/teamcity/teamcitybot.py ./contrib/teamcity/build.sh test_bitcoin.xml"
         }
     }
 
