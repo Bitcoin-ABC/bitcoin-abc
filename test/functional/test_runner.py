@@ -75,7 +75,8 @@ TEST_PARAMS = {
     #    testName --param1 --param2
     #    testname --param3
     "wallet_txn_doublespend.py": [["--mineblock"]],
-    "wallet_txn_clone.py": [["--mineblock"]]
+    "wallet_txn_clone.py": [["--mineblock"]],
+    "wallet_multiwallet.py": [["--usecli"]],
 }
 
 # Used to limit the number of tests, when list of tests is not provided on command line

@@ -352,6 +352,10 @@
   "time": 16
  },
  {
+  "name": "wallet_multiwallet.py --usecli",
+  "time": 16
+ },
+ {
   "name": "wallet_resendwallettransactions.py",
   "time": 5
  },
