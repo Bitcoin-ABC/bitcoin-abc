@@ -9,5 +9,9 @@ add_library(zmq
 )
 
 find_package(ZeroMQ REQUIRED)
-target_include_directories(wallet PRIVATE ${ZMQ_INCLUDE_DIR})
+target_include_directories(zmq PRIVATE ${ZMQ_INCLUDE_DIR})
 target_link_libraries(zmq util ${ZMQ_LIBRARY})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_compile_definitions(zmq PUBLIC ZMQ_STATIC)
+endif()
