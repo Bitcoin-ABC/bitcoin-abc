@@ -164,12 +164,15 @@ static bool CheckRawECDSASignatureEncoding(const slicedvaltype &sig,
         // In an ECDSA-only context, 64-byte signatures are forbidden.
         return set_error(serror, ScriptError::SIG_BADLENGTH);
     }
+    // https://bitcoin.stackexchange.com/a/12556:
     if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S |
                   SCRIPT_VERIFY_STRICTENC)) &&
         !IsValidDERSignatureEncoding(sig)) {
         return set_error(serror, ScriptError::SIG_DER);
     }
-
+    // If the S value is above the order of the curve divided by two, its
+    // complement modulo the order could have been used instead, which is
+    // one byte shorter when encoded correctly.
     if ((flags & SCRIPT_VERIFY_LOW_S) && !CPubKey::CheckLowS(sig)) {
         return set_error(serror, ScriptError::SIG_HIGH_S);
     }
