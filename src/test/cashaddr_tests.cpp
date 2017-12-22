@@ -8,6 +8,11 @@
 
 #include <boost/test/unit_test.hpp>
 
+static std::pair<std::string, std::vector<uint8_t>>
+CashAddrDecode(const std::string &str) {
+    return cashaddr::Decode(str, "");
+}
+
 BOOST_FIXTURE_TEST_SUITE(cashaddr_tests, BasicTestingSetup)
 
 bool CaseInsensitiveEqual(const std::string &s1, const std::string &s2) {
@@ -43,7 +48,7 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_valid) {
     };
 
     for (const std::string &str : CASES) {
-        auto ret = cashaddr::Decode(str);
+        auto ret = CashAddrDecode(str);
         BOOST_CHECK_MESSAGE(!ret.first.empty(), str);
         std::string recode = cashaddr::Encode(ret.first, ret.second);
         BOOST_CHECK_MESSAGE(!recode.empty(), str);
@@ -66,7 +71,7 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_invalid) {
     };
 
     for (const std::string &str : CASES) {
-        auto ret = cashaddr::Decode(str);
+        auto ret = CashAddrDecode(str);
         BOOST_CHECK_MESSAGE(ret.first.empty(), str);
     }
 }
@@ -79,11 +84,34 @@ BOOST_AUTO_TEST_CASE(cashaddr_rawencode) {
     toEncode.second = {0x1f, 0x0d};
 
     std::string encoded = cashaddr::Encode(toEncode.first, toEncode.second);
-    raw decoded = cashaddr::Decode(encoded);
+    raw decoded = CashAddrDecode(encoded);
 
     BOOST_CHECK_EQUAL(toEncode.first, decoded.first);
     BOOST_CHECK_EQUAL_COLLECTIONS(begin(toEncode.second), end(toEncode.second),
                                   begin(decoded.second), end(decoded.second));
+}
+
+BOOST_AUTO_TEST_CASE(cashaddr_testvectors_noprefix) {
+    static const std::pair<std::string, std::string> CASES[] = {
+        {"bitcoincash", "qpzry9x8gf2tvdw0s3jn54khce6mua7lcw20ayyn"},
+        {"prefix", "x64nx6hz"},
+        {"PREFIX", "X64NX6HZ"},
+        {"p", "gpf8m4h7"},
+        {"bitcoincash", "qpzry9x8gf2tvdw0s3jn54khce6mua7lcw20ayyn"},
+        {"bchtest", "testnetaddress4d6njnut"},
+        {"bchreg", "555555555555555555555555555555555555555555555udxmlmrz"},
+    };
+
+    for (const std::pair<std::string, std::string> &c : CASES) {
+        std::string prefix = c.first;
+        std::string payload = c.second;
+        std::string addr = prefix + ":" + payload;
+        auto ret = cashaddr::Decode(payload, prefix);
+        BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(ret.first, prefix), addr);
+        std::string recode = cashaddr::Encode(ret.first, ret.second);
+        BOOST_CHECK_MESSAGE(!recode.empty(), addr);
+        BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(addr, recode), addr);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -20,6 +20,7 @@ std::string Encode(const std::string &prefix,
 /**
  * Decode a cashaddr string. Returns (prefix, data). Empty prefix means failure.
  */
-std::pair<std::string, std::vector<uint8_t>> Decode(const std::string &str);
+std::pair<std::string, std::vector<uint8_t>>
+Decode(const std::string &str, const std::string &default_prefix);
 
 } // namespace cashaddr

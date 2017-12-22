@@ -103,25 +103,26 @@ CTxDestination DecodeCashAddr(const std::string &addr,
 
 CashAddrContent DecodeCashAddrContent(const std::string &addr,
                                       const CChainParams &params) {
-    std::pair<std::string, std::vector<uint8_t>> cashaddr =
-        cashaddr::Decode(addr);
+    std::string prefix;
+    std::vector<uint8_t> payload;
+    std::tie(prefix, payload) = cashaddr::Decode(addr, params.CashAddrPrefix());
 
-    if (cashaddr.first != params.CashAddrPrefix()) {
+    if (prefix != params.CashAddrPrefix()) {
         return {};
     }
 
-    if (cashaddr.second.empty()) {
+    if (payload.empty()) {
         return {};
     }
 
     // Check that the padding is zero.
-    size_t extrabits = cashaddr.second.size() * 5 % 8;
+    size_t extrabits = payload.size() * 5 % 8;
     if (extrabits >= 5) {
         // We have more padding than allowed.
         return {};
     }
 
-    uint8_t last = cashaddr.second.back();
+    uint8_t last = payload.back();
     uint8_t mask = (1 << extrabits) - 1;
     if (last & mask) {
         // We have non zero bits as padding.
@@ -129,9 +130,8 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
     }
 
     std::vector<uint8_t> data;
-    data.reserve(cashaddr.second.size() * 5 / 8);
-    ConvertBits<5, 8, false>(data, begin(cashaddr.second),
-                             end(cashaddr.second));
+    data.reserve(payload.size() * 5 / 8);
+    ConvertBits<5, 8, false>(data, begin(payload), end(payload));
 
     // Decode type and size from the version.
     uint8_t version = data[0];
@@ -153,7 +153,6 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
 
     // Pop the version.
     data.erase(data.begin());
-
     return {type, std::move(data)};
 }
 

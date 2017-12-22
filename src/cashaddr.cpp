@@ -218,9 +218,10 @@ std::string Encode(const std::string &prefix, const data &payload) {
 /**
  * Decode a cashaddr string.
  */
-std::pair<std::string, data> Decode(const std::string &str) {
+std::pair<std::string, data> Decode(const std::string &str,
+                                    const std::string &default_prefix) {
     // Go over the string and do some sanity checks.
-    bool lower = false, upper = false;
+    bool lower = false, upper = false, hasNumber = false;
     size_t prefixSize = 0;
     for (size_t i = 0; i < str.size(); ++i) {
         uint8_t c = str[i];
@@ -236,17 +237,14 @@ std::pair<std::string, data> Decode(const std::string &str) {
 
         if (c >= '0' && c <= '9') {
             // We cannot have numbers in the prefix.
-            if (prefixSize == 0) {
-                return {};
-            }
-
+            hasNumber = true;
             continue;
         }
 
         if (c == ':') {
-            // The separator must not be the first character, and there must not
-            // be 2 separators.
-            if (i == 0 || prefixSize != 0) {
+            // The separator cannot be the first character, cannot have number
+            // and there must not be 2 separators.
+            if (hasNumber || i == 0 || prefixSize != 0) {
                 return {};
             }
 
@@ -258,24 +256,30 @@ std::pair<std::string, data> Decode(const std::string &str) {
         return {};
     }
 
-    // We must have a prefix and a data part and we can't have both uppercase
-    // and lowercase.
-    if ((prefixSize == 0) || (upper && lower)) {
+    // We can't have both upper case and lowercase.
+    if (upper && lower) {
         return {};
     }
 
     // Get the prefix.
     std::string prefix;
-    prefix.reserve(prefixSize);
-    for (size_t i = 0; i < prefixSize; ++i) {
-        prefix += LowerCase(str[i]);
+    if (prefixSize == 0) {
+        prefix = default_prefix;
+    } else {
+        prefix.reserve(prefixSize);
+        for (size_t i = 0; i < prefixSize; ++i) {
+            prefix += LowerCase(str[i]);
+        }
+
+        // Now add the ':' in the size.
+        prefixSize++;
     }
 
     // Decode values.
-    const size_t valuesSize = str.size() - 1 - prefixSize;
+    const size_t valuesSize = str.size() - prefixSize;
     data values(valuesSize);
     for (size_t i = 0; i < valuesSize; ++i) {
-        uint8_t c = str[i + prefixSize + 1];
+        uint8_t c = str[i + prefixSize];
         // We have an invalid char in there.
         if (c > 127 || CHARSET_REV[c] == -1) {
             return {};
@@ -289,7 +293,7 @@ std::pair<std::string, data> Decode(const std::string &str) {
         return {};
     }
 
-    return {prefix, data(values.begin(), values.end() - 8)};
+    return {std::move(prefix), data(values.begin(), values.end() - 8)};
 }
 
 } // namespace cashaddr

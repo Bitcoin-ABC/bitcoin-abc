@@ -178,7 +178,7 @@ QString bitcoinURIScheme(const Config &cfg) {
 
 static bool IsCashAddrEncoded(const QUrl &uri) {
     const std::string addr = (uri.scheme() + ":" + uri.path()).toStdString();
-    auto decoded = cashaddr::Decode(addr);
+    auto decoded = cashaddr::Decode(addr, "");
     return !decoded.first.empty();
 }
 
