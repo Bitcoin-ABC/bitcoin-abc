@@ -14,7 +14,7 @@ out collectively by the network.
 What is Bitcoin ABC?
 --------------------
 
-Bitcoin ABC is the name of open source software which enables the use of Bitcoin.
+Bitcoin ABC is the name of open-source software which enables the use of Bitcoin.
 It is designed to facilite a hard fork to increase Bitcoin's block size limit.
 "ABC" stands for "Adjustable Blocksize Cap".
 
