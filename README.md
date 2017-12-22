@@ -3,22 +3,22 @@ Bitcoin ABC
 
 https://bitcoinabc.org
 
-What is Bitcoin?
-----------------
+What is Bitcoin Cash?
+---------------------
 
-Bitcoin is an experimental digital currency that enables instant payments to
-anyone, anywhere in the world. Bitcoin uses peer-to-peer technology to operate
-with no central authority: managing transactions and issuing money are carried
-out collectively by the network.
+[Bitcoin Cash](https://www.bitcoincash.org/) is an experimental digital currency
+that enables instant payments to anyone, anywhere in the world. It uses peer-to-peer
+technology to operate with no central authority: managing transactions and issuing
+money are carried out collectively by the network. Bitcoin Cash is a descendant of
+Bitcoin. It became a separate currency from the version supported by Bitcoin Core
+when the two split on August 1, 2017. Bitcoin Cash and the Bitcoin Core version of
+Bitcoin share the same transaction history up until the split.
 
 What is Bitcoin ABC?
 --------------------
 
-Bitcoin ABC is the name of open source software which enables the use of Bitcoin.
-It is designed to facilite a hard fork to increase Bitcoin's block size limit.
-"ABC" stands for "Adjustable Blocksize Cap".
-
-Bitcoin ABC is a fork of the [Bitcoin Core](https://bitcoincore.org) software project.
+Bitcoin ABC is the name of open source software which enables the use of Bitcoin Cash.
+It is a fork of the [Bitcoin Core](https://bitcoincore.org) software project.
 
 License
 -------
@@ -29,4 +29,8 @@ information or see https://opensource.org/licenses/MIT.
 Development Process
 -------------------
 
-Please see [CONTRIBUTING](CONTRIBUTING.md)
+This Github repository contains only source code of releases.
+
+Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/
+
+If you would like to contribute, please read [CONTRIBUTING](CONTRIBUTING.md)
