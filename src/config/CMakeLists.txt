@@ -57,9 +57,54 @@ check_symbol_exists(bswap_32 "byteswap.h" HAVE_DECL_BSWAP_32)
 check_symbol_exists(bswap_64 "byteswap.h" HAVE_DECL_BSWAP_64)
 
 # Bitmanip intrinsics
-check_symbol_exists(__builtin_clz "" HAVE_DECL___BUILTIN_CLZ)
-check_symbol_exists(__builtin_clzl "" HAVE_DECL___BUILTIN_CLZL)
-check_symbol_exists(__builtin_clzll "" HAVE_DECL___BUILTIN_CLZLL)
+function(check_builtin_exist SYMBOL VARIABLE)
+	set(
+		SOURCE_FILE
+		"${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/CheckBuiltinExists.c"
+	)
+	set(
+		CMAKE_CONFIGURABLE_FILE_CONTENT
+		"int main(int argc, char** argv) { (void)argv; return ${SYMBOL}(argc); }\n"
+	)
+	configure_file(
+		"${CMAKE_ROOT}/Modules/CMakeConfigurableFile.in"
+		"${SOURCE_FILE}"
+		@ONLY
+	)
+	if(NOT CMAKE_REQUIRED_QUIET)
+		message(STATUS "Looking for ${SYMBOL}")
+	endif()
+	try_compile(${VARIABLE}
+		${CMAKE_BINARY_DIR}
+		${SOURCE_FILE}
+		OUTPUT_VARIABLE OUTPUT
+	)
+	if(${VARIABLE})
+		if(NOT CMAKE_REQUIRED_QUIET)
+			message(STATUS "Looking for ${SYMBOL} - found")
+		endif()
+		set(${VARIABLE} 1 CACHE INTERNAL "Have symbol ${SYMBOL}" PARENT_SCOPE)
+		file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+			"Determining if the ${SYMBOL} "
+			"exist passed with the following output:\n"
+			"${OUTPUT}\nFile ${SOURCEFILE}:\n"
+			"${CMAKE_CONFIGURABLE_FILE_CONTENT}\n")
+	else()
+		if(NOT CMAKE_REQUIRED_QUIET)
+			message(STATUS "Looking for ${SYMBOL} - not found")
+		endif()
+		set(${VARIABLE} "" CACHE INTERNAL "Have symbol ${SYMBOL}" PARENT_SCOPE)
+		file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+			"Determining if the ${SYMBOL} "
+			"exist failed with the following output:\n"
+			"${OUTPUT}\nFile ${SOURCEFILE}:\n"
+			"${CMAKE_CONFIGURABLE_FILE_CONTENT}\n")
+	endif()
+endfunction()
+
+check_builtin_exist(__builtin_clz HAVE_DECL___BUILTIN_CLZ)
+check_builtin_exist(__builtin_clzl HAVE_DECL___BUILTIN_CLZL)
+check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
