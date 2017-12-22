@@ -17,7 +17,7 @@ Bitcoin share the same transaction history up until the split.
 What is Bitcoin ABC?
 --------------------
 
-Bitcoin ABC is the name of open source software which enables the use of Bitcoin Cash.
+Bitcoin ABC is the name of open-source software which enables the use of Bitcoin Cash.
 It is a fork of the [Bitcoin Core](https://bitcoincore.org) software project.
 
 License
