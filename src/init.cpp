@@ -72,8 +72,6 @@ static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_DISABLE_SAFEMODE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
-//! if set, all addresses will be encoded with cashaddr instead of base58
-static const bool DEFAULT_USE_CASHADDR = false;
 
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
@@ -422,9 +420,8 @@ std::string HelpMessage(HelpMessageMode mode) {
                                 "the getrawtransaction rpc call (default: %d)"),
                               DEFAULT_TXINDEX));
     strUsage += HelpMessageOpt(
-        "-usecashaddr", strprintf(_("Use Cash Address for destination encoding "
-                                    "instead of base58 (default %d)"),
-                                  DEFAULT_USE_CASHADDR));
+        "-usecashaddr", _("Use Cash Address for destination encoding instead "
+                          "of base58 (activate by default on Jan, 14)"));
 
     strUsage += HelpMessageGroup(_("Connection options:"));
     strUsage += HelpMessageOpt(
@@ -2115,8 +2112,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     fFeeEstimatesInitialized = true;
 
     // Encoded addresses using cashaddr instead of base58
+    // Activates by default on Jan, 14
     config.SetCashAddrEncoding(
-        GetBoolArg("-usecashaddr", DEFAULT_USE_CASHADDR));
+        GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
 
 // Step 8: load wallet
 #ifdef ENABLE_WALLET
