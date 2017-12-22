@@ -16,41 +16,6 @@
   - All upper-case letters except for 'I' and 'O'
   - All lower-case letters except for 'l'
 */
-static bool ValidLegacyInput(const QString &input) {
-    // Alphanumeric and not a 'forbidden' character
-    for (QChar ch : input) {
-        if (!(((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') ||
-               (ch >= 'A' && ch <= 'Z')) &&
-              ch != 'l' && ch != 'I' && ch != '0' && ch != 'O'))
-            return false;
-    }
-    return true;
-}
-
-static bool ValidCashaddrInput(const QString &prefix, const QString &input) {
-
-    std::vector<uint8_t> charset = cashaddr::EncodingCharset();
-
-    // Input may be incomplete. We're checking if it so far looks good.
-
-    for (int i = 0; i < input.size(); ++i) {
-        char ch = std::tolower(input[i].toLatin1());
-
-        // Does the input have the right prefix?
-        if (i < prefix.size()) {
-            if (ch != prefix[i].toLatin1()) {
-                return false;
-            }
-            continue;
-        }
-
-        // Payload, must use cashaddr charset.
-        if (std::find(begin(charset), end(charset), ch) == end(charset)) {
-            return false;
-        }
-    }
-    return true;
-}
 BitcoinAddressEntryValidator::BitcoinAddressEntryValidator(
     const std::string &cashaddrprefix, QObject *parent)
     : QValidator(parent), cashaddrprefix(cashaddrprefix) {}
@@ -60,7 +25,9 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input,
     Q_UNUSED(pos);
 
     // Empty address is "intermediate" input
-    if (input.isEmpty()) return QValidator::Intermediate;
+    if (input.isEmpty()) {
+        return QValidator::Intermediate;
+    }
 
     // Correction
     for (int idx = 0; idx < input.size();) {
@@ -80,20 +47,33 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input,
         }
 
         // Remove whitespace
-        if (ch.isSpace()) removeChar = true;
+        if (ch.isSpace()) {
+            removeChar = true;
+        }
 
         // To next character
-        if (removeChar)
+        if (removeChar) {
             input.remove(idx, 1);
-        else
+        } else {
             ++idx;
+        }
     }
 
     // Validation
-    const QString cashPrefix = QString::fromStdString(cashaddrprefix) + ":";
-    return (ValidLegacyInput(input) || ValidCashaddrInput(cashPrefix, input))
-               ? QValidator::Acceptable
-               : QValidator::Invalid;
+    QValidator::State state = QValidator::Acceptable;
+    for (int idx = 0; idx < input.size(); ++idx) {
+        int ch = input.at(idx).unicode();
+
+        if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') || (ch == ':')) {
+            // Alphanumeric and not a 'forbidden' character
+            // We also include ':' for cashaddr.
+        } else {
+            return QValidator::Invalid;
+        }
+    }
+
+    return state;
 }
 
 BitcoinAddressCheckValidator::BitcoinAddressCheckValidator(QObject *parent)
@@ -102,6 +82,7 @@ BitcoinAddressCheckValidator::BitcoinAddressCheckValidator(QObject *parent)
 QValidator::State BitcoinAddressCheckValidator::validate(QString &input,
                                                          int &pos) const {
     Q_UNUSED(pos);
+
     // Validate the passed Bitcoin address
     if (IsValidDestinationString(input.toStdString())) {
         return QValidator::Acceptable;

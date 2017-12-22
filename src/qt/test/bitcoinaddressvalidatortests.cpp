@@ -14,23 +14,40 @@ void BitcoinAddressValidatorTests::inputTests() {
     int unused = 0;
     QString in;
 
-    // invalid base58 because of I, invalid cashaddr
-    in = "BIIC";
-    QVERIFY(QValidator::Invalid == v.validate(in, unused));
+    // Empty string is intermediate.
+    in = "";
+    QVERIFY(v.validate(in, unused) == QValidator::Intermediate);
 
-    // invalid base58, invalid cashaddr
+    // invalid base58 because of I, invalid cashaddr, currently considered valid
+    // anyway.
+    in = "BIIC";
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
+
+    // invalid base58, invalid cashaddr, currently considered valid anyway.
     in = "BITCOINCASHH";
-    QVERIFY(QValidator::Invalid == v.validate(in, unused));
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58 because of I, but could be a cashaddr prefix
     in = "BITC";
-    QVERIFY(QValidator::Acceptable == v.validate(in, unused));
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58, valid cashaddr
     in = "BITCOINCASH:QP";
-    QVERIFY(QValidator::Acceptable == v.validate(in, unused));
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
+
+    // invalid base58, valid cashaddr, lower case
+    in = "bitcoincash:qp";
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
+
+    // invalid base58, valid cashaddr, mixed case
+    in = "bItCoInCaSh:Qp";
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // valid base58, invalid cash
     in = "BBBBBBBBBBBBBB";
-    QVERIFY(QValidator::Acceptable == v.validate(in, unused));
+    QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
+
+    // Only alphanumeric chars are accepted.
+    in = "%";
+    QVERIFY(v.validate(in, unused) == QValidator::Invalid);
 }

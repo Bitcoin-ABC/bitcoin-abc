@@ -22,6 +22,4 @@ std::string Encode(const std::string &prefix,
  */
 std::pair<std::string, std::vector<uint8_t>> Decode(const std::string &str);
 
-std::vector<uint8_t> EncodingCharset();
-
 } // namespace cashaddr
