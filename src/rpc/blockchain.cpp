@@ -1508,6 +1508,7 @@ UniValue mempoolInfoToJSON() {
                ValueFromAmount(
                    std::max(g_mempool.GetMinFee(maxmempool), ::minRelayTxFee)
                        .GetFeePerK()));
+    ret.pushKV("minrelaytxfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
 
     return ret;
 }
@@ -1528,7 +1529,10 @@ static UniValue getmempoolinfo(const Config &config,
             "for the mempool\n"
             "  \"mempoolminfee\": xxxxx       (numeric) Minimum fee rate in " +
             CURRENCY_UNIT +
-            "/kB for tx to be accepted\n"
+            "/kB for tx to be accepted. Is the maximum of minrelaytxfee and "
+            "minimum mempool fee\n"
+            "  \"minrelaytxfee\": xxxxx       (numeric) Current minimum relay "
+            "fee for transactions\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getmempoolinfo", "") +

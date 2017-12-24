@@ -13,3 +13,4 @@ This release includes the following features and fixes:
    inadvertently spend only parts of the coins sent to the same address (note that
    if someone were to send coins to that address after it was used, those coins
    will still be included in future coin selections).
+ - Add the `minrelaytxfee` output to the `getmempoolinfo` RPC.

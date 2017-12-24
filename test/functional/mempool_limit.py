@@ -5,11 +5,14 @@
 
 # Test mempool limiting together/eviction with the wallet
 
+from decimal import Decimal
+
 from test_framework.blocktools import (
     create_confirmed_utxos,
     send_big_transactions,
 )
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, assert_greater_than
 
 
 class MempoolLimitTest(BitcoinTestFramework):
@@ -22,11 +25,17 @@ class MempoolLimitTest(BitcoinTestFramework):
     def run_test(self):
         relayfee = self.nodes[0].getnetworkinfo()['relayfee']
 
+        self.log.info('Check that mempoolminfee is minrelytxfee')
+        assert_equal(self.nodes[0].getmempoolinfo()[
+                     'minrelaytxfee'], Decimal('0.00001000'))
+        assert_equal(self.nodes[0].getmempoolinfo()[
+                     'mempoolminfee'], Decimal('0.00001000'))
+
         txids = []
         utxo_groups = 4
         utxos = create_confirmed_utxos(self.nodes[0], 1 + 30 * utxo_groups)
 
-        # create a mempool tx that will be evicted
+        self.log.info('Create a mempool tx that will be evicted')
         us0 = utxos.pop()
         inputs = [{"txid": us0["txid"], "vout": us0["vout"]}]
         outputs = {self.nodes[0].getnewaddress(): 0.0001}
@@ -44,10 +53,16 @@ class MempoolLimitTest(BitcoinTestFramework):
             txids[i] = send_big_transactions(
                 self.nodes[0], utxos[30 * i:30 * i + 30], 30, 10 * (i + 1))
 
-        # by now, the tx should be evicted, check confirmation state
+        self.log.info('The tx should be evicted by now')
         assert(txid not in self.nodes[0].getrawmempool())
         txdata = self.nodes[0].gettransaction(txid)
         assert(txdata['confirmations'] == 0)  # confirmation should still be 0
+
+        self.log.info('Check that mempoolminfee is larger than minrelytxfee')
+        assert_equal(self.nodes[0].getmempoolinfo()[
+                     'minrelaytxfee'], Decimal('0.00001000'))
+        assert_greater_than(self.nodes[0].getmempoolinfo()[
+                            'mempoolminfee'], Decimal('0.00001000'))
 
 
 if __name__ == '__main__':
