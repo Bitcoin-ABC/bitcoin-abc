@@ -1250,8 +1250,6 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 
-    LOCK(cs_main);
-
     bool send = false;
     std::shared_ptr<const CBlock> a_recent_block;
     std::shared_ptr<const CBlockHeaderAndShortTxIDs> a_recent_compact_block;
@@ -1261,7 +1259,9 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
         a_recent_compact_block = most_recent_compact_block;
     }
 
+    bool need_activate_chain = false;
     {
+        LOCK(cs_main);
         BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
         if (mi != mapBlockIndex.end()) {
             if (mi->second->nChainTx &&
@@ -1273,11 +1273,16 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
                 // ActivateBestChain but after AcceptBlock). In this
                 // case, we need to run ActivateBestChain prior to
                 // checking the relay conditions below.
-                CValidationState dummy;
-                ActivateBestChain(config, dummy, a_recent_block);
+                need_activate_chain = true;
             }
         }
+    } // release cs_main before calling ActivateBestChain
+    if (need_activate_chain) {
+        CValidationState dummy;
+        ActivateBestChain(config, dummy, a_recent_block);
     }
+
+    LOCK(cs_main);
     BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
     if (mi != mapBlockIndex.end()) {
         send = BlockRequestAllowed(mi->second, consensusParams);
@@ -1414,6 +1419,8 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
 static void ProcessGetData(const Config &config, CNode *pfrom,
                            CConnman *connman,
                            const std::atomic<bool> &interruptMsgProc) {
+    AssertLockNotHeld(cs_main);
+
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
@@ -1460,17 +1467,16 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
             // Track requests for our stuff.
             GetMainSignals().Inventory(inv.hash);
         }
-
-        if (it != pfrom->vRecvGetData.end()) {
-            const CInv &inv = *it;
-            it++;
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK ||
-                inv.type == MSG_CMPCT_BLOCK) {
-                ProcessGetBlockData(config, pfrom, inv, connman,
-                                    interruptMsgProc);
-            }
-        }
     } // release cs_main
+
+    if (it != pfrom->vRecvGetData.end()) {
+        const CInv &inv = *it;
+        it++;
+        if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK ||
+            inv.type == MSG_CMPCT_BLOCK) {
+            ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
+        }
+    }
 
     pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
 
@@ -2379,7 +2385,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             inv.type = MSG_BLOCK;
             inv.hash = req.blockhash;
             pfrom->vRecvGetData.push_back(inv);
-            ProcessGetData(config, pfrom, connman, interruptMsgProc);
+            // The message processing loop will go around again (without
+            // pausing) and we'll respond then (without cs_main)
             return true;
         }
 
