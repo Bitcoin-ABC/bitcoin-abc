@@ -1,7 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Bitcoin ABC
-Upstream-Contact: Satoshi Nakamoto <satoshin@gmx.com>
- irc://#bitcoinabc@freenode.net
+Upstream-Contact: helpdesk@bitcoinabc.org
 Source: https://github.com/Bitcoin-ABC/bitcoin-abc
 
 Files: *
