@@ -972,6 +972,7 @@ void PeerLogicValidation::NewPoWValidBlock(
 void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew,
                                           const CBlockIndex *pindexFork,
                                           bool fInitialDownload) {
+    // This will now often run in the validate thread rather than the message handler thread.
     const int nNewHeight = pindexNew->nHeight;
     connman->SetBestHeight(nNewHeight);
 

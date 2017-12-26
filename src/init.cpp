@@ -1030,10 +1030,12 @@ void ThreadImport(const Config &config,
 
         // scan for better chains in the block chain database, that are not yet
         // connected in the active best chain
-        CValidationState state;
-        if (!ActivateBestChain(config, state)) {
-            LogPrintf("Failed to connect best block");
-            StartShutdown();
+        if (chainActive.Tip() == NULL) {
+            CValidationState state;
+            if (!ActivateBestChain(config, state)) {
+                LogPrintf("Failed to connect best block");
+                StartShutdown();
+            }
         }
 
         if (GetBoolArg("-stopafterblockimport", DEFAULT_STOPAFTERBLOCKIMPORT)) {

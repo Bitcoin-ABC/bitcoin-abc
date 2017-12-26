@@ -315,6 +315,7 @@ bool ActivateBestChain(
     const Config &config, CValidationState &state,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
+void FormBestChain(const Config &config);
 
 /** Guess verification progress (as a fraction between 0.0=genesis and
  * 1.0=current tip). */
