@@ -159,18 +159,18 @@ define $(package)_config_cmds
   $(MAKE) sub-src-clean && \
   cd ../qttranslations && ../qtbase/bin/qmake qttranslations.pro -o Makefile && \
   cd translations && ../../qtbase/bin/qmake translations.pro -o Makefile && cd ../.. &&\
-  cd qttools/src/linguist/ && ../../../qtbase/bin/qmake linguist.pro -o Makefile
+  cd qttools/src/linguist/lrelease && ../../../../qtbase/bin/qmake lrelease.pro -o Makefile
 endef
 
 define $(package)_build_cmds
   $(MAKE) && \
-  $(MAKE) -C ../qttools/src/linguist && \
+  $(MAKE) -C ../qttools/src/linguist/lrelease && \
   $(MAKE) -C ../qttranslations
 endef
 
 define $(package)_stage_cmds
   $(MAKE) INSTALL_ROOT=$($(package)_staging_dir) install && cd .. && \
-  $(MAKE) -C qttools/src/linguist INSTALL_ROOT=$($(package)_staging_dir) install && \
+  $(MAKE) -C qttools/src/linguist/lrelease INSTALL_ROOT=$($(package)_staging_dir) install && \
   $(MAKE) -C qttranslations INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
   if `test -f qtbase/src/plugins/platforms/xcb/xcb-static/libxcb-static.a`; then \
     cp qtbase/src/plugins/platforms/xcb/xcb-static/libxcb-static.a $($(package)_staging_prefix_dir)/lib; \
