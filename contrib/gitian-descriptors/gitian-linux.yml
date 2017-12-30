@@ -9,6 +9,7 @@ multiarch:
 - "i386"
 packages:
 - "curl"
+- "gperf"
 - "g++-aarch64-linux-gnu"
 - "g++-5-aarch64-linux-gnu"
 - "gcc-aarch64-linux-gnu"
