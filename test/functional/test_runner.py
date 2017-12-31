@@ -180,11 +180,14 @@ def main():
         sys.exit(0)
 
     if not (enable_wallet and enable_utils and enable_bitcoind):
-        print("No functional tests to run. Wallet, utils, and bitcoind must all be enabled")
-        print("Rerun `configure` with -enable-wallet, -with-utils and -with-daemon and rerun make")
+        print(
+            "No functional tests to run. Wallet, utils, and bitcoind must all be enabled")
+        print(
+            "Rerun `configure` with -enable-wallet, -with-utils and -with-daemon and rerun make")
         sys.exit(0)
 
-    # python3-zmq may not be installed. Handle this gracefully and with some helpful info
+    # python3-zmq may not be installed. Handle this gracefully and with some
+    # helpful info
     if enable_zmq:
         try:
             import zmq
@@ -196,7 +199,8 @@ def main():
     # Build list of tests
     if tests:
         # Individual tests have been specified. Run specified tests that exist
-        # in the ALL_SCRIPTS list. Accept the name with or without .py extension.
+        # in the ALL_SCRIPTS list. Accept the name with or without .py
+        # extension.
         test_list = [t for t in ALL_SCRIPTS if
                      (t in tests or re.sub(".py$", "", t) in tests)]
     else:
@@ -223,13 +227,16 @@ def main():
         sys.exit(0)
 
     if args.help:
-        # Print help for test_runner.py, then print help of the first script and exit.
+        # Print help for test_runner.py, then print help of the first script
+        # and exit.
         parser.print_help()
         subprocess.check_call(
             (config["environment"]["SRCDIR"] + '/test/functional/' + test_list[0]).split() + ['-h'])
         sys.exit(0)
 
-    run_tests(test_list, config["environment"]["SRCDIR"], config["environment"]["BUILDDIR"],
+    run_tests(
+        test_list, config["environment"][
+            "SRCDIR"], config["environment"]["BUILDDIR"],
               config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
 
 
@@ -296,6 +303,7 @@ def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=Fal
 
 
 class TestHandler:
+
     """
     Trigger the testscrips passed in via the list.
     """
@@ -324,7 +332,9 @@ class TestHandler:
             log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
             self.jobs.append((t,
                               time.time(),
-                              subprocess.Popen((self.tests_dir + t).split() + self.flags + port_seed,
+                              subprocess.Popen(
+                                  (self.tests_dir + t).split() +
+                                   self.flags + port_seed,
                                                universal_newlines=True,
                                                stdout=log_stdout,
                                                stderr=log_stderr),
