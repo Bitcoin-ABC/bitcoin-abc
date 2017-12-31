@@ -5,7 +5,7 @@ Upstream-Contact: Satoshi Nakamoto <satoshin@gmx.com>
 Source: https://github.com/Bitcoin-ABC/bitcoin-abc
 
 Files: *
-Copyright: 2009-2017, Bitcoin Core Developers, 2017 Bitcoin Developers
+Copyright: 2009-2017, Bitcoin Core Developers, 2017-2018 Bitcoin Developers
 License: Expat
 Comment: The Bitcoin Developers encompasses those contributing to Bitcoin
          client open source development (various clients).
