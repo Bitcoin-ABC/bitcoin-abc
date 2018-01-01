@@ -8,6 +8,7 @@
 
 #include "primitives/transaction.h"
 #include "script_error.h"
+#include "sighashtype.h"
 
 #include <cstdint>
 #include <string>
@@ -17,15 +18,6 @@ class CPubKey;
 class CScript;
 class CTransaction;
 class uint256;
-
-/** Signature hash types/flags */
-enum {
-    SIGHASH_ALL = 1,
-    SIGHASH_NONE = 2,
-    SIGHASH_SINGLE = 3,
-    SIGHASH_FORKID = 0x40,
-    SIGHASH_ANYONECANPAY = 0x80,
-};
 
 /** Script verification flags */
 enum {
