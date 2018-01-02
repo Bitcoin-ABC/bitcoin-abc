@@ -10,13 +10,13 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
-  cmake -DCMAKE_INSTALL_PREFIX:PATH=$(build_prefix)/bin ..
+  cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=$(build_prefix)/bin ..
 endef
 
 define $(package)_build_cmds
-  $(MAKE) -C dmg
+  ninja dmg
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) DESTDIR=$($(package)_staging_dir) -C dmg install
+  DESTDIR=$($(package)_staging_dir) ninja dmg/install
 endef
