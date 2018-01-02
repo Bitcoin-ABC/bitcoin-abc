@@ -6,7 +6,6 @@
 import os
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import get_datadir_path
 
 
 class ConfArgsTest(BitcoinTestFramework):
@@ -19,7 +18,7 @@ class ConfArgsTest(BitcoinTestFramework):
         # Remove the -datadir argument so it doesn't override the config file
         self.nodes[0].remove_default_args(["-datadir"])
 
-        default_data_dir = get_datadir_path(self.options.tmpdir, 0)
+        default_data_dir = self.nodes[0].datadir
         new_data_dir = os.path.join(default_data_dir, 'newdatadir')
         new_data_dir_2 = os.path.join(default_data_dir, 'newdatadir2')
 

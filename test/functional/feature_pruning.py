@@ -63,7 +63,8 @@ class PruneTest(BitcoinTestFramework):
     def setup_network(self):
         self.setup_nodes()
 
-        self.prunedir = self.options.tmpdir + "/node2/regtest/blocks/"
+        self.prunedir = os.path.join(
+            self.nodes[2].datadir, 'regtest', 'blocks', '')
 
         connect_nodes(self.nodes[0], self.nodes[1])
         connect_nodes(self.nodes[1], self.nodes[2])

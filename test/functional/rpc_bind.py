@@ -14,7 +14,6 @@ from test_framework.test_framework import BitcoinTestFramework, SkipTest
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
-    get_datadir_path,
     get_rpc_proxy,
     rpc_port,
     rpc_url,
@@ -65,8 +64,7 @@ class RPCBindTest(BitcoinTestFramework):
         self.nodes[0].host = None
         self.start_nodes([base_args])
         # connect to node through non-loopback interface
-        url = rpc_url(get_datadir_path(self.options.tmpdir, 0),
-                      rpchost, rpcport)
+        url = rpc_url(self.nodes[0].datadir, rpchost, rpcport)
         node = get_rpc_proxy(url, 0, coveragedir=self.options.coveragedir)
         node.getnetworkinfo()
         self.stop_nodes()

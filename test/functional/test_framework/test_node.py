@@ -46,9 +46,9 @@ class TestNode():
     To make things easier for the test writer, any unrecognised messages will
     be dispatched to the RPC connection."""
 
-    def __init__(self, i, dirname, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
+    def __init__(self, i, datadir, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
         self.index = i
-        self.datadir = os.path.join(dirname, "node" + str(i))
+        self.datadir = datadir
         self.host = host
         self.rpc_port = rpc_port
         self.p2p_port = p2p_port
@@ -68,7 +68,7 @@ class TestNode():
         self.stderr = stderr
         self.coverage_dir = coverage_dir
         if extra_conf != None:
-            append_config(dirname, i, extra_conf)
+            append_config(datadir, extra_conf)
         # Most callers will just need to add extra args to the default list
         # below.
         # For those callers that need more flexibity, they can access the
