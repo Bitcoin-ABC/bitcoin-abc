@@ -1,0 +1,11 @@
+--- old/qtbase/src/platformsupport/fontdatabases/mac/qfontengine_coretext.mm	2018-04-30 18:07:35.129250331 +0200
++++ new/qtbase/src/platformsupport/fontdatabases/mac/qfontengine_coretext.mm	2018-04-30 18:08:40.886427591 +0200
+@@ -772,7 +772,7 @@
+ 
+ QFixed QCoreTextFontEngine::emSquareSize() const
+ {
+-    return QFixed::QFixed(int(CTFontGetUnitsPerEm(ctfont)));
++    return QFixed(int(CTFontGetUnitsPerEm(ctfont)));
+ }
+ 
+ QFontEngine *QCoreTextFontEngine::cloneWithSize(qreal pixelSize) const
