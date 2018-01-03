@@ -965,11 +965,13 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                 "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
                 "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
             "\nAs a JSON-RPC call\n" +
-            HelpExampleRpc("sendmany",
-                           "\"\", "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\","
-                           " 6, \"testing\"")},
+            HelpExampleRpc(
+                "sendmany",
+                "\"\", "
+                "{\"bchtest:qplljx455cznj2yrtdhj0jcm7syxlzqnaqt0ku5kjl\":0.01,"
+                "\"bchtest:qzmnuh8t24yrxq4mvjakt84r7j3f9tunlvm2p7qef9\":0.02}, "
+                "6, "
+                "\"testing\"")},
     }
         .Check(request);
 
