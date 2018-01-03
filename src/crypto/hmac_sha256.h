@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-/** A hasher class for HMAC-SHA-512. */
+/** A hasher class for HMAC-SHA-256. */
 class CHMAC_SHA256 {
 private:
     CSHA256 outer;
