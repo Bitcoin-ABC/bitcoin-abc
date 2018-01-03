@@ -66,7 +66,7 @@ private:
 const std::array<std::pair<uint8_t, uint32_t>, 8> valid_sizes = {
     {{0, 20}, {1, 24}, {2, 28}, {3, 32}, {4, 40}, {5, 48}, {6, 56}, {7, 64}}};
 
-} // anon ns
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(cashaddrenc_tests, BasicTestingSetup)
 

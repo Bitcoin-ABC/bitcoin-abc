@@ -103,13 +103,14 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.push_back(Pair("blocks", (int)chainActive.Height()));
     obj.push_back(Pair("timeoffset", GetTimeOffset()));
     if (g_connman)
-        obj.push_back(Pair("connections", (int)g_connman->GetNodeCount(
-                                              CConnman::CONNECTIONS_ALL)));
+        obj.push_back(
+            Pair("connections",
+                 (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                                  : std::string())));
     obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
-    obj.push_back(Pair("testnet", Params().NetworkIDString() ==
-                                      CBaseChainParams::TESTNET));
+    obj.push_back(Pair(
+        "testnet", Params().NetworkIDString() == CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
         obj.push_back(

@@ -177,7 +177,7 @@ public:
         ::Unserialize(s, VARINT(value));
     }
 };
-}
+} // namespace
 
 BOOST_AUTO_TEST_CASE(hashverifier_tests) {
     std::vector<uint8_t> data = ParseHex("4223");

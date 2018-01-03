@@ -155,8 +155,8 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
                                          << ToByteVector(pubkey) << 2
                                          << OP_CHECKMULTISIGVERIFY;
         CScript scriptPubKey = GetScriptForDestination(CScriptID(redeemScript));
-        CScript scriptSig = CScript() << OP_0 << OP_0
-                                      << ToByteVector(redeemScript);
+        CScript scriptSig = CScript()
+                            << OP_0 << OP_0 << ToByteVector(redeemScript);
 
         BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig);
         assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins,

@@ -112,7 +112,7 @@ void ReceiveRequestDialog::setModel(OptionsModel *_model) {
 // This converts to clients current configuration.
 QString ToCurrentEncoding(const QString &addr, const Config &cfg) {
     if (!IsValidDestinationString(addr.toStdString(), cfg.GetChainParams())) {
-        // We have something sketchy as input. Do not try to convert. 
+        // We have something sketchy as input. Do not try to convert.
         return addr;
     }
     CTxDestination dst =
@@ -141,19 +141,19 @@ void ReceiveRequestDialog::update() {
     html += "<b>" + tr("Payment information") + "</b><br>";
     html += "<b>" + tr("URI") + "</b>: ";
     html += "<a href=\"" + uri + "\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
-    html += "<b>" + tr("Address") + "</b>: " +
-            GUIUtil::HtmlEscape(info.address) + "<br>";
+    html += "<b>" + tr("Address") +
+            "</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
     if (info.amount != Amount(0))
-        html += "<b>" + tr("Amount") + "</b>: " +
-                BitcoinUnits::formatHtmlWithUnit(model->getDisplayUnit(),
-                                                 info.amount) +
+        html += "<b>" + tr("Amount") +
+                "</b>: " + BitcoinUnits::formatHtmlWithUnit(
+                               model->getDisplayUnit(), info.amount) +
                 "<br>";
     if (!info.label.isEmpty())
-        html += "<b>" + tr("Label") + "</b>: " +
-                GUIUtil::HtmlEscape(info.label) + "<br>";
+        html += "<b>" + tr("Label") +
+                "</b>: " + GUIUtil::HtmlEscape(info.label) + "<br>";
     if (!info.message.isEmpty())
-        html += "<b>" + tr("Message") + "</b>: " +
-                GUIUtil::HtmlEscape(info.message) + "<br>";
+        html += "<b>" + tr("Message") +
+                "</b>: " + GUIUtil::HtmlEscape(info.message) + "<br>";
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE

@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "undo.h"
 #include "chainparams.h"
 #include "consensus/validation.h"
+#include "undo.h"
 #include "validation.h"
 
 #include "test/test_bitcoin.h"

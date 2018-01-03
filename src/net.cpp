@@ -344,8 +344,9 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     /// debug print
     LogPrint(BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
              pszDest ? pszDest : addrConnect.ToString(),
-             pszDest ? 0.0 : (double)(GetAdjustedTime() - addrConnect.nTime) /
-                                 3600.0);
+             pszDest
+                 ? 0.0
+                 : (double)(GetAdjustedTime() - addrConnect.nTime) / 3600.0);
 
     // Connect
     SOCKET hSocket;
@@ -853,10 +854,11 @@ size_t CConnman::SocketSendData(CNode *pnode) const {
                 break;
             }
 
-            nBytes = send(
-                pnode->hSocket, reinterpret_cast<const char *>(data.data()) +
-                                    pnode->nSendOffset,
-                data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
+            nBytes = send(pnode->hSocket,
+                          reinterpret_cast<const char *>(data.data()) +
+                              pnode->nSendOffset,
+                          data.size() - pnode->nSendOffset,
+                          MSG_NOSIGNAL | MSG_DONTWAIT);
         }
 
         if (nBytes == 0) {
@@ -2122,8 +2124,9 @@ void CConnman::ThreadMessageHandler() {
 
         std::unique_lock<std::mutex> lock(mutexMsgProc);
         if (!fMoreWork) {
-            condMsgProc.wait_until(lock, std::chrono::steady_clock::now() +
-                                             std::chrono::milliseconds(100),
+            condMsgProc.wait_until(lock,
+                                   std::chrono::steady_clock::now() +
+                                       std::chrono::milliseconds(100),
                                    [this] { return fMsgProcWake; });
         }
         fMsgProcWake = false;

@@ -10,7 +10,7 @@
 namespace {
 /* Global secp256k1_context object used for verification. */
 secp256k1_context *secp256k1_context_verify = nullptr;
-}
+} // namespace
 
 /**
  * This function is taken from the libsecp256k1 distribution and implements DER
@@ -209,9 +209,9 @@ bool CPubKey::RecoverCompact(const uint256 &hash,
     }
     uint8_t pub[65];
     size_t publen = 65;
-    secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
-                                  &pubkey, fComp ? SECP256K1_EC_COMPRESSED
-                                                 : SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_ec_pubkey_serialize(
+        secp256k1_context_verify, pub, &publen, &pubkey,
+        fComp ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
     Set(pub, pub + publen);
     return true;
 }

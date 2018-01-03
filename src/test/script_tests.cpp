@@ -272,9 +272,9 @@ public:
         CScript scriptPubKey = script;
         if (P2SH) {
             redeemscript = scriptPubKey;
-            scriptPubKey = CScript() << OP_HASH160
-                                     << ToByteVector(CScriptID(redeemscript))
-                                     << OP_EQUAL;
+            scriptPubKey = CScript()
+                           << OP_HASH160
+                           << ToByteVector(CScriptID(redeemscript)) << OP_EQUAL;
         }
         creditTx =
             MakeTransactionRef(BuildCreditingTransaction(scriptPubKey, nValue));
@@ -581,8 +581,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .DamagePush(10)
                         .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey2C) << OP_CHECKSIG
-                              << OP_NOT,
+        TestBuilder(CScript()
+                        << ToByteVector(keys.pubkey2C) << OP_CHECKSIG << OP_NOT,
                     "P2PK NOT with too much R padding but no DERSIG", 0)
             .PushSig(keys.key2, SIGHASH_ALL, 31, 32)
             .EditPush(1, "43021F", "44022000")
@@ -813,8 +813,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
                         .PushSig(keys.key0, SIGHASH_ALL)
                         .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
     tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKSIG
-                              << OP_NOT,
+        TestBuilder(CScript()
+                        << ToByteVector(keys.pubkey0H) << OP_CHECKSIG << OP_NOT,
                     "P2PK NOT with invalid hybrid pubkey but no STRICTENC", 0)
             .PushSig(keys.key0, SIGHASH_ALL)
             .DamagePush(10));
@@ -866,8 +866,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .PushSig(keys.key1, 5)
             .DamagePush(10));
     tests.push_back(
-        TestBuilder(CScript() << ToByteVector(keys.pubkey1) << OP_CHECKSIG
-                              << OP_NOT,
+        TestBuilder(CScript()
+                        << ToByteVector(keys.pubkey1) << OP_CHECKSIG << OP_NOT,
                     "P2PK NOT with invalid sig and undefined hashtype",
                     SCRIPT_VERIFY_STRICTENC)
             .PushSig(keys.key1, 5)
@@ -1056,8 +1056,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
         std::string str = JSONPrettyPrint(test.GetJSON());
 #ifndef UPDATE_JSON_TESTS
         if (tests_set.count(str) == 0) {
-            BOOST_CHECK_MESSAGE(false, "Missing auto script_valid test: " +
-                                           test.GetComment());
+            BOOST_CHECK_MESSAGE(
+                false, "Missing auto script_valid test: " + test.GetComment());
         }
 #endif
         strGen += str + ",\n";

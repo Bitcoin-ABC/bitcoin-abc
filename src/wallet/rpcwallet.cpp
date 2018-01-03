@@ -2729,10 +2729,11 @@ static UniValue lockunspent(const Config &config,
         }
         const UniValue &o = output.get_obj();
 
-        RPCTypeCheckObj(o, {
-                               {"txid", UniValueType(UniValue::VSTR)},
-                               {"vout", UniValueType(UniValue::VNUM)},
-                           });
+        RPCTypeCheckObj(o,
+                        {
+                            {"txid", UniValueType(UniValue::VSTR)},
+                            {"vout", UniValueType(UniValue::VNUM)},
+                        });
 
         std::string txid = find_value(o, "txid").get_str();
         if (!IsHex(txid)) {

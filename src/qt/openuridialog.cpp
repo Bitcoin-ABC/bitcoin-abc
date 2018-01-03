@@ -42,6 +42,6 @@ void OpenURIDialog::on_selectFileButton_clicked() {
         this, tr("Select payment request file to open"), "", "", nullptr);
     if (filename.isEmpty()) return;
     QUrl fileUri = QUrl::fromLocalFile(filename);
-    ui->uriEdit->setText(GUIUtil::bitcoinURIScheme(*cfg) + ":?r=" +
-                         QUrl::toPercentEncoding(fileUri.toString()));
+    ui->uriEdit->setText(GUIUtil::bitcoinURIScheme(*cfg) +
+                         ":?r=" + QUrl::toPercentEncoding(fileUri.toString()));
 }

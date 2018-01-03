@@ -108,11 +108,11 @@ public:
             if (!showTransaction && inModel) status = CT_DELETED;
         }
 
-        qDebug() << "    inModel=" + QString::number(inModel) + " Index=" +
-                        QString::number(lowerIndex) + "-" +
-                        QString::number(upperIndex) + " showTransaction=" +
-                        QString::number(showTransaction) + " derivedStatus=" +
-                        QString::number(status);
+        qDebug() << "    inModel=" + QString::number(inModel) +
+                        " Index=" + QString::number(lowerIndex) + "-" +
+                        QString::number(upperIndex) +
+                        " showTransaction=" + QString::number(showTransaction) +
+                        " derivedStatus=" + QString::number(status);
 
         switch (status) {
             case CT_NEW:
@@ -713,8 +713,8 @@ public:
 
     void invoke(QObject *ttm) {
         QString strHash = QString::fromStdString(hash.GetHex());
-        qDebug() << "NotifyTransactionChanged: " + strHash + " status= " +
-                        QString::number(status);
+        qDebug() << "NotifyTransactionChanged: " + strHash +
+                        " status= " + QString::number(status);
         QMetaObject::invokeMethod(ttm, "updateTransaction",
                                   Qt::QueuedConnection, Q_ARG(QString, strHash),
                                   Q_ARG(int, status),

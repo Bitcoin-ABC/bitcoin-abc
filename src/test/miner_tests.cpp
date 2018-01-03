@@ -101,29 +101,32 @@ void TestPackageSelection(const CChainParams &chainparams, CScript scriptPubKey,
     // This tx has a low fee: 1000 satoshis.
     // Save this txid for later use.
     uint256 hashParentTx = tx.GetId();
-    mempool.addUnchecked(hashParentTx, entry.Fee(Amount(1000))
-                                           .Time(GetTime())
-                                           .SpendsCoinbase(true)
-                                           .FromTx(tx));
+    mempool.addUnchecked(hashParentTx,
+                         entry.Fee(Amount(1000))
+                             .Time(GetTime())
+                             .SpendsCoinbase(true)
+                             .FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis.
     tx.vin[0].prevout.hash = txFirst[1]->GetId();
     tx.vout[0].nValue = Amount(5000000000LL - 10000);
     uint256 hashMediumFeeTx = tx.GetId();
-    mempool.addUnchecked(hashMediumFeeTx, entry.Fee(Amount(10000))
-                                              .Time(GetTime())
-                                              .SpendsCoinbase(true)
-                                              .FromTx(tx));
+    mempool.addUnchecked(hashMediumFeeTx,
+                         entry.Fee(Amount(10000))
+                             .Time(GetTime())
+                             .SpendsCoinbase(true)
+                             .FromTx(tx));
 
     // This tx has a high fee, but depends on the first transaction.
     tx.vin[0].prevout.hash = hashParentTx;
     // 50k satoshi fee.
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     uint256 hashHighFeeTx = tx.GetId();
-    mempool.addUnchecked(hashHighFeeTx, entry.Fee(Amount(50000))
-                                            .Time(GetTime())
-                                            .SpendsCoinbase(false)
-                                            .FromTx(tx));
+    mempool.addUnchecked(hashHighFeeTx,
+                         entry.Fee(Amount(50000))
+                             .Time(GetTime())
+                             .SpendsCoinbase(false)
+                             .FromTx(tx));
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
         BlockAssembler(config, chainparams).CreateNewBlock(scriptPubKey);
@@ -328,10 +331,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         bool spendsCoinbase = (i == 0) ? true : false;
         // If we don't set the # of sig ops in the CTxMemPoolEntry, template
         // creation fails.
-        mempool.addUnchecked(hash, entry.Fee(LOWFEE)
-                                       .Time(GetTime())
-                                       .SpendsCoinbase(spendsCoinbase)
-                                       .FromTx(tx));
+        mempool.addUnchecked(hash,
+                             entry.Fee(LOWFEE)
+                                 .Time(GetTime())
+                                 .SpendsCoinbase(spendsCoinbase)
+                                 .FromTx(tx));
         tx.vin[0].prevout.hash = hash;
     }
     BOOST_CHECK_THROW(
@@ -348,11 +352,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         bool spendsCoinbase = (i == 0) ? true : false;
         // If we do set the # of sig ops in the CTxMemPoolEntry, template
         // creation passes.
-        mempool.addUnchecked(hash, entry.Fee(LOWFEE)
-                                       .Time(GetTime())
-                                       .SpendsCoinbase(spendsCoinbase)
-                                       .SigOpsCost(80)
-                                       .FromTx(tx));
+        mempool.addUnchecked(hash,
+                             entry.Fee(LOWFEE)
+                                 .Time(GetTime())
+                                 .SpendsCoinbase(spendsCoinbase)
+                                 .SigOpsCost(80)
+                                 .FromTx(tx));
         tx.vin[0].prevout.hash = hash;
     }
     BOOST_CHECK(
@@ -374,10 +379,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         hash = tx.GetId();
         // Only first tx spends coinbase.
         bool spendsCoinbase = (i == 0) ? true : false;
-        mempool.addUnchecked(hash, entry.Fee(LOWFEE)
-                                       .Time(GetTime())
-                                       .SpendsCoinbase(spendsCoinbase)
-                                       .FromTx(tx));
+        mempool.addUnchecked(hash,
+                             entry.Fee(LOWFEE)
+                                 .Time(GetTime())
+                                 .SpendsCoinbase(spendsCoinbase)
+                                 .FromTx(tx));
         tx.vin[0].prevout.hash = hash;
     }
     BOOST_CHECK(

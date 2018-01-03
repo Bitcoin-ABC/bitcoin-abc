@@ -73,7 +73,7 @@ public:
 
     static void RunAll(double elapsedTimeForOne = 1.0);
 };
-}
+} // namespace benchmark
 
 // BENCHMARK(foo) expands to:  benchmark::BenchRunner bench_11foo("foo", foo);
 #define BENCHMARK(n)                                                           \

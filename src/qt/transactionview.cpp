@@ -507,9 +507,10 @@ void TransactionView::openThirdPartyTxUrl(QString url) {
         transactionView->selectionModel()->selectedRows(0);
     if (!selection.isEmpty())
         QDesktopServices::openUrl(QUrl::fromUserInput(
-            url.replace("%s", selection.at(0)
-                                  .data(TransactionTableModel::TxHashRole)
-                                  .toString())));
+            url.replace("%s",
+                        selection.at(0)
+                            .data(TransactionTableModel::TxHashRole)
+                            .toString())));
 }
 
 QWidget *TransactionView::createDateRangeWidget() {

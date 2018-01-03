@@ -6,7 +6,6 @@
 
 #include "chainparams.h"
 #include "config.h"
-#include "config.h"
 #include "consensus/validation.h"
 #include "fs.h"
 #include "rpc/register.h"

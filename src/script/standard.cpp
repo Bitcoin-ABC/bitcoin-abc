@@ -51,14 +51,16 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
 
         // Bitcoin address tx, sender provides hash of pubkey, receiver provides
         // signature and pubkey
-        mTemplates.insert(std::make_pair(
-            TX_PUBKEYHASH, CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH
+        mTemplates.insert(
+            std::make_pair(TX_PUBKEYHASH,
+                           CScript() << OP_DUP << OP_HASH160 << OP_PUBKEYHASH
                                      << OP_EQUALVERIFY << OP_CHECKSIG));
 
         // Sender provides N pubkeys, receivers provides M signatures
-        mTemplates.insert(std::make_pair(
-            TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS
-                                   << OP_SMALLINTEGER << OP_CHECKMULTISIG));
+        mTemplates.insert(
+            std::make_pair(TX_MULTISIG,
+                           CScript() << OP_SMALLINTEGER << OP_PUBKEYS
+                                     << OP_SMALLINTEGER << OP_CHECKMULTISIG));
     }
 
     vSolutionsRet.clear();
@@ -232,7 +234,7 @@ public:
         return true;
     }
 };
-}
+} // namespace
 
 CScript GetScriptForDestination(const CTxDestination &dest) {
     CScript script;

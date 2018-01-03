@@ -84,7 +84,7 @@ private:
     const CChainParams &params;
 };
 
-} // anon ns
+} // namespace
 
 std::string EncodeCashAddr(const CTxDestination &dst,
                            const CChainParams &params) {

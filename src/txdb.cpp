@@ -46,7 +46,7 @@ struct CoinEntry {
         s >> VARINT(outpoint->n);
     }
 };
-}
+} // namespace
 
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe)
     : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true) {}
@@ -320,7 +320,7 @@ public:
         ::Unserialize(s, VARINT(nHeight));
     }
 };
-}
+} // namespace
 
 /**
  * Upgrade the database from older formats.

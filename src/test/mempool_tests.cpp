@@ -535,8 +535,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK(!pool.exists(tx2.GetId()));
     BOOST_CHECK(!pool.exists(tx3.GetId()));
 
-    CFeeRate maxFeeRateRemoved(Amount(25000), GetTransactionSize(tx3) +
-                                                  GetTransactionSize(tx2));
+    CFeeRate maxFeeRateRemoved(
+        Amount(25000), GetTransactionSize(tx3) + GetTransactionSize(tx2));
     BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(),
                       maxFeeRateRemoved.GetFeePerK() + Amount(1000));
 

@@ -781,8 +781,9 @@ private:
      * transaction that is removed, so we can't remove intermediate transactions
      * in a chain before we've updated all the state for the removal.
      */
-    void removeUnchecked(txiter entry, MemPoolRemovalReason reason =
-                                           MemPoolRemovalReason::UNKNOWN);
+    void removeUnchecked(
+        txiter entry,
+        MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN);
 };
 
 /**

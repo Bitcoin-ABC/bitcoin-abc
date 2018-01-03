@@ -763,9 +763,10 @@ void CoinControlDialog::updateView() {
             // label
             if (!(sAddress == sWalletAddress)) {
                 // change tooltip from where the change comes from
-                itemOutput->setToolTip(COLUMN_LABEL, tr("change from %1 (%2)")
-                                                         .arg(sWalletLabel)
-                                                         .arg(sWalletAddress));
+                itemOutput->setToolTip(COLUMN_LABEL,
+                                       tr("change from %1 (%2)")
+                                           .arg(sWalletLabel)
+                                           .arg(sWalletAddress));
                 itemOutput->setText(COLUMN_LABEL, tr("(change)"));
             } else if (!treeMode) {
                 QString sLabel =

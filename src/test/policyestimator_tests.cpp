@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "policy/policy.h"
 #include "policy/fees.h"
+#include "policy/policy.h"
 #include "txmempool.h"
 #include "uint256.h"
 #include "util.h"
@@ -57,11 +57,12 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                 // make transaction unique
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
                 uint256 hash = tx.GetId();
-                mpool.addUnchecked(hash, entry.Fee(feeV[j])
-                                             .Time(GetTime())
-                                             .Priority(0)
-                                             .Height(blocknum)
-                                             .FromTx(tx, &mpool));
+                mpool.addUnchecked(hash,
+                                   entry.Fee(feeV[j])
+                                       .Time(GetTime())
+                                       .Priority(0)
+                                       .Height(blocknum)
+                                       .FromTx(tx, &mpool));
                 txHashes[j].push_back(hash);
             }
         }
@@ -153,11 +154,12 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
                 uint256 txid = tx.GetId();
-                mpool.addUnchecked(txid, entry.Fee(feeV[j])
-                                             .Time(GetTime())
-                                             .Priority(0)
-                                             .Height(blocknum)
-                                             .FromTx(tx, &mpool));
+                mpool.addUnchecked(txid,
+                                   entry.Fee(feeV[j])
+                                       .Time(GetTime())
+                                       .Priority(0)
+                                       .Height(blocknum)
+                                       .FromTx(tx, &mpool));
                 txHashes[j].push_back(txid);
             }
         }
@@ -200,11 +202,12 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
                 uint256 txid = tx.GetId();
-                mpool.addUnchecked(txid, entry.Fee(feeV[j])
-                                             .Time(GetTime())
-                                             .Priority(0)
-                                             .Height(blocknum)
-                                             .FromTx(tx, &mpool));
+                mpool.addUnchecked(txid,
+                                   entry.Fee(feeV[j])
+                                       .Time(GetTime())
+                                       .Priority(0)
+                                       .Height(blocknum)
+                                       .FromTx(tx, &mpool));
                 CTransactionRef ptx = mpool.get(txid);
                 if (ptx) block.push_back(ptx);
             }

@@ -42,7 +42,7 @@ void HandleError(const leveldb::Status &status);
  * specific database.
  */
 const std::vector<uint8_t> &GetObfuscateKey(const CDBWrapper &w);
-};
+}; // namespace dbwrapper_private
 
 /** Batch of changes queued to be written to a CDBWrapper */
 class CDBBatch {

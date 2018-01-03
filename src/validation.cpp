@@ -2326,8 +2326,8 @@ static bool FlushStateToDisk(CValidationState &state, FlushStateMode mode,
             nLastSetChain = nNow;
         }
     } catch (const std::runtime_error &e) {
-        return AbortNode(state, std::string("System error while flushing: ") +
-                                    e.what());
+        return AbortNode(
+            state, std::string("System error while flushing: ") + e.what());
     }
     return true;
 }
@@ -4269,10 +4269,11 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
             boost::this_thread::interruption_point();
             uiInterface.ShowProgress(
                 _("Verifying blocks..."),
-                std::max(
-                    1, std::min(99, 100 - (int)(((double)(chainActive.Height() -
-                                                          pindex->nHeight)) /
-                                                (double)nCheckDepth * 50))));
+                std::max(1,
+                         std::min(99,
+                                  100 - (int)(((double)(chainActive.Height() -
+                                                        pindex->nHeight)) /
+                                              (double)nCheckDepth * 50))));
             pindex = chainActive.Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, config)) {

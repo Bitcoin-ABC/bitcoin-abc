@@ -178,8 +178,8 @@ public:
 
         BOOST_CHECK_MESSAGE(
             vchDecrypted1 == vchDecrypted2,
-            HexStr(vchDecrypted1.begin(), vchDecrypted1.end()) + " != " +
-                HexStr(vchDecrypted2.begin(), vchDecrypted2.end()));
+            HexStr(vchDecrypted1.begin(), vchDecrypted1.end()) +
+                " != " + HexStr(vchDecrypted2.begin(), vchDecrypted2.end()));
 
         if (vchPlaintext.size())
             BOOST_CHECK(CKeyingMaterial(vchPlaintext.begin(),

@@ -184,7 +184,7 @@ private:
     std::string net;
 };
 
-} // anon ns
+} // namespace
 
 void URITests::uriTestFormatURI() {
     {

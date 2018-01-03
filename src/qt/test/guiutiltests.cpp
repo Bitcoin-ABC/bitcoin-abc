@@ -24,7 +24,7 @@ private:
     bool useCashAddr;
 };
 
-} // anon ns
+} // namespace
 
 void GUIUtilTests::dummyAddressTest() {
     CChainParams &params = Params(CBaseChainParams::MAIN);

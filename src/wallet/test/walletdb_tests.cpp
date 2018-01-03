@@ -38,7 +38,7 @@ static std::unique_ptr<CWallet> LoadWallet(CWalletDB *db) {
     BOOST_CHECK(res == DB_LOAD_OK);
     return wallet;
 }
-}
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletDBTestingSetup);
 

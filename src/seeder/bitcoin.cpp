@@ -263,9 +263,9 @@ public:
 
         bool res = true;
         int64_t now;
-        while (now = time(nullptr), ban == 0 &&
-                                        (doneAfter == 0 || doneAfter > now) &&
-                                        sock != INVALID_SOCKET) {
+        while (now = time(nullptr),
+               ban == 0 && (doneAfter == 0 || doneAfter > now) &&
+                   sock != INVALID_SOCKET) {
             char pchBuf[0x10000];
             fd_set set;
             FD_ZERO(&set);

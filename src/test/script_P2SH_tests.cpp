@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "script/script.h"
 #include "core_io.h"
 #include "key.h"
 #include "keystore.h"
 #include "policy/policy.h"
 #include "script/ismine.h"
+#include "script/script.h"
 #include "script/script_error.h"
 #include "script/sign.h"
 #include "test/test_bitcoin.h"

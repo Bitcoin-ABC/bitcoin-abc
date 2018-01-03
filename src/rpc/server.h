@@ -166,8 +166,8 @@ public:
                 const_rpcfn_type _actor, bool _okSafeMode,
                 std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
-          actor{reinterpret_cast<rpcfn_type>(_actor)}, okSafeMode{_okSafeMode},
-          argNames{std::move(_argNames)} {}
+          actor{reinterpret_cast<rpcfn_type>(_actor)},
+          okSafeMode{_okSafeMode}, argNames{std::move(_argNames)} {}
 };
 
 /**

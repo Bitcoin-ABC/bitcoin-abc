@@ -21,7 +21,7 @@ private:
     bool useCashAddr;
 };
 
-} // anon ns
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(dstencode_tests, BasicTestingSetup)
 

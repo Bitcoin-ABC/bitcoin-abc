@@ -437,8 +437,9 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
     QString strPurpose = QString::fromStdString(purpose);
 
     qDebug() << "NotifyAddressBookChanged: " + strAddress + " " + strLabel +
-                    " isMine=" + QString::number(isMine) + " purpose=" +
-                    strPurpose + " status=" + QString::number(status);
+                    " isMine=" + QString::number(isMine) +
+                    " purpose=" + strPurpose +
+                    " status=" + QString::number(status);
     QMetaObject::invokeMethod(walletmodel, "updateAddressBook",
                               Qt::QueuedConnection, Q_ARG(QString, strAddress),
                               Q_ARG(QString, strLabel), Q_ARG(bool, isMine),

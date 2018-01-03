@@ -61,7 +61,7 @@ QImage ColorizeImage(const QString &filename, const QColor &colorbase) {
 QIcon ColorizeIcon(const QString &filename, const QColor &colorbase) {
     return QIcon(QPixmap::fromImage(ColorizeImage(filename, colorbase)));
 }
-}
+} // namespace
 
 PlatformStyle::PlatformStyle(const QString &_name, bool _imagesOnButtons,
                              bool _colorizeIcons, bool _useExtraSpacing)

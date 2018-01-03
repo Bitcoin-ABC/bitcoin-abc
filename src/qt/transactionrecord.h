@@ -26,7 +26,7 @@ public:
 
     enum Status {
         /**< Have 6 or more confirmations (normal tx) or fully mature (mined tx)
-           **/
+         **/
         Confirmed,
         /// Normal (sent/received) transactions
         /**< Transaction not yet final, waiting for date */
@@ -38,7 +38,7 @@ public:
         /**< Not yet mined into a block **/
         Unconfirmed,
         /**< Confirmed, but waiting for the recommended number of confirmations
-           **/
+         **/
         Confirming,
         /**< Conflicts with other transaction or mempool **/
         Conflicted,
@@ -48,7 +48,7 @@ public:
         /**< Mined but waiting for maturity */
         Immature,
         /**< Transaction will likely not mature because no nodes have confirmed
-           */
+         */
         MaturesWarning,
         /**< Mined but not accepted */
         NotAccepted

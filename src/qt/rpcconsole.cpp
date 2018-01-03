@@ -71,10 +71,10 @@ const QStringList historyFilter = QStringList() << "importprivkey"
                                                 << "walletpassphrase"
                                                 << "walletpassphrasechange"
                                                 << "encryptwallet";
-}
+} // namespace
 
 /* Object for executing console RPC commands in a separate thread.
-*/
+ */
 class RPCExecutor : public QObject {
     Q_OBJECT
 

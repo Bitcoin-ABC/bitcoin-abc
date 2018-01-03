@@ -446,8 +446,9 @@ std::string HelpMessage(HelpMessageMode mode) {
                                _("Discover own IP addresses (default: 1 when "
                                  "listening and no -externalip or -proxy)"));
     strUsage += HelpMessageOpt(
-        "-dns", _("Allow DNS lookups for -addnode, -seednode and -connect") +
-                    " " + strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
+        "-dns",
+        _("Allow DNS lookups for -addnode, -seednode and -connect") + " " +
+            strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
     strUsage += HelpMessageOpt(
         "-dnsseed", _("Query for peer addresses via DNS lookup, if low on "
                       "addresses (default: 1 unless -connect/-noconnect)"));
@@ -1888,11 +1889,11 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     // total cache cannot be greater than nMaxDbcache
     nTotalCache = std::min(nTotalCache, nMaxDbCache << 20);
     int64_t nBlockTreeDBCache = nTotalCache / 8;
-    nBlockTreeDBCache =
-        std::min(nBlockTreeDBCache, (GetBoolArg("-txindex", DEFAULT_TXINDEX)
-                                         ? nMaxBlockDBAndTxIndexCache
-                                         : nMaxBlockDBCache)
-                                        << 20);
+    nBlockTreeDBCache = std::min(nBlockTreeDBCache,
+                                 (GetBoolArg("-txindex", DEFAULT_TXINDEX)
+                                      ? nMaxBlockDBAndTxIndexCache
+                                      : nMaxBlockDBCache)
+                                     << 20);
     nTotalCache -= nBlockTreeDBCache;
     // use 25%-50% of the remainder for disk cache
     int64_t nCoinDBCache =
@@ -2048,8 +2049,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                         _("Do you want to rebuild the block database now?"),
                     strLoadError + ".\nPlease restart with -reindex or "
                                    "-reindex-chainstate to recover.",
-                    "", CClientUIInterface::MSG_ERROR |
-                            CClientUIInterface::BTN_ABORT);
+                    "",
+                    CClientUIInterface::MSG_ERROR |
+                        CClientUIInterface::BTN_ABORT);
                 if (fRet) {
                     fReindex = true;
                     fRequestShutdown = false;
