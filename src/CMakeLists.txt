@@ -74,9 +74,7 @@ target_include_directories(util
 	PUBLIC
 		.
 		# To access the config.
-		# TODO: Make compat its own lib and just import it.
 		${CMAKE_CURRENT_BINARY_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}/config
 )
 
 # Dependencies
