@@ -124,7 +124,7 @@ static const ssize_t NUM_OS_RANDOM_BYTES = 32;
  * Get 32 bytes of system entropy. Do not use this in application code: use
  * GetStrongRandBytes instead.
  */
-void GetOSRand(unsigned char *ent32);
+void GetOSRand(uint8_t *ent32);
 
 /**
  * Check that OS randomness is available and returning the requested number of
