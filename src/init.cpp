@@ -1875,36 +1875,6 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     fReindex = GetBoolArg("-reindex", false);
     bool fReindexChainState = GetBoolArg("-reindex-chainstate", false);
 
-    // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
-    fs::path blocksDir = GetDataDir() / "blocks";
-    if (!fs::exists(blocksDir)) {
-        fs::create_directories(blocksDir);
-        bool linked = false;
-        for (unsigned int i = 1; i < 10000; i++) {
-            fs::path source = GetDataDir() / strprintf("blk%04u.dat", i);
-
-            if (!fs::exists(source)) {
-                break;
-            }
-
-            fs::path dest = blocksDir / strprintf("blk%05u.dat", i - 1);
-            try {
-                fs::create_hard_link(source, dest);
-                LogPrintf("Hardlinked %s -> %s\n", source.string(),
-                          dest.string());
-                linked = true;
-            } catch (const fs::filesystem_error &e) {
-                // Note: hardlink creation failing is not a disaster, it just
-                // means blocks will get re-downloaded from peers.
-                LogPrintf("Error hardlinking blk%04u.dat: %s\n", i, e.what());
-                break;
-            }
-        }
-        if (linked) {
-            fReindex = true;
-        }
-    }
-
     // cache size calculations
     int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20);
     // total cache cannot be less than nMinDbCache
