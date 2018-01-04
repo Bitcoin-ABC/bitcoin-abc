@@ -4,10 +4,13 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
-# Desciption:
-#   Quick and dirty script to read build output and report it to phabricator.
+
+"""
+Quick and dirty script to read build output and report it to phabricator.
+"""
 
 
+import argparse
 import collections
 import os
 import os.path
@@ -139,7 +142,7 @@ def execute_and_parse(script):
             "Non-zero exit code": "".join(backbuffer)
         })
 
-    return interesting_messages
+    return interesting_messages, p.returncode
 
 
 def create_comment(phab, revisionID, build_status, buildUrl):
@@ -160,15 +163,18 @@ def create_comment(phab, revisionID, build_status, buildUrl):
 
 
 def main(args):
-    if len(args) < 2:
-        print("Usage: {} <script> [<output> ...]".format(args[0]))
-        print("")
-        print("  <script>: Script to run and parse output from.")
-        print("  <output>: Test result file for parsing.")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(prog=args[0], add_help=True,
+                                     usage='%(prog)s [script] [reports...]',
+                                     description=__doc__)
+    parser.add_argument('--no-report', action='store_true',
+                        help='Do not report test results to phabricator')
+    parser.add_argument('script', type=str, help='script to execute')
+    parser.add_argument('reports', type=str, nargs='*',
+                        help='list of test result files')
+    parsed = parser.parse_args(args[1:])
 
     token = os.environ.get("TEAMCITY_CONDUIT_TOKEN", None)
-    if not token:
+    if not token and not parsed.no_report:
         print("Please provide a conduit token in the environment variable ""TEAMCITY_CONDUIT_TOKEN""")
         sys.exit(1)
 
@@ -176,18 +182,25 @@ def main(args):
     phabricatorUrl = urlparse.urljoin(arcconfig['conduit_uri'], "api/")
     buildUrl = os.environ.get('BUILD_URL', '')
 
-    failures = execute_and_parse(args[1])
-    for file in args[2:]:
+    failures, exitcode = execute_and_parse(parsed.script)
+    for file in parsed.reports:
         # All inputs may not exist if the build fails prematurely
-        if not os.path.isfile(arg):
+        if not os.path.isfile(file):
             continue
 
-        elif arg.endswith(".xml"):
-            failures.update(get_failures(arg))
+        elif file.endswith(".xml"):
+            failures.update(get_failures(file))
 
     build_status = "success"
     if len(failures) != 0:
         build_status = "failure"
+
+    if len(failures) != 0 and exitcode == 0:
+        exitcode = 1
+
+    if parsed.no_report:
+        print("Build terminated with {}".format(build_status))
+        sys.exit(exitcode)
 
     phab = Phabricator(host=phabricatorUrl, token=token)
     phab.update_interfaces()
@@ -199,6 +212,8 @@ def main(args):
         task_body = create_task_body(buildUrl, revisionID, failures)
         create_task(phab, authorPHID, revisionID, task_body)
         create_comment(phab, revisionID, build_status, buildUrl)
+
+    sys.exit(exitcode)
 
 
 if __name__ == "__main__":
