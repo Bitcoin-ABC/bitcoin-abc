@@ -206,9 +206,10 @@ bool Intro::pickDataDirectory() {
      * override -datadir in the bitcoin.conf file in the default data directory
      * (to be consistent with bitcoind behavior)
      */
-    if (dataDir != getDefaultDataDirectory())
-        SoftSetArg("-datadir", GUIUtil::qstringToBoostPath(dataDir)
-                                   .string()); // use OS locale for path setting
+    if (dataDir != getDefaultDataDirectory()) {
+        // use OS locale for path setting
+        SoftSetArg("-datadir", GUIUtil::qstringToBoostPath(dataDir).string());
+    }
     return true;
 }
 
