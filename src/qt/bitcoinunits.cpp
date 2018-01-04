@@ -30,7 +30,7 @@ bool BitcoinUnits::valid(int unit) {
     }
 }
 
-QString BitcoinUnits::name(int unit) {
+QString BitcoinUnits::longName(int unit) {
     switch (unit) {
         case BCH:
             return QString("BCH");
@@ -41,6 +41,10 @@ QString BitcoinUnits::name(int unit) {
         default:
             return QString("???");
     }
+}
+
+QString BitcoinUnits::shortName(int unit) {
+    return longName(unit);
 }
 
 QString BitcoinUnits::description(int unit) {
@@ -132,7 +136,7 @@ QString BitcoinUnits::format(int unit, const Amount nIn, bool fPlus,
 QString BitcoinUnits::formatWithUnit(int unit, const Amount amount,
                                      bool plussign, SeparatorStyle separators) {
     return format(unit, amount, plussign, separators) + QString(" ") +
-           name(unit);
+           shortName(unit);
 }
 
 QString BitcoinUnits::formatHtmlWithUnit(int unit, const Amount amount,
@@ -184,7 +188,7 @@ bool BitcoinUnits::parse(int unit, const QString &value, Amount *val_out) {
 QString BitcoinUnits::getAmountColumnTitle(int unit) {
     QString amountTitle = QObject::tr("Amount");
     if (BitcoinUnits::valid(unit)) {
-        amountTitle += " (" + BitcoinUnits::name(unit) + ")";
+        amountTitle += " (" + BitcoinUnits::shortName(unit) + ")";
     }
     return amountTitle;
 }
@@ -201,7 +205,7 @@ QVariant BitcoinUnits::data(const QModelIndex &index, int role) const {
         switch (role) {
             case Qt::EditRole:
             case Qt::DisplayRole:
-                return QVariant(name(unit));
+                return QVariant(longName(unit));
             case Qt::ToolTipRole:
                 return QVariant(description(unit));
             case UnitRole:
