@@ -282,7 +282,7 @@ std::string Socks5ErrorString(int err) {
 /** Connect using SOCKS5 (as described in RFC1928) */
 static bool Socks5(const std::string &strDest, int port,
                    const ProxyCredentials *auth, SOCKET &hSocket) {
-    LogPrint("net", "SOCKS5 connecting %s\n", strDest);
+    LogPrint(BCLog::NET, "SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255) {
         CloseSocket(hSocket);
         return error("Hostname too long");
@@ -337,7 +337,7 @@ static bool Socks5(const std::string &strDest, int port,
             CloseSocket(hSocket);
             return error("Error sending authentication to proxy");
         }
-        LogPrint("proxy", "SOCKS5 sending proxy authentication %s:%s\n",
+        LogPrint(BCLog::PROXY, "SOCKS5 sending proxy authentication %s:%s\n",
                  auth->username, auth->password);
         char pchRetA[2];
         if (!InterruptibleRecv(pchRetA, 2, SOCKS5_RECV_TIMEOUT, hSocket)) {
@@ -426,7 +426,7 @@ static bool Socks5(const std::string &strDest, int port,
         CloseSocket(hSocket);
         return error("Error reading from proxy");
     }
-    LogPrint("net", "SOCKS5 connected %s\n", strDest);
+    LogPrint(BCLog::NET, "SOCKS5 connected %s\n", strDest);
     return true;
 }
 
@@ -477,7 +477,7 @@ static bool ConnectSocketDirectly(const CService &addrConnect,
             FD_SET(hSocket, &fdset);
             int nRet = select(hSocket + 1, nullptr, &fdset, nullptr, &timeout);
             if (nRet == 0) {
-                LogPrint("net", "connection to %s timeout\n",
+                LogPrint(BCLog::NET, "connection to %s timeout\n",
                          addrConnect.ToString());
                 CloseSocket(hSocket);
                 return false;

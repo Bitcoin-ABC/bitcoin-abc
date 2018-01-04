@@ -179,8 +179,8 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         if (mempool_count == shorttxids.size()) break;
     }
 
-    LogPrint("cmpctblock", "Initialized PartiallyDownloadedBlock for block %s "
-                           "using a cmpctblock of size %lu\n",
+    LogPrint(BCLog::CMPCTBLOCK, "Initialized PartiallyDownloadedBlock for "
+                                "block %s using a cmpctblock of size %lu\n",
              cmpctblock.header.GetHash().ToString(),
              GetSerializeSize(cmpctblock, SER_NETWORK, PROTOCOL_VERSION));
 
@@ -229,15 +229,18 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
         return READ_STATUS_CHECKBLOCK_FAILED;
     }
 
-    LogPrint("cmpctblock", "Successfully reconstructed block %s with %lu txn "
-                           "prefilled, %lu txn from mempool (incl at least %lu "
-                           "from extra pool) and %lu txn requested\n",
+    LogPrint(BCLog::CMPCTBLOCK, "Successfully reconstructed block %s with %lu "
+                                "txn prefilled, %lu txn from mempool (incl at "
+                                "least %lu from extra pool) and %lu txn "
+                                "requested\n",
              hash.ToString(), prefilled_count, mempool_count, extra_count,
              vtx_missing.size());
     if (vtx_missing.size() < 5) {
-        for (const auto &tx : vtx_missing)
-            LogPrint("cmpctblock", "Reconstructed block %s required tx %s\n",
-                     hash.ToString(), tx->GetId().ToString());
+        for (const auto &tx : vtx_missing) {
+            LogPrint(BCLog::CMPCTBLOCK,
+                     "Reconstructed block %s required tx %s\n", hash.ToString(),
+                     tx->GetId().ToString());
+        }
     }
 
     return READ_STATUS_OK;

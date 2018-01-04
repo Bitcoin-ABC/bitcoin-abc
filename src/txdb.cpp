@@ -88,8 +88,8 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     }
 
     bool ret = db.WriteBatch(batch);
-    LogPrint("coindb", "Committed %u changed transaction outputs (out of %u) "
-                       "to coin database...\n",
+    LogPrint(BCLog::COINDB, "Committed %u changed transaction outputs (out of "
+                            "%u) to coin database...\n",
              (unsigned int)changed, (unsigned int)count);
     return ret;
 }

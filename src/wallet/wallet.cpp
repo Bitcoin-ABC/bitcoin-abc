@@ -2437,14 +2437,16 @@ bool CWallet::SelectCoinsMinConf(
             }
         }
 
-        LogPrint("selectcoins", "SelectCoins() best subset: ");
-        for (unsigned int i = 0; i < vValue.size(); i++) {
-            if (vfBest[i]) {
-                LogPrint("selectcoins", "%s ", FormatMoney(vValue[i].first));
+        if (LogAcceptCategory(BCLog::SELECTCOINS)) {
+            LogPrint(BCLog::SELECTCOINS, "SelectCoins() best subset: ");
+            for (size_t i = 0; i < vValue.size(); i++) {
+                if (vfBest[i]) {
+                    LogPrint(BCLog::SELECTCOINS, "%s ",
+                             FormatMoney(vValue[i].first));
+                }
             }
+            LogPrint(BCLog::SELECTCOINS, "total %s\n", FormatMoney(nBest));
         }
-
-        LogPrint("selectcoins", "total %s\n", FormatMoney(nBest));
     }
 
     return true;

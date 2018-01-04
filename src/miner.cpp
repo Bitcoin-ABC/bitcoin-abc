@@ -224,11 +224,11 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
     int64_t nTime2 = GetTimeMicros();
 
-    LogPrint("bench", "CreateNewBlock() packages: %.2fms (%d packages, %d "
+    LogPrint(
+        BCLog::BENCH, "CreateNewBlock() packages: %.2fms (%d packages, %d "
                       "updated descendants), validity: %.2fms (total %.2fms)\n",
-             0.001 * (nTime1 - nTimeStart), nPackagesSelected,
-             nDescendantsUpdated, 0.001 * (nTime2 - nTime1),
-             0.001 * (nTime2 - nTimeStart));
+        0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated,
+        0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));
 
     return std::move(pblocktemplate);
 }

@@ -314,7 +314,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
     //
     // Debug view
     //
-    if (fDebug) {
+    if (logCategories != BCLog::NONE) {
         strHTML += "<hr><br>" + tr("Debug information") + "<br><br>";
         for (const CTxIn &txin : wtx.tx->vin) {
             if (wallet->IsMine(txin))
