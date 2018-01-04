@@ -37,7 +37,7 @@ of 10 * MAX_TX_SIZE. */
 BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     boost::filesystem::path tmpfile_name =
         pathTemp / strprintf("vlebf_test_%lu_%i", (unsigned long)GetTime(),
-                             (int)(GetRand(100000)));
+                             (int)(insecure_randrange(100000)));
 
     FILE *fp = fopen(tmpfile_name.string().c_str(), "wb+");
 

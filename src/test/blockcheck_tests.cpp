@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     RunCheckOnBlock(config, block);
 
     // No coinbase
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.hash = insecure_rand256();
     tx.vin[0].prevout.n = 0;
     block.vtx[0] = MakeTransactionRef(tx);
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     auto maxTxCount = ((DEFAULT_MAX_BLOCK_SIZE - 1) / txSize) - 1;
 
     for (size_t i = 1; i < maxTxCount; i++) {
-        tx.vin[0].prevout.hash = GetRandHash();
+        tx.vin[0].prevout.hash = insecure_rand256();
         block.vtx.push_back(MakeTransactionRef(tx));
     }
 
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(blockfail) {
 
     // But reject it with one more transaction as it goes over the maximum
     // allowed block size.
-    tx.vin[0].prevout.hash = GetRandHash();
+    tx.vin[0].prevout.hash = insecure_rand256();
     block.vtx.push_back(MakeTransactionRef(tx));
     RunCheckOnBlock(config, block, "bad-blk-length");
 }

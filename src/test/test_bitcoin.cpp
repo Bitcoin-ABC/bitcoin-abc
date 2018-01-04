@@ -79,7 +79,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     ClearDatadirCache();
     pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i",
                                          (unsigned long)GetTime(),
-                                         (int)(GetRand(100000)));
+                                         (int)(insecure_randrange(100000)));
     boost::filesystem::create_directories(pathTemp);
     ForceSetArg("-datadir", pathTemp.string());
     mempool.setSanityCheck(1.0);

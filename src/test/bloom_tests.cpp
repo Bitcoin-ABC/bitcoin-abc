@@ -1050,7 +1050,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
 }
 
 static std::vector<uint8_t> RandomData() {
-    uint256 r = GetRandHash();
+    uint256 r = insecure_rand256();
     return std::vector<uint8_t>(r.begin(), r.end());
 }
 

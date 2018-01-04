@@ -46,7 +46,8 @@ static inline std::vector<uint8_t> insecure_randbytes(size_t len) {
     return insecure_rand_ctx.randbytes(len);
 }
 
-/** Basic testing setup.
+/**
+ * Basic testing setup.
  * This just configures logging and chain parameters.
  */
 struct BasicTestingSetup {
