@@ -102,7 +102,7 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-test/pull-tester/tests_config.ini
+test/functional/config.ini
 test/cache/*
 
 !src/leveldb*/Makefile

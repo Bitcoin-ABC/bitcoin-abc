@@ -1316,8 +1316,8 @@ esac
 dnl Replace the BUILDDIR path with the correct Windows path if compiling on Native Windows
 case ${OS} in
    *Windows*)
-     sed  's/BUILDDIR="\/\([[a-z]]\)/BUILDDIR="\1:/'  test/pull-tester/tests_config.tests_config.ini > test/pull-tester/tests_config-2.tests_config.ini
-     mv test/pull-tester/tests_config-2.tests_config.ini test/pull-tester/tests_config.tests_config.ini
+     sed  's/BUILDDIR="\/\([[a-z]]\)/BUILDDIR="\1:/'  test/functional/config.ini > test/functional/config2.ini
+     mv test/functional/config2.ini test/functional/config.ini
    ;;
 esac
 
