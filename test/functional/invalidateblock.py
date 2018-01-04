@@ -70,5 +70,6 @@ class InvalidateTest(BitcoinTestFramework):
             raise AssertionError(
                 "Node 1 reorged to a lower height: %d" % node1height)
 
+
 if __name__ == '__main__':
     InvalidateTest().main()

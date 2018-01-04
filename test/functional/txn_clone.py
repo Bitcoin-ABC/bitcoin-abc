@@ -21,7 +21,7 @@ class TxnMallTest(BitcoinTestFramework):
     def add_options(self, parser):
         parser.add_option(
             "--mineblock", dest="mine_block", default=False, action="store_true",
-                          help="Test double-spend of 1-confirmed transaction")
+            help="Test double-spend of 1-confirmed transaction")
 
     def setup_network(self):
         # Start with split network:
@@ -167,6 +167,7 @@ class TxnMallTest(BitcoinTestFramework):
         # Node1's "from0" account balance
         assert_equal(self.nodes[1].getbalance(
             "from0", 0), -(tx1["amount"] + tx2["amount"]))
+
 
 if __name__ == '__main__':
     TxnMallTest().main()

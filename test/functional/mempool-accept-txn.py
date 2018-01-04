@@ -266,5 +266,6 @@ class FullBlockTest(ComparisonTestFramework):
         # The transaction has been mined, it's not in the mempool anymore
         assert_equal(set(node.getrawmempool()), set())
 
+
 if __name__ == '__main__':
     FullBlockTest().main()

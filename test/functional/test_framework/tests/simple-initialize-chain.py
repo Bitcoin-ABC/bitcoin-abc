@@ -33,5 +33,6 @@ class Simple_Initialize_Test (BitcoinTestFramework):
         for i in range(NUM_NODES):
             self.nodes[i] = start_node(i, self.options.tmpdir)
 
+
 if __name__ == '__main__':
     Simple_Initialize_Test().main()

@@ -84,7 +84,7 @@ class PreciousTest(BitcoinTestFramework):
         self.log.info("Make Node1 prefer block C")
         self.nodes[1].preciousblock(hashC)
         sync_chain(self.nodes[0:2])
-                   # wait because node 1 may not have downloaded hashC
+        # wait because node 1 may not have downloaded hashC
         assert_equal(self.nodes[1].getbestblockhash(), hashC)
         self.log.info("Make Node1 prefer block G again")
         self.nodes[1].preciousblock(hashG)
@@ -122,6 +122,7 @@ class PreciousTest(BitcoinTestFramework):
         self.log.info("Make Node2 prefer block H")
         self.nodes[2].preciousblock(hashH)
         assert_equal(self.nodes[2].getbestblockhash(), hashH)
+
 
 if __name__ == '__main__':
     PreciousTest().main()

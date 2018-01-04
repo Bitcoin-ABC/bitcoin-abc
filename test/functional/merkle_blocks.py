@@ -95,5 +95,6 @@ class MerkleBlockTest(BitcoinTestFramework):
         assert_equal(self.nodes[2].verifytxoutproof(
             self.nodes[3].gettxoutproof([txid_spent])), [txid_spent])
 
+
 if __name__ == '__main__':
     MerkleBlockTest().main()

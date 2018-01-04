@@ -85,5 +85,6 @@ class KeyPoolTest(BitcoinTestFramework):
         self.setup_clean_chain = False
         self.num_nodes = 1
 
+
 if __name__ == '__main__':
     KeyPoolTest().main()

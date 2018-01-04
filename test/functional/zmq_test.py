@@ -102,5 +102,6 @@ class ZMQTest (BitcoinTestFramework):
         # txid from sendtoaddress must be equal to the hash received over zmq
         assert_equal(hashRPC, hashZMQ)
 
+
 if __name__ == '__main__':
     ZMQTest().main()

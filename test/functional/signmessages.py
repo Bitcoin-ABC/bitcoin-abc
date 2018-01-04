@@ -34,5 +34,6 @@ class SignMessagesTest(BitcoinTestFramework):
         # Verify the message
         assert(self.nodes[0].verifymessage(address, signature, message))
 
+
 if __name__ == '__main__':
     SignMessagesTest().main()

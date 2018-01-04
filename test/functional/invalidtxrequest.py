@@ -77,5 +77,6 @@ class InvalidTxRequestTest(ComparisonTestFramework):
 
         # TODO: test further transactions...
 
+
 if __name__ == '__main__':
     InvalidTxRequestTest().main()

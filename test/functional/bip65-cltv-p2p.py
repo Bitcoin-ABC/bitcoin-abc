@@ -21,6 +21,7 @@ def cltv_invalidate(tx):
     tx.vin[0].scriptSig = CScript([OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP] +
                                   list(CScript(tx.vin[0].scriptSig)))
 
+
 '''
 This test is meant to exercise BIP65 (CHECKLOCKTIMEVERIFY)
 Connect to a single node.
@@ -182,6 +183,7 @@ class BIP65Test(ComparisonTestFramework):
         block.solve()
         self.last_block_time += 1
         yield TestInstance([[block, False]])
+
 
 if __name__ == '__main__':
     BIP65Test().main()

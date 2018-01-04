@@ -218,8 +218,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
         long_past_time = int(time.time()) - 600 * \
             1000  # enough to build up to 1000 blocks 10 minutes apart without worrying about getting into the future
         self.nodes[0].setmocktime(long_past_time - 100)
-                                  # enough so that the generated blocks will
-                                  # still all be before long_past_time
+        # enough so that the generated blocks will
+        # still all be before long_past_time
         self.coinbase_blocks = self.nodes[0].generate(
             1 + 16 + 2 * 32 + 1)  # 82 blocks generated for inputs
         self.nodes[0].setmocktime(
@@ -428,7 +428,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
             5  # = MTP of prior block (not <) but < time put on current block
         bip113signed2 = self.sign_transaction(self.nodes[0], bip113tx_v2)
         for bip113tx in [bip113signed1, bip113signed2]:
-            yield TestInstance([[self.create_test_block([bip113tx]), False]])  # 9,10
+            # 9,10
+            yield TestInstance([[self.create_test_block([bip113tx]), False]])
         # BIP 113 tests should now pass if the locktime is < MTP
         bip113tx_v1.nLockTime = self.last_block_time - \
             600 * 5 - 1  # < MTP of prior block
@@ -437,7 +438,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
             600 * 5 - 1  # < MTP of prior block
         bip113signed2 = self.sign_transaction(self.nodes[0], bip113tx_v2)
         for bip113tx in [bip113signed1, bip113signed2]:
-            yield TestInstance([[self.create_test_block([bip113tx]), True]])  # 11,12
+            # 11,12
+            yield TestInstance([[self.create_test_block([bip113tx]), True]])
             self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
         # Next block height = 580 after 4 blocks of random version
@@ -459,7 +461,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
             for b22 in range(2):
                 for b18 in range(2):
                     bip68success_txs.append(bip68txs_v2[1][b25][b22][b18])
-        yield TestInstance([[self.create_test_block(bip68success_txs), True]])  # 15
+        # 15
+        yield TestInstance([[self.create_test_block(bip68success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
         # All txs without flag fail as we are at delta height = 8 < 10 and
         # delta time = 8 * 600 < 10 * 512
@@ -468,13 +471,15 @@ class BIP68_112_113Test(ComparisonTestFramework):
             for b18 in range(2):
                 bip68timetxs.append(bip68txs_v2[0][b25][1][b18])
         for tx in bip68timetxs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 16 - 19
+            # 16 - 19
+            yield TestInstance([[self.create_test_block([tx]), False]])
         bip68heighttxs = []
         for b25 in range(2):
             for b18 in range(2):
                 bip68heighttxs.append(bip68txs_v2[0][b25][0][b18])
         for tx in bip68heighttxs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 20 - 23
+            # 20 - 23
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # Advance one block to 581
         test_blocks = self.generate_blocks(1, 1234)
@@ -483,10 +488,12 @@ class BIP68_112_113Test(ComparisonTestFramework):
         # Height txs should fail and time txs should now pass 9 * 600 > 10 *
         # 512
         bip68success_txs.extend(bip68timetxs)
-        yield TestInstance([[self.create_test_block(bip68success_txs), True]])  # 25
+        # 25
+        yield TestInstance([[self.create_test_block(bip68success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
         for tx in bip68heighttxs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 26 - 29
+            # 26 - 29
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # Advance one block to 582
         test_blocks = self.generate_blocks(1, 1234)
@@ -494,13 +501,15 @@ class BIP68_112_113Test(ComparisonTestFramework):
 
         # All BIP 68 txs should pass
         bip68success_txs.extend(bip68heighttxs)
-        yield TestInstance([[self.create_test_block(bip68success_txs), True]])  # 31
+        # 31
+        yield TestInstance([[self.create_test_block(bip68success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
         # BIP 112 ###
         # Version 1 txs ###
         # -1 OP_CSV tx should fail
-        yield TestInstance([[self.create_test_block([bip112tx_special_v1]), False]])  # 32
+        # 32
+        yield TestInstance([[self.create_test_block([bip112tx_special_v1]), False]])
         # If SEQUENCE_LOCKTIME_DISABLE_FLAG is set in argument to OP_CSV,
         # version 1 txs should still pass
         success_txs = []
@@ -527,11 +536,13 @@ class BIP68_112_113Test(ComparisonTestFramework):
                         bip112txs_vary_OP_CSV_9_v1[0][b25][b22][b18])
 
         for tx in fail_txs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 34 - 81
+            # 34 - 81
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # Version 2 txs ###
         # -1 OP_CSV tx should fail
-        yield TestInstance([[self.create_test_block([bip112tx_special_v2]), False]])  # 82
+        # 82
+        yield TestInstance([[self.create_test_block([bip112tx_special_v2]), False]])
 
         # If SEQUENCE_LOCKTIME_DISABLE_FLAG is set in argument to OP_CSV,
         # version 2 txs should pass (all sequence locks are met)
@@ -552,7 +563,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
         # or failing the CSV check
         fail_txs = []
         fail_txs.extend(all_rlt_txs(bip112txs_vary_nSequence_9_v2))
-                        # 16/16 of vary_nSequence_9
+        # 16/16 of vary_nSequence_9
         for b25 in range(2):
             for b22 in range(2):
                 for b18 in range(2):
@@ -560,7 +571,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
                                     0][b25][b22][b18])  # 16/16 of vary_OP_CSV_9
 
         for tx in fail_txs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 84 - 107
+            # 84 - 107
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # If SEQUENCE_LOCKTIME_DISABLE_FLAG is set in nSequence, tx should fail
         fail_txs = []
@@ -570,7 +582,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
                     fail_txs.append(bip112txs_vary_nSequence_v2[
                                     1][b25][b22][b18])  # 8/16 of vary_nSequence
         for tx in fail_txs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 108-115
+            # 108-115
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # If sequencelock types mismatch, tx should fail
         fail_txs = []
@@ -581,7 +594,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
                 fail_txs.append(bip112txs_vary_OP_CSV_v2[
                                 0][b25][1][b18])  # 12/16 of vary_OP_CSV
         for tx in fail_txs:
-            yield TestInstance([[self.create_test_block([tx]), False]])  # 116-123
+            # 116-123
+            yield TestInstance([[self.create_test_block([tx]), False]])
 
         # Remaining txs should pass, just test masking works properly
         success_txs = []
@@ -591,7 +605,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
                                    0][b25][0][b18])  # 16/16 of vary_nSequence
                 success_txs.append(bip112txs_vary_OP_CSV_v2[
                                    0][b25][0][b18])  # 16/16 of vary_OP_CSV
-        yield TestInstance([[self.create_test_block(success_txs), True]])  # 124
+        # 124
+        yield TestInstance([[self.create_test_block(success_txs), True]])
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 
         # Additional test, of checking that comparison of two time types works

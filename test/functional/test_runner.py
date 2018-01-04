@@ -237,7 +237,7 @@ def main():
     run_tests(
         test_list, config["environment"][
             "SRCDIR"], config["environment"]["BUILDDIR"],
-              config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
+        config["environment"]["EXEEXT"], args.jobs, args.coverage, passon_args)
 
 
 def run_tests(test_list, src_dir, build_dir, exeext, jobs=1, enable_coverage=False, args=[]):
@@ -334,10 +334,10 @@ class TestHandler:
                               time.time(),
                               subprocess.Popen(
                                   (self.tests_dir + t).split() +
-                                   self.flags + port_seed,
-                                               universal_newlines=True,
-                                               stdout=log_stdout,
-                                               stderr=log_stderr),
+                                  self.flags + port_seed,
+                                  universal_newlines=True,
+                                  stdout=log_stdout,
+                                  stderr=log_stderr),
                               log_stdout,
                               log_stderr))
         if not self.jobs:

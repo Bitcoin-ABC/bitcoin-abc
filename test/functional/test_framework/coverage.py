@@ -22,6 +22,7 @@ class AuthServiceProxyWrapper(object):
     An object that wraps AuthServiceProxy to record specific RPC calls.
 
     """
+
     def __init__(self, auth_service_proxy_instance, coverage_logfile=None):
         """
         Kwargs:

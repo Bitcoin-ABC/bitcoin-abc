@@ -102,8 +102,9 @@ class ListTransactionsTest(BitcoinTestFramework):
             len(self.nodes[0].listtransactions("watchonly", 100, 0, False)) == 0)
         assert_array_result(
             self.nodes[0].listtransactions("watchonly", 100, 0, True),
-                           {"category": "receive", "amount": Decimal("0.1")},
-                           {"txid": txid, "account": "watchonly"})
+            {"category": "receive", "amount": Decimal("0.1")},
+            {"txid": txid, "account": "watchonly"})
+
 
 if __name__ == '__main__':
     ListTransactionsTest().main()

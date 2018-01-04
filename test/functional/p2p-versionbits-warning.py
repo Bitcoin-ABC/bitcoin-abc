@@ -175,5 +175,6 @@ class VersionBitsWarningTest(BitcoinTestFramework):
         self.nodes = start_nodes(
             self.num_nodes, self.options.tmpdir, self.extra_args)
 
+
 if __name__ == '__main__':
     VersionBitsWarningTest().main()

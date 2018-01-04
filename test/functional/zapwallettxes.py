@@ -69,8 +69,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
 
         tx0 = self.nodes[0].gettransaction(txid0)
         assert_equal(tx0['txid'], txid0)
-                     # tx0 (confirmed) must still be available because it was
-                     # confirmed
+        # tx0 (confirmed) must still be available because it was
+        # confirmed
 
 
 if __name__ == '__main__':

@@ -24,6 +24,7 @@ def create_block(hashprev, coinbase, nTime=None):
     block.calc_sha256()
     return block
 
+
 # From BIP141
 WITNESS_COMMITMENT_HEADER = b"\xaa\x21\xa9\xed"
 

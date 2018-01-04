@@ -56,7 +56,7 @@ class BaseNode(SingleNodeConnCB):
         self.disconnected = True
 
     def wait_for_disconnect(self, timeout=60):
-        test_function = lambda: self.disconnected
+        def test_function(): return self.disconnected
         assert(wait_until(test_function, timeout=timeout))
         return
 
@@ -204,6 +204,7 @@ class SendHeadersTest(BitcoinTestFramework):
         node2.send_message(msg_block(self.blocks[101]))
         assert_equal(self.nodes[2].getblock(
             self.nodes[2].getbestblockhash())['height'], 101)
+
 
 if __name__ == '__main__':
     SendHeadersTest().main()

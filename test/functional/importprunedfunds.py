@@ -118,5 +118,6 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         balance3 = self.nodes[1].getbalance("*", 0, True)
         assert_equal(balance3, Decimal('0.0'))
 
+
 if __name__ == '__main__':
     ImportPrunedFundsTest().main()

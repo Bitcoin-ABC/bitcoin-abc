@@ -179,5 +179,6 @@ class P2PLeakTest(BitcoinTestFramework):
         assert(no_version_idlenode.unexpected_msg == False)
         assert(no_verack_idlenode.unexpected_msg == False)
 
+
 if __name__ == '__main__':
     P2PLeakTest().main()

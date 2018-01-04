@@ -215,5 +215,6 @@ class ProxyTest(BitcoinTestFramework):
                 assert_equal(n3[net]['proxy_randomize_credentials'], False)
             assert_equal(n3['onion']['reachable'], False)
 
+
 if __name__ == '__main__':
     ProxyTest().main()

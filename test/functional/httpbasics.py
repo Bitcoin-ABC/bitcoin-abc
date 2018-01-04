@@ -39,15 +39,15 @@ class HTTPBasicsTest (BitcoinTestFramework):
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
         assert(conn.sock != None)
-               # according to http/1.1 connection must still be open!
+        # according to http/1.1 connection must still be open!
 
         # send 2nd request without closing connection
         conn.request('POST', '/', '{"method": "getchaintips"}', headers)
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
-               # must also response with a correct json-rpc message
+        # must also response with a correct json-rpc message
         assert(conn.sock != None)
-               # according to http/1.1 connection must still be open!
+        # according to http/1.1 connection must still be open!
         conn.close()
 
         # same should be if we add keep-alive because this should be the std.
@@ -61,15 +61,15 @@ class HTTPBasicsTest (BitcoinTestFramework):
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
         assert(conn.sock != None)
-               # according to http/1.1 connection must still be open!
+        # according to http/1.1 connection must still be open!
 
         # send 2nd request without closing connection
         conn.request('POST', '/', '{"method": "getchaintips"}', headers)
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
-               # must also response with a correct json-rpc message
+        # must also response with a correct json-rpc message
         assert(conn.sock != None)
-               # according to http/1.1 connection must still be open!
+        # according to http/1.1 connection must still be open!
         conn.close()
 
         # now do the same with "Connection: close"
@@ -82,7 +82,7 @@ class HTTPBasicsTest (BitcoinTestFramework):
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
         assert(conn.sock == None)
-               # now the connection must be closed after the response
+        # now the connection must be closed after the response
 
         # node1 (2nd node) is running with disabled keep-alive option
         urlNode1 = urllib.parse.urlparse(self.nodes[1].url)
@@ -107,8 +107,8 @@ class HTTPBasicsTest (BitcoinTestFramework):
         out1 = conn.getresponse().read()
         assert(b'"error":null' in out1)
         assert(conn.sock != None)
-               # connection must be closed because bitcoind should use
-               # keep-alive by default
+        # connection must be closed because bitcoind should use
+        # keep-alive by default
 
         # Check excessive request size
         conn = http.client.HTTPConnection(urlNode2.hostname, urlNode2.port)

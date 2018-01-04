@@ -42,5 +42,6 @@ class ReindexTest(BitcoinTestFramework):
         self.reindex(False)
         self.reindex(True)
 
+
 if __name__ == '__main__':
     ReindexTest().main()

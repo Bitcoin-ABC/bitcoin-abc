@@ -76,5 +76,6 @@ class ListSinceBlockTest (BitcoinTestFramework):
                 break
         assert_equal(found, True)
 
+
 if __name__ == '__main__':
     ListSinceBlockTest().main()

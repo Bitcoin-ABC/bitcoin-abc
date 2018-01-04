@@ -173,5 +173,6 @@ class GetBlockTemplateProposalTest(BitcoinTestFramework):
         tmpl['previousblockhash'] = 'ff00' * 16
         assert_template(node, tmpl, txlist, 'inconclusive-not-best-prevblk')
 
+
 if __name__ == '__main__':
     GetBlockTemplateProposalTest().main()

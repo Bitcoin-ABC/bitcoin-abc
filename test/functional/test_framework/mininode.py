@@ -42,7 +42,8 @@ from test_framework.cdefs import MAX_BLOCK_SIGOPS_PER_MB
 BIP0031_VERSION = 60000
 MY_VERSION = 70014  # past bip-31 for ping/pong
 MY_SUBVERSION = b"/python-mininode-tester:0.0.3/"
-MY_RELAY = 1  # from version 70001 onwards, fRelay should be appended to version messages (BIP37)
+# from version 70001 onwards, fRelay should be appended to version messages (BIP37)
+MY_RELAY = 1
 
 MAX_INV_SZ = 50000
 
@@ -262,6 +263,7 @@ class CAddress(object):
     def __repr__(self):
         return "CAddress(nServices=%i ip=%s port=%i)" % (self.nServices,
                                                          self.ip, self.port)
+
 
 MSG_WITNESS_FLAG = 1 << 30
 

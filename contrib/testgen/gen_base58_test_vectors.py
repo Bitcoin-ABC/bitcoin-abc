@@ -28,17 +28,18 @@ PRIVKEY_TEST = 239
 metadata_keys = ['isPrivkey', 'isTestnet', 'addrType', 'isCompressed']
 # templates for valid sequences
 templates = [
-  # prefix, payload_size, suffix, metadata
-  #                                  None = N/A
-  ((PUBKEY_ADDRESS,),      20, (),   (False, False, 'pubkey', None)),
-  ((SCRIPT_ADDRESS,),      20, (),   (False, False, 'script',  None)),
-  ((PUBKEY_ADDRESS_TEST,), 20, (),   (False, True,  'pubkey', None)),
-  ((SCRIPT_ADDRESS_TEST,), 20, (),   (False, True,  'script',  None)),
-  ((PRIVKEY,),             32, (),   (True,  False, None,  False)),
-  ((PRIVKEY,),             32, (1,), (True,  False, None,  True)),
-  ((PRIVKEY_TEST,),        32, (),   (True,  True,  None,  False)),
-  ((PRIVKEY_TEST,),        32, (1,), (True,  True,  None,  True))
+    # prefix, payload_size, suffix, metadata
+    #                                  None = N/A
+    ((PUBKEY_ADDRESS,),      20, (),   (False, False, 'pubkey', None)),
+    ((SCRIPT_ADDRESS,),      20, (),   (False, False, 'script',  None)),
+    ((PUBKEY_ADDRESS_TEST,), 20, (),   (False, True,  'pubkey', None)),
+    ((SCRIPT_ADDRESS_TEST,), 20, (),   (False, True,  'script',  None)),
+    ((PRIVKEY,),             32, (),   (True,  False, None,  False)),
+    ((PRIVKEY,),             32, (1,), (True,  False, None,  True)),
+    ((PRIVKEY_TEST,),        32, (),   (True,  True,  None,  False)),
+    ((PRIVKEY_TEST,),        32, (1,), (True,  True,  None,  True))
 ]
+
 
 def is_valid(v):
     '''Check vector v for validity'''
@@ -53,17 +54,20 @@ def is_valid(v):
                 return True
     return False
 
+
 def gen_valid_vectors():
     '''Generate valid test vectors'''
     while True:
         for template in templates:
             prefix = str(bytearray(template[0]))
-            payload = os.urandom(template[1]) 
+            payload = os.urandom(template[1])
             suffix = str(bytearray(template[2]))
             rv = b58encode_chk(prefix + payload + suffix)
             assert is_valid(rv)
-            metadata = dict([(x,y) for (x,y) in zip(metadata_keys,template[3]) if y is not None])
+            metadata = dict([(x, y) for (x, y) in zip(
+                metadata_keys, template[3]) if y is not None])
             yield (rv, b2a_hex(payload), metadata)
+
 
 def gen_invalid_vector(template, corrupt_prefix, randomize_payload_size, corrupt_suffix):
     '''Generate possibly invalid vector'''
@@ -71,12 +75,12 @@ def gen_invalid_vector(template, corrupt_prefix, randomize_payload_size, corrupt
         prefix = os.urandom(1)
     else:
         prefix = str(bytearray(template[0]))
-    
+
     if randomize_payload_size:
         payload = os.urandom(max(int(random.expovariate(0.5)), 50))
     else:
         payload = os.urandom(template[1])
-    
+
     if corrupt_suffix:
         suffix = os.urandom(len(template[2]))
     else:
@@ -84,9 +88,11 @@ def gen_invalid_vector(template, corrupt_prefix, randomize_payload_size, corrupt
 
     return b58encode_chk(prefix + payload + suffix)
 
-def randbool(p = 0.5):
+
+def randbool(p=0.5):
     '''Return True with P(p)'''
     return random.random() < p
+
 
 def gen_invalid_vectors():
     '''Generate invalid test vectors'''
@@ -100,19 +106,22 @@ def gen_invalid_vectors():
         #   invalid (randomized) suffix (add random data)
         #   corrupt checksum
         for template in templates:
-            val = gen_invalid_vector(template, randbool(0.2), randbool(0.2), randbool(0.2))
-            if random.randint(0,10)<1: # line corruption
-                if randbool(): # add random character to end
+            val = gen_invalid_vector(template, randbool(
+                0.2), randbool(0.2), randbool(0.2))
+            if random.randint(0, 10) < 1:  # line corruption
+                if randbool():  # add random character to end
                     val += random.choice(b58chars)
-                else: # replace random character in the middle
+                else:  # replace random character in the middle
                     n = random.randint(0, len(val))
-                    val = val[0:n] + random.choice(b58chars) + val[n+1:]
+                    val = val[0:n] + random.choice(b58chars) + val[n + 1:]
             if not is_valid(val):
                 yield val,
 
+
 if __name__ == '__main__':
-    import sys, json
-    iters = {'valid':gen_valid_vectors, 'invalid':gen_invalid_vectors}
+    import sys
+    import json
+    iters = {'valid': gen_valid_vectors, 'invalid': gen_invalid_vectors}
     try:
         uiter = iters[sys.argv[1]]
     except IndexError:
@@ -121,8 +130,7 @@ if __name__ == '__main__':
         count = int(sys.argv[2])
     except IndexError:
         count = 0
-   
+
     data = list(islice(uiter(), count))
     json.dump(data, sys.stdout, sort_keys=True, indent=4)
     sys.stdout.write('\n')
-

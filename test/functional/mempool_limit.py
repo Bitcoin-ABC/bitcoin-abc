@@ -51,5 +51,6 @@ class MempoolLimitTest(BitcoinTestFramework):
         txdata = self.nodes[0].gettransaction(txid)
         assert(txdata['confirmations'] == 0)  # confirmation should still be 0
 
+
 if __name__ == '__main__':
     MempoolLimitTest().main()

@@ -93,7 +93,7 @@ class DisconnectBanTest(BitcoinTestFramework):
         node1 = self.nodes[0].getpeerinfo()[0]['addr']
         assert_raises_jsonrpc(
             -32602, "Only one of address and nodeid should be provided.",
-                              self.nodes[0].disconnectnode, address=address1, nodeid=node1)
+            self.nodes[0].disconnectnode, address=address1, nodeid=node1)
 
         self.log.info(
             "disconnectnode: fail to disconnect when calling with junk address")
@@ -122,6 +122,7 @@ class DisconnectBanTest(BitcoinTestFramework):
         wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1)
         assert not [node for node in self.nodes[
             0].getpeerinfo() if node['id'] == id1]
+
 
 if __name__ == '__main__':
     DisconnectBanTest().main()

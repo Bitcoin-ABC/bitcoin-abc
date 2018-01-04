@@ -44,12 +44,12 @@ class PruneTest(BitcoinTestFramework):
         self.extra_args = [
             ["-maxreceivebuffer=20000",
                 "-blockmaxsize=999000", "-checkblocks=5"],
-                           ["-maxreceivebuffer=20000",
-                               "-blockmaxsize=999000", "-checkblocks=5"],
-                           ["-maxreceivebuffer=20000", "-prune=550"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
-                           ["-prune=550"]]
+            ["-maxreceivebuffer=20000",
+             "-blockmaxsize=999000", "-checkblocks=5"],
+            ["-maxreceivebuffer=20000", "-prune=550"],
+            ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
+            ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
+            ["-prune=550"]]
 
     def setup_network(self):
         self.setup_nodes()
@@ -115,7 +115,7 @@ class PruneTest(BitcoinTestFramework):
                 0, self.options.tmpdir, ["-maxreceivebuffer=20000",
                                          "-checkblocks=5",
                                          "-blockmaxsize=1000000"],
-                                       timewait=900)
+                timewait=900)
             # Mine 24 blocks in node 1
             for i in range(24):
                 if j == 0:
@@ -150,7 +150,7 @@ class PruneTest(BitcoinTestFramework):
                                      "-blockmaxsize=5000",
                                      "-checkblocks=5",
                                      "-disablesafemode"],
-                                   timewait=900, stderr_checker=OutputChecker())
+            timewait=900, stderr_checker=OutputChecker())
 
         height = self.nodes[1].getblockcount()
         self.log.info("Current block height: %d" % height)
@@ -181,7 +181,7 @@ class PruneTest(BitcoinTestFramework):
                                      "-checkblocks=5",
                                      "-disablesafemode",
                                      "-blockmaxsize=1000000"],
-                                   timewait=900, stderr_checker=OutputChecker())
+            timewait=900, stderr_checker=OutputChecker())
 
         self.log.info("Generating new longer chain of 300 more blocks")
         self.nodes[1].generate(300)
@@ -508,6 +508,7 @@ class PruneTest(BitcoinTestFramework):
         self.wallet_test()
 
         self.log.info("Done")
+
 
 if __name__ == '__main__':
     PruneTest().main()

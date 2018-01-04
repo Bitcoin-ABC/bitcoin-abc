@@ -54,6 +54,7 @@ HTTP_TIMEOUT = 30
 
 log = logging.getLogger("BitcoinRPC")
 
+
 class JSONRPCException(Exception):
     def __init__(self, rpc_error):
         try:
@@ -69,6 +70,7 @@ def EncodeDecimal(o):
         return str(o)
     raise TypeError(repr(o) + " is not JSON serializable")
 
+
 class AuthServiceProxy(object):
     __id_count = 0
 
@@ -76,7 +78,7 @@ class AuthServiceProxy(object):
     def __init__(self, service_url, service_name=None, timeout=HTTP_TIMEOUT, connection=None, ensure_ascii=True):
         self.__service_url = service_url
         self._service_name = service_name
-        self.ensure_ascii = ensure_ascii # can be toggled on the fly by tests
+        self.ensure_ascii = ensure_ascii  # can be toggled on the fly by tests
         self.__url = urlparse.urlparse(service_url)
         if self.__url.port is None:
             port = 80
@@ -125,13 +127,13 @@ class AuthServiceProxy(object):
             self.__conn.request(method, path, postdata, headers)
             return self._get_response()
         except httplib.BadStatusLine as e:
-            if e.line == "''": # if connection was closed, try again
+            if e.line == "''":  # if connection was closed, try again
                 self.__conn.close()
                 self.__conn.request(method, path, postdata, headers)
                 return self._get_response()
             else:
                 raise
-        except (BrokenPipeError,ConnectionResetError):
+        except (BrokenPipeError, ConnectionResetError):
             # Python 3.5+ raises BrokenPipeError instead of BadStatusLine when the connection was reset
             # ConnectionResetError happens on FreeBSD with Python 3.4
             self.__conn.close()
@@ -141,15 +143,17 @@ class AuthServiceProxy(object):
     def __call__(self, *args, **argsn):
         AuthServiceProxy.__id_count += 1
 
-        log.debug("-%s-> %s %s"%(AuthServiceProxy.__id_count, self._service_name,
-                                 json.dumps(args, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
+        log.debug("-%s-> %s %s" % (AuthServiceProxy.__id_count, self._service_name,
+                                   json.dumps(args, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         if args and argsn:
-            raise ValueError('Cannot handle both named and positional arguments')
+            raise ValueError(
+                'Cannot handle both named and positional arguments')
         postdata = json.dumps({'version': '1.1',
                                'method': self._service_name,
                                'params': args or argsn,
                                'id': AuthServiceProxy.__id_count}, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
-        response = self._request('POST', self.__url.path, postdata.encode('utf-8'))
+        response = self._request(
+            'POST', self.__url.path, postdata.encode('utf-8'))
         if response['error'] is not None:
             raise JSONRPCException(response['error'])
         elif 'result' not in response:
@@ -159,8 +163,9 @@ class AuthServiceProxy(object):
             return response['result']
 
     def _batch(self, rpc_call_list):
-        postdata = json.dumps(list(rpc_call_list), default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
-        log.debug("--> "+postdata)
+        postdata = json.dumps(
+            list(rpc_call_list), default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
+        log.debug("--> " + postdata)
         return self._request('POST', self.__url.path, postdata.encode('utf-8'))
 
     def _get_response(self):
@@ -185,7 +190,8 @@ class AuthServiceProxy(object):
         responsedata = http_response.read().decode('utf8')
         response = json.loads(responsedata, parse_float=decimal.Decimal)
         if "error" in response and response["error"] is None:
-            log.debug("<-%s- %s"%(response["id"], json.dumps(response["result"], default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
+            log.debug("<-%s- %s" % (response["id"], json.dumps(
+                response["result"], default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         else:
-            log.debug("<-- "+responsedata)
+            log.debug("<-- " + responsedata)
         return response

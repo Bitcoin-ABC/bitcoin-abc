@@ -160,5 +160,6 @@ class ReceivedByTest(BitcoinTestFramework):
             raise AssertionError(
                 "Wrong balance returned by getreceivedbyaccount, %0.2f" % (balance))
 
+
 if __name__ == '__main__':
     ReceivedByTest().main()

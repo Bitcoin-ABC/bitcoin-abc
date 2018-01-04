@@ -60,5 +60,6 @@ class GetChainTipsTest (BitcoinTestFramework):
         tips[1]['status'] = 'active'
         assert_equal(tips[1], shortTip)
 
+
 if __name__ == '__main__':
     GetChainTipsTest().main()

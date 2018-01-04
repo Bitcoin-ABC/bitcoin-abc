@@ -8,8 +8,10 @@
 #
 # This implements SipHash-2-4 for 256-bit integers.
 
+
 def rotl64(n, b):
     return n >> (64 - b) | (n & ((1 << (64 - b)) - 1)) << b
+
 
 def siphash_round(v0, v1, v2, v3):
     v0 = (v0 + v1) & ((1 << 64) - 1)
@@ -27,6 +29,7 @@ def siphash_round(v0, v1, v2, v3):
     v1 ^= v2
     v2 = rotl64(v2, 32)
     return (v0, v1, v2, v3)
+
 
 def siphash256(k0, k1, h):
     n0 = h & ((1 << 64) - 1)

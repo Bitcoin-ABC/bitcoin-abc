@@ -99,5 +99,6 @@ class TimeoutsTest(BitcoinTestFramework):
         assert(not self.no_version_node.connected)
         assert(not self.no_send_node.connected)
 
+
 if __name__ == '__main__':
     TimeoutsTest().main()

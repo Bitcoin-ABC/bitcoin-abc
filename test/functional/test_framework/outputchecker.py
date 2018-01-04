@@ -23,13 +23,15 @@ class OutputChecker(object):
     An object which can record and check and output stream for
     occurrences of expected strings.
     '''
+
     def __init__(self, spooled_file_obj=None):
         # If initialized with a file object, use it, otherwise
         # create our own.
         if spooled_file_obj:
             self.output_file_obj = spooled_file_obj
         else:
-            self.output_file_obj = tempfile.SpooledTemporaryFile(max_size=MEMORY_BUFFER_SIZE)
+            self.output_file_obj = tempfile.SpooledTemporaryFile(
+                max_size=MEMORY_BUFFER_SIZE)
         # The output content that has already been checked
         self.already_checked_output = ''
         # The output content that has not yet been checked

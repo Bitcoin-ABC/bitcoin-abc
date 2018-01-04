@@ -21,6 +21,7 @@ class PreviousSpendableOutput(object):
         self.tx = tx
         self.n = n  # the output we're spending
 
+
 '''
 This reimplements tests from the bitcoinj/FullBlockTestGenerator used
 by the pull-tester.
@@ -573,7 +574,7 @@ class FullBlockTest(ComparisonTestFramework):
             # signature hash function
             sighash = SignatureHashForkId(
                 redeem_script, tx, 1, SIGHASH_ALL | SIGHASH_FORKID,
-                                          lastAmount)
+                lastAmount)
             sig = self.coinbase_key.sign(
                 sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             scriptSig = CScript([sig, redeem_script])
@@ -1311,6 +1312,7 @@ class FullBlockTest(ComparisonTestFramework):
             yield accepted()
 
             chain1_tip += 2
+
 
 if __name__ == '__main__':
     FullBlockTest().main()

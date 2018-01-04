@@ -208,7 +208,7 @@ class WalletBackupTest(BitcoinTestFramework):
 
         for sourcePath in sourcePaths:
             assert_raises_jsonrpc(-4, "backup failed",
-                    self.nodes[0].backupwallet, sourcePath)
+                                  self.nodes[0].backupwallet, sourcePath)
 
 
 if __name__ == '__main__':

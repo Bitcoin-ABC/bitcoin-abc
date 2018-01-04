@@ -90,5 +90,6 @@ class BIP65Test(BitcoinTestFramework):
         if (self.nodes[0].getblockcount() != cnt + 1052):
             raise AssertionError("Failed to mine a version=4 block")
 
+
 if __name__ == '__main__':
     BIP65Test().main()

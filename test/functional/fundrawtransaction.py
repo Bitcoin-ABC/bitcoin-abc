@@ -167,7 +167,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         assert_equal(rawtxfund['changepos'], -1)
         assert_equal(fee + totalOut, utx['amount'])
-                     # compare vin total and totalout+fee
+        # compare vin total and totalout+fee
 
         #
         # test a fundrawtransaction with an invalid option #
@@ -196,7 +196,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         assert_raises_jsonrpc(
             -5, "changeAddress must be a valid bitcoin address",
-                              self.nodes[2].fundrawtransaction, rawtx, {'changeAddress': 'foobar'})
+            self.nodes[2].fundrawtransaction, rawtx, {'changeAddress': 'foobar'})
 
         #
         # test a fundrawtransaction with a provided change address #
@@ -320,7 +320,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         listunspent = self.nodes[2].listunspent()
         inputs = [
             {'txid': "1c7f966dab21119bac53213a2bc7532bff1fa844c124fd750a7d0b1332440bd1", 'vout': 0}]
-            # invalid vin!
+        # invalid vin!
         outputs = {self.nodes[0].getnewaddress(): 1.0}
         rawtx = self.nodes[2].createrawtransaction(inputs, outputs)
         dec_tx = self.nodes[2].decoderawtransaction(rawtx)
@@ -769,6 +769,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # the total subtracted from the outputs is equal to the fee
         assert_equal(share[0] + share[2] + share[3], result[0]['fee'])
+
 
 if __name__ == '__main__':
     RawTransactionsTest().main()

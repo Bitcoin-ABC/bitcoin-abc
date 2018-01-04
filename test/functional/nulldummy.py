@@ -26,6 +26,7 @@ def trueDummy(tx):
     tx.vin[0].scriptSig = CScript(newscript)
     tx.rehash()
 
+
 '''
 This test is meant to exercise NULLDUMMY softfork.
 Connect to a single node.
@@ -122,6 +123,7 @@ class NULLDUMMYTest(BitcoinTestFramework):
             self.lastblockheight += 1
         else:
             assert_equal(node.getbestblockhash(), self.lastblockhash)
+
 
 if __name__ == '__main__':
     NULLDUMMYTest().main()

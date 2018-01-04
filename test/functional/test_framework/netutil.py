@@ -15,7 +15,7 @@ from binascii import unhexlify, hexlify
 
 # Roughly based on http://voorloopnul.com/blog/a-python-netstat-in-less-than-100-lines-of-code/ by Ricardo Pascal
 STATE_ESTABLISHED = '01'
-STATE_SYN_SENT  = '02'
+STATE_SYN_SENT = '02'
 STATE_SYN_RECV = '03'
 STATE_FIN_WAIT1 = '04'
 STATE_FIN_WAIT2 = '05'
@@ -25,6 +25,7 @@ STATE_CLOSE_WAIT = '08'
 STATE_LAST_ACK = '09'
 STATE_LISTEN = '0A'
 STATE_CLOSING = '0B'
+
 
 def get_socket_inodes(pid):
     '''
@@ -38,19 +39,22 @@ def get_socket_inodes(pid):
             inodes.append(int(target[8:-1]))
     return inodes
 
+
 def _remove_empty(array):
-    return [x for x in array if x !='']
+    return [x for x in array if x != '']
+
 
 def _convert_ip_port(array):
-    host,port = array.split(':')
+    host, port = array.split(':')
     # convert host from mangled-per-four-bytes form as used by kernel
     host = unhexlify(host)
     host_out = ''
     for x in range(0, len(host) // 4):
-        (val,) = struct.unpack('=I', host[x*4:(x+1)*4])
+        (val,) = struct.unpack('=I', host[x * 4:(x + 1) * 4])
         host_out += '%08x' % val
 
-    return host_out,int(port,16)
+    return host_out, int(port, 16)
+
 
 def netstat(typ='tcp'):
     '''
@@ -58,20 +62,23 @@ def netstat(typ='tcp'):
     To get pid of all network process running on system, you must run this script
     as superuser
     '''
-    with open('/proc/net/'+typ,'r',encoding='utf8') as f:
+    with open('/proc/net/' + typ, 'r', encoding='utf8') as f:
         content = f.readlines()
         content.pop(0)
     result = []
     for line in content:
-        line_array = _remove_empty(line.split(' '))     # Split lines and remove empty spaces.
+        # Split lines and remove empty spaces.
+        line_array = _remove_empty(line.split(' '))
         tcp_id = line_array[0]
         l_addr = _convert_ip_port(line_array[1])
         r_addr = _convert_ip_port(line_array[2])
         state = line_array[3]
-        inode = int(line_array[9])                      # Need the inode to match with process pid.
+        # Need the inode to match with process pid.
+        inode = int(line_array[9])
         nline = [tcp_id, l_addr, r_addr, state, inode]
         result.append(nline)
     return result
+
 
 def get_bind_addrs(pid):
     '''
@@ -85,6 +92,8 @@ def get_bind_addrs(pid):
     return bind_addrs
 
 # from: http://code.activestate.com/recipes/439093/
+
+
 def all_interfaces():
     '''
     Return all interfaces that are up
@@ -92,7 +101,7 @@ def all_interfaces():
     is_64bits = sys.maxsize > 2**32
     struct_size = 40 if is_64bits else 32
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    max_possible = 8 # initial value
+    max_possible = 8  # initial value
     while True:
         bytes = max_possible * struct_size
         names = array.array('B', b'\0' * bytes)
@@ -106,9 +115,10 @@ def all_interfaces():
         else:
             break
     namestr = names.tostring()
-    return [(namestr[i:i+16].split(b'\0', 1)[0],
-             socket.inet_ntoa(namestr[i+20:i+24]))
+    return [(namestr[i:i + 16].split(b'\0', 1)[0],
+             socket.inet_ntoa(namestr[i + 20:i + 24]))
             for i in range(0, outbytes, struct_size)]
+
 
 def addr_to_hex(addr):
     '''
@@ -116,19 +126,20 @@ def addr_to_hex(addr):
     get_bind_addrs.
     Very naive implementation that certainly doesn't work for all IPv6 variants.
     '''
-    if '.' in addr: # IPv4
+    if '.' in addr:  # IPv4
         addr = [int(x) for x in addr.split('.')]
-    elif ':' in addr: # IPv6
-        sub = [[], []] # prefix, suffix
+    elif ':' in addr:  # IPv6
+        sub = [[], []]  # prefix, suffix
         x = 0
         addr = addr.split(':')
-        for i,comp in enumerate(addr):
+        for i, comp in enumerate(addr):
             if comp == '':
-                if i == 0 or i == (len(addr)-1): # skip empty component at beginning or end
+                # skip empty component at beginning or end
+                if i == 0 or i == (len(addr) - 1):
                     continue
-                x += 1 # :: skips to suffix
+                x += 1  # :: skips to suffix
                 assert(x < 2)
-            else: # two bytes per component
+            else:  # two bytes per component
                 val = int(comp, 16)
                 sub[x].append(val >> 8)
                 sub[x].append(val & 0xff)
@@ -138,6 +149,7 @@ def addr_to_hex(addr):
     else:
         raise ValueError('Could not parse address %s' % addr)
     return hexlify(bytearray(addr)).decode('ascii')
+
 
 def test_ipv6_local():
     '''

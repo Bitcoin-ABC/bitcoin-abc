@@ -279,7 +279,8 @@ class TestManager(object):
                 if outcome is None:
                     if c.cb.bestblockhash != self.connections[0].cb.bestblockhash:
                         return False
-                elif isinstance(outcome, RejectResult):  # Check that block was rejected w/ code
+                # Check that block was rejected w/ code
+                elif isinstance(outcome, RejectResult):
                     if c.cb.bestblockhash == blockhash:
                         return False
                     if blockhash not in c.cb.block_reject_map:
@@ -307,7 +308,8 @@ class TestManager(object):
                     # Make sure the mempools agree with each other
                     if c.cb.lastInv != self.connections[0].cb.lastInv:
                         return False
-                elif isinstance(outcome, RejectResult):  # Check that tx was rejected w/ code
+                # Check that tx was rejected w/ code
+                elif isinstance(outcome, RejectResult):
                     if txhash in c.cb.lastInv:
                         return False
                     if txhash not in c.cb.tx_reject_map:

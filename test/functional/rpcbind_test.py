@@ -109,5 +109,6 @@ class RPCBindTest(BitcoinTestFramework):
         except JSONRPCException:
             pass
 
+
 if __name__ == '__main__':
     RPCBindTest().main()

@@ -59,5 +59,6 @@ class MempoolSpendCoinbaseTest(BitcoinTestFramework):
         spend_102_id = self.nodes[0].sendrawtransaction(spends_raw[1])
         assert_equal(self.nodes[0].getrawmempool(), [spend_102_id])
 
+
 if __name__ == '__main__':
     MempoolSpendCoinbaseTest().main()

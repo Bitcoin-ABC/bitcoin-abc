@@ -30,6 +30,7 @@ def unDERify(tx):
             newscript.append(i)
     tx.vin[0].scriptSig = CScript(newscript)
 
+
 '''
 This test is meant to exercise BIP66 (DER SIG).
 Connect to a single node.
@@ -168,6 +169,7 @@ class BIP66Test(ComparisonTestFramework):
         block.solve()
         self.last_block_time += 1
         yield TestInstance([[block, False]])
+
 
 if __name__ == '__main__':
     BIP66Test().main()

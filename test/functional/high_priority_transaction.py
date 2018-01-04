@@ -21,7 +21,6 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [["-blockprioritypercentage=0", "-limitfreerelay=2"]]
 
-
     def create_small_transactions(self, node, utxos, num, fee):
         addr = node.getnewaddress()
         txids = []
@@ -82,7 +81,7 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         # restart with default blockprioritypercentage
         stop_nodes(self.nodes)
         self.nodes = start_nodes(self.num_nodes, self.options.tmpdir,
-                [["-limitfreerelay=2"]])
+                                 [["-limitfreerelay=2"]])
 
         # second test step: default reserved prio space in block (100K).
         # the mempool size is about 25K this means that all txns will be

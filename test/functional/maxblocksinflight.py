@@ -99,5 +99,6 @@ class MaxBlocksInFlightTest(BitcoinTestFramework):
         NetworkThread().start()  # Start up network handling in another thread
         test.run()
 
+
 if __name__ == '__main__':
     MaxBlocksInFlightTest().main()

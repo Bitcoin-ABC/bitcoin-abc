@@ -24,19 +24,19 @@ try:
         body = msg[1]
         sequence = "Unknown"
         if len(msg[-1]) == 4:
-          msgSequence = struct.unpack('<I', msg[-1])[-1]
-          sequence = str(msgSequence)
+            msgSequence = struct.unpack('<I', msg[-1])[-1]
+            sequence = str(msgSequence)
         if topic == "hashblock":
-            print '- HASH BLOCK ('+sequence+') -'
+            print '- HASH BLOCK (' + sequence + ') -'
             print binascii.hexlify(body)
         elif topic == "hashtx":
-            print '- HASH TX  ('+sequence+') -'
+            print '- HASH TX  (' + sequence + ') -'
             print binascii.hexlify(body)
         elif topic == "rawblock":
-            print '- RAW BLOCK HEADER ('+sequence+') -'
+            print '- RAW BLOCK HEADER (' + sequence + ') -'
             print binascii.hexlify(body[:80])
         elif topic == "rawtx":
-            print '- RAW TX ('+sequence+') -'
+            print '- RAW TX (' + sequence + ') -'
             print binascii.hexlify(body)
 
 except KeyboardInterrupt:

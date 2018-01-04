@@ -115,5 +115,6 @@ class FeeFilterTest(BitcoinTestFramework):
         assert(allInvsMatch(txids, test_node))
         test_node.clear_invs()
 
+
 if __name__ == '__main__':
     FeeFilterTest().main()

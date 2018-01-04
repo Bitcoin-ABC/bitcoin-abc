@@ -86,5 +86,6 @@ class WalletAccountsTest(BitcoinTestFramework):
         for account in accounts:
             assert_equal(node.getbalance(account), 50)
 
+
 if __name__ == '__main__':
     WalletAccountsTest().main()

@@ -100,7 +100,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_equal(unconfbalance, newbalance)
         # Also shouldn't show up in listunspent
         assert(not txABC2 in [utxo["txid"]
-               for utxo in self.nodes[0].listunspent(0)])
+                              for utxo in self.nodes[0].listunspent(0)])
         balance = newbalance
 
         # Abandon original transaction and verify inputs are available again
@@ -175,6 +175,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.log.info(
             "conflicted has not resumed causing its inputs to be seen as spent.  See Issue #7315")
         self.log.info(str(balance) + " -> " + str(newbalance) + " ?")
+
 
 if __name__ == '__main__':
     AbandonConflictTest().main()

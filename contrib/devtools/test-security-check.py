@@ -5,9 +5,10 @@
 '''
 Test script for security-check.py
 '''
-from __future__ import division,print_function
+from __future__ import division, print_function
 import subprocess
 import unittest
+
 
 def write_testcode(filename):
     with open(filename, 'w') as f:
@@ -20,11 +21,14 @@ def write_testcode(filename):
     }
     ''')
 
+
 def call_security_check(cc, source, executable, options):
-    subprocess.check_call([cc,source,'-o',executable] + options)
-    p = subprocess.Popen(['./security-check.py',executable], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    subprocess.check_call([cc, source, '-o', executable] + options)
+    p = subprocess.Popen(['./security-check.py', executable],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     (stdout, stderr) = p.communicate()
     return (p.returncode, stdout.rstrip())
+
 
 class TestSecurityChecks(unittest.TestCase):
     def test_ELF(self):
@@ -33,16 +37,16 @@ class TestSecurityChecks(unittest.TestCase):
         cc = 'gcc'
         write_testcode(source)
 
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-zexecstack','-fno-stack-protector','-Wl,-znorelro']), 
-                (1, executable+': failed PIE NX RELRO Canary'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack','-fno-stack-protector','-Wl,-znorelro']), 
-                (1, executable+': failed PIE RELRO Canary'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack','-fstack-protector-all','-Wl,-znorelro']), 
-                (1, executable+': failed PIE RELRO'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack','-fstack-protector-all','-Wl,-znorelro','-pie','-fPIE']), 
-                (1, executable+': failed RELRO'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack','-fstack-protector-all','-Wl,-zrelro','-Wl,-z,now','-pie','-fPIE']), 
-                (0, ''))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-zexecstack', '-fno-stack-protector', '-Wl,-znorelro']),
+                         (1, executable + ': failed PIE NX RELRO Canary'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack', '-fno-stack-protector', '-Wl,-znorelro']),
+                         (1, executable + ': failed PIE RELRO Canary'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack', '-fstack-protector-all', '-Wl,-znorelro']),
+                         (1, executable + ': failed PIE RELRO'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack', '-fstack-protector-all', '-Wl,-znorelro', '-pie', '-fPIE']),
+                         (1, executable + ': failed RELRO'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,-znoexecstack', '-fstack-protector-all', '-Wl,-zrelro', '-Wl,-z,now', '-pie', '-fPIE']),
+                         (0, ''))
 
     def test_PE(self):
         source = 'test1.c'
@@ -50,13 +54,13 @@ class TestSecurityChecks(unittest.TestCase):
         cc = 'i686-w64-mingw32-gcc'
         write_testcode(source)
 
-        self.assertEqual(call_security_check(cc, source, executable, []), 
-                (1, executable+': failed PIE NX'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,--nxcompat']), 
-                (1, executable+': failed PIE'))
-        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,--nxcompat','-Wl,--dynamicbase']), 
-                (0, ''))
+        self.assertEqual(call_security_check(cc, source, executable, []),
+                         (1, executable + ': failed PIE NX'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,--nxcompat']),
+                         (1, executable + ': failed PIE'))
+        self.assertEqual(call_security_check(cc, source, executable, ['-Wl,--nxcompat', '-Wl,--dynamicbase']),
+                         (0, ''))
+
 
 if __name__ == '__main__':
     unittest.main()
-

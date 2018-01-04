@@ -254,5 +254,6 @@ class BIP9SoftForksTest(ComparisonTestFramework):
         tx.vin[0].nSequence = 0x90FFFFFF
         tx.nLockTime = self.last_block_time
 
+
 if __name__ == '__main__':
     BIP9SoftForksTest().main()

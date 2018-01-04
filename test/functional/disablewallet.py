@@ -44,5 +44,6 @@ class DisableWalletTest (BitcoinTestFramework):
         except JSONRPCException as e:
             assert("Invalid address" in e.error['message'])
 
+
 if __name__ == '__main__':
     DisableWalletTest().main()

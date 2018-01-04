@@ -151,7 +151,8 @@ class BaseNode(SingleNodeConnCB):
     def check_last_announcement(self, headers=None, inv=None):
         expect_headers = headers if headers != None else []
         expect_inv = inv if inv != None else []
-        test_function = lambda: self.block_announced
+
+        def test_function(): return self.block_announced
         assert(wait_until(test_function, timeout=60))
         with mininode_lock:
             self.block_announced = False
@@ -176,12 +177,12 @@ class BaseNode(SingleNodeConnCB):
 
     # Syncing helpers
     def wait_for_block(self, blockhash, timeout=60):
-        test_function = lambda: self.last_block != None and self.last_block.sha256 == blockhash
+        def test_function(): return self.last_block != None and self.last_block.sha256 == blockhash
         assert(wait_until(test_function, timeout=timeout))
         return
 
     def wait_for_getheaders(self, timeout=60):
-        test_function = lambda: self.last_getheaders != None
+        def test_function(): return self.last_getheaders != None
         assert(wait_until(test_function, timeout=timeout))
         return
 
@@ -189,18 +190,18 @@ class BaseNode(SingleNodeConnCB):
         if hash_list == []:
             return
 
-        test_function = lambda: self.last_getdata != None and [
+        def test_function(): return self.last_getdata != None and [
             x.hash for x in self.last_getdata.inv] == hash_list
         assert(wait_until(test_function, timeout=timeout))
         return
 
     def wait_for_disconnect(self, timeout=60):
-        test_function = lambda: self.disconnected
+        def test_function(): return self.disconnected
         assert(wait_until(test_function, timeout=timeout))
         return
 
     def wait_for_block_announcement(self, block_hash, timeout=60):
-        test_function = lambda: self.last_blockhash_announced == block_hash
+        def test_function(): return self.last_blockhash_announced == block_hash
         assert(wait_until(test_function, timeout=timeout))
         return
 
@@ -645,6 +646,7 @@ class SendHeadersTest(BitcoinTestFramework):
         # Finally, check that the inv node never received a getdata request,
         # throughout the test
         assert_equal(inv_node.last_getdata, None)
+
 
 if __name__ == '__main__':
     SendHeadersTest().main()

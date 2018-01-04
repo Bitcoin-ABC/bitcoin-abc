@@ -288,5 +288,6 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         [c.disconnect_node() for c in connections]
 
+
 if __name__ == '__main__':
     AcceptBlockTest().main()

@@ -267,5 +267,6 @@ class MempoolPackagesTest(BitcoinTestFramework):
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
         sync_blocks(self.nodes)
 
+
 if __name__ == '__main__':
     MempoolPackagesTest().main()

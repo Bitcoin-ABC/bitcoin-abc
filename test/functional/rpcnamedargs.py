@@ -46,5 +46,6 @@ class NamedArgumentTest(BitcoinTestFramework):
         assert_equal(node.echo(arg0=0, arg3=3, arg9=9),
                      [0] + [None] * 2 + [3] + [None] * 5 + [9])
 
+
 if __name__ == '__main__':
     NamedArgumentTest().main()

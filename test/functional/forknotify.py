@@ -62,5 +62,6 @@ class ForkNotifyTest(BitcoinTestFramework):
             raise AssertionError(
                 "-alertnotify excessive warning of up-version blocks")
 
+
 if __name__ == '__main__':
     ForkNotifyTest().main()
