@@ -97,7 +97,7 @@ public:
 
     VersionBitsTester &TestStateSinceHeight(int height) {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateSinceHeightFor(
                         vpblock.empty() ? nullptr : vpblock.back()) == height,
@@ -110,7 +110,7 @@ public:
 
     VersionBitsTester &TestDefined() {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
@@ -124,7 +124,7 @@ public:
 
     VersionBitsTester &TestStarted() {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
@@ -138,7 +138,7 @@ public:
 
     VersionBitsTester &TestLockedIn() {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
@@ -152,7 +152,7 @@ public:
 
     VersionBitsTester &TestActive() {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==
@@ -166,7 +166,7 @@ public:
 
     VersionBitsTester &TestFailed() {
         for (int i = 0; i < CHECKERS; i++) {
-            if (insecure_randbits(i) == 0) {
+            if (InsecureRandBits(i) == 0) {
                 BOOST_CHECK_MESSAGE(
                     checker[i].GetStateFor(vpblock.empty() ? nullptr
                                                            : vpblock.back()) ==

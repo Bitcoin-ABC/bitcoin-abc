@@ -40,7 +40,7 @@ public:
             return false;
         }
         coin = it->second;
-        if (coin.IsSpent() && insecure_randbool() == 0) {
+        if (coin.IsSpent() && InsecureRandBool() == 0) {
             // Randomly return false in case of an empty entry.
             return false;
         }
@@ -60,7 +60,7 @@ public:
                 // Same optimization used in CCoinsViewDB is to only write dirty
                 // entries.
                 map_[it->first] = it->second.coin;
-                if (it->second.coin.IsSpent() && insecure_randrange(3) == 0) {
+                if (it->second.coin.IsSpent() && InsecureRandRange(3) == 0) {
                     // Randomly delete empty entries on write.
                     map_.erase(it->first);
                 }
@@ -138,32 +138,32 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
     std::vector<uint256> txids;
     txids.resize(NUM_SIMULATION_ITERATIONS / 8);
     for (size_t i = 0; i < txids.size(); i++) {
-        txids[i] = insecure_rand256();
+        txids[i] = InsecureRand256();
     }
 
     for (unsigned int i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
         // Do a random modification.
         {
             // txid we're going to modify in this iteration.
-            uint256 txid = txids[insecure_randrange(txids.size())];
+            uint256 txid = txids[InsecureRandRange(txids.size())];
             Coin &coin = result[COutPoint(txid, 0)];
             const Coin &entry =
-                (insecure_randrange(500) == 0)
+                (InsecureRandRange(500) == 0)
                     ? AccessByTxid(*stack.back(), txid)
                     : stack.back()->AccessCoin(COutPoint(txid, 0));
             BOOST_CHECK(coin == entry);
 
-            if (insecure_randrange(5) == 0 || coin.IsSpent()) {
+            if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
                 txout.nValue = Amount(int64_t(insecure_rand()));
-                if (insecure_randrange(16) == 0 && coin.IsSpent()) {
-                    txout.scriptPubKey.assign(1 + insecure_randbits(6),
+                if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
+                    txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);
                     BOOST_CHECK(txout.scriptPubKey.IsUnspendable());
                     added_an_unspendable_entry = true;
                 } else {
                     // Random sizes so we can test memory usage accounting
-                    txout.scriptPubKey.assign(insecure_randbits(6), 0);
+                    txout.scriptPubKey.assign(InsecureRandBits(6), 0);
                     (coin.IsSpent() ? added_an_entry : updated_an_entry) = true;
                     coin = Coin(txout, 1, false);
                 }
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
         }
 
         // One every 10 iterations, remove a random entry from the cache
-        if (insecure_randrange(10)) {
+        if (InsecureRandRange(10)) {
             COutPoint out(txids[insecure_rand() % txids.size()], 0);
             int cacheid = insecure_rand() % stack.size();
             stack[cacheid]->Uncache(out);
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
         }
 
         // Once every 1000 iterations and at the end, verify the full cache.
-        if (insecure_randrange(1000) == 1 ||
+        if (InsecureRandRange(1000) == 1 ||
             i == NUM_SIMULATION_ITERATIONS - 1) {
             for (auto it = result.begin(); it != result.end(); it++) {
                 bool have = stack.back()->HaveCoin(it->first);
@@ -207,22 +207,21 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
         }
 
         // Every 100 iterations, flush an intermediate cache
-        if (insecure_randrange(100) == 0) {
-            if (stack.size() > 1 && insecure_randbool() == 0) {
-                unsigned int flushIndex = insecure_randrange(stack.size() - 1);
+        if (InsecureRandRange(100) == 0) {
+            if (stack.size() > 1 && InsecureRandBool() == 0) {
+                unsigned int flushIndex = InsecureRandRange(stack.size() - 1);
                 stack[flushIndex]->Flush();
             }
         }
-        if (insecure_randrange(100) == 0) {
+        if (InsecureRandRange(100) == 0) {
             // Every 100 iterations, change the cache stack.
-            if (stack.size() > 0 && insecure_randbool() == 0) {
+            if (stack.size() > 0 && InsecureRandBool() == 0) {
                 // Remove the top cache
                 stack.back()->Flush();
                 delete stack.back();
                 stack.pop_back();
             }
-            if (stack.size() == 0 ||
-                (stack.size() < 4 && insecure_randbool())) {
+            if (stack.size() == 0 || (stack.size() < 4 && InsecureRandBool())) {
                 // Add a new cache
                 CCoinsView *tip = &base;
                 if (stack.size() > 0) {
@@ -262,7 +261,7 @@ UtxoData utxoData;
 
 UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
     assert(utxoSet.size());
-    auto utxoSetIt = utxoSet.lower_bound(COutPoint(insecure_rand256(), 0));
+    auto utxoSetIt = utxoSet.lower_bound(COutPoint(InsecureRand256(), 0));
     if (utxoSetIt == utxoSet.end()) {
         utxoSetIt = utxoSet.begin();
     }
@@ -313,7 +312,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             // 2/20 times create a new coinbase
             if (randiter % 20 < 2 || coinbase_coins.size() < 10) {
                 // 1/10 of those times create a duplicate coinbase
-                if (insecure_randrange(10) == 0 && coinbase_coins.size()) {
+                if (InsecureRandRange(10) == 0 && coinbase_coins.size()) {
                     auto utxod = FindRandomFrom(coinbase_coins);
                     // Reuse the exact same coinbase
                     tx = std::get<0>(utxod->second);
@@ -434,7 +433,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
         }
 
         // Once every 1000 iterations and at the end, verify the full cache.
-        if (insecure_randrange(1000) == 1 ||
+        if (InsecureRandRange(1000) == 1 ||
             i == NUM_SIMULATION_ITERATIONS - 1) {
             for (auto it = result.begin(); it != result.end(); it++) {
                 bool have = stack.back()->HaveCoin(it->first);
@@ -445,35 +444,34 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
         }
 
         // One every 10 iterations, remove a random entry from the cache
-        if (utxoset.size() > 1 && insecure_randrange(30)) {
+        if (utxoset.size() > 1 && InsecureRandRange(30)) {
             stack[insecure_rand() % stack.size()]->Uncache(
                 FindRandomFrom(utxoset)->first);
         }
-        if (disconnected_coins.size() > 1 && insecure_randrange(30)) {
+        if (disconnected_coins.size() > 1 && InsecureRandRange(30)) {
             stack[insecure_rand() % stack.size()]->Uncache(
                 FindRandomFrom(disconnected_coins)->first);
         }
-        if (duplicate_coins.size() > 1 && insecure_randrange(30)) {
+        if (duplicate_coins.size() > 1 && InsecureRandRange(30)) {
             stack[insecure_rand() % stack.size()]->Uncache(
                 FindRandomFrom(duplicate_coins)->first);
         }
 
-        if (insecure_randrange(100) == 0) {
+        if (InsecureRandRange(100) == 0) {
             // Every 100 iterations, flush an intermediate cache
-            if (stack.size() > 1 && insecure_randbool() == 0) {
-                unsigned int flushIndex = insecure_randrange(stack.size() - 1);
+            if (stack.size() > 1 && InsecureRandBool() == 0) {
+                unsigned int flushIndex = InsecureRandRange(stack.size() - 1);
                 stack[flushIndex]->Flush();
             }
         }
-        if (insecure_randrange(100) == 0) {
+        if (InsecureRandRange(100) == 0) {
             // Every 100 iterations, change the cache stack.
-            if (stack.size() > 0 && insecure_randbool() == 0) {
+            if (stack.size() > 0 && InsecureRandBool() == 0) {
                 stack.back()->Flush();
                 delete stack.back();
                 stack.pop_back();
             }
-            if (stack.size() == 0 ||
-                (stack.size() < 4 && insecure_randbool())) {
+            if (stack.size() == 0 || (stack.size() < 4 && InsecureRandBool())) {
                 CCoinsView *tip = &base;
                 if (stack.size() > 0) {
                     tip = stack.back();

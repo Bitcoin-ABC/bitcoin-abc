@@ -18,7 +18,7 @@
 extern uint256 insecure_rand_seed;
 extern FastRandomContext insecure_rand_ctx;
 
-static inline void seed_insecure_rand(bool fDeterministic = false) {
+static inline void SeedInsecureRand(bool fDeterministic = false) {
     if (fDeterministic) {
         insecure_rand_seed = uint256();
     } else {
@@ -30,19 +30,19 @@ static inline void seed_insecure_rand(bool fDeterministic = false) {
 static inline uint32_t insecure_rand() {
     return insecure_rand_ctx.rand32();
 }
-static inline uint256 insecure_rand256() {
+static inline uint256 InsecureRand256() {
     return insecure_rand_ctx.rand256();
 }
-static inline uint64_t insecure_randbits(int bits) {
+static inline uint64_t InsecureRandBits(int bits) {
     return insecure_rand_ctx.randbits(bits);
 }
-static inline uint64_t insecure_randrange(uint64_t range) {
+static inline uint64_t InsecureRandRange(uint64_t range) {
     return insecure_rand_ctx.randrange(range);
 }
-static inline bool insecure_randbool() {
+static inline bool InsecureRandBool() {
     return insecure_rand_ctx.randbool();
 }
-static inline std::vector<uint8_t> insecure_randbytes(size_t len) {
+static inline std::vector<uint8_t> InsecureRandBytes(size_t len) {
     return insecure_rand_ctx.randbytes(len);
 }
 
