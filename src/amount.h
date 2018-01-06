@@ -106,9 +106,6 @@ public:
     }
 };
 
-/** Amount in satoshis (Can be negative) */
-typedef int64_t CAmount;
-
 static const Amount COIN(100000000);
 static const Amount CENT(1000000);
 
