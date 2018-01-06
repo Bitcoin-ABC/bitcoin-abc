@@ -173,7 +173,9 @@ bool CDBEnv::Salvage(const std::string &strFile, bool fAggressive,
     assert(mapFileUseCount.count(strFile) == 0);
 
     u_int32_t flags = DB_SALVAGE;
-    if (fAggressive) flags |= DB_AGGRESSIVE;
+    if (fAggressive) {
+        flags |= DB_AGGRESSIVE;
+    }
 
     std::stringstream strDump;
 
@@ -212,7 +214,9 @@ bool CDBEnv::Salvage(const std::string &strFile, bool fAggressive,
     while (!strDump.eof() && keyHex != DATA_END) {
         getline(strDump, keyHex);
         if (keyHex != DATA_END) {
-            if (strDump.eof()) break;
+            if (strDump.eof()) {
+                break;
+            }
             getline(strDump, valueHex);
             if (valueHex == DATA_END) {
                 LogPrintf("CDBEnv::Salvage: WARNING: Number of keys in data "
@@ -234,7 +238,9 @@ bool CDBEnv::Salvage(const std::string &strFile, bool fAggressive,
 
 void CDBEnv::CheckpointLSN(const std::string &strFile) {
     dbenv->txn_checkpoint(0, 0, 0);
-    if (fMockDb) return;
+    if (fMockDb) {
+        return;
+    }
     dbenv->lsn_reset(strFile.c_str(), 0);
 }
 
@@ -309,11 +315,15 @@ CDB::CDB(const std::string &strFilename, const char *pszMode,
 }
 
 void CDB::Flush() {
-    if (activeTxn) return;
+    if (activeTxn) {
+        return;
+    }
 
     // Flush database activity from memory pool to disk log
     unsigned int nMinutes = 0;
-    if (fReadOnly) nMinutes = 1;
+    if (fReadOnly) {
+        nMinutes = 1;
+    }
 
     bitdb.dbenv->txn_checkpoint(
         nMinutes ? GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024 : 0,
@@ -321,17 +331,21 @@ void CDB::Flush() {
 }
 
 void CDB::Close() {
-    if (!pdb) return;
-    if (activeTxn) activeTxn->abort();
+    if (!pdb) {
+        return;
+    }
+    if (activeTxn) {
+        activeTxn->abort();
+    }
     activeTxn = nullptr;
     pdb = nullptr;
 
-    if (fFlushOnClose) Flush();
-
-    {
-        LOCK(bitdb.cs_db);
-        --bitdb.mapFileUseCount[strFile];
+    if (fFlushOnClose) {
+        Flush();
     }
+
+    LOCK(bitdb.cs_db);
+    --bitdb.mapFileUseCount[strFile];
 }
 
 void CDBEnv::CloseDb(const std::string &strFile) {
@@ -393,7 +407,8 @@ bool CDB::Rewrite(const std::string &strFile, const char *pszSkip) {
                             if (ret1 == DB_NOTFOUND) {
                                 pcursor->close();
                                 break;
-                            } else if (ret1 != 0) {
+                            }
+                            if (ret1 != 0) {
                                 pcursor->close();
                                 fSuccess = false;
                                 break;
@@ -401,8 +416,9 @@ bool CDB::Rewrite(const std::string &strFile, const char *pszSkip) {
                             if (pszSkip &&
                                 strncmp(ssKey.data(), pszSkip,
                                         std::min(ssKey.size(),
-                                                 strlen(pszSkip))) == 0)
+                                                 strlen(pszSkip))) == 0) {
                                 continue;
+                            }
                             if (strncmp(ssKey.data(), "\x07version", 8) == 0) {
                                 // Update version:
                                 ssValue.clear();
@@ -412,28 +428,35 @@ bool CDB::Rewrite(const std::string &strFile, const char *pszSkip) {
                             Dbt datValue(ssValue.data(), ssValue.size());
                             int ret2 = pdbCopy->put(nullptr, &datKey, &datValue,
                                                     DB_NOOVERWRITE);
-                            if (ret2 > 0) fSuccess = false;
+                            if (ret2 > 0) {
+                                fSuccess = false;
+                            }
                         }
                     if (fSuccess) {
                         db.Close();
                         bitdb.CloseDb(strFile);
-                        if (pdbCopy->close(0)) fSuccess = false;
+                        if (pdbCopy->close(0)) {
+                            fSuccess = false;
+                        }
                         delete pdbCopy;
                     }
                 }
                 if (fSuccess) {
                     Db dbA(bitdb.dbenv, 0);
-                    if (dbA.remove(strFile.c_str(), nullptr, 0))
+                    if (dbA.remove(strFile.c_str(), nullptr, 0)) {
                         fSuccess = false;
+                    }
                     Db dbB(bitdb.dbenv, 0);
                     if (dbB.rename(strFileRes.c_str(), nullptr, strFile.c_str(),
-                                   0))
+                                   0)) {
                         fSuccess = false;
+                    }
                 }
-                if (!fSuccess)
+                if (!fSuccess) {
                     LogPrintf(
                         "CDB::Rewrite: Failed to rewrite database file %s\n",
                         strFileRes);
+                }
                 return fSuccess;
             }
         }
@@ -466,11 +489,14 @@ void CDBEnv::Flush(bool fShutdown) {
                 LogPrint(BCLog::DB, "CDBEnv::Flush: %s checkpoint\n", strFile);
                 dbenv->txn_checkpoint(0, 0, 0);
                 LogPrint(BCLog::DB, "CDBEnv::Flush: %s detach\n", strFile);
-                if (!fMockDb) dbenv->lsn_reset(strFile.c_str(), 0);
+                if (!fMockDb) {
+                    dbenv->lsn_reset(strFile.c_str(), 0);
+                }
                 LogPrint(BCLog::DB, "CDBEnv::Flush: %s closed\n", strFile);
                 mapFileUseCount.erase(mi++);
-            } else
+            } else {
                 mi++;
+            }
         }
         LogPrint(BCLog::DB, "CDBEnv::Flush: Flush(%s)%s took %15dms\n",
                  fShutdown ? "true" : "false",

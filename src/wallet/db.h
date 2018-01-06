@@ -109,7 +109,9 @@ private:
 
 protected:
     template <typename K, typename T> bool Read(const K &key, T &value) {
-        if (!pdb) return false;
+        if (!pdb) {
+            return false;
+        }
 
         // Key
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -122,7 +124,9 @@ protected:
         datValue.set_flags(DB_DBT_MALLOC);
         int ret = pdb->get(activeTxn, &datKey, &datValue, 0);
         memset(datKey.get_data(), 0, datKey.get_size());
-        if (datValue.get_data() == nullptr) return false;
+        if (datValue.get_data() == nullptr) {
+            return false;
+        }
 
         // Unserialize value
         try {
@@ -143,8 +147,12 @@ protected:
 
     template <typename K, typename T>
     bool Write(const K &key, const T &value, bool fOverwrite = true) {
-        if (!pdb) return false;
-        if (fReadOnly) assert(!"Write called on database in read-only mode");
+        if (!pdb) {
+            return false;
+        }
+        if (fReadOnly) {
+            assert(!"Write called on database in read-only mode");
+        }
 
         // Key
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -169,8 +177,12 @@ protected:
     }
 
     template <typename K> bool Erase(const K &key) {
-        if (!pdb) return false;
-        if (fReadOnly) assert(!"Erase called on database in read-only mode");
+        if (!pdb) {
+            return false;
+        }
+        if (fReadOnly) {
+            assert(!"Erase called on database in read-only mode");
+        }
 
         // Key
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -187,7 +199,9 @@ protected:
     }
 
     template <typename K> bool Exists(const K &key) {
-        if (!pdb) return false;
+        if (!pdb) {
+            return false;
+        }
 
         // Key
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -204,10 +218,14 @@ protected:
     }
 
     Dbc *GetCursor() {
-        if (!pdb) return nullptr;
+        if (!pdb) {
+            return nullptr;
+        }
         Dbc *pcursor = nullptr;
         int ret = pdb->cursor(nullptr, &pcursor, 0);
-        if (ret != 0) return nullptr;
+        if (ret != 0) {
+            return nullptr;
+        }
         return pcursor;
     }
 
@@ -250,22 +268,30 @@ protected:
 
 public:
     bool TxnBegin() {
-        if (!pdb || activeTxn) return false;
+        if (!pdb || activeTxn) {
+            return false;
+        }
         DbTxn *ptxn = bitdb.TxnBegin();
-        if (!ptxn) return false;
+        if (!ptxn) {
+            return false;
+        }
         activeTxn = ptxn;
         return true;
     }
 
     bool TxnCommit() {
-        if (!pdb || !activeTxn) return false;
+        if (!pdb || !activeTxn) {
+            return false;
+        }
         int ret = activeTxn->commit(0);
         activeTxn = nullptr;
         return (ret == 0);
     }
 
     bool TxnAbort() {
-        if (!pdb || !activeTxn) return false;
+        if (!pdb || !activeTxn) {
+            return false;
+        }
         int ret = activeTxn->abort();
         activeTxn = nullptr;
         return (ret == 0);
