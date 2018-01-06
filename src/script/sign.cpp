@@ -16,9 +16,10 @@ typedef std::vector<uint8_t> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
     const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
-    const Amount amountIn, uint32_t nHashTypeIn)
+    const Amount amountIn, SigHashType sigHashTypeIn)
     : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
-      amount(amountIn), nHashType(nHashTypeIn), checker(txTo, nIn, amountIn) {}
+      amount(amountIn), sigHashType(sigHashTypeIn),
+      checker(txTo, nIn, amountIn) {}
 
 bool TransactionSignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
                                             const CKeyID &address,
@@ -28,12 +29,13 @@ bool TransactionSignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
         return false;
     }
 
-    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType, amount);
+    uint256 hash = SignatureHash(scriptCode, *txTo, nIn,
+                                 sigHashType.getRawSigHashType(), amount);
     if (!key.Sign(hash, vchSig)) {
         return false;
     }
 
-    vchSig.push_back(uint8_t(nHashType));
+    vchSig.push_back(uint8_t(sigHashType.getRawSigHashType()));
     return true;
 }
 
@@ -182,12 +184,12 @@ void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
 
 bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
-                   const Amount amount, uint32_t nHashType) {
+                   const Amount amount, SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
 
     CTransaction txToConst(txTo);
     TransactionSignatureCreator creator(&keystore, &txToConst, nIn, amount,
-                                        nHashType);
+                                        sigHashType);
 
     SignatureData sigdata;
     bool ret = ProduceSignature(creator, fromPubKey, sigdata);
@@ -197,14 +199,14 @@ bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
 
 bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
-                   uint32_t nHashType) {
+                   SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
     CTxIn &txin = txTo.vin[nIn];
     assert(txin.prevout.n < txFrom.vout.size());
     const CTxOut &txout = txFrom.vout[txin.prevout.n];
 
     return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, txout.nValue,
-                         nHashType);
+                         sigHashType);
 }
 
 static std::vector<valtype> CombineMultisig(

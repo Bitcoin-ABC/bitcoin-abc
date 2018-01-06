@@ -1032,8 +1032,7 @@ static UniValue signrawtransaction(const Config &config,
         if ((sigHashType.getBaseSigHashType() != BaseSigHashType::SINGLE) ||
             (i < mergedTx.vout.size())) {
             ProduceSignature(MutableTransactionSignatureCreator(
-                                 &keystore, &mergedTx, i, amount,
-                                 sigHashType.getRawSigHashType()),
+                                 &keystore, &mergedTx, i, amount, sigHashType),
                              prevPubKey, sigdata);
         }
 

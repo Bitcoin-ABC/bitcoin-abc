@@ -347,12 +347,12 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         SignatureData sigdata;
         ProduceSignature(
             MutableTransactionSignatureCreator(&keystore, &tx, 0, 11 * CENT,
-                                               SIGHASH_ALL | SIGHASH_FORKID),
+                                               SigHashType().withForkId(true)),
             spend_tx.vout[0].scriptPubKey, sigdata);
         UpdateTransaction(tx, 0, sigdata);
         ProduceSignature(
             MutableTransactionSignatureCreator(&keystore, &tx, 1, 11 * CENT,
-                                               SIGHASH_ALL | SIGHASH_FORKID),
+                                               SigHashType().withForkId(true)),
             spend_tx.vout[3].scriptPubKey, sigdata);
         UpdateTransaction(tx, 1, sigdata);
 
