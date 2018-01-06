@@ -1076,6 +1076,9 @@ static UniValue addmultisigaddress(const Config &config,
         "Add an nrequired-to-sign multisignature address to the wallet. "
         "Requires a new wallet backup.\n"
         "Each key is a Bitcoin address or hex-encoded public key.\n"
+        "This functionality is only intended for use with non-watchonly "
+        "addresses.\n"
+        "See `importaddress` for watchonly p2sh address support.\n"
         "If 'label' is specified (DEPRECATED), assign address to that label.\n",
         {
             {"nrequired", RPCArg::Type::NUM, RPCArg::Optional::NO,
