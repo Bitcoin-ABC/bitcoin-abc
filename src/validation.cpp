@@ -2824,8 +2824,9 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
 
                 // Whether we have anything to do at all.
                 if (pindexMostWork == nullptr ||
-                    pindexMostWork == chainActive.Tip())
+                    pindexMostWork == chainActive.Tip()) {
                     return true;
+                }
 
                 bool fInvalidFound = false;
                 std::shared_ptr<const CBlock> nullBlockPtr;
@@ -2836,8 +2837,9 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                                     pindexMostWork->GetBlockHash()
                             ? pblock
                             : nullBlockPtr,
-                        fInvalidFound, connectTrace))
+                        fInvalidFound, connectTrace)) {
                     return false;
+                }
 
                 if (fInvalidFound) {
                     // Wipe cache, we may need another branch now.
@@ -2856,9 +2858,10 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
             for (const auto &pair : connectTrace.blocksConnected) {
                 assert(pair.second);
                 const CBlock &block = *(pair.second);
-                for (unsigned int i = 0; i < block.vtx.size(); i++)
+                for (size_t i = 0; i < block.vtx.size(); i++) {
                     GetMainSignals().SyncTransaction(*block.vtx[i], pair.first,
                                                      i);
+                }
             }
         }
         // When we reach this point, we switched to a new tip (stored in
