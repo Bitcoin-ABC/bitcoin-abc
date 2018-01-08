@@ -31,7 +31,7 @@ public:
     // Allow access to underlying value for non-monetary operations
     int64_t GetSatoshis() const { return amount; }
 
-    /*
+    /**
      * Implement standard operators
      */
     Amount &operator+=(const Amount a) {
@@ -42,39 +42,61 @@ public:
         amount -= a.amount;
         return *this;
     }
-    friend constexpr bool operator<(const Amount a, const Amount b) {
-        return a.amount < b.amount;
-    }
+
+    /**
+     * Equality
+     */
     friend constexpr bool operator==(const Amount a, const Amount b) {
         return a.amount == b.amount;
     }
-    friend constexpr bool operator>(const Amount a, const Amount b) {
-        return b.amount < a.amount;
-    }
     friend constexpr bool operator!=(const Amount a, const Amount b) {
-        return !(a.amount == b.amount);
+        return !(a == b);
+    }
+
+    /**
+     * Comparison
+     */
+    friend constexpr bool operator<(const Amount a, const Amount b) {
+        return a.amount < b.amount;
+    }
+    friend constexpr bool operator>(const Amount a, const Amount b) {
+        return b < a;
     }
     friend constexpr bool operator<=(const Amount a, const Amount b) {
-        return !(a.amount > b.amount);
+        return !(a > b);
     }
     friend constexpr bool operator>=(const Amount a, const Amount b) {
-        return !(a.amount < b.amount);
+        return !(a < b);
     }
+
+    /**
+     * Unary minus
+     */
+    constexpr Amount operator-() { return Amount(-amount); }
+
+    /**
+     * Addition and subtraction.
+     */
     friend constexpr Amount operator+(const Amount a, const Amount b) {
         return Amount(a.amount + b.amount);
     }
     friend constexpr Amount operator-(const Amount a, const Amount b) {
-        return Amount(a.amount - b.amount);
+        return a + -b;
     }
-    // Implemented for allowing COIN as a base unit.
+
+    /**
+     * Multiplication
+     */
     friend constexpr Amount operator*(const int64_t a, const Amount b) {
         return Amount(a * b.amount);
     }
     friend constexpr Amount operator*(const int a, const Amount b) {
         return Amount(a * b.amount);
     }
-    // DO NOT IMPLEMENT
-    friend constexpr Amount operator*(const double a, const Amount b) = delete;
+
+    /**
+     * Division
+     */
     constexpr int64_t operator/(const Amount b) const {
         return amount / b.amount;
     }
@@ -82,19 +104,31 @@ public:
         return Amount(amount / b);
     }
     constexpr Amount operator/(const int b) const { return Amount(amount / b); }
-    // DO NOT IMPLEMENT
-    constexpr Amount operator/(const double b) const = delete;
+
+    /**
+     * Modulus
+     */
+    constexpr int64_t operator%(const Amount b) const {
+        return amount % b.amount;
+    }
     constexpr Amount operator%(const int64_t b) const {
         return Amount(amount % b);
     }
     constexpr Amount operator%(const int b) const { return Amount(amount % b); }
-    // DO NOT IMPLEMENT
+
+    /**
+     * Do not implement double ops to get an error with double and ensure
+     * casting to integer is explicit.
+     */
+    friend constexpr Amount operator*(const double a, const Amount b) = delete;
+    constexpr Amount operator/(const double b) const = delete;
     constexpr Amount operator%(const double b) const = delete;
 
     // ostream support
     friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
         return stream << ca.amount;
     }
+
     std::string ToString() const;
 
     // serialization support

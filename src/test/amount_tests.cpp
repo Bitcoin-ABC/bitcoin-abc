@@ -7,35 +7,90 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <array>
+
 BOOST_FIXTURE_TEST_SUITE(amount_tests, BasicTestingSetup)
 
+static void CheckAmounts(int64_t aval, int64_t bval) {
+    Amount a(aval), b(bval);
+
+    // Equality
+    BOOST_CHECK_EQUAL(a == b, aval == bval);
+    BOOST_CHECK_EQUAL(b == a, aval == bval);
+
+    BOOST_CHECK_EQUAL(a != b, aval != bval);
+    BOOST_CHECK_EQUAL(b != a, aval != bval);
+
+    // Comparison
+    BOOST_CHECK_EQUAL(a < b, aval < bval);
+    BOOST_CHECK_EQUAL(b < a, bval < aval);
+
+    BOOST_CHECK_EQUAL(a > b, aval > bval);
+    BOOST_CHECK_EQUAL(b > a, bval > aval);
+
+    BOOST_CHECK_EQUAL(a <= b, aval <= bval);
+    BOOST_CHECK_EQUAL(b <= a, bval <= aval);
+
+    BOOST_CHECK_EQUAL(a >= b, aval >= bval);
+    BOOST_CHECK_EQUAL(b >= a, bval >= aval);
+
+    // Unary minus
+    BOOST_CHECK_EQUAL(-a, Amount(-aval));
+    BOOST_CHECK_EQUAL(-b, Amount(-bval));
+
+    // Addition and subtraction.
+    BOOST_CHECK_EQUAL(a + b, b + a);
+    BOOST_CHECK_EQUAL(a + b, Amount(aval + bval));
+
+    BOOST_CHECK_EQUAL(a - b, -(b - a));
+    BOOST_CHECK_EQUAL(a - b, Amount(aval - bval));
+
+    // Multiplication
+    BOOST_CHECK_EQUAL(aval * b, bval * a);
+    BOOST_CHECK_EQUAL(aval * b, Amount(aval * bval));
+
+    // Division
+    if (b != Amount(0)) {
+        BOOST_CHECK_EQUAL(a / b, aval / bval);
+        BOOST_CHECK_EQUAL(a / bval, Amount(a / b));
+    }
+
+    if (a != Amount(0)) {
+        BOOST_CHECK_EQUAL(b / a, bval / aval);
+        BOOST_CHECK_EQUAL(b / aval, Amount(b / a));
+    }
+
+    // Modulus
+    if (b != Amount(0)) {
+        BOOST_CHECK_EQUAL(a % b, aval % bval);
+        BOOST_CHECK_EQUAL(a % bval, Amount(a % b));
+    }
+
+    if (a != Amount(0)) {
+        BOOST_CHECK_EQUAL(b % a, bval % aval);
+        BOOST_CHECK_EQUAL(b % aval, Amount(b % a));
+    }
+
+    // OpAssign
+    Amount v(0);
+    v += a;
+    BOOST_CHECK_EQUAL(v, a);
+    v += b;
+    BOOST_CHECK_EQUAL(v, a + b);
+    v += b;
+    BOOST_CHECK_EQUAL(v, a + 2 * b);
+    v -= 2 * a;
+    BOOST_CHECK_EQUAL(v, 2 * b - a);
+}
+
 BOOST_AUTO_TEST_CASE(AmountTests) {
-    BOOST_CHECK(Amount(2) <= Amount(2));
-    BOOST_CHECK(Amount(2) <= Amount(3));
+    std::array<int64_t, 8> values = {-23, -1, 0, 1, 2, 3, 42, 99999999};
 
-    BOOST_CHECK(Amount(2) >= Amount(2));
-    BOOST_CHECK(Amount(3) >= Amount(2));
-
-    BOOST_CHECK(Amount(1) < Amount(2));
-    BOOST_CHECK(Amount(-1) < Amount(0));
-
-    BOOST_CHECK(Amount(2) > Amount(1));
-    BOOST_CHECK(Amount(0) > Amount(-1));
-
-    BOOST_CHECK(Amount(1) < Amount(2));
-    BOOST_CHECK(Amount(-1) < Amount(0));
-
-    BOOST_CHECK(Amount(2) > Amount(1));
-    BOOST_CHECK(Amount(0) > Amount(-1));
-
-    BOOST_CHECK(Amount(0) == Amount(0));
-    BOOST_CHECK(Amount(0) != Amount(1));
-
-    Amount amount(0);
-    BOOST_CHECK_EQUAL(amount += Amount(1), Amount(1));
-    BOOST_CHECK_EQUAL(amount += Amount(-1), Amount(0));
-    BOOST_CHECK_EQUAL(amount -= Amount(1), Amount(-1));
-    BOOST_CHECK_EQUAL(amount -= Amount(-1), Amount(0));
+    for (int64_t i : values) {
+        for (int64_t j : values) {
+            CheckAmounts(i, j);
+        }
+    }
 
     BOOST_CHECK_EQUAL(COIN + COIN, Amount(2 * COIN));
     BOOST_CHECK_EQUAL(2 * COIN + COIN, Amount(3 * COIN));
@@ -43,22 +98,6 @@ BOOST_AUTO_TEST_CASE(AmountTests) {
 
     BOOST_CHECK_EQUAL(COIN - COIN, Amount(0));
     BOOST_CHECK_EQUAL(COIN - 2 * COIN, -1 * COIN);
-
-    BOOST_CHECK_EQUAL(10 * Amount(10), Amount(100));
-    BOOST_CHECK_EQUAL(-1 * Amount(1), Amount(-1));
-
-    BOOST_CHECK_EQUAL(Amount(10) / 3, Amount(3));
-    BOOST_CHECK_EQUAL(10 * COIN / COIN, 10.0);
-    BOOST_CHECK_EQUAL(Amount(10) / -3, Amount(-3));
-    BOOST_CHECK_EQUAL(-10 * COIN / (-1 * COIN), 10.0);
-
-    BOOST_CHECK_EQUAL(Amount(100) / 10, Amount(10));
-    BOOST_CHECK_EQUAL(Amount(100) / 3, Amount(33));
-    BOOST_CHECK_EQUAL(Amount(101) / 3, Amount(33));
-
-    BOOST_CHECK_EQUAL(Amount(100) % 10, Amount(0));
-    BOOST_CHECK_EQUAL(Amount(100) % 3, Amount(1));
-    BOOST_CHECK_EQUAL(Amount(101) % 3, Amount(2));
 }
 
 BOOST_AUTO_TEST_CASE(GetFeeTest) {
