@@ -4292,7 +4292,7 @@ bool CWallet::ParameterInteraction() {
     if (IsArgSet("-mintxfee")) {
         Amount n(0);
         auto parsed = ParseMoney(GetArg("-mintxfee", ""), n);
-        if (!parsed || Amount(0) == n) {
+        if (!parsed) {
             return InitError(AmountErrMsg("mintxfee", GetArg("-mintxfee", "")));
         }
 
