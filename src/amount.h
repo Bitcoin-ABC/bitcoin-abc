@@ -72,7 +72,7 @@ public:
     /**
      * Unary minus
      */
-    constexpr Amount operator-() { return Amount(-amount); }
+    constexpr Amount operator-() const { return Amount(-amount); }
 
     /**
      * Addition and subtraction.
