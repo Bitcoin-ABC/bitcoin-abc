@@ -113,7 +113,8 @@ bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
                             ScriptError *serror);
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
-                      unsigned int nIn, uint32_t nHashType, const Amount amount,
+                      unsigned int nIn, SigHashType sigHashType,
+                      const Amount amount,
                       const PrecomputedTransactionData *cache = nullptr,
                       uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID);
 

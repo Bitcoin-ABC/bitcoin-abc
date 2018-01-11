@@ -10,6 +10,7 @@
 #include "pubkey.h"
 #include "random.h"
 #include "script/scriptcache.h"
+#include "script/sighashtype.h"
 #include "script/sign.h"
 #include "script/standard.h"
 #include "test/sigutil.h"
@@ -53,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
         // Sign:
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(scriptPubKey, spends[i], 0,
-                                     SIGHASH_ALL | SIGHASH_FORKID,
+                                     SigHashType().withForkId(true),
                                      coinbaseTxns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
@@ -191,7 +192,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(p2pk_scriptPubKey, spend_tx, 0,
-                                     SIGHASH_ALL | SIGHASH_FORKID,
+                                     SigHashType().withForkId(true),
                                      coinbaseTxns[0].vout[0].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
@@ -274,7 +275,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(
             spend_tx.vout[1].scriptPubKey, invalid_with_cltv_tx, 0,
-            SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[1].nValue);
+            SigHashType().withForkId(true), spend_tx.vout[1].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
@@ -309,7 +310,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         std::vector<uint8_t> vchSig;
         uint256 hash = SignatureHash(
             spend_tx.vout[2].scriptPubKey, invalid_with_csv_tx, 0,
-            SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[2].nValue);
+            SigHashType().withForkId(true), spend_tx.vout[2].nValue);
         BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 101;

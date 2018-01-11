@@ -5,6 +5,8 @@
 #ifndef BITCOIN_SCRIPT_HASH_TYPE_H
 #define BITCOIN_SCRIPT_HASH_TYPE_H
 
+#include "serialize.h"
+
 #include <cstdint>
 #include <stdexcept>
 
@@ -17,8 +19,15 @@ enum {
     SIGHASH_ANYONECANPAY = 0x80,
 };
 
-/** Base signature hash types */
+/**
+ * Base signature hash types
+ * Base sig hash types not defined in this enum may be used, but they will be
+ * represented as UNSUPPORTED.  See transaction
+ * c99c49da4c38af669dea436d3e73780dfdb6c1ecf9958baa52960e8baee30e73 for an
+ * example where an unsupported base sig hash of 0 was used.
+ */
 enum class BaseSigHashType : uint32_t {
+    UNSUPPORTED = 0,
     ALL = SIGHASH_ALL,
     NONE = SIGHASH_NONE,
     SINGLE = SIGHASH_SINGLE
@@ -32,12 +41,7 @@ private:
 public:
     explicit SigHashType() : sigHash(SIGHASH_ALL) {}
 
-    explicit SigHashType(uint32_t sigHashIn) : sigHash(sigHashIn) {
-        if (((sigHash & 0x1f) < SIGHASH_ALL) ||
-            ((sigHash & 0x1f) > SIGHASH_SINGLE)) {
-            throw std::runtime_error("Base sighash must be specified");
-        }
-    }
+    explicit SigHashType(uint32_t sigHashIn) : sigHash(sigHashIn) {}
 
     SigHashType withBaseSigHash(BaseSigHashType baseSigHashType) const {
         return SigHashType((sigHash & ~0x1f) | uint32_t(baseSigHashType));
@@ -57,6 +61,12 @@ public:
         return BaseSigHashType(sigHash & 0x1f);
     }
 
+    bool hasSupportedBaseSigHashType() const {
+        BaseSigHashType baseType = getBaseSigHashType();
+        return baseType >= BaseSigHashType::ALL &&
+               baseType <= BaseSigHashType::SINGLE;
+    }
+
     bool hasForkId() const {
         return (sigHash & SIGHASH_FORKID) == SIGHASH_FORKID;
     }
@@ -66,6 +76,10 @@ public:
     }
 
     uint32_t getRawSigHashType() const { return sigHash; }
+
+    template <typename Stream> void Serialize(Stream &s) const {
+        ::Serialize(s, getRawSigHashType());
+    }
 };
 
 #endif // BITCOIN_SCRIPT_HASH_TYPE_H

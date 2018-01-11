@@ -10,6 +10,7 @@
 #include "rpc/server.h"
 #include "script/script.h"
 #include "script/script_error.h"
+#include "script/sighashtype.h"
 #include "script/sign.h"
 #include "test/scriptflags.h"
 #include "test/sigutil.h"
@@ -311,7 +312,8 @@ public:
     TestBuilder &PushSig(const CKey &key, int nHashType = SIGHASH_ALL,
                          unsigned int lenR = 32, unsigned int lenS = 32,
                          Amount amount = Amount(0)) {
-        uint256 hash = SignatureHash(script, spendTx, 0, nHashType, amount);
+        uint256 hash =
+            SignatureHash(script, spendTx, 0, SigHashType(nHashType), amount);
         std::vector<uint8_t> vchSig, r, s;
         uint32_t iter = 0;
         do {
@@ -1151,7 +1153,7 @@ BOOST_AUTO_TEST_CASE(script_PushData) {
 CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
                       CTransaction transaction) {
     uint256 hash =
-        SignatureHash(scriptPubKey, transaction, 0, SIGHASH_ALL, Amount(0));
+        SignatureHash(scriptPubKey, transaction, 0, SigHashType(), Amount(0));
 
     CScript result;
     //
@@ -1426,17 +1428,19 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
     // A couple of partially-signed versions:
     std::vector<uint8_t> sig1;
     uint256 hash1 =
-        SignatureHash(scriptPubKey, txTo, 0, SIGHASH_ALL, Amount(0));
+        SignatureHash(scriptPubKey, txTo, 0, SigHashType(), Amount(0));
     BOOST_CHECK(keys[0].Sign(hash1, sig1));
     sig1.push_back(SIGHASH_ALL);
     std::vector<uint8_t> sig2;
-    uint256 hash2 =
-        SignatureHash(scriptPubKey, txTo, 0, SIGHASH_NONE, Amount(0));
+    uint256 hash2 = SignatureHash(
+        scriptPubKey, txTo, 0,
+        SigHashType().withBaseSigHash(BaseSigHashType::NONE), Amount(0));
     BOOST_CHECK(keys[1].Sign(hash2, sig2));
     sig2.push_back(SIGHASH_NONE);
     std::vector<uint8_t> sig3;
-    uint256 hash3 =
-        SignatureHash(scriptPubKey, txTo, 0, SIGHASH_SINGLE, Amount(0));
+    uint256 hash3 = SignatureHash(
+        scriptPubKey, txTo, 0,
+        SigHashType().withBaseSigHash(BaseSigHashType::SINGLE), Amount(0));
     BOOST_CHECK(keys[2].Sign(hash3, sig3));
     sig3.push_back(SIGHASH_SINGLE);
 

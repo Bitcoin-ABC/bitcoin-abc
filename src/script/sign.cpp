@@ -29,8 +29,7 @@ bool TransactionSignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
         return false;
     }
 
-    uint256 hash = SignatureHash(scriptCode, *txTo, nIn,
-                                 sigHashType.getRawSigHashType(), amount);
+    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, sigHashType, amount);
     if (!key.Sign(hash, vchSig)) {
         return false;
     }
