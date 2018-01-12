@@ -21,6 +21,16 @@ BOOST_AUTO_TEST_CASE(SigHashTypeTests) {
     BOOST_CHECK(SigHashType(SIGHASH_SINGLE).getBaseSigHashType() ==
                 BaseSigHashType::SINGLE);
 
+    BOOST_CHECK_EQUAL(SigHashType().hasSupportedBaseSigHashType(), true);
+    BOOST_CHECK_EQUAL(SigHashType(0).hasSupportedBaseSigHashType(), false);
+    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_ALL).hasSupportedBaseSigHashType(),
+                      true);
+    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_NONE).hasSupportedBaseSigHashType(),
+                      true);
+    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_SINGLE).hasSupportedBaseSigHashType(),
+                      true);
+    BOOST_CHECK_EQUAL(SigHashType(4).hasSupportedBaseSigHashType(), false);
+
     BOOST_CHECK_EQUAL(SigHashType(SIGHASH_ALL | SIGHASH_FORKID).hasForkId(),
                       true);
     BOOST_CHECK_EQUAL(
@@ -116,6 +126,23 @@ BOOST_AUTO_TEST_CASE(SigHashTypeTests) {
                     .withForkId(true)
                     .withBaseSigHash(BaseSigHashType::NONE)
                     .getBaseSigHashType() == BaseSigHashType::NONE);
+
+    uint32_t unserializedOutput;
+    for (int baseSigHash = 0; baseSigHash <= 0x1f;
+         baseSigHash++) { // Test all possible base sig hash values
+        (CDataStream(SER_DISK, 0) << SigHashType(baseSigHash)) >>
+            unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput, baseSigHash);
+        (CDataStream(SER_DISK, 0)
+         << SigHashType(baseSigHash).withForkId(true)) >>
+            unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput, baseSigHash | SIGHASH_FORKID);
+        (CDataStream(SER_DISK, 0)
+         << SigHashType(baseSigHash).withAnyoneCanPay(true)) >>
+            unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput,
+                          baseSigHash | SIGHASH_ANYONECANPAY);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
