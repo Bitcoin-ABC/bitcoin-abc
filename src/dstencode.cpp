@@ -8,10 +8,11 @@
 #include "config.h"
 #include "script/standard.h"
 
-std::string EncodeDestination(const CTxDestination &dst,
-                              const CChainParams &params, const Config &cfg) {
-    return cfg.UseCashAddrEncoding() ? EncodeCashAddr(dst, params)
-                                     : EncodeLegacyAddr(dst, params);
+std::string EncodeDestination(const CTxDestination &dest,
+                              const Config &config) {
+    const CChainParams &params = config.GetChainParams();
+    return config.UseCashAddrEncoding() ? EncodeCashAddr(dest, params)
+                                        : EncodeLegacyAddr(dest, params);
 }
 
 CTxDestination DecodeDestination(const std::string &addr,
@@ -29,7 +30,7 @@ bool IsValidDestinationString(const std::string &addr,
 }
 
 std::string EncodeDestination(const CTxDestination &dst) {
-    return EncodeDestination(dst, Params(), GetConfig());
+    return EncodeDestination(dst, GetConfig());
 }
 
 CTxDestination DecodeDestination(const std::string &addr) {

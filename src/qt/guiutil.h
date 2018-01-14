@@ -43,7 +43,7 @@ QString dateTimeStr(qint64 nTime);
 QFont fixedPitchFont();
 
 // Generate an invalid, but convincing address.
-std::string DummyAddress(const CChainParams &params, const Config &cfg);
+std::string DummyAddress(const Config &cfg);
 
 // Set up widgets for address and amounts
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);

@@ -27,17 +27,18 @@ private:
 } // namespace
 
 void GUIUtilTests::dummyAddressTest() {
-    CChainParams &params = Params(CBaseChainParams::MAIN);
-    UtilCfgDummy cfg;
+    UtilCfgDummy config;
+    const CChainParams &params = config.GetChainParams();
+
     std::string dummyaddr;
 
-    cfg.SetCashAddrEncoding(false);
-    dummyaddr = GUIUtil::DummyAddress(params, cfg);
+    config.SetCashAddrEncoding(false);
+    dummyaddr = GUIUtil::DummyAddress(config);
     QVERIFY(!IsValidDestinationString(dummyaddr, params));
     QVERIFY(!dummyaddr.empty());
 
-    cfg.SetCashAddrEncoding(true);
-    dummyaddr = GUIUtil::DummyAddress(params, cfg);
+    config.SetCashAddrEncoding(true);
+    dummyaddr = GUIUtil::DummyAddress(config);
     QVERIFY(!IsValidDestinationString(dummyaddr, params));
     QVERIFY(!dummyaddr.empty());
 }

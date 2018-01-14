@@ -128,8 +128,7 @@ static std::string MakeAddrInvalid(std::string addr) {
     return "";
 }
 
-std::string DummyAddress(const CChainParams &params, const Config &cfg) {
-
+std::string DummyAddress(const Config &config) {
     // Just some dummy data to generate an convincing random-looking (but
     // consistent) address
     static const std::vector<uint8_t> dummydata = {
@@ -137,23 +136,22 @@ std::string DummyAddress(const CChainParams &params, const Config &cfg) {
         0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
 
     const CTxDestination dstKey = CKeyID(uint160(dummydata));
-    return MakeAddrInvalid(EncodeDestination(dstKey, params, cfg));
+    return MakeAddrInvalid(EncodeDestination(dstKey, config));
 }
 
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     parent->setFocusProxy(widget);
 
     widget->setFont(fixedPitchFont());
-    const CChainParams &params = Params();
 #if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
         QObject::tr("Enter a Bitcoin address (e.g. %1)")
-            .arg(QString::fromStdString(DummyAddress(params, GetConfig()))));
+            .arg(QString::fromStdString(DummyAddress(GetConfig()))));
 #endif
     widget->setValidator(
-        new BitcoinAddressEntryValidator(params.CashAddrPrefix(), parent));
+        new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
 }
 

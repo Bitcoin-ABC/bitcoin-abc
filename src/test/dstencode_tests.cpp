@@ -16,6 +16,9 @@ public:
     DstCfgDummy() : useCashAddr(false) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
+    const CChainParams &GetChainParams() const override {
+        return Params(CBaseChainParams::MAIN);
+    }
 
 private:
     bool useCashAddr;
@@ -40,19 +43,18 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
     std::string base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
     std::string base58_script = "3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC";
 
-    const CChainParams &params = Params(CBaseChainParams::MAIN);
-    DstCfgDummy cfg;
+    DstCfgDummy config;
 
     // Check encoding
-    cfg.SetCashAddrEncoding(true);
-    BOOST_CHECK_EQUAL(cashaddr_pubkey, EncodeDestination(dstKey, params, cfg));
-    BOOST_CHECK_EQUAL(cashaddr_script,
-                      EncodeDestination(dstScript, params, cfg));
-    cfg.SetCashAddrEncoding(false);
-    BOOST_CHECK_EQUAL(base58_pubkey, EncodeDestination(dstKey, params, cfg));
-    BOOST_CHECK_EQUAL(base58_script, EncodeDestination(dstScript, params, cfg));
+    config.SetCashAddrEncoding(true);
+    BOOST_CHECK_EQUAL(cashaddr_pubkey, EncodeDestination(dstKey, config));
+    BOOST_CHECK_EQUAL(cashaddr_script, EncodeDestination(dstScript, config));
+    config.SetCashAddrEncoding(false);
+    BOOST_CHECK_EQUAL(base58_pubkey, EncodeDestination(dstKey, config));
+    BOOST_CHECK_EQUAL(base58_script, EncodeDestination(dstScript, config));
 
     // Check decoding
+    const CChainParams &params = config.GetChainParams();
     BOOST_CHECK(dstKey == DecodeDestination(cashaddr_pubkey, params));
     BOOST_CHECK(dstScript == DecodeDestination(cashaddr_script, params));
     BOOST_CHECK(dstKey == DecodeDestination(base58_pubkey, params));
