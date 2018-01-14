@@ -11,6 +11,7 @@ Test the following RPCs:
     - getbestblockhash
     - getblockhash
     - getblockheader
+    - getchaintxstats
     - getnetworkhashps
     - verifychain
 
@@ -28,8 +29,6 @@ from test_framework.util import (
     assert_raises_jsonrpc,
     assert_is_hex_string,
     assert_is_hash_string,
-    start_node,
-    bitcoind_processes,
     BITCOIND_PROC_WAIT_TIMEOUT,
 )
 
@@ -42,12 +41,45 @@ class BlockchainTest(BitcoinTestFramework):
         self.extra_args = [['-stopatheight=207']]
 
     def run_test(self):
+        self._test_getchaintxstats()
         self._test_gettxoutsetinfo()
         self._test_getblockheader()
         self._test_getdifficulty()
         self._test_getnetworkhashps()
         self._test_stopatheight()
         assert self.nodes[0].verifychain(4, 0)
+
+    def _test_getchaintxstats(self):
+        chaintxstats = self.nodes[0].getchaintxstats(1)
+        # 200 txs plus genesis tx
+        assert_equal(chaintxstats['txcount'], 201)
+        # tx rate should be 1 per 10 minutes, or 1/600
+        # we have to round because of binary math
+        assert_equal(round(chaintxstats['txrate'] * 600, 10), Decimal(1))
+
+        b1 = self.nodes[0].getblock(self.nodes[0].getblockhash(1))
+        b200 = self.nodes[0].getblock(self.nodes[0].getblockhash(200))
+        time_diff = b200['mediantime'] - b1['mediantime']
+
+        chaintxstats = self.nodes[0].getchaintxstats()
+        assert_equal(chaintxstats['time'], b200['time'])
+        assert_equal(chaintxstats['txcount'], 201)
+        assert_equal(chaintxstats['window_block_count'], 199)
+        assert_equal(chaintxstats['window_tx_count'], 199)
+        assert_equal(chaintxstats['window_interval'], time_diff)
+        assert_equal(
+            round(chaintxstats['txrate'] * time_diff, 10), Decimal(199))
+
+        chaintxstats = self.nodes[0].getchaintxstats(blockhash=b1['hash'])
+        assert_equal(chaintxstats['time'], b1['time'])
+        assert_equal(chaintxstats['txcount'], 2)
+        assert_equal(chaintxstats['window_block_count'], 0)
+        assert('window_tx_count' not in chaintxstats)
+        assert('window_interval' not in chaintxstats)
+        assert('txrate' not in chaintxstats)
+
+        assert_raises_jsonrpc(-8, "Invalid block count: should be between 0 and the block's height - 1",
+                              self.nodes[0].getchaintxstats, 201)
 
     def _test_gettxoutsetinfo(self):
         node = self.nodes[0]
