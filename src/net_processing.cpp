@@ -3066,7 +3066,7 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman &connman) {
         connman.PushMessage(
             pnode,
             CNetMsgMaker(INIT_PROTO_VERSION)
-                .Make(NetMsgType::REJECT, (std::string)NetMsgType::BLOCK,
+                .Make(NetMsgType::REJECT, std::string(NetMsgType::BLOCK),
                       reject.chRejectCode, reject.strRejectReason,
                       reject.hashBlock));
     }

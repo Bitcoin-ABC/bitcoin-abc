@@ -40,7 +40,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
         //
         // Credit
         //
-        for (unsigned int i = 0; i < wtx.tx->vout.size(); i++) {
+        for (size_t i = 0; i < wtx.tx->vout.size(); i++) {
             const CTxOut &txout = wtx.tx->vout[i];
             isminetype mine = wallet->IsMine(txout);
             if (mine) {
@@ -99,7 +99,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             //
             Amount nTxFee = nDebit - wtx.tx->GetValueOut();
 
-            for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++) {
+            for (size_t nOut = 0; nOut < wtx.tx->vout.size(); nOut++) {
                 const CTxOut &txout = wtx.tx->vout[nOut];
                 TransactionRecord sub(hash, nTime);
                 sub.idx = nOut;
