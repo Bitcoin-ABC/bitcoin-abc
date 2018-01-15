@@ -168,8 +168,6 @@ void ReceiveRequestDialog::update() {
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
-    int fontSize = 10;
-
     ui->lblQRCode->setText("");
     if (!uri.isEmpty()) {
         // limit URI length
@@ -202,9 +200,13 @@ void ReceiveRequestDialog::update() {
             painter.drawImage(0, 0,
                               qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
             QFont font = GUIUtil::fixedPitchFont();
-            font.setPixelSize(fontSize);
-            painter.setFont(font);
             QRect paddedRect = qrAddrImage.rect();
+
+            // calculate ideal font size
+            qreal font_size = GUIUtil::calculateIdealFontSize(
+                paddedRect.width() - 20, info.address, font);
+            font.setPointSizeF(font_size);
+
             paddedRect.setHeight(QR_IMAGE_SIZE + 12);
             painter.drawText(paddedRect, Qt::AlignBottom | Qt::AlignCenter,
                              info.address);
