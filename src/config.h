@@ -5,6 +5,8 @@
 #ifndef BITCOIN_CONFIG_H
 #define BITCOIN_CONFIG_H
 
+#include "amount.h"
+
 #include <boost/noncopyable.hpp>
 
 #include <cstdint>
@@ -23,6 +25,9 @@ public:
     virtual const CChainParams &GetChainParams() const = 0;
     virtual void SetCashAddrEncoding(bool) = 0;
     virtual bool UseCashAddrEncoding() const = 0;
+
+    virtual void SetExcessUTXOCharge(Amount amt) = 0;
+    virtual Amount GetExcessUTXOCharge() const = 0;
 };
 
 class GlobalConfig final : public Config {
@@ -36,8 +41,12 @@ public:
     void SetCashAddrEncoding(bool) override;
     bool UseCashAddrEncoding() const override;
 
+    void SetExcessUTXOCharge(Amount) override;
+    Amount GetExcessUTXOCharge() const override;
+
 private:
     bool useCashAddr;
+    Amount excessUTXOCharge;
 };
 
 // Dummy for subclassing in unittests
@@ -51,11 +60,15 @@ public:
         return false;
     }
     uint8_t GetBlockPriorityPercentage() const override { return 0; }
+
+    void SetChainParams(std::string net);
     const CChainParams &GetChainParams() const override { return *chainParams; }
+
     void SetCashAddrEncoding(bool) override {}
     bool UseCashAddrEncoding() const override { return false; }
 
-    void SetChainParams(std::string net);
+    void SetExcessUTXOCharge(Amount amt) override {}
+    Amount GetExcessUTXOCharge() const override { return Amount(0); }
 
 private:
     std::unique_ptr<CChainParams> chainParams;

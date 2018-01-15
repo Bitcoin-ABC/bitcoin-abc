@@ -760,6 +760,11 @@ std::string HelpMessage(HelpMessageMode mode) {
                       DEFAULT_MAX_TIP_AGE));
     }
     strUsage += HelpMessageOpt(
+        "-excessutxocharge=<amt>",
+        strprintf(_("Fees (in %s/kB) to charge per utxo created for"
+                    "relaying, and mining (default: %s)"),
+                  CURRENCY_UNIT, FormatMoney(DEFAULT_UTXO_FEE)));
+    strUsage += HelpMessageOpt(
         "-minrelaytxfee=<amt>",
         strprintf(
             _("Fees (in %s/kB) smaller than this are considered zero fee for "
@@ -1547,6 +1552,18 @@ bool AppInitParameterInteraction(Config &config) {
 
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+
+    // Obtain the amount to charge excess UTXO
+    if (gArgs.IsArgSet("-excessutxocharge")) {
+        Amount n(0);
+        auto parsed = ParseMoney(gArgs.GetArg("-excessutxocharge", ""), n);
+        if (!parsed || Amount(0) > n)
+            return InitError(AmountErrMsg(
+                "excessutxocharge", gArgs.GetArg("-excessutxocharge", "")));
+        config.SetExcessUTXOCharge(n);
+    } else {
+        config.SetExcessUTXOCharge(DEFAULT_UTXO_FEE);
+    }
 
     // Fee-per-kilobyte amount considered the same as "free". If you are mining,
     // be careful setting this: if you set it to zero then a transaction spammer
