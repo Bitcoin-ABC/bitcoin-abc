@@ -13,7 +13,11 @@
 /** Coin Control Features. */
 class CCoinControl {
 public:
+    //! Custom change destination, if not set an address is generated
     CTxDestination destChange;
+    //! Custom change type, ignored if destChange is set, defaults to
+    //! g_change_type
+    OutputType change_type;
     //! If false, allows unselected inputs, but requires all selected inputs be
     //! used
     bool fAllowOtherInputs;

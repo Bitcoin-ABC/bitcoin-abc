@@ -2890,10 +2890,11 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
 }
 
 OutputType
-CWallet::TransactionChangeType(const std::vector<CRecipient> &vecSend) {
+CWallet::TransactionChangeType(OutputType change_type,
+                               const std::vector<CRecipient> &vecSend) {
     // If -changetype is specified, always use that change type.
-    if (g_change_type != OutputType::NONE) {
-        return g_change_type;
+    if (change_type != OutputType::NONE) {
+        return change_type;
     }
 
     // if g_address_type is legacy, use legacy address as change.
@@ -3005,7 +3006,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            const OutputType change_type = TransactionChangeType(vecSend);
+            const OutputType change_type =
+                TransactionChangeType(coinControl.change_type, vecSend);
 
             LearnRelatedScripts(vchPubKey, change_type);
             scriptChange = GetScriptForDestination(
