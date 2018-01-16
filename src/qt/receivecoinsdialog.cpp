@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <wallet/wallet.h>
+
 #include <qt/forms/ui_receivecoinsdialog.h>
 #include <qt/receivecoinsdialog.h>
 
@@ -138,8 +140,9 @@ void ReceiveCoinsDialog::on_receiveButton_clicked() {
     QString address;
     QString label = ui->reqLabel->text();
     /* Generate new receiving address */
+    OutputType address_type = model->wallet().getDefaultAddressType();
     address = model->getAddressTableModel()->addRow(AddressTableModel::Receive,
-                                                    label, "");
+                                                    label, "", address_type);
     SendCoinsRecipient info(address, label, ui->reqAmount->value(),
                             ui->reqMessage->text());
     ReceiveRequestDialog *dialog = new ReceiveRequestDialog(this);

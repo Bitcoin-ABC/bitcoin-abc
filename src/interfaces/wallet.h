@@ -220,6 +220,9 @@ public:
     // Return whether HD enabled.
     virtual bool hdEnabled() = 0;
 
+    // Get default address type.
+    virtual OutputType getDefaultAddressType() = 0;
+
     //! Register handler for show progress messages.
     using ShowProgressFn =
         std::function<void(const std::string &title, int progress)>;

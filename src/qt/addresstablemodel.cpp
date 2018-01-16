@@ -317,7 +317,8 @@ void AddressTableModel::updateEntry(const QString &address,
 }
 
 QString AddressTableModel::addRow(const QString &type, const QString &label,
-                                  const QString &address) {
+                                  const QString &address,
+                                  const OutputType address_type) {
     std::string strLabel = label.toStdString();
     std::string strAddress = address.toStdString();
 
@@ -351,10 +352,9 @@ QString AddressTableModel::addRow(const QString &type, const QString &label,
                 return QString();
             }
         }
-        walletModel->wallet().learnRelatedScripts(newKey, g_address_type);
-        strAddress =
-            EncodeCashAddr(GetDestinationForKey(newKey, g_address_type),
-                           walletModel->getChainParams());
+        walletModel->wallet().learnRelatedScripts(newKey, address_type);
+        strAddress = EncodeCashAddr(GetDestinationForKey(newKey, address_type),
+                                    walletModel->getChainParams());
     } else {
         return QString();
     }
