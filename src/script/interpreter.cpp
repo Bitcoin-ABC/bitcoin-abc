@@ -1220,9 +1220,10 @@ private:
 public:
     CTransactionSignatureSerializer(const CTransaction &txToIn,
                                     const CScript &scriptCodeIn,
-                                    unsigned int nInIn, uint32_t nHashTypeIn)
+                                    unsigned int nInIn,
+                                    SigHashType sigHashTypeIn)
         : txTo(txToIn), scriptCode(scriptCodeIn), nIn(nInIn),
-          sigHashType(nHashTypeIn) {}
+          sigHashType(sigHashTypeIn) {}
 
     /** Serialize the passed scriptCode, skipping OP_CODESEPARATORs */
     template <typename S> void SerializeScriptCode(S &s) const {
@@ -1416,8 +1417,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 
     // Wrapper to serialize only the necessary parts of the transaction being
     // signed
-    CTransactionSignatureSerializer txTmp(txTo, scriptCode, nIn,
-                                          sigHashType.getRawSigHashType());
+    CTransactionSignatureSerializer txTmp(txTo, scriptCode, nIn, sigHashType);
 
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
