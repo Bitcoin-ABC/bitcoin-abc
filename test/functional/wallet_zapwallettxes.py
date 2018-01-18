@@ -61,6 +61,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
 
         wait_until(lambda: self.nodes[0].getmempoolinfo()[
                    'size'] == 1, timeout=3)
+        # Flush mempool to wallet
+        self.nodes[0].syncwithvalidationinterfacequeue()
 
         assert_equal(self.nodes[0].gettransaction(txid1)['txid'], txid1)
         assert_equal(self.nodes[0].gettransaction(txid2)['txid'], txid2)
