@@ -24,6 +24,7 @@
 #include <util.h>
 #include <utilstrencodings.h>
 #include <validation.h>
+#include <validationinterface.h>
 #include <warnings.h>
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
@@ -363,6 +364,21 @@ UniValue waitforblockheight(const Config &config,
     ret.pushKV("hash", block.hash.GetHex());
     ret.pushKV("height", block.height);
     return ret;
+}
+
+UniValue syncwithvalidationinterfacequeue(const Config &config,
+                                          const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() > 0) {
+        throw std::runtime_error(
+            "syncwithvalidationinterfacequeue\n"
+            "\nWaits for the validation interface queue to catch up on "
+            "everything that was there when we entered this function.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("syncwithvalidationinterfacequeue", "") +
+            HelpExampleRpc("syncwithvalidationinterfacequeue", ""));
+    }
+    SyncWithValidationInterfaceQueue();
+    return NullUniValue;
 }
 
 UniValue getdifficulty(const Config &config, const JSONRPCRequest &request) {
@@ -1854,15 +1870,16 @@ static const ContextFreeRPCCommand commands[] = {
     { "blockchain",         "preciousblock",          preciousblock,          {"blockhash"} },
 
     /* Not shown in help */
-    { "hidden",             "getfinalizedblockhash",  getfinalizedblockhash,  {} },
-    { "hidden",             "finalizeblock",          finalizeblock,          {"blockhash"} },
-    { "hidden",             "invalidateblock",        invalidateblock,        {"blockhash"} },
-    { "hidden",             "parkblock",              parkblock,              {"blockhash"} },
-    { "hidden",             "reconsiderblock",        reconsiderblock,        {"blockhash"} },
-    { "hidden",             "unparkblock",            unparkblock,            {"blockhash"} },
-    { "hidden",             "waitfornewblock",        waitfornewblock,        {"timeout"} },
-    { "hidden",             "waitforblock",           waitforblock,           {"blockhash","timeout"} },
-    { "hidden",             "waitforblockheight",     waitforblockheight,     {"height","timeout"} },
+    { "hidden",             "getfinalizedblockhash",            getfinalizedblockhash,            {} },
+    { "hidden",             "finalizeblock",                    finalizeblock,                    {"blockhash"} },
+    { "hidden",             "invalidateblock",                  invalidateblock,                  {"blockhash"} },
+    { "hidden",             "parkblock",                        parkblock,                        {"blockhash"} },
+    { "hidden",             "reconsiderblock",                  reconsiderblock,                  {"blockhash"} },
+    { "hidden",             "syncwithvalidationinterfacequeue", syncwithvalidationinterfacequeue, {} },
+    { "hidden",             "unparkblock",                      unparkblock,                      {"blockhash"} },
+    { "hidden",             "waitfornewblock",                  waitfornewblock,                  {"timeout"} },
+    { "hidden",             "waitforblock",                     waitforblock,                     {"blockhash","timeout"} },
+    { "hidden",             "waitforblockheight",               waitforblockheight,               {"height","timeout"} },
 };
 // clang-format on
 
