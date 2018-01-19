@@ -627,8 +627,8 @@ void UpdateMempoolForReorg(const Config &config,
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
             mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
-        } else if (mempool.exists((*it)->GetHash())) {
-            vHashUpdate.push_back((*it)->GetHash());
+        } else if (mempool.exists((*it)->GetId())) {
+            vHashUpdate.push_back((*it)->GetId());
         }
         ++it;
     }
@@ -1997,7 +1997,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
-                if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
+                if (view.HaveCoin(COutPoint(tx->GetId(), o))) {
                     return state.DoS(
                         100,
                         error("ConnectBlock(): tried to overwrite transaction"),
@@ -2482,7 +2482,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
 
     if (disconnectpool) {
         // Save transactions to re-add to mempool at end of reorg
-        for (const auto &tx : block.vtx) {
+        for (const auto &tx : boost::adaptors::reverse(block.vtx)) {
             disconnectpool->addTransaction(tx);
         }
         while (disconnectpool->DynamicMemoryUsage() >

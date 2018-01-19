@@ -240,7 +240,7 @@ struct mempoolentry_txid {
     }
 
     result_type operator()(const CTransactionRef &tx) const {
-        return tx->GetHash();
+        return tx->GetId();
     }
 };
 

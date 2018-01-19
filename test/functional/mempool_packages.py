@@ -2,8 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-# Test descendant package tracking code
+"""Test descendant package tracking code."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
@@ -14,13 +13,12 @@ MAX_DESCENDANTS = 25
 
 
 class MempoolPackagesTest(BitcoinTestFramework):
-
     def __init__(self):
         super().__init__()
         self.num_nodes = 2
         self.setup_clean_chain = False
-        self.extra_args = [["-maxorphantx=1000"], [
-            "-maxorphantx=1000", "-limitancestorcount=5"]]
+        self.extra_args = [["-maxorphantx=1000"],
+                           ["-maxorphantx=1000", "-limitancestorcount=5"]]
 
     # Build a transaction that spends parent_txid:vout
     # Return amount sent
@@ -89,8 +87,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
             assert_equal(sorted(ancestors), sorted(
                 self.nodes[0].getmempoolancestors(x)))
 
-        # Check that getmempoolancestors/getmempooldescendants correctly handle
-        # verbose=true
+        # Check that getmempoolancestors/getmempooldescendants correctly handle verbose=true
         v_ancestors = self.nodes[0].getmempoolancestors(chain[-1], True)
         assert_equal(len(v_ancestors), len(chain) - 1)
         for x in v_ancestors.keys():
@@ -110,8 +107,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         ancestor_fees = 0
         for x in chain:
             ancestor_fees += mempool[x]['fee']
-            assert_equal(
-                mempool[x]['ancestorfees'], ancestor_fees * COIN + 1000)
+            assert_equal(mempool[x]['ancestorfees'],
+                         ancestor_fees * COIN + 1000)
 
         # Undo the prioritisetransaction for later tests
         self.nodes[0].prioritisetransaction(chain[0], 0, -1000)
@@ -124,8 +121,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         descendant_fees = 0
         for x in reversed(chain):
             descendant_fees += mempool[x]['fee']
-            assert_equal(
-                mempool[x]['descendantfees'], descendant_fees * COIN + 1000)
+            assert_equal(mempool[x]['descendantfees'],
+                         descendant_fees * COIN + 1000)
 
         # Adding one more transaction on to the chain should fail.
         assert_raises_jsonrpc(-26, "too-long-mempool-chain",
@@ -143,18 +140,17 @@ class MempoolPackagesTest(BitcoinTestFramework):
         # Keep node1's tip synced with node0
         self.nodes[1].invalidateblock(self.nodes[1].getbestblockhash())
 
-        # Now check that the transaction is in the mempool, with the right
-        # modified fee
+        # Now check that the transaction is in the mempool, with the right modified fee
         mempool = self.nodes[0].getrawmempool(True)
 
         descendant_fees = 0
         for x in reversed(chain):
             descendant_fees += mempool[x]['fee']
             if (x == chain[-1]):
-                assert_equal(
-                    mempool[x]['modifiedfee'], mempool[x]['fee'] + satoshi_round(0.00002))
-            assert_equal(
-                mempool[x]['descendantfees'], descendant_fees * COIN + 2000)
+                assert_equal(mempool[x]['modifiedfee'],
+                             mempool[x]['fee'] + satoshi_round(0.00002))
+            assert_equal(mempool[x]['descendantfees'],
+                         descendant_fees * COIN + 2000)
 
         # TODO: check that node1's mempool is as expected
 
