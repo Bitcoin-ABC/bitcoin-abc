@@ -43,8 +43,6 @@ from .util import (
     wait_for_bitcoind_start,
 )
 from .authproxy import JSONRPCException
-from .outputchecker import OutputChecker
-
 
 class TestStatus(Enum):
     PASSED = 1

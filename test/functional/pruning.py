@@ -13,7 +13,6 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.outputchecker import OutputChecker
 import time
 import os
 
@@ -150,7 +149,7 @@ class PruneTest(BitcoinTestFramework):
                                      "-blockmaxsize=5000",
                                      "-checkblocks=5",
                                      "-disablesafemode"],
-            timewait=900, stderr_checker=OutputChecker())
+            timewait=900)
 
         height = self.nodes[1].getblockcount()
         self.log.info("Current block height: %d" % height)
@@ -181,7 +180,7 @@ class PruneTest(BitcoinTestFramework):
                                      "-checkblocks=5",
                                      "-disablesafemode",
                                      "-blockmaxsize=1000000"],
-            timewait=900, stderr_checker=OutputChecker())
+            timewait=900)
 
         self.log.info("Generating new longer chain of 300 more blocks")
         self.nodes[1].generate(300)

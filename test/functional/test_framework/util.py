@@ -19,6 +19,7 @@ import http.client
 import random
 import shutil
 import subprocess
+import tempfile
 import time
 import re
 import errno
@@ -26,7 +27,6 @@ import logging
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
-from .outputchecker import OutputChecker
 
 DEFAULT_BITCOIND = 'bitcoind'
 COVERAGE_DIR = None
@@ -253,6 +253,7 @@ def wait_for_bitcoind_start(process, url, i):
                 raise  # unknown JSON RPC exception
         time.sleep(0.25)
 
+
 def locate_bitcoind_binary():
     """
     Find bitcoind binary if possible.
@@ -278,28 +279,20 @@ def locate_bitcoind_binary():
     return bitcoind_binary
 
 
-def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=None, stderr_checker=None):
+def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=None, stderr=None):
     """
     Start a bitcoind and return RPC connection to it.
-    If stderr_checker is provided, it must be an OutputChecker.
-    Its output_file_obj will be connected to the stderr of the bitcoind process.
     """
     datadir = os.path.join(dirname, "node" + str(i))
     if binary is None:
         binary = locate_bitcoind_binary()
-    args = [binary, "-datadir=" + datadir, "-server", "-keypool=1",
-            "-discover=0", "-rest", "-logtimemicros", "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(get_mocktime()), "-uacomment=testnode%d" % i]
+    args = [binary, "-datadir=" + datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
+            "-debug", "-debugexclude=libevent", "-mocktime=" + str(get_mocktime()), "-uacomment=testnode%d" % i]
     if extra_args is not None:
         args.extend(extra_args)
-    if stderr_checker:
-        assert(isinstance(stderr_checker, OutputChecker))
-        bitcoind_processes[i] = subprocess.Popen(args,
-                                                 universal_newlines=True,
-                                                 stderr=stderr_checker.get_connector())
-    else:
-        bitcoind_processes[i] = subprocess.Popen(args)
-    logger.debug(
-        "initialize_chain: bitcoind started, waiting for RPC to come up")
+    bitcoind_processes[i] = subprocess.Popen(args, stderr=stderr)
+    if os.getenv("PYTHON_DEBUG", ""):
+        print("start_node: bitcoind started, waiting for RPC to come up")
     url = rpc_url(i, rpchost)
     wait_for_bitcoind_start(bitcoind_processes[i], url, i)
     logger.debug("initialize_chain: RPC successfully started")
@@ -311,19 +304,34 @@ def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=
     return proxy
 
 
-def start_nodes(num_nodes, dirname, extra_args=None, rpchost=None, timewait=None, binary=None, stderr_checkers=None):
+def assert_start_raises_init_error(i, dirname, extra_args=None, expected_msg=None):
+    with tempfile.SpooledTemporaryFile(max_size=2**16) as log_stderr:
+        try:
+            node = start_node(i, dirname, extra_args, stderr=log_stderr)
+            stop_node(node, i)
+        except Exception as e:
+            assert 'bitcoind exited' in str(e)  # node must have shutdown
+            if expected_msg is not None:
+                log_stderr.seek(0)
+                stderr = log_stderr.read().decode('utf-8')
+                if expected_msg not in stderr:
+                    raise AssertionError(
+                        "Expected error \"" + expected_msg + "\" not found in:\n" + stderr)
+        else:
+            if expected_msg is None:
+                assert_msg = "bitcoind should have exited with an error"
+            else:
+                assert_msg = "bitcoind should have exited with expected error " + expected_msg
+            raise AssertionError(assert_msg)
+
+
+def start_nodes(num_nodes, dirname, extra_args=None, rpchost=None, timewait=None, binary=None):
     """
     Start multiple bitcoinds, return RPC connections to them
-    stderr_checkers is a list which can contain OutputCheckers or None for each of the nodes.
-    if a test calls start_nodes and provides an OutputChecker for a node,
-    this will be connected to the stderr output of the node.
     """
     if extra_args is None:
         extra_args = [None for _ in range(num_nodes)]
     assert_equal(len(extra_args), num_nodes)
-    if stderr_checkers is None:
-        stderr_checkers = [None for _ in range(num_nodes)]
-    assert_equal(len(stderr_checkers), num_nodes)
     if binary is None:
         binary = [None for _ in range(num_nodes)]
     assert_equal(len(binary), num_nodes)
@@ -332,8 +340,7 @@ def start_nodes(num_nodes, dirname, extra_args=None, rpchost=None, timewait=None
         for i in range(num_nodes):
             rpcs.append(start_node(i, dirname, extra_args[i],
                                    rpchost, timewait=timewait,
-                                   binary=binary[i],
-                                   stderr_checker=stderr_checkers[i]))
+                                   binary=binary[i]))
     except:  # If one node failed to start, stop the others
         stop_nodes(rpcs)
         raise
