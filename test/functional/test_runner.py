@@ -333,9 +333,9 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, ena
         try:
             subprocess.check_output(
                 [os.path.join(tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir={}", "cache") .format(tmpdir)])
-        except Exception as e:
-            print(e.output)
-            raise e
+        except subprocess.CalledProcessError as e:
+            sys.stdout.buffer.write(e.output)
+            raise
 
     # Run Tests
     time0 = time.time()
