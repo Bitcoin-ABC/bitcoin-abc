@@ -29,6 +29,12 @@ make -j ${THREADS}
 # Run unit tests
 ./src/test/test_bitcoin --log_format=JUNIT > test_bitcoin.xml
 
-./test/functional/test_runner.py
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "${BRANCH}" == "master" ]]; then
+	./test/functional/test_runner.py --extended
+else
+	./test/functional/test_runner.py
+fi
 
 make install
