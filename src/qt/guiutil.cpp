@@ -139,6 +139,22 @@ std::string DummyAddress(const Config &config) {
     return MakeAddrInvalid(EncodeDestination(dstKey, config));
 }
 
+// Addresses are stored in the database with the encoding that the client was
+// configured with at the time of creation.
+//
+// This converts to clients current configuration.
+QString convertToConfiguredAddressFormat(const Config &config,
+                                         const QString &addr) {
+    if (!IsValidDestinationString(addr.toStdString(),
+                                  config.GetChainParams())) {
+        // We have something sketchy as input. Do not try to convert.
+        return addr;
+    }
+    CTxDestination dst =
+        DecodeDestination(addr.toStdString(), config.GetChainParams());
+    return QString::fromStdString(EncodeDestination(dst, config));
+}
+
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     parent->setFocusProxy(widget);
 
@@ -170,8 +186,9 @@ QString bitcoinURIScheme(const CChainParams &params, bool useCashAddr) {
     return QString::fromStdString(params.CashAddrPrefix());
 }
 
-QString bitcoinURIScheme(const Config &cfg) {
-    return bitcoinURIScheme(cfg.GetChainParams(), cfg.UseCashAddrEncoding());
+QString bitcoinURIScheme(const Config &config) {
+    return bitcoinURIScheme(config.GetChainParams(),
+                            config.UseCashAddrEncoding());
 }
 
 static bool IsCashAddrEncoded(const QUrl &uri) {
@@ -254,11 +271,11 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
     return parseBitcoinURI(scheme, uriInstance, out);
 }
 
-QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info) {
+QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     QString ret = info.address;
-    if (!cfg.UseCashAddrEncoding()) {
+    if (!config.UseCashAddrEncoding()) {
         // prefix address with uri scheme for base58 encoded addresses.
-        ret = (bitcoinURIScheme(cfg) + ":%1").arg(ret);
+        ret = (bitcoinURIScheme(config) + ":%1").arg(ret);
     }
     int paramCount = 0;
 

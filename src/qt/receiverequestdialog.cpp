@@ -8,7 +8,6 @@
 
 #include "bitcoinunits.h"
 #include "config.h"
-#include "dstencode.h"
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
@@ -80,8 +79,10 @@ void QRImageWidget::contextMenuEvent(QContextMenuEvent *event) {
     contextMenu->exec(event->globalPos());
 }
 
-ReceiveRequestDialog::ReceiveRequestDialog(const Config *cfg, QWidget *parent)
-    : QDialog(parent), ui(new Ui::ReceiveRequestDialog), model(0), cfg(cfg) {
+ReceiveRequestDialog::ReceiveRequestDialog(const Config *config,
+                                           QWidget *parent)
+    : QDialog(parent), ui(new Ui::ReceiveRequestDialog), model(0),
+      config(config) {
     ui->setupUi(this);
 
 #ifndef USE_QRCODE
@@ -106,25 +107,11 @@ void ReceiveRequestDialog::setModel(OptionsModel *_model) {
     update();
 }
 
-// Addresses are stored in the database with the encoding that the client was
-// configured with at the time of creation.
-//
-// This converts to clients current configuration.
-QString ToCurrentEncoding(const QString &addr, const Config &config) {
-    if (!IsValidDestinationString(addr.toStdString(),
-                                  config.GetChainParams())) {
-        // We have something sketchy as input. Do not try to convert.
-        return addr;
-    }
-    CTxDestination dst =
-        DecodeDestination(addr.toStdString(), config.GetChainParams());
-    return QString::fromStdString(EncodeDestination(dst, config));
-}
-
 void ReceiveRequestDialog::setInfo(const SendCoinsRecipient &_info) {
     this->info = _info;
     // Display addresses with currently configured encoding.
-    this->info.address = ToCurrentEncoding(this->info.address, *cfg);
+    this->info.address =
+        GUIUtil::convertToConfiguredAddressFormat(*config, this->info.address);
     update();
 }
 
@@ -134,7 +121,7 @@ void ReceiveRequestDialog::update() {
     if (target.isEmpty()) target = info.address;
     setWindowTitle(tr("Request payment to %1").arg(target));
 
-    QString uri = GUIUtil::formatBitcoinURI(*cfg, info);
+    QString uri = GUIUtil::formatBitcoinURI(*config, info);
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
@@ -157,7 +144,7 @@ void ReceiveRequestDialog::update() {
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
-    int fontSize = cfg->UseCashAddrEncoding() ? 10 : 12;
+    int fontSize = config->UseCashAddrEncoding() ? 10 : 12;
 
     ui->lblQRCode->setText("");
     if (!uri.isEmpty()) {
@@ -207,7 +194,7 @@ void ReceiveRequestDialog::update() {
 }
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked() {
-    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(*cfg, info));
+    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(*config, info));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked() {

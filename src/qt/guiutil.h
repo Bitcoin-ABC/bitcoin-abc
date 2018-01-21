@@ -43,7 +43,11 @@ QString dateTimeStr(qint64 nTime);
 QFont fixedPitchFont();
 
 // Generate an invalid, but convincing address.
-std::string DummyAddress(const Config &cfg);
+std::string DummyAddress(const Config &config);
+
+// Convert an address into the user chosen format
+QString convertToConfiguredAddressFormat(const Config &config,
+                                         const QString &addr);
 
 // Set up widgets for address and amounts
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
@@ -57,7 +61,7 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
                      SendCoinsRecipient *out);
 bool parseBitcoinURI(const QString &scheme, QString uri,
                      SendCoinsRecipient *out);
-QString formatBitcoinURI(const Config &cfg, const SendCoinsRecipient &info);
+QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
 bool isDust(const QString &address, const Amount amount);
