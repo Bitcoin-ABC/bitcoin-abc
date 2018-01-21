@@ -136,6 +136,9 @@ in Phabricator. When you want to commit your diff to the repository, check out
 type my-topic-branch in git, then type `arc land`. You have now succesfully 
 committed a change to the Bitcoin ABC repository.
 
+- When reviewing a Diff, apply the changeset on your local by using 
+`arc patch D{NNNN}`
+
 
 What to work on
 ---------------
