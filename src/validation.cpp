@@ -1883,8 +1883,7 @@ static int64_t nTimeTotal = 0;
  */
 static bool ConnectBlock(const Config &config, const CBlock &block,
                          CValidationState &state, CBlockIndex *pindex,
-                         CCoinsViewCache &view, const CChainParams &chainparams,
-                         bool fJustCheck = false) {
+                         CCoinsViewCache &view, bool fJustCheck = false) {
     AssertLockHeld(cs_main);
 
     int64_t nTimeStart = GetTimeMicros();
@@ -1902,7 +1901,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     // Special case for the genesis block, skipping connection of its
     // transactions (its coinbase is unspendable)
-    if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
+    if (block.GetHash() == consensusParams.hashGenesisBlock) {
         if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
         }
@@ -1925,7 +1926,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                 pindexBestHeader->GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->nChainWork >=
                     UintToArith256(
-                        chainparams.GetConsensus().nMinimumChainWork)) {
+                        consensusParams.nMinimumChainWork)) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header. The equivalent time check
                 // discourages hashpower from extorting the network via DOS
@@ -1942,7 +1943,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                 fScriptChecks =
                     (GetBlockProofEquivalentTime(
                          *pindexBestHeader, *pindex, *pindexBestHeader,
-                         chainparams.GetConsensus()) <= 60 * 60 * 24 * 7 * 2);
+                         consensusParams) <= 60 * 60 * 24 * 7 * 2);
             }
         }
     }
@@ -1987,12 +1988,12 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     // we're on the known chain at height greater than where BIP34 activated, we
     // can save the db accesses needed for the BIP30 check.
     CBlockIndex *pindexBIP34height =
-        pindex->pprev->GetAncestor(chainparams.GetConsensus().BIP34Height);
+        pindex->pprev->GetAncestor(consensusParams.BIP34Height);
     // Only continue to enforce if we're below BIP34 activation height or the
     // block hash at that height doesn't correspond.
     fEnforceBIP30 = fEnforceBIP30 && (!pindexBIP34height ||
                                       !(pindexBIP34height->GetBlockHash() ==
-                                        chainparams.GetConsensus().BIP34Hash));
+                                        consensusParams.BIP34Hash));
 
     if (fEnforceBIP30) {
         for (const auto &tx : block.vtx) {
@@ -2009,7 +2010,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     // Start enforcing BIP68 (sequence locks) using versionbits logic.
     int nLockTimeFlags = 0;
-    if (VersionBitsState(pindex->pprev, chainparams.GetConsensus(),
+    if (VersionBitsState(pindex->pprev, consensusParams,
                          Consensus::DEPLOYMENT_CSV,
                          versionbitscache) == THRESHOLD_ACTIVE) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
@@ -2126,7 +2127,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
              nTimeConnect * 0.000001);
 
     Amount blockReward =
-        nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
+        nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
         return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
                                     "(actual=%d vs limit=%d)",
@@ -2163,7 +2164,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                 return error("ConnectBlock(): FindUndoPos failed");
             }
             if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
-                                 chainparams.DiskMagic())) {
+                                 config.GetChainParams().DiskMagic())) {
                 return AbortNode(state, "Failed to write undo data");
             }
 
@@ -2355,7 +2356,8 @@ void PruneAndFlush() {
 
 /** Update chainActive and related internal data structures. */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
-    const CChainParams &chainParams = config.GetChainParams();
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     chainActive.SetTip(pindexNew);
 
@@ -2372,7 +2374,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
             WarningBitsConditionChecker checker(bit);
             ThresholdState state = checker.GetStateFor(
-                pindex, chainParams.GetConsensus(), warningcache[bit]);
+                pindex, consensusParams, warningcache[bit]);
             if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
                 if (state == THRESHOLD_ACTIVE) {
                     std::string strWarning =
@@ -2396,7 +2398,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         // upgrade:
         for (int i = 0; i < 100 && pindex != nullptr; i++) {
             int32_t nExpectedVersion =
-                ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
+                ComputeBlockVersion(pindex->pprev, consensusParams);
             if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION &&
                 (pindex->nVersion & ~nExpectedVersion) != 0)
                 ++nUpgraded;
@@ -2427,7 +2429,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
         (unsigned long)chainActive.Tip()->nChainTx,
         DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
                           chainActive.Tip()->GetBlockTime()),
-        GuessVerificationProgress(chainParams.TxData(), chainActive.Tip()),
+        GuessVerificationProgress(config.GetChainParams().TxData(), chainActive.Tip()),
         pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
         pcoinsTip->GetCacheSize());
     if (!warningMessages.empty())
@@ -2618,8 +2620,7 @@ static bool ConnectTip(const Config &config, CValidationState &state,
              (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
     {
         CCoinsViewCache view(pcoinsTip);
-        bool rv = ConnectBlock(config, blockConnecting, state, pindexNew, view,
-                               config.GetChainParams());
+        bool rv = ConnectBlock(config, blockConnecting, state, pindexNew, view);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid()) {
@@ -3608,9 +3609,8 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         assert(pindexPrev);
-        if (fCheckpointsEnabled &&
-            !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
-                                         hash)) {
+        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
+                                       pindexPrev, state, chainparams, hash)) {
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
                          state.GetRejectReason().c_str());
         }
@@ -3852,8 +3852,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
-    if (!ConnectBlock(config, block, state, &indexDummy, viewNew, chainparams,
-                      true)) {
+    if (!ConnectBlock(config, block, state, &indexDummy, viewNew, true)) {
         return false;
     }
 
@@ -4232,8 +4231,6 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth,
               nCheckLevel);
 
-    const CChainParams &chainparams = config.GetChainParams();
-
     CCoinsViewCache coins(coinsview);
     CBlockIndex *pindexState = chainActive.Tip();
     CBlockIndex *pindexFailure = nullptr;
@@ -4352,8 +4349,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                     "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
             }
-            if (!ConnectBlock(config, block, state, pindex, coins,
-                              chainparams)) {
+            if (!ConnectBlock(config, block, state, pindex, coins)) {
                 return error(
                     "VerifyDB(): *** found unconnectable block at %d, hash=%s",
                     pindex->nHeight, pindex->GetBlockHash().ToString());
