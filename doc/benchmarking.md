@@ -6,8 +6,11 @@ for cryptographic algorithms (e.g. SHA1, SHA256, SHA512, RIPEMD160),
 as well as the rolling bloom filter, address encoding and decoding,
 CCoinsCaching, memory pool eviction, and wallet coin selection.
 
-After compiling bitcoin-abc, the benchmarks can be run with:
-`src/bench/bitcoin-bench`
+Running
+---------------------
+After compiling Bitcoin ABC, the benchmarks can be run with:
+
+    src/bench/bitcoin-bench
 
 The output will look similar to:
 ```
@@ -46,6 +49,14 @@ Trig, 5, 12000000, 2.17942, 3.60625e-08, 3.64305e-08, 3.63656e-08
 
 ```
 
+Help
+---------------------
+`-?` will print a list of options and exit:
+
+    src/bench/bitcoin-bench -?
+
+Notes
+---------------------
 More benchmarks are needed for, in no particular order:
 - Script Validation
 - Coins database
