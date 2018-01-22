@@ -1007,10 +1007,15 @@ void ThreadImport(const Config &config, std::vector<fs::path> vImportFiles) {
             int nFile = 0;
             while (true) {
                 CDiskBlockPos pos(nFile, 0);
-                if (!fs::exists(GetBlockPosFilename(pos, "blk")))
-                    break; // No block files left to reindex
+                if (!fs::exists(GetBlockPosFilename(pos, "blk"))) {
+                    // No block files left to reindex
+                    break;
+                }
                 FILE *file = OpenBlockFile(pos, true);
-                if (!file) break; // This error is logged in OpenBlockFile
+                if (!file) {
+                    // This error is logged in OpenBlockFile
+                    break;
+                }
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 LoadExternalBlockFile(config, file, &pos);
