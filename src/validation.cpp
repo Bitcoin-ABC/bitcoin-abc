@@ -2486,7 +2486,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
             disconnectpool->addTransaction(tx);
         }
         while (disconnectpool->DynamicMemoryUsage() >
-               MAX_DISCONNECTED_TX_POOL_SIZE * 1000) {
+               MAX_DISCONNECTED_TX_POOL_SIZE) {
             // Drop the earliest entry, and remove its children from the
             // mempool.
             auto it = disconnectpool->queuedTx.get<insertion_order>().begin();

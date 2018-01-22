@@ -14,6 +14,7 @@
 #include "amount.h"
 #include "chain.h"
 #include "coins.h"
+#include "consensus/consensus.h"
 #include "fs.h"
 #include "protocol.h" // For CMessageHeader::MessageMagic
 #include "script/script_error.h"
@@ -76,8 +77,9 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 /** Default for -mempoolexpiry, expiration time for mempool transactions in
  * hours */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
-/** Maximum kilobytes for transactions to store for processing during reorg */
-static const unsigned int MAX_DISCONNECTED_TX_POOL_SIZE = 20000;
+/** Maximum bytes for transactions to store for processing during reorg */
+static const unsigned int MAX_DISCONNECTED_TX_POOL_SIZE =
+    20 * DEFAULT_MAX_BLOCK_SIZE;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
