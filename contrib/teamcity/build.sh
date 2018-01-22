@@ -10,28 +10,37 @@ fi
 
 BUILD_DIR="${TOPLEVEL}/build"
 mkdir -p ${BUILD_DIR}
-## Configure and build
+
+## Generate necessary autoconf files
+cd ${TOPLEVEL}
+./autogen.sh
 cd ${BUILD_DIR}
 
 rm -f build.status test_bitcoin.xml
 
-#
-## Configure and run build
+## Determine the number of build threads
 THREADS=$(nproc || sysctl -n hw.ncpu)
 
-pushd ..
-./autogen.sh
-popd
+# Default to nothing
+: ${DISABLE_WALLET:=}
 
-../configure --prefix=`pwd`
+CONFIGURE_FLAGS=("--prefix=`pwd`")
+if [[ ! -z "${DISABLE_WALLET}" ]]; then
+	echo "*** Building without wallet"
+	CONFIGURE_FLAGS+=("--disable-wallet")
+fi
+
+../configure "${CONFIGURE_FLAGS[@]}"
 make -j ${THREADS}
-
-# Run unit tests
-./src/test/test_bitcoin --log_format=JUNIT > test_bitcoin.xml
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if [[ "${BRANCH}" == "master" ]]; then
+# Run tests
+./src/test/test_bitcoin --log_format=JUNIT > test_bitcoin.xml
+
+if [[ ! -z "${DISABLE_WALLET}" ]]; then
+	echo "Skipping rpc testing due to disabled wallet functionality."
+elif [[ "${BRANCH}" == "master" ]]; then
 	./test/functional/test_runner.py --extended
 else
 	./test/functional/test_runner.py
