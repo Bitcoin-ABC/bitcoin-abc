@@ -90,7 +90,8 @@ Follow instructions provided by `arc install-certificate` to provide your API to
 6. Code formatting tools
 
 If code formatting tools do not install automatically on your system, you
-may have to install clang-format-3.8 and autopep8.
+may have to install clang-format-4.0 and autopep8. clang-format-4.0.0 can be installed 
+from http://releases.llvm.org/download.html
 
 
 Working with The Bitcoin ABC Repository
