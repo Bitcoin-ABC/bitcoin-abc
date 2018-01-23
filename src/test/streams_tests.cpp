@@ -72,6 +72,52 @@ BOOST_AUTO_TEST_CASE(streams_vector_writer) {
     vch.clear();
 }
 
+BOOST_AUTO_TEST_CASE(streams_vector_reader) {
+    std::vector<uint8_t> vch = {1, 255, 3, 4, 5, 6};
+
+    VectorReader reader(SER_NETWORK, INIT_PROTO_VERSION, vch, 0);
+    BOOST_CHECK_EQUAL(reader.size(), 6);
+    BOOST_CHECK(!reader.empty());
+
+    // Read a single byte as an uint8_t.
+    uint8_t a;
+    reader >> a;
+    BOOST_CHECK_EQUAL(a, 1);
+    BOOST_CHECK_EQUAL(reader.size(), 5);
+    BOOST_CHECK(!reader.empty());
+
+    // Read a single byte as a (signed) int8_t.
+    int8_t b;
+    reader >> b;
+    BOOST_CHECK_EQUAL(b, -1);
+    BOOST_CHECK_EQUAL(reader.size(), 4);
+    BOOST_CHECK(!reader.empty());
+
+    // Read a 4 bytes as an unsigned uint32_t.
+    uint32_t c;
+    reader >> c;
+    // 100992003 = 3,4,5,6 in little-endian base-256
+    BOOST_CHECK_EQUAL(c, 100992003);
+    BOOST_CHECK_EQUAL(reader.size(), 0);
+    BOOST_CHECK(reader.empty());
+
+    // Reading after end of byte vector throws an error.
+    int32_t d;
+    BOOST_CHECK_THROW(reader >> d, std::ios_base::failure);
+
+    // Read a 4 bytes as a (signed) int32_t from the beginning of the buffer.
+    VectorReader new_reader(SER_NETWORK, INIT_PROTO_VERSION, vch, 0);
+    new_reader >> d;
+    // 67370753 = 1,255,3,4 in little-endian base-256
+    BOOST_CHECK_EQUAL(d, 67370753);
+    BOOST_CHECK_EQUAL(new_reader.size(), 2);
+    BOOST_CHECK(!new_reader.empty());
+
+    // Reading after end of byte vector throws an error even if the reader is
+    // not totally empty.
+    BOOST_CHECK_THROW(new_reader >> d, std::ios_base::failure);
+}
+
 BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
     std::vector<char> in;
     std::vector<char> expected_xor;
