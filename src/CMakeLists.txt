@@ -217,9 +217,24 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(server ${EVENT_PTHREAD_LIBRARY})
 endif()
 
+# Wallet
+if(BUILD_BITCOIN_WALLET)
+	add_subdirectory(wallet)
+	target_link_libraries(server wallet)
+endif()
+
+# ZeroMQ
+if(BUILD_BITCOIN_ZMQ)
+	add_subdirectory(zmq)
+	target_link_libraries(server zmq)
+endif()
+
 # RPC client support
 add_library(rpcclient rpc/client.cpp)
 target_link_libraries(rpcclient univalue util)
+
+# Test suite.
+add_subdirectory(test)
 
 # bitcoin-seeder
 if(BUILD_BITCOIN_SEEDER)
@@ -252,16 +267,4 @@ add_executable(bitcoind bitcoind.cpp)
 target_link_libraries(bitcoind server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
-endif()
-
-# Wallet
-if(BUILD_BITCOIN_WALLET)
-	add_subdirectory(wallet)
-	target_link_libraries(bitcoind wallet)
-endif()
-
-# ZeroMQ
-if(BUILD_BITCOIN_ZMQ)
-	add_subdirectory(zmq)
-	target_link_libraries(bitcoind zmq)
 endif()
