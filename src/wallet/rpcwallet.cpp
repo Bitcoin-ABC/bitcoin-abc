@@ -285,10 +285,10 @@ static UniValue getrawchangeaddress(const Config &config,
         pwallet->TopUpKeyPool();
     }
 
-    OutputType output_type = g_change_type;
+    OutputType output_type =
+        g_change_type != OutputType::NONE ? g_change_type : g_address_type;
     if (!request.params[0].isNull()) {
-        output_type =
-            ParseOutputType(request.params[0].get_str(), g_change_type);
+        output_type = ParseOutputType(request.params[0].get_str(), output_type);
         if (output_type == OutputType::NONE) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                strprintf("Unknown address type '%s'",

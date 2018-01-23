@@ -706,8 +706,10 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
         // actual payment and not change, this is a close match: it's the output
         // type we use subject to privacy issues, but not restricted by what
         // other software supports.
-        walletModel->wallet().learnRelatedScripts(newKey, g_change_type);
-        CTxDestination dest = GetDestinationForKey(newKey, g_change_type);
+        const OutputType change_type =
+            g_change_type != OutputType::NONE ? g_change_type : g_address_type;
+        walletModel->wallet().learnRelatedScripts(newKey, change_type);
+        CTxDestination dest = GetDestinationForKey(newKey, change_type);
         std::string label = tr("Refund from %1")
                                 .arg(recipient.authenticatedMerchant)
                                 .toStdString();

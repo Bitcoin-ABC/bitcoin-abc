@@ -2889,6 +2889,22 @@ bool CWallet::FundTransaction(CMutableTransaction &tx, Amount &nFeeRet,
     return true;
 }
 
+OutputType
+CWallet::TransactionChangeType(const std::vector<CRecipient> &vecSend) {
+    // If -changetype is specified, always use that change type.
+    if (g_change_type != OutputType::NONE) {
+        return g_change_type;
+    }
+
+    // if g_address_type is legacy, use legacy address as change.
+    if (g_address_type == OutputType::LEGACY) {
+        return OutputType::LEGACY;
+    }
+
+    // else use g_address_type for change
+    return g_address_type;
+}
+
 bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                                 CTransactionRef &tx, CReserveKey &reservekey,
                                 Amount &nFeeRet, int &nChangePosInOut,
@@ -2989,9 +3005,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            LearnRelatedScripts(vchPubKey, g_change_type);
+            const OutputType change_type = TransactionChangeType(vecSend);
+
+            LearnRelatedScripts(vchPubKey, change_type);
             scriptChange = GetScriptForDestination(
-                GetDestinationForKey(vchPubKey, g_change_type));
+                GetDestinationForKey(vchPubKey, change_type));
         }
         CTxOut change_prototype_txout(Amount::zero(), scriptChange);
         coin_selection_params.change_output_size =
