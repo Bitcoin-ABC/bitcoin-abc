@@ -5,6 +5,25 @@ The Bitcoin ABC project welcomes contributors!
 
 This guide is intended to help developers contribute effectively to Bitcoin ABC.
 
+Communicating with Developers
+-----------------------------
+
+To get in contact with ABC developers, we monitor a telegram supergroup.  The 
+intent of this group is specifically to facilitate development of Bitcoin-ABC, 
+and to welcome people who wish to participate.
+
+https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw
+
+Acceptable use of this supergroup includes the following:
+
+* Introducing yourself to other ABC developers.
+* Getting help with your development environment.
+* Discussing how to complete a patch.
+
+It is not for:
+
+* Market discussion
+* Non-constructive criticism
 
 Bitcoin ABC Development Philosophy
 ----------------------------------
