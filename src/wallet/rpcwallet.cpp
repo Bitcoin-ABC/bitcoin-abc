@@ -10,7 +10,6 @@
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "dstencode.h"
-#include "httpserver.h"
 #include "init.h"
 #include "net.h"
 #include "policy/fees.h"
@@ -27,7 +26,21 @@
 
 #include <univalue.h>
 
+#include <event2/http.h>
+
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
+
+static std::string urlDecode(const std::string &urlEncoded) {
+    std::string res;
+    if (!urlEncoded.empty()) {
+        char *decoded = evhttp_uridecode(urlEncoded.c_str(), false, nullptr);
+        if (decoded) {
+            res = std::string(decoded);
+            free(decoded);
+        }
+    }
+    return res;
+}
 
 CWallet *GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     if (request.URI.substr(0, WALLET_ENDPOINT_BASE.size()) ==
