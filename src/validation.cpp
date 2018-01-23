@@ -3522,9 +3522,10 @@ bool ContextualCheckTransactionForCurrentBlock(const Config &config,
 
 bool ContextualCheckBlock(const Config &config, const CBlock &block,
                           CValidationState &state,
-                          const Consensus::Params &consensusParams,
                           const CBlockIndex *pindexPrev) {
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     // Start enforcing BIP113 (Median Time Past) using versionbits logic.
     int nLockTimeFlags = 0;
@@ -3728,10 +3729,8 @@ static bool AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
 
-    const CChainParams &chainparams = config.GetChainParams();
     if (!CheckBlock(config, block, state) ||
-        !ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
-                              pindex->pprev)) {
+        !ContextualCheckBlock(config, block, state, pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus |= BLOCK_FAILED_VALID;
             setDirtyBlockIndex.insert(pindex);
@@ -3748,6 +3747,7 @@ static bool AcceptBlock(const Config &config,
     }
 
     int nHeight = pindex->nHeight;
+    const CChainParams &chainparams = config.GetChainParams();
 
     // Write block to history file
     try {
@@ -3848,8 +3848,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
-    if (!ContextualCheckBlock(config, block, state, chainparams.GetConsensus(),
-                              pindexPrev)) {
+    if (!ContextualCheckBlock(config, block, state, pindexPrev)) {
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
