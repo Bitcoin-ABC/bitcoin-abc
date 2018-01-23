@@ -12,8 +12,15 @@ There are 4 nodes-under-test:
 
 node4 exists to generate new blocks.
 
-The script is a series of tests, iterating over the 4 nodes. In each iteration
-of the test, one node sends:
+## Multisig address test
+
+Test that adding a multisig address with:
+    - an uncompressed pubkey always gives a legacy address
+    - only compressed pubkeys gives the an `-addresstype` address
+
+## Sending to address types test
+
+A series of tests, iterating over node0-node3. In each iteration of the test, one node sends:
     - 10/101th of its balance to itself (using getrawchangeaddress for single key addresses)
     - 20/101th to the next node
     - 30/101th to the node after that
@@ -21,15 +28,21 @@ of the test, one node sends:
     - 1/101th remains as fee+change
 
 Iterate over each node for single key addresses, and then over each node for
-multisig addresses. In a second iteration, the same is done. As every node
-sends coins after receiving, this also verifies that spending coins sent to
-all these address works."""
+multisig addresses. Repeat test. As every node sends coins after receiving,
+this also verifies that spending coins sent to all these address types works.
+"""
 
 from decimal import Decimal
 import itertools
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_greater_than, connect_nodes_bi, sync_blocks, sync_mempools
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than,
+    connect_nodes_bi,
+    sync_blocks,
+    sync_mempools,
+)
 
 
 class AddressTypeTest(BitcoinTestFramework):
@@ -74,6 +87,35 @@ class AddressTypeTest(BitcoinTestFramework):
         else:
             # Unknown type
             assert(False)
+
+    def test_change_output_type(
+            self, node_sender, destinations, expected_type):
+        txid = self.nodes[node_sender].sendmany(
+            dummy="", amounts=dict.fromkeys(
+                destinations, 0.001))
+        raw_tx = self.nodes[node_sender].getrawtransaction(txid)
+        tx = self.nodes[node_sender].decoderawtransaction(raw_tx)
+
+        # Make sure the transaction has change:
+        assert_equal(len(tx["vout"]), len(destinations) + 1)
+
+        # Make sure the destinations are included, and remove them:
+        output_addresses = [vout['scriptPubKey']['addresses'][0]
+                            for vout in tx["vout"]]
+        change_addresses = [
+            d for d in output_addresses if d not in destinations]
+        assert_equal(len(change_addresses), 1)
+
+        self.log.debug(
+            "Check if change address " +
+            change_addresses[0] +
+            " is " +
+            expected_type)
+        self.test_address(
+            node_sender,
+            change_addresses[0],
+            multisig=False,
+            typ=expected_type)
 
     def run_test(self):
         # Mine 101 blocks on node4 to bring nodes out of IBD and make sure that
@@ -160,6 +202,28 @@ class AddressTypeTest(BitcoinTestFramework):
                 to_node %= 4
                 assert_equal(
                     new_balances[to_node], old_balances[to_node] + to_send * 10 * (2 + n))
+
+        # Get addresses from node2 and  node3:
+        to_address_2 = self.nodes[2].getnewaddress()
+        to_address_3_1 = self.nodes[3].getnewaddress()
+        to_address_3_2 = self.nodes[3].getnewaddress()
+
+        self.log.info("Various change output tests")
+        self.test_change_output_type(0, [to_address_3_1], 'legacy')
+        self.test_change_output_type(1, [to_address_2], 'legacy')
+        self.test_change_output_type(1, [to_address_3_1], 'legacy')
+        self.test_change_output_type(
+            1, [to_address_2, to_address_3_1], 'legacy')
+        self.test_change_output_type(
+            1, [to_address_3_1, to_address_3_2], 'legacy')
+        self.test_change_output_type(2, [to_address_3_1], 'legacy')
+
+        self.log.info('Test getrawchangeaddress')
+        self.test_address(
+            3,
+            self.nodes[3].getrawchangeaddress(),
+            multisig=False,
+            typ='legacy')
 
 
 if __name__ == '__main__':
