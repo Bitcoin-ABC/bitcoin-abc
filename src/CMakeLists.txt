@@ -217,6 +217,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(server ${EVENT_PTHREAD_LIBRARY})
 endif()
 
+# RPC client support
+add_library(rpcclient rpc/client.cpp)
+target_link_libraries(rpcclient univalue util)
+
 # bitcoin-seeder
 if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
@@ -224,13 +228,13 @@ endif()
 
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
-	add_executable(bitcoin-cli bitcoin-cli.cpp rpc/client.cpp)
+	add_executable(bitcoin-cli bitcoin-cli.cpp)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
 	endif()
 
 	target_include_directories(bitcoin-cli PRIVATE ${EVENT_INCLUDE_DIR})
-	target_link_libraries(bitcoin-cli common ${EVENT_LIBRARY})
+	target_link_libraries(bitcoin-cli common rpcclient ${EVENT_LIBRARY})
 endif()
 
 # bitcoin-tx
