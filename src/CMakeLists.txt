@@ -233,9 +233,6 @@ endif()
 add_library(rpcclient rpc/client.cpp)
 target_link_libraries(rpcclient univalue util)
 
-# Test suite.
-add_subdirectory(test)
-
 # bitcoin-seeder
 if(BUILD_BITCOIN_SEEDER)
 	add_subdirectory(seeder)
@@ -268,3 +265,6 @@ target_link_libraries(bitcoind server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()
+
+# Test suite.
+add_subdirectory(test)

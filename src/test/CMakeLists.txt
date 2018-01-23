@@ -80,3 +80,7 @@ target_link_libraries(test_bitcoin Boost::unit_test_framework rpcclient server)
 
 # FIXME: We need to detect if that flag is required. For now assume it is.
 target_compile_definitions(test_bitcoin PRIVATE BOOST_TEST_DYN_LINK)
+
+if(BUILD_BITCOIN_WALLET)
+	target_link_libraries(test_bitcoin test_wallet)
+endif()
