@@ -100,9 +100,8 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
     return nMaxGeneratedBlockSize;
 }
 
-BlockAssembler::BlockAssembler(const Config &_config,
-                               const CChainParams &_chainparams)
-    : chainparams(_chainparams), config(&_config) {
+BlockAssembler::BlockAssembler(const Config &_config) : config(&_config) {
+
     if (IsArgSet("-blockmintxfee")) {
         Amount n(0);
         ParseMoney(GetArg("-blockmintxfee", ""), n);
@@ -164,6 +163,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     CBlockIndex *pindexPrev = chainActive.Tip();
     nHeight = pindexPrev->nHeight + 1;
 
+    const CChainParams &chainparams = config->GetChainParams();
     pblock->nVersion =
         ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
     // -regtest only: allow overriding block.nVersion with
