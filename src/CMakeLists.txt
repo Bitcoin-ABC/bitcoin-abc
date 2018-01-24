@@ -244,6 +244,7 @@ add_library(server
 	avalanche.cpp
 	bloom.cpp
 	blockencodings.cpp
+	blockfilter.cpp
 	chain.cpp
 	checkpoints.cpp
 	config.cpp

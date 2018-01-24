@@ -107,6 +107,7 @@ BITCOIN_CORE_H = \
   bloom.h \
   blockencodings.h \
   blockfileinfo.h \
+  blockfilter.h \
   blockindexworkcomparator.h \
   blockstatus.h \
   blockvalidity.h \
@@ -236,6 +237,7 @@ libbitcoin_server_a_SOURCES = \
   avalanche.cpp \
   bloom.cpp \
   blockencodings.cpp \
+  blockfilter.cpp \
   chain.cpp \
   checkpoints.cpp \
   config.cpp \
