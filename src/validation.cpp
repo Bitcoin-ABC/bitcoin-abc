@@ -979,7 +979,13 @@ bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
 
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
                        const Config &config) {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), config)) {
+    CDiskBlockPos blockPos;
+    {
+        LOCK(cs_main);
+        blockPos = pindex->GetBlockPos();
+    }
+
+    if (!ReadBlockFromDisk(block, blockPos, config)) {
         return false;
     }
 
