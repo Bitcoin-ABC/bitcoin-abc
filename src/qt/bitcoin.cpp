@@ -29,7 +29,6 @@
 
 #include "init.h"
 #include "rpc/server.h"
-#include "scheduler.h"
 #include "ui_interface.h"
 #include "uint256.h"
 #include "util.h"
@@ -195,9 +194,6 @@ Q_SIGNALS:
     void runawayException(const QString &message);
 
 private:
-    boost::thread_group threadGroup;
-    CScheduler scheduler;
-
     /// Pass fatal exception message to UI thread
     void handleRunawayException(const std::exception *e);
 };
@@ -297,8 +293,7 @@ void BitcoinABC::initialize(Config *cfg,
     Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running initialization in thread";
-        bool rv = AppInitMain(config, *httpRPCRequestProcessor, threadGroup,
-                              scheduler);
+        bool rv = AppInitMain(config, *httpRPCRequestProcessor);
         Q_EMIT initializeResult(rv);
     } catch (const std::exception &e) {
         handleRunawayException(&e);
@@ -310,8 +305,7 @@ void BitcoinABC::initialize(Config *cfg,
 void BitcoinABC::shutdown() {
     try {
         qDebug() << __func__ << ": Running Shutdown in thread";
-        Interrupt(threadGroup);
-        threadGroup.join_all();
+        Interrupt();
         Shutdown();
         qDebug() << __func__ << ": Shutdown finished";
         Q_EMIT shutdownResult();

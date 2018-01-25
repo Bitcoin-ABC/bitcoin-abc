@@ -26,7 +26,7 @@ class thread_group;
 void StartShutdown();
 bool ShutdownRequested();
 /** Interrupt threads */
-void Interrupt(boost::thread_group &threadGroup);
+void Interrupt();
 void Shutdown();
 //! Initialize the logging infrastructure
 void InitLogging();
@@ -71,8 +71,7 @@ bool AppInitLockDataDirectory();
  * AppInitLockDataDirectory should have been called.
  */
 bool AppInitMain(Config &config,
-                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                 boost::thread_group &threadGroup, CScheduler &scheduler);
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
 /** The help message mode determines what help message to show */
 enum HelpMessageMode { HMM_BITCOIND, HMM_BITCOIN_QT };
