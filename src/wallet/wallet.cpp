@@ -952,37 +952,6 @@ void CWallet::MarkDirty() {
     }
 }
 
-bool CWallet::MarkReplaced(const uint256 &originalHash,
-                           const uint256 &newHash) {
-    LOCK(cs_wallet);
-
-    auto mi = mapWallet.find(originalHash);
-
-    // There is a bug if MarkReplaced is not called on an existing wallet
-    // transaction.
-    assert(mi != mapWallet.end());
-
-    CWalletTx &wtx = (*mi).second;
-
-    // Ensure for now that we're not overwriting data.
-    assert(wtx.mapValue.count("replaced_by_txid") == 0);
-
-    wtx.mapValue["replaced_by_txid"] = newHash.ToString();
-
-    CWalletDB walletdb(*dbw, "r+");
-
-    bool success = true;
-    if (!walletdb.WriteTx(wtx)) {
-        LogPrintf("%s: Updating walletdb tx %s failed", __func__,
-                  wtx.GetId().ToString());
-        success = false;
-    }
-
-    NotifyTransactionChanged(this, originalHash, CT_UPDATED);
-
-    return success;
-}
-
 bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     LOCK(cs_wallet);
 

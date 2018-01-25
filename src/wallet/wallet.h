@@ -1084,11 +1084,6 @@ public:
      */
     bool AbandonTransaction(const uint256 &hashTx);
 
-    /**
-     * Mark a transaction as replaced by another transaction (e.g., BIP 125).
-     */
-    bool MarkReplaced(const uint256 &originalHash, const uint256 &newHash);
-
     /* Returns the wallets help message */
     static std::string GetWalletHelpString(bool showDebug);
 
