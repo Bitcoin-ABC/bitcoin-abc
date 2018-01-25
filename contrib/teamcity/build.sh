@@ -38,12 +38,14 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 # Run tests
 ./src/test/test_bitcoin --log_format=JUNIT > test_bitcoin.xml
 
+mkdir -p output/
+
 if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	echo "Skipping rpc testing due to disabled wallet functionality."
 elif [[ "${BRANCH}" == "master" ]]; then
-	./test/functional/test_runner.py --extended
+	./test/functional/test_runner.py --extended --tmpdirprefix=output
 else
-	./test/functional/test_runner.py
+	./test/functional/test_runner.py --tmpdirprefix=output
 fi
 
 make install
