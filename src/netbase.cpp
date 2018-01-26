@@ -484,7 +484,8 @@ SOCKET CreateSocket(const CService &addrConnect) {
 #ifdef SO_NOSIGPIPE
     int set = 1;
     // Different way of disabling SIGPIPE on BSD
-    setsockopt(hSocket, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
+    setsockopt(hSocket, SOL_SOCKET, SO_NOSIGPIPE, (sockopt_arg_type)&set,
+               sizeof(int));
 #endif
 
     // Disable Nagle's algorithm
@@ -536,14 +537,9 @@ bool ConnectSocketDirectly(const CService &addrConnect, const SOCKET &hSocket,
                 return false;
             }
             socklen_t nRetSize = sizeof(nRet);
-#ifdef WIN32
-            if (getsockopt(hSocket, SOL_SOCKET, SO_ERROR, (char *)(&nRet),
-                           &nRetSize) == SOCKET_ERROR)
-#else
-            if (getsockopt(hSocket, SOL_SOCKET, SO_ERROR, &nRet, &nRetSize) ==
-                SOCKET_ERROR)
-#endif
-            {
+            if (getsockopt(hSocket, SOL_SOCKET, SO_ERROR,
+                           (sockopt_arg_type)&nRet,
+                           &nRetSize) == SOCKET_ERROR) {
                 LogPrintf("getsockopt() for %s failed: %s\n",
                           addrConnect.ToString(),
                           NetworkErrorString(WSAGetLastError()));
@@ -738,8 +734,8 @@ bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking) {
 
 bool SetSocketNoDelay(const SOCKET &hSocket) {
     int set = 1;
-    int rc = setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char *)&set,
-                        sizeof(int));
+    int rc = setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY,
+                        (sockopt_arg_type)&set, sizeof(int));
     return rc == 0;
 }
 
