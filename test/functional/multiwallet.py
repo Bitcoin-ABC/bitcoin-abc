@@ -49,7 +49,7 @@ class MultiWalletTest(BitcoinTestFramework):
                               (self.nodes[0] / "wallet/bad").getwalletinfo)
 
         # accessing wallet RPC without using wallet endpoint fails
-        assert_raises_jsonrpc(-19, "Wallet file not specified",
+        assert_raises_jsonrpc(-19, "Wallet file not specified (must request wallet RPC through /wallet/<filename> uri-path).",
                               self.nodes[0].getwalletinfo)
 
         # check w1 wallet balance
