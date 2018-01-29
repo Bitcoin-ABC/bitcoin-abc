@@ -1377,7 +1377,13 @@ void InitLogging() {
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
-    LogPrintf("%s version %s\n", CLIENT_NAME, FormatFullVersion());
+    std::string version_string = FormatFullVersion();
+#ifdef DEBUG
+    version_string += " (debug build)";
+#else
+    version_string += " (release build)";
+#endif
+    LogPrintf("%s version %s\n", CLIENT_NAME, version_string);
 }
 
 namespace { // Variables internal to initialization process only
