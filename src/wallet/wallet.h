@@ -614,7 +614,7 @@ public:
         s >> nCreditDebit >> nTime >> LIMITED_STRING(strOtherAccount, 65536) >>
             LIMITED_STRING(strComment, 65536);
 
-        size_t nSepPos = strComment.find("\0", 0, 1);
+        size_t nSepPos = strComment.find('\0');
         mapValue.clear();
         if (std::string::npos != nSepPos) {
             CDataStream ss(std::vector<char>(strComment.begin() + nSepPos + 1,
