@@ -472,7 +472,7 @@ int CAddrMan::Check_() {
     std::set<int> setTried;
     std::map<int, int> mapNew;
 
-    if (vRandom.size() != nTried + nNew) {
+    if (vRandom.size() != size_t(nTried + nNew)) {
         return -7;
     }
 
@@ -500,7 +500,7 @@ int CAddrMan::Check_() {
         if (mapAddr[info] != n) {
             return -5;
         }
-        if (info.nRandomPos < 0 || info.nRandomPos >= vRandom.size() ||
+        if (info.nRandomPos < 0 || size_t(info.nRandomPos) >= vRandom.size() ||
             vRandom[info.nRandomPos] != n) {
             return -14;
         }
@@ -512,10 +512,10 @@ int CAddrMan::Check_() {
         }
     }
 
-    if (setTried.size() != nTried) {
+    if (setTried.size() != size_t(nTried)) {
         return -9;
     }
-    if (mapNew.size() != nNew) {
+    if (mapNew.size() != size_t(nNew)) {
         return -10;
     }
 
