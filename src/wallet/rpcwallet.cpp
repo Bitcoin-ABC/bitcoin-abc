@@ -3209,8 +3209,9 @@ static UniValue getwalletinfo(const Config &config,
             "fee configuration, set in " +
             CURRENCY_UNIT +
             "/kB\n"
-            "  \"hdmasterkeyid\": \"<hash160>\"     (string) "
-            "the Hash160 of the HD master pubkey\n"
+            "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) the "
+            "Hash160 of the HD master pubkey (only present when HD is "
+            "enabled)\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getwalletinfo", "") +
