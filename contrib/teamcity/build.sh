@@ -32,6 +32,7 @@ fi
 
 ../configure "${CONFIGURE_FLAGS[@]}"
 make -j ${THREADS}
+make install
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -48,4 +49,3 @@ else
 	./test/functional/test_runner.py --tmpdirprefix=output
 fi
 
-make install
