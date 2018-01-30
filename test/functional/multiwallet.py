@@ -33,8 +33,10 @@ class MultiWalletTest(BitcoinTestFramework):
                                             '-wallet=w11'], 'Error loading wallet w11. -wallet filename must be a regular file.')
 
         # should not initialize if wallet file is a symlink
-        os.symlink(os.path.join(self.options.tmpdir, 'node0', 'regtest', 'w1'),
-                   os.path.join(self.options.tmpdir, 'node0', 'regtest', 'w12'))
+        wallet_dir = os.path.abspath(os.path.join(
+            self.options.tmpdir, 'node0', 'regtest'))
+        os.symlink(os.path.join(wallet_dir, 'w1'),
+                   os.path.join(wallet_dir, 'w12'))
         self.assert_start_raises_init_error(0, self.options.tmpdir, [
                                             '-wallet=w12'], 'Error loading wallet w12. -wallet filename must be a regular file.')
 
