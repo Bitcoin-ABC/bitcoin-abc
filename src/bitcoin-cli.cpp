@@ -9,6 +9,7 @@
 
 #include "chainparamsbase.h"
 #include "clientversion.h"
+#include "fs.h"
 #include "rpc/client.h"
 #include "rpc/protocol.h"
 #include "support/events.h"
@@ -66,7 +67,7 @@ std::string HelpMessageCli() {
                     "until EOF/Ctrl-D (recommended for sensitive information "
                     "such as passphrases)"));
     strUsage += HelpMessageOpt(
-        "-usewallet=<walletname>",
+        "-rpcwallet=<walletname>",
         _("Send RPC for non-default wallet on RPC server (argument is wallet "
           "filename in bitcoind directory, required if bitcoind/-Qt runs with "
           "multiple wallets)"));
@@ -215,8 +216,14 @@ static void http_error_cb(enum evhttp_request_error err, void *ctx) {
 #endif
 
 UniValue CallRPC(const std::string &strMethod, const UniValue &params) {
-    std::string host = gArgs.GetArg("-rpcconnect", DEFAULT_RPCCONNECT);
-    int port = gArgs.GetArg("-rpcport", BaseParams().RPCPort());
+    std::string host;
+    // In preference order, we choose the following for the port:
+    //     1. -rpcport
+    //     2. port in -rpcconnect (ie following : in ipv4 or ]: in ipv6)
+    //     3. default port for chain
+    int port = BaseParams().RPCPort();
+    SplitHostPort(gArgs.GetArg("-rpcconnect", DEFAULT_RPCCONNECT), port, host);
+    port = gArgs.GetArg("-rpcport", port);
 
     // Obtain event base
     raii_event_base base = obtain_event_base();
@@ -274,7 +281,7 @@ UniValue CallRPC(const std::string &strMethod, const UniValue &params) {
 
     // check if we should use a special wallet endpoint
     std::string endpoint = "/";
-    std::string walletName = gArgs.GetArg("-usewallet", "");
+    std::string walletName = gArgs.GetArg("-rpcwallet", "");
     if (!walletName.empty()) {
         char *encodedURI =
             evhttp_uriencode(walletName.c_str(), walletName.size(), false);

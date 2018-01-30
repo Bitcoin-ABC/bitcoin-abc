@@ -11,6 +11,7 @@
 #include "sync.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "utilstrencodings.h"
 
 #include <signal.h>
 #include <sys/stat.h>
