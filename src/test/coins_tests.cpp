@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
             }
         }
 
-        // One every 10 iterations, remove a random entry from the cache
+        // 10 every 11 iterations, remove a random entry from the cache
         if (InsecureRandRange(10)) {
             COutPoint out(txids[insecure_rand() % txids.size()], 0);
             int cacheid = insecure_rand() % stack.size();
