@@ -67,6 +67,29 @@ static std::string DecodeDumpString(const std::string &str) {
     return ret.str();
 }
 
+bool GetWalletAddressesForKey(const Config &config, CWallet *const pwallet,
+                              const CKeyID &keyid, std::string &strAddr,
+                              std::string &strLabel) {
+    bool fLabelFound = false;
+    CKey key;
+    pwallet->GetKey(keyid, key);
+    for (const auto &dest : GetAllDestinationsForKey(key.GetPubKey())) {
+        if (pwallet->mapAddressBook.count(dest)) {
+            if (!strAddr.empty()) {
+                strAddr += ",";
+            }
+            strAddr += EncodeDestination(dest, config);
+            strLabel = EncodeDumpString(pwallet->mapAddressBook[dest].name);
+            fLabelFound = true;
+        }
+    }
+    if (!fLabelFound) {
+        strAddr = EncodeDestination(
+            GetDestinationForKey(key.GetPubKey(), g_address_type), config);
+    }
+    return fLabelFound;
+}
+
 UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
@@ -847,14 +870,14 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
          it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
         std::string strTime = FormatISO8601DateTime(it->first);
-        std::string strAddr = EncodeDestination(keyid, config);
+        std::string strAddr;
+        std::string strLabel;
         CKey key;
         if (pwallet->GetKey(keyid, key)) {
             file << strprintf("%s %s ", EncodeSecret(key), strTime);
-            if (pwallet->mapAddressBook.count(keyid)) {
-                file << strprintf(
-                    "label=%s",
-                    EncodeDumpString(pwallet->mapAddressBook[keyid].name));
+            if (GetWalletAddressesForKey(config, pwallet, keyid, strAddr,
+                                         strLabel)) {
+                file << strprintf("label=%s", strLabel);
             } else if (keyid == masterKeyID) {
                 file << "hdmaster=1";
             } else if (mapKeyPool.count(keyid)) {
