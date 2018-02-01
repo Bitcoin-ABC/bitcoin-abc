@@ -170,7 +170,7 @@ public:
     void Interrupt();
     bool GetNetworkActive() const { return fNetworkActive; };
     void SetNetworkActive(bool active);
-    bool OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
+    void OpenNetworkConnection(const CAddress &addrConnect, bool fCountFailure,
                                CSemaphoreGrant *grantOutbound = nullptr,
                                const char *strDest = nullptr,
                                bool fOneShot = false, bool fFeeler = false,
