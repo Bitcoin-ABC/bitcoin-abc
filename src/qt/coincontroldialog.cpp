@@ -33,7 +33,6 @@
 #include <QTreeWidgetItem>
 
 QList<Amount> CoinControlDialog::payAmounts;
-CCoinControl *CoinControlDialog::coinControl = new CCoinControl();
 bool CoinControlDialog::fSubtractFeeFromAmount = false;
 
 bool CCoinControlWidgetItem::operator<(const QTreeWidgetItem &other) const {
@@ -216,7 +215,7 @@ void CoinControlDialog::buttonSelectAllClicked() {
     ui->treeWidget->setEnabled(true);
     if (state == Qt::Unchecked) {
         // just to be sure
-        coinControl->UnSelectAll();
+        coinControl()->UnSelectAll();
     }
     CoinControlDialog::updateLabels(model, this);
 }
@@ -416,12 +415,12 @@ void CoinControlDialog::viewItemChanged(QTreeWidgetItem *item, int column) {
                         item->text(COLUMN_VOUT_INDEX).toUInt());
 
         if (item->checkState(COLUMN_CHECKBOX) == Qt::Unchecked) {
-            coinControl->UnSelect(outpt);
+            coinControl()->UnSelect(outpt);
         } else if (item->isDisabled()) {
             // locked (this happens if "check all" through parent node)
             item->setCheckState(COLUMN_CHECKBOX, Qt::Unchecked);
         } else {
-            coinControl->Select(outpt);
+            coinControl()->Select(outpt);
         }
 
         // selection changed -> update labels
@@ -487,7 +486,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
 
     std::vector<COutPoint> vCoinControl;
     std::vector<COutput> vOutputs;
-    coinControl->ListSelected(vCoinControl);
+    coinControl()->ListSelected(vCoinControl);
     model->getOutputs(vCoinControl, vOutputs);
 
     for (const COutput &out : vOutputs) {
@@ -496,7 +495,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         uint256 txhash = out.tx->GetId();
         COutPoint outpt(txhash, out.i);
         if (model->isSpent(outpt)) {
-            coinControl->UnSelect(outpt);
+            coinControl()->UnSelect(outpt);
             continue;
         }
 
@@ -546,7 +545,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         }
 
         // Fee
-        nPayFee = GetMinimumFee(nBytes, g_mempool, *coinControl);
+        nPayFee = GetMinimumFee(nBytes, g_mempool, *coinControl());
 
         if (nPayAmount > Amount::zero()) {
             nChange = nAmount - nPayAmount;
@@ -661,6 +660,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (label) {
         label->setVisible(nChange < Amount::zero());
     }
+}
+
+CCoinControl *CoinControlDialog::coinControl() {
+    static CCoinControl coin_control;
+    return &coin_control;
 }
 
 void CoinControlDialog::updateView() {
@@ -791,7 +795,7 @@ void CoinControlDialog::updateView() {
             if (model->isLockedCoin(txid, out.i)) {
                 COutPoint outpt(txid, out.i);
                 // just to be sure
-                coinControl->UnSelect(outpt);
+                coinControl()->UnSelect(outpt);
                 itemOutput->setDisabled(true);
                 itemOutput->setIcon(
                     COLUMN_CHECKBOX,
@@ -799,7 +803,7 @@ void CoinControlDialog::updateView() {
             }
 
             // set checkbox
-            if (coinControl->IsSelected(COutPoint(txid, out.i))) {
+            if (coinControl()->IsSelected(COutPoint(txid, out.i))) {
                 itemOutput->setCheckState(COLUMN_CHECKBOX, Qt::Checked);
             }
         }
