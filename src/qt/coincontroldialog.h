@@ -53,7 +53,7 @@ public:
     static void updateLabels(WalletModel *, QDialog *);
 
     static QList<Amount> payAmounts;
-    static CCoinControl *coinControl;
+    static CCoinControl *coinControl();
     static bool fSubtractFeeFromAmount;
 
 private:

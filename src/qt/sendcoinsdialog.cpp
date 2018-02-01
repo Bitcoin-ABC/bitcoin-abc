@@ -274,7 +274,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     // CoinControl has been enabled
     CCoinControl ctrl;
     if (model->getOptionsModel()->getCoinControlFeatures()) {
-        ctrl = *CoinControlDialog::coinControl;
+        ctrl = *CoinControlDialog::coinControl();
     }
 
     updateCoinControlState(ctrl);
@@ -399,7 +399,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
 
     if (sendStatus.status == WalletModel::OK) {
         accept();
-        CoinControlDialog::coinControl->UnSelectAll();
+        CoinControlDialog::coinControl()->UnSelectAll();
         coinControlUpdateLabels();
         Q_EMIT coinsSent(currentTransaction.getTransaction()->GetId());
     }
@@ -639,7 +639,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
     // Get CCoinControl instance if CoinControl is enabled or create a new one.
     CCoinControl coin_control;
     if (model->getOptionsModel()->getCoinControlFeatures()) {
-        coin_control = *CoinControlDialog::coinControl;
+        coin_control = *CoinControlDialog::coinControl();
     }
 
     // Calculate available amount to send.
@@ -791,7 +791,7 @@ void SendCoinsDialog::coinControlFeatureChanged(bool checked) {
 
     // coin control features disabled
     if (!checked && model) {
-        CoinControlDialog::coinControl->SetNull();
+        CoinControlDialog::coinControl()->SetNull();
     }
 
     coinControlUpdateLabels();
@@ -808,7 +808,7 @@ void SendCoinsDialog::coinControlButtonClicked() {
 // Coin Control: checkbox custom change address
 void SendCoinsDialog::coinControlChangeChecked(int state) {
     if (state == Qt::Unchecked) {
-        CoinControlDialog::coinControl->destChange = CNoDestination();
+        CoinControlDialog::coinControl()->destChange = CNoDestination();
         ui->labelCoinControlChangeLabel->clear();
     } else {
         // use this to re-validate an already entered address
@@ -822,7 +822,7 @@ void SendCoinsDialog::coinControlChangeChecked(int state) {
 void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
     if (model && model->getAddressTableModel()) {
         // Default to no change address until verified
-        CoinControlDialog::coinControl->destChange = CNoDestination();
+        CoinControlDialog::coinControl()->destChange = CNoDestination();
         ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
 
         const CTxDestination dest =
@@ -851,7 +851,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                     QMessageBox::Cancel);
 
                 if (btnRetVal == QMessageBox::Yes) {
-                    CoinControlDialog::coinControl->destChange = dest;
+                    CoinControlDialog::coinControl()->destChange = dest;
                 } else {
                     ui->lineEditCoinControlChange->setText("");
                     ui->labelCoinControlChangeLabel->setStyleSheet(
@@ -872,7 +872,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString &text) {
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
                 }
 
-                CoinControlDialog::coinControl->destChange = dest;
+                CoinControlDialog::coinControl()->destChange = dest;
             }
         }
     }
@@ -884,7 +884,7 @@ void SendCoinsDialog::coinControlUpdateLabels() {
         return;
     }
 
-    updateCoinControlState(*CoinControlDialog::coinControl);
+    updateCoinControlState(*CoinControlDialog::coinControl());
 
     // set pay amounts
     CoinControlDialog::payAmounts.clear();
@@ -901,7 +901,7 @@ void SendCoinsDialog::coinControlUpdateLabels() {
         }
     }
 
-    if (CoinControlDialog::coinControl->HasSelected()) {
+    if (CoinControlDialog::coinControl()->HasSelected()) {
         // actual coin control calculation
         CoinControlDialog::updateLabels(model, this);
 
