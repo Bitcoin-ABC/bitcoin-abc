@@ -68,7 +68,7 @@ public:
      * @param[in]  nVersionIn Serialization Version (including any flags)
      * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
      * @param[in]  nPosIn Starting position. Vector index where writes should
-     * start. The vector will initially grow as necessary to  max(index,
+     * start. The vector will initially grow as necessary to max(index,
      * vec.size()). So to append, use vec.size().
      */
     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<uint8_t> &vchDataIn,
