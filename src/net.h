@@ -690,11 +690,10 @@ public:
     // b) the peer may tell us in its version message that we should not relay
     // tx invs unless it loads a bloom filter.
 
-    // protected by cs_filter
-    bool fRelayTxes;
+    bool fRelayTxes GUARDED_BY(cs_filter);
     bool fSentAddr;
     CSemaphoreGrant grantOutbound;
-    CCriticalSection cs_filter;
+    mutable CCriticalSection cs_filter;
     std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter);
     std::atomic<int> nRefCount;
 
@@ -731,11 +730,10 @@ public:
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
     int64_t nNextInvSend;
-    // Used for headers announcements - unfiltered blocks to relay. Also
-    // protected by cs_inventory.
-    std::vector<uint256> vBlockHashesToAnnounce;
-    // Used for BIP35 mempool sending, also protected by cs_inventory.
-    bool fSendMempool;
+    // Used for headers announcements - unfiltered blocks to relay.
+    std::vector<uint256> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);
+    // Used for BIP35 mempool sending.
+    bool fSendMempool GUARDED_BY(cs_inventory);
 
     // Last time a "MEMPOOL" request was serviced.
     std::atomic<int64_t> timeLastMempoolReq;

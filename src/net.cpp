@@ -1063,6 +1063,7 @@ bool CConnman::AttemptToEvictConnection() {
             if (node->fWhitelisted || !node->fInbound || node->fDisconnect) {
                 continue;
             }
+            LOCK(node->cs_filter);
             NodeEvictionCandidate candidate = {
                 node->GetId(),
                 node->nTimeConnected,
