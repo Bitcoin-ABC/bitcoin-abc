@@ -59,9 +59,7 @@ EXTRA_ARG = "-replayprotectionactivationtime={}".format(ACTIVATION_TIME)
 FIRST_BLOCK_TIME = ACTIVATION_TIME - 86400
 
 # Expected RPC error when trying to send an activation specific spend txn.
-EXPECTED_ERROR = b'mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)'
-RPC_EXPECTED_ERROR = "16: " + \
-    EXPECTED_ERROR.decode("utf-8")
+RPC_EXPECTED_ERROR = "mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation) (code 16)"
 
 
 def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):

@@ -659,9 +659,9 @@ static bool AcceptToMemoryPoolWorker(
                 .GetFee(nSize);
         if (mempoolRejectFee > Amount::zero() &&
             nModifiedFees < mempoolRejectFee) {
-            return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
-                             "mempool min fee not met", false,
-                             strprintf("%d < %d", nFees, mempoolRejectFee));
+            return state.DoS(
+                0, false, REJECT_INSUFFICIENTFEE, "mempool min fee not met",
+                false, strprintf("%d < %d", nModifiedFees, mempoolRejectFee));
         }
 
         if (gArgs.GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&

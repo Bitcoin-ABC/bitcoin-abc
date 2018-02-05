@@ -43,9 +43,7 @@ from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
 # Error for too many sigops in one TX
-TXNS_TOO_MANY_SIGOPS_ERROR = b'bad-txns-too-many-sigops'
-RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "64: " + \
-    TXNS_TOO_MANY_SIGOPS_ERROR.decode("utf-8")
+RPC_TXNS_TOO_MANY_SIGOPS_ERROR = "bad-txns-too-many-sigops"
 
 
 class PreviousSpendableOutput():

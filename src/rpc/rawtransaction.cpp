@@ -1344,9 +1344,7 @@ static UniValue sendrawtransaction(const Config &config,
                                     nMaxRawTxFee)) {
                 if (state.IsInvalid()) {
                     throw JSONRPCError(RPC_TRANSACTION_REJECTED,
-                                       strprintf("%i: %s",
-                                                 state.GetRejectCode(),
-                                                 state.GetRejectReason()));
+                                       FormatStateMessage(state));
                 }
 
                 if (fMissingInputs) {
@@ -1354,7 +1352,7 @@ static UniValue sendrawtransaction(const Config &config,
                 }
 
                 throw JSONRPCError(RPC_TRANSACTION_ERROR,
-                                   state.GetRejectReason());
+                                   FormatStateMessage(state));
             } else {
                 // If wallet is enabled, ensure that the wallet has been made
                 // aware of the new transaction prior to returning. This

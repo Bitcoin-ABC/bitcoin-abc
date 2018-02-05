@@ -1619,7 +1619,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (!state.IsValid()) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+        throw JSONRPCError(RPC_DATABASE_ERROR, FormatStateMessage(state));
     }
 
     return NullUniValue;
@@ -1660,7 +1660,7 @@ static UniValue invalidateblock(const Config &config,
     }
 
     if (!state.IsValid()) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+        throw JSONRPCError(RPC_DATABASE_ERROR, FormatStateMessage(state));
     }
 
     return NullUniValue;
@@ -1738,7 +1738,7 @@ static UniValue reconsiderblock(const Config &config,
     ActivateBestChain(config, state);
 
     if (!state.IsValid()) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+        throw JSONRPCError(RPC_DATABASE_ERROR, FormatStateMessage(state));
     }
 
     return NullUniValue;

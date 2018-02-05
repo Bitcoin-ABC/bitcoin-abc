@@ -48,11 +48,9 @@ TEST_TIME = int(time.time())
 
 # Error due to non clean stack
 CLEANSTACK_ERROR = b'non-mandatory-script-verify-flag (Script did not clean its stack)'
-RPC_CLEANSTACK_ERROR = "64: " + \
-    CLEANSTACK_ERROR.decode("utf-8")
+RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR.decode('utf-8') + " (code 64)"
 EVAL_FALSE_ERROR = b'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
-RPC_EVAL_FALSE_ERROR = "64: " + \
-    EVAL_FALSE_ERROR.decode("utf-8")
+RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR.decode('utf-8') + "ent) (code 64)"
 
 
 class PreviousSpendableOutput(object):

@@ -504,7 +504,7 @@ static CTransactionRef SendMoney(CWallet *const pwallet,
                                     g_connman.get(), state)) {
         strError =
             strprintf("Error: The transaction was rejected! Reason given: %s",
-                      state.GetRejectReason());
+                      FormatStateMessage(state));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
     return tx;
@@ -1361,7 +1361,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                                     std::move(strAccount), keyChange,
                                     g_connman.get(), state)) {
         strFailReason = strprintf("Transaction commit failed:: %s",
-                                  state.GetRejectReason());
+                                  FormatStateMessage(state));
         throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
     }
 

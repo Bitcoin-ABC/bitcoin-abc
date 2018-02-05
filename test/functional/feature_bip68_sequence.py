@@ -40,7 +40,7 @@ SEQUENCE_LOCKTIME_GRANULARITY = 9
 SEQUENCE_LOCKTIME_MASK = 0x0000ffff
 
 # RPC error for non-BIP68 final transactions
-NOT_FINAL_ERROR = "64: non-BIP68-final"
+NOT_FINAL_ERROR = "non-BIP68-final (code 64)"
 
 
 class BIP68Test(BitcoinTestFramework):
