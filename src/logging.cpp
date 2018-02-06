@@ -36,11 +36,7 @@ static int FileWriteStr(const std::string &str, FILE *fp) {
 
 fs::path BCLog::Logger::GetDebugLogPath() {
     fs::path logfile(gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
-    if (logfile.is_absolute()) {
-        return logfile;
-    } else {
-        return GetDataDir() / logfile;
-    }
+    return AbsPathForConfigVal(logfile);
 }
 
 bool BCLog::Logger::OpenDebugLog() {

@@ -374,7 +374,8 @@ void SetupServerArgs() {
                   DEFAULT_BLOCKSONLY),
         true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
-                 strprintf(_("Specify configuration file (default: %s)"),
+                 strprintf(_("Specify configuration file. Relative paths will "
+                             "be prefixed by datadir location. (default: %s)"),
                            BITCOIN_CONF_FILENAME),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-datadir=<dir>", _("Specify data directory"), false,
@@ -393,8 +394,8 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-debuglogfile=<file>",
         strprintf(
-            _("Specify location of debug log file: this can be an absolute "
-              "path or a path relative to the data directory (default: %s)"),
+            _("Specify location of debug log file. Relative paths will be "
+              "prefixed by a net-specific datadir location. (default: %s)"),
             DEFAULT_DEBUGLOGFILE),
         false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-feefilter",
@@ -460,7 +461,9 @@ void SetupServerArgs() {
 #ifndef WIN32
     gArgs.AddArg(
         "-pid=<file>",
-        strprintf(_("Specify pid file (default: %s)"), BITCOIN_PID_FILENAME),
+        strprintf(_("Specify pid file. Relative paths will be prefixed by a "
+                    "net-specific datadir location. (default: %s)"),
+                  BITCOIN_PID_FILENAME),
         false, OptionsCategory::OPTIONS);
 #endif
     gArgs.AddArg(
@@ -934,9 +937,11 @@ void SetupServerArgs() {
           "::1 i.e., localhost, or if -rpcallowip has been specified, 0.0.0.0 "
           "and :: i.e., all addresses)"),
         false, OptionsCategory::RPC);
-    gArgs.AddArg("-rpccookiefile=<loc>",
-                 _("Location of the auth cookie (default: data dir)"), false,
-                 OptionsCategory::RPC);
+    gArgs.AddArg(
+        "-rpccookiefile=<loc>",
+        _("Location of the auth cookie. Relative paths will be prefixed by a "
+          "net-specific datadir location. (default: data dir)"),
+        false, OptionsCategory::RPC);
     gArgs.AddArg("-rpcuser=<user>", _("Username for JSON-RPC connections"),
                  false, OptionsCategory::RPC);
     gArgs.AddArg("-rpcpassword=<pw>", _("Password for JSON-RPC connections"),

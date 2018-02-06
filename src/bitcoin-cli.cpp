@@ -38,7 +38,8 @@ static void SetupCliArgs() {
     gArgs.AddArg("-version", "Print version and exit", false,
                  OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
-                 strprintf(_("Specify configuration file (default: %s)"),
+                 strprintf(_("Specify configuration file. Relative paths will "
+                             "be prefixed by datadir location. (default: %s)"),
                            BITCOIN_CONF_FILENAME),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-datadir=<dir>", _("Specify data directory"), false,
