@@ -640,7 +640,7 @@ CheckInputsFromMempoolAndCache(const CTransaction &tx, CValidationState &state,
 
         const CTransactionRef &txFrom = pool.get(txin.prevout.GetTxId());
         if (txFrom) {
-            assert(txFrom->GetHash() == txin.prevout.GetTxId());
+            assert(txFrom->GetId() == txin.prevout.GetTxId());
             assert(txFrom->vout.size() > txin.prevout.GetN());
             assert(txFrom->vout[txin.prevout.GetN()] == coin.GetTxOut());
         } else {
@@ -663,6 +663,10 @@ static bool AcceptToMemoryPoolWorker(
 
     const CTransaction &tx = *ptx;
     const TxId txid = tx.GetId();
+
+    // mempool "read lock" (held through
+    // GetMainSignals().TransactionAddedToMempool())
+    LOCK(pool.cs);
     if (pfMissingInputs) {
         *pfMissingInputs = false;
     }
@@ -699,16 +703,12 @@ static bool AcceptToMemoryPoolWorker(
     }
 
     // Check for conflicts with in-memory transactions
-    {
-        // Protect pool.mapNextTx
-        LOCK(pool.cs);
-        for (const CTxIn &txin : tx.vin) {
-            auto itConflicting = pool.mapNextTx.find(txin.prevout);
-            if (itConflicting != pool.mapNextTx.end()) {
-                // Disable replacement feature for good
-                return state.Invalid(false, REJECT_CONFLICT,
-                                     "txn-mempool-conflict");
-            }
+    for (const CTxIn &txin : tx.vin) {
+        auto itConflicting = pool.mapNextTx.find(txin.prevout);
+        if (itConflicting != pool.mapNextTx.end()) {
+            // Disable replacement feature for good
+            return state.Invalid(false, REJECT_CONFLICT,
+                                 "txn-mempool-conflict");
         }
     }
 
@@ -718,66 +718,62 @@ static bool AcceptToMemoryPoolWorker(
 
         Amount nValueIn = Amount::zero();
         LockPoints lp;
-        {
-            LOCK(pool.cs);
-            CCoinsViewMemPool viewMemPool(pcoinsTip, pool);
-            view.SetBackend(viewMemPool);
+        CCoinsViewMemPool viewMemPool(pcoinsTip, pool);
+        view.SetBackend(viewMemPool);
 
-            // Do we already have it?
-            for (size_t out = 0; out < tx.vout.size(); out++) {
-                COutPoint outpoint(txid, out);
-                bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
-                if (view.HaveCoin(outpoint)) {
-                    if (!had_coin_in_cache) {
-                        coins_to_uncache.push_back(outpoint);
-                    }
-
-                    return state.Invalid(false, REJECT_ALREADY_KNOWN,
-                                         "txn-already-known");
-                }
-            }
-
-            // Do all inputs exist?
-            for (const CTxIn txin : tx.vin) {
-                if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
-                    coins_to_uncache.push_back(txin.prevout);
+        // Do we already have it?
+        for (size_t out = 0; out < tx.vout.size(); out++) {
+            COutPoint outpoint(txid, out);
+            bool had_coin_in_cache = pcoinsTip->HaveCoinInCache(outpoint);
+            if (view.HaveCoin(outpoint)) {
+                if (!had_coin_in_cache) {
+                    coins_to_uncache.push_back(outpoint);
                 }
 
-                if (!view.HaveCoin(txin.prevout)) {
-                    if (pfMissingInputs) {
-                        *pfMissingInputs = true;
-                    }
+                return state.Invalid(false, REJECT_ALREADY_KNOWN,
+                                     "txn-already-known");
+            }
+        }
 
-                    // fMissingInputs and !state.IsInvalid() is used to detect
-                    // this condition, don't set state.Invalid()
-                    return false;
+        // Do all inputs exist?
+        for (const CTxIn txin : tx.vin) {
+            if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
+                coins_to_uncache.push_back(txin.prevout);
+            }
+
+            if (!view.HaveCoin(txin.prevout)) {
+                if (pfMissingInputs) {
+                    *pfMissingInputs = true;
                 }
+
+                // fMissingInputs and !state.IsInvalid() is used to detect this
+                // condition, don't set state.Invalid()
+                return false;
             }
+        }
 
-            // Are the actual inputs available?
-            if (!view.HaveInputs(tx)) {
-                return state.Invalid(false, REJECT_DUPLICATE,
-                                     "bad-txns-inputs-spent");
-            }
+        // Are the actual inputs available?
+        if (!view.HaveInputs(tx)) {
+            return state.Invalid(false, REJECT_DUPLICATE,
+                                 "bad-txns-inputs-spent");
+        }
 
-            // Bring the best block into scope.
-            view.GetBestBlock();
+        // Bring the best block into scope.
+        view.GetBestBlock();
 
-            nValueIn = view.GetValueIn(tx);
+        nValueIn = view.GetValueIn(tx);
 
-            // We have all inputs cached now, so switch back to dummy, so we
-            // don't need to keep lock on mempool.
-            view.SetBackend(dummy);
+        // We have all inputs cached now, so switch back to dummy, so we don't
+        // need to keep lock on mempool.
+        view.SetBackend(dummy);
 
-            // Only accept BIP68 sequence locked transactions that can be mined
-            // in the next block; we don't want our mempool filled up with
-            // transactions that can't be mined yet. Must keep pool.cs for this
-            // unless we change CheckSequenceLocks to take a CoinsViewCache
-            // instead of create its own.
-            if (!CheckSequenceLocks(tx, STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
-                return state.DoS(0, false, REJECT_NONSTANDARD,
-                                 "non-BIP68-final");
-            }
+        // Only accept BIP68 sequence locked transactions that can be mined in
+        // the next block; we don't want our mempool filled up with transactions
+        // that can't be mined yet. Must keep pool.cs for this unless we change
+        // CheckSequenceLocks to take a CoinsViewCache instead of create its
+        // own.
+        if (!CheckSequenceLocks(tx, STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
+            return state.DoS(0, false, REJECT_NONSTANDARD, "non-BIP68-final");
         }
 
         // Check for non-standard pay-to-script-hash in inputs
