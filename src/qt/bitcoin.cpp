@@ -520,13 +520,15 @@ void BitcoinApplication::initializeResult(bool success) {
         QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
 #endif
     } else {
-        // Exit main loop.
+        // Make sure splash screen doesn't stick around during shutdown.
+        Q_EMIT splashFinished(window);
+        // Exit first main loop invocation.
         quit();
     }
 }
 
 void BitcoinApplication::shutdownResult() {
-    // Exit main loop after shutdown finished.
+    // Exit second main loop invocation after shutdown finished.
     quit();
 }
 
