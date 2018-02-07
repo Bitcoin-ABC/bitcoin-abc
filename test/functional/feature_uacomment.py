@@ -4,6 +4,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the -uacomment option."""
 
+import re
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -25,16 +27,16 @@ class UacommentTest(BitcoinTestFramework):
 
         self.log.info("test -uacomment max length")
         self.stop_node(0)
-        expected = "Total length of network version string (290) exceeds maximum length (256). Reduce the number or size of uacomments."
-        self.assert_start_raises_init_error(
-            0, ["-uacomment=" + 'a' * 256], expected)
+        expected = "Error: Total length of network version string \([0-9]+\) exceeds maximum length \(256\). Reduce the number or size of uacomments."
+        self.nodes[0].assert_start_raises_init_error(
+            ["-uacomment=" + 'a' * 256], expected)
 
         self.log.info("test -uacomment unsafe characters")
         for unsafe_char in ['/', ':', '(', ')']:
-            expected = "User Agent comment (" + \
-                unsafe_char + ") contains unsafe characters"
-            self.assert_start_raises_init_error(
-                0, ["-uacomment=" + unsafe_char], expected)
+            expected = "Error: User Agent comment \(" + re.escape(
+                unsafe_char) + "\) contains unsafe characters."
+            self.nodes[0].assert_start_raises_init_error(
+                ["-uacomment=" + unsafe_char], expected)
 
 
 if __name__ == '__main__':
