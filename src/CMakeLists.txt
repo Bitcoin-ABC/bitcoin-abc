@@ -26,6 +26,7 @@ option(ENABLE_NOTIFICATIONS "Enable desktop notifications" ON)
 option(ENABLE_WERROR "Promote some compiler warnings to errors" OFF)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
+option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 
 # If ccache is available, then use it.
 find_program(CCACHE ccache)
@@ -145,6 +146,22 @@ if(ENABLE_HARDENING)
 		# MinGw provides its own libssp for stack smashing protection
 		link_libraries(ssp)
 	endif()
+endif()
+
+if(ENABLE_PROFILING MATCHES "gprof")
+	message(STATUS "Enable profiling with gprof")
+
+	# -pg is incompatible with -pie. Since hardening and profiling together
+	# doesn't make sense, we simply make them mutually exclusive here.
+	# Additionally, hardened toolchains may force -pie by default, in which
+	# case it needs to be turned off with -no-pie.
+	if(ENABLE_HARDENING)
+		message(FATAL_ERROR "Profiling with gprof requires disabling hardening with -DENABLE_HARDENING=OFF.")
+	endif()
+	add_linker_flags(-no-pie)
+
+	add_compiler_flags(-pg)
+	add_linker_flags(-pg)
 endif()
 
 # Enable warning

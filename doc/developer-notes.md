@@ -216,6 +216,11 @@ produce better debugging builds.
 
 Run configure with the `--enable-gprof` option, then make.
 
+With `cmake` and `ninja`:
+```
+  cmake -GNinja .. -DENABLE_HARDENING=OFF -DENABLE_PROFIILING=gprof
+```
+
 ### debug.log
 
 If the code is behaving strangely, take a look in the debug.log file in the data directory;
