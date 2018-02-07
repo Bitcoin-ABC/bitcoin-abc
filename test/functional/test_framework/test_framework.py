@@ -265,7 +265,7 @@ class BitcoinTestFramework():
         assert_equal(len(binary), num_nodes)
         for i in range(num_nodes):
             self.nodes.append(TestNode(i, get_datadir_path(self.options.tmpdir, i), host=rpchost, rpc_port=rpc_port(i), p2p_port=p2p_port(i), timewait=timewait,
-                                       bitcoind=binary[i], bitcoin_cli=self.options.bitcoincli, stderr=None, mocktime=self.mocktime, coverage_dir=self.options.coveragedir, extra_conf=extra_confs[i], extra_args=extra_args[i], use_cli=self.options.usecli))
+                                       bitcoind=binary[i], bitcoin_cli=self.options.bitcoincli, mocktime=self.mocktime, coverage_dir=self.options.coveragedir, extra_conf=extra_confs[i], extra_args=extra_args[i], use_cli=self.options.usecli))
             if self.options.gravitonactivation:
                 self.nodes[i].extend_default_args(
                     ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
@@ -302,9 +302,9 @@ class BitcoinTestFramework():
                 coverage.write_all_rpc_commands(
                     self.options.coveragedir, node.rpc)
 
-    def stop_node(self, i):
+    def stop_node(self, i, expected_stderr=''):
         """Stop a bitcoind test node"""
-        self.nodes[i].stop_node()
+        self.nodes[i].stop_node(expected_stderr)
         self.nodes[i].wait_until_stopped()
 
     def stop_nodes(self):
@@ -407,7 +407,7 @@ class BitcoinTestFramework():
             for i in range(MAX_NODES):
                 datadir = initialize_datadir(self.options.cachedir, i)
                 self.nodes.append(TestNode(i, get_datadir_path(self.options.cachedir, i), extra_conf=["bind=127.0.0.1"], extra_args=[], host=None, rpc_port=rpc_port(
-                    i), p2p_port=p2p_port(i), timewait=None, bitcoind=self.options.bitcoind, bitcoin_cli=self.options.bitcoincli, stderr=None, mocktime=self.mocktime, coverage_dir=None))
+                    i), p2p_port=p2p_port(i), timewait=None, bitcoind=self.options.bitcoind, bitcoin_cli=self.options.bitcoincli, mocktime=self.mocktime, coverage_dir=None))
                 self.nodes[i].clear_default_args()
                 self.nodes[i].extend_default_args([
                     "-server", "-keypool=1", "-datadir=" + datadir,
