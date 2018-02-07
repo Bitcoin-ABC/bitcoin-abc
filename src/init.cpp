@@ -2218,7 +2218,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
     LogPrintf("nBestHeight = %d\n", chainActive.Height());
     if (gArgs.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) {
-        StartTorControl(threadGroup, scheduler);
+        StartTorControl();
     }
 
     Discover();
