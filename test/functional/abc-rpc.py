@@ -18,8 +18,7 @@ from test_framework.cdefs import (ONE_MEGABYTE,
 
 class ABC_RPC_Test (BitcoinTestFramework):
 
-    def __init__(self):
-        super(ABC_RPC_Test, self).__init__()
+    def set_test_params(self):
         self.num_nodes = 1
         self.tip = None
         self.setup_clean_chain = True

@@ -36,9 +36,7 @@ class TestNode(NodeConnCB):
 
 
 class MaxUploadTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
         # Start a node with maxuploadtarget of 200 MB (/24h)
@@ -159,8 +157,8 @@ class MaxUploadTest(BitcoinTestFramework):
         # stop and start node 0 with 1MB maxuploadtarget, whitelist 127.0.0.1
         self.log.info("Restarting nodes with -whitelist=127.0.0.1")
         self.stop_node(0)
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
-                                        "-whitelist=127.0.0.1", "-maxuploadtarget=1"])
+        self.start_node(0, ["-whitelist=127.0.0.1",
+                            "-maxuploadtarget=1", "-blockmaxsize=999000"])
 
         # recreate/reconnect a test node
         test_nodes = [TestNode()]

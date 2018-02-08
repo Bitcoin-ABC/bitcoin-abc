@@ -10,11 +10,8 @@ import urllib.parse
 
 
 class AbandonConflictTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.num_nodes = 2
-        self.setup_clean_chain = False
         self.extra_args = [["-minrelaytxfee=0.00001"], []]
 
     def run_test(self):
@@ -81,8 +78,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Restart the node with a higher min relay fee so the parent tx is no longer in mempool
         # TODO: redo with eviction
         self.stop_node(0)
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
-                                        "-minrelaytxfee=0.0001"])
+        self.start_node(0, extra_args=["-minrelaytxfee=0.0001"])
 
         # Verify txs no longer in mempool
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -110,8 +106,7 @@ class AbandonConflictTest(BitcoinTestFramework):
 
         # Verify that even with a low min relay fee, the tx is not reaccepted from wallet on startup once abandoned
         self.stop_node(0)
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
-                                        "-minrelaytxfee=0.00001"])
+        self.start_node(0, extra_args=["-minrelaytxfee=0.00001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         assert_equal(self.nodes[0].getbalance(), balance)
 
@@ -132,8 +127,7 @@ class AbandonConflictTest(BitcoinTestFramework):
 
         # Remove using high relay fee again
         self.stop_node(0)
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
-                                        "-minrelaytxfee=0.0001"])
+        self.start_node(0, extra_args=["-minrelaytxfee=0.0001"])
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         newbalance = self.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("24.9996"))

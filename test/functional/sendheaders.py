@@ -183,9 +183,7 @@ class TestNode(NodeConnCB):
 
 
 class SendHeadersTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
 

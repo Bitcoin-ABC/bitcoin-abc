@@ -16,10 +16,7 @@ import urllib.parse
 
 
 class HTTPBasicsTest (BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
-        self.setup_clean_chain = False
+    def set_test_params(self):
         self.num_nodes = 2
 
     def setup_chain(self):

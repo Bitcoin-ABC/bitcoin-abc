@@ -10,11 +10,7 @@ from io import BytesIO
 
 
 class DecodeScriptTest(BitcoinTestFramework):
-
-    """Tests decoding scripts via RPC command "decodescript"."""
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
 

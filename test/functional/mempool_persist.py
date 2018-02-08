@@ -37,12 +37,8 @@ from test_framework.util import *
 
 
 class MempoolPersistTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
-        # We need 3 nodes for this test. Node1 does not have a persistent mempool.
+    def set_test_params(self):
         self.num_nodes = 3
-        self.setup_clean_chain = False
         self.extra_args = [[], ["-persistmempool=0"], []]
 
     def run_test(self):
@@ -67,9 +63,8 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.log.debug(
             "Stop-start node0 and node1. Verify that node0 has the transactions in its mempool and node1 does not.")
         self.stop_nodes()
-        self.nodes = []
-        self.nodes.append(self.start_node(0, self.options.tmpdir))
-        self.nodes.append(self.start_node(1, self.options.tmpdir))
+        self.start_node(0)
+        self.start_node(1)
         # Give bitcoind a second to reload the mempool
         time.sleep(1)
         wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
@@ -78,9 +73,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.log.debug(
             "Stop-start node0 with -persistmempool=0. Verify that it doesn't load its mempool.dat file.")
         self.stop_nodes()
-        self.nodes = []
-        self.nodes.append(self.start_node(
-            0, self.options.tmpdir, ["-persistmempool=0"]))
+        self.start_node(0, extra_args=["-persistmempool=0"])
         # Give bitcoind a second to reload the mempool
         time.sleep(1)
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
@@ -88,8 +81,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.log.debug(
             "Stop-start node0. Verify that it has the transactions in its mempool.")
         self.stop_nodes()
-        self.nodes = []
-        self.nodes.append(self.start_node(0, self.options.tmpdir))
+        self.start_node(0)
         wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
 
 

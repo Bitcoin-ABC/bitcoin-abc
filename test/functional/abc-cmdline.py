@@ -20,8 +20,7 @@ MAX_GENERATED_BLOCK_SIZE_ERROR = (
 
 class ABC_CmdLine_Test (BitcoinTestFramework):
 
-    def __init__(self):
-        super(ABC_CmdLine_Test, self).__init__()
+    def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = False
 
@@ -44,8 +43,8 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.log.info("  Set to twice the default, i.e. %d bytes" %
                       (2 * LEGACY_MAX_BLOCK_SIZE))
         self.stop_node(0)
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [
-                                        "-excessiveblocksize=%d" % (2 * LEGACY_MAX_BLOCK_SIZE)])
+        self.start_node(0, ["-excessiveblocksize=%d" %
+                            (2 * LEGACY_MAX_BLOCK_SIZE)])
         self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
         # Check for EB correctness in the subver string
         self.check_subversion("/Bitcoin ABC:.*\(EB2\.0; .*\)/")
@@ -53,15 +52,15 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.log.info("  Attempt to set below legacy limit of 1MB - try %d bytes" %
                       LEGACY_MAX_BLOCK_SIZE)
         self.stop_node(0)
-        self.assert_start_raises_init_error(0, self.options.tmpdir, [
-                                            "-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE], 'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+        self.assert_start_raises_init_error(
+            0, ["-excessiveblocksize=%d" % LEGACY_MAX_BLOCK_SIZE], 'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
-        self.assert_start_raises_init_error(0, self.options.tmpdir, [
-                                            '-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
+        self.assert_start_raises_init_error(
+            0, ['-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
 
         # Make sure we leave the test with a node running as this is what thee
         # framework expects.
-        self.nodes[0] = self.start_node(0, self.options.tmpdir, [])
+        self.start_node(0, [])
 
     def run_test(self):
         # Run tests on -excessiveblocksize option

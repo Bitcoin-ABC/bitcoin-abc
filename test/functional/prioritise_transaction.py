@@ -15,9 +15,7 @@ from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [["-printpriority=1"]]

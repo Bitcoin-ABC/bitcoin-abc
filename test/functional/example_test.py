@@ -73,21 +73,19 @@ def custom_function():
 class ExampleTest(BitcoinTestFramework):
     # Each functional test is a subclass of the BitcoinTestFramework class.
 
-    # Override the __init__(), add_options(), setup_chain(), setup_network()
+    # Override the set_test_params(), add_options(), setup_chain(), setup_network()
     # and setup_nodes() methods to customize the test setup as required.
 
-    def __init__(self):
-        """Initialize the test
+    def set_test_params(self):
+        """Override test parameters for your individual test.
 
-        Call super().__init__() first, and then override any test parameters
-        for your individual test."""
-        super().__init__()
+        This method must be overridden and num_nodes must be exlicitly set."""
         self.setup_clean_chain = True
         self.num_nodes = 3
         # Use self.extra_args to change command-line arguments for the nodes
         self.extra_args = [[], ["-logips"], []]
 
-        # self.log.info("I've finished __init__")  # Oops! Can't run self.log before run_test()
+        # self.log.info("I've finished set_test_params")  # Oops! Can't run self.log before run_test()
 
     # Use add_options() to add specific command-line options for your test.
     # In practice this is not used very much, since the tests are mostly written

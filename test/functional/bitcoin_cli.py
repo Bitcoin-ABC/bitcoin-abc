@@ -9,8 +9,7 @@ from test_framework.util import assert_equal, assert_raises_process_error, get_a
 
 class TestBitcoinCli(BitcoinTestFramework):
 
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
 

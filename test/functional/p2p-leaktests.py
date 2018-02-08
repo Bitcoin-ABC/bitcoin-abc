@@ -126,9 +126,7 @@ class CNodeNoVerackIdle(CLazyNode):
 
 
 class P2PLeakTest(BitcoinTestFramework):
-
-    def __init__(self):
-        super().__init__()
+    def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [['-banscore=' + str(banscore)]]
 
