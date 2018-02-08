@@ -6,9 +6,9 @@
 #ifndef BITCOIN_ADDRDB_H
 #define BITCOIN_ADDRDB_H
 
+#include "chainparams.h"
 #include "fs.h"
 #include "serialize.h"
-
 #include <map>
 #include <string>
 
@@ -72,9 +72,10 @@ typedef std::map<CSubNet, CBanEntry> banmap_t;
 class CAddrDB {
 private:
     fs::path pathAddr;
+    const CChainParams &chainParams;
 
 public:
-    CAddrDB();
+    CAddrDB(const CChainParams &chainParams);
     bool Write(const CAddrMan &addr);
     bool Read(CAddrMan &addr);
     bool Read(CAddrMan &addr, CDataStream &ssPeers);
@@ -84,9 +85,10 @@ public:
 class CBanDB {
 private:
     fs::path pathBanlist;
+    const CChainParams &chainParams;
 
 public:
-    CBanDB();
+    CBanDB(const CChainParams &chainParams);
     bool Write(const banmap_t &banSet);
     bool Read(banmap_t &banSet);
 };

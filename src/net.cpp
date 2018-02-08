@@ -415,7 +415,7 @@ void CConnman::DumpBanlist() {
 
     int64_t nStart = GetTimeMillis();
 
-    CBanDB bandb;
+    CBanDB bandb(config->GetChainParams());
     banmap_t banmap;
     GetBanned(banmap);
     if (bandb.Write(banmap)) {
@@ -1715,7 +1715,7 @@ void CConnman::ThreadDNSAddressSeed() {
 void CConnman::DumpAddresses() {
     int64_t nStart = GetTimeMillis();
 
-    CAddrDB adb;
+    CAddrDB adb(config->GetChainParams());
     adb.Write(addrman);
 
     LogPrint(BCLog::NET, "Flushed %d addresses to peers.dat  %dms\n",
@@ -2370,7 +2370,7 @@ bool CConnman::Start(CScheduler &scheduler, std::string &strNodeError,
     // Load addresses from peers.dat
     int64_t nStart = GetTimeMillis();
     {
-        CAddrDB adb;
+        CAddrDB adb(config->GetChainParams());
         if (adb.Read(addrman)) {
             LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
                       addrman.size(), GetTimeMillis() - nStart);
@@ -2386,7 +2386,7 @@ bool CConnman::Start(CScheduler &scheduler, std::string &strNodeError,
     }
     // Load addresses from banlist.dat
     nStart = GetTimeMillis();
-    CBanDB bandb;
+    CBanDB bandb(config->GetChainParams());
     banmap_t banmap;
     if (bandb.Read(banmap)) {
         // thread save setter

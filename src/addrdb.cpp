@@ -15,7 +15,7 @@
 #include "tinyformat.h"
 #include "util.h"
 
-CBanDB::CBanDB() {
+CBanDB::CBanDB(const CChainParams &chainParams) : chainParams(chainParams) {
     pathBanlist = GetDataDir() / "banlist.dat";
 }
 
@@ -27,7 +27,7 @@ bool CBanDB::Write(const banmap_t &banSet) {
 
     // serialize banlist, checksum data up to that point, then append csum
     CDataStream ssBanlist(SER_DISK, CLIENT_VERSION);
-    ssBanlist << FLATDATA(Params().DiskMagic());
+    ssBanlist << FLATDATA(chainParams.DiskMagic());
     ssBanlist << banSet;
     uint256 hash = Hash(ssBanlist.begin(), ssBanlist.end());
     ssBanlist << hash;
@@ -94,7 +94,7 @@ bool CBanDB::Read(banmap_t &banSet) {
         ssBanlist >> FLATDATA(pchMsgTmp);
 
         // ... verify the network matches ours
-        if (memcmp(pchMsgTmp, std::begin(Params().DiskMagic()),
+        if (memcmp(pchMsgTmp, std::begin(chainParams.DiskMagic()),
                    sizeof(pchMsgTmp))) {
             return error("%s: Invalid network magic number", __func__);
         }
@@ -108,7 +108,7 @@ bool CBanDB::Read(banmap_t &banSet) {
     return true;
 }
 
-CAddrDB::CAddrDB() {
+CAddrDB::CAddrDB(const CChainParams &chainParams) : chainParams(chainParams) {
     pathAddr = GetDataDir() / "peers.dat";
 }
 
@@ -120,7 +120,7 @@ bool CAddrDB::Write(const CAddrMan &addr) {
 
     // serialize addresses, checksum data up to that point, then append csum
     CDataStream ssPeers(SER_DISK, CLIENT_VERSION);
-    ssPeers << FLATDATA(Params().DiskMagic());
+    ssPeers << FLATDATA(chainParams.DiskMagic());
     ssPeers << addr;
     uint256 hash = Hash(ssPeers.begin(), ssPeers.end());
     ssPeers << hash;
@@ -190,7 +190,7 @@ bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
         ssPeers >> FLATDATA(pchMsgTmp);
 
         // ... verify the network matches ours
-        if (memcmp(pchMsgTmp, std::begin(Params().DiskMagic()),
+        if (memcmp(pchMsgTmp, std::begin(chainParams.DiskMagic()),
                    sizeof(pchMsgTmp))) {
             return error("%s: Invalid network magic number", __func__);
         }
