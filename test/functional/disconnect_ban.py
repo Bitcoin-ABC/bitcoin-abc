@@ -4,11 +4,13 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test node disconnect and ban behavior"""
 
-from test_framework.mininode import wait_until
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (assert_equal,
-                                 assert_raises_jsonrpc,
-                                 connect_nodes_bi)
+from test_framework.util import (
+    assert_equal,
+    assert_raises_jsonrpc,
+    connect_nodes_bi,
+    wait_until,
+)
 
 
 class DisconnectBanTest(BitcoinTestFramework):
@@ -25,7 +27,7 @@ class DisconnectBanTest(BitcoinTestFramework):
         # node1 should have 2 connections to node0 at this point
         assert_equal(len(self.nodes[1].getpeerinfo()), 2)
         self.nodes[1].setban("127.0.0.1", "add")
-        wait_until(lambda: len(self.nodes[1].getpeerinfo()) == 0)
+        wait_until(lambda: len(self.nodes[1].getpeerinfo()) == 0, timeout=10)
         # all nodes must be disconnected at this point
         assert_equal(len(self.nodes[1].getpeerinfo()), 0)
         assert_equal(len(self.nodes[1].listbanned()), 1)
@@ -101,9 +103,9 @@ class DisconnectBanTest(BitcoinTestFramework):
             "disconnectnode: successfully disconnect node by address")
         address1 = self.nodes[0].getpeerinfo()[0]['addr']
         self.nodes[0].disconnectnode(address=address1)
-        wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1)
-        assert not [node for node in self.nodes[0]
-                    .getpeerinfo() if node['addr'] == address1]
+        wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1, timeout=10)
+        assert not [node for node in self.nodes[0].getpeerinfo()
+                    if node['addr'] == address1]
 
         self.log.info("disconnectnode: successfully reconnect node")
         # reconnect the node
@@ -116,9 +118,9 @@ class DisconnectBanTest(BitcoinTestFramework):
             "disconnectnode: successfully disconnect node by node id")
         id1 = self.nodes[0].getpeerinfo()[0]['id']
         self.nodes[0].disconnectnode(nodeid=id1)
-        wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1)
-        assert not [node for node in self.nodes[
-            0].getpeerinfo() if node['id'] == id1]
+        wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 1, timeout=10)
+        assert not [node for node in self.nodes[0].getpeerinfo()
+                    if node['id'] == id1]
 
 
 if __name__ == '__main__':

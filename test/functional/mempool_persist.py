@@ -32,7 +32,6 @@ Test is as follows:
 """
 import time
 
-from test_framework.mininode import wait_until
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
@@ -73,7 +72,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.nodes.append(self.start_node(1, self.options.tmpdir))
         # Give bitcoind a second to reload the mempool
         time.sleep(1)
-        assert wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
+        wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
         assert_equal(len(self.nodes[1].getrawmempool()), 0)
 
         self.log.debug(
@@ -91,7 +90,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.stop_nodes()
         self.nodes = []
         self.nodes.append(self.start_node(0, self.options.tmpdir))
-        assert wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
+        wait_until(lambda: len(self.nodes[0].getrawmempool()) == 5)
 
 
 if __name__ == '__main__':

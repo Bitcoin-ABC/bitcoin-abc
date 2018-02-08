@@ -5,7 +5,7 @@
 
 from .mininode import *
 from .blockstore import BlockStore, TxStore
-from .util import p2p_port
+from .util import p2p_port, wait_until
 
 import logging
 
@@ -205,7 +205,7 @@ class TestManager():
     def wait_for_disconnections(self):
         def disconnected():
             return all(node.closed for node in self.test_nodes)
-        return wait_until(disconnected, timeout=10)
+        wait_until(disconnected, timeout=10, lock=mininode_lock)
 
     def wait_for_verack(self):
         return all(node.wait_for_verack() for node in self.test_nodes)
@@ -213,7 +213,7 @@ class TestManager():
     def wait_for_pings(self, counter):
         def received_pongs():
             return all(node.received_ping_response(counter) for node in self.test_nodes)
-        return wait_until(received_pongs)
+        wait_until(received_pongs, lock=mininode_lock)
 
     # sync_blocks: Wait for all connections to request the blockhash given
     # then send get_headers to find out the tip of each node, and synchronize
@@ -227,8 +227,8 @@ class TestManager():
             )
 
         # --> error if not requested
-        if not wait_until(blocks_requested, attempts=20 * num_blocks):
-            raise AssertionError("Not all nodes requested block")
+        wait_until(blocks_requested, attempts=20 *
+                   num_blocks, lock=mininode_lock)
 
         # Send getheaders message
         [c.cb.send_getheaders() for c in self.connections]
@@ -249,8 +249,8 @@ class TestManager():
             )
 
         # --> error if not requested
-        if not wait_until(transaction_requested, attempts=20 * num_events):
-            raise AssertionError("Not all nodes requested transaction")
+        wait_until(transaction_requested, attempts=20 *
+                   num_events, lock=mininode_lock)
 
         # Get the mempool
         [c.cb.send_mempool() for c in self.connections]

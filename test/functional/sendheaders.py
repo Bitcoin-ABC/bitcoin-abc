@@ -134,7 +134,7 @@ class TestNode(NodeConnCB):
         expect_inv = inv if inv != None else []
 
         def test_function(): return self.block_announced
-        assert(wait_until(test_function, timeout=60))
+        wait_until(test_function, timeout=60, lock=mininode_lock)
         with mininode_lock:
             self.block_announced = False
 
@@ -163,12 +163,12 @@ class TestNode(NodeConnCB):
 
         def test_function(): return "getdata" in self.last_message and [
             x.hash for x in self.last_message["getdata"].inv] == hash_list
-        assert(wait_until(test_function, timeout=timeout))
+        wait_until(test_function, timeout=timeout, lock=mininode_lock)
         return
 
     def wait_for_block_announcement(self, block_hash, timeout=60):
         def test_function(): return self.last_blockhash_announced == block_hash
-        assert(wait_until(test_function, timeout=timeout))
+        wait_until(test_function, timeout=timeout, lock=mininode_lock)
         return
 
     def send_header_for_blocks(self, new_blocks):
