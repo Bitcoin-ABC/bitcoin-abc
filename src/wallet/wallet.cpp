@@ -33,7 +33,6 @@
 #include "wallet/finaltx.h"
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/thread.hpp>
 
 #include <cassert>
 
@@ -1081,8 +1080,9 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
 
     if (!strCmd.empty()) {
         boost::replace_all(strCmd, "%s", wtxIn.GetId().GetHex());
+        std::thread t(runCommand, strCmd);
         // Thread runs free.
-        boost::thread t(runCommand, strCmd);
+        t.detach();
     }
 
     return true;
