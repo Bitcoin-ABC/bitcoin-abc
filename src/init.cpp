@@ -2277,6 +2277,10 @@ bool AppInitMain(Config &config,
         uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
     }
 
+    if (ShutdownRequested()) {
+        return false;
+    }
+
     // Step 11: start node
 
     int chain_active_height;
