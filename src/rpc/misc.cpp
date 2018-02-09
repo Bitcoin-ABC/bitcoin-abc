@@ -113,8 +113,9 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                                  : std::string())));
     obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
-    obj.push_back(Pair(
-        "testnet", Params().NetworkIDString() == CBaseChainParams::TESTNET));
+    obj.push_back(Pair("testnet",
+                       config.GetChainParams().NetworkIDString() ==
+                           CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
     if (pwallet) {
         obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
@@ -543,7 +544,7 @@ static UniValue setmocktime(const Config &config,
             "   Pass 0 to go back to using the system time.");
     }
 
-    if (!Params().MineBlocksOnDemand()) {
+    if (!config.GetChainParams().MineBlocksOnDemand()) {
         throw std::runtime_error(
             "setmocktime for regression testing (-regtest mode) only");
     }

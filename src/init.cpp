@@ -1302,7 +1302,7 @@ bool AppInitBasicSetup() {
 }
 
 bool AppInitParameterInteraction(Config &config) {
-    const CChainParams &chainparams = Params();
+    const CChainParams &chainparams = config.GetChainParams();
     // Step 2: parameter interactions
 
     // also see: InitParameterInteraction()

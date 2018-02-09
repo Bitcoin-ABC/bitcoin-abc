@@ -3077,7 +3077,7 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman &connman) {
 
 bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
                      const std::atomic<bool> &interruptMsgProc) {
-    const CChainParams &chainparams = Params();
+    const CChainParams &chainparams = config.GetChainParams();
     //
     // Message format
     //  (4) message start
@@ -3229,7 +3229,8 @@ public:
 
 bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                   const std::atomic<bool> &interruptMsgProc) {
-    const Consensus::Params &consensusParams = Params().GetConsensus();
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
 
     // Don't send anything until the version handshake is complete
     if (!pto->fSuccessfullyConnected || pto->fDisconnect) {

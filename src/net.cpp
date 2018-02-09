@@ -352,7 +352,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     SOCKET hSocket;
     bool proxyConnectionFailed = false;
     if (pszDest ? ConnectSocketByName(addrConnect, hSocket, pszDest,
-                                      Params().GetDefaultPort(),
+                                      config->GetChainParams().GetDefaultPort(),
                                       nConnectTimeout, &proxyConnectionFailed)
                 : ConnectSocket(addrConnect, hSocket, nConnectTimeout,
                                 &proxyConnectionFailed)) {
@@ -1671,7 +1671,8 @@ void CConnman::ThreadDNSAddressSeed() {
         }
     }
 
-    const std::vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+    const std::vector<CDNSSeedData> &vSeeds =
+        config->GetChainParams().DNSSeeds();
     int found = 0;
 
     LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
@@ -1687,9 +1688,9 @@ void CConnman::ThreadDNSAddressSeed() {
                            0, true)) {
                 for (const CNetAddr &ip : vIPs) {
                     int nOneDay = 24 * 3600;
-                    CAddress addr =
-                        CAddress(CService(ip, Params().GetDefaultPort()),
-                                 requiredServiceBits);
+                    CAddress addr = CAddress(
+                        CService(ip, config->GetChainParams().GetDefaultPort()),
+                        requiredServiceBits);
                     // Use a random age between 3 and 7 days old.
                     addr.nTime = GetTime() - 3 * nOneDay - GetRand(4 * nOneDay);
                     vAdd.push_back(addr);
@@ -1794,7 +1795,8 @@ void CConnman::ThreadOpenConnections() {
                           "available.\n");
                 CNetAddr local;
                 LookupHost("127.0.0.1", local, false);
-                addrman.Add(convertSeed6(Params().FixedSeeds()), local);
+                addrman.Add(convertSeed6(config->GetChainParams().FixedSeeds()),
+                            local);
                 done = true;
             }
         }
@@ -1894,7 +1896,8 @@ void CConnman::ThreadOpenConnections() {
 
             // do not allow non-default ports, unless after 50 invalid addresses
             // selected already.
-            if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50) {
+            if (addr.GetPort() != config->GetChainParams().GetDefaultPort() &&
+                nTries < 50) {
                 continue;
             }
 
@@ -1956,8 +1959,8 @@ std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo() {
     }
 
     for (const std::string &strAddNode : lAddresses) {
-        CService service(
-            LookupNumeric(strAddNode.c_str(), Params().GetDefaultPort()));
+        CService service(LookupNumeric(
+            strAddNode.c_str(), config->GetChainParams().GetDefaultPort()));
         if (service.IsValid()) {
             // strAddNode is an IP:port
             auto it = mapConnected.find(service);
@@ -2008,8 +2011,9 @@ void CConnman::ThreadOpenAddedConnections() {
                 // OpenNetworkConnection can detect existing connections to that
                 // IP/port.
                 tried = true;
-                CService service(LookupNumeric(info.strAddedNode.c_str(),
-                                               Params().GetDefaultPort()));
+                CService service(
+                    LookupNumeric(info.strAddedNode.c_str(),
+                                  config->GetChainParams().GetDefaultPort()));
                 OpenNetworkConnection(CAddress(service, NODE_NONE), false,
                                       &grant, info.strAddedNode.c_str(), false,
                                       false, true);
@@ -2927,7 +2931,8 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     std::vector<uint8_t> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);
     uint256 hash = Hash(msg.data.data(), msg.data.data() + nMessageSize);
-    CMessageHeader hdr(Params().NetMagic(), msg.command.c_str(), nMessageSize);
+    CMessageHeader hdr(config->GetChainParams().NetMagic(), msg.command.c_str(),
+                       nMessageSize);
     memcpy(hdr.pchChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
 
     CVectorWriter{SER_NETWORK, INIT_PROTO_VERSION, serializedHeader, 0, hdr};

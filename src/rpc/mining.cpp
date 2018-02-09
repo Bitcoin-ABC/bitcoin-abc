@@ -257,7 +257,7 @@ static UniValue getmininginfo(const Config &config,
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
     obj.push_back(Pair("pooledtx", uint64_t(mempool.size())));
-    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("chain", config.GetChainParams().NetworkIDString()));
     return obj;
 }
 

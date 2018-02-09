@@ -969,7 +969,7 @@ UniValue pruneblockchain(const Config &config, const JSONRPCRequest &request) {
 
     unsigned int height = (unsigned int)heightParam;
     unsigned int chainHeight = (unsigned int)chainActive.Height();
-    if (chainHeight < Params().PruneAfterHeight()) {
+    if (chainHeight < config.GetChainParams().PruneAfterHeight()) {
         throw JSONRPCError(RPC_MISC_ERROR,
                            "Blockchain is too short for pruning.");
     } else if (height > chainHeight) {
@@ -1295,7 +1295,7 @@ UniValue getblockchaininfo(const Config &config,
     LOCK(cs_main);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("chain", config.GetChainParams().NetworkIDString()));
     obj.push_back(Pair("blocks", int(chainActive.Height())));
     obj.push_back(
         Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
@@ -1306,11 +1306,13 @@ UniValue getblockchaininfo(const Config &config,
         Pair("mediantime", int64_t(chainActive.Tip()->GetMedianTimePast())));
     obj.push_back(
         Pair("verificationprogress",
-             GuessVerificationProgress(Params().TxData(), chainActive.Tip())));
+             GuessVerificationProgress(config.GetChainParams().TxData(),
+                                       chainActive.Tip())));
     obj.push_back(Pair("chainwork", chainActive.Tip()->nChainWork.GetHex()));
     obj.push_back(Pair("pruned", fPruneMode));
 
-    const Consensus::Params &consensusParams = Params().GetConsensus();
+    const Consensus::Params &consensusParams =
+        config.GetChainParams().GetConsensus();
     CBlockIndex *tip = chainActive.Tip();
     UniValue softforks(UniValue::VARR);
     UniValue bip9_softforks(UniValue::VOBJ);
@@ -1659,8 +1661,8 @@ UniValue getchaintxstats(const Config &config, const JSONRPCRequest &request) {
     const CBlockIndex *pindex;
 
     // By default: 1 month
-    int blockcount =
-        30 * 24 * 60 * 60 / Params().GetConsensus().nPowTargetSpacing;
+    int blockcount = 30 * 24 * 60 * 60 /
+                     config.GetChainParams().GetConsensus().nPowTargetSpacing;
 
     bool havehash = !request.params[1].isNull();
     uint256 hash;
