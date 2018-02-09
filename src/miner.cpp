@@ -49,16 +49,6 @@ static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 
-class ScoreCompare {
-public:
-    ScoreCompare() {}
-
-    bool operator()(const CTxMemPool::txiter a, const CTxMemPool::txiter b) {
-        // Convert to less than.
-        return CompareTxMemPoolEntryByScore()(*b, *a);
-    }
-};
-
 int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
                    const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
