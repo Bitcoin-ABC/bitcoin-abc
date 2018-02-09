@@ -4,6 +4,7 @@
 
 #include "base58.h"
 #include "chain.h"
+#include "config.h"
 #include "core_io.h"
 #include "dstencode.h"
 #include "init.h"
@@ -270,7 +271,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    CTxDestination dest = DecodeDestination(request.params[0].get_str());
+    CTxDestination dest =
+        DecodeDestination(request.params[0].get_str(), config.GetChainParams());
     if (IsValidDestination(dest)) {
         if (fP2SH) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -646,7 +648,8 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked(pwallet);
 
     std::string strAddress = request.params[0].get_str();
-    CTxDestination dest = DecodeDestination(strAddress);
+    CTxDestination dest =
+        DecodeDestination(strAddress, config.GetChainParams());
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");

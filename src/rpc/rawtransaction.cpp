@@ -548,7 +548,8 @@ static UniValue createrawtransaction(const Config &config,
             CTxOut out(Amount(0), CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
-            CTxDestination destination = DecodeDestination(name_);
+            CTxDestination destination =
+                DecodeDestination(name_, config.GetChainParams());
             if (!IsValidDestination(destination)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    std::string("Invalid Bitcoin address: ") +

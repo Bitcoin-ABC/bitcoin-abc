@@ -232,7 +232,8 @@ static UniValue validateaddress(const Config &config,
     LOCK(cs_main);
 #endif
 
-    CTxDestination dest = DecodeDestination(request.params[0].get_str());
+    CTxDestination dest =
+        DecodeDestination(request.params[0].get_str(), config.GetChainParams());
     bool isValid = IsValidDestination(dest);
 
     UniValue ret(UniValue::VOBJ);
@@ -450,7 +451,8 @@ static UniValue verifymessage(const Config &config,
     std::string strSign = request.params[1].get_str();
     std::string strMessage = request.params[2].get_str();
 
-    CTxDestination destination = DecodeDestination(strAddress);
+    CTxDestination destination =
+        DecodeDestination(strAddress, config.GetChainParams());
     if (!IsValidDestination(destination)) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
