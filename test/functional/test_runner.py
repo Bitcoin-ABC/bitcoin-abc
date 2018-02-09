@@ -164,6 +164,10 @@ NON_SCRIPTS = [
 ]
 
 
+def on_ci():
+    return os.getenv('TRAVIS') == 'true' or os.getenv('TEAMCITY_VERSION') != None
+
+
 def main():
     # Parse arguments and pass through unrecognised args
     parser = argparse.ArgumentParser(add_help=False,
@@ -425,7 +429,7 @@ class TestHandler:
             time.sleep(.5)
             for j in self.jobs:
                 (name, time0, proc, log_out, log_err) = j
-                if os.getenv('TRAVIS') == 'true' and int(time.time() - time0) > 20 * 60:
+                if on_ci() and int(time.time() - time0) > 20 * 60:
                     # In travis, timeout individual tests after 20 minutes (to stop tests hanging and not
                     # providing useful output.
                     proc.send_signal(signal.SIGINT)
@@ -480,8 +484,8 @@ def check_script_list(src_dir):
     if len(missed_tests) != 0:
         print("%sWARNING!%s The following scripts are not being run: %s. Check the test lists in test_runner.py." % (
             BOLD[1], BOLD[0], str(missed_tests)))
-        if os.getenv('TRAVIS') == 'true':
-            # On travis this warning is an error to prevent merging incomplete commits into master
+        if on_ci():
+            # On CI this warning is an error to prevent merging incomplete commits into master
             sys.exit(1)
 
 
