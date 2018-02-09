@@ -27,7 +27,9 @@ CWalletTx *WalletModelTransaction::getTransaction() {
 }
 
 unsigned int WalletModelTransaction::getTransactionSize() {
-    return (!walletTransaction ? 0 : ::GetTransactionSize(*walletTransaction));
+    return (!walletTransaction
+                ? 0
+                : CTransaction(*walletTransaction).GetTotalSize());
 }
 
 Amount WalletModelTransaction::getTransactionFee() {

@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     tx.vin[0].scriptSig = garbage;
     tx.vout.resize(1);
     tx.vout[0].nValue = Amount(0);
-    CFeeRate baseRate(basefee, GetTransactionSize(tx));
+    CFeeRate baseRate(basefee, CTransaction(tx).GetTotalSize());
 
     // Create a fake block
     std::vector<CTransactionRef> block;

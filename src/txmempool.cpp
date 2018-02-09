@@ -31,7 +31,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
       entryHeight(_entryHeight), inChainInputValue(_inChainInputValue),
       spendsCoinbase(_spendsCoinbase), sigOpCount(_sigOpsCount),
       lockPoints(lp) {
-    nTxSize = GetTransactionSize(*tx);
+    nTxSize = tx->GetTotalSize();
     nModSize = tx->CalculateModifiedSize(GetTxSize());
     nUsageSize = RecursiveDynamicUsage(tx);
 

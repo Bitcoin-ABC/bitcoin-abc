@@ -108,7 +108,7 @@ static void MempoolEviction(benchmark::State &state) {
         AddTx(tx6, Amount(1100LL), pool);
         AddTx(tx7, Amount(9000LL), pool);
         pool.TrimToSize(pool.DynamicMemoryUsage() * 3 / 4);
-        pool.TrimToSize(GetTransactionSize(tx1));
+        pool.TrimToSize(CTransaction(tx1).GetTotalSize());
     }
 }
 

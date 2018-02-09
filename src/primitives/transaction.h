@@ -381,9 +381,6 @@ static inline CTransactionRef MakeTransactionRef(Tx &&txIn) {
     return std::make_shared<const CTransaction>(std::forward<Tx>(txIn));
 }
 
-/** Compute the size of a transaction */
-int64_t GetTransactionSize(const CTransaction &tx);
-
 /** Precompute sighash midstate to avoid quadratic hashing */
 struct PrecomputedTransactionData {
     uint256 hashPrevouts, hashSequence, hashOutputs;

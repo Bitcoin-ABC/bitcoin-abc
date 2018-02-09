@@ -2916,7 +2916,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            unsigned int nBytes = GetTransactionSize(txNew);
+            unsigned int nBytes = CTransaction(txNew).GetTotalSize();
 
             CTransaction txNewConst(txNew);
             dPriority = txNewConst.ComputePriority(dPriority, nBytes);
@@ -3039,7 +3039,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         wtxNew.SetTx(MakeTransactionRef(std::move(txNew)));
 
         // Limit size.
-        if (GetTransactionSize(wtxNew) >= MAX_STANDARD_TX_SIZE) {
+        if (CTransaction(wtxNew).GetTotalSize() >= MAX_STANDARD_TX_SIZE) {
             strFailReason = _("Transaction too large");
             return false;
         }

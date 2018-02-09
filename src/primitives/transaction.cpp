@@ -117,7 +117,7 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const {
     // for priority. Providing any more cleanup incentive than making additional
     // inputs free would risk encouraging people to create junk outputs to
     // redeem later.
-    if (nTxSize == 0) nTxSize = GetTransactionSize(*this);
+    if (nTxSize == 0) nTxSize = GetTotalSize();
     for (std::vector<CTxIn>::const_iterator it(vin.begin()); it != vin.end();
          ++it) {
         unsigned int offset =
@@ -142,8 +142,4 @@ std::string CTransaction::ToString() const {
     for (unsigned int i = 0; i < vout.size(); i++)
         str += "    " + vout[i].ToString() + "\n";
     return str;
-}
-
-int64_t GetTransactionSize(const CTransaction &tx) {
-    return ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 }
