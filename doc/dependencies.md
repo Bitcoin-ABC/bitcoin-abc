@@ -10,7 +10,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Clang |  | [3.4](http://llvm.org/releases/download.html) (C++14 support) |  |  |  |
 | CMake |  | [3.13](https://cmake.org/download/) |  |  |  |
 | D-Bus | [1.10.18](https://cgit.freedesktop.org/dbus/dbus/tree/NEWS?h=dbus-1.10) |  | No | Yes |  |
-| Expat | [2.2.1](https://libexpat.github.io/) |  | No | Yes |  |
+| Expat | [2.2.5](https://libexpat.github.io/) |  | No | Yes |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
 | FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
 | GCC |  | [5.0](https://gcc.gnu.org/) (C++14 support) |  |  |  |
@@ -18,7 +18,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libjpeg |  |  |  |  | Yes |
 | libpng |  |  |  |  | Yes |
-| MiniUPnPc | [2.0.20170509](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
+| MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) | 1.5 | No |  |  |
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
 | PCRE |  |  |  |  | Yes |
