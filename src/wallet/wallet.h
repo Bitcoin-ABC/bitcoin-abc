@@ -72,6 +72,7 @@ static const bool DEFAULT_USE_HD_WALLET = true;
 extern const char *DEFAULT_WALLET_DAT;
 
 class CBlockIndex;
+class CChainParams;
 class CCoinControl;
 class COutput;
 class CReserveKey;
@@ -676,6 +677,7 @@ private:
     uint256 hashPrevBestCoinbase;
 
 public:
+    const CChainParams &chainParams;
     /*
      * Main wallet lock.
      * This lock protects all the fields added by CWallet.
@@ -710,10 +712,15 @@ public:
     unsigned int nMasterKeyMaxID;
 
     // Create wallet with dummy database handle
-    CWallet() : dbw(new CWalletDBWrapper()) { SetNull(); }
+    CWallet(const CChainParams &chainParams)
+        : dbw(new CWalletDBWrapper()), chainParams(chainParams) {
+        SetNull();
+    }
 
     // Create wallet with passed-in database handle
-    CWallet(std::unique_ptr<CWalletDBWrapper> dbw_in) : dbw(std::move(dbw_in)) {
+    CWallet(const CChainParams &chainParams,
+            std::unique_ptr<CWalletDBWrapper> dbw_in)
+        : dbw(std::move(dbw_in)), chainParams(chainParams) {
         SetNull();
     }
 
@@ -1060,7 +1067,7 @@ public:
     // This function will perform salvage on the wallet if requested, as long as
     // only one wallet is being loaded (CWallet::ParameterInteraction forbids
     // -salvagewallet, -zapwallettxes or -upgradewallet with multiwallet).
-    static bool Verify();
+    static bool Verify(const CChainParams &chainParams);
 
     /**
      * Address book entry changed.
@@ -1106,8 +1113,9 @@ public:
      * Initializes the wallet, returns a new CWallet instance or a null pointer
      * in case of an error.
      */
-    static CWallet *CreateWalletFromFile(const std::string walletFile);
-    static bool InitLoadWallet();
+    static CWallet *CreateWalletFromFile(const CChainParams &chainParams,
+                                         const std::string walletFile);
+    static bool InitLoadWallet(const CChainParams &chainParams);
 
     /**
      * Wallet post-init setup

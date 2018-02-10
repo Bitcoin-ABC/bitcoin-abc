@@ -284,13 +284,17 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
         if (strType == "name") {
             std::string strAddress;
             ssKey >> strAddress;
-            ssValue >>
-                pwallet->mapAddressBook[DecodeDestination(strAddress)].name;
+            ssValue >> pwallet
+                           ->mapAddressBook[DecodeDestination(
+                               strAddress, pwallet->chainParams)]
+                           .name;
         } else if (strType == "purpose") {
             std::string strAddress;
             ssKey >> strAddress;
-            ssValue >>
-                pwallet->mapAddressBook[DecodeDestination(strAddress)].purpose;
+            ssValue >> pwallet
+                           ->mapAddressBook[DecodeDestination(
+                               strAddress, pwallet->chainParams)]
+                           .purpose;
         } else if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
@@ -498,8 +502,9 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
             ssKey >> strAddress;
             ssKey >> strKey;
             ssValue >> strValue;
-            if (!pwallet->LoadDestData(DecodeDestination(strAddress), strKey,
-                                       strValue)) {
+            if (!pwallet->LoadDestData(
+                    DecodeDestination(strAddress, pwallet->chainParams), strKey,
+                    strValue)) {
                 strErr = "Error reading wallet database: LoadDestData failed";
                 return false;
             }

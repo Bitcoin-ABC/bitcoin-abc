@@ -1686,7 +1686,7 @@ bool AppInitSanityChecks() {
 
 bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                  CScheduler &scheduler) {
-    const CChainParams &chainparams = Params();
+    const CChainParams &chainparams = config.GetChainParams();
     // Step 4a: application initialization
 
     // After daemonization get the data directory lock again and hold on to it
@@ -1758,7 +1758,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!CWallet::Verify()) {
+    if (!CWallet::Verify(chainparams)) {
         return false;
     }
 #endif
@@ -2157,7 +2157,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
 // Step 8: load wallet
 #ifdef ENABLE_WALLET
-    if (!CWallet::InitLoadWallet()) return false;
+    if (!CWallet::InitLoadWallet(chainparams)) return false;
 #else
     LogPrintf("No wallet support compiled in!\n");
 #endif

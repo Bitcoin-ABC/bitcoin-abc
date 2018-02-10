@@ -1,5 +1,6 @@
 #include "wallettests.h"
 
+#include "chainparams.h"
 #include "dstencode.h"
 #include "qt/bitcoinamountfield.h"
 #include "qt/optionsmodel.h"
@@ -89,7 +90,7 @@ void WalletTests::walletTests() {
     bitdb.MakeMock();
     std::unique_ptr<CWalletDBWrapper> dbw(
         new CWalletDBWrapper(&bitdb, "wallet_test.dat"));
-    CWallet wallet(std::move(dbw));
+    CWallet wallet(Params(), std::move(dbw));
     bool firstRun;
     wallet.LoadWallet(firstRun);
     {

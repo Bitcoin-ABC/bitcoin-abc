@@ -810,7 +810,7 @@ UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
         CTxDestination dest;
 
         if (!isScript) {
-            dest = DecodeDestination(output);
+            dest = DecodeDestination(output, pwallet->chainParams);
             if (!IsValidDestination(dest)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    "Invalid address");

@@ -575,7 +575,7 @@ void CWallet::Flush(bool shutdown) {
     dbw->Flush(shutdown);
 }
 
-bool CWallet::Verify() {
+bool CWallet::Verify(const CChainParams &chainParams) {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         return true;
     }
@@ -622,7 +622,7 @@ bool CWallet::Verify() {
 
         if (gArgs.GetBoolArg("-salvagewallet", false)) {
             // Recover readable keypairs:
-            CWallet dummyWallet;
+            CWallet dummyWallet(chainParams);
             std::string backup_filename;
             if (!CWalletDB::Recover(walletFile, (void *)&dummyWallet,
                                     CWalletDB::RecoverKeysOnlyFilter,
@@ -1711,7 +1711,6 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
     LOCK2(cs_main, cs_wallet);
 
     int64_t nNow = GetTime();
-    const CChainParams &chainParams = Params();
 
     CBlockIndex *pindex = pindexStart;
     CBlockIndex *ret = pindexStart;
@@ -4112,7 +4111,8 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
     return strUsage;
 }
 
-CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
+CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
+                                       const std::string walletFile) {
     // Needed to restore wallet transaction meta data after -zapwallettxes
     std::vector<CWalletTx> vWtx;
 
@@ -4121,7 +4121,7 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
 
         std::unique_ptr<CWalletDBWrapper> dbw(
             new CWalletDBWrapper(&bitdb, walletFile));
-        CWallet *tempWallet = new CWallet(std::move(dbw));
+        CWallet *tempWallet = new CWallet(chainParams, std::move(dbw));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DB_LOAD_OK) {
             InitError(
@@ -4139,7 +4139,7 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
     bool fFirstRun = true;
     std::unique_ptr<CWalletDBWrapper> dbw(
         new CWalletDBWrapper(&bitdb, walletFile));
-    CWallet *walletInstance = new CWallet(std::move(dbw));
+    CWallet *walletInstance = new CWallet(chainParams, std::move(dbw));
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DB_LOAD_OK) {
         if (nLoadWalletRet == DB_CORRUPT) {
@@ -4315,14 +4315,14 @@ CWallet *CWallet::CreateWalletFromFile(const std::string walletFile) {
     return walletInstance;
 }
 
-bool CWallet::InitLoadWallet() {
+bool CWallet::InitLoadWallet(const CChainParams &chainParams) {
     if (gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET)) {
         LogPrintf("Wallet disabled!\n");
         return true;
     }
 
     for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
-        CWallet *const pwallet = CreateWalletFromFile(walletFile);
+        CWallet *const pwallet = CreateWalletFromFile(chainParams, walletFile);
         if (!pwallet) {
             return false;
         }

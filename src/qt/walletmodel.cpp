@@ -224,8 +224,8 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
             setAddress.insert(rcp.address);
             ++nAddresses;
 
-            CScript scriptPubKey = GetScriptForDestination(
-                DecodeDestination(rcp.address.toStdString()));
+            CScript scriptPubKey = GetScriptForDestination(DecodeDestination(
+                rcp.address.toStdString(), wallet->chainParams));
             CRecipient recipient = {scriptPubKey, Amount(rcp.amount),
                                     rcp.fSubtractFeeFromAmount};
             vecSend.push_back(recipient);
@@ -329,7 +329,8 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
         // Don't touch the address book when we have a payment request
         if (!rcp.paymentRequest.IsInitialized()) {
             std::string strAddress = rcp.address.toStdString();
-            CTxDestination dest = DecodeDestination(strAddress);
+            CTxDestination dest =
+                DecodeDestination(strAddress, wallet->chainParams);
             std::string strLabel = rcp.label.toStdString();
             {
                 LOCK(wallet->cs_wallet);
@@ -643,7 +644,7 @@ void WalletModel::loadReceiveRequests(
 bool WalletModel::saveReceiveRequest(const std::string &sAddress,
                                      const int64_t nId,
                                      const std::string &sRequest) {
-    CTxDestination dest = DecodeDestination(sAddress);
+    CTxDestination dest = DecodeDestination(sAddress, wallet->chainParams);
 
     std::stringstream ss;
     ss << nId;
