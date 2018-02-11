@@ -49,6 +49,9 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/transactiondescdialog.ui
 )
 
+# Handle qrc resources
+qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
+
 add_library(bitcoin-qt-base
 	# Handle ui files
 	${UI_GENERATED_HEADERS}
@@ -57,5 +60,6 @@ add_library(bitcoin-qt-base
 	${BITCOIN_QM_FILES}
 
 	# Handle qrc files
+	${QRC_BITCOIN_CPP}
 	qrc_bitcoin_locale.cpp
 )
