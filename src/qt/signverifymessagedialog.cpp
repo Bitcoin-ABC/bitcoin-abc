@@ -112,8 +112,8 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked() {
      * old signature displayed */
     ui->signatureOut_SM->clear();
 
-    CTxDestination destination =
-        DecodeDestination(ui->addressIn_SM->text().toStdString());
+    CTxDestination destination = DecodeDestination(
+        ui->addressIn_SM->text().toStdString(), model->getChainParams());
     if (!IsValidDestination(destination)) {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(
@@ -192,8 +192,8 @@ void SignVerifyMessageDialog::on_addressBookButton_VM_clicked() {
 }
 
 void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked() {
-    CTxDestination destination =
-        DecodeDestination(ui->addressIn_VM->text().toStdString());
+    CTxDestination destination = DecodeDestination(
+        ui->addressIn_VM->text().toStdString(), model->getChainParams());
     if (!IsValidDestination(destination)) {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(

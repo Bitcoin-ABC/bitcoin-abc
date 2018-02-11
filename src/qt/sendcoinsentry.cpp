@@ -147,7 +147,8 @@ bool SendCoinsEntry::validate() {
     }
 
     // Reject dust outputs:
-    if (retval && GUIUtil::isDust(ui->payTo->text(), ui->payAmount->value())) {
+    if (retval && GUIUtil::isDust(ui->payTo->text(), ui->payAmount->value(),
+                                  model->getChainParams())) {
         ui->payAmount->setValid(false);
         retval = false;
     }

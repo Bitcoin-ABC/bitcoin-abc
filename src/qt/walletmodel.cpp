@@ -683,3 +683,7 @@ bool WalletModel::hdEnabled() const {
 int WalletModel::getDefaultConfirmTarget() const {
     return nTxConfirmTarget;
 }
+
+const CChainParams &WalletModel::getChainParams() const {
+    return wallet->chainParams;
+}

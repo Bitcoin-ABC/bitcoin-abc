@@ -5,6 +5,7 @@
 #ifndef BITCOIN_QT_WALLETMODEL_H
 #define BITCOIN_QT_WALLETMODEL_H
 
+#include "chainparams.h"
 #include "paymentrequestplus.h"
 #include "walletmodeltransaction.h"
 
@@ -229,6 +230,7 @@ public:
     bool hdEnabled() const;
 
     int getDefaultConfirmTarget() const;
+    const CChainParams &getChainParams() const;
 
 private:
     CWallet *wallet;

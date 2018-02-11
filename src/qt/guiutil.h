@@ -64,7 +64,8 @@ bool parseBitcoinURI(const QString &scheme, QString uri,
 QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info);
 
 // Returns true if given address+amount meets "dust" definition
-bool isDust(const QString &address, const Amount amount);
+bool isDust(const QString &address, const Amount amount,
+            const CChainParams &chainParams);
 
 // HTML escaping for rich text controls
 QString HtmlEscape(const QString &str, bool fMultiLine = false);
