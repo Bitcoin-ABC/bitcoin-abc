@@ -113,7 +113,7 @@ static std::string MakeAddrInvalid(std::string addr, const Config &config) {
 }
 
 std::string DummyAddress(const Config &config) {
-    // Just some dummy data to generate an convincing random-looking (but
+    // Just some dummy data to generate a convincing random-looking (but
     // consistent) address
     static const std::vector<uint8_t> dummydata = {
         0xeb, 0x15, 0x23, 0x1d, 0xfc, 0xeb, 0x60, 0x92, 0x58, 0x86,

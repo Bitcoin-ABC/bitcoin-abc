@@ -32,7 +32,7 @@ typedef uint8_t isminefilter;
 
 /**
  * isInvalid becomes true when the script is found invalid by consensus or
- * policy. This will terminate the recursion and return a ISMINE_NO immediately,
+ * policy. This will terminate the recursion and return ISMINE_NO immediately,
  * as an invalid script should never be considered as "mine". Currently the only
  * use of isInvalid is indicate uncompressed keys when
  * SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is specified, but could also be used in
