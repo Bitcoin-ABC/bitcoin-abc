@@ -52,9 +52,17 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 # Handle qrc resources
 qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 
+# Do protobuf codegen
+find_package(Protobuf REQUIRED)
+protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
+
 add_library(bitcoin-qt-base
 	# Handle ui files
 	${UI_GENERATED_HEADERS}
+
+	# Protobuf codegen
+	${PROTOBUF_HEADERS}
+	${PROTOBUF_SOURCES}
 
 	# Translations
 	${BITCOIN_QM_FILES}
