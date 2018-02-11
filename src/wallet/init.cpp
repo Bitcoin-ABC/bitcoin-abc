@@ -265,9 +265,6 @@ bool WalletInit::ParameterInteraction() const {
         }
     }
 
-    g_address_type = OutputType::DEFAULT;
-    g_change_type = OutputType::DEFAULT;
-
     return true;
 }
 

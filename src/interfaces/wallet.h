@@ -223,6 +223,9 @@ public:
     // Get default address type.
     virtual OutputType getDefaultAddressType() = 0;
 
+    // Get default change type.
+    virtual OutputType getDefaultChangeType() = 0;
+
     //! Register handler for show progress messages.
     using ShowProgressFn =
         std::function<void(const std::string &title, int progress)>;

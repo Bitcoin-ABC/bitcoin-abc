@@ -37,6 +37,7 @@ bool HasWallets();
 std::vector<CWallet *> GetWallets();
 CWallet *GetWallet(const std::string &name);
 
+//! Default for -keypool
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default
 constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
@@ -93,12 +94,10 @@ enum WalletFeature {
 enum class OutputType {
     NONE,
     LEGACY,
-
-    DEFAULT = LEGACY,
 };
 
-extern OutputType g_address_type;
-extern OutputType g_change_type;
+//! Default for -addresstype
+constexpr OutputType DEFAULT_ADDRESS_TYPE{OutputType::LEGACY};
 
 /** A key pool entry */
 class CKeyPool {
@@ -1067,6 +1066,9 @@ public:
      * -fallbackfee
      */
     CFeeRate m_fallback_fee{DEFAULT_FALLBACK_FEE};
+    OutputType m_default_address_type{DEFAULT_ADDRESS_TYPE};
+    // Default to OutputType::NONE if not set by -changetype
+    OutputType m_default_change_type{OutputType::NONE};
 
     bool NewKeyPool();
     size_t KeypoolCountExternalKeys();
@@ -1322,8 +1324,7 @@ public:
     }
 };
 
-OutputType ParseOutputType(const std::string &str,
-                           OutputType default_type = OutputType::DEFAULT);
+OutputType ParseOutputType(const std::string &str, OutputType default_type);
 const std::string &FormatOutputType(OutputType type);
 
 /**

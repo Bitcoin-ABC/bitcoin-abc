@@ -8,7 +8,7 @@
 
 void CCoinControl::SetNull() {
     destChange = CNoDestination();
-    change_type = g_change_type;
+    m_change_type.reset();
     fAllowOtherInputs = false;
     fAllowWatchOnly = false;
     m_avoid_partial_spends =

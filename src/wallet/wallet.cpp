@@ -91,9 +91,6 @@ CWallet *GetWallet(const std::string &name) {
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
-OutputType g_address_type = OutputType::NONE;
-OutputType g_change_type = OutputType::NONE;
-
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 const uint256 CMerkleTx::ABANDON_HASH(uint256S(
@@ -940,8 +937,8 @@ bool CWallet::GetLabelDestination(CTxDestination &dest,
         } else {
             // Check if the current key has been used (TODO: check other
             // addresses with the same key)
-            CScript scriptPubKey = GetScriptForDestination(
-                GetDestinationForKey(account.vchPubKey, g_address_type));
+            CScript scriptPubKey = GetScriptForDestination(GetDestinationForKey(
+                account.vchPubKey, m_default_address_type));
             for (std::map<TxId, CWalletTx>::iterator it = mapWallet.begin();
                  it != mapWallet.end() && account.vchPubKey.IsValid(); ++it) {
                 for (const CTxOut &txout : (*it).second.tx->vout) {
@@ -960,12 +957,12 @@ bool CWallet::GetLabelDestination(CTxDestination &dest,
             return false;
         }
 
-        LearnRelatedScripts(account.vchPubKey, g_address_type);
-        dest = GetDestinationForKey(account.vchPubKey, g_address_type);
+        LearnRelatedScripts(account.vchPubKey, m_default_address_type);
+        dest = GetDestinationForKey(account.vchPubKey, m_default_address_type);
         SetAddressBook(dest, label, "receive");
         batch.WriteAccount(label, account);
     } else {
-        dest = GetDestinationForKey(account.vchPubKey, g_address_type);
+        dest = GetDestinationForKey(account.vchPubKey, m_default_address_type);
     }
 
     return true;
@@ -2897,13 +2894,13 @@ CWallet::TransactionChangeType(OutputType change_type,
         return change_type;
     }
 
-    // if g_address_type is legacy, use legacy address as change.
-    if (g_address_type == OutputType::LEGACY) {
+    // if m_default_address_type is legacy, use legacy address as change.
+    if (m_default_address_type == OutputType::LEGACY) {
         return OutputType::LEGACY;
     }
 
-    // else use g_address_type for change
-    return g_address_type;
+    // else use m_default_address_type for change
+    return m_default_address_type;
 }
 
 bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
@@ -3006,8 +3003,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            const OutputType change_type =
-                TransactionChangeType(coinControl.change_type, vecSend);
+            const OutputType change_type = TransactionChangeType(
+                coinControl.m_change_type ? *coinControl.m_change_type
+                                          : m_default_change_type,
+                vecSend);
 
             LearnRelatedScripts(vchPubKey, change_type);
             scriptChange = GetScriptForDestination(
@@ -4483,6 +4482,9 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     }
     walletInstance->m_spend_zero_conf_change =
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
+
+    walletInstance->m_default_address_type = DEFAULT_ADDRESS_TYPE;
+    walletInstance->m_default_change_type = OutputType::NONE;
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 

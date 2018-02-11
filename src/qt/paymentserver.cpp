@@ -707,7 +707,9 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
         // type we use subject to privacy issues, but not restricted by what
         // other software supports.
         const OutputType change_type =
-            g_change_type != OutputType::NONE ? g_change_type : g_address_type;
+            walletModel->wallet().getDefaultChangeType() != OutputType::NONE
+                ? walletModel->wallet().getDefaultChangeType()
+                : walletModel->wallet().getDefaultAddressType();
         walletModel->wallet().learnRelatedScripts(newKey, change_type);
         CTxDestination dest = GetDestinationForKey(newKey, change_type);
         std::string label = tr("Refund from %1")

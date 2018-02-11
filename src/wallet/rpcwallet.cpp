@@ -180,10 +180,10 @@ static UniValue getnewaddress(const Config &config,
         label = LabelFromValue(request.params[0]);
     }
 
-    OutputType output_type = g_address_type;
+    OutputType output_type = pwallet->m_default_address_type;
     if (!request.params[1].isNull()) {
-        output_type =
-            ParseOutputType(request.params[1].get_str(), g_address_type);
+        output_type = ParseOutputType(request.params[1].get_str(),
+                                      pwallet->m_default_address_type);
         if (output_type == OutputType::NONE) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                strprintf("Unknown address type '%s'",
@@ -285,8 +285,9 @@ static UniValue getrawchangeaddress(const Config &config,
         pwallet->TopUpKeyPool();
     }
 
-    OutputType output_type =
-        g_change_type != OutputType::NONE ? g_change_type : g_address_type;
+    OutputType output_type = pwallet->m_default_change_type != OutputType::NONE
+                                 ? pwallet->m_default_change_type
+                                 : pwallet->m_default_address_type;
     if (!request.params[0].isNull()) {
         output_type = ParseOutputType(request.params[0].get_str(), output_type);
         if (output_type == OutputType::NONE) {
@@ -1450,12 +1451,14 @@ static UniValue addmultisigaddress(const Config &config,
         }
     }
 
+    OutputType output_type = pwallet->m_default_address_type;
+
     // Construct using pay-to-script-hash:
     CScript inner = CreateMultisigRedeemscript(required, pubkeys);
     pwallet->AddCScript(inner);
 
     CTxDestination dest =
-        pwallet->AddAndGetDestinationForScript(inner, g_address_type);
+        pwallet->AddAndGetDestinationForScript(inner, output_type);
 
     pwallet->SetAddressBook(dest, label, "send");
 
