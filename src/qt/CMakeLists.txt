@@ -49,6 +49,9 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/transactiondescdialog.ui
 )
 
+# Qt MOC
+set(CMAKE_AUTOMOC ON)
+
 # Handle qrc resources
 qt5_add_resources(QRC_BITCOIN_CPP bitcoin.qrc)
 
@@ -57,6 +60,29 @@ find_package(Protobuf REQUIRED)
 protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
 
 add_library(bitcoin-qt-base
+	bantablemodel.cpp
+	bitcoinaddressvalidator.cpp
+	bitcoinamountfield.cpp
+	bitcoingui.cpp
+	bitcoinunits.cpp
+	clientmodel.cpp
+	csvmodelwriter.cpp
+	guiutil.cpp
+	intro.cpp
+	modaloverlay.cpp
+	networkstyle.cpp
+	notificator.cpp
+	optionsdialog.cpp
+	optionsmodel.cpp
+	peertablemodel.cpp
+	platformstyle.cpp
+	qvalidatedlineedit.cpp
+	qvaluecombobox.cpp
+	rpcconsole.cpp
+	splashscreen.cpp
+	trafficgraphwidget.cpp
+	utilitydialog.cpp
+
 	# Handle ui files
 	${UI_GENERATED_HEADERS}
 
@@ -70,4 +96,25 @@ add_library(bitcoin-qt-base
 	# Handle qrc files
 	${QRC_BITCOIN_CPP}
 	qrc_bitcoin_locale.cpp
+)
+
+# Windows support
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_sources(bitcoin-qt-base PRIVATE winshutdownmonitor.cpp)
+endif()
+
+target_include_directories(bitcoin-qt-base
+	PUBLIC
+		.
+		${CMAKE_CURRENT_BINARY_DIR}
+		${CMAKE_CURRENT_BINARY_DIR}/forms
+		${Protobuf_INCLUDE_DIRS}
+)
+
+target_link_libraries(bitcoin-qt-base
+	server
+	rpcclient
+	Qt5::Widgets
+	Qt5::Network
+	${Protobuf_LIBRARIES}
 )
