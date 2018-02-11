@@ -28,7 +28,31 @@ add_custom_command(OUTPUT qrc_bitcoin_locale.cpp
 	VERBATIM
 )
 
+# UI elements
+qt5_wrap_ui(UI_GENERATED_HEADERS
+	forms/addressbookpage.ui
+	forms/askpassphrasedialog.ui
+	forms/coincontroldialog.ui
+	forms/editaddressdialog.ui
+	forms/helpmessagedialog.ui
+	forms/intro.ui
+	forms/modaloverlay.ui
+	forms/openuridialog.ui
+	forms/optionsdialog.ui
+	forms/overviewpage.ui
+	forms/receivecoinsdialog.ui
+	forms/receiverequestdialog.ui
+	forms/debugwindow.ui
+	forms/sendcoinsdialog.ui
+	forms/sendcoinsentry.ui
+	forms/signverifymessagedialog.ui
+	forms/transactiondescdialog.ui
+)
+
 add_library(bitcoin-qt-base
+	# Handle ui files
+	${UI_GENERATED_HEADERS}
+
 	# Translations
 	${BITCOIN_QM_FILES}
 
