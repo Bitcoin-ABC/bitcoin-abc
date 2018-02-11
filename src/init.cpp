@@ -2079,7 +2079,9 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                     LOCK(cs_main);
                     CBlockIndex *tip = chainActive.Tip();
                     RPCNotifyBlockChange(true, tip);
-                    if (tip && tip->nTime > GetAdjustedTime() + 2 * 60 * 60) {
+                    if (tip &&
+                        tip->nTime >
+                            GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
                         strLoadError =
                             _("The block database contains a block which "
                               "appears to be from the future. "
