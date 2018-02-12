@@ -118,3 +118,42 @@ target_link_libraries(bitcoin-qt-base
 	Qt5::Network
 	${Protobuf_LIBRARIES}
 )
+
+# Wallet
+if(BUILD_BITCOIN_WALLET)
+	target_sources(bitcoin-qt-base
+		PRIVATE
+			addressbookpage.cpp
+			addresstablemodel.cpp
+			askpassphrasedialog.cpp
+			coincontroldialog.cpp
+			coincontroltreewidget.cpp
+			editaddressdialog.cpp
+			openuridialog.cpp
+			overviewpage.cpp
+			paymentrequestplus.cpp
+			paymentserver.cpp
+			receivecoinsdialog.cpp
+			receiverequestdialog.cpp
+			recentrequeststablemodel.cpp
+			sendcoinsdialog.cpp
+			sendcoinsentry.cpp
+			signverifymessagedialog.cpp
+			transactiondesc.cpp
+			transactiondescdialog.cpp
+			transactionfilterproxy.cpp
+			transactionrecord.cpp
+			transactiontablemodel.cpp
+			transactionview.cpp
+			walletframe.cpp
+			walletmodel.cpp
+			walletmodeltransaction.cpp
+			walletview.cpp
+	)
+
+	target_link_libraries(bitcoin-qt-base wallet)
+
+	# Dependencies
+	find_package(OpenSSL REQUIRED)
+	target_link_libraries(bitcoin-qt-base ${OPENSSL_CRYPTO_LIBRARY})
+endif()
