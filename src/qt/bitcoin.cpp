@@ -793,7 +793,7 @@ int main(int argc, char *argv[]) {
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")
                 .arg(QObject::tr(PACKAGE_NAME)),
-            static_cast<HWND>(app.getMainWinId()));
+            (HWND)app.getMainWinId());
 #endif
         app.exec();
         app.requestShutdown(config);
