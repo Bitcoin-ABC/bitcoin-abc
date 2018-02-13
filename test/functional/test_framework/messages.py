@@ -47,6 +47,10 @@ NODE_XTHIN = (1 << 4)
 NODE_BITCOIN_CASH = (1 << 5)
 NODE_NETWORK_LIMITED = (1 << 10)
 
+MSG_TX = 1
+MSG_BLOCK = 2
+MSG_TYPE_MASK = 0xffffffff >> 2
+
 # Howmuch data will be read from the network at once
 READ_BUFFER_SIZE = 8192
 
