@@ -335,9 +335,9 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
             }
 
-            if (opcode == OP_LEFT || opcode == OP_RIGHT || opcode == OP_INVERT ||
-                opcode == OP_2MUL || opcode == OP_2DIV || opcode == OP_MUL ||
-                opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
+            if (opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_2MUL ||
+                opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_LSHIFT ||
+                opcode == OP_RSHIFT) {
                 // Disabled opcodes.
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
             }
@@ -1285,6 +1285,25 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             stack.emplace_back(move(vchOut1));
                             stack.emplace_back(move(vchOut2));
                         }
+                    } break;
+
+                    //
+                    // Conversion operations
+                    //
+                    case OP_BIN2NUM: {
+                        // (in -- out)
+                        if (stack.size() < 1) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype bin = stacktop(-1);
+                        std::reverse(bin.begin(), bin.end()); //be2le
+                        CScriptNum num(bin, false);
+                        if (num > (INT_MAX>>1) || num < (INT_MIN>>1)) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_BIN2NUM_OPERATION);
+                        }
+                        stack.pop_back();
+                        stack.push_back(num.getvch());
                     } break;
 
                     default:
