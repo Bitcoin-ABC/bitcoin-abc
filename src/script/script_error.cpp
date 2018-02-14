@@ -50,6 +50,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Invalid bitwise operation (check length of inputs)";
         case SCRIPT_ERR_DIV_BY_ZERO:
             return "Invalid division operation";
+        case SCRIPT_ERR_MOD_BY_ZERO:
+            return "Invalid modulo operation";
         case SCRIPT_ERR_NEGATIVE_LOCKTIME:
             return "Negative locktime";
         case SCRIPT_ERR_UNSATISFIED_LOCKTIME:
