@@ -354,6 +354,75 @@ namespace {
         test(script,stack_t{{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a},{0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14}},flags,stack_t{{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14}});
     }
 
+    /// OP_SPLIT
+
+    void test_split(uint32_t flags) {
+        CScript script;
+        script << OP_SPLIT; //inputs: x n; outputs: x1 x2
+
+        //two inputs required
+        test(script,stack_t(),flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+        test(script,stack_t{{0x01}},flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+        //length of 2nd input greater than CScriptNum::nDefaultMaxNumSize
+        {
+        item maxlength_num_item(CScriptNum::nDefaultMaxNumSize,0x01);
+        item illegal_item=maxlength_num_item;
+        illegal_item.push_back(0x00);
+        test(script,stack_t{{0x01},illegal_item},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        }
+
+        //if n == 0, then x1 is the empty array and x2 == x;
+        //execution of OP_SPLIT on empty array results in two empty arrays.
+        test(script,stack_t{{},{}},flags,stack_t{{},{}});
+        test(script,stack_t{{0x01},{}},flags,stack_t{{},{0x01}}); //x 0 OP_SPLIT -> OP_0 x
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{}},flags,stack_t{{},{0x01,0x02,0x03,0x04}});
+
+        //if n == len(x) then x1 == x and x2 is the empty array
+        test(script,stack_t{{0x01},{0x01}},flags,stack_t{{0x01},{}}); 
+        test(script,stack_t{{0x01,0x02,0x03},{0x03}},flags,stack_t{{0x01,0x02,0x03},{}}); //x len(x) OP_SPLIT -> x OP_0
+
+        //if n > len(x), then the operator must fail; x (len(x) + 1) OP_SPLIT -> FAIL
+        test(script,stack_t{{},{0x01}},flags,SCRIPT_ERR_INVALID_SPLIT_RANGE);
+        test(script,stack_t{{0x01},{0x02}},flags,SCRIPT_ERR_INVALID_SPLIT_RANGE);
+        test(script,stack_t{{0x01,0x02,0x03},{0x04}},flags,SCRIPT_ERR_INVALID_SPLIT_RANGE);
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x05}},flags,SCRIPT_ERR_INVALID_SPLIT_RANGE);
+
+        //if n < 0 the operator must fail.
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x81}},flags,SCRIPT_ERR_INVALID_SPLIT_RANGE);
+
+
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x01}},flags,stack_t{{0x01},{0x02,0x03,0x04}});
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x02}},flags,stack_t{{0x01,0x02},{0x03,0x04}});
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x03}},flags,stack_t{{0x01,0x02,0x03},{0x04}});
+        test(script,stack_t{{0x01,0x02,0x03,0x04},{0x04}},flags,stack_t{{0x01,0x02,0x03,0x04},{}});
+
+        //split of a max-len item
+        {
+        item maxlength_item(MAX_SCRIPT_ELEMENT_SIZE, 0x00);
+        test(script,stack_t{maxlength_item,{}},flags,stack_t{{},maxlength_item});
+        }
+    }
+
+    /// OP_CAT + OP_SPLIT
+
+    void test_cat_split(const item& x, uint32_t flags) {
+        CScript script;
+        script << OP_SPLIT << OP_CAT;
+        // x n OP_SPLIT OP_CAT -> x - for all x and for all 0 <= n <= len(x)
+        test(script,stack_t{x,{}},flags,stack_t{x});
+        for (uint8_t i=1; i<=x.size(); ++i) {
+            test(script,stack_t{x,{i}},flags,stack_t{x});
+        }
+    }
+
+    void test_cat_split(uint32_t flags) {
+        test_cat_split({},flags);
+        test_cat_split({0x01},flags);
+        test_cat_split({0x01,0x02},flags);
+        test_cat_split({0x01,0x02,0x03},flags);
+    }
+
 }
 
 /// Entry points
@@ -400,6 +469,20 @@ BOOST_AUTO_TEST_CASE(op_cat) {
     test_cat(STANDARD_SCRIPT_VERIFY_FLAGS);
     test_cat(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
     test_cat(STANDARD_LOCKTIME_VERIFY_FLAGS);
+}
+
+BOOST_AUTO_TEST_CASE(op_split) {
+    test_split(0);
+    test_split(STANDARD_SCRIPT_VERIFY_FLAGS);
+    test_split(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
+    test_split(STANDARD_LOCKTIME_VERIFY_FLAGS);
+}
+
+BOOST_AUTO_TEST_CASE(cat_split) {
+    test_cat_split(0);
+    test_cat_split(STANDARD_SCRIPT_VERIFY_FLAGS);
+    test_cat_split(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
+    test_cat_split(STANDARD_LOCKTIME_VERIFY_FLAGS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
