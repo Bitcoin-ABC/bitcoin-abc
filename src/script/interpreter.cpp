@@ -335,9 +335,9 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
             }
 
-            if (opcode == OP_SUBSTR || opcode == OP_LEFT || opcode == OP_RIGHT ||
-                opcode == OP_INVERT || opcode == OP_2MUL || opcode == OP_2DIV ||
-                opcode == OP_MUL || opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
+            if (opcode == OP_LEFT || opcode == OP_RIGHT || opcode == OP_INVERT ||
+                opcode == OP_2MUL || opcode == OP_2DIV || opcode == OP_MUL ||
+                opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
                 // Disabled opcodes.
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
             }
@@ -1249,6 +1249,42 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         }
                         vch1.insert(vch1.end(), vch2.begin(), vch2.end());
                         stack.pop_back();
+                    } break;
+
+                    case OP_SPLIT: {
+                        // (in position -- x1 x2)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype vch = stacktop(-2);
+                        int64_t nPosition = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+
+                        // if nPosition is less than 0 or is larger than the input then throw error
+                        if (nPosition < 0 || static_cast<size_t>(nPosition) > vch.size()) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                        }
+
+                        stack.pop_back();
+                        stack.pop_back();
+
+                        // initialize outputs
+                        if (nPosition == 0) {
+                            stack.push_back(valtype());
+                            stack.push_back(vch);
+                        }
+                        else if (static_cast<size_t>(nPosition) == vch.size()) {
+                            stack.push_back(vch);
+                            stack.push_back(valtype());
+                        }
+                        else {
+                            valtype vchOut1, vchOut2;
+                            vchOut1.insert(vchOut1.end(), vch.begin(), vch.begin() + nPosition);
+                            vchOut2.insert(vchOut2.end(), vch.begin() + nPosition, vch.end());
+                            stack.emplace_back(move(vchOut1));
+                            stack.emplace_back(move(vchOut2));
+                        }
                     } break;
 
                     default:

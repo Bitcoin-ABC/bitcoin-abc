@@ -52,6 +52,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Invalid division operation";
         case SCRIPT_ERR_MOD_BY_ZERO:
             return "Invalid modulo operation";
+        case SCRIPT_ERR_INVALID_SPLIT_RANGE:
+            return "Invalid OP_SPLIT range";
         case SCRIPT_ERR_NEGATIVE_LOCKTIME:
             return "Negative locktime";
         case SCRIPT_ERR_UNSATISFIED_LOCKTIME:
