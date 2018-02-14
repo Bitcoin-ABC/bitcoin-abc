@@ -272,6 +272,38 @@ namespace {
         test(script,stack_t{{0xc0,0xe1,0xe4,0x80},{0x84}},flags,stack_t{{0x70,0x38,0x39}});
     }
 
+    /// OP_MOD tests
+
+    void test_mod(uint32_t flags) {
+        CScript script;
+        script << OP_MOD;
+
+        test(script,stack_t(),flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+        test(script,stack_t{{}},flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+        //test not valid numbers
+        test(script,stack_t{{0x01,0x02,0x03,0x04,0x05},{0x01,0x02,0x03,0x04,0x05}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        test(script,stack_t{{0x01,0x02,0x03,0x04,0x05},{0x01}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        test(script,stack_t{{0x01,0x05},{0x01,0x02,0x03,0x04,0x05}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+
+        //mod by 0
+        test(script,stack_t{{0x01,0x05},{}},flags,SCRIPT_ERR_MOD_BY_ZERO);
+
+        //56488123%321 =148
+        //56488123%3 =1
+        //56488123%564881230 =56488123
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x03},{0x41,0x01}},flags,stack_t{{0x94,0x00}});
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x03},{0x03}},flags,stack_t{{0x01}});
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x03},{0x4e,0x67,0xab,0x21}},flags,stack_t{{0xbb,0xf0,0x5d,0x03}});
+
+        //-56488123%321 = -148
+        //-56488123%3 = -1
+        //-56488123%564881230 = -56488123
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x83},{0x41,0x01}},flags,stack_t{{0x94,0x80}});
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x83},{0x03}},flags,stack_t{{0x81}});
+        test(script,stack_t{{0xbb,0xf0,0x5d,0x83},{0x4e,0x67,0xab,0x21}},flags,stack_t{{0xbb,0xf0,0x5d,0x83}});
+    }
+
 }
 
 /// Entry points
@@ -304,6 +336,13 @@ BOOST_AUTO_TEST_CASE(op_div) {
     test_div(STANDARD_SCRIPT_VERIFY_FLAGS);
     test_div(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
     test_div(STANDARD_LOCKTIME_VERIFY_FLAGS);
+}
+
+BOOST_AUTO_TEST_CASE(op_mod) {
+    test_mod(0);
+    test_mod(STANDARD_SCRIPT_VERIFY_FLAGS);
+    test_mod(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
+    test_mod(STANDARD_LOCKTIME_VERIFY_FLAGS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
