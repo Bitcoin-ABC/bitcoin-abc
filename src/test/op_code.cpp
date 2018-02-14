@@ -202,6 +202,76 @@ namespace {
         }
     }
 
+    /// OP_DIV tests
+
+    void test_div(uint32_t flags) {
+        CScript script;
+        script << OP_DIV;
+
+        test(script,stack_t(),flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+        test(script,stack_t{{}},flags,SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+        //test not valid numbers
+        test(script,stack_t{{0x01,0x02,0x03,0x04,0x05},{0x01,0x02,0x03,0x04,0x05}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        test(script,stack_t{{0x01,0x02,0x03,0x04,0x05},{0x01}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        test(script,stack_t{{0x01,0x05},{0x01,0x02,0x03,0x04,0x05}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        //b == 0 ; b is equal to any type of zero
+        test(script,stack_t{{0x01,0x05},{}},flags,SCRIPT_ERR_DIV_BY_ZERO);
+        test(script,stack_t{{},{}},flags,SCRIPT_ERR_DIV_BY_ZERO);
+        if (flags&SCRIPT_VERIFY_MINIMALDATA) {
+            test(script,stack_t{{},{0x00}},flags,SCRIPT_ERR_UNKNOWN_ERROR); //not minimal encoding
+            test(script,stack_t{{},{0x00,0x00}},flags,SCRIPT_ERR_UNKNOWN_ERROR);
+        }
+        else {
+            test(script,stack_t{{},{0x00}},flags,SCRIPT_ERR_DIV_BY_ZERO); 
+            test(script,stack_t{{},{0x00,0x00}},flags,SCRIPT_ERR_DIV_BY_ZERO);
+        }       
+        //185377af/85f41b01 =-4
+        //185377af/00001b01 =E69D
+        test(script,stack_t{{0xaf,0x77,0x53,0x18},{0x01,0x1b,0xf4,0x85}},flags,stack_t{{0x84}});
+        test(script,stack_t{{0xaf,0x77,0x53,0x18},{0x01,0x1b}},flags,stack_t{{0x9D,0xE6,0x00}});
+        //15/4 =3
+        //15/-4 =-3
+        //-15/4 =-3
+        //-15/-4 =3
+        test(script,stack_t{{0x0f},{0x04}},flags,stack_t{{0x03}});
+        test(script,stack_t{{0x0f},{0x84}},flags,stack_t{{0x83}});
+        test(script,stack_t{{0x8f},{0x04}},flags,stack_t{{0x83}});
+        test(script,stack_t{{0x8f},{0x84}},flags,stack_t{{0x03}});
+        //15000/4 =3750
+        //15000/-4 =-3750
+        //-15000/4 =-3750
+        //-15000/-4 =3750
+        test(script,stack_t{{0x98,0x3a},{0x04}},flags,stack_t{{0xa6,0x0e}});
+        test(script,stack_t{{0x98,0x3a},{0x84}},flags,stack_t{{0xa6,0x8e}});
+        test(script,stack_t{{0x98,0xba},{0x04}},flags,stack_t{{0xa6,0x8e}});
+        test(script,stack_t{{0x98,0xba},{0x84}},flags,stack_t{{0xa6,0x0e}});
+        //15000/4000 =3
+        //15000/-4000 =-3
+        //-15000/4000 =-3
+        //-15000/-4000 =3
+        test(script,stack_t{{0x98,0x3a},{0xa0,0x0f}},flags,stack_t{{0x03}});
+        test(script,stack_t{{0x98,0x3a},{0xa0,0x8f}},flags,stack_t{{0x83}});
+        test(script,stack_t{{0x98,0xba},{0xa0,0x0f}},flags,stack_t{{0x83}});
+        test(script,stack_t{{0x98,0xba},{0xa0,0x8f}},flags,stack_t{{0x03}});
+        //15000000/4000 =3750
+        //15000000/-4000 =-3750
+        //-15000000/4000 =-3750
+        //-15000000/-4000 =3750
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x00},{0xa0,0x0f}},flags,stack_t{{0xa6,0x0e}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x00},{0xa0,0x8f}},flags,stack_t{{0xa6,0x8e}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x80},{0xa0,0x0f}},flags,stack_t{{0xa6,0x8e}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x80},{0xa0,0x8f}},flags,stack_t{{0xa6,0x0e}});
+        //15000000/4 =3750000
+        //15000000/-4 =-3750000
+        //-15000000/4 =-3750000
+        //-15000000/-4 =3750000
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x00},{0x04}},flags,stack_t{{0x70,0x38,0x39}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x00},{0x84}},flags,stack_t{{0x70,0x38,0xb9}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x80},{0x04}},flags,stack_t{{0x70,0x38,0xb9}});
+        test(script,stack_t{{0xc0,0xe1,0xe4,0x80},{0x84}},flags,stack_t{{0x70,0x38,0x39}});
+    }
+
 }
 
 /// Entry points
@@ -227,6 +297,13 @@ BOOST_AUTO_TEST_CASE(op_xor) {
     test_xor(STANDARD_SCRIPT_VERIFY_FLAGS);
     test_xor(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
     test_xor(STANDARD_LOCKTIME_VERIFY_FLAGS);
+}
+
+BOOST_AUTO_TEST_CASE(op_div) {
+    test_div(0);
+    test_div(STANDARD_SCRIPT_VERIFY_FLAGS);
+    test_div(STANDARD_NOT_MANDATORY_VERIFY_FLAGS);
+    test_div(STANDARD_LOCKTIME_VERIFY_FLAGS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
