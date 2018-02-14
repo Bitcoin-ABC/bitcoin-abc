@@ -337,8 +337,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
             if (opcode == OP_CAT || opcode == OP_SUBSTR || opcode == OP_LEFT ||
                 opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_2MUL ||
-                opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
-                opcode == OP_MOD || opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
+                opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_MOD ||
+                opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
                 // Disabled opcodes.
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
             }
@@ -893,6 +893,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_ADD:
                     case OP_SUB:
+                    case OP_DIV:
                     case OP_BOOLAND:
                     case OP_BOOLOR:
                     case OP_NUMEQUAL:
@@ -909,6 +910,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
+                        // first two inputs must be minimally encoded numbers
                         CScriptNum bn1(stacktop(-2), fRequireMinimal);
                         CScriptNum bn2(stacktop(-1), fRequireMinimal);
                         CScriptNum bn(0);
@@ -919,6 +921,15 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                             case OP_SUB:
                                 bn = bn1 - bn2;
+                                break;
+
+                            case OP_DIV:
+                                // 2nd operand must not be 0
+                                if (bn2 == 0) {
+                                    return set_error(
+                                        serror, SCRIPT_ERR_DIV_BY_ZERO);
+                                }
+                                bn = bn1 / bn2;
                                 break;
 
                             case OP_BOOLAND:
