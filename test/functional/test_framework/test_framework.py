@@ -399,9 +399,7 @@ class BitcoinTestFramework():
                 self.nodes.append(TestNode(i, get_datadir_path(self.options.cachedir, i), extra_conf=["bind=127.0.0.1"], extra_args=[], host=None, rpc_port=rpc_port(
                     i), p2p_port=p2p_port(i), timewait=None, bitcoind=self.options.bitcoind, bitcoin_cli=self.options.bitcoincli, mocktime=self.mocktime, coverage_dir=None))
                 self.nodes[i].clear_default_args()
-                self.nodes[i].extend_default_args([
-                    "-server", "-keypool=1", "-datadir=" + datadir,
-                    "-discover=0"])
+                self.nodes[i].extend_default_args(["-datadir=" + datadir])
                 if i > 0:
                     self.nodes[i].extend_default_args(
                         ["-connect=127.0.0.1:" + str(p2p_port(0))])

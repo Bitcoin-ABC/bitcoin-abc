@@ -75,10 +75,12 @@ class TestNode():
         # Most callers will just need to add extra args to the default list
         # below.
         # For those callers that need more flexibity, they can access the
-        # default args using the provided facilities
+        # default args using the provided facilities.
+        # Note that common args are set in the config file (see
+        # initialize_datadir)
         self.extra_args = extra_args
-        self.default_args = ["-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
-                             "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
+        self.default_args = ["-datadir=" + self.datadir, "-logtimemicros", "-debug", "-debugexclude=libevent",
+                             "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
         if not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(
