@@ -15,7 +15,12 @@ static const uint64_t MAX_TX_SIZE = ONE_MEGABYTE;
 /** The maximum allowed size for a block, before the UAHF */
 static const uint64_t LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE;
 /** Default setting for maximum allowed size for a block, in bytes */
-static const uint64_t DEFAULT_MAX_BLOCK_SIZE = 8 * ONE_MEGABYTE;
+/* (network rule)This limit doesn't make sense considering the BCH philosophy */
+/* 2GB is a physical limit on 32bit kernels                                   */
+/* because BCH still has a 32bit version available in 2018					  */
+/* 512 MB is a more conservative value less prone to memory allocation errors */
+/* virtually ilimited @ 2018                                                  */
+static const uint64_t DEFAULT_MAX_BLOCK_SIZE = 512 * ONE_MEGABYTE;
 /** The maximum allowed number of signature check operations per MB in a block
  * (network rule) */
 static const int64_t MAX_BLOCK_SIGOPS_PER_MB = 20000;
