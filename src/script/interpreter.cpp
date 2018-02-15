@@ -335,9 +335,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
             }
 
-            if (opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_2MUL ||
-                opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_LSHIFT ||
-                opcode == OP_RSHIFT) {
+            if (opcode == OP_INVERT || opcode == OP_2MUL || opcode == OP_2DIV ||
+                opcode == OP_MUL || opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
                 // Disabled opcodes.
                 return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
             }
@@ -1304,6 +1303,39 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         }
                         stack.pop_back();
                         stack.push_back(num.getvch());
+                    } break;
+
+                    case OP_NUM2BIN: {
+                        if (stack.size() < 2) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        CScriptNum bn(stacktop(-2), fRequireMinimal);
+                        int64_t sz = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                        if (sz<1 || static_cast<uint64_t>(sz) > CScriptNum::nDefaultMaxNumSize) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_NUM2BIN_OPERATION);
+                        }
+                        valtype v=bn.getvch(); //LE
+                        if (static_cast<uint64_t>(sz) < v.size()) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_NUM2BIN_OPERATION);
+                        }
+                        valtype ans;
+                        ans.reserve(sz);
+                        bool neg{false};
+                        if (!v.empty()) {
+                            neg=*v.rbegin()&0x80;
+                            *v.rbegin()&=~0x80; //make it positive
+                        }
+                        size_t pad=sz-v.size();
+                        for (uint8_t i=0; i<pad; ++i) {
+                            ans.push_back(0);
+                        }
+                        for (auto i=v.rbegin(); i!=v.rend(); ++i) {
+                            ans.push_back(*i);
+                        }
+                        if (neg) *ans.begin()|=0x80;
+                        stack.pop_back();
+                        stack.pop_back();
+                        stack.push_back(ans);
                     } break;
 
                     default:

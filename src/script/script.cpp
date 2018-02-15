@@ -123,8 +123,6 @@ const char *GetOpName(opcodetype opcode) {
             return "OP_CAT";
         case OP_SPLIT:
             return "OP_SPLIT";
-        case OP_RIGHT:
-            return "OP_RIGHT";
         case OP_SIZE:
             return "OP_SIZE";
 

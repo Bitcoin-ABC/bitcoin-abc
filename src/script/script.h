@@ -103,7 +103,6 @@ enum opcodetype {
     // splice ops
     OP_CAT = 0x7e,
     OP_SPLIT = 0x7f,
-    OP_RIGHT = 0x81,
     OP_SIZE = 0x82,
 
     // bit logic
@@ -162,6 +161,7 @@ enum opcodetype {
 
     // expansion
     OP_BIN2NUM = 0x80,
+    OP_NUM2BIN = 0x81,
     OP_NOP1 = 0xb0,
     OP_CHECKLOCKTIMEVERIFY = 0xb1,
     OP_NOP2 = OP_CHECKLOCKTIMEVERIFY,

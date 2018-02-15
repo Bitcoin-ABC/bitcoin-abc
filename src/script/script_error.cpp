@@ -56,6 +56,8 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Invalid OP_SPLIT range";
         case SCRIPT_ERR_INVALID_BIN2NUM_OPERATION:
             return "Invalid OP_BIN2NUM operation (check operand values)";
+        case SCRIPT_ERR_INVALID_NUM2BIN_OPERATION:
+            return "Invalid OP_NUM2BIN operation (check operand values)";
         case SCRIPT_ERR_NEGATIVE_LOCKTIME:
             return "Negative locktime";
         case SCRIPT_ERR_UNSATISFIED_LOCKTIME:
