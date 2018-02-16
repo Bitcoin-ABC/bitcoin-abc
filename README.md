@@ -3,21 +3,20 @@ Bitcoin ABC
 
 https://bitcoinabc.org
 
-What is Bitcoin Cash?
+What is BCash?
 ---------------------
 
-[Bitcoin Cash](https://www.bitcoincash.org/) is an experimental digital currency
+[BCash](https://www.bitcoincash.org/) is an experimental digital currency
 that enables instant payments to anyone, anywhere in the world. It uses peer-to-peer
 technology to operate with no central authority: managing transactions and issuing
-money are carried out collectively by the network. Bitcoin Cash is a descendant of
+money are carried out collectively by the network. BCash is a descendant of
 Bitcoin. It became a separate currency from the version supported by Bitcoin Core
-when the two split on August 1, 2017. Bitcoin Cash and the Bitcoin Core version of
-Bitcoin share the same transaction history up until the split.
+when the two split on August 1, 2017. BCash and Bitcoin share the same transaction history up until the split.
 
 What is Bitcoin ABC?
 --------------------
 
-Bitcoin ABC is the name of open-source software which enables the use of Bitcoin Cash.
+Bitcoin ABC is the name of open-source software which enables the use of BCash.
 It is a fork of the [Bitcoin Core](https://bitcoincore.org) software project.
 
 License
