@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #ifndef WIN32
+#include <csignal>
 #include <sys/types.h>
 #include <sys/wait.h>
 #endif
