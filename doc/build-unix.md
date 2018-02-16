@@ -204,7 +204,7 @@ If you need to build Boost yourself:
 
 	sudo su
 	./bootstrap.sh
-	./bjam install
+	./b2 install
 
 
 Security
