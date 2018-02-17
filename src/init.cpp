@@ -2215,10 +2215,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     if (fHavePruned &&
                         gArgs.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
                             MIN_BLOCKS_TO_KEEP) {
-                        LogPrintf("Prune: pruned datadir may not have more "
-                                  "than %d blocks; only checking available "
-                                  "blocks",
-                                  MIN_BLOCKS_TO_KEEP);
+                        LogPrintf(
+                            "Prune: pruned datadir may not have more than %d "
+                            "blocks; only checking available blocks\n",
+                            MIN_BLOCKS_TO_KEEP);
                     }
 
                     CBlockIndex *tip = chainActive.Tip();
