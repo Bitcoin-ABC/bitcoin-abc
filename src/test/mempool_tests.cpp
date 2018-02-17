@@ -52,13 +52,13 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
 
     // Nothing in pool, remove should do nothing:
     unsigned int poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(CTransaction(txParent));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
 
     // Just the parent:
     testPool.addUnchecked(txParent.GetId(), entry.FromTx(txParent));
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(CTransaction(txParent));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 1);
 
     // Parent, children, grandchildren:
@@ -70,18 +70,18 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     }
     // Remove Child[0], GrandChild[0] should be removed:
     poolSize = testPool.size();
-    testPool.removeRecursive(txChild[0]);
+    testPool.removeRecursive(CTransaction(txChild[0]));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 2);
     // ... make sure grandchild and child are gone:
     poolSize = testPool.size();
-    testPool.removeRecursive(txGrandChild[0]);
+    testPool.removeRecursive(CTransaction(txGrandChild[0]));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
     poolSize = testPool.size();
-    testPool.removeRecursive(txChild[0]);
+    testPool.removeRecursive(CTransaction(txChild[0]));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
     // Remove parent, all children/grandchildren should go:
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(CTransaction(txParent));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 5);
     BOOST_CHECK_EQUAL(testPool.size(), 0UL);
 
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     // Now remove the parent, as might happen if a block-re-org occurs but the
     // parent cannot be put into the mempool (maybe because it is non-standard):
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(CTransaction(txParent));
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 6);
     BOOST_CHECK_EQUAL(testPool.size(), 0UL);
 }

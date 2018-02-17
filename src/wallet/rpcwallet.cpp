@@ -3408,7 +3408,7 @@ static UniValue fundrawtransaction(const Config &config,
     }
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hex", EncodeHexTx(tx)));
+    result.push_back(Pair("hex", EncodeHexTx(CTransaction(tx))));
     result.push_back(Pair("changepos", changePosition));
     result.push_back(Pair("fee", ValueFromAmount(nFeeOut)));
 

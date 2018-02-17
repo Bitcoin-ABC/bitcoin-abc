@@ -21,9 +21,9 @@ typedef std::vector<uint8_t> valtype;
 BOOST_FIXTURE_TEST_SUITE(multisig_tests, BasicTestingSetup)
 
 CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
-                      CTransaction transaction, int whichIn) {
-    uint256 hash = SignatureHash(scriptPubKey, transaction, whichIn,
-                                 SigHashType(), Amount(0));
+                      CMutableTransaction mutableTransaction, int whichIn) {
+    uint256 hash = SignatureHash(scriptPubKey, CTransaction(mutableTransaction),
+                                 whichIn, SigHashType(), Amount(0));
 
     CScript result;
     // CHECKMULTISIG bug workaround
@@ -351,7 +351,8 @@ BOOST_AUTO_TEST_CASE(multisig_Sign) {
     }
 
     for (int i = 0; i < 3; i++) {
-        BOOST_CHECK_MESSAGE(SignSignature(keystore, txFrom, txTo[i], 0,
+        BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom),
+                                          txTo[i], 0,
                                           SigHashType().withForkId(true)),
                             strprintf("SignSignature %d", i));
     }

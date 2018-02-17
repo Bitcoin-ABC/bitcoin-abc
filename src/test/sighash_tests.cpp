@@ -144,8 +144,9 @@ BOOST_AUTO_TEST_CASE(sighash_test) {
         int nIn = InsecureRandRange(txTo.vin.size());
 
         uint256 sh, sho;
-        sho = SignatureHashOld(scriptCode, txTo, nIn, nHashType);
-        sh = SignatureHash(scriptCode, txTo, nIn, sigHashType, Amount(0));
+        sho = SignatureHashOld(scriptCode, CTransaction(txTo), nIn, nHashType);
+        sh = SignatureHash(scriptCode, CTransaction(txTo), nIn, sigHashType,
+                           Amount(0));
 #if defined(PRINT_SIGHASH_JSON)
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         ss << txTo;
