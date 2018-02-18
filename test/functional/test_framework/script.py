@@ -564,11 +564,9 @@ class CScript(bytes):
                     yield CScriptOp(opcode)
 
     def __repr__(self):
-        # For Python3 compatibility add b before strings so testcases don't
-        # need to change
         def _repr(o):
             if isinstance(o, bytes):
-                return "x('{}')".format(hexlify(o).decode('ascii')).encode()
+                return "x('{}')".format(hexlify(o).decode('ascii'))
             else:
                 return repr(o)
 
