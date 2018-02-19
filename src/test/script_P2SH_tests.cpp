@@ -107,7 +107,8 @@ BOOST_AUTO_TEST_CASE(sign) {
     // Check to make sure signature verification fails if we use the wrong
     // ScriptSig:
     for (int i = 0; i < 8; i++) {
-        PrecomputedTransactionData txdata(CTransaction(txTo[i]));
+        CTransaction tx(txTo[i]);
+        PrecomputedTransactionData txdata(tx);
         for (int j = 0; j < 8; j++) {
             CScript sigSave = txTo[i].vin[0].scriptSig;
             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;
