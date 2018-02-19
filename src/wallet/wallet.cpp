@@ -3778,7 +3778,7 @@ void CWallet::MarkReserveKeysAsUsed(int64_t keypool_id) {
     }
 }
 
-bool CWallet::HasUnusedKeys(int min_keys) const {
+bool CWallet::HasUnusedKeys(size_t min_keys) const {
     return setExternalKeyPool.size() >= min_keys &&
            (setInternalKeyPool.size() >= min_keys ||
             !CanSupportFeature(FEATURE_HD_SPLIT));
