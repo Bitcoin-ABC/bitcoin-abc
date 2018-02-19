@@ -392,7 +392,8 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             utxoset.insert(outpoint);
 
             // Track this tx and undo info to use later
-            utxoData.emplace(outpoint, std::make_tuple(tx, undo, old_coin));
+            utxoData.emplace(outpoint,
+                             std::make_tuple(CTransaction(tx), undo, old_coin));
         }
 
         // 1/20 times undo a previous transaction
