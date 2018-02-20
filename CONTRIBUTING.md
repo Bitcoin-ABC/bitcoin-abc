@@ -57,6 +57,7 @@ quickly, it should be reverted, and re-applied later when it no longer breaks th
 Here are some handy links for development practices aligned with Bitcoin ABC:
 
 - [Statement of Bitcoin ABC Values and Visions](https://www.yours.org/content/bitcoin-abc---our-values-and-vision-a282afaade7c)
+- How to Do Code Reviews Like a Human [Part 1](https://mtlynch.io/human-code-reviews-1/) [Part 2](https://mtlynch.io/human-code-reviews-2/)
 - [Large Diffs Are Hurting Your Ability To Ship](https://medium.com/@kurtisnusbaum/large-diffs-are-hurting-your-ability-to-ship-e0b2b41e8acf)
 - [Stacked Diffs: Keeping Phabricator Diffs Small](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6)
 - [Parallel Implementations](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php)
