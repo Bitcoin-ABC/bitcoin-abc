@@ -350,14 +350,6 @@ class TestNode():
                     assert_msg = "bitcoind should have exited with expected error " + expected_msg
                 self._raise_assertion_error(assert_msg)
 
-    def node_encrypt_wallet(self, passphrase):
-        """"Encrypts the wallet.
-
-        This causes bitcoind to shutdown, so this method takes
-        care of cleaning up resources."""
-        self.encryptwallet(passphrase)
-        self.wait_until_stopped()
-
     def relay_fee(self, cached=True):
         if not self.relay_fee_cache or not cached:
             self.relay_fee_cache = self.getnetworkinfo()["relayfee"]

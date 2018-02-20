@@ -32,8 +32,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
         assert_equal(len(privkey), 52)
 
         # Encrypt the wallet
-        self.nodes[0].node_encrypt_wallet(passphrase)
-        self.start_node(0)
+        self.nodes[0].encryptwallet(passphrase)
 
         # Check the encrypted wallet is marked as locked on initialization
         assert_equal(self.nodes[0].getwalletinfo()['unlocked_until'], 0)
