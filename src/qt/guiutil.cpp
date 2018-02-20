@@ -397,7 +397,8 @@ void openDebugLogfile() {
 }
 
 bool openBitcoinConf() {
-    fs::path pathConfig = GetConfigFile(BITCOIN_CONF_FILENAME);
+    fs::path pathConfig =
+        GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
 
     /* Create the file */
     fs::ofstream configFile(pathConfig, std::ios_base::app);
