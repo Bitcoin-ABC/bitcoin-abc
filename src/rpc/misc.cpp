@@ -97,7 +97,7 @@ static UniValue createmultisig(const Config &config,
             "It returns a json object with the address and redeemScript.\n"
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required "
-            "signatures out of the n keys or addresses.\n"
+            "signatures out of the n keys.\n"
             "2. \"keys\"       (string, required) A json array of hex-encoded "
             "public keys\n"
             "     [\n"
