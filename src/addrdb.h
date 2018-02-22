@@ -6,15 +6,16 @@
 #ifndef BITCOIN_ADDRDB_H
 #define BITCOIN_ADDRDB_H
 
-#include "chainparams.h"
 #include "fs.h"
 #include "serialize.h"
+
 #include <map>
 #include <string>
 
 class CSubNet;
 class CAddrMan;
 class CDataStream;
+class CChainParams;
 
 typedef enum BanReason {
     BanReasonUnknown = 0,
