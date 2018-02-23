@@ -831,7 +831,8 @@ std::pair<size_t, bool> CConnman::SocketSendData(CNode &node) const {
     size_t nSentSize = 0;
     size_t nMsgCount = 0;
 
-    for (const auto &data : node.vSendMsg) {
+    for (auto it = node.vSendMsg.begin(); it != node.vSendMsg.end(); ++it) {
+        const auto &data = *it;
         assert(data.size() > node.nSendOffset);
         int nBytes = 0;
 
@@ -840,10 +841,15 @@ std::pair<size_t, bool> CConnman::SocketSendData(CNode &node) const {
             if (!node.m_sock) {
                 break;
             }
-
+            int flags = MSG_NOSIGNAL | MSG_DONTWAIT;
+#ifdef MSG_MORE
+            if (it + 1 != node.vSendMsg.end()) {
+                flags |= MSG_MORE;
+            }
+#endif
             nBytes = node.m_sock->Send(
                 reinterpret_cast<const char *>(data.data()) + node.nSendOffset,
-                data.size() - node.nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
+                data.size() - node.nSendOffset, flags);
         }
 
         if (nBytes == 0) {
