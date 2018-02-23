@@ -59,11 +59,11 @@ BOOST_AUTO_TEST_CASE(manythreads) {
     };
     // [-11, 1000]
     auto randomMsec = [](FastRandomContext &rc) -> int {
-        return -11 + rc.randrange(1012);
+        return -11 + int(rc.randrange(1012));
     };
     // [-1000, 1000]
     auto randomDelta = [](FastRandomContext &rc) -> int {
-        return -1000 + rc.randrange(2001);
+        return -1000 + int(rc.randrange(2001));
     };
 
     boost::chrono::system_clock::time_point start =
