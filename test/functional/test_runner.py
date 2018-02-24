@@ -28,6 +28,7 @@ import tempfile
 import re
 import logging
 import xml.etree.ElementTree as ET
+import json
 
 # Formatting. Default colors to empty strings.
 BOLD, BLUE, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
@@ -268,6 +269,12 @@ def main():
             if exclude_test + ".py" in test_list:
                 test_list.remove(exclude_test + ".py")
 
+    # Use and update timings from build_dir only if separate
+    # build directory is used. We do not want to pollute source directory.
+    build_timings = None
+    if (src_dir != build_dir):
+        build_timings = Timings(build_dir)
+
     if not test_list:
         print("No valid test scripts specified. Check that your test is in one "
               "of the test lists in test_runner.py, or run test_runner.py with no arguments to run all tests")
@@ -287,11 +294,11 @@ def main():
         shutil.rmtree(os.path.join(build_dir, "test",
                                    "cache"), ignore_errors=True)
 
-    run_tests(test_list, src_dir, build_dir, tests_dir, args.junitouput,
-              config["environment"]["EXEEXT"], tmpdir, args.jobs, args.coverage, passon_args)
+    run_tests(test_list, build_dir, tests_dir, args.junitouput,
+              config["environment"]["EXEEXT"], tmpdir, args.jobs, args.coverage, passon_args, build_timings)
 
 
-def run_tests(test_list, src_dir, build_dir, tests_dir, junitouput, exeext, tmpdir, jobs=1, enable_coverage=False, args=[]):
+def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, jobs=1, enable_coverage=False, args=[], build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -355,6 +362,9 @@ def run_tests(test_list, src_dir, build_dir, tests_dir, junitouput, exeext, tmpd
     runtime = int(time.time() - time0)
     print_results(test_results, max_len_name, runtime)
     save_results_as_junit(test_results, junitouput, runtime)
+
+    if (build_timings is not None):
+        build_timings.save_timings(test_results)
 
     if coverage:
         coverage.report_rpc_coverage()
@@ -605,6 +615,54 @@ def save_results_as_junit(test_results, file_name, time):
 
     ET.ElementTree(e_test_suite).write(
         file_name, "UTF-8", xml_declaration=True)
+
+
+class Timings():
+    """    
+    Takes care of loading, merging and saving tests execution times.
+    """
+
+    def __init__(self, dir):
+        self.dir = dir
+        self.timing_file = os.path.join(dir, 'timing.json')
+        self.existing_timings = self.load_timings()
+
+    def load_timings(self):
+        if os.path.isfile(self.timing_file):
+            with open(self.timing_file) as f:
+                return json.load(f)
+        else:
+            return []
+
+    def get_merged_timings(self, new_timings):
+        """
+        Return new list containing existing timings updated with new timings
+        Tests that do not exists are not removed
+        """
+
+        key = 'name'
+        merged = {}
+        for item in self.existing_timings + new_timings:
+            if item[key] in merged:
+                merged[item[key]].update(item)
+            else:
+                merged[item[key]] = item
+
+        # Sort the result to preserve test ordering in file
+        merged = list(merged.values())
+        merged.sort(key=lambda t, key=key: t[key])
+        return merged
+
+    def save_timings(self, test_results):
+        # we only save test that have passed - timings for failed test might be
+        # wrong (timeouts or early fails)
+        passed_results = [t for t in test_results if t.status == 'Passed']
+        new_timings = list(map(lambda t: {'name':  t.name, 'time': t.time},
+                               passed_results))
+        merged_timings = self.get_merged_timings(new_timings)
+
+        with open(self.timing_file, 'w') as f:
+            json.dump(merged_timings, f, indent=True)
 
 
 if __name__ == '__main__':
