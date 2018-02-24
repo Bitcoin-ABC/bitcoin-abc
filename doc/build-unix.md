@@ -200,12 +200,7 @@ cd $BITCOIN_ROOT
 
 Boost
 -----
-If you need to build Boost yourself:
-
-	sudo su
-	./bootstrap.sh
-	./bjam install
-
+For documentation on building Boost look at their official documentation: http://www.boost.org/build/doc/html/bbv2/installation.html
 
 Security
 --------
