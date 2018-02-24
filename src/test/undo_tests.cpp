@@ -16,8 +16,6 @@ BOOST_FIXTURE_TEST_SUITE(undo_tests, BasicTestingSetup)
 static void UpdateUTXOSet(const CBlock &block, CCoinsViewCache &view,
                           CBlockUndo &blockundo,
                           const CChainParams &chainparams, uint32_t nHeight) {
-    CValidationState state;
-
     auto &coinbaseTx = *block.vtx[0];
     UpdateCoins(coinbaseTx, view, nHeight);
 
