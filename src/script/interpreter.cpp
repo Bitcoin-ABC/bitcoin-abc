@@ -338,19 +338,15 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
             // May 15 2018 HF activates AND, OR, XOR, DIV, MOD, CAT, and SPLIT
             if (fEnabledOpCodes0) {
-                if (opcode == OP_CAT || opcode == OP_SUBSTR || opcode == OP_LEFT ||
-                    opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_AND ||
-                    opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL ||
-                    opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
-                    opcode == OP_MOD || opcode == OP_LSHIFT ||
-                    opcode == OP_RSHIFT) {
+                if (opcode == OP_INVERT || opcode == OP_2MUL || opcode == OP_2DIV ||
+                    opcode == OP_MUL || opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
                     // Disabled opcodes.
                     return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
                 }
             }
             else {
-                if (opcode == OP_CAT || opcode == OP_SUBSTR || opcode == OP_LEFT ||
-                    opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_AND ||
+                if (opcode == OP_CAT || opcode == OP_SPLIT || opcode == OP_BIN2NUM ||
+                    opcode == OP_NUM2BIN || opcode == OP_INVERT || opcode == OP_AND ||
                     opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL ||
                     opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
                     opcode == OP_MOD || opcode == OP_LSHIFT ||
