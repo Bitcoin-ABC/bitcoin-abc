@@ -317,10 +317,10 @@ public:
             uint256S("0x000000000000b41f1f2ddf130df8824e2b61c0af809ff86dd5cadb3"
                      "61d984ca7");
 
-        // Aug, 1 hard fork
+        // Aug 1 2017 hard fork
         consensus.uahfHeight = 1155876;
 
-        // Nov, 13 hard fork
+        // Nov 13 2017 hard fork
         consensus.daaHeight = 1188697;
 
         // May 15 2018 hard fork
@@ -448,7 +448,7 @@ public:
         // Hard fork is always enabled on regtest.
         consensus.uahfHeight = 0;
 
-        // Nov, 13 hard fork is always on on regtest.
+        // Nov 13 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
 
         // May 15 2018 hard fork is always enabled on regtest
