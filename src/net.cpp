@@ -698,8 +698,29 @@ void CNode::copyStats(CNodeStats &stats) {
 }
 #undef X
 
-bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes,
-                            bool &complete) {
+static bool IsOversizedMessage(const Config &config, const CNetMessage &msg) {
+    if (!msg.in_data) {
+        // Header only, cannot be oversized.
+        return false;
+    }
+
+    // If the message doesn't not contain a block content, check against
+    // MAX_PROTOCOL_MESSAGE_LENGTH.
+    if (msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH &&
+        !NetMsgType::IsBlockLike(msg.hdr.GetCommand())) {
+        return true;
+    }
+
+    // Scale the maximum accepted size with the block size.
+    if (msg.hdr.nMessageSize > 2 * config.GetMaxBlockSize()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
+                            unsigned int nBytes, bool &complete) {
     complete = false;
     int64_t nTimeMicros = GetTimeMicros();
     LOCK(cs_vRecv);
@@ -726,7 +747,7 @@ bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes,
             return false;
         }
 
-        if (msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
+        if (IsOversizedMessage(config, msg)) {
             LogPrint(BCLog::NET,
                      "Oversized message from peer=%i, disconnecting\n",
                      GetId());
@@ -1407,7 +1428,8 @@ void CConnman::ThreadSocketHandler() {
                 }
                 if (nBytes > 0) {
                     bool notify = false;
-                    if (!pnode->ReceiveMsgBytes(pchBuf, nBytes, notify)) {
+                    if (!pnode->ReceiveMsgBytes(*config, pchBuf, nBytes,
+                                                notify)) {
                         pnode->CloseSocketDisconnect();
                     }
                     RecordBytesRecv(nBytes);

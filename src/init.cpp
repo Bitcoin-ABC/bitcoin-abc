@@ -798,7 +798,7 @@ std::string HelpMessage(HelpMessageMode mode) {
             HelpMessageOpt("-excessiveblocksize=<n>",
                            strprintf(_("Do not accept blocks larger than this "
                                        "limit, in bytes (default: %d)"),
-                                     LEGACY_MAX_BLOCK_SIZE));
+                                     DEFAULT_MAX_BLOCK_SIZE));
         strUsage += HelpMessageOpt(
             "-incrementalrelayfee=<amt>",
             strprintf(

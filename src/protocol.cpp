@@ -39,6 +39,12 @@ const char *SENDCMPCT = "sendcmpct";
 const char *CMPCTBLOCK = "cmpctblock";
 const char *GETBLOCKTXN = "getblocktxn";
 const char *BLOCKTXN = "blocktxn";
+
+bool IsBlockLike(const std::string &strCommand) {
+    return strCommand == NetMsgType::BLOCK ||
+           strCommand == NetMsgType::CMPCTBLOCK ||
+           strCommand == NetMsgType::BLOCKTXN;
+}
 }; // namespace NetMsgType
 
 /**

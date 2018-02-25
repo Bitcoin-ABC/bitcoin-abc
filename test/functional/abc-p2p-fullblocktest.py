@@ -75,7 +75,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.coinbase_pubkey = self.coinbase_key.get_pubkey()
         self.tip = None
         self.blocks = {}
-        self.excessive_block_size = 16 * ONE_MEGABYTE
+        self.excessive_block_size = 32 * ONE_MEGABYTE
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=9999',
@@ -477,7 +477,7 @@ class FullBlockTest(ComparisonTestFramework):
         b34 = block(34, spend=out[25], block_size=8 * ONE_MEGABYTE)
         yield accepted()
 
-        # Checks the node to forward it via compact block
+        # Checks the node forwards it via compact block
         wait_until(received_block, timeout=30)
 
         # Was it our block ?
