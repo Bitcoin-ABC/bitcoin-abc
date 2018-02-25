@@ -346,11 +346,14 @@ void PruneAndFlush();
 /** Prune block files up to a given height */
 void PruneBlockFilesManual(int nPruneUpToHeight);
 
-/** Check is UAHF has activated. */
+/** Check if UAHF has activated. */
 bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
 
-/** Check is DAA HF has activated. */
+/** Check if DAA HF has activated. */
 bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev);
+
+/** Check if 15 May 2018 HF has activated. */
+bool IsForkMay152018Enabled(const Config &config, const CBlockIndex *pindexPrev);
 
 /**
  * (try to) add transaction to memory pool

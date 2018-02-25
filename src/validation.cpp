@@ -598,6 +598,18 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
+static bool IsForkMay152018Enabled(const Config &config, int64_t nMedianTimePast) {
+    return nMedianTimePast >= config.GetChainParams().GetConsensus().May152018ActivationTime;
+}
+
+bool IsForkMay152018Enabled(const Config &config, const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsForkMay152018Enabled(config, pindexPrev->GetMedianTimePast());
+}
+
 /**
  * Make mempool consistent after a reorg, by re-adding or recursively erasing
  * disconnected block transactions from the mempool, and also removing any other
@@ -1880,6 +1892,12 @@ static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
     if (IsDAAEnabled(config, pindex->pprev)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
+    }
+
+    // Once the the 15 May 2018 hardfork activates we may begin using new opcodes.
+    // Therefore script flags need to be passed to the interpreter allowing this.
+    if (IsForkMay152018Enabled(config, pindex->pprev)) {
+        flags |= SCRIPT_ENABLE_OPCODES0;
     }
 
     return flags;

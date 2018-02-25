@@ -140,11 +140,14 @@ public:
             uint256S("0x000000000000000005e14d3f9fdfb70745308706615cfa9edca4f45"
                      "58332b201");
 
-        // Aug, 1 hard fork
+        // August 1 2017 hard fork
         consensus.uahfHeight = 478559;
 
-        // Nov, 13 hard fork
+        // November 13 2017 hard fork
         consensus.daaHeight = 504031;
+
+        // May 15 2018 hard fork
+        consensus.May152018ActivationTime = 1526342400;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -320,6 +323,9 @@ public:
         // Nov, 13 hard fork
         consensus.daaHeight = 1188697;
 
+        // May 15 2018 hard fork
+        consensus.May152018ActivationTime = 1526342400;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -444,6 +450,9 @@ public:
 
         // Nov, 13 hard fork is always on on regtest.
         consensus.daaHeight = 0;
+
+        // May 15 2018 hard fork is always enabled on regtest
+        consensus.May152018ActivationTime = 0;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;
