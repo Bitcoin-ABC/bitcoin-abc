@@ -704,19 +704,7 @@ static bool IsOversizedMessage(const Config &config, const CNetMessage &msg) {
         return false;
     }
 
-    // If the message doesn't not contain a block content, check against
-    // MAX_PROTOCOL_MESSAGE_LENGTH.
-    if (msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH &&
-        !NetMsgType::IsBlockLike(msg.hdr.GetCommand())) {
-        return true;
-    }
-
-    // Scale the maximum accepted size with the block size.
-    if (msg.hdr.nMessageSize > 2 * config.GetMaxBlockSize()) {
-        return true;
-    }
-
-    return false;
+    return msg.hdr.IsOversized(config);
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
@@ -738,7 +726,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
         // Absorb network data.
         int handled;
         if (!msg.in_data) {
-            handled = msg.readHeader(pch, nBytes);
+            handled = msg.readHeader(config, pch, nBytes);
         } else {
             handled = msg.readData(pch, nBytes);
         }
@@ -803,7 +791,8 @@ int CNode::GetSendVersion() const {
     return nSendVersion;
 }
 
-int CNetMessage::readHeader(const char *pch, unsigned int nBytes) {
+int CNetMessage::readHeader(const Config &config, const char *pch,
+                            unsigned int nBytes) {
     // copy data to temporary parsing buffer
     unsigned int nRemaining = 24 - nHdrPos;
     unsigned int nCopy = std::min(nRemaining, nBytes);
@@ -823,8 +812,9 @@ int CNetMessage::readHeader(const char *pch, unsigned int nBytes) {
         return -1;
     }
 
-    // reject messages larger than MAX_SIZE
-    if (hdr.nMessageSize > MAX_SIZE) {
+    // Reject oversized messages
+    if (hdr.IsOversized(config)) {
+        LogPrint(BCLog::NET, "Oversized header detected\n");
         return -1;
     }
 

@@ -5,6 +5,8 @@
 
 #include "protocol.h"
 
+#include "chainparams.h"
+#include "config.h"
 #include "util.h"
 #include "utilstrencodings.h"
 
@@ -90,18 +92,22 @@ std::string CMessageHeader::GetCommand() const {
                        pchCommand + strnlen(pchCommand, COMMAND_SIZE));
 }
 
-bool CMessageHeader::IsValid(const MessageMagic &pchMessageStartIn) const {
+static bool
+CheckHeaderMagicAndCommand(const CMessageHeader &header,
+                           const CMessageHeader::MessageMagic &magic) {
     // Check start string
-    if (memcmp(std::begin(pchMessageStart), std::begin(pchMessageStartIn),
-               MESSAGE_START_SIZE) != 0) {
+    if (memcmp(std::begin(header.pchMessageStart), std::begin(magic),
+               CMessageHeader::MESSAGE_START_SIZE) != 0) {
         return false;
     }
 
     // Check the command string for errors
-    for (const char *p1 = pchCommand; p1 < pchCommand + COMMAND_SIZE; p1++) {
+    for (const char *p1 = header.pchCommand;
+         p1 < header.pchCommand + CMessageHeader::COMMAND_SIZE; p1++) {
         if (*p1 == 0) {
             // Must be all zeros after the first zero
-            for (; p1 < pchCommand + COMMAND_SIZE; p1++) {
+            for (; p1 < header.pchCommand + CMessageHeader::COMMAND_SIZE;
+                 p1++) {
                 if (*p1 != 0) {
                     return false;
                 }
@@ -111,15 +117,64 @@ bool CMessageHeader::IsValid(const MessageMagic &pchMessageStartIn) const {
         }
     }
 
+    return true;
+}
+
+bool CMessageHeader::IsValid(const Config &config) const {
+    // Check start string
+    if (!CheckHeaderMagicAndCommand(*this,
+                                    config.GetChainParams().NetMagic())) {
+        return false;
+    }
+
     // Message size
-    if (nMessageSize > MAX_SIZE) {
-        LogPrintf("CMessageHeader::IsValid(): (%s, %u bytes) nMessageSize > "
-                  "MAX_SIZE\n",
+    if (IsOversized(config)) {
+        LogPrintf("CMessageHeader::IsValid(): (%s, %u bytes) is oversized\n",
                   GetCommand(), nMessageSize);
         return false;
     }
 
     return true;
+}
+
+/**
+ * This is a transition method in order to stay compatible with older code that
+ * do not use the config. It assumes message will not get too large. This cannot
+ * be used for any piece of code that will download blocks as blocks may be
+ * bigger than the permitted size. Idealy, code that uses this function should
+ * be migrated toward using the config.
+ */
+bool CMessageHeader::IsValidWithoutConfig(const MessageMagic &magic) const {
+    // Check start string
+    if (!CheckHeaderMagicAndCommand(*this, magic)) {
+        return false;
+    }
+
+    // Message size
+    if (nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
+        LogPrintf(
+            "CMessageHeader::IsValidForSeeder(): (%s, %u bytes) is oversized\n",
+            GetCommand(), nMessageSize);
+        return false;
+    }
+
+    return true;
+}
+
+bool CMessageHeader::IsOversized(const Config &config) const {
+    // If the message doesn't not contain a block content, check against
+    // MAX_PROTOCOL_MESSAGE_LENGTH.
+    if (nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH &&
+        !NetMsgType::IsBlockLike(GetCommand())) {
+        return true;
+    }
+
+    // Scale the maximum accepted size with the block size.
+    if (nMessageSize > 2 * config.GetMaxBlockSize()) {
+        return true;
+    }
+
+    return false;
 }
 
 CAddress::CAddress() : CService() {

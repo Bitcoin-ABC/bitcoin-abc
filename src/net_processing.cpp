@@ -3139,7 +3139,7 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
 
     // Read header
     CMessageHeader &hdr = msg.hdr;
-    if (!hdr.IsValid(chainparams.NetMagic())) {
+    if (!hdr.IsValid(config)) {
         LogPrintf("PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n",
                   SanitizeString(hdr.GetCommand()), pfrom->id);
         return fMoreWork;

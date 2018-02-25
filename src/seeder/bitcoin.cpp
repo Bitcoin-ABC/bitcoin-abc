@@ -204,7 +204,7 @@ class CSeederNode {
                                           vRecv.begin() + nHeaderSize);
             CMessageHeader hdr(netMagic);
             vRecv >> hdr;
-            if (!hdr.IsValid(netMagic)) {
+            if (!hdr.IsValidWithoutConfig(netMagic)) {
                 // printf("%s: BAD (invalid header)\n", ToString(you).c_str());
                 ban = 100000;
                 return true;

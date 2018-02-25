@@ -19,6 +19,14 @@
 #include <cstdint>
 #include <string>
 
+class Config;
+
+/**
+ * Maximum length of incoming protocol messages (Currently 1MB).
+ * NB: Messages propagating block content are not subject to this limit.
+ */
+static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 1 * 1024 * 1024;
+
 /**
  * Message header.
  * (4) message start.
@@ -46,7 +54,9 @@ public:
                    const char *pszCommand, unsigned int nMessageSizeIn);
 
     std::string GetCommand() const;
-    bool IsValid(const MessageMagic &messageStart) const;
+    bool IsValid(const Config &config) const;
+    bool IsValidWithoutConfig(const MessageMagic &magic) const;
+    bool IsOversized(const Config &config) const;
 
     ADD_SERIALIZE_METHODS;
 
