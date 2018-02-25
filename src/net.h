@@ -532,11 +532,11 @@ public:
     CDataStream hdrbuf;
     // Complete header.
     CMessageHeader hdr;
-    unsigned int nHdrPos;
+    uint32_t nHdrPos;
 
     // Received message data.
     CDataStream vRecv;
-    unsigned int nDataPos;
+    uint32_t nDataPos;
 
     // Time (in microseconds) of message receipt.
     int64_t nTime;
@@ -567,8 +567,8 @@ public:
         vRecv.SetVersion(nVersionIn);
     }
 
-    int readHeader(const Config &config, const char *pch, unsigned int nBytes);
-    int readData(const char *pch, unsigned int nBytes);
+    int readHeader(const Config &config, const char *pch, uint32_t nBytes);
+    int readData(const char *pch, uint32_t nBytes);
 };
 
 /** Information about a peer */
@@ -739,8 +739,8 @@ public:
         return nRefCount;
     }
 
-    bool ReceiveMsgBytes(const Config &config, const char *pch,
-                         unsigned int nBytes, bool &complete);
+    bool ReceiveMsgBytes(const Config &config, const char *pch, uint32_t nBytes,
+                         bool &complete);
 
     void SetRecvVersion(int nVersionIn) { nRecvVersion = nVersionIn; }
     int GetRecvVersion() { return nRecvVersion; }

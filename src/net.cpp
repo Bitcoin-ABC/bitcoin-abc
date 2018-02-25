@@ -708,7 +708,7 @@ static bool IsOversizedMessage(const Config &config, const CNetMessage &msg) {
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
-                            unsigned int nBytes, bool &complete) {
+                            uint32_t nBytes, bool &complete) {
     complete = false;
     int64_t nTimeMicros = GetTimeMicros();
     LOCK(cs_vRecv);
@@ -792,10 +792,10 @@ int CNode::GetSendVersion() const {
 }
 
 int CNetMessage::readHeader(const Config &config, const char *pch,
-                            unsigned int nBytes) {
+                            uint32_t nBytes) {
     // copy data to temporary parsing buffer
-    unsigned int nRemaining = 24 - nHdrPos;
-    unsigned int nCopy = std::min(nRemaining, nBytes);
+    uint32_t nRemaining = 24 - nHdrPos;
+    uint32_t nCopy = std::min(nRemaining, nBytes);
 
     memcpy(&hdrbuf[nHdrPos], pch, nCopy);
     nHdrPos += nCopy;
@@ -824,7 +824,7 @@ int CNetMessage::readHeader(const Config &config, const char *pch,
     return nCopy;
 }
 
-int CNetMessage::readData(const char *pch, unsigned int nBytes) {
+int CNetMessage::readData(const char *pch, uint32_t nBytes) {
     unsigned int nRemaining = hdr.nMessageSize - nDataPos;
     unsigned int nCopy = std::min(nRemaining, nBytes);
 
@@ -1407,7 +1407,7 @@ void CConnman::ThreadSocketHandler() {
             if (recvSet || errorSet) {
                 // typical socket buffer is 8K-64K
                 char pchBuf[0x10000];
-                int nBytes = 0;
+                int32_t nBytes = 0;
                 {
                     LOCK(pnode->cs_hSocket);
                     if (pnode->hSocket == INVALID_SOCKET) {
