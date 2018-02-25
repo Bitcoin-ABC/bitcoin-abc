@@ -48,35 +48,44 @@ uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const uint256 &txhash) const {
 
 ReadStatus PartiallyDownloadedBlock::InitData(
     const CBlockHeaderAndShortTxIDs &cmpctblock,
-    const std::vector<std::pair<uint256, CTransactionRef>> &extra_txn) {
+    const std::vector<std::pair<uint256, CTransactionRef>> &extra_txns) {
     if (cmpctblock.header.IsNull() ||
-        (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty()))
+        (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty())) {
         return READ_STATUS_INVALID;
+    }
     if (cmpctblock.shorttxids.size() + cmpctblock.prefilledtxn.size() >
-        config->GetMaxBlockSize() / MIN_TRANSACTION_SIZE)
+        config->GetMaxBlockSize() / MIN_TRANSACTION_SIZE) {
         return READ_STATUS_INVALID;
+    }
 
-    assert(header.IsNull() && txn_available.empty());
+    assert(header.IsNull() && txns_available.empty());
     header = cmpctblock.header;
-    txn_available.resize(cmpctblock.BlockTxCount());
+    txns_available.resize(cmpctblock.BlockTxCount());
 
     int32_t lastprefilledindex = -1;
     for (size_t i = 0; i < cmpctblock.prefilledtxn.size(); i++) {
-        if (cmpctblock.prefilledtxn[i].tx->IsNull()) return READ_STATUS_INVALID;
+        auto &prefilledtxn = cmpctblock.prefilledtxn[i];
+        if (prefilledtxn.tx->IsNull()) {
+            return READ_STATUS_INVALID;
+        }
 
         // index is a uint16_t, so can't overflow here.
-        lastprefilledindex += cmpctblock.prefilledtxn[i].index + 1;
-        if (lastprefilledindex > std::numeric_limits<uint16_t>::max())
+        lastprefilledindex += prefilledtxn.index + 1;
+        if (lastprefilledindex > std::numeric_limits<uint16_t>::max()) {
             return READ_STATUS_INVALID;
-        if ((uint32_t)lastprefilledindex > cmpctblock.shorttxids.size() + i) {
+        }
+
+        if (uint32_t(lastprefilledindex) > cmpctblock.shorttxids.size() + i) {
             // If we are inserting a tx at an index greater than our full list
             // of shorttxids plus the number of prefilled txn we've inserted,
             // then we have txn for which we have neither a prefilled txn or a
             // shorttxid!
             return READ_STATUS_INVALID;
         }
-        txn_available[lastprefilledindex] = cmpctblock.prefilledtxn[i].tx;
+
+        txns_available[lastprefilledindex] = prefilledtxn.tx;
     }
+
     prefilled_count = cmpctblock.prefilledtxn.size();
 
     // Calculate map of txids -> positions and check mempool to see what we have
@@ -87,8 +96,10 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         cmpctblock.shorttxids.size());
     uint16_t index_offset = 0;
     for (size_t i = 0; i < cmpctblock.shorttxids.size(); i++) {
-        while (txn_available[i + index_offset])
+        while (txns_available[i + index_offset]) {
             index_offset++;
+        }
+
         shorttxids[cmpctblock.shorttxids[i]] = i + index_offset;
         // To determine the chance that the number of entries in a bucket
         // exceeds N, we use the fact that the number of elements in a single
@@ -102,9 +113,11 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         // 16000, allowing 12 elements per bucket should only fail once per ~1
         // million block transfers (per peer and connection).
         if (shorttxids.bucket_size(
-                shorttxids.bucket(cmpctblock.shorttxids[i])) > 12)
+                shorttxids.bucket(cmpctblock.shorttxids[i])) > 12) {
             return READ_STATUS_FAILED;
+        }
     }
+
     // TODO: in the shortid-collision case, we should instead request both
     // transactions which collided. Falling back to full-block-request here is
     // overkill.
@@ -113,19 +126,18 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         return READ_STATUS_FAILED;
     }
 
-    std::vector<bool> have_txn(txn_available.size());
+    std::vector<bool> have_txn(txns_available.size());
     {
         LOCK(pool->cs);
         const std::vector<std::pair<uint256, CTxMemPool::txiter>> &vTxHashes =
             pool->vTxHashes;
-        for (size_t i = 0; i < vTxHashes.size(); i++) {
-            uint64_t shortid = cmpctblock.GetShortID(vTxHashes[i].first);
+        for (auto txHash : vTxHashes) {
+            uint64_t shortid = cmpctblock.GetShortID(txHash.first);
             std::unordered_map<uint64_t, uint16_t>::iterator idit =
                 shorttxids.find(shortid);
             if (idit != shorttxids.end()) {
                 if (!have_txn[idit->second]) {
-                    txn_available[idit->second] =
-                        vTxHashes[i].second->GetSharedTx();
+                    txns_available[idit->second] = txHash.second->GetSharedTx();
                     have_txn[idit->second] = true;
                     mempool_count++;
                 } else {
@@ -133,8 +145,8 @@ ReadStatus PartiallyDownloadedBlock::InitData(
                     // request it. This should be rare enough that the extra
                     // bandwidth doesn't matter, but eating a round-trip due to
                     // FillBlock failure would be annoying.
-                    if (txn_available[idit->second]) {
-                        txn_available[idit->second].reset();
+                    if (txns_available[idit->second]) {
+                        txns_available[idit->second].reset();
                         mempool_count--;
                     }
                 }
@@ -142,17 +154,19 @@ ReadStatus PartiallyDownloadedBlock::InitData(
             // Though ideally we'd continue scanning for the
             // two-txn-match-shortid case, the performance win of an early exit
             // here is too good to pass up and worth the extra risk.
-            if (mempool_count == shorttxids.size()) break;
+            if (mempool_count == shorttxids.size()) {
+                break;
+            }
         }
     }
 
-    for (size_t i = 0; i < extra_txn.size(); i++) {
-        uint64_t shortid = cmpctblock.GetShortID(extra_txn[i].first);
+    for (auto &extra_txn : extra_txns) {
+        uint64_t shortid = cmpctblock.GetShortID(extra_txn.first);
         std::unordered_map<uint64_t, uint16_t>::iterator idit =
             shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
             if (!have_txn[idit->second]) {
-                txn_available[idit->second] = extra_txn[i].second;
+                txns_available[idit->second] = extra_txn.second;
                 have_txn[idit->second] = true;
                 mempool_count++;
                 extra_count++;
@@ -161,12 +175,12 @@ ReadStatus PartiallyDownloadedBlock::InitData(
                 // just request it. This should be rare enough that the extra
                 // bandwidth doesn't matter, but eating a round-trip due to
                 // FillBlock failure would be annoying. Note that we dont want
-                // duplication between extra_txn and mempool to trigger this
+                // duplication between extra_txns and mempool to trigger this
                 // case, so we compare hashes first.
-                if (txn_available[idit->second] &&
-                    txn_available[idit->second]->GetHash() !=
-                        extra_txn[i].second->GetHash()) {
-                    txn_available[idit->second].reset();
+                if (txns_available[idit->second] &&
+                    txns_available[idit->second]->GetHash() !=
+                        extra_txn.second->GetHash()) {
+                    txns_available[idit->second].reset();
                     mempool_count--;
                     extra_count--;
                 }
@@ -176,7 +190,9 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         // Though ideally we'd continue scanning for the two-txn-match-shortid
         // case, the performance win of an early exit here is too good to pass
         // up and worth the extra risk.
-        if (mempool_count == shorttxids.size()) break;
+        if (mempool_count == shorttxids.size()) {
+            break;
+        }
     }
 
     LogPrint(BCLog::CMPCTBLOCK, "Initialized PartiallyDownloadedBlock for "
@@ -189,8 +205,8 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 
 bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {
     assert(!header.IsNull());
-    assert(index < txn_available.size());
-    return txn_available[index] ? true : false;
+    assert(index < txns_available.size());
+    return txns_available[index] ? true : false;
 }
 
 ReadStatus PartiallyDownloadedBlock::FillBlock(
@@ -198,23 +214,28 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
     assert(!header.IsNull());
     uint256 hash = header.GetHash();
     block = header;
-    block.vtx.resize(txn_available.size());
+    block.vtx.resize(txns_available.size());
 
     size_t tx_missing_offset = 0;
-    for (size_t i = 0; i < txn_available.size(); i++) {
-        if (!txn_available[i]) {
-            if (vtx_missing.size() <= tx_missing_offset)
+    for (size_t i = 0; i < txns_available.size(); i++) {
+        auto &txn_available = txns_available[i];
+        if (!txn_available) {
+            if (vtx_missing.size() <= tx_missing_offset) {
                 return READ_STATUS_INVALID;
+            }
             block.vtx[i] = vtx_missing[tx_missing_offset++];
-        } else
-            block.vtx[i] = std::move(txn_available[i]);
+        } else {
+            block.vtx[i] = std::move(txn_available);
+        }
     }
 
     // Make sure we can't call FillBlock again.
     header.SetNull();
-    txn_available.clear();
+    txns_available.clear();
 
-    if (vtx_missing.size() != tx_missing_offset) return READ_STATUS_INVALID;
+    if (vtx_missing.size() != tx_missing_offset) {
+        return READ_STATUS_INVALID;
+    }
 
     CValidationState state;
     if (!CheckBlock(*config, block, state)) {
