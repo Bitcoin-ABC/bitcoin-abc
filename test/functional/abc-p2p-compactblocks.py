@@ -72,14 +72,14 @@ class FullBlockTest(ComparisonTestFramework):
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.excessive_block_size = 100 * ONE_MEGABYTE
+        self.excessive_block_size = 16 * ONE_MEGABYTE
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
-                            '-limitancestorcount=9999',
-                            '-limitancestorsize=9999',
-                            '-limitdescendantcount=9999',
-                            '-limitdescendantsize=9999',
-                            '-maxmempool=999',
+                            '-limitancestorcount=999999',
+                            '-limitancestorsize=999999',
+                            '-limitdescendantcount=999999',
+                            '-limitdescendantsize=999999',
+                            '-maxmempool=99999',
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
 
@@ -106,7 +106,7 @@ class FullBlockTest(ComparisonTestFramework):
         tx = create_transaction(spend_tx, n, b"", value, script)
         return tx
 
-    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
+    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -159,6 +159,10 @@ class FullBlockTest(ComparisonTestFramework):
 
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
+
+            # Add transaction until we reach the expected transaction count
+            for _ in range(extra_txns):
+                self.add_transactions_to_block(block, [get_base_transaction()])
 
             # If we have a block size requirement, just fill
             # the block until we get there
@@ -321,9 +325,10 @@ class FullBlockTest(ComparisonTestFramework):
         cmpctblk_header.calc_sha256()
         assert(cmpctblk_header.sha256 == b1.sha256)
 
-        # Send a bigger block
+        # Send a large block with numerous transactions.
         peer.clear_block_data()
-        b2 = block(2, spend=out[1], block_size=self.excessive_block_size)
+        b2 = block(2, spend=out[1], extra_txns=70000,
+                   block_size=self.excessive_block_size - 1000)
         yield accepted()
 
         # Checks the node forwards it via compact block
@@ -334,19 +339,26 @@ class FullBlockTest(ComparisonTestFramework):
         cmpctblk_header.calc_sha256()
         assert(cmpctblk_header.sha256 == b2.sha256)
 
+        # In order to avoid having to resend a ton of transactions, we invalidate
+        # b2, which will send all its transactions in the mempool.
+        node.invalidateblock(node.getbestblockhash())
+
         # Let's send a compact block and see if the node accepts it.
-        # First, we generate the block and send all transaction to the mempool
-        b3 = block(3, spend=out[2], block_size=8 * ONE_MEGABYTE)
-        for i in range(1, len(b3.vtx)):
-            node.sendrawtransaction(ToHex(b3.vtx[i]), True)
+        # Let's modify b2 and use it so that we can reuse the mempool.
+        tx = b2.vtx[0]
+        tx.vout.append(CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
+        tx.rehash()
+        b2.vtx[0] = tx
+        b2.hashMerkleRoot = b2.calc_merkle_root()
+        b2.solve()
 
         # Now we create the compact block and send it
         comp_block = HeaderAndShortIDs()
-        comp_block.initialize_from_block(b3)
+        comp_block.initialize_from_block(b2)
         peer.send_and_ping(msg_cmpctblock(comp_block.to_p2p()))
 
         # Check that compact block is received properly
-        assert(int(node.getbestblockhash(), 16) == b3.sha256)
+        assert(int(node.getbestblockhash(), 16) == b2.sha256)
 
 
 if __name__ == '__main__':

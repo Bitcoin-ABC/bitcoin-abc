@@ -33,7 +33,7 @@ class BlockTransactionsRequest {
 public:
     // A BlockTransactionsRequest message
     uint256 blockhash;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
 
     ADD_SERIALIZE_METHODS;
 
@@ -50,19 +50,19 @@ public:
                 for (; i < indices.size(); i++) {
                     uint64_t n = 0;
                     READWRITE(COMPACTSIZE(n));
-                    if (indices[i] > std::numeric_limits<uint16_t>::max()) {
+                    if (n > std::numeric_limits<uint32_t>::max()) {
                         throw std::ios_base::failure(
-                            "index overflowed 16 bits");
+                            "index overflowed 32 bits");
                     }
                     indices[i] = n;
                 }
             }
 
-            uint16_t offset = 0;
+            uint32_t offset = 0;
             for (auto &index : indices) {
                 if (uint64_t(index) + uint64_t(offset) >
-                    std::numeric_limits<uint16_t>::max()) {
-                    throw std::ios_base::failure("indices overflowed 16 bits");
+                    std::numeric_limits<uint32_t>::max()) {
+                    throw std::ios_base::failure("indices overflowed 32 bits");
                 }
                 index = index + offset;
                 offset = index + 1;
@@ -97,7 +97,7 @@ public:
         if (ser_action.ForRead()) {
             size_t i = 0;
             while (txn.size() < txn_size) {
-                txn.resize(std::min((uint64_t)(1000 + txn.size()), txn_size));
+                txn.resize(std::min(uint64_t(1000 + txn.size()), txn_size));
                 for (; i < txn.size(); i++) {
                     READWRITE(REF(TransactionCompressor(txn[i])));
                 }
@@ -115,19 +115,19 @@ public:
 struct PrefilledTransaction {
     // Used as an offset since last prefilled tx in CBlockHeaderAndShortTxIDs,
     // as a proper transaction-in-block-index in PartiallyDownloadedBlock
-    uint16_t index;
+    uint32_t index;
     CTransactionRef tx;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        uint64_t idx = index;
-        READWRITE(COMPACTSIZE(idx));
-        if (idx > std::numeric_limits<uint16_t>::max()) {
-            throw std::ios_base::failure("index overflowed 16-bits");
+        uint64_t n = index;
+        READWRITE(COMPACTSIZE(n));
+        if (n > std::numeric_limits<uint32_t>::max()) {
+            throw std::ios_base::failure("index overflowed 32-bits");
         }
-        index = idx;
+        index = n;
         READWRITE(REF(TransactionCompressor(tx)));
     }
 };

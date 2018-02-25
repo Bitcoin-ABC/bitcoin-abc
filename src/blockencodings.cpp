@@ -62,16 +62,16 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     header = cmpctblock.header;
     txns_available.resize(cmpctblock.BlockTxCount());
 
-    int32_t lastprefilledindex = -1;
+    int64_t lastprefilledindex = -1;
     for (size_t i = 0; i < cmpctblock.prefilledtxn.size(); i++) {
         auto &prefilledtxn = cmpctblock.prefilledtxn[i];
         if (prefilledtxn.tx->IsNull()) {
             return READ_STATUS_INVALID;
         }
 
-        // index is a uint16_t, so can't overflow here.
+        // index is a uint32_t, so can't overflow here.
         lastprefilledindex += prefilledtxn.index + 1;
-        if (lastprefilledindex > std::numeric_limits<uint16_t>::max()) {
+        if (lastprefilledindex > std::numeric_limits<uint32_t>::max()) {
             return READ_STATUS_INVALID;
         }
 
@@ -92,9 +92,9 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     // (or don't). Because well-formed cmpctblock messages will have a
     // (relatively) uniform distribution of short IDs, any highly-uneven
     // distribution of elements can be safely treated as a READ_STATUS_FAILED.
-    std::unordered_map<uint64_t, uint16_t> shorttxids(
+    std::unordered_map<uint64_t, uint32_t> shorttxids(
         cmpctblock.shorttxids.size());
-    uint16_t index_offset = 0;
+    uint32_t index_offset = 0;
     for (size_t i = 0; i < cmpctblock.shorttxids.size(); i++) {
         while (txns_available[i + index_offset]) {
             index_offset++;
@@ -133,7 +133,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
             pool->vTxHashes;
         for (auto txHash : vTxHashes) {
             uint64_t shortid = cmpctblock.GetShortID(txHash.first);
-            std::unordered_map<uint64_t, uint16_t>::iterator idit =
+            std::unordered_map<uint64_t, uint32_t>::iterator idit =
                 shorttxids.find(shortid);
             if (idit != shorttxids.end()) {
                 if (!have_txn[idit->second]) {
@@ -162,7 +162,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 
     for (auto &extra_txn : extra_txns) {
         uint64_t shortid = cmpctblock.GetShortID(extra_txn.first);
-        std::unordered_map<uint64_t, uint16_t>::iterator idit =
+        std::unordered_map<uint64_t, uint32_t>::iterator idit =
             shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
             if (!have_txn[idit->second]) {
