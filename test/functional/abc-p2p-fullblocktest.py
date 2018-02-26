@@ -20,6 +20,7 @@ from test_framework.key import CECKey
 from test_framework.script import *
 from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
                                   MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
+from collections import deque
 
 
 class PreviousSpendableOutput():
@@ -70,12 +71,9 @@ class FullBlockTest(ComparisonTestFramework):
         self.num_nodes = 1
         self.setup_clean_chain = True
         self.block_heights = {}
-        self.coinbase_key = CECKey()
-        self.coinbase_key.set_secretbytes(b"fatstacks")
-        self.coinbase_pubkey = self.coinbase_key.get_pubkey()
         self.tip = None
         self.blocks = {}
-        self.excessive_block_size = 64 * ONE_MEGABYTE
+        self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-norelaypriority',
                             '-whitelist=127.0.0.1',
                             '-limitancestorcount=9999',
@@ -109,31 +107,7 @@ class FullBlockTest(ComparisonTestFramework):
         tx = create_transaction(spend_tx, n, b"", value, script)
         return tx
 
-    # sign a transaction, using the key we know about
-    # this signs input 0 in tx, which is assumed to be spending output n in
-    # spend_tx
-    def sign_tx(self, tx, spend_tx, n):
-        scriptPubKey = bytearray(spend_tx.vout[n].scriptPubKey)
-        if (scriptPubKey[0] == OP_TRUE):  # an anyone-can-spend
-            tx.vin[0].scriptSig = CScript()
-            return
-        sighash = SignatureHashForkId(
-            spend_tx.vout[n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend_tx.vout[n].nValue)
-        tx.vin[0].scriptSig = CScript(
-            [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
-
-    def create_and_sign_transaction(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        tx = self.create_tx(spend_tx, n, value, script)
-        self.sign_tx(tx, spend_tx, n)
-        tx.rehash()
-        return tx
-
-    def next_block(self, number, spend=None, additional_coinbase_value=0, script=None, extra_sigops=0, block_size=0, solve=True):
-        """
-        Create a block on top of self.tip, and advance self.tip to point to the new block
-        if spend is specified, then 1 satoshi will be spent from that to an anyone-can-spend
-        output, and rest will go to fees.
-        """
+    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_sigops=0):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -142,70 +116,90 @@ class FullBlockTest(ComparisonTestFramework):
             block_time = self.tip.nTime + 1
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
-        coinbase = create_coinbase(height, self.coinbase_pubkey)
-        coinbase.vout[0].nValue += additional_coinbase_value
-        if (spend != None):
-            coinbase.vout[0].nValue += spend.tx.vout[
-                spend.n].nValue - 1  # all but one satoshi to fees
+        coinbase = create_coinbase(height)
         coinbase.rehash()
-        block = create_block(base_block_hash, coinbase, block_time)
-        spendable_output = None
-        if (spend != None):
+        if spend == None:
+            # We need to have something to spend to fill the block.
+            assert_equal(block_size, 0)
+            block = create_block(base_block_hash, coinbase, block_time)
+        else:
+            # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
+            coinbase.rehash()
+            block = create_block(base_block_hash, coinbase, block_time)
+            # spend 1 satoshi
             tx = CTransaction()
-            # no signature yet
-            tx.vin.append(
-                CTxIn(COutPoint(spend.tx.sha256, spend.n), b"", 0xffffffff))
-            # We put some random data into the first transaction of the chain
-            # to randomize ids
-            tx.vout.append(
-                CTxOut(0, CScript([random.randint(0, 255), OP_DROP, OP_TRUE])))
-            if script == None:
-                tx.vout.append(CTxOut(1, CScript([OP_TRUE])))
-            else:
-                tx.vout.append(CTxOut(1, script))
-            spendable_output = PreviousSpendableOutput(tx, 0)
+            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+            # Make sure we have plenty engough to spend going forward.
+            spendable_outputs = deque([])
 
-            # Now sign it if necessary
-            scriptSig = b""
-            scriptPubKey = bytearray(spend.tx.vout[spend.n].scriptPubKey)
-            if (scriptPubKey[0] == OP_TRUE):  # looks like an anyone-can-spend
-                scriptSig = CScript([OP_TRUE])
-            else:
-                # We have to actually sign it
-                sighash = SignatureHashForkId(
-                    spend.tx.vout[spend.n].scriptPubKey, tx, 0, SIGHASH_ALL | SIGHASH_FORKID, spend.tx.vout[spend.n].nValue)
-                scriptSig = CScript(
-                    [self.coinbase_key.sign(sighash) + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))])
-            tx.vin[0].scriptSig = scriptSig
-            # Now add the transaction to the block
+            def add_spendable_outputs(tx):
+                for i in range(8):
+                    tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
+                    spendable_outputs.append(PreviousSpendableOutput(tx, i))
+            add_spendable_outputs(tx)
+
+            # Make it the same format as transaction added for padding and save the size.
+            # It's missing the padding output, so we add a constant to account for it.
+            tx.rehash()
+            base_tx_size = len(tx.serialize()) + 18
+
+            # If a specific script is required, add it.
+            if script != None:
+                tx.vout.append(CTxOut(1, script))
+
+            # Put some random data into the first transaction of the chain to randomize ids.
+            tx.vout.append(
+                CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
+
+            # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
-            block.hashMerkleRoot = block.calc_merkle_root()
-        if spendable_output != None and block_size > 0:
-            while len(block.serialize()) < block_size:
+
+            # If we have a block size requirement, just fill
+            # the block until we get there
+            current_block_size = len(block.serialize())
+            while current_block_size < block_size:
+                # We will add a new transaction. That means the size of
+                # the field enumerating how many transaction go in the block
+                # may change.
+                current_block_size -= len(ser_compact_size(len(block.vtx)))
+                current_block_size += len(ser_compact_size(len(block.vtx) + 1))
+
+                # Create the new transaction
                 tx = CTransaction()
-                script_length = block_size - len(block.serialize()) - 79
+                # Spend from one of the spendable outputs
+                spend = spendable_outputs.popleft()
+                tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+                # Add spendable outputs
+                add_spendable_outputs(tx)
+
+                # Add padding to fill the block.
+                script_length = block_size - current_block_size - base_tx_size
                 if script_length > 510000:
                     script_length = 500000
-                tx_sigops = min(
-                    extra_sigops, script_length, MAX_TX_SIGOPS_COUNT)
+                tx_sigops = min(extra_sigops, script_length,
+                                MAX_TX_SIGOPS_COUNT)
                 extra_sigops -= tx_sigops
                 script_pad_len = script_length - tx_sigops
                 script_output = CScript(
                     [b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
-                tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                 tx.vout.append(CTxOut(0, script_output))
-                tx.vin.append(
-                    CTxIn(COutPoint(spendable_output.tx.sha256, spendable_output.n)))
-                spendable_output = PreviousSpendableOutput(tx, 0)
+
+                # Add the tx to the list of transactions to be included
+                # in the block.
                 self.add_transactions_to_block(block, [tx])
+                current_block_size += len(tx.serialize())
+
+            # Now that we added a bunch of transaction, we need to recompute
+            # the merkle root.
             block.hashMerkleRoot = block.calc_merkle_root()
-            # Make sure the math above worked out to produce the correct block size
-            # (the math will fail if there are too many transactions in the block)
+
+        # Check that the block size is what's expected
+        if block_size > 0:
             assert_equal(len(block.serialize()), block_size)
-            # Make sure all the requested sigops have been included
-            assert_equal(extra_sigops, 0)
-        if solve:
-            block.solve()
+
+        # Do PoW, which is cheap on regnet
+        block.solve()
         self.tip = block
         self.block_heights[block.sha256] = height
         assert number not in self.blocks
@@ -296,15 +290,13 @@ class FullBlockTest(ComparisonTestFramework):
 
         # Accept many sigops
         lots_of_checksigs = CScript(
-            [OP_CHECKSIG] * (MAX_BLOCK_SIGOPS_PER_MB - 1))
-        block(
-            19, spend=out[17], script=lots_of_checksigs, block_size=ONE_MEGABYTE)
+            [OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
+        block(19, spend=out[17], script=lots_of_checksigs,
+              block_size=ONE_MEGABYTE)
         yield accepted()
 
-        too_many_blk_checksigs = CScript(
-            [OP_CHECKSIG] * MAX_BLOCK_SIGOPS_PER_MB)
-        block(
-            20, spend=out[18], script=too_many_blk_checksigs, block_size=ONE_MEGABYTE)
+        block(20, spend=out[18], script=lots_of_checksigs,
+              block_size=ONE_MEGABYTE, extra_sigops=1)
         yield rejected(RejectResult(16, b'bad-blk-sigops'))
 
         # Rewind bad block
@@ -372,16 +364,20 @@ class FullBlockTest(ComparisonTestFramework):
         # Rewind bad block
         tip(26)
 
+        # Generate a key pair to test P2SH sigops count
+        private_key = CECKey()
+        private_key.set_secretbytes(b"fatstacks")
+        public_key = private_key.get_pubkey()
+
         # P2SH
         # Build the redeem script, hash it, use hash to create the p2sh script
-        redeem_script = CScript([self.coinbase_pubkey] + [
-                                OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
+        redeem_script = CScript(
+            [public_key] + [OP_2DUP, OP_CHECKSIGVERIFY] * 5 + [OP_CHECKSIG])
         redeem_script_hash = hash160(redeem_script)
         p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
 
         # Create a p2sh transaction
-        p2sh_tx = self.create_and_sign_transaction(
-            out[22].tx, out[22].n, 1, p2sh_script)
+        p2sh_tx = self.create_tx(out[22].tx, out[22].n, 1, p2sh_script)
 
         # Add the transaction to the block
         block(30)
@@ -398,8 +394,8 @@ class FullBlockTest(ComparisonTestFramework):
             # Sign the transaction using the redeem script
             sighash = SignatureHashForkId(
                 redeem_script, spent_p2sh_tx, 0, SIGHASH_ALL | SIGHASH_FORKID, p2sh_tx.vout[0].nValue)
-            sig = self.coinbase_key.sign(sighash) + bytes(
-                bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
+            sig = private_key.sign(sighash) + \
+                bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
             spent_p2sh_tx.vin[0].scriptSig = CScript([sig, redeem_script])
             spent_p2sh_tx.rehash()
             return spent_p2sh_tx
