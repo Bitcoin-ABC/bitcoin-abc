@@ -397,12 +397,9 @@ def disconnect_nodes(from_node, to_node):
     for peer_id in [peer['id'] for peer in from_node.getpeerinfo() if to_node.name in peer['subver']]:
         from_node.disconnectnode(nodeid=peer_id)
 
-    for _ in range(50):
-        if [peer['id'] for peer in from_node.getpeerinfo() if to_node.name in peer['subver']] == []:
-            break
-        time.sleep(0.1)
-    else:
-        raise AssertionError("timed out waiting for disconnect")
+    # wait to disconnect
+    wait_until(lambda: [peer['id'] for peer in from_node.getpeerinfo(
+    ) if to_node.name in peer['subver']] == [], timeout=5)
 
 
 def connect_nodes(from_node, to_node):
@@ -413,8 +410,8 @@ def connect_nodes(from_node, to_node):
     from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
-    while any(peer['version'] == 0 for peer in from_node.getpeerinfo()):
-        time.sleep(0.1)
+    wait_until(lambda: all(peer['version'] !=
+                           0 for peer in from_node.getpeerinfo()))
 
 
 def connect_nodes_bi(a, b):
