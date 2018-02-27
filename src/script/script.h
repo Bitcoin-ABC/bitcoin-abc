@@ -102,9 +102,7 @@ enum opcodetype {
 
     // splice ops
     OP_CAT = 0x7e,
-    OP_SUBSTR = 0x7f,
-    OP_LEFT = 0x80,
-    OP_RIGHT = 0x81,
+    OP_SPLIT = 0x7f,
     OP_SIZE = 0x82,
 
     // bit logic
@@ -162,6 +160,8 @@ enum opcodetype {
     OP_CHECKMULTISIGVERIFY = 0xaf,
 
     // expansion
+    OP_BIN2NUM = 0x80,
+    OP_NUM2BIN = 0x81,
     OP_NOP1 = 0xb0,
     OP_CHECKLOCKTIMEVERIFY = 0xb1,
     OP_NOP2 = OP_CHECKLOCKTIMEVERIFY,
@@ -271,6 +271,19 @@ public:
     }
     inline CScriptNum operator-(const CScriptNum &rhs) const {
         return operator-(rhs.m_value);
+    }
+
+    inline CScriptNum operator/(const int64_t &rhs) const {
+        return CScriptNum(m_value / rhs);
+    }
+    inline CScriptNum operator/(const CScriptNum &rhs) const {
+        return operator/(rhs.m_value);
+    }
+    inline CScriptNum operator%(const int64_t &rhs) const {
+        return CScriptNum(m_value % rhs);
+    }
+    inline CScriptNum operator%(const CScriptNum &rhs) const {
+        return operator%(rhs.m_value);
     }
 
     inline CScriptNum &operator+=(const CScriptNum &rhs) {

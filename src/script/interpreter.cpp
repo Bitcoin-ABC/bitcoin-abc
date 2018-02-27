@@ -312,6 +312,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
     }
     int nOpCount = 0;
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
+    bool fEnabledOpCodes0 = (flags & SCRIPT_ENABLE_OPCODES0) != 0;
 
     try {
         while (pc < pend) {
@@ -332,14 +333,24 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
             }
 
-            if (opcode == OP_CAT || opcode == OP_SUBSTR || opcode == OP_LEFT ||
-                opcode == OP_RIGHT || opcode == OP_INVERT || opcode == OP_AND ||
-                opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL ||
-                opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
-                opcode == OP_MOD || opcode == OP_LSHIFT ||
-                opcode == OP_RSHIFT) {
-                // Disabled opcodes.
-                return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
+            // May 15 2018 HF activates AND, OR, XOR, DIV, MOD, CAT, and SPLIT
+            if (fEnabledOpCodes0) {
+                if (opcode == OP_INVERT || opcode == OP_2MUL || opcode == OP_2DIV ||
+                    opcode == OP_MUL || opcode == OP_LSHIFT || opcode == OP_RSHIFT) {
+                    // Disabled opcodes.
+                    return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
+                }
+            }
+            else {
+                if (opcode == OP_CAT || opcode == OP_SPLIT || opcode == OP_BIN2NUM ||
+                    opcode == OP_NUM2BIN || opcode == OP_INVERT || opcode == OP_AND ||
+                    opcode == OP_OR || opcode == OP_XOR || opcode == OP_2MUL ||
+                    opcode == OP_2DIV || opcode == OP_MUL || opcode == OP_DIV ||
+                    opcode == OP_MOD || opcode == OP_LSHIFT ||
+                    opcode == OP_RSHIFT) {
+                    // Disabled opcodes.
+                    return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
+                }
             }
 
             if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) {
@@ -778,6 +789,42 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     //
                     // Bitwise logic
                     //
+                    case OP_AND:
+                    case OP_OR:
+                    case OP_XOR: {
+                        // (x1 x2 - out)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype& vch1 = stacktop(-2);
+                        valtype& vch2 = stacktop(-1);
+                        // throw error if inputs are not the same size
+                        if (vch1.size() != vch2.size()) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_BITWISE_OPERATION);
+                        }
+
+                        switch (opcode) {
+                            case OP_AND:
+                                for (size_t i = 0; i < vch1.size(); i++) {
+                                    vch1[i] &= vch2[i];
+                                }
+                                break;
+                            case OP_OR:
+                                for (size_t i = 0; i < vch1.size(); i++) {
+                                    vch1[i] |= vch2[i];
+                                }
+                                break;
+                            case OP_XOR:
+                                for (size_t i = 0; i < vch1.size(); i++) {
+                                    vch1[i] ^= vch2[i];
+                                }
+                                break;
+                        }
+                        stack.pop_back();
+                    } break;
+
                     case OP_EQUAL:
                     case OP_EQUALVERIFY:
                         // case OP_NOTEQUAL: // use OP_NUMNOTEQUAL
@@ -856,6 +903,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_ADD:
                     case OP_SUB:
+                    case OP_DIV:
+                    case OP_MOD:
                     case OP_BOOLAND:
                     case OP_BOOLOR:
                     case OP_NUMEQUAL:
@@ -872,6 +921,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             return set_error(
                                 serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                         }
+                        // first two inputs must be minimally encoded numbers
                         CScriptNum bn1(stacktop(-2), fRequireMinimal);
                         CScriptNum bn2(stacktop(-1), fRequireMinimal);
                         CScriptNum bn(0);
@@ -882,6 +932,23 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                             case OP_SUB:
                                 bn = bn1 - bn2;
+                                break;
+
+                            case OP_DIV:
+                                // 2nd operand must not be 0
+                                if (bn2 == 0) {
+                                    return set_error(
+                                        serror, SCRIPT_ERR_DIV_BY_ZERO);
+                                }
+                                bn = bn1 / bn2;
+                                break;
+                            case OP_MOD:
+                                // 2nd operand must not be 0
+                                if (bn2 == 0) {
+                                    return set_error(
+                                        serror, SCRIPT_ERR_MOD_BY_ZERO);
+                                }
+                                bn = bn1 % bn2;
                                 break;
 
                             case OP_BOOLAND:
@@ -1175,6 +1242,112 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                     serror, SCRIPT_ERR_CHECKMULTISIGVERIFY);
                             }
                         }
+                    } break;
+
+                    //
+                    // Byte string operations
+                    //
+                    case OP_CAT: {
+                        // (x1 x2 -- out)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype& vch1 = stacktop(-2);
+                        valtype& vch2 = stacktop(-1);
+                        if (vch1.size() + vch2.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+                            return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
+                        }
+                        vch1.insert(vch1.end(), vch2.begin(), vch2.end());
+                        stack.pop_back();
+                    } break;
+
+                    case OP_SPLIT: {
+                        // (in position -- x1 x2)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype vch = stacktop(-2);
+                        int64_t nPosition = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+
+                        // if nPosition is less than 0 or is larger than the input then throw error
+                        if (nPosition < 0 || static_cast<size_t>(nPosition) > vch.size()) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_SPLIT_RANGE);
+                        }
+
+                        stack.pop_back();
+                        stack.pop_back();
+
+                        // initialize outputs
+                        if (nPosition == 0) {
+                            stack.push_back(valtype());
+                            stack.push_back(vch);
+                        }
+                        else if (static_cast<size_t>(nPosition) == vch.size()) {
+                            stack.push_back(vch);
+                            stack.push_back(valtype());
+                        }
+                        else {
+                            valtype vchOut1, vchOut2;
+                            vchOut1.insert(vchOut1.end(), vch.begin(), vch.begin() + nPosition);
+                            vchOut2.insert(vchOut2.end(), vch.begin() + nPosition, vch.end());
+                            stack.emplace_back(move(vchOut1));
+                            stack.emplace_back(move(vchOut2));
+                        }
+                    } break;
+
+                    //
+                    // Conversion operations
+                    //
+                    case OP_BIN2NUM: {
+                        // (in -- out)
+                        if (stack.size() < 1) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype bin = stacktop(-1);
+                        std::reverse(bin.begin(), bin.end()); //be2le
+                        CScriptNum num(bin, false);
+                        if (num > (INT_MAX>>1) || num < (INT_MIN>>1)) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_BIN2NUM_OPERATION);
+                        }
+                        stack.pop_back();
+                        stack.push_back(num.getvch());
+                    } break;
+
+                    case OP_NUM2BIN: {
+                        if (stack.size() < 2) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        CScriptNum bn(stacktop(-2), fRequireMinimal);
+                        int64_t sz = CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                        if (sz<1 || static_cast<uint64_t>(sz) > CScriptNum::nDefaultMaxNumSize) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_NUM2BIN_OPERATION);
+                        }
+                        valtype v=bn.getvch(); //LE
+                        if (static_cast<uint64_t>(sz) < v.size()) {
+                            return set_error(serror, SCRIPT_ERR_INVALID_NUM2BIN_OPERATION);
+                        }
+                        valtype ans;
+                        ans.reserve(sz);
+                        bool neg{false};
+                        if (!v.empty()) {
+                            neg=*v.rbegin()&0x80;
+                            *v.rbegin()&=~0x80; //make it positive
+                        }
+                        size_t pad=sz-v.size();
+                        for (uint8_t i=0; i<pad; ++i) {
+                            ans.push_back(0);
+                        }
+                        for (auto i=v.rbegin(); i!=v.rend(); ++i) {
+                            ans.push_back(*i);
+                        }
+                        if (neg) *ans.begin()|=0x80;
+                        stack.pop_back();
+                        stack.pop_back();
+                        stack.push_back(ans);
                     } break;
 
                     default:

@@ -107,6 +107,10 @@ enum {
     // Do we accept signature using SIGHASH_FORKID
     //
     SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
+
+    // Enable new opcodes activated from 15 May 2018 HF
+    //
+    SCRIPT_ENABLE_OPCODES0 = (1U << 17),
 };
 
 bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,

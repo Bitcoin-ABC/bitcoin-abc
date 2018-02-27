@@ -110,6 +110,10 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
         return GetNextCashWorkRequired(pindexPrev, pblock, config);
     }
 
+    if (IsForkMay152018Enabled(config, pindexPrev)) {
+        return GetNextCashWorkRequired(pindexPrev, pblock, config);
+    }
+
     return GetNextEDAWorkRequired(pindexPrev, pblock, config);
 }
 
