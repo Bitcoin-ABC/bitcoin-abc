@@ -110,7 +110,7 @@ static UniValue getpeerinfo(const Config &config,
             "    \"pingwait\": n,             (numeric) ping wait (if "
             "non-zero)\n"
             "    \"version\": v,              (numeric) The peer version, such "
-            "as 7001\n"
+            "as 70001\n"
             "    \"subver\": \"/Satoshi:0.8.5/\",  (string) The string "
             "version\n"
             "    \"inbound\": true|false,     (boolean) Inbound (true) or "
