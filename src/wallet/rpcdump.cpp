@@ -29,10 +29,6 @@
 #include <fstream>
 #include <iostream>
 
-static std::string EncodeDumpTime(int64_t nTime) {
-    return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
-}
-
 static int64_t DecodeDumpTime(const std::string &str) {
     static const boost::posix_time::ptime epoch =
         boost::posix_time::from_time_t(0);
@@ -787,12 +783,12 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
 
     // produce output
     file << strprintf("# Wallet dump created by Bitcoin %s\n", CLIENT_BUILD);
-    file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
+    file << strprintf("# * Created on %s\n", FormatISO8601DateTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n",
                       chainActive.Height(),
                       chainActive.Tip()->GetBlockHash().ToString());
     file << strprintf("#   mined on %s\n",
-                      EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
+                      FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()));
     file << "\n";
 
     // add the base58check encoded extended master if the wallet uses HD
@@ -814,7 +810,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
              vKeyBirth.begin();
          it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
-        std::string strTime = EncodeDumpTime(it->first);
+        std::string strTime = FormatISO8601DateTime(it->first);
         std::string strAddr = EncodeDestination(keyid);
         CKey key;
         if (pwallet->GetKey(keyid, key)) {
@@ -848,7 +844,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
         // get birth times for scripts with metadata
         auto it = pwallet->m_script_metadata.find(scriptid);
         if (it != pwallet->m_script_metadata.end()) {
-            create_time = EncodeDumpTime(it->second.nCreateTime);
+            create_time = FormatISO8601DateTime(it->second.nCreateTime);
         }
         if (pwallet->GetCScript(scriptid, script)) {
             file << strprintf("%s %s script=1",

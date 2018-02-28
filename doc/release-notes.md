@@ -9,3 +9,4 @@ This release includes the following features and fixes:
    transactions
  - Remove miner policy estimator in favor of minimum fees, also remove `fee_estimates.dat`.
    Old copies will be left in place.
+ - The log timestamp format is now ISO 8601 (e.g. "2019-01-28T15:41:17Z")
