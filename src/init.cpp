@@ -1786,8 +1786,7 @@ bool AppInitMain(Config &config,
     }
 
     if (!logger.m_log_timestamps) {
-        LogPrintf("Startup time: %s\n",
-                  DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
     }
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", GetDataDir().string());

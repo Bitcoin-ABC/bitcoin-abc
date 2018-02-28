@@ -1056,17 +1056,17 @@ static void InvalidChainFound(CBlockIndex *pindexNew) {
         pindexFinalized = pindexNew->pprev;
     }
 
-    LogPrintf(
-        "%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
-        pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
-        log(pindexNew->nChainWork.getdouble()) / log(2.0),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexNew->GetBlockTime()));
+    LogPrintf("%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
+              __func__, pindexNew->GetBlockHash().ToString(),
+              pindexNew->nHeight,
+              log(pindexNew->nChainWork.getdouble()) / log(2.0),
+              FormatISO8601DateTime(pindexNew->GetBlockTime()));
     CBlockIndex *tip = chainActive.Tip();
     assert(tip);
     LogPrintf("%s:  current best=%s  height=%d  log2_work=%.8g  date=%s\n",
               __func__, tip->GetBlockHash().ToString(), chainActive.Height(),
               log(tip->nChainWork.getdouble()) / log(2.0),
-              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", tip->GetBlockTime()));
+              FormatISO8601DateTime(tip->GetBlockTime()));
 }
 
 static void InvalidBlockFound(CBlockIndex *pindex,
@@ -2147,8 +2147,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
               chainActive.Height(), chainActive.Tip()->nVersion,
               log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
               (unsigned long)chainActive.Tip()->nChainTx,
-              DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
-                                chainActive.Tip()->GetBlockTime()),
+              FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()),
               GuessVerificationProgress(config.GetChainParams().TxData(),
                                         chainActive.Tip()),
               pcoinsTip->DynamicMemoryUsage() * (1.0 / (1 << 20)),
@@ -4432,8 +4431,7 @@ bool LoadChainTip(const Config &config) {
     LogPrintf(
         "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
-                          chainActive.Tip()->GetBlockTime()),
+        FormatISO8601DateTime(chainActive.Tip()->GetBlockTime()),
         GuessVerificationProgress(config.GetChainParams().TxData(),
                                   chainActive.Tip()));
     return true;
@@ -5364,8 +5362,7 @@ std::string CBlockFileInfo::ToString() const {
     return strprintf(
         "CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)",
         nBlocks, nSize, nHeightFirst, nHeightLast,
-        DateTimeStrFormat("%Y-%m-%d", nTimeFirst),
-        DateTimeStrFormat("%Y-%m-%d", nTimeLast));
+        FormatISO8601DateTime(nTimeFirst), FormatISO8601DateTime(nTimeLast));
 }
 
 CBlockFileInfo *GetBlockFileInfo(size_t n) {

@@ -143,16 +143,14 @@ std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
 
     if (m_started_new_line) {
         int64_t nTimeMicros = GetTimeMicros();
-        strStamped =
-            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros / 1000000);
+        strStamped = FormatISO8601DateTime(nTimeMicros / 1000000);
         if (m_log_time_micros) {
             strStamped += strprintf(".%06d", nTimeMicros % 1000000);
         }
         int64_t mocktime = GetMockTime();
         if (mocktime) {
-            strStamped += " (mocktime: " +
-                          DateTimeStrFormat("%Y-%m-%d %H:%M:%S", mocktime) +
-                          ")";
+            strStamped += 
+                " (mocktime: " + FormatISO8601DateTime(mocktime) + ")";
         }
         strStamped += ' ' + str;
     } else {
