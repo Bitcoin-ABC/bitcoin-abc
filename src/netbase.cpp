@@ -156,7 +156,7 @@ bool Lookup(const char *pszName, std::vector<CService> &vAddr, int portDefault,
         return false;
     }
     int port = portDefault;
-    std::string hostname = "";
+    std::string hostname;
     SplitHostPort(std::string(pszName), port, hostname);
 
     std::vector<CNetAddr> vIP;
