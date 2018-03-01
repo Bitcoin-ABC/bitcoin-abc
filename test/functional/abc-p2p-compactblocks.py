@@ -106,7 +106,7 @@ class FullBlockTest(ComparisonTestFramework):
         tx = create_transaction(spend_tx, n, b"", value, script)
         return tx
 
-    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_sigops=0):
+    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -126,17 +126,23 @@ class FullBlockTest(ComparisonTestFramework):
             coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
-            # spend 1 satoshi
-            tx = CTransaction()
-            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
-            # Make sure we have plenty engough to spend going forward.
-            spendable_outputs = deque([])
 
-            def add_spendable_outputs(tx):
-                for i in range(8):
+            # Make sure we have plenty engough to spend going forward.
+            spendable_outputs = deque([spend])
+
+            def get_base_transaction():
+                # Create the new transaction
+                tx = CTransaction()
+                # Spend from one of the spendable outputs
+                spend = spendable_outputs.popleft()
+                tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+                # Add spendable outputs
+                for i in range(4):
                     tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                     spendable_outputs.append(PreviousSpendableOutput(tx, i))
-            add_spendable_outputs(tx)
+                return tx
+
+            tx = get_base_transaction()
 
             # Make it the same format as transaction added for padding and save the size.
             # It's missing the padding output, so we add a constant to account for it.
@@ -165,23 +171,18 @@ class FullBlockTest(ComparisonTestFramework):
                 current_block_size += len(ser_compact_size(len(block.vtx) + 1))
 
                 # Create the new transaction
-                tx = CTransaction()
-                # Spend from one of the spendable outputs
-                spend = spendable_outputs.popleft()
-                tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
-                # Add spendable outputs
-                add_spendable_outputs(tx)
+                tx = get_base_transaction()
 
                 # Add padding to fill the block.
                 script_length = block_size - current_block_size - base_tx_size
                 if script_length > 510000:
-                    script_length = 500000
-                tx_sigops = min(extra_sigops, script_length,
-                                MAX_TX_SIGOPS_COUNT)
-                extra_sigops -= tx_sigops
-                script_pad_len = script_length - tx_sigops
-                script_output = CScript(
-                    [b'\x00' * script_pad_len] + [OP_CHECKSIG] * tx_sigops)
+                    if script_length < 1000000:
+                        # Make sure we don't find ourselves in a position where we
+                        # need to generate a transaction smaller than what we expected.
+                        script_length = script_length // 2
+                    else:
+                        script_length = 500000
+                script_output = CScript([b'\x00' * script_length])
                 tx.vout.append(CTxOut(0, script_output))
 
                 # Add the tx to the list of transactions to be included
