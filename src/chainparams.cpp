@@ -152,6 +152,9 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
+        // May 15, 2018 hard fork
+        consensus.monolithActivationTime = 1526400000;
+
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -325,6 +328,9 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
+        // May 15, 2018 hard fork
+        consensus.monolithActivationTime = 1526400000;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -448,6 +454,9 @@ public:
 
         // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
+
+        // May 15, 2018 hard fork.
+        consensus.monolithActivationTime = 1526400000;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

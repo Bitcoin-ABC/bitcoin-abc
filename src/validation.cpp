@@ -599,6 +599,19 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
+static bool IsMonolithEnabled(const Config &config, int64_t nMedianTimePast) {
+    return nMedianTimePast >=
+           config.GetChainParams().GetConsensus().monolithActivationTime;
+}
+
+bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsMonolithEnabled(config, pindexPrev->GetMedianTimePast());
+}
+
 /**
  * Make mempool consistent after a reorg, by re-adding or recursively erasing
  * disconnected block transactions from the mempool, and also removing any other
@@ -3560,6 +3573,17 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_CSV,
                          versionbitscache) == THRESHOLD_ACTIVE) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
+    }
+
+    if (!IsMonolithEnabled(config, pindexPrev)) {
+        // When the May 15, 2018 HF is not enabled, block cannot be bigger
+        // than 8MB .
+        const uint64_t currentBlockSize =
+            ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+        if (currentBlockSize > 8 * ONE_MEGABYTE) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length",
+                             false, "size limits failed");
+        }
     }
 
     const int64_t nMedianTimePast =

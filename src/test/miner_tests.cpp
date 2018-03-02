@@ -31,7 +31,7 @@ static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
 
 static struct {
     uint8_t extranonce;
-    unsigned int nonce;
+    uint32_t nonce;
 } blockinfo[] = {
     {4, 0xa4a3e223}, {2, 0x15c32f9e}, {1, 0x0375b547}, {1, 0x7004a8a5},
     {2, 0xce440296}, {2, 0x52cfe198}, {1, 0x77a72cd0}, {2, 0xbb5d6f84},
@@ -723,19 +723,37 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
-    // Test around higher limit such as 8MB
+    // The maximum block size to be generated before the May 15, 2018 HF
     static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
-    config.SetMaxBlockSize(EIGHT_MEGABYTES);
+    static const auto LEGACY_CAP = EIGHT_MEGABYTES - 1000;
+
+    // Test around historical 8MB cap.
+    config.SetMaxBlockSize(EIGHT_MEGABYTES + 1);
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001,
                       EIGHT_MEGABYTES - 1001);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000,
-                      EIGHT_MEGABYTES - 1000);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999,
-                      EIGHT_MEGABYTES - 1000);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000, LEGACY_CAP);
+    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999, LEGACY_CAP);
     CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, EIGHT_MEGABYTES - 1000);
 
     // Test around default cap
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
+
+    // We are stuck at the legacy cap before activation.
+    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE, LEGACY_CAP);
+
+    // Activate May 15, 2018 HF the dirty way
+    const int64_t monolithTime =
+        config.GetChainParams().GetConsensus().monolithActivationTime;
+    auto pindex = chainActive.Tip();
+    for (size_t i = 0; pindex && i < 5; i++) {
+        BOOST_CHECK(!IsMonolithEnabled(config, chainActive.Tip()));
+        pindex->nTime = monolithTime;
+        pindex = pindex->pprev;
+    }
+
+    BOOST_CHECK(IsMonolithEnabled(config, chainActive.Tip()));
+
+    // Now we can use the default max block size.
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1001,
                       DEFAULT_MAX_BLOCK_SIZE - 1001);
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1000,

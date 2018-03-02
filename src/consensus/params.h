@@ -52,6 +52,8 @@ struct Params {
     int uahfHeight;
     /** Block height at which the new DAA becomes active */
     int daaHeight;
+    /** Unix time used for MTP activation of May 15 2018, hardfork */
+    int monolithActivationTime;
     /** Block height at which OP_RETURN replay protection stops */
     int antiReplayOpReturnSunsetHeight;
     /** Committed OP_RETURN value for replay protection */

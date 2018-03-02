@@ -21,6 +21,9 @@ from test_framework.cdefs import (ONE_MEGABYTE, LEGACY_MAX_BLOCK_SIZE,
                                   MAX_BLOCK_SIGOPS_PER_MB, MAX_TX_SIGOPS_COUNT)
 from collections import deque
 
+# far into the future
+MONOLITH_START_TIME = 2000000000
+
 
 class PreviousSpendableOutput():
 
@@ -95,6 +98,7 @@ class FullBlockTest(ComparisonTestFramework):
         NetworkThread().start()
         # Set the blocksize to 2MB as initial condition
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
+        self.nodes[0].setmocktime(MONOLITH_START_TIME)
         self.test.run()
 
     def add_transactions_to_block(self, block, tx_list):
@@ -268,6 +272,19 @@ class FullBlockTest(ComparisonTestFramework):
             block(5000 + i)
             test.blocks_and_transactions.append([self.tip, True])
             save_spendable_output()
+
+        # Fork block
+        bfork = block(5555)
+        bfork.nTime = MONOLITH_START_TIME
+        update_block(5555, [])
+        test.blocks_and_transactions.append([self.tip, True])
+
+        # Get to one block of the May 15, 2018 HF activation
+        for i in range(5):
+            block(5100 + i)
+            test.blocks_and_transactions.append([self.tip, True])
+
+        # Send it all to the node at once.
         yield test
 
         # collect spendable outputs now to avoid cluttering the code later on

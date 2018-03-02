@@ -360,6 +360,9 @@ bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
 /** Check if DAA HF has activated. */
 bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
+/** Check if May 15, 2018 HF has activated. */
+bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev);
+
 /**
  * (try to) add transaction to memory pool
  * plTxnReplaced will be appended to with all transactions replaced from
