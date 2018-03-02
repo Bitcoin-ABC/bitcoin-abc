@@ -146,10 +146,10 @@ public:
             uint256S("0x000000000000000005e14d3f9fdfb70745308706615cfa9edca4f45"
                      "58332b201");
 
-        // Aug, 1 hard fork
+        // August 1, 2017 hard fork
         consensus.uahfHeight = 478559;
 
-        // Nov, 13 hard fork
+        // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
         /**
@@ -319,10 +319,10 @@ public:
             uint256S("0x000000000000b41f1f2ddf130df8824e2b61c0af809ff86dd5cadb3"
                      "61d984ca7");
 
-        // Aug, 1 hard fork
+        // August 1, 2017 hard fork
         consensus.uahfHeight = 1155876;
 
-        // Nov, 13 hard fork
+        // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
         diskMagic[0] = 0x0b;
@@ -443,10 +443,10 @@ public:
         // valid.
         consensus.defaultAssumeValid = uint256S("0x00");
 
-        // Hard fork is always enabled on regtest.
+        // UAHF is always enabled on regtest.
         consensus.uahfHeight = 0;
 
-        // Nov, 13 hard fork is always on on regtest.
+        // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
 
         diskMagic[0] = 0xfa;
