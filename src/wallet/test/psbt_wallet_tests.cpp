@@ -17,6 +17,8 @@
 BOOST_FIXTURE_TEST_SUITE(psbt_wallet_tests, WalletTestingSetup)
 
 BOOST_AUTO_TEST_CASE(psbt_updater_test) {
+    LOCK(m_wallet.cs_wallet);
+
     // Create prevtxs and add to wallet
     CDataStream s_prev_tx1(
         ParseHex("020000000158e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f54"

@@ -106,7 +106,7 @@ namespace {
     //! Construct wallet TxOut struct.
     static WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx,
                                        int n, int depth)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, wallet.cs_wallet) {
         WalletTxOut result;
         result.txout = wtx.tx->vout[n];
         result.time = wtx.GetTxTime();

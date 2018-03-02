@@ -227,9 +227,10 @@ static UniValue getnewaddress(const Config &config,
     return EncodeDestination(dest, config);
 }
 
-CTxDestination GetLabelDestination(CWallet *const pwallet,
-                                   const std::string &label,
-                                   bool bForceNew = false) {
+static CTxDestination GetLabelDestination(CWallet *const pwallet,
+                                          const std::string &label,
+                                          bool bForceNew = false)
+    EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
     CTxDestination dest;
     if (!pwallet->GetLabelDestination(dest, label, bForceNew)) {
         throw JSONRPCError(
@@ -1751,7 +1752,7 @@ struct tallyitem {
 
 static UniValue ListReceived(const Config &config, CWallet *const pwallet,
                              const UniValue &params, bool by_label)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main, pwallet->cs_wallet) {
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
