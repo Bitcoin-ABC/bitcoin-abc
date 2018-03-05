@@ -71,19 +71,39 @@ private:
 public:
     explicit PeerLogicValidation(CConnman *connman, CScheduler &scheduler);
 
+    /**
+     * Overridden from CValidationInterface.
+     */
     void
     BlockConnected(const std::shared_ptr<const CBlock> &pblock,
                    const CBlockIndex *pindexConnected,
                    const std::vector<CTransactionRef> &vtxConflicted) override;
+    /**
+     * Overridden from CValidationInterface.
+     */
     void UpdatedBlockTip(const CBlockIndex *pindexNew,
                          const CBlockIndex *pindexFork,
                          bool fInitialDownload) override;
+    /**
+     * Overridden from CValidationInterface.
+     */
     void BlockChecked(const CBlock &block,
                       const CValidationState &state) override;
+    /**
+     * Overridden from CValidationInterface.
+     */
     void NewPoWValidBlock(const CBlockIndex *pindex,
                           const std::shared_ptr<const CBlock> &pblock) override;
 
+    /**
+     * Initialize a peer by adding it to mapNodeState and pushing a message
+     * requesting its version.
+     */
     void InitializeNode(const Config &config, CNode *pnode) override;
+    /**
+     * Handle removal of a peer by updating various state and removing it from
+     * mapNodeState.
+     */
     void FinalizeNode(const Config &config, NodeId nodeid,
                       bool &fUpdateConnectionTime) override;
     /**
@@ -102,9 +122,21 @@ public:
                       std::atomic<bool> &interrupt) override
         EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing);
 
+    /**
+     * Consider evicting an outbound peer based on the amount of time they've
+     * been behind our tip.
+     */
     void ConsiderEviction(CNode *pto, int64_t time_in_seconds);
+    /**
+     * Evict extra outbound peers. If we think our tip may be stale, connect to
+     * an extra outbound.
+     */
     void
     CheckForStaleTipAndEvictPeers(const Consensus::Params &consensusParams);
+    /**
+     * If we have extra outbound peers, try to disconnect the one with the
+     * oldest block announcement.
+     */
     void EvictExtraOutboundPeers(int64_t time_in_seconds);
 
 private:
