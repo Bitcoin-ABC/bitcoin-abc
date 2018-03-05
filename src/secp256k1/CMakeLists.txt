@@ -115,6 +115,12 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	target_sources(secp256k1 PRIVATE ecmult_static_context.h)
 endif()
 
+# MultiSet module
+option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ON)
+if(SECP256K1_ENABLE_MODULE_MULTISET)
+    set(ENABLE_MODULE_MULTISET 1)
+endif()
+
 # Generate the config
 configure_file(src/libsecp256k1-config.h.cmake.in src/libsecp256k1-config.h ESCAPE_QUOTES)
 target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H)
