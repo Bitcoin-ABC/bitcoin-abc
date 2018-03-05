@@ -805,12 +805,6 @@ std::string HelpMessage(HelpMessageMode mode) {
                                        "limit, in bytes (default: %d)"),
                                      DEFAULT_MAX_BLOCK_SIZE));
         strUsage += HelpMessageOpt(
-            "-incrementalrelayfee=<amt>",
-            strprintf(
-                "Fee rate (in %s/kB) used to define cost of relay, used for "
-                "mempool limiting and BIP 125 replacement. (default: %s)",
-                CURRENCY_UNIT, FormatMoney(DEFAULT_INCREMENTAL_RELAY_FEE)));
-        strUsage += HelpMessageOpt(
             "-dustrelayfee=<amt>",
             strprintf("Fee rate (in %s/kB) used to defined dust, the value of "
                       "an output such that it will cost about 1/3 of its value "
@@ -1486,17 +1480,6 @@ bool AppInitParameterInteraction(Config &config) {
     if (nMempoolSizeMax < 0 || nMempoolSizeMax < nMempoolSizeMin)
         return InitError(strprintf(_("-maxmempool must be at least %d MB"),
                                    std::ceil(nMempoolSizeMin / 1000000.0)));
-    // Incremental relay fee sets the minimimum feerate increase necessary for
-    // BIP 125 replacement in the mempool and the amount the mempool min fee
-    // increases above the feerate of txs evicted due to mempool limiting.
-    if (gArgs.IsArgSet("-incrementalrelayfee")) {
-        Amount n(0);
-        if (!ParseMoney(gArgs.GetArg("-incrementalrelayfee", ""), n))
-            return InitError(
-                AmountErrMsg("incrementalrelayfee",
-                             gArgs.GetArg("-incrementalrelayfee", "")));
-        incrementalRelayFee = CFeeRate(n);
-    }
 
     // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency
     nScriptCheckThreads = gArgs.GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
@@ -1583,12 +1566,6 @@ bool AppInitParameterInteraction(Config &config) {
                                           gArgs.GetArg("-minrelaytxfee", "")));
         // High fee check is done afterward in CWallet::ParameterInteraction()
         ::minRelayTxFee = CFeeRate(n);
-    } else if (incrementalRelayFee > ::minRelayTxFee) {
-        // Allow only setting incrementalRelayFee to control both
-        ::minRelayTxFee = incrementalRelayFee;
-        LogPrintf(
-            "Increasing minrelaytxfee to %s to match incrementalrelayfee\n",
-            ::minRelayTxFee.ToString());
     }
 
     // Sanity check argument for min fee for including tx in block

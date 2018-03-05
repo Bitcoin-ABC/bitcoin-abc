@@ -527,10 +527,6 @@ static UniValue getnetworkinfo(const Config &config,
             "  \"excessutxocharge\": x.xxxxxxxx,        (numeric) minimum "
             "charge for excess utxos in " +
             CURRENCY_UNIT + "\n"
-                            "  \"incrementalfee\": x.xxxxxxxx,          "
-                            "(numeric) minimum fee increment for mempool "
-                            "limiting or BIP 125 replacement in " +
-            CURRENCY_UNIT + "/kB\n"
                             "  \"localaddresses\": [                    "
                             "(array) list of local addresses\n"
                             "  {\n"
@@ -571,8 +567,6 @@ static UniValue getnetworkinfo(const Config &config,
         Pair("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK())));
     obj.push_back(Pair("excessutxocharge",
                        ValueFromAmount(config.GetExcessUTXOCharge())));
-    obj.push_back(Pair("incrementalfee",
-                       ValueFromAmount(::incrementalRelayFee.GetFeePerK())));
     UniValue localAddresses(UniValue::VARR);
     {
         LOCK(cs_mapLocalHost);

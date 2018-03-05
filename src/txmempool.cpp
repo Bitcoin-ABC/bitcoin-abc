@@ -1174,15 +1174,8 @@ CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
             rollingMinimumFeeRate /
             pow(2.0, (time - lastRollingFeeUpdate) / halflife);
         lastRollingFeeUpdate = time;
-
-        if (rollingMinimumFeeRate <
-            (double)incrementalRelayFee.GetFeePerK().GetSatoshis() / 2) {
-            rollingMinimumFeeRate = 0;
-            return CFeeRate(Amount(0));
-        }
     }
-    return std::max(CFeeRate(Amount(int64_t(rollingMinimumFeeRate))),
-                    incrementalRelayFee);
+    return CFeeRate(Amount(int64_t(rollingMinimumFeeRate)));
 }
 
 void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {
@@ -1210,7 +1203,8 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         // between.
         CFeeRate removed(it->GetModFeesWithDescendants(),
                          it->GetSizeWithDescendants());
-        removed += incrementalRelayFee;
+        removed += MEMPOOL_FULL_FEE_INCREMENT;
+
         trackPackageRemoved(removed);
         maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
 
