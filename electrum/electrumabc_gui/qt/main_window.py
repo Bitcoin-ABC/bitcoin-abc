@@ -1850,7 +1850,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         completer = QtWidgets.QCompleter(self.payto_e)
         completer.setCaseSensitivity(False)
-        self.payto_e.setCompleter(completer)
+        self.payto_e.set_completer(completer)
         completer.setModel(self.completions)
 
         msg = (

@@ -28,9 +28,8 @@ import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from typing import Dict, List
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFontMetrics, QTextCursor
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QFontMetrics
 
 from electrumabc import alias, bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
@@ -39,6 +38,7 @@ from electrumabc.printerror import PrintError
 from electrumabc.transaction import TxOutput
 
 from . import util
+from .completion_text_edit import CompletionTextEdit
 from .qrtextedit import ScanQRTextEdit
 
 RE_ALIAS = r"^(.*?)\s*<\s*([0-9A-Za-z:]{26,})\s*>$"
@@ -51,13 +51,14 @@ frozen_style = "PayToEdit { border:none;}"
 normal_style = "PayToEdit { }"
 
 
-class PayToEdit(PrintError, ScanQRTextEdit):
+class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
     alias_resolved = pyqtSignal(dict)
 
     def __init__(self, win):
         from .main_window import ElectrumWindow
 
         assert isinstance(win, ElectrumWindow) and win.amount_e and win.wallet
+        CompletionTextEdit.__init__(self)
         ScanQRTextEdit.__init__(self)
         self.win = win
         self.amount_edit = win.amount_e
@@ -264,69 +265,6 @@ class PayToEdit(PrintError, ScanQRTextEdit):
                 " single line payto_e."
             )
             vb.setValue(vb.minimum())
-
-    def setCompleter(self, completer):
-        self.c = completer
-        self.c.setWidget(self)
-        self.c.setCompletionMode(QtWidgets.QCompleter.PopupCompletion)
-        self.c.activated.connect(self.insertCompletion)
-
-    def insertCompletion(self, completion):
-        if self.c.widget() != self:
-            return
-        tc = self.textCursor()
-        extra = len(completion) - len(self.c.completionPrefix())
-        tc.movePosition(QTextCursor.Left)
-        tc.movePosition(QTextCursor.EndOfWord)
-        tc.insertText(completion[-extra:])
-        self.setTextCursor(tc)
-
-    def textUnderCursor(self):
-        tc = self.textCursor()
-        tc.select(QTextCursor.LineUnderCursor)
-        return tc.selectedText()
-
-    def keyPressEvent(self, e):
-        if self.isReadOnly() or not self.hasFocus():
-            e.ignore()
-            return
-
-        if self.c.popup().isVisible():
-            if e.key() in [Qt.Key_Enter, Qt.Key_Return]:
-                e.ignore()
-                return
-
-        if e.key() in [Qt.Key_Tab, Qt.Key_Backtab]:
-            e.ignore()
-            return
-
-        if e.key() in [Qt.Key_Down, Qt.Key_Up] and not self.is_multiline():
-            e.ignore()
-            return
-
-        super().keyPressEvent(e)
-
-        ctrlOrShift = e.modifiers() and (Qt.ControlModifier or Qt.ShiftModifier)
-        if self.c is None or (ctrlOrShift and not e.text()):
-            return
-
-        hasModifier = (e.modifiers() != Qt.NoModifier) and not ctrlOrShift
-        completionPrefix = self.textUnderCursor()
-
-        if hasModifier or not e.text() or len(completionPrefix) < 1:
-            self.c.popup().hide()
-            return
-
-        if completionPrefix != self.c.completionPrefix():
-            self.c.setCompletionPrefix(completionPrefix)
-            self.c.popup().setCurrentIndex(self.c.completionModel().index(0, 0))
-
-        cr = self.cursorRect()
-        cr.setWidth(
-            self.c.popup().sizeHintForColumn(0)
-            + self.c.popup().verticalScrollBar().sizeHint().width()
-        )
-        self.c.complete(cr)
 
     def qr_input(self):
         def _on_qr_success(result):
