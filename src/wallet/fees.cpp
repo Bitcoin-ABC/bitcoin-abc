@@ -14,27 +14,13 @@
 #include <wallet/wallet.h>
 
 Amount GetRequiredFee(unsigned int nTxBytes) {
-    return GetConfig().GetMinFeePerKB().GetFee(nTxBytes);
+    return GetRequiredFeeRate().GetFeeCeiling(nTxBytes);
 }
 
-Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coinControl,
+Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coin_control,
                      const CTxMemPool &pool) {
-    Amount targetFee = (coinControl.fOverrideFeeRate && coinControl.m_feerate)
-                           ? coinControl.m_feerate->GetFee(nTxBytes)
-                           : payTxFee.GetFeeCeiling(nTxBytes);
-
-    Amount nFeeNeeded = targetFee;
-    if (nFeeNeeded == Amount::zero()) {
-        nFeeNeeded = pool.estimateFee().GetFeeCeiling(nTxBytes);
-        // ... unless we don't have enough mempool data for estimatefee, then
-        // use fallbackFee.
-        if (nFeeNeeded == Amount::zero()) {
-            nFeeNeeded = CWallet::fallbackFee.GetFeeCeiling(nTxBytes);
-        }
-    }
-
-    // Prevent user from paying a fee below minRelayTxFee or minTxFee.
-    nFeeNeeded = std::max(nFeeNeeded, GetRequiredFee(nTxBytes));
+    Amount nFeeNeeded =
+        GetMinimumFeeRate(coin_control, pool).GetFeeCeiling(nTxBytes);
 
     // But always obey the maximum.
     if (nFeeNeeded > maxTxFee) {
@@ -42,4 +28,28 @@ Amount GetMinimumFee(unsigned int nTxBytes, const CCoinControl &coinControl,
     }
 
     return nFeeNeeded;
+}
+
+CFeeRate GetRequiredFeeRate() {
+    return GetConfig().GetMinFeePerKB();
+}
+
+CFeeRate GetMinimumFeeRate(const CCoinControl &coin_control,
+                           const CTxMemPool &pool) {
+    CFeeRate neededFeeRate =
+        (coin_control.fOverrideFeeRate && coin_control.m_feerate)
+            ? *coin_control.m_feerate
+            : payTxFee;
+
+    if (neededFeeRate == CFeeRate()) {
+        neededFeeRate = pool.estimateFee();
+        // ... unless we don't have enough mempool data for estimatefee, then
+        // use fallbackFee.
+        if (neededFeeRate == CFeeRate()) {
+            neededFeeRate = CWallet::fallbackFee;
+        }
+    }
+
+    // Prevent user from paying a fee below minRelayTxFee or minTxFee.
+    return std::max(neededFeeRate, GetRequiredFeeRate());
 }
