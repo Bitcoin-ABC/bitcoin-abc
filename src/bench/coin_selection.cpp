@@ -48,9 +48,17 @@ static void CoinSelection(benchmark::State &state) {
 
         std::set<CInputCoin> setCoinsRet;
         Amount nValueRet;
+        bool bnb_used;
         CoinEligibilityFilter filter_standard(1, 6, 0);
-        bool success = wallet.SelectCoinsMinConf(
-            1003 * COIN, filter_standard, vCoins, setCoinsRet, nValueRet);
+        CoinSelectionParams coin_selection_params(false, 34, 148,
+                                                  CFeeRate(Amount::zero()), 0);
+        bool success =
+            wallet.SelectCoinsMinConf(1003 * COIN, filter_standard, vCoins,
+                                      setCoinsRet, nValueRet,
+                                      coin_selection_params, bnb_used) ||
+            wallet.SelectCoinsMinConf(1003 * COIN, filter_standard, vCoins,
+                                      setCoinsRet, nValueRet,
+                                      coin_selection_params, bnb_used);
         assert(success);
         assert(nValueRet == 1003 * COIN);
         assert(setCoinsRet.size() == 2);

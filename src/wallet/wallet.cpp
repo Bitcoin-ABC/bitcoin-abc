@@ -2606,32 +2606,87 @@ bool CWallet::OutputEligibleForSpending(
 bool CWallet::SelectCoinsMinConf(
     const Amount nTargetValue, const CoinEligibilityFilter &eligibility_filter,
     std::vector<COutput> vCoins, std::set<CInputCoin> &setCoinsRet,
-    Amount &nValueRet) const {
+    Amount &nValueRet, const CoinSelectionParams &coin_selection_params,
+    bool &bnb_used) const {
     setCoinsRet.clear();
     nValueRet = Amount::zero();
 
     std::vector<CInputCoin> utxo_pool;
-    for (const COutput &output : vCoins) {
-        if (!OutputEligibleForSpending(output, eligibility_filter)) {
-            continue;
-        }
+    if (coin_selection_params.use_bnb) {
+        // Get long term estimate
+        CCoinControl temp;
+        temp.m_confirm_target = 1008;
+        CFeeRate long_term_feerate = GetMinimumFeeRate(temp, g_mempool);
 
-        CInputCoin coin = CInputCoin(output.tx->tx, output.i);
-        utxo_pool.push_back(coin);
+        // Calculate cost of change
+        Amount cost_of_change =
+            dustRelayFee.GetFee(coin_selection_params.change_spend_size) +
+            coin_selection_params.effective_fee.GetFee(
+                coin_selection_params.change_output_size);
+
+        // Filter by the min conf specs and add to utxo_pool and calculate
+        // effective value
+        for (const COutput &output : vCoins) {
+            if (!OutputEligibleForSpending(output, eligibility_filter)) {
+                continue;
+            }
+
+            CInputCoin coin(output.tx->tx, output.i);
+            coin.effective_value =
+                coin.txout.nValue -
+                (output.nInputBytes < 0
+                     ? Amount::zero()
+                     : coin_selection_params.effective_fee.GetFee(
+                           output.nInputBytes));
+            // Only include outputs that are positive effective value (i.e. not
+            // dust)
+            if (coin.effective_value > Amount::zero()) {
+                coin.fee = output.nInputBytes < 0
+                               ? Amount::zero()
+                               : coin_selection_params.effective_fee.GetFee(
+                                     output.nInputBytes);
+                coin.long_term_fee =
+                    output.nInputBytes < 0
+                        ? Amount::zero()
+                        : long_term_feerate.GetFee(output.nInputBytes);
+                utxo_pool.push_back(coin);
+            }
+        }
+        // Calculate the fees for things that aren't inputs
+        Amount not_input_fees = coin_selection_params.effective_fee.GetFee(
+            coin_selection_params.tx_noinputs_size);
+        bnb_used = true;
+        return SelectCoinsBnB(utxo_pool, nTargetValue, cost_of_change,
+                              setCoinsRet, nValueRet, not_input_fees);
+    } else {
+        // Filter by the min conf specs and add to utxo_pool
+        for (const COutput &output : vCoins) {
+            if (!OutputEligibleForSpending(output, eligibility_filter)) {
+                continue;
+            }
+
+            CInputCoin coin = CInputCoin(output.tx->tx, output.i);
+            utxo_pool.push_back(coin);
+        }
+        bnb_used = false;
+        return KnapsackSolver(nTargetValue, utxo_pool, setCoinsRet, nValueRet);
     }
-    return KnapsackSolver(nTargetValue, utxo_pool, setCoinsRet, nValueRet);
 }
 
 bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
                           const Amount nTargetValue,
                           std::set<CInputCoin> &setCoinsRet, Amount &nValueRet,
-                          const CCoinControl *coinControl) const {
+                          const CCoinControl &coin_control,
+                          const CoinSelectionParams &coin_selection_params,
+                          bool &bnb_used) const {
     std::vector<COutput> vCoins(vAvailableCoins);
 
     // coin control -> return all selected outputs (we want all selected to go
-    // into the transaction for sure).
-    if (coinControl && coinControl->HasSelected() &&
-        !coinControl->fAllowOtherInputs) {
+    // into the transaction for sure)
+    if (coin_control.HasSelected() && !coin_control.fAllowOtherInputs) {
+        // We didn't use BnB here, so set it to false.
+        bnb_used = false;
+
         for (const COutput &out : vCoins) {
             if (!out.fSpendable) {
                 continue;
@@ -2649,11 +2704,13 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
     Amount nValueFromPresetInputs = Amount::zero();
 
     std::vector<COutPoint> vPresetInputs;
-    if (coinControl) {
-        coinControl->ListSelected(vPresetInputs);
-    }
+    coin_control.ListSelected(vPresetInputs);
 
     for (const COutPoint &outpoint : vPresetInputs) {
+        // For now, don't use BnB if preset inputs are selected. TODO: Enable
+        // this later
+        bnb_used = false;
+
         std::map<TxId, CWalletTx>::const_iterator it =
             mapWallet.find(outpoint.GetTxId());
         if (it == mapWallet.end()) {
@@ -2667,13 +2724,14 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
             return false;
         }
 
+        // Just to calculate the marginal byte size
         nValueFromPresetInputs += pcoin->tx->vout[outpoint.GetN()].nValue;
         setPresetCoins.insert(CInputCoin(pcoin->tx, outpoint.GetN()));
     }
 
     // Remove preset inputs from vCoins.
     for (std::vector<COutput>::iterator it = vCoins.begin();
-         it != vCoins.end() && coinControl && coinControl->HasSelected();) {
+         it != vCoins.end() && coin_control.HasSelected();) {
         if (setPresetCoins.count(CInputCoin(it->tx->tx, it->i))) {
             it = vCoins.erase(it);
         } else {
@@ -2691,32 +2749,35 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         nTargetValue <= nValueFromPresetInputs ||
         SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                            CoinEligibilityFilter(1, 6, 0), vCoins, setCoinsRet,
-                           nValueRet) ||
+                           nValueRet, coin_selection_params, bnb_used) ||
         SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                            CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet,
-                           nValueRet) ||
+                           nValueRet, coin_selection_params, bnb_used) ||
         (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet,
-                            nValueRet)) ||
+                            nValueRet, coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(
-                                0, 1, std::min<size_t>(4, nMaxChainLength / 3)),
-                            vCoins, setCoinsRet, nValueRet)) ||
+                                0, 1, std::min((size_t)4, nMaxChainLength / 3)),
+                            vCoins, setCoinsRet, nValueRet,
+                            coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, nMaxChainLength / 2),
-                            vCoins, setCoinsRet, nValueRet)) ||
+                            vCoins, setCoinsRet, nValueRet,
+                            coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, nMaxChainLength),
-                            vCoins, setCoinsRet, nValueRet)) ||
+                            vCoins, setCoinsRet, nValueRet,
+                            coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange && !fRejectLongChains &&
          SelectCoinsMinConf(
              nTargetValue - nValueFromPresetInputs,
              CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()),
-             vCoins, setCoinsRet, nValueRet));
+             vCoins, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
 
     // Because SelectCoinsMinConf clears the setCoinsRet, we now add the
     // possible inputs to the coinset.
@@ -2894,6 +2955,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
         std::vector<COutput> vAvailableCoins;
         AvailableCoins(vAvailableCoins, true, &coinControl);
+        // Parameters for coin selection, init with dummy
+        CoinSelectionParams coin_selection_params;
 
         // Create change script that will be used if we need change
         // TODO: pass in scriptChange instead of reservekey so
@@ -2930,12 +2993,20 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 GetDestinationForKey(vchPubKey, g_change_type));
         }
         CTxOut change_prototype_txout(Amount::zero(), scriptChange);
-        size_t change_prototype_size =
+        coin_selection_params.change_output_size =
             GetSerializeSize(change_prototype_txout, SER_DISK, 0);
+
+        // Get the fee rate to use effective values in coin selection
+        CFeeRate nFeeRateNeeded = GetMinimumFeeRate(coinControl, g_mempool);
 
         nFeeRet = Amount::zero();
         bool pick_new_inputs = true;
         Amount nValueIn = Amount::zero();
+
+        // BnB selector is the only selector used when this is true.
+        // That should only happen on the first pass through the loop.
+        // If we are doing subtract fee from recipient, then don't use BnB
+        coin_selection_params.use_bnb = nSubtractFeeFromAmount == 0;
         // Start with no fee and loop until there is enough fee
         while (true) {
             nChangePosInOut = nChangePosRequest;
@@ -2948,6 +3019,9 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 nValueToSelect += nFeeRet;
             }
 
+            // Static vsize overhead + outputs vsize. 4 nVersion, 4 nLocktime, 1
+            // input count, 1 output count
+            coin_selection_params.tx_noinputs_size = 10;
             // vouts to the payees
             for (const auto &recipient : vecSend) {
                 CTxOut txout(recipient.nAmount, recipient.scriptPubKey);
@@ -2963,6 +3037,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                         txout.nValue -= nFeeRet % int(nSubtractFeeFromAmount);
                     }
                 }
+
+                // Include the fee cost for outputs. Note this is only used for
+                // BnB right now
+                coin_selection_params.tx_noinputs_size +=
+                    ::GetSerializeSize(txout, SER_NETWORK, PROTOCOL_VERSION);
 
                 if (IsDust(txout, dustRelayFee)) {
                     if (recipient.fSubtractFeeFromAmount &&
@@ -2986,13 +3065,26 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             // Choose coins to use
+            bool bnb_used;
             if (pick_new_inputs) {
                 nValueIn = Amount::zero();
                 setCoins.clear();
+                coin_selection_params.change_spend_size =
+                    CalculateMaximumSignedInputSize(change_prototype_txout,
+                                                    this);
+                coin_selection_params.effective_fee = nFeeRateNeeded;
                 if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
-                                 nValueIn, &coinControl)) {
-                    strFailReason = _("Insufficient funds");
-                    return false;
+                                 nValueIn, coinControl, coin_selection_params,
+                                 bnb_used)) {
+                    // If BnB was used, it was the first pass. No longer the
+                    // first pass and continue loop with knapsack.
+                    if (bnb_used) {
+                        coin_selection_params.use_bnb = false;
+                        continue;
+                    } else {
+                        strFailReason = _("Insufficient funds");
+                        return false;
+                    }
                 }
             }
 
@@ -3003,7 +3095,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
                 // Never create dust outputs; if we would, just add the dust to
                 // the fee.
-                if (IsDust(newTxOut, dustRelayFee)) {
+                // The nChange when BnB is used is always going to go to fees.
+                if (IsDust(newTxOut, dustRelayFee) || bnb_used) {
                     nChangePosInOut = -1;
                     nFeeRet += nChange;
                 } else {
@@ -3067,7 +3160,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     // Add 2 as a buffer in case increasing # of outputs changes
                     // compact size
                     unsigned int tx_size_with_change =
-                        nBytes + change_prototype_size + 2;
+                        nBytes + coin_selection_params.change_output_size + 2;
                     Amount fee_needed_with_change = GetMinimumFee(
                         tx_size_with_change, coinControl, g_mempool);
                     Amount minimum_value_for_change =
@@ -3126,6 +3219,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
             // Include more fee and try again.
             nFeeRet = nFeeNeeded;
+            coin_selection_params.use_bnb = false;
             continue;
         }
 

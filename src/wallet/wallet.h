@@ -634,6 +634,22 @@ private:
     std::vector<char> _ssExtra;
 };
 
+struct CoinSelectionParams {
+    bool use_bnb = true;
+    size_t change_output_size = 0;
+    size_t change_spend_size = 0;
+    CFeeRate effective_fee = CFeeRate(Amount::zero());
+    size_t tx_noinputs_size = 0;
+
+    CoinSelectionParams(bool use_bnb_, size_t change_output_size_,
+                        size_t change_spend_size_, CFeeRate effective_fee_,
+                        size_t tx_noinputs_size_)
+        : use_bnb(use_bnb_), change_output_size(change_output_size_),
+          change_spend_size(change_spend_size_), effective_fee(effective_fee_),
+          tx_noinputs_size(tx_noinputs_size_) {}
+    CoinSelectionParams() {}
+};
+
 struct CoinEligibilityFilter {
     const int conf_mine;
     const int conf_theirs;
@@ -675,7 +691,9 @@ private:
     bool SelectCoins(const std::vector<COutput> &vAvailableCoins,
                      const Amount nTargetValue,
                      std::set<CInputCoin> &setCoinsRet, Amount &nValueRet,
-                     const CCoinControl *coinControl = nullptr) const;
+                     const CCoinControl &coin_control,
+                     const CoinSelectionParams &coin_selection_params,
+                     bool &bnb_used) const;
 
     CWalletDB *pwalletdbEncryption;
 
@@ -883,7 +901,9 @@ public:
                             const CoinEligibilityFilter &eligibility_filter,
                             std::vector<COutput> vCoins,
                             std::set<CInputCoin> &setCoinsRet,
-                            Amount &nValueRet) const;
+                            Amount &nValueRet,
+                            const CoinSelectionParams &coin_selection_params,
+                            bool &bnb_used) const;
 
     bool IsSpent(const TxId &txid, uint32_t n) const;
 
