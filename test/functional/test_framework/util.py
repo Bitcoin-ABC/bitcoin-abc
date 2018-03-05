@@ -2,6 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Helpful routines for regression testing."""
 
 from base64 import b64encode
 from binascii import hexlify, unhexlify
@@ -340,7 +341,7 @@ def get_auth_cookie(datadir):
     user = None
     password = None
     if os.path.isfile(os.path.join(datadir, "bitcoin.conf")):
-        with open(os.path.join(datadir, "bitcoin.conf"), 'r') as f:
+        with open(os.path.join(datadir, "bitcoin.conf"), 'r', encoding='utf8') as f:
             for line in f:
                 if line.startswith("rpcuser="):
                     assert user is None  # Ensure that there is only one rpcuser line
@@ -527,8 +528,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
     outputs[self_address] = float(amount + fee)
 
     self_rawtx = from_node.createrawtransaction(inputs, outputs)
-    self_signresult = from_node.signrawtransaction(
-        self_rawtx, None, None, "ALL|FORKID")
+    self_signresult = from_node.signrawtransaction(self_rawtx)
     self_txid = from_node.sendrawtransaction(self_signresult["hex"], True)
 
     vout = find_output(from_node, self_txid, amount + fee)
@@ -538,7 +538,7 @@ def send_zeropri_transaction(from_node, to_node, amount, fee):
     outputs = {to_node.getnewaddress(): float(amount)}
 
     rawtx = from_node.createrawtransaction(inputs, outputs)
-    signresult = from_node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
+    signresult = from_node.signrawtransaction(rawtx)
     txid = from_node.sendrawtransaction(signresult["hex"], True)
 
     return (txid, signresult["hex"])
@@ -570,7 +570,7 @@ def random_transaction(nodes, amount, min_fee, fee_increment, fee_variants):
     outputs[to_node.getnewaddress()] = float(amount)
 
     rawtx = from_node.createrawtransaction(inputs, outputs)
-    signresult = from_node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
+    signresult = from_node.signrawtransaction(rawtx)
     txid = from_node.sendrawtransaction(signresult["hex"], True)
 
     return (txid, signresult["hex"], fee)
@@ -599,8 +599,7 @@ def create_confirmed_utxos(fee, node, count, age=101):
         outputs[addr1] = satoshi_round(send_value / 2)
         outputs[addr2] = satoshi_round(send_value / 2)
         raw_tx = node.createrawtransaction(inputs, outputs)
-        signed_tx = node.signrawtransaction(
-            raw_tx, None, None, "ALL|FORKID")["hex"]
+        signed_tx = node.signrawtransaction(raw_tx)["hex"]
         node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):
@@ -638,7 +637,7 @@ def create_tx(node, coinbase, to_address, amount):
     inputs = [{"txid": coinbase, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
+    signresult = node.signrawtransaction(rawtx)
     assert_equal(signresult["complete"], True)
     return signresult["hex"]
 
