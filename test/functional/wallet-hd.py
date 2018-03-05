@@ -2,6 +2,7 @@
 # Copyright (c) 2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test Hierarchical Deterministic wallet function."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -43,7 +44,7 @@ class WalletHDTest(BitcoinTestFramework):
 
         # This should be enough to keep the master key and the non-HD key
         self.nodes[1].backupwallet(tmpdir + "/hd.bak")
-        # self.nodes[1].dumpwallet(tmpdir + "/hd.dump")
+        #self.nodes[1].dumpwallet(tmpdir + "/hd.dump")
 
         # Derive some HD addresses and remember the last
         # Also send funds to each add
