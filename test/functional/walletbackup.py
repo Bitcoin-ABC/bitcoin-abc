@@ -2,9 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-"""
-Exercise the wallet backup code.  Ported from walletbackup.sh.
+"""Test the wallet backup features.
 
 Test case is:
 4 nodes. 1 2 and 3 send transactions between each other,
@@ -32,11 +30,11 @@ confirm 1/2/3/4 balances are same as before.
 Shutdown again, restore using importwallet,
 and confirm again balances are correct.
 """
+from random import randint
+import shutil
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from random import randint
-import shutil
 
 
 class WalletBackupTest(BitcoinTestFramework):
@@ -44,11 +42,10 @@ class WalletBackupTest(BitcoinTestFramework):
         self.num_nodes = 4
         self.setup_clean_chain = True
         # nodes 1, 2,3 are spenders, let's give them a keypool=100
-        self.extra_args = [
-            ["-keypool=100"], ["-keypool=100"], ["-keypool=100"], []]
+        self.extra_args = [["-keypool=100"],
+                           ["-keypool=100"], ["-keypool=100"], []]
 
-    # This mirrors how the network was setup in the bash test
-    def setup_network(self):
+    def setup_network(self, split=False):
         self.setup_nodes()
         connect_nodes(self.nodes[0], 3)
         connect_nodes(self.nodes[1], 3)
@@ -147,9 +144,9 @@ class WalletBackupTest(BitcoinTestFramework):
         # 114 are mature, so the sum of all wallets should be 114 * 50 = 5700.
         assert_equal(total, 5700)
 
-        #
+        ##
         # Test restoring spender wallets from backups
-        #
+        ##
         self.log.info("Restoring using wallet.dat")
         self.stop_three()
         self.erase_three()
@@ -159,12 +156,12 @@ class WalletBackupTest(BitcoinTestFramework):
         shutil.rmtree(self.options.tmpdir + "/node2/regtest/chainstate")
 
         # Restore wallets from backup
-        shutil.copyfile(
-            tmpdir + "/node0/wallet.bak", tmpdir + "/node0/regtest/wallet.dat")
-        shutil.copyfile(
-            tmpdir + "/node1/wallet.bak", tmpdir + "/node1/regtest/wallet.dat")
-        shutil.copyfile(
-            tmpdir + "/node2/wallet.bak", tmpdir + "/node2/regtest/wallet.dat")
+        shutil.copyfile(tmpdir + "/node0/wallet.bak",
+                        tmpdir + "/node0/regtest/wallet.dat")
+        shutil.copyfile(tmpdir + "/node1/wallet.bak",
+                        tmpdir + "/node1/regtest/wallet.dat")
+        shutil.copyfile(tmpdir + "/node2/wallet.bak",
+                        tmpdir + "/node2/regtest/wallet.dat")
 
         self.log.info("Re-starting nodes")
         self.start_three()
