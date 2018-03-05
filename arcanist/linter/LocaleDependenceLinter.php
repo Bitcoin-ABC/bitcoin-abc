@@ -14,7 +14,10 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "atoi",
     ],
     "src/core_read.cpp" => ["is_digit"],
-    "src/dbwrapper.cpp" => ["vsnprintf"],
+    "src/dbwrapper.cpp" => [
+        "stoul",
+        "vsnprintf"
+    ],
     "src/httprpc.cpp" => ["trim"],
     "src/init.cpp" => ["atoi"],
     "src/netbase.cpp" => ["to_lower"],
