@@ -62,7 +62,7 @@ static CBlock BuildBlockTestCase() {
 #define SHARED_TX_OFFSET 2
 
 BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
-    CTxMemPool pool(CFeeRate(Amount(0)));
+    CTxMemPool pool;
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
@@ -172,7 +172,7 @@ public:
 };
 
 BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
-    CTxMemPool pool(CFeeRate(Amount(0)));
+    CTxMemPool pool;
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
 }
 
 BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
-    CTxMemPool pool(CFeeRate(Amount(0)));
+    CTxMemPool pool;
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
 }
 
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
-    CTxMemPool pool(CFeeRate(Amount(0)));
+    CTxMemPool pool;
     CMutableTransaction coinbase;
     coinbase.vin.resize(1);
     coinbase.vin[0].scriptSig.resize(10);

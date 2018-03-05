@@ -221,7 +221,7 @@ public:
      * Create new BlockPolicyEstimator and initialize stats tracking classes
      * with default values.
      */
-    CBlockPolicyEstimator(const CFeeRate &minRelayFee);
+    CBlockPolicyEstimator();
 
     /** Process all the transactions that have been included in a block */
     void processBlock(unsigned int nBlockHeight,
@@ -266,7 +266,6 @@ public:
 
 private:
     //!< Passed to constructor to avoid dependency on main
-    CFeeRate minTrackedFee;
     unsigned int nBestSeenHeight;
     struct TxStatsInfo {
         unsigned int blockHeight;

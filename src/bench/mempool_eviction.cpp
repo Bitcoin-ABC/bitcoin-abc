@@ -97,7 +97,7 @@ static void MempoolEviction(benchmark::State &state) {
     tx7.vout[1].scriptPubKey = CScript() << OP_7 << OP_EQUAL;
     tx7.vout[1].nValue = 10 * COIN;
 
-    CTxMemPool pool(CFeeRate(Amount(1000)));
+    CTxMemPool pool;
 
     CTransaction t1(tx1);
     CTransaction t2(tx2);
