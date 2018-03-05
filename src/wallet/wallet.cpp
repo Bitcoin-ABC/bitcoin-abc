@@ -31,6 +31,7 @@
 #include <utilmoneystr.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
+#include <wallet/coinselection.h>
 #include <wallet/fees.h>
 #include <wallet/finaltx.h>
 

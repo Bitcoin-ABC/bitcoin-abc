@@ -492,6 +492,7 @@ public:
 
         outpoint = COutPoint(walletTx->GetId(), i);
         txout = walletTx->tx->vout[i];
+        effective_value = txout.nValue;
     }
 
     COutPoint outpoint;

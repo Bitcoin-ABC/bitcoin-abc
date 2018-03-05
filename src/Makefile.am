@@ -213,6 +213,7 @@ BITCOIN_CORE_H = \
   versionbits.h \
   walletinitinterface.h \
   wallet/coincontrol.h \
+  wallet/coinselection.h \
   wallet/crypter.h \
   wallet/db.h \
   wallet/finaltx.h \
@@ -305,6 +306,7 @@ libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   interfaces/wallet.cpp \
   wallet/crypter.cpp \
+  wallet/coinselection.cpp \
   wallet/db.cpp \
   wallet/finaltx.cpp \
   wallet/fees.cpp \
