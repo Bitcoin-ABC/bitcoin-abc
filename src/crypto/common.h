@@ -74,12 +74,12 @@ static inline void WriteBE64(uint8_t *ptr, uint64_t x) {
  * bit in x is set.
  */
 uint64_t static inline CountBits(uint64_t x) {
-#ifdef HAVE_DECL___BUILTIN_CLZL
+#if HAVE_DECL___BUILTIN_CLZL
     if (sizeof(unsigned long) >= sizeof(uint64_t)) {
         return x ? 8 * sizeof(unsigned long) - __builtin_clzl(x) : 0;
     }
 #endif
-#ifdef HAVE_DECL___BUILTIN_CLZLL
+#if HAVE_DECL___BUILTIN_CLZLL
     if (sizeof(unsigned long long) >= sizeof(uint64_t)) {
         return x ? 8 * sizeof(unsigned long long) - __builtin_clzll(x) : 0;
     }
