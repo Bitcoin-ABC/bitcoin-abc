@@ -105,5 +105,6 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
                                   unsigned int nIn);
 void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
                        const SignatureData &data);
+void UpdateInput(CTxIn &input, const SignatureData &data);
 
 #endif // BITCOIN_SCRIPT_SIGN_H

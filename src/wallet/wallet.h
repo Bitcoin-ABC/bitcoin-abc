@@ -264,6 +264,10 @@ public:
     bool IsImmatureCoinBase() const;
 };
 
+// Get the marginal bytes of spending the specified output
+int CalculateMaximumSignedInputSize(const CTxOut &txout,
+                                    const CWallet *pwallet);
+
 /**
  * A transaction with a bunch of additional info that only the owner cares
  * about. It includes any unrecorded transactions needed to link it back to the
@@ -447,6 +451,12 @@ public:
     Amount GetAvailableWatchOnlyCredit(const bool fUseCache = true) const;
     Amount GetChange() const;
 
+    // Get the marginal bytes if spending the specified output from this
+    // transaction
+    int GetSpendSize(unsigned int out) const {
+        return CalculateMaximumSignedInputSize(tx->vout[out], pwallet);
+    }
+
     void GetAmounts(std::list<COutputEntry> &listReceived,
                     std::list<COutputEntry> &listSent, Amount &nFee,
                     std::string &strSentAccount,
@@ -483,6 +493,12 @@ public:
     int i;
     int nDepth;
 
+    /**
+     * Pre-computed estimated size of this output as a fully-signed input in a
+     * transaction. Can be -1 if it could not be calculated.
+     */
+    int nInputBytes;
+
     /** Whether we have the private keys to spend this output */
     bool fSpendable;
 
@@ -504,6 +520,12 @@ public:
         fSpendable = fSpendableIn;
         fSolvable = fSolvableIn;
         fSafe = fSafeIn;
+        nInputBytes = -1;
+        // If known and signable by the given wallet, compute nInputBytes
+        // Failure will keep this value -1
+        if (fSpendable && tx) {
+            nInputBytes = tx->GetSpendSize(i);
+        }
     }
 
     std::string ToString() const;
@@ -1027,9 +1049,15 @@ public:
                                 std::list<CAccountingEntry> &entries);
     bool AddAccountingEntry(const CAccountingEntry &);
     bool AddAccountingEntry(const CAccountingEntry &, CWalletDB *pwalletdb);
-    template <typename ContainerType>
     bool DummySignTx(CMutableTransaction &txNew,
-                     const ContainerType &coins) const;
+                     const std::set<CTxOut> &txouts) const {
+        std::vector<CTxOut> v_txouts(txouts.size());
+        std::copy(txouts.begin(), txouts.end(), v_txouts.begin());
+        return DummySignTx(txNew, v_txouts);
+    }
+    bool DummySignTx(CMutableTransaction &txNew,
+                     const std::vector<CTxOut> &txouts) const;
+    bool DummySignInput(CTxIn &tx_in, const CTxOut &txout) const;
 
     static CFeeRate fallbackFee;
 
@@ -1295,31 +1323,6 @@ public:
     }
 };
 
-// Helper for producing a bunch of max-sized low-S signatures (eg 72 bytes)
-// ContainerType is meant to hold pair<CWalletTx *, int>, and be iterable so
-// that each entry corresponds to each vIn, in order.
-template <typename ContainerType>
-bool CWallet::DummySignTx(CMutableTransaction &txNew,
-                          const ContainerType &coins) const {
-    // Fill in dummy signatures for fee calculation.
-    int nIn = 0;
-    for (const auto &coin : coins) {
-        const CScript &scriptPubKey = coin.txout.scriptPubKey;
-        SignatureData sigdata;
-
-        if (!ProduceSignature(DummySignatureCreator(this), scriptPubKey,
-                              sigdata)) {
-            return false;
-        } else {
-            UpdateTransaction(txNew, nIn, sigdata);
-        }
-
-        nIn++;
-    }
-
-    return true;
-}
-
 OutputType ParseOutputType(const std::string &str,
                            OutputType default_type = OutputType::DEFAULT);
 const std::string &FormatOutputType(OutputType type);
@@ -1367,5 +1370,15 @@ public:
         }
     }
 };
+
+// Calculate the size of the transaction assuming all signatures are max size
+// Use DummySignatureCreator, which inserts 72 byte signatures everywhere.
+// NOTE: this requires that all inputs must be in mapWallet (eg the tx should
+// be IsAllFromMe).
+int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
+                                     const CWallet *wallet);
+int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
+                                     const CWallet *wallet,
+                                     const std::vector<CTxOut> &txouts);
 
 #endif // BITCOIN_WALLET_WALLET_H
