@@ -2,10 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-#
-# Test proper accounting with a double-spend conflict
-#
+"""Test the wallet accounts properly when there is a double-spend conflict."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
@@ -16,9 +13,8 @@ class TxnMallTest(BitcoinTestFramework):
         self.num_nodes = 4
 
     def add_options(self, parser):
-        parser.add_option(
-            "--mineblock", dest="mine_block", default=False, action="store_true",
-            help="Test double-spend of 1-confirmed transaction")
+        parser.add_option("--mineblock", dest="mine_block", default=False, action="store_true",
+                          help="Test double-spend of 1-confirmed transaction")
 
     def setup_network(self):
         # Start with split network:
@@ -64,8 +60,7 @@ class TxnMallTest(BitcoinTestFramework):
         outputs[node1_address] = 1240
         outputs[change_address] = 1248 - 1240 + doublespend_fee
         rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
-        doublespend = self.nodes[0].signrawtransaction(
-            rawtx, None, None, "ALL|FORKID")
+        doublespend = self.nodes[0].signrawtransaction(rawtx)
         assert_equal(doublespend["complete"], True)
 
         # Create two spends using 1 50 BTC coin each
@@ -90,10 +85,10 @@ class TxnMallTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbalance(), expected)
 
         # foo and bar accounts should be debited:
-        assert_equal(self.nodes[0].getbalance(
-            "foo", 0), 1219 + tx1["amount"] + tx1["fee"])
-        assert_equal(self.nodes[0].getbalance(
-            "bar", 0), 29 + tx2["amount"] + tx2["fee"])
+        assert_equal(self.nodes[0].getbalance("foo", 0),
+                     1219 + tx1["amount"] + tx1["fee"])
+        assert_equal(self.nodes[0].getbalance("bar", 0),
+                     29 + tx2["amount"] + tx2["fee"])
 
         if self.options.mine_block:
             assert_equal(tx1["confirmations"], 1)
@@ -114,8 +109,7 @@ class TxnMallTest(BitcoinTestFramework):
 
         # Reconnect the split network, and sync chain:
         connect_nodes(self.nodes[1], 2)
-        # Mine another block to make sure we sync
-        self.nodes[2].generate(1)
+        self.nodes[2].generate(1)  # Mine another block to make sure we sync
         sync_blocks(self.nodes)
         assert_equal(self.nodes[0].gettransaction(
             doublespend_txid)["confirmations"], 2)
@@ -140,8 +134,14 @@ class TxnMallTest(BitcoinTestFramework):
         # fees (which are negative)
         assert_equal(self.nodes[0].getbalance("foo"), 1219)
         assert_equal(self.nodes[0].getbalance("bar"), 29)
-        assert_equal(self.nodes[0].getbalance(""),
-                     starting_balance - 1219 - 29 - 1240 + 100 + fund_foo_tx["fee"] + fund_bar_tx["fee"] + doublespend_fee)
+        assert_equal(self.nodes[0].getbalance(""), starting_balance
+                     - 1219
+                     - 29
+                     - 1240
+                     + 100
+                     + fund_foo_tx["fee"]
+                     + fund_bar_tx["fee"]
+                     + doublespend_fee)
 
         # Node1's "from0" account balance should be just the doublespend:
         assert_equal(self.nodes[1].getbalance("from0"), 1240)

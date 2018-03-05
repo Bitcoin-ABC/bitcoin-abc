@@ -2,10 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-#
-# Test proper accounting with an equivalent malleability clone
-#
+"""Test the wallet accounts properly when there are cloned transactions with malleated scriptsigs."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
@@ -16,9 +13,8 @@ class TxnMallTest(BitcoinTestFramework):
         self.num_nodes = 4
 
     def add_options(self, parser):
-        parser.add_option(
-            "--mineblock", dest="mine_block", default=False, action="store_true",
-            help="Test double-spend of 1-confirmed transaction")
+        parser.add_option("--mineblock", dest="mine_block", default=False, action="store_true",
+                          help="Test double-spend of 1-confirmed transaction")
 
     def setup_network(self):
         # Start with split network:
@@ -57,11 +53,10 @@ class TxnMallTest(BitcoinTestFramework):
 
         # Construct a clone of tx1, to be malleated
         rawtx1 = self.nodes[0].getrawtransaction(txid1, 1)
-        clone_inputs = [
-            {"txid": rawtx1["vin"][0]["txid"], "vout":rawtx1["vin"][0]["vout"]}]
-        clone_outputs = {rawtx1[
-            "vout"][0]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][0]["value"],
-            rawtx1["vout"][1]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][1]["value"]}
+        clone_inputs = [{"txid": rawtx1["vin"][0]
+                         ["txid"], "vout":rawtx1["vin"][0]["vout"]}]
+        clone_outputs = {rawtx1["vout"][0]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][0]["value"],
+                         rawtx1["vout"][1]["scriptPubKey"]["addresses"][0]: rawtx1["vout"][1]["value"]}
         clone_locktime = rawtx1["locktime"]
         clone_raw = self.nodes[0].createrawtransaction(
             clone_inputs, clone_outputs, clone_locktime)
@@ -80,7 +75,7 @@ class TxnMallTest(BitcoinTestFramework):
             clone_raw = clone_raw[:pos0] + output1 + \
                 output0 + clone_raw[pos0 + 2 * output_len:]
 
-        # Use a different signature hash type to sign. This creates an equivalent but malleated clone.
+        # Use a different signature hash type to sign.  This creates an equivalent but malleated clone.
         # Don't send the clone anywhere yet
         tx1_clone = self.nodes[0].signrawtransaction(
             clone_raw, None, None, "ALL|FORKID|ANYONECANPAY")
@@ -104,10 +99,10 @@ class TxnMallTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbalance(), expected)
 
         # foo and bar accounts should be debited:
-        assert_equal(self.nodes[0].getbalance(
-            "foo", 0), 1219 + tx1["amount"] + tx1["fee"])
-        assert_equal(self.nodes[0].getbalance(
-            "bar", 0), 29 + tx2["amount"] + tx2["fee"])
+        assert_equal(self.nodes[0].getbalance("foo", 0),
+                     1219 + tx1["amount"] + tx1["fee"])
+        assert_equal(self.nodes[0].getbalance("bar", 0),
+                     29 + tx2["amount"] + tx2["fee"])
 
         if self.options.mine_block:
             assert_equal(tx1["confirmations"], 1)
@@ -152,14 +147,18 @@ class TxnMallTest(BitcoinTestFramework):
 
         # Check node0's individual account balances.
         # "foo" should have been debited by the equivalent clone of tx1
-        assert_equal(self.nodes[0].getbalance(
-            "foo"), 1219 + tx1["amount"] + tx1["fee"])
+        assert_equal(self.nodes[0].getbalance("foo"),
+                     1219 + tx1["amount"] + tx1["fee"])
         # "bar" should have been debited by (possibly unconfirmed) tx2
-        assert_equal(self.nodes[0].getbalance(
-            "bar", 0), 29 + tx2["amount"] + tx2["fee"])
+        assert_equal(self.nodes[0].getbalance("bar", 0),
+                     29 + tx2["amount"] + tx2["fee"])
         # "" should have starting balance, less funding txes, plus subsidies
-        assert_equal(self.nodes[0].getbalance("", 0),
-                     starting_balance - 1219 + fund_foo_tx["fee"] - 29 + fund_bar_tx["fee"] + 100)
+        assert_equal(self.nodes[0].getbalance("", 0), starting_balance
+                     - 1219
+                     + fund_foo_tx["fee"]
+                     - 29
+                     + fund_bar_tx["fee"]
+                     + 100)
 
         # Node1's "from0" account balance
         assert_equal(self.nodes[1].getbalance(
