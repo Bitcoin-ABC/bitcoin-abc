@@ -71,3 +71,11 @@ void GlobalConfig::SetExcessUTXOCharge(Amount fee) {
 Amount GlobalConfig::GetExcessUTXOCharge() const {
     return excessUTXOCharge;
 }
+
+void GlobalConfig::SetMinFeePerKB(CFeeRate fee) {
+    feePerKB = fee;
+}
+
+CFeeRate GlobalConfig::GetMinFeePerKB() const {
+    return feePerKB;
+}

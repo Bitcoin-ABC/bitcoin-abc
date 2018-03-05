@@ -81,7 +81,6 @@ int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 uint256 hashAssumeValid;
 arith_uint256 nMinimumChainWork;
 
-CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 Amount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool;
@@ -907,6 +906,7 @@ static bool AcceptToMemoryPoolWorker(
                              strprintf("%d", nSigOpsCount));
         }
 
+        CFeeRate minRelayTxFee = config.GetMinFeePerKB();
         Amount mempoolRejectFee =
             pool.GetMinFee(
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
@@ -919,7 +919,7 @@ static bool AcceptToMemoryPoolWorker(
         }
 
         if (gArgs.GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
-            nModifiedFees < ::minRelayTxFee.GetFee(nSize) &&
+            nModifiedFees < minRelayTxFee.GetFee(nSize) &&
             !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
             // Require that free transactions have sufficient priority to be
             // mined in the next block.
@@ -931,7 +931,7 @@ static bool AcceptToMemoryPoolWorker(
         // This mitigates 'penny-flooding' -- sending thousands of free
         // transactions just to be annoying or make others' transactions take
         // longer to confirm.
-        if (fLimitFree && nModifiedFees < ::minRelayTxFee.GetFee(nSize)) {
+        if (fLimitFree && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
             static int64_t nLastTime;

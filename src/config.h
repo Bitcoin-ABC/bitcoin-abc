@@ -28,6 +28,9 @@ public:
 
     virtual void SetExcessUTXOCharge(Amount amt) = 0;
     virtual Amount GetExcessUTXOCharge() const = 0;
+
+    virtual void SetMinFeePerKB(CFeeRate amt) = 0;
+    virtual CFeeRate GetMinFeePerKB() const = 0;
 };
 
 class GlobalConfig final : public Config {
@@ -44,9 +47,13 @@ public:
     void SetExcessUTXOCharge(Amount) override;
     Amount GetExcessUTXOCharge() const override;
 
+    void SetMinFeePerKB(CFeeRate amt) override;
+    CFeeRate GetMinFeePerKB() const override;
+
 private:
     bool useCashAddr;
     Amount excessUTXOCharge;
+    CFeeRate feePerKB;
 };
 
 // Dummy for subclassing in unittests
@@ -69,6 +76,9 @@ public:
 
     void SetExcessUTXOCharge(Amount amt) override {}
     Amount GetExcessUTXOCharge() const override { return Amount(0); }
+
+    void SetMinFeePerKB(CFeeRate amt) override{};
+    CFeeRate GetMinFeePerKB() const override { return CFeeRate(Amount(0)); }
 
 private:
     std::unique_ptr<CChainParams> chainParams;

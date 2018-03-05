@@ -3767,8 +3767,8 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
             // If we don't allow free transactions, then we always have a fee
             // filter of at least minRelayTxFee
             if (gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
-                filterToSend =
-                    std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
+                filterToSend = std::max(filterToSend,
+                                        config.GetMinFeePerKB().GetFeePerK());
             }
 
             if (filterToSend != pto->lastSentFeeFilter) {

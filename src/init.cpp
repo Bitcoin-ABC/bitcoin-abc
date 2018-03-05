@@ -1565,7 +1565,9 @@ bool AppInitParameterInteraction(Config &config) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           gArgs.GetArg("-minrelaytxfee", "")));
         // High fee check is done afterward in CWallet::ParameterInteraction()
-        ::minRelayTxFee = CFeeRate(n);
+        config.SetMinFeePerKB(CFeeRate(n));
+    } else {
+        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE));
     }
 
     // Sanity check argument for min fee for including tx in block
