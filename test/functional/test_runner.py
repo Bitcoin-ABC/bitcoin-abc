@@ -54,118 +54,31 @@ if os.name == 'posix':
 TEST_EXIT_PASSED = 0
 TEST_EXIT_SKIPPED = 77
 
-BASE_SCRIPTS = [
-    # Longest test should go first, to favor running tests in parallel
-    'wallet-hd.py',
-    'walletbackup.py',
-    # vv Tests less than 5m vv
-    'p2p-fullblocktest.py',
-    'fundrawtransaction.py',
-    'p2p-compactblocks.py',
-    # vv Tests less than 2m vv
-    'wallet.py',
-    'wallet-accounts.py',
-    'wallet-dump.py',
-    'listtransactions.py',
-    # vv Tests less than 60s vv
-    'sendheaders.py',
-    'zapwallettxes.py',
-    'importmulti.py',
-    'mempool_limit.py',
-    'merkle_blocks.py',
-    'receivedby.py',
-    'abandonconflict.py',
-    'bip68-112-113-p2p.py',
-    'rawtransactions.py',
-    'reindex.py',
-    # vv Tests less than 30s vv
-    'keypool-topup.py',
-    'zmq_test.py',
-    'bitcoin_cli.py',
-    'mempool_resurrect_test.py',
-    'txn_doublespend.py --mineblock',
-    'txn_clone.py',
-    'getchaintips.py',
-    'rest.py',
-    'mempool_spendcoinbase.py',
-    'mempool_reorg.py',
-    'mempool_persist.py',
-    'multiwallet.py',
-    'httpbasics.py',
-    'multi_rpc.py',
-    'proxy_test.py',
-    'signrawtransactions.py',
-    'disconnect_ban.py',
-    'decodescript.py',
-    'blockchain.py',
-    'disablewallet.py',
-    'net.py',
-    'keypool.py',
-    'p2p-mempool.py',
-    'prioritise_transaction.py',
-    'invalidblockrequest.py',
-    'invalidtxrequest.py',
-    'p2p-versionbits-warning.py',
-    'preciousblock.py',
-    'importprunedfunds.py',
-    'signmessages.py',
-    'nulldummy.py',
-    'import-rescan.py',
-    'mining.py',
-    'rpcnamedargs.py',
-    'listsinceblock.py',
-    'p2p-leaktests.py',
-    'abc-cmdline.py',
-    'abc-high_priority_transaction.py',
-    'abc-mempool-accept-txn.py',
-    'abc-p2p-compactblocks.py',
-    'abc-p2p-fullblocktest.py',
-    'abc-rpc.py',
-    'wallet-encryption.py',
-    'bipdersig-p2p.py',
-    'bip65-cltv-p2p.py',
-    'uptime.py',
-    'resendwallettransactions.py',
-    'minchainwork.py',
-]
-
-EXTENDED_SCRIPTS = [
-    # Longest test should go first, to favor running tests in parallel
-    'pruning.py',
-    # vv Tests less than 20m vv
-    'smartfees.py',
-    # vv Tests less than 5m vv
-    'maxuploadtarget.py',
-    'mempool_packages.py',
-    'dbcrash.py',
-    # vv Tests less than 2m vv
-    'bip68-sequence.py',
-    'getblocktemplate_longpoll.py',
-    'p2p-timeouts.py',
-    # vv Tests less than 60s vv
-    'bip9-softforks.py',
-    'p2p-feefilter.py',
-    'rpcbind_test.py',
-    # vv Tests less than 30s vv
-    'assumevalid.py',
-    'example_test.py',
-    'txn_doublespend.py',
-    'txn_clone.py --mineblock',
-    'forknotify.py',
-    'invalidateblock.py',
-    'p2p-acceptblock.py',
-]
-
-# Place EXTENDED_SCRIPTS first since it has the 3 longest running tests
-ALL_SCRIPTS = EXTENDED_SCRIPTS + BASE_SCRIPTS
-
-
 NON_SCRIPTS = [
     # These are python files that live in the functional tests directory, but are not test scripts.
     "combine_logs.py",
     "create_cache.py",
     "test_runner.py",
 ]
+
+TEST_PARAMS = {
+    # Some test can be run with additional parameters.
+    # When a test is listed here, the it  will be run without parameters
+    # as well as with additional parameters listed here.
+    # This:
+    #    example "testName" : [["--param1", "--param2"] , ["--param3"]]
+    # will run the test 3 times:
+    #    testName
+    #    testName --param1 --param2
+    #    testname --param3
+    "txn_doublespend.py": [["--mineblock"]],
+    "txn_clone.py": [["--mineblock"]]
+}
+
+# Used to limit the number of tests, when list of tests is not provided on command line
+# When --extended is specified, we run all tests, otherwise
+# we only run a test if its execution time in seconds does not exceed EXTENDED_CUTOFF
+EXTENDED_CUTOFF = 40
 
 
 def on_ci():
@@ -248,21 +161,23 @@ def main():
         sys.exit(0)
 
     # Build list of tests
+    all_scripts = get_all_scripts_from_disk(tests_dir, NON_SCRIPTS)
+
     if tests:
         # Individual tests have been specified. Run specified tests that exist
-        # in the ALL_SCRIPTS list. Accept the name with or without .py
+        # in the all_scripts list. Accept the name with or without .py
         # extension.
-        test_list = [t for t in ALL_SCRIPTS if
+        test_list = [t for t in all_scripts if
                      (t in tests or re.sub(".py$", "", t) in tests)]
+        cutoff = sys.maxsize  # do not cut off explicitly specified tests
     else:
         # No individual tests have been specified.
-        # Run all base tests, and optionally run extended tests.
-        test_list = BASE_SCRIPTS
+        # Run all tests that do not exceed
+        # EXTENDED_CUTOFF, unless --extended was specified
+        test_list = all_scripts
+        cutoff = EXTENDED_CUTOFF
         if args.extended:
-            test_list += EXTENDED_SCRIPTS
-            # TODO: BASE_SCRIPTS and EXTENDED_SCRIPTS are sorted by runtime
-            # (for parallel running efficiency). This combined list will is no
-            # longer sorted.
+            cutoff = sys.maxsize
 
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
@@ -274,7 +189,15 @@ def main():
     # build directory is used. We do not want to pollute source directory.
     build_timings = None
     if (src_dir != build_dir):
-        build_timings = Timings(build_dir)
+        build_timings = Timings(os.path.join(build_dir, 'timing.json'))
+
+    # Always use timings from scr_dir if present
+    src_timings = Timings(os.path.join(
+        src_dir, "test", "functional", 'timing.json'))
+
+    # Add test parameters and remove long running tests if needed
+    test_list = get_tests_to_run(
+        test_list, TEST_PARAMS, cutoff, src_timings, build_timings)
 
     if not test_list:
         print("No valid test scripts specified. Check that your test is in one "
@@ -288,8 +211,6 @@ def main():
         subprocess.check_call(
             [os.path.join(tests_dir, test_list[0]), '-h'])
         sys.exit(0)
-
-    check_script_list(src_dir)
 
     if not args.keepcache:
         shutil.rmtree(os.path.join(build_dir, "test",
@@ -496,21 +417,45 @@ class TestResult():
         return color[1] + "%s | %s%s | %s s\n" % (self.name.ljust(self.padding), glyph, self.status.ljust(7), self.time) + color[0]
 
 
-def check_script_list(src_dir):
-    """Check scripts directory.
+def get_all_scripts_from_disk(test_dir, non_scripts):
+    """
+    Return all available test script from script directory (excluding NON_SCRIPTS)
+    """
+    python_files = set([t for t in os.listdir(test_dir) if t[-3:] == ".py"])
+    return list(python_files - set(non_scripts))
 
-    Check that there are no scripts in the functional tests directory which are
-    not being run by pull-tester.py."""
-    script_dir = os.path.join(src_dir, 'test', 'functional')
-    python_files = set([t for t in os.listdir(script_dir) if t[-3:] == ".py"])
-    missed_tests = list(
-        python_files - set(map(lambda x: x.split()[0], ALL_SCRIPTS + NON_SCRIPTS)))
-    if len(missed_tests) != 0:
-        print("%sWARNING!%s The following scripts are not being run: %s. Check the test lists in test_runner.py." % (
-            BOLD[1], BOLD[0], str(missed_tests)))
-        if on_ci():
-            # On CI this warning is an error to prevent merging incomplete commits into master
-            sys.exit(1)
+
+def get_tests_to_run(test_list, test_params, cutoff, src_timings, build_timings=None):
+    """
+    Returns only test that will not run longer that cutoff.
+    Long running tests are returned first to favor running tests in parallel
+    Timings from build directory override those from src directory
+    """
+
+    def get_test_time(test):
+        if build_timings is not None:
+            timing = next(
+                (x['time'] for x in build_timings.existing_timings if x['name'] == test), None)
+            if timing is not None:
+                return timing
+
+        # try source directory. Return 0 if test is unknown to always run it
+        return next(
+            (x['time'] for x in src_timings.existing_timings if x['name'] == test), 0)
+
+    # Some tests must also be run with additional parameters. Add them to the list.
+    tests_with_params = []
+    for test_name in test_list:
+        # always execute a test without parameters
+        tests_with_params.append(test_name)
+        params = test_params.get(test_name)
+        if params is not None:
+            tests_with_params.extend(
+                [test_name + " " + " ".join(p) for p in params])
+
+    result = [t for t in tests_with_params if get_test_time(t) <= cutoff]
+    result.sort(key=lambda x:  (-get_test_time(x), x))
+    return result
 
 
 class RPCCoverage():
@@ -619,13 +564,12 @@ def save_results_as_junit(test_results, file_name, time):
 
 
 class Timings():
-    """    
+    """
     Takes care of loading, merging and saving tests execution times.
     """
 
-    def __init__(self, dir):
-        self.dir = dir
-        self.timing_file = os.path.join(dir, 'timing.json')
+    def __init__(self, timing_file):
+        self.timing_file = timing_file
         self.existing_timings = self.load_timings()
 
     def load_timings(self):
