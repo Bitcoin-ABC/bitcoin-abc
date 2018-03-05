@@ -47,6 +47,7 @@ class FullBlockTest(ComparisonTestFramework):
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
+                            "-monolithactivationtime=%d" % MONOLITH_START_TIME,
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
 
@@ -180,7 +181,8 @@ class FullBlockTest(ComparisonTestFramework):
         return block
 
     def get_tests(self):
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
+        node = self.nodes[0]
+        self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
 
@@ -250,28 +252,36 @@ class FullBlockTest(ComparisonTestFramework):
             block(n, spend=out[i], block_size=n * ONE_MEGABYTE // 2)
             yield accepted()
 
-        # Fork block
+        # Start moving MTP forward
         bfork = block(5555, out[15], block_size=8 * ONE_MEGABYTE)
-        bfork.nTime = MONOLITH_START_TIME
+        bfork.nTime = MONOLITH_START_TIME - 1
         update_block(5555, [])
         yield accepted()
 
         # Get to one block of the May 15, 2018 HF activation
-        for i in range(4):
+        for i in range(5):
             block(5100 + i)
             test.blocks_and_transactions.append([self.tip, True])
         yield test
+
+        # Check that the MTP is just before the configured fork point.
+        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
+                     MONOLITH_START_TIME - 1)
 
         # Before we acivate the May 15, 2018 HF, 8MB is the limit.
         block(4444, spend=out[16], block_size=8 * ONE_MEGABYTE + 1)
         yield rejected(RejectResult(16, b'bad-blk-length'))
 
         # Rewind bad block.
-        tip(5103)
+        tip(5104)
 
         # Actiavte the May 15, 2018 HF
-        block(5104)
+        block(5556)
         yield accepted()
+
+        # Now MTP is exactly the fork time. Bigger blocks are now accepted.
+        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
+                     MONOLITH_START_TIME)
 
         # block of maximal size
         block(17, spend=out[16], block_size=self.excessive_block_size)

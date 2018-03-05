@@ -601,7 +601,9 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
 
 static bool IsMonolithEnabled(const Config &config, int64_t nMedianTimePast) {
     return nMedianTimePast >=
-           config.GetChainParams().GetConsensus().monolithActivationTime;
+           gArgs.GetArg(
+               "-monolithactivationtime",
+               config.GetChainParams().GetConsensus().monolithActivationTime);
 }
 
 bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev) {

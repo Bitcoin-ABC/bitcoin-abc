@@ -83,6 +83,7 @@ class FullBlockTest(ComparisonTestFramework):
                             '-limitdescendantcount=999999',
                             '-limitdescendantsize=999999',
                             '-maxmempool=99999',
+                            "-monolithactivationtime=%d" % MONOLITH_START_TIME,
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
 
