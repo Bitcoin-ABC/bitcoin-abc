@@ -1716,10 +1716,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
                                CCoinsViewCache &view, bool fJustCheck) {
     AssertLockHeld(cs_main);
     assert(pindex);
-    // pindex->phashBlock can be null if called by
-    // CreateNewBlock/TestBlockValidity
-    assert((pindex->phashBlock == nullptr) ||
-           (*pindex->phashBlock == block.GetHash()));
+    assert(*pindex->phashBlock == block.GetHash());
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
@@ -1803,10 +1800,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
     // applied to all blocks except the two in the chain that violate it. This
     // prevents exploiting the issue against nodes during their initial block
     // download.
-    bool fEnforceBIP30 = (!pindex->phashBlock) || // Enforce on CreateNewBlock
-                                                  // invocations which don't
-                                                  // have a hash.
-                         !((pindex->nHeight == 91842 &&
+    bool fEnforceBIP30 = !((pindex->nHeight == 91842 &&
                             pindex->GetBlockHash() ==
                                 uint256S("0x00000000000a4d0a398161ffc163c503763"
                                          "b1f4360639393e0e4c8e300e0caec")) ||
@@ -4143,9 +4137,11 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
     CCoinsViewCache viewNew(pcoinsTip.get());
+    uint256 block_hash(block.GetHash());
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
     indexDummy.nHeight = pindexPrev->nHeight + 1;
+    indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
     if (!ContextualCheckBlockHeader(config, block, state, pindexPrev,
