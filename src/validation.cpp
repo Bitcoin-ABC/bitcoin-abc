@@ -2389,7 +2389,9 @@ void PruneAndFlush() {
     FlushStateToDisk(chainparams, state, FLUSH_STATE_NONE);
 }
 
-/** Update chainActive and related internal data structures. */
+/**
+ * Update chainActive and related internal data structures when adding a new block to the chain tip.
+ */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -2901,11 +2903,6 @@ static void NotifyHeaderTip() {
     }
 }
 
-/**
- * Make the best chain active, in multiple steps. The result is either failure
- * or an activated best chain. pblock is either nullptr or a pointer to a block
- * that is already loaded (to avoid loading it again from disk).
- */
 bool ActivateBestChain(const Config &config, CValidationState &state,
                        std::shared_ptr<const CBlock> pblock) {
     // Note that while we're often called here from ProcessNewBlock, this is
@@ -3618,6 +3615,11 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     return true;
 }
 
+/**
+ * If the provided block header is valid, add it to the block index.
+ *
+ * Returns true if the block is succesfully added to the block index.
+ */
 static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                               CValidationState &state, CBlockIndex **ppindex) {
     AssertLockHeld(cs_main);
@@ -3793,9 +3795,9 @@ static bool AcceptBlock(const Config &config,
                      block.GetHash().ToString());
     }
 
-    // Header is valid/has work, merkle tree and segwit merkle tree are
-    // good...RELAY NOW (but if it does not build on our best tip, let the
-    // SendMessages loop relay it)
+    // Header is valid/has work and the merkle tree is good.
+    // Relay now, but if it does not build on our best tip, let the
+    // SendMessages loop relay it.
     if (!IsInitialBlockDownload() && chainActive.Tip() == pindex->pprev) {
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
     }

@@ -265,7 +265,7 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
  * for non-network block sources and whitelisted peers.
  * @param[out]  fNewBlock A boolean which is set to indicate if the block was
  * first received via this call
- * @return True if state.IsValid()
+ * @return true if the block is accepted as a valid block
  */
 bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
@@ -325,7 +325,15 @@ std::string GetWarnings(const std::string &strFor);
 bool GetTransaction(const Config &config, const uint256 &hash,
                     CTransactionRef &tx, uint256 &hashBlock,
                     bool fAllowSlow = false);
-/** Find the best known block, and make it the tip of the block chain */
+/**
+ * Find the best known block, and make it the active tip of the block chain.
+ * If it fails, the tip is not updated.
+ *
+ * pblock is either nullptr or a pointer to a block that is already loaded
+ * in memory (to avoid loading it from disk again).
+ *
+ * Returns true if a new chain tip was set.
+ */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
@@ -539,7 +547,12 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 
 /** Functions for validating blocks and updating the block tree */
 
-/** Context-independent validity checks */
+/**
+ * Context-independent validity checks.
+ *
+ * Returns true if the provided block is valid (has valid header,
+ * transactions are valid, block is a valid size, etc.)
+ */
 bool CheckBlock(const Config &Config, const CBlock &block,
                 CValidationState &state, bool fCheckPOW = true,
                 bool fCheckMerkleRoot = true);
@@ -598,7 +611,14 @@ bool ReplayBlocks(const Config &config, CCoinsView *view);
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator);
 
-/** Mark a block as precious and reorganize. */
+/**
+ * Treats a block as if it were received before others with the same work,
+ * making it the active chain tip if applicable. Successive calls to
+ * PreciousBlock() will override the effects of earlier calls. The effects of
+ * calls to PreciousBlock() are not retained across restarts.
+ *
+ * Returns true if the provided block index successfully became the chain tip.
+ */
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex);
 
