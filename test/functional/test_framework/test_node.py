@@ -18,6 +18,7 @@ import time
 from .authproxy import JSONRPCException
 from .messages import COIN, CTransaction, FromHex
 from .util import (
+    append_config,
     assert_equal,
     delete_cookie_file,
     get_rpc_proxy,
@@ -45,7 +46,7 @@ class TestNode():
     To make things easier for the test writer, any unrecognised messages will
     be dispatched to the RPC connection."""
 
-    def __init__(self, i, dirname, extra_args, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir, use_cli=False):
+    def __init__(self, i, dirname, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
         self.index = i
         self.datadir = os.path.join(dirname, "node" + str(i))
         self.host = host
@@ -66,6 +67,8 @@ class TestNode():
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
         self.stderr = stderr
         self.coverage_dir = coverage_dir
+        if extra_conf != None:
+            append_config(dirname, i, extra_conf)
         # Most callers will just need to add extra args to the default list
         # below.
         # For those callers that need more flexibity, they can access the
