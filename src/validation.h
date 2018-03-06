@@ -365,13 +365,10 @@ bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev);
 
 /**
  * (try to) add transaction to memory pool
- * plTxnReplaced will be appended to with all transactions replaced from
- * mempool.
  */
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
-                        std::list<CTransactionRef> *plTxnReplaced = nullptr,
                         bool fOverrideMempoolLimit = false,
                         const Amount nAbsurdFee = Amount(0));
 

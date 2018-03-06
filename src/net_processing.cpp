@@ -2067,11 +2067,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
-        std::list<CTransactionRef> lRemovedTxn;
-
-        if (!AlreadyHave(inv) &&
-            AcceptToMemoryPool(config, mempool, state, ptx, true,
-                               &fMissingInputs, &lRemovedTxn)) {
+        if (!AlreadyHave(inv) && AcceptToMemoryPool(config, mempool, state, ptx,
+                                                    true, &fMissingInputs)) {
             mempool.check(pcoinsTip);
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
@@ -2112,8 +2109,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                         continue;
                     }
                     if (AcceptToMemoryPool(config, mempool, stateDummy,
-                                           porphanTx, true, &fMissingInputs2,
-                                           &lRemovedTxn)) {
+                                           porphanTx, true, &fMissingInputs2)) {
                         LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                                  orphanId.ToString());
                         RelayTransaction(orphanTx, connman);
@@ -2230,10 +2226,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                               FormatStateMessage(state));
                 }
             }
-        }
-
-        for (const CTransactionRef &removedTx : lRemovedTxn) {
-            AddToCompactExtraTransactions(removedTx);
         }
 
         int nDoS = 0;

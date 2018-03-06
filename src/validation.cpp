@@ -644,7 +644,7 @@ void UpdateMempoolForReorg(const Config &config,
         CValidationState stateDummy;
         if (!fAddToMempool || (*it)->IsCoinBase() ||
             !AcceptToMemoryPool(config, mempool, stateDummy, *it, false,
-                                nullptr, nullptr, true)) {
+                                nullptr, true)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
             mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
@@ -717,8 +717,7 @@ static bool CheckInputsFromMempoolAndCache(const CTransaction &tx,
 static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
-    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced,
-    bool fOverrideMempoolLimit, const Amount nAbsurdFee,
+    int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
     std::vector<COutPoint> &coins_to_uncache) {
     AssertLockHeld(cs_main);
 
@@ -1053,15 +1052,17 @@ static bool AcceptToMemoryPoolWorker(
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool AcceptToMemoryPoolWithTime(
-    const Config &config, CTxMemPool &pool, CValidationState &state,
-    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
-    int64_t nAcceptTime, std::list<CTransactionRef> *plTxnReplaced = nullptr,
-    bool fOverrideMempoolLimit = false, const Amount nAbsurdFee = Amount(0)) {
+static bool AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
+                                       CValidationState &state,
+                                       const CTransactionRef &tx,
+                                       bool fLimitFree, bool *pfMissingInputs,
+                                       int64_t nAcceptTime,
+                                       bool fOverrideMempoolLimit = false,
+                                       const Amount nAbsurdFee = Amount(0)) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
-        plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache);
+        fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache);
     if (!res) {
         for (const COutPoint &outpoint : coins_to_uncache) {
             pcoinsTip->Uncache(outpoint);
@@ -1078,10 +1079,9 @@ static bool AcceptToMemoryPoolWithTime(
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
-                        std::list<CTransactionRef> *plTxnReplaced,
                         bool fOverrideMempoolLimit, const Amount nAbsurdFee) {
     return AcceptToMemoryPoolWithTime(config, pool, state, tx, fLimitFree,
-                                      pfMissingInputs, GetTime(), plTxnReplaced,
+                                      pfMissingInputs, GetTime(),
                                       fOverrideMempoolLimit, nAbsurdFee);
 }
 
