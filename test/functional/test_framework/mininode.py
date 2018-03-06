@@ -4,23 +4,21 @@
 # Copyright (c) 2010-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Bitcoin P2P network half-a-node.
 
-#
-# mininode.py - Bitcoin P2P network half-a-node
-#
-# This python code was modified from ArtForz' public domain  half-a-node, as
-# found in the mini-node branch of http://github.com/jgarzik/pynode.
-#
-# NodeConn: an object which manages p2p connectivity to a bitcoin node
-# NodeConnCB: a base class that describes the interface for receiving
-#             callbacks with network messages from a NodeConn
-# CBlock, CTransaction, CBlockHeader, CTxIn, CTxOut, etc....:
-#     data structures that should map to corresponding structures in
-#     bitcoin/primitives
-# msg_block, msg_tx, msg_headers, etc.:
-#     data structures that represent network messages
-# ser_*, deser_*: functions that handle serialization/deserialization
+This python code was modified from ArtForz' public domain  half-a-node, as
+found in the mini-node branch of http://github.com/jgarzik/pynode.
 
+NodeConn: an object which manages p2p connectivity to a bitcoin node
+NodeConnCB: a base class that describes the interface for receiving
+            callbacks with network messages from a NodeConn
+CBlock, CTransaction, CBlockHeader, CTxIn, CTxOut, etc....:
+    data structures that should map to corresponding structures in
+    bitcoin/primitives
+msg_block, msg_tx, msg_headers, etc.:
+    data structures that represent network messages
+ser_*, deser_*: functions that handle serialization/deserialization
+"""
 
 import asyncore
 from codecs import encode
@@ -69,7 +67,7 @@ mininode_socket_map = dict()
 
 # One lock for synchronizing all data access between the networking thread (see
 # NetworkThread below) and the thread running the test logic.  For simplicity,
-# NodeConn acquires this lock whenever delivering a message to to a NodeConnCB,
+# NodeConn acquires this lock whenever delivering a message to a NodeConnCB,
 # and whenever adding anything to the send buffer (in send_message()).  This
 # lock should be acquired in the thread running the test logic to synchronize
 # access to any data shared with the NodeConnCB or NodeConn.
@@ -1378,6 +1376,7 @@ class NodeConnCB():
             except:
                 print("ERROR delivering %s (%s)" % (repr(message),
                                                     sys.exc_info()[0]))
+                raise
 
     def set_deliver_sleep_time(self, value):
         with mininode_lock:
@@ -1512,8 +1511,10 @@ class NodeConnCB():
     def sync_with_ping(self, timeout=60):
         self.send_message(msg_ping(nonce=self.ping_counter))
 
-        def test_function(): return self.last_message.get(
-            "pong") and self.last_message["pong"].nonce == self.ping_counter
+        def test_function():
+            if not self.last_message.get("pong"):
+                return False
+            return self.last_message["pong"].nonce == self.ping_counter
         wait_until(test_function, timeout=timeout, lock=mininode_lock)
         self.ping_counter += 1
 
@@ -1590,12 +1591,13 @@ class NodeConn(asyncore.dispatcher):
 
     def handle_connect(self):
         if self.state != "connected":
-            logger.debug("Connected & Listening: \n")
+            logger.debug("Connected & Listening: %s:%d" %
+                         (self.dstaddr, self.dstport))
             self.state = "connected"
             self.cb.on_open(self)
 
     def handle_close(self):
-        logger.debug("Closing Connection to %s:%d... " %
+        logger.debug("Closing connection to: %s:%d" %
                      (self.dstaddr, self.dstport))
         self.state = "closed"
         self.recvbuf = b""
@@ -1607,13 +1609,10 @@ class NodeConn(asyncore.dispatcher):
         self.cb.on_close(self)
 
     def handle_read(self):
-        try:
-            with mininode_lock:
-                t = self.recv(READ_BUFFER_SIZE)
-                if len(t) > 0:
-                    self.recvbuf += t
-        except:
-            pass
+        with mininode_lock:
+            t = self.recv(READ_BUFFER_SIZE)
+            if len(t) > 0:
+                self.recvbuf += t
 
         while True:
             msg = self.got_data()
@@ -1679,11 +1678,11 @@ class NodeConn(asyncore.dispatcher):
                     if checksum != h[:4]:
                         raise ValueError(
                             "got bad checksum " + repr(self.recvbuf))
-                    self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
+                    self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
                 if command not in self.messagemap:
-                    logger.warning("Received unknown command from %s:%d: '%s' %s" %
-                                   (self.dstaddr, self.dstport, command, repr(msg)))
-                    return None
+                    logger.warning("Received unknown command from %s:%d: '%s' %s" % (
+                        self.dstaddr, self.dstport, command, repr(msg)))
+                    raise ValueError("Unknown command: '%s'" % (command))
                 f = BytesIO(msg)
                 m = self.messagemap[command]()
                 m.deserialize(f)
@@ -1691,12 +1690,12 @@ class NodeConn(asyncore.dispatcher):
 
         except Exception as e:
             logger.exception('got_data:', repr(e))
+            raise
 
     def send_message(self, message, pushbuf=False):
         if self.state != "connected" and not pushbuf:
             raise IOError('Not connected, no pushbuf')
-        logger.debug("Send message to %s:%d: %s" %
-                     (self.dstaddr, self.dstport, repr(message)))
+        self._log_message("send", message)
         command = message.command
         data = message.serialize()
         tmsg = self.MAGIC_BYTES[self.network]
@@ -1718,9 +1717,19 @@ class NodeConn(asyncore.dispatcher):
                 self.messagemap[b'ping'] = msg_ping_prebip31
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(self.messagemap[b'ping']())
-        logger.debug("Received message from %s:%d: %s" %
-                     (self.dstaddr, self.dstport, repr(message)))
+        self._log_message("receive", message)
         self.cb.deliver(self, message)
+
+    def _log_message(self, direction, msg):
+        if direction == "send":
+            log_message = "Send message to "
+        elif direction == "receive":
+            log_message = "Received message from "
+        log_message += "%s:%d: %s" % (self.dstaddr,
+                                      self.dstport, repr(msg)[:500])
+        if len(log_message) > 500:
+            log_message += "... (msg truncated)"
+        logger.debug(log_message)
 
     def disconnect_node(self):
         self.disconnect = True

@@ -298,9 +298,7 @@ class FullBlockTest(ComparisonTestFramework):
         peer = TestNode()
         peer.add_connection(NodeConn('127.0.0.1', p2p_port(0), node, peer))
 
-        # Start up network handling in another thread and wait for connection
-        # to be etablished
-        NetworkThread().start()
+        # Wait for connection to be etablished
         peer.wait_for_verack()
 
         # Wait for SENDCMPCT
