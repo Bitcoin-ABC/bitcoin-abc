@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 #include <chainparams.h>
+#include <wallet/coinselection.h>
 #include <wallet/wallet.h>
 
 #include <set>
@@ -62,4 +63,50 @@ static void CoinSelection(benchmark::State &state) {
     }
 }
 
+typedef std::set<CInputCoin> CoinSet;
+
+// Copied from src/wallet/test/coinselector_tests.cpp
+static void add_coin(const Amount nValue, int nInput,
+                     std::vector<CInputCoin> &set) {
+    CMutableTransaction tx;
+    tx.vout.resize(nInput + 1);
+    tx.vout[nInput].nValue = nValue;
+    set.emplace_back(MakeTransactionRef(tx), nInput);
+}
+
+// Copied from src/wallet/test/coinselector_tests.cpp
+static Amount make_hard_case(int utxos, std::vector<CInputCoin> &utxo_pool) {
+    utxo_pool.clear();
+    Amount target = Amount::zero();
+    for (int i = 0; i < utxos; ++i) {
+        const Amount base = (int64_t(1) << (utxos + i)) * SATOSHI;
+        target += base;
+        add_coin(base, 2 * i, utxo_pool);
+        add_coin(base + (int64_t(1) << (utxos - 1 - i)) * SATOSHI, 2 * i + 1,
+                 utxo_pool);
+    }
+    return target;
+}
+
+static void BnBExhaustion(benchmark::State &state) {
+    // Setup
+    std::vector<CInputCoin> utxo_pool;
+    CoinSet selection;
+    Amount value_ret = Amount::zero();
+    Amount not_input_fees = Amount::zero();
+
+    while (state.KeepRunning()) {
+        // Benchmark
+        Amount target = make_hard_case(17, utxo_pool);
+        // Should exhaust
+        SelectCoinsBnB(utxo_pool, target, Amount::zero(), selection, value_ret,
+                       not_input_fees);
+
+        // Cleanup
+        utxo_pool.clear();
+        selection.clear();
+    }
+}
+
 BENCHMARK(CoinSelection, 650);
+BENCHMARK(BnBExhaustion, 650);
