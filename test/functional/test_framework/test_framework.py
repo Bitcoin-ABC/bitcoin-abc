@@ -2,6 +2,7 @@
 # Copyright (c) 2014-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Base class for RPC testing."""
 
 from collections import deque
 from enum import Enum
@@ -87,12 +88,10 @@ class BitcoinTestFramework():
                           help="Root directory for datadirs")
         parser.add_option("-l", "--loglevel", dest="loglevel", default="INFO",
                           help="log events at this level and higher to the console. Can be set to DEBUG, INFO, WARNING, ERROR or CRITICAL. Passing --loglevel DEBUG will output all logs to console. Note that logs at all levels are always written to the test_framework.log file in the temporary test directory.")
-        parser.add_option(
-            "--tracerpc", dest="trace_rpc", default=False, action="store_true",
-            help="Print out all RPC calls as they are made")
-        parser.add_option(
-            "--portseed", dest="port_seed", default=os.getpid(), type='int',
-            help="The seed to use for assigning port numbers (default: current process id)")
+        parser.add_option("--tracerpc", dest="trace_rpc", default=False, action="store_true",
+                          help="Print out all RPC calls as they are made")
+        parser.add_option("--portseed", dest="port_seed", default=os.getpid(), type='int',
+                          help="The seed to use for assigning port numbers (default: current process id)")
         parser.add_option("--coveragedir", dest="coveragedir",
                           help="Write tested RPC commands into this directory")
         parser.add_option("--configfile", dest="configfile",
@@ -365,8 +364,8 @@ class BitcoinTestFramework():
         ch = logging.StreamHandler(sys.stdout)
         # User can provide log level as a number or string (eg DEBUG). loglevel
         # was caught as a string, so try to convert it to an int
-        ll = int(
-            self.options.loglevel) if self.options.loglevel.isdigit() else self.options.loglevel.upper()
+        ll = int(self.options.loglevel) if self.options.loglevel.isdigit(
+        ) else self.options.loglevel.upper()
         ch.setLevel(ll)
         # Format logs the same as bitcoind's debug.log with microprecision (so log files can be concatenated and sorted)
         formatter = logging.Formatter(
@@ -374,7 +373,6 @@ class BitcoinTestFramework():
         formatter.converter = time.gmtime
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
-
         # add the handlers to the logger
         self.log.addHandler(fh)
         self.log.addHandler(ch)
