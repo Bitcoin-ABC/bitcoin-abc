@@ -81,7 +81,8 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.stop_nodes()
         # Give this one a head-start, so we can be "extra-sure" that it didn't
         # load anything later
-        self.start_node(1)
+        # Also don't store the mempool, to keep the datadir clean
+        self.start_node(1, extra_args=["-persistmempool=0"])
         self.start_node(0)
         self.start_node(2)
         wait_until(lambda: self.nodes[0].getmempoolinfo()["loaded"], timeout=1)
