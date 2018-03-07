@@ -370,10 +370,6 @@ def delete_cookie_file(datadir):
         os.remove(os.path.join(datadir, "regtest", ".cookie"))
 
 
-def log_filename(dirname, n_node, logname):
-    return os.path.join(dirname, "node" + str(n_node), "regtest", logname)
-
-
 def get_bip9_status(node, key):
     info = node.getblockchaininfo()
     return info['bip9_softforks'][key]
