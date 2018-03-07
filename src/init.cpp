@@ -1504,9 +1504,9 @@ bool AppInitParameterInteraction(Config &config) {
 
     // Trim requested connection counts, to fit into system limitations
     nMaxConnections =
-        std::max(std::min(nMaxConnections,
-                          (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS -
-                                MAX_ADDNODE_CONNECTIONS)),
+        std::max(std::min(nMaxConnections, FD_SETSIZE - nBind -
+                                               MIN_CORE_FILEDESCRIPTORS -
+                                               MAX_ADDNODE_CONNECTIONS),
                  0);
     nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS +
                                    MAX_ADDNODE_CONNECTIONS);
