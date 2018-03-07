@@ -2,6 +2,20 @@
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Compare two or more bitcoinds to each other.
+
+To use, create a class that implements get_tests(), and pass it in
+as the test generator to TestManager.  get_tests() should be a python
+generator that returns TestInstance objects.  See below for definition.
+
+TestNode behaves as follows:
+    Configure with a BlockStore and TxStore
+    on_inv: log the message but don't request
+    on_headers: log the chain tip
+    on_pong: update ping response map (for synchronization)
+    on_getheaders: provide headers via BlockStore
+    on_getdata: provide blocks via BlockStore
+"""
 
 from .mininode import *
 from .blockstore import BlockStore, TxStore
@@ -10,23 +24,6 @@ from .util import p2p_port, wait_until
 import logging
 
 logger = logging.getLogger("TestFramework.comptool")
-
-'''
-This is a tool for comparing two or more bitcoinds to each other
-using a script provided.
-
-To use, create a class that implements get_tests(), and pass it in
-as the test generator to TestManager.  get_tests() should be a python
-generator that returns TestInstance objects.  See below for definition.
-'''
-
-# TestNode behaves as follows:
-# Configure with a BlockStore and TxStore
-# on_inv: log the message but don't request
-# on_headers: log the chain tip
-# on_pong: update ping response map (for synchronization)
-# on_getheaders: provide headers via BlockStore
-# on_getdata: provide blocks via BlockStore
 
 global mininode_lock
 
@@ -179,6 +176,7 @@ class TestInstance():
 
 
 class TestManager():
+
     def __init__(self, testgen, datadir):
         self.test_generator = testgen
         self.connections = []
@@ -221,8 +219,7 @@ class TestManager():
     def sync_blocks(self, blockhash, num_blocks):
         def blocks_requested():
             return all(
-                blockhash in node.block_request_map and node.block_request_map[
-                    blockhash]
+                blockhash in node.block_request_map and node.block_request_map[blockhash]
                 for node in self.test_nodes
             )
 
@@ -240,8 +237,7 @@ class TestManager():
 
     # Analogous to sync_block (see above)
     def sync_transaction(self, txhash, num_events):
-        # Wait for nodes to request transaction (50ms sleep * 20 tries *
-        # num_events)
+        # Wait for nodes to request transaction (50ms sleep * 20 tries * num_events)
         def transaction_requested():
             return all(
                 txhash in node.tx_request_map and node.tx_request_map[txhash]
@@ -281,8 +277,8 @@ class TestManager():
                             'Block not in reject map: %064x' % (blockhash))
                         return False
                     if not outcome.match(c.cb.block_reject_map[blockhash]):
-                        logger.error('Block rejected with %s instead of expected %s: %064x' %
-                                     (c.cb.block_reject_map[blockhash], outcome, blockhash))
+                        logger.error('Block rejected with %s instead of expected %s: %064x' % (
+                            c.cb.block_reject_map[blockhash], outcome, blockhash))
                         return False
                 elif ((c.cb.bestblockhash == blockhash) != outcome):
                     return False
@@ -309,8 +305,8 @@ class TestManager():
                         logger.error('Tx not in reject map: %064x' % (txhash))
                         return False
                     if not outcome.match(c.cb.tx_reject_map[txhash]):
-                        logger.error('Tx rejected with %s instead of expected %s: %064x' %
-                                     (c.cb.tx_reject_map[txhash], outcome, txhash))
+                        logger.error('Tx rejected with %s instead of expected %s: %064x' % (
+                            c.cb.tx_reject_map[txhash], outcome, txhash))
                         return False
                 elif ((txhash in c.cb.lastInv) != outcome):
                     return False
@@ -358,8 +354,7 @@ class TestManager():
                             if first_block_with_hash and block.sha256 in c.cb.block_request_map and c.cb.block_request_map[block.sha256] == True:
                                 # There was a previous request for this block hash
                                 # Most likely, we delivered a header for this block
-                                # but never had the block to respond to the
-                                # getdata
+                                # but never had the block to respond to the getdata
                                 c.send_message(msg_block(block))
                             else:
                                 c.cb.block_request_map[block.sha256] = False
@@ -367,8 +362,7 @@ class TestManager():
                     # to invqueue for later inv'ing.
                     if (test_instance.sync_every_block):
                         # if we expect success, send inv and sync every block
-                        # if we expect failure, just push the block and see
-                        # what happens.
+                        # if we expect failure, just push the block and see what happens.
                         if outcome == True:
                             [c.cb.send_inv(block) for c in self.connections]
                             self.sync_blocks(block.sha256, 1)
@@ -419,8 +413,8 @@ class TestManager():
                     [c.send_message(msg_inv(invqueue))
                      for c in self.connections]
                     invqueue = []
-                self.sync_blocks(
-                    block.sha256, len(test_instance.blocks_and_transactions))
+                self.sync_blocks(block.sha256, len(
+                    test_instance.blocks_and_transactions))
                 if (not self.check_results(tip, block_outcome)):
                     raise AssertionError(
                         "Block test failed at test %d" % test_number)
@@ -429,8 +423,8 @@ class TestManager():
                     [c.send_message(msg_inv(invqueue))
                      for c in self.connections]
                     invqueue = []
-                self.sync_transaction(
-                    tx.sha256, len(test_instance.blocks_and_transactions))
+                self.sync_transaction(tx.sha256, len(
+                    test_instance.blocks_and_transactions))
                 if (not self.check_mempool(tx.sha256, tx_outcome)):
                     raise AssertionError(
                         "Mempool test failed at test %d" % test_number)
