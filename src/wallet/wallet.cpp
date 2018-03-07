@@ -2597,7 +2597,7 @@ bool CWallet::SelectCoinsMinConf(
             continue;
         }
 
-        CInputCoin coin = CInputCoin(output.tx, output.i);
+        CInputCoin coin = CInputCoin(output.tx->tx, output.i);
 
         if (coin.txout.nValue == nTargetValue) {
             setCoinsRet.insert(coin);
@@ -2690,7 +2690,7 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
             }
 
             nValueRet += out.tx->tx->vout[out.i].nValue;
-            setCoinsRet.insert(CInputCoin(out.tx, out.i));
+            setCoinsRet.insert(CInputCoin(out.tx->tx, out.i));
         }
 
         return (nValueRet >= nTargetValue);
@@ -2720,13 +2720,13 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         }
 
         nValueFromPresetInputs += pcoin->tx->vout[outpoint.GetN()].nValue;
-        setPresetCoins.insert(CInputCoin(pcoin, outpoint.GetN()));
+        setPresetCoins.insert(CInputCoin(pcoin->tx, outpoint.GetN()));
     }
 
     // Remove preset inputs from vCoins.
     for (std::vector<COutput>::iterator it = vCoins.begin();
          it != vCoins.end() && coinControl && coinControl->HasSelected();) {
-        if (setPresetCoins.count(CInputCoin(it->tx, it->i))) {
+        if (setPresetCoins.count(CInputCoin(it->tx->tx, it->i))) {
             it = vCoins.erase(it);
         } else {
             ++it;

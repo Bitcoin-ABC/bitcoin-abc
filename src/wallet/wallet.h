@@ -16,6 +16,7 @@
 #include <util.h>
 #include <utilstrencodings.h>
 #include <validationinterface.h>
+#include <wallet/coinselection.h>
 #include <wallet/crypter.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/walletdb.h>
@@ -46,10 +47,6 @@ static const Amount DEFAULT_TRANSACTION_FEE = Amount::zero();
 static const Amount DEFAULT_FALLBACK_FEE(20000 * SATOSHI);
 //! minimum recommended increment for BIP 125 replacement txs
 static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000 * SATOSHI);
-//! target minimum change amount
-static const Amount MIN_CHANGE = CENT;
-//! final minimum change amount after paying for fees
-static const Amount MIN_FINAL_CHANGE = MIN_CHANGE / 2;
 //! Default for -spendzeroconfchange
 static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
 //! Default for -walletrejectlongchains
@@ -478,40 +475,6 @@ public:
     bool AcceptToMemoryPool(const Amount nAbsurdFee, CValidationState &state);
 
     std::set<TxId> GetConflicts() const;
-};
-
-class CInputCoin {
-public:
-    CInputCoin(const CWalletTx *walletTx, unsigned int i) {
-        if (!walletTx) {
-            throw std::invalid_argument("walletTx should not be null");
-        }
-        if (i >= walletTx->tx->vout.size()) {
-            throw std::out_of_range("The output index is out of range");
-        }
-
-        outpoint = COutPoint(walletTx->GetId(), i);
-        txout = walletTx->tx->vout[i];
-        effective_value = txout.nValue;
-    }
-
-    COutPoint outpoint;
-    CTxOut txout;
-    Amount effective_value;
-    Amount fee = Amount::zero();
-    Amount long_term_fee = Amount::zero();
-
-    bool operator<(const CInputCoin &rhs) const {
-        return outpoint < rhs.outpoint;
-    }
-
-    bool operator!=(const CInputCoin &rhs) const {
-        return outpoint != rhs.outpoint;
-    }
-
-    bool operator==(const CInputCoin &rhs) const {
-        return outpoint == rhs.outpoint;
-    }
 };
 
 class COutput {
