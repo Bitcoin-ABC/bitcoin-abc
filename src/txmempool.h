@@ -701,11 +701,11 @@ public:
     void LimitSize(size_t limit, unsigned long age);
 
     /**
-     * Returns false if the transaction is in the mempool and not within the
-     * chain limit specified.
+     * Calculate the ancestor and descendant count for the given transaction.
+     * The counts include the transaction itself.
      */
-    bool TransactionWithinChainLimit(const uint256 &txid, size_t ancestor_limit,
-                                     size_t descendant_limit) const;
+    void GetTransactionAncestry(const uint256 &txid, size_t &ancestors,
+                                size_t &descendants) const;
 
     unsigned long size() {
         LOCK(cs);

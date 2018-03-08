@@ -1241,14 +1241,15 @@ uint64_t CTxMemPool::CalculateDescendantMaximum(txiter entry) const {
     return maximum;
 }
 
-bool CTxMemPool::TransactionWithinChainLimit(const uint256 &txid,
-                                             size_t ancestor_limit,
-                                             size_t descendant_limit) const {
+void CTxMemPool::GetTransactionAncestry(const uint256 &txid, size_t &ancestors,
+                                        size_t &descendants) const {
     LOCK(cs);
     auto it = mapTx.find(txid);
-    return it == mapTx.end() ||
-           (it->GetCountWithAncestors() < ancestor_limit &&
-            CalculateDescendantMaximum(it) < descendant_limit);
+    ancestors = descendants = 0;
+    if (it != mapTx.end()) {
+        ancestors = it->GetCountWithAncestors();
+        descendants = CalculateDescendantMaximum(it);
+    }
 }
 
 SaltedTxidHasher::SaltedTxidHasher()

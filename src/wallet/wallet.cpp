@@ -2601,9 +2601,11 @@ bool CWallet::OutputEligibleForSpending(
         return false;
     }
 
-    if (!g_mempool.TransactionWithinChainLimit(
-            output.tx->GetId(), eligibility_filter.max_ancestors,
-            eligibility_filter.max_descendants)) {
+    size_t ancestors, descendants;
+    g_mempool.GetTransactionAncestry(output.tx->GetId(), ancestors,
+                                     descendants);
+    if (ancestors > eligibility_filter.max_ancestors ||
+        descendants > eligibility_filter.max_descendants) {
         return false;
     }
 
@@ -2746,9 +2748,10 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         }
     }
 
-    size_t nMaxChainLength = std::min(
-        gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT),
-        gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT));
+    size_t max_ancestors = std::max<size_t>(
+        1, gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT));
+    size_t max_descendants = std::max<size_t>(
+        1, gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT));
     bool fRejectLongChains = gArgs.GetBoolArg(
         "-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
 
@@ -2765,19 +2768,22 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
                             CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet,
                             nValueRet, coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange &&
+         SelectCoinsMinConf(
+             nTargetValue - nValueFromPresetInputs,
+             CoinEligibilityFilter(0, 1, std::min<size_t>(4, max_ancestors / 3),
+                                   std::min<size_t>(4, max_descendants / 3)),
+             vCoins, setCoinsRet, nValueRet, coin_selection_params,
+             bnb_used)) ||
+        (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
-                            CoinEligibilityFilter(
-                                0, 1, std::min((size_t)4, nMaxChainLength / 3)),
+                            CoinEligibilityFilter(0, 1, max_ancestors / 2,
+                                                  max_descendants / 2),
                             vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
-                            CoinEligibilityFilter(0, 1, nMaxChainLength / 2),
-                            vCoins, setCoinsRet, nValueRet,
-                            coin_selection_params, bnb_used)) ||
-        (bSpendZeroConfChange &&
-         SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
-                            CoinEligibilityFilter(0, 1, nMaxChainLength),
+                            CoinEligibilityFilter(0, 1, max_ancestors - 1,
+                                                  max_descendants - 1),
                             vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
         (bSpendZeroConfChange && !fRejectLongChains &&
