@@ -94,8 +94,7 @@ def split_inputs(from_node, txins, txouts, initial_split=False):
     # If this is the initial split we actually need to sign the transaction
     # Otherwise we just need to insert the property ScriptSig
     if (initial_split):
-        completetx = from_node.signrawtransaction(
-            rawtx, None, None, "ALL|FORKID")["hex"]
+        completetx = from_node.signrawtransaction(rawtx)["hex"]
     else:
         completetx = rawtx[0:82] + SCRIPT_SIG[prevtxout["vout"]] + rawtx[84:]
     txid = from_node.sendrawtransaction(completetx, True)

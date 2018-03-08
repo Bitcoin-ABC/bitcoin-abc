@@ -48,8 +48,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # won't exists
         outputs = {self.nodes[0].getnewaddress(): 4.998}
         rawtx = self.nodes[2].createrawtransaction(inputs, outputs)
-        rawtx = self.nodes[2].signrawtransaction(
-            rawtx, None, None, "ALL|FORKID")
+        rawtx = self.nodes[2].signrawtransaction(rawtx)
 
         # This will raise an exception since there are missing inputs
         assert_raises_rpc_error(
@@ -127,13 +126,11 @@ class RawTransactionsTest(BitcoinTestFramework):
         }]
         outputs = {self.nodes[0].getnewaddress(): 2.19}
         rawTx = self.nodes[2].createrawtransaction(inputs, outputs)
-        rawTxPartialSigned = self.nodes[
-            1].signrawtransaction(rawTx, inputs, None, "ALL|FORKID")
+        rawTxPartialSigned = self.nodes[1].signrawtransaction(rawTx, inputs)
         # node1 only has one key, can't comp. sign the tx
         assert_equal(rawTxPartialSigned['complete'], False)
 
-        rawTxSigned = self.nodes[2].signrawtransaction(
-            rawTx, inputs, None, "ALL|FORKID")
+        rawTxSigned = self.nodes[2].signrawtransaction(rawTx, inputs)
         # node2 can sign the tx compl., own two of three keys
         assert_equal(rawTxSigned['complete'], True)
         self.nodes[2].sendrawtransaction(rawTxSigned['hex'])

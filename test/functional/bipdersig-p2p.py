@@ -45,7 +45,7 @@ def create_transaction(node, coinbase, to_address, amount):
     inputs = [{"txid": from_txid, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransaction(rawtx, None, None, "ALL|FORKID")
+    signresult = node.signrawtransaction(rawtx)
     tx = CTransaction()
     tx.deserialize(BytesIO(hex_str_to_bytes(signresult['hex'])))
     return tx
