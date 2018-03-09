@@ -64,7 +64,7 @@ public:
     HTTPRequest(struct evhttp_request *req);
     ~HTTPRequest();
 
-    enum RequestMethod { UNKNOWN, GET, POST, HEAD, PUT };
+    enum RequestMethod { UNKNOWN, GET, POST, HEAD, PUT, OPTIONS };
 
     /** Get requested URI.
      */

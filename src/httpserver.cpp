@@ -210,16 +210,14 @@ static std::string RequestMethodString(HTTPRequest::RequestMethod m) {
     switch (m) {
         case HTTPRequest::GET:
             return "GET";
-            break;
         case HTTPRequest::POST:
             return "POST";
-            break;
         case HTTPRequest::HEAD:
             return "HEAD";
-            break;
         case HTTPRequest::PUT:
             return "PUT";
-            break;
+        case HTTPRequest::OPTIONS:
+            return "OPTIONS";
         default:
             return "unknown";
     }
@@ -418,6 +416,14 @@ bool InitHTTPServer(Config &config) {
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE);
     evhttp_set_max_body_size(http, MAX_SIZE);
     evhttp_set_gencb(http, http_request_cb, &config);
+    /* Only POST and OPTIONS are supported, but we return HTTP 405 for the others */
+    evhttp_set_allowed_methods(http,
+        EVHTTP_REQ_GET |
+        EVHTTP_REQ_POST |
+        EVHTTP_REQ_HEAD |
+        EVHTTP_REQ_PUT |
+        EVHTTP_REQ_DELETE |
+        EVHTTP_REQ_OPTIONS);
 
     if (!HTTPBindAddresses(http)) {
         LogPrintf("Unable to bind any endpoint for RPC server\n");
@@ -623,19 +629,16 @@ HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() {
     switch (evhttp_request_get_command(req)) {
         case EVHTTP_REQ_GET:
             return GET;
-            break;
         case EVHTTP_REQ_POST:
             return POST;
-            break;
         case EVHTTP_REQ_HEAD:
             return HEAD;
-            break;
         case EVHTTP_REQ_PUT:
             return PUT;
-            break;
+        case EVHTTP_REQ_OPTIONS:
+            return OPTIONS;
         default:
             return UNKNOWN;
-            break;
     }
 }
 
