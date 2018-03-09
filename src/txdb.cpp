@@ -154,8 +154,10 @@ size_t CCoinsViewDB::EstimateSize() const {
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe)
-    : CDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory,
-                 fWipe) {}
+    : CDBWrapper(gArgs.IsArgSet("-blocksdir")
+                     ? GetDataDir() / "blocks" / "index"
+                     : GetBlocksDir() / "index",
+                 nCacheSize, fMemory, fWipe) {}
 
 bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
     return Read(std::make_pair(DB_BLOCK_FILES, nFile), info);

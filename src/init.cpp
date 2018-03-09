@@ -337,6 +337,9 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-alertnotify=<cmd>",
         _("Execute command when a relevant alert is received or we see a "
           "really long fork (%s in cmd is replaced by message)"));
+    strUsage += HelpMessageOpt(
+        "-blocksdir=<dir>",
+        _("Specify blocks directory (default: <datadir>/blocks)"));
     strUsage += HelpMessageOpt("-blocknotify=<cmd>",
                                _("Execute command when the best block changes "
                                  "(%s in cmd is replaced by block hash)"));
@@ -1001,7 +1004,7 @@ void CleanupBlockRevFiles() {
     // ordered map keyed by block file index.
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for "
               "-reindex with -prune\n");
-    fs::path blocksdir = GetDataDir() / "blocks";
+    fs::path blocksdir = GetBlocksDir();
     for (fs::directory_iterator it(blocksdir); it != fs::directory_iterator();
          it++) {
         if (is_regular_file(*it) &&
@@ -1366,6 +1369,12 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
     // Step 2: parameter interactions
 
     // also see: InitParameterInteraction()
+
+    if (!fs::is_directory(GetBlocksDir(false))) {
+        return InitError(
+            strprintf(_("Specified blocks directory \"%s\" does not exist.\n"),
+                      gArgs.GetArg("-blocksdir", "").c_str()));
+    }
 
     // if using block pruning, then disallow txindex
     if (gArgs.GetArg("-prune", 0)) {
@@ -2239,7 +2248,14 @@ bool AppInitMain(Config &config,
     }
 
     // Step 10: import blocks
-    if (!CheckDiskSpace()) {
+    if (!CheckDiskSpace(/* additional_bytes */ 0, /* blocks_dir */ false)) {
+        InitError(
+            strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
+        return false;
+    }
+    if (!CheckDiskSpace(/* additional_bytes */ 0, /* blocks_dir */ true)) {
+        InitError(
+            strprintf(_("Error: Disk space is low for %s"), GetBlocksDir()));
         return false;
     }
 

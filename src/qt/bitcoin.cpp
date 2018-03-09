@@ -657,7 +657,8 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    /// 6. Determine availability of data directory and parse bitcoin.conf
+    /// 6. Determine availability of data and blocks directory and parse
+    /// bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes.
     if (!fs::is_directory(GetDataDir(false))) {
         QMessageBox::critical(
