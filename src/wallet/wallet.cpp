@@ -2556,6 +2556,27 @@ static void ApproximateBestSubset(const std::vector<CInputCoin> &vValue,
     }
 }
 
+bool CWallet::OutputEligibleForSpending(const COutput &output,
+                                        const int nConfMine,
+                                        const int nConfTheirs,
+                                        const uint64_t nMaxAncestors) const {
+    if (!output.fSpendable) {
+        return false;
+    }
+
+    if (output.nDepth <
+        (output.tx->IsFromMe(ISMINE_ALL) ? nConfMine : nConfTheirs)) {
+        return false;
+    }
+
+    if (!g_mempool.TransactionWithinChainLimit(output.tx->GetId(),
+                                               nMaxAncestors)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool CWallet::SelectCoinsMinConf(const Amount nTargetValue, const int nConfMine,
                                  const int nConfTheirs,
                                  const uint64_t nMaxAncestors,
@@ -2573,24 +2594,12 @@ bool CWallet::SelectCoinsMinConf(const Amount nTargetValue, const int nConfMine,
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
 
     for (const COutput &output : vCoins) {
-        if (!output.fSpendable) {
+        if (!OutputEligibleForSpending(output, nConfMine, nConfTheirs,
+                                       nMaxAncestors)) {
             continue;
         }
 
-        const CWalletTx *pcoin = output.tx;
-
-        if (output.nDepth <
-            (pcoin->IsFromMe(ISMINE_ALL) ? nConfMine : nConfTheirs)) {
-            continue;
-        }
-
-        if (!g_mempool.TransactionWithinChainLimit(pcoin->GetId(),
-                                                   nMaxAncestors)) {
-            continue;
-        }
-
-        int i = output.i;
-        CInputCoin coin = CInputCoin(pcoin, i);
+        CInputCoin coin = CInputCoin(output.tx, output.i);
 
         if (coin.txout.nValue == nTargetValue) {
             setCoinsRet.insert(coin);
