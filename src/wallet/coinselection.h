@@ -51,6 +51,6 @@ public:
 bool SelectCoinsBnB(std::vector<CInputCoin> &utxo_pool,
                     const Amount &target_value, const Amount &cost_of_change,
                     std::set<CInputCoin> &out_set, Amount &value_ret,
-                    Amount not_input_fees);
+                    const Amount not_input_fees);
 
 #endif // BITCOIN_COINSELECTION_H

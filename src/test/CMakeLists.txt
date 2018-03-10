@@ -170,5 +170,6 @@ if(BUILD_BITCOIN_WALLET)
 			../wallet/test/wallet_tests.cpp
 			../wallet/test/walletdb_tests.cpp
 			../wallet/test/wallet_crypto_tests.cpp
+			../wallet/test/coinselector_tests.cpp
 	)
 endif()
