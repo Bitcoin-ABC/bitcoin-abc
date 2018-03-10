@@ -650,8 +650,20 @@ private:
     std::vector<char> _ssExtra;
 };
 
+struct CoinEligibilityFilter {
+    const int conf_mine;
+    const int conf_theirs;
+    const uint64_t max_ancestors;
+
+    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
+                          uint64_t max_ancestors_)
+        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
+          max_ancestors(max_ancestors_) {}
+};
+
 // forward declarations for ScanForWalletTransactions/RescanFromTime
 class WalletRescanReserver;
+
 /**
  * A CWallet is an extension of a keystore, which also maintains a set of
  * transactions and balances, and provides the ability to create new
@@ -878,8 +890,8 @@ public:
      * completion the coin set and corresponding actual target value is
      * assembled.
      */
-    bool SelectCoinsMinConf(const Amount nTargetValue, int nConfMine,
-                            int nConfTheirs, uint64_t nMaxAncestors,
+    bool SelectCoinsMinConf(const Amount nTargetValue,
+                            const CoinEligibilityFilter &eligibilty_filter,
                             std::vector<COutput> vCoins,
                             std::set<CInputCoin> &setCoinsRet,
                             Amount &nValueRet) const;
@@ -1262,9 +1274,9 @@ public:
                                                  OutputType);
 
     /** Whether a given output is spendable by this wallet */
-    bool OutputEligibleForSpending(const COutput &output, const int nConfMine,
-                                   const int nConfTheirs,
-                                   const uint64_t nMaxAncestors) const;
+    bool OutputEligibleForSpending(
+        const COutput &output,
+        const CoinEligibilityFilter &eligibilty_filter) const;
 };
 
 /** A key allocated from the key pool. */
