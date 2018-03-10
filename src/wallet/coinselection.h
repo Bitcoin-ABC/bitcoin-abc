@@ -53,4 +53,8 @@ bool SelectCoinsBnB(std::vector<CInputCoin> &utxo_pool,
                     std::set<CInputCoin> &out_set, Amount &value_ret,
                     const Amount not_input_fees);
 
+// Original coin selection algorithm as a fallback
+bool KnapsackSolver(const Amount nTargetValue, std::vector<CInputCoin> &vCoins,
+                    std::set<CInputCoin> &setCoinsRet, Amount &nValueRet);
+
 #endif // BITCOIN_COINSELECTION_H
