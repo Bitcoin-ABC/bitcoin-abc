@@ -80,10 +80,9 @@ class CChainState {
 private:
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
-     * itself and all ancestors) and
-     * as good as our current tip or better. Entries may be failed, though, and
-     * pruning nodes may be
-     * missing the data for the block.
+     * itself and all ancestors) and as good as our current tip or better.
+     * Entries may be failed, though, and pruning nodes may be missing the data
+     * for the block.
      */
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
 
@@ -295,8 +294,8 @@ bool TestLockPointValidity(const LockPoints *lp) {
     // chain
     if (lp->maxInputBlock) {
         // Check whether chainActive is an extension of the block at which the
-        // LockPoints
-        // calculation was valid.  If not LockPoints are no longer valid
+        // LockPoints calculation was valid. If not LockPoints are no longer
+        // valid.
         if (!chainActive.Contains(lp->maxInputBlock)) {
             return false;
         }
