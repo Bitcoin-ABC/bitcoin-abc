@@ -496,6 +496,9 @@ public:
 
     COutPoint outpoint;
     CTxOut txout;
+    Amount effective_value;
+    Amount fee = Amount::zero();
+    Amount long_term_fee = Amount::zero();
 
     bool operator<(const CInputCoin &rhs) const {
         return outpoint < rhs.outpoint;
