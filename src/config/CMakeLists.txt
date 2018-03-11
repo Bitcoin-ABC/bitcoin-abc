@@ -110,10 +110,6 @@ check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
 
-# Check for socket.h support
-check_symbol_exists(MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL)
-check_symbol_exists(MSG_DONTWAIT "sys/socket.h" HAVE_MSG_DONTWAIT)
-
 # OpenSSL functionality
 set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
 set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
