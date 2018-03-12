@@ -99,6 +99,8 @@ public Q_SLOTS:
                                int /*end*/);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
+    /** Encrypt the wallet Advanced options */
+    void encryptWalletAdvanced(bool status);
     /** Backup the wallet */
     void backupWallet();
     /** Change encrypted wallet passphrase */

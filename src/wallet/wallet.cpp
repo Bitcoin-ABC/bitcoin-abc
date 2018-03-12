@@ -5,6 +5,8 @@
 
 #include "wallet/wallet.h"
 
+#include "base58.h"
+#include "cashaddr.h"
 #include "chain.h"
 #include "checkpoints.h"
 #include "config.h"
@@ -731,7 +733,7 @@ void CWallet::AddToSpends(const uint256 &wtxid) {
     }
 }
 
-bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
+bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase, CKey *newSeed) {
     if (IsCrypted()) {
         return false;
     }
@@ -819,7 +821,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
         // If we are using HD, replace the HD master key (seed) with a new one.
         if (IsHDEnabled()) {
             CKey key;
-            CPubKey masterPubKey = GenerateNewHDMasterKey();
+            CPubKey masterPubKey = GenerateNewHDMasterKey(newSeed);
             // preserve the old chains version to not break backward
             // compatibility
             CHDChain oldChain = GetHDChain();
@@ -1532,9 +1534,25 @@ Amount CWallet::GetChange(const CTransaction &tx) const {
     return nChange;
 }
 
-CPubKey CWallet::GenerateNewHDMasterKey() {
+CPubKey CWallet::GenerateNewHDMasterKey(CKey *newSeed) {
     CKey key;
-    key.MakeNewKey(true);
+
+    if ( newSeed == nullptr ) {
+        // Standard path, no CKey was provided so generate a new one
+        key.MakeNewKey(true);
+    } else {
+        if ( newSeed->IsValid() ) {
+            // A CKey was provided and is valid, use it
+            LogPrintf("CWallet::GenerateNewHDMasterKey - Using given key\n" );
+            key = *newSeed;
+        } else {
+            // A CKey was passed down but empty
+            // Generate a new key and send back to the dialog box for backup
+            LogPrintf("CWallet::GenerateNewHDMasterKey - Generating new key\n" );
+            key.MakeNewKey(true);
+            *newSeed = key;
+        }
+    }
 
     int64_t nCreationTime = GetTime();
     CKeyMetadata metadata(nCreationTime);
@@ -1707,7 +1725,8 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
  * the range doesn't include chainActive.Tip().
  */
 CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
-                                                bool fUpdate) {
+                                                bool fUpdate,
+                                                int64_t forceAll ) {
     LOCK2(cs_main, cs_wallet);
 
     int64_t nNow = GetTime();
@@ -1717,9 +1736,12 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
 
     // No need to read and scan block, if block was created before our wallet
     // birthday (as adjusted for block time variability)
-    while (pindex && nTimeFirstKey &&
-           (pindex->GetBlockTime() < (nTimeFirstKey - 7200))) {
-        pindex = chainActive.Next(pindex);
+    // Skip this adjustment if user requested a complete scan with -rescan=1
+    if( forceAll == 0 ) {
+        while (pindex && nTimeFirstKey &&
+               (pindex->GetBlockTime() < (nTimeFirstKey - 7200))) {
+            pindex = chainActive.Next(pindex);
+        }
     }
 
     // Show rescan progress in GUI as dialog or on splashscreen, if -rescan on
@@ -4037,7 +4059,8 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
             CURRENCY_UNIT, FormatMoney(payTxFee.GetFeePerK())));
     strUsage += HelpMessageOpt(
         "-rescan",
-        _("Rescan the block chain for missing wallet transactions on startup"));
+        _("Rescan the block chain for missing wallet transactions on startup, use "
+          "-rescan=1 to force rescanning from the genesis block"));
     strUsage += HelpMessageOpt(
         "-salvagewallet",
         _("Attempt to recover private keys from a corrupt wallet on startup"));
@@ -4273,7 +4296,8 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
                   chainActive.Height() - pindexRescan->nHeight,
                   pindexRescan->nHeight);
         nStart = GetTimeMillis();
-        walletInstance->ScanForWalletTransactions(pindexRescan, true);
+        walletInstance->ScanForWalletTransactions(pindexRescan, true, 
+                                                  gArgs.GetArg("-rescan",0) );
         LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
         walletInstance->SetBestChain(chainActive.GetLocator());
         walletInstance->dbw->IncrementUpdateCounter();

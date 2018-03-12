@@ -91,7 +91,8 @@ BitcoinGUI::BitcoinGUI(const Config *cfg, const PlatformStyle *_platformStyle,
       usedReceivingAddressesAction(0), signMessageAction(0),
       verifyMessageAction(0), aboutAction(0), receiveCoinsAction(0),
       receiveCoinsMenuAction(0), optionsAction(0), toggleHideAction(0),
-      encryptWalletAction(0), backupWalletAction(0), changePassphraseAction(0),
+      encryptWalletAction(0), encryptWalletAdvancedAction(0), 
+      backupWalletAction(0), changePassphraseAction(0),
       aboutQtAction(0), openRPCConsoleAction(0), openAction(0),
       showHelpMessageAction(0), trayIcon(0), trayIconMenu(0), notificator(0),
       rpcConsole(0), helpMessageDialog(0), modalOverlay(0), prevBlocks(0),
@@ -368,6 +369,14 @@ void BitcoinGUI::createActions() {
     encryptWalletAction->setStatusTip(
         tr("Encrypt the private keys that belong to your wallet"));
     encryptWalletAction->setCheckable(true);
+
+    encryptWalletAdvancedAction =
+        new QAction(platformStyle->TextColorIcon(":/icons/lock_closed"),
+                    tr("&Encrypt Wallet Advanced..."), this);
+    encryptWalletAdvancedAction->setStatusTip(
+        tr("Encrypt and Recover or Manually Generate your wallet's HD key"));
+    encryptWalletAdvancedAction->setCheckable(true);
+
     backupWalletAction =
         new QAction(platformStyle->TextColorIcon(":/icons/filesave"),
                     tr("&Backup Wallet..."), this);
@@ -439,6 +448,8 @@ void BitcoinGUI::createActions() {
     if (walletFrame) {
         connect(encryptWalletAction, SIGNAL(triggered(bool)), walletFrame,
                 SLOT(encryptWallet(bool)));
+        connect(encryptWalletAdvancedAction, SIGNAL(triggered(bool)), walletFrame,
+                SLOT(encryptWalletAdvanced(bool)));
         connect(backupWalletAction, SIGNAL(triggered()), walletFrame,
                 SLOT(backupWallet()));
         connect(changePassphraseAction, SIGNAL(triggered()), walletFrame,
@@ -488,6 +499,7 @@ void BitcoinGUI::createMenuBar() {
     QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
     if (walletFrame) {
         settings->addAction(encryptWalletAction);
+        settings->addAction(encryptWalletAdvancedAction);
         settings->addAction(changePassphraseAction);
         settings->addSeparator();
     }
@@ -613,6 +625,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled) {
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
+    encryptWalletAdvancedAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
     signMessageAction->setEnabled(enabled);
@@ -1098,8 +1111,10 @@ void BitcoinGUI::setEncryptionStatus(int status) {
         case WalletModel::Unencrypted:
             labelWalletEncryptionIcon->hide();
             encryptWalletAction->setChecked(false);
+            encryptWalletAdvancedAction->setChecked(false);
             changePassphraseAction->setEnabled(false);
             encryptWalletAction->setEnabled(true);
+            encryptWalletAdvancedAction->setEnabled(true);
             break;
         case WalletModel::Unlocked:
             labelWalletEncryptionIcon->show();
@@ -1109,8 +1124,11 @@ void BitcoinGUI::setEncryptionStatus(int status) {
             labelWalletEncryptionIcon->setToolTip(
                 tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
             encryptWalletAction->setChecked(true);
+            encryptWalletAdvancedAction->setChecked(true);
             changePassphraseAction->setEnabled(true);
             encryptWalletAction->setEnabled(
+                false); // TODO: decrypt currently not supported
+            encryptWalletAdvancedAction->setEnabled(
                 false); // TODO: decrypt currently not supported
             break;
         case WalletModel::Locked:
@@ -1121,8 +1139,11 @@ void BitcoinGUI::setEncryptionStatus(int status) {
             labelWalletEncryptionIcon->setToolTip(
                 tr("Wallet is <b>encrypted</b> and currently <b>locked</b>"));
             encryptWalletAction->setChecked(true);
+            encryptWalletAdvancedAction->setChecked(true);
             changePassphraseAction->setEnabled(true);
             encryptWalletAction->setEnabled(
+                false); // TODO: decrypt currently not supported
+            encryptWalletAdvancedAction->setEnabled(
                 false); // TODO: decrypt currently not supported
             break;
     }

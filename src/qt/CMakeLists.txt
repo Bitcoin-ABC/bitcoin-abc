@@ -37,6 +37,7 @@ qt5_wrap_ui(UI_GENERATED_HEADERS
 	forms/askpassphrasedialog.ui
 	forms/coincontroldialog.ui
 	forms/editaddressdialog.ui
+	forms/encryptwalletadvanceddialog.ui
 	forms/helpmessagedialog.ui
 	forms/intro.ui
 	forms/modaloverlay.ui
@@ -132,6 +133,7 @@ if(BUILD_BITCOIN_WALLET)
 			coincontroldialog.cpp
 			coincontroltreewidget.cpp
 			editaddressdialog.cpp
+			encryptwalletadvanceddialog.cpp
 			openuridialog.cpp
 			overviewpage.cpp
 			paymentrequestplus.cpp
