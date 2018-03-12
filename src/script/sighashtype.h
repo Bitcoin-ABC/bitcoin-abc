@@ -43,36 +43,34 @@ public:
 
     explicit SigHashType(uint32_t sigHashIn) : sigHash(sigHashIn) {}
 
-    SigHashType withBaseSigHash(BaseSigHashType baseSigHashType) const {
+    SigHashType withBaseType(BaseSigHashType baseSigHashType) const {
         return SigHashType((sigHash & ~0x1f) | uint32_t(baseSigHashType));
     }
 
-    SigHashType withForkId(bool forkId) const {
+    SigHashType withForkId(bool forkId = true) const {
         return SigHashType((sigHash & ~SIGHASH_FORKID) |
                            (forkId ? SIGHASH_FORKID : 0));
     }
 
-    SigHashType withAnyoneCanPay(bool anyoneCanPay) const {
+    SigHashType withAnyoneCanPay(bool anyoneCanPay = true) const {
         return SigHashType((sigHash & ~SIGHASH_ANYONECANPAY) |
                            (anyoneCanPay ? SIGHASH_ANYONECANPAY : 0));
     }
 
-    BaseSigHashType getBaseSigHashType() const {
+    BaseSigHashType getBaseType() const {
         return BaseSigHashType(sigHash & 0x1f);
     }
 
-    bool hasSupportedBaseSigHashType() const {
-        BaseSigHashType baseType = getBaseSigHashType();
+    bool hasSupportedBaseType() const {
+        BaseSigHashType baseType = getBaseType();
         return baseType >= BaseSigHashType::ALL &&
                baseType <= BaseSigHashType::SINGLE;
     }
 
-    bool hasForkId() const {
-        return (sigHash & SIGHASH_FORKID) == SIGHASH_FORKID;
-    }
+    bool hasForkId() const { return (sigHash & SIGHASH_FORKID) != 0; }
 
     bool hasAnyoneCanPay() const {
-        return (sigHash & SIGHASH_ANYONECANPAY) == SIGHASH_ANYONECANPAY;
+        return (sigHash & SIGHASH_ANYONECANPAY) != 0;
     }
 
     uint32_t getRawSigHashType() const { return sigHash; }

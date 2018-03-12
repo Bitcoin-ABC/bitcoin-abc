@@ -348,8 +348,8 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     inputm.vout.resize(1);
     inputm.vout[0].nValue = Amount(1);
     inputm.vout[0].scriptPubKey = CScript();
-    bool ret = SignSignature(keystore, *output, inputm, 0,
-                             SigHashType().withForkId(true));
+    bool ret =
+        SignSignature(keystore, *output, inputm, 0, SigHashType().withForkId());
     BOOST_CHECK_EQUAL(ret, success);
     CDataStream ssin(SER_NETWORK, PROTOCOL_VERSION);
     ssin << inputm;

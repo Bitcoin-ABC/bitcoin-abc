@@ -207,7 +207,7 @@ static bool IsDefinedHashtypeSignature(const valtype &vchSig) {
     if (vchSig.size() == 0) {
         return false;
     }
-    if (!GetHashType(vchSig).hasSupportedBaseSigHashType()) {
+    if (!GetHashType(vchSig).hasSupportedBaseType()) {
         return false;
     }
 
@@ -1264,8 +1264,8 @@ public:
         }
         // Serialize the nSequence
         if (nInput != nIn &&
-            (sigHashType.getBaseSigHashType() == BaseSigHashType::SINGLE ||
-             sigHashType.getBaseSigHashType() == BaseSigHashType::NONE)) {
+            (sigHashType.getBaseType() == BaseSigHashType::SINGLE ||
+             sigHashType.getBaseType() == BaseSigHashType::NONE)) {
             // let the others update at will
             ::Serialize(s, (int)0);
         } else {
@@ -1276,7 +1276,7 @@ public:
     /** Serialize an output of txTo */
     template <typename S>
     void SerializeOutput(S &s, unsigned int nOutput) const {
-        if (sigHashType.getBaseSigHashType() == BaseSigHashType::SINGLE &&
+        if (sigHashType.getBaseType() == BaseSigHashType::SINGLE &&
             nOutput != nIn) {
             // Do not lock-in the txout payee at other indices as txin
             ::Serialize(s, CTxOut());
@@ -1298,9 +1298,9 @@ public:
         }
         // Serialize vout
         unsigned int nOutputs =
-            (sigHashType.getBaseSigHashType() == BaseSigHashType::NONE)
+            (sigHashType.getBaseType() == BaseSigHashType::NONE)
                 ? 0
-                : ((sigHashType.getBaseSigHashType() == BaseSigHashType::SINGLE)
+                : ((sigHashType.getBaseType() == BaseSigHashType::SINGLE)
                        ? nIn + 1
                        : txTo.vout.size());
         ::WriteCompactSize(s, nOutputs);
@@ -1359,16 +1359,15 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
         }
 
         if (!sigHashType.hasAnyoneCanPay() &&
-            (sigHashType.getBaseSigHashType() != BaseSigHashType::SINGLE) &&
-            (sigHashType.getBaseSigHashType() != BaseSigHashType::NONE)) {
+            (sigHashType.getBaseType() != BaseSigHashType::SINGLE) &&
+            (sigHashType.getBaseType() != BaseSigHashType::NONE)) {
             hashSequence = cache ? cache->hashSequence : GetSequenceHash(txTo);
         }
 
-        if ((sigHashType.getBaseSigHashType() != BaseSigHashType::SINGLE) &&
-            (sigHashType.getBaseSigHashType() != BaseSigHashType::NONE)) {
+        if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) &&
+            (sigHashType.getBaseType() != BaseSigHashType::NONE)) {
             hashOutputs = cache ? cache->hashOutputs : GetOutputsHash(txTo);
-        } else if ((sigHashType.getBaseSigHashType() ==
-                    BaseSigHashType::SINGLE) &&
+        } else if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
                    (nIn < txTo.vout.size())) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << txTo.vout[nIn];
@@ -1406,7 +1405,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
     }
 
     // Check for invalid use of SIGHASH_SINGLE
-    if ((sigHashType.getBaseSigHashType() == BaseSigHashType::SINGLE) &&
+    if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
         (nIn >= txTo.vout.size())) {
         //  nOut out of range
         return one;

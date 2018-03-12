@@ -3008,7 +3008,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         }
 
         if (sign) {
-            SigHashType sigHashType = SigHashType().withForkId(true);
+            SigHashType sigHashType = SigHashType().withForkId();
 
             CTransaction txNewConst(txNew);
             int nIn = 0;

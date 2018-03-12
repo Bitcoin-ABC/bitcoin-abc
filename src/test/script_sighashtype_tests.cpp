@@ -7,141 +7,110 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <set>
+
 BOOST_FIXTURE_TEST_SUITE(script_sighashtype_tests, BasicTestingSetup)
 
-BOOST_AUTO_TEST_CASE(SigHashTypeTests) {
-    BOOST_CHECK(SigHashType().getBaseSigHashType() == BaseSigHashType::ALL);
+static void CheckSigHashType(SigHashType t, BaseSigHashType baseType,
+                             bool hasSupportedBaseType, bool hasForkId,
+                             bool hasAnyoneCanPay) {
+    BOOST_CHECK(t.getBaseType() == baseType);
+    BOOST_CHECK_EQUAL(t.hasSupportedBaseType(), hasSupportedBaseType);
+    BOOST_CHECK_EQUAL(t.hasForkId(), hasForkId);
+    BOOST_CHECK_EQUAL(t.hasAnyoneCanPay(), hasAnyoneCanPay);
+}
 
-    BOOST_CHECK(SigHashType(SIGHASH_ALL).getBaseSigHashType() ==
-                BaseSigHashType::ALL);
+BOOST_AUTO_TEST_CASE(sighash_construction_test) {
+    // Check default values.
+    CheckSigHashType(SigHashType(), BaseSigHashType::ALL, true, false, false);
 
-    BOOST_CHECK(SigHashType(SIGHASH_NONE).getBaseSigHashType() ==
-                BaseSigHashType::NONE);
+    // Check all possible permutations.
+    std::set<BaseSigHashType> baseTypes{
+        BaseSigHashType::UNSUPPORTED, BaseSigHashType::ALL,
+        BaseSigHashType::NONE, BaseSigHashType::SINGLE};
+    std::set<bool> forkIdFlagValues{false, true};
+    std::set<bool> anyoneCanPayFlagValues{false, true};
 
-    BOOST_CHECK(SigHashType(SIGHASH_SINGLE).getBaseSigHashType() ==
-                BaseSigHashType::SINGLE);
+    for (BaseSigHashType baseType : baseTypes) {
+        for (bool hasForkId : forkIdFlagValues) {
+            for (bool hasAnyoneCanPay : anyoneCanPayFlagValues) {
+                SigHashType t = SigHashType()
+                                    .withBaseType(baseType)
+                                    .withForkId(hasForkId)
+                                    .withAnyoneCanPay(hasAnyoneCanPay);
 
-    BOOST_CHECK_EQUAL(SigHashType().hasSupportedBaseSigHashType(), true);
-    BOOST_CHECK_EQUAL(SigHashType(0).hasSupportedBaseSigHashType(), false);
-    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_ALL).hasSupportedBaseSigHashType(),
-                      true);
-    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_NONE).hasSupportedBaseSigHashType(),
-                      true);
-    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_SINGLE).hasSupportedBaseSigHashType(),
-                      true);
-    BOOST_CHECK_EQUAL(SigHashType(4).hasSupportedBaseSigHashType(), false);
+                bool hasSupportedBaseType =
+                    baseType != BaseSigHashType::UNSUPPORTED;
+                CheckSigHashType(t, baseType, hasSupportedBaseType, hasForkId,
+                                 hasAnyoneCanPay);
 
-    BOOST_CHECK_EQUAL(SigHashType(SIGHASH_ALL | SIGHASH_FORKID).hasForkId(),
-                      true);
-    BOOST_CHECK_EQUAL(
-        SigHashType(SIGHASH_ALL | SIGHASH_FORKID).hasAnyoneCanPay(), false);
+                // Also check all possible alterations.
+                CheckSigHashType(t.withForkId(hasForkId), baseType,
+                                 hasSupportedBaseType, hasForkId,
+                                 hasAnyoneCanPay);
+                CheckSigHashType(t.withForkId(!hasForkId), baseType,
+                                 hasSupportedBaseType, !hasForkId,
+                                 hasAnyoneCanPay);
+                CheckSigHashType(t.withAnyoneCanPay(hasAnyoneCanPay), baseType,
+                                 hasSupportedBaseType, hasForkId,
+                                 hasAnyoneCanPay);
+                CheckSigHashType(t.withAnyoneCanPay(!hasAnyoneCanPay), baseType,
+                                 hasSupportedBaseType, hasForkId,
+                                 !hasAnyoneCanPay);
 
-    BOOST_CHECK_EQUAL(
-        SigHashType(SIGHASH_ALL | SIGHASH_ANYONECANPAY).hasForkId(), false);
-    BOOST_CHECK_EQUAL(
-        SigHashType(SIGHASH_ALL | SIGHASH_ANYONECANPAY).hasAnyoneCanPay(),
-        true);
+                for (BaseSigHashType newBaseType : baseTypes) {
+                    bool hasSupportedNewBaseType =
+                        newBaseType != BaseSigHashType::UNSUPPORTED;
+                    CheckSigHashType(t.withBaseType(newBaseType), newBaseType,
+                                     hasSupportedNewBaseType, hasForkId,
+                                     hasAnyoneCanPay);
+                }
+            }
+        }
+    }
+}
 
-    BOOST_CHECK(SigHashType()
-                    .withBaseSigHash(BaseSigHashType::ALL)
-                    .getBaseSigHashType() == BaseSigHashType::ALL);
-    BOOST_CHECK(SigHashType()
-                    .withBaseSigHash(BaseSigHashType::NONE)
-                    .getBaseSigHashType() == BaseSigHashType::NONE);
-    BOOST_CHECK(SigHashType()
-                    .withBaseSigHash(BaseSigHashType::SINGLE)
-                    .getBaseSigHashType() == BaseSigHashType::SINGLE);
-    BOOST_CHECK_EQUAL(SigHashType().withForkId(true).hasForkId(), true);
-    BOOST_CHECK_EQUAL(SigHashType().withAnyoneCanPay(true).hasAnyoneCanPay(),
-                      true);
+BOOST_AUTO_TEST_CASE(sighash_serialization_test) {
+    // Test all possible base sig hash values
+    for (uint32_t baseType = 0; baseType <= 0x1f; baseType++) {
+        bool hasSupportedBaseType =
+            (baseType != 0) && (baseType <= SIGHASH_SINGLE);
 
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withForkId(true)
-                          .getRawSigHashType(),
-                      SIGHASH_ALL | SIGHASH_FORKID);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::NONE)
-                          .withForkId(true)
-                          .getRawSigHashType(),
-                      SIGHASH_NONE | SIGHASH_FORKID);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::SINGLE)
-                          .withForkId(true)
-                          .getRawSigHashType(),
-                      SIGHASH_SINGLE | SIGHASH_FORKID);
+        SigHashType tbase(baseType);
+        SigHashType tforkid(baseType | SIGHASH_FORKID);
+        SigHashType tanyonecanspend(baseType | SIGHASH_ANYONECANPAY);
+        SigHashType tboth(baseType | SIGHASH_FORKID | SIGHASH_ANYONECANPAY);
 
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withAnyoneCanPay(true)
-                          .getRawSigHashType(),
-                      SIGHASH_ALL | SIGHASH_ANYONECANPAY);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::NONE)
-                          .withAnyoneCanPay(true)
-                          .getRawSigHashType(),
-                      SIGHASH_NONE | SIGHASH_ANYONECANPAY);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::SINGLE)
-                          .withAnyoneCanPay(true)
-                          .getRawSigHashType(),
-                      SIGHASH_SINGLE | SIGHASH_ANYONECANPAY);
+        // Check deserialization.
+        CheckSigHashType(tbase, BaseSigHashType(baseType), hasSupportedBaseType,
+                         false, false);
+        CheckSigHashType(tforkid, BaseSigHashType(baseType),
+                         hasSupportedBaseType, true, false);
+        CheckSigHashType(tanyonecanspend, BaseSigHashType(baseType),
+                         hasSupportedBaseType, false, true);
+        CheckSigHashType(tboth, BaseSigHashType(baseType), hasSupportedBaseType,
+                         true, true);
 
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withAnyoneCanPay(true)
-                          .withForkId(true)
-                          .getRawSigHashType(),
-                      SIGHASH_ALL | SIGHASH_ANYONECANPAY | SIGHASH_FORKID);
+        // Check raw value.
+        BOOST_CHECK_EQUAL(tbase.getRawSigHashType(), baseType);
+        BOOST_CHECK_EQUAL(tforkid.getRawSigHashType(),
+                          baseType | SIGHASH_FORKID);
+        BOOST_CHECK_EQUAL(tanyonecanspend.getRawSigHashType(),
+                          baseType | SIGHASH_ANYONECANPAY);
+        BOOST_CHECK_EQUAL(tboth.getRawSigHashType(),
+                          baseType | SIGHASH_FORKID | SIGHASH_ANYONECANPAY);
 
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withForkId(true)
-                          .withForkId(false)
-                          .hasForkId(),
-                      false);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withForkId(false)
-                          .withForkId(true)
-                          .hasForkId(),
-                      true);
-
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withAnyoneCanPay(true)
-                          .withAnyoneCanPay(false)
-                          .hasAnyoneCanPay(),
-                      false);
-    BOOST_CHECK_EQUAL(SigHashType()
-                          .withBaseSigHash(BaseSigHashType::ALL)
-                          .withAnyoneCanPay(false)
-                          .withAnyoneCanPay(true)
-                          .hasAnyoneCanPay(),
-                      true);
-
-    BOOST_CHECK(SigHashType()
-                    .withBaseSigHash(BaseSigHashType::ALL)
-                    .withAnyoneCanPay(true)
-                    .withForkId(true)
-                    .withBaseSigHash(BaseSigHashType::NONE)
-                    .getBaseSigHashType() == BaseSigHashType::NONE);
-
-    uint32_t unserializedOutput;
-    for (int baseSigHash = 0; baseSigHash <= 0x1f;
-         baseSigHash++) { // Test all possible base sig hash values
-        (CDataStream(SER_DISK, 0) << SigHashType(baseSigHash)) >>
-            unserializedOutput;
-        BOOST_CHECK_EQUAL(unserializedOutput, baseSigHash);
-        (CDataStream(SER_DISK, 0)
-         << SigHashType(baseSigHash).withForkId(true)) >>
-            unserializedOutput;
-        BOOST_CHECK_EQUAL(unserializedOutput, baseSigHash | SIGHASH_FORKID);
-        (CDataStream(SER_DISK, 0)
-         << SigHashType(baseSigHash).withAnyoneCanPay(true)) >>
-            unserializedOutput;
+        // Check serialization/deserialization.
+        uint32_t unserializedOutput;
+        (CDataStream(SER_DISK, 0) << tbase) >> unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput, baseType);
+        (CDataStream(SER_DISK, 0) << tforkid) >> unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput, baseType | SIGHASH_FORKID);
+        (CDataStream(SER_DISK, 0) << tanyonecanspend) >> unserializedOutput;
+        BOOST_CHECK_EQUAL(unserializedOutput, baseType | SIGHASH_ANYONECANPAY);
+        (CDataStream(SER_DISK, 0) << tboth) >> unserializedOutput;
         BOOST_CHECK_EQUAL(unserializedOutput,
-                          baseSigHash | SIGHASH_ANYONECANPAY);
+                          baseType | SIGHASH_FORKID | SIGHASH_ANYONECANPAY);
     }
 }
 

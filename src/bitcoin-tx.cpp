@@ -556,7 +556,7 @@ static Amount AmountFromValue(const UniValue &value) {
 }
 
 static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
-    SigHashType sigHashType = SigHashType().withForkId(true);
+    SigHashType sigHashType = SigHashType().withForkId();
 
     if ((flagStr.size() > 0) && !findSigHashFlags(sigHashType, flagStr)) {
         throw std::runtime_error("unknown sighash flag/sign option");
@@ -674,7 +674,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
         SignatureData sigdata;
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
-        if ((sigHashType.getBaseSigHashType() != BaseSigHashType::SINGLE) ||
+        if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mergedTx.vout.size())) {
             ProduceSignature(MutableTransactionSignatureCreator(
                                  &keystore, &mergedTx, i, amount, sigHashType),

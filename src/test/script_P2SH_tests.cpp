@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(sign) {
     for (int i = 0; i < 8; i++) {
         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom),
                                           txTo[i], 0,
-                                          SigHashType().withForkId(true)),
+                                          SigHashType().withForkId()),
                             strprintf("SignSignature %d", i));
     }
     // All of the above should be OK, and the txTos have valid signatures
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(set) {
     for (int i = 0; i < 4; i++) {
         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom),
                                           txTo[i], 0,
-                                          SigHashType().withForkId(true)),
+                                          SigHashType().withForkId()),
                             strprintf("SignSignature %d", i));
         BOOST_CHECK_MESSAGE(IsStandardTx(CTransaction(txTo[i]), reason),
                             strprintf("txTo[%d].IsStandard", i));
@@ -394,11 +394,11 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         txTo.vin[i].prevout.hash = txFrom.GetId();
     }
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 0,
-                              SigHashType().withForkId(true)));
+                              SigHashType().withForkId()));
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 1,
-                              SigHashType().withForkId(true)));
+                              SigHashType().withForkId()));
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 2,
-                              SigHashType().withForkId(true)));
+                              SigHashType().withForkId()));
     // SignSignature doesn't know how to sign these. We're not testing
     // validating signatures, so just create dummy signatures that DO include
     // the correct P2SH scripts:
