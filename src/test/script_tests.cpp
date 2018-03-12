@@ -312,9 +312,10 @@ public:
     TestBuilder &PushSig(const CKey &key,
                          SigHashType sigHashType = SigHashType(),
                          unsigned int lenR = 32, unsigned int lenS = 32,
-                         Amount amount = Amount(0)) {
+                         Amount amount = Amount(0),
+                         uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID) {
         uint256 hash = SignatureHash(script, CTransaction(spendTx), 0,
-                                     sigHashType, amount);
+                                     sigHashType, amount, nullptr, flags);
         std::vector<uint8_t> vchSig, r, s;
         uint32_t iter = 0;
         do {
@@ -1037,6 +1038,27 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     TEST_AMOUNT)
             .PushSig(keys.key0, SigHashType().withForkId(), 32, 32, TEST_AMOUNT)
             .ScriptError(SCRIPT_ERR_ILLEGAL_FORKID));
+
+    // Test replay protection
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
+                    "P2PK REPLAY PROTECTED",
+                    SCRIPT_ENABLE_SIGHASH_FORKID |
+                        SCRIPT_ENABLE_REPLAY_PROTECTION,
+                    false, TEST_AMOUNT)
+            .PushSig(keys.key0, SigHashType().withForkId(), 32, 32, TEST_AMOUNT,
+                     SCRIPT_ENABLE_SIGHASH_FORKID |
+                         SCRIPT_ENABLE_REPLAY_PROTECTION));
+
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
+                    "P2PK REPLAY PROTECTED",
+                    SCRIPT_ENABLE_SIGHASH_FORKID |
+                        SCRIPT_ENABLE_REPLAY_PROTECTION,
+                    false, TEST_AMOUNT)
+            .PushSig(keys.key0, SigHashType().withForkId(), 32, 32, TEST_AMOUNT,
+                     SCRIPT_ENABLE_SIGHASH_FORKID)
+            .ScriptError(SCRIPT_ERR_EVAL_FALSE));
 
     std::set<std::string> tests_set;
 
