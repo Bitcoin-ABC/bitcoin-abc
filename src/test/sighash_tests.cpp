@@ -25,7 +25,7 @@ extern UniValue read_json(const std::string &jsondata);
 
 // Old script.cpp SignatureHash function
 static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
-                                unsigned int nIn, int nHashType) {
+                                unsigned int nIn, uint32_t nHashType) {
     static const uint256 one(uint256S(
         "0000000000000000000000000000000000000000000000000000000000000001"));
     if (nIn >= txTo.vin.size()) {
@@ -39,8 +39,9 @@ static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
     scriptCode.FindAndDelete(CScript(OP_CODESEPARATOR));
 
     // Blank out other inputs' signatures
-    for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-        txTmp.vin[i].scriptSig = CScript();
+    for (auto &in : txTmp.vin) {
+        in.scriptSig = CScript();
+    }
     txTmp.vin[nIn].scriptSig = scriptCode;
 
     // Blank out some of the outputs
@@ -49,8 +50,11 @@ static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
         txTmp.vout.clear();
 
         // Let the others update at will
-        for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-            if (i != nIn) txTmp.vin[i].nSequence = 0;
+        for (size_t i = 0; i < txTmp.vin.size(); i++) {
+            if (i != nIn) {
+                txTmp.vin[i].nSequence = 0;
+            }
+        }
     } else if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
         // Only lock-in the txout payee at same index as txin
         unsigned int nOut = nIn;
@@ -59,12 +63,16 @@ static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
             return one;
         }
         txTmp.vout.resize(nOut + 1);
-        for (unsigned int i = 0; i < nOut; i++)
+        for (size_t i = 0; i < nOut; i++) {
             txTmp.vout[i].SetNull();
+        }
 
         // Let the others update at will
-        for (unsigned int i = 0; i < txTmp.vin.size(); i++)
-            if (i != nIn) txTmp.vin[i].nSequence = 0;
+        for (size_t i = 0; i < txTmp.vin.size(); i++) {
+            if (i != nIn) {
+                txTmp.vin[i].nSequence = 0;
+            }
+        }
     }
 
     // Blank out other inputs completely, not recommended for open transactions
@@ -86,8 +94,9 @@ static void RandomScript(CScript &script) {
         OP_VERIF, OP_RETURN,   OP_CODESEPARATOR};
     script = CScript();
     int ops = (InsecureRandRange(10));
-    for (int i = 0; i < ops; i++)
+    for (int i = 0; i < ops; i++) {
         script << oplist[InsecureRandRange(sizeof(oplist) / sizeof(oplist[0]))];
+    }
 }
 
 static void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
@@ -175,7 +184,7 @@ BOOST_AUTO_TEST_CASE(sighash_from_data) {
         std::string(json_tests::sighash,
                     json_tests::sighash + sizeof(json_tests::sighash)));
 
-    for (unsigned int idx = 0; idx < tests.size(); idx++) {
+    for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
@@ -183,7 +192,10 @@ BOOST_AUTO_TEST_CASE(sighash_from_data) {
             BOOST_ERROR("Bad test: " << strTest);
             continue;
         }
-        if (test.size() == 1) continue; // comment
+        if (test.size() == 1) {
+            // comment
+            continue;
+        }
 
         std::string raw_tx, raw_script, sigHashHex;
         int nIn;
