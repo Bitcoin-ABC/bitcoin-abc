@@ -47,6 +47,10 @@ public:
         return SigHashType((sigHash & ~0x1f) | uint32_t(baseSigHashType));
     }
 
+    SigHashType withForkValue(uint32_t forkId) const {
+        return SigHashType((forkId << 8) | (sigHash & 0xff));
+    }
+
     SigHashType withForkId(bool forkId = true) const {
         return SigHashType((sigHash & ~SIGHASH_FORKID) |
                            (forkId ? SIGHASH_FORKID : 0));
@@ -60,6 +64,8 @@ public:
     BaseSigHashType getBaseType() const {
         return BaseSigHashType(sigHash & 0x1f);
     }
+
+    uint32_t getForkValue() const { return sigHash >> 8; }
 
     bool hasSupportedBaseType() const {
         BaseSigHashType baseType = getBaseType();
