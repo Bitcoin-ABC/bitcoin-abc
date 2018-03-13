@@ -65,12 +65,10 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         self.log.info("Create a new block with an anyone-can-spend coinbase.")
         height = 1
         block = create_block(tip, create_coinbase(height), block_time)
-        block_time += 1
         block.solve()
         # Save the coinbase for later
         block1 = block
         tip = block.sha256
-        height += 1
         node.p2p.send_blocks_and_test([block], node, success=True)
 
         self.log.info("Mature the block.")
