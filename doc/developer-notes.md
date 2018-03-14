@@ -451,6 +451,12 @@ Current subtrees include:
 Git and GitHub tips
 ---------------------
 
+- Github is not typically the source of truth for pull requests.  See CONTRIBUTING.md for instructions
+  on setting up your repo correctly.
+
+- Similarly, your git remote origin should be set to: `ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git`
+  instead of github.com.  See CONTRIBUTING.md for details.
+
 - For resolving merge/rebase conflicts, it can be useful to enable diff3 style using
   `git config merge.conflictstyle diff3`. Instead of
 

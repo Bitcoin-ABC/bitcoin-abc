@@ -105,6 +105,10 @@ cd bitcoin-abc
 arc install-certificate
 ```
 
+Note: Arcanist tooling will tend to fail if your remote origin is set to something other
+than the above.  A common mistake is to clone from Github and then forget to update
+your remotes.
+
 Follow instructions provided by `arc install-certificate` to provide your API token.
 
 6. Code formatting tools
