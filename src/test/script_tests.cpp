@@ -643,6 +643,24 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 SCRIPT_VERIFY_DERSIG)
                         .Num(0));
     tests.push_back(
+        TestBuilder(
+            CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKSIG << OP_NOT,
+            "BIP66 example 4, with DERSIG, non-null DER-compliant signature",
+            SCRIPT_VERIFY_DERSIG)
+            .Push("300602010102010101"));
+    tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
+                                          << OP_CHECKSIG << OP_NOT,
+                                "BIP66 example 4, with DERSIG and NULLFAIL",
+                                SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_NULLFAIL)
+                        .Num(0));
+    tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
+                                          << OP_CHECKSIG << OP_NOT,
+                                "BIP66 example 4, with DERSIG and NULLFAIL, "
+                                "non-null DER-compliant signature",
+                                SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_NULLFAIL)
+                        .Push("300602010102010101")
+                        .ScriptError(SCRIPT_ERR_SIG_NULLFAIL));
+    tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
                     "BIP66 example 5, without DERSIG", 0)
             .Num(1)
