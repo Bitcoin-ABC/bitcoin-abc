@@ -613,6 +613,28 @@ bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsMonolithEnabled(config, pindexPrev->GetMedianTimePast());
 }
 
+static bool IsReplayProtectionEnabled(const Config &config,
+                                      int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
+                                           config.GetChainParams()
+                                               .GetConsensus()
+                                               .magneticAnomalyActivationTime);
+}
+
+static bool IsReplayProtectionEnabled(const Config &config,
+                                      const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsReplayProtectionEnabled(config, pindexPrev->GetMedianTimePast());
+}
+
+static bool IsReplayProtectionEnabledForCurrentBlock(const Config &config) {
+    AssertLockHeld(cs_main);
+    return IsReplayProtectionEnabled(config, chainActive.Tip());
+}
+
 /**
  * Make mempool consistent after a reorg, by re-adding or recursively erasing
  * disconnected block transactions from the mempool, and also removing any other
@@ -968,6 +990,12 @@ static bool AcceptToMemoryPoolWorker(
                 gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
+        const bool hasReplayProtection =
+            IsReplayProtectionEnabledForCurrentBlock(config);
+        if (hasReplayProtection) {
+            scriptVerifyFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+        }
+
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
         PrecomputedTransactionData txdata(tx);
@@ -994,6 +1022,13 @@ static bool AcceptToMemoryPoolWorker(
         // transactions into the mempool can be exploited as a DoS attack.
         uint32_t currentBlockScriptVerifyFlags =
             GetBlockScriptFlags(chainActive.Tip(), config);
+        // We have an off by one error for flag activation. As a result, we need
+        // to set the replay protection flag manually here until this is fixed.
+        // FIXME: https://reviews.bitcoinabc.org/T288
+        if (hasReplayProtection) {
+            currentBlockScriptVerifyFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+        }
+
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             currentBlockScriptVerifyFlags, true,
                                             txdata)) {
@@ -1007,8 +1042,12 @@ static bool AcceptToMemoryPoolWorker(
                     __func__, txid.ToString(), FormatStateMessage(state));
             }
 
-            if (!CheckInputs(tx, state, view, true,
-                             MANDATORY_SCRIPT_VERIFY_FLAGS, true, false,
+            uint32_t mandatoryFlags = MANDATORY_SCRIPT_VERIFY_FLAGS;
+            if (hasReplayProtection) {
+                mandatoryFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+            }
+
+            if (!CheckInputs(tx, state, view, true, mandatoryFlags, true, false,
                              txdata)) {
                 return error(
                     "%s: ConnectInputs failed against MANDATORY but not "
@@ -1893,6 +1932,12 @@ static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
 
+    // We make sure this node will have replay protection during the next hard
+    // fork.
+    if (IsReplayProtectionEnabled(config, pindex->pprev)) {
+        flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+    }
+
     return flags;
 }
 
@@ -2044,6 +2089,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
+    // FIXME: This should be called with pindex->pprev, to match the result
+    // given to AcceptToMemoryPoolWorker: https://reviews.bitcoinabc.org/T288
     uint32_t flags = GetBlockScriptFlags(pindex, config);
 
     int64_t nTime2 = GetTimeMicros();
@@ -2221,6 +2268,14 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     nTimeCallbacks += nTime6 - nTime5;
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs]\n",
              0.001 * (nTime6 - nTime5), nTimeCallbacks * 0.000001);
+
+    // If we just activated the replay protection with that block, it means
+    // transaction in the mempool are now invalid. As a result, we need to clear
+    // the mempool.
+    if (IsReplayProtectionEnabled(config, pindex) &&
+        !IsReplayProtectionEnabled(config, pindex->pprev)) {
+        mempool.clear();
+    }
 
     return true;
 }
@@ -2519,6 +2574,21 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     if (!FlushStateToDisk(config.GetChainParams(), state,
                           FLUSH_STATE_IF_NEEDED)) {
         return false;
+    }
+
+    // If this block was deactivating the replay protection, then we need to
+    // remove transactions that are replay protected from the mempool. There is
+    // no easy way to do this so we'll just discard the whole mempool and then
+    // add the transaction of the block we just disconnected back.
+    if (IsReplayProtectionEnabled(config, pindexDelete) &&
+        !IsReplayProtectionEnabled(config, pindexDelete->pprev)) {
+        mempool.clear();
+        // While not strictly necessary, clearing the disconnect pool is also
+        // beneficial so we don't try to reuse its content at the end of the
+        // reorg, which we know will fail.
+        if (disconnectpool) {
+            disconnectpool->clear();
+        }
     }
 
     if (disconnectpool) {

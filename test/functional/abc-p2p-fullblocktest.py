@@ -12,7 +12,7 @@ this one can be extended, to cover the checks done for bigger blocks
 """
 
 from test_framework.test_framework import ComparisonTestFramework
-from test_framework.util import *
+from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.comptool import TestManager, TestInstance, RejectResult
 from test_framework.blocktools import *
 import time
@@ -48,6 +48,8 @@ class FullBlockTest(ComparisonTestFramework):
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=127.0.0.1',
                             "-monolithactivationtime=%d" % MONOLITH_START_TIME,
+                            "-replayprotectionactivationtime=%d" % (
+                                2 * MONOLITH_START_TIME),
                             "-excessiveblocksize=%d"
                             % self.excessive_block_size]]
 
@@ -71,8 +73,8 @@ class FullBlockTest(ComparisonTestFramework):
         block.vtx.extend(tx_list)
 
     # this is a little handier to use than the version in blocktools.py
-    def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        tx = create_transaction(spend_tx, n, b"", value, script)
+    def create_tx(self, spend, value, script=CScript([OP_TRUE])):
+        tx = create_transaction(spend.tx, spend.n, b"", value, script)
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_sigops=0):
@@ -383,7 +385,7 @@ class FullBlockTest(ComparisonTestFramework):
         p2sh_script = CScript([OP_HASH160, redeem_script_hash, OP_EQUAL])
 
         # Create a p2sh transaction
-        p2sh_tx = self.create_tx(out[22].tx, out[22].n, 1, p2sh_script)
+        p2sh_tx = self.create_tx(out[22], 1, p2sh_script)
 
         # Add the transaction to the block
         block(30)
