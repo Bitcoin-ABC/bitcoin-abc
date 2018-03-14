@@ -448,6 +448,14 @@ public:
     virtual void InitializeNode(const Config &config, CNode *pnode) = 0;
     virtual void FinalizeNode(const Config &config, NodeId id,
                               bool &update_connection_time) = 0;
+
+protected:
+    /**
+     * Protected destructor so that instances can only be deleted by derived
+     * classes. If that restriction is no longer desired, this should be made
+     * public and virtual.
+     */
+    ~NetEventsInterface() = default;
 };
 
 enum {

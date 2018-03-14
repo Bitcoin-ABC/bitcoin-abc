@@ -26,8 +26,8 @@ static const int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
  */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
 
-class PeerLogicValidation : public CValidationInterface,
-                            public NetEventsInterface {
+class PeerLogicValidation final : public CValidationInterface,
+                                  public NetEventsInterface {
 private:
     CConnman *connman;
 
