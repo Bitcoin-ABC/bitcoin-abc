@@ -57,7 +57,6 @@
 /**
  * Global state
  */
-
 CCriticalSection cs_main;
 
 BlockMap mapBlockIndex;
@@ -2390,7 +2389,8 @@ void PruneAndFlush() {
 }
 
 /**
- * Update chainActive and related internal data structures when adding a new block to the chain tip.
+ * Update chainActive and related internal data structures when adding a new
+ * block to the chain tip.
  */
 static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     const Consensus::Params &consensusParams =
