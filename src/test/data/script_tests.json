@@ -240,7 +240,7 @@
 ["0", "IF NOP10 ENDIF 1", "P2SH,STRICTENC,DISCOURAGE_UPGRADABLE_NOPS", "OK",
  "Discouraged NOPs are allowed if not executed"],
 
-["0", "IF 0xba ELSE 1 ENDIF", "P2SH,STRICTENC", "OK", "opcodes above NOP10 invalid if executed"],
+["0", "IF 0xba ELSE 1 ENDIF", "P2SH,STRICTENC", "OK", "opcodes >= FIRST_UNDEFINED_OP_VALUE invalid if executed"],
 ["0", "IF 0xbb ELSE 1 ENDIF", "P2SH,STRICTENC", "OK"],
 ["0", "IF 0xbc ELSE 1 ENDIF", "P2SH,STRICTENC", "OK"],
 ["0", "IF 0xbd ELSE 1 ENDIF", "P2SH,STRICTENC", "OK"],
@@ -819,10 +819,10 @@
 
 ["'a' 'b'", "CAT", "P2SH,STRICTENC", "DISABLED_OPCODE", "CAT disabled"],
 ["'a' 'b' 0", "IF CAT ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "CAT disabled"],
-["'abc' 1 1", "SUBSTR", "P2SH,STRICTENC", "DISABLED_OPCODE", "SUBSTR disabled"],
-["'abc' 1 1 0", "IF SUBSTR ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "SUBSTR disabled"],
-["'abc' 2 0", "IF LEFT ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "LEFT disabled"],
-["'abc' 2 0", "IF RIGHT ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "RIGHT disabled"],
+["'abc' 1 1", "SPLIT", "P2SH,STRICTENC", "DISABLED_OPCODE", "SPLIT disabled"],
+["'abc' 1 1 0", "IF SPLIT ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "SPLIT disabled"],
+["'abc' 2 0", "IF NUM2BIN ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "NUM2BIN disabled"],
+["'abc' 2 0", "IF BIN2NUM ELSE 1 ENDIF", "P2SH,STRICTENC", "DISABLED_OPCODE", "BIN2NUM disabled"],
 
 ["NOP", "SIZE 1", "P2SH,STRICTENC", "INVALID_STACK_OPERATION"],
 
@@ -878,7 +878,7 @@
  "P2SH,DISCOURAGE_UPGRADABLE_NOPS", "DISCOURAGE_UPGRADABLE_NOPS", "Discouraged NOP10 in redeemScript"],
 
 ["0x50","1", "P2SH,STRICTENC", "BAD_OPCODE", "opcode 0x50 is reserved"],
-["1", "IF 0xba ELSE 1 ENDIF", "P2SH,STRICTENC", "BAD_OPCODE", "opcodes above NOP10 invalid if executed"],
+["1", "IF 0xba ELSE 1 ENDIF", "P2SH,STRICTENC", "BAD_OPCODE", "opcodes >= FIRST_UNDEFINED_OP_VALUE invalid if executed"],
 ["1", "IF 0xbb ELSE 1 ENDIF", "P2SH,STRICTENC", "BAD_OPCODE"],
 ["1", "IF 0xbc ELSE 1 ENDIF", "P2SH,STRICTENC", "BAD_OPCODE"],
 ["1", "IF 0xbd ELSE 1 ENDIF", "P2SH,STRICTENC", "BAD_OPCODE"],
@@ -1001,7 +1001,7 @@
 ["1","RESERVED", "P2SH,STRICTENC", "BAD_OPCODE", "OP_RESERVED is reserved"],
 ["1","RESERVED1", "P2SH,STRICTENC", "BAD_OPCODE", "OP_RESERVED1 is reserved"],
 ["1","RESERVED2", "P2SH,STRICTENC", "BAD_OPCODE", "OP_RESERVED2 is reserved"],
-["1","0xba", "P2SH,STRICTENC", "BAD_OPCODE", "0xba == OP_NOP10 + 1"],
+["1","0xba", "P2SH,STRICTENC", "BAD_OPCODE", "0xba == FIRST_UNDEFINED_OP_VALUE"],
 
 ["2147483648", "1ADD 1", "P2SH,STRICTENC", "UNKNOWN_ERROR", "We cannot do math on 5-byte integers"],
 ["2147483648", "NEGATE 1", "P2SH,STRICTENC", "UNKNOWN_ERROR", "We cannot do math on 5-byte integers"],
