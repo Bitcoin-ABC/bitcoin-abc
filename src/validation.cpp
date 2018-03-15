@@ -3027,7 +3027,11 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
     if (invalidate) {
         InvalidChainFound(pindex);
     }
-    uiInterface.NotifyBlockTip(IsInitialBlockDownload(), pindex->pprev);
+
+    // Only notify about a new block tip if the active chain was modified.
+    if (pindex_was_in_chain) {
+        uiInterface.NotifyBlockTip(IsInitialBlockDownload(), pindex->pprev);
+    }
     return true;
 }
 
