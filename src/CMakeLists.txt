@@ -61,6 +61,9 @@ add_cxx_compiler_flag_with_fallback(CMAKE_CXX_FLAGS_DEBUG -Og -O0)
 # type is selected.
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -DDEBUG_LOCKORDER")
 
+# Add -ftrapv when building in Debug
+add_compiler_flags_to_var(CMAKE_CXX_FLAGS_DEBUG CXX -ftrapv)
+
 # Ensure that WINDRES_PREPROC is enabled when using windres.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# Ensure that WINDRES_PREPROC is enabled when using windres.
