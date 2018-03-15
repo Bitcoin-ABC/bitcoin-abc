@@ -5,6 +5,7 @@
 #include <amount.h>
 #include <primitives/transaction.h>
 #include <random.h>
+#include <wallet/coincontrol.h>
 #include <wallet/coinselection.h>
 #include <wallet/wallet.h>
 
@@ -54,9 +55,8 @@ static void add_coin(const Amount nValue, int nInput, CoinSet &set) {
     set.emplace(MakeTransactionRef(tx), nInput);
 }
 
-static void add_coin(const CWallet &wallet, const Amount nValue,
-                     int nAge = 6 * 24, bool fIsFromMe = false,
-                     int nInput = 0) {
+static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
+                     bool fIsFromMe = false, int nInput = 0) {
     balance += nValue;
     static int nextLockTime = 0;
     CMutableTransaction tx;
@@ -79,6 +79,7 @@ static void add_coin(const CWallet &wallet, const Amount nValue,
     COutput output(wtx.get(), nInput, nAge, true /* spendable */,
                    true /* solvable */, true /* safe */);
     vCoins.push_back(output);
+    wallet.AddToWallet(*wtx.get());
     wtxn.emplace_back(std::move(wtx));
 }
 
@@ -247,6 +248,20 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
     BOOST_CHECK(!m_wallet.SelectCoinsMinConf(
         1 * CENT, filter_standard, vCoins, setCoinsRet, nValueRet,
         coin_selection_params_bnb, bnb_used));
+
+    // Make sure that we aren't using BnB when there are preset inputs
+    empty_wallet();
+    add_coin(m_wallet, 5 * CENT);
+    add_coin(m_wallet, 3 * CENT);
+    add_coin(m_wallet, 2 * CENT);
+    CCoinControl coin_control;
+    coin_control.fAllowOtherInputs = true;
+    coin_control.Select(COutPoint(vCoins.at(0).tx->GetId(), vCoins.at(0).i));
+    BOOST_CHECK(m_wallet.SelectCoins(vCoins, 10 * CENT, setCoinsRet, nValueRet,
+                                     coin_control, coin_selection_params_bnb,
+                                     bnb_used));
+    BOOST_CHECK(!bnb_used);
+    BOOST_CHECK(!coin_selection_params_bnb.use_bnb);
 }
 
 BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
