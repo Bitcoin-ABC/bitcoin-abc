@@ -27,7 +27,8 @@
  * expensive-to-check-upon-redemption script like:
  *   DUP CHECKSIG DROP ... repeated 100 times... OP_1
  */
-bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
+bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType,
+                bool allowLargeOpReturn) {
     std::vector<std::vector<uint8_t>> vSolutions;
     if (!Solver(scriptPubKey, whichType, vSolutions)) {
         return false;
@@ -45,7 +46,9 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
         }
 
         unsigned nMaxDatacarrierBytes =
-            gArgs.GetArg("-datacarriersize", MAX_OP_RETURN_RELAY);
+            gArgs.GetArg("-datacarriersize",
+                         allowLargeOpReturn ? MAX_OP_RETURN_RELAY_LARGE
+                                            : MAX_OP_RETURN_RELAY);
         if (scriptPubKey.size() > nMaxDatacarrierBytes) {
             return false;
         }
@@ -54,7 +57,8 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
     return whichType != TX_NONSTANDARD;
 }
 
-bool IsStandardTx(const CTransaction &tx, std::string &reason) {
+bool IsStandardTx(const CTransaction &tx, std::string &reason,
+                  bool allowLargeOpReturn) {
     if (tx.nVersion > CTransaction::MAX_STANDARD_VERSION || tx.nVersion < 1) {
         reason = "version";
         return false;
@@ -90,7 +94,7 @@ bool IsStandardTx(const CTransaction &tx, std::string &reason) {
     unsigned int nDataOut = 0;
     txnouttype whichType;
     for (const CTxOut &txout : tx.vout) {
-        if (!::IsStandard(txout.scriptPubKey, whichType)) {
+        if (!::IsStandard(txout.scriptPubKey, whichType, allowLargeOpReturn)) {
             reason = "scriptpubkey";
             return false;
         }
