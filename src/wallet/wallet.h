@@ -1286,11 +1286,6 @@ public:
      */
     CTxDestination AddAndGetDestinationForScript(const CScript &script,
                                                  OutputType);
-
-    /** Whether a given output is spendable by this wallet */
-    bool OutputEligibleForSpending(
-        const COutput &output,
-        const CoinEligibilityFilter &eligibility_filter) const;
 };
 
 /** A key allocated from the key pool. */
