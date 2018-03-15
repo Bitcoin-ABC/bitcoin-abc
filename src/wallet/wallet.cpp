@@ -3118,14 +3118,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 nChangePosInOut = -1;
             }
 
-            // Fill vin
+            // Dummy fill vin for maximum size estimation
             //
-            // Note how the sequence number is set to non-maxint so that the
-            // nLockTime set above actually works.
             for (const auto &coin : setCoins) {
-                txNew.vin.push_back(
-                    CTxIn(coin.outpoint, CScript(),
-                          std::numeric_limits<uint32_t>::max() - 1));
+                txNew.vin.push_back(CTxIn(coin.outpoint, CScript()));
             }
 
             CTransaction txNewConst(txNew);
@@ -3230,12 +3226,27 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             reservekey.ReturnKey();
         }
 
+        // Shuffle selected coins and fill in final vin
+        txNew.vin.clear();
+        std::vector<CInputCoin> selected_coins(setCoins.begin(),
+                                               setCoins.end());
+        std::shuffle(selected_coins.begin(), selected_coins.end(),
+                     FastRandomContext());
+
+        // Note how the sequence number is set to non-maxint so that
+        // the nLockTime set above actually works.
+        for (const auto &coin : selected_coins) {
+            txNew.vin.push_back(
+                CTxIn(coin.outpoint, CScript(),
+                      std::numeric_limits<uint32_t>::max() - 1));
+        }
+
         if (sign) {
             SigHashType sigHashType = SigHashType().withForkId();
 
             CTransaction txNewConst(txNew);
             int nIn = 0;
-            for (const auto &coin : setCoins) {
+            for (const auto &coin : selected_coins) {
                 const CScript &scriptPubKey = coin.txout.scriptPubKey;
                 SignatureData sigdata;
 
