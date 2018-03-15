@@ -420,7 +420,7 @@ bool BlockAssembler::SkipMapTxEntry(
 }
 
 void BlockAssembler::SortForBlock(
-    const CTxMemPool::setEntries &package, CTxMemPool::txiter entry,
+    const CTxMemPool::setEntries &package,
     std::vector<CTxMemPool::txiter> &sortedEntries) {
     // Sort package by ancestor count. If a transaction A depends on transaction
     // B, then A's ancestor count must be greater than B's. So this is
@@ -569,7 +569,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 
         // Package can be added. Sort the entries in a valid order.
         std::vector<CTxMemPool::txiter> sortedEntries;
-        SortForBlock(ancestors, iter, sortedEntries);
+        SortForBlock(ancestors, sortedEntries);
 
         for (auto &entry : sortedEntries) {
             AddToBlock(entry);

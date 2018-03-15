@@ -228,7 +228,6 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(mempool->cs);
     /** Sort the package in an order that is valid to appear in a block */
     void SortForBlock(const CTxMemPool::setEntries &package,
-                      CTxMemPool::txiter entry,
                       std::vector<CTxMemPool::txiter> &sortedEntries);
     /**
      * Add descendants of given transactions to mapModifiedTx with ancestor
