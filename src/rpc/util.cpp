@@ -5,7 +5,6 @@
 #include <rpc/util.h>
 
 #include <key_io.h>
-#include <pubkey.h>
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
 #include <tinyformat.h>
