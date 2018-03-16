@@ -1,5 +1,5 @@
 ---
-name: "bitcoin-abc-0.16-linux"
+name: "bitcoin-abc-0.17-linux"
 enable_cache: true
 suites:
 - "xenial"
