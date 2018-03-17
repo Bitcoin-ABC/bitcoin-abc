@@ -175,7 +175,7 @@ enum opcodetype {
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
 
-    // the first op_code value after all defined opcodes
+    // The first op_code value after all defined opcodes
     FIRST_UNDEFINED_OP_VALUE,
 
     // template matching params
