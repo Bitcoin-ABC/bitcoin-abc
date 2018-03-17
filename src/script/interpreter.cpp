@@ -291,6 +291,72 @@ static bool CheckMinimalPush(const valtype &data, opcodetype opcode) {
     return true;
 }
 
+static inline bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
+    bool fEnabledOpCodesMonolith =
+        (flags & SCRIPT_ENABLE_MONOLITH_OPCODES) != 0;
+
+    if (fEnabledOpCodesMonolith) {
+        switch (opcode) {
+            case OP_CAT:
+                return true;
+
+            case OP_SPLIT:
+                return true;
+
+            case OP_BIN2NUM:
+                return true;
+
+            case OP_NUM2BIN:
+                return true;
+
+            case OP_AND:
+                return true;
+
+            case OP_OR:
+                return true;
+
+            case OP_XOR:
+                return true;
+
+            case OP_MUL:
+                return true;
+
+            case OP_DIV:
+                return true;
+
+            case OP_MOD:
+                return true;
+
+            default:
+                break;
+        }
+    }
+
+    switch (opcode) {
+        case OP_CAT:
+        case OP_SPLIT:
+        case OP_BIN2NUM:
+        case OP_NUM2BIN:
+        case OP_INVERT:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
+        case OP_2MUL:
+        case OP_2DIV:
+        case OP_MUL:
+        case OP_DIV:
+        case OP_MOD:
+        case OP_LSHIFT:
+        case OP_RSHIFT:
+            return true;
+
+        default:
+            break;
+    }
+
+    return false;
+}
+
 bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 uint32_t flags, const BaseSignatureChecker &checker,
                 ScriptError *serror) {
@@ -333,26 +399,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
             }
 
             // Some opcodes are disabled.
-            switch (opcode) {
-                case OP_CAT:
-                case OP_SPLIT:
-                case OP_BIN2NUM:
-                case OP_NUM2BIN:
-                case OP_INVERT:
-                case OP_AND:
-                case OP_OR:
-                case OP_XOR:
-                case OP_2MUL:
-                case OP_2DIV:
-                case OP_MUL:
-                case OP_DIV:
-                case OP_MOD:
-                case OP_LSHIFT:
-                case OP_RSHIFT:
-                    return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
-
-                default:
-                    break;
+            if (IsOpcodeDisabled(opcode, flags)) {
+                return set_error(serror, SCRIPT_ERR_DISABLED_OPCODE);
             }
 
             if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) {
