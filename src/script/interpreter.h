@@ -111,6 +111,10 @@ enum {
     // Do we accept activate replay protection using a different fork id.
     //
     SCRIPT_ENABLE_REPLAY_PROTECTION = (1U << 17),
+
+    // Enable new opcodes.
+    //
+    SCRIPT_ENABLE_MONOLITH_OPCODES = (1U << 18),
 };
 
 bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
