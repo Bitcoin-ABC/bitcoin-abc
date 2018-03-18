@@ -8,6 +8,8 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
+#include <algorithm>
+
 const char *GetOpName(opcodetype opcode) {
     switch (opcode) {
         // push value
@@ -287,6 +289,59 @@ bool IsMinimalArray(const std::vector<uint8_t> &vch, const size_t nMaxNumSize) {
     }
 
     return true;
+}
+
+std::vector<uint8_t>
+MinimalizeBigEndianArray(const std::vector<uint8_t> &data) {
+    std::vector<uint8_t> res;
+
+    // Can't encode more than this, go ahead and grab as much room as we could
+    // possibly need
+    res.reserve(data.size());
+
+    // Ensure we have a byte to work with.
+    if (data.size() == 0) {
+        return res;
+    }
+
+    // Store the MSB
+    uint8_t neg = data[0] & 0x80;
+    bool havePushed = false;
+    for (size_t i = 0; i < data.size(); ++i) {
+        uint8_t x = data[i];
+
+        // Remove any MSB that might exist
+        if (i == 0) {
+            x &= 0x7f;
+        }
+
+        // If we haven't pushed anything, and the current value is zero, keep
+        // ignoring bytes.
+        if (!havePushed && x == 0) {
+            continue;
+        }
+
+        // Record that we have begun pushing, and store the current value.
+        havePushed = true;
+        res.push_back(x);
+    }
+
+    // Give us at least one byte
+    if (res.size() == 0) {
+        return res;
+    }
+
+    // Only add back the sign if a value has been pushed.  This implies the
+    // result is non-zero.
+    if (havePushed) {
+        // If the MSB is currently occupied, we need one extra byte.
+        if ((res[0] & 0x80) != 0) {
+            res.insert(res.begin(), 0);
+        }
+        res[0] |= neg;
+    }
+
+    return res;
 }
 
 unsigned int CScript::GetSigOpCount(bool fAccurate) const {

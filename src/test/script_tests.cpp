@@ -414,6 +414,47 @@ std::string JSONPrettyPrint(const UniValue &univalue) {
 }
 } // namespace
 
+BOOST_AUTO_TEST_CASE(minimize_big_endian_test) {
+    // Empty array case
+    BOOST_CHECK(MinimalizeBigEndianArray(std::vector<uint8_t>()) ==
+                std::vector<uint8_t>());
+
+    // Zero arrays of various lengths
+    std::vector<uint8_t> zeroArray({0x00});
+    std::vector<uint8_t> negZeroArray({0x80});
+    for (int i = 0; i < 16; i++) {
+        if (i > 0) {
+            zeroArray.push_back(0x00);
+            negZeroArray.push_back(0x00);
+        }
+
+        BOOST_CHECK(MinimalizeBigEndianArray(zeroArray) ==
+                    std::vector<uint8_t>());
+
+        // -0 should always evaluate to 0x00
+        BOOST_CHECK(MinimalizeBigEndianArray(negZeroArray) ==
+                    std::vector<uint8_t>());
+    }
+
+    // Shouldn't minimalize this array to a negative number
+    std::vector<uint8_t> notNegArray({{0x00, 0x80}});
+    std::vector<uint8_t> notNegArrayPadded({{0x00, 0x80}});
+    for (int i = 0; i < 16; i++) {
+        notNegArray.push_back(i);
+        notNegArrayPadded.insert(notNegArrayPadded.begin(), 0x00);
+        BOOST_CHECK(MinimalizeBigEndianArray(notNegArray) == notNegArray);
+        BOOST_CHECK(MinimalizeBigEndianArray(notNegArrayPadded) ==
+                    std::vector<uint8_t>({{0x00, 0x80}}));
+    }
+
+    // Shouldn't minimalize these arrays at all
+    std::vector<uint8_t> noMinArray;
+    for (int i = 1; i < 0x80; i++) {
+        noMinArray.push_back(i);
+        BOOST_CHECK(MinimalizeBigEndianArray(noMinArray) == noMinArray);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(script_build) {
     const KeyData keys;
 
