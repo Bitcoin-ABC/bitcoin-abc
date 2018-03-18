@@ -497,6 +497,12 @@ GUI
     should not interact with the user. That's where View classes come in. The converse also
     holds: try to not directly access core data structures from Views.
 
+Unit Tests
+-----------
+ - Test suite naming convention: The Boost test suite in file 
+   `src/test/foo_tests.cpp` should be named `foo_tests`. Test suite names must
+   be unique.
+
 Subtrees
 ----------
 
