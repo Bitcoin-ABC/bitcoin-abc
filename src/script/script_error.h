@@ -22,6 +22,7 @@ typedef enum ScriptError_t {
 
     /* Operands checks */
     SCRIPT_ERR_INVALID_OPERAND_SIZE,
+    SCRIPT_ERR_INVALID_NUMBER_RANGE,
 
     /* Failed verify operations */
     SCRIPT_ERR_VERIFY,

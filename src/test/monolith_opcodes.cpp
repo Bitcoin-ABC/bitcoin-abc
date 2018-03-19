@@ -352,4 +352,95 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
     CheckAllBitwiseOpErrors({b, {}}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
 }
 
+static void CheckBin2NumOp(const valtype &n, const valtype &expected) {
+    BaseSignatureChecker sigchecker;
+
+    for (uint32_t flags : flagset) {
+        ScriptError err = SCRIPT_ERR_OK;
+        std::vector<valtype> stack{n};
+        bool r = EvalScript(stack, CScript() << OP_BIN2NUM,
+                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
+                            &err);
+        BOOST_CHECK(r);
+
+        std::vector<valtype> expected_stack{expected};
+        BOOST_CHECK(stack == expected_stack);
+
+        // Make sure that if we do not pass the monolith flag, opcodes are still
+        // disabled.
+        err = SCRIPT_ERR_OK;
+        stack = {n};
+        r = EvalScript(stack, CScript() << OP_BIN2NUM, flags, sigchecker, &err);
+        BOOST_CHECK(!r);
+        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
+
+        // TODO: Check roundtrip with NUM2BIN when NUM2BIN is implemented.
+    }
+}
+
+static void CheckBin2NumError(const std::vector<valtype> &original_stack,
+                              ScriptError expected_error) {
+    BaseSignatureChecker sigchecker;
+
+    for (uint32_t flags : flagset) {
+        ScriptError err = SCRIPT_ERR_OK;
+        std::vector<valtype> stack{original_stack};
+        bool r = EvalScript(stack, CScript() << OP_BIN2NUM,
+                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
+                            &err);
+        BOOST_CHECK(!r);
+        BOOST_CHECK_EQUAL(err, expected_error);
+
+        // Make sure that if we do not pass the monolith flag, opcodes are still
+        // disabled.
+        err = SCRIPT_ERR_OK;
+        stack = {original_stack};
+        r = EvalScript(stack, CScript() << OP_BIN2NUM, flags, sigchecker, &err);
+        BOOST_CHECK(!r);
+        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(type_conversion_test) {
+    valtype empty;
+    CheckBin2NumOp(empty, empty);
+
+    valtype paddedzero, paddednegzero;
+    for (size_t i = 0; i <= MAX_SCRIPT_ELEMENT_SIZE; i++) {
+        CheckBin2NumOp(paddedzero, empty);
+        paddedzero.push_back(0x00);
+
+        paddednegzero.push_back(0x80);
+        CheckBin2NumOp(paddednegzero, empty);
+        paddednegzero[paddednegzero.size() - 1] = 0x00;
+    }
+
+    // Merge leading byte when sign bit isn't used.
+    std::vector<uint8_t> k{0x7f}, negk{0xff};
+    std::vector<uint8_t> kpadded = k, negkpadded = negk;
+    for (size_t i = 0; i < MAX_SCRIPT_ELEMENT_SIZE; i++) {
+        CheckBin2NumOp(kpadded, k);
+        kpadded.push_back(0x00);
+
+        CheckBin2NumOp(negkpadded, negk);
+        negkpadded[negkpadded.size() - 1] &= 0x7f;
+        negkpadded.push_back(0x80);
+    }
+
+    // Some known values.
+    CheckBin2NumOp({0xab, 0xcd, 0xef, 0x00}, {0xab, 0xcd, 0xef, 0x00});
+    CheckBin2NumOp({0xab, 0xcd, 0x7f, 0x00}, {0xab, 0xcd, 0x7f});
+
+    // Reductions
+    CheckBin2NumOp({0xab, 0xcd, 0xef, 0x42, 0x80}, {0xab, 0xcd, 0xef, 0xc2});
+    CheckBin2NumOp({0xab, 0xcd, 0x7f, 0x42, 0x00}, {0xab, 0xcd, 0x7f, 0x42});
+
+    // Empty stack is an error.
+    CheckBin2NumError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0x80}},
+                      SCRIPT_ERR_INVALID_NUMBER_RANGE);
+    CheckBin2NumError({{0x00, 0x00, 0x00, 0x80, 0x80}},
+                      SCRIPT_ERR_INVALID_NUMBER_RANGE);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

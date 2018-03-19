@@ -36,6 +36,9 @@ const char *ScriptErrorString(const ScriptError serror) {
             return "Pubkey count negative or limit exceeded";
         case SCRIPT_ERR_INVALID_OPERAND_SIZE:
             return "Invalid operand size";
+        case SCRIPT_ERR_INVALID_NUMBER_RANGE:
+            return "Given operand is not a number within the valid range "
+                   "[-2^31...2^31]";
         case SCRIPT_ERR_BAD_OPCODE:
             return "Opcode missing or not understood";
         case SCRIPT_ERR_DISABLED_OPCODE:

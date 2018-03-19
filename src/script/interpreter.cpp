@@ -295,7 +295,6 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
     switch (opcode) {
         case OP_CAT:
         case OP_SPLIT:
-        case OP_BIN2NUM:
         case OP_NUM2BIN:
         case OP_INVERT:
         case OP_2MUL:
@@ -311,6 +310,7 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
         case OP_AND:
         case OP_OR:
         case OP_XOR:
+        case OP_BIN2NUM:
             // Opcodes that have been reenabled.
             if ((flags & SCRIPT_ENABLE_MONOLITH_OPCODES) == 0) {
                 return true;
@@ -858,6 +858,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             }
                             valtype &vch1 = stacktop(-2);
                             valtype &vch2 = stacktop(-1);
+
                             bool fEqual = (vch1 == vch2);
                             // OP_NOTEQUAL is disabled because it would be too
                             // easy to say something like n != 1 and have some
@@ -1243,6 +1244,26 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                                 return set_error(
                                     serror, SCRIPT_ERR_CHECKMULTISIGVERIFY);
                             }
+                        }
+                    } break;
+
+                    //
+                    // Conversion operations
+                    //
+                    case OP_BIN2NUM: {
+                        // (in -- out)
+                        if (stack.size() < 1) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+
+                        valtype &n = stacktop(-1);
+                        CScriptNum::MinimallyEncode(n);
+
+                        // The resulting number must be a valid number.
+                        if (!CScriptNum::IsMinimallyEncoded(n)) {
+                            return set_error(serror,
+                                             SCRIPT_ERR_INVALID_NUMBER_RANGE);
                         }
                     } break;
 
