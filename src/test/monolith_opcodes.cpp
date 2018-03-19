@@ -18,27 +18,62 @@ std::array<uint32_t, 3> flagset{0, STANDARD_SCRIPT_VERIFY_FLAGS,
 
 BOOST_FIXTURE_TEST_SUITE(monolith_opcodes_tests, BasicTestingSetup)
 
-static void CheckBitwiseOpError(const std::vector<valtype> &original_stack,
-                                opcodetype op, ScriptError expected_error) {
+/**
+ * General utility functions to check for script passing/failing.
+ */
+static void
+CheckTestResultForAllFlags(const std::vector<valtype> &original_stack,
+                           const CScript &script,
+                           const std::vector<valtype> &expected) {
     BaseSignatureChecker sigchecker;
 
     for (uint32_t flags : flagset) {
         ScriptError err = SCRIPT_ERR_OK;
         std::vector<valtype> stack{original_stack};
-        bool r = EvalScript(stack, CScript() << op,
-                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
-                            &err);
+        bool r =
+            EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
+                       sigchecker, &err);
+        BOOST_CHECK(r);
+        BOOST_CHECK(stack == expected);
+
+        // Make sure that if we do not pass the monolith flag, opcodes are still
+        // disabled.
+        stack = original_stack;
+        r = EvalScript(stack, script, flags, sigchecker, &err);
+        BOOST_CHECK(!r);
+        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
+    }
+}
+
+static void CheckErrorForAllFlags(const std::vector<valtype> &original_stack,
+                                  const CScript &script,
+                                  ScriptError expected_error) {
+    BaseSignatureChecker sigchecker;
+
+    for (uint32_t flags : flagset) {
+        ScriptError err = SCRIPT_ERR_OK;
+        std::vector<valtype> stack{original_stack};
+        bool r =
+            EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
+                       sigchecker, &err);
         BOOST_CHECK(!r);
         BOOST_CHECK_EQUAL(err, expected_error);
 
         // Make sure that if we do not pass the monolith flag, opcodes are still
         // disabled.
-        err = SCRIPT_ERR_OK;
-        stack = {original_stack};
-        r = EvalScript(stack, CScript() << op, flags, sigchecker, &err);
+        stack = original_stack;
+        r = EvalScript(stack, script, flags, sigchecker, &err);
         BOOST_CHECK(!r);
         BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
     }
+}
+
+/**
+ * Bitwise opcodes
+ */
+static void CheckBitwiseOpError(const std::vector<valtype> &original_stack,
+                                opcodetype op, ScriptError expected_error) {
+    CheckErrorForAllFlags(original_stack, CScript() << op, expected_error);
 }
 
 static void CheckAllBitwiseOpErrors(const std::vector<valtype> &stack,
@@ -51,26 +86,7 @@ static void CheckAllBitwiseOpErrors(const std::vector<valtype> &stack,
 
 static void CheckBitwiseOp(const valtype &a, const valtype &b, opcodetype op,
                            const valtype &expected) {
-    BaseSignatureChecker sigchecker;
-
-    for (uint32_t flags : flagset) {
-        ScriptError err = SCRIPT_ERR_OK;
-        std::vector<valtype> stack{a, b};
-        bool r = EvalScript(stack, CScript() << op,
-                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
-                            &err);
-        BOOST_CHECK(r);
-
-        std::vector<valtype> expected_stack{expected};
-        BOOST_CHECK(stack == expected_stack);
-
-        // Make sure that if we do not pass the monolith flag, opcodes are still
-        // disabled.
-        stack = {a, b};
-        r = EvalScript(stack, CScript() << op, flags, sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
-    }
+    CheckTestResultForAllFlags({a, b}, CScript() << op, {expected});
 }
 
 static void RunTestForAllBitwiseOpcodes(const valtype &a, const valtype &b,
@@ -352,53 +368,19 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
     CheckAllBitwiseOpErrors({b, {}}, SCRIPT_ERR_INVALID_OPERAND_SIZE);
 }
 
+/**
+ * Type conversion opcodes.
+ */
 static void CheckBin2NumOp(const valtype &n, const valtype &expected) {
-    BaseSignatureChecker sigchecker;
+    CheckTestResultForAllFlags({n}, CScript() << OP_BIN2NUM, {expected});
 
-    for (uint32_t flags : flagset) {
-        ScriptError err = SCRIPT_ERR_OK;
-        std::vector<valtype> stack{n};
-        bool r = EvalScript(stack, CScript() << OP_BIN2NUM,
-                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
-                            &err);
-        BOOST_CHECK(r);
-
-        std::vector<valtype> expected_stack{expected};
-        BOOST_CHECK(stack == expected_stack);
-
-        // Make sure that if we do not pass the monolith flag, opcodes are still
-        // disabled.
-        err = SCRIPT_ERR_OK;
-        stack = {n};
-        r = EvalScript(stack, CScript() << OP_BIN2NUM, flags, sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
-
-        // TODO: Check roundtrip with NUM2BIN when NUM2BIN is implemented.
-    }
+    // TODO: Check roundtrip with NUM2BIN when NUM2BIN is implemented.
 }
 
 static void CheckBin2NumError(const std::vector<valtype> &original_stack,
                               ScriptError expected_error) {
-    BaseSignatureChecker sigchecker;
-
-    for (uint32_t flags : flagset) {
-        ScriptError err = SCRIPT_ERR_OK;
-        std::vector<valtype> stack{original_stack};
-        bool r = EvalScript(stack, CScript() << OP_BIN2NUM,
-                            flags | SCRIPT_ENABLE_MONOLITH_OPCODES, sigchecker,
-                            &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, expected_error);
-
-        // Make sure that if we do not pass the monolith flag, opcodes are still
-        // disabled.
-        err = SCRIPT_ERR_OK;
-        stack = {original_stack};
-        r = EvalScript(stack, CScript() << OP_BIN2NUM, flags, sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
-    }
+    CheckErrorForAllFlags(original_stack, CScript() << OP_BIN2NUM,
+                          expected_error);
 }
 
 BOOST_AUTO_TEST_CASE(type_conversion_test) {
