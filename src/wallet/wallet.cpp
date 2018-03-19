@@ -2888,7 +2888,7 @@ OutputType
 CWallet::TransactionChangeType(OutputType change_type,
                                const std::vector<CRecipient> &vecSend) {
     // If -changetype is specified, always use that change type.
-    if (change_type != OutputType::NONE) {
+    if (change_type != OutputType::CHANGE_AUTO) {
         return change_type;
     }
 
@@ -4581,7 +4581,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
     walletInstance->m_default_address_type = DEFAULT_ADDRESS_TYPE;
-    walletInstance->m_default_change_type = OutputType::NONE;
+    walletInstance->m_default_change_type = DEFAULT_CHANGE_TYPE;
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
@@ -4780,14 +4780,12 @@ bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
 
 static const std::string OUTPUT_TYPE_STRING_LEGACY = "legacy";
 
-OutputType ParseOutputType(const std::string &type, OutputType default_type) {
-    if (type.empty()) {
-        return default_type;
-    } else if (type == OUTPUT_TYPE_STRING_LEGACY) {
-        return OutputType::LEGACY;
-    } else {
-        return OutputType::NONE;
+bool ParseOutputType(const std::string &type, OutputType &output_type) {
+    if (type == OUTPUT_TYPE_STRING_LEGACY) {
+        output_type = OutputType::LEGACY;
+        return true;
     }
+    return false;
 }
 
 const std::string &FormatOutputType(OutputType type) {

@@ -706,7 +706,8 @@ void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
         // type we use subject to privacy issues, but not restricted by what
         // other software supports.
         const OutputType change_type =
-            walletModel->wallet().getDefaultChangeType() != OutputType::NONE
+            walletModel->wallet().getDefaultChangeType() !=
+                    OutputType::CHANGE_AUTO
                 ? walletModel->wallet().getDefaultChangeType()
                 : walletModel->wallet().getDefaultAddressType();
         walletModel->wallet().learnRelatedScripts(newKey, change_type);
