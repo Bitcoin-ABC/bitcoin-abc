@@ -310,13 +310,13 @@ static inline bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
                 return true;
 
             case OP_AND:
-                return true;
+                return false;
 
             case OP_OR:
-                return true;
+                return false;
 
             case OP_XOR:
-                return true;
+                return false;
 
             case OP_MUL:
                 return true;
@@ -839,6 +839,48 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     //
                     // Bitwise logic
                     //
+                    case OP_AND:
+                    case OP_OR:
+                    case OP_XOR: {
+                        // (x1 x2 - out)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype &vch1 = stacktop(-2);
+                        valtype &vch2 = stacktop(-1);
+
+                        // Inputs must be the same size
+                        if (vch1.size() != vch2.size()) {
+                            return set_error(serror,
+                                             SCRIPT_ERR_INVALID_OPERAND_SIZE);
+                        }
+
+                        // To avoid allocating, we modify vch1 in place.
+                        switch (opcode) {
+                            case OP_AND:
+                                for (size_t i = 0; i < vch1.size(); ++i) {
+                                    vch1[i] &= vch2[i];
+                                }
+                                break;
+                            case OP_OR:
+                                for (size_t i = 0; i < vch1.size(); ++i) {
+                                    vch1[i] |= vch2[i];
+                                }
+                                break;
+                            case OP_XOR:
+                                for (size_t i = 0; i < vch1.size(); ++i) {
+                                    vch1[i] ^= vch2[i];
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+                        // And pop vch2.
+                        popstack(stack);
+                    } break;
+
                     case OP_EQUAL:
                     case OP_EQUALVERIFY:
                         // case OP_NOTEQUAL: // use OP_NUMNOTEQUAL

@@ -20,6 +20,9 @@ typedef enum ScriptError_t {
     SCRIPT_ERR_SIG_COUNT,
     SCRIPT_ERR_PUBKEY_COUNT,
 
+    /* Operands checks */
+    SCRIPT_ERR_INVALID_OPERAND_SIZE,
+
     /* Failed verify operations */
     SCRIPT_ERR_VERIFY,
     SCRIPT_ERR_EQUALVERIFY,

@@ -35,6 +35,7 @@ add_executable(test_bitcoin
 	mempool_tests.cpp
 	merkle_tests.cpp
 	miner_tests.cpp
+	monolith_opcodes.cpp
 	multisig_tests.cpp
 	net_tests.cpp
 	netbase_tests.cpp
