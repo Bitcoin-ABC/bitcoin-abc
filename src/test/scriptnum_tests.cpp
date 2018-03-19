@@ -159,9 +159,9 @@ static void CheckCompare(const int64_t &num1, const int64_t &num2) {
 static void RunCreate(const int64_t &num) {
     CheckCreateInt(num);
     CScriptNum scriptnum(num);
-    if (scriptnum.getvch().size() <= DEFAULT_MAX_NUM_BYTES)
+    if (scriptnum.getvch().size() <= CScriptNum::MAXIMUM_ELEMENT_SIZE) {
         CheckCreateVch(num);
-    else {
+    } else {
         BOOST_CHECK_THROW(CheckCreateVch(num), scriptnum10_error);
     }
 }

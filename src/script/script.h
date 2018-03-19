@@ -31,9 +31,6 @@ static const int MAX_PUBKEYS_PER_MULTISIG = 20;
 // Maximum script length in bytes
 static const int MAX_SCRIPT_SIZE = 10000;
 
-// Default maximum element size for conversion to a CScriptNum
-static const int DEFAULT_MAX_NUM_BYTES = 4;
-
 // Threshold for nLockTime: below this value it is interpreted as block number,
 // otherwise as UNIX timestamp. Thresold is Tue Nov 5 00:53:20 1985 UTC
 static const unsigned int LOCKTIME_THRESHOLD = 500000000;
@@ -191,8 +188,6 @@ enum opcodetype {
 };
 
 const char *GetOpName(opcodetype opcode);
-bool IsMinimalArray(const std::vector<uint8_t> &vch,
-                    const size_t nMaxNumSize = DEFAULT_MAX_NUM_BYTES);
 
 std::vector<uint8_t> MinimalizeBigEndianArray(const std::vector<uint8_t> &data);
 
@@ -213,18 +208,24 @@ class CScriptNum {
      * arithmetic is done or the result is interpreted as an integer.
      */
 public:
+    static const size_t MAXIMUM_ELEMENT_SIZE = 4;
+
     explicit CScriptNum(const int64_t &n) { m_value = n; }
 
     explicit CScriptNum(const std::vector<uint8_t> &vch, bool fRequireMinimal,
-                        const size_t nMaxNumSize = DEFAULT_MAX_NUM_BYTES) {
+                        const size_t nMaxNumSize = MAXIMUM_ELEMENT_SIZE) {
         if (vch.size() > nMaxNumSize) {
             throw scriptnum_error("script number overflow");
         }
-        if (fRequireMinimal && !IsMinimalArray(vch, nMaxNumSize)) {
+        if (fRequireMinimal && !IsMinimallyEncoded(vch, nMaxNumSize)) {
             throw scriptnum_error("non-minimally encoded script number");
         }
         m_value = set_vch(vch);
     }
+
+    static bool IsMinimallyEncoded(
+        const std::vector<uint8_t> &vch,
+        const size_t nMaxNumSize = CScriptNum::MAXIMUM_ELEMENT_SIZE);
 
     inline bool operator==(const int64_t &rhs) const { return m_value == rhs; }
     inline bool operator!=(const int64_t &rhs) const { return m_value != rhs; }
