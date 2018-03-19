@@ -2360,10 +2360,6 @@ static UniValue walletpassphrase(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    if (request.fHelp) {
-        return true;
-    }
-
     if (!pwallet->IsCrypted()) {
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
                            "Error: running with an unencrypted wallet, but "
@@ -2459,9 +2455,6 @@ static UniValue walletpassphrasechange(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    if (request.fHelp) {
-        return true;
-    }
     if (!pwallet->IsCrypted()) {
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
                            "Error: running with an unencrypted wallet, but "
@@ -2532,9 +2525,6 @@ static UniValue walletlock(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    if (request.fHelp) {
-        return true;
-    }
     if (!pwallet->IsCrypted()) {
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
                            "Error: running with an unencrypted wallet, but "
@@ -2593,9 +2583,6 @@ static UniValue encryptwallet(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    if (request.fHelp) {
-        return true;
-    }
     if (pwallet->IsCrypted()) {
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
                            "Error: running with an encrypted wallet, but "
