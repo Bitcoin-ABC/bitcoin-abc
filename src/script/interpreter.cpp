@@ -295,7 +295,6 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
     switch (opcode) {
         case OP_CAT:
         case OP_SPLIT:
-        case OP_NUM2BIN:
         case OP_INVERT:
         case OP_2MUL:
         case OP_2DIV:
@@ -310,6 +309,7 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
         case OP_AND:
         case OP_OR:
         case OP_XOR:
+        case OP_NUM2BIN:
         case OP_BIN2NUM:
             // Opcodes that have been reenabled.
             if ((flags & SCRIPT_ENABLE_MONOLITH_OPCODES) == 0) {
@@ -1250,6 +1250,51 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     //
                     // Conversion operations
                     //
+                    case OP_NUM2BIN: {
+                        // (in size -- out)
+                        if (stack.size() < 2) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+
+                        uint64_t size =
+                            CScriptNum(stacktop(-1), fRequireMinimal).getint();
+                        if (size > MAX_SCRIPT_ELEMENT_SIZE) {
+                            return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
+                        }
+
+                        popstack(stack);
+                        valtype &rawnum = stacktop(-1);
+
+                        // Try to see if we can fit that number in the number of
+                        // byte requested.
+                        CScriptNum::MinimallyEncode(rawnum);
+                        if (rawnum.size() > size) {
+                            // We definitively cannot.
+                            return set_error(serror,
+                                             SCRIPT_ERR_IMPOSSIBLE_ENCODING);
+                        }
+
+                        // We already have an element of the right size, we
+                        // don't need to do anything.
+                        if (rawnum.size() == size) {
+                            break;
+                        }
+
+                        uint8_t signbit = 0x00;
+                        if (rawnum.size() > 0) {
+                            signbit = rawnum.back() & 0x80;
+                            rawnum[rawnum.size() - 1] &= 0x7f;
+                        }
+
+                        rawnum.reserve(size);
+                        while (rawnum.size() < size - 1) {
+                            rawnum.push_back(0x00);
+                        }
+
+                        rawnum.push_back(signbit);
+                    } break;
+
                     case OP_BIN2NUM: {
                         // (in -- out)
                         if (stack.size() < 1) {

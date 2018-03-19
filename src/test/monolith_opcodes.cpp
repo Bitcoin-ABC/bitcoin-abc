@@ -155,6 +155,9 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
     valtype allzeros(MAX_SCRIPT_ELEMENT_SIZE, 0);
     valtype allones(MAX_SCRIPT_ELEMENT_SIZE, 0xff);
 
+    BOOST_CHECK_EQUAL(allzeros.size(), MAX_SCRIPT_ELEMENT_SIZE);
+    BOOST_CHECK_EQUAL(allones.size(), MAX_SCRIPT_ELEMENT_SIZE);
+
     TestBitwiseOpcodes(allzeros, allzeros, allzeros, allzeros);
     TestBitwiseOpcodes(allzeros, allones, allzeros, allones);
     TestBitwiseOpcodes(allones, allones, allones, allones);
@@ -371,10 +374,39 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
 /**
  * Type conversion opcodes.
  */
-static void CheckBin2NumOp(const valtype &n, const valtype &expected) {
-    CheckTestResultForAllFlags({n}, CScript() << OP_BIN2NUM, {expected});
+static void CheckTypeConversionOp(const valtype &bin, const valtype &num) {
+    // Check BIN2NUM.
+    CheckTestResultForAllFlags({bin}, CScript() << OP_BIN2NUM, {num});
 
-    // TODO: Check roundtrip with NUM2BIN when NUM2BIN is implemented.
+    // Check NUM2BIN. Negative 0 is rebuilt as regular zero, so we need a tweak.
+    valtype rebuilt_bin{bin};
+    if (num.size() == 0 && bin.size() > 0) {
+        rebuilt_bin[rebuilt_bin.size() - 1] &= 0x7f;
+    }
+
+    CheckTestResultForAllFlags({num}, CScript() << bin.size() << OP_NUM2BIN,
+                               {rebuilt_bin});
+
+    // Check roundtrip with NUM2BIN.
+    CheckTestResultForAllFlags(
+        {bin}, CScript() << OP_BIN2NUM << bin.size() << OP_NUM2BIN,
+        {rebuilt_bin});
+
+    // Grow and shrink back down using NUM2BIN.
+    CheckTestResultForAllFlags({bin},
+                               CScript()
+                                   << MAX_SCRIPT_ELEMENT_SIZE << OP_NUM2BIN
+                                   << bin.size() << OP_NUM2BIN,
+                               {rebuilt_bin});
+    CheckTestResultForAllFlags({num},
+                               CScript()
+                                   << MAX_SCRIPT_ELEMENT_SIZE << OP_NUM2BIN
+                                   << bin.size() << OP_NUM2BIN,
+                               {rebuilt_bin});
+
+    // BIN2NUM is indempotent.
+    CheckTestResultForAllFlags({bin}, CScript() << OP_BIN2NUM << OP_BIN2NUM,
+                               {num});
 }
 
 static void CheckBin2NumError(const std::vector<valtype> &original_stack,
@@ -383,17 +415,23 @@ static void CheckBin2NumError(const std::vector<valtype> &original_stack,
                           expected_error);
 }
 
+static void CheckNum2BinError(const std::vector<valtype> &original_stack,
+                              ScriptError expected_error) {
+    CheckErrorForAllFlags(original_stack, CScript() << OP_NUM2BIN,
+                          expected_error);
+}
+
 BOOST_AUTO_TEST_CASE(type_conversion_test) {
     valtype empty;
-    CheckBin2NumOp(empty, empty);
+    CheckTypeConversionOp(empty, empty);
 
     valtype paddedzero, paddednegzero;
-    for (size_t i = 0; i <= MAX_SCRIPT_ELEMENT_SIZE; i++) {
-        CheckBin2NumOp(paddedzero, empty);
+    for (size_t i = 0; i < MAX_SCRIPT_ELEMENT_SIZE; i++) {
+        CheckTypeConversionOp(paddedzero, empty);
         paddedzero.push_back(0x00);
 
         paddednegzero.push_back(0x80);
-        CheckBin2NumOp(paddednegzero, empty);
+        CheckTypeConversionOp(paddednegzero, empty);
         paddednegzero[paddednegzero.size() - 1] = 0x00;
     }
 
@@ -401,28 +439,48 @@ BOOST_AUTO_TEST_CASE(type_conversion_test) {
     std::vector<uint8_t> k{0x7f}, negk{0xff};
     std::vector<uint8_t> kpadded = k, negkpadded = negk;
     for (size_t i = 0; i < MAX_SCRIPT_ELEMENT_SIZE; i++) {
-        CheckBin2NumOp(kpadded, k);
+        CheckTypeConversionOp(kpadded, k);
         kpadded.push_back(0x00);
 
-        CheckBin2NumOp(negkpadded, negk);
+        CheckTypeConversionOp(negkpadded, negk);
         negkpadded[negkpadded.size() - 1] &= 0x7f;
         negkpadded.push_back(0x80);
     }
 
     // Some known values.
-    CheckBin2NumOp({0xab, 0xcd, 0xef, 0x00}, {0xab, 0xcd, 0xef, 0x00});
-    CheckBin2NumOp({0xab, 0xcd, 0x7f, 0x00}, {0xab, 0xcd, 0x7f});
+    CheckTypeConversionOp({0xab, 0xcd, 0xef, 0x00}, {0xab, 0xcd, 0xef, 0x00});
+    CheckTypeConversionOp({0xab, 0xcd, 0x7f, 0x00}, {0xab, 0xcd, 0x7f});
 
     // Reductions
-    CheckBin2NumOp({0xab, 0xcd, 0xef, 0x42, 0x80}, {0xab, 0xcd, 0xef, 0xc2});
-    CheckBin2NumOp({0xab, 0xcd, 0x7f, 0x42, 0x00}, {0xab, 0xcd, 0x7f, 0x42});
+    CheckTypeConversionOp({0xab, 0xcd, 0xef, 0x42, 0x80},
+                          {0xab, 0xcd, 0xef, 0xc2});
+    CheckTypeConversionOp({0xab, 0xcd, 0x7f, 0x42, 0x00},
+                          {0xab, 0xcd, 0x7f, 0x42});
 
     // Empty stack is an error.
     CheckBin2NumError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckNum2BinError({}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+    // NUM2BIN require 2 elements on the stack.
+    CheckNum2BinError({{0x00}}, SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+    // Values that do not fit in 4 bytes are considered out of range for
+    // BIN2NUM.
     CheckBin2NumError({{0xab, 0xcd, 0xef, 0xc2, 0x80}},
                       SCRIPT_ERR_INVALID_NUMBER_RANGE);
     CheckBin2NumError({{0x00, 0x00, 0x00, 0x80, 0x80}},
                       SCRIPT_ERR_INVALID_NUMBER_RANGE);
+
+    // NUM2BIN must not generate oversized push.
+    valtype largezero(MAX_SCRIPT_ELEMENT_SIZE, 0);
+    BOOST_CHECK_EQUAL(largezero.size(), MAX_SCRIPT_ELEMENT_SIZE);
+    CheckTypeConversionOp(largezero, {});
+
+    CheckNum2BinError({{}, {0x09, 0x02}}, SCRIPT_ERR_PUSH_SIZE);
+
+    // Check that the requested encoding is possible.
+    CheckNum2BinError({{0xab, 0xcd, 0xef, 0x80}, {0x03}},
+                      SCRIPT_ERR_IMPOSSIBLE_ENCODING);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

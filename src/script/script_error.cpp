@@ -39,6 +39,8 @@ const char *ScriptErrorString(const ScriptError serror) {
         case SCRIPT_ERR_INVALID_NUMBER_RANGE:
             return "Given operand is not a number within the valid range "
                    "[-2^31...2^31]";
+        case SCRIPT_ERR_IMPOSSIBLE_ENCODING:
+            return "The requested encoding is impossible to satisfy";
         case SCRIPT_ERR_BAD_OPCODE:
             return "Opcode missing or not understood";
         case SCRIPT_ERR_DISABLED_OPCODE:
