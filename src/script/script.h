@@ -189,8 +189,6 @@ enum opcodetype {
 
 const char *GetOpName(opcodetype opcode);
 
-std::vector<uint8_t> MinimalizeBigEndianArray(const std::vector<uint8_t> &data);
-
 class scriptnum_error : public std::runtime_error {
 public:
     explicit scriptnum_error(const std::string &str)
@@ -226,6 +224,8 @@ public:
     static bool IsMinimallyEncoded(
         const std::vector<uint8_t> &vch,
         const size_t nMaxNumSize = CScriptNum::MAXIMUM_ELEMENT_SIZE);
+
+    static bool MinimallyEncode(std::vector<uint8_t> &data);
 
     inline bool operator==(const int64_t &rhs) const { return m_value == rhs; }
     inline bool operator!=(const int64_t &rhs) const { return m_value != rhs; }
