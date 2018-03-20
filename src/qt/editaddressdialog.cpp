@@ -19,10 +19,6 @@ EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent)
     GUIUtil::setupAddressWidget(ui->addressEdit, this);
 
     switch (mode) {
-        case NewReceivingAddress:
-            setWindowTitle(tr("New receiving address"));
-            ui->addressEdit->setEnabled(false);
-            break;
         case NewSendingAddress:
             setWindowTitle(tr("New sending address"));
             break;
@@ -64,13 +60,10 @@ bool EditAddressDialog::saveCurrentRow() {
     }
 
     switch (mode) {
-        case NewReceivingAddress:
         case NewSendingAddress:
             address = model->addRow(
-                mode == NewSendingAddress ? AddressTableModel::Send
-                                          : AddressTableModel::Receive,
-                ui->labelEdit->text(), ui->addressEdit->text(),
-                model->GetDefaultAddressType());
+                AddressTableModel::Send, ui->labelEdit->text(),
+                ui->addressEdit->text(), model->GetDefaultAddressType());
             break;
         case EditReceivingAddress:
         case EditSendingAddress:
