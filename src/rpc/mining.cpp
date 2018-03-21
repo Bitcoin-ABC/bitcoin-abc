@@ -516,7 +516,10 @@ static UniValue getblocktemplate(const Config &config,
                 return "inconclusive-not-best-prevblk";
             }
             CValidationState state;
-            TestBlockValidity(config, state, block, pindexPrev, false, true);
+            BlockValidationOptions validationOptions =
+                BlockValidationOptions(false, true);
+            TestBlockValidity(config, state, block, pindexPrev,
+                              validationOptions);
             return BIP22ValidationResult(config, state);
         }
 

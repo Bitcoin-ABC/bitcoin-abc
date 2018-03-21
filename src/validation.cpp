@@ -1965,7 +1965,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     int64_t nTimeStart = GetTimeMicros();
 
     // Check it again in case a previous version let a bad block in
-    if (!CheckBlock(config, block, state, !fJustCheck, !fJustCheck)) {
+    BlockValidationOptions validationOptions =
+        BlockValidationOptions(!fJustCheck, !fJustCheck);
+    if (!CheckBlock(config, block, state, validationOptions)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
@@ -3378,10 +3380,20 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
     return true;
 }
 
-static bool CheckBlockHeader(const Config &config, const CBlockHeader &block,
-                             CValidationState &state, bool fCheckPOW = true) {
+/**
+ * Return true if the provided block header is valid.
+ * Only verify PoW if blockValidationOptions is configured to do so.
+ * This allows validation of headers on which the PoW hasn't been done.
+ * For example: to validate template handed to mining software.
+ * Do not call this for any check that depends on the context.
+ * For context-dependant calls, see ContextualCheckBlockHeader.
+ */
+static bool CheckBlockHeader(
+    const Config &config, const CBlockHeader &block, CValidationState &state,
+    BlockValidationOptions validationOptions = BlockValidationOptions()) {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, config)) {
+    if (validationOptions.shouldValidatePoW() &&
+        !CheckProofOfWork(block.GetHash(), block.nBits, config)) {
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
     }
@@ -3390,8 +3402,8 @@ static bool CheckBlockHeader(const Config &config, const CBlockHeader &block,
 }
 
 bool CheckBlock(const Config &config, const CBlock &block,
-                CValidationState &state, bool fCheckPOW,
-                bool fCheckMerkleRoot) {
+                CValidationState &state,
+                BlockValidationOptions validationOptions) {
     // These are checks that are independent of context.
     if (block.fChecked) {
         return true;
@@ -3399,12 +3411,12 @@ bool CheckBlock(const Config &config, const CBlock &block,
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    if (!CheckBlockHeader(config, block, state, fCheckPOW)) {
+    if (!CheckBlockHeader(config, block, state, validationOptions)) {
         return false;
     }
 
     // Check the merkle root.
-    if (fCheckMerkleRoot) {
+    if (validationOptions.shouldValidateMerkleRoot()) {
         bool mutated;
         uint256 hashMerkleRoot2 = BlockMerkleRoot(block, &mutated);
         if (block.hashMerkleRoot != hashMerkleRoot2) {
@@ -3494,7 +3506,8 @@ bool CheckBlock(const Config &config, const CBlock &block,
         }
     }
 
-    if (fCheckPOW && fCheckMerkleRoot) {
+    if (validationOptions.shouldValidatePoW() &&
+        validationOptions.shouldValidateMerkleRoot()) {
         block.fChecked = true;
     }
 
@@ -3949,7 +3962,7 @@ bool ProcessNewBlock(const Config &config,
 
 bool TestBlockValidity(const Config &config, CValidationState &state,
                        const CBlock &block, CBlockIndex *pindexPrev,
-                       bool fCheckPOW, bool fCheckMerkleRoot) {
+                       BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
     const CChainParams &chainparams = config.GetChainParams();
 
@@ -3972,7 +3985,7 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
     }
-    if (!CheckBlock(config, block, state, fCheckPOW, fCheckMerkleRoot)) {
+    if (!CheckBlock(config, block, state, validationOptions)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
