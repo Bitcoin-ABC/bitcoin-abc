@@ -546,10 +546,9 @@ static UniValue getblocktemplate(const Config &config,
             checktxtime =
                 std::chrono::steady_clock::now() + std::chrono::minutes(1);
 
-            WaitableLock lock(csBestBlock);
-            while (chainActive.Tip()->GetBlockHash() == hashWatchedChain &&
-                   IsRPCRunning()) {
-                if (cvBlockChange.wait_until(lock, checktxtime) ==
+            WaitableLock lock(g_best_block_mutex);
+            while (g_best_block == hashWatchedChain && IsRPCRunning()) {
+                if (g_best_block_cv.wait_until(lock, checktxtime) ==
                     std::cv_status::timeout) {
                     // Timeout: Check transactions for update
                     if (mempool.GetTransactionsUpdated() !=
