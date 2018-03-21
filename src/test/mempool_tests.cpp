@@ -719,8 +719,8 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     pool.addUnchecked(tx7.GetId(),
                       entry.Fee(9000 * SATOSHI).FromTx(tx7, &pool));
 
-    // we only require this remove, at max, 2 txn, because its not clear what
-    // we're really optimizing for aside from that
+    // we only require this to remove, at max, 2 txn, because it's not clear
+    // what we're really optimizing for aside from that
     pool.TrimToSize(pool.DynamicMemoryUsage() - 1);
     BOOST_CHECK(pool.exists(tx4.GetId()));
     BOOST_CHECK(pool.exists(tx6.GetId()));

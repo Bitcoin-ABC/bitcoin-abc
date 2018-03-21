@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering) {
 }
 
 struct StringContentsSerializer {
-    // Used to make two serialized objects the same while letting them have a
+    // Used to make two serialized objects the same while letting them have
     // different lengths. This is a terrible idea.
     std::string str;
     StringContentsSerializer() {}

@@ -419,7 +419,7 @@ class BitcoinTestFramework():
             for node in self.nodes:
                 node.wait_for_rpc_connection()
 
-            # For backwared compatibility of the python scripts with previous
+            # For backward compatibility of the python scripts with previous
             # versions of the cache, set mocktime to Jan 1,
             # 2014 + (201 * 10 * 60)
             self.mocktime = 1388534400 + (201 * 10 * 60)

@@ -425,7 +425,7 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
-    // Short-circuit most stuff in case its from the same node.
+    // Short-circuit most stuff in case it is from the same node.
     std::map<uint256,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
@@ -664,7 +664,7 @@ static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
         // Iterate over those blocks in vToFetch (in forward direction), adding
         // the ones that are not yet downloaded and not in flight to vBlocks. In
-        // the mean time, update pindexLastCommonBlock as long as all ancestors
+        // the meantime, update pindexLastCommonBlock as long as all ancestors
         // are already downloaded, or if it's already part of our chain (and
         // therefore don't need it even if pruned).
         for (const CBlockIndex *pindex : vToFetch) {

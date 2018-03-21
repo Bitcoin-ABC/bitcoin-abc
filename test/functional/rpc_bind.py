@@ -71,7 +71,7 @@ class RPCBindTest(BitcoinTestFramework):
     def run_test(self):
         # due to OS-specific network stats queries, this test works only on Linux
         if not sys.platform.startswith('linux'):
-            raise SkipTest("This test can only be run on linux.")
+            raise SkipTest("This test can only be run on Linux.")
 
         # WSL in currently not supported (refer to
         # https://reviews.bitcoinabc.org/T400 for details).

@@ -139,7 +139,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         assert(tx2_id not in self.nodes[0].getrawmempool())
 
         # This is a less than 1000-byte transaction, so just set the fee
-        # to be the minimum for a 1000 byte transaction and check that it is
+        # to be the minimum for a 1000-byte transaction and check that it is
         # accepted.
         self.nodes[0].prioritisetransaction(
             tx2_id, 0, int(self.relayfee * COIN))

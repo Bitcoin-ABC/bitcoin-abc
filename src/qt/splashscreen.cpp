@@ -98,7 +98,7 @@ SplashScreen::SplashScreen(interfaces::Node &node, Qt::WindowFlags f,
 
     pixPaint.setFont(QFont(font, 15 * fontFactor));
 
-    // if the version string is to long, reduce size
+    // if the version string is too long, reduce size
     fm = pixPaint.fontMetrics();
     int versionTextWidth = fm.width(versionText);
     if (versionTextWidth > titleTextWidth + paddingRight - 10) {

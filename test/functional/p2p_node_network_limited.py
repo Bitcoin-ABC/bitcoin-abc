@@ -86,7 +86,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
         blocks = self.nodes[1].generate(292)
         sync_blocks([self.nodes[0], self.nodes[1]])
 
-        self.log.info("Make sure we can max retrive block at tip-288.")
+        self.log.info("Make sure we can max retrieve block at tip-288.")
         # last block in valid range
         node.send_getdata_for_block(blocks[1])
         node.wait_for_block(int(blocks[1], 16), timeout=3)

@@ -469,7 +469,7 @@ class P2PInterface(P2PConnection):
         self.ping_counter += 1
 
 
-# One lock for synchronizing all data access between the network event loop (see
+# One lock for synchronizing all data access between the networking thread (see
 # NetworkThread below) and the thread running the test logic.  For simplicity,
 # P2PConnection acquires this lock whenever delivering a message to a P2PInterface.
 # This lock should be acquired in the thread running the test logic to synchronize

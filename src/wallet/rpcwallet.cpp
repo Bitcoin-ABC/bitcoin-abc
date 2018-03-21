@@ -2296,8 +2296,8 @@ static UniValue listsinceblock(const Config &config,
             "  \"removed\": [\n"
             "    <structure is the same as \"transactions\" above, only "
             "present if include_removed=true>\n"
-            "    Note: transactions that were readded in the active chain will "
-            "appear as-is in this array, and may thus have a positive "
+            "    Note: transactions that were re-added in the active chain "
+            "will appear as-is in this array, and may thus have a positive "
             "confirmation count.\n"
             "  ],\n"
             "  \"lastblock\": \"lastblockhash\"     (string) The hash of the "
@@ -4099,7 +4099,7 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
             } else if (pindexStop->nHeight < pindexStart->nHeight) {
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
-                    "stop_height must be greater then start_height");
+                    "stop_height must be greater than start_height");
             }
         }
     }

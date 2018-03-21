@@ -155,7 +155,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
         assert_equal(self.nodes[0].getbalance(), balance)
 
-        # If the transaction is re-sent the wallet also unabandons it.   The
+        # If the transaction is re-sent the wallet also unabandons it. The
         # change should be available, and it's child transaction should remain
         # abandoned.
         # NOTE: Abandoned transactions are internal to the wallet, and tracked
@@ -165,7 +165,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_equal(newbalance, balance - Decimal("20") + Decimal("14.99998"))
         balance = newbalance
 
-        # Send child tx again so it is not longer abandoned.
+        # Send child tx again so it is no longer abandoned.
         self.nodes[0].sendrawtransaction(signed2["hex"])
         newbalance = self.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("10") -

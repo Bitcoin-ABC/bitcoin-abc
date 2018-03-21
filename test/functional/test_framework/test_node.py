@@ -81,7 +81,7 @@ class TestNode():
             append_config(datadir, extra_conf)
         # Most callers will just need to add extra args to the default list
         # below.
-        # For those callers that need more flexibity, they can access the
+        # For those callers that need more flexibility, they can access the
         # default args using the provided facilities.
         # Note that common args are set in the config file (see
         # initialize_datadir)

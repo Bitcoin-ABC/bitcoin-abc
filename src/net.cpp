@@ -1890,7 +1890,7 @@ void CConnman::ThreadOpenAddedConnections() {
         for (const AddedNodeInfo &info : vInfo) {
             if (!info.fConnected) {
                 if (!grant.TryAcquire()) {
-                    // If we've used up our semaphore and need a new one, lets
+                    // If we've used up our semaphore and need a new one, let's
                     // not wait here since while we are waiting the
                     // addednodeinfo state might change.
                     break;

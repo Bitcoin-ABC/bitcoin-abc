@@ -155,7 +155,7 @@ namespace tfm = tinyformat;
 #endif
 
 #ifdef __APPLE__
-// Workaround OSX linker warning: xcode uses different default symbol
+// Workaround OSX linker warning: Xcode uses different default symbol
 // visibilities for static libs vs executables (see issue #25)
 #define TINYFORMAT_HIDDEN __attribute__((visibility("hidden")))
 #else
