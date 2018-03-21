@@ -23,8 +23,8 @@ bool SerializeDB(const CChainParams &chainParams, Stream &stream,
     // Write and commit header, data
     try {
         CHashWriter hasher(SER_DISK, CLIENT_VERSION);
-        stream << FLATDATA(chainParams.DiskMagic()) << data;
-        hasher << FLATDATA(chainParams.DiskMagic()) << data;
+        stream << chainParams.DiskMagic() << data;
+        hasher << chainParams.DiskMagic() << data;
         stream << hasher.GetHash();
     } catch (const std::exception &e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
@@ -73,7 +73,7 @@ bool DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &data,
         CHashVerifier<Stream> verifier(&stream);
         // de-serialize file header (network specific magic number) and ..
         uint8_t pchMsgTmp[4];
-        verifier >> FLATDATA(pchMsgTmp);
+        verifier >> pchMsgTmp;
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, std::begin(chainParams.DiskMagic()),
                    sizeof(pchMsgTmp))) {

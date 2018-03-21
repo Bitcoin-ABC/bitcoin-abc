@@ -22,7 +22,7 @@ protected:
     int intval;
     bool boolval;
     std::string stringval;
-    const char *charstrval;
+    char charstrval[16];
     CTransactionRef txval;
 
 public:
@@ -32,8 +32,9 @@ public:
                                 const char *charstrvalin,
                                 const CTransactionRef &txvalin)
         : intval(intvalin), boolval(boolvalin),
-          stringval(std::move(stringvalin)), charstrval(charstrvalin),
-          txval(txvalin) {}
+          stringval(std::move(stringvalin)), txval(txvalin) {
+        memcpy(charstrval, charstrvalin, sizeof(charstrval));
+    }
 
     ADD_SERIALIZE_METHODS;
 
@@ -42,7 +43,7 @@ public:
         READWRITE(intval);
         READWRITE(boolval);
         READWRITE(stringval);
-        READWRITE(FLATDATA(charstrval));
+        READWRITE(charstrval);
         READWRITE(txval);
     }
 
@@ -60,7 +61,7 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(intval, boolval, stringval, FLATDATA(charstrval), txval);
+        READWRITE(intval, boolval, stringval, charstrval, txval);
     }
 };
 
@@ -410,7 +411,7 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     int intval(100);
     bool boolval(true);
     std::string stringval("testing");
-    const char *charstrval("testing charstr");
+    const char charstrval[16] = "testing charstr";
     CMutableTransaction txval;
     CTransactionRef tx_ref{MakeTransactionRef(txval)};
     CSerializeMethodsTestSingle methodtest1(intval, boolval, stringval,
@@ -430,7 +431,7 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     BOOST_CHECK(methodtest3 == methodtest4);
 
     CDataStream ss2(SER_DISK, PROTOCOL_VERSION, intval, boolval, stringval,
-                    FLATDATA(charstrval), txval);
+                    charstrval, txval);
     ss2 >> methodtest3;
     BOOST_CHECK(methodtest3 == methodtest4);
 }

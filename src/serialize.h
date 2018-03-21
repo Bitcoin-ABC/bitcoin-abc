@@ -10,6 +10,7 @@
 #include <prevector.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -51,6 +52,20 @@ template <typename T> inline T &REF(const T &val) {
  */
 template <typename T> inline T *NCONST_PTR(const T *val) {
     return const_cast<T *>(val);
+}
+
+//! Safely convert odd char pointer types to standard ones.
+inline char *CharCast(char *c) {
+    return c;
+}
+inline char *CharCast(uint8_t *c) {
+    return (char *)c;
+}
+inline const char *CharCast(const char *c) {
+    return c;
+}
+inline const char *CharCast(const uint8_t *c) {
+    return (const char *)c;
 }
 
 /**
@@ -215,10 +230,34 @@ template <typename Stream> inline void Serialize(Stream &s, float a) {
 template <typename Stream> inline void Serialize(Stream &s, double a) {
     ser_writedata64(s, ser_double_to_uint64(a));
 }
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const int8_t (&a)[N]) {
+    s.write(a, N);
+}
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const uint8_t (&a)[N]) {
+    s.write(CharCast(a), N);
+}
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const std::array<int8_t, N> &a) {
+    s.write(a.data(), N);
+}
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const std::array<uint8_t, N> &a) {
+    s.write(CharCast(a.data()), N);
+}
 #ifndef CHAR_EQUALS_INT8
 // TODO Get rid of bare char
 template <typename Stream> inline void Unserialize(Stream &s, char &a) {
     a = ser_readdata8(s);
+}
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const char (&a)[N]) {
+    s.write(a, N);
+}
+template <typename Stream, size_t N>
+inline void Serialize(Stream &s, const std::array<char, N> &a) {
+    s.write(a.data(), N);
 }
 #endif
 template <typename Stream> inline void Unserialize(Stream &s, int8_t &a) {
@@ -251,6 +290,32 @@ template <typename Stream> inline void Unserialize(Stream &s, float &a) {
 template <typename Stream> inline void Unserialize(Stream &s, double &a) {
     a = ser_uint64_to_double(ser_readdata64(s));
 }
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, int8_t (&a)[N]) {
+    s.read(a, N);
+}
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, uint8_t (&a)[N]) {
+    s.read(CharCast(a), N);
+}
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, std::array<int8_t, N> &a) {
+    s.read(a.data(), N);
+}
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, std::array<uint8_t, N> &a) {
+    s.read(CharCast(a.data()), N);
+}
+#ifndef CHAR_EQUALS_INT8
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, char (&a)[N]) {
+    s.read(CharCast(a), N);
+}
+template <typename Stream, size_t N>
+inline void Unserialize(Stream &s, std::array<char, N> &a) {
+    s.read(CharCast(a.data()), N);
+}
+#endif
 
 template <typename Stream> inline void Serialize(Stream &s, bool a) {
     char f = a;
