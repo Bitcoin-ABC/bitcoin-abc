@@ -229,7 +229,7 @@ private:
     int64_t nLastGood GUARDED_BY(cs);
 
     //! Holds addrs inserted into tried table that collide with existing
-    //! entries. Test-before-evict discpline used to resolve these collisions.
+    //! entries. Test-before-evict discipline used to resolve these collisions.
     std::set<int> m_tried_collisions;
 
 protected:
