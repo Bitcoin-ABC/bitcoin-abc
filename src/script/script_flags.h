@@ -4,8 +4,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_SCRIPT_SCRIPTFLAGS_H
-#define BITCOIN_SCRIPT_SCRIPTFLAGS_H
+#ifndef BITCOIN_SCRIPT_SCRIPT_FLAGS_H
+#define BITCOIN_SCRIPT_SCRIPT_FLAGS_H
 
 /** Script verification flags */
 enum {
@@ -113,4 +113,4 @@ enum {
     SCRIPT_DISALLOW_SEGWIT_RECOVERY = (1U << 20),
 };
 
-#endif // BITCOIN_SCRIPT_SCRIPTFLAGS_H
+#endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H

@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_COINSELECTION_H
-#define BITCOIN_COINSELECTION_H
+#ifndef BITCOIN_WALLET_COINSELECTION_H
+#define BITCOIN_WALLET_COINSELECTION_H
 
 #include <amount.h>
 #include <primitives/transaction.h>
@@ -57,4 +57,4 @@ bool SelectCoinsBnB(std::vector<CInputCoin> &utxo_pool,
 bool KnapsackSolver(const Amount nTargetValue, std::vector<CInputCoin> &vCoins,
                     std::set<CInputCoin> &setCoinsRet, Amount &nValueRet);
 
-#endif // BITCOIN_COINSELECTION_H
+#endif // BITCOIN_WALLET_COINSELECTION_H

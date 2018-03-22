@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_BITCOINCONSENSUS_H
-#define BITCOIN_BITCOINCONSENSUS_H
+#ifndef BITCOIN_SCRIPT_BITCOINCONSENSUS_H
+#define BITCOIN_SCRIPT_BITCOINCONSENSUS_H
 
 #include <cstdint>
 
@@ -91,4 +91,4 @@ EXPORT_SYMBOL unsigned int bitcoinconsensus_version();
 
 #undef EXPORT_SYMBOL
 
-#endif // BITCOIN_BITCOINCONSENSUS_H
+#endif // BITCOIN_SCRIPT_BITCOINCONSENSUS_H

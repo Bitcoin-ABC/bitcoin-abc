@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CONSENSUS_VERSIONBITS
-#define BITCOIN_CONSENSUS_VERSIONBITS
+#ifndef BITCOIN_VERSIONBITS_H
+#define BITCOIN_VERSIONBITS_H
 
 #include <cstdint>
 
@@ -16,4 +16,4 @@ static const int32_t VERSIONBITS_TOP_MASK = 0xE0000000UL;
 /** Total bits available for versionbits */
 static const int32_t VERSIONBITS_NUM_BITS = 29;
 
-#endif
+#endif // BITCOIN_VERSIONBITS_H

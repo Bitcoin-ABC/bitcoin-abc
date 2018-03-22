@@ -94,6 +94,14 @@
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)"
             ]
+        },
+        "lint-include-guard": {
+            "type": "lint-include-guard",
+            "include": "(^src/.*\\.h$)",
+            "exclude": [
+                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/tinyformat.h$)"
+            ]
         }
     }
 }

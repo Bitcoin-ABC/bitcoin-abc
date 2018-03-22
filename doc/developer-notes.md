@@ -533,6 +533,16 @@ Header Inclusions
 
 All headers should be lexically ordered inside their block. 
 
+- Use include guards to avoid the problem of double inclusion. The header file
+  `foo/bar.h` should use the include guard identifier `BITCOIN_FOO_BAR_H`, e.g.
+
+```c++
+#ifndef BITCOIN_FOO_BAR_H
+#define BITCOIN_FOO_BAR_H
+...
+#endif // BITCOIN_FOO_BAR_H
+```
+
 GUI
 -----
 

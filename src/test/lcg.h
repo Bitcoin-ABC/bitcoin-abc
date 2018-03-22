@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_TEST_LCH_H
-#define BITCOIN_TEST_LCH_H
+#ifndef BITCOIN_TEST_LCG_H
+#define BITCOIN_TEST_LCG_H
 
 #include <cstdint>
 
@@ -30,4 +30,4 @@ public:
     }
 };
 
-#endif
+#endif // BITCOIN_TEST_LCG_H
