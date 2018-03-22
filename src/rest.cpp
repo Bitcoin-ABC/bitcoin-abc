@@ -546,30 +546,35 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     std::vector<bool> hits;
     bitmap.resize((vOutPoints.size() + 7) / 8);
     {
-        LOCK2(cs_main, g_mempool.cs);
-
-        CCoinsView viewDummy;
-        CCoinsViewCache view(&viewDummy);
-
-        CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
+        auto process_utxos = [&vOutPoints, &outs,
+                              &hits](const CCoinsView &view,
+                                     const CTxMemPool &mempool) {
+            for (const COutPoint &vOutPoint : vOutPoints) {
+                Coin coin;
+                bool hit = !mempool.isSpent(vOutPoint) &&
+                           view.GetCoin(vOutPoint, coin);
+                hits.push_back(hit);
+                if (hit) {
+                    outs.emplace_back(std::move(coin));
+                }
+            }
+        };
 
         if (fCheckMemPool) {
-            // switch cache backend to db+mempool in case user likes to query
-            // mempool.
-            view.SetBackend(viewMempool);
+            // use db+mempool as cache backend in case user likes to query
+            // mempool
+            LOCK2(cs_main, g_mempool.cs);
+            CCoinsViewCache &viewChain = *pcoinsTip;
+            CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
+            process_utxos(viewMempool, g_mempool);
+        } else {
+            // no need to lock mempool!
+            LOCK(cs_main);
+            process_utxos(*pcoinsTip, CTxMemPool());
         }
 
-        for (size_t i = 0; i < vOutPoints.size(); i++) {
-            Coin coin;
-            bool hit = false;
-            if (view.GetCoin(vOutPoints[i], coin) &&
-                !g_mempool.isSpent(vOutPoints[i])) {
-                hit = true;
-                outs.emplace_back(std::move(coin));
-            }
-
-            hits.push_back(hit);
+        for (size_t i = 0; i < hits.size(); ++i) {
+            const bool hit = hits[i];
             // form a binary string representation (human-readable for json
             // output)
             bitmapStringRepresentation.append(hit ? "1" : "0");

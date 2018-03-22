@@ -394,7 +394,7 @@ CTxMemPool::CTxMemPool() : nTransactionsUpdated(0) {
 
 CTxMemPool::~CTxMemPool() {}
 
-bool CTxMemPool::isSpent(const COutPoint &outpoint) {
+bool CTxMemPool::isSpent(const COutPoint &outpoint) const {
     LOCK(cs);
     return mapNextTx.count(outpoint);
 }
