@@ -638,40 +638,38 @@ void CNode::SetAddrLocal(const CService &addrLocalIn) {
     }
 }
 
-#undef X
-#define X(name) stats.name = name
 void CNode::copyStats(CNodeStats &stats) {
     stats.nodeid = this->GetId();
-    X(nServices);
-    X(addr);
+    stats.nServices = nServices;
+    stats.addr = addr;
     {
         LOCK(cs_filter);
-        X(fRelayTxes);
+        stats.fRelayTxes = fRelayTxes;
     }
-    X(nLastSend);
-    X(nLastRecv);
-    X(nTimeConnected);
-    X(nTimeOffset);
+    stats.nLastSend = nLastSend;
+    stats.nLastRecv = nLastRecv;
+    stats.nTimeConnected = nTimeConnected;
+    stats.nTimeOffset = nTimeOffset;
     stats.addrName = GetAddrName();
-    X(nVersion);
+    stats.nVersion = nVersion;
     {
         LOCK(cs_SubVer);
-        X(cleanSubVer);
+        stats.cleanSubVer = cleanSubVer;
     }
-    X(fInbound);
-    X(fAddnode);
-    X(nStartingHeight);
+    stats.fInbound = fInbound;
+    stats.fAddnode = fAddnode;
+    stats.nStartingHeight = nStartingHeight;
     {
         LOCK(cs_vSend);
-        X(mapSendBytesPerMsgCmd);
-        X(nSendBytes);
+        stats.mapSendBytesPerMsgCmd = mapSendBytesPerMsgCmd;
+        stats.nSendBytes = nSendBytes;
     }
     {
         LOCK(cs_vRecv);
-        X(mapRecvBytesPerMsgCmd);
-        X(nRecvBytes);
+        stats.mapRecvBytesPerMsgCmd = mapRecvBytesPerMsgCmd;
+        stats.nRecvBytes = nRecvBytes;
     }
-    X(fWhitelisted);
+    stats.fWhitelisted = fWhitelisted;
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer. Merely reporting
@@ -696,7 +694,6 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.addrLocal =
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
 }
-#undef X
 
 static bool IsOversizedMessage(const Config &config, const CNetMessage &msg) {
     if (!msg.in_data) {
