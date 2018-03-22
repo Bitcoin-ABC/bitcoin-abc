@@ -1037,6 +1037,23 @@ void SetupServerArgs() {
     gArgs.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections",
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg(
+        "-rpcwhitelist=<whitelist>",
+        "Set a whitelist to filter incoming RPC calls for a specific user. The "
+        "field <whitelist> comes in the format: <USERNAME>:<rpc 1>,<rpc "
+        "2>,...,<rpc n>. If multiple whitelists are set for a given user, they "
+        "are set-intersected. See -rpcwhitelistdefault documentation for "
+        "information on default whitelist behavior.",
+        ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg(
+        "-rpcwhitelistdefault",
+        "Sets default behavior for rpc whitelisting. Unless "
+        "rpcwhitelistdefault is set to 0, if any -rpcwhitelist is set, the rpc "
+        "server acts as if all rpc users are subject to "
+        "empty-unless-otherwise-specified whitelists. If rpcwhitelistdefault "
+        "is set to 1 and no -rpcwhitelist is set, rpc server acts as if all "
+        "rpc users are subject to empty whitelists.",
+        ArgsManager::ALLOW_BOOL, OptionsCategory::RPC);
+    gArgs.AddArg(
         "-rpcauth=<userpw>",
         "Username and hashed password for JSON-RPC connections. The field "
         "<userpw> comes in the format: <USERNAME>:<SALT>$<HASH>. A canonical "
