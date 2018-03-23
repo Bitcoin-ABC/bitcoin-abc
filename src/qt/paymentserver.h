@@ -28,15 +28,13 @@
 // to the server.
 //
 
-#include "paymentrequestplus.h"
-#include "walletmodel.h"
+#include <qt/paymentrequestplus.h>
+#include <qt/walletmodel.h>
 
 #include <QObject>
 #include <QString>
 
 class OptionsModel;
-
-class CWallet;
 
 QT_BEGIN_NAMESPACE
 class QApplication;
@@ -57,7 +55,8 @@ class PaymentServer : public QObject {
 public:
     // Parse URIs on command line
     // Returns false on error
-    static void ipcParseCommandLine(int argc, char *argv[]);
+    static void ipcParseCommandLine(interfaces::Node &node, int argc,
+                                    char *argv[]);
 
     // Returns true if there were URIs on the command line which were
     // successfully sent to an already-running process.
@@ -83,7 +82,8 @@ public:
     void setOptionsModel(OptionsModel *optionsModel);
 
     // Verify that the payment request network matches the client network
-    static bool verifyNetwork(const payments::PaymentDetails &requestDetails);
+    static bool verifyNetwork(interfaces::Node &node,
+                              const payments::PaymentDetails &requestDetails);
     // Verify if the payment request is expired
     static bool verifyExpired(const payments::PaymentDetails &requestDetails);
     // Verify the payment request size is valid as per BIP70
@@ -108,7 +108,8 @@ public Q_SLOTS:
     void uiReady();
 
     // Submit Payment message to a merchant, get back PaymentACK:
-    void fetchPaymentACK(CWallet *wallet, const SendCoinsRecipient &recipient,
+    void fetchPaymentACK(WalletModel *walletModel,
+                         const SendCoinsRecipient &recipient,
                          QByteArray transaction);
 
     // Handle an incoming URI, URI with local file scheme or file

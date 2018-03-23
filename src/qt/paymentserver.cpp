@@ -2,21 +2,19 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "paymentserver.h"
+#include <qt/paymentserver.h>
 
-#include "bitcoinunits.h"
-#include "guiutil.h"
-#include "optionsmodel.h"
-
-#include "chainparams.h"
-#include "config.h"
-#include "dstencode.h"
-#include "policy/policy.h"
-#include "ui_interface.h"
-#include "util.h"
-#include "wallet/wallet.h"
-
-#include <cstdlib>
+#include <chainparams.h>
+#include <config.h>
+#include <dstencode.h>
+#include <interfaces/node.h>
+#include <policy/policy.h>
+#include <qt/bitcoinunits.h>
+#include <qt/guiutil.h>
+#include <qt/optionsmodel.h>
+#include <ui_interface.h>
+#include <util.h>
+#include <wallet/wallet.h>
 
 #include <openssl/x509_vfy.h>
 
@@ -41,6 +39,8 @@
 #include <QStringList>
 #include <QTextDocument>
 #include <QUrlQuery>
+
+#include <cstdlib>
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 // BIP70 payment protocol messages
@@ -223,7 +223,8 @@ static bool ipcCanParseLegacyURI(const QString &arg,
 // Warning: ipcSendCommandLine() is called early in init, so don't use "Q_EMIT
 // message()", but "QMessageBox::"!
 //
-void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
+void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
+                                        char *argv[]) {
     std::array<const std::string *, 3> networks = {
         {&CBaseChainParams::MAIN, &CBaseChainParams::TESTNET,
          &CBaseChainParams::REGTEST}};
@@ -286,7 +287,7 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
     }
 
     if (chosenNetwork) {
-        SelectParams(*chosenNetwork);
+        node.selectParams(*chosenNetwork);
     }
 }
 
@@ -566,7 +567,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
 
     if (request.IsInitialized()) {
         // Payment request network matches client network?
-        if (!verifyNetwork(request.getDetails())) {
+        if (!verifyNetwork(optionsModel->node(), request.getDetails())) {
             Q_EMIT message(
                 tr("Payment request rejected"),
                 tr("Payment request network doesn't match client network."),
@@ -633,7 +634,7 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
 
         // Extract and check amounts
         CTxOut txOut(Amount(sendingTo.second), sendingTo.first);
-        if (txOut.IsDust(dustRelayFee)) {
+        if (txOut.IsDust(optionsModel->node().getDustRelayFee())) {
             Q_EMIT message(
                 tr("Payment request error"),
                 tr("Requested payment amount of %1 is too small (considered "
@@ -681,7 +682,7 @@ void PaymentServer::fetchRequest(const QUrl &url) {
     netManager->get(netRequest);
 }
 
-void PaymentServer::fetchPaymentACK(CWallet *wallet,
+void PaymentServer::fetchPaymentACK(WalletModel *walletModel,
                                     const SendCoinsRecipient &recipient,
                                     QByteArray transaction) {
     const payments::PaymentDetails &details =
@@ -705,16 +706,18 @@ void PaymentServer::fetchPaymentACK(CWallet *wallet,
     // Create a new refund address, or re-use:
     std::string label =
         tr("Refund from %1").arg(recipient.authenticatedMerchant).toStdString();
-    std::set<CTxDestination> refundAddresses = wallet->GetLabelAddresses(label);
+    std::set<CTxDestination> refundAddresses =
+        walletModel->wallet().getLabelAddresses(label);
     if (!refundAddresses.empty()) {
         CScript s = GetScriptForDestination(*refundAddresses.begin());
         payments::Output *refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
     } else {
         CPubKey newKey;
-        if (wallet->GetKeyFromPool(newKey)) {
+        if (walletModel->wallet().getKeyFromPool(false /* internal */,
+                                                 newKey)) {
             CKeyID keyID = newKey.GetID();
-            wallet->SetAddressBook(keyID, label, "refund");
+            walletModel->wallet().setAddressBook(keyID, label, "refund");
 
             CScript s = GetScriptForDestination(keyID);
             payments::Output *refund_to = payment.add_refund_to();
@@ -823,15 +826,14 @@ void PaymentServer::handlePaymentACK(const QString &paymentACKMsg) {
 }
 
 bool PaymentServer::verifyNetwork(
-    const payments::PaymentDetails &requestDetails) {
-    bool fVerified = requestDetails.network() == Params().NetworkIDString();
+    interfaces::Node &node, const payments::PaymentDetails &requestDetails) {
+    bool fVerified = requestDetails.network() == node.getNetwork();
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request network "
                               "\"%2\" doesn't match client network \"%3\".")
                           .arg(__func__)
                           .arg(QString::fromStdString(requestDetails.network()))
-                          .arg(QString::fromStdString(
-                              Params().NetworkIDString()));
+                          .arg(QString::fromStdString(node.getNetwork()));
     }
     return fVerified;
 }

@@ -287,7 +287,7 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
                 m_wallet->setAddressBook(dest, strLabel, "");
             }
         }
-        Q_EMIT coinsSent(cwallet, rcp, transaction_array);
+        Q_EMIT coinsSent(this, rcp, transaction_array);
     }
 
     // update balance immediately, otherwise there could be a short noticeable

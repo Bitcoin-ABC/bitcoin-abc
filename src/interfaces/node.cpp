@@ -67,6 +67,7 @@ namespace {
         void selectParams(const std::string &network) override {
             SelectParams(network);
         }
+        std::string getNetwork() override { return Params().NetworkIDString(); }
         void initLogging() override { InitLogging(); }
         void initParameterInteraction() override { InitParameterInteraction(); }
         std::string getWarnings(const std::string &type) override {

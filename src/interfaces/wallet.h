@@ -5,11 +5,11 @@
 #ifndef BITCOIN_INTERFACES_WALLET_H
 #define BITCOIN_INTERFACES_WALLET_H
 
-#include <amount.h>                    // For Amount
-#include <primitives/transaction.h>    // For CTxOut
-#include <pubkey.h>                    // For CTxDestination (CKeyID and CScriptID)
-#include <script/ismine.h>             // For isminefilter, isminetype
-#include <script/standard.h>           // For CTxDestination
+#include <amount.h>                 // For Amount
+#include <primitives/transaction.h> // For CTxOut
+#include <pubkey.h>                 // For CTxDestination (CKeyID and CScriptID)
+#include <script/ismine.h>          // For isminefilter, isminetype
+#include <script/standard.h>        // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
 #include <ui_interface.h>              // For ChangeType
 
@@ -78,7 +78,11 @@ public:
     //! Get chainparams.
     virtual const CChainParams &getChainParams() = 0;
 
-    // Get key from pool.
+    //! Get set of addresses corresponding to a given label.
+    virtual std::set<CTxDestination>
+    getLabelAddresses(const std::string &label) = 0;
+
+    //! Get key from pool.
     virtual bool getKeyFromPool(bool internal, CPubKey &pub_key) = 0;
 
     //! Get public key.
