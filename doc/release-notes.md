@@ -6,3 +6,4 @@ This release includes the following features and fixes:
  - From 0.20.1 onwards macOS <10.10 is no longer supported.
    0.20.1 is built using Qt 5.9.6, which doesn't support
    versions of macOS older than 10.10.
+ - `sendmany` now shuffles outputs to improve privacy, so any previously expected behavior with regards to output ordering can no longer be relied upon.

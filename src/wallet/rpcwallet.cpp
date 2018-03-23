@@ -1349,6 +1349,9 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                            "Account has insufficient funds");
     }
 
+    // Shuffle recipient list
+    std::shuffle(vecSend.begin(), vecSend.end(), FastRandomContext());
+
     // Send
     CReserveKey keyChange(pwallet);
     Amount nFeeRequired = Amount::zero();
