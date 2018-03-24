@@ -2,6 +2,8 @@
 
 project(bitcoin-test)
 
+option(ENABLE_PROPERTY_BASED_TESTS "Enable property based tests" OFF)
+
 # Process json files.
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data")
 
@@ -60,6 +62,17 @@ if(BUILD_BITCOIN_WALLET)
 	)
 endif()
 
+if(ENABLE_PROPERTY_BASED_TESTS)
+	find_package(Rapidcheck REQUIRED)
+
+	set(BITCOIN_PROPERTY_BASED_TEST_FIXTURE
+		gen/crypto_gen.cpp
+	)
+	set(BITCOIN_PROPERTY_BASED_TESTS
+		key_properties.cpp
+	)
+endif()
+
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	jsonutil.cpp
 	scriptflags.cpp
@@ -72,6 +85,9 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 
 	# Wallet test fixture
 	${BITCOIN_WALLET_TEST_FIXTURE}
+
+	# Properties based test fixture
+	${BITCOIN_PROPERTY_BASED_TEST_FIXTURE}
 
 	TESTS
 		activation_tests.cpp
@@ -179,7 +195,14 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 
 		# Wallet tests
 		${BITCOIN_WALLET_TESTS}
+
+		# Properties based tests
+		${BITCOIN_PROPERTY_BASED_TESTS}
 )
+
+if(ENABLE_PROPERTY_BASED_TESTS)
+	target_link_libraries(test_bitcoin Rapidcheck::Rapidcheck)
+endif()
 
 function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 	set(SUITE_UPGRADE_ACTIVATED "${SUITE}-upgrade-activated")
