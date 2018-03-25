@@ -17,6 +17,7 @@ public:
     bool fHelp;
     std::string URI;
     std::string authUser;
+    std::string peerAddr;
 
     JSONRPCRequest() : id(NullUniValue), params(NullUniValue), fHelp(false) {}
 
