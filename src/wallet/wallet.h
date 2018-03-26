@@ -666,25 +666,25 @@ class WalletRescanReserver;
 class CWallet final : public CCryptoKeyStore, public CValidationInterface {
 private:
     static std::atomic<bool> fFlushScheduled;
-    std::atomic<bool> fAbortRescan;
+    std::atomic<bool> fAbortRescan{false};
     // controlled by WalletRescanReserver
-    std::atomic<bool> fScanningWallet;
+    std::atomic<bool> fScanningWallet{false};
     std::mutex mutexScanning;
     friend class WalletRescanReserver;
 
-    CWalletDB *pwalletdbEncryption;
+    CWalletDB *pwalletdbEncryption = nullptr;
 
     //! the current wallet version: clients below this version are not able to
     //! load the wallet
-    int nWalletVersion;
+    int nWalletVersion = FEATURE_BASE;
 
     //! the maximum wallet format version: memory-only variable that specifies
     //! to what version this wallet may be upgraded
-    int nWalletMaxVersion;
+    int nWalletMaxVersion = FEATURE_BASE;
 
-    int64_t nNextResend;
-    int64_t nLastResend;
-    bool fBroadcastTransactions;
+    int64_t nNextResend = 0;
+    int64_t nLastResend = 0;
+    bool fBroadcastTransactions = false;
 
     /**
      * Used to keep track of spent outpoints, and detect and report conflicts
@@ -721,10 +721,10 @@ private:
 
     std::set<int64_t> setInternalKeyPool;
     std::set<int64_t> setExternalKeyPool;
-    int64_t m_max_keypool_index;
+    int64_t m_max_keypool_index = 0;
     std::map<CKeyID, int64_t> m_pool_key_to_index;
 
-    int64_t nTimeFirstKey;
+    int64_t nTimeFirstKey = 0;
 
     /**
      * Private version of AddWatchOnly method which does not accept a timestamp,
@@ -757,7 +757,7 @@ private:
      *
      * Protected by cs_main (see BlockUntilSyncedToCurrentChain)
      */
-    const CBlockIndex *m_last_block_processed;
+    const CBlockIndex *m_last_block_processed = nullptr;
 
 public:
     const CChainParams &chainParams;
@@ -800,36 +800,17 @@ public:
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
-    unsigned int nMasterKeyMaxID;
+    unsigned int nMasterKeyMaxID = 0;
 
     /** Construct wallet with specified name and database implementation. */
     CWallet(const CChainParams &chainParamsIn, std::string name,
-            std::unique_ptr<CWalletDBWrapper> dbw_in)
-        : m_name(std::move(name)), dbw(std::move(dbw_in)),
-          chainParams(chainParamsIn) {
-        SetNull();
-    }
+            std::unique_ptr<CWalletDBWrapper> dbwIn)
+        : m_name(std::move(name)), dbw(std::move(dbwIn)),
+          chainParams(chainParamsIn) {}
 
     ~CWallet() {
         delete pwalletdbEncryption;
         pwalletdbEncryption = nullptr;
-    }
-
-    void SetNull() {
-        nWalletVersion = FEATURE_BASE;
-        nWalletMaxVersion = FEATURE_BASE;
-        nMasterKeyMaxID = 0;
-        pwalletdbEncryption = nullptr;
-        nOrderPosNext = 0;
-        nAccountingEntryNumber = 0;
-        nNextResend = 0;
-        nLastResend = 0;
-        m_max_keypool_index = 0;
-        nTimeFirstKey = 0;
-        fBroadcastTransactions = false;
-        fAbortRescan = false;
-        fScanningWallet = false;
-        nRelockTime = 0;
     }
 
     std::map<TxId, CWalletTx> mapWallet;
@@ -839,8 +820,8 @@ public:
     typedef std::multimap<int64_t, TxPair> TxItems;
     TxItems wtxOrdered;
 
-    int64_t nOrderPosNext;
-    uint64_t nAccountingEntryNumber;
+    int64_t nOrderPosNext = 0;
+    uint64_t nAccountingEntryNumber = 0;
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook;
 
@@ -972,7 +953,7 @@ public:
     //! Holds a timestamp at which point the wallet is scheduled (externally) to
     //! be relocked. Caller must arrange for actual relocking to occur via
     //! Lock().
-    int64_t nRelockTime;
+    int64_t nRelockTime = 0;
 
     bool Unlock(const SecureString &strWalletPassphrase);
     bool ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
