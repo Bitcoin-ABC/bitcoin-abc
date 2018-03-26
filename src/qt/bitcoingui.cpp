@@ -25,6 +25,7 @@
 #ifdef ENABLE_WALLET
 #include "walletframe.h"
 #include "walletmodel.h"
+#include "walletview.h"
 #endif // ENABLE_WALLET
 
 #ifdef Q_OS_MAC
@@ -40,6 +41,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QComboBox>
 #include <QDateTime>
 #include <QDesktopWidget>
 #include <QDragEnterEvent>
@@ -67,12 +69,6 @@ const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
     "other"
 #endif
     ;
-
-/**
- * Display name for default wallet name. Uses tilde to avoid name collisions in
- * the future with additional wallets
- */
-const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
 BitcoinGUI::BitcoinGUI(const Config *configIn,
                        const PlatformStyle *_platformStyle,
@@ -489,6 +485,7 @@ void BitcoinGUI::createMenuBar() {
 void BitcoinGUI::createToolBars() {
     if (walletFrame) {
         QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
+        appToolBar = toolbar;
         toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
         toolbar->setMovable(false);
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -497,6 +494,16 @@ void BitcoinGUI::createToolBars() {
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         overviewAction->setChecked(true);
+
+#ifdef ENABLE_WALLET
+        QWidget *spacer = new QWidget();
+        spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        toolbar->addWidget(spacer);
+
+        m_wallet_selector = new QComboBox();
+        connect(m_wallet_selector, SIGNAL(currentIndexChanged(const QString &)),
+                this, SLOT(setCurrentWallet(const QString &)));
+#endif
     }
 }
 
@@ -571,10 +578,20 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
 }
 
 #ifdef ENABLE_WALLET
-bool BitcoinGUI::addWallet(const QString &name, WalletModel *walletModel) {
+bool BitcoinGUI::addWallet(WalletModel *walletModel) {
     if (!walletFrame) return false;
+    const QString name = walletModel->getWalletName();
     setWalletActionsEnabled(true);
-    return walletFrame->addWallet(name, walletModel);
+    m_wallet_selector->addItem(name);
+    if (m_wallet_selector->count() == 2) {
+        m_wallet_selector_label = new QLabel();
+        m_wallet_selector_label->setText(tr("Wallet:") + " ");
+        m_wallet_selector_label->setBuddy(m_wallet_selector);
+        appToolBar->addWidget(m_wallet_selector_label);
+        appToolBar->addWidget(m_wallet_selector);
+    }
+    rpcConsole->addWallet(walletModel);
+    return walletFrame->addWallet(walletModel);
 }
 
 bool BitcoinGUI::setCurrentWallet(const QString &name) {
@@ -1019,12 +1036,16 @@ void BitcoinGUI::showEvent(QShowEvent *event) {
 void BitcoinGUI::incomingTransaction(const QString &date, int unit,
                                      const Amount amount, const QString &type,
                                      const QString &address,
-                                     const QString &label) {
+                                     const QString &label,
+                                     const QString &walletName) {
     // On new transaction, make an info balloon
     QString msg = tr("Date: %1\n").arg(date) +
                   tr("Amount: %1\n")
-                      .arg(BitcoinUnits::formatWithUnit(unit, amount, true)) +
-                  tr("Type: %1\n").arg(type);
+                      .arg(BitcoinUnits::formatWithUnit(unit, amount, true));
+    if (WalletModel::isMultiwallet() && !walletName.isEmpty()) {
+        msg += tr("Wallet: %1\n").arg(walletName);
+    }
+    msg += tr("Type: %1\n").arg(type);
     if (!label.isEmpty()) {
         msg += tr("Label: %1\n").arg(label);
     } else if (!address.isEmpty()) {
@@ -1122,6 +1143,19 @@ void BitcoinGUI::setEncryptionStatus(int status) {
                 false); // TODO: decrypt currently not supported
             break;
     }
+}
+
+void BitcoinGUI::updateWalletStatus() {
+    if (!walletFrame) {
+        return;
+    }
+    WalletView *const walletView = walletFrame->currentWalletView();
+    if (!walletView) {
+        return;
+    }
+    WalletModel *const walletModel = walletView->getWalletModel();
+    setEncryptionStatus(walletModel->getEncryptionStatus());
+    setHDStatus(walletModel->hdEnabled());
 }
 #endif // ENABLE_WALLET
 

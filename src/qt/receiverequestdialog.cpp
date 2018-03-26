@@ -94,11 +94,12 @@ ReceiveRequestDialog::~ReceiveRequestDialog() {
     delete ui;
 }
 
-void ReceiveRequestDialog::setModel(OptionsModel *_model) {
+void ReceiveRequestDialog::setModel(WalletModel *_model) {
     this->model = _model;
 
     if (_model)
-        connect(_model, SIGNAL(displayUnitChanged(int)), this, SLOT(update()));
+        connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
+                this, SLOT(update()));
 
     // update the display unit if necessary
     update();
@@ -128,9 +129,9 @@ void ReceiveRequestDialog::update() {
     html += "<b>" + tr("Address") +
             "</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
     if (info.amount != Amount::zero())
-        html += "<b>" + tr("Amount") +
-                "</b>: " + BitcoinUnits::formatHtmlWithUnit(
-                               model->getDisplayUnit(), info.amount) +
+        html += "<b>" + tr("Amount") + "</b>: " +
+                BitcoinUnits::formatHtmlWithUnit(
+                    model->getOptionsModel()->getDisplayUnit(), info.amount) +
                 "<br>";
     if (!info.label.isEmpty())
         html += "<b>" + tr("Label") +
@@ -138,6 +139,10 @@ void ReceiveRequestDialog::update() {
     if (!info.message.isEmpty())
         html += "<b>" + tr("Message") +
                 "</b>: " + GUIUtil::HtmlEscape(info.message) + "<br>";
+    if (model->isMultiwallet()) {
+        html += "<b>" + tr("Wallet") +
+                "</b>: " + GUIUtil::HtmlEscape(model->getWalletName()) + "<br>";
+    }
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE

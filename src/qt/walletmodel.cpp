@@ -101,7 +101,7 @@ void WalletModel::updateStatus() {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
 
     if (cachedEncryptionStatus != newEncryptionStatus) {
-        Q_EMIT encryptionStatusChanged(newEncryptionStatus);
+        Q_EMIT encryptionStatusChanged();
     }
 }
 
@@ -717,6 +717,15 @@ bool WalletModel::hdEnabled() const {
 
 int WalletModel::getDefaultConfirmTarget() const {
     return nTxConfirmTarget;
+}
+
+QString WalletModel::getWalletName() const {
+    LOCK(wallet->cs_wallet);
+    return QString::fromStdString(wallet->GetName());
+}
+
+bool WalletModel::isMultiwallet() {
+    return gArgs.GetArgs("-wallet").size() > 1;
 }
 
 const CChainParams &WalletModel::getChainParams() const {

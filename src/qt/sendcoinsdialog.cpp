@@ -316,10 +316,17 @@ void SendCoinsDialog::on_sendButton_clicked() {
     // Format confirmation message
     QStringList formatted;
     for (const SendCoinsRecipient &rcp : currentTransaction.getRecipients()) {
-        // generate bold amount string
+        // generate bold amount string with wallet name in case of multiwallet
         QString amount =
             "<b>" + BitcoinUnits::formatHtmlWithUnit(
                         model->getOptionsModel()->getDisplayUnit(), rcp.amount);
+        if (model->isMultiwallet()) {
+            amount.append(
+                " <u>" +
+                tr("from wallet %1")
+                    .arg(GUIUtil::HtmlEscape(model->getWalletName())) +
+                "</u> ");
+        }
         amount.append("</b>");
         // generate monospace address string
         QString address =

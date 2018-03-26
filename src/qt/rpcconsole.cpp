@@ -9,10 +9,11 @@
 #include "rpcconsole.h"
 #include "ui_debugwindow.h"
 
-#include "bantablemodel.h"
-#include "clientmodel.h"
-#include "guiutil.h"
-#include "platformstyle.h"
+#include "qt/bantablemodel.h"
+#include "qt/clientmodel.h"
+#include "qt/guiutil.h"
+#include "qt/platformstyle.h"
+#include "qt/walletmodel.h"
 
 #include "chainparams.h"
 #include "config.h"
@@ -78,7 +79,7 @@ class RPCExecutor : public QObject {
     Q_OBJECT
 
 public Q_SLOTS:
-    void request(const QString &command);
+    void request(const QString &command, const QString &walletID);
 
 Q_SIGNALS:
     void reply(int category, const QString &command);
@@ -145,7 +146,8 @@ public:
 bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                                      const std::string &strCommand,
                                      const bool fExecute,
-                                     std::string *const pstrFilteredOut) {
+                                     std::string *const pstrFilteredOut,
+                                     const std::string *walletID) {
     std::vector<std::vector<std::string>> stack;
     stack.push_back(std::vector<std::string>());
 
@@ -328,14 +330,10 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                                 req.strMethod = stack.back()[0];
 
 #ifdef ENABLE_WALLET
-                                // TODO: Move this logic to WalletModel
-                                if (!vpwallets.empty()) {
-                                    // in Qt, use always the wallet with index 0
-                                    // when running with multiple wallets
+                                if (walletID && !walletID->empty()) {
                                     QByteArray encodedName =
                                         QUrl::toPercentEncoding(
-                                            QString::fromStdString(
-                                                vpwallets[0]->GetName()));
+                                            QString::fromStdString(*walletID));
                                     req.URI =
                                         "/wallet/" +
                                         std::string(encodedName.constData(),
@@ -438,7 +436,7 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
     }
 }
 
-void RPCExecutor::request(const QString &command) {
+void RPCExecutor::request(const QString &command, const QString &walletID) {
     try {
         std::string result;
         std::string executableCommand = command.toStdString() + "\n";
@@ -476,7 +474,9 @@ void RPCExecutor::request(const QString &command) {
                          "getblock(getblockhash(0),true)[tx][0]\n\n")));
             return;
         }
-        if (!RPCConsole::RPCExecuteCommandLine(result, executableCommand)) {
+        std::string wallet_id = walletID.toStdString();
+        if (!RPCConsole::RPCExecuteCommandLine(result, executableCommand,
+                                               nullptr, &wallet_id)) {
             Q_EMIT reply(RPCConsole::CMD_ERROR,
                          QString("Parse error: unbalanced ' or \""));
             return;
@@ -539,6 +539,10 @@ RPCConsole::RPCConsole(const PlatformStyle *_platformStyle, QWidget *parent)
             SLOT(fontSmaller()));
     connect(ui->btnClearTrafficGraph, SIGNAL(clicked()), ui->trafficGraph,
             SLOT(clear()));
+
+    // disable the wallet selector by default
+    ui->WalletSelector->setVisible(false);
+    ui->WalletSelectorLabel->setVisible(false);
 
 // set library version labels
 #ifdef ENABLE_WALLET
@@ -795,6 +799,24 @@ void RPCConsole::setClientModel(ClientModel *model) {
     }
 }
 
+#ifdef ENABLE_WALLET
+void RPCConsole::addWallet(WalletModel *const walletModel) {
+    const QString name = walletModel->getWalletName();
+    // use name for text and internal data object (to allow to move to a wallet
+    // id later)
+    ui->WalletSelector->addItem(name, name);
+    if (ui->WalletSelector->count() == 2 && !isVisible()) {
+        // First wallet added, set to default so long as the window isn't
+        // presently visible (and potentially in use)
+        ui->WalletSelector->setCurrentIndex(1);
+    }
+    if (ui->WalletSelector->count() > 2) {
+        ui->WalletSelector->setVisible(true);
+        ui->WalletSelectorLabel->setVisible(true);
+    }
+}
+#endif
+
 static QString categoryClass(int category) {
     switch (category) {
         case RPCConsole::CMD_REQUEST:
@@ -1004,8 +1026,29 @@ void RPCConsole::on_lineEdit_returnPressed() {
 
         cmdBeforeBrowsing = QString();
 
+        QString walletID;
+#ifdef ENABLE_WALLET
+        const int wallet_index = ui->WalletSelector->currentIndex();
+        if (wallet_index > 0) {
+            walletID = (QString)ui->WalletSelector->itemData(wallet_index)
+                           .value<QString>();
+        }
+
+        if (m_last_wallet_id != walletID) {
+            if (walletID.isEmpty()) {
+                message(CMD_REQUEST,
+                        tr("Executing command without any wallet"));
+            } else {
+                message(
+                    CMD_REQUEST,
+                    tr("Executing command using \"%1\" wallet").arg(walletID));
+            }
+            m_last_wallet_id = walletID;
+        }
+#endif
+
         message(CMD_REQUEST, QString::fromStdString(strFilteredCmd));
-        Q_EMIT cmdRequest(cmd);
+        Q_EMIT cmdRequest(cmd, walletID);
 
         cmd = QString::fromStdString(strFilteredCmd);
 
@@ -1054,8 +1097,8 @@ void RPCConsole::startExecutor() {
     connect(executor, SIGNAL(reply(int, QString)), this,
             SLOT(message(int, QString)));
     // Requests from this object must go to executor
-    connect(this, SIGNAL(cmdRequest(QString)), executor,
-            SLOT(request(QString)));
+    connect(this, SIGNAL(cmdRequest(QString, QString)), executor,
+            SLOT(request(QString, QString)));
 
     // On stopExecutor signal
     // - quit the Qt event loop in the execution thread
