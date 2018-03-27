@@ -9,21 +9,32 @@
 #include <script/interpreter.h>
 #include <script/sighashtype.h>
 
+class CKey;
 class CKeyID;
-class CKeyStore;
 class CMutableTransaction;
 class CScript;
+class CScriptID;
 class CTransaction;
+
+/** An interface to be implemented by keystores that support signing. */
+class SigningProvider {
+public:
+    virtual ~SigningProvider() {}
+    virtual bool GetCScript(const CScriptID &scriptid,
+                            CScript &script) const = 0;
+    virtual bool GetPubKey(const CKeyID &address, CPubKey &pubkey) const = 0;
+    virtual bool GetKey(const CKeyID &address, CKey &key) const = 0;
+};
 
 /** Virtual base class for signature creators. */
 class BaseSignatureCreator {
 protected:
-    const CKeyStore *keystore;
+    const SigningProvider *m_provider;
 
 public:
-    explicit BaseSignatureCreator(const CKeyStore *keystoreIn)
-        : keystore(keystoreIn) {}
-    const CKeyStore &KeyStore() const { return *keystore; };
+    explicit BaseSignatureCreator(const SigningProvider *provider)
+        : m_provider(provider) {}
+    const SigningProvider &Provider() const { return *m_provider; }
     virtual ~BaseSignatureCreator() {}
     virtual const BaseSignatureChecker &Checker() const = 0;
 
@@ -41,7 +52,7 @@ class TransactionSignatureCreator : public BaseSignatureCreator {
     const TransactionSignatureChecker checker;
 
 public:
-    TransactionSignatureCreator(const CKeyStore *keystoreIn,
+    TransactionSignatureCreator(const SigningProvider *provider,
                                 const CTransaction *txToIn, unsigned int nInIn,
                                 const Amount amountIn,
                                 SigHashType sigHashTypeIn = SigHashType());
@@ -54,12 +65,12 @@ class MutableTransactionSignatureCreator : public TransactionSignatureCreator {
     CTransaction tx;
 
 public:
-    MutableTransactionSignatureCreator(const CKeyStore *keystoreIn,
+    MutableTransactionSignatureCreator(const SigningProvider *provider,
                                        const CMutableTransaction *txToIn,
                                        unsigned int nInIn,
                                        const Amount amountIn,
                                        SigHashType sigHashTypeIn)
-        : TransactionSignatureCreator(keystoreIn, &tx, nInIn, amountIn,
+        : TransactionSignatureCreator(provider, &tx, nInIn, amountIn,
                                       sigHashTypeIn),
           tx(*txToIn) {}
 };
@@ -67,8 +78,8 @@ public:
 /** A signature creator that just produces 72-byte empty signatures. */
 class DummySignatureCreator : public BaseSignatureCreator {
 public:
-    explicit DummySignatureCreator(const CKeyStore *keystoreIn)
-        : BaseSignatureCreator(keystoreIn) {}
+    explicit DummySignatureCreator(const SigningProvider *provider)
+        : BaseSignatureCreator(provider) {}
     const BaseSignatureChecker &Checker() const override;
     bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                    const CScript &scriptCode) const override;
@@ -86,10 +97,10 @@ bool ProduceSignature(const BaseSignatureCreator &creator,
                       const CScript &scriptPubKey, SignatureData &sigdata);
 
 /** Produce a script signature for a transaction. */
-bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
+bool SignSignature(const SigningProvider &provider, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
                    const Amount amount, SigHashType sigHashType);
-bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
+bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType);
 

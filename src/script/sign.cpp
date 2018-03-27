@@ -6,7 +6,6 @@
 #include <script/sign.h>
 
 #include <key.h>
-#include <keystore.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <script/standard.h>
@@ -15,9 +14,9 @@
 typedef std::vector<uint8_t> valtype;
 
 TransactionSignatureCreator::TransactionSignatureCreator(
-    const CKeyStore *keystoreIn, const CTransaction *txToIn, unsigned int nInIn,
-    const Amount amountIn, SigHashType sigHashTypeIn)
-    : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn),
+    const SigningProvider *provider, const CTransaction *txToIn,
+    unsigned int nInIn, const Amount amountIn, SigHashType sigHashTypeIn)
+    : BaseSignatureCreator(provider), txTo(txToIn), nIn(nInIn),
       amount(amountIn), sigHashType(sigHashTypeIn),
       checker(txTo, nIn, amountIn) {}
 
@@ -25,7 +24,7 @@ bool TransactionSignatureCreator::CreateSig(std::vector<uint8_t> &vchSig,
                                             const CKeyID &address,
                                             const CScript &scriptCode) const {
     CKey key;
-    if (!keystore->GetKey(address, key)) {
+    if (!m_provider->GetKey(address, key)) {
         return false;
     }
 
@@ -100,25 +99,22 @@ static bool SignStep(const BaseSignatureCreator &creator,
             }
 
             CPubKey vch;
-            creator.KeyStore().GetPubKey(keyID, vch);
+            creator.Provider().GetPubKey(keyID, vch);
             ret.push_back(ToByteVector(vch));
             return true;
         }
         case TX_SCRIPTHASH:
-            if (creator.KeyStore().GetCScript(uint160(vSolutions[0]),
+            if (creator.Provider().GetCScript(uint160(vSolutions[0]),
                                               scriptRet)) {
                 ret.push_back(
                     std::vector<uint8_t>(scriptRet.begin(), scriptRet.end()));
                 return true;
             }
-
             return false;
-
         case TX_MULTISIG:
             // workaround CHECKMULTISIG bug
             ret.push_back(valtype());
             return (SignN(vSolutions, creator, scriptPubKey, ret));
-
         default:
             return false;
     }
@@ -183,13 +179,13 @@ void UpdateTransaction(CMutableTransaction &tx, unsigned int nIn,
     UpdateInput(tx.vin[nIn], data);
 }
 
-bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
+bool SignSignature(const SigningProvider &provider, const CScript &fromPubKey,
                    CMutableTransaction &txTo, unsigned int nIn,
                    const Amount amount, SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
 
     CTransaction txToConst(txTo);
-    TransactionSignatureCreator creator(&keystore, &txToConst, nIn, amount,
+    TransactionSignatureCreator creator(&provider, &txToConst, nIn, amount,
                                         sigHashType);
 
     SignatureData sigdata;
@@ -198,7 +194,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript &fromPubKey,
     return ret;
 }
 
-bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
+bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
@@ -206,7 +202,7 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
     assert(txin.prevout.GetN() < txFrom.vout.size());
     const CTxOut &txout = txFrom.vout[txin.prevout.GetN()];
 
-    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, txout.nValue,
+    return SignSignature(provider, txout.scriptPubKey, txTo, nIn, txout.nValue,
                          sigHashType);
 }
 
