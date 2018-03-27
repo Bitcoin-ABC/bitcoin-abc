@@ -698,7 +698,7 @@ void SetupServerArgs() {
         "-checkblockindex",
         strprintf("Do a full consistency check for mapBlockIndex, "
                   "setBlockIndexCandidates, chainActive and mapBlocksUnlinked "
-                  "occasionally. Also sets -checkmempool (default: %u)",
+                  "occasionally. (default: %u)",
                   defaultChainParams->DefaultConsistencyChecks()),
         true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkmempool=<n>",
