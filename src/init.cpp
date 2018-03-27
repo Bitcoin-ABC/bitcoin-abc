@@ -392,12 +392,12 @@ void SetupServerArgs() {
             "Set database cache size in megabytes (%d to %d, default: %d)",
             nMinDbCache, nMaxDbCache, nDefaultDbCache),
         false, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
-        "-debuglogfile=<file>",
-        strprintf("Specify location of debug log file. Relative paths will be "
-                  "prefixed by a net-specific datadir location. (default: %s)",
-                  DEFAULT_DEBUGLOGFILE),
-        false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-debuglogfile=<file>",
+                 strprintf("Specify location of debug log file. Relative paths "
+                           "will be prefixed by a net-specific datadir "
+                           "location. (0 to disable; default: %s)",
+                           DEFAULT_DEBUGLOGFILE),
+                 false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-feefilter",
                  strprintf("Tell other nodes to filter invs to us by our "
                            "mempool min fee (default: %d)",
@@ -799,9 +799,11 @@ void SetupServerArgs() {
                            DEFAULT_MAX_TIP_AGE),
                  true, OptionsCategory::DEBUG_TEST);
 
-    gArgs.AddArg("-printtoconsole",
-                 "Send trace/debug info to console instead of debug.log file",
-                 false, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg(
+        "-printtoconsole",
+        "Send trace/debug info to console instead of debug.log file (default: "
+        "1 when no -daemon. To disable logging to file, set debuglogfile=0)",
+        false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-printpriority",
                  strprintf("Log transaction priority and fee per kB when "
                            "mining blocks (default: %d)",
@@ -1350,9 +1352,22 @@ static std::string ResolveErrMsg(const char *const optname,
     return strprintf(_("Cannot resolve -%s address: '%s'"), optname, strBind);
 }
 
+/**
+ * Initialize global loggers.
+ *
+ * Note that this is called very early in the process lifetime, so you should be
+ * careful about what global state you rely on here.
+ */
 void InitLogging() {
+    // Add newlines to the logfile to distinguish this execution from the last
+    // one; called before console logging is set up, so this is only sent to
+    // debug.log.
+    LogPrintf("\n\n\n\n\n");
+
     BCLog::Logger &logger = GetLogger();
-    logger.m_print_to_console = gArgs.GetBoolArg("-printtoconsole", false);
+    logger.m_print_to_console = gArgs.GetBoolArg(
+        "-printtoconsole", !gArgs.GetBoolArg("-daemon", false));
+    logger.m_print_to_file = !gArgs.IsArgNegated("-debuglogfile");
     logger.m_log_timestamps =
         gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     logger.m_log_time_micros =
@@ -1360,7 +1375,6 @@ void InitLogging() {
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
-    LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     LogPrintf("%s version %s\n", CLIENT_NAME, FormatFullVersion());
 }
 
@@ -1829,15 +1843,15 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 #endif
 
     BCLog::Logger &logger = GetLogger();
-
-    bool default_shrinkdebugfile = logger.DefaultShrinkDebugFile();
-    if (gArgs.GetBoolArg("-shrinkdebugfile", default_shrinkdebugfile)) {
-        // Do this first since it both loads a bunch of debug.log into memory,
-        // and because this needs to happen before any other debug.log printing.
-        logger.ShrinkDebugFile();
-    }
-
     if (logger.m_print_to_file) {
+        bool default_shrinkdebugfile = logger.DefaultShrinkDebugFile();
+        if (gArgs.GetBoolArg("-shrinkdebugfile", default_shrinkdebugfile)) {
+            // Do this first since it both loads a bunch of debug.log into
+            // memory, and because this needs to happen before any other
+            // debug.log printing.
+            logger.ShrinkDebugFile();
+        }
+
         if (!logger.OpenDebugLog()) {
             return InitError(strprintf("Could not open debug log file %s",
                                        logger.GetDebugLogPath().string()));

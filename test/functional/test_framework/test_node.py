@@ -83,8 +83,16 @@ class TestNode():
         # Note that common args are set in the config file (see
         # initialize_datadir)
         self.extra_args = extra_args
-        self.default_args = ["-datadir=" + self.datadir, "-logtimemicros", "-debug", "-debugexclude=libevent",
-                             "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
+        self.default_args = [
+            "-datadir=" + self.datadir,
+            "-logtimemicros",
+            "-debug",
+            "-debugexclude=libevent",
+            "-debugexclude=leveldb",
+            "-mocktime=" + str(mocktime),
+            "-uacomment=" + self.name,
+            "-noprinttoconsole",
+        ]
 
         if not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(

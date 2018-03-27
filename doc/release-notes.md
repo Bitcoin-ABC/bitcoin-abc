@@ -11,3 +11,7 @@ This release includes the following features and fixes:
    as such, is subject to changes or removal in future releases.
  - The new RPC `getzmqnotifications` returns information about active ZMQ
    notifications.
+ - When running bitcoind without `-daemon`, logging to stdout is now the 
+   default behavior. Setting `-printtoconsole=1` no longer implicitly disables
+   logging to debug.log. Instead, logging to file can be explicitly disabled by
+   setting `-debuglogfile=0`.
