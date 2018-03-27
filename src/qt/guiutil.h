@@ -53,9 +53,8 @@ std::string DummyAddress(const CChainParams &params);
 // Convert any address into cashaddr
 QString convertToCashAddr(const CChainParams &params, const QString &addr);
 
-// Set up widgets for address and amounts
+// Set up widget for address
 void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
-void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
 // Parse "bitcoincash:" URI into recipient object, return true on successful
 // parsing
