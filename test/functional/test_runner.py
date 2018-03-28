@@ -495,7 +495,7 @@ def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_
     results = "\n" + BOLD[1] + "{} | {} | {}\n\n".format(
         "TEST".ljust(max_len_name), "STATUS   ", "DURATION") + BOLD[0]
 
-    test_results.sort(key=lambda result: result.name.lower())
+    test_results.sort(key=TestResult.sort_key)
     all_passed = True
     time_sum = 0
 
@@ -518,8 +518,12 @@ def print_results(test_results, tests_dir, max_len_name, runtime, combined_logs_
             print("\n".join(deque(combined_logs.splitlines(), combined_logs_len)))
 
     status = TICK + "Passed" if all_passed else CROSS + "Failed"
+    if not all_passed:
+        results += RED[1]
     results += BOLD[1] + "\n{} | {} | {} s (accumulated) \n".format(
         "ALL".ljust(max_len_name), status.ljust(9), time_sum) + BOLD[0]
+    if not all_passed:
+        results += RED[0]
     results += "Runtime: {} s\n".format(runtime)
     print(results)
 
@@ -538,6 +542,14 @@ class TestResult():
         self.padding = 0
         self.stdout = stdout
         self.stderr = stderr
+
+    def sort_key(self):
+        if self.status == "Passed":
+            return 0, self.name.lower()
+        elif self.status == "Failed":
+            return 2, self.name.lower()
+        elif self.status == "Skipped":
+            return 1, self.name.lower()
 
     def __repr__(self):
         if self.status == "Passed":
