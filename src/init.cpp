@@ -130,7 +130,6 @@ static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
 //
 
 std::atomic<bool> fRequestShutdown(false);
-std::atomic<bool> fDumpMempoolLater(false);
 
 void StartShutdown() {
     fRequestShutdown = true;
@@ -226,7 +225,7 @@ void Shutdown() {
     threadGroup.interrupt_all();
     threadGroup.join_all();
 
-    if (fDumpMempoolLater &&
+    if (g_is_mempool_loaded &&
         gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         DumpMempool();
     }
@@ -1111,8 +1110,8 @@ void ThreadImport(const Config &config, std::vector<fs::path> vImportFiles) {
     } // End scope of CImportingNow
     if (gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         LoadMempool(config);
-        fDumpMempoolLater = !fRequestShutdown;
     }
+    g_is_mempool_loaded = !fRequestShutdown;
 }
 
 /** Sanity checks

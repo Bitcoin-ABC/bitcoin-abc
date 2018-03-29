@@ -210,6 +210,7 @@ static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool g_mempool;
+extern std::atomic_bool g_is_mempool_loaded;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic;
