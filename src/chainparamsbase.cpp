@@ -79,15 +79,3 @@ CreateBaseChainParams(const std::string &chain) {
 void SelectBaseParams(const std::string &chain) {
     globalChainBaseParams = CreateBaseChainParams(chain);
 }
-
-std::string ChainNameFromCommandLine() {
-    bool fRegTest = gArgs.GetBoolArg("-regtest", false);
-    bool fTestNet = gArgs.GetBoolArg("-testnet", false);
-
-    if (fTestNet && fRegTest)
-        throw std::runtime_error(
-            "Invalid combination of -regtest and -testnet.");
-    if (fRegTest) return CBaseChainParams::REGTEST;
-    if (fTestNet) return CBaseChainParams::TESTNET;
-    return CBaseChainParams::MAIN;
-}

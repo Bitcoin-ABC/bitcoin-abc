@@ -441,36 +441,55 @@ fs::path GetConfigFile(const std::string &confPath) {
     return pathConfigFile;
 }
 
-void ArgsManager::ReadConfigFile(const std::string &confPath) {
-    fs::ifstream streamConfig(GetConfigFile(confPath));
+void ArgsManager::ReadConfigStream(std::istream &stream) {
+    LOCK(cs_args);
 
-    // No bitcoin.conf file is OK
-    if (!streamConfig.good()) {
-        return;
-    }
+    std::set<std::string> setOptions;
+    setOptions.insert("*");
 
-    {
-        LOCK(cs_args);
-        std::set<std::string> setOptions;
-        setOptions.insert("*");
-
-        for (boost::program_options::detail::config_file_iterator
-                 it(streamConfig, setOptions),
-             end;
-             it != end; ++it) {
-            // Don't overwrite existing settings so command line settings
-            // override bitcoin.conf
-            std::string strKey = std::string("-") + it->string_key;
-            std::string strValue = it->value[0];
-            InterpretNegatedOption(strKey, strValue);
-            if (mapArgs.count(strKey) == 0) {
-                mapArgs[strKey] = strValue;
-            }
-            mapMultiArgs[strKey].push_back(strValue);
+    for (boost::program_options::detail::config_file_iterator
+             it(stream, setOptions),
+         end;
+         it != end; ++it) {
+        // Don't overwrite existing settings so command line settings override
+        // bitcoin.conf
+        std::string strKey = std::string("-") + it->string_key;
+        std::string strValue = it->value[0];
+        InterpretNegatedOption(strKey, strValue);
+        if (mapArgs.count(strKey) == 0) {
+            mapArgs[strKey] = strValue;
         }
+        mapMultiArgs[strKey].push_back(strValue);
     }
+}
+
+void ArgsManager::ReadConfigFile(const std::string &confPath) {
+    fs::ifstream stream(GetConfigFile(confPath));
+
+    // ok to not have a config file
+    if (stream.good()) {
+        ReadConfigStream(stream);
+    }
+
     // If datadir is changed in .conf file:
     ClearDatadirCache();
+}
+
+std::string ArgsManager::GetChainName() const {
+    bool fRegTest = GetBoolArg("-regtest", false);
+    bool fTestNet = GetBoolArg("-testnet", false);
+
+    if (fTestNet && fRegTest) {
+        throw std::runtime_error(
+            "Invalid combination of -regtest and -testnet.");
+    }
+    if (fRegTest) {
+        return CBaseChainParams::REGTEST;
+    }
+    if (fTestNet) {
+        return CBaseChainParams::TESTNET;
+    }
+    return CBaseChainParams::MAIN;
 }
 
 #ifndef WIN32
