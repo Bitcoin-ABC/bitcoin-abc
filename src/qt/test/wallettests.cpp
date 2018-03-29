@@ -1,3 +1,4 @@
+#include <qt/test/util.h>
 #include <qt/test/wallettests.h>
 
 #include <cashaddrenc.h>

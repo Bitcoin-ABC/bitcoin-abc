@@ -13,6 +13,7 @@ add_test_to_suite(bitcoin-qt test_bitcoin-qt
 	rpcnestedtests.cpp
 	test_main.cpp
 	uritests.cpp
+	util.cpp
 
 	# Test framework
 	../../test/test_bitcoin.cpp
