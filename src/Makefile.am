@@ -206,7 +206,6 @@ BITCOIN_CORE_H = \
   wallet/finaltx.h \
   wallet/rpcdump.h \
   wallet/fees.h \
-  wallet/init.h \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
