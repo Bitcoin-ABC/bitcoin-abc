@@ -12,6 +12,7 @@
 #include <array>
 
 typedef std::vector<uint8_t> valtype;
+typedef std::vector<valtype> stacktype;
 
 std::array<uint32_t, 3> flagset{0, STANDARD_SCRIPT_VERIFY_FLAGS,
                                 MANDATORY_SCRIPT_VERIFY_FLAGS};
@@ -21,15 +22,14 @@ BOOST_FIXTURE_TEST_SUITE(monolith_opcodes_tests, BasicTestingSetup)
 /**
  * General utility functions to check for script passing/failing.
  */
-static void
-CheckTestResultForAllFlags(const std::vector<valtype> &original_stack,
-                           const CScript &script,
-                           const std::vector<valtype> &expected) {
+static void CheckTestResultForAllFlags(const stacktype &original_stack,
+                                       const CScript &script,
+                                       const stacktype &expected) {
     BaseSignatureChecker sigchecker;
 
     for (uint32_t flags : flagset) {
         ScriptError err = SCRIPT_ERR_OK;
-        std::vector<valtype> stack{original_stack};
+        stacktype stack{original_stack};
         bool r =
             EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
                        sigchecker, &err);
@@ -45,61 +45,63 @@ CheckTestResultForAllFlags(const std::vector<valtype> &original_stack,
     }
 }
 
-static void CheckErrorForAllFlags(const std::vector<valtype> &original_stack,
+static void CheckError(uint32_t flags, const stacktype &original_stack,
+                       const CScript &script, ScriptError expected_error) {
+    BaseSignatureChecker sigchecker;
+    ScriptError err = SCRIPT_ERR_OK;
+    stacktype stack{original_stack};
+    bool r = EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
+                        sigchecker, &err);
+    BOOST_CHECK(!r);
+    BOOST_CHECK_EQUAL(err, expected_error);
+
+    // Make sure that if we do not pass the monolith flag, opcodes are still
+    // disabled.
+    stack = original_stack;
+    r = EvalScript(stack, script, flags, sigchecker, &err);
+    BOOST_CHECK(!r);
+    BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
+}
+
+static void CheckErrorForAllFlags(const stacktype &original_stack,
                                   const CScript &script,
                                   ScriptError expected_error) {
-    BaseSignatureChecker sigchecker;
-
     for (uint32_t flags : flagset) {
-        ScriptError err = SCRIPT_ERR_OK;
-        std::vector<valtype> stack{original_stack};
-        bool r =
-            EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
-                       sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, expected_error);
-
-        // Make sure that if we do not pass the monolith flag, opcodes are still
-        // disabled.
-        stack = original_stack;
-        r = EvalScript(stack, script, flags, sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
+        CheckError(flags, original_stack, script, expected_error);
     }
 }
 
-/**
- * Bitwise opcodes
- */
-static void CheckBitwiseOpError(const std::vector<valtype> &original_stack,
-                                opcodetype op, ScriptError expected_error) {
+static void CheckOpError(const stacktype &original_stack, opcodetype op,
+                         ScriptError expected_error) {
     CheckErrorForAllFlags(original_stack, CScript() << op, expected_error);
 }
 
-static void CheckAllBitwiseOpErrors(const std::vector<valtype> &stack,
+static void CheckAllBitwiseOpErrors(const stacktype &stack,
                                     ScriptError expected_error) {
-    // Bitwise ops are commutative, so we check both ways.
-    CheckBitwiseOpError(stack, OP_AND, expected_error);
-    CheckBitwiseOpError(stack, OP_OR, expected_error);
-    CheckBitwiseOpError(stack, OP_XOR, expected_error);
+    CheckOpError(stack, OP_AND, expected_error);
+    CheckOpError(stack, OP_OR, expected_error);
+    CheckOpError(stack, OP_XOR, expected_error);
 }
 
-static void CheckBitwiseOp(const valtype &a, const valtype &b, opcodetype op,
-                           const valtype &expected) {
+static void CheckOp(const valtype &a, const valtype &b, opcodetype op,
+                    const valtype &expected) {
     CheckTestResultForAllFlags({a, b}, CScript() << op, {expected});
 }
 
+/**
+ * Bitwise Opcodes
+ */
 static void RunTestForAllBitwiseOpcodes(const valtype &a, const valtype &b,
                                         const valtype &expected_and,
                                         const valtype &expected_or,
                                         const valtype &expected_xor) {
     // Bitwise ops are commutative, so we check both ways.
-    CheckBitwiseOp(a, b, OP_AND, expected_and);
-    CheckBitwiseOp(b, a, OP_AND, expected_and);
-    CheckBitwiseOp(a, b, OP_OR, expected_or);
-    CheckBitwiseOp(b, a, OP_OR, expected_or);
-    CheckBitwiseOp(a, b, OP_XOR, expected_xor);
-    CheckBitwiseOp(b, a, OP_XOR, expected_xor);
+    CheckOp(a, b, OP_AND, expected_and);
+    CheckOp(b, a, OP_AND, expected_and);
+    CheckOp(a, b, OP_OR, expected_or);
+    CheckOp(b, a, OP_OR, expected_or);
+    CheckOp(a, b, OP_XOR, expected_xor);
+    CheckOp(b, a, OP_XOR, expected_xor);
 }
 
 static void RunTestForAllBitwiseOpcodesSizes(const valtype &a, const valtype &b,
@@ -409,13 +411,13 @@ static void CheckTypeConversionOp(const valtype &bin, const valtype &num) {
                                {num});
 }
 
-static void CheckBin2NumError(const std::vector<valtype> &original_stack,
+static void CheckBin2NumError(const stacktype &original_stack,
                               ScriptError expected_error) {
     CheckErrorForAllFlags(original_stack, CScript() << OP_BIN2NUM,
                           expected_error);
 }
 
-static void CheckNum2BinError(const std::vector<valtype> &original_stack,
+static void CheckNum2BinError(const stacktype &original_stack,
                               ScriptError expected_error) {
     CheckErrorForAllFlags(original_stack, CScript() << OP_NUM2BIN,
                           expected_error);
