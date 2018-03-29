@@ -377,14 +377,39 @@ BOOST_AUTO_TEST_CASE(bitwise_opcodes_test) {
  * String opcodes.
  */
 static void CheckStringOp(const valtype &a, const valtype &b,
-                          const valtype &expected) {
-    CheckBinaryOp(a, b, OP_CAT, expected);
+                          const valtype &n) {
+    CheckBinaryOp(a, b, OP_CAT, n);
 
     // Check concatenation with empty elements.
     CheckBinaryOp(a, {}, OP_CAT, a);
     CheckBinaryOp(b, {}, OP_CAT, b);
     CheckBinaryOp({}, a, OP_CAT, a);
     CheckBinaryOp({}, b, OP_CAT, b);
+
+    // Split n into a and b.
+    CheckTestResultForAllFlags({n}, CScript() << a.size() << OP_SPLIT, {a, b});
+
+    // Combine split and cat.
+    CheckTestResultForAllFlags({n}, CScript() << a.size() << OP_SPLIT << OP_CAT,
+                               {n});
+    CheckTestResultForAllFlags(
+        {a, b}, CScript() << OP_CAT << a.size() << OP_SPLIT, {a, b});
+
+    // Split away empty elements.
+    CheckTestResultForAllFlags({a}, CScript() << 0 << OP_SPLIT, {{}, a});
+    CheckTestResultForAllFlags({b}, CScript() << 0 << OP_SPLIT, {{}, b});
+    CheckTestResultForAllFlags({a}, CScript() << a.size() << OP_SPLIT, {a, {}});
+    CheckTestResultForAllFlags({b}, CScript() << b.size() << OP_SPLIT, {b, {}});
+
+    // Out of bound split.
+    CheckErrorForAllFlags({a}, CScript() << (a.size() + 1) << OP_SPLIT,
+                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+    CheckErrorForAllFlags({b}, CScript() << (b.size() + 1) << OP_SPLIT,
+                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+    CheckErrorForAllFlags({n}, CScript() << (n.size() + 1) << OP_SPLIT,
+                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
+    CheckErrorForAllFlags({a}, CScript() << (-1) << OP_SPLIT,
+                          SCRIPT_ERR_INVALID_SPLIT_RANGE);
 }
 
 BOOST_AUTO_TEST_CASE(string_opcodes_test) {
@@ -465,9 +490,14 @@ BOOST_AUTO_TEST_CASE(string_opcodes_test) {
 
     // Check error conditions.
     CheckOpError({}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckOpError({}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
     CheckOpError({{}}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckOpError({{}}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
     CheckOpError({{0x00}}, OP_CAT, SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckOpError({{0x00}}, OP_SPLIT, SCRIPT_ERR_INVALID_STACK_OPERATION);
     CheckOpError({{0xab, 0xcd, 0xef}}, OP_CAT,
+                 SCRIPT_ERR_INVALID_STACK_OPERATION);
+    CheckOpError({{0xab, 0xcd, 0xef}}, OP_SPLIT,
                  SCRIPT_ERR_INVALID_STACK_OPERATION);
 }
 

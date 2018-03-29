@@ -41,6 +41,8 @@ const char *ScriptErrorString(const ScriptError serror) {
                    "[-2^31...2^31]";
         case SCRIPT_ERR_IMPOSSIBLE_ENCODING:
             return "The requested encoding is impossible to satisfy";
+        case SCRIPT_ERR_INVALID_SPLIT_RANGE:
+            return "Invalid OP_SPLIT range";
         case SCRIPT_ERR_BAD_OPCODE:
             return "Opcode missing or not understood";
         case SCRIPT_ERR_DISABLED_OPCODE:
