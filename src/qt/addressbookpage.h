@@ -34,7 +34,7 @@ public:
     };
 
     explicit AddressBookPage(const PlatformStyle *platformStyle, Mode mode,
-                             Tabs tab, QWidget *parent);
+                             Tabs tab, QWidget *parent = nullptr);
     ~AddressBookPage();
 
     void setModel(AddressTableModel *model);

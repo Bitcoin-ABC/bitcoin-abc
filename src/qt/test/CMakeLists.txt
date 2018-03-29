@@ -7,6 +7,7 @@ create_test_suite(bitcoin-qt)
 add_dependencies(check check-bitcoin-qt)
 
 add_test_to_suite(bitcoin-qt test_bitcoin-qt
+	addressbooktests.cpp
 	bitcoinaddressvalidatortests.cpp
 	compattests.cpp
 	guiutiltests.cpp
