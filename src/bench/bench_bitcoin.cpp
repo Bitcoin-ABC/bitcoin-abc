@@ -26,8 +26,7 @@ static const int64_t DEFAULT_PLOT_HEIGHT = 768;
 int main(int argc, char **argv) {
     gArgs.ParseParameters(argc, argv);
 
-    if (gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") ||
-        gArgs.IsArgSet("-help")) {
+    if (HelpRequested(gArgs)) {
         std::cout
             << HelpMessageGroup(_("Options:"))
             << HelpMessageOpt("-?", _("Print this help message and exit"))
