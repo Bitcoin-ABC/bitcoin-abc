@@ -325,6 +325,10 @@ void ArgsManager::ClearArg(const std::string &strArg) {
     mapArgs.erase(strArg);
 }
 
+bool HelpRequested(const ArgsManager &args) {
+    return args.IsArgSet("-?") || args.IsArgSet("-h") || args.IsArgSet("-help");
+}
+
 static const int screenWidth = 79;
 static const int optIndent = 2;
 static const int msgIndent = 7;
