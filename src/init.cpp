@@ -90,8 +90,8 @@ public:
     void Close() override {}
 };
 
-std::unique_ptr<WalletInitInterface>
-    g_wallet_init_interface(new DummyWalletInit);
+static DummyWalletInit g_dummy_wallet_init;
+WalletInitInterface *const g_wallet_init_interface = &g_dummy_wallet_init;
 #endif
 
 #if ENABLE_ZMQ
@@ -292,7 +292,6 @@ void Shutdown() {
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     GetMainSignals().UnregisterWithMempoolSignals(g_mempool);
     g_wallet_init_interface->Close();
-    g_wallet_init_interface.reset();
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);

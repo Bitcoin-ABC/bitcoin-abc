@@ -17,7 +17,7 @@ class HTTPRPCRequestProcessor;
 class RPCServer;
 
 class WalletInitInterface;
-extern std::unique_ptr<WalletInitInterface> g_wallet_init_interface;
+extern WalletInitInterface *const g_wallet_init_interface;
 
 namespace boost {
 class thread_group;
