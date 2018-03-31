@@ -251,11 +251,7 @@ private:
 
 Q_SIGNALS:
     // Signal that balance in wallet changed
-    void balanceChanged(const Amount balance, const Amount unconfirmedBalance,
-                        const Amount immatureBalance,
-                        const Amount watchOnlyBalance,
-                        const Amount watchUnconfBalance,
-                        const Amount watchImmatureBalance);
+    void balanceChanged(const interfaces::WalletBalances &balances);
 
     // Encryption status of wallet changed
     void encryptionStatusChanged();

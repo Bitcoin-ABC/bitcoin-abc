@@ -165,16 +165,9 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         }
 
         interfaces::WalletBalances balances = _model->wallet().getBalances();
-        setBalance(balances.balance, balances.unconfirmed_balance,
-                   balances.immature_balance, balances.watch_only_balance,
-                   balances.unconfirmed_watch_only_balance,
-                   balances.immature_watch_only_balance);
-        connect(
-            _model,
-            SIGNAL(
-                balanceChanged(Amount, Amount, Amount, Amount, Amount, Amount)),
-            this,
-            SLOT(setBalance(Amount, Amount, Amount, Amount, Amount, Amount)));
+        setBalance(balances);
+        connect(_model, SIGNAL(balanceChanged(interfaces::WalletBalances)),
+                this, SLOT(setBalance(interfaces::WalletBalances)));
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
                 this, SLOT(updateDisplayUnit()));
         updateDisplayUnit();
@@ -529,27 +522,15 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient &rv) {
     return true;
 }
 
-void SendCoinsDialog::setBalance(const Amount balance,
-                                 const Amount unconfirmedBalance,
-                                 const Amount immatureBalance,
-                                 const Amount watchBalance,
-                                 const Amount watchUnconfirmedBalance,
-                                 const Amount watchImmatureBalance) {
-    Q_UNUSED(unconfirmedBalance);
-    Q_UNUSED(immatureBalance);
-    Q_UNUSED(watchBalance);
-    Q_UNUSED(watchUnconfirmedBalance);
-    Q_UNUSED(watchImmatureBalance);
-
+void SendCoinsDialog::setBalance(const interfaces::WalletBalances &balances) {
     if (model && model->getOptionsModel()) {
         ui->labelBalance->setText(BitcoinUnits::formatWithUnit(
-            model->getOptionsModel()->getDisplayUnit(), balance));
+            model->getOptionsModel()->getDisplayUnit(), balances.balance));
     }
 }
 
 void SendCoinsDialog::updateDisplayUnit() {
-    setBalance(model->wallet().getBalance(), Amount::zero(), Amount::zero(),
-               Amount::zero(), Amount::zero(), Amount::zero());
+    setBalance(model->wallet().getBalances());
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();

@@ -87,11 +87,7 @@ void WalletModel::checkBalanceChanged(
     const interfaces::WalletBalances &new_balances) {
     if (new_balances.balanceChanged(m_cached_balances)) {
         m_cached_balances = new_balances;
-        Q_EMIT balanceChanged(
-            new_balances.balance, new_balances.unconfirmed_balance,
-            new_balances.immature_balance, new_balances.watch_only_balance,
-            new_balances.unconfirmed_watch_only_balance,
-            new_balances.immature_watch_only_balance);
+        Q_EMIT balanceChanged(new_balances);
     }
 }
 
