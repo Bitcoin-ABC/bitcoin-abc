@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2017 The Bitcoin developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -985,6 +985,13 @@ static bool AcceptToMemoryPoolWorker(
                              "too-long-mempool-chain", false, errString);
         }
 
+        // Set extraFlags as a set of flags that needs to be activated.
+        uint32_t extraFlags = 0;
+        if (IsReplayProtectionEnabledForCurrentBlock(config)) {
+            extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+        }
+
+        // Check inputs based on the set of flags we activate.
         uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!config.GetChainParams().RequireStandard()) {
             scriptVerifyFlags =
@@ -992,11 +999,8 @@ static bool AcceptToMemoryPoolWorker(
                 gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
         }
 
-        const bool hasReplayProtection =
-            IsReplayProtectionEnabledForCurrentBlock(config);
-        if (hasReplayProtection) {
-            scriptVerifyFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-        }
+        // Make sure whatever we need to activate is actually activated.
+        scriptVerifyFlags |= extraFlags;
 
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
@@ -1024,12 +1028,11 @@ static bool AcceptToMemoryPoolWorker(
         // transactions into the mempool can be exploited as a DoS attack.
         uint32_t currentBlockScriptVerifyFlags =
             GetBlockScriptFlags(chainActive.Tip(), config);
+
         // We have an off by one error for flag activation. As a result, we need
         // to set the replay protection flag manually here until this is fixed.
         // FIXME: https://reviews.bitcoinabc.org/T288
-        if (hasReplayProtection) {
-            currentBlockScriptVerifyFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-        }
+        currentBlockScriptVerifyFlags |= extraFlags;
 
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             currentBlockScriptVerifyFlags, true,
@@ -1044,13 +1047,9 @@ static bool AcceptToMemoryPoolWorker(
                     __func__, txid.ToString(), FormatStateMessage(state));
             }
 
-            uint32_t mandatoryFlags = MANDATORY_SCRIPT_VERIFY_FLAGS;
-            if (hasReplayProtection) {
-                mandatoryFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-            }
-
-            if (!CheckInputs(tx, state, view, true, mandatoryFlags, true, false,
-                             txdata)) {
+            if (!CheckInputs(tx, state, view, true,
+                             MANDATORY_SCRIPT_VERIFY_FLAGS | extraFlags, true,
+                             false, txdata)) {
                 return error(
                     "%s: ConnectInputs failed against MANDATORY but not "
                     "STANDARD flags due to promiscuous mempool %s, %s",
