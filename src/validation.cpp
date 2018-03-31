@@ -694,12 +694,11 @@ void UpdateMempoolForReorg(const Config &config,
 
 // Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
 // were somehow broken and returning the wrong scriptPubKeys
-static bool CheckInputsFromMempoolAndCache(const CTransaction &tx,
-                                           CValidationState &state,
-                                           const CCoinsViewCache &view,
-                                           CTxMemPool &pool, uint32_t flags,
-                                           bool cacheSigStore,
-                                           PrecomputedTransactionData &txdata) {
+static bool
+CheckInputsFromMempoolAndCache(const CTransaction &tx, CValidationState &state,
+                               const CCoinsViewCache &view, CTxMemPool &pool,
+                               const uint32_t flags, bool cacheSigStore,
+                               PrecomputedTransactionData &txdata) {
     AssertLockHeld(cs_main);
 
     // pool.cs should be locked already, but go ahead and re-take the lock here
@@ -1510,7 +1509,8 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
 bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const CCoinsViewCache &inputs, bool fScriptChecks,
-                 uint32_t flags, bool sigCacheStore, bool scriptCacheStore,
+                 const uint32_t flags, bool sigCacheStore,
+                 bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks) {
     assert(!tx.IsCoinBase());
