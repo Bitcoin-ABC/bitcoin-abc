@@ -297,8 +297,6 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
         case OP_2MUL:
         case OP_2DIV:
         case OP_MUL:
-        case OP_DIV:
-        case OP_MOD:
         case OP_LSHIFT:
         case OP_RSHIFT:
             // Disabled opcodes.
@@ -311,6 +309,8 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
         case OP_XOR:
         case OP_NUM2BIN:
         case OP_BIN2NUM:
+        case OP_DIV:
+        case OP_MOD:
             // Opcodes that have been reenabled.
             if ((flags & SCRIPT_ENABLE_MONOLITH_OPCODES) == 0) {
                 return true;
@@ -926,6 +926,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_ADD:
                     case OP_SUB:
+                    case OP_DIV:
+                    case OP_MOD:
                     case OP_BOOLAND:
                     case OP_BOOLOR:
                     case OP_NUMEQUAL:
@@ -952,6 +954,24 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                             case OP_SUB:
                                 bn = bn1 - bn2;
+                                break;
+
+                            case OP_DIV:
+                                // denominator must not be 0
+                                if (bn2 == 0) {
+                                    return set_error(serror,
+                                                     SCRIPT_ERR_DIV_BY_ZERO);
+                                }
+                                bn = bn1 / bn2;
+                                break;
+
+                            case OP_MOD:
+                                // divisor must not be 0
+                                if (bn2 == 0) {
+                                    return set_error(serror,
+                                                     SCRIPT_ERR_MOD_BY_ZERO);
+                                }
+                                bn = bn1 % bn2;
                                 break;
 
                             case OP_BOOLAND:
