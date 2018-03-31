@@ -85,8 +85,7 @@ enum WalletFeature {
     // Wallet without a default key written
     FEATURE_NO_DEFAULT_KEY = 190700,
 
-    // HD is optional, use FEATURE_COMPRPUBKEY as latest version
-    FEATURE_LATEST = FEATURE_COMPRPUBKEY,
+    FEATURE_LATEST = FEATURE_NO_DEFAULT_KEY
 };
 
 enum class OutputType {
@@ -102,7 +101,10 @@ class CKeyPool {
 public:
     int64_t nTime;
     CPubKey vchPubKey;
-    bool fInternal; // for change outputs
+    // for change outputs
+    bool fInternal;
+    // For keys generated before keypool split upgrade
+    bool m_pre_split;
 
     CKeyPool();
     CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn);
@@ -129,8 +131,19 @@ public:
                  */
                 fInternal = false;
             }
+            try {
+                READWRITE(m_pre_split);
+            } catch (std::ios_base::failure &) {
+                /**
+                 * flag as postsplit address if we can't read the m_pre_split
+                 * boolean (this will be the case for any wallet that upgrades
+                 * to HD chain split)
+                 */
+                m_pre_split = false;
+            }
         } else {
             READWRITE(fInternal);
+            READWRITE(m_pre_split);
         }
     }
 };
@@ -722,6 +735,7 @@ private:
 
     std::set<int64_t> setInternalKeyPool;
     std::set<int64_t> setExternalKeyPool;
+    std::set<int64_t> set_pre_split_keypool;
     int64_t m_max_keypool_index = 0;
     std::map<CKeyID, int64_t> m_pool_key_to_index;
 
@@ -794,6 +808,7 @@ public:
 
     void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    void MarkPreSplitKeys();
 
     // Map from Key ID to key metadata.
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
