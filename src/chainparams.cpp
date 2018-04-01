@@ -136,15 +136,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork =
-            uint256S("0x0000000000000000000000000000000000000000007e5dbf54c7f6b"
-                     "58a6853cd");
+        consensus.nMinimumChainWork = uint256S(
+            "000000000000000000000000000000000000000000915997400e8cf8e5e97d33");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        consensus.defaultAssumeValid =
-            uint256S("0x000000000000000005e14d3f9fdfb70745308706615cfa9edca4f45"
-                     "58332b201");
+        consensus.defaultAssumeValid = uint256S(
+            "000000000000000001d2ce557406b017a928be25ee98906397d339c3f68eec5d");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478559;
@@ -257,14 +255,14 @@ public:
             }};
 
         // Data as of block
-        // 00000000000000000166d612d5595e2b1cd88d71d695fc580af64d8da8658c23
-        // (height 446482).
+        // 000000000000000001d2ce557406b017a928be25ee98906397d339c3f68eec5d
+        // (height 523992).
         chainTxData = ChainTxData{
             // UNIX timestamp of last known number of transactions.
-            1483472411,
+            1522608016,
             // Total number of transactions between genesis and that timestamp
             // (the tx=... number in the SetBestChain debug.log lines)
-            184495391,
+            248589038,
             // Estimated number of transactions per second after that timestamp.
             3.2};
     }
@@ -315,15 +313,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork =
-            uint256S("0x00000000000000000000000000000000000000000000002888c34d6"
-                     "1b53a244a");
+        consensus.nMinimumChainWork = uint256S(
+            "0000000000000000000000000000000000000000000000297b105869341c3527");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
-        consensus.defaultAssumeValid =
-            uint256S("0x000000000000b41f1f2ddf130df8824e2b61c0af809ff86dd5cadb3"
-                     "61d984ca7");
+        consensus.defaultAssumeValid = uint256S(
+            "000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155876;
@@ -404,9 +400,9 @@ public:
             }};
 
         // Data as of block
-        // 00000000c2872f8f8a8935c8e3c5862be9038c97d4de2cf37ed496991166928a
-        // (height 1063660)
-        chainTxData = ChainTxData{1483546230, 12834668, 0.15};
+        // 000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6
+        // (height 1223263)
+        chainTxData = ChainTxData{1522608381, 15052068, 0.15};
     }
 };
 

@@ -5425,12 +5425,13 @@ void DumpMempool(void) {
 
 //! Guess how far we are in the verification process at the given block index
 double GuessVerificationProgress(const ChainTxData &data, CBlockIndex *pindex) {
-    if (pindex == nullptr) return 0.0;
+    if (pindex == nullptr) {
+        return 0.0;
+    }
 
     int64_t nNow = time(nullptr);
 
     double fTxTotal;
-
     if (pindex->nChainTx <= data.nTxCount) {
         fTxTotal = data.nTxCount + (nNow - data.nTime) * data.dTxRate;
     } else {

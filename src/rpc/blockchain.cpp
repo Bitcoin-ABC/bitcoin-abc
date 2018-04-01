@@ -1712,14 +1712,14 @@ UniValue getchaintxstats(const Config &config, const JSONRPCRequest &request) {
     int nTxDiff = pindex->nChainTx - pindexPast->nChainTx;
 
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("time", (int64_t)pindex->nTime));
-    ret.push_back(Pair("txcount", (int64_t)pindex->nChainTx));
+    ret.push_back(Pair("time", int64_t(pindex->nTime)));
+    ret.push_back(Pair("txcount", int64_t(pindex->nChainTx)));
     ret.push_back(Pair("window_block_count", blockcount));
     if (blockcount > 0) {
         ret.push_back(Pair("window_tx_count", nTxDiff));
         ret.push_back(Pair("window_interval", nTimeDiff));
         if (nTimeDiff > 0) {
-            ret.push_back(Pair("txrate", ((double)nTxDiff) / nTimeDiff));
+            ret.push_back(Pair("txrate", double(nTxDiff) / nTimeDiff));
         }
     }
 
