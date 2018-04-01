@@ -144,6 +144,10 @@
   "time": 16
  },
  {
+  "name": "feature_help.py",
+  "time": 0
+ },
+ {
   "name": "interface_bitcoin_cli.py",
   "time": 3
  },
