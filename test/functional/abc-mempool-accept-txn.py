@@ -194,7 +194,6 @@ class FullBlockTest(ComparisonTestFramework):
 
         # shorthand for functions
         block = self.next_block
-        create_tx = self.create_tx
 
         # shorthand for variables
         node = self.nodes[0]

@@ -169,7 +169,6 @@ class FullBlockTest(ComparisonTestFramework):
             # Make it the same format as transaction added for padding and save the size.
             # It's missing the padding output, so we add a constant to account for it.
             tx.rehash()
-            base_tx_size = len(tx.serialize()) + 18
 
             # If a specific script is required, add it.
             if script != None:

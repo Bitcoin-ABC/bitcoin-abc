@@ -18,8 +18,6 @@ class WalletHDTest(BitcoinTestFramework):
         self.extra_args = [[], ['-keypool=0']]
 
     def run_test(self):
-        tmpdir = self.options.tmpdir
-
         # Make sure can't switch off usehd after wallet creation
         self.stop_node(1)
         self.nodes[1].assert_start_raises_init_error(

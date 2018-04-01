@@ -12,7 +12,6 @@
 """
 from decimal import Decimal
 
-from test_framework.messages import CTransaction, FromHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -34,8 +33,6 @@ class AbandonConflictTest(BitcoinTestFramework):
         def total_fees(*txids):
             total = 0
             for txid in txids:
-                ctx = FromHex(CTransaction(),
-                              self.nodes[0].getrawtransaction(txid))
                 total += self.nodes[0].calculate_fee_from_txid(txid)
 
             return satoshi_round(total)

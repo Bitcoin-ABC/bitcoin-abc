@@ -436,7 +436,7 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
 
                 handle_message(message, running_jobs)
                 update_queue.task_done()
-            except Empty as e:
+            except Empty:
                 if not on_ci():
                     print("Running jobs: {}".format(", ".join([j[1] for j in running_jobs])), end="\r")
                     sys.stdout.flush()

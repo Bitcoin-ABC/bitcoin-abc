@@ -69,7 +69,6 @@ def cltv_lock_to_height(node, tx, to_address, amount, height=-1):
     fundtx.rehash()
 
     # make spending tx
-    from_txid = fundtx.hash
     inputs = [{
         "txid": fundtx.hash,
         "vout": 0

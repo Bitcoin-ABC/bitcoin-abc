@@ -254,7 +254,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
         # Mine txfund, as it can't go into node_std mempool because it's
         # nonstandard.
-        b = block(5555)
+        block(5555)
         update_block(5555, [txfund, txfund_case0])
         accepted(node_nonstd)
 
@@ -285,7 +285,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
         # Blocks containing segwit spending txns are accepted in both nodes.
         block(5)
-        postforkblock = update_block(5, [txspend, txspend_case0])
+        update_block(5, [txspend, txspend_case0])
         accepted(node_nonstd)
         sync_blocks(self.nodes)
 

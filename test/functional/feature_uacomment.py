@@ -18,7 +18,6 @@ class UacommentTest(BitcoinTestFramework):
     def run_test(self):
         self.log.info("test multiple -uacomment")
         test_uacomment = self.nodes[0].getnetworkinfo()["subversion"]
-        subversion_len = len(test_uacomment)
         assert_equal(test_uacomment[-12:-2], "testnode-0")
 
         self.restart_node(0, ["-uacomment=foo"])

@@ -237,9 +237,6 @@ class SchnorrTest(BitcoinTestFramework):
         assert_equal(node.getblockchaininfo()[
                      'mediantime'], GRAVITON_START_TIME - 1)
 
-        # save this tip for later
-        preupgrade_block = tip
-
         self.log.info(
             "Mine the activation block itself, including a minimaldata violation at the last possible moment")
         tip = self.build_block(tip, [nonminimaltx_2])
@@ -248,9 +245,6 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("We have activated!")
         assert_equal(node.getblockchaininfo()[
                      'mediantime'], GRAVITON_START_TIME)
-
-        # save this tip for later
-        upgrade_block = tip
 
         self.log.info(
             "Trying to mine a minimaldata violation, but we are just barely too late")

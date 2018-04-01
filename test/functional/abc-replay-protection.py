@@ -298,7 +298,7 @@ class ReplayProtectionTest(ComparisonTestFramework):
         assert(replay_tx1_id in set(node.getrawmempool()))
 
         # They also can also be mined
-        b5 = block(5)
+        block(5)
         update_block(5, replay_txns)
         yield accepted()
 
