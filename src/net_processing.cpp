@@ -3125,6 +3125,10 @@ bool ProcessMessages(const Config &config, CNode *pfrom, CConnman &connman,
                CMessageHeader::MESSAGE_START_SIZE) != 0) {
         LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
                   SanitizeString(msg.hdr.GetCommand()), pfrom->id);
+
+        // Make sure we ban where that come from for some time.
+        connman.Ban(pfrom->addr, BanReasonNodeMisbehaving);
+
         pfrom->fDisconnect = true;
         return false;
     }
