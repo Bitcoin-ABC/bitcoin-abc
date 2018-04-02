@@ -7,6 +7,7 @@ This release includes the following features and fixes:
  - `dumpwallet` no longer allows overwriting files. This is a security measure
    as well as prevents dangerous user mistakes.
  - Node using the wrong magic are now getting banned.
+ - cmake builds are now possible for bitcoind and other utilities.
  - Correct `open source` to `open-source` in README.md (Props to John Carvalho)
  - Add SSE4 optimized SHA256 (Port from Bitcoin Core)
  - Multiwallet support (Port from Bitcoin Core)
