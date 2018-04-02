@@ -9,6 +9,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
+
 BOOST_FIXTURE_TEST_SUITE(allocator_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(arena_tests) {

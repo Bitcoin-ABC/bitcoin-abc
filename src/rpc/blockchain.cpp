@@ -36,6 +36,7 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 
 struct CUpdatedBlock {

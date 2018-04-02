@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <memory>
 #include <mutex>
 #include <thread>
 

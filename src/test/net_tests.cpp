@@ -17,6 +17,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
 #include <string>
 
 class CAddrManSerializationMock : public CAddrMan {

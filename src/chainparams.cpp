@@ -14,6 +14,7 @@
 #include <util/system.h>
 
 #include <cassert>
+#include <memory>
 
 static CBlock CreateGenesisBlock(const char *pszTimestamp,
                                  const CScript &genesisOutputScript,

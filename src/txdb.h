@@ -13,6 +13,7 @@
 #include <primitives/block.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>

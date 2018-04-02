@@ -27,6 +27,7 @@
 #include <atomic>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>

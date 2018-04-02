@@ -7,6 +7,7 @@
 #include <wallet/coinselection.h>
 #include <wallet/wallet.h>
 
+#include <memory>
 #include <set>
 
 static void addCoin(const Amount nValue, const CWallet &wallet,

@@ -41,6 +41,7 @@
 #include <QUrlQuery>
 
 #include <cstdlib>
+#include <memory>
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 // BIP70 payment protocol messages

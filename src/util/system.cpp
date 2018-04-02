@@ -21,6 +21,7 @@
 #include <boost/thread.hpp>
 
 #include <cstdarg>
+#include <memory>
 
 #if (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
 #include <pthread.h>

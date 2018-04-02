@@ -22,6 +22,7 @@
 #include <univalue.h>
 
 #include <cstdio>
+#include <memory>
 #include <tuple>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;

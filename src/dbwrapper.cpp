@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:

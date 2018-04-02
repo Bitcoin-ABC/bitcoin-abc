@@ -21,6 +21,8 @@
 #include <QMessageBox>
 #include <QTimer>
 
+#include <memory>
+
 namespace {
 
 /**

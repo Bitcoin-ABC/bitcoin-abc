@@ -21,7 +21,6 @@
 #include <boost/signals2/signal.hpp>
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <utility>

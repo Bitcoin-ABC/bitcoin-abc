@@ -20,6 +20,7 @@
 #include <univalue.h>
 
 #include <cstdint>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>

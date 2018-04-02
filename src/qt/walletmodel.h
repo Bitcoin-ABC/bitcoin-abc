@@ -14,6 +14,7 @@
 #include <QObject>
 
 #include <map>
+#include <memory>
 #include <vector>
 
 class AddressTableModel;

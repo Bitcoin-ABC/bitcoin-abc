@@ -22,6 +22,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
+
 BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(sanity) {

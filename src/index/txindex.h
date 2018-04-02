@@ -8,6 +8,8 @@
 #include <index/base.h>
 #include <txdb.h>
 
+#include <memory>
+
 /**
  * TxIndex is used to look up transactions included in the blockchain by ID.
  * The index is written to a LevelDB database and records the filesystem

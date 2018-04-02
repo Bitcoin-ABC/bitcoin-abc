@@ -7,8 +7,6 @@
 
 #include <primitives/block.h>
 
-#include <memory>
-
 class Config;
 class CTxMemPool;
 

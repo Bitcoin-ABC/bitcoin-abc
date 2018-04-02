@@ -10,6 +10,8 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 
+#include <memory>
+
 class ClientModel;
 class BanTablePriv;
 

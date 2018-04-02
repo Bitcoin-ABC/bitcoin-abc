@@ -32,6 +32,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include <memory>
+
 namespace {
 //! Press "Yes" or "Cancel" buttons in modal send confirmation dialog.
 void ConfirmSend(QString *text = nullptr, bool cancel = false) {

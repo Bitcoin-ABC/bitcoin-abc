@@ -9,7 +9,6 @@
 
 #include <cstdio>
 #include <map>
-#include <memory>
 #include <set>
 
 #ifdef DEBUG_LOCKCONTENTION

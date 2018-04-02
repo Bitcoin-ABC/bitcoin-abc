@@ -11,6 +11,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
+
 // Test if a string consists entirely of null characters
 static bool is_null_key(const std::vector<uint8_t> &key) {
     bool isnull = true;

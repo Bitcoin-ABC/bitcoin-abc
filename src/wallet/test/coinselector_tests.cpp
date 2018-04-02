@@ -15,6 +15,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
 #include <random>
 
 BOOST_FIXTURE_TEST_SUITE(coinselector_tests, WalletTestingSetup)

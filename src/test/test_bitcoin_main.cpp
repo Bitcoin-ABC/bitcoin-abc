@@ -11,6 +11,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <memory>
+
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<BanMan> g_banman;
 

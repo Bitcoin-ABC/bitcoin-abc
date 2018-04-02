@@ -26,6 +26,7 @@
 #include <univalue.h>
 
 #include <cstdio>
+#include <memory>
 
 static bool fCreateBlank;
 static std::map<std::string, UniValue> registers;
