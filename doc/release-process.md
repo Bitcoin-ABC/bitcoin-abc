@@ -30,6 +30,7 @@ Bitcoin ABC Release Process
     - doc/Doxyfile
     - doc/release-notes.md
     - configure.ac
+    - src/config/CMakeLists.txt
     - src/test/net_tests.cpp
     - src/clientversion.h
     - contrib/gitian-descriptors/*.yml (before a new major release)
