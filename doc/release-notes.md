@@ -13,3 +13,5 @@ This release includes the following features and fixes:
  - Behavior change: in case of multiple values for an argument, the following rules apply:
    - From the command line, the *last* value takes precedence
    - From the config file, the *first* value takes precedence
+   - From the config file, if an argument is negated it takes precedent over all the
+     previous occurences of this argument (e.g. "foo=2 \n nofoo=1" will set foo=0)
