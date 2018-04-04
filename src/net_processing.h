@@ -94,7 +94,8 @@ public:
      * @return                      True if there is more work to be done
      */
     bool SendMessages(const Config &config, CNode *pto,
-                      std::atomic<bool> &interrupt) override;
+                      std::atomic<bool> &interrupt) override
+        EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing);
 
     void ConsiderEviction(CNode *pto, int64_t time_in_seconds);
     void
