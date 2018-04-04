@@ -288,11 +288,11 @@ bool CheckTransactionSchnorrSignatureEncoding(const valtype &vchSig,
 
 static bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     switch (vchPubKey.size()) {
-        case 33:
+        case CPubKey::COMPRESSED_PUBLIC_KEY_SIZE:
             // Compressed public key: must start with 0x02 or 0x03.
             return vchPubKey[0] == 0x02 || vchPubKey[0] == 0x03;
 
-        case 65:
+        case CPubKey::PUBLIC_KEY_SIZE:
             // Non-compressed public key: must start with 0x04.
             return vchPubKey[0] == 0x04;
 
@@ -303,7 +303,7 @@ static bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
 }
 
 static bool IsCompressedPubKey(const valtype &vchPubKey) {
-    if (vchPubKey.size() != 33) {
+    if (vchPubKey.size() != CPubKey::COMPRESSED_PUBLIC_KEY_SIZE) {
         // Non-canonical public key: invalid length for compressed key
         return false;
     }

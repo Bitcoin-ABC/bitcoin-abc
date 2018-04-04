@@ -116,7 +116,7 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
 
             // Template matching opcodes:
             if (opcode2 == OP_PUBKEYS) {
-                while (vch1.size() >= 33 && vch1.size() <= 65) {
+                while (CPubKey::ValidSize(vch1)) {
                     vSolutionsRet.push_back(vch1);
                     if (!script1.GetOp(pc1, opcode1, vch1)) {
                         break;
@@ -130,7 +130,7 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
             }
 
             if (opcode2 == OP_PUBKEY) {
-                if (vch1.size() < 33 || vch1.size() > 65) {
+                if (!CPubKey::ValidSize(vch1)) {
                     break;
                 }
                 vSolutionsRet.push_back(vch1);

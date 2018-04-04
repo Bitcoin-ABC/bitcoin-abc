@@ -66,6 +66,10 @@ private:
     void Invalidate() { vch[0] = 0xFF; }
 
 public:
+    bool static ValidSize(const std::vector<uint8_t> &vch) {
+        return vch.size() > 0 && GetLen(vch[0]) == vch.size();
+    }
+
     //! Construct an invalid public key.
     CPubKey() { Invalidate(); }
 
