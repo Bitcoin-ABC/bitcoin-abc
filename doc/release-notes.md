@@ -15,3 +15,14 @@ This release includes the following features and fixes:
    - From the config file, the *first* value takes precedence
    - From the config file, if an argument is negated it takes precedent over all the
      previous occurences of this argument (e.g. "foo=2 \n nofoo=1" will set foo=0)
+ - The configuration files now support assigning options to a specific network.
+   To do so, sections or prefix can be used:
+     main.uacomment=bch-mainnet
+     test.uacomment=bch-testnet
+     regtest.uacomment=bch-regtest
+     [main]
+     mempoolsize=300
+     [test]
+     mempoolsize=200
+     [regtest]
+     mempoolsize=50
