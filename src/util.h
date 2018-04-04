@@ -100,7 +100,6 @@ protected:
     mutable CCriticalSection cs_args;
     std::map<std::string, std::vector<std::string>> m_override_args;
     std::map<std::string, std::vector<std::string>> m_config_args;
-    std::unordered_set<std::string> m_negated_args;
 
     void ReadConfigStream(std::istream &stream);
 
@@ -196,10 +195,6 @@ public:
 
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
-
-private:
-    // Munge -nofoo into -foo=0 and track the value as negated.
-    void InterpretNegatedOption(std::string &key, std::string &val);
 };
 
 extern ArgsManager gArgs;
