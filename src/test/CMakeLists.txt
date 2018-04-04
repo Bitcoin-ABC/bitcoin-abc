@@ -2,13 +2,58 @@
 
 project(bitcoin-test)
 
+# Process json files.
+find_program(HEXDUMP "hexdump")
+find_program(SED "sed")
+function(gen_json_header NAME)
+	set(HEADERS "")
+	foreach(f ${ARGN})
+		set(hex "${CMAKE_CURRENT_BINARY_DIR}/${f}.hex")
+		set(h "${CMAKE_CURRENT_BINARY_DIR}/${f}.h")
+		add_custom_command(OUTPUT ${hex}
+			COMMAND ${HEXDUMP}
+			ARGS
+				-v
+				-e "8/1 \"0x%02x, \""
+				-e "\"\\n\""
+				"${CMAKE_CURRENT_SOURCE_DIR}/${f}" > ${hex}
+			MAIN_DEPENDENCY ${f}
+			VERBATIM
+		)
+		# Get the proper name for the test variable.
+		get_filename_component(TEST_NAME ${f} NAME_WE)
+		add_custom_command(OUTPUT ${h}
+			COMMAND ${SED}
+			ARGS
+				-e "s/0x  ,//g"
+				-e "1 s/^/namespace json_tests{\\nstatic unsigned const char ${TEST_NAME}[] = {\\n/"
+				-e "\${s:\$:\\n\\};\\n\\}; // namespace json_tests:}"
+				< ${hex} > ${h}
+			MAIN_DEPENDENCY ${hex}
+			VERBATIM
+		)
+		list(APPEND HEADERS ${h})
+	endforeach(f)
+	set(${NAME} "${HEADERS}" PARENT_SCOPE)
+endfunction()
+
+gen_json_header(JSON_HEADERS
+	data/script_tests.json
+	data/base58_keys_valid.json
+	data/base58_encode_decode.json
+	data/base58_keys_invalid.json
+	data/tx_invalid.json
+	data/tx_valid.json
+	data/sighash.json
+)
+
 add_executable(test_bitcoin
 	arith_uint256_tests.cpp
 	addrman_tests.cpp
 	amount_tests.cpp
 	allocator_tests.cpp
 	base32_tests.cpp
-	# base58_tests.cpp
+	base58_tests.cpp
 	base64_tests.cpp
 	bip32_tests.cpp
 	blockcheck_tests.cpp
@@ -51,12 +96,12 @@ add_executable(test_bitcoin
 	scheduler_tests.cpp
 	script_antireplay_tests.cpp
 	script_P2SH_tests.cpp
-	# script_tests.cpp
+	script_tests.cpp
 	script_sighashtype_tests.cpp
 	scriptflags.cpp
 	scriptnum_tests.cpp
 	serialize_tests.cpp
-	# sighash_tests.cpp
+	sighash_tests.cpp
 	sigopcount_tests.cpp
 	sigutil.cpp
 	skiplist_tests.cpp
@@ -65,7 +110,7 @@ add_executable(test_bitcoin
 	test_bitcoin_main.cpp
 	testutil.cpp
 	timedata_tests.cpp
-	# transaction_tests.cpp
+	transaction_tests.cpp
 	txvalidationcache_tests.cpp
 	versionbits_tests.cpp
 	uint256_tests.cpp
@@ -73,6 +118,15 @@ add_executable(test_bitcoin
 	univalue_tests.cpp
 	util_tests.cpp
 	validation_tests.cpp
+
+	# Tests generated from JSON
+	${JSON_HEADERS}
+)
+
+target_include_directories(test_bitcoin
+	PUBLIC
+		# To access the generated json headers.
+		${CMAKE_CURRENT_BINARY_DIR}
 )
 
 find_package(Boost 1.58 REQUIRED unit_test_framework)
