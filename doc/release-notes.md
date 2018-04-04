@@ -10,3 +10,6 @@ This release includes the following features and fixes:
  - Remove miner policy estimator in favor of minimum fees, also remove `fee_estimates.dat`.
    Old copies will be left in place.
  - The log timestamp format is now ISO 8601 (e.g. "2019-01-28T15:41:17Z")
+ - Behavior change: in case of multiple values for an argument, the following rules apply:
+   - From the command line, the *last* value takes precedence
+   - From the config file, the *first* value takes precedence
