@@ -26,3 +26,6 @@ This release includes the following features and fixes:
      mempoolsize=200
      [regtest]
      mempoolsize=50
+   The `addnode=`, `connect=`, `port=`, `bind=`, `rpcport=`, `rpcbind=`
+   and `wallet=` options will only apply to mainnet when specified in the
+   configuration file, unless a network is specified.

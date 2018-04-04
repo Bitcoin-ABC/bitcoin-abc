@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <exception>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -101,9 +102,13 @@ protected:
     std::map<std::string, std::vector<std::string>> m_override_args;
     std::map<std::string, std::vector<std::string>> m_config_args;
     std::string m_network;
+    std::set<std::string> m_network_only_args;
+
     void ReadConfigStream(std::istream &stream);
 
 public:
+    ArgsManager();
+
     /**
      * Select the network in use
      */
@@ -111,6 +116,13 @@ public:
 
     void ParseParameters(int argc, const char *const argv[]);
     void ReadConfigFile(const std::string &confPath);
+
+    /**
+     * Log warnings for options in m_section_only_args when they are specified
+     * in the default section but not overridden on the command line or in a
+     * network-specific section in the config file.
+     */
+    void WarnForSectionOnlyArgs();
 
     /**
      * Return a vector of strings of the given argument
