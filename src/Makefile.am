@@ -407,6 +407,7 @@ libbitcoin_consensus_a_SOURCES = \
   script/sigencoding.cpp \
   script/sigencoding.h \
   serialize.h \
+  span.h \
   tinyformat.h \
   uint256.cpp \
   uint256.h \

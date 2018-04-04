@@ -11,6 +11,7 @@
 
 #include <compat.h>
 #include <serialize.h>
+#include <span.h>
 
 #include <cstdint>
 #include <string>
@@ -191,7 +192,7 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(ip);
         unsigned short portN = htons(port);
-        READWRITE(FLATDATA(portN));
+        READWRITE(Span<uint8_t>((uint8_t *)&portN, 2));
         if (ser_action.ForRead()) {
             port = ntohs(portN);
         }

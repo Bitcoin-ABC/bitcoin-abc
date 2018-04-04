@@ -8,6 +8,7 @@
 
 #include <compat/endian.h>
 #include <prevector.h>
+#include <span.h>
 
 #include <algorithm>
 #include <array>
@@ -39,8 +40,8 @@ struct deserialize_type {};
 constexpr deserialize_type deserialize{};
 
 /**
- * Used to bypass the rule against non-const reference to temporary where it
- * makes sense with wrappers such as CFlatData or CTxDB
+ * Used to bypass the rule against non-const reference to temporary
+ * where it makes sense with wrappers.
  */
 template <typename T> inline T &REF(const T &val) {
     return const_cast<T &>(val);
@@ -260,6 +261,14 @@ inline void Serialize(Stream &s, const std::array<char, N> &a) {
     s.write(a.data(), N);
 }
 #endif
+template <typename Stream>
+inline void Serialize(Stream &s, const Span<const uint8_t> &span) {
+    s.write(CharCast(span.data()), span.size());
+}
+template <typename Stream>
+inline void Serialize(Stream &s, const Span<uint8_t> &span) {
+    s.write(CharCast(span.data()), span.size());
+}
 template <typename Stream> inline void Unserialize(Stream &s, int8_t &a) {
     a = ser_readdata8(s);
 }
@@ -324,6 +333,10 @@ template <typename Stream> inline void Serialize(Stream &s, bool a) {
 template <typename Stream> inline void Unserialize(Stream &s, bool &a) {
     char f = ser_readdata8(s);
     a = f;
+}
+template <typename Stream>
+inline void Unserialize(Stream &s, Span<uint8_t> &span) {
+    s.read(CharCast(span.data()), span.size());
 }
 
 /**
@@ -491,44 +504,9 @@ I ReadVarInt(Stream &is) {
     }
 }
 
-#define FLATDATA(obj) CFlatData((char *)&(obj), (char *)&(obj) + sizeof(obj))
 #define VARINT(obj, ...) WrapVarInt<__VA_ARGS__>(REF(obj))
 #define COMPACTSIZE(obj) CCompactSize(REF(obj))
 #define LIMITED_STRING(obj, n) LimitedString<n>(REF(obj))
-
-/**
- * Wrapper for serializing arrays and POD.
- */
-class CFlatData {
-protected:
-    char *pbegin;
-    char *pend;
-
-public:
-    CFlatData(void *pbeginIn, void *pendIn)
-        : pbegin((char *)pbeginIn), pend((char *)pendIn) {}
-    template <class T, class TAl> explicit CFlatData(std::vector<T, TAl> &v) {
-        pbegin = (char *)v.data();
-        pend = (char *)(v.data() + v.size());
-    }
-    template <unsigned int N, typename T, typename S, typename D>
-    explicit CFlatData(prevector<N, T, S, D> &v) {
-        pbegin = (char *)v.data();
-        pend = (char *)(v.data() + v.size());
-    }
-    char *begin() { return pbegin; }
-    const char *begin() const { return pbegin; }
-    char *end() { return pend; }
-    const char *end() const { return pend; }
-
-    template <typename Stream> void Serialize(Stream &s) const {
-        s.write(pbegin, pend - pbegin);
-    }
-
-    template <typename Stream> void Unserialize(Stream &s) {
-        s.read(pbegin, pend - pbegin);
-    }
-};
 
 template <VarIntMode Mode, typename I> class CVarInt {
 protected:
