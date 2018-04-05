@@ -16,4 +16,8 @@ if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+# Add the magic taret check and check-all
+add_custom_target(check-all)
+add_custom_target(check)
+
 add_subdirectory(src)

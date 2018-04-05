@@ -87,12 +87,12 @@ target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H)
 # Tests
 option(SECP256K1_BUILD_TEST "Build secp256k1's unit tests" ON)
 if(SECP256K1_BUILD_TEST)
-	enable_testing()
+	include(TestSuite)
+	create_test_suite(secp256k1)
 
 	function(create_secp256k1_test NAME FILES)
-		add_executable(${NAME} ${FILES})
+		add_test_to_suite(secp256k1 ${NAME} EXCLUDE_FROM_ALL ${FILES})
 		target_link_libraries(${NAME} secp256k1)
-		add_test(NAME ${NAME} COMMAND ${NAME})
 		target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H)
 	endfunction()
 

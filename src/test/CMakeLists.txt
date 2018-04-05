@@ -47,7 +47,11 @@ gen_json_header(JSON_HEADERS
 	data/sighash.json
 )
 
-add_executable(test_bitcoin
+include(TestSuite)
+create_test_suite(bitcoin)
+add_dependencies(check check-bitcoin)
+
+add_test_to_suite(bitcoin test_bitcoin
 	arith_uint256_tests.cpp
 	addrman_tests.cpp
 	amount_tests.cpp

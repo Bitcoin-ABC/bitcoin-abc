@@ -172,9 +172,11 @@ target_compile_definitions(memenv
 
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 if(LEVELDB_BUILD_TESTS)
-	enable_testing()
+	include(TestSuite)
+	create_test_suite(leveldb)
 
 	add_library(leveldb_test_base
+		EXCLUDE_FROM_ALL
 		util/testharness.cc
 		util/testutil.cc
 	)
@@ -182,9 +184,8 @@ if(LEVELDB_BUILD_TESTS)
 	target_link_libraries(leveldb_test_base leveldb)
 
 	function(create_leveldb_test NAME FILES)
-		add_executable(${NAME} ${FILES})
+		add_test_to_suite(leveldb ${NAME} EXCLUDE_FROM_ALL ${FILES})
 		target_link_libraries(${NAME} leveldb_test_base)
-		add_test(NAME ${NAME} COMMAND ${NAME})
 	endfunction()
 
 	create_leveldb_test(autocompact_test db/autocompact_test.cc)
