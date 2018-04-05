@@ -83,5 +83,12 @@ target_link_libraries(test_bitcoin Boost::unit_test_framework rpcclient server)
 target_compile_definitions(test_bitcoin PRIVATE BOOST_TEST_DYN_LINK)
 
 if(BUILD_BITCOIN_WALLET)
-	target_link_libraries(test_bitcoin test_wallet)
+	target_sources(test_bitcoin
+		PRIVATE
+			../wallet/test/wallet_test_fixture.cpp
+			../wallet/test/accounting_tests.cpp
+			../wallet/test/wallet_tests.cpp
+			../wallet/test/walletdb_tests.cpp
+			../wallet/test/crypto_tests.cpp
+	)
 endif()

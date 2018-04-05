@@ -24,6 +24,3 @@ target_link_libraries(wallet ${BDBXX_LIBRARY} ${BDB_LIBRARY})
 find_package(Event REQUIRED)
 target_include_directories(wallet PRIVATE ${EVENT_INCLUDE_DIR})
 target_link_libraries(wallet ${EVENT_LIBRARY})
-
-# Wallet tests
-add_subdirectory(test)

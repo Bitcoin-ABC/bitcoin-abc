@@ -218,6 +218,9 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(server ${EVENT_PTHREAD_LIBRARY})
 endif()
 
+# Test suite.
+add_subdirectory(test)
+
 # Wallet
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
@@ -266,9 +269,6 @@ target_link_libraries(bitcoind server)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_sources(bitcoind PRIVATE bitcoind-res.rc)
 endif()
-
-# Test suite.
-add_subdirectory(test)
 
 # Bitcoin-qt
 if(BUILD_BITCOIN_QT)
