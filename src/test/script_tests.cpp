@@ -12,6 +12,7 @@
 #include "script/script_error.h"
 #include "script/sighashtype.h"
 #include "script/sign.h"
+#include "test/jsonutil.h"
 #include "test/scriptflags.h"
 #include "test/sigutil.h"
 #include "test/test_bitcoin.h"
@@ -35,16 +36,6 @@
 // #define UPDATE_JSON_TESTS
 
 static const unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
-
-UniValue read_json(const std::string &jsondata) {
-    UniValue v;
-
-    if (!v.read(jsondata) || !v.isArray()) {
-        BOOST_ERROR("Parse error.");
-        return UniValue(UniValue::VARR);
-    }
-    return v.get_array();
-}
 
 struct ScriptErrorDesc {
     ScriptError_t err;

@@ -16,6 +16,7 @@
 #include "script/script_error.h"
 #include "script/sign.h"
 #include "script/standard.h"
+#include "test/jsonutil.h"
 #include "test/scriptflags.h"
 #include "utilstrencodings.h"
 #include "validation.h" // For CheckRegularTransaction
@@ -29,9 +30,6 @@
 #include <univalue.h>
 
 typedef std::vector<uint8_t> valtype;
-
-// In script_tests.cpp
-extern UniValue read_json(const std::string &jsondata);
 
 BOOST_FIXTURE_TEST_SUITE(transaction_tests, BasicTestingSetup)
 

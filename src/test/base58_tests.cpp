@@ -10,6 +10,7 @@
 
 #include "key.h"
 #include "script/script.h"
+#include "test/jsonutil.h"
 #include "test/test_bitcoin.h"
 #include "uint256.h"
 #include "util.h"
@@ -18,8 +19,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
-
-extern UniValue read_json(const std::string &jsondata);
 
 BOOST_FIXTURE_TEST_SUITE(base58_tests, BasicTestingSetup)
 

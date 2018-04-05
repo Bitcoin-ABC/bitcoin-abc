@@ -9,6 +9,7 @@
 #include "script/script.h"
 #include "serialize.h"
 #include "streams.h"
+#include "test/jsonutil.h"
 #include "test/test_bitcoin.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -20,8 +21,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <univalue.h>
-
-extern UniValue read_json(const std::string &jsondata);
 
 // Old script.cpp SignatureHash function
 static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,

@@ -67,15 +67,16 @@ add_executable(test_bitcoin
 	config_tests.cpp
 	crypto_tests.cpp
 	cuckoocache_tests.cpp
+	dbwrapper_tests.cpp
 	DoS_tests.cpp
 	dstencode_tests.cpp
 	excessiveblock_tests.cpp
 	getarg_tests.cpp
 	hash_tests.cpp
 	inv_tests.cpp
+	jsonutil.cpp
 	key_tests.cpp
 	limitedmap_tests.cpp
-	dbwrapper_tests.cpp
 	main_tests.cpp
 	mempool_tests.cpp
 	merkle_tests.cpp
