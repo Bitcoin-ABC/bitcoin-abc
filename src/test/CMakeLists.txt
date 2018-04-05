@@ -48,7 +48,7 @@ add_executable(test_bitcoin
 	reverselock_tests.cpp
 	rpc_tests.cpp
 	sanity_tests.cpp
-	# scheduler_tests.cpp
+	scheduler_tests.cpp
 	script_antireplay_tests.cpp
 	script_P2SH_tests.cpp
 	# script_tests.cpp
