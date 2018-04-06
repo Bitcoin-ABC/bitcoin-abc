@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Bitcoin developers
+/* Copyright (c) 2017 The Bitcoin developers */
 
 #ifndef LIBSECP256K1_CONFIG_H
 #define LIBSECP256K1_CONFIG_H
@@ -22,4 +22,4 @@
 #cmakedefine ENABLE_MODULE_RECOVERY
 #cmakedefine ENABLE_MODULE_ECDH
 
-#endif // LIBSECP256K1_CONFIG_H
+#endif /* LIBSECP256K1_CONFIG_H */

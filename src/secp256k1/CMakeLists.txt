@@ -12,6 +12,11 @@ add_compiler_flag(
 	-Wno-nonnull-compare
 )
 
+add_c_compiler_flag(
+	-std=c89
+	-Wno-long-long
+)
+
 # TODO: change this to include when possible
 include_directories(
 	.
@@ -64,20 +69,34 @@ else()
 	set(USE_FIELD_10X26 1)
 endif()
 
+# Executable internal to secp256k1 need to have the HAVE_CONFIG_H define set.
+# For convenience, we wrap this into a function.
+function(link_secp256k1_internal NAME)
+	target_link_libraries(${NAME} secp256k1)
+	target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H)
+endfunction(link_secp256k1_internal)
+
+# Phony target to build benchmarks
+add_custom_target(bench-secp256k1)
+
+function(add_secp256k1_bench NAME)
+	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
+	link_secp256k1_internal(${NAME})
+	add_dependencies(bench-secp256k1 ${NAME})
+endfunction(add_secp256k1_bench)
+
 # Recovery module
 option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
 if(SECP256K1_ENABLE_MODULE_RECOVERY)
 	set(ENABLE_MODULE_RECOVERY 1)
-
-	#TODO: recovery benchmark
+	add_secp256k1_bench(bench_recover src/bench_recover.c)
 endif()
 
 # ECDH module
 option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
 if(SECP256K1_ENABLE_MODULE_ECDH)
 	set(ENABLE_MODULE_ECDH 1)
-
-	#TODO: ECDH benchmark
+	add_secp256k1_bench(bench_ecdh src/bench_ecdh.c)
 endif()
 
 # Generate the config
@@ -92,8 +111,7 @@ if(SECP256K1_BUILD_TEST)
 
 	function(create_secp256k1_test NAME FILES)
 		add_test_to_suite(secp256k1 ${NAME} EXCLUDE_FROM_ALL ${FILES})
-		target_link_libraries(${NAME} secp256k1)
-		target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H)
+		link_secp256k1_internal(${NAME})
 	endfunction()
 
 	create_secp256k1_test(secp256k1_tests src/tests.c)
@@ -105,6 +123,9 @@ if(SECP256K1_BUILD_TEST)
 	target_compile_definitions(exhaustive_tests PRIVATE VERIFY)
 endif(SECP256K1_BUILD_TEST)
 
+# Benchmarks
+add_secp256k1_bench(bench_verify src/bench_verify.c)
+add_secp256k1_bench(bench_sign src/bench_sign.c)
+add_secp256k1_bench(bench_internal src/bench_internal.c)
+
 # TODO: emult static precomputation
-# TODO: ecdh module
-# TODO: RECOVERY module
