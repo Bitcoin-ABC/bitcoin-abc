@@ -99,6 +99,22 @@ if(SECP256K1_ENABLE_MODULE_ECDH)
 	add_secp256k1_bench(bench_ecdh src/bench_ecdh.c)
 endif()
 
+# Static precomputation for eliptic curve mutliplication
+option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's eliptic curve mutliplication tables" ON)
+if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
+	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
+
+	include(NativeExecutable)
+	add_native_executable(gen_context src/gen_context.c)
+
+	add_custom_command(
+		OUTPUT ecmult_static_context.h
+		COMMAND gen_context
+	)
+
+	target_sources(secp256k1 PRIVATE ecmult_static_context.h)
+endif()
+
 # Generate the config
 configure_file(src/libsecp256k1-config.h.cmake.in src/libsecp256k1-config.h ESCAPE_QUOTES)
 target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H)
@@ -127,5 +143,3 @@ endif(SECP256K1_BUILD_TEST)
 add_secp256k1_bench(bench_verify src/bench_verify.c)
 add_secp256k1_bench(bench_sign src/bench_sign.c)
 add_secp256k1_bench(bench_internal src/bench_internal.c)
-
-# TODO: emult static precomputation

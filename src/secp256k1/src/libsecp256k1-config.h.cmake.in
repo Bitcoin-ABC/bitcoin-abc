@@ -19,6 +19,8 @@
 #cmakedefine USE_SCALAR_8X32
 #cmakedefine USE_FIELD_10X26
 
+#cmakedefine USE_ECMULT_STATIC_PRECOMPUTATION
+
 #cmakedefine ENABLE_MODULE_RECOVERY
 #cmakedefine ENABLE_MODULE_ECDH
 
