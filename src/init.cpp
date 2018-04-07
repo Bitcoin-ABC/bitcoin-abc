@@ -1125,6 +1125,7 @@ static void CleanupBlockRevFiles() {
 static void ThreadImport(const Config &config,
                          std::vector<fs::path> vImportFiles) {
     RenameThread("bitcoin-loadblk");
+    ScheduleBatchPriority();
 
     {
         CImportingNow imp;

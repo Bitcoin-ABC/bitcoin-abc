@@ -364,4 +364,13 @@ inline void insert(std::set<TsetT> &dst, const Tsrc &src) {
 
 } // namespace util
 
+/**
+ * On platforms that support it, tell the kernel the calling thread is
+ * CPU-intensive and non-interactive. See SCHED_BATCH in sched(7) for details.
+ *
+ * @return The return value of sched_setschedule(), or 1 on systems without
+ * sched_setchedule().
+ */
+int ScheduleBatchPriority();
+
 #endif // BITCOIN_UTIL_H
