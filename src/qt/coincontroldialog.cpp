@@ -544,7 +544,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         }
 
         // Fee
-        nPayFee = model->node().getMinimumFee(nBytes, *coinControl());
+        nPayFee = model->wallet().getMinimumFee(nBytes, *coinControl());
 
         if (nPayAmount > Amount::zero()) {
             nChange = nAmount - nPayAmount;

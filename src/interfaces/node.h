@@ -31,7 +31,6 @@ class RPCTimerInterface;
 class UniValue;
 
 namespace interfaces {
-
 class Handler;
 class Wallet;
 
@@ -153,13 +152,6 @@ public:
 
     //! Get network active.
     virtual bool getNetworkActive() = 0;
-
-    //! Get required fee.
-    virtual Amount getRequiredFee(unsigned int tx_bytes) = 0;
-
-    //! Get minimum fee.
-    virtual Amount getMinimumFee(unsigned int tx_bytes,
-                                 const CCoinControl &coin_control) = 0;
 
     //! Get max tx fee.
     virtual Amount getMaxTxFee() = 0;

@@ -122,7 +122,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
     }
     if (!settings.contains("nTransactionFee")) {
         settings.setValue("nTransactionFee",
-                          qint64(DEFAULT_TRANSACTION_FEE / SATOSHI));
+                          qint64(DEFAULT_PAY_TX_FEE / SATOSHI));
     }
     if (!settings.contains("fPayOnlyMinFee")) {
         settings.setValue("fPayOnlyMinFee", false);
@@ -198,7 +198,7 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
         connect(ui->checkBoxMinimumFee, SIGNAL(stateChanged(int)), this,
                 SLOT(coinControlUpdateLabels()));
 
-        ui->customFee->setSingleStep(model->node().getRequiredFee(1000));
+        ui->customFee->setSingleStep(model->wallet().getRequiredFee(1000));
         updateFeeSectionControls();
         updateMinFeeLabel();
         updateSmartFeeLabel();
@@ -644,7 +644,7 @@ void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
 
 void SendCoinsDialog::setMinimumFee() {
     ui->radioCustomPerKilobyte->setChecked(true);
-    ui->customFee->setValue(model->node().getRequiredFee(1000));
+    ui->customFee->setValue(model->wallet().getRequiredFee(1000));
 }
 
 void SendCoinsDialog::updateFeeSectionControls() {
@@ -682,7 +682,7 @@ void SendCoinsDialog::updateMinFeeLabel() {
             tr("Pay only the required fee of %1")
                 .arg(BitcoinUnits::formatWithUnit(
                          model->getOptionsModel()->getDisplayUnit(),
-                         model->node().getRequiredFee(1000)) +
+                         model->wallet().getRequiredFee(1000)) +
                      "/kB"));
     }
 }
@@ -704,8 +704,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
     updateCoinControlState(coin_control);
     // Explicitly use only fee estimation rate for smart fee labels
     coin_control.m_feerate.reset();
-
-    CFeeRate feeRate(model->node().getMinimumFee(1000, coin_control));
+    CFeeRate feeRate(model->wallet().getMinimumFee(1000, coin_control));
 
     ui->labelSmartFee->setText(
         BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),

@@ -42,28 +42,10 @@
 
 std::vector<CWalletRef> vpwallets;
 
-/** Transaction fee set by the user */
-CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
-bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
-
 OutputType g_address_type = OutputType::NONE;
 OutputType g_change_type = OutputType::NONE;
 
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
-
-/**
- * Fees smaller than this (in satoshi) are considered zero fee (for transaction
- * creation)
- * Override with -mintxfee
- */
-CFeeRate CWallet::minTxFee = CFeeRate(DEFAULT_TRANSACTION_MINFEE_PER_KB);
-
-/**
- * If fee estimation does not have enough data to provide estimates, use this
- * fee instead. Has no effect if not using fee estimation.
- * Override with -fallbackfee
- */
-CFeeRate CWallet::fallbackFee = CFeeRate(DEFAULT_FALLBACK_FEE);
 
 const uint256 CMerkleTx::ABANDON_HASH(uint256S(
     "0000000000000000000000000000000000000000000000000000000000000001"));
@@ -2149,7 +2131,7 @@ bool CWalletTx::IsTrusted() const {
     }
 
     // using wtx's cached debit
-    if (!bSpendZeroConfChange || !IsFromMe(ISMINE_ALL)) {
+    if (!pwallet->m_spend_zero_conf_change || !IsFromMe(ISMINE_ALL)) {
         return false;
     }
 
@@ -2625,7 +2607,7 @@ bool CWallet::SelectCoinsMinConf(
         // Get long term estimate
         CCoinControl temp;
         temp.m_confirm_target = 1008;
-        CFeeRate long_term_feerate = GetMinimumFeeRate(temp, g_mempool);
+        CFeeRate long_term_feerate = GetMinimumFeeRate(*this, temp, g_mempool);
 
         // Calculate cost of change
         Amount cost_of_change =
@@ -2763,30 +2745,30 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
         SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                            CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet,
                            nValueRet, coin_selection_params, bnb_used) ||
-        (bSpendZeroConfChange &&
+        (m_spend_zero_conf_change &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet,
                             nValueRet, coin_selection_params, bnb_used)) ||
-        (bSpendZeroConfChange &&
+        (m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              nTargetValue - nValueFromPresetInputs,
              CoinEligibilityFilter(0, 1, std::min<size_t>(4, max_ancestors / 3),
                                    std::min<size_t>(4, max_descendants / 3)),
              vCoins, setCoinsRet, nValueRet, coin_selection_params,
              bnb_used)) ||
-        (bSpendZeroConfChange &&
+        (m_spend_zero_conf_change &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, max_ancestors / 2,
                                                   max_descendants / 2),
                             vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
-        (bSpendZeroConfChange &&
+        (m_spend_zero_conf_change &&
          SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                             CoinEligibilityFilter(0, 1, max_ancestors - 1,
                                                   max_descendants - 1),
                             vCoins, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
-        (bSpendZeroConfChange && !fRejectLongChains &&
+        (m_spend_zero_conf_change && !fRejectLongChains &&
          SelectCoinsMinConf(
              nTargetValue - nValueFromPresetInputs,
              CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()),
@@ -3010,7 +2992,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             GetSerializeSize(change_prototype_txout, SER_DISK, 0);
 
         // Get the fee rate to use effective values in coin selection
-        CFeeRate nFeeRateNeeded = GetMinimumFeeRate(coinControl, g_mempool);
+        CFeeRate nFeeRateNeeded =
+            GetMinimumFeeRate(*this, coinControl, g_mempool);
 
         nFeeRet = Amount::zero();
         bool pick_new_inputs = true;
@@ -3147,7 +3130,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 return false;
             }
 
-            Amount nFeeNeeded = GetMinimumFee(nBytes, coinControl, g_mempool);
+            Amount nFeeNeeded =
+                GetMinimumFee(*this, nBytes, coinControl, g_mempool);
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
@@ -3175,7 +3159,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     unsigned int tx_size_with_change =
                         nBytes + coin_selection_params.change_output_size + 2;
                     Amount fee_needed_with_change = GetMinimumFee(
-                        tx_size_with_change, coinControl, g_mempool);
+                        *this, tx_size_with_change, coinControl, g_mempool);
                     Amount minimum_value_for_change =
                         GetDustThreshold(change_prototype_txout, dustRelayFee);
                     if (nFeeRet >=
@@ -4350,6 +4334,62 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
             return nullptr;
         }
     }
+
+    if (gArgs.IsArgSet("-mintxfee")) {
+        Amount n = Amount::zero();
+        if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n) ||
+            n == Amount::zero()) {
+            InitError(AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
+            return nullptr;
+        }
+        if (n > HIGH_TX_FEE_PER_KB) {
+            InitWarning(AmountHighWarn("-mintxfee") + " " +
+                        _("This is the minimum transaction fee you pay on "
+                          "every transaction."));
+        }
+        walletInstance->m_min_fee = CFeeRate(n);
+    }
+
+    if (gArgs.IsArgSet("-fallbackfee")) {
+        Amount nFeePerK = Amount::zero();
+        if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
+            InitError(
+                strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'"),
+                          gArgs.GetArg("-fallbackfee", "")));
+            return nullptr;
+        }
+        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
+            InitWarning(AmountHighWarn("-fallbackfee") + " " +
+                        _("This is the transaction fee you may pay when fee "
+                          "estimates are not available."));
+        }
+        walletInstance->m_fallback_fee = CFeeRate(nFeePerK);
+        // disable fallback fee in case value was set to 0, enable if non-null
+        // value
+        walletInstance->m_allow_fallback_fee = (nFeePerK != Amount::zero());
+    }
+    if (gArgs.IsArgSet("-paytxfee")) {
+        Amount nFeePerK = Amount::zero();
+        if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
+            InitError(AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
+            return nullptr;
+        }
+        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
+            InitWarning(AmountHighWarn("-paytxfee") + " " +
+                        _("This is the transaction fee you will pay if you "
+                          "send a transaction."));
+        }
+        walletInstance->m_pay_tx_fee = CFeeRate(nFeePerK, 1000);
+        if (walletInstance->m_pay_tx_fee < ::minRelayTxFee) {
+            InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s' "
+                                  "(must be at least %s)"),
+                                gArgs.GetArg("-paytxfee", ""),
+                                ::minRelayTxFee.ToString()));
+            return nullptr;
+        }
+    }
+    walletInstance->m_spend_zero_conf_change =
+        gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 

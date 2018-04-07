@@ -9,6 +9,7 @@
 #include <consensus/validation.h>
 #include <interfaces/handler.h>
 #include <net.h>
+#include <policy/fees.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <script/ismine.h>
@@ -18,6 +19,7 @@
 #include <timedata.h>
 #include <ui_interface.h>
 #include <validation.h>
+#include <wallet/fees.h>
 #include <wallet/finaltx.h>
 #include <wallet/wallet.h>
 
@@ -409,6 +411,13 @@ namespace {
         std::unique_ptr<Handler>
         handleWatchOnlyChanged(WatchOnlyChangedFn fn) override {
             return MakeHandler(m_wallet.NotifyWatchonlyChanged.connect(fn));
+        }
+        Amount getRequiredFee(unsigned int tx_bytes) override {
+            return GetRequiredFee(m_wallet, tx_bytes);
+        }
+        Amount getMinimumFee(unsigned int tx_bytes,
+                             const CCoinControl &coin_control) override {
+            return GetMinimumFee(m_wallet, tx_bytes, coin_control, g_mempool);
         }
 
         CWallet &m_wallet;

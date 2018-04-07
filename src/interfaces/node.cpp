@@ -207,16 +207,6 @@ namespace {
         bool getNetworkActive() override {
             return g_connman && g_connman->GetNetworkActive();
         }
-        Amount getRequiredFee(unsigned int tx_bytes) override {
-            CHECK_WALLET(return GetRequiredFee(tx_bytes));
-        }
-        Amount getMinimumFee(unsigned int tx_bytes,
-                             const CCoinControl &coin_control) override {
-            Amount result;
-            CHECK_WALLET(result =
-                             GetMinimumFee(tx_bytes, coin_control, g_mempool));
-            return result;
-        }
         Amount getMaxTxFee() override { return ::maxTxFee; }
         CFeeRate estimateSmartFee() override { return g_mempool.estimateFee(); }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }

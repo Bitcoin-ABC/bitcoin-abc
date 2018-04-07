@@ -82,7 +82,8 @@ void WalletInit::AddWalletOptions() const {
         "-paytxfee=<amt>",
         strprintf(
             _("Fee (in %s/kB) to add to transactions you send (default: %s)"),
-            CURRENCY_UNIT, FormatMoney(payTxFee.GetFeePerK())),
+            CURRENCY_UNIT,
+            FormatMoney(CFeeRate{DEFAULT_PAY_TX_FEE}.GetFeePerK())),
         false, OptionsCategory::WALLET);
     gArgs.AddArg(
         "-rescan",
@@ -230,45 +231,6 @@ bool WalletInit::ParameterInteraction() const {
             _("The wallet will avoid paying less than the minimum relay fee."));
     }
 
-    if (gArgs.IsArgSet("-fallbackfee")) {
-        Amount nFeePerK = Amount::zero();
-        if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
-            return InitError(
-                strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'"),
-                          gArgs.GetArg("-fallbackfee", "")));
-        }
-
-        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
-            InitWarning(AmountHighWarn("-fallbackfee") + " " +
-                        _("This is the transaction fee you may pay when fee "
-                          "estimates are not available."));
-        }
-
-        CWallet::fallbackFee = CFeeRate(nFeePerK);
-    }
-
-    if (gArgs.IsArgSet("-paytxfee")) {
-        Amount nFeePerK = Amount::zero();
-        if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
-            return InitError(
-                AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
-        }
-
-        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
-            InitWarning(AmountHighWarn("-paytxfee") + " " +
-                        _("This is the transaction fee you will pay if you "
-                          "send a transaction."));
-        }
-
-        payTxFee = CFeeRate(nFeePerK, 1000);
-        if (payTxFee < minRelayTxFee) {
-            return InitError(strprintf(
-                _("Invalid amount for -paytxfee=<amount>: '%s' (must "
-                  "be at least %s)"),
-                gArgs.GetArg("-paytxfee", ""), minRelayTxFee.ToString()));
-        }
-    }
-
     if (gArgs.IsArgSet("-maxtxfee")) {
         Amount nMaxFee = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
@@ -290,26 +252,6 @@ bool WalletInit::ParameterInteraction() const {
                 gArgs.GetArg("-maxtxfee", ""), minRelayTxFee.ToString()));
         }
     }
-
-    if (gArgs.IsArgSet("-mintxfee")) {
-        Amount n = Amount::zero();
-        auto parsed = ParseMoney(gArgs.GetArg("-mintxfee", ""), n);
-        if (!parsed || n == Amount::zero()) {
-            return InitError(
-                AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
-        }
-
-        if (n > HIGH_TX_FEE_PER_KB) {
-            InitWarning(AmountHighWarn("-mintxfee") + " " +
-                        _("This is the minimum transaction fee you pay on "
-                          "every transaction."));
-        }
-
-        CWallet::minTxFee = CFeeRate(n);
-    }
-
-    bSpendZeroConfChange =
-        gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
 
     g_address_type = OutputType::DEFAULT;
     g_change_type = OutputType::DEFAULT;

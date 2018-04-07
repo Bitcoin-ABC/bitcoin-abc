@@ -34,15 +34,9 @@
 typedef CWallet *CWalletRef;
 extern std::vector<CWalletRef> vpwallets;
 
-/**
- * Settings
- */
-extern CFeeRate payTxFee;
-extern bool bSpendZeroConfChange;
-
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default
-static const Amount DEFAULT_TRANSACTION_FEE = Amount::zero();
+constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
 //! -fallbackfee default
 static const Amount DEFAULT_FALLBACK_FEE(20000 * SATOSHI);
 //! -mintxfee default
@@ -1072,8 +1066,18 @@ public:
                      const std::vector<CTxOut> &txouts) const;
     bool DummySignInput(CTxIn &tx_in, const CTxOut &txout) const;
 
-    static CFeeRate minTxFee;
-    static CFeeRate fallbackFee;
+    CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};
+    bool m_spend_zero_conf_change{DEFAULT_SPEND_ZEROCONF_CHANGE};
+    // will be defined via chainparams
+    bool m_allow_fallback_fee{true};
+    // Override with -mintxfee
+    CFeeRate m_min_fee{DEFAULT_TRANSACTION_MINFEE_PER_KB};
+    /**
+     * If fee estimation does not have enough data to provide estimates, use
+     * this fee instead. Has no effect if not using fee estimation Override with
+     * -fallbackfee
+     */
+    CFeeRate m_fallback_fee{DEFAULT_FALLBACK_FEE};
 
     bool NewKeyPool();
     size_t KeypoolCountExternalKeys();

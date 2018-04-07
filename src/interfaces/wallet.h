@@ -211,6 +211,13 @@ public:
     virtual std::vector<WalletTxOut>
     getCoins(const std::vector<COutPoint> &outputs) = 0;
 
+    //! Get required fee.
+    virtual Amount getRequiredFee(unsigned int tx_bytes) = 0;
+
+    //! Get minimum fee.
+    virtual Amount getMinimumFee(unsigned int tx_bytes,
+                                 const CCoinControl &coin_control) = 0;
+
     // Return whether HD enabled.
     virtual bool hdEnabled() = 0;
 

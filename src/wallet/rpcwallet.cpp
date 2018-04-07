@@ -3081,8 +3081,8 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
         request.params.size() > 1) {
         throw std::runtime_error(
             "settxfee amount\n"
-            "\nSet the transaction fee per kB. Overwrites the paytxfee "
-            "parameter.\n"
+            "\nSet the transaction fee per kB for this wallet. Overrides the "
+            "global -paytxfee command line parameter.\n"
             "\nArguments:\n"
             "1. amount         (numeric or string, required) The transaction "
             "fee in " +
@@ -3097,10 +3097,9 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    // Amount
     Amount nAmount = AmountFromValue(request.params[0]);
 
-    payTxFee = CFeeRate(nAmount, 1000);
+    pwallet->m_pay_tx_fee = CFeeRate(nAmount, 1000);
     return true;
 }
 
@@ -3185,7 +3184,7 @@ static UniValue getwalletinfo(const Config &config,
     if (pwallet->IsCrypted()) {
         obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
-    obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
+    obj.pushKV("paytxfee", ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
     if (!masterKeyID.IsNull()) {
         obj.pushKV("hdmasterkeyid", masterKeyID.GetHex());
     }
