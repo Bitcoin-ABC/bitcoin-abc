@@ -44,16 +44,11 @@ if(UNIVALUE_BUILD_TESTS)
 endif(UNIVALUE_BUILD_TESTS)
 
 # Generate lib/univalue_escapes.h
-add_executable(univalue_gen gen/gen.cpp)
-target_include_directories(univalue_gen PUBLIC include)
+include(NativeExecutable)
+add_native_executable(univalue_gen gen/gen.cpp)
+native_target_include_directories(univalue_gen PUBLIC include)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h
-	COMMAND univalue_gen > ${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h
-	DEPENDS univalue_gen ${CMAKE_CURRENT_SOURCE_DIR}/lib/univalue_escapes.h
-)
+# Custom target to regenerate univalue_escapes.h
 add_custom_target(generate_univalue_escapes_h
-	DEPENDS
-		${CMAKE_CURRENT_BINARY_DIR}/lib/univalue_escapes.h
+	COMMAND univalue_gen > ${CMAKE_CURRENT_SOURCE_DIR}/lib/univalue_escapes.h
 )
