@@ -292,7 +292,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         pblock->nNonce = blockinfo[i].nonce;
         std::shared_ptr<const CBlock> shared_pblock =
             std::make_shared<const CBlock>(*pblock);
-        BOOST_CHECK(ProcessNewBlock(GetConfig(), shared_pblock, true, nullptr));
+        BOOST_CHECK(ProcessNewBlock(config, shared_pblock, true, nullptr));
         pblock->hashPrevBlock = pblock->GetHash();
     }
 
@@ -357,8 +357,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin[0].scriptSig = CScript();
     // 18 * (520char + DROP) + OP_1 = 9433 bytes
     std::vector<uint8_t> vchData(520);
-    for (unsigned int i = 0; i < 18; ++i)
+    for (unsigned int i = 0; i < 18; ++i) {
         tx.vin[0].scriptSig << vchData << OP_DROP;
+    }
+
     tx.vin[0].scriptSig << OP_1;
     tx.vin[0].prevout.hash = txFirst[0]->GetId();
     tx.vout[0].nValue = BLOCKSUBSIDY;
@@ -423,6 +425,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     mempool.clear();
 
     // Invalid (pre-p2sh) txn in mempool, template creation fails.
+    std::array<int64_t, CBlockIndex::nMedianTimeSpan> times;
+    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
+        // Trick the MedianTimePast.
+        times[i] = chainActive.Tip()
+                       ->GetAncestor(chainActive.Tip()->nHeight - i)
+                       ->nTime;
+        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime =
+            P2SH_ACTIVATION_TIME;
+    }
+
     tx.vin[0].prevout.hash = txFirst[0]->GetId();
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript() << OP_1;
@@ -444,6 +456,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     BOOST_CHECK_THROW(BlockAssembler(config).CreateNewBlock(scriptPubKey),
                       std::runtime_error);
     mempool.clear();
+    for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
+        // Restore the MedianTimePast.
+        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime =
+            times[i];
+    }
 
     // Double spend txn pair in mempool, template creation fails.
     tx.vin[0].prevout.hash = txFirst[0]->GetId();

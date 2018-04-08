@@ -16,14 +16,20 @@ static const uint64_t MAX_TX_SIZE = ONE_MEGABYTE;
 static const uint64_t LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE;
 /** Default setting for maximum allowed size for a block, in bytes */
 static const uint64_t DEFAULT_MAX_BLOCK_SIZE = 32 * ONE_MEGABYTE;
-/** The maximum allowed number of signature check operations per MB in a block
- * (network rule) */
+/**
+ * The maximum allowed number of signature check operations per MB in a block
+ * (network rule).
+ */
 static const int64_t MAX_BLOCK_SIGOPS_PER_MB = 20000;
 /** allowed number of signature check operations per transaction. */
 static const uint64_t MAX_TX_SIGOPS_COUNT = 20000;
-/** Coinbase transaction outputs can only be spent after this number of new
- * blocks (network rule) */
+/**
+ * Coinbase transaction outputs can only be spent after this number of new
+ * blocks (network rule).
+ */
 static const int COINBASE_MATURITY = 100;
+/** Activation time for P2SH (April 1st 2012) */
+static const int64_t P2SH_ACTIVATION_TIME = 1333234914;
 
 /** Flags for nSequence and nLockTime locks */
 enum {

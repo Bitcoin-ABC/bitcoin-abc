@@ -1908,9 +1908,9 @@ static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
     const Consensus::Params &consensusparams =
         config.GetChainParams().GetConsensus();
 
-    // BIP16 didn't become active until Apr 1 2012
-    int64_t nBIP16SwitchTime = 1333238400;
-    bool fStrictPayToScriptHash = (pindex->GetBlockTime() >= nBIP16SwitchTime);
+    // P2SH didn't become active until Apr 1 2012
+    bool fStrictPayToScriptHash =
+        (pindex->pprev->GetMedianTimePast() >= P2SH_ACTIVATION_TIME);
 
     uint32_t flags =
         fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE;
@@ -3361,8 +3361,9 @@ static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
                                           pos.nPos);
                     fclose(file);
                 }
-            } else
+            } else {
                 return state.Error("out of disk space");
+            }
         }
     }
 
@@ -3950,7 +3951,9 @@ bool ProcessNewBlock(const Config &config,
                      bool fForceProcessing, bool *fNewBlock) {
     {
         CBlockIndex *pindex = nullptr;
-        if (fNewBlock) *fNewBlock = false;
+        if (fNewBlock) {
+            *fNewBlock = false;
+        }
 
         const CChainParams &chainparams = config.GetChainParams();
 
