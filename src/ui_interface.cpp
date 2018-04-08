@@ -80,7 +80,8 @@ void CClientUIInterface::NotifyNetworkActiveChanged(bool networkActive) {
 void CClientUIInterface::NotifyAlertChanged() {
     return g_ui_signals.NotifyAlertChanged();
 }
-void CClientUIInterface::LoadWallet(std::shared_ptr<CWallet> wallet) {
+void CClientUIInterface::LoadWallet(
+    std::unique_ptr<interfaces::Wallet> &wallet) {
     return g_ui_signals.LoadWallet(wallet);
 }
 void CClientUIInterface::ShowProgress(const std::string &title, int nProgress,

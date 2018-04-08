@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <interfaces/wallet.h>
 #include <net.h>
 #include <policy/mempool.h>
 #include <primitives/block.h>
@@ -252,6 +253,9 @@ namespace {
         }
         void initError(const std::string &message) override {
             InitError(message);
+        }
+        void loadWallet(std::unique_ptr<Wallet> wallet) override {
+            ::uiInterface.LoadWallet(wallet);
         }
     };
 
