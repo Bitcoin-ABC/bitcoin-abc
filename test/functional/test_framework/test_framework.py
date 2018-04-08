@@ -56,7 +56,27 @@ class SkipTest(Exception):
         self.message = message
 
 
-class BitcoinTestFramework():
+class BitcoinTestMetaClass(type):
+    """Metaclass for BitcoinTestFramework.
+
+    Ensures that any attempt to register a subclass of `BitcoinTestFramework`
+    adheres to a standard whereby the subclass overrides `set_test_params` and
+    `run_test` but DOES NOT override either `__init__` or `main`. If any of
+    those standards are violated, a ``TypeError`` is raised."""
+
+    def __new__(cls, clsname, bases, dct):
+        if not clsname == 'BitcoinTestFramework':
+            if not ('run_test' in dct and 'set_test_params' in dct):
+                raise TypeError("BitcoinTestFramework subclasses must override "
+                                "'run_test' and 'set_test_params'")
+            if '__init__' in dct or 'main' in dct:
+                raise TypeError("BitcoinTestFramework subclasses may not override "
+                                "'__init__' or 'main'")
+
+        return super().__new__(cls, clsname, bases, dct)
+
+
+class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
     """Base class for a bitcoin test script.
 
     Individual bitcoin test scripts should subclass this class and override the set_test_params() and run_test() methods.
