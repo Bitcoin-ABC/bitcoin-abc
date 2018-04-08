@@ -88,7 +88,7 @@
     </message>
 </context>
 <context>
-    <name>BitcoinGUI</name>
+    <name>Bitcoin CashGUI</name>
     <message>
         <source>&amp;Transactions</source>
         <translation>Transazioni</translation>
