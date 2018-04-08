@@ -194,8 +194,8 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 static void FindFilesToPrune(std::set<int> &setFilesToPrune,
                              uint64_t nPruneAfterHeight);
 static FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
-                                    const Config &config);
+static uint32_t GetBlockScriptFlags(const Config &config,
+                                    const CBlockIndex *pChainTip);
 
 static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
                       int64_t nBlockTime) {
@@ -986,7 +986,7 @@ static bool AcceptToMemoryPoolWorker(
         }
 
         // Set extraFlags as a set of flags that needs to be activated.
-        uint32_t extraFlags = 0;
+        uint32_t extraFlags = SCRIPT_VERIFY_NONE;
         if (hasMonolith) {
             extraFlags |= SCRIPT_ENABLE_MONOLITH_OPCODES;
         }
@@ -1031,12 +1031,8 @@ static bool AcceptToMemoryPoolWorker(
         // invalid blocks (using TestBlockValidity), however allowing such
         // transactions into the mempool can be exploited as a DoS attack.
         uint32_t currentBlockScriptVerifyFlags =
-            GetBlockScriptFlags(chainActive.Tip(), config);
+            GetBlockScriptFlags(config, chainActive.Tip());
 
-        // We have an off by one error for flag activation. As a result, we need
-        // to set the replay protection flag manually here until this is fixed.
-        // FIXME: https://reviews.bitcoinabc.org/T288
-        currentBlockScriptVerifyFlags |= extraFlags;
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             currentBlockScriptVerifyFlags, true,
                                             txdata)) {
@@ -1903,38 +1899,37 @@ public:
 static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS];
 
 // Returns the script flags which should be checked for a given block
-static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
-                                    const Config &config) {
+static uint32_t GetBlockScriptFlags(const Config &config,
+                                    const CBlockIndex *pChainTip) {
     AssertLockHeld(cs_main);
     const Consensus::Params &consensusparams =
         config.GetChainParams().GetConsensus();
 
-    // P2SH didn't become active until Apr 1 2012
-    bool fStrictPayToScriptHash =
-        (pindex->pprev->GetMedianTimePast() >= P2SH_ACTIVATION_TIME);
+    uint32_t flags = SCRIPT_VERIFY_NONE;
 
-    uint32_t flags =
-        fStrictPayToScriptHash ? SCRIPT_VERIFY_P2SH : SCRIPT_VERIFY_NONE;
+    // P2SH didn't become active until Apr 1 2012
+    if (pChainTip->GetMedianTimePast() >= P2SH_ACTIVATION_TIME) {
+        flags |= SCRIPT_VERIFY_P2SH;
+    }
 
     // Start enforcing the DERSIG (BIP66) rule
-    if ((pindex->pprev->nHeight + 1) >= consensusparams.BIP66Height) {
+    if ((pChainTip->nHeight + 1) >= consensusparams.BIP66Height) {
         flags |= SCRIPT_VERIFY_DERSIG;
     }
 
     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule
-    if ((pindex->pprev->nHeight + 1) >= consensusparams.BIP65Height) {
+    if ((pChainTip->nHeight + 1) >= consensusparams.BIP65Height) {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
 
     // Start enforcing BIP112 (CHECKSEQUENCEVERIFY) using versionbits logic.
-    if (VersionBitsState(pindex->pprev, consensusparams,
-                         Consensus::DEPLOYMENT_CSV,
+    if (VersionBitsState(pChainTip, consensusparams, Consensus::DEPLOYMENT_CSV,
                          versionbitscache) == THRESHOLD_ACTIVE) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
     // If the UAHF is enabled, we start accepting replay protected txns
-    if (IsUAHFenabled(config, pindex->pprev)) {
+    if (IsUAHFenabled(config, pChainTip)) {
         flags |= SCRIPT_VERIFY_STRICTENC;
         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
     }
@@ -1943,19 +1938,19 @@ static uint32_t GetBlockScriptFlags(const CBlockIndex *pindex,
     // s in their signature. We also make sure that signature that are supposed
     // to fail (for instance in multisig or other forms of smart contracts) are
     // null.
-    if (IsDAAEnabled(config, pindex->pprev)) {
+    if (IsDAAEnabled(config, pChainTip)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
 
     // The monolith HF enable a set of opcodes.
-    if (IsMonolithEnabled(config, pindex->pprev)) {
+    if (IsMonolithEnabled(config, pChainTip)) {
         flags |= SCRIPT_ENABLE_MONOLITH_OPCODES;
     }
 
     // We make sure this node will have replay protection during the next hard
     // fork.
-    if (IsReplayProtectionEnabled(config, pindex->pprev)) {
+    if (IsReplayProtectionEnabled(config, pChainTip)) {
         flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
     }
 
@@ -2112,9 +2107,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
-    // FIXME: This should be called with pindex->pprev, to match the result
-    // given to AcceptToMemoryPoolWorker: https://reviews.bitcoinabc.org/T288
-    const uint32_t flags = GetBlockScriptFlags(pindex, config);
+    const uint32_t flags = GetBlockScriptFlags(config, pindex->pprev);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
