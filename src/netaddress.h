@@ -163,7 +163,7 @@ public:
 class CService : public CNetAddr {
 protected:
     // host order
-    unsigned short port;
+    uint16_t port;
 
 public:
     CService();
@@ -191,11 +191,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(ip);
-        unsigned short portN = htons(port);
-        READWRITE(Span<uint8_t>((uint8_t *)&portN, 2));
-        if (ser_action.ForRead()) {
-            port = ntohs(portN);
-        }
+        READWRITE(WrapBigEndian(port));
     }
 };
 
