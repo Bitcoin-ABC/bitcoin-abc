@@ -99,6 +99,13 @@ if(SECP256K1_ENABLE_MODULE_ECDH)
 	add_secp256k1_bench(bench_ecdh src/bench_ecdh.c)
 endif()
 
+# MultiSet module
+option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ON)
+if(SECP256K1_ENABLE_MODULE_MULTISET)
+    set(ENABLE_MODULE_MULTISET 1)
+	add_secp256k1_bench(bench_multiset src/bench_multiset.c)
+endif()
+
 # Static precomputation for eliptic curve mutliplication
 option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's eliptic curve mutliplication tables" ON)
 if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
@@ -113,12 +120,6 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 	)
 
 	target_sources(secp256k1 PRIVATE ecmult_static_context.h)
-endif()
-
-# MultiSet module
-option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ON)
-if(SECP256K1_ENABLE_MODULE_MULTISET)
-    set(ENABLE_MODULE_MULTISET 1)
 endif()
 
 # Generate the config

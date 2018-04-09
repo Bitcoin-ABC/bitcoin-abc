@@ -23,5 +23,6 @@
 
 #cmakedefine ENABLE_MODULE_RECOVERY
 #cmakedefine ENABLE_MODULE_ECDH
+#cmakedefine ENABLE_MODULE_MULTISET
 
 #endif /* LIBSECP256K1_CONFIG_H */
