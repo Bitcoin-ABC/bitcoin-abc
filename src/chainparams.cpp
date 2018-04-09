@@ -322,7 +322,7 @@ public:
             "000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6");
 
         // August 1, 2017 hard fork
-        consensus.uahfHeight = 1155876;
+        consensus.uahfHeight = 1155875;
 
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
@@ -392,8 +392,8 @@ public:
                 {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345"
                                "d31b1bcebf76acb70")},
                 // UAHF fork block.
-                {1155876, uint256S("00000000000e38fef93ed9582a7df43815d5c2ba9fd"
-                                   "37ef70c9a0ea4a285b8f5")},
+                {1155875, uint256S("00000000f17c850672894b9a75b63a1e72830bbd5f4"
+                                   "c8889b5c1a80e7faef138")},
                 // Nov, 13. DAA activation block.
                 {1188697, uint256S("0000000000170ed0918077bde7b4d36cc4c91be69fa"
                                    "09211f748240dabe047fb")},

@@ -1390,8 +1390,9 @@ static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
 
 static void InvalidChainFound(CBlockIndex *pindexNew) {
     if (!pindexBestInvalid ||
-        pindexNew->nChainWork > pindexBestInvalid->nChainWork)
+        pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
         pindexBestInvalid = pindexNew;
+    }
 
     LogPrintf(
         "%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
@@ -2113,7 +2114,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     // FIXME: This should be called with pindex->pprev, to match the result
     // given to AcceptToMemoryPoolWorker: https://reviews.bitcoinabc.org/T288
-    uint32_t flags = GetBlockScriptFlags(pindex, config);
+    const uint32_t flags = GetBlockScriptFlags(pindex, config);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
@@ -2762,8 +2763,9 @@ static bool ConnectTip(const Config &config, CValidationState &state,
             if (state.IsInvalid()) {
                 InvalidBlockFound(pindexNew, state);
             }
-            return error("ConnectTip(): ConnectBlock %s failed",
-                         pindexNew->GetBlockHash().ToString());
+            return error("ConnectTip(): ConnectBlock %s failed (%s)",
+                         pindexNew->GetBlockHash().ToString(),
+                         FormatStateMessage(state));
         }
         nTime3 = GetTimeMicros();
         nTimeConnectTotal += nTime3 - nTime2;
