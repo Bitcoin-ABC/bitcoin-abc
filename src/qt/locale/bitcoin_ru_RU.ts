@@ -56,10 +56,10 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>Bitcoin CashGUI</name>
+    <name>BitcoinGUI</name>
     <message>
-        <source>Bitcoin Cash</source>
-        <translation>Bitcoin Cash ABC</translation>
+        <source>Bitcoin</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -228,8 +228,8 @@
 <context>
     <name>bitcoin-abc</name>
     <message>
-        <source>Bitcoin Cash ABC</source>
-        <translation>Bitcoin Cash ABC</translation>
+        <source>Bitcoin ABC</source>
+        <translation>Bitcoin ABC</translation>
     </message>
     <message>
         <source>Whitelisted peers cannot be DoS banned and their transactions are always relayed, even if they are already in the mempool, useful e.g. for a gateway</source>
