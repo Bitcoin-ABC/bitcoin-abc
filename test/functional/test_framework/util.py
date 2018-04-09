@@ -363,6 +363,13 @@ def get_auth_cookie(datadir):
     return user, password
 
 
+# If a cookie file exists in the given datadir, delete it.
+def delete_cookie_file(datadir):
+    if os.path.isfile(os.path.join(datadir, "regtest", ".cookie")):
+        logger.debug("Deleting leftover cookie file")
+        os.remove(os.path.join(datadir, "regtest", ".cookie"))
+
+
 def log_filename(dirname, n_node, logname):
     return os.path.join(dirname, "node" + str(n_node), "regtest", logname)
 

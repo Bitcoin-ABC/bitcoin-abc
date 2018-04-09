@@ -19,6 +19,7 @@ from .authproxy import JSONRPCException
 from .messages import COIN, CTransaction, FromHex
 from .util import (
     assert_equal,
+    delete_cookie_file,
     get_rpc_proxy,
     p2p_port,
     rpc_url,
@@ -121,6 +122,10 @@ class TestNode():
             extra_args = self.extra_args
         if stderr is None:
             stderr = self.stderr
+        # Delete any existing cookie file -- if such a file exists (eg due to
+        # unclean shutdown), it will get overwritten anyway by bitcoind, and
+        # potentially interfere with our attempt to authenticate
+        delete_cookie_file(self.datadir)
         self.process = subprocess.Popen(
             [self.binary] + self.default_args + extra_args,
             stderr=stderr, *args, **kwargs)
