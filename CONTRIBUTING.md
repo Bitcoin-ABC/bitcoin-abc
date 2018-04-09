@@ -8,8 +8,8 @@ This guide is intended to help developers contribute effectively to Bitcoin ABC.
 Communicating with Developers
 -----------------------------
 
-To get in contact with ABC developers, we monitor a telegram supergroup.  The 
-intent of this group is specifically to facilitate development of Bitcoin-ABC, 
+To get in contact with ABC developers, we monitor a telegram supergroup.  The
+intent of this group is specifically to facilitate development of Bitcoin-ABC,
 and to welcome people who wish to participate.
 
 https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw
@@ -38,6 +38,7 @@ Here are some tips to help keep the development working as intended:
 - Keep each change small and self-contained.
 - Reach out for a 1-on-1 review so things move quickly.
 - Land the Diff quickly after it is accepted.
+- Don't amend changes after the Diff accepted, new Diff for another fix.
 - Review Diffs from other developers as quickly as possible.
 - Large changes should be broken into logical chunks that are easy to review,
 and keep the code in a functional state.
@@ -47,10 +48,10 @@ on their own.
 in which case it is not possible to do things incrementally. In such cases,
 you keep both implementations in the codebase for a while, as described
 [here](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php)
-- There are no "development" branches, all Diffs apply to the master 
+- There are no "development" branches, all Diffs apply to the master
 branch, and should always improve it (no regressions).
 - Don't break the build, it is important to keep master green as much as possible.
-If a Diff is landed, and breaks the build, fix it quickly. If it cannot be fixed 
+If a Diff is landed, and breaks the build, fix it quickly. If it cannot be fixed
 quickly, it should be reverted, and re-applied later when it no longer breaks the build.
 - Automate as much as possible, and spend time on things only humans can do.
 
@@ -114,7 +115,7 @@ Follow instructions provided by `arc install-certificate` to provide your API to
 6. Code formatting tools
 
 If code formatting tools do not install automatically on your system, you
-may have to install clang-format-4.0 and autopep8. clang-format-4.0.0 can be installed 
+may have to install clang-format-4.0 and autopep8. clang-format-4.0.0 can be installed
 from http://releases.llvm.org/download.html
 
 
@@ -141,7 +142,7 @@ So all you changes for this Diff should be in one Git commit.
 
 - For large changes, break them into several Diffs, as described in this
 [guide](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6).
-You can also include "Depends on Dxxx" in the Arcanist message to indicate 
+You can also include "Depends on Dxxx" in the Arcanist message to indicate
 dependence on other Diffs.
 
 - Log into Phabricator to see review and feedback.
@@ -150,18 +151,18 @@ dependence on other Diffs.
 with my-topic-branch checked out, and then type `arc diff`. Arcanist will
 give you the option to add uncommited changes. Or, alternatively, you can
 commit the changes using `git commit -a --am` to add them to the last commit,
-or squash multiple commits by typing `git rebase -i master`. If you squash, 
-make sure the commit message has the information needed for arcanist (such 
+or squash multiple commits by typing `git rebase -i master`. If you squash,
+make sure the commit message has the information needed for arcanist (such
 as the Diff number, reviewers, etc.).
 
 - Update your Diff by typing `arc diff` again.
 
 - When reviewers approve your Diff, it should be listed as "ready to Land"
 in Phabricator. When you want to commit your diff to the repository, check out
-type my-topic-branch in git, then type `arc land`. You have now succesfully 
+type my-topic-branch in git, then type `arc land`. You have now succesfully
 committed a change to the Bitcoin ABC repository.
 
-- When reviewing a Diff, apply the changeset on your local by using 
+- When reviewing a Diff, apply the changeset on your local by using
 `arc patch D{NNNN}`
 
 
@@ -181,4 +182,3 @@ By contributing to this repository, you agree to license your work under the
 MIT license unless specified otherwise in `contrib/debian/copyright` or at
 the top of the file itself. Any work contributed where you are not the original
 author must contain its license header with the original author(s) and source.
-
