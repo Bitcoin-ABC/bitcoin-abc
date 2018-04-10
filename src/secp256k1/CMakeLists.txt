@@ -1,6 +1,6 @@
 # Copyright (c) 2017 The Bitcoin developers
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 project(secp256k1)
 
 # libsecp256k1 use a different set of flags.
@@ -16,6 +16,9 @@ add_c_compiler_flag(
 	-std=c89
 	-Wno-long-long
 )
+
+# Default visibility is hidden on all targets.
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 # TODO: change this to include when possible
 include_directories(

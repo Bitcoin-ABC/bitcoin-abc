@@ -1,6 +1,13 @@
 # Copyright (c) 2017 The Bitcoin developers
 
+cmake_minimum_required(VERSION 3.5)
+project(BitcoinABC)
+
 set(CMAKE_CXX_STANDARD 11)
+
+# Default visibility is hidden on all targets.
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
