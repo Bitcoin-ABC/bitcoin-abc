@@ -13,6 +13,6 @@ endmacro(create_test_suite)
 
 function(add_test_to_suite SUITE NAME)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARGN})
-	add_test(${NAME} ${NAME} COMMAND ${NAME})
+	add_test(${NAME} ${NAME})
 	add_dependencies("check-${SUITE}" ${NAME})
 endfunction(add_test_to_suite)
