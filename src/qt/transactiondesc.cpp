@@ -100,7 +100,8 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
             if (IsValidDestination(address)) {
                 std::string name;
                 isminetype ismine;
-                if (wallet.getAddress(address, &name, &ismine)) {
+                if (wallet.getAddress(address, &name, &ismine,
+                                      /* purpose= */ nullptr)) {
                     strHTML +=
                         "<b>" + tr("From") + ":</b> " + tr("unknown") + "<br>";
                     strHTML += "<b>" + tr("To") + ":</b> ";
@@ -130,7 +131,9 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
         CTxDestination dest =
             DecodeDestination(strAddress, wallet.getChainParams());
         std::string name;
-        if (wallet.getAddress(dest, &name) && !name.empty()) {
+        if (wallet.getAddress(dest, &name, /* is_mine= */ nullptr,
+                              /* purpose= */ nullptr) &&
+            !name.empty()) {
             strHTML += GUIUtil::HtmlEscape(name) + " ";
         }
         strHTML += GUIUtil::HtmlEscape(strAddress) + "<br>";
@@ -203,7 +206,9 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
                     if (ExtractDestination(txout.scriptPubKey, address)) {
                         strHTML += "<b>" + tr("To") + ":</b> ";
                         std::string name;
-                        if (wallet.getAddress(address, &name) &&
+                        if (wallet.getAddress(address, &name,
+                                              /* is_mine= */ nullptr,
+                                              /* purpose= */ nullptr) &&
                             !name.empty()) {
                             strHTML += GUIUtil::HtmlEscape(name) + " ";
                         }
@@ -374,7 +379,10 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
                 CTxDestination address;
                 if (ExtractDestination(vout.scriptPubKey, address)) {
                     std::string name;
-                    if (wallet.getAddress(address, &name) && !name.empty()) {
+                    if (wallet.getAddress(address, &name,
+                                          /* is_mine= */ nullptr,
+                                          /* purpose= */ nullptr) &&
+                        !name.empty()) {
                         strHTML += GUIUtil::HtmlEscape(name) + " ";
                     }
                     strHTML += QString::fromStdString(

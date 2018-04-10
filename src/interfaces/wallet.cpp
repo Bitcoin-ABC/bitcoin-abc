@@ -163,7 +163,7 @@ namespace {
             return m_wallet.DelAddressBook(dest);
         }
         bool getAddress(const CTxDestination &dest, std::string *name,
-                        isminetype *is_mine) override {
+                        isminetype *is_mine, std::string *purpose) override {
             LOCK(m_wallet.cs_wallet);
             auto it = m_wallet.mapAddressBook.find(dest);
             if (it == m_wallet.mapAddressBook.end()) {
@@ -174,6 +174,9 @@ namespace {
             }
             if (is_mine) {
                 *is_mine = IsMine(m_wallet, dest);
+            }
+            if (purpose) {
+                *purpose = it->second.purpose;
             }
             return true;
         }

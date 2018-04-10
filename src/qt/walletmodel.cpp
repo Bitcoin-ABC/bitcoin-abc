@@ -267,7 +267,8 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
             std::string strLabel = rcp.label.toStdString();
             // Check if we have a new address or an updated label
             std::string name;
-            if (!m_wallet->getAddress(dest, &name)) {
+            if (!m_wallet->getAddress(dest, &name, /* is_mine= */ nullptr,
+                                      /* purpose= */ nullptr)) {
                 m_wallet->setAddressBook(dest, strLabel, "send");
             } else if (name != strLabel) {
                 // "" means don't change purpose
