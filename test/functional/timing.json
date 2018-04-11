@@ -361,7 +361,7 @@
  },
  {
   "name": "wallet_hd.py",
-  "time": 104
+  "time": 3
  },
  {
   "name": "wallet_import_rescan.py",
