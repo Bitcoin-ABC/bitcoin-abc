@@ -60,7 +60,7 @@ void SetupEnvironment();
 bool SetupNetworking();
 
 template <typename... Args> bool error(const char *fmt, const Args &... args) {
-    LogPrintStr("ERROR: " + tfm::format(fmt, args...) + "\n");
+    LogPrintf("ERROR: " + tfm::format(fmt, args...) + "\n");
     return false;
 }
 

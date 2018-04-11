@@ -11,6 +11,7 @@
 #include "crypto/sha256.h"
 #include "fs.h"
 #include "key.h"
+#include "logging.h"
 #include "miner.h"
 #include "net_processing.h"
 #include "pubkey.h"
@@ -38,7 +39,6 @@
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
-extern bool fPrintToConsole;
 extern void noui_connect();
 
 BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
@@ -49,8 +49,10 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
     SetupNetworking();
     InitSignatureCache();
     InitScriptExecutionCache();
+
     // Don't want to write to debug.log file.
-    fPrintToDebugLog = false;
+    GetLogger().fPrintToDebugLog = false;
+
     fCheckBlockIndex = true;
     SelectParams(chainName);
     noui_connect();

@@ -277,7 +277,7 @@ void HandleSIGTERM(int) {
 }
 
 void HandleSIGHUP(int) {
-    fReopenDebugLog = true;
+    GetLogger().fReopenDebugLog = true;
 }
 
 static bool Bind(CConnman &connman, const CService &addr, unsigned int flags) {
@@ -1232,9 +1232,13 @@ static std::string ResolveErrMsg(const char *const optname,
 }
 
 void InitLogging() {
-    fPrintToConsole = gArgs.GetBoolArg("-printtoconsole", false);
-    fLogTimestamps = gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
-    fLogTimeMicros = gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+    BCLog::Logger &logger = GetLogger();
+    logger.fPrintToConsole = gArgs.GetBoolArg("-printtoconsole", false);
+    logger.fLogTimestamps =
+        gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
+    logger.fLogTimeMicros =
+        gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -1751,17 +1755,20 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
 #endif
+
+    BCLog::Logger &logger = GetLogger();
+
     if (gArgs.GetBoolArg("-shrinkdebugfile", logCategories != BCLog::NONE)) {
         // Do this first since it both loads a bunch of debug.log into memory,
         // and because this needs to happen before any other debug.log printing.
         ShrinkDebugFile();
     }
 
-    if (fPrintToDebugLog) {
+    if (logger.fPrintToDebugLog) {
         OpenDebugLog();
     }
 
-    if (!fLogTimestamps) {
+    if (!logger.fLogTimestamps) {
         LogPrintf("Startup time: %s\n",
                   DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
     }

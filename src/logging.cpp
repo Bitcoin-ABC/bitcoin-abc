@@ -12,13 +12,25 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/once.hpp>
 
-bool fPrintToConsole = false;
-bool fPrintToDebugLog = true;
-
-bool fLogTimestamps = DEFAULT_LOGTIMESTAMPS;
-bool fLogTimeMicros = DEFAULT_LOGTIMEMICROS;
 bool fLogIPs = DEFAULT_LOGIPS;
-std::atomic<bool> fReopenDebugLog(false);
+
+/**
+ * NOTE: the logger instance is leaked on exit. This is ugly, but will be
+ * cleaned up by the OS/libc. Defining a logger as a global object doesn't work
+ * since the order of destruction of static/global objects is undefined.
+ * Consider if the logger gets destroyed, and then some later destructor calls
+ * LogPrintf, maybe indirectly, and you get a core dump at shutdown trying to
+ * access the logger. When the shutdown sequence is fully audited and tested,
+ * explicit destruction of these objects can be implemented by changing this
+ * from a raw pointer to a std::unique_ptr.
+ *
+ * This method of initialization was originally introduced in
+ * ee3374234c60aba2cc4c5cd5cac1c0aefc2d817c.
+ */
+BCLog::Logger &GetLogger() {
+    static BCLog::Logger *const logger = new BCLog::Logger();
+    return *logger;
+}
 
 /**
  * Log categories bitfield. Leveldb/libevent need special handling if their
@@ -145,18 +157,12 @@ std::string ListLogCategories() {
     return ret;
 }
 
-/**
- * fStartedNewLine is a state variable held by the calling context that will
- * suppress printing of the timestamp when multiple calls are made that don't
- * end in a newline. Initialize it to true, and hold it, in the calling context.
- */
-static std::string LogTimestampStr(const std::string &str,
-                                   std::atomic_bool *fStartedNewLine) {
+std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
     std::string strStamped;
 
     if (!fLogTimestamps) return str;
 
-    if (*fStartedNewLine) {
+    if (fStartedNewLine) {
         int64_t nTimeMicros = GetLogTimeMicros();
         strStamped =
             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros / 1000000);
@@ -167,19 +173,18 @@ static std::string LogTimestampStr(const std::string &str,
         strStamped = str;
 
     if (!str.empty() && str[str.size() - 1] == '\n')
-        *fStartedNewLine = true;
+        fStartedNewLine = true;
     else
-        *fStartedNewLine = false;
+        fStartedNewLine = false;
 
     return strStamped;
 }
 
-int LogPrintStr(const std::string &str) {
+int BCLog::Logger::LogPrintStr(const std::string &str) {
     // Returns total number of characters written.
     int ret = 0;
-    static std::atomic_bool fStartedNewLine(true);
 
-    std::string strTimestamped = LogTimestampStr(str, &fStartedNewLine);
+    std::string strTimestamped = LogTimestampStr(str);
 
     if (fPrintToConsole) {
         // Print to console.

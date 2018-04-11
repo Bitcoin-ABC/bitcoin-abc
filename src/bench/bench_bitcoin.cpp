@@ -15,7 +15,9 @@ int main(int argc, char **argv) {
     RandomInit();
     ECC_Start();
     SetupEnvironment();
-    fPrintToDebugLog = false; // don't want to write to debug.log file
+
+    // don't want to write to debug.log file
+    GetLogger().fPrintToDebugLog = false;
 
     benchmark::BenchRunner::RunAll();
 
