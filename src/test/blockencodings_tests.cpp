@@ -58,16 +58,16 @@ static CBlock BuildBlockTestCase() {
     return block;
 }
 
-// Number of shared use_counts we expect for a tx we havent touched
-// == 2 (mempool + our copy from the GetSharedTx call)
-#define SHARED_TX_OFFSET 2
+// Number of shared use_counts we expect for a tx we haven't touched
+// (block + mempool + our copy from the GetSharedTx call)
+constexpr long SHARED_TX_OFFSET{3};
 
 BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     CTxMemPool pool;
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
-    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(*block.vtx[2]));
+    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(block.vtx[2]));
     LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
-    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(*block.vtx[2]));
+    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(block.vtx[2]));
     LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
@@ -208,6 +208,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         BOOST_CHECK(partialBlock.IsTxAvailable(1));
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
+        // +1 because of partialBlock
         BOOST_CHECK_EQUAL(
             pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
             SHARED_TX_OFFSET + 1);
@@ -229,6 +230,11 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
             partialBlock.FillBlock(block2, {block.vtx[1]});
             partialBlock = tmp;
         }
+
+        // +2 because of partialBlock and block2
+        BOOST_CHECK_EQUAL(
+            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
+            SHARED_TX_OFFSET + 2);
         bool mutated;
         BOOST_CHECK(block.hashMerkleRoot != BlockMerkleRoot(block2, &mutated));
 
@@ -242,17 +248,24 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
                           BlockMerkleRoot(block3, &mutated).ToString());
         BOOST_CHECK(!mutated);
 
+        // +3 because of partialBlock and block2 and block3
+        BOOST_CHECK_EQUAL(
+            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
+            SHARED_TX_OFFSET + 3);
+
         txhash = block.vtx[2]->GetId();
         block.vtx.clear();
         block2.vtx.clear();
         block3.vtx.clear();
 
-        // + 1 because of partialBlockCopy.
+        // + 1 because of partialBlock; -1 because of block.
         BOOST_CHECK_EQUAL(pool.mapTx.find(txhash)->GetSharedTx().use_count(),
-                          SHARED_TX_OFFSET + 1);
+                          SHARED_TX_OFFSET + 1 - 1);
     }
+
+    // -1 because of block
     BOOST_CHECK_EQUAL(pool.mapTx.find(txhash)->GetSharedTx().use_count(),
-                      SHARED_TX_OFFSET + 0);
+                      SHARED_TX_OFFSET - 1);
 }
 
 BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
@@ -260,7 +273,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
     TestMemPoolEntryHelper entry;
     CBlock block(BuildBlockTestCase());
 
-    pool.addUnchecked(block.vtx[1]->GetId(), entry.FromTx(*block.vtx[1]));
+    pool.addUnchecked(block.vtx[1]->GetId(), entry.FromTx(block.vtx[1]));
     LOCK(pool.cs);
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
@@ -309,12 +322,14 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         block.vtx.clear();
         block2.vtx.clear();
 
-        // + 1 because of partialBlockCopy.
+        // + 1 because of partialBlock; -1 because of block.
         BOOST_CHECK_EQUAL(pool.mapTx.find(txhash)->GetSharedTx().use_count(),
-                          SHARED_TX_OFFSET + 1);
+                          SHARED_TX_OFFSET + 1 - 1);
     }
+
+    // -1 because of block
     BOOST_CHECK_EQUAL(pool.mapTx.find(txhash)->GetSharedTx().use_count(),
-                      SHARED_TX_OFFSET + 0);
+                      SHARED_TX_OFFSET - 1);
 }
 
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {

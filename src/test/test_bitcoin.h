@@ -129,7 +129,8 @@ struct TestMemPoolEntryHelper {
 
     CTxMemPoolEntry FromTx(const CMutableTransaction &tx,
                            CTxMemPool *pool = nullptr);
-    CTxMemPoolEntry FromTx(const CTransaction &tx, CTxMemPool *pool = nullptr);
+    CTxMemPoolEntry FromTx(const CTransactionRef &tx,
+                           CTxMemPool *pool = nullptr);
 
     // Change the default value
     TestMemPoolEntryHelper &Fee(Amount _fee) {

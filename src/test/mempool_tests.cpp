@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
     // Generate 100 transactions
     for (size_t totalTransactions = 0; totalTransactions < 100;
          totalTransactions++) {
-        CMutableTransaction mtx;
+        CMutableTransaction tx;
 
         uint64_t minAncestors = std::numeric_limits<size_t>::max();
         uint64_t maxAncestors = 0;
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
              input > 0; input--) {
             std::swap(outpoints[InsecureRandRange(outpoints.size())],
                       outpoints.back());
-            mtx.vin.emplace_back(outpoints.back());
+            tx.vin.emplace_back(outpoints.back());
             outpoints.pop_back();
 
             // We don't know exactly how many ancestors this transaction has
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
             // parents.
 
             CTxMemPoolEntry parent =
-                *testPool.mapTx.find(mtx.vin.back().prevout.GetTxId());
+                *testPool.mapTx.find(tx.vin.back().prevout.GetTxId());
 
             minAncestors =
                 std::min(minAncestors, parent.GetCountWithAncestors());
@@ -84,10 +84,9 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         // Produce random number of outputs
         for (size_t output = InsecureRandRange(maxOutputs) + 1; output > 0;
              output--) {
-            mtx.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
+            tx.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
         }
 
-        CTransaction tx(mtx);
         TxId curId = tx.GetId();
 
         // Record the outputs
