@@ -304,10 +304,6 @@
   "time": 6
  },
  {
-  "name": "rpc_listtransactions.py",
-  "time": 9
- },
- {
   "name": "rpc_named_arguments.py",
   "time": 0
  },
@@ -406,6 +402,10 @@
  {
   "name": "wallet_listsinceblock.py",
   "time": 4
+ },
+ {
+  "name": "wallet_listtransactions.py",
+  "time": 9
  },
  {
   "name": "wallet_multiwallet.py",
