@@ -1984,6 +1984,9 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
  * The caches and indexes are flushed depending on the mode we're called with if
  * they're too large, if it's been a while since the last write, or always and
  * in all cases if we're in prune mode and are deleting files.
+ *
+ * If FlushStateMode::NONE is used, then FlushStateToDisk(...) won't do anything
+ * besides checking if we need to prune.
  */
 static bool FlushStateToDisk(const CChainParams &chainparams,
                              CValidationState &state, FlushStateMode mode,
@@ -4041,10 +4044,7 @@ bool CChainState::AcceptBlock(const Config &config,
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    if (fCheckForPruning) {
-        // we just allocated more disk space for block files.
-        FlushStateToDisk(config.GetChainParams(), state, FlushStateMode::NONE);
-    }
+    FlushStateToDisk(config.GetChainParams(), state, FlushStateMode::NONE);
 
     CheckBlockIndex(chainparams.GetConsensus());
 
