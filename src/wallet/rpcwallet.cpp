@@ -1682,7 +1682,7 @@ static UniValue listreceivedbyaddress(const Config &config,
             "    \"label\" : \"label\",               (string) The label of "
             "the receiving address. The default label is \"\".\n"
             "    \"txids\": [\n"
-            "       n,                                (numeric) The ids of "
+            "       \"txid\",                         (string) The ids of "
             "transactions received with the address \n"
             "       ...\n"
             "    ]\n"
