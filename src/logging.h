@@ -9,14 +9,16 @@
 
 #include <atomic>
 #include <cstdint>
+#include <list>
 #include <string>
+
+#include <boost/thread/mutex.hpp>
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS = false;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
 
 extern bool fLogIPs;
-extern std::atomic<bool> fReopenDebugLog;
 
 extern std::atomic<uint32_t> logCategories;
 
@@ -50,6 +52,10 @@ enum LogFlags : uint32_t {
 
 class Logger {
 private:
+    FILE *fileout = nullptr;
+    boost::mutex mutexDebugLog;
+    std::list<std::string> vMsgsBeforeOpenLog;
+
     /**
      * fStartedNewLine is a state variable that will suppress printing of the
      * timestamp when multiple calls are made that don't end in a newline.
@@ -67,8 +73,13 @@ public:
 
     std::atomic<bool> fReopenDebugLog{false};
 
+    ~Logger();
+
     /** Send a string to the log output */
     int LogPrintStr(const std::string &str);
+
+    void OpenDebugLog();
+    void ShrinkDebugFile();
 };
 
 } // namespace BCLog
@@ -97,8 +108,5 @@ bool GetLogCategory(uint32_t *f, const std::string *str);
     do {                                                                       \
         GetLogger().LogPrintStr(tfm::format(__VA_ARGS__));                     \
     } while (0)
-
-void OpenDebugLog();
-void ShrinkDebugFile();
 
 #endif // BITCOIN_LOGGING_H

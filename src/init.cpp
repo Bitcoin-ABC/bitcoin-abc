@@ -1764,11 +1764,11 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     if (gArgs.GetBoolArg("-shrinkdebugfile", logCategories != BCLog::NONE)) {
         // Do this first since it both loads a bunch of debug.log into memory,
         // and because this needs to happen before any other debug.log printing.
-        ShrinkDebugFile();
+        logger.ShrinkDebugFile();
     }
 
     if (logger.fPrintToDebugLog) {
-        OpenDebugLog();
+        logger.OpenDebugLog();
     }
 
     if (!logger.fLogTimestamps) {

@@ -9,9 +9,6 @@
 #include "utilstrencodings.h"
 #include "utiltime.h"
 
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/once.hpp>
-
 bool fLogIPs = DEFAULT_LOGIPS;
 
 /**
@@ -38,60 +35,25 @@ BCLog::Logger &GetLogger() {
  */
 std::atomic<uint32_t> logCategories(0);
 
-/**
- * LogPrintf() has been broken a couple of times now by well-meaning people
- * adding mutexes in the most straightforward way. It breaks because it may be
- * called by global destructors during shutdown. Since the order of destruction
- * of static/global objects is undefined, defining a mutex as a global object
- * doesn't work (the mutex gets destroyed, and then some later destructor calls
- * OutputDebugStringF, maybe indirectly, and you get a core dump at shutdown
- * trying to lock the mutex).
- */
-static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
-
-/**
- * We use boost::call_once() to make sure mutexDebugLog and vMsgsBeforeOpenLog
- * are initialized in a thread-safe manner.
- *
- * NOTE: fileout, mutexDebugLog and sometimes vMsgsBeforeOpenLog are leaked on
- * exit. This is ugly, but will be cleaned up by the OS/libc. When the shutdown
- * sequence is fully audited and tested, explicit destruction of these objects
- * can be implemented.
- */
-static FILE *fileout = nullptr;
-static boost::mutex *mutexDebugLog = nullptr;
-static std::list<std::string> *vMsgsBeforeOpenLog;
-
 static int FileWriteStr(const std::string &str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
-static void DebugPrintInit() {
-    assert(mutexDebugLog == nullptr);
-    mutexDebugLog = new boost::mutex();
-    vMsgsBeforeOpenLog = new std::list<std::string>;
-}
-
-void OpenDebugLog() {
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-    boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
+void BCLog::Logger::OpenDebugLog() {
+    boost::mutex::scoped_lock scoped_lock(mutexDebugLog);
 
     assert(fileout == nullptr);
-    assert(vMsgsBeforeOpenLog);
     fs::path pathDebug = GetDataDir() / "debug.log";
     fileout = fsbridge::fopen(pathDebug, "a");
     if (fileout) {
         // Unbuffered.
         setbuf(fileout, nullptr);
         // Dump buffered messages from before we opened the log.
-        while (!vMsgsBeforeOpenLog->empty()) {
-            FileWriteStr(vMsgsBeforeOpenLog->front(), fileout);
-            vMsgsBeforeOpenLog->pop_front();
+        while (!vMsgsBeforeOpenLog.empty()) {
+            FileWriteStr(vMsgsBeforeOpenLog.front(), fileout);
+            vMsgsBeforeOpenLog.pop_front();
         }
     }
-
-    delete vMsgsBeforeOpenLog;
-    vMsgsBeforeOpenLog = nullptr;
 }
 
 struct CLogCategoryDesc {
@@ -157,6 +119,12 @@ std::string ListLogCategories() {
     return ret;
 }
 
+BCLog::Logger::~Logger() {
+    if (fileout) {
+        fclose(fileout);
+    }
+}
+
 std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
     std::string strStamped;
 
@@ -191,14 +159,12 @@ int BCLog::Logger::LogPrintStr(const std::string &str) {
         ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
         fflush(stdout);
     } else if (fPrintToDebugLog) {
-        boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-        boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
+        boost::mutex::scoped_lock scoped_lock(mutexDebugLog);
 
         // Buffer if we haven't opened the log yet.
         if (fileout == nullptr) {
-            assert(vMsgsBeforeOpenLog);
             ret = strTimestamped.length();
-            vMsgsBeforeOpenLog->push_back(strTimestamped);
+            vMsgsBeforeOpenLog.push_back(strTimestamped);
         } else {
             // Reopen the log file, if requested.
             if (fReopenDebugLog) {
@@ -216,7 +182,7 @@ int BCLog::Logger::LogPrintStr(const std::string &str) {
     return ret;
 }
 
-void ShrinkDebugFile() {
+void BCLog::Logger::ShrinkDebugFile() {
     // Amount of debug.log to save at end when shrinking (must fit in memory)
     constexpr size_t RECENT_DEBUG_HISTORY_SIZE = 10 * 1000000;
     // Scroll debug.log if it's getting too big.
