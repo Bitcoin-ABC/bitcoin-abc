@@ -1387,13 +1387,13 @@ bool AppInitParameterInteraction(Config &config) {
         if (find(categories.begin(), categories.end(), std::string("0")) ==
             categories.end()) {
             for (const auto &cat : categories) {
-                uint32_t flag = 0;
-                if (!GetLogCategory(&flag, &cat)) {
+                BCLog::LogFlags flag;
+                if (!GetLogCategory(flag, cat)) {
                     InitWarning(
                         strprintf(_("Unsupported logging category %s=%s."),
                                   "-debug", cat));
                 }
-                logCategories |= flag;
+                GetLogger().EnableCategory(flag);
             }
         }
     }
@@ -1401,12 +1401,12 @@ bool AppInitParameterInteraction(Config &config) {
     // Now remove the logging categories which were explicitly excluded
     if (gArgs.IsArgSet("-debugexclude")) {
         for (const std::string &cat : gArgs.GetArgs("-debugexclude")) {
-            uint32_t flag;
-            if (!GetLogCategory(&flag, &cat)) {
+            BCLog::LogFlags flag;
+            if (!GetLogCategory(flag, cat)) {
                 InitWarning(strprintf(_("Unsupported logging category %s=%s."),
                                       "-debugexclude", cat));
             }
-            logCategories &= ~flag;
+            GetLogger().DisableCategory(flag);
         }
     }
 
@@ -1761,7 +1761,8 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
 
     BCLog::Logger &logger = GetLogger();
 
-    if (gArgs.GetBoolArg("-shrinkdebugfile", logCategories != BCLog::NONE)) {
+    bool default_shrinkdebugfile = logger.DefaultShrinkDebugFile();
+    if (gArgs.GetBoolArg("-shrinkdebugfile", default_shrinkdebugfile)) {
         // Do this first since it both loads a bunch of debug.log into memory,
         // and because this needs to happen before any other debug.log printing.
         logger.ShrinkDebugFile();

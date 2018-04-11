@@ -20,8 +20,6 @@ static const bool DEFAULT_LOGTIMESTAMPS = true;
 
 extern bool fLogIPs;
 
-extern std::atomic<uint32_t> logCategories;
-
 namespace BCLog {
 
 enum LogFlags : uint32_t {
@@ -62,6 +60,12 @@ private:
      */
     std::atomic_bool fStartedNewLine{true};
 
+    /**
+     * Log categories bitfield. Leveldb/libevent need special handling if their
+     * flags are changed at runtime.
+     */
+    std::atomic<uint32_t> logCategories{0};
+
     std::string LogTimestampStr(const std::string &str);
 
 public:
@@ -80,6 +84,15 @@ public:
 
     void OpenDebugLog();
     void ShrinkDebugFile();
+
+    void EnableCategory(LogFlags category);
+    void DisableCategory(LogFlags category);
+
+    /** Return true if log accepts specified category */
+    bool WillLogCategory(LogFlags category) const;
+
+    /** Default for whether ShrinkDebugFile should be run */
+    bool DefaultShrinkDebugFile() const;
 };
 
 } // namespace BCLog
@@ -87,15 +100,15 @@ public:
 BCLog::Logger &GetLogger();
 
 /** Return true if log accepts specified category */
-static inline bool LogAcceptCategory(uint32_t category) {
-    return (logCategories.load(std::memory_order_relaxed) & category) != 0;
+static inline bool LogAcceptCategory(BCLog::LogFlags category) {
+    return GetLogger().WillLogCategory(category);
 }
 
 /** Returns a string with the supported log categories */
 std::string ListLogCategories();
 
-/** Return true if str parses as a log category and set the flags in f */
-bool GetLogCategory(uint32_t *f, const std::string *str);
+/** Return true if str parses as a log category and set the flag */
+bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
 
 #define LogPrint(category, ...)                                                \
     do {                                                                       \

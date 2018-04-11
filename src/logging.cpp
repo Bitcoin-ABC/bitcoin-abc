@@ -29,12 +29,6 @@ BCLog::Logger &GetLogger() {
     return *logger;
 }
 
-/**
- * Log categories bitfield. Leveldb/libevent need special handling if their
- * flags are changed at runtime.
- */
-std::atomic<uint32_t> logCategories(0);
-
 static int FileWriteStr(const std::string &str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
@@ -57,7 +51,7 @@ void BCLog::Logger::OpenDebugLog() {
 }
 
 struct CLogCategoryDesc {
-    uint32_t flag;
+    BCLog::LogFlags flag;
     std::string category;
 };
 
@@ -88,17 +82,15 @@ const CLogCategoryDesc LogCategories[] = {
     {BCLog::ALL, "all"},
 };
 
-bool GetLogCategory(uint32_t *f, const std::string *str) {
-    if (f && str) {
-        if (*str == "") {
-            *f = BCLog::ALL;
+bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str) {
+    if (str == "") {
+        flag = BCLog::ALL;
+        return true;
+    }
+    for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
+        if (LogCategories[i].category == str) {
+            flag = LogCategories[i].flag;
             return true;
-        }
-        for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
-            if (LogCategories[i].category == *str) {
-                *f = LogCategories[i].flag;
-                return true;
-            }
         }
     }
     return false;
@@ -205,4 +197,20 @@ void BCLog::Logger::ShrinkDebugFile() {
         }
     } else if (file != nullptr)
         fclose(file);
+}
+
+void BCLog::Logger::EnableCategory(LogFlags category) {
+    logCategories |= category;
+}
+
+void BCLog::Logger::DisableCategory(LogFlags category) {
+    logCategories &= ~category;
+}
+
+bool BCLog::Logger::WillLogCategory(LogFlags category) const {
+    return (logCategories.load(std::memory_order_relaxed) & category) != 0;
+}
+
+bool BCLog::Logger::DefaultShrinkDebugFile() const {
+    return logCategories != BCLog::NONE;
 }
