@@ -202,6 +202,7 @@ public:
                               const CAccountingEntry &acentry);
     bool ReadAccount(const std::string &strAccount, CAccount &account);
     bool WriteAccount(const std::string &strAccount, const CAccount &account);
+    bool EraseAccount(const std::string &strAccount);
 
     /// Write destination data key,value tuple to database.
     bool WriteDestData(const CTxDestination &address, const std::string &key,

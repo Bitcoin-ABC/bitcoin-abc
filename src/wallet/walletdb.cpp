@@ -179,6 +179,10 @@ bool WalletBatch::WriteAccount(const std::string &strAccount,
     return WriteIC(std::make_pair(std::string("acc"), strAccount), account);
 }
 
+bool WalletBatch::EraseAccount(const std::string &strAccount) {
+    return EraseIC(std::make_pair(std::string("acc"), strAccount));
+}
+
 bool WalletBatch::WriteAccountingEntry(const uint64_t nAccEntryNum,
                                        const CAccountingEntry &acentry) {
     return WriteIC(

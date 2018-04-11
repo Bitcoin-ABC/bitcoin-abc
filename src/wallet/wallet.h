@@ -575,7 +575,7 @@ public:
 };
 
 /**
- * Internal transfers.
+ * DEPRECATED Internal transfers.
  * Database key is acentry<account><counter>.
  */
 class CAccountingEntry {
@@ -1154,6 +1154,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     std::set<CTxDestination> GetLabelAddresses(const std::string &label) const;
+    void DeleteLabel(const std::string &label);
 
     isminetype IsMine(const CTxIn &txin) const;
     /**
@@ -1366,7 +1367,7 @@ public:
 };
 
 /**
- * Account information.
+ * DEPRECATED Account information.
  * Stored in wallet with key "acc"+string account name.
  */
 class CAccount {

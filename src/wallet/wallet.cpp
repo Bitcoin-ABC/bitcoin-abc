@@ -3968,6 +3968,11 @@ CWallet::GetLabelAddresses(const std::string &label) const {
     return result;
 }
 
+void CWallet::DeleteLabel(const std::string &label) {
+    WalletBatch batch(*database);
+    batch.EraseAccount(label);
+}
+
 bool CReserveKey::GetReservedKey(CPubKey &pubkey, bool internal) {
     if (nIndex == -1) {
         CKeyPool keypool;
