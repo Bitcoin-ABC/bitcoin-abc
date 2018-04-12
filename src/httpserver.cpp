@@ -6,6 +6,7 @@
 
 #include "chainparamsbase.h"
 #include "compat.h"
+#include "config.h"
 #include "netbase.h"
 #include "rpc/protocol.h" // For HTTP status codes
 #include "sync.h"
@@ -39,6 +40,12 @@
 /** Maximum size of http request (request line + headers) */
 static const size_t MAX_HEADERS_SIZE = 8192;
 
+/**
+ * Maximum HTTP post body size. Twice the maximum block size is added to this
+ * value in practice.
+ */
+static const size_t MIN_SUPPORTED_BODY_SIZE = 0x02000000;
+
 /** HTTP request work item */
 class HTTPWorkItem final : public HTTPClosure {
 public:
@@ -56,7 +63,8 @@ private:
     Config *config;
 };
 
-/** Simple work queue for distributing work over multiple threads.
+/**
+ * Simple work queue for distributing work over multiple threads.
  * Work items are simply callable objects.
  */
 template <typename WorkItem> class WorkQueue {
@@ -416,7 +424,8 @@ bool InitHTTPServer(Config &config) {
     evhttp_set_timeout(
         http, gArgs.GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT));
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE);
-    evhttp_set_max_body_size(http, MAX_SIZE);
+    evhttp_set_max_body_size(
+        http, MIN_SUPPORTED_BODY_SIZE + 2 * config.GetMaxBlockSize());
     evhttp_set_gencb(http, http_request_cb, &config);
 
     if (!HTTPBindAddresses(http)) {

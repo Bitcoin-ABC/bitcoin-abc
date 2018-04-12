@@ -426,6 +426,11 @@ class FullBlockTest(ComparisonTestFramework):
         update_block(32, [spend_p2sh_tx(max_p2sh_sigops)])
         yield accepted()
 
+        # Submit a very large block via RPC
+        large_block = block(
+            33, spend=out[24], block_size=self.excessive_block_size)
+        node.submitblock(ToHex(large_block))
+
 
 if __name__ == '__main__':
     FullBlockTest().main()
