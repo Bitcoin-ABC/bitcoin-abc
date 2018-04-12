@@ -88,4 +88,9 @@ typedef std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>
  */
 CKeyID GetKeyForDestination(const CKeyStore &store, const CTxDestination &dest);
 
+/**
+ * Checks if a CKey is in the given CKeyStore compressed or otherwise
+ */
+bool HaveKey(const CKeyStore &store, const CKey &key);
+
 #endif // BITCOIN_KEYSTORE_H
