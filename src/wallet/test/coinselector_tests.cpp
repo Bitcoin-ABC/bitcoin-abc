@@ -666,18 +666,8 @@ BOOST_AUTO_TEST_CASE(SelectCoins_test) {
     std::exponential_distribution<double> distribution(100);
     FastRandomContext rand;
 
-    // Output stuff
-    Amount out_value = Amount::zero();
-    CoinSet out_set;
-    Amount target = Amount::zero();
-    bool bnb_used;
-
     // Run this test 100 times
     for (int i = 0; i < 100; ++i) {
-        // Reset
-        out_value = Amount::zero();
-        target = Amount::zero();
-        out_set.clear();
         empty_wallet();
 
         // Make a wallet with 1000 exponentially distributed random inputs
@@ -690,7 +680,7 @@ BOOST_AUTO_TEST_CASE(SelectCoins_test) {
         CFeeRate rate(int64_t(rand.randrange(300) + 100) * SATOSHI);
 
         // Generate a random target value between 1000 and wallet balance
-        target =
+        Amount target =
             int64_t(rand.randrange(balance / SATOSHI - 1000) + 1000) * SATOSHI;
 
         // Perform selection
@@ -698,6 +688,9 @@ BOOST_AUTO_TEST_CASE(SelectCoins_test) {
             false, 34, 148, CFeeRate(Amount::zero()), 0);
         CoinSelectionParams coin_selection_params_bnb(
             true, 34, 148, CFeeRate(Amount::zero()), 0);
+        CoinSet out_set;
+        Amount out_value = Amount::zero();
+        bool bnb_used;
         BOOST_CHECK(m_wallet.SelectCoinsMinConf(
                         target, filter_standard, vCoins, out_set, out_value,
                         coin_selection_params_bnb, bnb_used) ||
