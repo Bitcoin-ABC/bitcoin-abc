@@ -1618,7 +1618,8 @@ bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout) const {
     const CScript &scriptPubKey = txout.scriptPubKey;
     SignatureData sigdata;
 
-    if (!ProduceSignature(DummySignatureCreator(this), scriptPubKey, sigdata)) {
+    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR, scriptPubKey,
+                          sigdata)) {
         return false;
     }
 
@@ -2807,8 +2808,9 @@ bool CWallet::SignTransaction(CMutableTransaction &tx) {
         const Amount amount = mi->second.tx->vout[input.prevout.GetN()].nValue;
         SignatureData sigdata;
         SigHashType sigHashType = SigHashType().withForkId();
-        if (!ProduceSignature(TransactionSignatureCreator(
-                                  this, &txNewConst, nIn, amount, sigHashType),
+        if (!ProduceSignature(*this,
+                              TransactionSignatureCreator(&txNewConst, nIn,
+                                                          amount, sigHashType),
                               scriptPubKey, sigdata)) {
             return false;
         }
@@ -3276,10 +3278,11 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 const CScript &scriptPubKey = coin.txout.scriptPubKey;
                 SignatureData sigdata;
 
-                if (!ProduceSignature(TransactionSignatureCreator(
-                                          this, &txNewConst, nIn,
-                                          coin.txout.nValue, sigHashType),
-                                      scriptPubKey, sigdata)) {
+                if (!ProduceSignature(
+                        *this,
+                        TransactionSignatureCreator(
+                            &txNewConst, nIn, coin.txout.nValue, sigHashType),
+                        scriptPubKey, sigdata)) {
                     strFailReason = _("Signing transaction failed");
                     return false;
                 }

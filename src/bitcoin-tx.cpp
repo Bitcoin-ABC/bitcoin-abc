@@ -669,8 +669,9 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mergedTx.vout.size())) {
-            ProduceSignature(MutableTransactionSignatureCreator(
-                                 &keystore, &mergedTx, i, amount, sigHashType),
+            ProduceSignature(keystore,
+                             MutableTransactionSignatureCreator(
+                                 &mergedTx, i, amount, sigHashType),
                              prevPubKey, sigdata);
         }
 

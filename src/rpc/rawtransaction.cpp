@@ -983,8 +983,9 @@ UniValue SignTransaction(CMutableTransaction &mtx,
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mtx.vout.size())) {
-            ProduceSignature(MutableTransactionSignatureCreator(
-                                 keystore, &mtx, i, amount, sigHashType),
+            ProduceSignature(*keystore,
+                             MutableTransactionSignatureCreator(&mtx, i, amount,
+                                                                sigHashType),
                              prevPubKey, sigdata);
         }
         sigdata = CombineSignatures(

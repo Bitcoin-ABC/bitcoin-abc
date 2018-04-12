@@ -26,20 +26,15 @@ public:
     virtual bool GetKey(const CKeyID &address, CKey &key) const = 0;
 };
 
-/** Virtual base class for signature creators. */
+/** Interface for signature creators. */
 class BaseSignatureCreator {
-protected:
-    const SigningProvider *m_provider;
-
 public:
-    explicit BaseSignatureCreator(const SigningProvider *provider)
-        : m_provider(provider) {}
-    const SigningProvider &Provider() const { return *m_provider; }
     virtual ~BaseSignatureCreator() {}
     virtual const BaseSignatureChecker &Checker() const = 0;
 
     /** Create a singular (non-script) signature. */
-    virtual bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
+    virtual bool CreateSig(const SigningProvider &provider,
+                           std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                            const CScript &scriptCode) const = 0;
 };
 
@@ -52,12 +47,12 @@ class TransactionSignatureCreator : public BaseSignatureCreator {
     const TransactionSignatureChecker checker;
 
 public:
-    TransactionSignatureCreator(const SigningProvider *provider,
-                                const CTransaction *txToIn, unsigned int nInIn,
+    TransactionSignatureCreator(const CTransaction *txToIn, unsigned int nInIn,
                                 const Amount amountIn,
                                 SigHashType sigHashTypeIn = SigHashType());
     const BaseSignatureChecker &Checker() const override { return checker; }
-    bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
+    bool CreateSig(const SigningProvider &provider,
+                   std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                    const CScript &scriptCode) const override;
 };
 
@@ -65,25 +60,16 @@ class MutableTransactionSignatureCreator : public TransactionSignatureCreator {
     CTransaction tx;
 
 public:
-    MutableTransactionSignatureCreator(const SigningProvider *provider,
-                                       const CMutableTransaction *txToIn,
+    MutableTransactionSignatureCreator(const CMutableTransaction *txToIn,
                                        unsigned int nInIn,
                                        const Amount amountIn,
                                        SigHashType sigHashTypeIn)
-        : TransactionSignatureCreator(provider, &tx, nInIn, amountIn,
-                                      sigHashTypeIn),
+        : TransactionSignatureCreator(&tx, nInIn, amountIn, sigHashTypeIn),
           tx(*txToIn) {}
 };
 
 /** A signature creator that just produces 72-byte empty signatures. */
-class DummySignatureCreator : public BaseSignatureCreator {
-public:
-    explicit DummySignatureCreator(const SigningProvider *provider)
-        : BaseSignatureCreator(provider) {}
-    const BaseSignatureChecker &Checker() const override;
-    bool CreateSig(std::vector<uint8_t> &vchSig, const CKeyID &keyid,
-                   const CScript &scriptCode) const override;
-};
+extern const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR;
 
 struct SignatureData {
     CScript scriptSig;
@@ -93,7 +79,8 @@ struct SignatureData {
 };
 
 /** Produce a script signature using a generic signature creator. */
-bool ProduceSignature(const BaseSignatureCreator &creator,
+bool ProduceSignature(const SigningProvider &provider,
+                      const BaseSignatureCreator &creator,
                       const CScript &scriptPubKey, SignatureData &sigdata);
 
 /** Produce a script signature for a transaction. */
