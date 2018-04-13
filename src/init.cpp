@@ -73,15 +73,20 @@ std::unique_ptr<PeerLogicValidation> peerLogic;
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
 public:
-    std::string GetHelpString(bool showDebug) override { return std::string{}; }
-    bool ParameterInteraction() override { return true; }
-    void RegisterRPC(CRPCTable &) override {}
-    bool Verify(const CChainParams &chainParams) override { return true; }
-    bool Open(const CChainParams &chainParams) override { return true; }
-    void Start(CScheduler &scheduler) override {}
-    void Flush() override {}
-    void Stop() override {}
-    void Close() override {}
+    std::string GetHelpString(bool showDebug) const override {
+        return std::string{};
+    }
+    bool ParameterInteraction() const override { return true; }
+    void RegisterRPC(CRPCTable &) const override {}
+    bool Verify(const CChainParams &chainParams) const override { return true; }
+    bool Open(const CChainParams &chainParams) const override {
+        LogPrintf("No wallet support compiled in!\n");
+        return true;
+    }
+    void Start(CScheduler &scheduler) const override {}
+    void Flush() const override {}
+    void Stop() const override {}
+    void Close() const override {}
 };
 
 static DummyWalletInit g_dummy_wallet_init;
