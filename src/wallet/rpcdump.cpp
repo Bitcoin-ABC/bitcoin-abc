@@ -191,7 +191,16 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         }
     }
     if (fRescan) {
-        pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        int64_t scanned_time =
+            pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        if (pwallet->IsAbortingRescan()) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted by user.");
+        }
+        if (scanned_time > TIMESTAMP_MIN) {
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "Rescan was unable to fully rescan the "
+                               "blockchain. Some transactions may be missing.");
+        }
     }
 
     return NullUniValue;
@@ -358,7 +367,16 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         }
     }
     if (fRescan) {
-        pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        int64_t scanned_time =
+            pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        if (pwallet->IsAbortingRescan()) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted by user.");
+        }
+        if (scanned_time > TIMESTAMP_MIN) {
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "Rescan was unable to fully rescan the "
+                               "blockchain. Some transactions may be missing.");
+        }
         pwallet->ReacceptWalletTransactions();
     }
 
@@ -570,7 +588,16 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
         pwallet->LearnAllRelatedScripts(pubKey);
     }
     if (fRescan) {
-        pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        int64_t scanned_time =
+            pwallet->RescanFromTime(TIMESTAMP_MIN, reserver, true /* update */);
+        if (pwallet->IsAbortingRescan()) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted by user.");
+        }
+        if (scanned_time > TIMESTAMP_MIN) {
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               "Rescan was unable to fully rescan the "
+                               "blockchain. Some transactions may be missing.");
+        }
         pwallet->ReacceptWalletTransactions();
     }
 
@@ -629,13 +656,20 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg());
         file.seekg(0, file.beg);
 
+        // Use uiInterface.ShowProgress instead of pwallet.ShowProgress because
+        // pwallet.ShowProgress has a cancel button tied to AbortRescan which we
+        // don't want for this progress bar showing the import progress.
+        // uiInterface.ShowProgress does not have a cancel button.
+
         // show progress dialog in GUI
-        pwallet->ShowProgress(_("Importing..."), 0);
+        uiInterface.ShowProgress(_("Importing..."), 0, false);
         while (file.good()) {
-            pwallet->ShowProgress(
-                "", std::max(1, std::min(99, (int)(((double)file.tellg() /
-                                                    (double)nFilesize) *
-                                                   100))));
+            uiInterface.ShowProgress(
+                "",
+                std::max(1, std::min(99, (int)(((double)file.tellg() /
+                                                (double)nFilesize) *
+                                               100))),
+                false);
             std::string line;
             std::getline(file, line);
             if (line.empty() || line[0] == '#') {
@@ -711,10 +745,21 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         file.close();
 
         // hide progress dialog in GUI
-        pwallet->ShowProgress("", 100);
+        uiInterface.ShowProgress("", 100, false);
         pwallet->UpdateTimeFirstKey(nTimeBegin);
     }
-    pwallet->RescanFromTime(nTimeBegin, reserver, false /* update */);
+    // hide progress dialog in GUI
+    uiInterface.ShowProgress("", 100, false);
+    int64_t scanned_time =
+        pwallet->RescanFromTime(nTimeBegin, reserver, false /* update */);
+    if (pwallet->IsAbortingRescan()) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted by user.");
+    }
+    if (scanned_time > nTimeBegin) {
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           "Rescan was unable to fully rescan the blockchain. "
+                           "Some transactions may be missing.");
+    }
     pwallet->MarkDirty();
 
     if (!fGood) {
@@ -1412,6 +1457,9 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
             nLowestTimestamp, reserver, true /* update */);
         pwallet->ReacceptWalletTransactions();
 
+        if (pwallet->IsAbortingRescan()) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted by user.");
+        }
         if (scannedTime > nLowestTimestamp) {
             std::vector<UniValue> results = response.getValues();
             response.clear();
