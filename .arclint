@@ -135,6 +135,13 @@
         "lint-python-encoding": {
             "type": "lint-python-encoding",
             "include": "(\\.py$)"
+        },
+        "lint-python-shebang": {
+            "type": "lint-python-shebang",
+            "include": "(\\.py$)",
+            "exclude": [
+                "(__init__\\.py$)"
+            ]
         }
     }
 }

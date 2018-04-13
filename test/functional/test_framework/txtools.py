@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import random
 
 from .cdefs import MAX_TXOUT_PUBKEY_SCRIPT, MIN_TX_SIZE

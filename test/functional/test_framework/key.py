@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2011 Sam Rushing
 """ECC secp256k1 OpenSSL wrapper.
 
