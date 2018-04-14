@@ -1109,6 +1109,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         // Subset of script starting at the most recent
                         // codeseparator
                         CScript scriptCode(pbegincodehash, pend);
+
+                        // Remove signature for pre-fork scripts
                         CleanupScriptCode(scriptCode, vchSig, flags);
 
                         bool fSuccess = checker.CheckSig(vchSig, vchPubKey,
@@ -1181,8 +1183,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         // codeseparator
                         CScript scriptCode(pbegincodehash, pend);
 
-                        // Drop the signature in pre-segwit scripts but not
-                        // segwit scripts
+                        // Remove signature for pre-fork scripts
                         for (int k = 0; k < nSigsCount; k++) {
                             valtype &vchSig = stacktop(-isig - k);
                             CleanupScriptCode(scriptCode, vchSig, flags);
