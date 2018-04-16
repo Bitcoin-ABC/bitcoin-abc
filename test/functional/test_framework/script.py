@@ -411,7 +411,7 @@ class CScriptNum:
             r.append(0x80 if neg else 0)
         elif neg:
             r[-1] |= 0x80
-        return bytes(bytes([len(r)]) + r)
+        return bytes([len(r)]) + r
 
 
 class CScript(bytes):
