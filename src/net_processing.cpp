@@ -1189,6 +1189,36 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
     Misbehaving(node->GetId(), howmuch, reason);
 }
 
+static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
+    return (state.GetDoS() > 0);
+}
+
+/**
+ * Potentially ban a node based on the contents of a CValidationState object
+ * TODO: net_processing should make the punish decision based on the reason
+ * a tx/block was invalid, rather than just the nDoS score handed back by
+ * validation.
+ *
+ * @parameter via_compact_block: this bool is passed in because net_processing
+ * should punish peers differently depending on whether the data was provided in
+ * a compact block message or not. If the compact block had a valid header, but
+ * contained invalid txs, the peer should not be punished. See BIP 152.
+ */
+static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
+                            bool via_compact_block,
+                            const std::string &message = "") {
+    int nDoS = state.GetDoS();
+    if (nDoS > 0 && !via_compact_block) {
+        LOCK(cs_main);
+        Misbehaving(nodeid, nDoS, message);
+        return true;
+    }
+    if (message != "") {
+        LogPrint(BCLog::NET, "peer=%d: %s\n", nodeid, message);
+    }
+    return false;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // blockchain -> download logic notification
@@ -1394,8 +1424,7 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
     std::map<uint256, std::pair<NodeId, bool>>::iterator it =
         mapBlockSource.find(hash);
 
-    int nDoS = 0;
-    if (state.IsInvalid(nDoS)) {
+    if (state.IsInvalid()) {
         // Don't send reject message with code 0 or an internal reject code.
         if (it != mapBlockSource.end() && State(it->second.first) &&
             state.GetRejectCode() > 0 &&
@@ -1405,9 +1434,8 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
                 state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
                 hash};
             State(it->second.first)->rejects.push_back(reject);
-            if (nDoS > 0 && it->second.second) {
-                Misbehaving(it->second.first, nDoS, state.GetRejectReason());
-            }
+            MaybePunishNode(/*nodeid=*/it->second.first, state,
+                            /*via_compact_block=*/!it->second.second);
         }
     }
     // Check that:
@@ -1895,12 +1923,9 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     CBlockHeader first_invalid_header;
     if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast,
                                 &first_invalid_header)) {
-        int nDoS;
-        if (state.IsInvalid(nDoS)) {
+        if (state.IsInvalid()) {
+            // The lock is required here due to LookupBlockIndex
             LOCK(cs_main);
-            if (nDoS > 0) {
-                Misbehaving(pfrom, nDoS, state.GetRejectReason());
-            }
             if (punish_duplicate_invalid &&
                 LookupBlockIndex(first_invalid_header.GetHash())) {
                 // Goal: don't allow outbound peers to use up our outbound
@@ -1936,7 +1961,9 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
                 // not just the duplicate-invalid case.
                 pfrom->fDisconnect = true;
             }
-            return error("invalid header received");
+            MaybePunishNode(pfrom->GetId(), state, /*via_compact_block*/ false,
+                            "invalid header received");
+            return false;
         }
     }
 
@@ -2110,10 +2137,9 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
         const CTransaction &orphanTx = *porphanTx;
         NodeId fromPeer = orphan_it->second.fromPeer;
         bool fMissingInputs2 = false;
-        // Use a dummy CValidationState so someone can't setup nodes to
-        // counter-DoS based on orphan resolution (that is, feeding
-        // people an invalid transaction based on LegitTxX in order to
-        // get anyone relaying LegitTxX banned)
+        // Use a new CValidationState because orphans come from different peers
+        // (and we call MaybePunishNode based on the source peer from the orphan
+        // map, not based on the peer that relayed the previous transaction).
         CValidationState orphan_state;
 
         auto it = rejectCountPerNode.find(fromPeer);
@@ -2140,16 +2166,12 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             EraseOrphanTx(orphanTxId);
             done = true;
         } else if (!fMissingInputs2) {
-            int nDos = 0;
-            if (orphan_state.IsInvalid(nDos)) {
-                rejectCountPerNode[fromPeer]++;
-                if (nDos > 0) {
-                    // Punish peer that gave us an invalid orphan tx
-                    Misbehaving(fromPeer, nDos, "invalid-orphan-tx");
-                    LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n",
-                             orphanTxId.ToString());
-                }
-                EraseOrphanTx(orphanTxId);
+            if (orphan_state.IsInvalid()) {
+                // Punish peer that gave us an invalid orphan tx
+                MaybePunishNode(fromPeer, orphan_state,
+                                /*via_compact_block*/ false);
+                LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n",
+                         orphanTxId.ToString());
             }
             // Has inputs but not accepted to mempool
             // Probably non-standard or insufficient fee
@@ -3017,8 +3039,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 // Never relay transactions that we would assign a non-zero DoS
                 // score for, as we expect peers to do the same with us in that
                 // case.
-                int nDoS = 0;
-                if (!state.IsInvalid(nDoS) || nDoS == 0) {
+                if (!state.IsInvalid() ||
+                    !TxRelayMayResultInDisconnect(state)) {
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n",
                               tx.GetId().ToString(), pfrom->GetId());
                     RelayTransaction(tx.GetId(), *connman);
@@ -3048,13 +3070,12 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         // peer simply for relaying a tx that our recentRejects has caught,
         // regardless of false positives.
 
-        int nDoS = 0;
-        if (state.IsInvalid(nDoS)) {
+        if (state.IsInvalid()) {
             LogPrint(BCLog::MEMPOOLREJ,
                      "%s from peer=%d was not accepted: %s\n",
                      tx.GetHash().ToString(), pfrom->GetId(),
                      FormatStateMessage(state));
-            // Never send AcceptToMemoryPool's internal codes over P2P.
+            // Never send AcceptToMemoryPool's internal codes over P2P
             if (enable_bip61 && state.GetRejectCode() > 0 &&
                 state.GetRejectCode() < REJECT_INTERNAL) {
                 connman->PushMessage(
@@ -3064,9 +3085,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                                              0, MAX_REJECT_MESSAGE_LENGTH),
                                          inv.hash));
             }
-            if (nDoS > 0) {
-                Misbehaving(pfrom, nDoS, state.GetRejectReason());
-            }
+            MaybePunishNode(pfrom->GetId(), state, /*via_compact_block*/ false);
         }
         return true;
     }
@@ -3110,18 +3129,23 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         CValidationState state;
         if (!ProcessNewBlockHeaders(config, {cmpctblock.header}, state,
                                     &pindex)) {
-            int nDoS;
-            if (state.IsInvalid(nDoS)) {
-                if (nDoS > 0) {
-                    LogPrintf("Peer %d sent us invalid header via cmpctblock\n",
-                              pfrom->GetId());
-                    LOCK(cs_main);
-                    Misbehaving(pfrom, nDoS, state.GetRejectReason());
-                } else {
-                    LogPrint(BCLog::NET,
-                             "Peer %d sent us invalid header via cmpctblock\n",
-                             pfrom->GetId());
-                }
+            if (state.IsInvalid() && received_new_header) {
+                // In this situation, the block header is known to be invalid.
+                // If we never created a CBlockIndex entry for it, then the
+                // header must be bad just by inspection (and is not one that
+                // looked okay but the block later turned out to be invalid for
+                // some other reason).
+                // We should punish compact block peers that give us an invalid
+                // header (other than a "duplicate-invalid" one, see
+                // ProcessHeadersMessage), so set via_compact_block to false
+                // here.
+                // TODO: when we switch from DoS scores to reasons that
+                // tx/blocks are invalid, this call should set
+                // via_compact_block to true, since MaybePunishNode will have
+                // sufficient information to act correctly.
+                MaybePunishNode(pfrom->GetId(), state,
+                                /*via_compact_block*/ false,
+                                "invalid header via cmpctblock");
                 return true;
             }
         }
