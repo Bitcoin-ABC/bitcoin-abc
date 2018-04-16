@@ -226,7 +226,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), alt_node_new_tip)
         assert_equal(node.getfinalizedblockhash(), fork_block)
 
-        ### TEST FINALIZATION DELAY ###
+        # TEST FINALIZATION DELAY
 
         self.log.info("Check that finalization delay prevents eclipse attacks")
         # Because there has been no delay since the beginning of this test,

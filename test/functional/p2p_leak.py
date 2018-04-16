@@ -13,6 +13,11 @@ into sending us something it shouldn't.
 
 import time
 
+from test_framework.messages import (
+    msg_getaddr,
+    msg_ping,
+    msg_verack,
+)
 from test_framework.mininode import (
     mininode_lock,
     network_thread_join,

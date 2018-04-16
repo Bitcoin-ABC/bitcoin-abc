@@ -21,8 +21,6 @@ from binascii import hexlify, unhexlify
 
 settings = {}
 
-##### Switch endian-ness #####
-
 
 def hex_switchEndian(s):
     """ Switches the endianness of a hex string (in pairs of hex chars) """

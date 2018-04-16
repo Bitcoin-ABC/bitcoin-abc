@@ -8,8 +8,9 @@
 
 import collections
 import dns.resolver
-import sys
 import re
+import sys
+
 NSEEDS = 512
 
 MAX_SEEDS_PER_ASN = 2

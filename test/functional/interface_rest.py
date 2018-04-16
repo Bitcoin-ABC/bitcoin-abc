@@ -202,11 +202,11 @@ class RESTTest (BitcoinTestFramework):
                                req_type=ReqType.JSON, status=400, ret_type=RetType.OBJ)
 
         # Test limits
-        long_uri = '/'.join(["{}-{}".format(txid, n) for n in range(20)])
+        long_uri = '/'.join(["{}-{}".format(txid, n_) for n_ in range(20)])
         self.test_rest_request("/getutxos/checkmempool/{}".format(long_uri),
                                http_method='POST', status=400, ret_type=RetType.OBJ)
 
-        long_uri = '/'.join(['{}-{}'.format(txid, n) for n in range(15)])
+        long_uri = '/'.join(['{}-{}'.format(txid, n_) for n_ in range(15)])
         self.test_rest_request(
             "/getutxos/checkmempool/{}".format(long_uri), http_method='POST', status=200)
 
