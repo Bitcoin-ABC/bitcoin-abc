@@ -62,12 +62,18 @@ CScript ParseScript(const std::string &s) {
             int64_t n = atoi64(*w);
             result << n;
         } else if (boost::algorithm::starts_with(*w, "0x") &&
-                   (w->begin() + 2 != w->end()) &&
-                   IsHex(std::string(w->begin() + 2, w->end()))) {
-            // Raw hex data, inserted NOT pushed onto stack:
-            std::vector<uint8_t> raw =
-                ParseHex(std::string(w->begin() + 2, w->end()));
-            result.insert(result.end(), raw.begin(), raw.end());
+                   (w->begin() + 2 != w->end())) {
+            if (IsHex(std::string(w->begin() + 2, w->end()))) {
+                // Raw hex data, inserted NOT pushed onto stack:
+                std::vector<uint8_t> raw =
+                    ParseHex(std::string(w->begin() + 2, w->end()));
+                result.insert(result.end(), raw.begin(), raw.end());
+            } else {
+                // Should only arrive here for improperly formatted hex values
+                throw std::runtime_error("Hex numbers expected to be formatted "
+                                         "in full-byte chunks (ex: 0x00 "
+                                         "instead of 0x0)");
+            }
         } else if (w->size() >= 2 && boost::algorithm::starts_with(*w, "'") &&
                    boost::algorithm::ends_with(*w, "'")) {
             // Single-quoted string, pushed as data. NOTE: this is poor-man's

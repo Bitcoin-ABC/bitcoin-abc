@@ -43,6 +43,7 @@ BITCOIN_TESTS =\
   test/coins_tests.cpp \
   test/compress_tests.cpp \
   test/config_tests.cpp \
+  test/core_io_tests.cpp \
   test/crypto_tests.cpp \
   test/cuckoocache_tests.cpp \
   test/dbwrapper_tests.cpp \
