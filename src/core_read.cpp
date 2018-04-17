@@ -27,8 +27,7 @@ CScript ParseScript(const std::string &s) {
 
     if (mapOpNames.empty()) {
         for (int op = 0; op < FIRST_UNDEFINED_OP_VALUE; op++) {
-            // ignore all "PUSHDATA" ops, but dont ignore OP_RESERVED
-            if (op < OP_NOP && op != OP_RESERVED) {
+            if (op < OP_PUSHDATA1) {
                 continue;
             }
 
@@ -50,19 +49,15 @@ CScript ParseScript(const std::string &s) {
                             boost::algorithm::token_compress_on);
 
     size_t push_size = 0, next_push_size = 0;
-    size_t script_size = 0;
+    size_t script_size = 0, size_change = 0;
+    // Deal with PUSHDATA1 operation with some more hacks.
+    size_t push_data_size = 0;
 
     for (const auto &w : words) {
         if (w.empty()) {
             // Empty string, ignore. (boost::split given '' will return one
             // word)
-            continue;
-        }
-
-        // Check that the expected number of byte where pushed.
-        if (push_size && (result.size() - script_size) != push_size) {
-            throw std::runtime_error(
-                "Hex number doesn't match the number of bytes being pushed");
+            goto next;
         }
 
         // Update script size.
@@ -70,8 +65,8 @@ CScript ParseScript(const std::string &s) {
 
         // Make sure we keep track of the size of push operations.
         push_size = next_push_size;
-        next_push_size = 0;
 
+        // Decimal numbers
         if (all(w, boost::algorithm::is_digit()) ||
             (boost::algorithm::starts_with(w, "-") &&
              all(std::string(w.begin() + 1, w.end()),
@@ -79,9 +74,10 @@ CScript ParseScript(const std::string &s) {
             // Number
             int64_t n = atoi64(w);
             result << n;
-            continue;
+            goto next;
         }
 
+        // Hex Data
         if (boost::algorithm::starts_with(w, "0x") &&
             (w.begin() + 2 != w.end())) {
             if (!IsHex(std::string(w.begin() + 2, w.end()))) {
@@ -94,18 +90,13 @@ CScript ParseScript(const std::string &s) {
             // Raw hex data, inserted NOT pushed onto stack:
             std::vector<uint8_t> raw =
                 ParseHex(std::string(w.begin() + 2, w.end()));
-            if (push_size && raw.size() != push_size) {
-                throw std::runtime_error("Hex number doesn't match the "
-                                         "number of bytes being pushed");
-            }
-            // If we have what looks like an immediate push, figure out its
-            // size.
-            if (!push_size && raw.size() == 1 && raw[0] < OP_PUSHDATA1) {
-                next_push_size = raw[0];
-            }
+
+            // TODO: Disallow `push_size == 0 && raw.size() > 1` here, tests
+            // should not have multibyte raw opcode data.  However some of
+            // them currently do.
 
             result.insert(result.end(), raw.begin(), raw.end());
-            continue;
+            goto next;
         }
 
         if (w.size() >= 2 && boost::algorithm::starts_with(w, "'") &&
@@ -115,38 +106,70 @@ CScript ParseScript(const std::string &s) {
             // work.
             std::vector<uint8_t> value(w.begin() + 1, w.end() - 1);
             result << value;
-            continue;
+            goto next;
         }
 
         if (mapOpNames.count(w)) {
             // opcode, e.g. OP_ADD or ADD:
             opcodetype op = mapOpNames[w];
 
+            result << op;
+            goto next;
+        }
+
+        throw std::runtime_error("Error parsing script: " + s);
+
+    next:
+        next_push_size = 0;
+        size_change = result.size() - script_size;
+
+        if (push_size && size_change != push_size) {
+            throw std::runtime_error("Wrong number of bytes being pushed.");
+        }
+
+        // Push data size is not a CScriptNum (Because it is
+        // 2's-complement instead of 1's complement).  We need to use
+        // ReadLE(N) instead of converting to a CScriptNum.
+
+        if (push_size == 0 && size_change == 1) {
+            opcodetype op = opcodetype(*result.rbegin());
+
+            // If we have what looks like an immediate push, figure out its
+            // size.
+            if (op < OP_PUSHDATA1) {
+                next_push_size = op;
+                continue;
+            }
+
             switch (op) {
                 case OP_PUSHDATA1:
-                    next_push_size = 1;
+                    push_data_size = next_push_size = 1;
                     break;
                 case OP_PUSHDATA2:
-                    next_push_size = 2;
+                    push_data_size = next_push_size = 2;
                     break;
                 case OP_PUSHDATA4:
-                    next_push_size = 4;
+                    push_data_size = next_push_size = 4;
                     break;
                 default:
                     break;
             }
-
-            result << op;
-            continue;
         }
 
-        throw std::runtime_error("Error parsing script: " + s);
-    }
+        if (push_size != 0) {
+            auto offset = &result[script_size];
 
-    // Check that the expected number of byte where pushed.
-    if (push_size && (result.size() - script_size) != push_size) {
-        throw std::runtime_error(
-            "Hex number doesn't match the number of bytes being pushed");
+            assert(size_change >= push_size);
+            if (push_data_size == 1) {
+                next_push_size = *offset;
+            } else if (push_data_size == 2) {
+                next_push_size = ReadLE16(offset);
+            } else if (push_data_size == 4) {
+                next_push_size = ReadLE32(offset);
+            }
+
+            push_data_size = 0;
+        }
     }
 
     return result;
