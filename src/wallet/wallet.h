@@ -31,8 +31,7 @@
 #include <utility>
 #include <vector>
 
-typedef CWallet *CWalletRef;
-extern std::vector<CWalletRef> vpwallets;
+extern std::vector<CWallet *> vpwallets;
 
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default
@@ -1348,11 +1347,11 @@ std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
 /** RAII object to check and reserve a wallet rescan */
 class WalletRescanReserver {
 private:
-    CWalletRef m_wallet;
+    CWallet *m_wallet;
     bool m_could_reserve;
 
 public:
-    explicit WalletRescanReserver(CWalletRef w)
+    explicit WalletRescanReserver(CWallet *w)
         : m_wallet(w), m_could_reserve(false) {}
 
     bool reserve() {

@@ -44,7 +44,7 @@
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
-std::vector<CWalletRef> vpwallets;
+std::vector<CWallet *> vpwallets;
 
 OutputType g_address_type = OutputType::NONE;
 OutputType g_change_type = OutputType::NONE;
