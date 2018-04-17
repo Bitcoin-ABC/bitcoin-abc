@@ -1086,9 +1086,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS;
             if (flags != mandatoryFlags) {
                 // Check whether the failure was caused by a non-mandatory
-                // script verification check. If so, don't trigger DoS
-                // protection to avoid splitting the network on the basis of
-                // relay policy disagreements.
+                // script verification check. If so, ensure we return
+                // NOT_STANDARD instead of CONSENSUS to avoid downstream users
+                // splitting the network between upgraded and non-upgraded nodes
+                // by banning CONSENSUS-failing data providers.
                 CScriptCheck check2(scriptPubKey, amount, tx, i, mandatoryFlags,
                                     sigCacheStore, txdata);
                 if (check2()) {
@@ -1102,12 +1103,13 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 scriptError = check2.GetScriptError();
             }
 
-            // Failures of other flags indicate a transaction that is invalid in
-            // new blocks, e.g. a invalid P2SH. We DoS ban such nodes as they
-            // are not following the protocol. That said during an upgrade
-            // careful thought should be taken as to the correct behavior - we
-            // may want to continue peering with non-upgraded nodes even after
-            // soft-fork super-majority signaling has occurred.
+            // MANDATORY flag failures correspond to
+            // ValidationInvalidReason::CONSENSUS. Because CONSENSUS failures
+            // are the most serious case of validation failures, we may need to
+            // consider using RECENT_CONSENSUS_CHANGE for any script failure
+            // that could be due to non-upgraded nodes which we may want to
+            // support, to avoid splitting the network (but this depends on the
+            // details of how net_processing handles such errors).
             return state.Invalid(
                 ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID,
                 strprintf("mandatory-script-verify-flag-failed (%s)",
