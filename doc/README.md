@@ -9,7 +9,7 @@ To download Bitcoin ABC, visit [bitcoinabc.org](https://download.bitcoinabc.org/
 
 Running
 ---------------------
-The following are some helpful notes on how to run Bitcoin on your native platform.
+The following are some helpful notes on how to run Bitcoin ABC on your native platform.
 
 ### Unix
 
@@ -34,7 +34,7 @@ for help and more information.
 
 Building
 ---------------------
-The following are developer notes on how to build Bitcoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+The following are developer notes on how to build Bitcoin ABC on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [Dependencies](dependencies.md)
 - [macOS Build Notes](build-osx.md)

@@ -41,9 +41,9 @@ Before you start building, please make sure that your compiler supports C++14.
         git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
         cd bitcoin-abc
 
-2.  Build bitcoin-abc:
+2.  Build Bitcoin ABC:
 
-    Configure and build the headless bitcoin binaries as well as the GUI (if Qt is found).
+    Configure and build the headless Bitcoin ABC binaries as well as the GUI (if Qt is found).
 
     You can disable the GUI build by passing `--without-gui` to configure.
 
@@ -68,7 +68,7 @@ Running
 
 Bitcoin ABC is now available at `./src/bitcoind`
 
-Before running, it's recommended you create an RPC configuration file.
+Before running, it's recommended that you create an RPC configuration file.
 
     echo -e "rpcuser=bitcoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Bitcoin/bitcoin.conf"
 
