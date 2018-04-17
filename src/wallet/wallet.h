@@ -31,7 +31,10 @@
 #include <utility>
 #include <vector>
 
-extern std::vector<CWallet *> vpwallets;
+bool AddWallet(CWallet *wallet);
+bool RemoveWallet(CWallet *wallet);
+std::vector<CWallet *> GetWallets();
+CWallet *GetWallet(const std::string &name);
 
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default

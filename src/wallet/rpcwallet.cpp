@@ -56,16 +56,18 @@ CWallet *GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
         // wallet endpoint was used
         std::string requestedWallet =
             urlDecode(request.URI.substr(WALLET_ENDPOINT_BASE.size()));
-        for (CWallet *pwallet : ::vpwallets) {
-            if (pwallet->GetName() == requestedWallet) {
-                return pwallet;
-            }
+        CWallet *pwallet = GetWallet(requestedWallet);
+        if (!pwallet) {
+            throw JSONRPCError(
+                RPC_WALLET_NOT_FOUND,
+                "Requested wallet does not exist or is not loaded");
         }
-        throw JSONRPCError(RPC_WALLET_NOT_FOUND,
-                           "Requested wallet does not exist or is not loaded");
+        return pwallet;
     }
-    return ::vpwallets.size() == 1 || (request.fHelp && ::vpwallets.size() > 0)
-               ? ::vpwallets[0]
+
+    std::vector<CWallet *> wallets = GetWallets();
+    return wallets.size() == 1 || (request.fHelp && wallets.size() > 0)
+               ? wallets[0]
                : nullptr;
 }
 
@@ -80,12 +82,10 @@ bool EnsureWalletIsAvailable(CWallet *const pwallet, bool avoidException) {
     if (pwallet) {
         return true;
     }
-
     if (avoidException) {
         return false;
     }
-
-    if (::vpwallets.empty()) {
+    if (GetWallets().empty()) {
         // Note: It isn't currently possible to trigger this error because
         // wallet RPC methods aren't registered unless a wallet is loaded. But
         // this error is being kept as a precaution, because it's possible in
@@ -3268,7 +3268,7 @@ static UniValue listwallets(const Config &config,
 
     UniValue obj(UniValue::VARR);
 
-    for (CWallet *pwallet : vpwallets) {
+    for (CWallet *pwallet : GetWallets()) {
         if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
             return NullUniValue;
         }

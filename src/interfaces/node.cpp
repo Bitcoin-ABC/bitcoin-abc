@@ -235,7 +235,7 @@ namespace {
         std::vector<std::unique_ptr<Wallet>> getWallets() override {
 #ifdef ENABLE_WALLET
             std::vector<std::unique_ptr<Wallet>> wallets;
-            for (CWallet *wallet : ::vpwallets) {
+            for (CWallet *wallet : GetWallets()) {
                 wallets.emplace_back(MakeWallet(*wallet));
             }
             return wallets;

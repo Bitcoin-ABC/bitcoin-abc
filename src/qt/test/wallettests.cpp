@@ -148,10 +148,10 @@ void TestGUI() {
     SendCoinsDialog sendCoinsDialog(platformStyle.get());
     auto node = interfaces::MakeNode();
     OptionsModel optionsModel(*node);
-    vpwallets.insert(vpwallets.begin(), &wallet);
-    WalletModel walletModel(std::move(node->getWallets()[0]), *node,
+    AddWallet(&wallet);
+    WalletModel walletModel(std::move(node->getWallets().back()), *node,
                             platformStyle.get(), &optionsModel);
-    vpwallets.erase(vpwallets.begin());
+    RemoveWallet(&wallet);
     sendCoinsDialog.setModel(&walletModel);
 
     // Send two transactions, and verify they are added to transaction list.

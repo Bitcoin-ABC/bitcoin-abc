@@ -383,33 +383,33 @@ bool WalletInit::Open(const CChainParams &chainParams) const {
         if (!pwallet) {
             return false;
         }
-        vpwallets.push_back(pwallet);
+        AddWallet(pwallet);
     }
 
     return true;
 }
 
 void WalletInit::Start(CScheduler &scheduler) const {
-    for (CWallet *pwallet : vpwallets) {
+    for (CWallet *pwallet : GetWallets()) {
         pwallet->postInitProcess(scheduler);
     }
 }
 
 void WalletInit::Flush() const {
-    for (CWallet *pwallet : vpwallets) {
+    for (CWallet *pwallet : GetWallets()) {
         pwallet->Flush(false);
     }
 }
 
 void WalletInit::Stop() const {
-    for (CWallet *pwallet : vpwallets) {
+    for (CWallet *pwallet : GetWallets()) {
         pwallet->Flush(true);
     }
 }
 
 void WalletInit::Close() const {
-    for (CWallet *pwallet : vpwallets) {
+    for (CWallet *pwallet : GetWallets()) {
+        RemoveWallet(pwallet);
         delete pwallet;
     }
-    vpwallets.clear();
 }

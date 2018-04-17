@@ -42,9 +42,44 @@
 #include <cassert>
 #include <future>
 
-static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
+static std::vector<CWallet *> vpwallets;
 
-std::vector<CWallet *> vpwallets;
+bool AddWallet(CWallet *wallet) {
+    assert(wallet);
+    std::vector<CWallet *>::const_iterator i =
+        std::find(vpwallets.begin(), vpwallets.end(), wallet);
+    if (i != vpwallets.end()) {
+        return false;
+    }
+    vpwallets.push_back(wallet);
+    return true;
+}
+
+bool RemoveWallet(CWallet *wallet) {
+    assert(wallet);
+    std::vector<CWallet *>::iterator i =
+        std::find(vpwallets.begin(), vpwallets.end(), wallet);
+    if (i == vpwallets.end()) {
+        return false;
+    }
+    vpwallets.erase(i);
+    return true;
+}
+
+std::vector<CWallet *> GetWallets() {
+    return vpwallets;
+}
+
+CWallet *GetWallet(const std::string &name) {
+    for (CWallet *wallet : vpwallets) {
+        if (wallet->GetName() == name) {
+            return wallet;
+        }
+    }
+    return nullptr;
+}
+
+static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
 OutputType g_address_type = OutputType::NONE;
 OutputType g_change_type = OutputType::NONE;

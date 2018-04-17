@@ -78,7 +78,7 @@ static UniValue validateaddress(const Config &config,
 
     if (isValid) {
 #ifdef ENABLE_WALLET
-        if (!::vpwallets.empty() &&
+        if (!GetWallets().empty() &&
             IsDeprecatedRPCEnabled(gArgs, "validateaddress")) {
             ret.pushKVs(getaddressinfo(config, request));
         }
