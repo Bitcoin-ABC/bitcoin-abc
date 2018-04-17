@@ -159,6 +159,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         request.params.push_back((pathTemp / "wallet.backup").string());
         vpwallets.insert(vpwallets.begin(), &wallet);
         ::dumpwallet(GetConfig(), request);
+        vpwallets.erase(vpwallets.begin());
     }
 
     // Call importwallet RPC and verify all blocks with timestamps >= BLOCK_TIME
@@ -169,8 +170,9 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back((pathTemp / "wallet.backup").string());
-        vpwallets[0] = &wallet;
+        vpwallets.insert(vpwallets.begin(), &wallet);
         ::importwallet(GetConfig(), request);
+        vpwallets.erase(vpwallets.begin());
 
         LOCK(wallet.cs_wallet);
         BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3U);
@@ -183,7 +185,6 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     }
 
     SetMockTime(0);
-    vpwallets.erase(vpwallets.begin());
 }
 
 // Check that GetImmatureCredit() returns a newly calculated value instead of
