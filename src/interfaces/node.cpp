@@ -54,9 +54,7 @@ namespace {
         void parseParameters(int argc, const char *const argv[]) override {
             gArgs.ParseParameters(argc, argv);
         }
-        void readConfigFile(const std::string &conf_path) override {
-            gArgs.ReadConfigFile(conf_path);
-        }
+        void readConfigFiles() override { gArgs.ReadConfigFiles(); }
         bool softSetArg(const std::string &arg,
                         const std::string &value) override {
             return gArgs.SoftSetArg(arg, value);

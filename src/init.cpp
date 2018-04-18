@@ -384,6 +384,11 @@ void SetupServerArgs() {
                            DEFAULT_MIN_FINALIZATION_DELAY),
                  false, OptionsCategory::OPTIONS);
     gArgs.AddArg(
+        "-includeconf=<file>",
+        _("Specify additional configuration file, relative to the -datadir "
+          "path (only useable from configuration file, not command line)"),
+        false, OptionsCategory::OPTIONS);
+    gArgs.AddArg(
         "-maxreorgdepth=<n>",
         strprintf("Configure at what depth blocks are considered final "
                   "(default: %d). Use -1 to disable.",
