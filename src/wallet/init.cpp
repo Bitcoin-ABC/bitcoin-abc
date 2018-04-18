@@ -326,7 +326,18 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
                                        wallet_file));
         }
 
-        if (!CWallet::Verify(chainParams, wallet_file, salvage_wallet)) {
+        std::string error_string;
+        std::string warning_string;
+        bool verify_success =
+            CWallet::Verify(chainParams, wallet_file, salvage_wallet,
+                            error_string, warning_string);
+        if (!error_string.empty()) {
+            InitError(error_string);
+        }
+        if (!warning_string.empty()) {
+            InitWarning(warning_string);
+        }
+        if (!verify_success) {
             return false;
         }
     }

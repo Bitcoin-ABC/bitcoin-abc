@@ -1198,7 +1198,8 @@ public:
 
     //! Verify wallet naming and perform salvage on the wallet if required
     static bool Verify(const CChainParams &chainParams, std::string wallet_file,
-                       bool salvage_wallet);
+                       bool salvage_wallet, std::string &error_string,
+                       std::string &warning_string);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer
