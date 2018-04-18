@@ -1281,8 +1281,11 @@ void static ProcessGetBlockData(const Config &config, CNode *pfrom,
         }
     } // release cs_main before calling ActivateBestChain
     if (need_activate_chain) {
-        CValidationState dummy;
-        ActivateBestChain(config, dummy, a_recent_block);
+        CValidationState state;
+        if (!ActivateBestChain(config, state, a_recent_block)) {
+            LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
+                     FormatStateMessage(state));
+        }
     }
 
     LOCK(cs_main);
@@ -2285,8 +2288,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 LOCK(cs_most_recent_block);
                 a_recent_block = most_recent_block;
             }
-            CValidationState dummy;
-            ActivateBestChain(config, dummy, a_recent_block);
+            CValidationState state;
+            if (!ActivateBestChain(config, state, a_recent_block)) {
+                LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
+                         FormatStateMessage(state));
+            }
         }
 
         LOCK(cs_main);

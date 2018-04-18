@@ -1188,7 +1188,8 @@ static void ThreadImport(const Config &config,
         // connected in the active best chain
         CValidationState state;
         if (!ActivateBestChain(config, state)) {
-            LogPrintf("Failed to connect best block");
+            LogPrintf("Failed to connect best block (%s)\n",
+                      FormatStateMessage(state));
             StartShutdown();
             return;
         }

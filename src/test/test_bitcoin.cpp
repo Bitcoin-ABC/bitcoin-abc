@@ -117,7 +117,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
     {
         CValidationState state;
         if (!ActivateBestChain(config, state)) {
-            throw std::runtime_error("ActivateBestChain failed.");
+            throw std::runtime_error(strprintf("ActivateBestChain failed. (%s)",
+                                               FormatStateMessage(state)));
         }
     }
     nScriptCheckThreads = 3;
