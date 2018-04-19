@@ -18,7 +18,6 @@ add_executable(bitcoin-bench
 	lockedpool.cpp
 	mempool_eviction.cpp
 	merkle_root.cpp
-	perf.cpp
 	prevector.cpp
 	rollingbloom.cpp
 )

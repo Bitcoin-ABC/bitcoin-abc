@@ -217,13 +217,6 @@ namespace {
         Amount getMaxTxFee() override { return ::maxTxFee; }
         CFeeRate estimateSmartFee() override { return g_mempool.estimateFee(); }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
-        CFeeRate getFallbackFee() override {
-            CHECK_WALLET(return CWallet::fallbackFee);
-        }
-        CFeeRate getPayTxFee() override { CHECK_WALLET(return ::payTxFee); }
-        void setPayTxFee(CFeeRate rate) override {
-            CHECK_WALLET(::payTxFee = rate);
-        }
         UniValue executeRpc(Config &config, const std::string &command,
                             const UniValue &params,
                             const std::string &uri) override {
