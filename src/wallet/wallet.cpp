@@ -21,7 +21,6 @@
 #include <primitives/transaction.h>
 #include <random.h>
 #include <rpc/server.h> // for IsDeprecatedRPCEnabled
-#include <scheduler.h>
 #include <script/script.h>
 #include <script/sighashtype.h>
 #include <script/sign.h>
@@ -4514,22 +4513,10 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     return walletInstance;
 }
 
-std::atomic<bool> CWallet::fFlushScheduled(false);
-
-void CWallet::postInitProcess(CScheduler &scheduler) {
+void CWallet::postInitProcess() {
     // Add wallet transactions that aren't already in a block to mempool.
     // Do this here as mempool requires genesis block to be loaded.
     ReacceptWalletTransactions();
-
-    // Run a thread to flush wallet periodically.
-    if (!CWallet::fFlushScheduled.exchange(true)) {
-        scheduler.scheduleEvery(
-            []() {
-                MaybeCompactWalletDB();
-                return true;
-            },
-            500);
-    }
 }
 
 bool CWallet::BackupWallet(const std::string &strDest) {

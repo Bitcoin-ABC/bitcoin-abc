@@ -63,7 +63,6 @@ class CCoinControl;
 class COutput;
 class CReserveKey;
 class CScript;
-class CScheduler;
 class CTxMemPool;
 class CWalletTx;
 
@@ -1210,7 +1209,7 @@ public:
      * Gives the wallet a chance to register repetitive tasks and complete
      * post-init tasks
      */
-    void postInitProcess(CScheduler &scheduler);
+    void postInitProcess();
 
     bool BackupWallet(const std::string &strDest);
 
