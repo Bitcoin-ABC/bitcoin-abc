@@ -6,6 +6,7 @@
 
 import argparse
 from collections import deque
+import configparser
 from enum import Enum
 import logging
 import os
@@ -81,10 +82,10 @@ class BitcoinTestFramework():
                             help="Leave bitcoinds and test.* datadir on exit or error")
         parser.add_argument("--noshutdown", dest="noshutdown", default=False, action="store_true",
                             help="Don't stop bitcoinds after the test execution")
-        parser.add_argument("--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
+        parser.add_argument("--srcdir", dest="srcdir", default=os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
                             help="Source directory containing bitcoind/bitcoin-cli (default: %(default)s)")
-        parser.add_argument("--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
-                            help="Directory for caching pregenerated datadirs")
+        parser.add_argument("--cachedir", dest="cachedir", default=os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
+                            help="Directory for caching pregenerated datadirs (default: %default)")
         parser.add_argument("--tmpdir", dest="tmpdir",
                             help="Root directory for datadirs")
         parser.add_argument("-l", "--loglevel", dest="loglevel", default="INFO",
@@ -95,8 +96,8 @@ class BitcoinTestFramework():
                             help="The seed to use for assigning port numbers (default: current process id)")
         parser.add_argument("--coveragedir", dest="coveragedir",
                             help="Write tested RPC commands into this directory")
-        parser.add_argument("--configfile", dest="configfile",
-                            help="Location of the test framework config file")
+        parser.add_argument("--configfile", dest="configfile", default=os.path.abspath(os.path.dirname(os.path.realpath(
+            __file__)) + "/../../config.ini"), help="Location of the test framework config file (default: %default)")
         parser.add_argument("--pdbonfailure", dest="pdbonfailure", default=False, action="store_true",
                             help="Attach a python debugger if test fails")
         parser.add_argument("--usecli", dest="usecli", default=False, action="store_true",
@@ -118,6 +119,13 @@ class BitcoinTestFramework():
         check_json_precision()
 
         self.options.cachedir = os.path.abspath(self.options.cachedir)
+
+        config = configparser.ConfigParser()
+        config.read_file(open(self.options.configfile))
+        self.options.bitcoind = os.getenv(
+            "BITCOIND", default=config["environment"]["BUILDDIR"] + '/src/bitcoind' + config["environment"]["EXEEXT"])
+        self.options.bitcoincli = os.getenv(
+            "BITCOINCLI", default=config["environment"]["BUILDDIR"] + '/src/bitcoin-cli' + config["environment"]["EXEEXT"])
 
         # Set up temp directory and start logging
         if self.options.tmpdir:
@@ -251,13 +259,13 @@ class BitcoinTestFramework():
         if extra_args is None:
             extra_args = [[]] * num_nodes
         if binary is None:
-            binary = [None] * num_nodes
+            binary = [self.options.bitcoind] * num_nodes
         assert_equal(len(extra_confs), num_nodes)
         assert_equal(len(extra_args), num_nodes)
         assert_equal(len(binary), num_nodes)
         for i in range(num_nodes):
             self.nodes.append(TestNode(i, get_datadir_path(self.options.tmpdir, i), host=rpchost, rpc_port=rpc_port(i), p2p_port=p2p_port(i), timewait=timewait,
-                                       binary=binary[i], stderr=None, mocktime=self.mocktime, coverage_dir=self.options.coveragedir, extra_conf=extra_confs[i], extra_args=extra_args[i], use_cli=self.options.usecli))
+                                       bitcoind=binary[i], bitcoin_cli=self.options.bitcoincli, stderr=None, mocktime=self.mocktime, coverage_dir=self.options.coveragedir, extra_conf=extra_confs[i], extra_args=extra_args[i], use_cli=self.options.usecli))
             if self.options.gravitonactivation:
                 self.nodes[i].extend_default_args(
                     ["-gravitonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
@@ -399,7 +407,7 @@ class BitcoinTestFramework():
             for i in range(MAX_NODES):
                 datadir = initialize_datadir(self.options.cachedir, i)
                 self.nodes.append(TestNode(i, get_datadir_path(self.options.cachedir, i), extra_conf=["bind=127.0.0.1"], extra_args=[], host=None, rpc_port=rpc_port(
-                    i), p2p_port=p2p_port(i), timewait=None, binary=None, stderr=None, mocktime=self.mocktime, coverage_dir=None))
+                    i), p2p_port=p2p_port(i), timewait=None, bitcoind=self.options.bitcoind, bitcoin_cli=self.options.bitcoincli, stderr=None, mocktime=self.mocktime, coverage_dir=None))
                 self.nodes[i].clear_default_args()
                 self.nodes[i].extend_default_args([
                     "-server", "-keypool=1", "-datadir=" + datadir,
@@ -481,14 +489,18 @@ class ComparisonTestFramework(BitcoinTestFramework):
 
     def add_options(self, parser):
         parser.add_argument("--testbinary", dest="testbinary",
-                            default=os.getenv("BITCOIND", "bitcoind"),
                             help="bitcoind binary to test")
         parser.add_argument("--refbinary", dest="refbinary",
-                            default=os.getenv("BITCOIND", "bitcoind"),
                             help="bitcoind binary to use for reference nodes (if any)")
 
     def setup_network(self):
         extra_args = [['-whitelist=127.0.0.1']] * self.num_nodes
+
+        if not self.options.testbinary:
+            self.options.testbinary = self.options.bitcoind
+        if not self.options.refbinary:
+            self.options.refbinary = self.options.bitcoind
+
         if hasattr(self, "extra_args"):
             extra_args = self.extra_args
         self.add_nodes(self.num_nodes, extra_args,

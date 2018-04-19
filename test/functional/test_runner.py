@@ -283,10 +283,10 @@ def main():
                                    "cache"), ignore_errors=True)
 
     run_tests(test_list, build_dir, tests_dir, args.junitouput,
-              config["environment"]["EXEEXT"], tmpdir, args.jobs, args.coverage, passon_args, build_timings)
+              tmpdir, args.jobs, args.coverage, passon_args, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, num_jobs, enable_coverage=False, args=[], build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitouput, tmpdir, num_jobs, enable_coverage=False, args=[], build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -301,13 +301,6 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, num_j
     if os.path.isdir(cache_dir):
         print("{}WARNING!{} There is a cache directory here: {}. If tests fail unexpectedly, try deleting the cache directory.".format(
             BOLD[1], BOLD[0], cache_dir))
-
-    # Set env vars
-    if "BITCOIND" not in os.environ:
-        os.environ["BITCOIND"] = os.path.join(
-            build_dir, 'src', 'bitcoind' + exeext)
-        os.environ["BITCOINCLI"] = os.path.join(
-            build_dir, 'src', 'bitcoin-cli' + exeext)
 
     flags = [os.path.join("--srcdir={}".format(build_dir), "src")] + args
     flags.append("--cachedir={}".format(cache_dir))

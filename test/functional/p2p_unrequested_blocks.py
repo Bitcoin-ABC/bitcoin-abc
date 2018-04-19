@@ -3,7 +3,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import os
 import time
 
 from test_framework.blocktools import (
@@ -84,11 +83,6 @@ Node1 is unused in tests 3-7:
 
 
 class AcceptBlockTest(BitcoinTestFramework):
-
-    def add_options(self, parser):
-        parser.add_argument("--testbinary", dest="testbinary",
-                            default=os.getenv("BITCOIND", "bitcoind"),
-                            help="bitcoind binary to test")
 
     def set_test_params(self):
         self.setup_clean_chain = True

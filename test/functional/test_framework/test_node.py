@@ -51,7 +51,7 @@ class TestNode():
     To make things easier for the test writer, any unrecognised messages will
     be dispatched to the RPC connection."""
 
-    def __init__(self, i, datadir, host, rpc_port, p2p_port, timewait, binary, stderr, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
+    def __init__(self, i, datadir, host, rpc_port, p2p_port, timewait, bitcoind, bitcoin_cli, stderr, mocktime, coverage_dir, extra_conf=None, extra_args=None, use_cli=False):
         self.index = i
         self.datadir = datadir
         self.host = host
@@ -63,10 +63,7 @@ class TestNode():
         else:
             # Wait for up to 60 seconds for the RPC server to respond
             self.rpc_timeout = 60
-        if binary is None:
-            self.binary = os.getenv("BITCOIND", "bitcoind")
-        else:
-            self.binary = binary
+        self.binary = bitcoind
         if not os.path.isfile(self.binary):
             raise FileNotFoundError(
                 "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
@@ -82,11 +79,10 @@ class TestNode():
         self.default_args = ["-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
                              "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
-        cli_path = os.getenv("BITCOINCLI", "bitcoin-cli")
-        if not os.path.isfile(cli_path):
+        if not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(
-                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(cli_path, sys.argv[0]))
-        self.cli = TestNodeCLI(cli_path, self.datadir)
+                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(bitcoin_cli, sys.argv[0]))
+        self.cli = TestNodeCLI(bitcoin_cli, self.datadir)
         self.use_cli = use_cli
 
         self.running = False
