@@ -15,38 +15,85 @@ to clean up the patch automatically before submitting a pull request.
   - No indentation for `public`/`protected`/`private` or for `namespace`.
   - No extra spaces inside parenthesis; don't do ( this )
   - No space after function names; one space after `if`, `for` and `while`.
-  - If an `if` only has a single-statement then-clause, it can appear
-    on the same line as the if, without braces. In every other case,
-    braces are required, and the then and else clauses must appear
-    correctly indented on a new line.
+  - Always add braces for block statements (e.g. `if`, `for`, `while`).
   - `++i` is preferred over `i++`.
+  - Use CamelCase for functions/methods, and lowerCamelCase for variables.
+    - GLOBAL_CONSTANTS should use UPPER_SNAKE_CASE.
+    - namespaces should use lower_snake_case.
+  - Function names should generally start with an English command-form verb 
+    (e.g. `ValidateTransaction`, `AddTransactionToMempool`, `ConnectBlock`)
+  - Variable names should generally be nouns or past/future tense verbs.
+    (e.g. `canDoThing`, `signatureOperations`, `didThing`)
+  - Avoid using globals, remove existing globals whenever possible.
+  - Class member variable names should be prepended with `m_`
+  - DO choose easily readable identifier names. 
+  - DO favor readability over brevity.
+  - DO NOT use Hungarian notation.
+  - DO NOT use abbreviations or contractions within identifiers. 
+    - WRONG: mempool
+    - RIGHT: MemoryPool
+    - WRONG: ChangeDir
+    - RIGHT: ChangeDirectory
+  - DO NOT use obscure acronyms, DO uppercase any acronyms.
+  - FINALLY, do not migrate existing code unless refactoring. It makes
+    forwarding-porting from Bitcoin Core more difficult.
 
-Block style example:
+The naming convention roughly mirrors [Microsoft Naming Conventions](https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/general-naming-conventions)
+
+C++ Coding Standards should strive to follow the [LLVM Coding Standards](https://llvm.org/docs/CodingStandards.html)
+
+Code style example:
 ```c++
-namespace foo
-{
-class Class
-{
-    bool Function(const std::string& s, int n)
-    {
-        // Comment summarising what this section of code does
+// namespaces should be lower_snake_case
+namespace foo_bar_bob {
+
+/**
+ * Class is used for doing classy things.  All classes should
+ * have a doxygen comment describing their PURPOSE.  That is to say,
+ * why they exist.  Functional details can be determined from the code.
+ * @see PerformTask()
+ */
+class Class {
+private:
+    //! memberVariable's name should be lowerCamelCase, and be a noun.
+    int m_memberVariable;
+
+public:
+    /**
+    * The documentation before a function or class method should follow Doxygen
+    * spec. The name of the function should start with an english verb which 
+    * indicates the intended purpose of this code.
+    * 
+    * The  function name should be should be CamelCase.
+    * 
+    * @param[in] s    A description
+    * @param[in] n    Another argument description
+    * @pre Precondition for function...
+    */
+    bool PerformTask(const std::string& s, int n) {
+        // Use lowerChamelCase for local variables.
+        bool didMore = false;
+
+        // Comment summarizing the intended purpose of this section of code
         for (int i = 0; i < n; ++i) {
-            // When something fails, return early
-            if (!Something()) return false;
+            if (!DidSomethingFail()) {
+              return false;
+            }
             ...
-            if (SomethingElse()) {
+            if (IsSomethingElse()) {
                 DoMore();
+                didMore = true;
             } else {
                 DoLess();
             }
         }
 
-        // Success return is usually at the end
-        return true;
+        return didMore;
     }
 }
 }
 ```
+
 
 Doxygen comments
 -----------------
@@ -259,23 +306,6 @@ Development guidelines
 A few non-style-related recommendations for developers, as well as points to
 pay attention to for reviewers of Bitcoin Core code.
 
-General Bitcoin Core
-----------------------
-
-- New features should be exposed on RPC first, then can be made available in the GUI
-
-  - *Rationale*: RPC allows for better automatic testing. The test suite for
-    the GUI is very limited
-
-- Make sure pull requests pass Travis CI before merging
-
-  - *Rationale*: Makes sure that they pass thorough testing, and that the tester will keep passing
-     on the master branch. Otherwise all new pull requests will start failing the tests, resulting in
-     confusion and mayhem
-
-  - *Explanation*: If the test suite is to be updated for a change, this has to
-    be done first
-
 Wallet
 -------
 
@@ -352,11 +382,6 @@ C++ data structures
 Strings and formatting
 ------------------------
 
-- Be careful of `LogPrint` versus `LogPrintf`. `LogPrint` takes a `category` argument, `LogPrintf` does not.
-
-  - *Rationale*: Confusion of these can result in runtime exceptions due to
-    formatting mismatch, and it is easy to get wrong because of subtly similar naming
-
 - Use `std::string`, avoid C string manipulation functions
 
   - *Rationale*: C++ string handling is marginally safer, less scope for
@@ -367,10 +392,6 @@ Strings and formatting
 
   - *Rationale*: These functions do overflow checking, and avoid pesky locale issues
 
-- For `strprintf`, `LogPrint`, `LogPrintf` formatting characters don't need size specifiers
-
-  - *Rationale*: Bitcoin Core uses tinyformat, which is type safe. Leave them out to avoid confusion
-
 Variable names
 --------------
 
@@ -378,24 +399,6 @@ The shadowing warning (`-Wshadow`) is enabled by default. It prevents issues ris
 from using a different variable with the same name.
 
 Please name variables so that their names do not shadow variables defined in the source code.
-
-E.g. in member initializers, prepend `_` to the argument name shadowing the
-member name:
-
-```c++
-class AddressBookPage
-{
-    Mode mode;
-}
-
-AddressBookPage::AddressBookPage(Mode _mode) :
-      mode(_mode)
-...
-```
-
-When using nested cycles, do not name the inner cycle variable the same as in
-upper cycle etc.
-
 
 Threads and synchronization
 ----------------------------
