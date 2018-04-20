@@ -13,7 +13,7 @@ This release includes the following features and fixes:
  - Multiwallet support (Port from Bitcoin Core)
  - Lots of improvements to the RPC test suite (Ports from Bitcoin Core)
  - Uptime rpc command (Port from Bitcoin Core)
- - At the MTP time of 1526400000 (Tue May 15 12:00:00 UTC, 2018) the following behaviors will change:
+ - At the MTP time of 1526400000 (Tue May 15 16:00:00 UTC, 2018) the following behaviors will change:
 	 - Increase the default datacarriersize to 220 byte at the MTP time of 1526400000
 	 - Increase the maximum blocksize to 32,000,000 bytes at the MTP time of 1526400000
 	 - Re-activate the following opcodes: OP_CAT, OP_AND, OP_OR, OP_XOR, OP_DIV, OP_MOD
