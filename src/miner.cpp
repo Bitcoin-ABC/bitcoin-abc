@@ -49,22 +49,13 @@ static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 
-int64_t UpdateTime(CBlockHeader *pblock, const Config &config,
-                   const CBlockIndex *pindexPrev) {
+int64_t UpdateTime(CBlockHeader *pblock, const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime =
         std::max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
 
     if (nOldTime < nNewTime) {
         pblock->nTime = nNewTime;
-    }
-
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
-    // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks) {
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, config);
     }
 
     return nNewTime - nOldTime;
@@ -207,7 +198,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     // Fill in header.
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
-    UpdateTime(pblock, *config, pindexPrev);
+    UpdateTime(pblock, pindexPrev);
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, *config);
     pblock->nNonce = 0;
     pblocktemplate->vTxSigOpsCount[0] =
