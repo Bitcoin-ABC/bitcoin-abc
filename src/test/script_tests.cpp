@@ -1138,14 +1138,22 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
         }
 
         std::string scriptSigString = test[pos++].get_str();
-        CScript scriptSig = ParseScript(scriptSigString);
         std::string scriptPubKeyString = test[pos++].get_str();
-        CScript scriptPubKey = ParseScript(scriptPubKeyString);
-        unsigned int scriptflags = ParseScriptFlags(test[pos++].get_str());
-        int scriptError = ParseScriptError(test[pos++].get_str());
+        try {
+            CScript scriptSig = ParseScript(scriptSigString);
+            CScript scriptPubKey = ParseScript(scriptPubKeyString);
+            unsigned int scriptflags = ParseScriptFlags(test[pos++].get_str());
+            int scriptError = ParseScriptError(test[pos++].get_str());
 
-        DoTest(scriptPubKey, scriptSig, scriptflags, strTest, scriptError,
-               nValue);
+            DoTest(scriptPubKey, scriptSig, scriptflags, strTest, scriptError,
+                   nValue);
+        } catch (std::runtime_error &e) {
+            BOOST_TEST_MESSAGE("Script test failed.  scriptSig:  "
+                               << scriptSigString
+                               << " scriptPubKey: " << scriptPubKeyString);
+            BOOST_TEST_MESSAGE("Exception: " << e.what());
+            throw;
+        }
     }
 }
 
