@@ -896,6 +896,9 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(
             _("Set the number of threads to service RPC calls (default: %d)"),
             DEFAULT_HTTP_THREADS));
+    strUsage += HelpMessageOpt(
+        "-rpccorsdomain=value",
+        "Domain from which to accept cross origin requests (browser enforced)");
     if (showDebug) {
         strUsage += HelpMessageOpt(
             "-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to "
