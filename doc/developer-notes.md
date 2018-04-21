@@ -107,6 +107,13 @@ Not OK (used plenty in the current source, but not picked up):
 A full list of comment syntaxes picked up by doxygen can be found at http://www.stack.nl/~dimitri/doxygen/manual/docblocks.html,
 but if possible use one of the above styles.
 
+To build doxygen locally to test changes to the Doxyfile or visualize your comments before landing changes:
+```
+# at the project root, call:
+doxygen doc/Doxyfile
+# output goes to doc/doxygen/html/
+```
+
 Development tips and tricks
 ---------------------------
 
