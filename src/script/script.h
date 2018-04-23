@@ -415,6 +415,10 @@ private:
  */
 typedef prevector<28, uint8_t> CScriptBase;
 
+bool GetScriptOp(CScriptBase::const_iterator &pc,
+                 CScriptBase::const_iterator end, opcodetype &opcodeRet,
+                 std::vector<uint8_t> *pvchRet);
+
 /** Serialized script, used inside transaction inputs and outputs */
 class CScript : public CScriptBase {
 protected:
@@ -509,82 +513,13 @@ public:
         return *this;
     }
 
-    bool GetOp(iterator &pc, opcodetype &opcodeRet,
-               std::vector<uint8_t> &vchRet) {
-        // Wrapper so it can be called with either iterator or const_iterator.
-        const_iterator pc2 = pc;
-        bool fRet = GetOp2(pc2, opcodeRet, &vchRet);
-        pc = begin() + (pc2 - begin());
-        return fRet;
-    }
-
-    bool GetOp(iterator &pc, opcodetype &opcodeRet) {
-        const_iterator pc2 = pc;
-        bool fRet = GetOp2(pc2, opcodeRet, nullptr);
-        pc = begin() + (pc2 - begin());
-        return fRet;
-    }
-
     bool GetOp(const_iterator &pc, opcodetype &opcodeRet,
                std::vector<uint8_t> &vchRet) const {
-        return GetOp2(pc, opcodeRet, &vchRet);
+        return GetScriptOp(pc, end(), opcodeRet, &vchRet);
     }
 
     bool GetOp(const_iterator &pc, opcodetype &opcodeRet) const {
-        return GetOp2(pc, opcodeRet, nullptr);
-    }
-
-    bool GetOp2(const_iterator &pc, opcodetype &opcodeRet,
-                std::vector<uint8_t> *pvchRet) const {
-        opcodeRet = OP_INVALIDOPCODE;
-        if (pvchRet) {
-            pvchRet->clear();
-        }
-        if (pc >= end()) {
-            return false;
-        }
-
-        // Read instruction
-        if (end() - pc < 1) {
-            return false;
-        }
-
-        uint32_t opcode = *pc++;
-
-        // Immediate operand
-        if (opcode <= OP_PUSHDATA4) {
-            uint32_t nSize = 0;
-            if (opcode < OP_PUSHDATA1) {
-                nSize = opcode;
-            } else if (opcode == OP_PUSHDATA1) {
-                if (end() - pc < 1) {
-                    return false;
-                }
-                nSize = *pc++;
-            } else if (opcode == OP_PUSHDATA2) {
-                if (end() - pc < 2) {
-                    return false;
-                }
-                nSize = ReadLE16(&pc[0]);
-                pc += 2;
-            } else if (opcode == OP_PUSHDATA4) {
-                if (end() - pc < 4) {
-                    return false;
-                }
-                nSize = ReadLE32(&pc[0]);
-                pc += 4;
-            }
-            if (end() - pc < 0 || uint32_t(end() - pc) < nSize) {
-                return false;
-            }
-            if (pvchRet) {
-                pvchRet->assign(pc, pc + nSize);
-            }
-            pc += nSize;
-        }
-
-        opcodeRet = static_cast<opcodetype>(opcode);
-        return true;
+        return GetScriptOp(pc, end(), opcodeRet, nullptr);
     }
 
     /** Encode/decode small integers: */
@@ -603,33 +538,6 @@ public:
         }
 
         return (opcodetype)(OP_1 + n - 1);
-    }
-
-    int FindAndDelete(const CScript &b) {
-        int nFound = 0;
-        if (b.empty()) {
-            return nFound;
-        }
-
-        CScript result;
-        iterator pc = begin(), pc2 = begin();
-        opcodetype opcode;
-        do {
-            result.insert(result.end(), pc2, pc);
-            while (size_t(end() - pc) >= b.size() &&
-                   std::equal(b.begin(), b.end(), pc)) {
-                pc = pc + b.size();
-                ++nFound;
-            }
-            pc2 = pc;
-        } while (GetOp(pc, opcode));
-
-        if (nFound > 0) {
-            result.insert(result.end(), pc2, end());
-            *this = result;
-        }
-
-        return nFound;
     }
 
     /**

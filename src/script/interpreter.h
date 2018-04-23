@@ -93,4 +93,6 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
                   uint32_t flags, const BaseSignatureChecker &checker,
                   ScriptError *serror = nullptr);
 
+int FindAndDelete(CScript &script, const CScript &b);
+
 #endif // BITCOIN_SCRIPT_INTERPRETER_H

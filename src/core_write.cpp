@@ -34,7 +34,7 @@ std::string FormatScript(const CScript &script) {
     while (it != script.end()) {
         CScript::const_iterator it2 = it;
         std::vector<uint8_t> vch;
-        if (script.GetOp2(it, op, &vch)) {
+        if (script.GetOp(it, op, vch)) {
             if (op == OP_0) {
                 ret += "0 ";
                 continue;

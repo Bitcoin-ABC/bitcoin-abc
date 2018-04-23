@@ -44,13 +44,41 @@ static inline void popstack(std::vector<valtype> &stack) {
     stack.pop_back();
 }
 
+int FindAndDelete(CScript &script, const CScript &b) {
+    int nFound = 0;
+    if (b.empty()) {
+        return nFound;
+    }
+
+    CScript result;
+    CScript::const_iterator pc = script.begin(), pc2 = script.begin(),
+                            end = script.end();
+    opcodetype opcode;
+    do {
+        result.insert(result.end(), pc2, pc);
+        while (static_cast<size_t>(end - pc) >= b.size() &&
+               std::equal(b.begin(), b.end(), pc)) {
+            pc = pc + b.size();
+            ++nFound;
+        }
+        pc2 = pc;
+    } while (script.GetOp(pc, opcode));
+
+    if (nFound > 0) {
+        result.insert(result.end(), pc2, end);
+        script = std::move(result);
+    }
+
+    return nFound;
+}
+
 static void CleanupScriptCode(CScript &scriptCode,
                               const std::vector<uint8_t> &vchSig,
                               uint32_t flags) {
     // Drop the signature in scripts when SIGHASH_FORKID is not used.
     SigHashType sigHashType = GetHashType(vchSig);
     if (!(flags & SCRIPT_ENABLE_SIGHASH_FORKID) || !sigHashType.hasForkId()) {
-        scriptCode.FindAndDelete(CScript(vchSig));
+        FindAndDelete(scriptCode, CScript(vchSig));
     }
 }
 
