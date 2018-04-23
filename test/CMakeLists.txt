@@ -49,6 +49,10 @@ make_link(
 	${CMAKE_CURRENT_SOURCE_DIR}/util/bitcoin-util-test.py
 	${CMAKE_CURRENT_BINARY_DIR}/util/bitcoin-util-test.py
 )
+make_link(
+	${CMAKE_CURRENT_SOURCE_DIR}/util/rpcauth-test.py
+	${CMAKE_CURRENT_BINARY_DIR}/util/rpcauth-test.py
+)
 
 add_custom_target(check-functional
 	COMMAND
@@ -75,3 +79,15 @@ if(BUILD_BITCOIN_TX)
 
 	add_dependencies(check check-bitcoin-util)
 endif()
+
+add_custom_target(check-rpcauth
+	COMMAND
+		${CMAKE_COMMAND} -E echo "Running test/util/rpcauth-test.py..."
+	COMMAND
+		./util/rpcauth-test.py
+	DEPENDS
+		../share/rpcauth/rpcauth.py
+		${CMAKE_CURRENT_BINARY_DIR}/util/rpcauth-test.py
+)
+
+add_dependencies(check check-rpcauth)
