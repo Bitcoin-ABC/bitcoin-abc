@@ -7,3 +7,7 @@ This release includes the following features and fixes:
    default behavior. Setting `-printtoconsole=1` no longer implicitly disables
    logging to debug.log. Instead, logging to file can be explicitly disabled by
    setting `-debuglogfile=0`.
+ - `getlabeladdress` has been removed and replaced with `getaccountaddress`
+   until v0.21 at which time `getaccountaddress` will also be removed.  To
+   use `getaccountaddress` start `bitcoind` with the `-deprecatedrpc=accounts`
+   option.  See the v0.20.6 release notes for more details.
