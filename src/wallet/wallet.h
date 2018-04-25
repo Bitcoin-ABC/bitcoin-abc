@@ -1062,10 +1062,11 @@ public:
     BlockDisconnected(const std::shared_ptr<const CBlock> &pblock) override;
     int64_t RescanFromTime(int64_t startTime,
                            const WalletRescanReserver &reserver, bool update);
-    CBlockIndex *ScanForWalletTransactions(CBlockIndex *pindexStart,
-                                           CBlockIndex *pindexStop,
-                                           const WalletRescanReserver &reserver,
-                                           bool fUpdate = false);
+    const CBlockIndex *
+    ScanForWalletTransactions(const CBlockIndex *const pindexStart,
+                              const CBlockIndex *const pindexStop,
+                              const WalletRescanReserver &reserver,
+                              bool fUpdate = false);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
