@@ -13,6 +13,16 @@
 
 namespace Checkpoints {
 
+bool CheckBlock(const CCheckpointData &data, int nHeight, const uint256 &hash) {
+    const MapCheckpoints &checkpoints = data.mapCheckpoints;
+
+    MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
+    if (i == checkpoints.end()) {
+        return true;
+    }
+    return hash == i->second;
+}
+
 CBlockIndex *GetLastCheckpoint(const CCheckpointData &data) {
     const MapCheckpoints &checkpoints = data.mapCheckpoints;
 

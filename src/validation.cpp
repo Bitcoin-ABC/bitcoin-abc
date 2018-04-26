@@ -3543,11 +3543,20 @@ static bool CheckIndexAgainstCheckpoint(const CBlockIndex *pindexPrev,
     }
 
     int nHeight = pindexPrev->nHeight + 1;
+    const CCheckpointData &checkpoints = chainparams.Checkpoints();
+
+    // Check that the block chain matches the known block chain up to a
+    // checkpoint.
+    if (!Checkpoints::CheckBlock(checkpoints, nHeight, hash)) {
+        return state.DoS(100, error("%s: rejected by checkpoint lock-in at %d",
+                                    __func__, nHeight),
+                         REJECT_CHECKPOINT, "checkpoint mismatch");
+    }
+
     // Don't accept any forks from the main chain prior to last checkpoint.
     // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in
     // our MapBlockIndex.
-    CBlockIndex *pcheckpoint =
-        Checkpoints::GetLastCheckpoint(chainparams.Checkpoints());
+    CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
     if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
         return state.DoS(
             100,

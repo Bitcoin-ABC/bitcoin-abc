@@ -18,6 +18,9 @@ struct CCheckpointData;
  */
 namespace Checkpoints {
 
+//! Returns true if block passes checkpoint checks
+bool CheckBlock(const CCheckpointData &data, int nHeight, const uint256 &hash);
+
 //! Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
 CBlockIndex *GetLastCheckpoint(const CCheckpointData &data);
 
