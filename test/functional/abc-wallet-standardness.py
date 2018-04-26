@@ -49,12 +49,16 @@ class WalletStandardnessTest(BitcoinTestFramework):
         nonstd_node.generate(120)
         sync_blocks(self.nodes)
 
-        def fund_and_test_wallet(scriptPubKey, shouldBeStandard, shouldBeInWallet, amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)"):
+        def fund_and_test_wallet(scriptPubKey, shouldBeStandard, shouldBeInWallet,
+                                 amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", canSign=None):
             """ Get the nonstandard node to fund a transaction, test its
             standardness by trying to broadcast on the standard node, then
             mine it and see if it ended up in the standard node's wallet.
             Finally, it attempts to spend the coin.
             """
+
+            if canSign is None:
+                canSign = shouldBeInWallet
 
             self.log.info("Trying script {}".format(scriptPubKey.hex(),))
 
@@ -99,6 +103,12 @@ class WalletStandardnessTest(BitcoinTestFramework):
 
             # calculate wallet balance change just as a double check
             balance_change = std_node.getbalance() - balance_initial
+            if shouldBeInWallet:
+                assert (txid, 0) in wallet_outpoints
+                assert balance_change == amount * SATOSHI
+            else:
+                assert (txid, 0) not in wallet_outpoints
+                assert balance_change == 0
 
             # try spending the funds using the wallet.
             outamount = (amount - spendfee) * SATOSHI
@@ -112,9 +122,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
                 [{'txid': txid, 'vout': 0}], outputs)
             signresult = std_node.signrawtransactionwithwallet(spendtx)
 
-            if shouldBeInWallet:
-                assert (txid, 0) in wallet_outpoints
-                assert balance_change == amount * SATOSHI
+            if canSign:
                 assert_equal(signresult['complete'], True)
                 txid = std_node.sendrawtransaction(signresult['hex'])
                 [blockhash] = std_node.generate(1)
@@ -122,8 +130,6 @@ class WalletStandardnessTest(BitcoinTestFramework):
                 assert txid in std_node.getblock(blockhash)["tx"]
                 sync_blocks(self.nodes)
             else:
-                assert (txid, 0) not in wallet_outpoints
-                assert balance_change == 0
                 # signresult['errors'] will vary depending on input script. What
                 # occurs is that in sign.cpp, ProduceSignature gets back
                 # solved=false since SignStep sees a nonstandard input. Then,
@@ -155,7 +161,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
 
         # Bare multisig
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, OP_1, OP_CHECKMULTISIG]), True, True)
+            CScript([OP_1, pubkey, OP_1, OP_CHECKMULTISIG]), True, False, canSign=True)
         fund_and_test_wallet(
             CScript([OP_1, OP_PUSHDATA1, pubkey, OP_1, OP_CHECKMULTISIG]), False, False)
         fund_and_test_wallet(
@@ -164,7 +170,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             CScript([b'\x01', pubkey, OP_1, OP_CHECKMULTISIG]), False, False)
         # Note: 1-of-5 is nonstandard to fund but standard to spend.
         fund_and_test_wallet(
-            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, True)
+            CScript([OP_1, pubkey, pubkey, pubkey, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False, canSign=True)
         fund_and_test_wallet(
             CScript([OP_1, pubkey, pubkey, pubkey, OP_PUSHDATA1, pubkey, pubkey, OP_5, OP_CHECKMULTISIG]), False, False)
 

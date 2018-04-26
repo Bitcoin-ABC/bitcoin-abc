@@ -267,11 +267,12 @@ static void ImportScript(CWallet *const pwallet, const CScript &script,
     }
 
     if (isRedeemScript) {
-        if (!pwallet->HaveCScript(script) && !pwallet->AddCScript(script)) {
+        const CScriptID id(script);
+        if (!pwallet->HaveCScript(id) && !pwallet->AddCScript(script)) {
             throw JSONRPCError(RPC_WALLET_ERROR,
                                "Error adding p2sh redeemScript to wallet");
         }
-        ImportAddress(pwallet, CScriptID(script), strLabel);
+        ImportAddress(pwallet, id, strLabel);
     } else {
         CTxDestination destination;
         if (ExtractDestination(script, destination)) {
@@ -1125,14 +1126,14 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                                    "Error adding address to wallet");
             }
 
-            if (!pwallet->HaveCScript(redeemScript) &&
+            CScriptID redeem_id(redeemScript);
+            if (!pwallet->HaveCScript(redeem_id) &&
                 !pwallet->AddCScript(redeemScript)) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
                                    "Error adding p2sh redeemScript to wallet");
             }
 
-            CTxDestination redeem_dest = CScriptID(redeemScript);
-            CScript redeemDestination = GetScriptForDestination(redeem_dest);
+            CScript redeemDestination = GetScriptForDestination(redeem_id);
 
             if (::IsMine(*pwallet, redeemDestination) == ISMINE_SPENDABLE) {
                 throw JSONRPCError(RPC_WALLET_ERROR,
