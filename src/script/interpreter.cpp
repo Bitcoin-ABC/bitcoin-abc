@@ -203,17 +203,6 @@ static void CleanupScriptCode(CScript &scriptCode,
     }
 }
 
-static bool IsDefinedHashtypeSignature(const valtype &vchSig) {
-    if (vchSig.size() == 0) {
-        return false;
-    }
-    if (!GetHashType(vchSig).hasSupportedBaseType()) {
-        return false;
-    }
-
-    return true;
-}
-
 bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
                             ScriptError *serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
@@ -232,7 +221,7 @@ bool CheckSignatureEncoding(const std::vector<uint8_t> &vchSig, uint32_t flags,
         return false;
     }
     if ((flags & SCRIPT_VERIFY_STRICTENC) != 0) {
-        if (!IsDefinedHashtypeSignature(vchSig)) {
+        if (!GetHashType(vchSig).isDefined()) {
             return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
         }
         bool usesForkId = GetHashType(vchSig).hasForkId();

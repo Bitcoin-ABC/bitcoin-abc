@@ -26,7 +26,7 @@ enum {
  * c99c49da4c38af669dea436d3e73780dfdb6c1ecf9958baa52960e8baee30e73 for an
  * example where an unsupported base sig hash of 0 was used.
  */
-enum class BaseSigHashType : uint32_t {
+enum class BaseSigHashType : uint8_t {
     UNSUPPORTED = 0,
     ALL = SIGHASH_ALL,
     NONE = SIGHASH_NONE,
@@ -67,8 +67,9 @@ public:
 
     uint32_t getForkValue() const { return sigHash >> 8; }
 
-    bool hasSupportedBaseType() const {
-        BaseSigHashType baseType = getBaseType();
+    bool isDefined() const {
+        auto baseType =
+            BaseSigHashType(sigHash & ~(SIGHASH_FORKID | SIGHASH_ANYONECANPAY));
         return baseType >= BaseSigHashType::ALL &&
                baseType <= BaseSigHashType::SINGLE;
     }
