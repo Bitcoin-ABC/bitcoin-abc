@@ -490,7 +490,9 @@ static bool AcceptToMemoryPoolWorker(
         // policy upgrade.
         if (!bypass_limits && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
             return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
-                                 "min relay fee not met");
+                                 "min relay fee not met",
+                                 strprintf("%d < %d", nModifiedFees,
+                                           ::minRelayTxFee.GetFee(nSize)));
         }
 
         if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
