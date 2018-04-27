@@ -634,17 +634,8 @@ int GetNumCores() {
 }
 
 std::string CopyrightHolders(const std::string &strPrefix) {
-    std::string strCopyrightHolders =
-        strPrefix +
-        strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
-
-    // Check for untranslated substitution to make sure Bitcoin ABC copyright
-    // is not removed by accident.
-    if (strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION)
-            .find("Bitcoin ABC") == std::string::npos) {
-        strCopyrightHolders += "\n" + strPrefix + "The Bitcoin ABC developers";
-    }
-    return strCopyrightHolders;
+    return strPrefix +
+           strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION));
 }
 
 // Obtain the application startup time (used for uptime calculation)
