@@ -875,6 +875,42 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     "P2PK with undefined hashtype", SCRIPT_VERIFY_STRICTENC)
             .PushSig(keys.key1, SigHashType(5))
             .ScriptError(SCRIPT_ERR_SIG_HASHTYPE));
+
+    // Generate P2PKH tests for invalid SigHashType
+    tests.push_back(
+        TestBuilder(CScript() << OP_DUP << OP_HASH160
+                              << ToByteVector(keys.pubkey0.GetID())
+                              << OP_EQUALVERIFY << OP_CHECKSIG,
+                    "P2PKH with invalid sighashtype", 0)
+            .PushSig(keys.key0, SigHashType(0x21), 32, 32, Amount(0), 0)
+            .Push(keys.pubkey0));
+    tests.push_back(TestBuilder(CScript() << OP_DUP << OP_HASH160
+                                          << ToByteVector(keys.pubkey0.GetID())
+                                          << OP_EQUALVERIFY << OP_CHECKSIG,
+                                "P2PKH with invalid sighashtype and STRICTENC",
+                                SCRIPT_VERIFY_STRICTENC)
+                        .PushSig(keys.key0, SigHashType(0x21), 32, 32,
+                                 Amount(0), SCRIPT_VERIFY_STRICTENC)
+                        .Push(keys.pubkey0)
+                        // Should fail for STRICTENC
+                        .ScriptError(SCRIPT_ERR_SIG_HASHTYPE));
+
+    // Generate P2SH tests for invalid SigHashType
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey1) << OP_CHECKSIG,
+                    "P2SH(P2PK) with invalid sighashtype", SCRIPT_VERIFY_P2SH,
+                    true)
+            .PushSig(keys.key1, SigHashType(0x21))
+            .PushRedeem());
+    tests.push_back(
+        TestBuilder(CScript() << ToByteVector(keys.pubkey1) << OP_CHECKSIG,
+                    "P2SH(P2PK) with invalid sighashtype and STRICTENC",
+                    SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, true)
+            .PushSig(keys.key1, SigHashType(0x21))
+            .PushRedeem()
+            // Should fail for STRICTENC
+            .ScriptError(SCRIPT_ERR_SIG_HASHTYPE));
+
     tests.push_back(
         TestBuilder(
             CScript() << ToByteVector(keys.pubkey1) << OP_CHECKSIG << OP_NOT,
