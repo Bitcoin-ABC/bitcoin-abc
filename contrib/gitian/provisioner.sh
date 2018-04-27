@@ -45,12 +45,10 @@ cd gitian-builder
 
 # This is required for multiarch support.  Once the associated pull-requests
 # are merged, these should be removed.
-git remote add deadalnix https://github.com/deadalnix/gitian-builder.git
+git remote add deadalnix https://github.com/devrandom/gitian-builder.git
 git fetch deadalnix
 git config --global user.email "vagrant@vagrant.com"
 git config --global user.name "vagrant"
-git cherry-pick 6ed65a2fff1daaccaecd087d5208c0a5800f86ff
-git cherry-pick 052f3c1ae4ff9ad779bc36c745fe19ba2176c322
 
 chown -R ${BUILDUSER}:${BUILDUSER} /home/${BUILDUSER}  
 
