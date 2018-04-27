@@ -266,9 +266,11 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps) {
     return true;
 }
 
-// Perform transaction-level checks before adding to block:
-// - transaction finality (locktime)
-// - serialized size (in case -blockmaxsize is in use)
+/**
+ * Perform transaction-level checks before adding to block:
+ * - Transaction finality (locktime)
+ * - Serialized size (in case -blockmaxsize is in use)
+ */
 bool BlockAssembler::TestPackageTransactions(
     const CTxMemPool::setEntries &package) {
     uint64_t nPotentialBlockSize = nBlockSize;
@@ -410,17 +412,27 @@ void BlockAssembler::SortForBlock(
               CompareTxIterByAncestorCount());
 }
 
-// This transaction selection algorithm orders the mempool based on feerate of a
-// transaction including all unconfirmed ancestors. Since we don't remove
-// transactions from the mempool as we select them for block inclusion, we need
-// an alternate method of updating the feerate of a transaction with its
-// not-yet-selected ancestors as we go. This is accomplished by walking the
-// in-mempool descendants of selected transactions and storing a temporary
-// modified state in mapModifiedTxs. Each time through the loop, we compare the
-// best transaction in mapModifiedTxs with the next transaction in the mempool
-// to decide what transaction package to work on next.
+/**
+ * addPackageTx includes transactions paying a fee by ensuring that
+ * the partial ordering of transactions is maintained.  That is to say
+ * children come after parents, despite having a potentially larger fee.
+ * @param[out] nPackagesSelected    How many packages were selected
+ * @param[out] nDescendantsUpdated  Number of descendant transactions updated
+*/
 void BlockAssembler::addPackageTxs(int &nPackagesSelected,
                                    int &nDescendantsUpdated) {
+
+    // selection algorithm orders the mempool based on feerate of a
+    // transaction including all unconfirmed ancestors. Since we don't remove
+    // transactions from the mempool as we select them for block inclusion, we
+    // need an alternate method of updating the feerate of a transaction with
+    // its not-yet-selected ancestors as we go. This is accomplished by
+    // walking the in-mempool descendants of selected transactions and storing
+    // a temporary modified state in mapModifiedTxs. Each time through the
+    // loop, we compare the best transaction in mapModifiedTxs with the next
+    // transaction in the mempool to decide what transaction package to work
+    // on next.
+
     // mapModifiedTx will store sorted packages after they are modified because
     // some of their txs are already in the block.
     indexed_modified_transaction_set mapModifiedTx;
@@ -539,10 +551,10 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
         std::vector<CTxMemPool::txiter> sortedEntries;
         SortForBlock(ancestors, iter, sortedEntries);
 
-        for (size_t i = 0; i < sortedEntries.size(); ++i) {
-            AddToBlock(sortedEntries[i]);
+        for (auto &entry : sortedEntries) {
+            AddToBlock(entry);
             // Erase from the modified set, if present
-            mapModifiedTx.erase(sortedEntries[i]);
+            mapModifiedTx.erase(entry);
         }
 
         ++nPackagesSelected;
