@@ -6,6 +6,7 @@
 #include "data/tx_valid.json.h"
 #include "test/test_bitcoin.h"
 
+#include "checkqueue.h"
 #include "clientversion.h"
 #include "consensus/validation.h"
 #include "core_io.h"
@@ -391,6 +392,90 @@ void ReplaceRedeemScript(CScript &script, const CScript &redeemScript) {
     stack.back() =
         std::vector<uint8_t>(redeemScript.begin(), redeemScript.end());
     script = PushAll(stack);
+}
+
+BOOST_AUTO_TEST_CASE(test_big_transaction) {
+    CKey key;
+    key.MakeNewKey(false);
+    CBasicKeyStore keystore;
+    keystore.AddKeyPubKey(key, key.GetPubKey());
+    CScript scriptPubKey = CScript()
+                           << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+
+    std::vector<SigHashType> sigHashes;
+    sigHashes.emplace_back(SIGHASH_NONE | SIGHASH_FORKID);
+    sigHashes.emplace_back(SIGHASH_SINGLE | SIGHASH_FORKID);
+    sigHashes.emplace_back(SIGHASH_ALL | SIGHASH_FORKID);
+    sigHashes.emplace_back(SIGHASH_NONE | SIGHASH_FORKID |
+                           SIGHASH_ANYONECANPAY);
+    sigHashes.emplace_back(SIGHASH_SINGLE | SIGHASH_FORKID |
+                           SIGHASH_ANYONECANPAY);
+    sigHashes.emplace_back(SIGHASH_ALL | SIGHASH_FORKID | SIGHASH_ANYONECANPAY);
+
+    CMutableTransaction mtx;
+    mtx.nVersion = 1;
+
+    // create a big transaction of 4500 inputs signed by the same key.
+    const static size_t OUTPUT_COUNT = 4500;
+    mtx.vout.reserve(OUTPUT_COUNT);
+
+    for (size_t ij = 0; ij < OUTPUT_COUNT; ij++) {
+        size_t i = mtx.vin.size();
+        uint256 prevId = uint256S(
+            "0000000000000000000000000000000000000000000000000000000000000100");
+        COutPoint outpoint(prevId, i);
+
+        mtx.vin.resize(mtx.vin.size() + 1);
+        mtx.vin[i].prevout = outpoint;
+        mtx.vin[i].scriptSig = CScript();
+
+        mtx.vout.emplace_back(Amount(1000), CScript() << OP_1);
+    }
+
+    // sign all inputs
+    for (size_t i = 0; i < mtx.vin.size(); i++) {
+        bool hashSigned =
+            SignSignature(keystore, scriptPubKey, mtx, i, Amount(1000),
+                          sigHashes.at(i % sigHashes.size()));
+        BOOST_CHECK_MESSAGE(hashSigned, "Failed to sign test transaction");
+    }
+
+    CTransaction tx(mtx);
+
+    // check all inputs concurrently, with the cache
+    PrecomputedTransactionData txdata(tx);
+    boost::thread_group threadGroup;
+    CCheckQueue<CScriptCheck> scriptcheckqueue(128);
+    CCheckQueueControl<CScriptCheck> control(&scriptcheckqueue);
+
+    for (int i = 0; i < 20; i++) {
+        threadGroup.create_thread(boost::bind(
+            &CCheckQueue<CScriptCheck>::Thread, boost::ref(scriptcheckqueue)));
+    }
+
+    std::vector<Coin> coins;
+    for (size_t i = 0; i < mtx.vin.size(); i++) {
+        CTxOut out;
+        out.nValue = Amount(1000);
+        out.scriptPubKey = scriptPubKey;
+        coins.emplace_back(std::move(out), 1, false);
+    }
+
+    for (size_t i = 0; i < mtx.vin.size(); i++) {
+        std::vector<CScriptCheck> vChecks;
+        CTxOut &out = coins[tx.vin[i].prevout.n].GetTxOut();
+        CScriptCheck check(out.scriptPubKey, out.nValue, tx, i,
+                           MANDATORY_SCRIPT_VERIFY_FLAGS, false, txdata);
+        vChecks.push_back(CScriptCheck());
+        check.swap(vChecks.back());
+        control.Add(vChecks);
+    }
+
+    bool controlCheck = control.Wait();
+    BOOST_CHECK(controlCheck);
+
+    threadGroup.interrupt_all();
+    threadGroup.join_all();
 }
 
 BOOST_AUTO_TEST_CASE(test_witness) {
