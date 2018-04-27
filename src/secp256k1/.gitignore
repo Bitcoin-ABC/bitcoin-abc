@@ -1,6 +1,7 @@
 bench_inv
 bench_ecdh
 bench_ecmult
+bench_multiset
 bench_sign
 bench_verify
 bench_schnorr_verify
