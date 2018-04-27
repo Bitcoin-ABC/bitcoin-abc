@@ -100,8 +100,8 @@ public:
         strNetworkID = "main";
         consensus.nSubsidyHalvingInterval = 210000;
         consensus.BIP34Height = 227931;
-        consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb4"
-                                       "4ab7bd1b19115dd6a759c0808b8");
+        consensus.BIP34Hash = uint256S(
+            "000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
         consensus.BIP65Height = 388381;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
@@ -137,12 +137,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000915997400e8cf8e5e97d33");
+            "00000000000000000000000000000000000000000096be820973e0c3d70f437e");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000000000001d2ce557406b017a928be25ee98906397d339c3f68eec5d");
+            "000000000000000001ad94189e956f1c1c28c8c34d2aae9bb8ce0c7f2b93b287");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -176,11 +176,11 @@ public:
                                      50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3"
-                        "f1b60a8ce26f"));
+               uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1"
+                        "b60a8ce26f"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab212"
-                        "7b7afdeda33b"));
+               uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
+                        "7afdeda33b"));
 
         // Note that of those with the service bits flag, most only support a
         // subset of possible options.
@@ -277,8 +277,8 @@ public:
         strNetworkID = "test";
         consensus.nSubsidyHalvingInterval = 210000;
         consensus.BIP34Height = 21111;
-        consensus.BIP34Hash = uint256S("0x0000000023b3a96d3484e5abb3755c413e7d4"
-                                       "1500f8e2a5c3f0dd01299cd8ef8");
+        consensus.BIP34Hash = uint256S(
+            "0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8");
         // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
         consensus.BIP65Height = 581885;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
@@ -314,12 +314,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "0000000000000000000000000000000000000000000000297b105869341c3527");
+            "00000000000000000000000000000000000000000000002a1bc26caae848fa38");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000005b07ecf85563034d13efd81c1a29e47e22b20f4fc6919d5b09cd6");
+            "000000004ca1bb261765b723cab6c90d0ecfabe1aad8c16a12378c015ab35e78");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
@@ -348,11 +348,11 @@ public:
             CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("0x000000000933ea01ad0ee984209779baaec3ced90fa3f4087195"
-                        "26f8d77f4943"));
+               uint256S("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526"
+                        "f8d77f4943"));
         assert(genesis.hashMerkleRoot ==
-               uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab212"
-                        "7b7afdeda33b"));
+               uint256S("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b"
+                        "7afdeda33b"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
