@@ -58,12 +58,6 @@ CScript ParseScript(const std::string &s) {
             continue;
         }
 
-        // Check that the expected number of byte where pushed.
-        if (push_size && (result.size() - script_size) != push_size) {
-            throw std::runtime_error(
-                "Hex number doesn't match the number of bytes being pushed");
-        }
-
         // Update script size.
         script_size = result.size();
 
@@ -78,7 +72,7 @@ CScript ParseScript(const std::string &s) {
             // Number
             int64_t n = atoi64(w);
             result << n;
-            continue;
+            goto next;
         }
 
         if (boost::algorithm::starts_with(w, "0x") &&
@@ -93,10 +87,6 @@ CScript ParseScript(const std::string &s) {
             // Raw hex data, inserted NOT pushed onto stack:
             std::vector<uint8_t> raw =
                 ParseHex(std::string(w.begin() + 2, w.end()));
-            if (push_size && raw.size() != push_size) {
-                throw std::runtime_error("Hex number doesn't match the "
-                                         "number of bytes being pushed");
-            }
             // If we have what looks like an immediate push, figure out its
             // size.
             if (!push_size && raw.size() == 1 && raw[0] < OP_PUSHDATA1) {
@@ -104,7 +94,7 @@ CScript ParseScript(const std::string &s) {
             }
 
             result.insert(result.end(), raw.begin(), raw.end());
-            continue;
+            goto next;
         }
 
         if (w.size() >= 2 && boost::algorithm::starts_with(w, "'") &&
@@ -114,7 +104,7 @@ CScript ParseScript(const std::string &s) {
             // work.
             std::vector<uint8_t> value(w.begin() + 1, w.end() - 1);
             result << value;
-            continue;
+            goto next;
         }
 
         if (mapOpNames.count(w)) {
@@ -136,16 +126,16 @@ CScript ParseScript(const std::string &s) {
             }
 
             result << op;
-            continue;
+            goto next;
         }
 
         throw std::runtime_error("Error parsing script: " + s);
-    }
 
-    // Check that the expected number of byte where pushed.
-    if (push_size && (result.size() - script_size) != push_size) {
-        throw std::runtime_error(
-            "Hex number doesn't match the number of bytes being pushed");
+    next:
+        size_t size_change = result.size() - script_size;
+        if (push_size && size_change != push_size) {
+            throw std::runtime_error("Wrong number of bytes being pushed.");
+        }
     }
 
     return result;
