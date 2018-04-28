@@ -974,6 +974,26 @@ void SetupServerArgs() {
                  strprintf("Timeout during HTTP requests (default: %d)",
                            DEFAULT_HTTP_SERVER_TIMEOUT),
                  true, OptionsCategory::RPC);
+
+    // Hidden options
+    gArgs.AddArg("-rpcssl", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-benchmark", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-h", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-help", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-socks", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-tor", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-debugnet", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-whitelistalwaysrelay", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-blockminsize", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-dbcrashratio", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-forcecompactdb", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-usehd", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-parkdeepreorg", "", false, OptionsCategory::HIDDEN);
+    gArgs.AddArg("-replayprotectionactivationtime", "", false,
+                 OptionsCategory::HIDDEN);
+
+    // TODO remove after the Nov 2019 upgrade
+    gArgs.AddArg("-gravitonactivationtime", "", false, OptionsCategory::HIDDEN);
 }
 
 std::string LicenseInfo() {
