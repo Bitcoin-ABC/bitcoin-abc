@@ -96,11 +96,6 @@ bool EnsureWalletIsAvailable(CWallet *const pwallet, bool avoidException) {
         return false;
     }
     if (!HasWallets()) {
-        // Note: It isn't currently possible to trigger this error because
-        // wallet RPC methods aren't registered unless a wallet is loaded. But
-        // this error is being kept as a precaution, because it's possible in
-        // the future that wallet RPC methods might get or remain registered
-        // when no wallets are loaded.
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (wallet "
                                                  "method is disabled because "
                                                  "no wallet is loaded)");
@@ -3369,7 +3364,8 @@ static UniValue listwallets(const Config &config,
     return obj;
 }
 
-UniValue loadwallet(const Config &config, const JSONRPCRequest &request) {
+static UniValue loadwallet(const Config &config,
+                           const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "loadwallet \"filename\"\n"
@@ -3435,7 +3431,8 @@ UniValue loadwallet(const Config &config, const JSONRPCRequest &request) {
     return obj;
 }
 
-UniValue createwallet(const Config &config, const JSONRPCRequest &request) {
+static UniValue createwallet(const Config &config,
+                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             "createwallet \"wallet_name\"\n"
@@ -3490,6 +3487,58 @@ UniValue createwallet(const Config &config, const JSONRPCRequest &request) {
     obj.pushKV("warning", warning);
 
     return obj;
+}
+
+static UniValue unloadwallet(const Config &config,
+                             const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() > 1) {
+        throw std::runtime_error(
+            "unloadwallet ( \"wallet_name\" )\n"
+            "Unloads the wallet referenced by the request endpoint otherwise "
+            "unloads the wallet specified in the argument.\n"
+            "Specifying the wallet name on a wallet endpoint is invalid."
+            "\nArguments:\n"
+            "1. \"wallet_name\"    (string, optional) The name of the wallet "
+            "to unload.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("unloadwallet", "wallet_name") +
+            HelpExampleRpc("unloadwallet", "wallet_name"));
+    }
+
+    std::string wallet_name;
+    if (GetWalletNameFromJSONRPCRequest(request, wallet_name)) {
+        if (!request.params[0].isNull()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Cannot unload the requested wallet");
+        }
+    } else {
+        wallet_name = request.params[0].get_str();
+    }
+
+    std::shared_ptr<CWallet> wallet = GetWallet(wallet_name);
+    if (!wallet) {
+        throw JSONRPCError(RPC_WALLET_NOT_FOUND,
+                           "Requested wallet does not exist or is not loaded");
+    }
+
+    // Release the "main" shared pointer and prevent further notifications.
+    // Note that any attempt to load the same wallet would fail until the wallet
+    // is destroyed (see CheckUniqueFileid).
+    if (!RemoveWallet(wallet)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Requested wallet already unloaded");
+    }
+    UnregisterValidationInterface(wallet.get());
+
+    // The wallet can be in use so it's not possible to explicitly unload here.
+    // Just notify the unload intent so that all shared pointers are released.
+    // The wallet will be destroyed once the last shared pointer is released.
+    wallet->NotifyUnload();
+
+    // There's no point in waiting for the wallet to unload.
+    // At this point this method should never fail. The unloading could only
+    // fail due to an unexpected error which would cause a process termination.
+
+    return NullUniValue;
 }
 
 static UniValue resendwallettransactions(const Config &config,
@@ -4584,6 +4633,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "settxfee",                     settxfee,                     {"amount"} },
     { "wallet",             "signmessage",                  signmessage,                  {"address","message"} },
     { "wallet",             "signrawtransactionwithwallet", signrawtransactionwithwallet, {"hextring","prevtxs","sighashtype"} },
+    { "wallet",             "unloadwallet",                 unloadwallet,                 {"wallet_name"} },
     { "wallet",             "walletlock",                   walletlock,                   {} },
     { "wallet",             "walletpassphrasechange",       walletpassphrasechange,       {"oldpassphrase","newpassphrase"} },
     { "wallet",             "walletpassphrase",             walletpassphrase,             {"passphrase","timeout"} },
