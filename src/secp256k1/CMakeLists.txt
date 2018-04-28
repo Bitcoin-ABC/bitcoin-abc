@@ -20,7 +20,6 @@ add_c_compiler_flag(
 # Default visibility is hidden on all targets.
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
-# TODO: change this to include when possible
 include_directories(
 	.
 	src
@@ -46,6 +45,16 @@ else()
 	set(USE_SCALAR_INV_BUILTIN 1)
 endif()
 
+# We check if amd64 asm is supported.
+check_c_source_compiles("
+	#include <stdint.h>
+	int main() {
+		uint64_t a = 11, tmp;
+		__asm__ __volatile__(\"movq \$0x100000000,%1; mulq %%rsi\" : \"+a\"(a) : \"S\"(tmp) : \"cc\", \"%rdx\");
+		return 0;
+	}
+" USE_ASM_X86_64)
+
 # We make sure __int128 is defined
 include(CheckTypeSize)
 check_type_size(__int128 SIZEOF___INT128)
@@ -60,13 +69,12 @@ endif()
 # scalar and filed implementation accordingly
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	# 64 bits implementationr require either __int128 or asm support.
-	# TODO: support asm.
-	if(NOT SIZEOF___INT128 EQUAL 16)
-		message(SEND_ERROR "Compiler does not support __int128")
+	if (HAVE___INT128 OR USE_ASM_X86_64)
+		set(USE_SCALAR_4X64 1)
+		set(USE_FIELD_5X52 1)
+	else()
+		message(SEND_ERROR "Compiler does not support __int128 or insline assembly")
 	endif()
-
-	set(USE_SCALAR_4X64 1)
-	set(USE_FIELD_5X52 1)
 else()
 	set(USE_SCALAR_8X32 1)
 	set(USE_FIELD_10X26 1)
