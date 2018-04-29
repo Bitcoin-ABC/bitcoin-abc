@@ -25,6 +25,12 @@ target_include_directories(crypto
 
 target_compile_definitions(crypto PUBLIC HAVE_CONFIG_H)
 
+# Use assembly is specified
+option(CRYPTO_USE_ASM "Use assembly version of crypto primitives" ON)
+if(CRYPTO_USE_ASM)
+	target_compile_definitions(crypto PRIVATE USE_ASM)
+endif()
+
 # Dependencies
 find_package(OpenSSL REQUIRED)
 target_link_libraries(crypto ${OPENSSL_CRYPTO_LIBRARY})
