@@ -4092,18 +4092,20 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
         }
     }
 
-    const CBlockIndex *stopBlock = pwallet->ScanForWalletTransactions(
-        pindexStart, pindexStop, reserver, true);
-    if (!stopBlock) {
-        if (pwallet->IsAbortingRescan()) {
+    const CBlockIndex *stopBlock;
+    CWallet::ScanResult result = pwallet->ScanForWalletTransactions(
+        pindexStart, pindexStop, reserver, stopBlock, true);
+    switch (result) {
+        case CWallet::ScanResult::SUCCESS:
+            stopBlock = pindexStop ? pindexStop : pChainTip;
+            break;
+        case CWallet::ScanResult::FAILURE:
+            throw JSONRPCError(
+                RPC_MISC_ERROR,
+                "Rescan failed. Potentially corrupted data files.");
+        case CWallet::ScanResult::USER_ABORT:
             throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
-        }
-        // if we got a nullptr returned, ScanForWalletTransactions did rescan up
-        // to the requested stopindex
-        stopBlock = pindexStop ? pindexStop : pChainTip;
-    } else {
-        throw JSONRPCError(RPC_MISC_ERROR,
-                           "Rescan failed. Potentially corrupted data files.");
+            // no default case, so the compiler can warn about missing cases
     }
     UniValue response(UniValue::VOBJ);
     response.pushKV("start_height", pindexStart->nHeight);

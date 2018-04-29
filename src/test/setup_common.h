@@ -15,6 +15,8 @@
 #include <scheduler.h>
 #include <util/system.h>
 
+#include <type_traits>
+
 /**
  * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
  * In order to work around this, we ensure that the null pointers are typed in a
@@ -23,6 +25,14 @@
  * TODO: Use nullptr directly once the minimum version of boost is 1.64 or more.
  */
 #define NULLPTR(T) static_cast<T *>(nullptr)
+
+// Enable BOOST_CHECK_EQUAL for enum class types
+template <typename T>
+std::ostream &operator<<(
+    typename std::enable_if<std::is_enum<T>::value, std::ostream>::type &stream,
+    const T &e) {
+    return stream << static_cast<typename std::underlying_type<T>::type>(e);
+}
 
 /**
  * This global and the helpers that use it are not thread-safe.
