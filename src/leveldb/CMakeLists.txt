@@ -13,26 +13,8 @@ add_compiler_flag(-Wno-sign-compare -Wno-implicit-fallthrough)
 add_c_compiler_flag(-Wno-strict-prototypes)
 remove_compiler_flags(-Wstrict-prototypes)
 
-include(TestBigEndian)
-test_big_endian(LEVELDB_IS_BIG_ENDIAN)
-
-include(CheckIncludeFile)
-check_include_file("unistd.h" HAVE_UNISTD_H)
-
 include(CheckIncludeFileCXX)
 check_include_file_cxx("atomic" LEVELDB_ATOMIC_PRESENT)
-
-include(CheckLibraryExists)
-check_library_exists(crc32c crc32c_value "" HAVE_CRC32C)
-check_library_exists(snappy snappy_compress "" HAVE_SNAPPY)
-
-include(CheckSymbolExists)
-check_symbol_exists(fdatasync "unistd.h" HAVE_FDATASYNC)
-
-configure_file(
-  port/port_config.h.cmake.in
-  include/port/port_config.h
-)
 
 include_directories(.)
 
@@ -151,15 +133,6 @@ target_compile_definitions(leveldb
 		OS_${LEVELDB_OS}
 		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
 )
-
-# Right now this is not used but the latest version of leveldb uses this
-# so we might as well be ready for it.
-if (HAVE_CRC32C)
-  target_link_libraries(leveldb crc32c)
-endif (HAVE_CRC32C)
-if (HAVE_SNAPPY)
-  target_link_libraries(leveldb snappy)
-endif (HAVE_SNAPPY)
 
 # The libmemenv library.
 add_library(memenv helpers/memenv/memenv.cc)
