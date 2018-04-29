@@ -138,6 +138,9 @@ function(configure_leveldb_lib LIB)
 			OS_${LEVELDB_OS}
 			LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
 	)
+	if(LEVELDB_ATOMIC_PRESENT)
+		target_compile_definitions(${LIB} PUBLIC LEVELDB_ATOMIC_PRESENT)
+	endif(LEVELDB_ATOMIC_PRESENT)
 endfunction()
 
 configure_leveldb_lib(leveldb)
