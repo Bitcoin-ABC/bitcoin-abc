@@ -32,6 +32,7 @@ add_compiler_flag(
 	-Wvla
 	-Wformat-security
 	-Wcast-align
+	-Wunused-parameter
 )
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
