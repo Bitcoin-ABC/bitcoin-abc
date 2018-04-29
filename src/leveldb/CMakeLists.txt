@@ -18,6 +18,7 @@ check_include_file_cxx("atomic" LEVELDB_ATOMIC_PRESENT)
 
 include_directories(.)
 
+# Leveldb library
 add_library(leveldb
 	db/builder.cc
 	db/c.cc
@@ -57,17 +58,14 @@ add_library(leveldb
 	util/logging.cc
 	util/options.cc
 	util/status.cc
-
-	# Always include that guy even when not using SSE or posix.
-	# TODO: proper support of SSE.
-	port/port_posix_sse.cc
 )
 
-target_include_directories(leveldb
-	PUBLIC
-		include
-		"${PROJECT_BINARY_DIR}/include"
-)
+# The SSE4.2 optimized CRC32 implementation.
+add_library(leveldb-sse4.2 port/port_posix_sse.cc)
+target_link_libraries(leveldb leveldb-sse4.2)
+
+# The libmemenv library.
+add_library(memenv helpers/memenv/memenv.cc)
 
 # Select the proper port: posix or Windows.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -89,10 +87,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_include_directories(leveldb PUBLIC ${SHLWAPI_INCLUDE_DIR})
 else()
 	set(LEVELDB_PLATFORM POSIX)
-	target_sources(leveldb
-		PRIVATE
-			port/port_posix.cc
-	)
+	target_sources(leveldb PRIVATE port/port_posix.cc)
 
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
@@ -124,24 +119,33 @@ else()
 		# No idea what's the proper system name is here.
 		set(LEVELDB_OS IOS)
 	else()
+		# Unknown plateform, assume linux.
 		set(LEVELDB_OS LINUX)
 	endif()
 endif()
 
-target_compile_definitions(leveldb
-	PUBLIC
-		OS_${LEVELDB_OS}
-		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
-)
+# Right now this is not used but the latest version of leveldb uses this
+# so we might as well be ready for it.
+if (HAVE_CRC32C)
+  target_link_libraries(leveldb crc32c)
+endif (HAVE_CRC32C)
+if (HAVE_SNAPPY)
+  target_link_libraries(leveldb snappy)
+endif (HAVE_SNAPPY)
 
-# The libmemenv library.
-add_library(memenv helpers/memenv/memenv.cc)
-target_include_directories(memenv PUBLIC include)
-target_compile_definitions(memenv
-	PUBLIC
-		OS_${LEVELDB_OS}
-		LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
-)
+# Configure all leveldb libraries.
+function(configure_leveldb_lib LIB)
+	target_include_directories(${LIB} PUBLIC include)
+	target_compile_definitions(${LIB}
+		PUBLIC
+			OS_${LEVELDB_OS}
+			LEVELDB_PLATFORM_${LEVELDB_PLATFORM}
+	)
+endfunction()
+
+configure_leveldb_lib(leveldb)
+configure_leveldb_lib(leveldb-sse4.2)
+configure_leveldb_lib(memenv)
 
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 if(LEVELDB_BUILD_TESTS)
