@@ -93,9 +93,6 @@ else()
 	find_package(Threads REQUIRED)
 	target_link_libraries(leveldb Threads::Threads)
 
-	# TODO: If the plateform supports SSE4.2 activate
-	# LEVELDB_PLATFORM_POSIX_SSE and the proper compiler flags.
-
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		set(LEVELDB_OS LINUX)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -146,6 +143,28 @@ endfunction()
 configure_leveldb_lib(leveldb)
 configure_leveldb_lib(leveldb-sse4.2)
 configure_leveldb_lib(memenv)
+
+# Check support for SSE4.2 and act accordingly.
+set(CMAKE_REQUIRED_FLAGS -msse4.2)
+check_c_source_compiles("
+	#include <stdint.h>
+	#if defined(_MSC_VER)
+	#include <intrin.h>
+	#elif defined(__GNUC__) && defined(__SSE4_2__)
+	#include <nmmintrin.h>
+	#endif
+	int main() {
+		uint64_t l = 0;
+		l = _mm_crc32_u8(l, 0);
+		l = _mm_crc32_u32(l, 0);
+		l = _mm_crc32_u64(l, 0);
+		return l;
+	}
+" ENABLE_HWCRC32)
+if(ENABLE_HWCRC32)
+	target_compile_definitions(leveldb-sse4.2 PRIVATE LEVELDB_PLATFORM_POSIX_SSE)
+	target_compile_options(leveldb-sse4.2 PRIVATE -msse4.2)
+endif()
 
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 if(LEVELDB_BUILD_TESTS)
