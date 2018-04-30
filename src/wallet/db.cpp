@@ -60,7 +60,7 @@ void CheckUniqueFileid(const BerkeleyEnvironment &env,
 CCriticalSection cs_db;
 
 //!< Map from directory name to open db environment.
-std::map<std::string, BerkeleyEnvironment> g_dbenvs;
+std::map<std::string, BerkeleyEnvironment> g_dbenvs GUARDED_BY(cs_db);
 } // namespace
 
 bool WalletDatabaseFileId::operator==(const WalletDatabaseFileId &rhs) const {
