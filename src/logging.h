@@ -10,9 +10,8 @@
 #include <atomic>
 #include <cstdint>
 #include <list>
+#include <mutex>
 #include <string>
-
-#include <boost/thread/mutex.hpp>
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS = false;
@@ -51,7 +50,7 @@ enum LogFlags : uint32_t {
 class Logger {
 private:
     FILE *fileout = nullptr;
-    boost::mutex mutexDebugLog;
+    std::mutex mutexDebugLog;
     std::list<std::string> vMsgsBeforeOpenLog;
 
     /**

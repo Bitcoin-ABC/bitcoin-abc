@@ -6,7 +6,6 @@
 
 #include "logging.h"
 #include "util.h"
-#include "utilstrencodings.h"
 #include "utiltime.h"
 
 bool fLogIPs = DEFAULT_LOGIPS;
@@ -34,7 +33,7 @@ static int FileWriteStr(const std::string &str, FILE *fp) {
 }
 
 void BCLog::Logger::OpenDebugLog() {
-    boost::mutex::scoped_lock scoped_lock(mutexDebugLog);
+    std::lock_guard<std::mutex> scoped_lock(mutexDebugLog);
 
     assert(fileout == nullptr);
     fs::path pathDebug = GetDataDir() / "debug.log";
@@ -87,9 +86,9 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str) {
         flag = BCLog::ALL;
         return true;
     }
-    for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
-        if (LogCategories[i].category == str) {
-            flag = LogCategories[i].flag;
+    for (const CLogCategoryDesc &category_desc : LogCategories) {
+        if (category_desc.category == str) {
+            flag = category_desc.flag;
             return true;
         }
     }
@@ -99,12 +98,12 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str) {
 std::string ListLogCategories() {
     std::string ret;
     int outcount = 0;
-    for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
+    for (const CLogCategoryDesc &category_desc : LogCategories) {
         // Omit the special cases.
-        if (LogCategories[i].flag != BCLog::NONE &&
-            LogCategories[i].flag != BCLog::ALL) {
+        if (category_desc.flag != BCLog::NONE &&
+            category_desc.flag != BCLog::ALL) {
             if (outcount != 0) ret += ", ";
-            ret += LogCategories[i].category;
+            ret += category_desc.category;
             outcount++;
         }
     }
@@ -151,7 +150,7 @@ int BCLog::Logger::LogPrintStr(const std::string &str) {
         ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
         fflush(stdout);
     } else if (fPrintToDebugLog) {
-        boost::mutex::scoped_lock scoped_lock(mutexDebugLog);
+        std::lock_guard<std::mutex> scoped_lock(mutexDebugLog);
 
         // Buffer if we haven't opened the log yet.
         if (fileout == nullptr) {
