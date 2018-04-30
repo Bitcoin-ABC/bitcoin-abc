@@ -94,24 +94,28 @@ class TestCase():
     Data structure to hold and run information necessary to launch a test case.
     """
 
-    def __init__(self, test_num, test_case, tests_dir, tmpdir, flags=None):
+    def __init__(self, test_num, test_case, tests_dir,
+                 tmpdir, failfast_event, flags=None):
         self.tests_dir = tests_dir
         self.tmpdir = tmpdir
         self.test_case = test_case
         self.test_num = test_num
+        self.failfast_event = failfast_event
         self.flags = flags
 
     def run(self, portseed_offset):
-        t = self.test_case
+        if self.failfast_event.is_set():
+            return TestResult(self.test_num, self.test_case,
+                              "", "Skipped", 0, "", "")
+
         portseed = self.test_num + portseed_offset
         portseed_arg = ["--portseed={}".format(portseed)]
         log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
         log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
-        test_argv = t.split()
+        test_argv = self.test_case.split()
         testdir = os.path.join("{}", "{}_{}").format(
             self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)
         tmpdir_arg = ["--tmpdir={}".format(testdir)]
-        name = t
         time0 = time.time()
         process = subprocess.Popen([sys.executable, os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir_arg,
                                    universal_newlines=True,
@@ -130,7 +134,7 @@ class TestCase():
         else:
             status = "Failed"
 
-        return TestResult(self.test_num, name, testdir, status,
+        return TestResult(self.test_num, self.test_case, testdir, status,
                           int(time.time() - time0), stdout, stderr)
 
 
@@ -179,11 +183,14 @@ def main():
                         help='only print results summary and failure logs')
     parser.add_argument('--tmpdirprefix', '-t',
                         default=os.path.join(build_dir, 'test', 'tmp'), help="Root directory for datadirs")
+    parser.add_argument(
+        '--failfast',
+        action='store_true',
+        help='stop execution after the first test failure')
     parser.add_argument('--junitoutput', '-J', default='junit_results.xml',
                         help="File that will store JUnit formatted test results. If no absolute path is given it is treated as relative to the temporary directory.")
     parser.add_argument('--testsuitename', '-n', default='Bitcoin ABC functional tests',
                         help="Name of the test suite, as it will appear in the logs and in the JUnit report.")
-
     args, unknown_args = parser.parse_known_args()
 
     # args to be passed on always start with two dashes; tests are the
@@ -306,12 +313,26 @@ def main():
         shutil.rmtree(os.path.join(build_dir, "test",
                                    "cache"), ignore_errors=True)
 
-    run_tests(test_list, build_dir, tests_dir, args.junitoutput,
-              tmpdir, args.jobs, args.testsuitename, args.coverage, passon_args, args.combinedlogslen, build_timings)
+    run_tests(
+        test_list,
+        build_dir,
+        tests_dir,
+        args.junitoutput,
+        tmpdir,
+        num_jobs=args.jobs,
+        test_suite_name=args.testsuitename,
+        enable_coverage=args.coverage,
+        args=passon_args,
+        combined_logs_len=args.combinedlogslen,
+        build_timings=build_timings,
+        failfast=args.failfast
+    )
 
 
 def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, test_suite_name,
-              enable_coverage=False, args=[], combined_logs_len=0, build_timings=None):
+              enable_coverage=False, args=None, combined_logs_len=0, build_timings=None, failfast=False):
+    args = args or []
+
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
@@ -349,7 +370,7 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     # Run Tests
     time0 = time.time()
     test_results = execute_test_processes(
-        num_jobs, test_list, tests_dir, tmpdir, flags)
+        num_jobs, test_list, tests_dir, tmpdir, flags, failfast)
     runtime = int(time.time() - time0)
 
     max_len_name = len(max(test_list, key=len))
@@ -378,9 +399,11 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     sys.exit(not all_passed)
 
 
-def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
+def execute_test_processes(
+        num_jobs, test_list, tests_dir, tmpdir, flags, failfast=False):
     update_queue = Queue()
     job_queue = Queue()
+    failfast_event = threading.Event()
     test_results = []
     poll_timeout = 10  # seconds
     # In case there is a graveyard of zombie bitcoinds, we can apply a
@@ -420,6 +443,10 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
                 print(test_result.stdout)
                 print(BOLD[1] + 'stderr:' + BOLD[0])
                 print(test_result.stderr)
+
+                if failfast:
+                    logging.debug("Early exiting after test failure")
+                    failfast_event.set()
             return
 
         assert False, "we should not be here"
@@ -488,7 +515,7 @@ def execute_test_processes(num_jobs, test_list, tests_dir, tmpdir, flags):
 
     # Push all our test cases into the job queue.
     for i, t in enumerate(test_list):
-        job_queue.put(TestCase(i, t, tests_dir, tmpdir, flags))
+        job_queue.put(TestCase(i, t, tests_dir, tmpdir, failfast_event, flags))
 
     # Wait for all the jobs to be completed
     job_queue.join()
