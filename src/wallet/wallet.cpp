@@ -2932,18 +2932,6 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 currentConfirmationTarget = coinControl->nConfirmTarget;
             }
 
-            // Can we complete this as a free transaction?
-            if (fSendFreeTransactions &&
-                nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE) {
-                // Not enough fee: enough priority?
-                double dPriorityNeeded =
-                    mempool.estimateSmartPriority(currentConfirmationTarget);
-                // Require at least hard-coded AllowFree.
-                if (dPriority >= dPriorityNeeded && AllowFree(dPriority)) {
-                    break;
-                }
-            }
-
             Amount nFeeNeeded =
                 GetMinimumFee(nBytes, currentConfirmationTarget, mempool);
             if (coinControl && nFeeNeeded > Amount(0) &&
