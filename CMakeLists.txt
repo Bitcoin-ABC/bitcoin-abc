@@ -10,11 +10,11 @@ set(CMAKE_MODULE_PATH
 )
 
 # If ccache is available, then use it.
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
+find_program(CCACHE ccache)
+if(CCACHE)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE})
+endif(CCACHE)
 
 # Add the magic taret check and check-all
 add_custom_target(check-all)
