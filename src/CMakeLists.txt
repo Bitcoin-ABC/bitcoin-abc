@@ -86,6 +86,8 @@ target_include_directories(util
 		.
 		# To access the config.
 		${CMAKE_CURRENT_BINARY_DIR}
+	PRIVATE
+		${OPENSSL_INCLUDE_DIR}
 )
 
 # Dependencies
