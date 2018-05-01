@@ -13,12 +13,12 @@ find_path(EVENT_INCLUDE_DIR NAMES event.h)
 find_library(EVENT_LIBRARY NAMES event libevent)
 find_library(EVENT_PTHREAD_LIBRARY event_pthreads)
 
-MESSAGE(STATUS "libevent: " ${EVENT_LIBRARY})
+message(STATUS "libevent: " ${EVENT_LIBRARY})
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(libevent DEFAULT_MSG EVENT_INCLUDE_DIR EVENT_LIBRARY)
+find_package_handle_standard_args(Event DEFAULT_MSG EVENT_INCLUDE_DIR EVENT_LIBRARY)
 
 mark_as_advanced(EVENT_INCLUDE_DIR EVENT_LIBRARY)
-if(EVENT_INCLUDE_DIR AND EVENT_LIBRARY)
-	set(EVENT_FOUND)
-endif()
+
+set(Event_LIBRARIES ${EVENT_LIBRARY})
+set(Event_INCLUDE_DIRS ${EVENT_INCLUDE_DIR})
