@@ -222,8 +222,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     }
 
     // Test that if the mempool is limited, estimateSmartFee won't return a
-    // value below the mempool min fee and that estimateSmartPriority returns
-    // essentially an infinite value
+    // value below the mempool min
     mpool.addUnchecked(
         tx.GetId(),
         entry.Fee(feeV[5]).Time(GetTime()).Priority(0).Height(blocknum).FromTx(
@@ -237,8 +236,6 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                     mpool.estimateFee(i).GetFeePerK());
         BOOST_CHECK(mpool.estimateSmartFee(i).GetFeePerK() >=
                     mpool.GetMinFee(1).GetFeePerK());
-        BOOST_CHECK(mpool.estimateSmartPriority(i) ==
-                    double(INF_PRIORITY.GetSatoshis()));
     }
 }
 
