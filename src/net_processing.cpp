@@ -41,6 +41,7 @@
 
 // Used only to inform the wallet of when we last received a block.
 std::atomic<int64_t> nTimeBestReceived(0);
+bool g_enable_bip61 = DEFAULT_ENABLE_BIP61;
 
 struct IteratorComparator {
     template <typename I> bool operator()(const I &a, const I &b) {
@@ -1834,11 +1835,13 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     else if (strCommand == NetMsgType::VERSION) {
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) {
-            connman->PushMessage(
-                pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE,
-                          std::string("Duplicate version message")));
+            if (g_enable_bip61) {
+                connman->PushMessage(
+                    pfrom,
+                    CNetMsgMaker(INIT_PROTO_VERSION)
+                        .Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE,
+                              std::string("Duplicate version message")));
+            }
             LOCK(cs_main);
             Misbehaving(pfrom, 1, "multiple-version");
             return false;
@@ -1871,12 +1874,15 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      "(%08x offered, %08x expected); disconnecting\n",
                      pfrom->GetId(), nServices,
                      GetDesirableServiceFlags(nServices));
-            connman->PushMessage(
-                pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::REJECT, strCommand, REJECT_NONSTANDARD,
-                          strprintf("Expected to offer services %08x",
-                                    GetDesirableServiceFlags(nServices))));
+            if (g_enable_bip61) {
+                connman->PushMessage(
+                    pfrom,
+                    CNetMsgMaker(INIT_PROTO_VERSION)
+                        .Make(NetMsgType::REJECT, strCommand,
+                              REJECT_NONSTANDARD,
+                              strprintf("Expected to offer services %08x",
+                                        GetDesirableServiceFlags(nServices))));
+            }
             pfrom->fDisconnect = true;
             return false;
         }
@@ -1886,12 +1892,14 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             LogPrint(BCLog::NET,
                      "peer=%d using obsolete version %i; disconnecting\n",
                      pfrom->GetId(), nVersion);
-            connman->PushMessage(
-                pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-                          strprintf("Version must be %d or greater",
-                                    MIN_PEER_PROTO_VERSION)));
+            if (g_enable_bip61) {
+                connman->PushMessage(
+                    pfrom,
+                    CNetMsgMaker(INIT_PROTO_VERSION)
+                        .Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
+                              strprintf("Version must be %d or greater",
+                                        MIN_PEER_PROTO_VERSION)));
+            }
             pfrom->fDisconnect = true;
             return false;
         }
@@ -2656,7 +2664,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      tx.GetHash().ToString(), pfrom->GetId(),
                      FormatStateMessage(state));
             // Never send AcceptToMemoryPool's internal codes over P2P.
-            if (state.GetRejectCode() > 0 &&
+            if (g_enable_bip61 && state.GetRejectCode() > 0 &&
                 state.GetRejectCode() < REJECT_INTERNAL) {
                 connman->PushMessage(
                     pfrom, msgMaker.Make(NetMsgType::REJECT, strCommand,
@@ -3313,12 +3321,15 @@ static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode->GetId());
 
-    for (const CBlockReject &reject : state.rejects) {
-        connman->PushMessage(
-            pnode, CNetMsgMaker(INIT_PROTO_VERSION)
-                       .Make(NetMsgType::REJECT, std::string(NetMsgType::BLOCK),
-                             reject.chRejectCode, reject.strRejectReason,
-                             reject.hashBlock));
+    if (g_enable_bip61) {
+        for (const CBlockReject &reject : state.rejects) {
+            connman->PushMessage(
+                pnode,
+                CNetMsgMaker(INIT_PROTO_VERSION)
+                    .Make(NetMsgType::REJECT, std::string(NetMsgType::BLOCK),
+                          reject.chRejectCode, reject.strRejectReason,
+                          reject.hashBlock));
+        }
     }
     state.rejects.clear();
 
@@ -3451,17 +3462,20 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
             fMoreWork = true;
         }
     } catch (const std::ios_base::failure &e) {
-        connman->PushMessage(
-            pfrom, CNetMsgMaker(INIT_PROTO_VERSION)
-                       .Make(NetMsgType::REJECT, strCommand, REJECT_MALFORMED,
-                             std::string("error parsing message")));
+        if (g_enable_bip61) {
+            connman->PushMessage(
+                pfrom,
+                CNetMsgMaker(INIT_PROTO_VERSION)
+                    .Make(NetMsgType::REJECT, strCommand, REJECT_MALFORMED,
+                          std::string("error parsing message")));
+        }
         if (strstr(e.what(), "end of data")) {
             // Allow exceptions from under-length message on vRecv
-            LogPrint(
-                BCLog::NET,
-                "%s(%s, %u bytes): Exception '%s' caught, normally caused by a "
-                "message being shorter than its stated length\n",
-                __func__, SanitizeString(strCommand), nMessageSize, e.what());
+            LogPrint(BCLog::NET,
+                     "%s(%s, %u bytes): Exception '%s' caught, normally caused "
+                     "by a message being shorter than its stated length\n",
+                     __func__, SanitizeString(strCommand), nMessageSize,
+                     e.what());
         } else if (strstr(e.what(), "size too large")) {
             // Allow exceptions from over-long size
             LogPrint(BCLog::NET, "%s(%s, %u bytes): Exception '%s' caught\n",

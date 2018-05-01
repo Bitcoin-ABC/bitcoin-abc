@@ -539,6 +539,11 @@ void SetupServerArgs() {
                  _("Query for peer addresses via DNS lookup, if low on "
                    "addresses (default: 1 unless -connect/-noconnect)"),
                  false, OptionsCategory::CONNECTION);
+    gArgs.AddArg("-enablebip61",
+                 strprintf(_("Send reject messages per BIP61 (default: %u)"),
+                           DEFAULT_ENABLE_BIP61),
+                 false, OptionsCategory::CONNECTION);
+
     gArgs.AddArg("-externalip=<ip>", _("Specify your own public address"),
                  false, OptionsCategory::CONNECTION);
     gArgs.AddArg(
@@ -1765,6 +1770,8 @@ bool AppInitParameterInteraction(Config &config) {
     // TODO: remove some time after the hardfork when no longer needed
     // to differentiate the network nodes.
     nLocalServices = ServiceFlags(nLocalServices | NODE_BITCOIN_CASH);
+
+    g_enable_bip61 = gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61);
 
     nMaxTipAge = gArgs.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
