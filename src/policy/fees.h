@@ -248,16 +248,6 @@ public:
     CFeeRate estimateSmartFee(int confTarget, int *answerFoundAtTarget,
                               const CTxMemPool &pool);
 
-    /**
-     * Estimate priority needed to get be included in a block within confTarget
-     * blocks.
-     * DEPRECATED
-     * Returns -1 unless mempool is currently limited then returns INF_PRIORITY
-     * answerFoundAtTarget is set to confTarget
-     */
-    double estimateSmartPriority(int confTarget, int *answerFoundAtTarget,
-                                 const CTxMemPool &pool);
-
     /** Write estimation data to a file */
     void Write(CAutoFile &fileout);
 

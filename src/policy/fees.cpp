@@ -520,25 +520,6 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
     return CFeeRate(Amount(int64_t(median)));
 }
 
-double CBlockPolicyEstimator::estimateSmartPriority(int confTarget,
-                                                    int *answerFoundAtTarget,
-                                                    const CTxMemPool &pool) {
-    if (answerFoundAtTarget) {
-        *answerFoundAtTarget = confTarget;
-    }
-
-    // If mempool is limiting txs, no priority txs are allowed
-    Amount minPoolFee =
-        pool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
-                       1000000)
-            .GetFeePerK();
-    if (minPoolFee > Amount(0)) {
-        return double(INF_PRIORITY.GetSatoshis());
-    }
-
-    return -1;
-}
-
 void CBlockPolicyEstimator::Write(CAutoFile &fileout) {
     fileout << nBestSeenHeight;
     feeStats.Write(fileout);
