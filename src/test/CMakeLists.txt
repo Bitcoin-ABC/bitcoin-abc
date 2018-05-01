@@ -134,6 +134,8 @@ target_include_directories(test_bitcoin
 	PUBLIC
 		# To access the generated json headers.
 		${CMAKE_CURRENT_BINARY_DIR}
+	PRIVATE
+		${OPENSSL_INCLUDE_DIR}
 )
 
 find_package(Boost 1.58 REQUIRED unit_test_framework)
