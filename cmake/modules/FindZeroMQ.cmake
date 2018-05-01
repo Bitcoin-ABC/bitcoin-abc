@@ -10,12 +10,12 @@ endif()
 
 find_path(ZMQ_INCLUDE_DIR NAMES zmq.h)
 find_library(ZMQ_LIBRARY NAMES zmq libzmq)
-MESSAGE(STATUS "ZeroMQ lib: " ${ZMQ_LIBRARY})
+message(STATUS "ZeroMQ lib: " ${ZMQ_LIBRARY})
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(ZeroMQ DEFAULT_MSG ZMQ_INCLUDE_DIR ZMQ_LIBRARY)
+find_package_handle_standard_args(ZeroMQ DEFAULT_MSG ZMQ_INCLUDE_DIR ZMQ_LIBRARY)
 
 mark_as_advanced(ZMQ_INCLUDE_DIR ZMQ_LIBRARY)
-if(ZMQ_INCLUDE_DIR AND ZMQ_LIBRARY)
-	set(ZMQ_FOUND TRUE)
-endif()
+
+set(ZeroMQ_LIBRARIES ${ZMQ_LIBRARY})
+set(ZeroMQ_INCLUDE_DIRS ${ZMQ_INCLUDE_DIR})
