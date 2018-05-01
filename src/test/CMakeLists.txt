@@ -3,33 +3,23 @@
 project(bitcoin-test)
 
 # Process json files.
-find_program(HEXDUMP "hexdump")
-find_program(SED "sed")
+find_program(PYTHON python)
 function(gen_json_header NAME)
 	set(HEADERS "")
 	foreach(f ${ARGN})
-		set(hex "${CMAKE_CURRENT_BINARY_DIR}/${f}.hex")
 		set(h "${CMAKE_CURRENT_BINARY_DIR}/${f}.h")
-		add_custom_command(OUTPUT ${hex}
-			COMMAND ${HEXDUMP}
-			ARGS
-				-v
-				-e "8/1 \"0x%02x, \""
-				-e "\"\\n\""
-				"${CMAKE_CURRENT_SOURCE_DIR}/${f}" > ${hex}
-			MAIN_DEPENDENCY ${f}
-			VERBATIM
-		)
+
 		# Get the proper name for the test variable.
 		get_filename_component(TEST_NAME ${f} NAME_WE)
 		add_custom_command(OUTPUT ${h}
-			COMMAND ${SED}
+			COMMAND ${PYTHON}
 			ARGS
-				-e "s/0x  ,//g"
-				-e "1 s/^/namespace json_tests{\\nstatic unsigned const char ${TEST_NAME}[] = {\\n/"
-				-e "\${s:\$:\\n\\};\\n\\}; // namespace json_tests:}"
-				< ${hex} > ${h}
-			MAIN_DEPENDENCY ${hex}
+				"${CMAKE_CURRENT_SOURCE_DIR}/data/generate_header.py"
+				"${TEST_NAME}"
+				"${CMAKE_CURRENT_SOURCE_DIR}/${f}" > ${h}
+			MAIN_DEPENDENCY ${f}
+			DEPENDS
+				"data/generate_header.py"
 			VERBATIM
 		)
 		list(APPEND HEADERS ${h})
