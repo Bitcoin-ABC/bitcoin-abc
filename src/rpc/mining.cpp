@@ -969,48 +969,6 @@ static UniValue estimatesmartfee(const Config &config,
     return result;
 }
 
-static UniValue estimatesmartpriority(const Config &config,
-                                      const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            "estimatesmartpriority nblocks\n"
-            "\nDEPRECATED. WARNING: This interface is unstable and may "
-            "disappear or change!\n"
-            "\nEstimates the approximate priority a zero-fee transaction needs "
-            "to begin\n"
-            "confirmation within nblocks blocks if possible and return the "
-            "number of blocks\n"
-            "for which the estimate is valid.\n"
-            "\nArguments:\n"
-            "1. nblocks     (numeric, required)\n"
-            "\nResult:\n"
-            "{\n"
-            "  \"priority\" : x.x,    (numeric) estimated priority\n"
-            "  \"blocks\" : n         (numeric) block number where estimate "
-            "was found\n"
-            "}\n"
-            "\n"
-            "A negative value is returned if not enough transactions and "
-            "blocks\n"
-            "have been observed to make an estimate for any number of blocks.\n"
-            "However if the mempool reject fee is set it will return 1e9 * "
-            "MAX_MONEY.\n"
-            "\nExample:\n" +
-            HelpExampleCli("estimatesmartpriority", "6"));
-    }
-
-    RPCTypeCheck(request.params, {UniValue::VNUM});
-
-    int nBlocks = request.params[0].get_int();
-
-    UniValue result(UniValue::VOBJ);
-    int answerFound;
-    double priority = mempool.estimateSmartPriority(nBlocks, &answerFound);
-    result.push_back(Pair("priority", priority));
-    result.push_back(Pair("blocks", answerFound));
-    return result;
-}
-
 // clang-format off
 static const CRPCCommand commands[] = {
     //  category   name                     actor (function)       okSafeMode
@@ -1025,7 +983,6 @@ static const CRPCCommand commands[] = {
 
     {"util",       "estimatefee",           estimatefee,           true, {"nblocks"}},
     {"util",       "estimatesmartfee",      estimatesmartfee,      true, {"nblocks"}},
-    {"util",       "estimatesmartpriority", estimatesmartpriority, true, {"nblocks"}},
 };
 // clang-format on
 
