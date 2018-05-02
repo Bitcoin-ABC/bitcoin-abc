@@ -2,7 +2,10 @@
 
 project(bitcoin-qt-locale)
 
-find_package(Qt5LinguistTools)
+include(BrewHelper)
+find_brew_prefix(QT5_PREFIX qt5)
+
+find_package(Qt5LinguistTools HINTS "${QT5_PREFIX}")
 
 qt5_add_translation(BITCOIN_QM_FILES
 	bitcoin_af.ts

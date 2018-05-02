@@ -110,6 +110,8 @@ check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 
 # OpenSSL functionality
+include(BrewHelper)
+find_brew_prefix(OPENSSL_ROOT_DIR openssl)
 find_package(OpenSSL REQUIRED)
 set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
 set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})

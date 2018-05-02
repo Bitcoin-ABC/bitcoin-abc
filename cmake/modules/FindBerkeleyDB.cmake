@@ -5,11 +5,30 @@
 # BDBXX_INCLUDE_DIR - the Berkeley DB include directory for C++
 # BDBXX_LIBRARY - Library needed to use Berkeley DB C++ API
 
-find_path(BDB_INCLUDE_DIR NAMES db.h)
-find_library(BDB_LIBRARY NAMES db libdb)
+include(BrewHelper)
+find_brew_prefix(BREW_HINT berkeley-db)
 
-find_path(BDBXX_INCLUDE_DIR NAMES db_cxx.h)
-find_library(BDBXX_LIBRARY NAMES db_cxx libdb_cxx)
+find_path(BDB_INCLUDE_DIR
+	NAMES
+		db.h
+	HINTS ${BREW_HINT}
+)
+find_library(BDB_LIBRARY
+	NAMES
+		db libdb
+	HINTS ${BREW_HINT}
+)
+
+find_path(BDBXX_INCLUDE_DIR
+	NAMES
+		db_cxx.h
+	HINTS ${BREW_HINT}
+)
+find_library(BDBXX_LIBRARY
+	NAMES
+		db_cxx libdb_cxx
+	HINTS ${BREW_HINT}
+)
 
 MESSAGE(STATUS "BerkeleyDB libs: " ${BDB_LIBRARY} " " ${BDBXX_LIBRARY})
 
