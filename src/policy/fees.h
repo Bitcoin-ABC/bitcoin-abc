@@ -249,13 +249,6 @@ public:
                               const CTxMemPool &pool);
 
     /**
-     * Return a priority estimate.
-     * DEPRECATED
-     * Returns -1
-     */
-    double estimatePriority(int confTarget);
-
-    /**
      * Estimate priority needed to get be included in a block within confTarget
      * blocks.
      * DEPRECATED

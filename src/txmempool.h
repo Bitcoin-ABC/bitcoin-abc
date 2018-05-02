@@ -735,9 +735,6 @@ public:
     double estimateSmartPriority(int nBlocks,
                                  int *answerFoundAtBlocks = nullptr) const;
 
-    /** Estimate priority needed to get into the next nBlocks */
-    double estimatePriority(int nBlocks) const;
-
     /** Write/Read estimates to disk */
     bool WriteFeeEstimates(CAutoFile &fileout) const;
     bool ReadFeeEstimates(CAutoFile &filein);

@@ -521,10 +521,6 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
     return CFeeRate(Amount(int64_t(median)));
 }
 
-double CBlockPolicyEstimator::estimatePriority(int confTarget) {
-    return -1;
-}
-
 double CBlockPolicyEstimator::estimateSmartPriority(int confTarget,
                                                     int *answerFoundAtTarget,
                                                     const CTxMemPool &pool) {
