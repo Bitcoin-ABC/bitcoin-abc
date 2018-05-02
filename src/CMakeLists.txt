@@ -90,12 +90,10 @@ target_include_directories(util
 		${OPENSSL_INCLUDE_DIR}
 )
 
-# Dependencies
-set(BOOST_PACKAGES_REQUIRED chrono filesystem program_options)
-
+# Target specific configs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_USE_STATIC_LIBS ON)
-	list(APPEND BOOST_PACKAGES_REQUIRED thread_win32)
+	set(Boost_THREADAPI win32)
 
 	find_package(SHLWAPI REQUIRED)
 	target_link_libraries(util ${SHLWAPI_LIBRARY})
@@ -103,9 +101,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(util ${WS2_32_LIBRARY})
-else()
-	list(APPEND BOOST_PACKAGES_REQUIRED date_time thread)
+	
+	target_compile_definitions(util PUBLIC BOOST_THREAD_USE_LIB)
 endif()
+
+# Boost packages
+set(BOOST_PACKAGES_REQUIRED chrono filesystem program_options thread)
 
 function(prepend var prefix)
 	set(listVar "")
