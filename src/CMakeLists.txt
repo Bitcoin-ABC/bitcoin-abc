@@ -120,6 +120,9 @@ prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
 find_package(Boost 1.58 REQUIRED ${BOOST_PACKAGES_REQUIRED})
 target_link_libraries(util univalue crypto ${BOOST_LIBRARIES})
 
+# Make sure boost uses std::atomic (it doesn't before 1.63)
+target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
+
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
 add_library(common
