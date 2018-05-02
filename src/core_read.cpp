@@ -50,6 +50,8 @@ CScript ParseScript(const std::string &s) {
 
     size_t push_size = 0, next_push_size = 0;
     size_t script_size = 0;
+    // Deal with PUSHDATA1 operation with some more hacks.
+    size_t push_data_size = 0;
 
     for (const auto &w : words) {
         if (w.empty()) {
@@ -65,6 +67,7 @@ CScript ParseScript(const std::string &s) {
         push_size = next_push_size;
         next_push_size = 0;
 
+        // Decimal numbers
         if (all(w, boost::algorithm::is_digit()) ||
             (boost::algorithm::starts_with(w, "-") &&
              all(std::string(w.begin() + 1, w.end()),
@@ -75,6 +78,7 @@ CScript ParseScript(const std::string &s) {
             goto next;
         }
 
+        // Hex Data
         if (boost::algorithm::starts_with(w, "0x") &&
             (w.begin() + 2 != w.end())) {
             if (!IsHex(std::string(w.begin() + 2, w.end()))) {
@@ -87,11 +91,6 @@ CScript ParseScript(const std::string &s) {
             // Raw hex data, inserted NOT pushed onto stack:
             std::vector<uint8_t> raw =
                 ParseHex(std::string(w.begin() + 2, w.end()));
-            // If we have what looks like an immediate push, figure out its
-            // size.
-            if (!push_size && raw.size() == 1 && raw[0] < OP_PUSHDATA1) {
-                next_push_size = raw[0];
-            }
 
             result.insert(result.end(), raw.begin(), raw.end());
             goto next;
@@ -111,20 +110,6 @@ CScript ParseScript(const std::string &s) {
             // opcode, e.g. OP_ADD or ADD:
             opcodetype op = mapOpNames[w];
 
-            switch (op) {
-                case OP_PUSHDATA1:
-                    next_push_size = 1;
-                    break;
-                case OP_PUSHDATA2:
-                    next_push_size = 2;
-                    break;
-                case OP_PUSHDATA4:
-                    next_push_size = 4;
-                    break;
-                default:
-                    break;
-            }
-
             result << op;
             goto next;
         }
@@ -133,8 +118,58 @@ CScript ParseScript(const std::string &s) {
 
     next:
         size_t size_change = result.size() - script_size;
-        if (push_size && size_change != push_size) {
+
+        // If push_size is set, ensure have added the right amount of stuff.
+        if (push_size != 0 && size_change != push_size) {
             throw std::runtime_error("Wrong number of bytes being pushed.");
+        }
+
+        // If push_size is set, and we have push_data_size set, then we have a
+        // PUSHDATAX opcode.  We need to read it's push size as a LE value for
+        // the next iteration of this loop.
+        if (push_size != 0 && push_data_size != 0) {
+            auto offset = &result[script_size];
+
+            // Push data size is not a CScriptNum (Because it is
+            // 2's-complement instead of 1's complement).  We need to use
+            // ReadLE(N) instead of converting to a CScriptNum.
+            if (push_data_size == 1) {
+                next_push_size = *offset;
+            } else if (push_data_size == 2) {
+                next_push_size = ReadLE16(offset);
+            } else if (push_data_size == 4) {
+                next_push_size = ReadLE32(offset);
+            }
+
+            push_data_size = 0;
+        }
+
+        // If push_size is unset, but size_change is 1, that means we have an
+        // opcode in the form of `0x00` or <opcodename>.  We will check to see
+        // if it is a push operation and set state accordingly
+        if (push_size == 0 && size_change == 1) {
+            opcodetype op = opcodetype(*result.rbegin());
+
+            // If we have what looks like an immediate push, figure out its
+            // size.
+            if (op < OP_PUSHDATA1) {
+                next_push_size = op;
+                continue;
+            }
+
+            switch (op) {
+                case OP_PUSHDATA1:
+                    push_data_size = next_push_size = 1;
+                    break;
+                case OP_PUSHDATA2:
+                    push_data_size = next_push_size = 2;
+                    break;
+                case OP_PUSHDATA4:
+                    push_data_size = next_push_size = 4;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
