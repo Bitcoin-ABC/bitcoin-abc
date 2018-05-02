@@ -122,6 +122,10 @@ target_link_libraries(bitcoin-qt-base
 	${Protobuf_LIBRARIES}
 )
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set_property(TARGET bitcoin-qt-base PROPERTY AUTOMOC_MOC_OPTIONS "-DQ_OS_MAC")
+endif()
+
 # Wallet
 if(BUILD_BITCOIN_WALLET)
 	target_sources(bitcoin-qt-base

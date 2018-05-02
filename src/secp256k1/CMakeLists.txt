@@ -9,7 +9,7 @@ add_compiler_flag(
 	-Wshadow
 	-Wno-unused-function
 	-Wno-nonnull
-	-Wno-nonnull-compare
+	-Wno-overlength-strings
 )
 
 add_c_compiler_flag(
