@@ -748,6 +748,11 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     if (!masterKeyID.IsNull()) {
         CKey key;
         if (pwallet->GetKey(masterKeyID, key)) {
+
+            std::string masterseed = EncodeBase58( key.begin(), key.end() );
+            file << "# private masterseed (save to recover HD Wallet): "
+                 << masterseed << "\n\n";
+
             CExtKey masterKey;
             masterKey.SetMaster(key.begin(), key.size());
 

@@ -384,10 +384,11 @@ WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const {
 }
 
 bool WalletModel::setWalletEncrypted(bool encrypted,
-                                     const SecureString &passphrase) {
+                                     const SecureString &passphrase,
+                                     CKey *newSeed) {
     if (encrypted) {
         // Encrypt
-        return wallet->EncryptWallet(passphrase);
+        return wallet->EncryptWallet(passphrase, newSeed);
     } else {
         // Decrypt -- TODO; not supported yet
         return false;

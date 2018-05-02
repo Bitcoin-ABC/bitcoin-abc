@@ -858,7 +858,7 @@ public:
     bool Unlock(const SecureString &strWalletPassphrase);
     bool ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
                                 const SecureString &strNewWalletPassphrase);
-    bool EncryptWallet(const SecureString &strWalletPassphrase);
+    bool EncryptWallet(const SecureString &strWalletPassphrase, CKey *newSeed = nullptr);
 
     void GetKeyBirthTimes(std::map<CTxDestination, int64_t> &mapKeyBirth) const;
     unsigned int ComputeTimeSmart(const CWalletTx &wtx) const;
@@ -888,7 +888,8 @@ public:
                                   const CBlockIndex *pIndex, int posInBlock,
                                   bool fUpdate);
     CBlockIndex *ScanForWalletTransactions(CBlockIndex *pindexStart,
-                                           bool fUpdate = false);
+                                           bool fUpdate = false,
+                                           int64_t forceAll = 0 );
     void ReacceptWalletTransactions();
     void ResendWalletTransactions(int64_t nBestBlockTime,
                                   CConnman *connman) override;
@@ -1137,7 +1138,7 @@ public:
     bool IsHDEnabled();
 
     /* Generates a new HD master key (will not be activated) */
-    CPubKey GenerateNewHDMasterKey();
+    CPubKey GenerateNewHDMasterKey( CKey *newSeed = nullptr );
 
     /**
      * Set the current HD master key (will reset the chain child index counters)

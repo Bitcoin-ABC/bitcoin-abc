@@ -8,6 +8,7 @@
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
+#include "encryptwalletadvanceddialog.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "overviewpage.h"
@@ -252,6 +253,15 @@ void WalletView::encryptWallet(bool status) {
     AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt
                                    : AskPassphraseDialog::Decrypt,
                             this);
+    dlg.setModel(walletModel);
+    dlg.exec();
+
+    updateEncryptionStatus();
+}
+
+void WalletView::encryptWalletAdvanced(bool status) {
+    if (!walletModel) return;
+    EncryptWalletAdvancedDialog dlg(this);
     dlg.setModel(walletModel);
     dlg.exec();
 
