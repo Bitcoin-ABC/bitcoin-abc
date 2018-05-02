@@ -43,7 +43,6 @@ std::vector<CWalletRef> vpwallets;
 CFeeRate payTxFee(DEFAULT_TRANSACTION_FEE);
 unsigned int nTxConfirmTarget = DEFAULT_TX_CONFIRM_TARGET;
 bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
-bool fSendFreeTransactions = DEFAULT_SEND_FREE_TRANSACTIONS;
 
 const char *DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
@@ -4029,13 +4028,6 @@ std::string CWallet::GetWalletHelpString(bool showDebug) {
     strUsage += HelpMessageOpt(
         "-salvagewallet",
         _("Attempt to recover private keys from a corrupt wallet on startup"));
-    if (showDebug) {
-        strUsage += HelpMessageOpt(
-            "-sendfreetransactions",
-            strprintf(_("Send transactions as zero-fee transactions if "
-                        "possible (default: %d)"),
-                      DEFAULT_SEND_FREE_TRANSACTIONS));
-    }
 
     strUsage +=
         HelpMessageOpt("-spendzeroconfchange",
@@ -4493,14 +4485,6 @@ bool CWallet::ParameterInteraction() {
         gArgs.GetArg("-txconfirmtarget", DEFAULT_TX_CONFIRM_TARGET);
     bSpendZeroConfChange =
         gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
-    fSendFreeTransactions = gArgs.GetBoolArg("-sendfreetransactions",
-                                             DEFAULT_SEND_FREE_TRANSACTIONS);
-
-    if (fSendFreeTransactions &&
-        gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) <= 0) {
-        return InitError("Creation of free transactions with their relay "
-                         "disabled is not supported.");
-    }
 
     return true;
 }

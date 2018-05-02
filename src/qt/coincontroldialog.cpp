@@ -554,12 +554,6 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
             std::max(mempoolEstimatePriority, AllowFreeThreshold());
         fAllowFree = (dPriority >= dPriorityNeeded);
 
-        if (fSendFreeTransactions) {
-            if (fAllowFree && nBytes <= MAX_FREE_TRANSACTION_CREATE_SIZE) {
-                nPayFee = Amount(0);
-            }
-        }
-
         if (nPayAmount > Amount(0)) {
             nChange = nAmount - nPayAmount;
             if (!CoinControlDialog::fSubtractFeeFromAmount) nChange -= nPayFee;
