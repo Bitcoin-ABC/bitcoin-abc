@@ -117,3 +117,14 @@ It will do the following automatically:
 - Add missing translations to the build system (TODO)
 
 See doc/translation-process.md for more information.
+
+circular-dependencies.py
+========================
+
+Run this script from the root of the source tree (`src/`) to find circular dependencies in the source code.
+This looks only at which files include other files, treating the `.cpp` and `.h` file as one unit.
+
+Example usage:
+
+    cd <project root>/src
+    ../contrib/devtools/circular-dependencies.py {*,*/*,*/*/*}.{h,cpp}
