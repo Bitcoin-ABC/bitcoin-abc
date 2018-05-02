@@ -21,3 +21,4 @@ add_custom_target(check-all)
 add_custom_target(check)
 
 add_subdirectory(src)
+add_subdirectory(test)
