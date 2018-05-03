@@ -6,3 +6,4 @@ This release includes the following features and fixes:
  - Remove deprecated `estimatepriority` RPC.
  - Remove deprecated `estimatesmartpriority` RPC.
  - Remove support for `-sendfreetransactions`.
+ - Remove unstable `estimatesmartfee` RPC.

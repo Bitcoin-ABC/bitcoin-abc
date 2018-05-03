@@ -924,51 +924,6 @@ static UniValue estimatefee(const Config &config,
     return ValueFromAmount(feeRate.GetFeePerK());
 }
 
-static UniValue estimatesmartfee(const Config &config,
-                                 const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            "estimatesmartfee nblocks\n"
-            "\nWARNING: This interface is unstable and may disappear or "
-            "change!\n"
-            "\nEstimates the approximate fee per kilobyte needed for a "
-            "transaction to begin\n"
-            "confirmation within nblocks blocks if possible and return the "
-            "number of blocks\n"
-            "for which the estimate is valid.\n"
-            "\nArguments:\n"
-            "1. nblocks     (numeric)\n"
-            "\nResult:\n"
-            "{\n"
-            "  \"feerate\" : x.x,     (numeric) estimate fee-per-kilobyte (in "
-            "BCH)\n"
-            "  \"blocks\" : n         (numeric) block number where estimate "
-            "was found\n"
-            "}\n"
-            "\n"
-            "A negative value is returned if not enough transactions and "
-            "blocks\n"
-            "have been observed to make an estimate for any number of blocks.\n"
-            "However it will not return a value below the mempool reject fee.\n"
-            "\nExample:\n" +
-            HelpExampleCli("estimatesmartfee", "6"));
-    }
-
-    RPCTypeCheck(request.params, {UniValue::VNUM});
-
-    int nBlocks = request.params[0].get_int();
-
-    UniValue result(UniValue::VOBJ);
-    int answerFound;
-    CFeeRate feeRate = mempool.estimateSmartFee(nBlocks, &answerFound);
-    result.push_back(Pair("feerate",
-                          feeRate == CFeeRate(Amount(0))
-                              ? -1.0
-                              : ValueFromAmount(feeRate.GetFeePerK())));
-    result.push_back(Pair("blocks", answerFound));
-    return result;
-}
-
 // clang-format off
 static const CRPCCommand commands[] = {
     //  category   name                     actor (function)       okSafeMode
@@ -982,7 +937,6 @@ static const CRPCCommand commands[] = {
     {"generating", "generatetoaddress",     generatetoaddress,     true, {"nblocks", "address", "maxtries"}},
 
     {"util",       "estimatefee",           estimatefee,           true, {"nblocks"}},
-    {"util",       "estimatesmartfee",      estimatesmartfee,      true, {"nblocks"}},
 };
 // clang-format on
 
