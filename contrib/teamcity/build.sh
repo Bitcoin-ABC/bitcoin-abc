@@ -34,7 +34,6 @@ fi
 make -j ${THREADS}
 make -C src/secp256k1
 make -C src/univalue
-make -C src/leveldb
 make install
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
