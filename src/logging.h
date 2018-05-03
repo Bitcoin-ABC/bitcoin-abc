@@ -59,9 +59,15 @@ enum LogFlags : uint32_t {
 
 class Logger {
 private:
+    // Can not use Mutex from sync.h because in debug mode it would cause a
+    // deadlock when a potential deadlock was detected
+    mutable std::mutex m_cs;
+    // GUARDED_BY(m_cs)
     FILE *m_fileout = nullptr;
-    std::mutex m_file_mutex;
+    // GUARDED_BY(m_cs)
     std::list<std::string> m_msgs_before_open;
+    //! Buffer messages before logging can be started. GUARDED_BY(m_cs)
+    bool m_buffering{true};
 
     /**
      * m_started_new_line is a state variable that will suppress printing of the
@@ -93,9 +99,14 @@ public:
     void LogPrintStr(const std::string &str);
 
     /** Returns whether logs will be written to any output */
-    bool Enabled() const { return m_print_to_console || m_print_to_file; }
+    bool Enabled() const {
+        std::lock_guard<std::mutex> scoped_lock(m_cs);
+        return m_buffering || m_print_to_console || m_print_to_file;
+    }
 
-    bool OpenDebugLog();
+    /** Start logging (and flush all buffered messages) */
+    bool StartLogging();
+
     void ShrinkDebugFile();
 
     uint32_t GetCategoryMask() const { return m_categories.load(); }

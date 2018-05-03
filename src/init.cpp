@@ -1410,11 +1410,6 @@ void InitLogging() {
     LogInstance().m_file_path = AbsPathForConfigVal(
         gArgs.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
 
-    // Add newlines to the logfile to distinguish this execution from the last
-    // one; called before console logging is set up, so this is only sent to
-    // debug.log.
-    LogPrintf("\n\n\n\n\n");
-
     LogInstance().m_print_to_console = gArgs.GetBoolArg(
         "-printtoconsole", !gArgs.GetBoolArg("-daemon", false));
     LogInstance().m_log_timestamps =
@@ -1894,11 +1889,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             // debug.log printing.
             logger.ShrinkDebugFile();
         }
+    }
 
-        if (!logger.OpenDebugLog()) {
-            return InitError(strprintf("Could not open debug log file %s",
-                                       logger.m_file_path.string()));
-        }
+    if (!logger.StartLogging()) {
+        return InitError(strprintf("Could not open debug log file %s",
+                                   logger.m_file_path.string()));
     }
 
     if (!logger.m_log_timestamps) {
