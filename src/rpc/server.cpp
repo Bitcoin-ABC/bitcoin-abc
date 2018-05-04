@@ -172,7 +172,7 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
                             const JSONRPCRequest &helpreq) const {
     std::string strRet;
     std::string category;
-    std::set<rpcfn_type> setDone;
+    std::set<const CRPCCommand *> setDone;
     std::vector<std::pair<std::string, const CRPCCommand *>> vCommands;
 
     for (std::map<std::string, const CRPCCommand *>::const_iterator mi =
@@ -204,8 +204,9 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
         try {
             JSONRPCRequest jreq;
             jreq.fHelp = true;
-            rpcfn_type pfn = pcmd->actor;
-            if (setDone.insert(pfn).second) pfn(config, jreq);
+            if (setDone.insert(pcmd).second) {
+                pcmd->call(config, jreq);
+            }
         } catch (const std::exception &e) {
             // Help text is returned in an exception
             std::string strHelp = std::string(e.what());
@@ -483,10 +484,10 @@ UniValue CRPCTable::execute(Config &config,
     try {
         // Execute, convert arguments to array if necessary
         if (request.params.isObject()) {
-            return pcmd->actor(
-                config, transformNamedArguments(request, pcmd->argNames));
+            return pcmd->call(config,
+                              transformNamedArguments(request, pcmd->argNames));
         } else {
-            return pcmd->actor(config, request);
+            return pcmd->call(config, request);
         }
     } catch (const std::exception &e) {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());

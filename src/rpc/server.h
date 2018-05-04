@@ -148,26 +148,44 @@ class CRPCCommand {
 public:
     std::string category;
     std::string name;
-    rpcfn_type actor;
     bool okSafeMode;
+
+private:
+    union {
+        rpcfn_type fn;
+        const_rpcfn_type cfn;
+    } actor;
+    bool useConstConfig;
+
+public:
     std::vector<std::string> argNames;
 
     CRPCCommand(std::string _category, std::string _name, rpcfn_type _actor,
                 bool _okSafeMode, std::vector<std::string> _argNames)
-        : category{std::move(_category)}, name{std::move(_name)}, actor{_actor},
-          okSafeMode{_okSafeMode}, argNames{std::move(_argNames)} {}
+        : category{std::move(_category)}, name{std::move(_name)},
+          okSafeMode{_okSafeMode}, useConstConfig{false}, argNames{std::move(
+                                                              _argNames)} {
+        actor.fn = _actor;
+    }
 
     /**
-     * It is safe to cast from void(const int*) to void(int*) but C++ do not
-     * understand type variance. As a result, we need to do the dirty job
-     * ourselves.
+     * There are 2 constructors depending Config is const or not, so we
+     * can call the command through the proper pointer. Casting constness
+     * on parameters of function is undefined behavior.
      */
     CRPCCommand(std::string _category, std::string _name,
                 const_rpcfn_type _actor, bool _okSafeMode,
                 std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
-          actor{reinterpret_cast<rpcfn_type>(_actor)},
-          okSafeMode{_okSafeMode}, argNames{std::move(_argNames)} {}
+          okSafeMode{_okSafeMode}, useConstConfig{true}, argNames{std::move(
+                                                             _argNames)} {
+        actor.cfn = _actor;
+    }
+
+    UniValue call(Config &config, const JSONRPCRequest &jsonRequest) const {
+        return useConstConfig ? (*actor.cfn)(config, jsonRequest)
+                              : (*actor.fn)(config, jsonRequest);
+    };
 };
 
 /**
