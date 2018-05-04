@@ -2170,8 +2170,8 @@ bool CWalletTx::IsTrusted() const {
 }
 
 bool CWalletTx::IsEquivalentTo(const CWalletTx &_tx) const {
-    CMutableTransaction tx1 = *this->tx;
-    CMutableTransaction tx2 = *_tx.tx;
+    CMutableTransaction tx1{*this->tx};
+    CMutableTransaction tx2{*_tx.tx};
     for (CTxIn &in : tx1.vin) {
         in.scriptSig = CScript();
     }

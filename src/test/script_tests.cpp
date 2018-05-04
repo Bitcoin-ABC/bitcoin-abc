@@ -135,7 +135,7 @@ BuildCreditingTransaction(const CScript &scriptPubKey, const Amount nValue) {
 
 static CMutableTransaction
 BuildSpendingTransaction(const CScript &scriptSig,
-                         const CMutableTransaction &txCredit) {
+                         const CTransaction &txCredit) {
     CMutableTransaction txSpend;
     txSpend.nVersion = 1;
     txSpend.nLockTime = 0;
@@ -159,8 +159,8 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
     }
 
     ScriptError err;
-    CMutableTransaction txCredit =
-        BuildCreditingTransaction(scriptPubKey, nValue);
+    const CTransaction txCredit{
+        BuildCreditingTransaction(scriptPubKey, nValue)};
     CMutableTransaction tx = BuildSpendingTransaction(scriptSig, txCredit);
     CMutableTransaction tx2 = tx;
     BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, flags,
@@ -2593,8 +2593,8 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12) {
                    << ToByteVector(key2.GetPubKey()) << OP_2
                    << OP_CHECKMULTISIG;
 
-    CMutableTransaction txFrom12 =
-        BuildCreditingTransaction(scriptPubKey12, Amount::zero());
+    const CTransaction txFrom12{
+        BuildCreditingTransaction(scriptPubKey12, Amount::zero())};
     CMutableTransaction txTo12 = BuildSpendingTransaction(CScript(), txFrom12);
 
     CScript goodsig1 =
@@ -2641,8 +2641,8 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23) {
                    << ToByteVector(key3.GetPubKey()) << OP_3
                    << OP_CHECKMULTISIG;
 
-    CMutableTransaction txFrom23 =
-        BuildCreditingTransaction(scriptPubKey23, Amount::zero());
+    const CTransaction txFrom23{
+        BuildCreditingTransaction(scriptPubKey23, Amount::zero())};
     CMutableTransaction mutableTxTo23 =
         BuildSpendingTransaction(CScript(), txFrom23);
 
@@ -2757,7 +2757,8 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
 
     CMutableTransaction txFrom = BuildCreditingTransaction(
         GetScriptForDestination(keys[0].GetPubKey().GetID()), Amount::zero());
-    CMutableTransaction txTo = BuildSpendingTransaction(CScript(), txFrom);
+    CMutableTransaction txTo =
+        BuildSpendingTransaction(CScript(), CTransaction(txFrom));
     CScript &scriptPubKey = txFrom.vout[0].scriptPubKey;
     CScript &scriptSig = txTo.vin[0].scriptSig;
 
