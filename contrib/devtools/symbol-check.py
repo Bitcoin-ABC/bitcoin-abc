@@ -47,9 +47,9 @@ MAX_VERSIONS = {
 
 # Ignore symbols that are exported as part of every executable
 IGNORE_EXPORTS = {
-    b'_edata', b'_end', b'_init', b'__bss_start', b'_fini', b'_IO_stdin_used',
+    b'_edata', b'_end', b'_init', b'__bss_start', b'_fini', b'_IO_stdin_used', b'stdin', b'stdout', b'stderr',
     # Figure out why we get these symbols exported on xenial.
-    b'_ZNKSt5ctypeIcE8do_widenEc', b'stdin', b'stdout', b'stderr', b'in6addr_any', b'optarg',
+    b'_ZNKSt5ctypeIcE8do_widenEc', b'in6addr_any', b'optarg',
     b'_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv'
 }
 READELF_CMD = os.getenv('READELF', '/usr/bin/readelf')
