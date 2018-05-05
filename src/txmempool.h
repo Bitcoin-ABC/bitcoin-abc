@@ -502,7 +502,7 @@ private:
     //!< minimum fee to get into the pool, decreases exponentially
     mutable double rollingMinimumFeeRate;
 
-    void trackPackageRemoved(const CFeeRate &rate);
+    void trackPackageRemoved(const CFeeRate &rate) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 public:
     // public only for testing
@@ -567,7 +567,7 @@ private:
     void UpdateChild(txiter entry, txiter child, bool add);
 
     std::vector<indexed_transaction_set::const_iterator>
-    GetSortedDepthAndScore() const;
+    GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx;
@@ -641,7 +641,8 @@ public:
      */
     void
     RemoveStaged(setEntries &stage, bool updateDescendants,
-                 MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN);
+                 MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * When adding transactions from a disconnected block back to the mempool,
