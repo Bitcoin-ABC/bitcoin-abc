@@ -402,6 +402,10 @@ class CTransaction():
         self.sha256 = None
         self.hash = None
 
+    def billable_size(self):
+        tx_size = len(ToHex(self)) + len(self.vout)*179 - len(self.vin)*179
+        return max(tx_size, 10 + 34 * len(self.vout))
+
     def serialize(self):
         r = b""
         r += struct.pack("<i", self.nVersion)

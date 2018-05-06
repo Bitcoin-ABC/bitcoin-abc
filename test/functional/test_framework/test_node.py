@@ -165,7 +165,7 @@ class TestNode():
         return self.relay_fee_cache
 
     def calculate_fee(self, tx):
-        return int(self.relay_fee() * len(ToHex(tx)) * COIN)
+        return int(self.relay_fee() * tx.billable_size() * COIN)
 
 
 class TestNodeCLI():

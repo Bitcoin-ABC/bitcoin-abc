@@ -109,6 +109,24 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const {
     return nTxSize;
 }
 
+size_t CTransaction::GetBillableSize() const {
+    size_t nTxSize = GetTotalSize(), inputs = vin.size(), outputs = vout.size();
+
+    // 179 bytes is the minimum size it would take to spend any outputs which
+    // are created.  We want to change in advance of spending them to
+    // incentivize keeping your UTXO set reasonbly sized.
+    int64_t modSize =
+        int64_t(nTxSize) + (int64_t(outputs) - int64_t(inputs)) * 179;
+
+    // Note: It is impossible to generate a negative number above in any real
+    // world situation.  This is because the inputs have a least 179 byte
+    // each. However, it is possible to have shorter scriptSigs than 179
+    // bytes.  Therefore, we include a minimum of 10 bytes + 34 * vouts.
+    nTxSize = std::max(int64_t(outputs * 34 + 10), modSize);
+
+    return nTxSize;
+}
+
 unsigned int CTransaction::GetTotalSize() const {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }

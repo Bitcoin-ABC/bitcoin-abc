@@ -2916,6 +2916,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
             CTransaction txNewConst(txNew);
             unsigned int nBytes = txNewConst.GetTotalSize();
+
+            // Note: The relaying code has been changed to charge upfront for
+            // the  minimum required bytes to spend a UTXO.  This means that
+            // we need to calculate possible fees based that size.
+            size_t feeBytes = txNewConst.GetBillableSize();
+
             dPriority = txNewConst.ComputePriority(dPriority, nBytes);
 
             // Remove scriptSigs to eliminate the fee calculation dummy
@@ -2932,20 +2938,20 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             Amount nFeeNeeded =
-                GetMinimumFee(nBytes, currentConfirmationTarget, mempool);
+                GetMinimumFee(feeBytes, currentConfirmationTarget, mempool);
             if (coinControl && nFeeNeeded > Amount(0) &&
                 coinControl->nMinimumTotalFee > nFeeNeeded) {
                 nFeeNeeded = coinControl->nMinimumTotalFee;
             }
 
             if (coinControl && coinControl->fOverrideFeeRate) {
-                nFeeNeeded = coinControl->nFeeRate.GetFee(nBytes);
+                nFeeNeeded = coinControl->nFeeRate.GetFee(feeBytes);
             }
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
             // allowed fee.
-            Amount minFee = GetConfig().GetMinFeePerKB().GetFee(nBytes);
+            Amount minFee = GetConfig().GetMinFeePerKB().GetFee(feeBytes);
             if (nFeeNeeded < minFee) {
                 strFailReason = _("Transaction too large for fee policy");
                 return false;
