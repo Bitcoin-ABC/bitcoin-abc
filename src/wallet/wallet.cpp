@@ -4253,8 +4253,11 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
     int64_t nStart = GetTimeMillis();
     bool fFirstRun = true;
-    CWallet *walletInstance =
-        new CWallet(chainParams, name, WalletDatabase::Create(path));
+    // Make a temporary wallet unique pointer so memory doesn't get leaked if
+    // wallet creation fails.
+    auto temp_wallet = std::make_unique<CWallet>(chainParams, name,
+                                                 WalletDatabase::Create(path));
+    CWallet *walletInstance = temp_wallet.get();
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DBErrors::LOAD_OK) {
         if (nLoadWalletRet == DBErrors::CORRUPT) {
@@ -4421,7 +4424,6 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     }
 
     walletInstance->m_last_block_processed = chainActive.Tip();
-    RegisterValidationInterface(walletInstance);
 
     if (chainActive.Tip() && chainActive.Tip() != pindexRescan) {
         // We can't rescan beyond non-pruned blocks, stop and throw an error.
@@ -4495,6 +4497,10 @@ CWallet *CWallet::CreateWalletFromFile(const CChainParams &chainParams,
             }
         }
     }
+
+    // Register with the validation interface. It's ok to do this after rescan
+    // since we're still holding cs_main.
+    RegisterValidationInterface(temp_wallet.release());
 
     walletInstance->SetBroadcastTransactions(
         gArgs.GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST));
