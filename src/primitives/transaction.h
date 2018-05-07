@@ -33,13 +33,14 @@ struct TxHash : public uint256 {
  * vout.
  */
 class COutPoint {
-public:
-    uint256 hash;
+private:
+    uint256 txid;
     uint32_t n;
 
+public:
     COutPoint() { SetNull(); }
-    COutPoint(uint256 hashIn, uint32_t nIn) {
-        hash = hashIn;
+    COutPoint(uint256 txidIn, uint32_t nIn) {
+        txid = txidIn;
         n = nIn;
     }
 
@@ -47,27 +48,27 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(hash);
+        READWRITE(txid);
         READWRITE(n);
     }
 
     void SetNull() {
-        hash.SetNull();
+        txid.SetNull();
         n = uint32_t(-1);
     }
 
-    bool IsNull() const { return hash.IsNull() && n == uint32_t(-1); }
+    bool IsNull() const { return txid.IsNull() && n == uint32_t(-1); }
 
-    TxId GetTxId() const { return TxId(hash); }
+    TxId GetTxId() const { return TxId(txid); }
     uint32_t GetN() const { return n; }
 
     friend bool operator<(const COutPoint &a, const COutPoint &b) {
-        int cmp = a.hash.Compare(b.hash);
+        int cmp = a.txid.Compare(b.txid);
         return cmp < 0 || (cmp == 0 && a.n < b.n);
     }
 
     friend bool operator==(const COutPoint &a, const COutPoint &b) {
-        return (a.hash == b.hash && a.n == b.n);
+        return (a.txid == b.txid && a.n == b.n);
     }
 
     friend bool operator!=(const COutPoint &a, const COutPoint &b) {

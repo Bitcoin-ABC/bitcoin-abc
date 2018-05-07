@@ -38,13 +38,14 @@ CScript sign_multisig(CScript scriptPubKey, std::vector<CKey> keys,
 }
 
 BOOST_AUTO_TEST_CASE(multisig_verify) {
-    unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
+    uint32_t flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
 
     ScriptError err;
     CKey key[4];
     Amount amount(0);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         key[i].MakeNewKey(true);
+    }
 
     CScript a_and_b;
     a_and_b << OP_2 << ToByteVector(key[0].GetPubKey())
@@ -71,8 +72,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
     for (int i = 0; i < 3; i++) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
-        txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.hash = txFrom.GetId();
+        txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = Amount(1);
     }
 
@@ -345,8 +345,7 @@ BOOST_AUTO_TEST_CASE(multisig_Sign) {
     for (int i = 0; i < 3; i++) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
-        txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.hash = txFrom.GetId();
+        txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = Amount(1);
     }
 

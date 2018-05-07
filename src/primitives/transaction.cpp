@@ -10,7 +10,7 @@
 #include "utilstrencodings.h"
 
 std::string COutPoint::ToString() const {
-    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0, 10), n);
+    return strprintf("COutPoint(%s, %u)", txid.ToString().substr(0, 10), n);
 }
 
 std::string CTxIn::ToString() const {

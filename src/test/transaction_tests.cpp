@@ -300,15 +300,12 @@ BOOST_AUTO_TEST_CASE(test_Get) {
 
     CMutableTransaction t1;
     t1.vin.resize(3);
-    t1.vin[0].prevout.hash = dummyTransactions[0].GetId();
-    t1.vin[0].prevout.n = 1;
+    t1.vin[0].prevout = COutPoint(dummyTransactions[0].GetId(), 1);
     t1.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
-    t1.vin[1].prevout.hash = dummyTransactions[1].GetId();
-    t1.vin[1].prevout.n = 0;
+    t1.vin[1].prevout = COutPoint(dummyTransactions[1].GetId(), 0);
     t1.vin[1].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
-    t1.vin[2].prevout.hash = dummyTransactions[1].GetId();
-    t1.vin[2].prevout.n = 1;
+    t1.vin[2].prevout = COutPoint(dummyTransactions[1].GetId(), 1);
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
     t1.vout.resize(2);
@@ -342,8 +339,7 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     CMutableTransaction inputm;
     inputm.nVersion = 1;
     inputm.vin.resize(1);
-    inputm.vin[0].prevout.hash = output->GetId();
-    inputm.vin[0].prevout.n = 0;
+    inputm.vin[0].prevout = COutPoint(output->GetId(), 0);
     inputm.vout.resize(1);
     inputm.vout[0].nValue = Amount(1);
     inputm.vout[0].scriptPubKey = CScript();
@@ -463,7 +459,7 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
 
     for (size_t i = 0; i < mtx.vin.size(); i++) {
         std::vector<CScriptCheck> vChecks;
-        CTxOut &out = coins[tx.vin[i].prevout.n].GetTxOut();
+        CTxOut &out = coins[tx.vin[i].prevout.GetN()].GetTxOut();
         CScriptCheck check(out.scriptPubKey, out.nValue, tx, i,
                            MANDATORY_SCRIPT_VERIFY_FLAGS, false, txdata);
         vChecks.push_back(CScriptCheck());
@@ -614,8 +610,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
     CMutableTransaction t;
     t.vin.resize(1);
-    t.vin[0].prevout.hash = dummyTransactions[0].GetId();
-    t.vin[0].prevout.n = 1;
+    t.vin[0].prevout = COutPoint(dummyTransactions[0].GetId(), 1);
     t.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
     t.vout.resize(1);
     t.vout[0].nValue = 90 * CENT;
