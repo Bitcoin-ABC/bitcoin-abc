@@ -3363,7 +3363,7 @@ bool Chainstate::ActivateBestChainStep(
                     // The block violates a consensus rule.
                     if (state.GetResult() !=
                         BlockValidationResult::BLOCK_MUTATED) {
-                        InvalidChainFound(vpindexToConnect.back());
+                        InvalidChainFound(vpindexToConnect.front());
                     }
                     state = BlockValidationState();
                     fInvalidFound = true;
