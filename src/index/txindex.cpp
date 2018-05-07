@@ -280,7 +280,9 @@ bool TxIndex::FindTx(const TxId &txid, uint256 &block_hash,
     CBlockHeader header;
     try {
         file >> header;
-        fseek(file.Get(), postx.nTxOffset, SEEK_CUR);
+        if (fseek(file.Get(), postx.nTxOffset, SEEK_CUR)) {
+            return error("%s: fseek(...) failed", __func__);
+        }
         file >> tx;
     } catch (const std::exception &e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
