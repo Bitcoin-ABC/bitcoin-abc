@@ -27,14 +27,16 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     }
 
     // Store the hashes of transactions that have been added to the mempool by
-    // their associate fee txHashes[j] is populated with transactions either of
+    // their associate fee txIds[j] is populated with transactions either of
     // fee = basefee * (j+1)
-    std::vector<uint256> txHashes[10];
+    std::array<std::vector<TxId>, 10> txIds;
 
     // Create a transaction template
     CScript garbage;
-    for (unsigned int i = 0; i < 128; i++)
+    for (unsigned int i = 0; i < 128; i++) {
         garbage.push_back('X');
+    }
+
     CMutableTransaction tx;
     tx.vin.resize(1);
     tx.vin[0].scriptSig = garbage;
@@ -51,30 +53,33 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     // This makes the tx count about 1.33 per bucket, above the 1 threshold
     while (blocknum < 200) {
         // For each fee
-        for (int j = 0; j < 10; j++) {
+        for (size_t j = 0; j < txIds.size(); j++) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
                 // make transaction unique
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
-                uint256 hash = tx.GetId();
-                mpool.addUnchecked(hash,
+                TxId txid = tx.GetId();
+                mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
                                        .Time(GetTime())
                                        .Priority(0)
                                        .Height(blocknum)
                                        .FromTx(tx, &mpool));
-                txHashes[j].push_back(hash);
+                txIds[j].push_back(txid);
             }
         }
         // Create blocks where higher fee txs are included more often
-        for (int h = 0; h <= blocknum % 10; h++) {
+        for (int h = 0; h <= blocknum % txIds.size(); h++) {
             // 10/10 blocks add highest fee transactions
             // 9/10 blocks add 2nd highest and so on until ...
             // 1/10 blocks add lowest fee transactions
-            while (txHashes[9 - h].size()) {
-                CTransactionRef ptx = mpool.get(txHashes[9 - h].back());
-                if (ptx) block.push_back(ptx);
-                txHashes[9 - h].pop_back();
+            size_t i = txIds.size() - h - 1;
+            while (txIds[i].size()) {
+                CTransactionRef ptx = mpool.get(txIds[i].back());
+                if (ptx) {
+                    block.push_back(ptx);
+                }
+                txIds[i].pop_back();
             }
         }
         mpool.removeForBlock(block, ++blocknum);
@@ -134,8 +139,9 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     // Mine 50 more blocks with no transactions happening, estimates shouldn't
     // change. We haven't decayed the moving average enough so we still have
     // enough data points in every bucket
-    while (blocknum < 250)
+    while (blocknum < 250) {
         mpool.removeForBlock(block, ++blocknum);
+    }
 
     BOOST_CHECK(mpool.estimateFee(1) == CFeeRate(Amount(0)));
     for (int i = 2; i < 10; i++) {
@@ -149,18 +155,18 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     // mined. Estimates should go up
     while (blocknum < 265) {
         // For each fee multiple
-        for (int j = 0; j < 10; j++) {
+        for (size_t j = 0; j < txIds.size(); j++) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
-                uint256 txid = tx.GetId();
+                TxId txid = tx.GetId();
                 mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
                                        .Time(GetTime())
                                        .Priority(0)
                                        .Height(blocknum)
                                        .FromTx(tx, &mpool));
-                txHashes[j].push_back(txid);
+                txIds[j].push_back(txid);
             }
         }
         mpool.removeForBlock(block, ++blocknum);
@@ -178,11 +184,13 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
 
     // Mine all those transactions
     // Estimates should still not be below original
-    for (int j = 0; j < 10; j++) {
-        while (txHashes[j].size()) {
-            CTransactionRef ptx = mpool.get(txHashes[j].back());
-            if (ptx) block.push_back(ptx);
-            txHashes[j].pop_back();
+    for (size_t j = 0; j < txIds.size(); j++) {
+        while (txIds[j].size()) {
+            CTransactionRef ptx = mpool.get(txIds[j].back());
+            if (ptx) {
+                block.push_back(ptx);
+            }
+            txIds[j].pop_back();
         }
     }
     mpool.removeForBlock(block, 265);
@@ -197,11 +205,11 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     // Estimates should be below original estimates
     while (blocknum < 465) {
         // For each fee multiple
-        for (int j = 0; j < 10; j++) {
+        for (size_t j = 0; j < txIds.size(); j++) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
-                uint256 txid = tx.GetId();
+                TxId txid = tx.GetId();
                 mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
                                        .Time(GetTime())
@@ -209,7 +217,9 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                                        .Height(blocknum)
                                        .FromTx(tx, &mpool));
                 CTransactionRef ptx = mpool.get(txid);
-                if (ptx) block.push_back(ptx);
+                if (ptx) {
+                    block.push_back(ptx);
+                }
             }
         }
         mpool.removeForBlock(block, ++blocknum);
