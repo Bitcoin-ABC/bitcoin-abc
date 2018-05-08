@@ -284,10 +284,6 @@
   "time": 3
  },
  {
-  "name": "smartfees.py",
-  "time": 301
- },
- {
   "name": "txn_clone.py",
   "time": 6
  },
