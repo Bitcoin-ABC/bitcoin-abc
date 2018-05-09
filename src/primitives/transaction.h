@@ -18,6 +18,7 @@ static const int SERIALIZE_TRANSACTION = 0x00;
  * differentiated for type safety.
  */
 struct TxId : public uint256 {
+    TxId() {}
     explicit TxId(const uint256 &b) : uint256(b) {}
 };
 
@@ -34,15 +35,12 @@ struct TxHash : public uint256 {
  */
 class COutPoint {
 private:
-    uint256 txid;
+    TxId txid;
     uint32_t n;
 
 public:
     COutPoint() : txid(), n(-1) {}
-    COutPoint(uint256 txidIn, uint32_t nIn) {
-        txid = txidIn;
-        n = nIn;
-    }
+    COutPoint(uint256 txidIn, uint32_t nIn) : txid(TxId(txidIn)), n(nIn) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -54,7 +52,7 @@ public:
 
     bool IsNull() const { return txid.IsNull() && n == uint32_t(-1); }
 
-    TxId GetTxId() const { return TxId(txid); }
+    const TxId &GetTxId() const { return txid; }
     uint32_t GetN() const { return n; }
 
     friend bool operator<(const COutPoint &a, const COutPoint &b) {
