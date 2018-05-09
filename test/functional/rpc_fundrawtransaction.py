@@ -14,6 +14,7 @@ from test_framework.util import (
     assert_greater_than_or_equal,
     assert_raises_rpc_error,
     connect_nodes_bi,
+    find_vout_for_address,
 )
 
 
@@ -73,6 +74,13 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.nodes[3].importpubkey(watchonly_pubkey, "", True)
         watchonly_txid = self.nodes[0].sendtoaddress(
             watchonly_address, watchonly_amount)
+
+        # Lock UTXO so nodes[0] doesn't accidentally spend it
+        watchonly_vout = find_vout_for_address(
+            self.nodes[0], watchonly_txid, watchonly_address)
+        self.nodes[0].lockunspent(
+            False, [{"txid": watchonly_txid, "vout": watchonly_vout}])
+
         self.nodes[0].sendtoaddress(
             self.nodes[3].getnewaddress(), watchonly_amount / 10)
 
@@ -488,6 +496,10 @@ class RawTransactionsTest(BitcoinTestFramework):
         connect_nodes_bi(self.nodes[1], self.nodes[2])
         connect_nodes_bi(self.nodes[0], self.nodes[2])
         connect_nodes_bi(self.nodes[0], self.nodes[3])
+        # Again lock the watchonly UTXO or nodes[0] may spend it, because
+        # lockunspent is memory-only and thus lost on restart
+        self.nodes[0].lockunspent(
+            False, [{"txid": watchonly_txid, "vout": watchonly_vout}])
         self.sync_all()
 
         # drain the keypool
