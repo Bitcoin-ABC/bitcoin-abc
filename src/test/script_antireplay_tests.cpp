@@ -81,8 +81,7 @@ BOOST_AUTO_TEST_CASE(test_antireplay) {
     CMutableTransaction tx;
     tx.nVersion = 1;
     tx.vin.resize(1);
-    tx.vin[0].prevout.hash = InsecureRand256();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(InsecureRand256(), 0);
     tx.vin[0].scriptSig = CScript();
     tx.vout.resize(1);
     tx.vout[0].nValue = Amount(1);

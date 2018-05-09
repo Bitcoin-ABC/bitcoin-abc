@@ -33,8 +33,7 @@ static bool Verify(const CScript &scriptSig, const CScript &scriptPubKey,
     CMutableTransaction txTo;
     txTo.vin.resize(1);
     txTo.vout.resize(1);
-    txTo.vin[0].prevout.n = 0;
-    txTo.vin[0].prevout.hash = txFrom.GetId();
+    txTo.vin[0].prevout = COutPoint(txFrom.GetId(), 0);
     txTo.vin[0].scriptSig = scriptSig;
     txTo.vout[0].nValue = Amount(1);
 
@@ -91,8 +90,7 @@ BOOST_AUTO_TEST_CASE(sign) {
     for (int i = 0; i < 8; i++) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
-        txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.hash = txFrom.GetId();
+        txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = Amount(1);
         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
                             strprintf("IsMine %d", i));
@@ -112,7 +110,7 @@ BOOST_AUTO_TEST_CASE(sign) {
         for (int j = 0; j < 8; j++) {
             CScript sigSave = txTo[i].vin[0].scriptSig;
             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;
-            const CTxOut &output = txFrom.vout[txTo[i].vin[0].prevout.n];
+            const CTxOut &output = txFrom.vout[txTo[i].vin[0].prevout.GetN()];
             bool sigOK = CScriptCheck(
                 output.scriptPubKey, output.nValue, CTransaction(txTo[i]), 0,
                 SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
@@ -198,8 +196,7 @@ BOOST_AUTO_TEST_CASE(set) {
     for (int i = 0; i < 4; i++) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
-        txTo[i].vin[0].prevout.n = i;
-        txTo[i].vin[0].prevout.hash = txFrom.GetId();
+        txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = 1 * CENT;
         txTo[i].vout[0].scriptPubKey = inner[i];
         BOOST_CHECK_MESSAGE(IsMine(keystore, txFrom.vout[i].scriptPubKey),
@@ -390,9 +387,9 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
 
     txTo.vin.resize(5);
     for (int i = 0; i < 5; i++) {
-        txTo.vin[i].prevout.n = i;
-        txTo.vin[i].prevout.hash = txFrom.GetId();
+        txTo.vin[i].prevout = COutPoint(txFrom.GetId(), i);
     }
+
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 0,
                               SigHashType().withForkId()));
     BOOST_CHECK(SignSignature(keystore, CTransaction(txFrom), txTo, 1,
@@ -418,8 +415,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         GetScriptForDestination(key[1].GetPubKey().GetID());
     txToNonStd1.vout[0].nValue = Amount(1000);
     txToNonStd1.vin.resize(1);
-    txToNonStd1.vin[0].prevout.n = 5;
-    txToNonStd1.vin[0].prevout.hash = txFrom.GetId();
+    txToNonStd1.vin[0].prevout = COutPoint(txFrom.GetId(), 5);
     txToNonStd1.vin[0].scriptSig
         << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
 
@@ -432,8 +428,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         GetScriptForDestination(key[1].GetPubKey().GetID());
     txToNonStd2.vout[0].nValue = Amount(1000);
     txToNonStd2.vin.resize(1);
-    txToNonStd2.vin[0].prevout.n = 6;
-    txToNonStd2.vin[0].prevout.hash = txFrom.GetId();
+    txToNonStd2.vin[0].prevout = COutPoint(txFrom.GetId(), 6);
     txToNonStd2.vin[0].scriptSig
         << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
 

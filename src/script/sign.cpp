@@ -201,8 +201,8 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction &txFrom,
                    SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
     CTxIn &txin = txTo.vin[nIn];
-    assert(txin.prevout.n < txFrom.vout.size());
-    const CTxOut &txout = txFrom.vout[txin.prevout.n];
+    assert(txin.prevout.GetN() < txFrom.vout.size());
+    const CTxOut &txout = txFrom.vout[txin.prevout.GetN()];
 
     return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, txout.nValue,
                          sigHashType);
