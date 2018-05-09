@@ -2833,11 +2833,11 @@ static UniValue listlockunspent(const Config &config,
 
     UniValue ret(UniValue::VARR);
 
-    for (COutPoint &outpt : vOutpts) {
+    for (COutPoint &output : vOutpts) {
         UniValue o(UniValue::VOBJ);
 
-        o.push_back(Pair("txid", outpt.hash.GetHex()));
-        o.push_back(Pair("vout", (int)outpt.n));
+        o.push_back(Pair("txid", output.GetTxId().GetHex()));
+        o.push_back(Pair("vout", int(output.GetN())));
         ret.push_back(o);
     }
 
