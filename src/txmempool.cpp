@@ -159,7 +159,8 @@ void CTxMemPool::UpdateTransactionsFromBlock(
         auto iter = mapNextTx.lower_bound(COutPoint(hash, 0));
         // First calculate the children, and update setMemPoolChildren to
         // include them, and update their setMemPoolParents to include this tx.
-        for (; iter != mapNextTx.end() && iter->first->hash == hash; ++iter) {
+        for (; iter != mapNextTx.end() && iter->first->GetTxId() == hash;
+             ++iter) {
             const uint256 &childHash = iter->second->GetId();
             txiter childIter = mapTx.find(childHash);
             assert(childIter != mapTx.end());
@@ -191,7 +192,7 @@ bool CTxMemPool::CalculateMemPoolAncestors(
         // GetMemPoolParents() is only valid for entries in the mempool, so we
         // iterate mapTx to find parents.
         for (const CTxIn &in : tx.vin) {
-            txiter piter = mapTx.find(in.prevout.hash);
+            txiter piter = mapTx.find(in.prevout.GetTxId());
             if (piter == mapTx.end()) {
                 continue;
             }
@@ -440,7 +441,7 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
     std::set<uint256> setParentTransactions;
     for (const CTxIn &in : tx.vin) {
         mapNextTx.insert(std::make_pair(&in.prevout, &tx));
-        setParentTransactions.insert(in.prevout.hash);
+        setParentTransactions.insert(in.prevout.GetTxId());
     }
     // Don't bother worrying about child transactions of this one. Normal case
     // of a new transaction arriving is that there can't be any children,
@@ -583,7 +584,7 @@ void CTxMemPool::removeForReorg(const Config &config,
         } else if (it->GetSpendsCoinbase()) {
             for (const CTxIn &txin : tx.vin) {
                 indexed_transaction_set::const_iterator it2 =
-                    mapTx.find(txin.prevout.hash);
+                    mapTx.find(txin.prevout.GetTxId());
                 if (it2 != mapTx.end()) {
                     continue;
                 }
@@ -721,11 +722,11 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
             // Check that every mempool transaction's inputs refer to available
             // coins, or other mempool tx's.
             indexed_transaction_set::const_iterator it2 =
-                mapTx.find(txin.prevout.hash);
+                mapTx.find(txin.prevout.GetTxId());
             if (it2 != mapTx.end()) {
                 const CTransaction &tx2 = it2->GetTx();
-                assert(tx2.vout.size() > txin.prevout.n &&
-                       !tx2.vout[txin.prevout.n].IsNull());
+                assert(tx2.vout.size() > txin.prevout.GetN() &&
+                       !tx2.vout[txin.prevout.GetN()].IsNull());
                 fDependsWait = true;
                 if (setParentCheck.insert(it2).second) {
                     parentSizes += it2->GetTxSize();
@@ -769,7 +770,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
         auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetId(), 0));
         int64_t childSizes = 0;
         for (; iter != mapNextTx.end() &&
-               iter->first->hash == it->GetTx().GetId();
+               iter->first->GetTxId() == it->GetTx().GetId();
              ++iter) {
             txiter childit = mapTx.find(iter->second->GetId());
             // mapNextTx points to in-mempool transactions
@@ -1041,7 +1042,7 @@ void CTxMemPool::ClearPrioritisation(const uint256 hash) {
 
 bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const {
     for (const CTxIn &in : tx.vin) {
-        if (exists(in.prevout.hash)) {
+        if (exists(in.prevout.GetTxId())) {
             return false;
         }
     }
@@ -1058,10 +1059,10 @@ bool CCoinsViewMemPool::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     // guaranteed to never conflict with the underlying cache, and it cannot
     // have pruned entries (as it contains full) transactions. First checking
     // the underlying cache risks returning a pruned entry instead.
-    CTransactionRef ptx = mempool.get(outpoint.hash);
+    CTransactionRef ptx = mempool.get(outpoint.GetTxId());
     if (ptx) {
-        if (outpoint.n < ptx->vout.size()) {
-            coin = Coin(ptx->vout[outpoint.n], MEMPOOL_HEIGHT, false);
+        if (outpoint.GetN() < ptx->vout.size()) {
+            coin = Coin(ptx->vout[outpoint.GetN()], MEMPOOL_HEIGHT, false);
             return true;
         }
         return false;
@@ -1234,7 +1235,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         if (pvNoSpendsRemaining) {
             for (const CTransaction &tx : txn) {
                 for (const CTxIn &txin : tx.vin) {
-                    if (exists(txin.prevout.hash)) {
+                    if (exists(txin.prevout.GetTxId())) {
                         continue;
                     }
                     if (!mapNextTx.count(txin.prevout)) {

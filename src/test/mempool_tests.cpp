@@ -31,8 +31,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txChild[i].vin.resize(1);
         txChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txChild[i].vin[0].prevout.hash = txParent.GetId();
-        txChild[i].vin[0].prevout.n = i;
+        txChild[i].vin[0].prevout = COutPoint(txParent.GetId(), i);
         txChild[i].vout.resize(1);
         txChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
         txChild[i].vout[0].nValue = Amount(11000LL);
@@ -41,8 +40,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     for (int i = 0; i < 3; i++) {
         txGrandChild[i].vin.resize(1);
         txGrandChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txGrandChild[i].vin[0].prevout.hash = txChild[i].GetId();
-        txGrandChild[i].vin[0].prevout.n = 0;
+        txGrandChild[i].vin[0].prevout = COutPoint(txChild[i].GetId(), 0);
         txGrandChild[i].vout.resize(1);
         txGrandChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
         txGrandChild[i].vout[0].nValue = Amount(11000LL);

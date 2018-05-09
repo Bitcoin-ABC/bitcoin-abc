@@ -708,8 +708,8 @@ public:
 
     bool exists(const COutPoint &outpoint) const {
         LOCK(cs);
-        auto it = mapTx.find(outpoint.hash);
-        return it != mapTx.end() && outpoint.n < it->GetTx().vout.size();
+        auto it = mapTx.find(outpoint.GetTxId());
+        return it != mapTx.end() && outpoint.GetN() < it->GetTx().vout.size();
     }
 
     CTransactionRef get(const uint256 &hash) const;
