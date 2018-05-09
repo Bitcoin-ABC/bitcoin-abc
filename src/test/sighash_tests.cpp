@@ -108,8 +108,7 @@ static void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
     for (int in = 0; in < ins; in++) {
         tx.vin.push_back(CTxIn());
         CTxIn &txin = tx.vin.back();
-        txin.prevout.hash = InsecureRand256();
-        txin.prevout.n = InsecureRandBits(2);
+        txin.prevout = COutPoint(InsecureRand256(), InsecureRandBits(2));
         RandomScript(txin.scriptSig);
         txin.nSequence =
             (InsecureRandBool()) ? insecure_rand() : (unsigned int)-1;
