@@ -51,9 +51,9 @@ static void MempoolEviction(benchmark::State &state) {
 
     CMutableTransaction tx4 = CMutableTransaction();
     tx4.vin.resize(2);
-    tx4.vin[0].prevout.SetNull();
+    tx4.vin[0].prevout = COutPoint();
     tx4.vin[0].scriptSig = CScript() << OP_4;
-    tx4.vin[1].prevout.SetNull();
+    tx4.vin[1].prevout = COutPoint();
     tx4.vin[1].scriptSig = CScript() << OP_4;
     tx4.vout.resize(2);
     tx4.vout[0].scriptPubKey = CScript() << OP_4 << OP_EQUAL;
@@ -65,7 +65,7 @@ static void MempoolEviction(benchmark::State &state) {
     tx5.vin.resize(2);
     tx5.vin[0].prevout = COutPoint(tx4.GetId(), 0);
     tx5.vin[0].scriptSig = CScript() << OP_4;
-    tx5.vin[1].prevout.SetNull();
+    tx5.vin[1].prevout = COutPoint();
     tx5.vin[1].scriptSig = CScript() << OP_5;
     tx5.vout.resize(2);
     tx5.vout[0].scriptPubKey = CScript() << OP_5 << OP_EQUAL;
@@ -77,7 +77,7 @@ static void MempoolEviction(benchmark::State &state) {
     tx6.vin.resize(2);
     tx6.vin[0].prevout = COutPoint(tx4.GetId(), 1);
     tx6.vin[0].scriptSig = CScript() << OP_4;
-    tx6.vin[1].prevout.SetNull();
+    tx6.vin[1].prevout = COutPoint();
     tx6.vin[1].scriptSig = CScript() << OP_6;
     tx6.vout.resize(2);
     tx6.vout[0].scriptPubKey = CScript() << OP_6 << OP_EQUAL;

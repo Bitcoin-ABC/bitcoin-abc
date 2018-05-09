@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // Coinbase in mempool, template creation fails.
     tx.vin.resize(1);
-    tx.vin[0].prevout.SetNull();
+    tx.vin[0].prevout = COutPoint();
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_1;
     tx.vout[0].nValue = Amount(0);
     hash = tx.GetId();

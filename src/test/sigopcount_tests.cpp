@@ -89,7 +89,7 @@ void BuildTxs(CMutableTransaction &spendingTx, CCoinsViewCache &coins,
               const CScript &scriptSig) {
     creationTx.nVersion = 1;
     creationTx.vin.resize(1);
-    creationTx.vin[0].prevout.SetNull();
+    creationTx.vin[0].prevout = COutPoint();
     creationTx.vin[0].scriptSig = CScript();
     creationTx.vout.resize(1);
     creationTx.vout[0].nValue = Amount(1);

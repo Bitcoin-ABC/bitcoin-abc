@@ -38,7 +38,7 @@ private:
     uint32_t n;
 
 public:
-    COutPoint() { SetNull(); }
+    COutPoint() : txid(), n(-1) {}
     COutPoint(uint256 txidIn, uint32_t nIn) {
         txid = txidIn;
         n = nIn;
@@ -50,11 +50,6 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(txid);
         READWRITE(n);
-    }
-
-    void SetNull() {
-        txid.SetNull();
-        n = uint32_t(-1);
     }
 
     bool IsNull() const { return txid.IsNull() && n == uint32_t(-1); }
