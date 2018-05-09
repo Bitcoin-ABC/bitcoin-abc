@@ -357,8 +357,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
                     prevout = utxod->first;
 
                     // Construct the tx to spend the coins of prevouthash
-                    tx.vin[0].prevout = prevout;
-                    tx.vin[0].prevout.n = 0;
+                    tx.vin[0].prevout = COutPoint(prevout.GetTxId(), 0);
                     assert(!CTransaction(tx).IsCoinBase());
                 }
 

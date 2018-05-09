@@ -332,13 +332,11 @@ static const size_t MAX_OUTPUTS_PER_TX =
     MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), SER_NETWORK, PROTOCOL_VERSION);
 
 const Coin &AccessByTxid(const CCoinsViewCache &view, const uint256 &txid) {
-    COutPoint iter(txid, 0);
-    while (iter.n < MAX_OUTPUTS_PER_TX) {
-        const Coin &alternate = view.AccessCoin(iter);
+    for (uint32_t n = 0; n < MAX_OUTPUTS_PER_TX; n++) {
+        const Coin &alternate = view.AccessCoin(COutPoint(txid, n));
         if (!alternate.IsSpent()) {
             return alternate;
         }
-        ++iter.n;
     }
 
     return coinEmpty;
