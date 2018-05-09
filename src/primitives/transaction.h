@@ -123,9 +123,9 @@ public:
     explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn = CScript(),
                    uint32_t nSequenceIn = SEQUENCE_FINAL)
         : prevout(prevoutIn), scriptSig(scriptSigIn), nSequence(nSequenceIn) {}
-    CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn = CScript(),
+    CTxIn(TxId prevTxId, uint32_t nOut, CScript scriptSigIn = CScript(),
           uint32_t nSequenceIn = SEQUENCE_FINAL)
-        : CTxIn(COutPoint(hashPrevTx, nOut), scriptSigIn, nSequenceIn) {}
+        : CTxIn(COutPoint(prevTxId, nOut), scriptSigIn, nSequenceIn) {}
 
     ADD_SERIALIZE_METHODS;
 

@@ -742,7 +742,7 @@ static bool AcceptToMemoryPoolWorker(
     AssertLockHeld(cs_main);
 
     const CTransaction &tx = *ptx;
-    const uint256 txid = tx.GetId();
+    const TxId txid = tx.GetId();
     if (pfMissingInputs) {
         *pfMissingInputs = false;
     }
