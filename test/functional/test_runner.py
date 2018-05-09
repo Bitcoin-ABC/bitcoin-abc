@@ -30,6 +30,7 @@ import logging
 import xml.etree.ElementTree as ET
 import json
 import threading
+import multiprocessing
 from queue import Queue, Empty
 
 # Formatting. Default colors to empty strings.
@@ -158,7 +159,7 @@ def main():
                         help='run tests even on platforms where they are disabled by default (e.g. windows).')
     parser.add_argument('--help', '-h', '-?',
                         action='store_true', help='print help text and exit')
-    parser.add_argument('--jobs', '-j', type=int, default=4,
+    parser.add_argument('--jobs', '-j', type=int, default=(multiprocessing.cpu_count() // 3) + 1,
                         help='how many test scripts to run in parallel. Default=4.')
     parser.add_argument('--keepcache', '-k', action='store_true',
                         help='the default behavior is to flush the cache directory on startup. --keepcache retains the cache from the previous testrun.')
@@ -265,7 +266,7 @@ def main():
               config["environment"]["EXEEXT"], tmpdir, args.jobs, args.coverage, passon_args, build_timings)
 
 
-def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, num_jobs=1, enable_coverage=False, args=[], build_timings=None):
+def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, num_jobs, enable_coverage=False, args=[], build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
         pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
