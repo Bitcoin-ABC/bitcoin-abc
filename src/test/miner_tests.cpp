@@ -92,8 +92,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     CMutableTransaction tx;
     tx.vin.resize(1);
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vout.resize(1);
     tx.vout[0].nValue = Amount(5000000000LL - 1000);
     // This tx has a low fee: 1000 satoshis.
@@ -106,7 +105,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
                              .FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis.
-    tx.vin[0].prevout.hash = txFirst[1]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     tx.vout[0].nValue = Amount(5000000000LL - 10000);
     TxId mediumFeeTxId = tx.GetId();
     mempool.addUnchecked(mediumFeeTxId,
@@ -116,7 +115,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
                              .FromTx(tx));
 
     // This tx has a high fee, but depends on the first transaction.
-    tx.vin[0].prevout.hash = parentTxId;
+    tx.vin[0].prevout = COutPoint(parentTxId, 0);
     // 50k satoshi fee.
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     TxId highFeeTxId = tx.GetId();
@@ -133,7 +132,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     BOOST_CHECK(pblocktemplate->block.vtx[3]->GetId() == mediumFeeTxId);
 
     // Test that a package below the block min tx fee doesn't get included
-    tx.vin[0].prevout.hash = highFeeTxId;
+    tx.vin[0].prevout = COutPoint(highFeeTxId, 0);
     // 0 fee.
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     TxId freeTxId = tx.GetId();
@@ -144,7 +143,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // below the block min tx fee (assuming 1 child tx of the same size).
     Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - Amount(1);
 
-    tx.vin[0].prevout.hash = freeTxId;
+    tx.vin[0].prevout = COutPoint(freeTxId, 0);
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000) - feeToUse;
     TxId lowFeeTxId = tx.GetId();
     mempool.addUnchecked(lowFeeTxId, entry.Fee(feeToUse).FromTx(tx));
@@ -171,7 +170,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // Test that transaction selection properly updates ancestor fee
     // calculations as ancestor transactions get included in a block. Add a
     // 0-fee transaction that has 2 outputs.
-    tx.vin[0].prevout.hash = txFirst[2]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[2]->GetId(), 0);
     tx.vout.resize(2);
     tx.vout[0].nValue = Amount(5000000000LL - 100000000);
     // 1BCC output.
@@ -181,7 +180,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
                          entry.Fee(Amount(0)).SpendsCoinbase(true).FromTx(tx));
 
     // This tx can't be mined by itself.
-    tx.vin[0].prevout.hash = freeTxId2;
+    tx.vin[0].prevout = COutPoint(freeTxId2, 0);
     tx.vout.resize(1);
     feeToUse = blockMinFeeRate.GetFee(freeTxSize);
     tx.vout[0].nValue = Amount(5000000000LL) - Amount(100000000) - feeToUse;
@@ -196,9 +195,9 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
         BOOST_CHECK(txn->GetId() != lowFeeTxId2);
     }
 
-    // This tx will be mineable, and should cause lowFeeTxId2 to be selected
-    // as well.
-    tx.vin[0].prevout.n = 1;
+    // This tx will be mineable, and should cause lowFeeTxId2 to be selected as
+    // well.
+    tx.vin[0].prevout = COutPoint(freeTxId2, 1);
     // 10k satoshi fee.
     tx.vout[0].nValue = Amount(100000000 - 10000);
     mempool.addUnchecked(tx.GetId(), entry.Fee(Amount(10000)).FromTx(tx));
@@ -310,8 +309,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // NOTE: OP_NOP is used to force 20 SigOps for the CHECKMULTISIG
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_0 << OP_0 << OP_NOP
                                     << OP_CHECKMULTISIG << OP_1;
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 1001; ++i) {
@@ -326,13 +324,13 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                                  .Time(GetTime())
                                  .SpendsCoinbase(spendsCoinbase)
                                  .FromTx(tx));
-        tx.vin[0].prevout.hash = hash;
+        tx.vin[0].prevout = COutPoint(hash, 0);
     }
     BOOST_CHECK_THROW(BlockAssembler(config).CreateNewBlock(scriptPubKey),
                       std::runtime_error);
     mempool.clear();
 
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 1001; ++i) {
         tx.vout[0].nValue -= LOWFEE;
@@ -347,7 +345,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                                  .SpendsCoinbase(spendsCoinbase)
                                  .SigOpsCost(80)
                                  .FromTx(tx));
-        tx.vin[0].prevout.hash = hash;
+        tx.vin[0].prevout = COutPoint(hash, 0);
     }
     BOOST_CHECK(pblocktemplate =
                     BlockAssembler(config).CreateNewBlock(scriptPubKey));
@@ -362,7 +360,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     tx.vin[0].scriptSig << OP_1;
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vout[0].nValue = BLOCKSUBSIDY;
     for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= LOWFEE;
@@ -374,7 +372,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                                  .Time(GetTime())
                                  .SpendsCoinbase(spendsCoinbase)
                                  .FromTx(tx));
-        tx.vin[0].prevout.hash = hash;
+        tx.vin[0].prevout = COutPoint(hash, 0);
     }
     BOOST_CHECK(pblocktemplate =
                     BlockAssembler(config).CreateNewBlock(scriptPubKey));
@@ -389,17 +387,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // Child with higher priority than parent.
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vin[0].prevout.hash = txFirst[1]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     hash = tx.GetId();
     mempool.addUnchecked(
         hash,
         entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    tx.vin[0].prevout.hash = hash;
+    tx.vin[0].prevout = COutPoint(hash, 0);
     tx.vin.resize(2);
     tx.vin[1].scriptSig = CScript() << OP_1;
-    tx.vin[1].prevout.hash = txFirst[0]->GetId();
-    tx.vin[1].prevout.n = 0;
+    tx.vin[1].prevout = COutPoint(txFirst[0]->GetId(), 0);
     // First txn output + fresh coinbase - new txn fee.
     tx.vout[0].nValue = tx.vout[0].nValue + BLOCKSUBSIDY - HIGHERFEE;
     hash = tx.GetId();
@@ -435,8 +432,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
             P2SH_ACTIVATION_TIME;
     }
 
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vout[0].nValue = BLOCKSUBSIDY - LOWFEE;
     script = CScript() << OP_0;
@@ -445,7 +441,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     mempool.addUnchecked(
         hash,
         entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    tx.vin[0].prevout.hash = hash;
+    tx.vin[0].prevout = COutPoint(hash, 0);
     tx.vin[0].scriptSig = CScript()
                           << std::vector<uint8_t>(script.begin(), script.end());
     tx.vout[0].nValue -= LOWFEE;
@@ -463,7 +459,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // Double spend txn pair in mempool, template creation fails.
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
@@ -528,8 +524,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin.resize(1);
     prevheights.resize(1);
     // Only 1 transaction.
-    tx.vin[0].prevout.hash = txFirst[0]->GetId();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vin[0].scriptSig = CScript() << OP_1;
     // txFirst[0] is the 2nd block
     tx.vin[0].nSequence = chainActive.Tip()->nHeight + 1;
@@ -559,7 +554,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                       CreateBlockIndex(chainActive.Tip()->nHeight + 2)));
 
     // Relative time locked.
-    tx.vin[0].prevout.hash = txFirst[1]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     // txFirst[1] is the 3rd block.
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG |
                           (((chainActive.Tip()->GetMedianTimePast() + 1 -
@@ -597,7 +592,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // Absolute height locked.
-    tx.vin[0].prevout.hash = txFirst[2]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[2]->GetId(), 0);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL - 1;
     prevheights[0] = baseheight + 3;
     tx.nLockTime = chainActive.Tip()->nHeight + 1;
@@ -626,7 +621,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // Absolute time locked.
-    tx.vin[0].prevout.hash = txFirst[3]->GetId();
+    tx.vin[0].prevout = COutPoint(txFirst[3]->GetId(), 0);
     tx.nLockTime = chainActive.Tip()->GetMedianTimePast();
     prevheights.resize(1);
     prevheights[0] = baseheight + 4;
@@ -655,7 +650,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     // mempool-dependent transactions (not added)
-    tx.vin[0].prevout.hash = hash;
+    tx.vin[0].prevout = COutPoint(hash, 0);
     prevheights[0] = chainActive.Tip()->nHeight + 1;
     tx.nLockTime = 0;
     tx.vin[0].nSequence = 0;
