@@ -80,8 +80,8 @@ void TxToJSON(const Config &config, const CTransaction &tx,
             in.push_back(Pair("coinbase", HexStr(txin.scriptSig.begin(),
                                                  txin.scriptSig.end())));
         } else {
-            in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
-            in.push_back(Pair("vout", (int64_t)txin.prevout.n));
+            in.push_back(Pair("txid", txin.prevout.GetTxId().GetHex()));
+            in.push_back(Pair("vout", int64_t(txin.prevout.GetN())));
             UniValue o(UniValue::VOBJ);
             o.push_back(Pair("asm", ScriptToAsmStr(txin.scriptSig, true)));
             o.push_back(Pair(
@@ -708,11 +708,11 @@ static UniValue decodescript(const Config &config,
 static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
                             const std::string &strMessage) {
     UniValue entry(UniValue::VOBJ);
-    entry.push_back(Pair("txid", txin.prevout.hash.ToString()));
-    entry.push_back(Pair("vout", (uint64_t)txin.prevout.n));
+    entry.push_back(Pair("txid", txin.prevout.GetTxId().ToString()));
+    entry.push_back(Pair("vout", uint64_t(txin.prevout.GetN())));
     entry.push_back(Pair("scriptSig",
                          HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
-    entry.push_back(Pair("sequence", (uint64_t)txin.nSequence));
+    entry.push_back(Pair("sequence", uint64_t(txin.nSequence)));
     entry.push_back(Pair("error", strMessage));
     vErrorsRet.push_back(entry);
 }

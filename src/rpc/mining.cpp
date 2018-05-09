@@ -668,8 +668,9 @@ static UniValue getblocktemplate(const Config &config,
 
         UniValue deps(UniValue::VARR);
         for (const CTxIn &in : tx.vin) {
-            if (setTxIndex.count(in.prevout.hash))
-                deps.push_back(setTxIndex[in.prevout.hash]);
+            if (setTxIndex.count(in.prevout.GetTxId())) {
+                deps.push_back(setTxIndex[in.prevout.GetTxId()]);
+            }
         }
         entry.push_back(Pair("depends", deps));
 
