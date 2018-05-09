@@ -113,8 +113,7 @@ class TestNode:
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
-            "-uacomment=" + self.name,
-            "-noprinttoconsole",
+            "-uacomment=" + self.name
         ]
 
         if use_valgrind:
