@@ -317,8 +317,7 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, en
         print("{}WARNING!{} There is a cache directory here: {}. If tests fail unexpectedly, try deleting the cache directory.".format(
             BOLD[1], BOLD[0], cache_dir))
 
-    flags = [os.path.join("--srcdir={}".format(build_dir), "src")] + args
-    flags.append("--cachedir={}".format(cache_dir))
+    flags = ['--cachedir={}'.format(cache_dir)] + args
 
     if enable_coverage:
         coverage = RPCCoverage()
