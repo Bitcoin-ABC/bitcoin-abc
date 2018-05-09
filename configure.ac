@@ -250,6 +250,8 @@ if test "x$enable_asan" = xyes; then
   if test "x$asan_failed" = xyes; then
     AC_MSG_ERROR("ASAN is not supported")
   fi
+  # fix linkage in MacOs
+  [LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -fsanitize=address"],
 fi
 
 if test "x$enable_tsan" = xyes; then
