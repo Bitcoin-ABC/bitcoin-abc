@@ -2154,7 +2154,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             // rejected.
             bool fRejectedParents = false;
             for (const CTxIn &txin : tx.vin) {
-                if (recentRejects->contains(txin.prevout.hash)) {
+                if (recentRejects->contains(txin.prevout.GetTxId())) {
                     fRejectedParents = true;
                     break;
                 }
@@ -2163,7 +2163,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 uint32_t nFetchFlags = GetFetchFlags(
                     pfrom, chainActive.Tip(), chainparams.GetConsensus());
                 for (const CTxIn &txin : tx.vin) {
-                    CInv _inv(MSG_TX | nFetchFlags, txin.prevout.hash);
+                    CInv _inv(MSG_TX | nFetchFlags, txin.prevout.GetTxId());
                     pfrom->AddInventoryKnown(_inv);
                     if (!AlreadyHave(_inv)) {
                         pfrom->AskFor(_inv);
