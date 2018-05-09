@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
                 // make transaction unique
-                tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
+                tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
                 mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
         for (size_t j = 0; j < txIds.size(); j++) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
-                tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
+                tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
                 mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
         for (size_t j = 0; j < txIds.size(); j++) {
             // add 4 fee txs
             for (int k = 0; k < 4; k++) {
-                tx.vin[0].prevout.n = 10000 * blocknum + 100 * j + k;
+                tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
                 mpool.addUnchecked(txid,
                                    entry.Fee(feeV[j])
