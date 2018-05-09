@@ -41,14 +41,17 @@ struct CoinEntry {
 
     template <typename Stream> void Serialize(Stream &s) const {
         s << key;
-        s << outpoint->hash;
-        s << VARINT(outpoint->n);
+        s << outpoint->GetTxId();
+        s << VARINT(outpoint->GetN());
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
         s >> key;
-        s >> outpoint->hash;
-        s >> VARINT(outpoint->n);
+        uint256 id;
+        s >> id;
+        uint32_t n;
+        s >> VARINT(n);
+        *outpoint = COutPoint(id, n);
     }
 };
 } // namespace
@@ -424,13 +427,13 @@ bool CCoinsViewDB::Upgrade() {
             return error("%s: cannot parse CCoins record", __func__);
         }
 
-        COutPoint outpoint(key.second, 0);
+        TxId id(key.second);
         for (size_t i = 0; i < old_coins.vout.size(); ++i) {
             if (!old_coins.vout[i].IsNull() &&
                 !old_coins.vout[i].scriptPubKey.IsUnspendable()) {
                 Coin newcoin(std::move(old_coins.vout[i]), old_coins.nHeight,
                              old_coins.fCoinBase);
-                outpoint.n = i;
+                COutPoint outpoint(id, i);
                 CoinEntry entry(&outpoint);
                 batch.Write(entry, newcoin);
             }

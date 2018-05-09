@@ -65,8 +65,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     block.vtx[0] = MakeTransactionRef(tx);
 
     tx.vout[0].scriptPubKey = CScript() << OP_TRUE;
-    tx.vin[0].prevout.hash = InsecureRand256();
-    tx.vin[0].prevout.n = 0;
+    tx.vin[0].prevout = COutPoint(InsecureRand256(), 0);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL;
     tx.vin[0].scriptSig.resize(0);
     tx.nVersion = 2;
@@ -74,7 +73,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     auto prevTx0 = CTransaction(tx);
     AddCoins(view, prevTx0, 100);
 
-    tx.vin[0].prevout.hash = prevTx0.GetId();
+    tx.vin[0].prevout = COutPoint(prevTx0.GetId(), 0);
     auto tx0 = CTransaction(tx);
     block.vtx[1] = MakeTransactionRef(tx0);
 
