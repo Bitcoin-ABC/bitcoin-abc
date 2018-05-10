@@ -70,23 +70,22 @@ config_opts="runtime-link=shared threadapi=pthread threading=multi link=static v
 
 BerkeleyDB is only necessary for the wallet functionality. To skip this, pass `--disable-wallet` to `./configure`.
 
-See "Berkeley DB" in [build_unix.md](build_unix.md) for instructions on how to build BerkeleyDB 4.8.
 You cannot use the BerkeleyDB library from ports, for the same reason as boost above (g++/libstd++ incompatibility).
 
 ```bash
 # Pick some path to install BDB to, here we create a directory within the bitcoin directory
 BITCOIN_ROOT=$(pwd)
-BDB_PREFIX="${BITCOIN_ROOT}/db4"
+BDB_PREFIX="${BITCOIN_ROOT}/db6"
 mkdir -p $BDB_PREFIX
 
 # Fetch the source and verify that it is not tampered with
-curl -o db-4.8.30.NC.tar.gz 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
-echo '12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.30.NC.tar.gz' | sha256 -c
-# MUST output: (SHA256) db-4.8.30.NC.tar.gz: OK
-tar -xzf db-4.8.30.NC.tar.gz
+curl -o db-6.2.32.NC.tar.gz 'http://download.oracle.com/berkeley-db/db-6.2.32.NC.tar.gz'
+echo 'd86cf1283c519d42dd112b4501ecb2db11ae765b37a1bdad8f8cb06b0ffc69b8  db-6.2.32.NC.tar.gz' | sha256sum -c
+# MUST output: (SHA256) db-6.2.32.NC.tar.gz: OK
+tar -xzf db-6.2.32.NC.tar.gz
 
 # Build the library and install to specified prefix
-cd db-4.8.30.NC/build_unix/
+cd db-6.2.32.NC/build_unix/
 #  Note: Do a static build so that it can be embedded into the executable, instead of having to find a .so at runtime
 ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX CC=egcc CXX=eg++ CPP=ecpp
 make install # do NOT use -jX, this is broken
@@ -124,7 +123,7 @@ To configure with wallet:
 ```bash
 ./configure --with-gui=no --with-boost=$BOOST_PREFIX \
     CC=egcc CXX=eg++ CPP=ecpp \
-    BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" BDB_CFLAGS="-I${BDB_PREFIX}/include"
+    BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-6.2" BDB_CFLAGS="-I${BDB_PREFIX}/include"
 ```
 
 To configure without wallet:

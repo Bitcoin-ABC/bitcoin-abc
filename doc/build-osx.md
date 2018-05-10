@@ -23,7 +23,7 @@ Dependencies
 
 Install dependencies:
 
-    brew install automake berkeley-db4 libtool boost --c++11 miniupnpc openssl pkg-config protobuf --c++11 qt5 libevent
+    brew install automake berkeley-db libtool boost --c++11 miniupnpc openssl pkg-config protobuf --c++11 qt5 libevent
 
 In case you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG
 
