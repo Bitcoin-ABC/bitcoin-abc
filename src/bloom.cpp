@@ -80,12 +80,18 @@ void CBloomFilter::insert(const uint256 &hash) {
 }
 
 bool CBloomFilter::contains(const std::vector<uint8_t> &vKey) const {
-    if (isFull) return true;
-    if (isEmpty) return false;
+    if (isFull) {
+        return true;
+    }
+    if (isEmpty) {
+        return false;
+    }
     for (unsigned int i = 0; i < nHashFuncs; i++) {
         unsigned int nIndex = Hash(i, vKey);
         // Checks bit nIndex of vData
-        if (!(vData[nIndex >> 3] & (1 << (7 & nIndex)))) return false;
+        if (!(vData[nIndex >> 3] & (1 << (7 & nIndex)))) {
+            return false;
+        }
     }
     return true;
 }
@@ -122,12 +128,18 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
     bool fFound = false;
     // Match if the filter contains the hash of tx for finding tx when they
     // appear in a block
-    if (isFull) return true;
-    if (isEmpty) return false;
+    if (isFull) {
+        return true;
+    }
+    if (isEmpty) {
+        return false;
+    }
     const uint256 &txid = tx.GetId();
-    if (contains(txid)) fFound = true;
+    if (contains(txid)) {
+        fFound = true;
+    }
 
-    for (unsigned int i = 0; i < tx.vout.size(); i++) {
+    for (size_t i = 0; i < tx.vout.size(); i++) {
         const CTxOut &txout = tx.vout[i];
         // Match if the filter contains any arbitrary script data element in any
         // scriptPubKey in tx. If this matches, also add the specific output
@@ -139,29 +151,36 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
         std::vector<uint8_t> data;
         while (pc < txout.scriptPubKey.end()) {
             opcodetype opcode;
-            if (!txout.scriptPubKey.GetOp(pc, opcode, data)) break;
+            if (!txout.scriptPubKey.GetOp(pc, opcode, data)) {
+                break;
+            }
             if (data.size() != 0 && contains(data)) {
                 fFound = true;
-                if ((nFlags & BLOOM_UPDATE_MASK) == BLOOM_UPDATE_ALL)
+                if ((nFlags & BLOOM_UPDATE_MASK) == BLOOM_UPDATE_ALL) {
                     insert(COutPoint(txid, i));
-                else if ((nFlags & BLOOM_UPDATE_MASK) ==
-                         BLOOM_UPDATE_P2PUBKEY_ONLY) {
+                } else if ((nFlags & BLOOM_UPDATE_MASK) ==
+                           BLOOM_UPDATE_P2PUBKEY_ONLY) {
                     txnouttype type;
                     std::vector<std::vector<uint8_t>> vSolutions;
                     if (Solver(txout.scriptPubKey, type, vSolutions) &&
-                        (type == TX_PUBKEY || type == TX_MULTISIG))
+                        (type == TX_PUBKEY || type == TX_MULTISIG)) {
                         insert(COutPoint(txid, i));
+                    }
                 }
                 break;
             }
         }
     }
 
-    if (fFound) return true;
+    if (fFound) {
+        return true;
+    }
 
     for (const CTxIn &txin : tx.vin) {
         // Match if the filter contains an outpoint tx spends
-        if (contains(txin.prevout)) return true;
+        if (contains(txin.prevout)) {
+            return true;
+        }
 
         // Match if the filter contains any arbitrary script data element in any
         // scriptSig in tx
@@ -169,8 +188,12 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
         std::vector<uint8_t> data;
         while (pc < txin.scriptSig.end()) {
             opcodetype opcode;
-            if (!txin.scriptSig.GetOp(pc, opcode, data)) break;
-            if (data.size() != 0 && contains(data)) return true;
+            if (!txin.scriptSig.GetOp(pc, opcode, data)) {
+                break;
+            }
+            if (data.size() != 0 && contains(data)) {
+                return true;
+            }
         }
     }
 
@@ -180,9 +203,9 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
 void CBloomFilter::UpdateEmptyFull() {
     bool full = true;
     bool empty = true;
-    for (unsigned int i = 0; i < vData.size(); i++) {
-        full &= vData[i] == 0xff;
-        empty &= vData[i] == 0;
+    for (const auto d : vData) {
+        full &= (d == 0xff);
+        empty &= (d == 0);
     }
     isFull = full;
     isEmpty = empty;
@@ -238,8 +261,8 @@ void CRollingBloomFilter::insert(const std::vector<uint8_t> &vKey) {
         if (nGeneration == 4) {
             nGeneration = 1;
         }
-        uint64_t nGenerationMask1 = -(uint64_t)(nGeneration & 1);
-        uint64_t nGenerationMask2 = -(uint64_t)(nGeneration >> 1);
+        uint64_t nGenerationMask1 = -uint64_t(nGeneration & 1);
+        uint64_t nGenerationMask2 = -uint64_t(nGeneration >> 1);
         /* Wipe old entries that used this generation number. */
         for (uint32_t p = 0; p < data.size(); p += 2) {
             uint64_t p1 = data[p], p2 = data[p + 1];
@@ -256,10 +279,10 @@ void CRollingBloomFilter::insert(const std::vector<uint8_t> &vKey) {
         uint32_t pos = (h >> 6) % data.size();
         /* The lowest bit of pos is ignored, and set to zero for the first bit,
          * and to one for the second. */
-        data[pos & ~1] = (data[pos & ~1] & ~(((uint64_t)1) << bit)) |
-                         ((uint64_t)(nGeneration & 1)) << bit;
-        data[pos | 1] = (data[pos | 1] & ~(((uint64_t)1) << bit)) |
-                        ((uint64_t)(nGeneration >> 1)) << bit;
+        data[pos & ~1] = (data[pos & ~1] & ~(uint64_t(1) << bit)) |
+                         uint64_t(nGeneration & 1) << bit;
+        data[pos | 1] = (data[pos | 1] & ~(uint64_t(1) << bit)) |
+                        uint64_t(nGeneration >> 1) << bit;
     }
 }
 
@@ -291,8 +314,7 @@ void CRollingBloomFilter::reset() {
     nTweak = GetRand(std::numeric_limits<unsigned int>::max());
     nEntriesThisGeneration = 0;
     nGeneration = 1;
-    for (std::vector<uint64_t>::iterator it = data.begin(); it != data.end();
-         it++) {
-        *it = 0;
+    for (auto &d : data) {
+        d = 0;
     }
 }
