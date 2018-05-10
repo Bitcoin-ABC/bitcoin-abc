@@ -85,6 +85,13 @@ private:
      */
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
 
+    /**
+     * the ChainState CriticalSection
+     * A lock that must be held when modifying this ChainState - held in
+     * ActivateBestChain()
+     */
+    CCriticalSection m_cs_chainstate;
+
 public:
     CChain chainActive;
     BlockMap mapBlockIndex;
@@ -2658,6 +2665,7 @@ bool CChainState::ActivateBestChainStep(
     const std::shared_ptr<const CBlock> &pblock, bool &fInvalidFound,
     ConnectTrace &connectTrace) {
     AssertLockHeld(cs_main);
+
     const CBlockIndex *pindexOldTip = chainActive.Tip();
     const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
 
@@ -2782,6 +2790,14 @@ bool CChainState::ActivateBestChain(const Config &config,
     // us in the middle of ProcessNewBlock - do not assume pblock is set
     // sanely for performance or correctness!
     AssertLockNotHeld(cs_main);
+
+    // ABC maintains a fair degree of expensive-to-calculate internal state
+    // because this function periodically releases cs_main so that it does not
+    // lock up other threads for too long during large connects - and to allow
+    // for e.g. the callback queue to drain we use m_cs_chainstate to enforce
+    // mutual exclusion so that only one caller may execute this function at a
+    // time
+    LOCK(m_cs_chainstate);
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
