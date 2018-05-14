@@ -85,7 +85,10 @@ enum WalletFeature {
     // Wallet without a default key written
     FEATURE_NO_DEFAULT_KEY = 190700,
 
-    FEATURE_LATEST = FEATURE_NO_DEFAULT_KEY
+    // Upgraded to HD SPLIT and can have a pre-split keypool
+    FEATURE_PRE_SPLIT_KEYPOOL = 200300,
+
+    FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL,
 };
 
 enum class OutputType {
