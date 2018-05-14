@@ -204,6 +204,17 @@ break set --file interpreter.cpp --line 295
 run
 ```
 
+**writing script integration tests**
+
+Script integration tests are built using `src/test/script_tests.cpp`:
+
+1. Uncomment the line with `#define UPDATE_JSON_TESTS`
+2. Add a new TestBuilder to the `script_build` test to cover your test case.
+3. `make && ./src/test/test_bitcoin --run_test=script_tests`
+4. Copy your newly generated test JSON from `<build-dir>/src/script_tests.json.gen` to `src/test/data/script_tests.json`.
+
+Please commit your TestBuilder along with your generated test JSON and cleanup the uncommented #define before code review.
+
 **testnet and regtest modes**
 
 Run with the -testnet option to run with "play bitcoins" on the test network, if you
