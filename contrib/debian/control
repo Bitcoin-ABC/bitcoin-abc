@@ -23,9 +23,9 @@ Build-Depends: debhelper,
  libprotobuf-dev, protobuf-compiler,
  python
 Standards-Version: 3.9.2
-Homepage: https://bitcoincore.org/
-Vcs-Git: git://github.com/bitcoin/bitcoin.git
-Vcs-Browser: https://github.com/bitcoin/bitcoin
+Homepage: https://bitcoinabc.org/
+Vcs-Git: ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git
+Vcs-Browser: https://reviews.bitcoinabc.org/source/bitcoin-abc/
 
 Package: bitcoind
 Architecture: any
