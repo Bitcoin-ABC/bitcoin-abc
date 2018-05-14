@@ -3622,20 +3622,6 @@ bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                          "non-final transaction");
     }
 
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
-
-    if (IsUAHFenabled(config, nHeight) &&
-        nHeight <= consensusParams.antiReplayOpReturnSunsetHeight) {
-        for (const CTxOut &o : tx.vout) {
-            if (o.scriptPubKey.IsCommitment(
-                    consensusParams.antiReplayOpReturnCommitment)) {
-                return state.DoS(10, false, REJECT_INVALID, "bad-txn-replay",
-                                 false, "non playable transaction");
-            }
-        }
-    }
-
     return true;
 }
 
