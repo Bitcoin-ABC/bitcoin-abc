@@ -27,10 +27,11 @@
 #include <set>
 #include <unordered_map>
 
-static std::atomic<bool> g_rpc_running{false};
-static bool fRPCInWarmup = true;
-static std::string rpcWarmupStatus("RPC server started");
 static RecursiveMutex cs_rpcWarmup;
+static std::atomic<bool> g_rpc_running{false};
+static bool fRPCInWarmup GUARDED_BY(cs_rpcWarmup) = true;
+static std::string
+    rpcWarmupStatus GUARDED_BY(cs_rpcWarmup) = "RPC server started";
 /* Timer-creating functions */
 static RPCTimerInterface *timerInterface = nullptr;
 /* Map of name to timer. */
