@@ -3813,8 +3813,17 @@ bool ProcessNewBlockHeaders(const Config &config,
 }
 
 /**
- * Store block on disk. If dbp is non-null, the file is known to already reside
- * on disk.
+ * Store a block on disk.
+ *
+ * @param[in]     config     The global config.
+ * @param[in-out] pblock     The block we want to accept.
+ * @param[out]    ppindex    The last new block index, only set if the block
+ *                           was accepted.
+ * @param[in]     fRequested A boolean to indicate if this block was requested
+ *                           from our peers.
+ * @param[in]     dbp        If non-null, the disk position of the block.
+ * @param[in-out] fNewBlock  True if block was first received via this call.
+ * @return True if the block is accepted as a valid block and written to disk.
  */
 static bool AcceptBlock(const Config &config,
                         const std::shared_ptr<const CBlock> &pblock,

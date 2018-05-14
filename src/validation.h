@@ -302,12 +302,13 @@ public:
  *
  * Call without cs_main held.
  *
+ * @param[in]   config  The global config.
  * @param[in]   pblock  The block we want to process.
  * @param[in]   fForceProcessing Process this block even if unrequested; used
  * for non-network block sources and whitelisted peers.
  * @param[out]  fNewBlock A boolean which is set to indicate if the block was
- * first received via this call
- * @return true if the block is accepted as a valid block
+ *                        first received via this call.
+ * @return True if the block is accepted as a valid block.
  */
 bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
@@ -318,12 +319,13 @@ bool ProcessNewBlock(const Config &config,
  *
  * Call without cs_main held.
  *
- * @param[in]  block The block headers themselves
- * @param[out] state This may be set to an Error state if any error occurred
- * processing them
- * @param[in]  chainparams The params for the chain we want to connect to
+ * @param[in]  config  The global config.
+ * @param[in]  block   The block headers themselves.
+ * @param[out] state   This may be set to an Error state if any error occurred
+ *                     processing them.
  * @param[out] ppindex If set, the pointer will be set to point to the last new
- * block index object for the given headers
+ *                     block index object for the given headers.
+ * @return True if block headers were accepted as valid.
  */
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
