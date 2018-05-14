@@ -58,11 +58,12 @@ class IncludeConfTest(BitcoinTestFramework):
             "-includeconf cannot be used recursively. subversion should end with 'main; relative)/'")
         with open(os.path.join(self.options.tmpdir, "node0", "relative.conf"), "a", encoding="utf8") as f:
             f.write("includeconf=relative2.conf\n")
-
         self.start_node(0)
 
         subversion = self.nodes[0].getnetworkinfo()["subversion"]
         assert subversion.endswith("main; relative)/")
+        self.stop_node(
+            0, expected_stderr="warning: -includeconf cannot be used from included files; ignoring -includeconf=relative2.conf")
 
         self.log.info(
             "multiple -includeconf args can be used from the base config file. subversion should end with 'main; relative; relative2)/'")
@@ -72,7 +73,7 @@ class IncludeConfTest(BitcoinTestFramework):
         with open(os.path.join(self.options.tmpdir, "node0", "bitcoin.conf"), "a", encoding='utf8') as f:
             f.write("includeconf=relative2.conf\n")
 
-        self.restart_node(0)
+        self.start_node(0)
 
         subversion = self.nodes[0].getnetworkinfo()["subversion"]
         assert subversion.endswith("main; relative; relative2)/")
