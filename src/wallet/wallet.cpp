@@ -3516,7 +3516,7 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
         LOCK(cs_wallet);
 
         // Delete destdata tuples associated with address.
-        for (const std::pair<std::string, std::string> &item :
+        for (const std::pair<const std::string, std::string> &item :
              mapAddressBook[address].destdata) {
             WalletBatch(*database).EraseDestData(address, item.first);
         }
@@ -3933,7 +3933,7 @@ std::set<CTxDestination>
 CWallet::GetLabelAddresses(const std::string &label) const {
     LOCK(cs_wallet);
     std::set<CTxDestination> result;
-    for (const std::pair<CTxDestination, CAddressBookData> &item :
+    for (const std::pair<const CTxDestination, CAddressBookData> &item :
          mapAddressBook) {
         const CTxDestination &address = item.first;
         const std::string &strName = item.second.name;
