@@ -333,6 +333,7 @@ add_library(server
 	globals.cpp
 	httprpc.cpp
 	httpserver.cpp
+	index/base.cpp
 	index/txindex.cpp
 	init.cpp
 	interfaces/handler.cpp
