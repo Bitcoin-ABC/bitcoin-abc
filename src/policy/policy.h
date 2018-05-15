@@ -68,16 +68,14 @@ static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS =
 static const unsigned int STANDARD_LOCKTIME_VERIFY_FLAGS =
     LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
 
-bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType,
-                bool allowLargeOpReturn = false);
+bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType);
 
 /**
  * Check for standard transaction types
  * @return True if all outputs (scriptPubKeys) use only standard transaction
  * forms
  */
-bool IsStandardTx(const CTransaction &tx, std::string &reason,
-                  bool allowLargeOpReturn = false);
+bool IsStandardTx(const CTransaction &tx, std::string &reason);
 
 /**
  * Check for standard transaction types

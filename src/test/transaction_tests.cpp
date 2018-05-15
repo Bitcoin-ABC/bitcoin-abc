@@ -648,30 +648,6 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // MAX_OP_RETURN_RELAY-byte TX_NULL_DATA (standard)
     t.vout[0].scriptPubKey =
         CScript() << OP_RETURN
-                  << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909"
-                              "a67962e0ea1f61deb649f6bc3f4cef3804678afdb0fe5548"
-                              "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
-                              "b649f6bc3f4cef38");
-    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY, t.vout[0].scriptPubKey.size());
-    BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
-
-    // MAX_OP_RETURN_RELAY+1-byte TX_NULL_DATA (non-standard)
-    t.vout[0].scriptPubKey =
-        CScript() << OP_RETURN
-                  << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909"
-                              "a67962e0ea1f61deb649f6bc3f4cef3804678afdb0fe5548"
-                              "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
-                              "b649f6bc3f4cef3800");
-    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY + 1, t.vout[0].scriptPubKey.size());
-    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
-
-    /**
-     * Check acceptance of larger op_return when asked to.
-     */
-
-    // New default size of 223 byte is standard
-    t.vout[0].scriptPubKey =
-        CScript() << OP_RETURN
                   << ParseHex("646578784062697477617463682e636f2092c558ed52c56d"
                               "8dd14ca76226bc936a84820d898443873eb03d8854b21fa3"
                               "952b99a2981873e74509281730d78a21786d34a38bd1ebab"
@@ -682,10 +658,10 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "732ba6677520a893d75d9a966cb8f85dc301656b1635c631"
                               "f5d00d4adf73f2dd112ca75cf19754651909becfbe65aed1"
                               "3afb2ab8");
-    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY_LARGE, t.vout[0].scriptPubKey.size());
-    BOOST_CHECK(IsStandardTx(CTransaction(t), reason, true));
+    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY, t.vout[0].scriptPubKey.size());
+    BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
 
-    // Larger than default size of 223 byte is non-standard
+    // MAX_OP_RETURN_RELAY+1-byte TX_NULL_DATA (non-standard)
     t.vout[0].scriptPubKey =
         CScript() << OP_RETURN
                   << ParseHex("646578784062697477617463682e636f2092c558ed52c56d"
@@ -698,14 +674,13 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "732ba6677520a893d75d9a966cb8f85dc301656b1635c631"
                               "f5d00d4adf73f2dd112ca75cf19754651909becfbe65aed1"
                               "3afb2ab800");
-    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY_LARGE + 1,
-                      t.vout[0].scriptPubKey.size());
-    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason, true));
+    BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY + 1, t.vout[0].scriptPubKey.size());
+    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
 
     /**
      * Check when a custom value is used for -datacarriersize .
      */
-    unsigned newMaxSize = MAX_OP_RETURN_RELAY + 7;
+    unsigned newMaxSize = 90;
     gArgs.ForceSetArg("-datacarriersize", std::to_string(newMaxSize));
 
     // Max user provided payload size is standard
@@ -716,8 +691,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
                               "b649f6bc3f4cef3877696e64657878");
     BOOST_CHECK_EQUAL(t.vout[0].scriptPubKey.size(), newMaxSize);
-    BOOST_CHECK(IsStandardTx(CTransaction(t), reason, false));
-    BOOST_CHECK(IsStandardTx(CTransaction(t), reason, true));
+    BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
 
     // Max user provided payload size + 1 is non-standard
     t.vout[0].scriptPubKey =
@@ -727,8 +701,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
                               "b649f6bc3f4cef3877696e6465787800");
     BOOST_CHECK_EQUAL(t.vout[0].scriptPubKey.size(), newMaxSize + 1);
-    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason, false));
-    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason, true));
+    BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
 
     // Clear custom confirguration.
     gArgs.ClearArg("-datacarriersize");

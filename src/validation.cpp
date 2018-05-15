@@ -753,12 +753,9 @@ static bool AcceptToMemoryPoolWorker(
         return false;
     }
 
-    // After the May, 15 hard fork, we start accepting larger op_return.
-    const bool hasMonolith = IsMonolithEnabled(config, chainActive.Tip());
-
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason, hasMonolith)) {
+    if (fRequireStandard && !IsStandardTx(tx, reason)) {
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
     }
 
@@ -987,7 +984,7 @@ static bool AcceptToMemoryPoolWorker(
 
         // Set extraFlags as a set of flags that needs to be activated.
         uint32_t extraFlags = SCRIPT_VERIFY_NONE;
-        if (hasMonolith) {
+        if (IsMonolithEnabled(config, chainActive.Tip())) {
             extraFlags |= SCRIPT_ENABLE_MONOLITH_OPCODES;
         }
 
