@@ -444,9 +444,13 @@ bool CCoinsViewDB::Upgrade() {
     return !ShutdownRequested();
 }
 
+BaseIndexDB::BaseIndexDB(const fs::path &path, size_t n_cache_size,
+                         bool f_memory, bool f_wipe, bool f_obfuscate)
+    : CDBWrapper(path, n_cache_size, f_memory, f_wipe, f_obfuscate) {}
+
 TxIndexDB::TxIndexDB(size_t n_cache_size, bool f_memory, bool f_wipe)
-    : CDBWrapper(GetDataDir() / "indexes" / "txindex", n_cache_size, f_memory,
-                 f_wipe) {}
+    : BaseIndexDB(GetDataDir() / "indexes" / "txindex", n_cache_size, f_memory,
+                  f_wipe) {}
 
 bool TxIndexDB::ReadTxPos(const uint256 &txid, CDiskTxPos &pos) const {
     return Read(std::make_pair(DB_TXINDEX, txid), pos);
@@ -461,7 +465,7 @@ bool TxIndexDB::WriteTxs(
     return WriteBatch(batch);
 }
 
-bool TxIndexDB::ReadBestBlock(CBlockLocator &locator) const {
+bool BaseIndexDB::ReadBestBlock(CBlockLocator &locator) const {
     bool success = Read(DB_BEST_BLOCK, locator);
     if (!success) {
         locator.SetNull();
@@ -469,7 +473,7 @@ bool TxIndexDB::ReadBestBlock(CBlockLocator &locator) const {
     return success;
 }
 
-bool TxIndexDB::WriteBestBlock(const CBlockLocator &locator) {
+bool BaseIndexDB::WriteBestBlock(const CBlockLocator &locator) {
     return Write(DB_BEST_BLOCK, locator);
 }
 
