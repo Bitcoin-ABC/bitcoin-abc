@@ -241,6 +241,9 @@ public:
                 // Nov, 13 DAA activation block.
                 {504031, uint256S("0000000000000000011ebf65b60d0a3de80b8175be70"
                                   "9d653b4c1a1beeb6ab9c")},
+                // Monolith activation.
+                {530359, uint256S("0000000000000000011ada8bd08f46074f44a8f15539"
+                                  "6f43e38acf9501c49103")},
             }};
 
         // Data as of block
