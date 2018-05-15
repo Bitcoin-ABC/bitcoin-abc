@@ -4,10 +4,12 @@
 
 #include "sync.h"
 
-#include "util.h"
+#include "logging.h"
 #include "utilstrencodings.h"
 
 #include <cstdio>
+#include <map>
+#include <memory>
 #include <set>
 
 #ifdef DEBUG_LOCKCONTENTION
