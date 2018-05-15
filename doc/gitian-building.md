@@ -109,6 +109,12 @@ COMMIT=v0.16.0 # or whatever release tag you wish
 ./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} /vagrant/contrib/gitian-descriptors/gitian-osx.yml
 ```
 
+Note: For executing gitian builds on local changes, change URL and COMMIT:
+```bash
+URL=/vagrant/
+COMMIT=<git-commit-hash> # replace <git-commit-hash> with your latest changes
+```
+
 This may take some time as it will build all the dependencies needed for each
 descriptor. These dependencies will be cached after a successful build to
 avoid rebuilding them when possible.
