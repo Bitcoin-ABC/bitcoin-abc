@@ -12,6 +12,7 @@
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <net.h>
+#include <netbase.h>
 #include <qt/bantablemodel.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
@@ -263,4 +264,14 @@ void ClientModel::unsubscribeFromCoreSignals() {
     m_handler_banned_list_changed->disconnect();
     m_handler_notify_block_tip->disconnect();
     m_handler_notify_header_tip->disconnect();
+}
+
+bool ClientModel::getProxyInfo(std::string &ip_port) const {
+    proxyType ipv4, ipv6;
+    if (m_node.getProxy((Network)1, ipv4) &&
+        m_node.getProxy((Network)2, ipv6)) {
+        ip_port = ipv4.proxy.ToStringIPPort();
+        return true;
+    }
+    return false;
 }

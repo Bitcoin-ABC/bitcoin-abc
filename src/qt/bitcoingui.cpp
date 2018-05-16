@@ -148,6 +148,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
     labelWalletEncryptionIcon = new QLabel();
     labelWalletHDStatusIcon = new QLabel();
+    labelProxyIcon = new QLabel();
     connectionsControl = new GUIUtil::ClickableLabel();
     labelBlocksIcon = new GUIUtil::ClickableLabel();
     if (enableWallet) {
@@ -157,6 +158,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
         frameBlocksLayout->addWidget(labelWalletEncryptionIcon);
         frameBlocksLayout->addWidget(labelWalletHDStatusIcon);
     }
+    frameBlocksLayout->addWidget(labelProxyIcon);
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(connectionsControl);
     frameBlocksLayout->addStretch();
@@ -553,6 +555,9 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel) {
                 SLOT(showProgress(QString, int)));
 
         rpcConsole->setClientModel(_clientModel);
+
+        updateProxyIcon();
+
 #ifdef ENABLE_WALLET
         if (walletFrame) {
             walletFrame->setClientModel(_clientModel);
@@ -1197,6 +1202,26 @@ void BitcoinGUI::updateWalletStatus() {
     setHDStatus(walletModel->wallet().hdEnabled());
 }
 #endif // ENABLE_WALLET
+
+void BitcoinGUI::updateProxyIcon() {
+    std::string ip_port;
+    bool proxy_enabled = clientModel->getProxyInfo(ip_port);
+
+    if (proxy_enabled) {
+        if (labelProxyIcon->pixmap() == 0) {
+            QString ip_port_q = QString::fromStdString(ip_port);
+            labelProxyIcon->setPixmap(
+                platformStyle->SingleColorIcon(":/icons/proxy")
+                    .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+            labelProxyIcon->setToolTip(
+                tr("Proxy is <b>enabled</b>: %1").arg(ip_port_q));
+        } else {
+            labelProxyIcon->show();
+        }
+    } else {
+        labelProxyIcon->hide();
+    }
+}
 
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden) {
     if (!clientModel) {
