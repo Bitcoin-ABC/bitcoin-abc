@@ -2462,7 +2462,6 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
                                           Peer &peer, const CInv &inv) {
     const BlockHash hash(inv.hash);
 
-    bool send = false;
     std::shared_ptr<const CBlock> a_recent_block;
     std::shared_ptr<const CBlockHeaderAndShortTxIDs> a_recent_compact_block;
     {
@@ -2500,19 +2499,20 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
 
     LOCK(cs_main);
     const CBlockIndex *pindex = m_chainman.m_blockman.LookupBlockIndex(hash);
-    if (pindex) {
-        send = BlockRequestAllowed(pindex);
-        if (!send) {
-            LogPrint(BCLog::NET,
-                     "%s: ignoring request from peer=%i for old "
-                     "block that isn't in the main chain\n",
-                     __func__, pfrom.GetId());
-        }
+    if (!pindex) {
+        return;
+    }
+    if (!BlockRequestAllowed(pindex)) {
+        LogPrint(BCLog::NET,
+                 "%s: ignoring request from peer=%i for old "
+                 "block that isn't in the main chain\n",
+                 __func__, pfrom.GetId());
+        return;
     }
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
     // Disconnect node in case we have reached the outbound limit for serving
     // historical blocks.
-    if (send && m_connman.OutboundTargetReached(true) &&
+    if (m_connman.OutboundTargetReached(true) &&
         (((m_chainman.m_best_header != nullptr) &&
           (m_chainman.m_best_header->GetBlockTime() - pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
@@ -2522,14 +2522,13 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         LogPrint(BCLog::NET,
                  "historical block serving limit reached, disconnect peer=%d\n",
                  pfrom.GetId());
-
         pfrom.fDisconnect = true;
-        send = false;
+        return;
     }
     // Avoid leaking prune-height by never sending blocks below the
     // NODE_NETWORK_LIMITED threshold.
     // Add two blocks buffer extension for possible races
-    if (send && !pfrom.HasPermission(PF_NOBAN) &&
+    if (!pfrom.HasPermission(PF_NOBAN) &&
         ((((pfrom.GetLocalServices() & NODE_NETWORK_LIMITED) ==
            NODE_NETWORK_LIMITED) &&
           ((pfrom.GetLocalServices() & NODE_NETWORK) != NODE_NETWORK) &&
@@ -2543,11 +2542,11 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         // disconnect node and prevent it from stalling (would otherwise wait
         // for the missing block)
         pfrom.fDisconnect = true;
-        send = false;
+        return;
     }
     // Pruned nodes may have deleted the block, so check whether it's available
     // before trying to send.
-    if (send && pindex->nStatus.hasData()) {
+    if (pindex->nStatus.hasData()) {
         std::shared_ptr<const CBlock> pblock;
         if (a_recent_block &&
             a_recent_block->GetHash() == pindex->GetBlockHash()) {
