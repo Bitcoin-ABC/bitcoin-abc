@@ -624,10 +624,18 @@ void ArgsManager::ForceSetMultiArg(const std::string &strArg,
 
 void ArgsManager::AddArg(const std::string &name, const std::string &help,
                          const bool debug_only, const OptionsCategory &cat) {
-    std::pair<OptionsCategory, std::string> key(cat, name);
-    assert(m_available_args.count(key) == 0);
-    m_available_args.emplace(key,
-                             std::pair<std::string, bool>(help, debug_only));
+    // Split arg name from its help param
+    size_t eq_index = name.find('=');
+    if (eq_index == std::string::npos) {
+        eq_index = name.size();
+    }
+
+    std::map<std::string, Arg> &arg_map = m_available_args[cat];
+    auto ret = arg_map.emplace(
+        name.substr(0, eq_index),
+        Arg(name.substr(eq_index, name.size() - eq_index), help, debug_only));
+    // Make sure an insertion actually happened.
+    assert(ret.second);
 }
 
 void ArgsManager::ClearArg(const std::string &strArg) {
@@ -639,42 +647,70 @@ void ArgsManager::ClearArg(const std::string &strArg) {
 std::string ArgsManager::GetHelpMessage() {
     const bool show_debug = gArgs.GetBoolArg("-help-debug", false);
 
-    std::string usage = HelpMessageGroup(_("Options:"));
-
-    OptionsCategory last_cat = OptionsCategory::OPTIONS;
-    for (auto &arg : m_available_args) {
-        if (arg.first.first != last_cat) {
-            last_cat = arg.first.first;
-            if (last_cat == OptionsCategory::CONNECTION) {
-                usage += HelpMessageGroup(_("Connection options:"));
-            } else if (last_cat == OptionsCategory::ZMQ) {
-                usage += HelpMessageGroup(_("ZeroMQ notification options:"));
-            } else if (last_cat == OptionsCategory::DEBUG_TEST) {
-                usage += HelpMessageGroup(_("Debugging/Testing options:"));
-            } else if (last_cat == OptionsCategory::NODE_RELAY) {
-                usage += HelpMessageGroup(_("Node relay options:"));
-            } else if (last_cat == OptionsCategory::BLOCK_CREATION) {
-                usage += HelpMessageGroup(_("Block creation options:"));
-            } else if (last_cat == OptionsCategory::RPC) {
-                usage += HelpMessageGroup(_("RPC server options:"));
-            } else if (last_cat == OptionsCategory::WALLET) {
-                usage += HelpMessageGroup(_("Wallet options:"));
-            } else if (last_cat == OptionsCategory::WALLET_DEBUG_TEST &&
-                       show_debug) {
-                usage +=
-                    HelpMessageGroup(_("Wallet debugging/testing options:"));
-            } else if (last_cat == OptionsCategory::CHAINPARAMS) {
-                usage += HelpMessageGroup(_("Chain selection options:"));
-            } else if (last_cat == OptionsCategory::GUI) {
-                usage += HelpMessageGroup(_("UI Options:"));
-            } else if (last_cat == OptionsCategory::COMMANDS) {
-                usage += HelpMessageGroup(_("Commands:"));
-            } else if (last_cat == OptionsCategory::REGISTER_COMMANDS) {
-                usage += HelpMessageGroup(_("Register Commands:"));
-            }
+    std::string usage = "";
+    for (const auto &arg_map : m_available_args) {
+        switch (arg_map.first) {
+            case OptionsCategory::OPTIONS:
+                usage += HelpMessageGroup("Options:");
+                break;
+            case OptionsCategory::CONNECTION:
+                usage += HelpMessageGroup("Connection options:");
+                break;
+            case OptionsCategory::ZMQ:
+                usage += HelpMessageGroup("ZeroMQ notification options:");
+                break;
+            case OptionsCategory::DEBUG_TEST:
+                usage += HelpMessageGroup("Debugging/Testing options:");
+                break;
+            case OptionsCategory::NODE_RELAY:
+                usage += HelpMessageGroup("Node relay options:");
+                break;
+            case OptionsCategory::BLOCK_CREATION:
+                usage += HelpMessageGroup("Block creation options:");
+                break;
+            case OptionsCategory::RPC:
+                usage += HelpMessageGroup("RPC server options:");
+                break;
+            case OptionsCategory::WALLET:
+                usage += HelpMessageGroup("Wallet options:");
+                break;
+            case OptionsCategory::WALLET_DEBUG_TEST:
+                if (show_debug) {
+                    usage +=
+                        HelpMessageGroup("Wallet debugging/testing options:");
+                }
+                break;
+            case OptionsCategory::CHAINPARAMS:
+                usage += HelpMessageGroup("Chain selection options:");
+                break;
+            case OptionsCategory::GUI:
+                usage += HelpMessageGroup("UI Options:");
+                break;
+            case OptionsCategory::COMMANDS:
+                usage += HelpMessageGroup("Commands:");
+                break;
+            case OptionsCategory::REGISTER_COMMANDS:
+                usage += HelpMessageGroup("Register Commands:");
+                break;
+            default:
+                break;
         }
-        if (show_debug || !arg.second.second) {
-            usage += HelpMessageOpt(arg.first.second, arg.second.first);
+
+        // When we get to the hidden options, stop
+        if (arg_map.first == OptionsCategory::HIDDEN) {
+            break;
+        }
+
+        for (const auto &arg : arg_map.second) {
+            if (show_debug || !arg.second.m_debug_only) {
+                std::string name;
+                if (arg.second.m_help_param.empty()) {
+                    name = arg.first;
+                } else {
+                    name = arg.first + arg.second.m_help_param;
+                }
+                usage += HelpMessageOpt(name, arg.second.m_help_text);
+            }
         }
     }
     return usage;
