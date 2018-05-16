@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -36,6 +36,7 @@
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <script/standard.h>
+#include <shutdown.h>
 #include <timedata.h>
 #include <torcontrol.h>
 #include <txdb.h>
@@ -120,24 +121,15 @@ static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
 // AppInit() or the Qt main() function.
 //
 // A clean exit happens when StartShutdown() or the SIGTERM signal handler sets
-// fRequestShutdown, which triggers the DetectShutdownThread(), which interrupts
-// the main thread group. DetectShutdownThread() then exits, which causes
-// AppInit() to continue (it .joins the shutdown thread). Shutdown() is then
-// called to clean up database connections, and stop other threads that should
-// only be stopped after the main network-processing threads have exited.
+// ShutdownRequested(), which triggers the DetectShutdownThread(), which
+// interrupts the main thread group. DetectShutdownThread() then exits, which
+// causes AppInit() to continue (it .joins the shutdown thread). Shutdown() is
+// then called to clean up database connections, and stop other threads that
+// should only be stopped after the main network-processing threads have exited.
 //
 // Shutdown for Qt is very similar, only it uses a QTimer to detect
-// fRequestShutdown getting set, and then does the normal Qt shutdown thing.
+// ShutdownRequested() getting set, and then does the normal Qt shutdown thing.
 //
-
-std::atomic<bool> fRequestShutdown(false);
-
-void StartShutdown() {
-    fRequestShutdown = true;
-}
-bool ShutdownRequested() {
-    return fRequestShutdown;
-}
 
 /**
  * This is a minimally invasive approach to shutdown on LevelDB read errors from
@@ -301,7 +293,7 @@ void Shutdown() {
  */
 #ifndef WIN32
 static void HandleSIGTERM(int) {
-    fRequestShutdown = true;
+    StartShutdown();
 }
 
 static void HandleSIGHUP(int) {
@@ -309,7 +301,7 @@ static void HandleSIGHUP(int) {
 }
 #else
 static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType) {
-    fRequestShutdown = true;
+    StartShutdown();
     Sleep(INFINITE);
     return true;
 }
@@ -1217,7 +1209,7 @@ static void ThreadImport(const Config &config,
     if (gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         LoadMempool(config, ::g_mempool);
     }
-    ::g_mempool.SetIsLoaded(!fRequestShutdown);
+    ::g_mempool.SetIsLoaded(!ShutdownRequested());
 }
 
 /** Sanity checks
@@ -2134,7 +2126,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     int64_t nStart = 0;
     bool fLoaded = false;
-    while (!fLoaded && !fRequestShutdown) {
+    while (!fLoaded && !ShutdownRequested()) {
         bool fReset = fReindex;
         std::string strLoadError;
 
@@ -2161,7 +2153,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     }
                 }
 
-                if (fRequestShutdown) {
+                if (ShutdownRequested()) {
                     break;
                 }
 
@@ -2304,7 +2296,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             fLoaded = true;
         } while (false);
 
-        if (!fLoaded && !fRequestShutdown) {
+        if (!fLoaded && !ShutdownRequested()) {
             // first suggest a reindex
             if (!fReset) {
                 bool fRet = uiInterface.ThreadSafeQuestion(
@@ -2317,7 +2309,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         CClientUIInterface::BTN_ABORT);
                 if (fRet) {
                     fReindex = true;
-                    fRequestShutdown = false;
+                    AbortShutdown();
                 } else {
                     LogPrintf("Aborted block database rebuild. Exiting.\n");
                     return false;
@@ -2332,7 +2324,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // requested to kill the GUI during the last operation. If so, exit.
     // As the program has not fully started yet, Shutdown() is possibly
     // overkill.
-    if (fRequestShutdown) {
+    if (ShutdownRequested()) {
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }

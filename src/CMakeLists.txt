@@ -434,6 +434,7 @@ add_library(server
 	rpc/server.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp
+	shutdown.cpp
 	timedata.cpp
 	torcontrol.cpp
 	txdb.cpp

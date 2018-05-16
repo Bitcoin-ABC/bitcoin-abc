@@ -1,5 +1,5 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2018 The Bitcoin Core developers
 // Copyright (c) 2018-2019 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -8,9 +8,9 @@
 
 #include <config.h>
 #include <fs.h>
-#include <init.h>
 #include <key_io.h>
 #include <random.h>
+#include <shutdown.h>
 #include <sync.h>
 #include <ui_interface.h>
 #include <util/strencodings.h>
