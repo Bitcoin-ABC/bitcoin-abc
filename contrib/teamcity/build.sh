@@ -31,42 +31,15 @@ if [[ ! -z "${DISABLE_WALLET}" ]]; then
 fi
 
 ../configure "${CONFIGURE_FLAGS[@]}"
-make -j ${THREADS}
-make -C src/secp256k1
-make -C src/univalue
-make install
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-# Run tests
-./src/test/test_bitcoin --log_format=JUNIT > test_bitcoin.xml
-./src/qt/test/test_bitcoin-qt
-
-echo "secp256k1 tests: "
-./src/secp256k1/tests
-./src/secp256k1/exhaustive_tests
-echo "pass"
-
-# Need to CD where the data files for the univalue tests live.
-pushd ${TOPLEVEL}/src/univalue/test
-echo "Univalue tests: "
-${BUILD_DIR}/src/univalue/test/object
-${BUILD_DIR}/src/univalue/test/unitester
-${BUILD_DIR}/src/univalue/test/no_nul
-echo "pass"
-popd
-
-# Run leveldb tests
-pushd ${TOPLEVEL}/src/leveldb
-echo "Leveldb tests: "
+# Run unit tests
 make check
-echo "pass"
-popd
 
+# Run util tests
 ./test/util/bitcoin-util-test.py
 
 mkdir -p output/
-
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	echo "Skipping rpc testing due to disabled wallet functionality."
 elif [[ "${BRANCH}" == "master" ]]; then
