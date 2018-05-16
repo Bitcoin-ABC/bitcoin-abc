@@ -2301,9 +2301,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 8: load indexers
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
-        auto txindex_db =
-            std::make_unique<TxIndexDB>(nTxIndexCache, false, fReindex);
-        g_txindex = std::make_unique<TxIndex>(std::move(txindex_db));
+        g_txindex = std::make_unique<TxIndex>(nTxIndexCache, false, fReindex);
         g_txindex->Start();
     }
 
