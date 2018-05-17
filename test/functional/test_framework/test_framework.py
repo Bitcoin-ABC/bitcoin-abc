@@ -335,17 +335,17 @@ class BitcoinTestFramework():
             sync_blocks(group)
             sync_mempools(group)
 
-    def enable_mocktime(self):
+    def enable_mocktime(self, mocktime):
         """Enable mocktime for the script.
 
         mocktime may be needed for scripts that use the cached version of the
         blockchain.  If the cached version of the blockchain is used without
         mocktime then the mempools will not sync due to IBD.
-
-        For backwared compatibility of the python scripts with previous
-        versions of the cache, this helper function sets mocktime to Jan 1,
-        2014 + (201 * 10 * 60)"""
-        self.mocktime = 1388534400 + (201 * 10 * 60)
+        """
+        if self.mocktime == 0:
+            self.mocktime = mocktime
+        else:
+            self.log.warning("mocktime overriden by test.")
 
     def disable_mocktime(self):
         self.mocktime = 0
@@ -429,14 +429,13 @@ class BitcoinTestFramework():
             #
             # blocks are created with timestamps 10 minutes apart
             # starting from 2010 minutes in the past
-            self.enable_mocktime()
-            block_time = self.mocktime - (201 * 10 * 60)
+            self.enable_mocktime(int(time.time()) - (201 * 10 * 60))
             for i in range(2):
                 for peer in range(4):
                     for j in range(25):
-                        set_node_times(self.nodes, block_time)
+                        set_node_times(self.nodes, self.mocktime)
                         self.nodes[peer].generate(1)
-                        block_time += 10 * 60
+                        self.mocktime += 10 * 60
                     # Must sync before next peer starts generating blocks
                     sync_blocks(self.nodes)
 
