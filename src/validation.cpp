@@ -2653,6 +2653,8 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
          !IsReplayProtectionEnabled(config, pindexDelete->pprev)) ||
         (IsMonolithEnabled(config, pindexDelete) &&
          !IsMonolithEnabled(config, pindexDelete->pprev))) {
+        LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
+
         mempool.clear();
         // While not strictly necessary, clearing the disconnect pool is also
         // beneficial so we don't try to reuse its content at the end of the
