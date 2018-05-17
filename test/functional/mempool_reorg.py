@@ -17,7 +17,7 @@ from test_framework.util import *
 class MempoolCoinbaseTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-checkmempool"]] * 2
+        self.extra_args = [["-checkmempool", "-monolithactivationtime=0"]] * 2
 
     alert_filename = None  # Set by setup_network
 
