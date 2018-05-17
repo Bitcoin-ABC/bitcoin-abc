@@ -84,7 +84,7 @@ static void CheckAmounts(int64_t aval, int64_t bval) {
 }
 
 BOOST_AUTO_TEST_CASE(AmountTests) {
-    std::array<int64_t, 8> values = {-23, -1, 0, 1, 2, 3, 42, 99999999};
+    std::array<int64_t, 8> values = {{-23, -1, 0, 1, 2, 3, 42, 99999999}};
 
     for (int64_t i : values) {
         for (int64_t j : values) {

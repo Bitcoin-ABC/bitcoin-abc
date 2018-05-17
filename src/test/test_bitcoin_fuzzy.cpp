@@ -192,8 +192,8 @@ int main(int argc, char **argv) {
             break;
         }
         case CMESSAGEHEADER_DESERIALIZE: {
-            CMessageHeader::MessageMagic pchMessageStart = {0x00, 0x00, 0x00,
-                                                            0x00};
+            CMessageHeader::MessageMagic pchMessageStart = {
+                {0x00, 0x00, 0x00, 0x00}};
             try {
                 CMessageHeader mh(pchMessageStart);
                 ds >> mh;

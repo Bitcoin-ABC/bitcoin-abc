@@ -14,8 +14,8 @@
 typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
 
-std::array<uint32_t, 3> flagset{0, STANDARD_SCRIPT_VERIFY_FLAGS,
-                                MANDATORY_SCRIPT_VERIFY_FLAGS};
+std::array<uint32_t, 3> flagset{
+    {0, STANDARD_SCRIPT_VERIFY_FLAGS, MANDATORY_SCRIPT_VERIFY_FLAGS}};
 
 BOOST_FIXTURE_TEST_SUITE(monolith_opcodes_tests, BasicTestingSetup)
 
