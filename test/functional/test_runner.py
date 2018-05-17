@@ -372,7 +372,7 @@ class TestHandler:
             time.sleep(.5)
             for j in self.jobs:
                 (name, time0, proc, log_out, log_err) = j
-                if on_ci() and int(time.time() - time0) > 20 * 60:
+                if on_ci() and int(time.time() - time0) > 40 * 60:
                     # In travis, timeout individual tests after 20 minutes (to stop tests hanging and not
                     # providing useful output.
                     proc.send_signal(signal.SIGINT)
