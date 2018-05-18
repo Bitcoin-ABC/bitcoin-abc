@@ -819,7 +819,7 @@ static UniValue combinerawtransaction(const Config &config,
             }
         }
 
-        UpdateTransaction(mergedTx, i, sigdata);
+        UpdateInput(txin, sigdata);
     }
 
     return EncodeHexTx(CTransaction(mergedTx));
@@ -996,7 +996,7 @@ UniValue SignTransaction(CMutableTransaction &mtx,
             prevPubKey, TransactionSignatureChecker(&txConst, i, amount),
             sigdata, DataFromTransaction(mtx, i));
 
-        UpdateTransaction(mtx, i, sigdata);
+        UpdateInput(txin, sigdata);
 
         ScriptError serror = ScriptError::OK;
         if (!VerifyScript(

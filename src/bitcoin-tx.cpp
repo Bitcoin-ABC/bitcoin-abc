@@ -658,7 +658,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
     // Sign what we can:
     for (size_t i = 0; i < mergedTx.vin.size(); i++) {
-        const CTxIn &txin = mergedTx.vin[i];
+        CTxIn &txin = mergedTx.vin[i];
         const Coin &coin = view.AccessCoin(txin.prevout);
         if (coin.IsSpent()) {
             continue;
@@ -682,7 +682,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             prevPubKey,
             MutableTransactionSignatureChecker(&mergedTx, i, amount), sigdata,
             DataFromTransaction(txv, i));
-        UpdateTransaction(mergedTx, i, sigdata);
+        UpdateInput(txin, sigdata);
     }
 
     tx = mergedTx;

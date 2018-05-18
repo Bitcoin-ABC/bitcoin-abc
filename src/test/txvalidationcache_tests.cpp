@@ -398,12 +398,12 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
                          MutableTransactionSignatureCreator(
                              &tx, 0, 11 * CENT, SigHashType().withForkId()),
                          spend_tx.vout[0].scriptPubKey, sigdata);
-        UpdateTransaction(tx, 0, sigdata);
+        UpdateInput(tx.vin[0], sigdata);
         ProduceSignature(keystore,
                          MutableTransactionSignatureCreator(
                              &tx, 1, 11 * CENT, SigHashType().withForkId()),
                          spend_tx.vout[3].scriptPubKey, sigdata);
-        UpdateTransaction(tx, 1, sigdata);
+        UpdateInput(tx.vin[1], sigdata);
 
         // This should be valid under all script flags
         ValidateCheckInputsForAllFlags(CTransaction(tx), 0, true, false);

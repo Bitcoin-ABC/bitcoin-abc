@@ -2788,7 +2788,7 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
 bool CWallet::SignTransaction(CMutableTransaction &tx) {
     // sign the new tx
     int nIn = 0;
-    for (const auto &input : tx.vin) {
+    for (CTxIn &input : tx.vin) {
         auto mi = mapWallet.find(input.prevout.GetTxId());
         if (mi == mapWallet.end() ||
             input.prevout.GetN() >= mi->second.tx->vout.size()) {
@@ -2805,7 +2805,7 @@ bool CWallet::SignTransaction(CMutableTransaction &tx) {
                               scriptPubKey, sigdata)) {
             return false;
         }
-        UpdateTransaction(tx, nIn, sigdata);
+        UpdateInput(input, sigdata);
         nIn++;
     }
     return true;
@@ -3266,7 +3266,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     return false;
                 }
 
-                UpdateTransaction(txNew, nIn, sigdata);
+                UpdateInput(txNew.vin.at(nIn), sigdata);
                 nIn++;
             }
         }
