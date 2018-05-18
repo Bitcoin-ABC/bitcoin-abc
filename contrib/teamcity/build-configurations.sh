@@ -72,8 +72,6 @@ case "$ABC_BUILD_NAME" in
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ninja check
-    # FIXME Remove when wallet_multiwallet works with asan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
-    TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 
@@ -102,8 +100,6 @@ case "$ABC_BUILD_NAME" in
     )
     CMAKE_FLAGS="${CMAKE_FLAGS[*]}" "${CI_SCRIPTS_DIR}"/build_cmake.sh
     ninja check
-    # FIXME Remove when wallet_multiwallet works with tsan after backporting at least the following PRs from Core and their dependencies: 13161, 12493, 14320, 14552, 14760, 11911.
-    TEST_RUNNER_FLAGS="${TEST_RUNNER_FLAGS} --exclude=wallet_multiwallet"
     ./test/functional/test_runner.py ${TEST_RUNNER_FLAGS}
     ;;
 

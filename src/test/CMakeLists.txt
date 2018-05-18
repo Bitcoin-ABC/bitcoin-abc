@@ -166,6 +166,7 @@ if(BUILD_BITCOIN_WALLET)
 	target_sources(test_bitcoin
 		PRIVATE
 			../wallet/test/accounting_tests.cpp
+			../wallet/test/db_tests.cpp
 			../wallet/test/coinselector_tests.cpp
 			../wallet/test/psbt_wallet_tests.cpp
 			../wallet/test/wallet_test_fixture.cpp
