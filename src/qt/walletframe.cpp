@@ -49,9 +49,13 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
     walletView->setClientModel(clientModel);
     walletView->showOutOfSyncWarning(bOutOfSync);
 
-    /* TODO we should goto the currently selected page once dynamically adding
-     * wallets is supported */
-    walletView->gotoOverviewPage();
+    WalletView *current_wallet_view = currentWalletView();
+    if (current_wallet_view) {
+        walletView->setCurrentIndex(current_wallet_view->currentIndex());
+    } else {
+        walletView->gotoOverviewPage();
+    }
+
     walletStack->addWidget(walletView);
     mapWalletViews[name] = walletView;
 

@@ -229,6 +229,7 @@ public Q_SLOTS:
     /// Handle runaway exceptions. Shows a message box with the problem and
     /// quits the program.
     void handleRunawayException(const QString &message);
+    void addWallet(WalletModel *walletModel);
 
 Q_SIGNALS:
     void requestedInitialize(Config *config, RPCServer *rpcServer,
@@ -247,6 +248,7 @@ private:
 #ifdef ENABLE_WALLET
     PaymentServer *paymentServer;
     std::vector<WalletModel *> m_wallet_models;
+    std::unique_ptr<interfaces::Handler> m_handler_load_wallet;
 #endif
     int returnValue;
     const PlatformStyle *platformStyle;
@@ -453,6 +455,24 @@ void BitcoinApplication::requestShutdown(Config &config) {
     Q_EMIT requestedShutdown();
 }
 
+void BitcoinApplication::addWallet(WalletModel *walletModel) {
+#ifdef ENABLE_WALLET
+    window->addWallet(walletModel);
+
+    if (m_wallet_models.empty()) {
+        window->setCurrentWallet(walletModel->getWalletName());
+    }
+
+    connect(walletModel,
+            SIGNAL(coinsSent(WalletModel *, SendCoinsRecipient, QByteArray)),
+            paymentServer,
+            SLOT(fetchPaymentACK(WalletModel *, const SendCoinsRecipient &,
+                                 QByteArray)));
+
+    m_wallet_models.push_back(walletModel);
+#endif
+}
+
 void BitcoinApplication::initializeResult(bool success) {
     qDebug() << __func__ << ": Initialization result: " << success;
     returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -475,26 +495,18 @@ void BitcoinApplication::initializeResult(bool success) {
     window->setClientModel(clientModel);
 
 #ifdef ENABLE_WALLET
-    bool fFirstWallet = true;
-    auto wallets = m_node.getWallets();
-    for (auto &wallet : wallets) {
-        WalletModel *const walletModel = new WalletModel(
-            std::move(wallet), m_node, platformStyle, optionsModel);
+    m_handler_load_wallet = m_node.handleLoadWallet(
+        [this](std::unique_ptr<interfaces::Wallet> wallet) {
+            QMetaObject::invokeMethod(
+                this, "addWallet", Qt::QueuedConnection,
+                Q_ARG(WalletModel *,
+                      new WalletModel(std::move(wallet), m_node, platformStyle,
+                                      optionsModel)));
+        });
 
-        window->addWallet(walletModel);
-        if (fFirstWallet) {
-            window->setCurrentWallet(walletModel->getWalletName());
-            fFirstWallet = false;
-        }
-
-        connect(
-            walletModel,
-            SIGNAL(coinsSent(WalletModel *, SendCoinsRecipient, QByteArray)),
-            paymentServer,
-            SLOT(fetchPaymentACK(WalletModel *, const SendCoinsRecipient &,
-                                 QByteArray)));
-
-        m_wallet_models.push_back(walletModel);
+    for (auto &wallet : m_node.getWallets()) {
+        addWallet(new WalletModel(std::move(wallet), m_node, platformStyle,
+                                  optionsModel));
     }
 #endif
 
@@ -662,6 +674,9 @@ int main(int argc, char *argv[]) {
     //   IMPORTANT if it is no longer a typedef use the normal variant above
     qRegisterMetaType<Amount>("Amount");
     qRegisterMetaType<std::function<void()>>("std::function<void()>");
+#ifdef ENABLE_WALLET
+    qRegisterMetaType<WalletModel *>("WalletModel*");
+#endif
 
     // Need to register any types Qt doesn't know about if you intend
     // to use them with the signal/slot mechanism Qt provides. Even pointers.
