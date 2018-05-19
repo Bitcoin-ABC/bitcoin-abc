@@ -4,3 +4,5 @@ Bitcoin ABC version 0.18.3 is now available from:
 
 This release includes the following features and fixes:
  - Remove support for Qt4
+ - Upgrade reproducible build to us Qt 5.9.6
+
