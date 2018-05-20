@@ -13,16 +13,15 @@
 
 typedef std::vector<uint8_t> valtype;
 
-TransactionSignatureCreator::TransactionSignatureCreator(
-    const CTransaction *txToIn, unsigned int nInIn, const Amount amountIn,
-    SigHashType sigHashTypeIn)
+MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(
+    const CMutableTransaction *txToIn, unsigned int nInIn,
+    const Amount &amountIn, SigHashType sigHashTypeIn)
     : txTo(txToIn), nIn(nInIn), amount(amountIn), sigHashType(sigHashTypeIn),
       checker(txTo, nIn, amountIn) {}
 
-bool TransactionSignatureCreator::CreateSig(const SigningProvider &provider,
-                                            std::vector<uint8_t> &vchSig,
-                                            const CKeyID &address,
-                                            const CScript &scriptCode) const {
+bool MutableTransactionSignatureCreator::CreateSig(
+    const SigningProvider &provider, std::vector<uint8_t> &vchSig,
+    const CKeyID &address, const CScript &scriptCode) const {
     CKey key;
     if (!provider.GetKey(address, key)) {
         return false;
@@ -177,8 +176,7 @@ bool SignSignature(const SigningProvider &provider, const CScript &fromPubKey,
                    const Amount amount, SigHashType sigHashType) {
     assert(nIn < txTo.vin.size());
 
-    CTransaction txToConst(txTo);
-    TransactionSignatureCreator creator(&txToConst, nIn, amount, sigHashType);
+    MutableTransactionSignatureCreator creator(&txTo, nIn, amount, sigHashType);
 
     SignatureData sigdata;
     bool ret = ProduceSignature(provider, creator, fromPubKey, sigdata);
