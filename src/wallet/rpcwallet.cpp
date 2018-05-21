@@ -3289,9 +3289,11 @@ static UniValue getwalletinfo(const Config &config,
             "fee configuration, set in " +
             CURRENCY_UNIT +
             "/kB\n"
-            "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) the "
-            "Hash160 of the HD master pubkey (only present when HD is "
-            "enabled)\n"
+            "  \"hdseedid\": \"<hash160>\"          (string, optional) the "
+            "Hash160 of the HD seed (only present when HD is enabled)\n"
+            "  \"hdmasterkeyid\": \"<hash160>\"     (string, optional) alias "
+            "for hdseedid retained for backwards-compatibility. Will be "
+            "removed in V0.21.\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getwalletinfo", "") +
@@ -3327,6 +3329,7 @@ static UniValue getwalletinfo(const Config &config,
     }
     obj.pushKV("paytxfee", ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
     if (!seed_id.IsNull()) {
+        obj.pushKV("hdseedid", seed_id.GetHex());
         obj.pushKV("hdmasterkeyid", seed_id.GetHex());
     }
     return obj;
@@ -4423,7 +4426,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "about the address embedded in P2SH or P2WSH, if relevant and "
             "known. It includes all getaddressinfo output fields for the "
             "embedded address, excluding metadata (\"timestamp\", "
-            "\"hdkeypath\", \"hdmasterkeyid\") and relation to the wallet "
+            "\"hdkeypath\", \"hdseedid\") and relation to the wallet "
             "(\"ismine\", \"iswatchonly\", \"account\").\n"
             "  \"iscompressed\" : true|false,  (boolean) If the address is "
             "compressed\n"
@@ -4434,8 +4437,11 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "GMT)\n"
             "  \"hdkeypath\" : \"keypath\"       (string, optional) The HD "
             "keypath if the key is HD and available\n"
-            "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) The "
-            "Hash160 of the HD master pubkey\n"
+            "  \"hdseedid\" : \"<hash160>\"      (string, optional) The "
+            "Hash160 of the HD seed\n"
+            "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) alias for "
+            "hdseedid maintained for backwards compatibility. Will be removed "
+            "in V0.21.\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getaddressinfo",
@@ -4488,6 +4494,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         ret.pushKV("timestamp", meta->nCreateTime);
         if (!meta->hdKeypath.empty()) {
             ret.pushKV("hdkeypath", meta->hdKeypath);
+            ret.pushKV("hdseedid", meta->hd_seed_id.GetHex());
             ret.pushKV("hdmasterkeyid", meta->hd_seed_id.GetHex());
         }
     }
@@ -4529,7 +4536,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
             "used.\n"
             "                             The seed value can be retrieved "
             "using the dumpwallet command. It is the private key marked "
-            "hdmaster=1\n"
+            "hdseed=1\n"
             "\nExamples:\n" +
             HelpExampleCli("sethdseed", "") +
             HelpExampleCli("sethdseed", "false") +
