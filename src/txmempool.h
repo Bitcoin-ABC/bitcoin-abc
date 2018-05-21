@@ -535,6 +535,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     const setEntries &GetMemPoolChildren(txiter entry) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
+    uint64_t CalculateDescendantMaximum(txiter entry) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 private:
     typedef std::map<txiter, setEntries, CompareIteratorByHash> cacheMap;
@@ -702,8 +704,8 @@ public:
      * Returns false if the transaction is in the mempool and not within the
      * chain limit specified.
      */
-    bool TransactionWithinChainLimit(const uint256 &txid,
-                                     size_t chainLimit) const;
+    bool TransactionWithinChainLimit(const uint256 &txid, size_t ancestor_limit,
+                                     size_t descendant_limit) const;
 
     unsigned long size() {
         LOCK(cs);
