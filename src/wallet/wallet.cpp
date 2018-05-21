@@ -214,12 +214,12 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
     CExtKey childKey;
 
     // try to get the master key
-    if (!GetKey(hdChain.masterKeyID, key)) {
+    if (!GetKey(hdChain.seed_id, key)) {
         throw std::runtime_error(std::string(__func__) +
                                  ": Master key not found");
     }
 
-    masterKey.SetMaster(key.begin(), key.size());
+    masterKey.SetSeed(key.begin(), key.size());
 
     // derive m/0'
     // use hardened derivation (child keys >= 0x80000000 are hardened after
@@ -254,7 +254,7 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
         }
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
     secret = childKey.key;
-    metadata.hdMasterKeyID = hdChain.masterKeyID;
+    metadata.hd_seed_id = hdChain.seed_id;
     // update the chain model in the database
     if (!batch.WriteHDChain(hdChain)) {
         throw std::runtime_error(std::string(__func__) +
@@ -789,7 +789,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
 
         // If we are using HD, replace the HD master key (seed) with a new one.
         if (IsHDEnabled()) {
-            SetHDMasterKey(GenerateNewHDMasterKey());
+            SetHDSeed(GenerateNewSeed());
         }
 
         NewKeyPool();
@@ -1548,13 +1548,13 @@ Amount CWallet::GetChange(const CTransaction &tx) const {
     return nChange;
 }
 
-CPubKey CWallet::GenerateNewHDMasterKey() {
+CPubKey CWallet::GenerateNewSeed() {
     CKey key;
     key.MakeNewKey(true);
-    return DeriveNewMasterHDKey(key);
+    return DeriveNewSeed(key);
 }
 
-CPubKey CWallet::DeriveNewMasterHDKey(const CKey &key) {
+CPubKey CWallet::DeriveNewSeed(const CKey &key) {
     int64_t nCreationTime = GetTime();
     CKeyMetadata metadata(nCreationTime);
 
@@ -1564,7 +1564,7 @@ CPubKey CWallet::DeriveNewMasterHDKey(const CKey &key) {
 
     // Set the hd keypath to "m" -> Master, refers the masterkeyid to itself.
     metadata.hdKeypath = "m";
-    metadata.hdMasterKeyID = pubkey.GetID();
+    metadata.hd_seed_id = pubkey.GetID();
 
     LOCK(cs_wallet);
 
@@ -1580,7 +1580,7 @@ CPubKey CWallet::DeriveNewMasterHDKey(const CKey &key) {
     return pubkey;
 }
 
-void CWallet::SetHDMasterKey(const CPubKey &pubkey) {
+void CWallet::SetHDSeed(const CPubKey &seed) {
     LOCK(cs_wallet);
 
     // Store the keyid (hash160) together with the child index counter in the
@@ -1589,7 +1589,7 @@ void CWallet::SetHDMasterKey(const CPubKey &pubkey) {
     newHdChain.nVersion = CanSupportFeature(FEATURE_HD_SPLIT)
                               ? CHDChain::VERSION_HD_CHAIN_SPLIT
                               : CHDChain::VERSION_HD_BASE;
-    newHdChain.masterKeyID = pubkey.GetID();
+    newHdChain.seed_id = seed.GetID();
     SetHDChain(newHdChain, false);
 }
 
@@ -1604,7 +1604,7 @@ void CWallet::SetHDChain(const CHDChain &chain, bool memonly) {
 }
 
 bool CWallet::IsHDEnabled() const {
-    return !hdChain.masterKeyID.IsNull();
+    return !hdChain.seed_id.IsNull();
 }
 
 int64_t CWalletTx::GetTxTime() const {
@@ -4457,8 +4457,8 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
             walletInstance->SetMinVersion(FEATURE_HD);
 
             // generate a new master key
-            CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-            walletInstance->SetHDMasterKey(masterPubKey);
+            CPubKey masterPubKey = walletInstance->GenerateNewSeed();
+            walletInstance->SetHDSeed(masterPubKey);
             hd_upgrade = true;
         }
         // Upgrade to HD chain split if necessary
@@ -4492,8 +4492,8 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         walletInstance->SetMinVersion(FEATURE_LATEST);
 
         // Generate a new master key.
-        CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-        walletInstance->SetHDMasterKey(masterPubKey);
+        CPubKey masterPubKey = walletInstance->GenerateNewSeed();
+        walletInstance->SetHDSeed(masterPubKey);
 
         // Top up the keypool
         if (!walletInstance->TopUpKeyPool()) {

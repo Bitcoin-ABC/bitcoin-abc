@@ -339,7 +339,7 @@ bool CExtKey::Derive(CExtKey &out, unsigned int _nChild) const {
     return key.Derive(out.key, out.chaincode, _nChild, chaincode);
 }
 
-void CExtKey::SetMaster(const uint8_t *seed, unsigned int nSeedLen) {
+void CExtKey::SetSeed(const uint8_t *seed, unsigned int nSeedLen) {
     static const uint8_t hashkey[] = {'B', 'i', 't', 'c', 'o', 'i',
                                       'n', ' ', 's', 'e', 'e', 'd'};
     std::vector<uint8_t, secure_allocator<uint8_t>> vout(64);

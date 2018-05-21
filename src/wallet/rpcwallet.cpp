@@ -3317,8 +3317,8 @@ static UniValue getwalletinfo(const Config &config,
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
     obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
     obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
-    CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
-    if (!masterKeyID.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
+    CKeyID seed_id = pwallet->GetHDChain().seed_id;
+    if (!seed_id.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
         obj.pushKV("keypoolsize_hd_internal",
                    int64_t(pwallet->GetKeyPoolSize() - kpExternalSize));
     }
@@ -3326,8 +3326,8 @@ static UniValue getwalletinfo(const Config &config,
         obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
     obj.pushKV("paytxfee", ValueFromAmount(pwallet->m_pay_tx_fee.GetFeePerK()));
-    if (!masterKeyID.IsNull()) {
-        obj.pushKV("hdmasterkeyid", masterKeyID.GetHex());
+    if (!seed_id.IsNull()) {
+        obj.pushKV("hdmasterkeyid", seed_id.GetHex());
     }
     return obj;
 }
@@ -4488,7 +4488,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         ret.pushKV("timestamp", meta->nCreateTime);
         if (!meta->hdKeypath.empty()) {
             ret.pushKV("hdkeypath", meta->hdKeypath);
-            ret.pushKV("hdmasterkeyid", meta->hdMasterKeyID.GetHex());
+            ret.pushKV("hdmasterkeyid", meta->hd_seed_id.GetHex());
         }
     }
     return ret;
@@ -4562,7 +4562,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 
     CPubKey master_pub_key;
     if (request.params[1].isNull()) {
-        master_pub_key = pwallet->GenerateNewHDMasterKey();
+        master_pub_key = pwallet->GenerateNewSeed();
     } else {
         CKey key = DecodeSecret(request.params[1].get_str());
         if (!key.IsValid()) {
@@ -4576,10 +4576,10 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                                "as a loose private key)");
         }
 
-        master_pub_key = pwallet->DeriveNewMasterHDKey(key);
+        master_pub_key = pwallet->DeriveNewSeed(key);
     }
 
-    pwallet->SetHDMasterKey(master_pub_key);
+    pwallet->SetHDSeed(master_pub_key);
     if (flush_key_pool) {
         pwallet->NewKeyPool();
     }

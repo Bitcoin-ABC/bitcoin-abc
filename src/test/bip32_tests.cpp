@@ -98,7 +98,7 @@ static void RunTest(const TestVector &test) {
     std::vector<uint8_t> seed = ParseHex(test.strHexMaster);
     CExtKey key;
     CExtPubKey pubkey;
-    key.SetMaster(seed.data(), seed.size());
+    key.SetSeed(seed.data(), seed.size());
     pubkey = key.Neuter();
     for (const TestDerivation &derive : test.vDerive) {
         uint8_t data[74];
