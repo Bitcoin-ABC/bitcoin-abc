@@ -34,8 +34,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     txn = CPartialMerkleTree(vHashes, vMatch);
 }
 
-CMerkleBlock::CMerkleBlock(const CBlock &block,
-                           const std::set<uint256> &txids) {
+CMerkleBlock::CMerkleBlock(const CBlock &block, const std::set<TxId> &txids) {
     header = block.GetBlockHeader();
 
     std::vector<bool> vMatch;
@@ -45,7 +44,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block,
     vHashes.reserve(block.vtx.size());
 
     for (const auto &tx : block.vtx) {
-        const uint256 &txid = tx->GetId();
+        const TxId &txid = tx->GetId();
         vMatch.push_back(txids.count(txid));
         vHashes.push_back(txid);
     }

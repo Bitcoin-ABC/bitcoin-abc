@@ -286,26 +286,26 @@ static UniValue gettxoutproof(const Config &config,
             "hex-encoded data for the proof.\n");
     }
 
-    std::set<uint256> setTxids;
-    uint256 oneTxid;
+    std::set<TxId> setTxIds;
+    TxId oneTxId;
     UniValue txids = request.params[0].get_array();
     for (unsigned int idx = 0; idx < txids.size(); idx++) {
-        const UniValue &txid = txids[idx];
-        if (txid.get_str().length() != 64 || !IsHex(txid.get_str())) {
+        const UniValue &utxid = txids[idx];
+        if (utxid.get_str().length() != 64 || !IsHex(utxid.get_str())) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               std::string("Invalid txid ") + txid.get_str());
+                               std::string("Invalid txid ") + utxid.get_str());
         }
 
-        uint256 hash(uint256S(txid.get_str()));
-        if (setTxids.count(hash)) {
+        TxId txid(uint256S(utxid.get_str()));
+        if (setTxIds.count(txid)) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
                 std::string("Invalid parameter, duplicated txid: ") +
-                    txid.get_str());
+                    utxid.get_str());
         }
 
-        setTxids.insert(hash);
-        oneTxid = hash;
+        setTxIds.insert(txid);
+        oneTxId = txid;
     }
 
     LOCK(cs_main);
@@ -321,8 +321,8 @@ static UniValue gettxoutproof(const Config &config,
     } else {
         // Loop through txids and try to find which block they're in. Exit loop
         // once a block is found.
-        for (const auto &tx : setTxids) {
-            const Coin &coin = AccessByTxid(*pcoinsTip, tx);
+        for (const auto &txid : setTxIds) {
+            const Coin &coin = AccessByTxid(*pcoinsTip, txid);
             if (!coin.IsSpent()) {
                 pblockindex = chainActive[coin.GetHeight()];
                 break;
@@ -332,7 +332,7 @@ static UniValue gettxoutproof(const Config &config,
 
     if (pblockindex == nullptr) {
         CTransactionRef tx;
-        if (!GetTransaction(config, oneTxid, tx, hashBlock, false) ||
+        if (!GetTransaction(config, oneTxId, tx, hashBlock, false) ||
             hashBlock.IsNull()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                "Transaction not yet in block");
@@ -352,19 +352,19 @@ static UniValue gettxoutproof(const Config &config,
 
     unsigned int ntxFound = 0;
     for (const auto &tx : block.vtx) {
-        if (setTxids.count(tx->GetId())) {
+        if (setTxIds.count(tx->GetId())) {
             ntxFound++;
         }
     }
 
-    if (ntxFound != setTxids.size()) {
+    if (ntxFound != setTxIds.size()) {
         throw JSONRPCError(
             RPC_INVALID_ADDRESS_OR_KEY,
             "Not all transactions found in specified or retrieved block");
     }
 
     CDataStream ssMB(SER_NETWORK, PROTOCOL_VERSION);
-    CMerkleBlock mb(block, setTxids);
+    CMerkleBlock mb(block, setTxIds);
     ssMB << mb;
     std::string strHex = HexStr(ssMB.begin(), ssMB.end());
     return strHex;
