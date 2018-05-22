@@ -349,7 +349,7 @@ bool WalletInit::Open(const CChainParams &chainParams) const {
     }
 
     for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
-        CWallet *const pwallet = CWallet::CreateWalletFromFile(
+        std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
             chainParams, walletFile, fs::absolute(walletFile, GetWalletDir()));
         if (!pwallet) {
             return false;
@@ -361,7 +361,7 @@ bool WalletInit::Open(const CChainParams &chainParams) const {
 }
 
 void WalletInit::Start(CScheduler &scheduler) const {
-    for (CWallet *pwallet : GetWallets()) {
+    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
         pwallet->postInitProcess();
     }
 
@@ -375,20 +375,19 @@ void WalletInit::Start(CScheduler &scheduler) const {
 }
 
 void WalletInit::Flush() const {
-    for (CWallet *pwallet : GetWallets()) {
+    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
         pwallet->Flush(false);
     }
 }
 
 void WalletInit::Stop() const {
-    for (CWallet *pwallet : GetWallets()) {
+    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
         pwallet->Flush(true);
     }
 }
 
 void WalletInit::Close() const {
-    for (CWallet *pwallet : GetWallets()) {
+    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
         RemoveWallet(pwallet);
-        delete pwallet;
     }
 }

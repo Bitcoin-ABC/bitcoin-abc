@@ -117,7 +117,8 @@ namespace {
 
     class WalletImpl : public Wallet {
     public:
-        WalletImpl(CWallet &wallet) : m_wallet(wallet) {}
+        WalletImpl(const std::shared_ptr<CWallet> &wallet)
+            : m_shared_wallet(wallet), m_wallet(*wallet.get()) {}
 
         bool encryptWallet(const SecureString &wallet_passphrase) override {
             return m_wallet.EncryptWallet(wallet_passphrase);
@@ -431,12 +432,13 @@ namespace {
             return GetMinimumFee(m_wallet, tx_bytes, coin_control, g_mempool);
         }
 
+        std::shared_ptr<CWallet> m_shared_wallet;
         CWallet &m_wallet;
     };
 
 } // namespace
 
-std::unique_ptr<Wallet> MakeWallet(CWallet &wallet) {
+std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet> &wallet) {
     return std::make_unique<WalletImpl>(wallet);
 }
 

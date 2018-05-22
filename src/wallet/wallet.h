@@ -31,11 +31,11 @@
 #include <utility>
 #include <vector>
 
-bool AddWallet(CWallet *wallet);
-bool RemoveWallet(CWallet *wallet);
+bool AddWallet(const std::shared_ptr<CWallet> &wallet);
+bool RemoveWallet(const std::shared_ptr<CWallet> &wallet);
 bool HasWallets();
-std::vector<CWallet *> GetWallets();
-CWallet *GetWallet(const std::string &name);
+std::vector<std::shared_ptr<CWallet>> GetWallets();
+std::shared_ptr<CWallet> GetWallet(const std::string &name);
 
 //! Default for -keypool
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
@@ -1239,9 +1239,9 @@ public:
      * Initializes the wallet, returns a new CWallet instance or a null pointer
      * in case of an error.
      */
-    static CWallet *CreateWalletFromFile(const CChainParams &chainParams,
-                                         const std::string &name,
-                                         const fs::path &path);
+    static std::shared_ptr<CWallet>
+    CreateWalletFromFile(const CChainParams &chainParams,
+                         const std::string &name, const fs::path &path);
 
     /**
      * Wallet post-init setup
