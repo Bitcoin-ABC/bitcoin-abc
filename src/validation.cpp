@@ -1120,9 +1120,11 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                                       fOverrideMempoolLimit, nAbsurdFee);
 }
 
-/** Return transaction in txOut, and if it was found inside a block, its hash is
- * placed in hashBlock */
-bool GetTransaction(const Config &config, const uint256 &txid,
+/**
+ * Return transaction in txOut, and if it was found inside a block, its hash is
+ * placed in hashBlock.
+ */
+bool GetTransaction(const Config &config, const TxId &txid,
                     CTransactionRef &txOut, uint256 &hashBlock,
                     bool fAllowSlow) {
     CBlockIndex *pindexSlow = nullptr;

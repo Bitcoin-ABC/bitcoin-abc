@@ -214,7 +214,7 @@ static UniValue getrawtransaction(const Config &config,
 
     LOCK(cs_main);
 
-    uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
 
     // Accept either a bool (true) or a num (>=1) to indicate verbose output.
     bool fVerbose = false;
@@ -236,7 +236,7 @@ static UniValue getrawtransaction(const Config &config,
 
     CTransactionRef tx;
     uint256 hashBlock;
-    if (!GetTransaction(config, hash, tx, hashBlock, true)) {
+    if (!GetTransaction(config, txid, tx, hashBlock, true)) {
         throw JSONRPCError(
             RPC_INVALID_ADDRESS_OR_KEY,
             std::string(fTxIndex ? "No such mempool or blockchain transaction"

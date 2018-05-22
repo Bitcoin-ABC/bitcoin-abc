@@ -304,6 +304,6 @@ void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight,
               bool check = false);
 
 //! Utility function to find any unspent output with a given txid.
-const Coin &AccessByTxid(const CCoinsViewCache &cache, const uint256 &txid);
+const Coin &AccessByTxid(const CCoinsViewCache &cache, const TxId &txid);
 
 #endif // BITCOIN_COINS_H

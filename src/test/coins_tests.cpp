@@ -135,17 +135,17 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
     // Use a limited set of random transaction ids, so we do test overwriting
     // entries.
-    std::vector<uint256> txids;
+    std::vector<TxId> txids;
     txids.resize(NUM_SIMULATION_ITERATIONS / 8);
     for (size_t i = 0; i < txids.size(); i++) {
-        txids[i] = InsecureRand256();
+        txids[i] = TxId(InsecureRand256());
     }
 
     for (unsigned int i = 0; i < NUM_SIMULATION_ITERATIONS; i++) {
         // Do a random modification.
         {
             // txid we're going to modify in this iteration.
-            uint256 txid = txids[InsecureRandRange(txids.size())];
+            TxId txid = txids[InsecureRandRange(txids.size())];
             Coin &coin = result[COutPoint(txid, 0)];
             const Coin &entry =
                 (InsecureRandRange(500) == 0)
