@@ -19,7 +19,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/lexical_cast.hpp>
 
 CScript ParseScript(const std::string &s) {
     CScript result;
@@ -124,8 +123,8 @@ CScript ParseScript(const std::string &s) {
         if (push_size != 0 && size_change != push_size) {
             throw std::runtime_error(
                 "Wrong number of bytes being pushed. Expected:" +
-                boost::lexical_cast<std::string>(push_size) +
-                " Pushed:" + boost::lexical_cast<std::string>(size_change));
+                std::to_string(push_size) +
+                " Pushed:" + std::to_string(size_change));
         }
 
         // If push_size is set, and we have push_data_size set, then we have a
