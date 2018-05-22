@@ -1351,12 +1351,6 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
     }
 }
 
-uint32_t GetFetchFlags(CNode *pfrom, const CBlockIndex *pprev,
-                       const Consensus::Params &chainparams) {
-    uint32_t nFetchFlags = 0;
-    return nFetchFlags;
-}
-
 inline static void SendBlockTransactions(const CBlock &block,
                                          const BlockTransactionsRequest &req,
                                          CNode *pfrom, CConnman &connman) {
@@ -1768,9 +1762,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         LOCK(cs_main);
 
-        uint32_t nFetchFlags =
-            GetFetchFlags(pfrom, chainActive.Tip(), chainparams.GetConsensus());
-
         std::vector<CInv> vToFetch;
 
         for (size_t nInv = 0; nInv < vInv.size(); nInv++) {
@@ -1783,10 +1774,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             bool fAlreadyHave = AlreadyHave(inv);
             LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n", inv.ToString(),
                      fAlreadyHave ? "have" : "new", pfrom->id);
-
-            if (inv.type == MSG_TX) {
-                inv.type |= nFetchFlags;
-            }
 
             if (inv.type == MSG_BLOCK) {
                 UpdateBlockAvailability(pfrom->GetId(), inv.hash);
@@ -2160,10 +2147,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 }
             }
             if (!fRejectedParents) {
-                uint32_t nFetchFlags = GetFetchFlags(
-                    pfrom, chainActive.Tip(), chainparams.GetConsensus());
                 for (const CTxIn &txin : tx.vin) {
-                    CInv _inv(MSG_TX | nFetchFlags, txin.prevout.GetTxId());
+                    // FIXME: MSG_TX should use a TxHash, not a TxId.
+                    CInv _inv(MSG_TX, txin.prevout.GetTxId());
                     pfrom->AddInventoryKnown(_inv);
                     if (!AlreadyHave(_inv)) {
                         pfrom->AskFor(_inv);
@@ -2333,10 +2319,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     // will probably be useless so we just grab the block via
                     // normal getdata.
                     std::vector<CInv> vInv(1);
-                    vInv[0] = CInv(
-                        MSG_BLOCK | GetFetchFlags(pfrom, pindex->pprev,
-                                                  chainparams.GetConsensus()),
-                        cmpctblock.header.GetHash());
+                    vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
                     connman.PushMessage(
                         pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                 }
@@ -2394,11 +2377,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                         // Duplicate txindices, the block is now in-flight, so
                         // just request it.
                         std::vector<CInv> vInv(1);
-                        vInv[0] =
-                            CInv(MSG_BLOCK |
-                                     GetFetchFlags(pfrom, pindex->pprev,
-                                                   chainparams.GetConsensus()),
-                                 cmpctblock.header.GetHash());
+                        vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
                         connman.PushMessage(
                             pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                         return true;
@@ -2446,10 +2425,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     // our mempool will probably be useless - request the block
                     // normally.
                     std::vector<CInv> vInv(1);
-                    vInv[0] = CInv(
-                        MSG_BLOCK | GetFetchFlags(pfrom, pindex->pprev,
-                                                  chainparams.GetConsensus()),
-                        cmpctblock.header.GetHash());
+                    vInv[0] = CInv(MSG_BLOCK, cmpctblock.header.GetHash());
                     connman.PushMessage(
                         pfrom, msgMaker.Make(NetMsgType::GETDATA, vInv));
                     return true;
@@ -2543,10 +2519,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             } else if (status == READ_STATUS_FAILED) {
                 // Might have collided, fall back to getdata now :(
                 std::vector<CInv> invs;
-                invs.push_back(
-                    CInv(MSG_BLOCK | GetFetchFlags(pfrom, chainActive.Tip(),
-                                                   chainparams.GetConsensus()),
-                         resp.blockhash));
+                invs.push_back(CInv(MSG_BLOCK, resp.blockhash));
                 connman.PushMessage(pfrom,
                                     msgMaker.Make(NetMsgType::GETDATA, invs));
             } else {
@@ -2754,10 +2727,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                             // Can't download any more from this peer
                             break;
                         }
-                        uint32_t nFetchFlags = GetFetchFlags(
-                            pfrom, pindex->pprev, chainparams.GetConsensus());
-                        vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags,
-                                                pindex->GetBlockHash()));
+                        vGetData.push_back(
+                            CInv(MSG_BLOCK, pindex->GetBlockHash()));
                         MarkBlockAsInFlight(config, pfrom->GetId(),
                                             pindex->GetBlockHash(),
                                             chainparams.GetConsensus(), pindex);
@@ -3732,10 +3703,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                                      state.nBlocksInFlight,
                                  vToDownload, staller, consensusParams);
         for (const CBlockIndex *pindex : vToDownload) {
-            uint32_t nFetchFlags =
-                GetFetchFlags(pto, pindex->pprev, consensusParams);
-            vGetData.push_back(
-                CInv(MSG_BLOCK | nFetchFlags, pindex->GetBlockHash()));
+            vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
             MarkBlockAsInFlight(config, pto->GetId(), pindex->GetBlockHash(),
                                 consensusParams, pindex);
             LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n",
