@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             }
         }
         // Create blocks where higher fee txs are included more often
-        for (int h = 0; h <= blocknum % txIds.size(); h++) {
+        for (size_t h = 0; h <= blocknum % txIds.size(); h++) {
             // 10/10 blocks add highest fee transactions
             // 9/10 blocks add 2nd highest and so on until ...
             // 1/10 blocks add lowest fee transactions
