@@ -332,29 +332,60 @@ bool ProcessNewBlockHeaders(const Config &config,
                             CValidationState &state,
                             const CBlockIndex **ppindex = nullptr);
 
-/** Check whether enough disk space is available for an incoming block */
+/**
+ * Check whether enough disk space is available for an incoming block.
+ */
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
-/** Open a block file (blk?????.dat) */
+
+/**
+ * Open a block file (blk?????.dat).
+ */
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-/** Translation to a filesystem path */
+
+/**
+ * Translation to a filesystem path.
+ */
 fs::path GetBlockPosFilename(const CDiskBlockPos &pos, const char *prefix);
-/** Import blocks from an external file */
+
+/**
+ * Import blocks from an external file.
+ */
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CDiskBlockPos *dbp = nullptr);
-/** Initialize a new block tree database + block data on disk */
+
+/**
+ * Initialize a new block tree database + block data on disk.
+ */
 bool InitBlockIndex(const Config &config);
-/** Load the block tree and coins database from disk */
+
+/**
+ * Load the block tree and coins database from disk.
+ */
 bool LoadBlockIndex(const CChainParams &chainparams);
-/** Update the chain tip based on database information. */
+
+/**
+ * Update the chain tip based on database information.
+ */
 void LoadChainTip(const CChainParams &chainparams);
-/** Unload database information */
+
+/**
+ * Unload database information.
+ */
 void UnloadBlockIndex();
-/** Run an instance of the script checking thread */
+
+/**
+ * Run an instance of the script checking thread.
+ */
 void ThreadScriptCheck();
-/** Check whether we are doing an initial block download (synchronizing from
- * disk or network) */
+
+/**
+ * Check whether we are doing an initial block download (synchronizing from disk
+ * or network)
+ */
 bool IsInitialBlockDownload();
-/** Format a string that describes several potential problems detected by the
+
+/**
+ * Format a string that describes several potential problems detected by the
  * core.
  * strFor can have three values:
  * - "rpc": get critical warnings, which should put the client in safe mode if
@@ -365,10 +396,14 @@ bool IsInitialBlockDownload();
  * by strFor.
  */
 std::string GetWarnings(const std::string &strFor);
-/** Retrieve a transaction (from memory pool, or from disk, if possible) */
+
+/**
+ * Retrieve a transaction (from memory pool, or from disk, if possible).
+ */
 bool GetTransaction(const Config &config, const uint256 &hash,
                     CTransactionRef &tx, uint256 &hashBlock,
                     bool fAllowSlow = false);
+
 /**
  * Find the best known block, and make it the active tip of the block chain.
  * If it fails, the tip is not updated.
@@ -383,17 +418,19 @@ bool ActivateBestChain(
     std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
-/** Guess verification progress (as a fraction between 0.0=genesis and
- * 1.0=current tip). */
+/**
+ * Guess verification progress (as a fraction between 0.0=genesis and
+ * 1.0=current tip).
+ */
 double GuessVerificationProgress(const ChainTxData &data, CBlockIndex *pindex);
 
 /**
- *  Mark one block file as pruned.
+ * Mark one block file as pruned.
  */
 void PruneOneBlockFile(const int fileNumber);
 
 /**
- *  Actually unlink the specified files
+ * Actually unlink the specified files
  */
 void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune);
 
