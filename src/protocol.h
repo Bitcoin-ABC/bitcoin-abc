@@ -359,8 +359,13 @@ enum GetDataMsg {
 /** inv message data */
 class CInv {
 public:
-    CInv();
-    CInv(int typeIn, const uint256 &hashIn);
+    // TODO: make private (improves encapsulation)
+    uint32_t type;
+    uint256 hash;
+
+public:
+    CInv() : type(0), hash() {}
+    CInv(uint32_t typeIn, const uint256 &hashIn) : type(typeIn), hash(hashIn) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -370,7 +375,9 @@ public:
         READWRITE(hash);
     }
 
-    friend bool operator<(const CInv &a, const CInv &b);
+    friend bool operator<(const CInv &a, const CInv &b) {
+        return a.type < b.type || (a.type == b.type && a.hash < b.hash);
+    }
 
     std::string GetCommand() const;
     std::string ToString() const;
@@ -387,11 +394,6 @@ public:
         return k == MSG_BLOCK || k == MSG_FILTERED_BLOCK ||
                k == MSG_CMPCT_BLOCK;
     }
-
-    // TODO: make private (improves encapsulation)
-public:
-    int type;
-    uint256 hash;
 };
 
 #endif // BITCOIN_PROTOCOL_H

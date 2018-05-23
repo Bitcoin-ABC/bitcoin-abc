@@ -191,20 +191,6 @@ void CAddress::Init() {
     nTime = 100000000;
 }
 
-CInv::CInv() {
-    type = 0;
-    hash.SetNull();
-}
-
-CInv::CInv(int typeIn, const uint256 &hashIn) {
-    type = typeIn;
-    hash = hashIn;
-}
-
-bool operator<(const CInv &a, const CInv &b) {
-    return (a.type < b.type || (a.type == b.type && a.hash < b.hash));
-}
-
 std::string CInv::GetCommand() const {
     std::string cmd;
     switch (GetKind()) {
