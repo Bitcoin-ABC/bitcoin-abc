@@ -38,6 +38,7 @@
 #endif
 #ifdef HAVE_SYSCTL_ARND
 #include <sys/sysctl.h>
+#include <utilstrencodings.h> // for ARRAYLEN
 #endif
 
 #include <mutex>
