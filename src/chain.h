@@ -130,17 +130,23 @@ struct CDiskBlockPos {
     }
 };
 
-enum BlockStatus : uint32_t {
-    //! Unused.
-    BLOCK_VALID_UNKNOWN = 0,
+enum class BlockValidity : uint32_t {
+    /**
+     * Unused.
+     */
+    UNKNOWN = 0,
 
-    //! Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max,
-    //! timestamp not in future
-    BLOCK_VALID_HEADER = 1,
+    /**
+     * Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max,
+     * timestamp not in future.
+     */
+    HEADER = 1,
 
-    //! All parent headers found, difficulty matches, timestamp >= median
-    //! previous, checkpoint. Implies all parents are also at least TREE.
-    BLOCK_VALID_TREE = 2,
+    /**
+     * All parent headers found, difficulty matches, timestamp >= median
+     * previous, checkpoint. Implies all parents are also at least TREE.
+     */
+    TREE = 2,
 
     /**
      * Only first tx is coinbase, 2 <= coinbase input script length <= 100,
@@ -149,30 +155,48 @@ enum BlockStatus : uint32_t {
      * When all parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx will
      * be set.
      */
-    BLOCK_VALID_TRANSACTIONS = 3,
+    TRANSACTIONS = 3,
 
-    //! Outputs do not overspend inputs, no double spends, coinbase output ok,
-    //! no immature coinbase spends, BIP30.
-    //! Implies all parents are also at least CHAIN.
-    BLOCK_VALID_CHAIN = 4,
+    /**
+     * Outputs do not overspend inputs, no double spends, coinbase output ok, no
+     * immature coinbase spends, BIP30.
+     * Implies all parents are also at least CHAIN.
+     */
+    CHAIN = 4,
 
-    //! Scripts & signatures ok. Implies all parents are also at least SCRIPTS.
-    BLOCK_VALID_SCRIPTS = 5,
+    /**
+     * Scripts & signatures ok. Implies all parents are also at least SCRIPTS.
+     */
+    SCRIPTS = 5,
+};
 
-    //! All validity bits.
+enum BlockStatusEnum : uint32_t {
+    /**
+     * Validity levels.
+     */
+    BLOCK_VALID_UNKNOWN = uint32_t(BlockValidity::UNKNOWN),
+    BLOCK_VALID_HEADER = uint32_t(BlockValidity::HEADER),
+    BLOCK_VALID_TREE = uint32_t(BlockValidity::TREE),
+    BLOCK_VALID_TRANSACTIONS = uint32_t(BlockValidity::TRANSACTIONS),
+    BLOCK_VALID_CHAIN = uint32_t(BlockValidity::CHAIN),
+    BLOCK_VALID_SCRIPTS = uint32_t(BlockValidity::SCRIPTS),
+
+    /**
+     * All validity bits.
+     */
     BLOCK_VALID_MASK = BLOCK_VALID_HEADER | BLOCK_VALID_TREE |
                        BLOCK_VALID_TRANSACTIONS | BLOCK_VALID_CHAIN |
                        BLOCK_VALID_SCRIPTS,
 
-    //!< full block available in blk*.dat
+    // Full block available in blk*.dat
     BLOCK_HAVE_DATA = 8,
-    //!< undo data available in rev*.dat
+    // Undo data available in rev*.dat
     BLOCK_HAVE_UNDO = 16,
     BLOCK_HAVE_MASK = BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
 
-    //!< stage after last reached validness failed
+    // The block is invalid.
     BLOCK_FAILED_VALID = 32,
-    //!< descends from failed block
+    // The block has an invalid parent.
     BLOCK_FAILED_CHILD = 64,
     BLOCK_FAILED_MASK = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 };
@@ -347,28 +371,29 @@ public:
 
     //! Check whether this block index entry is valid up to the passed validity
     //! level.
-    bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const {
+    bool IsValid(enum BlockValidity nUpTo = BlockValidity::TRANSACTIONS) const {
         // Only validity flags allowed.
-        assert(!(nUpTo & ~BLOCK_VALID_MASK));
         if (nStatus & BLOCK_FAILED_MASK) {
             return false;
         }
-        return ((nStatus & BLOCK_VALID_MASK) >= nUpTo);
+
+        return BlockValidity(nStatus & BLOCK_VALID_MASK) >= nUpTo;
     }
 
     //! Raise the validity level of this block index entry.
     //! Returns true if the validity was changed.
-    bool RaiseValidity(enum BlockStatus nUpTo) {
+    bool RaiseValidity(enum BlockValidity nUpTo) {
         // Only validity flags allowed.
-        assert(!(nUpTo & ~BLOCK_VALID_MASK));
         if (nStatus & BLOCK_FAILED_MASK) {
             return false;
         }
-        if ((nStatus & BLOCK_VALID_MASK) < nUpTo) {
-            nStatus = (nStatus & ~BLOCK_VALID_MASK) | nUpTo;
-            return true;
+
+        if (BlockValidity(nStatus & BLOCK_VALID_MASK) >= nUpTo) {
+            return false;
         }
-        return false;
+
+        nStatus = (nStatus & ~BLOCK_VALID_MASK) | uint32_t(nUpTo);
+        return true;
     }
 
     //! Build the skiplist pointer for this entry.

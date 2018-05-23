@@ -100,8 +100,10 @@ std::map<uint256, std::pair<NodeId, bool>> mapBlockSource;
 std::unique_ptr<CRollingBloomFilter> recentRejects;
 uint256 hashRecentRejectsChainTip;
 
-/** Blocks that are in flight, and that are in the queue to be downloaded.
- * Protected by cs_main. */
+/**
+ * Blocks that are in flight, and that are in the queue to be downloaded.
+ * Protected by cs_main.
+ */
 struct QueuedBlock {
     uint256 hash;
     //!< Optional.
@@ -617,7 +619,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
         // are already downloaded, or if it's already part of our chain (and
         // therefore don't need it even if pruned).
         for (const CBlockIndex *pindex : vToFetch) {
-            if (!pindex->IsValid(BLOCK_VALID_TREE)) {
+            if (!pindex->IsValid(BlockValidity::TREE)) {
                 // We consider the chain that this peer is on invalid.
                 return;
             }
@@ -1146,8 +1148,8 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
                 if (mi != mapBlockIndex.end()) {
                     if (mi->second->nChainTx &&
-                        !mi->second->IsValid(BLOCK_VALID_SCRIPTS) &&
-                        mi->second->IsValid(BLOCK_VALID_TREE)) {
+                        !mi->second->IsValid(BlockValidity::SCRIPTS) &&
+                        mi->second->IsValid(BlockValidity::TREE)) {
                         // If we have the block and all of its parents, but have
                         // not yet validated it, we might be in the middle of
                         // connecting it (ie in the unlock of cs_main before
@@ -1171,7 +1173,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         // more than a month older (both in time, and in best
                         // equivalent proof of work) than the best header chain
                         // we know about.
-                        send = mi->second->IsValid(BLOCK_VALID_SCRIPTS) &&
+                        send = mi->second->IsValid(BlockValidity::SCRIPTS) &&
                                (pindexBestHeader != nullptr) &&
                                (pindexBestHeader->GetBlockTime() -
                                     mi->second->GetBlockTime() <
@@ -2470,7 +2472,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
             // hold cs_main for CBlockIndex::IsValid()
             LOCK(cs_main);
-            if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS)) {
+            if (pindex->IsValid(BlockValidity::TRANSACTIONS)) {
                 // Clear download state for this block, which is in process from
                 // some other peer. We do this after calling. ProcessNewBlock so
                 // that a malleated cmpctblock announcement can't be used to
@@ -2692,7 +2694,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             bool fCanDirectFetch = CanDirectFetch(chainparams.GetConsensus());
             // If this set of headers is valid and ends in a block with at least
             // as much work as our tip, download as much as possible.
-            if (fCanDirectFetch && pindexLast->IsValid(BLOCK_VALID_TREE) &&
+            if (fCanDirectFetch && pindexLast->IsValid(BlockValidity::TREE) &&
                 chainActive.Tip()->nChainWork <= pindexLast->nChainWork) {
                 std::vector<const CBlockIndex *> vToFetch;
                 const CBlockIndex *pindexWalk = pindexLast;
@@ -2746,7 +2748,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                         if (nodestate->fSupportsDesiredCmpctVersion &&
                             vGetData.size() == 1 &&
                             mapBlocksInFlight.size() == 1 &&
-                            pindexLast->pprev->IsValid(BLOCK_VALID_CHAIN)) {
+                            pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
                             // In any case, we want to download using a compact
                             // block, not a regular one.
                             vGetData[0] =
