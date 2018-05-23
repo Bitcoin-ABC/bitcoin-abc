@@ -36,6 +36,7 @@ BITCOIN_TESTS =\
   test/bip32_tests.cpp \
   test/blockcheck_tests.cpp \
   test/blockencodings_tests.cpp \
+  test/blockstatus_tests.cpp \
   test/bloom_tests.cpp \
   test/bswap_tests.cpp \
   test/cashaddr_tests.cpp \
