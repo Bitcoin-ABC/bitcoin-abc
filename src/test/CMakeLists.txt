@@ -75,7 +75,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	crypto_tests.cpp
 	cuckoocache_tests.cpp
 	dbwrapper_tests.cpp
-	DoS_tests.cpp
+	denialofservice_tests.cpp
 	dstencode_tests.cpp
 	excessiveblock_tests.cpp
 	feerate_tests.cpp
@@ -111,7 +111,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	scheduler_tests.cpp
 	schnorr_tests.cpp
 	script_commitment_tests.cpp
-	script_P2SH_tests.cpp
+	script_p2sh_tests.cpp
 	script_standard_tests.cpp
 	script_tests.cpp
 	scriptflags.cpp
