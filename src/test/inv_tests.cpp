@@ -24,8 +24,6 @@ BOOST_AUTO_TEST_CASE(validate_kind) {
               false, true);
     CheckType(GetDataMsg::MSG_CMPCT_BLOCK, GetDataMsg::MSG_CMPCT_BLOCK, false,
               true);
-    CheckType(GetDataMsg::MSG_EXT_TX, GetDataMsg::MSG_TX, true, false);
-    CheckType(GetDataMsg::MSG_EXT_BLOCK, GetDataMsg::MSG_BLOCK, false, true);
 }
 
 static void CheckCommand(int type, std::string expected) {
@@ -39,8 +37,6 @@ BOOST_AUTO_TEST_CASE(validate_cmd) {
     CheckCommand(GetDataMsg::MSG_BLOCK, "block");
     CheckCommand(GetDataMsg::MSG_FILTERED_BLOCK, "merkleblock");
     CheckCommand(GetDataMsg::MSG_CMPCT_BLOCK, "cmpctblock");
-    CheckCommand(GetDataMsg::MSG_EXT_TX, "extblk-tx");
-    CheckCommand(GetDataMsg::MSG_EXT_BLOCK, "extblk-block");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

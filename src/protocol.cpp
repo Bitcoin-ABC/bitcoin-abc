@@ -207,7 +207,6 @@ bool operator<(const CInv &a, const CInv &b) {
 
 std::string CInv::GetCommand() const {
     std::string cmd;
-    if (type & MSG_EXT_FLAG) cmd.append("extblk-");
     switch (GetKind()) {
         case MSG_TX:
             return cmd.append(NetMsgType::TX);

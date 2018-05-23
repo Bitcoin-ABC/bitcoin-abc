@@ -339,7 +339,6 @@ public:
 };
 
 /** getdata message type flags */
-const uint32_t MSG_EXT_FLAG = 1 << 29;
 const uint32_t MSG_TYPE_MASK = 0xffffffff >> 3;
 
 /** getdata / inv message types.
@@ -355,10 +354,6 @@ enum GetDataMsg {
     MSG_FILTERED_BLOCK = 3,
     //!< Defined in BIP152
     MSG_CMPCT_BLOCK = 4,
-
-    //!< Extension block
-    MSG_EXT_TX = MSG_TX | MSG_EXT_FLAG,
-    MSG_EXT_BLOCK = MSG_BLOCK | MSG_EXT_FLAG,
 };
 
 /** inv message data */
