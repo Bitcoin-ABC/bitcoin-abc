@@ -623,8 +623,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
                 // We consider the chain that this peer is on invalid.
                 return;
             }
-            if (pindex->nStatus & BLOCK_HAVE_DATA ||
-                chainActive.Contains(pindex)) {
+            if (pindex->nStatus.hasData() || chainActive.Contains(pindex)) {
                 if (pindex->nChainTx) {
                     state->pindexLastCommonBlock = pindex;
                 }
@@ -1213,7 +1212,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 }
                 // Pruned nodes may have deleted the block, so check whether
                 // it's available before trying to send.
-                if (send && (mi->second->nStatus & BLOCK_HAVE_DATA)) {
+                if (send && (mi->second->nStatus.hasData())) {
                     // Send block from disk
                     CBlock block;
                     if (!ReadBlockFromDisk(block, (*mi).second, config)) {
@@ -1891,7 +1890,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 MIN_BLOCKS_TO_KEEP -
                 3600 / chainparams.GetConsensus().nPowTargetSpacing;
             if (fPruneMode &&
-                (!(pindex->nStatus & BLOCK_HAVE_DATA) ||
+                (!pindex->nStatus.hasData() ||
                  pindex->nHeight <=
                      chainActive.Tip()->nHeight - nPrunedBlocksLikelyToHave)) {
                 LogPrint(
@@ -1932,8 +1931,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         LOCK(cs_main);
 
         BlockMap::iterator it = mapBlockIndex.find(req.blockhash);
-        if (it == mapBlockIndex.end() ||
-            !(it->second->nStatus & BLOCK_HAVE_DATA)) {
+        if (it == mapBlockIndex.end() || !it->second->nStatus.hasData()) {
             LogPrintf("Peer %d sent us a getblocktxn for a block we don't have",
                       pfrom->id);
             return true;
@@ -2307,7 +2305,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     mapBlocksInFlight.find(pindex->GetBlockHash());
             bool fAlreadyInFlight = blockInFlightIt != mapBlocksInFlight.end();
 
-            if (pindex->nStatus & BLOCK_HAVE_DATA) {
+            if (pindex->nStatus.hasData()) {
                 // Nothing to do here
                 return true;
             }
@@ -2702,7 +2700,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 // up to a limit.
                 while (pindexWalk && !chainActive.Contains(pindexWalk) &&
                        vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-                    if (!(pindexWalk->nStatus & BLOCK_HAVE_DATA) &&
+                    if (!pindexWalk->nStatus.hasData() &&
                         !mapBlocksInFlight.count(pindexWalk->GetBlockHash())) {
                         // We don't have this block, and it's not yet in flight.
                         vToFetch.push_back(pindexWalk);

@@ -248,7 +248,6 @@ public:
     // To transition from this and the plain old intereger.
     // TODO: delete.
     uint32_t operator&(uint32_t rhs) const { return status & rhs; }
-    uint32_t operator|(uint32_t rhs) const { return status | rhs; }
 
     BlockStatus &operator&=(uint32_t rhs) {
         this->status &= rhs;
@@ -378,7 +377,7 @@ public:
 
     CDiskBlockPos GetBlockPos() const {
         CDiskBlockPos ret;
-        if (nStatus & BLOCK_HAVE_DATA) {
+        if (nStatus.hasData()) {
             ret.nFile = nFile;
             ret.nPos = nDataPos;
         }
@@ -387,7 +386,7 @@ public:
 
     CDiskBlockPos GetUndoPos() const {
         CDiskBlockPos ret;
-        if (nStatus & BLOCK_HAVE_UNDO) {
+        if (nStatus.hasUndo()) {
             ret.nFile = nFile;
             ret.nPos = nUndoPos;
         }
@@ -518,13 +517,13 @@ public:
         READWRITE(VARINT(nHeight));
         READWRITE(nStatus);
         READWRITE(VARINT(nTx));
-        if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO)) {
+        if (nStatus.hasData() || nStatus.hasUndo()) {
             READWRITE(VARINT(nFile));
         }
-        if (nStatus & BLOCK_HAVE_DATA) {
+        if (nStatus.hasData()) {
             READWRITE(VARINT(nDataPos));
         }
-        if (nStatus & BLOCK_HAVE_UNDO) {
+        if (nStatus.hasUndo()) {
             READWRITE(VARINT(nUndoPos));
         }
 
