@@ -94,11 +94,11 @@ add_test_to_suite(bitcoin test_bitcoin
 	script_commitment_tests.cpp
 	script_P2SH_tests.cpp
 	script_tests.cpp
-	script_sighashtype_tests.cpp
 	scriptflags.cpp
 	scriptnum_tests.cpp
 	serialize_tests.cpp
 	sighash_tests.cpp
+	sighashtype_tests.cpp
 	sigopcount_tests.cpp
 	sigutil.cpp
 	skiplist_tests.cpp

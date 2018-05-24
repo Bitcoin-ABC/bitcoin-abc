@@ -79,12 +79,12 @@ BITCOIN_TESTS =\
   test/script_commitment_tests.cpp \
   test/script_P2SH_tests.cpp \
   test/script_tests.cpp \
-  test/script_sighashtype_tests.cpp \
   test/scriptflags.cpp \
   test/scriptflags.h \
   test/scriptnum_tests.cpp \
   test/serialize_tests.cpp \
   test/sighash_tests.cpp \
+  test/sighashtype_tests.cpp \
   test/sigopcount_tests.cpp \
   test/sigutil.cpp \
   test/sigutil.h \

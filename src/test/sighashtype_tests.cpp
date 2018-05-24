@@ -1,4 +1,4 @@
-// Copyright (c) 2016 The Bitcoin Core developers
+// Copyright (c) 2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,7 +9,7 @@
 
 #include <set>
 
-BOOST_FIXTURE_TEST_SUITE(script_sighashtype_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(sighashtype_tests, BasicTestingSetup)
 
 static void CheckSigHashType(SigHashType t, BaseSigHashType baseType,
                              bool isDefined, uint32_t forkValue, bool hasForkId,
@@ -38,11 +38,12 @@ BOOST_AUTO_TEST_CASE(sighash_construction_test) {
         for (uint32_t forkValue : forkValues) {
             for (bool hasForkId : forkIdFlagValues) {
                 for (bool hasAnyoneCanPay : anyoneCanPayFlagValues) {
-                    SigHashType t = SigHashType()
-                                        .withBaseType(baseType)
-                                        .withForkValue(forkValue)
-                                        .withForkId(hasForkId)
-                                        .withAnyoneCanPay(hasAnyoneCanPay);
+                    const SigHashType t =
+                        SigHashType()
+                            .withBaseType(baseType)
+                            .withForkValue(forkValue)
+                            .withForkId(hasForkId)
+                            .withAnyoneCanPay(hasAnyoneCanPay);
 
                     bool isDefined = baseType != BaseSigHashType::UNSUPPORTED;
                     CheckSigHashType(t, baseType, isDefined, forkValue,
@@ -97,7 +98,7 @@ BOOST_AUTO_TEST_CASE(sighash_serialization_test) {
                 sigHashType & ~(SIGHASH_FORKID | SIGHASH_ANYONECANPAY);
             bool isDefined = (noflag != 0) && (noflag <= SIGHASH_SINGLE);
 
-            SigHashType tbase(rawType);
+            const SigHashType tbase(rawType);
 
             // Check deserialization.
             CheckSigHashType(tbase, BaseSigHashType(baseType), isDefined,
