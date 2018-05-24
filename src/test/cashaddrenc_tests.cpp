@@ -72,7 +72,7 @@ BOOST_FIXTURE_TEST_SUITE(cashaddrenc_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(encode_decode_all_sizes) {
     FastRandomContext rand(true);
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const std::string prefix = "bitcoincash";
 
     for (auto ps : valid_sizes) {
         std::vector<uint8_t> data =
@@ -82,11 +82,10 @@ BOOST_AUTO_TEST_CASE(encode_decode_all_sizes) {
 
         // Check that the packed size is correct
         BOOST_CHECK_EQUAL(packed_data[1] >> 2, ps.first);
-        std::string address =
-            cashaddr::Encode(params->CashAddrPrefix(), packed_data);
+        std::string address = cashaddr::Encode(prefix, packed_data);
 
         // Check that the address decodes properly
-        CashAddrContent decoded = DecodeCashAddrContent(address, *params);
+        CashAddrContent decoded = DecodeCashAddrContent(address, prefix);
         BOOST_CHECK_EQUAL_COLLECTIONS(
             std::begin(content.hash), std::end(content.hash),
             std::begin(decoded.hash), std::end(decoded.hash));
@@ -206,20 +205,19 @@ BOOST_AUTO_TEST_CASE(check_type) {
     std::vector<uint8_t> data;
     data.resize(34);
 
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const std::string prefix = "bitcoincash";
 
     for (uint8_t v = 0; v < 16; v++) {
         std::fill(begin(data), end(data), 0);
         data[0] = v;
-        auto content = DecodeCashAddrContent(
-            cashaddr::Encode(params->CashAddrPrefix(), data), *params);
+        auto content =
+            DecodeCashAddrContent(cashaddr::Encode(prefix, data), prefix);
         BOOST_CHECK_EQUAL(content.type, v);
         BOOST_CHECK_EQUAL(content.hash.size(), 20UL);
 
         // Check that using the reserved bit result in a failure.
         data[0] |= 0x10;
-        content = DecodeCashAddrContent(
-            cashaddr::Encode(params->CashAddrPrefix(), data), *params);
+        content = DecodeCashAddrContent(cashaddr::Encode(prefix, data), prefix);
         BOOST_CHECK_EQUAL(content.type, 0);
         BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
     }
@@ -230,7 +228,7 @@ BOOST_AUTO_TEST_CASE(check_type) {
  */
 BOOST_AUTO_TEST_CASE(check_size) {
     const CTxDestination nodst = CNoDestination{};
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const std::string prefix = "bitcoincash";
 
     std::vector<uint8_t> data;
 
@@ -245,30 +243,28 @@ BOOST_AUTO_TEST_CASE(check_size) {
         // be in the second 5-bit group, shifted left twice.
         data[1] = ps.first << 2;
 
-        auto content = DecodeCashAddrContent(
-            cashaddr::Encode(params->CashAddrPrefix(), data), *params);
+        auto content =
+            DecodeCashAddrContent(cashaddr::Encode(prefix, data), prefix);
 
         BOOST_CHECK_EQUAL(content.type, 0);
         BOOST_CHECK_EQUAL(content.hash.size(), ps.second);
 
         data.push_back(0);
-        content = DecodeCashAddrContent(
-            cashaddr::Encode(params->CashAddrPrefix(), data), *params);
+        content = DecodeCashAddrContent(cashaddr::Encode(prefix, data), prefix);
 
         BOOST_CHECK_EQUAL(content.type, 0);
         BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
 
         data.pop_back();
         data.pop_back();
-        content = DecodeCashAddrContent(
-            cashaddr::Encode(params->CashAddrPrefix(), data), *params);
+        content = DecodeCashAddrContent(cashaddr::Encode(prefix, data), prefix);
 
         BOOST_CHECK_EQUAL(content.type, 0);
         BOOST_CHECK_EQUAL(content.hash.size(), 0UL);
     }
 }
 
-BOOST_AUTO_TEST_CASE(test_addresses) {
+BOOST_AUTO_TEST_CASE(test_encode_address) {
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
 
     std::vector<std::vector<uint8_t>> hash{
@@ -292,8 +288,163 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
         const CTxDestination dstKey = CKeyID(uint160(hash[i]));
         BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr(dstKey, *params));
 
+        CashAddrContent keyContent{PUBKEY_TYPE, hash[i]};
+        BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr("bitcoincash", keyContent));
+
         const CTxDestination dstScript = CScriptID(uint160(hash[i]));
         BOOST_CHECK_EQUAL(script[i], EncodeCashAddr(dstScript, *params));
+
+        CashAddrContent scriptContent{SCRIPT_TYPE, hash[i]};
+        BOOST_CHECK_EQUAL(script[i],
+                          EncodeCashAddr("bitcoincash", scriptContent));
+    }
+}
+
+struct CashAddrTestVector {
+    std::string prefix;
+    CashAddrType type;
+    std::vector<uint8_t> hash;
+    std::string addr;
+};
+
+BOOST_AUTO_TEST_CASE(test_vectors) {
+    std::vector<CashAddrTestVector> cases = {
+        // 20 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9"),
+         "bitcoincash:qr6m7j9njldwwzlg9v7v53unlr4jkmx6eylep8ekg2"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9"),
+         "bchtest:pr6m7j9njldwwzlg9v7v53unlr4jkmx6eyvwc0uz5t"},
+        {"prefix", CashAddrType(15),
+         ParseHex("F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9"),
+         "prefix:0r6m7j9njldwwzlg9v7v53unlr4jkmx6ey3qnjwsrf"},
+        // 24 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA"),
+         "bitcoincash:q9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2ws4mr9g0"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA"),
+         "bchtest:p9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2u94tsynr"},
+        {"prefix", CashAddrType(15),
+         ParseHex("7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA"),
+         "prefix:09adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2p29kc2lp"},
+        // 28 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B"),
+         "bitcoincash:qgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcw59jxxuz"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B"),
+         "bchtest:pgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcvs7md7wt"},
+        {"prefix", CashAddrType(15),
+         ParseHex("3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B"),
+         "prefix:0gagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkc5djw8s9g"},
+        // 32 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825"
+                  "C060"),
+         "bitcoincash:"
+         "qvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq5nlegake"},
+        {"bchtest", SCRIPT_TYPE, ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07"
+                                          "BB47A37F47CFEF4FE69DE825C060"),
+         "bchtest:"
+         "pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq7fqng6m6"},
+        {"prefix", CashAddrType(15),
+         ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825"
+                  "C060"),
+         "prefix:"
+         "0vch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqsh6jgp6w"},
+        // 40 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B256311"
+                  "97D194B5C238BEB136FB"),
+         "bitcoincash:"
+         "qnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklv39g"
+         "r3uvz"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B256311"
+                  "97D194B5C238BEB136FB"),
+         "bchtest:"
+         "pnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvmgm"
+         "6ynej"},
+        {"prefix", CashAddrType(15),
+         ParseHex("C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B256311"
+                  "97D194B5C238BEB136FB"),
+         "prefix:"
+         "0nq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvwsv"
+         "ctzqy"},
+        // 48 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696"
+                  "B98241223D8CE62AD48D863F4CB18C930E4C"),
+         "bitcoincash:"
+         "qh3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7"
+         "n933jfsunqex2w82sl"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696"
+                  "B98241223D8CE62AD48D863F4CB18C930E4C"),
+         "bchtest:"
+         "ph3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7"
+         "n933jfsunqnzf7mt6x"},
+        {"prefix", CashAddrType(15),
+         ParseHex("E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696"
+                  "B98241223D8CE62AD48D863F4CB18C930E4C"),
+         "prefix:"
+         "0h3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7"
+         "n933jfsunqakcssnmn"},
+        // 56 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E"
+                  "6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041"),
+         "bitcoincash:"
+         "qmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhv"
+         "w8ym5d8qx7sz7zz0zvcypqscw8jd03f"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E"
+                  "6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041"),
+         "bchtest:"
+         "pmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhv"
+         "w8ym5d8qx7sz7zz0zvcypqs6kgdsg2g"},
+        {"prefix", CashAddrType(15),
+         ParseHex("D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E"
+                  "6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041"),
+         "prefix:"
+         "0mvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhv"
+         "w8ym5d8qx7sz7zz0zvcypqsgjrqpnw8"},
+        // 64 bytes
+        {"bitcoincash", PUBKEY_TYPE,
+         ParseHex("D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E"
+                  "67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA0"
+                  "8884175B"),
+         "bitcoincash:"
+         "qlg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5fl"
+         "ttj6ydvjc0pv3nchp52amk97tqa5zygg96mtky5sv5w"},
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E"
+                  "67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA0"
+                  "8884175B"),
+         "bchtest:"
+         "plg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5fl"
+         "ttj6ydvjc0pv3nchp52amk97tqa5zygg96mc773cwez"},
+        {"prefix", CashAddrType(15),
+         ParseHex("D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E"
+                  "67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA0"
+                  "8884175B"),
+         "prefix:"
+         "0lg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5fl"
+         "ttj6ydvjc0pv3nchp52amk97tqa5zygg96ms92w6845"},
+    };
+
+    for (const auto &t : cases) {
+        CashAddrContent content{t.type, t.hash};
+        BOOST_CHECK_EQUAL(t.addr, EncodeCashAddr(t.prefix, content));
+
+        std::string err("hash mistmatch for address: ");
+        err += t.addr;
+
+        content = DecodeCashAddrContent(t.addr, t.prefix);
+        BOOST_CHECK_EQUAL(t.type, content.type);
+        BOOST_CHECK_MESSAGE(t.hash == content.hash, err);
     }
 }
 

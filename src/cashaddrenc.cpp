@@ -91,9 +91,16 @@ std::string EncodeCashAddr(const CTxDestination &dst,
     return boost::apply_visitor(CashAddrEncoder(params), dst);
 }
 
+std::string EncodeCashAddr(const std::string &prefix,
+                           const CashAddrContent &content) {
+    std::vector<uint8_t> data = PackAddrData(content.hash, content.type);
+    return cashaddr::Encode(prefix, data);
+}
+
 CTxDestination DecodeCashAddr(const std::string &addr,
                               const CChainParams &params) {
-    CashAddrContent content = DecodeCashAddrContent(addr, params);
+    CashAddrContent content =
+        DecodeCashAddrContent(addr, params.CashAddrPrefix());
     if (content.hash.size() == 0) {
         return CNoDestination{};
     }
@@ -102,12 +109,12 @@ CTxDestination DecodeCashAddr(const std::string &addr,
 }
 
 CashAddrContent DecodeCashAddrContent(const std::string &addr,
-                                      const CChainParams &params) {
+                                      const std::string &expectedPrefix) {
     std::string prefix;
     std::vector<uint8_t> payload;
-    std::tie(prefix, payload) = cashaddr::Decode(addr, params.CashAddrPrefix());
+    std::tie(prefix, payload) = cashaddr::Decode(addr, expectedPrefix);
 
-    if (prefix != params.CashAddrPrefix()) {
+    if (prefix != expectedPrefix) {
         return {};
     }
 
