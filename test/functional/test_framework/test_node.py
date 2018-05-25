@@ -13,6 +13,7 @@ import os
 import subprocess
 import time
 
+from .mininode import COIN, ToHex
 from .util import (
     assert_equal,
     get_rpc_proxy,
@@ -64,6 +65,7 @@ class TestNode():
         self.rpc_connected = False
         self.rpc = None
         self.url = None
+        self.relay_fee_cache = None
         self.log = logging.getLogger('TestFramework.node%d' % i)
 
     def __getattr__(self, *args, **kwargs):
@@ -155,6 +157,15 @@ class TestNode():
         care of cleaning up resources."""
         self.encryptwallet(passphrase)
         self.wait_until_stopped()
+
+    def relay_fee(self, cached=True):
+        if not self.relay_fee_cache or not cached:
+            self.relay_fee_cache = self.getnetworkinfo()["relayfee"]
+
+        return self.relay_fee_cache
+
+    def calculate_fee(self, tx):
+        return int(self.relay_fee() * len(ToHex(tx)) * COIN)
 
 
 class TestNodeCLI():

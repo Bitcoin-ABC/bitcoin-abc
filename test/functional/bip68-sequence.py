@@ -287,7 +287,7 @@ class BIP68Test(BitcoinTestFramework):
 
         # Mine tx2, and then try again
         self.nodes[0].prioritisetransaction(
-            tx2.hash, 1e15, int(self.relayfee * COIN))
+            tx2.hash, 1e15, self.nodes[0].calculate_fee(tx2))
 
         # Advance the time on the node so that we can test timelocks
         self.nodes[0].setmocktime(cur_time + 600)
