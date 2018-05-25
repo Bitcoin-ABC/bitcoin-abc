@@ -1,17 +1,17 @@
 Gitian building
 ================
 
-*Setup instructions for a Gitian build of Bitcoin Core using an Ubuntu VM or physical system.*
+*Setup instructions for a Gitian build of Bitcoin ABC using an Ubuntu VM or physical system.*
 
 Gitian is the deterministic build process that is used to build the Bitcoin
-Core executables. It provides a way to be reasonably sure that the
+ABC executables. It provides a way to be reasonably sure that the
 executables are really built from the source on GitHub. It also makes sure that
 the same, tested dependencies are used and statically built into the executable.
 
 Multiple developers build the source code by following a specific descriptor
 ("recipe"), cryptographically sign the result, and upload the resulting signature.
 These results are compared and only if they match, the build is accepted and uploaded
-to bitcoin.org.
+to bitcoinabc.org.
 
 More independent Gitian builders are needed, which is why this guide exists.
 It is preferred you follow these steps yourself instead of using someone else's
