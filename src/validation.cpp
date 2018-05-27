@@ -1498,8 +1498,8 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
     Amount nValueIn(0);
     Amount nFees(0);
-    for (size_t i = 0; i < tx.vin.size(); i++) {
-        const COutPoint &prevout = tx.vin[i].prevout;
+    for (const auto &in : tx.vin) {
+        const COutPoint &prevout = in.prevout;
         const Coin &coin = inputs.AccessCoin(prevout);
         assert(!coin.IsSpent());
 
@@ -3202,15 +3202,12 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
 
     // The resulting new best tip may not be in setBlockIndexCandidates anymore,
     // so add it again.
-    BlockMap::iterator it = mapBlockIndex.begin();
-    while (it != mapBlockIndex.end()) {
-        if (it->second->IsValid(BlockValidity::TRANSACTIONS) &&
-            it->second->nChainTx &&
-            !setBlockIndexCandidates.value_comp()(it->second,
-                                                  chainActive.Tip())) {
-            setBlockIndexCandidates.insert(it->second);
+    for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
+        CBlockIndex *i = it.second;
+        if (i->IsValid(BlockValidity::TRANSACTIONS) && i->nChainTx &&
+            !setBlockIndexCandidates.value_comp()(i, chainActive.Tip())) {
+            setBlockIndexCandidates.insert(i);
         }
-        it++;
     }
 
     InvalidChainFound(pindex);
@@ -4092,7 +4089,9 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
  * BLOCK PRUNING CODE
  */
 
-/* Calculate the amount of disk space the block & undo files currently use */
+/**
+ * Calculate the amount of disk space the block & undo files currently use.
+ */
 static uint64_t CalculateCurrentUsage() {
     uint64_t retval = 0;
     for (const CBlockFileInfo &file : vinfoBlockFile) {
@@ -4101,11 +4100,12 @@ static uint64_t CalculateCurrentUsage() {
     return retval;
 }
 
-/* Prune a block file (modify associated database entries)*/
+/**
+ * Prune a block file (modify associated database entries)
+ */
 void PruneOneBlockFile(const int fileNumber) {
-    for (BlockMap::iterator it = mapBlockIndex.begin();
-         it != mapBlockIndex.end(); ++it) {
-        CBlockIndex *pindex = it->second;
+    for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
+        CBlockIndex *pindex = it.second;
         if (pindex->nFile == fileNumber) {
             pindex->nStatus &= ~BLOCK_HAVE_DATA;
             pindex->nStatus &= ~BLOCK_HAVE_UNDO;
@@ -4137,12 +4137,11 @@ void PruneOneBlockFile(const int fileNumber) {
 }
 
 void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
-    for (std::set<int>::iterator it = setFilesToPrune.begin();
-         it != setFilesToPrune.end(); ++it) {
-        CDiskBlockPos pos(*it, 0);
+    for (const int i : setFilesToPrune) {
+        CDiskBlockPos pos(i, 0);
         fs::remove(GetBlockPosFilename(pos, "blk"));
         fs::remove(GetBlockPosFilename(pos, "rev"));
-        LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, *it);
+        LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, i);
     }
 }
 
@@ -4419,9 +4418,8 @@ static bool LoadBlockIndexDB(const CChainParams &chainparams) {
             setBlkDataFiles.insert(pindex->nFile);
         }
     }
-    for (std::set<int>::iterator it = setBlkDataFiles.begin();
-         it != setBlkDataFiles.end(); it++) {
-        CDiskBlockPos pos(*it, 0);
+    for (const int i : setBlkDataFiles) {
+        CDiskBlockPos pos(i, 0);
         if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION)
                 .IsNull()) {
             return false;
@@ -5521,9 +5519,9 @@ public:
     CMainCleanup() {}
     ~CMainCleanup() {
         // block headers
-        BlockMap::iterator it1 = mapBlockIndex.begin();
-        for (; it1 != mapBlockIndex.end(); it1++) {
-            delete (*it1).second;
+        for (const std::pair<const uint256, CBlockIndex *> &it :
+             mapBlockIndex) {
+            delete it.second;
         }
         mapBlockIndex.clear();
     }
