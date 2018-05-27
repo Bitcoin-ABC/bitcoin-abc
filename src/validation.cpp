@@ -5100,8 +5100,7 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
     CBlockIndex *pindexFirstNotScriptsValid = nullptr;
     while (pindex != nullptr) {
         nNodes++;
-        if (pindexFirstInvalid == nullptr &&
-            pindex->nStatus & BLOCK_FAILED_VALID) {
+        if (pindexFirstInvalid == nullptr && pindex->nStatus.hasFailed()) {
             pindexFirstInvalid = pindex;
         }
         if (pindexFirstMissing == nullptr && !pindex->nStatus.hasData()) {
@@ -5111,20 +5110,20 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
             pindexFirstNeverProcessed = pindex;
         }
         if (pindex->pprev != nullptr && pindexFirstNotTreeValid == nullptr &&
-            (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_TREE) {
+            pindex->nStatus.getValidity() < BlockValidity::TREE) {
             pindexFirstNotTreeValid = pindex;
         }
         if (pindex->pprev != nullptr &&
             pindexFirstNotTransactionsValid == nullptr &&
-            (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_TRANSACTIONS) {
+            pindex->nStatus.getValidity() < BlockValidity::TRANSACTIONS) {
             pindexFirstNotTransactionsValid = pindex;
         }
         if (pindex->pprev != nullptr && pindexFirstNotChainValid == nullptr &&
-            (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_CHAIN) {
+            pindex->nStatus.getValidity() < BlockValidity::CHAIN) {
             pindexFirstNotChainValid = pindex;
         }
         if (pindex->pprev != nullptr && pindexFirstNotScriptsValid == nullptr &&
-            (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_SCRIPTS) {
+            pindex->nStatus.getValidity() < BlockValidity::SCRIPTS) {
             pindexFirstNotScriptsValid = pindex;
         }
 
@@ -5158,8 +5157,8 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
             assert(pindex->nStatus.hasData());
         }
         // This is pruning-independent.
-        assert(((pindex->nStatus & BLOCK_VALID_MASK) >=
-                BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0));
+        assert((pindex->nStatus.getValidity() >= BlockValidity::TRANSACTIONS) ==
+               (pindex->nTx > 0));
         // All parents having had data (at some point) is equivalent to all
         // parents being VALID_TRANSACTIONS, which is equivalent to nChainTx
         // being set.
@@ -5180,15 +5179,15 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
                (pindex->pskip && (pindex->pskip->nHeight < nHeight)));
         // All mapBlockIndex entries must at least be TREE valid
         assert(pindexFirstNotTreeValid == nullptr);
-        if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TREE) {
+        if (pindex->nStatus.getValidity() >= BlockValidity::TREE) {
             // TREE valid implies all parents are TREE valid
             assert(pindexFirstNotTreeValid == nullptr);
         }
-        if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_CHAIN) {
+        if (pindex->nStatus.getValidity() >= BlockValidity::CHAIN) {
             // CHAIN valid implies all parents are CHAIN valid
             assert(pindexFirstNotChainValid == nullptr);
         }
-        if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_SCRIPTS) {
+        if (pindex->nStatus.getValidity() >= BlockValidity::SCRIPTS) {
             // SCRIPTS valid implies all parents are SCRIPTS valid
             assert(pindexFirstNotScriptsValid == nullptr);
         }
