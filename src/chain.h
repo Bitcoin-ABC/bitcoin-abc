@@ -170,81 +170,60 @@ enum class BlockValidity : uint32_t {
     SCRIPTS = 5,
 };
 
-enum BlockStatusEnum : uint32_t {
-    /**
-     * Validity levels.
-     */
-    BLOCK_VALID_UNKNOWN = uint32_t(BlockValidity::UNKNOWN),
-    BLOCK_VALID_HEADER = uint32_t(BlockValidity::HEADER),
-    BLOCK_VALID_TREE = uint32_t(BlockValidity::TREE),
-    BLOCK_VALID_TRANSACTIONS = uint32_t(BlockValidity::TRANSACTIONS),
-    BLOCK_VALID_CHAIN = uint32_t(BlockValidity::CHAIN),
-    BLOCK_VALID_SCRIPTS = uint32_t(BlockValidity::SCRIPTS),
-
-    /**
-     * All validity bits.
-     */
-    BLOCK_VALID_MASK = BLOCK_VALID_HEADER | BLOCK_VALID_TREE |
-                       BLOCK_VALID_TRANSACTIONS | BLOCK_VALID_CHAIN |
-                       BLOCK_VALID_SCRIPTS,
-
-    // Just a helper
-    BLOCK_HAVE_NOTHING = 0,
-
-    // Full block available in blk*.dat
-    BLOCK_HAVE_DATA = 8,
-    // Undo data available in rev*.dat
-    BLOCK_HAVE_UNDO = 16,
-    BLOCK_HAVE_MASK = BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
-
-    // The block is invalid.
-    BLOCK_FAILED_VALID = 32,
-    // The block has an invalid parent.
-    BLOCK_FAILED_CHILD = 64,
-    BLOCK_INVALID_MASK = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
-};
-
 struct BlockStatus {
 private:
     uint32_t status;
 
     explicit BlockStatus(uint32_t nStatusIn) : status(nStatusIn) {}
 
+    static const uint32_t VALIDITY_MASK = 0x07;
+
+    // Full block available in blk*.dat
+    static const uint32_t HAS_DATA_FLAG = 0x08;
+    // Undo data available in rev*.dat
+    static const uint32_t HAS_UNDO_FLAG = 0x10;
+
+    // The block is invalid.
+    static const uint32_t FAILED_FLAG = 0x20;
+    // The block has an invalid parent.
+    static const uint32_t FAILED_PARENT_FLAG = 0x40;
+
+    // Mask used to check if the block failed.
+    static const uint32_t INVALID_MASK = FAILED_FLAG | FAILED_PARENT_FLAG;
+
 public:
-    explicit BlockStatus() : status(BLOCK_VALID_UNKNOWN) {}
+    explicit BlockStatus() : status(0) {}
 
     BlockValidity getValidity() const {
-        return BlockValidity(status & BLOCK_VALID_MASK);
+        return BlockValidity(status & VALIDITY_MASK);
     }
 
     BlockStatus withValidity(BlockValidity validity) const {
-        return BlockStatus((status & ~BLOCK_VALID_MASK) | uint32_t(validity));
+        return BlockStatus((status & ~VALIDITY_MASK) | uint32_t(validity));
     }
 
-    bool hasData() const { return status & BLOCK_HAVE_DATA; }
+    bool hasData() const { return status & HAS_DATA_FLAG; }
     BlockStatus withData(bool hasData = true) const {
-        return BlockStatus((status & ~BLOCK_HAVE_DATA) |
-                           (hasData ? BLOCK_HAVE_DATA : BLOCK_HAVE_NOTHING));
+        return BlockStatus((status & ~HAS_DATA_FLAG) |
+                           (hasData ? HAS_DATA_FLAG : 0));
     }
 
-    bool hasUndo() const { return status & BLOCK_HAVE_UNDO; }
+    bool hasUndo() const { return status & HAS_UNDO_FLAG; }
     BlockStatus withUndo(bool hasUndo = true) const {
-        return BlockStatus((status & ~BLOCK_HAVE_UNDO) |
-                           (hasUndo ? BLOCK_HAVE_UNDO : BLOCK_HAVE_NOTHING));
+        return BlockStatus((status & ~HAS_UNDO_FLAG) |
+                           (hasUndo ? HAS_UNDO_FLAG : 0));
     }
 
-    bool hasFailed() const { return status & BLOCK_FAILED_VALID; }
+    bool hasFailed() const { return status & FAILED_FLAG; }
     BlockStatus withFailed(bool hasFailed = true) const {
-        return BlockStatus(
-            (status & ~BLOCK_FAILED_VALID) |
-            (hasFailed ? BLOCK_FAILED_VALID : BLOCK_HAVE_NOTHING));
+        return BlockStatus((status & ~FAILED_FLAG) |
+                           (hasFailed ? FAILED_FLAG : 0));
     }
 
-    bool hasFailedParent() const { return status & BLOCK_FAILED_CHILD; }
+    bool hasFailedParent() const { return status & FAILED_PARENT_FLAG; }
     BlockStatus withFailedParent(bool hasFailedParent = true) const {
-        return BlockStatus(
-            (status & ~BLOCK_FAILED_CHILD) |
-            (hasFailedParent ? BLOCK_FAILED_CHILD : BLOCK_HAVE_NOTHING));
+        return BlockStatus((status & ~FAILED_PARENT_FLAG) |
+                           (hasFailedParent ? FAILED_PARENT_FLAG : 0));
     }
 
     /**
@@ -259,9 +238,9 @@ public:
         return getValidity() >= nUpTo;
     }
 
-    bool isInvalid() const { return status & BLOCK_INVALID_MASK; }
+    bool isInvalid() const { return status & INVALID_MASK; }
     BlockStatus withClearedFailureFlags() const {
-        return withFailed(false).withFailedParent(false);
+        return BlockStatus(status & ~INVALID_MASK);
     }
 
     ADD_SERIALIZE_METHODS;
