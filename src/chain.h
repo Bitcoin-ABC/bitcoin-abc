@@ -264,18 +264,6 @@ public:
         return withFailed(false).withFailedParent(false);
     }
 
-    // To transition from this and the plain old intereger.
-    // TODO: delete.
-    BlockStatus &operator&=(uint32_t rhs) {
-        this->status &= rhs;
-        return *this;
-    }
-
-    BlockStatus &operator|=(uint32_t rhs) {
-        this->status |= rhs;
-        return *this;
-    }
-
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
