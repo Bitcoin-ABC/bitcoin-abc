@@ -201,7 +201,7 @@ enum BlockStatusEnum : uint32_t {
     BLOCK_FAILED_VALID = 32,
     // The block has an invalid parent.
     BLOCK_FAILED_CHILD = 64,
-    BLOCK_FAILED_MASK = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
+    BLOCK_INVALID_MASK = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 };
 
 struct BlockStatus {
@@ -233,16 +233,35 @@ public:
                            (hasUndo ? BLOCK_HAVE_UNDO : BLOCK_HAVE_NOTHING));
     }
 
+    bool hasFailed() const { return status & BLOCK_FAILED_VALID; }
+    BlockStatus withFailed(bool hasFailed = true) const {
+        return BlockStatus(
+            (status & ~BLOCK_FAILED_VALID) |
+            (hasFailed ? BLOCK_FAILED_VALID : BLOCK_HAVE_NOTHING));
+    }
+
+    bool hasFailedParent() const { return status & BLOCK_FAILED_CHILD; }
+    BlockStatus withFailedParent(bool hasFailedParent = true) const {
+        return BlockStatus(
+            (status & ~BLOCK_FAILED_CHILD) |
+            (hasFailedParent ? BLOCK_FAILED_CHILD : BLOCK_HAVE_NOTHING));
+    }
+
     /**
      * Check whether this block index entry is valid up to the passed validity
      * level.
      */
     bool isValid(enum BlockValidity nUpTo = BlockValidity::TRANSACTIONS) const {
-        if (status & BLOCK_FAILED_MASK) {
+        if (isInvalid()) {
             return false;
         }
 
         return getValidity() >= nUpTo;
+    }
+
+    bool isInvalid() const { return status & BLOCK_INVALID_MASK; }
+    BlockStatus withClearedFailureFlags() const {
+        return withFailed(false).withFailedParent(false);
     }
 
     // To transition from this and the plain old intereger.
@@ -253,6 +272,7 @@ public:
         this->status &= rhs;
         return *this;
     }
+
     BlockStatus &operator|=(uint32_t rhs) {
         this->status |= rhs;
         return *this;
@@ -447,11 +467,11 @@ public:
     //! Returns true if the validity was changed.
     bool RaiseValidity(enum BlockValidity nUpTo) {
         // Only validity flags allowed.
-        if (nStatus & BLOCK_FAILED_MASK) {
+        if (nStatus.isInvalid()) {
             return false;
         }
 
-        if (BlockValidity(nStatus & BLOCK_VALID_MASK) >= nUpTo) {
+        if (nStatus.getValidity() >= nUpTo) {
             return false;
         }
 

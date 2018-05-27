@@ -2874,12 +2874,12 @@ static CBlockIndex *FindMostWorkChain() {
             // which block files have been deleted. Remove those as candidates
             // for the most work chain if we come across them; we can't switch
             // to a chain unless we have all the non-active-chain parent blocks.
-            bool fFailedChain = pindexTest->nStatus & BLOCK_FAILED_MASK;
+            bool fInvalidChain = pindexTest->nStatus.isInvalid();
             bool fMissingData = !pindexTest->nStatus.hasData();
-            if (fFailedChain || fMissingData) {
+            if (fInvalidChain || fMissingData) {
                 // Candidate chain is not usable (either invalid or missing
                 // data)
-                if (fFailedChain &&
+                if (fInvalidChain &&
                     (pindexBestInvalid == nullptr ||
                      pindexNew->nChainWork > pindexBestInvalid->nChainWork)) {
                     pindexBestInvalid = pindexNew;
@@ -2887,7 +2887,7 @@ static CBlockIndex *FindMostWorkChain() {
                 CBlockIndex *pindexFailed = pindexNew;
                 // Remove the entire chain from the set.
                 while (pindexTest != pindexFailed) {
-                    if (fFailedChain) {
+                    if (fInvalidChain) {
                         pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
                     } else if (fMissingData) {
                         // If we're missing data, then add back to
@@ -3225,7 +3225,7 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
     while (it != mapBlockIndex.end()) {
         if (!it->second->IsValid() &&
             it->second->GetAncestor(nHeight) == pindex) {
-            it->second->nStatus &= ~BLOCK_FAILED_MASK;
+            it->second->nStatus = it->second->nStatus.withClearedFailureFlags();
             setDirtyBlockIndex.insert(it->second);
             if (it->second->IsValid(BlockValidity::TRANSACTIONS) &&
                 it->second->nChainTx &&
@@ -3244,8 +3244,8 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
 
     // Remove the invalidity flag from all ancestors too.
     while (pindex != nullptr) {
-        if (pindex->nStatus & BLOCK_FAILED_MASK) {
-            pindex->nStatus &= ~BLOCK_FAILED_MASK;
+        if (pindex->nStatus.isInvalid()) {
+            pindex->nStatus = pindex->nStatus.withClearedFailureFlags();
             setDirtyBlockIndex.insert(pindex);
         }
         pindex = pindex->pprev;
@@ -3793,7 +3793,7 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
             if (ppindex) {
                 *ppindex = pindex;
             }
-            if (pindex->nStatus & BLOCK_FAILED_MASK) {
+            if (pindex->nStatus.isInvalid()) {
                 return state.Invalid(error("%s: block %s is marked invalid",
                                            __func__, hash.ToString()),
                                      0, "duplicate");
@@ -3815,7 +3815,7 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         pindexPrev = (*mi).second;
-        if (pindexPrev->nStatus & BLOCK_FAILED_MASK) {
+        if (pindexPrev->nStatus.isInvalid()) {
             return state.DoS(100, error("%s: prev block invalid", __func__),
                              REJECT_INVALID, "bad-prevblk");
         }
@@ -4376,7 +4376,7 @@ static bool LoadBlockIndexDB(const CChainParams &chainparams) {
             (pindex->nChainTx || pindex->pprev == nullptr)) {
             setBlockIndexCandidates.insert(pindex);
         }
-        if (pindex->nStatus & BLOCK_FAILED_MASK &&
+        if (pindex->nStatus.isInvalid() &&
             (!pindexBestInvalid ||
              pindex->nChainWork > pindexBestInvalid->nChainWork)) {
             pindexBestInvalid = pindex;
@@ -5195,7 +5195,7 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
         if (pindexFirstInvalid == nullptr) {
             // Checks for not-invalid blocks.
             // The failed mask cannot be set for blocks without invalid parents.
-            assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0);
+            assert(!pindex->nStatus.isInvalid());
         }
         if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) &&
             pindexFirstNeverProcessed == nullptr) {

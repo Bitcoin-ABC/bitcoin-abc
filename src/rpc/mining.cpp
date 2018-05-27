@@ -504,7 +504,7 @@ static UniValue getblocktemplate(const Config &config,
                 if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                     return "duplicate";
                 }
-                if (pindex->nStatus & BLOCK_FAILED_MASK) {
+                if (pindex->nStatus.isInvalid()) {
                     return "duplicate-invalid";
                 }
                 return "duplicate-inconclusive";
@@ -859,7 +859,7 @@ static UniValue submitblock(const Config &config,
             if (pindex->IsValid(BlockValidity::SCRIPTS)) {
                 return "duplicate";
             }
-            if (pindex->nStatus & BLOCK_FAILED_MASK) {
+            if (pindex->nStatus.isInvalid()) {
                 return "duplicate-invalid";
             }
             // Otherwise, we might only have the header - process the block

@@ -11,16 +11,21 @@
 
 BOOST_FIXTURE_TEST_SUITE(blockstatus_tests, BasicTestingSetup)
 
-static void CheckBlockStatus(BlockStatus s, BlockValidity validity,
-                             bool hasData, bool hasUndo) {
+static void CheckBlockStatus(const BlockStatus s, BlockValidity validity,
+                             bool hasData, bool hasUndo, bool hasFailed,
+                             bool hasFailedParent) {
     BOOST_CHECK(s.getValidity() == validity);
     BOOST_CHECK_EQUAL(s.hasData(), hasData);
     BOOST_CHECK_EQUAL(s.hasUndo(), hasUndo);
+    BOOST_CHECK_EQUAL(s.hasFailed(), hasFailed);
+    BOOST_CHECK_EQUAL(s.hasFailedParent(), hasFailedParent);
+    BOOST_CHECK_EQUAL(s.isInvalid(), hasFailed || hasFailedParent);
 }
 
 BOOST_AUTO_TEST_CASE(sighash_construction_test) {
     // Check default values.
-    CheckBlockStatus(BlockStatus(), BlockValidity::UNKNOWN, false, false);
+    CheckBlockStatus(BlockStatus(), BlockValidity::UNKNOWN, false, false, false,
+                     false);
 
     // Check all possible permutations.
     std::set<BlockValidity> baseValidities{
@@ -29,30 +34,59 @@ BOOST_AUTO_TEST_CASE(sighash_construction_test) {
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
     std::set<bool> hasDataValues{false, true};
     std::set<bool> hasUndoValues{false, true};
+    std::set<bool> hasFailedValues{false, true};
+    std::set<bool> hasFailedParentValues{false, true};
 
     for (BlockValidity validity : baseValidities) {
         for (bool hasData : hasDataValues) {
             for (bool hasUndo : hasUndoValues) {
-                const BlockStatus s = BlockStatus()
-                                          .withValidity(validity)
-                                          .withData(hasData)
-                                          .withUndo(hasUndo);
+                for (bool hasFailed : hasFailedValues) {
+                    for (bool hasFailedParent : hasFailedParentValues) {
+                        const BlockStatus s =
+                            BlockStatus()
+                                .withValidity(validity)
+                                .withData(hasData)
+                                .withUndo(hasUndo)
+                                .withFailed(hasFailed)
+                                .withFailedParent(hasFailedParent);
 
-                CheckBlockStatus(s, validity, hasData, hasUndo);
+                        CheckBlockStatus(s, validity, hasData, hasUndo,
+                                         hasFailed, hasFailedParent);
 
-                // Also check all possible alterations.
-                CheckBlockStatus(s.withData(hasData), validity, hasData,
-                                 hasUndo);
-                CheckBlockStatus(s.withData(!hasData), validity, !hasData,
-                                 hasUndo);
-                CheckBlockStatus(s.withUndo(hasUndo), validity, hasData,
-                                 hasUndo);
-                CheckBlockStatus(s.withUndo(!hasUndo), validity, hasData,
-                                 !hasUndo);
+                        // Clears failure flags.
+                        CheckBlockStatus(s.withClearedFailureFlags(), validity,
+                                         hasData, hasUndo, false, false);
 
-                for (BlockValidity newValidity : baseValidities) {
-                    CheckBlockStatus(s.withValidity(newValidity), newValidity,
-                                     hasData, hasUndo);
+                        // Also check all possible alterations.
+                        CheckBlockStatus(s.withData(hasData), validity, hasData,
+                                         hasUndo, hasFailed, hasFailedParent);
+                        CheckBlockStatus(s.withData(!hasData), validity,
+                                         !hasData, hasUndo, hasFailed,
+                                         hasFailedParent);
+                        CheckBlockStatus(s.withUndo(hasUndo), validity, hasData,
+                                         hasUndo, hasFailed, hasFailedParent);
+                        CheckBlockStatus(s.withUndo(!hasUndo), validity,
+                                         hasData, !hasUndo, hasFailed,
+                                         hasFailedParent);
+                        CheckBlockStatus(s.withFailed(hasFailed), validity,
+                                         hasData, hasUndo, hasFailed,
+                                         hasFailedParent);
+                        CheckBlockStatus(s.withFailed(!hasFailed), validity,
+                                         hasData, hasUndo, !hasFailed,
+                                         hasFailedParent);
+                        CheckBlockStatus(s.withFailedParent(hasFailedParent),
+                                         validity, hasData, hasUndo, hasFailed,
+                                         hasFailedParent);
+                        CheckBlockStatus(s.withFailedParent(!hasFailedParent),
+                                         validity, hasData, hasUndo, hasFailed,
+                                         !hasFailedParent);
+
+                        for (BlockValidity newValidity : baseValidities) {
+                            CheckBlockStatus(s.withValidity(newValidity),
+                                             newValidity, hasData, hasUndo,
+                                             hasFailed, hasFailedParent);
+                        }
+                    }
                 }
             }
         }

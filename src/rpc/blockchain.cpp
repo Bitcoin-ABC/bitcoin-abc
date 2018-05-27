@@ -1438,7 +1438,7 @@ UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
         if (chainActive.Contains(block)) {
             // This block is part of the currently active chain.
             status = "active";
-        } else if (block->nStatus & BLOCK_FAILED_MASK) {
+        } else if (block->nStatus.isInvalid()) {
             // This block or one of its ancestors is invalid.
             status = "invalid";
         } else if (block->nChainTx == 0) {
