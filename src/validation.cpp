@@ -5060,9 +5060,8 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (BlockMap::iterator it = mapBlockIndex.begin();
-         it != mapBlockIndex.end(); it++) {
-        forward.insert(std::make_pair(it->second->pprev, it->second));
+    for (const std::pair<const uint256, CBlockIndex *> &it : mapBlockIndex) {
+        forward.emplace(it.second->pprev, it.second);
     }
 
     assert(forward.size() == mapBlockIndex.size());
@@ -5271,8 +5270,8 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
                 }
             }
         }
+        // Perhaps too slow
         // assert(pindex->GetBlockHash() == pindex->GetBlockHeader().GetHash());
-        // // Perhaps too slow
         // End: actual consistency checks.
 
         // Try descending into the first subnode.
