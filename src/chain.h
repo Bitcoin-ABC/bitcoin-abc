@@ -191,6 +191,15 @@ private:
     // Mask used to check if the block failed.
     static const uint32_t INVALID_MASK = FAILED_FLAG | FAILED_PARENT_FLAG;
 
+    // The block is being parked for some reason. It will be reconsidered if its
+    // chains grows.
+    static const uint32_t PARKED_FLAG = 0x80;
+    // One of the block's parent is parked.
+    static const uint32_t PARKED_PARENT_FLAG = 0x100;
+
+    // Mask used to check for parked blocks.
+    static const uint32_t PARKED_MASK = PARKED_FLAG | PARKED_PARENT_FLAG;
+
 public:
     explicit BlockStatus() : status(0) {}
 
@@ -226,6 +235,18 @@ public:
                            (hasFailedParent ? FAILED_PARENT_FLAG : 0));
     }
 
+    bool isParked() const { return status & PARKED_FLAG; }
+    BlockStatus withParked(bool parked = true) const {
+        return BlockStatus((status & ~PARKED_FLAG) |
+                           (parked ? PARKED_FLAG : 0));
+    }
+
+    bool hasParkedParent() const { return status & PARKED_PARENT_FLAG; }
+    BlockStatus withParkedParent(bool parkedParent = true) const {
+        return BlockStatus((status & ~PARKED_PARENT_FLAG) |
+                           (parkedParent ? PARKED_PARENT_FLAG : 0));
+    }
+
     /**
      * Check whether this block index entry is valid up to the passed validity
      * level.
@@ -242,6 +263,8 @@ public:
     BlockStatus withClearedFailureFlags() const {
         return BlockStatus(status & ~INVALID_MASK);
     }
+
+    bool isOnParkedChain() const { return status & PARKED_MASK; }
 
     ADD_SERIALIZE_METHODS;
 

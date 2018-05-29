@@ -13,18 +13,23 @@ BOOST_FIXTURE_TEST_SUITE(blockstatus_tests, BasicTestingSetup)
 
 static void CheckBlockStatus(const BlockStatus s, BlockValidity validity,
                              bool hasData, bool hasUndo, bool hasFailed,
-                             bool hasFailedParent) {
+                             bool hasFailedParent, bool isParked,
+                             bool hasParkedParent) {
     BOOST_CHECK(s.getValidity() == validity);
     BOOST_CHECK_EQUAL(s.hasData(), hasData);
     BOOST_CHECK_EQUAL(s.hasUndo(), hasUndo);
     BOOST_CHECK_EQUAL(s.hasFailed(), hasFailed);
     BOOST_CHECK_EQUAL(s.hasFailedParent(), hasFailedParent);
     BOOST_CHECK_EQUAL(s.isInvalid(), hasFailed || hasFailedParent);
+    BOOST_CHECK_EQUAL(s.isParked(), isParked);
+    BOOST_CHECK_EQUAL(s.hasParkedParent(), hasParkedParent);
+    BOOST_CHECK_EQUAL(s.isOnParkedChain(), isParked || hasParkedParent);
 }
 
 static void CheckAllPermutations(const BlockStatus base, bool hasData,
                                  bool hasUndo, bool hasFailed,
-                                 bool hasFailedParent) {
+                                 bool hasFailedParent, bool isParked,
+                                 bool hasParkedParent) {
     // Check all possible permutations.
     std::set<BlockValidity> baseValidities{
         BlockValidity::UNKNOWN, BlockValidity::HEADER,
@@ -34,33 +39,58 @@ static void CheckAllPermutations(const BlockStatus base, bool hasData,
     for (BlockValidity validity : baseValidities) {
         const BlockStatus s = base.withValidity(validity);
         CheckBlockStatus(s, validity, hasData, hasUndo, hasFailed,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
 
         // Clears failure flags.
         CheckBlockStatus(s.withClearedFailureFlags(), validity, hasData,
-                         hasUndo, false, false);
+                         hasUndo, false, false, isParked, hasParkedParent);
 
         // Also check all possible alterations.
         CheckBlockStatus(s.withData(true), validity, true, hasUndo, hasFailed,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withData(false), validity, false, hasUndo, hasFailed,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withUndo(true), validity, hasData, true, hasFailed,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withUndo(false), validity, hasData, false, hasFailed,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withFailed(true), validity, hasData, hasUndo, true,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withFailed(false), validity, hasData, hasUndo, false,
-                         hasFailedParent);
+                         hasFailedParent, isParked, hasParkedParent);
         CheckBlockStatus(s.withFailedParent(true), validity, hasData, hasUndo,
-                         hasFailed, true);
+                         hasFailed, true, isParked, hasParkedParent);
         CheckBlockStatus(s.withFailedParent(false), validity, hasData, hasUndo,
-                         hasFailed, false);
+                         hasFailed, false, isParked, hasParkedParent);
+
+        CheckBlockStatus(s.withParked(true), validity, hasData, hasUndo,
+                         hasFailed, hasFailedParent, true, hasParkedParent);
+        CheckBlockStatus(s.withParked(false), validity, hasData, hasUndo,
+                         hasFailed, hasFailedParent, false, hasParkedParent);
+        CheckBlockStatus(s.withParkedParent(true), validity, hasData, hasUndo,
+                         hasFailed, hasFailedParent, isParked, true);
+        CheckBlockStatus(s.withParkedParent(false), validity, hasData, hasUndo,
+                         hasFailed, hasFailedParent, isParked, false);
 
         for (BlockValidity newValidity : baseValidities) {
             CheckBlockStatus(s.withValidity(newValidity), newValidity, hasData,
-                             hasUndo, hasFailed, hasFailedParent);
+                             hasUndo, hasFailed, hasFailedParent, isParked,
+                             hasParkedParent);
+        }
+    }
+}
+
+static void CheckParked(const BlockStatus s, bool hasData, bool hasUndo,
+                        bool hasFailed, bool hasFailedParent) {
+    std::set<bool> isParkedValues{false, true};
+    std::set<bool> hasParkedParentValues{false, true};
+
+    for (bool isParked : isParkedValues) {
+        for (bool hasParkedParent : hasParkedParentValues) {
+            CheckAllPermutations(
+                s.withParked(isParked).withParkedParent(hasParkedParent),
+                hasData, hasUndo, hasFailed, hasFailedParent, isParked,
+                hasParkedParent);
         }
     }
 }
@@ -71,7 +101,7 @@ static void CheckFailures(const BlockStatus s, bool hasData, bool hasUndo) {
 
     for (bool hasFailed : hasFailedValues) {
         for (bool hasFailedParent : hasFailedParentValues) {
-            CheckAllPermutations(
+            CheckParked(
                 s.withFailed(hasFailed).withFailedParent(hasFailedParent),
                 hasData, hasUndo, hasFailed, hasFailedParent);
         }
@@ -93,7 +123,7 @@ static void CheckHaveDataAndUndo(const BlockStatus s) {
 BOOST_AUTO_TEST_CASE(sighash_construction_test) {
     // Check default values.
     CheckBlockStatus(BlockStatus(), BlockValidity::UNKNOWN, false, false, false,
-                     false);
+                     false, false, false);
 
     CheckHaveDataAndUndo(BlockStatus());
 }

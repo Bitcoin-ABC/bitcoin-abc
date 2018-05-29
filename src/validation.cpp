@@ -2803,8 +2803,9 @@ static CBlockIndex *FindMostWorkChain() {
             // for the most work chain if we come across them; we can't switch
             // to a chain unless we have all the non-active-chain parent blocks.
             bool fInvalidChain = pindexTest->nStatus.isInvalid();
+            bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
             bool fMissingData = !pindexTest->nStatus.hasData();
-            if (fInvalidChain || fMissingData) {
+            if (fInvalidChain || fParkedChain || fMissingData) {
                 // Candidate chain is not usable (either invalid or missing
                 // data)
                 if (fInvalidChain &&
@@ -2815,9 +2816,11 @@ static CBlockIndex *FindMostWorkChain() {
                 CBlockIndex *pindexFailed = pindexNew;
                 // Remove the entire chain from the set.
                 while (pindexTest != pindexFailed) {
-                    if (fInvalidChain) {
+                    if (fInvalidChain || fParkedChain) {
                         pindexFailed->nStatus =
-                            pindexFailed->nStatus.withFailedParent();
+                            pindexFailed->nStatus
+                                .withFailedParent(fInvalidChain)
+                                .withParkedParent(fParkedChain);
                     } else if (fMissingData) {
                         // If we're missing data, then add back to
                         // mapBlocksUnlinked, so that if the block arrives in
@@ -5098,6 +5101,8 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
     int nHeight = 0;
     // Oldest ancestor of pindex which is invalid.
     CBlockIndex *pindexFirstInvalid = nullptr;
+    // Oldest ancestor of pindex which is parked.
+    CBlockIndex *pindexFirstParked = nullptr;
     // Oldest ancestor of pindex which does not have data available.
     CBlockIndex *pindexFirstMissing = nullptr;
     // Oldest ancestor of pindex for which nTx == 0.
@@ -5118,6 +5123,9 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
         nNodes++;
         if (pindexFirstInvalid == nullptr && pindex->nStatus.hasFailed()) {
             pindexFirstInvalid = pindex;
+        }
+        if (pindexFirstParked == nullptr && pindex->nStatus.isParked()) {
+            pindexFirstParked = pindex;
         }
         if (pindexFirstMissing == nullptr && !pindex->nStatus.hasData()) {
             pindexFirstMissing = pindex;
@@ -5211,6 +5219,11 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
             // Checks for not-invalid blocks.
             // The failed mask cannot be set for blocks without invalid parents.
             assert(!pindex->nStatus.isInvalid());
+        }
+        if (pindexFirstParked == nullptr) {
+            // Checks for not-invalid blocks.
+            // The failed mask cannot be set for blocks without invalid parents.
+            assert(!pindex->nStatus.isOnParkedChain());
         }
         if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) &&
             pindexFirstNeverProcessed == nullptr) {
@@ -5309,6 +5322,9 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
             // corresponding variable.
             if (pindex == pindexFirstInvalid) {
                 pindexFirstInvalid = nullptr;
+            }
+            if (pindex == pindexFirstParked) {
+                pindexFirstParked = nullptr;
             }
             if (pindex == pindexFirstMissing) {
                 pindexFirstMissing = nullptr;
