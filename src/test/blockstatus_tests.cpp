@@ -22,75 +22,80 @@ static void CheckBlockStatus(const BlockStatus s, BlockValidity validity,
     BOOST_CHECK_EQUAL(s.isInvalid(), hasFailed || hasFailedParent);
 }
 
-BOOST_AUTO_TEST_CASE(sighash_construction_test) {
-    // Check default values.
-    CheckBlockStatus(BlockStatus(), BlockValidity::UNKNOWN, false, false, false,
-                     false);
-
+static void CheckAllPermutations(const BlockStatus base, bool hasData,
+                                 bool hasUndo, bool hasFailed,
+                                 bool hasFailedParent) {
     // Check all possible permutations.
     std::set<BlockValidity> baseValidities{
         BlockValidity::UNKNOWN, BlockValidity::HEADER,
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
-    std::set<bool> hasDataValues{false, true};
-    std::set<bool> hasUndoValues{false, true};
+
+    for (BlockValidity validity : baseValidities) {
+        const BlockStatus s = base.withValidity(validity);
+        CheckBlockStatus(s, validity, hasData, hasUndo, hasFailed,
+                         hasFailedParent);
+
+        // Clears failure flags.
+        CheckBlockStatus(s.withClearedFailureFlags(), validity, hasData,
+                         hasUndo, false, false);
+
+        // Also check all possible alterations.
+        CheckBlockStatus(s.withData(true), validity, true, hasUndo, hasFailed,
+                         hasFailedParent);
+        CheckBlockStatus(s.withData(false), validity, false, hasUndo, hasFailed,
+                         hasFailedParent);
+        CheckBlockStatus(s.withUndo(true), validity, hasData, true, hasFailed,
+                         hasFailedParent);
+        CheckBlockStatus(s.withUndo(false), validity, hasData, false, hasFailed,
+                         hasFailedParent);
+        CheckBlockStatus(s.withFailed(true), validity, hasData, hasUndo, true,
+                         hasFailedParent);
+        CheckBlockStatus(s.withFailed(false), validity, hasData, hasUndo, false,
+                         hasFailedParent);
+        CheckBlockStatus(s.withFailedParent(true), validity, hasData, hasUndo,
+                         hasFailed, true);
+        CheckBlockStatus(s.withFailedParent(false), validity, hasData, hasUndo,
+                         hasFailed, false);
+
+        for (BlockValidity newValidity : baseValidities) {
+            CheckBlockStatus(s.withValidity(newValidity), newValidity, hasData,
+                             hasUndo, hasFailed, hasFailedParent);
+        }
+    }
+}
+
+static void CheckFailures(const BlockStatus s, bool hasData, bool hasUndo) {
     std::set<bool> hasFailedValues{false, true};
     std::set<bool> hasFailedParentValues{false, true};
 
-    for (BlockValidity validity : baseValidities) {
-        for (bool hasData : hasDataValues) {
-            for (bool hasUndo : hasUndoValues) {
-                for (bool hasFailed : hasFailedValues) {
-                    for (bool hasFailedParent : hasFailedParentValues) {
-                        const BlockStatus s =
-                            BlockStatus()
-                                .withValidity(validity)
-                                .withData(hasData)
-                                .withUndo(hasUndo)
-                                .withFailed(hasFailed)
-                                .withFailedParent(hasFailedParent);
-
-                        CheckBlockStatus(s, validity, hasData, hasUndo,
-                                         hasFailed, hasFailedParent);
-
-                        // Clears failure flags.
-                        CheckBlockStatus(s.withClearedFailureFlags(), validity,
-                                         hasData, hasUndo, false, false);
-
-                        // Also check all possible alterations.
-                        CheckBlockStatus(s.withData(hasData), validity, hasData,
-                                         hasUndo, hasFailed, hasFailedParent);
-                        CheckBlockStatus(s.withData(!hasData), validity,
-                                         !hasData, hasUndo, hasFailed,
-                                         hasFailedParent);
-                        CheckBlockStatus(s.withUndo(hasUndo), validity, hasData,
-                                         hasUndo, hasFailed, hasFailedParent);
-                        CheckBlockStatus(s.withUndo(!hasUndo), validity,
-                                         hasData, !hasUndo, hasFailed,
-                                         hasFailedParent);
-                        CheckBlockStatus(s.withFailed(hasFailed), validity,
-                                         hasData, hasUndo, hasFailed,
-                                         hasFailedParent);
-                        CheckBlockStatus(s.withFailed(!hasFailed), validity,
-                                         hasData, hasUndo, !hasFailed,
-                                         hasFailedParent);
-                        CheckBlockStatus(s.withFailedParent(hasFailedParent),
-                                         validity, hasData, hasUndo, hasFailed,
-                                         hasFailedParent);
-                        CheckBlockStatus(s.withFailedParent(!hasFailedParent),
-                                         validity, hasData, hasUndo, hasFailed,
-                                         !hasFailedParent);
-
-                        for (BlockValidity newValidity : baseValidities) {
-                            CheckBlockStatus(s.withValidity(newValidity),
-                                             newValidity, hasData, hasUndo,
-                                             hasFailed, hasFailedParent);
-                        }
-                    }
-                }
-            }
+    for (bool hasFailed : hasFailedValues) {
+        for (bool hasFailedParent : hasFailedParentValues) {
+            CheckAllPermutations(
+                s.withFailed(hasFailed).withFailedParent(hasFailedParent),
+                hasData, hasUndo, hasFailed, hasFailedParent);
         }
     }
+}
+
+static void CheckHaveDataAndUndo(const BlockStatus s) {
+    std::set<bool> hasDataValues{false, true};
+    std::set<bool> hasUndoValues{false, true};
+
+    for (bool hasData : hasDataValues) {
+        for (bool hasUndo : hasUndoValues) {
+            CheckFailures(s.withData(hasData).withUndo(hasUndo), hasData,
+                          hasUndo);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(sighash_construction_test) {
+    // Check default values.
+    CheckBlockStatus(BlockStatus(), BlockValidity::UNKNOWN, false, false, false,
+                     false);
+
+    CheckHaveDataAndUndo(BlockStatus());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
