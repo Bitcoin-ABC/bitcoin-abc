@@ -76,8 +76,8 @@ static bool AppInit(int argc, char *argv[]) {
     SetupServerArgs();
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon",
-                 _("Run in the background as a daemon and accept commands"),
-                 false, OptionsCategory::OPTIONS);
+                 "Run in the background as a daemon and accept commands", false,
+                 OptionsCategory::OPTIONS);
 #endif
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
