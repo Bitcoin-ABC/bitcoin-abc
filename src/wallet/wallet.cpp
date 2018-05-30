@@ -3659,7 +3659,7 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
     return true;
 }
 
-void CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
+bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
                                     bool fRequestedInternal) {
     nIndex = -1;
     keypool.vchPubKey = CPubKey();
@@ -3673,14 +3673,15 @@ void CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
     bool fReturningInternal = IsHDEnabled() &&
                               CanSupportFeature(FEATURE_HD_SPLIT) &&
                               fRequestedInternal;
+    bool use_split_keypool = set_pre_split_keypool.empty();
     std::set<int64_t> &setKeyPool =
-        set_pre_split_keypool.empty()
+        use_split_keypool
             ? (fReturningInternal ? setInternalKeyPool : setExternalKeyPool)
             : set_pre_split_keypool;
 
     // Get the oldest key
     if (setKeyPool.empty()) {
-        return;
+        return false;
     }
 
     WalletBatch batch(*database);
@@ -3696,15 +3697,19 @@ void CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
                                  ": unknown key in key pool");
     }
     // If the key was pre-split keypool, we don't care about what type it is
-    if (set_pre_split_keypool.size() == 0 &&
-        keypool.fInternal != fReturningInternal) {
+    if (use_split_keypool && keypool.fInternal != fReturningInternal) {
         throw std::runtime_error(std::string(__func__) +
                                  ": keypool entry misclassified");
     }
+    if (!keypool.vchPubKey.IsValid()) {
+        throw std::runtime_error(std::string(__func__) +
+                                 ": keypool entry invalid");
+    }
 
-    assert(keypool.vchPubKey.IsValid());
     m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
     LogPrintf("keypool reserve %d\n", nIndex);
+
+    return true;
 }
 
 void CWallet::KeepKey(int64_t nIndex) {
@@ -3734,9 +3739,8 @@ void CWallet::ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey) {
 bool CWallet::GetKeyFromPool(CPubKey &result, bool internal) {
     CKeyPool keypool;
     LOCK(cs_wallet);
-    int64_t nIndex = 0;
-    ReserveKeyFromKeyPool(nIndex, keypool, internal);
-    if (nIndex == -1) {
+    int64_t nIndex;
+    if (!ReserveKeyFromKeyPool(nIndex, keypool, internal)) {
         if (IsLocked()) {
             return false;
         }
@@ -3956,8 +3960,7 @@ CWallet::GetLabelAddresses(const std::string &label) const {
 bool CReserveKey::GetReservedKey(CPubKey &pubkey, bool internal) {
     if (nIndex == -1) {
         CKeyPool keypool;
-        pwallet->ReserveKeyFromKeyPool(nIndex, keypool, internal);
-        if (nIndex == -1) {
+        if (!pwallet->ReserveKeyFromKeyPool(nIndex, keypool, internal)) {
             return false;
         }
 
