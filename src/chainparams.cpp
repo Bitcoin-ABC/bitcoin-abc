@@ -126,12 +126,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "00000000000000000000000000000000000000000096be820973e0c3d70f437e");
+            "000000000000000000000000000000000000000000a0f3064330647e2f6c4828");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000000000001ad94189e956f1c1c28c8c34d2aae9bb8ce0c7f2b93b287");
+            "000000000000000000e45ad2fbcc5ff3e85f0868dd8f00ad4e92dffabe28f8d2");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -304,12 +304,12 @@ public:
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "00000000000000000000000000000000000000000000002a1bc26caae848fa38");
+            "00000000000000000000000000000000000000000000002a650f6ff7649485da");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000004ca1bb261765b723cab6c90d0ecfabe1aad8c16a12378c015ab35e78");
+            "0000000000327972b8470c11755adf8f4319796bafae01f5a6650490b98a17db");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
