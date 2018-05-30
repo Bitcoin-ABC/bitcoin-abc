@@ -28,10 +28,6 @@ from test_framework.util import (
 )
 
 
-REJECT_INVALID = 16
-REJECT_PUSHONLY = b'mandatory-script-verify-flag-failed (Only push operators allowed in signature scripts)'
-
-
 class InvalidTxRequestTest(BitcoinTestFramework):
 
     def set_test_params(self):
@@ -84,8 +80,8 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         self.log.info('Test a transaction that is rejected')
         tx1 = create_transaction(
             block1.vtx[0], 0, b'\x64' * 35, 50 * COIN - 12000)
-        node.p2p.send_txs_and_test([tx1], node, success=False, expect_disconnect=True,
-                                   reject_code=REJECT_INVALID, reject_reason=REJECT_PUSHONLY)
+        node.p2p.send_txs_and_test(
+            [tx1], node, success=False, expect_disconnect=True)
 
         # Make two p2p connections to provide the node with orphans
         # * p2ps[0] will send valid orphan txs (one with low fee)
