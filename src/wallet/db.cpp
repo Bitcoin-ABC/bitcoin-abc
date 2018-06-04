@@ -773,6 +773,7 @@ void BerkeleyEnvironment::Flush(bool fShutdown) {
                 if (!fMockDb) {
                     fs::remove_all(fs::path(strPath) / "database");
                 }
+                g_dbenvs.erase(strPath);
             }
         }
     }
@@ -868,5 +869,8 @@ bool BerkeleyDatabase::Backup(const std::string &strDest) {
 void BerkeleyDatabase::Flush(bool shutdown) {
     if (!IsDummy()) {
         env->Flush(shutdown);
+        if (shutdown) {
+            env = nullptr;
+        }
     }
 }
