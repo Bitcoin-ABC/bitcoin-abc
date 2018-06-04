@@ -70,7 +70,7 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 - [Parallel Implementations](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php)
 - [The Pragmatic Programmer: From Journeyman to Master](https://www.amazon.com/Pragmatic-Programmer-Journeyman-Master/dp/020161622X)
 - [Advantages of monolithic version control](https://danluu.com/monorepo/)
-- [The importance of fixing bugs immediately]{https://youtu.be/E2MIpi8pIvY?t=16m0s}
+- [The importance of fixing bugs immediately](https://youtu.be/E2MIpi8pIvY?t=16m0s)
 
 
 Getting set up with the Bitcoin ABC Repository
