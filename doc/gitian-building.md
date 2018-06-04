@@ -70,7 +70,7 @@ curl -LO https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX1
 echo "4732b52b5ebe300c8c91cbeed6d19d59c1ff9c56c7a1dd6cfa518b9c2c72abde MacOSX10.11.sdk.tar.gz" | sha256sum -c
 ```
 
-Alternatively, you can skip the OSX build by adding `--os=lw` below.
+Alternatively, you can skip the macOS build by adding `--os=lw` below.
 
 Initial Gitian Setup
 --------------------
@@ -90,7 +90,7 @@ Where `satoshi` is your Github name and `0.18.5` is the most recent tag (without
 
 Build binaries
 --------------
-Windows and OSX have code signed binaries, but those won't be available until a few developers have gitian signed the non-codesigned binaries.
+Windows and macOS have code signed binaries, but those won't be available until a few developers have gitian signed the non-codesigned binaries.
 
 To build the most recent tag:
 

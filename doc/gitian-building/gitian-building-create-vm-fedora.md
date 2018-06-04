@@ -67,7 +67,7 @@ Unixy OSes by entering the following in a terminal:
     echo "6554404b66d38b89693232966d9290ed62156e32d1edde4074b1d25c97a7b10e  Fedora-Workstation-netinst-x86_64-29-1.2.iso" | sha256sum -c
     # (must return OK)
 
-Replace `sha256sum` with `shasum` on OSX.
+Replace `sha256sum` with `shasum` on macOS.
 
 Then start the VM. On the first launch you will be asked for a CD or DVD image. Choose the downloaded ISO.
 

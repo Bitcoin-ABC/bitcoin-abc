@@ -69,7 +69,7 @@ echo "73bd56fb4548efa384bf32fd25808b99198f81c23cf19ab9e6507d898cd58dce debian-9.
     # (must return OK)
 ```
 
-Replace `sha256sum` with `shasum` on OSX.
+Replace `sha256sum` with `shasum` on macOS.
 
 Then start the VM. On the first launch you will be asked for a CD or DVD image. Choose the downloaded ISO.
 
