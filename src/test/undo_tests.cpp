@@ -17,13 +17,13 @@ static void UpdateUTXOSet(const CBlock &block, CCoinsViewCache &view,
                           CBlockUndo &blockundo,
                           const CChainParams &chainparams, uint32_t nHeight) {
     auto &coinbaseTx = *block.vtx[0];
-    UpdateCoins(coinbaseTx, view, nHeight);
+    UpdateCoins(view, coinbaseTx, nHeight);
 
     for (size_t i = 1; i < block.vtx.size(); i++) {
         auto &tx = *block.vtx[1];
 
         blockundo.vtxundo.push_back(CTxUndo());
-        UpdateCoins(tx, view, blockundo.vtxundo.back(), nHeight);
+        UpdateCoins(view, tx, blockundo.vtxundo.back(), nHeight);
     }
 
     view.SetBestBlock(block.GetHash());

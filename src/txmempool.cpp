@@ -793,7 +793,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                                 Consensus::CheckTxInputs(
                                     tx, state, mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(tx, mempoolDuplicate, 1000000);
+            UpdateCoins(mempoolDuplicate, tx, 1000000);
         }
     }
 
@@ -812,7 +812,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                 Consensus::CheckTxInputs(entry->GetTx(), state,
                                          mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(entry->GetTx(), mempoolDuplicate, 1000000);
+            UpdateCoins(mempoolDuplicate, entry->GetTx(), 1000000);
             stepsSinceLastRemove = 0;
         }
     }

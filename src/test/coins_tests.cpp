@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
             // Call UpdateCoins on the top cache
             CTxUndo undo;
-            UpdateCoins(CTransaction(tx), *(stack.back()), undo, height);
+            UpdateCoins(*(stack.back()), CTransaction(tx), undo, height);
 
             // Update the utxo set for future spends
             utxoset.insert(outpoint);
