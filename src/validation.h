@@ -513,7 +513,15 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks = nullptr);
 
-/** Apply the effects of this transaction on the UTXO set represented by view */
+/**
+ * Mark all the coins corresponding to a given transaction inputs as spent.
+ */
+void SpendCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
+                int nHeight);
+
+/**
+ * Apply the effects of this transaction on the UTXO set represented by view.
+ */
 void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight);
 void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);

@@ -1432,26 +1432,38 @@ static void InvalidBlockFound(CBlockIndex *pindex,
     }
 }
 
+void SpendCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
+                int nHeight) {
+    // Mark inputs spent.
+    if (tx.IsCoinBase()) {
+        return;
+    }
+
+    txundo.vprevout.reserve(tx.vin.size());
+    for (const CTxIn &txin : tx.vin) {
+        txundo.vprevout.emplace_back();
+        bool is_spent = view.SpendCoin(txin.prevout, &txundo.vprevout.back());
+        assert(is_spent);
+    }
+}
+
 void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight) {
+    SpendCoins(view, tx, txundo, nHeight);
+    AddCoins(view, tx, nHeight);
+}
+
+void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight) {
     // Mark inputs spent.
     if (!tx.IsCoinBase()) {
-        txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn &txin : tx.vin) {
-            txundo.vprevout.emplace_back();
-            bool is_spent =
-                view.SpendCoin(txin.prevout, &txundo.vprevout.back());
+            bool is_spent = view.SpendCoin(txin.prevout);
             assert(is_spent);
         }
     }
 
     // Add outputs.
     AddCoins(view, tx, nHeight);
-}
-
-void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight) {
-    CTxUndo txundo;
-    UpdateCoins(view, tx, txundo, nHeight);
 }
 
 bool CScriptCheck::operator()() {
@@ -2216,8 +2228,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
-        UpdateCoins(view, tx, i == 0 ? undoDummy : blockundo.vtxundo.back(),
-                    pindex->nHeight);
+        SpendCoins(view, tx, i == 0 ? undoDummy : blockundo.vtxundo.back(),
+                   pindex->nHeight);
+        AddCoins(view, tx, pindex->nHeight);
 
         vPos.push_back(std::make_pair(tx.GetId(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -4607,14 +4620,18 @@ static bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &view,
     }
 
     for (const CTransactionRef &tx : block.vtx) {
-        if (!tx->IsCoinBase()) {
-            for (const CTxIn &txin : tx->vin) {
-                view.SpendCoin(txin.prevout);
-            }
-        }
-
         // Pass check = true as every addition may be an overwrite.
         AddCoins(view, *tx, pindex->nHeight, true);
+    }
+
+    for (const CTransactionRef &tx : block.vtx) {
+        if (tx->IsCoinBase()) {
+            continue;
+        }
+
+        for (const CTxIn &txin : tx->vin) {
+            view.SpendCoin(txin.prevout);
+        }
     }
 
     return true;
