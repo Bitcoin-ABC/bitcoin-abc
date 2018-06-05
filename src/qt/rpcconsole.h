@@ -57,6 +57,7 @@ public:
 
     void setClientModel(ClientModel *model);
     void addWallet(WalletModel *const walletModel);
+    void removeWallet(WalletModel *const walletModel);
 
     enum MessageClass { MC_ERROR, MC_DEBUG, CMD_REQUEST, CMD_REPLY, CMD_ERROR };
 

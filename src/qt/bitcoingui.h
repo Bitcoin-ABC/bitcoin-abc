@@ -77,6 +77,7 @@ public:
      * list of transactions, address book and sending functionality.
      */
     bool addWallet(WalletModel *walletModel);
+    bool removeWallet(WalletModel *walletModel);
     void removeAllWallets();
 #endif // ENABLE_WALLET
     bool enableWallet = false;
@@ -128,6 +129,8 @@ private:
     QAction *openRPCConsoleAction = nullptr;
     QAction *openAction = nullptr;
     QAction *showHelpMessageAction = nullptr;
+    QAction *m_wallet_selector_label_action = nullptr;
+    QAction *m_wallet_selector_action = nullptr;
 
     QLabel *m_wallet_selector_label = nullptr;
     QComboBox *m_wallet_selector = nullptr;

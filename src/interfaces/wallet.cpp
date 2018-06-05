@@ -395,6 +395,9 @@ namespace {
         OutputType getDefaultChangeType() override {
             return m_wallet.m_default_change_type;
         }
+        std::unique_ptr<Handler> handleUnload(UnloadFn fn) override {
+            return MakeHandler(m_wallet.NotifyUnload.connect(fn));
+        }
         std::unique_ptr<Handler>
         handleShowProgress(ShowProgressFn fn) override {
             return MakeHandler(m_wallet.ShowProgress.connect(fn));
