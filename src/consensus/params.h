@@ -28,8 +28,10 @@ enum DeploymentPos {
 struct BIP9Deployment {
     /** Bit position to select the particular bit in nVersion. */
     int bit;
-    /** Start MedianTime for version bits miner confirmation. Can be a date in
-     * the past */
+    /**
+     * Start MedianTime for version bits miner confirmation. Can be a date in
+     * the past.
+     */
     int64_t nStartTime;
     /** Timeout/expiry MedianTime for the deployment attempt. */
     int64_t nTimeout;
@@ -52,8 +54,6 @@ struct Params {
     int uahfHeight;
     /** Block height at which the new DAA becomes active */
     int daaHeight;
-    /** Unix time used for MTP activation of May 15 2018, hardfork */
-    int monolithActivationTime;
     /** Unix time used for MTP activation of Nov 15 2018, hardfork */
     int magneticAnomalyActivationTime;
     /**

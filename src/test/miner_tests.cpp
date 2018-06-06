@@ -735,35 +735,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
     CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
-    // The maximum block size to be generated before the May 15, 2018 HF
-    static const auto EIGHT_MEGABYTES = 8 * ONE_MEGABYTE;
-    static const auto LEGACY_CAP = EIGHT_MEGABYTES - 1000;
-
-    // Test around historical 8MB cap.
-    config.SetMaxBlockSize(EIGHT_MEGABYTES + 1);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1001,
-                      EIGHT_MEGABYTES - 1001);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 1000, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES - 999, LEGACY_CAP);
-    CheckBlockMaxSize(chainparams, EIGHT_MEGABYTES, EIGHT_MEGABYTES - 1000);
-
     // Test around default cap
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
-
-    // We are stuck at the legacy cap before activation.
-    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE, LEGACY_CAP);
-
-    // Activate May 15, 2018 HF the dirty way
-    const int64_t monolithTime =
-        config.GetChainParams().GetConsensus().monolithActivationTime;
-    auto pindex = chainActive.Tip();
-    for (size_t i = 0; pindex && i < 5; i++) {
-        BOOST_CHECK(!IsMonolithEnabled(config, chainActive.Tip()));
-        pindex->nTime = monolithTime;
-        pindex = pindex->pprev;
-    }
-
-    BOOST_CHECK(IsMonolithEnabled(config, chainActive.Tip()));
 
     // Now we can use the default max block size.
     CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1001,

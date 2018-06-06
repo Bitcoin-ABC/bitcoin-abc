@@ -612,21 +612,6 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
-static bool IsMonolithEnabled(const Config &config, int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           gArgs.GetArg(
-               "-monolithactivationtime",
-               config.GetChainParams().GetConsensus().monolithActivationTime);
-}
-
-bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsMonolithEnabled(config, pindexPrev->GetMedianTimePast());
-}
-
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
@@ -2630,13 +2615,8 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // remove transactions that are replay protected from the mempool. There is
     // no easy way to do this so we'll just discard the whole mempool and then
     // add the transaction of the block we just disconnected back.
-    //
-    // Samewise, if this block enabled the monolith opcodes, then we need to
-    // clear the mempool of any transaction using them.
-    if ((IsReplayProtectionEnabled(config, pindexDelete) &&
-         !IsReplayProtectionEnabled(config, pindexDelete->pprev)) ||
-        (IsMonolithEnabled(config, pindexDelete) &&
-         !IsMonolithEnabled(config, pindexDelete->pprev))) {
+    if (IsReplayProtectionEnabled(config, pindexDelete) &&
+        !IsReplayProtectionEnabled(config, pindexDelete->pprev)) {
         LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
 
         mempool.clear();
@@ -3720,17 +3700,6 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_CSV,
                          versionbitscache) == THRESHOLD_ACTIVE) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
-    }
-
-    if (!IsMonolithEnabled(config, pindexPrev)) {
-        // When the May 15, 2018 HF is not enabled, block cannot be bigger
-        // than 8MB .
-        const uint64_t currentBlockSize =
-            ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
-        if (currentBlockSize > 8 * ONE_MEGABYTE) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-blk-length",
-                             false, "size limits failed");
-        }
     }
 
     const int64_t nMedianTimePast =

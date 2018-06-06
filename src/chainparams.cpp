@@ -139,9 +139,6 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
-        // May 15, 2018 hard fork
-        consensus.monolithActivationTime = 1526400000;
-
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
 
@@ -317,9 +314,6 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
-        // May 15, 2018 hard fork
-        consensus.monolithActivationTime = 1526400000;
-
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
 
@@ -444,9 +438,6 @@ public:
 
         // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
-
-        // May 15, 2018 hard fork.
-        consensus.monolithActivationTime = 1526400000;
 
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
