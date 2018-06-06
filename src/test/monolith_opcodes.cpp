@@ -30,18 +30,9 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
     for (uint32_t flags : flagset) {
         ScriptError err = SCRIPT_ERR_OK;
         stacktype stack{original_stack};
-        bool r =
-            EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
-                       sigchecker, &err);
+        bool r = EvalScript(stack, script, flags, sigchecker, &err);
         BOOST_CHECK(r);
         BOOST_CHECK(stack == expected);
-
-        // Make sure that if we do not pass the monolith flag, opcodes are still
-        // disabled.
-        stack = original_stack;
-        r = EvalScript(stack, script, flags, sigchecker, &err);
-        BOOST_CHECK(!r);
-        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
     }
 }
 
@@ -50,17 +41,9 @@ static void CheckError(uint32_t flags, const stacktype &original_stack,
     BaseSignatureChecker sigchecker;
     ScriptError err = SCRIPT_ERR_OK;
     stacktype stack{original_stack};
-    bool r = EvalScript(stack, script, flags | SCRIPT_ENABLE_MONOLITH_OPCODES,
-                        sigchecker, &err);
+    bool r = EvalScript(stack, script, flags, sigchecker, &err);
     BOOST_CHECK(!r);
     BOOST_CHECK_EQUAL(err, expected_error);
-
-    // Make sure that if we do not pass the monolith flag, opcodes are still
-    // disabled.
-    stack = original_stack;
-    r = EvalScript(stack, script, flags, sigchecker, &err);
-    BOOST_CHECK(!r);
-    BOOST_CHECK_EQUAL(err, SCRIPT_ERR_DISABLED_OPCODE);
 }
 
 static void CheckErrorForAllFlags(const stacktype &original_stack,

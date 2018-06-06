@@ -74,30 +74,6 @@ class MonolithActivationTest(ComparisonTestFramework):
         node.generate(1)
         assert(txid not in set(node.getrawmempool()))
 
-        # register the spendable outputs.
-        tx = FromHex(CTransaction(), tx_hex)
-        tx.rehash()
-        spendable_ands = [PreviousSpendableOutput(
-            tx, i) for i in range(len(tx.vout))]
-
-        def spend_and():
-            outpoint = spendable_ands.pop()
-            out = outpoint.tx.vout[outpoint.n]
-            value = int(out.nValue - (self.relayfee * COIN))
-            tx = CTransaction()
-            tx.vin = [CTxIn(COutPoint(outpoint.tx.sha256, outpoint.n))]
-            tx.vout = [CTxOut(value, CScript([]))]
-            tx.rehash()
-            return tx
-
-        # Check that large opreturn are not accepted yet.
-        self.log.info("Try to use the monolith opcodes before activation")
-
-        tx0 = spend_and()
-        tx0_hex = ToHex(tx0)
-        assert_raises_rpc_error(-26, RPC_DISABLED_OPCODE_ERROR,
-                                node.sendrawtransaction, tx0_hex)
-
         # Push MTP forward just before activation.
         self.log.info("Pushing MTP just before the activation and check again")
         node.setmocktime(MONOLITH_START_TIME)
@@ -132,30 +108,39 @@ class MonolithActivationTest(ComparisonTestFramework):
             b = next_block(MONOLITH_START_TIME + i - 1)
             yield accepted(b)
 
-        # Check again just before the activation time
-        assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
-                     MONOLITH_START_TIME - 1)
-        assert_raises_rpc_error(-26, RPC_DISABLED_OPCODE_ERROR,
-                                node.sendrawtransaction, tx0_hex)
-
-        def add_tx(block, tx):
-            block.vtx.append(tx)
-            block.hashMerkleRoot = block.calc_merkle_root()
-            block.solve()
-
-        b = next_block(MONOLITH_START_TIME + 6)
-        add_tx(b, tx0)
-        yield rejected(b, RejectResult(16, b'blk-bad-inputs'))
-
         self.log.info("Activates the new opcodes")
         fork_block = next_block(MONOLITH_START_TIME + 6)
         yield accepted(fork_block)
+
+        # register the spendable outputs.
+        tx = FromHex(CTransaction(), tx_hex)
+        tx.rehash()
+        spendable_ands = [PreviousSpendableOutput(
+            tx, i) for i in range(len(tx.vout))]
+
+        def spend_and():
+            outpoint = spendable_ands.pop()
+            out = outpoint.tx.vout[outpoint.n]
+            value = int(out.nValue - (self.relayfee * COIN))
+            tx = CTransaction()
+            tx.vin = [CTxIn(COutPoint(outpoint.tx.sha256, outpoint.n))]
+            tx.vout = [CTxOut(value, CScript([]))]
+            tx.rehash()
+            return tx
+
+        tx0 = spend_and()
+        tx0_hex = ToHex(tx0)
 
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MONOLITH_START_TIME)
 
         tx0id = node.sendrawtransaction(tx0_hex)
         assert(tx0id in set(node.getrawmempool()))
+
+        def add_tx(block, tx):
+            block.vtx.append(tx)
+            block.hashMerkleRoot = block.calc_merkle_root()
+            block.solve()
 
         # Transactions can also be included in blocks.
         monolithblock = next_block(MONOLITH_START_TIME + 7)

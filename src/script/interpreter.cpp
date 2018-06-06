@@ -291,20 +291,6 @@ static bool IsOpcodeDisabled(opcodetype opcode, uint32_t flags) {
             // Disabled opcodes.
             return true;
 
-        case OP_CAT:
-        case OP_SPLIT:
-        case OP_AND:
-        case OP_OR:
-        case OP_XOR:
-        case OP_NUM2BIN:
-        case OP_BIN2NUM:
-        case OP_DIV:
-        case OP_MOD:
-            // Opcodes that have been reenabled.
-            if ((flags & SCRIPT_ENABLE_MONOLITH_OPCODES) == 0) {
-                return true;
-            }
-
         default:
             break;
     }

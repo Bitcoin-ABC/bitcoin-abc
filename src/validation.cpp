@@ -1003,10 +1003,6 @@ static bool AcceptToMemoryPoolWorker(
 
         // Set extraFlags as a set of flags that needs to be activated.
         uint32_t extraFlags = SCRIPT_VERIFY_NONE;
-        if (IsMonolithEnabled(config, chainActive.Tip())) {
-            extraFlags |= SCRIPT_ENABLE_MONOLITH_OPCODES;
-        }
-
         if (IsReplayProtectionEnabledForCurrentBlock(config)) {
             extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
         }
@@ -1606,9 +1602,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         } else if (!check()) {
             const bool hasNonMandatoryFlags =
                 (flags & STANDARD_NOT_MANDATORY_VERIFY_FLAGS) != 0;
-            const bool doesNotHaveMonolith =
-                (flags & SCRIPT_ENABLE_MONOLITH_OPCODES) == 0;
-            if (hasNonMandatoryFlags || doesNotHaveMonolith) {
+            if (hasNonMandatoryFlags) {
                 // Check whether the failure was caused by a non-mandatory
                 // script verification check, such as non-standard DER encodings
                 // or non-null dummy arguments; if so, don't trigger DoS
@@ -1619,11 +1613,10 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                 // strictly additive change and we would not like to ban some of
                 // our peer that are ahead of us and are considering the fork
                 // as activated.
-                CScriptCheck check2(
-                    scriptPubKey, amount, tx, i,
-                    (flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS) |
-                        SCRIPT_ENABLE_MONOLITH_OPCODES,
-                    sigCacheStore, txdata);
+                CScriptCheck check2(scriptPubKey, amount, tx, i,
+                                    flags &
+                                        ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS,
+                                    sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
                         false, REJECT_NONSTANDARD,
@@ -1988,11 +1981,6 @@ static uint32_t GetBlockScriptFlags(const Config &config,
     if (IsDAAEnabled(config, pChainTip)) {
         flags |= SCRIPT_VERIFY_LOW_S;
         flags |= SCRIPT_VERIFY_NULLFAIL;
-    }
-
-    // The monolith HF enable a set of opcodes.
-    if (IsMonolithEnabled(config, pChainTip)) {
-        flags |= SCRIPT_ENABLE_MONOLITH_OPCODES;
     }
 
     // We make sure this node will have replay protection during the next hard
