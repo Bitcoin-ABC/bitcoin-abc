@@ -394,7 +394,11 @@ public:
 
     int64_t GetBlockTimeMax() const { return int64_t(nTimeMax); }
 
-    int64_t GetHeaderTimeReceived() const { return nTimeReceived; }
+    int64_t GetHeaderReceivedTime() const { return nTimeReceived; }
+
+    int64_t GetReceivedTimeDiff() const {
+        return GetHeaderReceivedTime() - GetBlockTime();
+    }
 
     enum { nMedianTimeSpan = 11 };
 
