@@ -909,7 +909,6 @@ static bool AcceptToMemoryPoolWorker(
                               chainActive.Height(), inChainInputValue,
                               fSpendsCoinbase, nSigOpsCount, lp);
         unsigned int nSize = entry.GetTxSize();
-        size_t feeSize = tx.GetBillableSize();
 
         // Check that the transaction doesn't have an excessive number of
         // sigops, making it impossible to mine. Since the coinbase transaction
@@ -927,7 +926,7 @@ static bool AcceptToMemoryPoolWorker(
             pool.GetMinFee(
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                     1000000)
-                .GetFee(feeSize);
+                .GetFee(nSize);
         if (mempoolRejectFee > Amount(0) && nModifiedFees < mempoolRejectFee) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "mempool min fee not met", false,
@@ -935,7 +934,7 @@ static bool AcceptToMemoryPoolWorker(
         }
 
         if (gArgs.GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) &&
-            nModifiedFees < minRelayTxFee.GetFee(feeSize) &&
+            nModifiedFees < minRelayTxFee.GetFee(nSize) &&
             !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
             // Require that free transactions have sufficient priority to be
             // mined in the next block.
@@ -947,7 +946,7 @@ static bool AcceptToMemoryPoolWorker(
         // This mitigates 'penny-flooding' -- sending thousands of free
         // transactions just to be annoying or make others' transactions take
         // longer to confirm.
-        if (fLimitFree && nModifiedFees < minRelayTxFee.GetFee(feeSize)) {
+        if (fLimitFree && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
             static CCriticalSection csFreeLimiter;
             static double dFreeCount;
             static int64_t nLastTime;
@@ -960,9 +959,6 @@ static bool AcceptToMemoryPoolWorker(
             nLastTime = nNow;
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
-
-            // NOTE: Use the actual size here, and not the fee size since this
-            // is counting real size for the rate limiter.
             if (dFreeCount + nSize >=
                 gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 *
                     1000) {
