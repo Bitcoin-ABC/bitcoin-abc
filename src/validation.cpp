@@ -612,6 +612,23 @@ bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
     return IsDAAEnabled(config, pindexPrev->nHeight);
 }
 
+static bool IsMagneticAnomalyEnabled(const Config &config,
+                                     int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetArg("-magneticanomalyactivationtime",
+                                           config.GetChainParams()
+                                               .GetConsensus()
+                                               .magneticAnomalyActivationTime);
+}
+
+bool IsMagneticAnomalyEnabled(const Config &config,
+                              const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsMagneticAnomalyEnabled(config, pindexPrev->GetMedianTimePast());
+}
+
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
@@ -2136,6 +2153,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     const uint32_t flags = GetBlockScriptFlags(config, pindex->pprev);
+    const bool fIsMagneticAnomalyEnabled =
+        IsMagneticAnomalyEnabled(config, pindex->pprev);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
@@ -2174,6 +2193,9 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         if (tx.IsCoinBase()) {
             // We've already checked for sigops count before P2SH in CheckBlock.
             nSigOpsCount += GetSigOpCountWithoutP2SH(tx);
+        }
+
+        if (fIsMagneticAnomalyEnabled || tx.IsCoinBase()) {
             AddCoins(view, tx, pindex->nHeight);
         }
     }
@@ -2237,7 +2259,10 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
         blockundo.vtxundo.push_back(CTxUndo());
         SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
-        AddCoins(view, tx, pindex->nHeight);
+
+        if (!fIsMagneticAnomalyEnabled) {
+            AddCoins(view, tx, pindex->nHeight);
+        }
     }
 
     int64_t nTime3 = GetTimeMicros();
