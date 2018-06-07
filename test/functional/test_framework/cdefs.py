@@ -11,7 +11,49 @@ framework.
 import os
 import re
 
-from test_framework.util import get_srcdir
+
+def get_srcdir(calling_script=None):
+    """
+    Try to find out the base folder containing the 'src' folder.
+    If SRCDIR is set it does a sanity check and returns that.
+    Otherwise it goes on a search and rescue mission.
+
+    Returns None if it cannot find a suitable folder.
+    """
+    def contains_src(path_to_check):
+        if not path_to_check:
+            return False
+        else:
+            cand_path = os.path.join(path_to_check, 'src')
+            return os.path.exists(cand_path) and os.path.isdir(cand_path)
+
+    srcdir = os.environ.get('SRCDIR', '')
+    if contains_src(srcdir):
+        return srcdir
+
+    # If we have a caller, try to guess from its location where the
+    # top level might be.
+    if calling_script:
+        caller_basedir = os.path.dirname(
+            os.path.dirname(os.path.dirname(calling_script)))
+        if caller_basedir != '' and contains_src(os.path.abspath(caller_basedir)):
+            return os.path.abspath(caller_basedir)
+
+    # Try to work it based out on main module
+    # We might expect the caller to be rpc-tests.py or a test script
+    # itself.
+    import sys
+    mainmod = sys.modules['__main__']
+    mainmod_path = getattr(mainmod, '__file__', '')
+    if mainmod_path and mainmod_path.endswith('.py'):
+        maybe_top = os.path.dirname(
+            os.path.dirname(os.path.dirname(mainmod_path)))
+        if contains_src(os.path.abspath(maybe_top)):
+            return os.path.abspath(maybe_top)
+
+    # No luck, give up.
+    return None
+
 
 # Slurp in consensus.h contents
 _consensus_h_fh = open(os.path.join(get_srcdir(), 'src', 'consensus',
