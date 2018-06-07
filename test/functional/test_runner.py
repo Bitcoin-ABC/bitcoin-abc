@@ -130,12 +130,12 @@ class TestCase():
         self.failfast_event = failfast_event
         self.flags = flags
 
-    def run(self, portseed_offset):
+    def run(self):
         if self.failfast_event.is_set():
             return TestResult(self.test_num, self.test_case,
                               "", "Skipped", 0, "", "")
 
-        portseed = self.test_num + portseed_offset
+        portseed = self.test_num
         portseed_arg = ["--portseed={}".format(portseed)]
         log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
         log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
@@ -447,10 +447,6 @@ def execute_test_processes(
     failfast_event = threading.Event()
     test_results = []
     poll_timeout = 10  # seconds
-    # In case there is a graveyard of zombie bitcoinds, we can apply a
-    # pseudorandom offset to hopefully jump over them.
-    # (625 is PORT_RANGE/MAX_NODES)
-    portseed_offset = int(time.time() * 1000) % 625
 
     ##
     # Define some helper functions we will need for threading.
@@ -535,7 +531,7 @@ def execute_test_processes(
             # Signal that the test is starting to inform the poor waiting
             # programmer
             update_queue.put(test)
-            result = test.run(portseed_offset)
+            result = test.run()
             update_queue.put(result)
             job_queue.task_done()
 
