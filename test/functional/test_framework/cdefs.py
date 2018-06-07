@@ -12,7 +12,7 @@ import os
 import re
 
 
-def get_srcdir(calling_script=None):
+def get_srcdir():
     """
     Try to find out the base folder containing the 'src' folder.
     If SRCDIR is set it does a sanity check and returns that.
@@ -31,25 +31,16 @@ def get_srcdir(calling_script=None):
     if contains_src(srcdir):
         return srcdir
 
-    # If we have a caller, try to guess from its location where the
-    # top level might be.
-    if calling_script:
-        caller_basedir = os.path.dirname(
-            os.path.dirname(os.path.dirname(calling_script)))
-        if caller_basedir != '' and contains_src(os.path.abspath(caller_basedir)):
-            return os.path.abspath(caller_basedir)
-
     # Try to work it based out on main module
-    # We might expect the caller to be rpc-tests.py or a test script
-    # itself.
     import sys
     mainmod = sys.modules['__main__']
     mainmod_path = getattr(mainmod, '__file__', '')
     if mainmod_path and mainmod_path.endswith('.py'):
-        maybe_top = os.path.dirname(
-            os.path.dirname(os.path.dirname(mainmod_path)))
-        if contains_src(os.path.abspath(maybe_top)):
-            return os.path.abspath(maybe_top)
+        maybe_top = mainmod_path
+        while maybe_top != '/':
+            maybe_top = os.path.abspath(os.path.dirname(maybe_top))
+            if contains_src(maybe_top):
+                return maybe_top
 
     # No luck, give up.
     return None
