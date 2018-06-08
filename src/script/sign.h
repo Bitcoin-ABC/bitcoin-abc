@@ -102,15 +102,6 @@ bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType);
 
-/**
- * Combine two script signatures using a generic signature checker,
- * intelligently, possibly with OP_0 placeholders.
- */
-SignatureData CombineSignatures(const CScript &scriptPubKey,
-                                const BaseSignatureChecker &checker,
-                                const SignatureData &scriptSig1,
-                                const SignatureData &scriptSig2);
-
 /** Extract signature data from a transaction input, and insert it. */
 SignatureData DataFromTransaction(const CMutableTransaction &tx,
                                   unsigned int nIn, const CTxOut &txout);

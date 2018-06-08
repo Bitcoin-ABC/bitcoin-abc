@@ -499,6 +499,19 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
     threadGroup.join_all();
 }
 
+SignatureData CombineSignatures(const CMutableTransaction &input1,
+                                const CMutableTransaction &input2,
+                                const CTransactionRef tx) {
+    SignatureData sigdata;
+    sigdata = DataFromTransaction(input1, 0, tx->vout[0]);
+    sigdata.MergeSignatureData(DataFromTransaction(input2, 0, tx->vout[0]));
+    ProduceSignature(
+        DUMMY_SIGNING_PROVIDER,
+        MutableTransactionSignatureCreator(&input1, 0, tx->vout[0].nValue),
+        tx->vout[0].scriptPubKey, sigdata);
+    return sigdata;
+}
+
 BOOST_AUTO_TEST_CASE(test_witness) {
     CBasicKeyStore keystore, keystore2;
     CKey key1, key2, key3, key1L, key2L;
@@ -594,13 +607,7 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CreateCreditAndSpend(keystore2, scriptMulti, output2, input2, false);
     CheckWithFlag(output2, input2, 0, false);
     BOOST_CHECK(*output1 == *output2);
-    UpdateInput(
-        input1.vin[0],
-        CombineSignatures(output1->vout[0].scriptPubKey,
-                          MutableTransactionSignatureChecker(
-                              &input1, 0, output1->vout[0].nValue),
-                          DataFromTransaction(input1, 0, output1->vout[0]),
-                          DataFromTransaction(input2, 0, output1->vout[0])));
+    UpdateInput(input1.vin[0], CombineSignatures(input1, input2, output1));
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 
     // P2SH 2-of-2 multisig
@@ -615,13 +622,7 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, 0, true);
     CheckWithFlag(output2, input2, SCRIPT_VERIFY_P2SH, false);
     BOOST_CHECK(*output1 == *output2);
-    UpdateInput(
-        input1.vin[0],
-        CombineSignatures(output1->vout[0].scriptPubKey,
-                          MutableTransactionSignatureChecker(
-                              &input1, 0, output1->vout[0].nValue),
-                          DataFromTransaction(input1, 0, output1->vout[0]),
-                          DataFromTransaction(input2, 0, output1->vout[0])));
+    UpdateInput(input1.vin[0], CombineSignatures(input1, input2, output1));
     CheckWithFlag(output1, input1, SCRIPT_VERIFY_P2SH, true);
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 }
