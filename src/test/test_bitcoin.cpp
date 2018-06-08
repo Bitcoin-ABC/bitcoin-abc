@@ -129,7 +129,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // Deterministic randomness for tests.
     g_connman = std::unique_ptr<CConnman>(new CConnman(config, 0x1337, 0x1337));
     connman = g_connman.get();
-    peerLogic.reset(new PeerLogicValidation(connman, scheduler));
+    peerLogic.reset(
+        new PeerLogicValidation(connman, scheduler, /*enable_bip61=*/true));
 }
 
 TestingSetup::~TestingSetup() {

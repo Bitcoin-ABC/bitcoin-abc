@@ -39,15 +39,52 @@
 #error "Bitcoin cannot be compiled without assertions."
 #endif
 
-// Used only to inform the wallet of when we last received a block.
-std::atomic<int64_t> nTimeBestReceived(0);
-bool g_enable_bip61 = DEFAULT_ENABLE_BIP61;
+/** Expiration time for orphan transactions in seconds */
+static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
+/** Minimum time between orphan transactions expire time checks in seconds */
+static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
+/**
+ * Headers download timeout expressed in microseconds.
+ * Timeout = base + per_header * (expected number of headers)
+ */
+// 15 minutes
+static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_BASE = 15 * 60 * 1000000;
+// 1ms/header
+static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER = 1000;
+/**
+ * Protect at least this many outbound peers from disconnection due to
+ * slow/behind headers chain.
+ */
+static constexpr int32_t MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT = 4;
+/**
+ * Timeout for (unprotected) outbound peers to sync to our chainwork, in
+ * seconds.
+ */
+// 20 minutes
+static constexpr int64_t CHAIN_SYNC_TIMEOUT = 20 * 60;
+/** How frequently to check for stale tips, in seconds */
+// 10 minutes
+static constexpr int64_t STALE_CHECK_INTERVAL = 10 * 60;
+/**
+ * How frequently to check for extra outbound peers and disconnect, in seconds.
+ */
+static constexpr int64_t EXTRA_PEER_CHECK_INTERVAL = 45;
+/**
+ * Minimum time an outbound-peer-eviction candidate must be connected for, in
+ * order to evict, in seconds.
+ */
+static constexpr int64_t MINIMUM_CONNECT_TIME = 30;
+/** SHA256("main address relay")[0:8] */
+static constexpr uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
+/// Age after which a stale block will no longer be served if requested as
+/// protection against fingerprinting. Set to one month, denominated in seconds.
+static constexpr int STALE_RELAY_AGE_LIMIT = 30 * 24 * 60 * 60;
+/// Age after which a block is considered historical for purposes of rate
+/// limiting block relay. Set to one week, denominated in seconds.
+static constexpr int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
 
-struct IteratorComparator {
-    template <typename I> bool operator()(const I &a, const I &b) {
-        return &(*a) < &(*b);
-    }
-};
+/// How many non standard orphan do we consider from a node before ignoring it.
+static constexpr uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
 
 struct COrphanTx {
     // When modifying, adapt the copy of this definition in tests/DoS_tests.
@@ -58,28 +95,8 @@ struct COrphanTx {
 
 static CCriticalSection g_cs_orphans;
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
-std::map<COutPoint,
-         std::set<std::map<uint256, COrphanTx>::iterator, IteratorComparator>>
-    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
+
 void EraseOrphansFor(NodeId peer);
-
-static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
-static std::vector<std::pair<uint256, CTransactionRef>>
-    vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
-
-// SHA256("main address relay")[0:8]
-static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
-
-/// Age after which a stale block will no longer be served if requested as
-/// protection against fingerprinting. Set to one month, denominated in seconds.
-static const int STALE_RELAY_AGE_LIMIT = 30 * 24 * 60 * 60;
-
-/// Age after which a block is considered historical for purposes of rate
-/// limiting block relay. Set to one week, denominated in seconds.
-static const int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
-
-// How many non standard orphan do we consider from a node before ignoring it.
-static const uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
 
 // Internal stuff
 namespace {
@@ -154,10 +171,25 @@ MapRelay mapRelay GUARDED_BY(cs_main);
  */
 std::deque<std::pair<int64_t, MapRelay::iterator>>
     vRelayExpiration GUARDED_BY(cs_main);
+
+// Used only to inform the wallet of when we last received a block
+std::atomic<int64_t> nTimeBestReceived(0);
+
+struct IteratorComparator {
+    template <typename I> bool operator()(const I &a, const I &b) const {
+        return &(*a) < &(*b);
+    }
+};
+std::map<COutPoint,
+         std::set<std::map<uint256, COrphanTx>::iterator, IteratorComparator>>
+    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
+
+static size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
+static std::vector<std::pair<uint256, CTransactionRef>>
+    vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
 } // namespace
 
 namespace {
-
 struct CBlockReject {
     uint8_t chRejectCode;
     std::string strRejectReason;
@@ -959,8 +991,11 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
 }
 
 PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn,
-                                         CScheduler &scheduler)
-    : connman(connmanIn), m_stale_tip_check_time(0) {
+                                         CScheduler &scheduler,
+                                         bool enable_bip61)
+    : connman(connmanIn), m_stale_tip_check_time(0),
+      m_enable_bip61(enable_bip61) {
+
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -1801,7 +1836,8 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
 static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
                            int64_t nTimeReceived, CConnman *connman,
-                           const std::atomic<bool> &interruptMsgProc) {
+                           const std::atomic<bool> &interruptMsgProc,
+                           bool enable_bip61) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
@@ -1855,7 +1891,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     else if (strCommand == NetMsgType::VERSION) {
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) {
-            if (g_enable_bip61) {
+            if (enable_bip61) {
                 connman->PushMessage(
                     pfrom,
                     CNetMsgMaker(INIT_PROTO_VERSION)
@@ -1894,7 +1930,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      "(%08x offered, %08x expected); disconnecting\n",
                      pfrom->GetId(), nServices,
                      GetDesirableServiceFlags(nServices));
-            if (g_enable_bip61) {
+            if (enable_bip61) {
                 connman->PushMessage(
                     pfrom,
                     CNetMsgMaker(INIT_PROTO_VERSION)
@@ -1912,7 +1948,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             LogPrint(BCLog::NET,
                      "peer=%d using obsolete version %i; disconnecting\n",
                      pfrom->GetId(), nVersion);
-            if (g_enable_bip61) {
+            if (enable_bip61) {
                 connman->PushMessage(
                     pfrom,
                     CNetMsgMaker(INIT_PROTO_VERSION)
@@ -2688,7 +2724,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      tx.GetHash().ToString(), pfrom->GetId(),
                      FormatStateMessage(state));
             // Never send AcceptToMemoryPool's internal codes over P2P.
-            if (g_enable_bip61 && state.GetRejectCode() > 0 &&
+            if (enable_bip61 && state.GetRejectCode() > 0 &&
                 state.GetRejectCode() < REJECT_INTERNAL) {
                 connman->PushMessage(
                     pfrom, msgMaker.Make(NetMsgType::REJECT, strCommand,
@@ -2921,7 +2957,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
                                   blockTxnMsg, nTimeReceived, connman,
-                                  interruptMsgProc);
+                                  interruptMsgProc, enable_bip61);
         }
 
         if (fRevertToHeaderProcessing) {
@@ -3341,11 +3377,12 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     return true;
 }
 
-static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman) {
+static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman,
+                                        bool enable_bip61) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode->GetId());
 
-    if (g_enable_bip61) {
+    if (enable_bip61) {
         for (const CBlockReject &reject : state.rejects) {
             connman->PushMessage(
                 pnode,
@@ -3478,15 +3515,16 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     bool fRet = false;
     try {
         fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
-                              connman, interruptMsgProc);
+                              connman, interruptMsgProc, m_enable_bip61);
         if (interruptMsgProc) {
             return false;
         }
+
         if (!pfrom->vRecvGetData.empty()) {
             fMoreWork = true;
         }
     } catch (const std::ios_base::failure &e) {
-        if (g_enable_bip61) {
+        if (m_enable_bip61) {
             connman->PushMessage(
                 pfrom,
                 CNetMsgMaker(INIT_PROTO_VERSION)
@@ -3525,7 +3563,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     }
 
     LOCK(cs_main);
-    SendRejectsAndCheckIfBanned(pfrom, connman);
+    SendRejectsAndCheckIfBanned(pfrom, connman, m_enable_bip61);
 
     return fMoreWork;
 }
@@ -3790,7 +3828,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         return true;
     }
 
-    if (SendRejectsAndCheckIfBanned(pto, connman)) {
+    if (SendRejectsAndCheckIfBanned(pto, connman, m_enable_bip61)) {
         return true;
     }
     CNodeState &state = *State(pto->GetId());

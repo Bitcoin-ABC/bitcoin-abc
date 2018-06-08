@@ -26,6 +26,7 @@
 extern bool AddOrphanTx(const CTransactionRef &tx, NodeId peer);
 extern void EraseOrphansFor(NodeId peer);
 extern unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans);
+
 struct COrphanTx {
     CTransactionRef tx;
     NodeId fromPeer;
