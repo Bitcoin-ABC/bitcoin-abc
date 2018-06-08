@@ -56,6 +56,8 @@ struct Params {
     int daaHeight;
     /** Unix time used for MTP activation of Nov 15 2018, hardfork */
     int magneticAnomalyActivationTime;
+    /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
+    int greatWallActivationTime;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

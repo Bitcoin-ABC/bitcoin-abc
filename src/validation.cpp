@@ -600,12 +600,16 @@ static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
     return IsMagneticAnomalyEnabled(config, chainActive.Tip());
 }
 
+// Command-line argument "-replayprotectionactivationtime=<timestamp>" will
+// cause the node to switch to replay protected SigHash ForkID value when the
+// median timestamp of the previous 11 blocks is greater than or equal to
+// <timestamp>. Defaults to the pre-defined timestamp when not set.
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
                                            config.GetChainParams()
                                                .GetConsensus()
-                                               .magneticAnomalyActivationTime);
+                                               .greatWallActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Config &config,
