@@ -66,7 +66,7 @@ void EnterCritical(const char *pszName, const char *pszFile, int nLine,
 void LeaveCritical();
 std::string LocksHeld();
 void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
-                            void *cs);
+                            void *cs) ASSERT_EXCLUSIVE_LOCK(cs);
 void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
                                int nLine, void *cs);
 void DeleteLock(void *cs);
@@ -76,7 +76,7 @@ static inline void EnterCritical(const char *pszName, const char *pszFile,
 static inline void LeaveCritical() {}
 static inline void AssertLockHeldInternal(const char *pszName,
                                           const char *pszFile, int nLine,
-                                          void *cs) {}
+                                          void *cs) ASSERT_EXCLUSIVE_LOCK(cs) {}
 static inline void AssertLockNotHeldInternal(const char *pszName,
                                              const char *pszFile, int nLine,
                                              void *cs) {}

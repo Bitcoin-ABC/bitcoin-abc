@@ -54,6 +54,7 @@ struct COrphanTx {
     NodeId fromPeer;
     int64_t nTimeExpire;
 };
+
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(cs_main);
 std::map<COutPoint,
          std::set<std::map<uint256, COrphanTx>::iterator, IteratorComparator>>
@@ -70,20 +71,20 @@ static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
 // Internal stuff
 namespace {
 /** Number of nodes with fSyncStarted. */
-int nSyncStarted = 0;
+int nSyncStarted GUARDED_BY(cs_main) = 0;
 
 /**
  * Sources of received blocks, saved to be able to send them reject messages or
- * ban them when processing happens afterwards. Protected by cs_main.
+ * ban them when processing happens afterwards.
  * Set mapBlockSource[hash].second to false if the node should not be punished
  * if the block is invalid.
  */
-std::map<uint256, std::pair<NodeId, bool>> mapBlockSource;
+std::map<uint256, std::pair<NodeId, bool>> mapBlockSource GUARDED_BY(cs_main);
 
 /**
  * Filter for transactions that were recently rejected by AcceptToMemoryPool.
  * These are not rerequested until the chain tip changes, at which point the
- * entire filter is reset. Protected by cs_main.
+ * entire filter is reset.
  *
  * Without this filter we'd be re-requesting txs from each of our peers,
  * increasing bandwidth consumption considerably. For instance, with 100 peers,
@@ -98,12 +99,11 @@ std::map<uint256, std::pair<NodeId, bool>> mapBlockSource;
  *
  * Memory used: 1.3 MB
  */
-std::unique_ptr<CRollingBloomFilter> recentRejects;
-uint256 hashRecentRejectsChainTip;
+std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
+uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
 /**
  * Blocks that are in flight, and that are in the queue to be downloaded.
- * Protected by cs_main.
  */
 struct QueuedBlock {
     uint256 hash;
@@ -115,16 +115,16 @@ struct QueuedBlock {
     std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
 };
 std::map<uint256, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
-    mapBlocksInFlight;
+    mapBlocksInFlight GUARDED_BY(cs_main);
 
 /** Stack of nodes which we have set to announce using compact blocks */
 std::list<NodeId> lNodesAnnouncingHeaderAndIDs;
 
 /** Number of preferable block download peers. */
-int nPreferredDownload = 0;
+int nPreferredDownload GUARDED_BY(cs_main) = 0;
 
 /** Number of peers from which we're downloading blocks. */
-int nPeersWithValidatedDownloads = 0;
+int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
 
 /** Number of outbound peers with m_chain_sync.m_protect. */
 int g_outbound_peers_with_protect_from_disconnect = 0;
@@ -132,14 +132,15 @@ int g_outbound_peers_with_protect_from_disconnect = 0;
 /** When our tip was last updated. */
 int64_t g_last_tip_update = 0;
 
-/** Relay map, protected by cs_main. */
+/** Relay map. */
 typedef std::map<uint256, CTransactionRef> MapRelay;
-MapRelay mapRelay;
+MapRelay mapRelay GUARDED_BY(cs_main);
 /**
  * Expiration-time ordered list of (expire time, relay map entry) pairs,
  * protected by cs_main).
  */
-std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
+std::deque<std::pair<int64_t, MapRelay::iterator>>
+    vRelayExpiration GUARDED_BY(cs_main);
 } // namespace
 
 namespace {
@@ -274,11 +275,10 @@ struct CNodeState {
     }
 };
 
-/** Map maintaining per-node state. Requires cs_main. */
-static std::map<NodeId, CNodeState> mapNodeState;
+/** Map maintaining per-node state. */
+static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
 
-// Requires cs_main.
-static CNodeState *State(NodeId pnode) {
+static CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
     if (it == mapNodeState.end()) {
         return nullptr;
@@ -287,7 +287,8 @@ static CNodeState *State(NodeId pnode) {
     return &it->second;
 }
 
-static void UpdatePreferredDownload(CNode *node, CNodeState *state) {
+static void UpdatePreferredDownload(CNode *node, CNodeState *state)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     nPreferredDownload -= state->fPreferredDownload;
 
     // Whether this node should be marked as a preferred download node.
@@ -330,11 +331,11 @@ static void PushNodeVersion(const Config &config, CNode *pnode,
     }
 }
 
-// Requires cs_main.
 // Returns a bool indicating whether we requested this block.
 // Also used if a block was /not/ received and timed out or started with another
 // peer.
-static bool MarkBlockAsReceived(const uint256 &hash) {
+static bool MarkBlockAsReceived(const uint256 &hash)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<uint256,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
@@ -363,15 +364,15 @@ static bool MarkBlockAsReceived(const uint256 &hash) {
     return false;
 }
 
-// Requires cs_main.
 // returns false, still setting pit, if the block was already in flight from the
-// same peer pit will only be valid as long as the same cs_main lock is being
-// held.
+// same peer
+// pit will only be valid as long as the same cs_main lock is being held.
 static bool
 MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
                     const Consensus::Params &consensusParams,
                     const CBlockIndex *pindex = nullptr,
-                    std::list<QueuedBlock>::iterator **pit = nullptr) {
+                    std::list<QueuedBlock>::iterator **pit = nullptr)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -418,7 +419,8 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
 }
 
 /** Check whether the last unknown block a peer advertised is not yet known. */
-static void ProcessBlockAvailability(NodeId nodeid) {
+static void ProcessBlockAvailability(NodeId nodeid)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -437,7 +439,8 @@ static void ProcessBlockAvailability(NodeId nodeid) {
 }
 
 /** Update tracking information about which blocks a peer is assumed to have. */
-static void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
+static void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -457,6 +460,12 @@ static void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
     }
 }
 
+/**
+ * When a peer sends us a valid block, instruct it to announce blocks to us
+ * using CMPCTBLOCK if possible by adding its nodeid to the end of
+ * lNodesAnnouncingHeaderAndIDs, and keeping that list under a certain size by
+ * removing the first element if necessary.
+ */
 static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
                                                  CConnman *connman) {
     AssertLockHeld(cs_main);
@@ -477,6 +486,7 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
         }
     }
     connman->ForNode(nodeid, [&connman](CNode *pfrom) {
+        AssertLockHeld(cs_main);
         bool fAnnounceUsingCMPCTBLOCK = false;
         uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
@@ -485,6 +495,7 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
             connman->ForNode(lNodesAnnouncingHeaderAndIDs.front(),
                              [&connman, fAnnounceUsingCMPCTBLOCK,
                               nCMPCTBLOCKVersion](CNode *pnodeStop) {
+                                 AssertLockHeld(cs_main);
                                  connman->PushMessage(
                                      pnodeStop,
                                      CNetMsgMaker(pnodeStop->GetSendVersion())
@@ -506,7 +517,8 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
     });
 }
 
-static bool TipMayBeStale(const Consensus::Params &consensusParams) {
+static bool TipMayBeStale(const Consensus::Params &consensusParams)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     if (g_last_tip_update == 0) {
         g_last_tip_update = GetTime();
@@ -516,14 +528,14 @@ static bool TipMayBeStale(const Consensus::Params &consensusParams) {
            mapBlocksInFlight.empty();
 }
 
-// Requires cs_main
-static bool CanDirectFetch(const Consensus::Params &consensusParams) {
+static bool CanDirectFetch(const Consensus::Params &consensusParams)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     return chainActive.Tip()->GetBlockTime() >
            GetAdjustedTime() - consensusParams.nPowTargetSpacing * 20;
 }
 
-// Requires cs_main
-static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
+static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (state->pindexBestKnownBlock &&
         pindex == state->pindexBestKnownBlock->GetAncestor(pindex->nHeight)) {
         return true;
@@ -542,7 +554,8 @@ static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
 static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
                                      std::vector<const CBlockIndex *> &vBlocks,
                                      NodeId &nodeStaller,
-                                     const Consensus::Params &consensusParams) {
+                                     const Consensus::Params &consensusParams)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (count == 0) {
         return;
     }
@@ -870,8 +883,11 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     return nEvicted;
 }
 
-// Requires cs_main.
-void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
+/**
+ * Mark a misbehaving peer to be banned depending upon the value of `-banscore`.
+ */
+void Misbehaving(NodeId pnode, int howmuch, const std::string &reason)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (howmuch == 0) {
         return;
     }
@@ -968,10 +984,11 @@ void PeerLogicValidation::BlockConnected(
 }
 
 static CCriticalSection cs_most_recent_block;
-static std::shared_ptr<const CBlock> most_recent_block;
+static std::shared_ptr<const CBlock>
+    most_recent_block GUARDED_BY(cs_most_recent_block);
 static std::shared_ptr<const CBlockHeaderAndShortTxIDs>
-    most_recent_compact_block;
-static uint256 most_recent_block_hash;
+    most_recent_compact_block GUARDED_BY(cs_most_recent_block);
+static uint256 most_recent_block_hash GUARDED_BY(cs_most_recent_block);
 
 void PeerLogicValidation::NewPoWValidBlock(
     const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &pblock) {
@@ -998,6 +1015,8 @@ void PeerLogicValidation::NewPoWValidBlock(
 
     connman->ForEachNode([this, &pcmpctblock, pindex, &msgMaker,
                           &hashBlock](CNode *pnode) {
+        AssertLockHeld(cs_main);
+
         // TODO: Avoid the repeated-serialization here
         if (pnode->nVersion < INVALID_CB_NO_BAN_VERSION || pnode->fDisconnect) {
             return;
@@ -3462,6 +3481,8 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     LOCK(cs_main);
 
     connman->ForEachNode([&](CNode *pnode) {
+        AssertLockHeld(cs_main);
+
         // Ignore non-outbound peers, or nodes marked for disconnect already
         if (!IsOutboundDisconnectionCandidate(pnode) || pnode->fDisconnect) {
             return;
@@ -3488,6 +3509,8 @@ void PeerLogicValidation::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     }
 
     bool disconnected = connman->ForNode(worst_peer, [&](CNode *pnode) {
+        AssertLockHeld(cs_main);
+
         // Only disconnect a peer that has been connected to us for some
         // reasonable fraction of our check-frequency, to give it time for new
         // information to have arrived.
