@@ -9,7 +9,7 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
-std::string FormatMoney(const Amount &amt) {
+std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
     // number formatting.
     int64_t n = amt.GetSatoshis();
@@ -20,11 +20,16 @@ std::string FormatMoney(const Amount &amt) {
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
-    for (int i = str.size() - 1; (str[i] == '0' && isdigit(str[i - 2])); --i)
+    for (int i = str.size() - 1; (str[i] == '0' && isdigit(str[i - 2])); --i) {
         ++nTrim;
-    if (nTrim) str.erase(str.size() - nTrim, nTrim);
+    }
+    if (nTrim) {
+        str.erase(str.size() - nTrim, nTrim);
+    }
 
-    if (n < 0) str.insert((unsigned int)0, 1, '-');
+    if (n < 0) {
+        str.insert((unsigned int)0, 1, '-');
+    }
     return str;
 }
 
@@ -36,8 +41,9 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     std::string strWhole;
     int64_t nUnits = 0;
     const char *p = pszIn;
-    while (isspace(*p))
+    while (isspace(*p)) {
         p++;
+    }
     for (; *p; p++) {
         if (*p == '.') {
             p++;
@@ -48,15 +54,26 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
             }
             break;
         }
-        if (isspace(*p)) break;
-        if (!isdigit(*p)) return false;
+        if (isspace(*p)) {
+            break;
+        }
+        if (!isdigit(*p)) {
+            return false;
+        }
         strWhole.insert(strWhole.end(), *p);
     }
-    for (; *p; p++)
-        if (!isspace(*p)) return false;
+    for (; *p; p++) {
+        if (!isspace(*p)) {
+            return false;
+        }
+    }
     // guard against 63 bit overflow
-    if (strWhole.size() > 10) return false;
-    if (nUnits < 0 || nUnits > COIN.GetSatoshis()) return false;
+    if (strWhole.size() > 10) {
+        return false;
+    }
+    if (nUnits < 0 || nUnits > COIN.GetSatoshis()) {
+        return false;
+    }
     int64_t nWhole = atoi64(strWhole);
     Amount nValue = nWhole * COIN + Amount(nUnits);
 
