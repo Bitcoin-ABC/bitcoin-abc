@@ -36,6 +36,54 @@ bool MutableTransactionSignatureCreator::CreateSig(
     return true;
 }
 
+static bool GetCScript(const SigningProvider &provider,
+                       const SignatureData &sigdata, const CScriptID &scriptid,
+                       CScript &script) {
+    if (provider.GetCScript(scriptid, script)) {
+        return true;
+    }
+    // Look for scripts in SignatureData
+    if (CScriptID(sigdata.redeem_script) == scriptid) {
+        script = sigdata.redeem_script;
+        return true;
+    }
+    return false;
+}
+
+static bool GetPubKey(const SigningProvider &provider,
+                      const SignatureData &sigdata, const CKeyID &address,
+                      CPubKey &pubkey) {
+    if (provider.GetPubKey(address, pubkey)) {
+        return true;
+    }
+    // Look for pubkey in all partial sigs
+    const auto it = sigdata.signatures.find(address);
+    if (it != sigdata.signatures.end()) {
+        pubkey = it->second.first;
+        return true;
+    }
+    return false;
+}
+
+static bool CreateSig(const BaseSignatureCreator &creator,
+                      SignatureData &sigdata, const SigningProvider &provider,
+                      std::vector<uint8_t> &sig_out, const CKeyID &keyid,
+                      const CScript &scriptcode) {
+    const auto it = sigdata.signatures.find(keyid);
+    if (it != sigdata.signatures.end()) {
+        sig_out = it->second.second;
+        return true;
+    }
+    if (creator.CreateSig(provider, sig_out, keyid, scriptcode)) {
+        CPubKey pubkey;
+        GetPubKey(provider, sigdata, keyid, pubkey);
+        auto i = sigdata.signatures.emplace(keyid, SigPair(pubkey, sig_out));
+        assert(i.second);
+        return true;
+    }
+    return false;
+}
+
 /**
  * Sign scriptPubKey using signature made with creator.
  * Signatures are returned in scriptSigRet (or returns false if scriptPubKey
@@ -46,7 +94,7 @@ bool MutableTransactionSignatureCreator::CreateSig(
 static bool SignStep(const SigningProvider &provider,
                      const BaseSignatureCreator &creator,
                      const CScript &scriptPubKey, std::vector<valtype> &ret,
-                     txnouttype &whichTypeRet) {
+                     txnouttype &whichTypeRet, SignatureData &sigdata) {
     CScript scriptRet;
     uint160 h160;
     ret.clear();
@@ -62,16 +110,16 @@ static bool SignStep(const SigningProvider &provider,
         case TX_NULL_DATA:
             return false;
         case TX_PUBKEY:
-            if (!creator.CreateSig(provider, sig,
-                                   CPubKey(vSolutions[0]).GetID(),
-                                   scriptPubKey)) {
+            if (!CreateSig(creator, sigdata, provider, sig,
+                           CPubKey(vSolutions[0]).GetID(), scriptPubKey)) {
                 return false;
             }
             ret.push_back(std::move(sig));
             return true;
         case TX_PUBKEYHASH: {
             CKeyID keyID = CKeyID(uint160(vSolutions[0]));
-            if (!creator.CreateSig(provider, sig, keyID, scriptPubKey)) {
+            if (!CreateSig(creator, sigdata, provider, sig, keyID,
+                           scriptPubKey)) {
                 return false;
             }
             ret.push_back(std::move(sig));
@@ -81,7 +129,8 @@ static bool SignStep(const SigningProvider &provider,
             return true;
         }
         case TX_SCRIPTHASH:
-            if (provider.GetCScript(uint160(vSolutions[0]), scriptRet)) {
+            if (GetCScript(provider, sigdata, uint160(vSolutions[0]),
+                           scriptRet)) {
                 ret.push_back(
                     std::vector<uint8_t>(scriptRet.begin(), scriptRet.end()));
                 return true;
@@ -94,8 +143,8 @@ static bool SignStep(const SigningProvider &provider,
             for (size_t i = 1; i < vSolutions.size() - 1; ++i) {
                 CPubKey pubkey = CPubKey(vSolutions[i]);
                 if (ret.size() < required + 1 &&
-                    creator.CreateSig(provider, sig, pubkey.GetID(),
-                                      scriptPubKey)) {
+                    CreateSig(creator, sigdata, provider, sig, pubkey.GetID(),
+                              scriptPubKey)) {
                     ret.push_back(std::move(sig));
                 }
             }
@@ -134,7 +183,8 @@ bool ProduceSignature(const SigningProvider &provider,
 
     std::vector<valtype> result;
     txnouttype whichType;
-    bool solved = SignStep(provider, creator, fromPubKey, result, whichType);
+    bool solved =
+        SignStep(provider, creator, fromPubKey, result, whichType, sigdata);
     CScript subscript;
 
     if (solved && whichType == TX_SCRIPTHASH) {
@@ -142,8 +192,11 @@ bool ProduceSignature(const SigningProvider &provider,
         // scriptSig is the signatures from that and then the serialized
         // subscript:
         subscript = CScript(result[0].begin(), result[0].end());
+        sigdata.redeem_script = subscript;
+
         solved = solved &&
-                 SignStep(provider, creator, subscript, result, whichType) &&
+                 SignStep(provider, creator, subscript, result, whichType,
+                          sigdata) &&
                  whichType != TX_SCRIPTHASH;
         result.push_back(
             std::vector<uint8_t>(subscript.begin(), subscript.end()));
@@ -265,6 +318,21 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
 
 void UpdateInput(CTxIn &input, const SignatureData &data) {
     input.scriptSig = data.scriptSig;
+}
+
+void SignatureData::MergeSignatureData(SignatureData sigdata) {
+    if (complete) {
+        return;
+    }
+    if (sigdata.complete) {
+        *this = std::move(sigdata);
+        return;
+    }
+    if (redeem_script.empty() && !sigdata.redeem_script.empty()) {
+        redeem_script = sigdata.redeem_script;
+    }
+    signatures.insert(std::make_move_iterator(sigdata.signatures.begin()),
+                      std::make_move_iterator(sigdata.signatures.end()));
 }
 
 bool SignSignature(const SigningProvider &provider, const CScript &fromPubKey,
@@ -455,3 +523,4 @@ public:
 } // namespace
 
 const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR = DummySignatureCreator();
+const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();

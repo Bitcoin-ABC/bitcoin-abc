@@ -678,11 +678,6 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
                              prevPubKey, sigdata);
         }
 
-        // ... and merge in other signatures:
-        sigdata = CombineSignatures(
-            prevPubKey,
-            MutableTransactionSignatureChecker(&mergedTx, i, amount), sigdata,
-            DataFromTransaction(txv, i, coin.GetTxOut()));
         UpdateInput(txin, sigdata);
     }
 

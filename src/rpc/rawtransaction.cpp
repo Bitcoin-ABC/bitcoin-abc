@@ -804,20 +804,20 @@ static UniValue combinerawtransaction(const Config &config,
             throw JSONRPCError(RPC_VERIFY_ERROR,
                                "Input not found or already spent");
         }
-        const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const Amount &amount = coin.GetTxOut().nValue;
-
         SignatureData sigdata;
+
+        const CTxOut &txout = coin.GetTxOut();
 
         // ... and merge in other signatures:
         for (const CMutableTransaction &txv : txVariants) {
             if (txv.vin.size() > i) {
-                sigdata = CombineSignatures(
-                    prevPubKey,
-                    TransactionSignatureChecker(&txConst, i, amount), sigdata,
-                    DataFromTransaction(txv, i, coin.GetTxOut()));
+                sigdata.MergeSignatureData(DataFromTransaction(txv, i, txout));
             }
         }
+        ProduceSignature(
+            DUMMY_SIGNING_PROVIDER,
+            MutableTransactionSignatureCreator(&mergedTx, i, txout.nValue),
+            txout.scriptPubKey, sigdata);
 
         UpdateInput(txin, sigdata);
     }
@@ -992,9 +992,6 @@ UniValue SignTransaction(CMutableTransaction &mtx,
                                                                 sigHashType),
                              prevPubKey, sigdata);
         }
-        sigdata = CombineSignatures(
-            prevPubKey, TransactionSignatureChecker(&txConst, i, amount),
-            sigdata, DataFromTransaction(mtx, i, coin.GetTxOut()));
 
         UpdateInput(txin, sigdata);
 
