@@ -240,8 +240,7 @@ static bool rest_block(const Config &config, HTTPRequest *req,
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
         }
 
-        if (fHavePruned && !pblockindex->nStatus.hasData() &&
-            pblockindex->nTx > 0) {
+        if (IsBlockPruned(pblockindex)) {
             return RESTERR(req, HTTP_NOT_FOUND,
                            hashStr + " not available (pruned data)");
         }

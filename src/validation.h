@@ -742,4 +742,7 @@ bool DumpMempool(const CTxMemPool &pool);
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config, CTxMemPool &pool);
 
+//! Check whether the block associated with this index entry is pruned or not.
+bool IsBlockPruned(const CBlockIndex *pblockindex);
+
 #endif // BITCOIN_VALIDATION_H

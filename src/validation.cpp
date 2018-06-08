@@ -5754,6 +5754,11 @@ bool DumpMempool(const CTxMemPool &pool) {
     return true;
 }
 
+bool IsBlockPruned(const CBlockIndex *pblockindex) {
+    return (fHavePruned && !pblockindex->nStatus.hasData() &&
+            pblockindex->nTx > 0);
+}
+
 //! Guess how far we are in the verification process at the given block index
 //! require cs_main if pindex has not been validated yet (because nChainTx might
 //! be unset)
