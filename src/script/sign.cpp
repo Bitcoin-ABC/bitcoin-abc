@@ -37,36 +37,6 @@ bool TransactionSignatureCreator::CreateSig(const SigningProvider &provider,
     return true;
 }
 
-static bool Sign1(const SigningProvider &provider, const CKeyID &address,
-                  const BaseSignatureCreator &creator,
-                  const CScript &scriptCode, std::vector<valtype> &ret) {
-    std::vector<uint8_t> vchSig;
-    if (!creator.CreateSig(provider, vchSig, address, scriptCode)) {
-        return false;
-    }
-
-    ret.push_back(vchSig);
-    return true;
-}
-
-static bool SignN(const SigningProvider &provider,
-                  const std::vector<valtype> &multisigdata,
-                  const BaseSignatureCreator &creator,
-                  const CScript &scriptCode, std::vector<valtype> &ret) {
-    int nSigned = 0;
-    int nRequired = multisigdata.front()[0];
-    for (size_t i = 1; i < multisigdata.size() - 1 && nSigned < nRequired;
-         i++) {
-        const valtype &pubkey = multisigdata[i];
-        CKeyID keyID = CPubKey(pubkey).GetID();
-        if (Sign1(provider, keyID, creator, scriptCode, ret)) {
-            ++nSigned;
-        }
-    }
-
-    return nSigned == nRequired;
-}
-
 /**
  * Sign scriptPubKey using signature made with creator.
  * Signatures are returned in scriptSigRet (or returns false if scriptPubKey
@@ -81,29 +51,34 @@ static bool SignStep(const SigningProvider &provider,
     CScript scriptRet;
     uint160 h160;
     ret.clear();
+    std::vector<uint8_t> sig;
 
     std::vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions)) {
         return false;
     }
 
-    CKeyID keyID;
     switch (whichTypeRet) {
         case TX_NONSTANDARD:
         case TX_NULL_DATA:
             return false;
         case TX_PUBKEY:
-            keyID = CPubKey(vSolutions[0]).GetID();
-            return Sign1(provider, keyID, creator, scriptPubKey, ret);
-        case TX_PUBKEYHASH: {
-            keyID = CKeyID(uint160(vSolutions[0]));
-            if (!Sign1(provider, keyID, creator, scriptPubKey, ret)) {
+            if (!creator.CreateSig(provider, sig,
+                                   CPubKey(vSolutions[0]).GetID(),
+                                   scriptPubKey)) {
                 return false;
             }
-
-            CPubKey vch;
-            provider.GetPubKey(keyID, vch);
-            ret.push_back(ToByteVector(vch));
+            ret.push_back(std::move(sig));
+            return true;
+        case TX_PUBKEYHASH: {
+            CKeyID keyID = CKeyID(uint160(vSolutions[0]));
+            if (!creator.CreateSig(provider, sig, keyID, scriptPubKey)) {
+                return false;
+            }
+            ret.push_back(std::move(sig));
+            CPubKey pubkey;
+            provider.GetPubKey(keyID, pubkey);
+            ret.push_back(ToByteVector(pubkey));
             return true;
         }
         case TX_SCRIPTHASH:
@@ -113,10 +88,24 @@ static bool SignStep(const SigningProvider &provider,
                 return true;
             }
             return false;
-        case TX_MULTISIG:
+        case TX_MULTISIG: {
+            size_t required = vSolutions.front()[0];
             // workaround CHECKMULTISIG bug
             ret.push_back(valtype());
-            return (SignN(provider, vSolutions, creator, scriptPubKey, ret));
+            for (size_t i = 1; i < vSolutions.size() - 1; ++i) {
+                CPubKey pubkey = CPubKey(vSolutions[i]);
+                if (ret.size() < required + 1 &&
+                    creator.CreateSig(provider, sig, pubkey.GetID(),
+                                      scriptPubKey)) {
+                    ret.push_back(std::move(sig));
+                }
+            }
+            bool ok = ret.size() == required + 1;
+            for (size_t i = 0; i + ret.size() < required + 1; ++i) {
+                ret.push_back(valtype());
+            }
+            return ok;
+        }
         default:
             return false;
     }
