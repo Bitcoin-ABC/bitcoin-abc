@@ -5452,11 +5452,11 @@ void DumpMempool(void) {
         uint64_t version = MEMPOOL_DUMP_VERSION;
         file << version;
 
-        file << (uint64_t)vinfo.size();
+        file << uint64_t(vinfo.size());
         for (const auto &i : vinfo) {
             file << *(i.tx);
-            file << (int64_t)i.nTime;
-            file << (int64_t)i.nFeeDelta.GetSatoshis();
+            file << int64_t(i.nTime);
+            file << i.nFeeDelta;
             mapDeltas.erase(i.tx->GetId());
         }
 

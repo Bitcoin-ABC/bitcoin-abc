@@ -92,8 +92,8 @@ BOOST_AUTO_TEST_CASE(AmountTests) {
         }
     }
 
-    BOOST_CHECK_EQUAL(COIN + COIN, Amount(2 * COIN));
-    BOOST_CHECK_EQUAL(2 * COIN + COIN, Amount(3 * COIN));
+    BOOST_CHECK_EQUAL(COIN + COIN, 2 * COIN);
+    BOOST_CHECK_EQUAL(2 * COIN + COIN, 3 * COIN);
     BOOST_CHECK_EQUAL(-1 * COIN + COIN, Amount(0));
 
     BOOST_CHECK_EQUAL(COIN - COIN, Amount(0));

@@ -1571,7 +1571,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
         // nSequence may already be contain in hashSequence.
         ss << txTo.vin[nIn].prevout;
         ss << scriptCode;
-        ss << amount.GetSatoshis();
+        ss << amount;
         ss << txTo.vin[nIn].nSequence;
         // Outputs (none/one/all, depending on flags)
         ss << hashOutputs;

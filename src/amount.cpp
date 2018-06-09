@@ -10,8 +10,7 @@
 const std::string CURRENCY_UNIT = "BCH";
 
 std::string Amount::ToString() const {
-    return strprintf("%d.%08d %s", amount / COIN.GetSatoshis(),
-                     amount % COIN.GetSatoshis(), CURRENCY_UNIT);
+    return strprintf("%d.%08d %s", *this / COIN, *this % COIN, CURRENCY_UNIT);
 }
 
 CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
@@ -44,7 +43,6 @@ Amount CFeeRate::GetFee(size_t nBytes_) const {
 }
 
 std::string CFeeRate::ToString() const {
-    return strprintf(
-        "%d.%08d %s/kB", nSatoshisPerK.GetSatoshis() / COIN.GetSatoshis(),
-        nSatoshisPerK.GetSatoshis() % COIN.GetSatoshis(), CURRENCY_UNIT);
+    return strprintf("%d.%08d %s/kB", nSatoshisPerK / COIN,
+                     nSatoshisPerK % COIN, CURRENCY_UNIT);
 }
