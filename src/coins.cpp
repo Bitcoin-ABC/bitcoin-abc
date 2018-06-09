@@ -320,7 +320,7 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
             continue;
         }
         if (int64_t(coin.GetHeight()) <= nHeight) {
-            dResult += double(coin.GetTxOut().nValue.GetSatoshis()) *
+            dResult += double(coin.GetTxOut().nValue / SATOSHI) *
                        (nHeight - coin.GetHeight());
             inChainInputValue += coin.GetTxOut().nValue;
         }

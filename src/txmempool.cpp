@@ -1180,8 +1180,8 @@ CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
 
 void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {
     AssertLockHeld(cs);
-    if (rate.GetFeePerK().GetSatoshis() > rollingMinimumFeeRate) {
-        rollingMinimumFeeRate = rate.GetFeePerK().GetSatoshis();
+    if ((rate.GetFeePerK() / SATOSHI) > rollingMinimumFeeRate) {
+        rollingMinimumFeeRate = rate.GetFeePerK() / SATOSHI;
         blockSinceLastRollingFeeBump = false;
     }
 }

@@ -29,7 +29,7 @@ public:
     constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
 
     // Allow access to underlying value for non-monetary operations
-    int64_t GetSatoshis() const { return amount; }
+    int64_t GetSatoshis() const { return *this / Amount(1); }
 
     /**
      * Implement standard operators
@@ -109,7 +109,7 @@ public:
      * Modulus
      */
     constexpr int64_t operator%(const Amount b) const {
-        return amount % b.amount;
+        return Amount(amount % b.amount) / Amount(1);
     }
     constexpr Amount operator%(const int64_t b) const {
         return Amount(amount % b);
@@ -140,8 +140,10 @@ public:
     }
 };
 
-static const Amount COIN(100000000);
-static const Amount CENT(1000000);
+static const Amount SATOSHI(1);
+static const Amount CASH = 100 * SATOSHI;
+static const Amount COIN = 100000000 * SATOSHI;
+static const Amount CENT = COIN / 100;
 
 extern const std::string CURRENCY_UNIT;
 

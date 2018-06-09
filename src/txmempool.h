@@ -32,7 +32,7 @@ class CBlockIndex;
 class Config;
 
 inline double AllowFreeThreshold() {
-    return COIN.GetSatoshis() * 144 / 250;
+    return (144 * COIN) / (250 * SATOSHI);
 }
 
 inline bool AllowFree(double dPriority) {
@@ -256,14 +256,14 @@ public:
         bool fUseBDescendants = UseDescendantScore(b);
 
         double aModFee = (fUseADescendants ? a.GetModFeesWithDescendants()
-                                           : a.GetModifiedFee())
-                             .GetSatoshis();
+                                           : a.GetModifiedFee()) /
+                         SATOSHI;
         double aSize =
             fUseADescendants ? a.GetSizeWithDescendants() : a.GetTxSize();
 
         double bModFee = (fUseBDescendants ? b.GetModFeesWithDescendants()
-                                           : b.GetModifiedFee())
-                             .GetSatoshis();
+                                           : b.GetModifiedFee()) /
+                         SATOSHI;
         double bSize =
             fUseBDescendants ? b.GetSizeWithDescendants() : b.GetTxSize();
 
@@ -279,10 +279,8 @@ public:
 
     // Calculate which score to use for an entry (avoiding division).
     bool UseDescendantScore(const CTxMemPoolEntry &a) const {
-        double f1 = double(a.GetSizeWithDescendants() *
-                           a.GetModifiedFee().GetSatoshis());
-        double f2 =
-            double(a.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
+        double f1 = a.GetSizeWithDescendants() * (a.GetModifiedFee() / SATOSHI);
+        double f2 = a.GetTxSize() * (a.GetModFeesWithDescendants() / SATOSHI);
         return f2 > f1;
     }
 };
@@ -294,8 +292,8 @@ public:
 class CompareTxMemPoolEntryByScore {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        double f1 = double(b.GetTxSize() * a.GetModifiedFee().GetSatoshis());
-        double f2 = double(a.GetTxSize() * b.GetModifiedFee().GetSatoshis());
+        double f1 = b.GetTxSize() * (a.GetModifiedFee() / SATOSHI);
+        double f2 = a.GetTxSize() * (b.GetModifiedFee() / SATOSHI);
         if (f1 == f2) {
             return b.GetTx().GetId() < a.GetTx().GetId();
         }
@@ -313,10 +311,10 @@ public:
 class CompareTxMemPoolEntryByAncestorFee {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        double aFees = double(a.GetModFeesWithAncestors().GetSatoshis());
+        double aFees = a.GetModFeesWithAncestors() / SATOSHI;
         double aSize = a.GetSizeWithAncestors();
 
-        double bFees = double(b.GetModFeesWithAncestors().GetSatoshis());
+        double bFees = b.GetModFeesWithAncestors() / SATOSHI;
         double bSize = b.GetSizeWithAncestors();
 
         // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).

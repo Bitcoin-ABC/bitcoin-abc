@@ -72,10 +72,8 @@ struct modifiedentry_iter {
 struct CompareModifiedEntry {
     bool operator()(const CTxMemPoolModifiedEntry &a,
                     const CTxMemPoolModifiedEntry &b) const {
-        double f1 = double(b.nSizeWithAncestors *
-                           a.nModFeesWithAncestors.GetSatoshis());
-        double f2 = double(a.nSizeWithAncestors *
-                           b.nModFeesWithAncestors.GetSatoshis());
+        double f1 = b.nSizeWithAncestors * (a.nModFeesWithAncestors / SATOSHI);
+        double f2 = a.nSizeWithAncestors * (b.nModFeesWithAncestors / SATOSHI);
         if (f1 == f2) {
             return CTxMemPool::CompareIteratorByHash()(a.iter, b.iter);
         }
@@ -89,8 +87,9 @@ struct CompareModifiedEntry {
 struct CompareTxIterByAncestorCount {
     bool operator()(const CTxMemPool::txiter &a,
                     const CTxMemPool::txiter &b) const {
-        if (a->GetCountWithAncestors() != b->GetCountWithAncestors())
+        if (a->GetCountWithAncestors() != b->GetCountWithAncestors()) {
             return a->GetCountWithAncestors() < b->GetCountWithAncestors();
+        }
         return CTxMemPool::CompareIteratorByHash()(a, b);
     }
 };
