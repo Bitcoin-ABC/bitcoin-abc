@@ -30,6 +30,22 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-zmqpubhashblock',
                                    '-zmqpubrawblock',
                                    '-zmqpubrawtx'])
 
+# list false positive undocumented arguments
+SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-benchmark',
+                                       '-blockminsize',
+                                       '-dbcrashratio',
+                                       '-debugnet',
+                                       '-forcecompactdb',
+                                       '-parkdeepreorg',
+                                       # Remove after May 2020 upgrade
+                                       '-phononactivationtime',
+                                       '-replayprotectionactivationtime',
+                                       '-rpcssl',
+                                       '-socks',
+                                       '-tor',
+                                       '-usehd',
+                                       '-whitelistalwaysrelay'])
+
 
 def main():
     top_level = check_output(TOP_LEVEL, shell=True,
@@ -54,6 +70,7 @@ def main():
             args_docd |= set(re.findall(re.compile(REGEX_DOC), content))
 
     args_used |= SET_FALSE_POSITIVE_UNKNOWNS
+    args_docd |= SET_FALSE_POSITIVE_UNDOCUMENTED
     args_need_doc = args_used - args_docd
     args_unknown = args_docd - args_used
 

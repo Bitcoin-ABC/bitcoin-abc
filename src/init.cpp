@@ -81,7 +81,7 @@ std::unique_ptr<BanMan> g_banman;
 #if !(ENABLE_WALLET)
 class DummyWalletInit : public WalletInitInterface {
 public:
-    void AddWalletOptions() const override {}
+    void AddWalletOptions() const override;
     bool ParameterInteraction() const override { return true; }
     void RegisterRPC(CRPCTable &) const override {}
     bool Verify(const CChainParams &chainParams) const override { return true; }
@@ -94,6 +94,18 @@ public:
     void Stop() const override {}
     void Close() const override {}
 };
+
+void DummyWalletInit::AddWalletOptions() const {
+    std::vector<std::string> opts = {
+        "-avoidpartialspends", "-disablewallet", "-fallbackfee=<amt>",
+        "-keypool=<n>", "-maxtxfee=<amt>", "-mintxfee=<amt>", "-paytxfee=<amt>",
+        "-rescan", "-salvagewallet", "-spendzeroconfchange", "-upgradewallet",
+        "-wallet=<path>", "-walletbroadcast", "-walletdir=<dir>",
+        "-walletnotify=<cmd>", "-zapwallettxes=<mode>",
+        // Wallet debug options
+        "-dblogsize=<n>", "-flushwallet", "-privdb", "-walletrejectlongchains"};
+    gArgs.AddHiddenArgs(opts);
+}
 
 const WalletInitInterface &g_wallet_init_interface = DummyWalletInit();
 #endif
@@ -334,6 +346,19 @@ void SetupServerArgs() {
     const auto testnetChainParams =
         CreateChainParams(CBaseChainParams::TESTNET);
 
+    // Hidden Options
+    std::vector<std::string> hidden_args = {
+        "-rpcssl", "-benchmark", "-h", "-help", "-socks", "-tor", "-debugnet",
+        "-whitelistalwaysrelay", "-blockminsize", "-dbcrashratio",
+        "-forcecompactdb", "-usehd", "-parkdeepreorg",
+        "-replayprotectionactivationtime",
+        // GUI args. These will be overwritten by SetupUIArgs for the GUI
+        "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
+        "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
+        "-uiplatform",
+        // TODO remove after the May 2020 upgrade
+        "-phononactivationtime"};
+
     // Set all of the args and their help
     // When adding new options to the categories, please keep and ensure
     // alphabetical ordering. Do not translate _(...) -help-debug options, Many
@@ -463,6 +488,8 @@ void SetupServerArgs() {
                            "by a net-specific datadir location. (default: %s)",
                            BITCOIN_PID_FILENAME),
                  false, OptionsCategory::OPTIONS);
+#else
+    hidden_args.emplace_back("-pid");
 #endif
     gArgs.AddArg(
         "-prune=<n>",
@@ -492,6 +519,8 @@ void SetupServerArgs() {
         "Create new files with system default permissions, instead of umask "
         "077 (only effective with disabled wallet functionality)",
         false, OptionsCategory::OPTIONS);
+#else
+    hidden_args.emplace_back("-sysperms");
 #endif
     gArgs.AddArg("-txindex",
                  strprintf("Maintain a full transaction index, used by the "
@@ -644,6 +673,8 @@ void SetupServerArgs() {
         strprintf("Use UPnP to map the listening port (default: %u)", 0), false,
         OptionsCategory::CONNECTION);
 #endif
+#else
+    hidden_args.emplace_back("-upnp");
 #endif
     gArgs.AddArg("-whitebind=<addr>",
                  "Bind to given address and whitelist peers connecting to it. "
@@ -679,6 +710,11 @@ void SetupServerArgs() {
     gArgs.AddArg("-zmqpubrawtx=<address>",
                  "Enable publish raw transaction in <address>", false,
                  OptionsCategory::ZMQ);
+#else
+    hidden_args.emplace_back("-zmqpubhashblock=<address>");
+    hidden_args.emplace_back("-zmqpubhashtx=<address>");
+    hidden_args.emplace_back("-zmqpubrawblock=<address>");
+    hidden_args.emplace_back("-zmqpubrawtx=<address>");
 #endif
 
     gArgs.AddArg(
@@ -969,25 +1005,16 @@ void SetupServerArgs() {
                            DEFAULT_HTTP_SERVER_TIMEOUT),
                  true, OptionsCategory::RPC);
 
-    // Hidden options
-    gArgs.AddArg("-rpcssl", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-benchmark", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-h", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-help", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-socks", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-tor", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-debugnet", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-whitelistalwaysrelay", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-blockminsize", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-dbcrashratio", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-forcecompactdb", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-usehd", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-parkdeepreorg", "", false, OptionsCategory::HIDDEN);
-    gArgs.AddArg("-replayprotectionactivationtime", "", false,
-                 OptionsCategory::HIDDEN);
+#if HAVE_DECL_DAEMON
+    gArgs.AddArg("-daemon",
+                 _("Run in the background as a daemon and accept commands"),
+                 false, OptionsCategory::OPTIONS);
+#else
+    hidden_args.emplace_back("-daemon");
+#endif
 
-    // TODO remove after the May 2020 upgrade
-    gArgs.AddArg("-phononactivationtime", "", false, OptionsCategory::HIDDEN);
+    // Add the hidden options
+    gArgs.AddHiddenArgs(hidden_args);
 }
 
 std::string LicenseInfo() {

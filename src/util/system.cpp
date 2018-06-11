@@ -623,6 +623,12 @@ void ArgsManager::AddArg(const std::string &name, const std::string &help,
     assert(ret.second);
 }
 
+void ArgsManager::AddHiddenArgs(const std::vector<std::string> &names) {
+    for (const std::string &name : names) {
+        AddArg(name, "", false, OptionsCategory::HIDDEN);
+    }
+}
+
 void ArgsManager::ClearArg(const std::string &strArg) {
     LOCK(cs_args);
     m_override_args.erase(strArg);

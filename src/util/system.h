@@ -276,6 +276,11 @@ public:
     void ClearArg(const std::string &strArg);
 
     /**
+     * Add many hidden arguments
+     */
+    void AddHiddenArgs(const std::vector<std::string> &args);
+
+    /**
      * Clear available arguments
      */
     void ClearArgs() {
