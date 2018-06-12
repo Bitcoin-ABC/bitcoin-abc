@@ -12,11 +12,8 @@
 std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
     // number formatting.
-    int64_t n = amt.GetSatoshis();
-    int64_t n_abs = (n > 0 ? n : -n);
-    int64_t quotient = n_abs / COIN.GetSatoshis();
-    int64_t remainder = n_abs % COIN.GetSatoshis();
-    std::string str = strprintf("%d.%08d", quotient, remainder);
+    Amount amt_abs = amt > Amount(0) ? amt : -amt;
+    std::string str = strprintf("%d.%08d", amt_abs / COIN, amt_abs % COIN);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -27,7 +24,7 @@ std::string FormatMoney(const Amount amt) {
         str.erase(str.size() - nTrim, nTrim);
     }
 
-    if (n < 0) {
+    if (amt < Amount(0)) {
         str.insert((unsigned int)0, 1, '-');
     }
     return str;
@@ -39,7 +36,7 @@ bool ParseMoney(const std::string &str, Amount &nRet) {
 
 bool ParseMoney(const char *pszIn, Amount &nRet) {
     std::string strWhole;
-    int64_t nUnits = 0;
+    Amount nUnits(0);
     const char *p = pszIn;
     while (isspace(*p)) {
         p++;
@@ -47,9 +44,9 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     for (; *p; p++) {
         if (*p == '.') {
             p++;
-            int64_t nMult = 10 * CENT.GetSatoshis();
-            while (isdigit(*p) && (nMult > 0)) {
-                nUnits += nMult * (*p++ - '0');
+            Amount nMult = 10 * CENT;
+            while (isdigit(*p) && (nMult > Amount(0))) {
+                nUnits += (*p++ - '0') * nMult;
                 nMult /= 10;
             }
             break;
@@ -71,12 +68,12 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     if (strWhole.size() > 10) {
         return false;
     }
-    if (nUnits < 0 || nUnits > COIN.GetSatoshis()) {
+    if (nUnits < Amount(0) || nUnits > COIN) {
         return false;
     }
-    int64_t nWhole = atoi64(strWhole);
-    Amount nValue = nWhole * COIN + Amount(nUnits);
 
-    nRet = nValue;
+    Amount nWhole = atoi64(strWhole) * COIN;
+
+    nRet = nWhole + Amount(nUnits);
     return true;
 }

@@ -104,6 +104,10 @@ public:
         return Amount(amount / b);
     }
     constexpr Amount operator/(const int b) const { return Amount(amount / b); }
+    Amount &operator/=(const int64_t n) {
+        amount /= n;
+        return *this;
+    }
 
     /**
      * Modulus
