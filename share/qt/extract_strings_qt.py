@@ -67,7 +67,7 @@ child = Popen([XGETTEXT, '--output=-', '-n',
 
 messages = parse_po(out.decode('utf-8'))
 
-f = open(OUT_CPP, 'w')
+f = open(OUT_CPP, 'w', encoding="utf8")
 f.write("""
 
 #include <QtGlobal>

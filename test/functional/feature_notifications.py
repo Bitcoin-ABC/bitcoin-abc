@@ -43,7 +43,7 @@ class NotificationsTest(BitcoinTestFramework):
             self.block_filename).st_size >= (block_count * 65), timeout=10)
 
         # file content should equal the generated blocks hashes
-        with open(self.block_filename, 'r') as f:
+        with open(self.block_filename, 'r', encoding="utf-8") as f:
             assert_equal(sorted(blocks), sorted(f.read().splitlines()))
 
         self.log.info("test -walletnotify")
@@ -54,7 +54,7 @@ class NotificationsTest(BitcoinTestFramework):
         # file content should equal the generated transaction hashes
         txids_rpc = list(
             map(lambda t: t['txid'], self.nodes[1].listtransactions("*", block_count)))
-        with open(self.tx_filename, 'r') as f:
+        with open(self.tx_filename, 'r', encoding="ascii") as f:
             assert_equal(sorted(txids_rpc), sorted(f.read().splitlines()))
         os.remove(self.tx_filename)
 
@@ -69,7 +69,7 @@ class NotificationsTest(BitcoinTestFramework):
         # file content should equal the generated transaction hashes
         txids_rpc = list(
             map(lambda t: t['txid'], self.nodes[1].listtransactions("*", block_count)))
-        with open(self.tx_filename, 'r') as f:
+        with open(self.tx_filename, 'r', encoding="ascii") as f:
             assert_equal(sorted(txids_rpc), sorted(f.read().splitlines()))
 
         # Create an invalid chain and ensure the node warns.

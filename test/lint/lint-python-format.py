@@ -163,7 +163,7 @@ def build_replacement(error):
 def find_snippets(file):
     """Find code snippets in the source file that contains the percent ('%')
     character"""
-    with open(file, 'r') as f:
+    with open(file, 'r', encoding='utf-8') as f:
         snippet_line = ""
         snippets = {}
 

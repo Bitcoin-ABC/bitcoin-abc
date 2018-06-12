@@ -139,7 +139,7 @@ def main():
     config = configparser.ConfigParser()
     configfile = os.path.join(os.path.abspath(
         os.path.dirname(__file__)), "..", "config.ini")
-    config.read_file(open(configfile))
+    config.read_file(open(configfile, encoding="utf8"))
 
     src_dir = config["environment"]["SRCDIR"]
     build_dir = config["environment"]["BUILDDIR"]
@@ -647,7 +647,7 @@ class RPCCoverage():
         if not os.path.isfile(coverage_ref_filename):
             raise RuntimeError("No coverage reference found")
 
-        with open(coverage_ref_filename, 'r') as f:
+        with open(coverage_ref_filename, 'r', encoding="utf8") as f:
             all_cmds.update([i.strip() for i in f.readlines()])
 
         for root, dirs, files in os.walk(self.dir):
@@ -656,7 +656,7 @@ class RPCCoverage():
                     coverage_filenames.add(os.path.join(root, filename))
 
         for filename in coverage_filenames:
-            with open(filename, 'r') as f:
+            with open(filename, 'r', encoding="utf8") as f:
                 covered_cmds.update([i.strip() for i in f.readlines()])
 
         return all_cmds - covered_cmds
@@ -710,7 +710,7 @@ class Timings():
 
     def load_timings(self):
         if os.path.isfile(self.timing_file):
-            with open(self.timing_file) as f:
+            with open(self.timing_file, encoding="utf8") as f:
                 return json.load(f)
         else:
             return []
@@ -742,7 +742,7 @@ class Timings():
                                passed_results))
         merged_timings = self.get_merged_timings(new_timings)
 
-        with open(self.timing_file, 'w') as f:
+        with open(self.timing_file, 'w', encoding="utf8") as f:
             json.dump(merged_timings, f, indent=True)
 
 

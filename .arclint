@@ -131,6 +131,10 @@
         "check-rpc-mappings": {
             "type": "check-rpc-mappings",
             "include": "(^src/(rpc/|wallet/rpc).*\\.cpp$)"
+        },
+        "lint-python-encoding": {
+            "type": "lint-python-encoding",
+            "include": "(\\.py$)"
         }
     }
 }

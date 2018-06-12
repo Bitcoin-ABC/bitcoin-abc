@@ -48,7 +48,7 @@ class ZMQTest (BitcoinTestFramework):
 
         # Check that bitcoin has been built with ZMQ enabled.
         config = configparser.ConfigParser()
-        config.read_file(open(self.options.configfile))
+        config.read_file(open(self.options.configfile, encoding='utf-8'))
 
         if not config["components"].getboolean("ENABLE_ZMQ"):
             raise SkipTest("bitcoind has not been built with zmq enabled.")

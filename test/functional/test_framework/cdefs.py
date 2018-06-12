@@ -48,7 +48,7 @@ def get_srcdir():
 
 # Slurp in consensus.h contents
 _consensus_h_fh = open(os.path.join(get_srcdir(), 'src', 'consensus',
-                                    'consensus.h'), 'rt')
+                                    'consensus.h'), 'rt', encoding='utf-8')
 _consensus_h_contents = _consensus_h_fh.read()
 _consensus_h_fh.close()
 

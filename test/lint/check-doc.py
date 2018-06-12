@@ -48,7 +48,7 @@ def main():
     args_used = set()
     args_docd = set()
     for file in files:
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='utf-8') as f:
             content = f.read()
             args_used |= set(re.findall(re.compile(REGEX_ARG), content))
             args_docd |= set(re.findall(re.compile(REGEX_DOC), content))

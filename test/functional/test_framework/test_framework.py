@@ -121,7 +121,7 @@ class BitcoinTestFramework():
         self.options.cachedir = os.path.abspath(self.options.cachedir)
 
         config = configparser.ConfigParser()
-        config.read_file(open(self.options.configfile))
+        config.read_file(open(self.options.configfile, encoding='utf-8'))
         self.options.bitcoind = os.getenv(
             "BITCOIND", default=config["environment"]["BUILDDIR"] + '/src/bitcoind' + config["environment"]["EXEEXT"])
         self.options.bitcoincli = os.getenv(
@@ -345,7 +345,8 @@ class BitcoinTestFramework():
         self.log = logging.getLogger('TestFramework')
         self.log.setLevel(logging.DEBUG)
         # Create file handler to log all messages
-        fh = logging.FileHandler(self.options.tmpdir + '/test_framework.log')
+        fh = logging.FileHandler(
+            self.options.tmpdir + '/test_framework.log', encoding='utf-8')
         fh.setLevel(logging.DEBUG)
         # Create console handler to log messages to stderr. By default this
         # logs only error messages, but can be configured with --loglevel.
