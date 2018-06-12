@@ -1,21 +1,20 @@
-This directory contains integration tests that test bitcoind and its
+The [/test/](/test/) directory contains integration tests that test bitcoind and its
 utilities in their entirety. It does not contain unit tests, which
 can be found in [/src/test](/src/test), [/src/wallet/test](/src/wallet/test),
 etc.
 
-There are currently two sets of tests in this directory:
+There are currently two sets of tests in the [/test/](/test/) directory:
 
 - [functional](/test/functional) which test the functionality of 
 bitcoind and bitcoin-qt by interacting with them through the RPC and P2P
 interfaces.
-- [util](test/util) which tests the bitcoin utilities, currently only
+- [util](/test/util) which tests the bitcoin utilities, currently only
 bitcoin-tx.
 
 The util tests are run as part of `make check` target. The functional
-tests are run by the travis continuous build process whenever a pull
-request is opened. Both sets of tests can also be run locally.
+tests are run by the Teamcity continuous build process whenever a diff is created or updated on Phabricator. Both sets of tests can also be run locally.
 
-# Running tests locally
+# Running functional tests locally
 
 Build for your system first. Be sure to enable wallet, utils and daemon when you configure. Tests will not run otherwise.
 

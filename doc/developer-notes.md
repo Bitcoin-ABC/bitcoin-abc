@@ -184,7 +184,7 @@ to see it.
 
 For details on unit tests, see `unit-tests.md`
 
-For details on functional tests, see `/test/README.md`
+For details on functional tests, see `functional-tests.md`
 
 **writing script integration tests**
 
