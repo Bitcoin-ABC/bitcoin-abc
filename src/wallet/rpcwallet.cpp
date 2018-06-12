@@ -50,14 +50,23 @@ static std::string urlDecode(const std::string &urlEncoded) {
     return res;
 }
 
-std::shared_ptr<CWallet>
-GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
+bool GetWalletNameFromJSONRPCRequest(const JSONRPCRequest &request,
+                                     std::string &wallet_name) {
     if (request.URI.substr(0, WALLET_ENDPOINT_BASE.size()) ==
         WALLET_ENDPOINT_BASE) {
         // wallet endpoint was used
-        std::string requestedWallet =
+        wallet_name =
             urlDecode(request.URI.substr(WALLET_ENDPOINT_BASE.size()));
-        std::shared_ptr<CWallet> pwallet = GetWallet(requestedWallet);
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<CWallet>
+GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
+    std::string wallet_name;
+    if (GetWalletNameFromJSONRPCRequest(request, wallet_name)) {
+        std::shared_ptr<CWallet> pwallet = GetWallet(wallet_name);
         if (!pwallet) {
             throw JSONRPCError(
                 RPC_WALLET_NOT_FOUND,
