@@ -99,14 +99,12 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                        << qCert;
             return false;
         }
-#if QT_VERSION >= 0x050000
         if (qCert.isBlacklisted()) {
             qWarning() << "PaymentRequestPlus::getMerchant: Payment request: "
                           "certificate blacklisted: "
                        << qCert;
             return false;
         }
-#endif
         const uint8_t *data = (const uint8_t *)certChain.certificate(i).data();
         X509 *cert = d2i_X509(nullptr, &data, certChain.certificate(i).size());
         if (cert) certs.push_back(cert);

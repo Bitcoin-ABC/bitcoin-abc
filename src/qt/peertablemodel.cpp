@@ -54,9 +54,7 @@ public:
             cachedNodeStats.clear();
             std::vector<CNodeStats> vstats;
             if (g_connman) g_connman->GetNodeStats(vstats);
-#if QT_VERSION >= 0x040700
             cachedNodeStats.reserve(vstats.size());
-#endif
             for (const CNodeStats &nodestats : vstats) {
                 CNodeCombinedStats stats;
                 stats.nodeStateStats.nMisbehavior = 0;

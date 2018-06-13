@@ -9,7 +9,6 @@
 #include <QByteArray>
 #include <QString>
 
-#if QT_VERSION >= 0x050000
 #include <windef.h> // for HWND
 
 #include <QAbstractNativeEventFilter>
@@ -26,7 +25,6 @@ public:
     static void registerShutdownBlockReason(const QString &strReason,
                                             const HWND &mainWinId);
 };
-#endif
 #endif
 
 #endif // BITCOIN_QT_WINSHUTDOWNMONITOR_H
