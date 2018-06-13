@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
+
 set -e
 
 # User to setup for building.  Vagrant is the default

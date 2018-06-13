@@ -9,6 +9,8 @@
 # You should be able to call this script from pretty much anywhere.
 # It takes care of setting up the PYTHONPATH so tests can run.
 
+export LC_ALL=C
+
 # Enable exit on any error.
 set -e
 

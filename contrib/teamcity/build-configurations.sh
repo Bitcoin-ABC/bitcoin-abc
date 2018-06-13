@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
+
 set -e
 
 if [ -z "$ABC_BUILD_NAME" ]; then

@@ -6,6 +6,8 @@
 #
 # Guard against accidental introduction of new Boost dependencies.
 
+export LC_ALL=C
+
 EXPECTED_BOOST_INCLUDES=(
     boost/algorithm/string.hpp
     boost/algorithm/string/classification.hpp

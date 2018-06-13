@@ -7,6 +7,8 @@
 #
 # Check the test suite naming conventions
 
+export LC_ALL=C
+
 TOPDIR=${TOPDIR:-$(git rev-parse --show-toplevel)}
 
 NAMING_INCONSISTENCIES=$(git grep -E '^BOOST_FIXTURE_TEST_SUITE\(' -- \

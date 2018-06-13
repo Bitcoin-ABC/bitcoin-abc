@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
+
 set -eu
 
 TOPLEVEL=$(git rev-parse --show-toplevel)

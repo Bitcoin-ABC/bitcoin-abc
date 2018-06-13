@@ -153,6 +153,13 @@
             "exclude": [
                 "(^src/(secp256k1|univalue)/)"
             ]
+        },
+        "lint-shell-locale": {
+            "type": "lint-shell-locale",
+            "include": "(\\.sh$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue)/)"
+            ]
         }
     }
 }
