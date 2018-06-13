@@ -48,6 +48,7 @@
 #include <ui_interface.h>
 #include <util/moneystr.h>
 #include <util/system.h>
+#include <util/threadnames.h>
 #include <validation.h>
 #include <validationinterface.h>
 #include <walletinitinterface.h>
@@ -179,7 +180,7 @@ void Shutdown(InitInterfaces &interfaces) {
     /// failed part of the way, for example if the data directory was found to
     /// be locked. Be sure that anything that writes files or flushes caches
     /// only does this if the respective module was initialized.
-    RenameThread("bitcoin-shutoff");
+    util::ThreadRename("shutoff");
     g_mempool.AddTransactionsUpdated(1);
 
     StopHTTPRPC();
@@ -825,7 +826,13 @@ void SetupServerArgs() {
                  strprintf("Prepend debug output with timestamp (default: %d)",
                            DEFAULT_LOGTIMESTAMPS),
                  false, OptionsCategory::DEBUG_TEST);
-
+    gArgs.AddArg(
+        "-logthreadnames",
+        strprintf(
+            "Prepend debug output with name of the originating thread (only "
+            "available on platforms supporting thread_local) (default: %u)",
+            DEFAULT_LOGTHREADNAMES),
+        false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-logtimemicros",
         strprintf("Add microsecond precision to debug timestamps (default: %d)",
@@ -1137,7 +1144,7 @@ static void CleanupBlockRevFiles() {
 
 static void ThreadImport(const Config &config,
                          std::vector<fs::path> vImportFiles) {
-    RenameThread("bitcoin-loadblk");
+    util::ThreadRename("loadblk");
     ScheduleBatchPriority();
 
     {
@@ -1403,6 +1410,8 @@ void InitLogging() {
         gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     LogInstance().m_log_time_micros =
         gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+    LogInstance().m_log_threadnames =
+        gArgs.GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
 
@@ -1913,7 +1922,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
               nScriptCheckThreads);
     if (nScriptCheckThreads) {
         for (int i = 0; i < nScriptCheckThreads - 1; i++) {
-            threadGroup.create_thread(&ThreadScriptCheck);
+            threadGroup.create_thread([i]() { return ThreadScriptCheck(i); });
         }
     }
 

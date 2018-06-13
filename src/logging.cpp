@@ -6,7 +6,10 @@
 
 #include <logging.h>
 
+#include <util/threadnames.h>
 #include <util/time.h>
+
+#include <mutex>
 
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
@@ -166,21 +169,23 @@ std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
         strStamped = str;
     }
 
-    if (!str.empty() && str[str.size() - 1] == '\n') {
-        m_started_new_line = true;
-    } else {
-        m_started_new_line = false;
-    }
-
     return strStamped;
 }
 
 void BCLog::Logger::LogPrintStr(const std::string &str) {
-    std::string strTimestamped = LogTimestampStr(str);
+    std::string str_prefixed = str;
+
+    if (m_log_threadnames && m_started_new_line) {
+        str_prefixed.insert(0, "[" + util::ThreadGetInternalName() + "] ");
+    }
+
+    str_prefixed = LogTimestampStr(str_prefixed);
+
+    m_started_new_line = !str.empty() && str[str.size() - 1] == '\n';
 
     if (m_print_to_console) {
         // Print to console.
-        fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
+        fwrite(str_prefixed.data(), 1, str_prefixed.size(), stdout);
         fflush(stdout);
     }
     if (m_print_to_file) {
@@ -188,7 +193,7 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
 
         // Buffer if we haven't opened the log yet.
         if (m_fileout == nullptr) {
-            m_msgs_before_open.push_back(strTimestamped);
+            m_msgs_before_open.push_back(str_prefixed);
         } else {
             // Reopen the log file, if requested.
             if (m_reopen_file) {
@@ -201,7 +206,7 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
                     m_fileout = new_fileout;
                 }
             }
-            FileWriteStr(strTimestamped, m_fileout);
+            FileWriteStr(str_prefixed, m_fileout);
         }
     }
 }

@@ -54,6 +54,7 @@
 #include <atomic>
 #include <future>
 #include <sstream>
+#include <string>
 #include <thread>
 
 #include <core_io.h> // For debugging
@@ -1616,8 +1617,8 @@ static bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
 
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
-void ThreadScriptCheck() {
-    RenameThread("bitcoin-scriptch");
+void ThreadScriptCheck(int worker_num) {
+    util::ThreadRename(strprintf("scriptch.%i", worker_num));
     scriptcheckqueue.Thread();
 }
 

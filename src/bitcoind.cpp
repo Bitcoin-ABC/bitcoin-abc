@@ -21,6 +21,7 @@
 #include <shutdown.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/threadnames.h>
 #include <walletinitinterface.h>
 
 #include <cstdio>
@@ -71,6 +72,8 @@ static bool AppInit(int argc, char *argv[]) {
     interfaces.chain = interfaces::MakeChain();
 
     bool fRet = false;
+
+    util::ThreadRename("init");
 
     //
     // Parameters

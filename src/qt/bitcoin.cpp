@@ -30,6 +30,7 @@
 #include <ui_interface.h>
 #include <uint256.h>
 #include <util/system.h>
+#include <util/threadnames.h>
 #include <walletinitinterface.h>
 #include <warnings.h>
 
@@ -164,6 +165,7 @@ void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
                             HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     try {
         qDebug() << __func__ << ": Running initialization in thread";
+        util::ThreadRename("qt-init");
         bool rv =
             m_node.appInitMain(*config, *rpcServer, *httpRPCRequestProcessor);
         Q_EMIT initializeResult(rv);
@@ -515,6 +517,7 @@ int GuiMain(int argc, char *argv[]) {
     std::tie(argc, argv) = winArgs.get();
 #endif
     SetupEnvironment();
+    util::ThreadRename("main");
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 

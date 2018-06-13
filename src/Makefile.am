@@ -213,11 +213,12 @@ BITCOIN_CORE_H = \
   txmempool.h \
   ui_interface.h \
   undo.h \
-  util/system.h \
-  util/moneystr.h \
-  util/time.h \
   util/bitmanip.h \
   util/bytevectorhash.h \
+  util/moneystr.h \
+  util/system.h \
+  util/threadnames.h \
+  util/time.h \
   validation.h \
   validationinterface.h \
   versionbits.h \
@@ -492,6 +493,7 @@ libbitcoin_util_a_SOURCES = \
   util/system.cpp \
   util/moneystr.cpp \
   util/strencodings.cpp \
+  util/threadnames.cpp \
   util/time.cpp \
   util/bytevectorhash.cpp \
   $(BITCOIN_CORE_H)

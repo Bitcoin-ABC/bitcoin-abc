@@ -290,11 +290,12 @@ add_library(util
 	sync.cpp
 	threadinterrupt.cpp
 	uint256.cpp
-	util/system.cpp
+	util/bytevectorhash.cpp
 	util/moneystr.cpp
 	util/strencodings.cpp
+	util/system.cpp
+	util/threadnames.cpp
 	util/time.cpp
-	util/bytevectorhash.cpp
 
 	# obj/build.h
 	"${BUILD_HEADER}"

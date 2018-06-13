@@ -185,6 +185,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		uint256_tests.cpp
 		undo_tests.cpp
 		util_tests.cpp
+		util_threadnames_tests.cpp
 		validation_block_tests.cpp
 		validation_tests.cpp
 		versionbits_tests.cpp
