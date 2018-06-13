@@ -3547,15 +3547,13 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                 const uint256 &txid = txinfo.tx->GetId();
                 CInv inv(MSG_TX, txid);
                 pto->setInventoryTxToSend.erase(txid);
-                if (filterrate != Amount(0)) {
-                    if (txinfo.feeRate.GetFeePerK() < filterrate) {
-                        continue;
-                    }
+                if (filterrate != Amount(0) &&
+                    txinfo.feeRate.GetFeePerK() < filterrate) {
+                    continue;
                 }
-                if (pto->pfilter) {
-                    if (!pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) {
-                        continue;
-                    }
+                if (pto->pfilter &&
+                    !pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) {
+                    continue;
                 }
                 pto->filterInventoryKnown.insert(txid);
                 vInv.push_back(inv);
