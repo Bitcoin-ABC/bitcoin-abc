@@ -4650,7 +4650,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
 
         uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone,
                                  false);
-        if (pindex->nHeight < chainActive.Height() - nCheckDepth) {
+        if (pindex->nHeight <= chainActive.Height() - nCheckDepth) {
             break;
         }
 
