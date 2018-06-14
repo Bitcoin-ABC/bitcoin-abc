@@ -11,3 +11,5 @@ This release includes the following features and fixes:
    a bug was fixed where sometimes low fee transactions would be accepted via
    `sendrawtransaction` (and be stuck semipermanently, as they would be unable
    to relay to miners).
+ - Added `nTx` return value to `getblock` and `getblockheader` detailing the
+   number of transactions in the returned block.

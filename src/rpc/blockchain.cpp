@@ -97,6 +97,7 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
     result.pushKV("bits", strprintf("%08x", blockindex->nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));
     result.pushKV("chainwork", blockindex->nChainWork.GetHex());
+    result.pushKV("nTx", uint64_t(blockindex->nTx));
 
     if (blockindex->pprev) {
         result.pushKV("previousblockhash",
@@ -137,6 +138,7 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
     result.pushKV("bits", strprintf("%08x", block.nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));
     result.pushKV("chainwork", blockindex->nChainWork.GetHex());
+    result.pushKV("nTx", uint64_t(blockindex->nTx));
 
     if (blockindex->pprev) {
         result.pushKV("previousblockhash",
@@ -803,6 +805,8 @@ static UniValue getblockheader(const Config &config,
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"chainwork\" : \"0000...1f3\"     (string) Expected number of "
             "hashes required to produce the current chain (in hex)\n"
+            "  \"nTx\" : n,             (numeric) The number of transactions "
+            "in the block.\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
             "previous block\n"
             "  \"nextblockhash\" : \"hash\",      (string) The hash of the "
@@ -908,6 +912,8 @@ static UniValue getblock(const Config &config, const JSONRPCRequest &request) {
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"chainwork\" : \"xxxx\",  (string) Expected number of hashes "
             "required to produce the chain up to this block (in hex)\n"
+            "  \"nTx\" : n,             (numeric) The number of transactions "
+            "in the block.\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
             "previous block\n"
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the "
