@@ -5,7 +5,6 @@
 #include <chain.h>
 #include <config.h>
 #include <core_io.h>
-#include <init.h>
 #include <key_io.h>
 #include <merkleblock.h>
 #include <rpc/server.h>

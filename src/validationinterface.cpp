@@ -5,7 +5,6 @@
 
 #include <validationinterface.h>
 
-#include <init.h>
 #include <scheduler.h>
 #include <txmempool.h>
 #include <util/system.h>

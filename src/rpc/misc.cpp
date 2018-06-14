@@ -8,7 +8,6 @@
 #include <config.h>
 #include <core_io.h>
 #include <httpserver.h>
-#include <init.h>
 #include <key_io.h>
 #include <logging.h>
 #include <net.h>

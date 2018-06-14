@@ -12,7 +12,6 @@
 #include <config.h>
 #include <fs.h>
 #include <httprpc.h>
-#include <init.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <qt/clientmodel.h>
