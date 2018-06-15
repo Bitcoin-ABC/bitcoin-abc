@@ -330,7 +330,8 @@ public:
  * Note that we guarantee that either the proof-of-work is valid on pblock, or
  * (and possibly also) BlockChecked will have been called.
  *
- * Call without cs_main held.
+ * May not be called with cs_main held. May not be called in a
+ * validationinterface callback.
  *
  * @param[in]   config  The global config.
  * @param[in]   pblock  The block we want to process.
@@ -347,7 +348,8 @@ bool ProcessNewBlock(const Config &config,
 /**
  * Process incoming block headers.
  *
- * Call without cs_main held.
+ * May not be called with cs_main held. May not be called in a
+ * validationinterface callback.
  *
  * @param[in]  config        The config.
  * @param[in]  block         The block headers themselves.
@@ -422,6 +424,9 @@ bool GetTransaction(const Consensus::Params &params, const TxId &txid,
 
 /**
  * Find the best known block, and make it the tip of the block chain
+ *
+ * May not be called with cs_main held. May not be called in a
+ * validationinterface callback.
  */
 bool ActivateBestChain(
     const Config &config, CValidationState &state,
@@ -632,7 +637,12 @@ bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
                                    const CBlockLocator &locator);
 
-/** Mark a block as precious and reorganize. */
+/**
+ * Mark a block as precious and reorganize.
+ *
+ * May not be called with cs_main held. May not be called in a
+ * validationinterface callback.
+ */
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex);
 
