@@ -558,7 +558,7 @@ static bool AcceptToMemoryPoolWorker(
         view.SetBackend(viewMemPool);
 
         // Do all inputs exist?
-        for (const CTxIn txin : tx.vin) {
+        for (const CTxIn &txin : tx.vin) {
             if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
                 coins_to_uncache.push_back(txin.prevout);
             }

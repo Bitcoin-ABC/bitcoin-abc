@@ -3836,7 +3836,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
         if (pcoin->tx->vin.size() > 0) {
             bool any_mine = false;
             // Group all input addresses with each other.
-            for (const auto txin : pcoin->tx->vin) {
+            for (const auto &txin : pcoin->tx->vin) {
                 CTxDestination address;
                 // If this input isn't mine, ignore it.
                 if (!IsMine(txin)) {
@@ -3856,7 +3856,7 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
 
             // Group change with input addresses.
             if (any_mine) {
-                for (const auto txout : pcoin->tx->vout) {
+                for (const auto &txout : pcoin->tx->vout) {
                     if (IsChange(txout)) {
                         CTxDestination txoutAddr;
                         if (!ExtractDestination(txout.scriptPubKey,

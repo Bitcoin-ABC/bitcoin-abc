@@ -134,6 +134,7 @@ add_compiler_flag(
 	# FIXME: Activating this flag cause cmake to fail on leveldb.
 	# -Wthread-safety-analysis
 	-Wshadow
+	-Wrange-loop-analysis
 )
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)

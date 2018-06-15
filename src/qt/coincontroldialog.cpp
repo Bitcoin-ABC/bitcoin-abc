@@ -458,7 +458,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     Amount nPayAmount = Amount::zero();
     bool fDust = false;
     CMutableTransaction txDummy;
-    for (const Amount amount : CoinControlDialog::payAmounts) {
+    for (const Amount &amount : CoinControlDialog::payAmounts) {
         nPayAmount += amount;
 
         if (amount > Amount::zero()) {

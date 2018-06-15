@@ -31,7 +31,7 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
         BaseSigHashType::ALL, BaseSigHashType::NONE, BaseSigHashType::SINGLE};
 
     std::vector<SigHashType> baseSigHashes;
-    for (const BaseSigHashType baseType : allBaseTypes) {
+    for (const BaseSigHashType &baseType : allBaseTypes) {
         const SigHashType baseSigHash = SigHashType().withBaseType(baseType);
         baseSigHashes.push_back(baseSigHash);
         baseSigHashes.push_back(baseSigHash.withAnyoneCanPay(true));
