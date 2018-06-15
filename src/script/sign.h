@@ -164,7 +164,7 @@ static constexpr uint8_t PSBT_SEPARATOR = 0x00;
 // all objects concatenated with each other.
 template <typename Stream, typename... X>
 void SerializeToVector(Stream &s, const X &... args) {
-    WriteCompactSize(s, GetSerializeSizeMany(s, args...));
+    WriteCompactSize(s, GetSerializeSizeMany(s.GetVersion(), args...));
     SerializeMany(s, args...);
 }
 

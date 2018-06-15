@@ -963,7 +963,7 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
     }
 
     // Write index header
-    unsigned int nSize = GetSerializeSize(fileout, block);
+    unsigned int nSize = GetSerializeSize(block, fileout.GetVersion());
     fileout << messageStart << nSize;
 
     // Write block
@@ -1363,7 +1363,7 @@ bool UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
     }
 
     // Write index header
-    unsigned int nSize = GetSerializeSize(fileout, blockundo);
+    unsigned int nSize = GetSerializeSize(blockundo, fileout.GetVersion());
     fileout << messageStart << nSize;
 
     // Write undo data
