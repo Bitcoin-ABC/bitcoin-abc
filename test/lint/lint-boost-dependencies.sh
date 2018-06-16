@@ -30,7 +30,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/optional.hpp
     boost/preprocessor/cat.hpp
     boost/preprocessor/stringize.hpp
-    boost/program_options/detail/config_file.hpp
     boost/range/iterator.hpp
     boost/range/adaptor/sliced.hpp
     boost/scoped_array.hpp
