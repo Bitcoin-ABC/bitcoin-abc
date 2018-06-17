@@ -26,15 +26,6 @@ enum isminetype {
 /** used for bitflags of isminetype */
 typedef uint8_t isminefilter;
 
-/**
- * isInvalid becomes true when the script is found invalid by consensus or
- * policy. This will terminate the recursion and return ISMINE_NO immediately,
- * as an invalid script should never be considered as "mine". Currently the only
- * use of isInvalid is for P2SH-inside-P2SH scripts (as a technicality, to
- * prevent infinite recursion).
- */
-isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey,
-                  bool &isInvalid);
 isminetype IsMine(const CKeyStore &keystore, const CScript &scriptPubKey);
 isminetype IsMine(const CKeyStore &keystore, const CTxDestination &dest);
 

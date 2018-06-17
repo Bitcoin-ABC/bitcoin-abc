@@ -5,6 +5,7 @@
 
 #include <script/standard.h>
 
+#include <crypto/sha256.h>
 #include <pubkey.h>
 #include <script/script.h>
 
