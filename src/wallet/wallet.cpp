@@ -992,7 +992,8 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     if (fInsertedNew) {
         wtx.nTimeReceived = GetAdjustedTime();
         wtx.nOrderPos = IncOrderPosNext(&batch);
-        wtxOrdered.insert(std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
+        wtx.m_it_wtxOrdered = wtxOrdered.insert(
+            std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
         wtx.nTimeSmart = ComputeTimeSmart(wtx);
         AddToSpends(txid);
     }
@@ -1053,9 +1054,13 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
 
 void CWallet::LoadToWallet(const CWalletTx &wtxIn) {
     const TxId &txid = wtxIn.GetId();
-    CWalletTx &wtx = mapWallet.emplace(txid, wtxIn).first->second;
+    const auto &ins = mapWallet.emplace(txid, wtxIn);
+    CWalletTx &wtx = ins.first->second;
     wtx.BindWallet(this);
-    wtxOrdered.insert(std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
+    if (/* insertion took place */ ins.second) {
+        wtx.m_it_wtxOrdered = wtxOrdered.insert(
+            std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
+    }
     AddToSpends(txid);
     for (const CTxIn &txin : wtx.tx->vin) {
         auto it = mapWallet.find(txin.prevout.GetTxId());
@@ -3486,7 +3491,9 @@ DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
     DBErrors nZapSelectTxRet =
         WalletBatch(*database, "cr+").ZapSelectTx(txIdsIn, txIdsOut);
     for (const TxId &txid : txIdsOut) {
-        mapWallet.erase(txid);
+        const auto &it = mapWallet.find(txid);
+        wtxOrdered.erase(it->second.m_it_wtxOrdered);
+        mapWallet.erase(it);
     }
 
     if (nZapSelectTxRet == DBErrors::NEED_REWRITE) {

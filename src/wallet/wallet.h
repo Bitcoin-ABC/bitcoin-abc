@@ -347,6 +347,9 @@ public:
     std::string strFromAccount;
     //!< position in ordered transaction list
     int64_t nOrderPos;
+    std::multimap<int64_t,
+                  std::pair<CWalletTx *, CAccountingEntry *>>::const_iterator
+        m_it_wtxOrdered;
 
     // memory only
     mutable bool fDebitCached;
