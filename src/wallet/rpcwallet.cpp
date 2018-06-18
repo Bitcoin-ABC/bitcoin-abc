@@ -3184,7 +3184,7 @@ static UniValue listlockunspent(const Config &config,
 
     UniValue ret(UniValue::VARR);
 
-    for (COutPoint &output : vOutpts) {
+    for (const COutPoint &output : vOutpts) {
         UniValue o(UniValue::VOBJ);
 
         o.pushKV("txid", output.GetTxId().GetHex());

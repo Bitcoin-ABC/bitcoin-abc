@@ -500,7 +500,7 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     const CTxMemPool::txiter &it = g_mempool.mapTx.find(tx.GetId());
     const CTxMemPool::setEntries &setChildren =
         g_mempool.GetMemPoolChildren(it);
-    for (const CTxMemPool::txiter &childiter : setChildren) {
+    for (CTxMemPool::txiter childiter : setChildren) {
         spent.push_back(childiter->GetTx().GetId().ToString());
     }
 

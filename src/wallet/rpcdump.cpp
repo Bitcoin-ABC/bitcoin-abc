@@ -43,7 +43,7 @@ static int64_t DecodeDumpTime(const std::string &str) {
 
 static std::string EncodeDumpString(const std::string &str) {
     std::stringstream ret;
-    for (uint8_t c : str) {
+    for (const uint8_t c : str) {
         if (c <= 32 || c >= 128 || c == '%') {
             ret << '%' << HexStr(&c, &c + 1);
         } else {

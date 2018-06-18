@@ -416,7 +416,7 @@ bool CheckSequenceLocks(const CTxMemPool &pool, const CTransaction &tx,
             // lock on a mempool input, so we can use the return value of
             // CheckSequenceLocks to indicate the LockPoints validity.
             int maxInputHeight = 0;
-            for (int height : prevheights) {
+            for (const int height : prevheights) {
                 // Can ignore mempool inputs since we'll fail if they had
                 // non-zero locks.
                 if (height != tip->nHeight + 1) {
@@ -5017,7 +5017,7 @@ void UnloadBlockIndex() {
     setDirtyBlockIndex.clear();
     setDirtyFileInfo.clear();
 
-    for (BlockMap::value_type &entry : mapBlockIndex) {
+    for (const BlockMap::value_type &entry : mapBlockIndex) {
         delete entry.second;
     }
 
@@ -5267,7 +5267,7 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (auto &entry : mapBlockIndex) {
+    for (const auto &entry : mapBlockIndex) {
         forward.emplace(entry.second->pprev, entry.second);
     }
 

@@ -1050,7 +1050,7 @@ void PeerLogicValidation::BlockConnected(
     // Erase orphan transactions included or precluded by this block
     if (vOrphanErase.size()) {
         int nErased = 0;
-        for (uint256 &orphanId : vOrphanErase) {
+        for (const uint256 &orphanId : vOrphanErase) {
             nErased += EraseOrphanTx(orphanId);
         }
         LogPrint(BCLog::MEMPOOL,

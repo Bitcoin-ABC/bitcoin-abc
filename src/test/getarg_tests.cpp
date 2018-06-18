@@ -25,7 +25,7 @@ static void ResetArgs(const std::string &strArg) {
 
     // Convert to char*:
     std::vector<const char *> vecChar;
-    for (std::string &s : vecArg) {
+    for (const std::string &s : vecArg) {
         vecChar.push_back(s.c_str());
     }
 
