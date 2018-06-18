@@ -222,8 +222,7 @@ private:
     void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
-                                   CBlockIndex *pindexNew,
+    void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,
                                    const FlatFilePos &pos)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -3290,8 +3289,7 @@ CBlockIndex *CChainState::AddToBlockIndex(const CBlockHeader &block) {
  * Mark a block as having its data received and checked (up to
  * BLOCK_VALID_TRANSACTIONS).
  */
-bool CChainState::ReceivedBlockTransactions(const CBlock &block,
-                                            CValidationState &state,
+void CChainState::ReceivedBlockTransactions(const CBlock &block,
                                             CBlockIndex *pindexNew,
                                             const FlatFilePos &pos) {
     pindexNew->nTx = block.vtx.size();
@@ -3346,8 +3344,6 @@ bool CChainState::ReceivedBlockTransactions(const CBlock &block,
                pindexNew->pprev->IsValid(BlockValidity::TREE)) {
         mapBlocksUnlinked.insert(std::make_pair(pindexNew->pprev, pindexNew));
     }
-
-    return true;
 }
 
 static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
@@ -4078,9 +4074,7 @@ bool CChainState::AcceptBlock(const Config &config,
                 __func__));
             return false;
         }
-        if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
-            return error("AcceptBlock(): ReceivedBlockTransactions failed");
-        }
+        ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
         return AbortNode(state, std::string("System error: ") + e.what());
     }
@@ -4973,11 +4967,7 @@ bool CChainState::LoadGenesisBlock(const CChainParams &chainparams) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
         CBlockIndex *pindex = AddToBlockIndex(block);
-        CValidationState state;
-        if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
-            return error("%s: genesis block not accepted (%s)", __func__,
-                         FormatStateMessage(state));
-        }
+        ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
         return error("%s: failed to write genesis block: %s", __func__,
                      e.what());
