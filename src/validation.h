@@ -356,7 +356,7 @@ bool InitBlockIndex(const Config &config);
 /**
  * Load the block tree and coins database from disk.
  */
-bool LoadBlockIndex(const CChainParams &chainparams);
+bool LoadBlockIndex(const Config &config);
 
 /**
  * Update the chain tip based on database information.

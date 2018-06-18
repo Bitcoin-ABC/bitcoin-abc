@@ -2045,7 +2045,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
                 }
                 if (fRequestShutdown) break;
 
-                if (!LoadBlockIndex(chainparams)) {
+                if (!LoadBlockIndex(config)) {
                     strLoadError = _("Error loading block database");
                     break;
                 }
