@@ -477,7 +477,8 @@ bool PaymentServer::handleURI(const QString &scheme, const QString &s) {
     // normal URI
     SendCoinsRecipient recipient;
     if (GUIUtil::parseBitcoinURI(scheme, s, &recipient)) {
-        if (!IsValidDestinationString(recipient.address.toStdString())) {
+        if (!IsValidDestinationString(recipient.address.toStdString(),
+                                      GetConfig().GetChainParams())) {
             Q_EMIT message(
                 tr("URI handling"),
                 tr("Invalid payment address %1").arg(recipient.address),

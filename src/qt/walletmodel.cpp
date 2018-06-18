@@ -12,6 +12,7 @@
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 
+#include "config.h"
 #include "dstencode.h"
 #include "keystore.h"
 #include "net.h" // for g_connman
@@ -160,8 +161,9 @@ void WalletModel::updateTransaction() {
 void WalletModel::updateAddressBook(const QString &address,
                                     const QString &label, bool isMine,
                                     const QString &purpose, int status) {
-    if (addressTableModel)
+    if (addressTableModel) {
         addressTableModel->updateEntry(address, label, isMine, purpose, status);
+    }
 }
 
 void WalletModel::updateWatchOnlyFlag(bool fHaveWatchonly) {
@@ -170,7 +172,8 @@ void WalletModel::updateWatchOnlyFlag(bool fHaveWatchonly) {
 }
 
 bool WalletModel::validateAddress(const QString &address) {
-    return IsValidDestinationString(address.toStdString());
+    return IsValidDestinationString(address.toStdString(),
+                                    GetConfig().GetChainParams());
 }
 
 WalletModel::SendCoinsReturn

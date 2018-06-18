@@ -108,7 +108,7 @@ class WalletModel : public QObject {
 
 public:
     explicit WalletModel(const PlatformStyle *platformStyle, CWallet *wallet,
-                         OptionsModel *optionsModel, QObject *parent = 0);
+                         OptionsModel *optionsModel, QObject *parent = nullptr);
     ~WalletModel();
 
     // Returned by sendCoins
