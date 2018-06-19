@@ -4013,10 +4013,6 @@ bool CChainState::AcceptBlock(const Config &config,
         }
     }
 
-    if (fNewBlock) {
-        *fNewBlock = true;
-    }
-
     const CChainParams &chainparams = config.GetChainParams();
 
     if (!CheckBlock(config, block, state, BlockValidationOptions(config)) ||
@@ -4053,6 +4049,9 @@ bool CChainState::AcceptBlock(const Config &config,
     }
 
     // Write block to history file
+    if (fNewBlock) {
+        *fNewBlock = true;
+    }
     try {
         FlatFilePos blockPos =
             SaveBlockToDisk(block, pindex->nHeight, chainparams, dbp);
