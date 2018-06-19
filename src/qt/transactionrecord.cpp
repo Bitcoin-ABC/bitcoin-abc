@@ -73,15 +73,23 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
         isminetype fAllFromMe = ISMINE_SPENDABLE;
         for (const CTxIn &txin : wtx.tx->vin) {
             isminetype mine = wallet->IsMine(txin);
-            if (mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if (fAllFromMe > mine) fAllFromMe = mine;
+            if (mine & ISMINE_WATCH_ONLY) {
+                involvesWatchAddress = true;
+            }
+            if (fAllFromMe > mine) {
+                fAllFromMe = mine;
+            }
         }
 
         isminetype fAllToMe = ISMINE_SPENDABLE;
         for (const CTxOut &txout : wtx.tx->vout) {
             isminetype mine = wallet->IsMine(txout);
-            if (mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if (fAllToMe > mine) fAllToMe = mine;
+            if (mine & ISMINE_WATCH_ONLY) {
+                involvesWatchAddress = true;
+            }
+            if (fAllToMe > mine) {
+                fAllToMe = mine;
+            }
         }
 
         if (fAllFromMe && fAllToMe) {
@@ -152,7 +160,9 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
     // Find the block the tx is in
     CBlockIndex *pindex = nullptr;
     BlockMap::iterator mi = mapBlockIndex.find(wtx.hashBlock);
-    if (mi != mapBlockIndex.end()) pindex = (*mi).second;
+    if (mi != mapBlockIndex.end()) {
+        pindex = (*mi).second;
+    }
 
     // Sort order, unrecorded transactions sort to the top
     status.sortKey =
@@ -172,9 +182,8 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
             status.status = TransactionStatus::OpenUntilDate;
             status.open_for = wtx.tx->nLockTime;
         }
-    }
-    // For generated transactions, determine maturity
-    else if (type == TransactionRecord::Generated) {
+    } else if (type == TransactionRecord::Generated) {
+        // For generated transactions, determine maturity
         if (wtx.GetBlocksToMaturity() > 0) {
             status.status = TransactionStatus::Immature;
 
@@ -183,8 +192,9 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
 
                 // Check if the block was requested by anyone
                 if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 &&
-                    wtx.GetRequestCount() == 0)
+                    wtx.GetRequestCount() == 0) {
                     status.status = TransactionStatus::MaturesWarning;
+                }
             } else {
                 status.status = TransactionStatus::NotAccepted;
             }
@@ -199,7 +209,9 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx) {
             status.status = TransactionStatus::Offline;
         } else if (status.depth == 0) {
             status.status = TransactionStatus::Unconfirmed;
-            if (wtx.isAbandoned()) status.status = TransactionStatus::Abandoned;
+            if (wtx.isAbandoned()) {
+                status.status = TransactionStatus::Abandoned;
+            }
         } else if (status.depth < RecommendedNumConfirmations) {
             status.status = TransactionStatus::Confirming;
         } else {

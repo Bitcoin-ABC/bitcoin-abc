@@ -48,7 +48,9 @@ uint256 SendCoins(CWallet &wallet, SendCoinsDialog &sendCoinsDialog,
     boost::signals2::scoped_connection c =
         wallet.NotifyTransactionChanged.connect(
             [&txid](CWallet *, const uint256 &hash, ChangeType status) {
-                if (status == CT_NEW) txid = hash;
+                if (status == CT_NEW) {
+                    txid = hash;
+                }
             });
     ConfirmSend();
     QMetaObject::invokeMethod(&sendCoinsDialog, "on_sendButton_clicked");
