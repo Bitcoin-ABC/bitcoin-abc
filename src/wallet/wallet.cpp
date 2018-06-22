@@ -3062,7 +3062,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         }
         CTxOut change_prototype_txout(Amount::zero(), scriptChange);
         coin_selection_params.change_output_size =
-            GetSerializeSize(change_prototype_txout, SER_DISK, 0);
+            GetSerializeSize(change_prototype_txout);
 
         // Get the fee rate to use effective values in coin selection
         CFeeRate nFeeRateNeeded =
@@ -3111,7 +3111,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                 // Include the fee cost for outputs. Note this is only used for
                 // BnB right now
                 coin_selection_params.tx_noinputs_size +=
-                    ::GetSerializeSize(txout, SER_NETWORK, PROTOCOL_VERSION);
+                    ::GetSerializeSize(txout, PROTOCOL_VERSION);
 
                 if (IsDust(txout, dustRelayFee)) {
                     if (recipient.fSubtractFeeFromAmount &&

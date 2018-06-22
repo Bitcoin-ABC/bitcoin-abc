@@ -188,8 +188,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
     // Make sure the coinbase is big enough.
-    uint64_t coinbaseSize =
-        ::GetSerializeSize(coinbaseTx, SER_NETWORK, PROTOCOL_VERSION);
+    uint64_t coinbaseSize = ::GetSerializeSize(coinbaseTx, PROTOCOL_VERSION);
     if (coinbaseSize < MIN_TX_SIZE) {
         coinbaseTx.vin[0].scriptSig
             << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
@@ -202,8 +201,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // mode.
     pblocktemplate->entries[0].txFee = -1 * nFees;
 
-    uint64_t nSerializeSize =
-        GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
+    uint64_t nSerializeSize = GetSerializeSize(*pblock, PROTOCOL_VERSION);
 
     LogPrintf("CreateNewBlock(): total size: %u txs: %u fees: %ld sigops %d\n",
               nSerializeSize, nBlockTx, nFees, nBlockSigOps);
@@ -297,8 +295,7 @@ bool BlockAssembler::TestPackageTransactions(
             return false;
         }
 
-        uint64_t nTxSize =
-            ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
+        uint64_t nTxSize = ::GetSerializeSize(it->GetTx(), PROTOCOL_VERSION);
         if (nPotentialBlockSize + nTxSize >= nMaxGeneratedBlockSize) {
             return false;
         }
@@ -312,8 +309,7 @@ bool BlockAssembler::TestPackageTransactions(
 BlockAssembler::TestForBlockResult
 BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     auto blockSizeWithTx =
-        nBlockSize +
-        ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
+        nBlockSize + ::GetSerializeSize(it->GetTx(), PROTOCOL_VERSION);
     if (blockSizeWithTx >= nMaxGeneratedBlockSize) {
         if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
             return TestForBlockResult::BlockFinished;
@@ -708,16 +704,14 @@ void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
         COINBASE_FLAGS;
 
     // Make sure the coinbase is big enough.
-    uint64_t coinbaseSize =
-        ::GetSerializeSize(txCoinbase, SER_NETWORK, PROTOCOL_VERSION);
+    uint64_t coinbaseSize = ::GetSerializeSize(txCoinbase, PROTOCOL_VERSION);
     if (coinbaseSize < MIN_TX_SIZE) {
         txCoinbase.vin[0].scriptSig
             << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
     }
 
     assert(txCoinbase.vin[0].scriptSig.size() <= MAX_COINBASE_SCRIPTSIG_SIZE);
-    assert(::GetSerializeSize(txCoinbase, SER_NETWORK, PROTOCOL_VERSION) >=
-           MIN_TX_SIZE);
+    assert(::GetSerializeSize(txCoinbase, PROTOCOL_VERSION) >= MIN_TX_SIZE);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);

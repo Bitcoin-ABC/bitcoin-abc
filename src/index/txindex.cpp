@@ -257,7 +257,7 @@ bool TxIndex::WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
     vPos.reserve(block.vtx.size());
     for (const auto &tx : block.vtx) {
         vPos.emplace_back(tx->GetId(), pos);
-        pos.nTxOffset += ::GetSerializeSize(*tx, SER_DISK, CLIENT_VERSION);
+        pos.nTxOffset += ::GetSerializeSize(*tx, CLIENT_VERSION);
     }
     return m_db->WriteTxs(vPos);
 }

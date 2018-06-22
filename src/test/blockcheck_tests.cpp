@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     // Oversize block.
     tx = CMutableTransaction(coinbaseTx);
     block.vtx[0] = MakeTransactionRef(tx);
-    auto txSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+    auto txSize = ::GetSerializeSize(tx, PROTOCOL_VERSION);
     auto maxTxCount = ((DEFAULT_MAX_BLOCK_SIZE - 1) / txSize) - 1;
 
     for (size_t i = 1; i < maxTxCount; i++) {

@@ -26,7 +26,7 @@ Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
         return Amount::zero();
     }
 
-    size_t nSize = GetSerializeSize(txout, SER_DISK, 0);
+    size_t nSize = GetSerializeSize(txout);
 
     // the 148 mentioned above
     nSize += (32 + 4 + 1 + 107 + 4);
@@ -187,14 +187,12 @@ int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCost,
 
 int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCost,
                                   unsigned int bytes_per_sigop) {
-    return GetVirtualTransactionSize(
-        ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION), nSigOpCost,
-        bytes_per_sigop);
+    return GetVirtualTransactionSize(::GetSerializeSize(tx, PROTOCOL_VERSION),
+                                     nSigOpCost, bytes_per_sigop);
 }
 
 int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigOpCost,
                                        unsigned int bytes_per_sigop) {
-    return GetVirtualTransactionSize(
-        ::GetSerializeSize(txin, SER_NETWORK, PROTOCOL_VERSION), nSigOpCost,
-        bytes_per_sigop);
+    return GetVirtualTransactionSize(::GetSerializeSize(txin, PROTOCOL_VERSION),
+                                     nSigOpCost, bytes_per_sigop);
 }

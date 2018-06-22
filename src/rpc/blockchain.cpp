@@ -114,8 +114,7 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
     const CBlockIndex *pnext;
     int confirmations = ComputeNextBlockAndDepth(tip, blockindex, pnext);
     result.pushKV("confirmations", confirmations);
-    result.pushKV(
-        "size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION));
+    result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", block.nVersion);
     result.pushKV("versionHex", strprintf("%08x", block.nVersion));
@@ -2065,8 +2064,7 @@ static UniValue getblockstats(const Config &config,
             for (const CTxOut &out : tx->vout) {
                 tx_total_out += out.nValue;
                 utxo_size_inc +=
-                    GetSerializeSize(out, SER_NETWORK, PROTOCOL_VERSION) +
-                    PER_UTXO_OVERHEAD;
+                    GetSerializeSize(out, PROTOCOL_VERSION) + PER_UTXO_OVERHEAD;
             }
         }
 
@@ -2112,9 +2110,9 @@ static UniValue getblockstats(const Config &config,
                 CTxOut prevoutput = tx_in->vout[in.prevout.GetN()];
 
                 tx_total_in += prevoutput.nValue;
-                utxo_size_inc -= GetSerializeSize(prevoutput, SER_NETWORK,
-                                                  PROTOCOL_VERSION) +
-                                 PER_UTXO_OVERHEAD;
+                utxo_size_inc -=
+                    GetSerializeSize(prevoutput, PROTOCOL_VERSION) +
+                    PER_UTXO_OVERHEAD;
             }
 
             Amount txfee = tx_total_in - tx_total_out;

@@ -1577,9 +1577,8 @@ static bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull()) {
         FlatFilePos _pos;
-        if (!FindUndoPos(
-                state, pindex->nFile, _pos,
-                ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40)) {
+        if (!FindUndoPos(state, pindex->nFile, _pos,
+                         ::GetSerializeSize(blockundo, CLIENT_VERSION) + 40)) {
             return error("ConnectBlock(): FindUndoPos failed");
         }
         if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
@@ -1867,7 +1866,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     // Sigops counting. We need to do it again because of P2SH.
     uint64_t nSigOpsCount = 0;
     const uint64_t currentBlockSize =
-        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+        ::GetSerializeSize(block, PROTOCOL_VERSION);
     const uint64_t nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
 
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
@@ -3548,8 +3547,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
                          "size limits failed");
     }
 
-    auto currentBlockSize =
-        ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
+    auto currentBlockSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
     if (currentBlockSize > nMaxBlockSize) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
                          "size limits failed");
@@ -3956,8 +3954,7 @@ bool ProcessNewBlockHeaders(const Config &config,
 static FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
                                    const CChainParams &chainparams,
                                    const FlatFilePos *dbp) {
-    unsigned int nBlockSize =
-        ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+    unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
     FlatFilePos blockPos;
     if (dbp != nullptr) {
         blockPos = *dbp;
