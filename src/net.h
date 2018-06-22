@@ -564,6 +564,7 @@ struct CNodeStats {
     double dPingTime;
     double dPingWait;
     double dMinPing;
+    Amount minFeeFilter;
     // Our address, as reported by the peer
     std::string addrLocal;
     // Address of this peer

@@ -132,6 +132,8 @@ static UniValue getpeerinfo(const Config &config,
             "    ],\n"
             "    \"whitelisted\": true|false, (boolean) Whether the peer is "
             "whitelisted\n"
+            "    \"minfeefilter\": n,         (numeric) The minimum fee rate "
+            "for transactions this peer accepts\n"
             "    \"bytessent_per_msg\": {\n"
             "       \"addr\": n,              (numeric) The total bytes sent "
             "aggregated by message type\n"
@@ -210,6 +212,7 @@ static UniValue getpeerinfo(const Config &config,
             obj.pushKV("inflight", heights);
         }
         obj.pushKV("whitelisted", stats.fWhitelisted);
+        obj.pushKV("minfeefilter", ValueFromAmount(stats.minFeeFilter));
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);
         for (const mapMsgCmdSize::value_type &i : stats.mapSendBytesPerMsgCmd) {
