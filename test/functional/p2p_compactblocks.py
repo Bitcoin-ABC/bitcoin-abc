@@ -126,7 +126,7 @@ class TestP2PConn(P2PInterface):
         This is used when we want to send a message into the node that we expect
         will get us disconnected, eg an invalid block."""
         self.send_message(message)
-        wait_until(lambda: self.state != "connected",
+        wait_until(lambda: not self.is_connected,
                    timeout=timeout, lock=mininode_lock)
 
 

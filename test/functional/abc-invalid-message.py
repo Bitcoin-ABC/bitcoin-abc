@@ -23,7 +23,7 @@ from test_framework.util import wait_until
 
 
 def msg_bad_checksum(connection, original_message):
-    message_data = bytearray(connection.format_message(original_message))
+    message_data = bytearray(connection._build_message(original_message))
 
     data = original_message.serialize()
     i = 0
@@ -48,7 +48,8 @@ class BadVersionP2PInterface(P2PInterface):
         vt.addrFrom.ip = "0.0.0.0"
         vt.addrFrom.port = 0
         invalid_vt = msg_bad_checksum(self, vt)
-        self.send_raw_message(invalid_vt, True)
+        # Will be sent right after handle_connect
+        self.sendbuf = invalid_vt
 
 
 class InvalidMessageTest(BitcoinTestFramework):
