@@ -558,7 +558,7 @@ public:
     mutable RecursiveMutex cs;
     indexed_transaction_set mapTx GUARDED_BY(cs);
 
-    typedef indexed_transaction_set::nth_index<0>::type::iterator txiter;
+    using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
     //! All tx hashes/entries in mapTx, in random order
     std::vector<std::pair<TxHash, txiter>> vTxHashes;
 
