@@ -172,6 +172,13 @@
         "lint-logs": {
             "type": "lint-logs",
             "include": "(^src/.*\\.(h|cpp)$)"
+        },
+        "lint-qt": {
+            "type": "lint-qt",
+            "include": "(^src/qt/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/qt/(locale|forms|res)/)"
+            ]
         }
     }
 }
