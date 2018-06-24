@@ -44,7 +44,12 @@ enum Network ParseNetwork(std::string net) {
     if (net == "ipv6") {
         return NET_IPV6;
     }
-    if (net == "tor" || net == "onion") {
+    if (net == "onion") {
+        return NET_TOR;
+    }
+    if (net == "tor") {
+        LogPrintf("Warning: net name 'tor' is deprecated and will be removed "
+                  "in the future. You should use 'onion' instead.\n");
         return NET_TOR;
     }
     return NET_UNROUTABLE;
