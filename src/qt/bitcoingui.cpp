@@ -77,20 +77,8 @@ const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 BitcoinGUI::BitcoinGUI(const Config *configIn,
                        const PlatformStyle *_platformStyle,
                        const NetworkStyle *networkStyle, QWidget *parent)
-    : QMainWindow(parent), enableWallet(false), clientModel(0), walletFrame(0),
-      unitDisplayControl(0), labelWalletEncryptionIcon(0),
-      labelWalletHDStatusIcon(0), connectionsControl(0), labelBlocksIcon(0),
-      progressBarLabel(0), progressBar(0), progressDialog(0), appMenuBar(0),
-      overviewAction(0), historyAction(0), quitAction(0), sendCoinsAction(0),
-      sendCoinsMenuAction(0), usedSendingAddressesAction(0),
-      usedReceivingAddressesAction(0), signMessageAction(0),
-      verifyMessageAction(0), aboutAction(0), receiveCoinsAction(0),
-      receiveCoinsMenuAction(0), optionsAction(0), toggleHideAction(0),
-      encryptWalletAction(0), backupWalletAction(0), changePassphraseAction(0),
-      aboutQtAction(0), openRPCConsoleAction(0), openAction(0),
-      showHelpMessageAction(0), trayIcon(0), trayIconMenu(0), notificator(0),
-      rpcConsole(0), helpMessageDialog(0), modalOverlay(0), prevBlocks(0),
-      spinnerFrame(0), platformStyle(_platformStyle), config(configIn) {
+    : QMainWindow(parent), enableWallet(false), platformStyle(_platformStyle),
+      config(configIn) {
     GUIUtil::restoreWindowGeometry("nWindow", QSize(850, 550), this);
 
     QString windowTitle = tr(PACKAGE_NAME) + " - ";
