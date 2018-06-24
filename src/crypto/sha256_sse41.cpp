@@ -1,11 +1,7 @@
 #ifdef ENABLE_SSE41
 
-#include <stdint.h>
-#if defined(_MSC_VER)
 #include <immintrin.h>
-#elif defined(__GNUC__)
-#include <x86intrin.h>
-#endif
+#include <stdint.h>
 
 #include "crypto/common.h"
 #include "crypto/sha256.h"
@@ -70,7 +66,7 @@ namespace {
     }
 
     /** One round of SHA-256. */
-    void inline __attribute__((always_inline))
+    inline void __attribute__((always_inline))
     Round(__m128i a, __m128i b, __m128i c, __m128i &d, __m128i e, __m128i f,
           __m128i g, __m128i &h, __m128i k) {
         __m128i t1 = Add(h, Sigma1(e), Ch(e, f, g), k);
@@ -87,7 +83,7 @@ namespace {
                                                    0x04050607UL, 0x00010203UL));
     }
 
-    void inline Write4(uint8_t *out, int offset, __m128i v) {
+    inline void Write4(uint8_t *out, int offset, __m128i v) {
         v = _mm_shuffle_epi8(v, _mm_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL,
                                               0x04050607UL, 0x00010203UL));
         WriteLE32(out + 0 + offset, _mm_extract_epi32(v, 3));

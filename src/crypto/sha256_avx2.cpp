@@ -1,11 +1,7 @@
 #ifdef ENABLE_AVX2
 
-#include <stdint.h>
-#if defined(_MSC_VER)
 #include <immintrin.h>
-#elif defined(__GNUC__)
-#include <x86intrin.h>
-#endif
+#include <stdint.h>
 
 #include "crypto/common.h"
 #include "crypto/sha256.h"
@@ -70,7 +66,7 @@ namespace {
     }
 
     /** One round of SHA-256. */
-    void inline __attribute__((always_inline))
+    inline void __attribute__((always_inline))
     Round(__m256i a, __m256i b, __m256i c, __m256i &d, __m256i e, __m256i f,
           __m256i g, __m256i &h, __m256i k) {
         __m256i t1 = Add(h, Sigma1(e), Ch(e, f, g), k);
@@ -91,7 +87,7 @@ namespace {
                                   0x04050607UL, 0x00010203UL));
     }
 
-    void inline Write8(uint8_t *out, int offset, __m256i v) {
+    inline void Write8(uint8_t *out, int offset, __m256i v) {
         v = _mm256_shuffle_epi8(
             v, _mm256_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL,
                                 0x00010203UL, 0x0C0D0E0FUL, 0x08090A0BUL,

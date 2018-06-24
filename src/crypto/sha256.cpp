@@ -9,7 +9,7 @@
 #include <cassert>
 #include <cstring>
 
-#if defined(__x86_64__) || defined(__amd64__)
+#if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
 #if defined(USE_ASM)
 #include <cpuid.h>
 namespace sha256_sse4 {
@@ -24,6 +24,14 @@ void Transform_4way(uint8_t *out, const uint8_t *in);
 
 namespace sha256d64_avx2 {
 void Transform_8way(uint8_t *out, const uint8_t *in);
+}
+
+namespace sha256d64_shani {
+void Transform_2way(unsigned char *out, const unsigned char *in);
+}
+
+namespace sha256_shani {
+void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks);
 }
 
 // Internal implementation code.
@@ -607,6 +615,7 @@ void TransformD64Wrapper(uint8_t *out, const uint8_t *in) {
 
 TransformType Transform = sha256::Transform;
 TransformD64Type TransformD64 = sha256::TransformD64;
+TransformD64Type TransformD64_2way = nullptr;
 TransformD64Type TransformD64_4way = nullptr;
 TransformD64Type TransformD64_8way = nullptr;
 
@@ -689,6 +698,13 @@ bool SelfTest() {
         if (!std::equal(out, out + 32, result_d64)) return false;
     }
 
+    // Test TransformD64_2way, if available.
+    if (TransformD64_2way) {
+        unsigned char out[64];
+        TransformD64_2way(out, data + 1);
+        if (!std::equal(out, out + 64, result_d64)) return false;
+    }
+
     // Test TransformD64_4way, if available.
     if (TransformD64_4way) {
         uint8_t out[128];
@@ -709,11 +725,15 @@ bool SelfTest() {
 #if defined(USE_ASM) &&                                                        \
     (defined(__x86_64__) || defined(__amd64__) || defined(__i386__))
 // We can't use cpuid.h's __get_cpuid as it does not support subleafs.
-void inline cpuid(uint32_t leaf, uint32_t subleaf, uint32_t &a, uint32_t &b,
+inline void cpuid(uint32_t leaf, uint32_t subleaf, uint32_t &a, uint32_t &b,
                   uint32_t &c, uint32_t &d) {
+#ifdef __GNUC__
+    __cpuid_count(leaf, subleaf, a, b, c, d);
+#else
     __asm__("cpuid"
             : "=a"(a), "=b"(b), "=c"(c), "=d"(d)
             : "0"(leaf), "2"(subleaf));
+#endif
 }
 
 /** Check whether the OS has enabled AVX registers. */
@@ -729,33 +749,64 @@ std::string SHA256AutoDetect() {
     std::string ret = "standard";
 #if defined(USE_ASM) &&                                                        \
     (defined(__x86_64__) || defined(__amd64__) || defined(__i386__))
-    // Silence unused warning (in case ENABLE_AVX2 is not defined)
+    bool have_sse4 = false;
+    bool have_xsave = false;
+    bool have_avx = false;
+    bool have_avx2 = false;
+    bool have_shani = false;
+    bool enabled_avx = false;
+
     (void)AVXEnabled;
+    (void)have_sse4;
+    (void)have_avx;
+    (void)have_xsave;
+    (void)have_avx2;
+    (void)have_shani;
+    (void)enabled_avx;
+
     uint32_t eax, ebx, ecx, edx;
     cpuid(1, 0, eax, ebx, ecx, edx);
-    if ((ecx >> 19) & 1) {
+    have_sse4 = (ecx >> 19) & 1;
+    have_xsave = (ecx >> 27) & 1;
+    have_avx = (ecx >> 28) & 1;
+    if (have_xsave && have_avx) {
+        enabled_avx = AVXEnabled();
+    }
+    if (have_sse4) {
+        cpuid(7, 0, eax, ebx, ecx, edx);
+        have_avx2 = (ebx >> 5) & 1;
+        have_shani = (ebx >> 29) & 1;
+    }
+
+#if defined(ENABLE_SHANI) && !defined(BUILD_BITCOIN_INTERNAL)
+    if (have_shani) {
+        Transform = sha256_shani::Transform;
+        TransformD64 = TransformD64Wrapper<sha256_shani::Transform>;
+        TransformD64_2way = sha256d64_shani::Transform_2way;
+        ret = "shani(1way,2way)";
+        have_sse4 = false; // Disable SSE4/AVX2;
+        have_avx2 = false;
+    }
+#endif
+
+    if (have_sse4) {
 #if defined(__x86_64__) || defined(__amd64__)
         Transform = sha256_sse4::Transform;
         TransformD64 = TransformD64Wrapper<sha256_sse4::Transform>;
+        ret = "sse4(1way)";
 #endif
 #if defined(ENABLE_SSE41) && !defined(BUILD_BITCOIN_INTERNAL)
         TransformD64_4way = sha256d64_sse41::Transform_4way;
-        ret = "sse4(1way+4way)";
-#if defined(ENABLE_AVX2) && !defined(BUILD_BITCOIN_INTERNAL)
-        if (((ecx >> 27) & 1) && ((ecx >> 28) & 1)) { // XSAVE and AVX
-            cpuid(7, 0, eax, ebx, ecx, edx);
-            if ((ebx >> 5) & 1) {   // AVX2 flag
-                if (AVXEnabled()) { // OS has enabled AVX registers
-                    TransformD64_8way = sha256d64_avx2::Transform_8way;
-                    ret += ",avx2(8way)";
-                }
-            }
-        }
-#endif
-#else
-        ret = "sse4";
+        ret += ",sse41(4way)";
 #endif
     }
+
+#if defined(ENABLE_AVX2) && !defined(BUILD_BITCOIN_INTERNAL)
+    if (have_avx2 && have_avx && enabled_avx) {
+        TransformD64_8way = sha256d64_avx2::Transform_8way;
+        ret += ",avx2(8way)";
+    }
+#endif
 #endif
 
     assert(SelfTest());
@@ -830,6 +881,14 @@ void SHA256D64(uint8_t *out, const uint8_t *in, size_t blocks) {
             out += 128;
             in += 256;
             blocks -= 4;
+        }
+    }
+    if (TransformD64_2way) {
+        while (blocks >= 2) {
+            TransformD64_2way(out, in);
+            out += 64;
+            in += 128;
+            blocks -= 2;
         }
     }
     while (blocks) {
