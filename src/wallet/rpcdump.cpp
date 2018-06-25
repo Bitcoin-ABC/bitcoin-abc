@@ -557,7 +557,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (request.fHelp || request.params.size() < 1 ||
-        request.params.size() > 4) {
+        request.params.size() > 3) {
         throw std::runtime_error(RPCHelpMan{
             "importpubkey",
             "\nAdds a public key (in hex) that can be watched as if "
