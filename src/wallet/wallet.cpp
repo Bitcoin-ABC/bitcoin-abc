@@ -600,7 +600,7 @@ bool CWallet::Verify(const CChainParams &chainParams) {
 
         fs::path wallet_path = fs::absolute(walletFile, GetDataDir());
 
-        if (fs::exists(wallet_path)) {
+        if (!fs::exists(wallet_path)) {
             return InitError(strprintf(_("Error loading wallet %s. -wallet "
                                          "filename must be an existing file."),
                                        walletFile));
