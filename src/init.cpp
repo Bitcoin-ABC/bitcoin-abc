@@ -640,9 +640,12 @@ void SetupServerArgs() {
                            "hidden services (default: %s)",
                            "-proxy"),
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-onlynet=<net>",
-                 "Only connect to nodes in network <net> (ipv4, ipv6 or onion)",
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    gArgs.AddArg(
+        "-onlynet=<net>",
+        "Make outgoing connections only through network <net> (ipv4, ipv6 or "
+        "onion). Incoming connections are not affected by this option. This "
+        "option can be specified multiple times to allow multiple networks.",
+        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-peerbloomfilters",
                  strprintf("Support filtering of blocks and transaction with "
                            "bloom filters (default: %d)",
