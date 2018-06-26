@@ -1246,6 +1246,18 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
         return NullUniValue;
     }
 
+    if (!IsDeprecatedRPCEnabled(gArgs, "accounts")) {
+        if (request.fHelp) {
+            throw std::runtime_error(
+                "sendfrom (Deprecated, will be removed in V0.21. To use this "
+                "command, start bitcoind with -deprecatedrpc=accounts)");
+        }
+        throw JSONRPCError(
+            RPC_METHOD_DEPRECATED,
+            "sendfrom is deprecated and will be removed in V0.21. To use this "
+            "command, start bitcoind with -deprecatedrpc=accounts.");
+    }
+
     if (request.fHelp || request.params.size() < 3 ||
         request.params.size() > 6) {
         throw std::runtime_error(
@@ -1584,11 +1596,16 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked(pwallet);
 
     // Check funds
-    Amount nBalance =
-        pwallet->GetLegacyBalance(ISMINE_SPENDABLE, nMinDepth, &strAccount);
-    if (totalAmount > nBalance) {
+    if (IsDeprecatedRPCEnabled(gArgs, "accounts") &&
+        totalAmount > pwallet->GetLegacyBalance(ISMINE_SPENDABLE, nMinDepth,
+                                                &strAccount)) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
                            "Account has insufficient funds");
+    } else if (!IsDeprecatedRPCEnabled(gArgs, "accounts") &&
+               totalAmount > pwallet->GetLegacyBalance(ISMINE_SPENDABLE,
+                                                       nMinDepth, nullptr)) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
+                           "Wallet has insufficient funds");
     }
 
     // Shuffle recipient list
@@ -5403,7 +5420,6 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "lockunspent",                  lockunspent,                  {"unlock","transactions"} },
     { "wallet",             "rescanblockchain",             rescanblockchain,             {"start_height", "stop_height"} },
     { "wallet",             "sethdseed",                    sethdseed,                    {"newkeypool","seed"} },
-    { "wallet",             "sendfrom",                     sendfrom,                     {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
     { "wallet",             "sendmany",                     sendmany,                     {"fromaccount|dummy","amounts","minconf","comment","subtractfeefrom"} },
     { "wallet",             "sendtoaddress",                sendtoaddress,                {"address","amount","comment","comment_to","subtractfeefromamount"} },
     { "wallet",             "settxfee",                     settxfee,                     {"amount"} },
@@ -5422,6 +5438,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "listaccounts",                 listaccounts,                 {"minconf","include_watchonly"} },
     { "wallet",             "listreceivedbyaccount",        listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
     { "wallet",             "setaccount",                   setlabel,                     {"address","account"} },
+    { "wallet",             "sendfrom",                     sendfrom,                     {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
     { "wallet",             "move",                         movecmd,                      {"fromaccount","toaccount","amount","minconf","comment"} },
 
     /** Label functions (to replace non-balance account functions) */

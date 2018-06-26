@@ -124,8 +124,7 @@ class WalletLabelsTest(BitcoinTestFramework):
                 node.sendfrom(
                     label.name, to_label.receive_address, amount_to_send)
             else:
-                node.sendfrom(
-                    label.name, to_label.addresses[0], amount_to_send)
+                node.sendtoaddress(to_label.addresses[0], amount_to_send)
         node.generate(1)
         for label in labels:
             if accounts_api:
@@ -168,7 +167,8 @@ class WalletLabelsTest(BitcoinTestFramework):
             label.add_address(multisig_address)
             label.purpose[multisig_address] = "send"
             label.verify(node)
-            node.sendfrom("", multisig_address, 50)
+            if accounts_api:
+                node.sendfrom("", multisig_address, 50)
         node.generate(101)
         if accounts_api:
             for label in labels:
