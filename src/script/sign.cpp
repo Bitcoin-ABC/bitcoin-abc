@@ -400,3 +400,16 @@ public:
 
 const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR = DummySignatureCreator();
 const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();
+
+bool PartiallySignedTransaction::IsNull() const {
+    return !tx && inputs.empty() && outputs.empty() && unknown.empty();
+}
+
+bool PSBTInput::IsNull() const {
+    return utxo.IsNull() && partial_sigs.empty() && unknown.empty() &&
+           hd_keypaths.empty() && redeem_script.empty();
+}
+
+bool PSBTOutput::IsNull() const {
+    return redeem_script.empty() && hd_keypaths.empty() && unknown.empty();
+}

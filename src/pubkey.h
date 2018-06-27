@@ -95,6 +95,7 @@ public:
 
     //! Simple read-only vector-like interface to the pubkey data.
     unsigned int size() const { return GetLen(vch[0]); }
+    const uint8_t *data() const { return vch; }
     const uint8_t *begin() const { return vch; }
     const uint8_t *end() const { return vch + size(); }
     const uint8_t &operator[](unsigned int pos) const { return vch[pos]; }

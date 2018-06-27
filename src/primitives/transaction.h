@@ -283,11 +283,11 @@ public:
     }
 
     friend bool operator==(const CTransaction &a, const CTransaction &b) {
-        return a.hash == b.hash;
+        return a.GetHash() == b.GetHash();
     }
 
     friend bool operator!=(const CTransaction &a, const CTransaction &b) {
-        return a.hash != b.hash;
+        return !(a == b);
     }
 
     std::string ToString() const;
@@ -333,7 +333,7 @@ public:
 
     friend bool operator==(const CMutableTransaction &a,
                            const CMutableTransaction &b) {
-        return a.GetId() == b.GetId();
+        return a.GetHash() == b.GetHash();
     }
 };
 #if defined(__x86_64__)
