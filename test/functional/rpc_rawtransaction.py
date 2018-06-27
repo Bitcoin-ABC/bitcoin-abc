@@ -205,6 +205,57 @@ class RawTransactionsTest(BitcoinTestFramework):
                                                {address: 99}, {address2: 99}, {'data': '99'}]),
         )
 
+        for type in ["legacy"]:
+            addr = self.nodes[0].getnewaddress("", type)
+            addrinfo = self.nodes[0].getaddressinfo(addr)
+            pubkey = addrinfo["scriptPubKey"]
+
+            self.log.info(
+                'sendrawtransaction with missing prevtx info ({})'.format(type))
+
+            # Test `signrawtransactionwithwallet` invalid `prevtxs`
+            inputs = [{'txid': txid, 'vout': 3, 'sequence': 1000}]
+            outputs = {self.nodes[0].getnewaddress(): 1}
+            rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
+
+            prevtx = dict(txid=txid, scriptPubKey=pubkey, vout=3, amount=1)
+            succ = self.nodes[0].signrawtransactionwithwallet(rawtx, [prevtx])
+            assert succ["complete"]
+
+            assert_raises_rpc_error(-8, "Missing amount", self.nodes[0].signrawtransactionwithwallet, rawtx, [
+                {
+                    "txid": txid,
+                    "scriptPubKey": pubkey,
+                    "vout": 3,
+                }
+            ])
+
+            assert_raises_rpc_error(-3, "Missing vout", self.nodes[0].signrawtransactionwithwallet, rawtx, [
+                {
+                    "txid": txid,
+                    "scriptPubKey": pubkey,
+                    "amount": 1,
+                }
+            ])
+            assert_raises_rpc_error(-3, "Missing txid", self.nodes[0].signrawtransactionwithwallet, rawtx, [
+                {
+                    "scriptPubKey": pubkey,
+                    "vout": 3,
+                    "amount": 1,
+                }
+            ])
+            assert_raises_rpc_error(-3, "Missing scriptPubKey", self.nodes[0].signrawtransactionwithwallet, rawtx, [
+                {
+                    "txid": txid,
+                    "vout": 3,
+                    "amount": 1
+                }
+            ])
+
+        #########################################
+        # sendrawtransaction with missing input #
+        #########################################
+
         self.log.info('sendrawtransaction with missing input')
         # won't exists
         inputs = [

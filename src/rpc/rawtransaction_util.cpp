@@ -217,7 +217,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
 
                 CTxOut txout;
                 txout.scriptPubKey = scriptPubKey;
-                txout.nValue = Amount::zero();
+                txout.nValue = MAX_MONEY;
                 if (prevOut.exists("amount")) {
                     txout.nValue =
                         AmountFromValue(find_value(prevOut, "amount"));
@@ -293,6 +293,13 @@ void SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
         }
 
         UpdateInput(txin, sigdata);
+
+        // amount must be specified for valid signature
+        if (amount == MAX_MONEY) {
+            throw JSONRPCError(RPC_TYPE_ERROR,
+                               strprintf("Missing amount for %s",
+                                         coin->second.GetTxOut().ToString()));
+        }
 
         ScriptError serror = ScriptError::OK;
         if (!VerifyScript(
