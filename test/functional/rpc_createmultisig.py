@@ -93,7 +93,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
             rawtx2["hex"], [self.priv[-1]], prevtxs)
 
         self.moved += outval
-        tx = node0.sendrawtransaction(rawtx3["hex"], True)
+        tx = node0.sendrawtransaction(rawtx3["hex"], 0)
         blk = node0.generate(1)[0]
         assert tx in node0.getblock(blk)["tx"]
 

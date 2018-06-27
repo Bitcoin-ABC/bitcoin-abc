@@ -168,7 +168,7 @@ class BIP65Test(BitcoinTestFramework):
             [{'txid': spendtx.hash, 'allowed': False,
                 'reject-reason': '64: non-mandatory-script-verify-flag (Negative locktime)'}],
             self.nodes[0].testmempoolaccept(
-                rawtxs=[spendtx.serialize().hex()], allowhighfees=True)
+                rawtxs=[spendtx.serialize().hex()], maxfeerate=0)
         )
 
         rejectedtx_signed = self.nodes[0].signrawtransactionwithwallet(

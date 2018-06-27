@@ -226,6 +226,6 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         ctx.vout[0].nValue -= int(fee_multiplier * node.calculate_fee(ctx))
         signresult = node.signrawtransactionwithwallet(
             ToHex(ctx), None, "NONE|FORKID")
-        txid = node.sendrawtransaction(signresult["hex"], True)
+        txid = node.sendrawtransaction(signresult["hex"], 0)
         txids.append(txid)
     return txids

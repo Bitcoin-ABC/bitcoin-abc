@@ -33,6 +33,7 @@
 #include <uint256.h>
 #include <util/bip32.h>
 #include <util/error.h>
+#include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -907,8 +908,11 @@ static UniValue sendrawtransaction(const Config &config,
             {
                 {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
                  "The hex string of the raw transaction"},
-                {"allowhighfees", RPCArg::Type::BOOL, /* default */ "false",
-                 "Allow high fees"},
+                {"maxfeerate", RPCArg::Type::AMOUNT,
+                 /* default */ FormatMoney(maxTxFee),
+                 "Reject transactions whose fee rate is higher than the "
+                 "specified value, expressed in " +
+                     CURRENCY_UNIT + "/kB\n"},
             },
             RPCResult{
                 "\"hex\"             (string) The transaction hash in hex\n"},
@@ -928,7 +932,11 @@ static UniValue sendrawtransaction(const Config &config,
                                      .ToString());
     }
 
-    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL});
+    RPCTypeCheck(request.params, {
+                                     UniValue::VSTR,
+                                     // NUM or BOOL, checked later
+                                     UniValueType(),
+                                 });
 
     // parse hex string from parameter
     CMutableTransaction mtx;
@@ -938,15 +946,26 @@ static UniValue sendrawtransaction(const Config &config,
 
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
 
-    bool allowhighfees = false;
-    if (!request.params[1].isNull()) {
-        allowhighfees = request.params[1].get_bool();
+    Amount max_raw_tx_fee = maxTxFee;
+    // TODO: temporary migration code for old clients. Remove in v0.22
+    if (request.params[1].isBool()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Second argument must be numeric (maxfeerate) and "
+                           "no longer supports a boolean. To allow a "
+                           "transaction with high fees, set maxfeerate to 0.");
+    } else if (request.params[1].isNum()) {
+        size_t sz = tx->GetTotalSize();
+        CFeeRate fr(AmountFromValue(request.params[1]));
+        max_raw_tx_fee = fr.GetFee(sz);
+    } else if (!request.params[1].isNull()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "second argument (maxfeerate) must be numeric");
     }
-    const Amount highfee{allowhighfees ? Amount::zero() : ::maxTxFee};
+
     TxId txid;
     std::string err_string;
     const TransactionError err =
-        BroadcastTransaction(config, tx, txid, err_string, highfee);
+        BroadcastTransaction(config, tx, txid, err_string, max_raw_tx_fee);
     if (err != TransactionError::OK) {
         throw JSONRPCTransactionError(err, err_string);
     }
@@ -978,8 +997,11 @@ static UniValue testmempoolaccept(const Config &config,
                          RPCArg::Optional::OMITTED, ""},
                     },
                 },
-                {"allowhighfees", RPCArg::Type::BOOL, /* default */ "false",
-                 "Allow high fees"},
+                {"maxfeerate", RPCArg::Type::AMOUNT,
+                 /* default */ FormatMoney(maxTxFee),
+                 "Reject transactions whose fee rate is higher than the "
+                 "specified value, expressed in " +
+                     CURRENCY_UNIT + "/kB\n"},
             },
             RPCResult{
                 "[                   (array) The result of the mempool "
@@ -1009,7 +1031,12 @@ static UniValue testmempoolaccept(const Config &config,
                                      .ToString());
     }
 
-    RPCTypeCheck(request.params, {UniValue::VARR, UniValue::VBOOL});
+    RPCTypeCheck(request.params, {
+                                     UniValue::VARR,
+                                     // NUM or BOOL, checked later
+                                     UniValueType(),
+                                 });
+
     if (request.params[0].get_array().size() != 1) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
@@ -1021,11 +1048,22 @@ static UniValue testmempoolaccept(const Config &config,
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
     }
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
-    const uint256 &txid = tx->GetId();
+    const TxId &txid = tx->GetId();
 
     Amount max_raw_tx_fee = maxTxFee;
-    if (!request.params[1].isNull() && request.params[1].get_bool()) {
-        max_raw_tx_fee = Amount::zero();
+    // TODO: temporary migration code for old clients. Remove in v0.20
+    if (request.params[1].isBool()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Second argument must be numeric (maxfeerate) and "
+                           "no longer supports a boolean. To allow a "
+                           "transaction with high fees, set maxfeerate to 0.");
+    } else if (request.params[1].isNum()) {
+        size_t sz = tx->GetTotalSize();
+        CFeeRate fr(AmountFromValue(request.params[1]));
+        max_raw_tx_fee = fr.GetFee(sz);
+    } else if (!request.params[1].isNull()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "second argument (maxfeerate) must be numeric");
     }
 
     UniValue result(UniValue::VARR);
@@ -1926,10 +1964,10 @@ static const CRPCCommand commands[] = {
     { "rawtransactions",    "createrawtransaction",      createrawtransaction,      {"inputs","outputs","locktime"} },
     { "rawtransactions",    "decoderawtransaction",      decoderawtransaction,      {"hexstring"} },
     { "rawtransactions",    "decodescript",              decodescript,              {"hexstring"} },
-    { "rawtransactions",    "sendrawtransaction",        sendrawtransaction,        {"hexstring","allowhighfees"} },
+    { "rawtransactions",    "sendrawtransaction",        sendrawtransaction,        {"hexstring","allowhighfees|maxfeerate"} },
     { "rawtransactions",    "combinerawtransaction",     combinerawtransaction,     {"txs"} },
     { "rawtransactions",    "signrawtransactionwithkey", signrawtransactionwithkey, {"hexstring","privkeys","prevtxs","sighashtype"} },
-    { "rawtransactions",    "testmempoolaccept",         testmempoolaccept,         {"rawtxs","allowhighfees"} },
+    { "rawtransactions",    "testmempoolaccept",         testmempoolaccept,         {"rawtxs","allowhighfees|maxfeerate"} },
     { "rawtransactions",    "decodepsbt",                decodepsbt,                {"psbt"} },
     { "rawtransactions",    "combinepsbt",               combinepsbt,               {"txs"} },
     { "rawtransactions",    "finalizepsbt",              finalizepsbt,              {"psbt", "extract"} },
