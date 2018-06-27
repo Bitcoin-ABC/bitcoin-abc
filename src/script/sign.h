@@ -202,6 +202,10 @@ struct PSBTInput {
     SigHashType sighash_type = SigHashType(0);
 
     bool IsNull() const;
+    void FillSignatureData(SignatureData &sigdata) const;
+    void FromSignatureData(const SignatureData &sigdata);
+    void Merge(const PSBTInput &input);
+    bool IsSane() const;
     PSBTInput() {}
 
     template <typename Stream> inline void Serialize(Stream &s) const {
@@ -360,6 +364,10 @@ struct PSBTOutput {
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;
 
     bool IsNull() const;
+    void FillSignatureData(SignatureData &sigdata) const;
+    void FromSignatureData(const SignatureData &sigdata);
+    void Merge(const PSBTOutput &output);
+    bool IsSane() const;
     PSBTOutput() {}
 
     template <typename Stream> inline void Serialize(Stream &s) const {
@@ -445,6 +453,8 @@ struct PartiallySignedTransaction {
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;
 
     bool IsNull() const;
+    void Merge(const PartiallySignedTransaction &psbt);
+    bool IsSane() const;
     PartiallySignedTransaction() {}
     PartiallySignedTransaction(const PartiallySignedTransaction &psbt_in)
         : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs),
@@ -581,6 +591,10 @@ struct PartiallySignedTransaction {
         if (outputs.size() != tx->vout.size()) {
             throw std::ios_base::failure("Outputs provided does not match the "
                                          "number of outputs in transaction.");
+        }
+        // Sanity check
+        if (!IsSane()) {
+            throw std::ios_base::failure("PSBT is not sane.");
         }
     }
 

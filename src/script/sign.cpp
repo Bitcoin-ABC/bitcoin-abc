@@ -411,11 +411,110 @@ bool PartiallySignedTransaction::IsNull() const {
     return !tx && inputs.empty() && outputs.empty() && unknown.empty();
 }
 
+void PartiallySignedTransaction::Merge(const PartiallySignedTransaction &psbt) {
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        inputs[i].Merge(psbt.inputs[i]);
+    }
+    for (size_t i = 0; i < outputs.size(); ++i) {
+        outputs[i].Merge(psbt.outputs[i]);
+    }
+}
+
+bool PartiallySignedTransaction::IsSane() const {
+    for (PSBTInput input : inputs) {
+        if (!input.IsSane()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool PSBTInput::IsNull() const {
     return utxo.IsNull() && partial_sigs.empty() && unknown.empty() &&
            hd_keypaths.empty() && redeem_script.empty();
 }
 
+void PSBTInput::FillSignatureData(SignatureData &sigdata) const {
+    if (!final_script_sig.empty()) {
+        sigdata.scriptSig = final_script_sig;
+        sigdata.complete = true;
+    }
+    if (sigdata.complete) {
+        return;
+    }
+
+    sigdata.signatures.insert(partial_sigs.begin(), partial_sigs.end());
+    if (!redeem_script.empty()) {
+        sigdata.redeem_script = redeem_script;
+    }
+    for (const auto &key_pair : hd_keypaths) {
+        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair.first);
+    }
+}
+
+void PSBTInput::FromSignatureData(const SignatureData &sigdata) {
+    if (sigdata.complete) {
+        partial_sigs.clear();
+        hd_keypaths.clear();
+        redeem_script.clear();
+
+        if (!sigdata.scriptSig.empty()) {
+            final_script_sig = sigdata.scriptSig;
+        }
+        return;
+    }
+
+    partial_sigs.insert(sigdata.signatures.begin(), sigdata.signatures.end());
+    if (redeem_script.empty() && !sigdata.redeem_script.empty()) {
+        redeem_script = sigdata.redeem_script;
+    }
+}
+
+void PSBTInput::Merge(const PSBTInput &input) {
+    if (utxo.IsNull() && !input.utxo.IsNull()) {
+        utxo = input.utxo;
+    }
+
+    partial_sigs.insert(input.partial_sigs.begin(), input.partial_sigs.end());
+    hd_keypaths.insert(input.hd_keypaths.begin(), input.hd_keypaths.end());
+    unknown.insert(input.unknown.begin(), input.unknown.end());
+
+    if (redeem_script.empty() && !input.redeem_script.empty()) {
+        redeem_script = input.redeem_script;
+    }
+    if (final_script_sig.empty() && !input.final_script_sig.empty()) {
+        final_script_sig = input.final_script_sig;
+    }
+}
+
+bool PSBTInput::IsSane() const {
+    return true;
+}
+
+void PSBTOutput::FillSignatureData(SignatureData &sigdata) const {
+    if (!redeem_script.empty()) {
+        sigdata.redeem_script = redeem_script;
+    }
+    for (const auto &key_pair : hd_keypaths) {
+        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair.first);
+    }
+}
+
+void PSBTOutput::FromSignatureData(const SignatureData &sigdata) {
+    if (redeem_script.empty() && !sigdata.redeem_script.empty()) {
+        redeem_script = sigdata.redeem_script;
+    }
+}
+
 bool PSBTOutput::IsNull() const {
     return redeem_script.empty() && hd_keypaths.empty() && unknown.empty();
+}
+
+void PSBTOutput::Merge(const PSBTOutput &output) {
+    hd_keypaths.insert(output.hd_keypaths.begin(), output.hd_keypaths.end());
+    unknown.insert(output.unknown.begin(), output.unknown.end());
+
+    if (redeem_script.empty() && !output.redeem_script.empty()) {
+        redeem_script = output.redeem_script;
+    }
 }
