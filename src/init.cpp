@@ -1733,10 +1733,12 @@ bool AppInitParameterInteraction(Config &config) {
     nMaxConnections = std::max(nUserMaxConnections, 0);
 
     // Trim requested connection counts, to fit into system limitations
+    // <int> in std::min<int>(...) to work around FreeBSD compilation issue
+    // described in #2695
     nMaxConnections =
-        std::max(std::min(nMaxConnections, FD_SETSIZE - nBind -
-                                               MIN_CORE_FILEDESCRIPTORS -
-                                               MAX_ADDNODE_CONNECTIONS),
+        std::max(std::min<int>(nMaxConnections, FD_SETSIZE - nBind -
+                                                    MIN_CORE_FILEDESCRIPTORS -
+                                                    MAX_ADDNODE_CONNECTIONS),
                  0);
     nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS +
                                    MAX_ADDNODE_CONNECTIONS);
