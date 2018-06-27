@@ -50,16 +50,22 @@ static bool GetCScript(const SigningProvider &provider,
     return false;
 }
 
-static bool GetPubKey(const SigningProvider &provider,
-                      const SignatureData &sigdata, const CKeyID &address,
-                      CPubKey &pubkey) {
+static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
+                      const CKeyID &address, CPubKey &pubkey) {
     if (provider.GetPubKey(address, pubkey)) {
+        sigdata.misc_pubkeys.emplace(pubkey.GetID(), pubkey);
         return true;
     }
     // Look for pubkey in all partial sigs
     const auto it = sigdata.signatures.find(address);
     if (it != sigdata.signatures.end()) {
         pubkey = it->second.first;
+        return true;
+    }
+    // Look for pubkey in pubkey list
+    const auto &pk_it = sigdata.misc_pubkeys.find(address);
+    if (pk_it != sigdata.misc_pubkeys.end()) {
+        pubkey = pk_it->second;
         return true;
     }
     return false;
@@ -74,9 +80,9 @@ static bool CreateSig(const BaseSignatureCreator &creator,
         sig_out = it->second.second;
         return true;
     }
+    CPubKey pubkey;
+    GetPubKey(provider, sigdata, keyid, pubkey);
     if (creator.CreateSig(provider, sig_out, keyid, scriptcode)) {
-        CPubKey pubkey;
-        GetPubKey(provider, sigdata, keyid, pubkey);
         auto i = sigdata.signatures.emplace(keyid, SigPair(pubkey, sig_out));
         assert(i.second);
         return true;
