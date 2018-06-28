@@ -175,11 +175,12 @@ endif(BOOST_TEST_DYN_LINK)
 if(BUILD_BITCOIN_WALLET)
 	target_sources(test_bitcoin
 		PRIVATE
-			../wallet/test/wallet_test_fixture.cpp
 			../wallet/test/accounting_tests.cpp
+			../wallet/test/coinselector_tests.cpp
+			../wallet/test/psbt_wallet_tests.cpp
+			../wallet/test/wallet_test_fixture.cpp
 			../wallet/test/wallet_tests.cpp
 			../wallet/test/walletdb_tests.cpp
 			../wallet/test/wallet_crypto_tests.cpp
-			../wallet/test/coinselector_tests.cpp
 	)
 endif()

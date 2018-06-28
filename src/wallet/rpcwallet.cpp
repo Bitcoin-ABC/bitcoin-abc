@@ -5180,7 +5180,7 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
     // hardware wallets can identify change
-    for (unsigned int i = 0; i < txConst->vout.size(); ++i) {
+    for (size_t i = 0; i < txConst->vout.size(); ++i) {
         const CTxOut &out = txConst->vout.at(i);
         PSBTOutput &psbt_out = psbtx.outputs.at(i);
 
