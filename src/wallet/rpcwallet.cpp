@@ -3806,6 +3806,117 @@ static UniValue listunspent(const Config &config,
     return results;
 }
 
+void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
+                     Amount &fee_out, int &change_position, UniValue options) {
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    pwallet->BlockUntilSyncedToCurrentChain();
+
+    CCoinControl coinControl;
+    change_position = -1;
+    bool lockUnspents = false;
+    UniValue subtractFeeFromOutputs;
+    std::set<int> setSubtractFeeFromOutputs;
+
+    if (!options.isNull()) {
+        if (options.type() == UniValue::VBOOL) {
+            // backward compatibility bool only fallback
+            coinControl.fAllowWatchOnly = options.get_bool();
+        } else {
+            RPCTypeCheckArgument(options, UniValue::VOBJ);
+            RPCTypeCheckObj(
+                options,
+                {
+                    {"changeAddress", UniValueType(UniValue::VSTR)},
+                    {"changePosition", UniValueType(UniValue::VNUM)},
+                    {"includeWatching", UniValueType(UniValue::VBOOL)},
+                    {"lockUnspents", UniValueType(UniValue::VBOOL)},
+                    // will be checked below
+                    {"feeRate", UniValueType()},
+                    {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
+                },
+                true, true);
+
+            if (options.exists("changeAddress")) {
+                CTxDestination dest = DecodeDestination(
+                    options["changeAddress"].get_str(), pwallet->chainParams);
+
+                if (!IsValidDestination(dest)) {
+                    throw JSONRPCError(
+                        RPC_INVALID_ADDRESS_OR_KEY,
+                        "changeAddress must be a valid bitcoin address");
+                }
+
+                coinControl.destChange = dest;
+            }
+
+            if (options.exists("changePosition")) {
+                change_position = options["changePosition"].get_int();
+            }
+
+            if (options.exists("includeWatching")) {
+                coinControl.fAllowWatchOnly =
+                    options["includeWatching"].get_bool();
+            }
+
+            if (options.exists("lockUnspents")) {
+                lockUnspents = options["lockUnspents"].get_bool();
+            }
+
+            if (options.exists("feeRate")) {
+                coinControl.m_feerate =
+                    CFeeRate(AmountFromValue(options["feeRate"]));
+                coinControl.fOverrideFeeRate = true;
+            }
+
+            if (options.exists("subtractFeeFromOutputs")) {
+                subtractFeeFromOutputs =
+                    options["subtractFeeFromOutputs"].get_array();
+            }
+        }
+    }
+
+    if (tx.vout.size() == 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "TX must have at least one output");
+    }
+
+    if (change_position != -1 &&
+        (change_position < 0 ||
+         (unsigned int)change_position > tx.vout.size())) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "changePosition out of bounds");
+    }
+
+    for (size_t idx = 0; idx < subtractFeeFromOutputs.size(); idx++) {
+        int pos = subtractFeeFromOutputs[idx].get_int();
+        if (setSubtractFeeFromOutputs.count(pos)) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("Invalid parameter, duplicated position: %d", pos));
+        }
+        if (pos < 0) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("Invalid parameter, negative position: %d", pos));
+        }
+        if (pos >= int(tx.vout.size())) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("Invalid parameter, position too large: %d", pos));
+        }
+        setSubtractFeeFromOutputs.insert(pos);
+    }
+
+    std::string strFailReason;
+
+    if (!pwallet->FundTransaction(tx, fee_out, change_position, strFailReason,
+                                  lockUnspents, setSubtractFeeFromOutputs,
+                                  coinControl)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
+    }
+}
+
 static UniValue fundrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -3895,79 +4006,7 @@ static UniValue fundrawtransaction(const Config &config,
             HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\""));
     }
 
-    RPCTypeCheck(request.params, {UniValue::VSTR});
-
-    // Make sure the results are valid at least up to the most recent block
-    // the user could have gotten from another RPC command prior to now
-    pwallet->BlockUntilSyncedToCurrentChain();
-
-    CCoinControl coinControl;
-    int changePosition = -1;
-    bool lockUnspents = false;
-    UniValue subtractFeeFromOutputs;
-    std::set<int> setSubtractFeeFromOutputs;
-
-    if (!request.params[1].isNull()) {
-        if (request.params[1].type() == UniValue::VBOOL) {
-            // backward compatibility bool only fallback
-            coinControl.fAllowWatchOnly = request.params[1].get_bool();
-        } else {
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VOBJ});
-
-            UniValue options = request.params[1];
-
-            RPCTypeCheckObj(
-                options,
-                {
-                    {"changeAddress", UniValueType(UniValue::VSTR)},
-                    {"changePosition", UniValueType(UniValue::VNUM)},
-                    {"includeWatching", UniValueType(UniValue::VBOOL)},
-                    {"lockUnspents", UniValueType(UniValue::VBOOL)},
-                    // will be checked below
-                    {"feeRate", UniValueType()},
-                    {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
-                },
-                true, true);
-
-            if (options.exists("changeAddress")) {
-                CTxDestination dest =
-                    DecodeDestination(options["changeAddress"].get_str(),
-                                      config.GetChainParams());
-
-                if (!IsValidDestination(dest)) {
-                    throw JSONRPCError(
-                        RPC_INVALID_ADDRESS_OR_KEY,
-                        "changeAddress must be a valid bitcoin address");
-                }
-
-                coinControl.destChange = dest;
-            }
-
-            if (options.exists("changePosition")) {
-                changePosition = options["changePosition"].get_int();
-            }
-
-            if (options.exists("includeWatching")) {
-                coinControl.fAllowWatchOnly =
-                    options["includeWatching"].get_bool();
-            }
-
-            if (options.exists("lockUnspents")) {
-                lockUnspents = options["lockUnspents"].get_bool();
-            }
-
-            if (options.exists("feeRate")) {
-                coinControl.m_feerate =
-                    CFeeRate(AmountFromValue(options["feeRate"]));
-                coinControl.fOverrideFeeRate = true;
-            }
-
-            if (options.exists("subtractFeeFromOutputs")) {
-                subtractFeeFromOutputs =
-                    options["subtractFeeFromOutputs"].get_array();
-            }
-        }
-    }
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
 
     // parse hex string from parameter
     CMutableTransaction tx;
@@ -3975,50 +4014,14 @@ static UniValue fundrawtransaction(const Config &config,
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
     }
 
-    if (tx.vout.size() == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "TX must have at least one output");
-    }
-
-    if (changePosition != -1 &&
-        (changePosition < 0 || (unsigned int)changePosition > tx.vout.size())) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "changePosition out of bounds");
-    }
-
-    for (size_t idx = 0; idx < subtractFeeFromOutputs.size(); idx++) {
-        int pos = subtractFeeFromOutputs[idx].get_int();
-        if (setSubtractFeeFromOutputs.count(pos)) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                strprintf("Invalid parameter, duplicated position: %d", pos));
-        }
-        if (pos < 0) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                strprintf("Invalid parameter, negative position: %d", pos));
-        }
-        if (pos >= int(tx.vout.size())) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                strprintf("Invalid parameter, position too large: %d", pos));
-        }
-        setSubtractFeeFromOutputs.insert(pos);
-    }
-
-    Amount nFeeOut;
-    std::string strFailReason;
-
-    if (!pwallet->FundTransaction(tx, nFeeOut, changePosition, strFailReason,
-                                  lockUnspents, setSubtractFeeFromOutputs,
-                                  coinControl)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
-    }
+    Amount fee;
+    int change_position;
+    FundTransaction(pwallet, tx, fee, change_position, request.params[1]);
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("hex", EncodeHexTx(CTransaction(tx)));
-    result.pushKV("changepos", changePosition);
-    result.pushKV("fee", ValueFromAmount(nFeeOut));
+    result.pushKV("fee", ValueFromAmount(fee));
+    result.pushKV("changepos", change_position);
 
     return result;
 }

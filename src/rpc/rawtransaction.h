@@ -6,6 +6,7 @@
 #define BITCOIN_RPC_RAWTRANSACTION_H
 
 class CBasicKeyStore;
+class CChainParams;
 class CMutableTransaction;
 class UniValue;
 
@@ -13,5 +14,11 @@ class UniValue;
 UniValue SignTransaction(CMutableTransaction &mtx, const UniValue &prevTxs,
                          CBasicKeyStore *keystore, bool tempKeystore,
                          const UniValue &hashType);
+
+/** Create a transaction from univalue parameters */
+CMutableTransaction ConstructTransaction(const CChainParams &params,
+                                         const UniValue &inputs_in,
+                                         const UniValue &outputs_in,
+                                         const UniValue &locktime);
 
 #endif // BITCOIN_RPC_RAWTRANSACTION_H

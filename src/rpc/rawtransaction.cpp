@@ -409,74 +409,25 @@ static UniValue verifytxoutproof(const Config &config,
     return res;
 }
 
-static UniValue createrawtransaction(const Config &config,
-                                     const JSONRPCRequest &request) {
-    if (request.fHelp || request.params.size() < 2 ||
-        request.params.size() > 3) {
-        throw std::runtime_error(
-            // clang-format off
-            "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] [{\"address\":amount},{\"data\":\"hex\"},...] ( locktime )\n"
-            "\nCreate a transaction spending the given inputs and creating new outputs.\n"
-            "Outputs can be addresses or data.\n"
-            "Returns hex-encoded raw transaction.\n"
-            "Note that the transaction's inputs are not signed, and\n"
-            "it is not stored in the wallet or transmitted to the network.\n"
-
-            "\nArguments:\n"
-            "1. \"inputs\"                (array, required) A json array of "
-            "json objects\n"
-            "     [\n"
-            "       {\n"
-            "         \"txid\":\"id\",      (string, required) The transaction id\n"
-            "         \"vout\":n,         (numeric, required) The output number\n"
-            "         \"sequence\":n      (numeric, optional) The sequence number\n"
-            "       } \n"
-            "       ,...\n"
-            "     ]\n"
-            "2. \"outputs\"               (array, required) a json array with outputs (key-value pairs)\n"
-            "   [\n"
-            "    {\n"
-            "      \"address\": x.xxx,    (obj, optional) A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT + "\n"
-            "    },\n"
-            "    {\n"
-            "      \"data\": \"hex\"        (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data\n"
-            "    }\n"
-            "    ,...                     More key-value pairs of the above form. For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
-            "                             accepted as second parameter.\n"
-            "   ]\n"
-            "3. locktime                  (numeric, optional, default=0) Raw locktime. Non-0 value also locktime-activates inputs\n"
-            "\nResult:\n"
-            "\"transaction\"              (string) hex string of the transaction\n"
-
-            "\nExamples:\n"
-            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"address\\\":0.01}]\"")
-            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
-            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"address\\\":0.01}]\"")
-            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
-            // clang-format on
-        );
-    }
-
-    RPCTypeCheck(request.params,
-                 {UniValue::VARR,
-                  UniValueType(), // ARR or OBJ, checked later
-                  UniValue::VNUM, UniValue::VBOOL},
-                 true);
-    if (request.params[0].isNull() || request.params[1].isNull()) {
+CMutableTransaction ConstructTransaction(const CChainParams &params,
+                                         const UniValue &inputs_in,
+                                         const UniValue &outputs_in,
+                                         const UniValue &locktime) {
+    if (inputs_in.isNull() || outputs_in.isNull()) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             "Invalid parameter, arguments 1 and 2 must be non-null");
     }
 
-    UniValue inputs = request.params[0].get_array();
-    const bool outputs_is_obj = request.params[1].isObject();
-    UniValue outputs = outputs_is_obj ? request.params[1].get_obj()
-                                      : request.params[1].get_array();
+    UniValue inputs = inputs_in.get_array();
+    const bool outputs_is_obj = outputs_in.isObject();
+    UniValue outputs =
+        outputs_is_obj ? outputs_in.get_obj() : outputs_in.get_array();
 
     CMutableTransaction rawTx;
 
-    if (!request.params[2].isNull()) {
-        int64_t nLockTime = request.params[2].get_int64();
+    if (!locktime.isNull()) {
+        int64_t nLockTime = locktime.get_int64();
         if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, locktime out of range");
@@ -557,8 +508,7 @@ static UniValue createrawtransaction(const Config &config,
             CTxOut out(Amount::zero(), CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
-            CTxDestination destination =
-                DecodeDestination(name_, config.GetChainParams());
+            CTxDestination destination = DecodeDestination(name_, params);
             if (!IsValidDestination(destination)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                    std::string("Invalid Bitcoin address: ") +
@@ -579,6 +529,67 @@ static UniValue createrawtransaction(const Config &config,
             rawTx.vout.push_back(out);
         }
     }
+
+    return rawTx;
+}
+
+static UniValue createrawtransaction(const Config &config,
+                                     const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() < 2 ||
+        request.params.size() > 3) {
+        throw std::runtime_error(
+            // clang-format off
+            "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] [{\"address\":amount},{\"data\":\"hex\"},...] ( locktime )\n"
+            "\nCreate a transaction spending the given inputs and creating new outputs.\n"
+            "Outputs can be addresses or data.\n"
+            "Returns hex-encoded raw transaction.\n"
+            "Note that the transaction's inputs are not signed, and\n"
+            "it is not stored in the wallet or transmitted to the network.\n"
+
+            "\nArguments:\n"
+            "1. \"inputs\"                (array, required) A json array of "
+            "json objects\n"
+            "     [\n"
+            "       {\n"
+            "         \"txid\":\"id\",      (string, required) The transaction id\n"
+            "         \"vout\":n,         (numeric, required) The output number\n"
+            "         \"sequence\":n      (numeric, optional) The sequence number\n"
+            "       } \n"
+            "       ,...\n"
+            "     ]\n"
+            "2. \"outputs\"               (array, required) a json array with outputs (key-value pairs)\n"
+            "   [\n"
+            "    {\n"
+            "      \"address\": x.xxx,    (obj, optional) A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT + "\n"
+            "    },\n"
+            "    {\n"
+            "      \"data\": \"hex\"        (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data\n"
+            "    }\n"
+            "    ,...                     More key-value pairs of the above form. For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
+            "                             accepted as second parameter.\n"
+            "   ]\n"
+            "3. locktime                  (numeric, optional, default=0) Raw locktime. Non-0 value also locktime-activates inputs\n"
+            "\nResult:\n"
+            "\"transaction\"              (string) hex string of the transaction\n"
+
+            "\nExamples:\n"
+            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"address\\\":0.01}]\"")
+            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
+            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"address\\\":0.01}]\"")
+            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
+            // clang-format on
+        );
+    }
+
+    RPCTypeCheck(request.params,
+                 {UniValue::VARR,
+                  UniValueType(), // ARR or OBJ, checked later
+                  UniValue::VNUM},
+                 true);
+
+    CMutableTransaction rawTx =
+        ConstructTransaction(config.GetChainParams(), request.params[0],
+                             request.params[1], request.params[2]);
 
     return EncodeHexTx(CTransaction(rawTx));
 }
