@@ -9,3 +9,5 @@ This release includes the following features and fixes:
    is similar to `listunspent` but does not use a wallet, meaning that the
    wallet can be disabled at compile or run time. This call is experimental,
    as such, is subject to changes or removal in future releases.
+ - The new RPC `getzmqnotifications` returns information about active ZMQ
+   notifications.

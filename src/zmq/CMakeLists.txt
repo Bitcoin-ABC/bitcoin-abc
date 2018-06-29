@@ -6,6 +6,7 @@ add_library(zmq
 	zmqabstractnotifier.cpp
 	zmqnotificationinterface.cpp
 	zmqpublishnotifier.cpp
+	zmqrpc.cpp
 )
 
 find_package(ZeroMQ REQUIRED)

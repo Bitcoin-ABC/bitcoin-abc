@@ -14,6 +14,7 @@ import sys
 SOURCE_PATTERNS = [
     "src/rpc/*.cpp",
     "src/wallet/rpc*.cpp",
+    "src/zmq/zmqrpc.cpp",
 ]
 # Source file (relative to root) containing conversion mapping
 SOURCE_CLIENT = 'src/rpc/client.cpp'
