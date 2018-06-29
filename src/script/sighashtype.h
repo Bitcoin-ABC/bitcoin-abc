@@ -85,6 +85,10 @@ public:
     template <typename Stream> void Serialize(Stream &s) const {
         ::Serialize(s, getRawSigHashType());
     }
+
+    template <typename Stream> void Unserialize(Stream &s) {
+        ::Unserialize(s, sigHash);
+    }
 };
 
 #endif // BITCOIN_SCRIPT_SIGHASHTYPE_H
