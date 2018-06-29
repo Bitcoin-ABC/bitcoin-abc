@@ -544,3 +544,13 @@ void PSBTOutput::Merge(const PSBTOutput &output) {
         redeem_script = output.redeem_script;
     }
 }
+
+bool PublicOnlySigningProvider::GetCScript(const CScriptID &scriptid,
+                                           CScript &script) const {
+    return m_provider->GetCScript(scriptid, script);
+}
+
+bool PublicOnlySigningProvider::GetPubKey(const CKeyID &address,
+                                          CPubKey &pubkey) const {
+    return m_provider->GetPubKey(address, pubkey);
+}

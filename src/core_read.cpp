@@ -296,3 +296,35 @@ std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName) {
 
     return ParseHex(strHex);
 }
+
+SigHashType ParseSighashString(const UniValue &sighash) {
+    SigHashType sigHashType = SigHashType().withForkId();
+    if (!sighash.isNull()) {
+        static std::map<std::string, int> map_sighash_values = {
+            {"ALL", SIGHASH_ALL},
+            {"ALL|ANYONECANPAY", SIGHASH_ALL | SIGHASH_ANYONECANPAY},
+            {"ALL|FORKID", SIGHASH_ALL | SIGHASH_FORKID},
+            {"ALL|FORKID|ANYONECANPAY",
+             SIGHASH_ALL | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
+            {"NONE", SIGHASH_NONE},
+            {"NONE|ANYONECANPAY", SIGHASH_NONE | SIGHASH_ANYONECANPAY},
+            {"NONE|FORKID", SIGHASH_NONE | SIGHASH_FORKID},
+            {"NONE|FORKID|ANYONECANPAY",
+             SIGHASH_NONE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
+            {"SINGLE", SIGHASH_SINGLE},
+            {"SINGLE|ANYONECANPAY", SIGHASH_SINGLE | SIGHASH_ANYONECANPAY},
+            {"SINGLE|FORKID", SIGHASH_SINGLE | SIGHASH_FORKID},
+            {"SINGLE|FORKID|ANYONECANPAY",
+             SIGHASH_SINGLE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
+        };
+        std::string strHashType = sighash.get_str();
+        const auto &it = map_sighash_values.find(strHashType);
+        if (it != map_sighash_values.end()) {
+            sigHashType = SigHashType(it->second);
+        } else {
+            throw std::runtime_error(strHashType +
+                                     " is not a valid sighash parameter.");
+        }
+    }
+    return sigHashType;
+}

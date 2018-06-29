@@ -5,6 +5,8 @@
 #ifndef BITCOIN_CORE_IO_H
 #define BITCOIN_CORE_IO_H
 
+#include <script/sighashtype.h>
+
 #include <string>
 #include <vector>
 
@@ -29,6 +31,7 @@ uint256 ParseHashStr(const std::string &, const std::string &strName);
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 bool DecodePSBT(PartiallySignedTransaction &psbt, const std::string &base64_tx,
                 std::string &error);
+SigHashType ParseSighashString(const UniValue &sighash);
 
 // core_write.cpp
 UniValue ValueFromAmount(const Amount &amount);

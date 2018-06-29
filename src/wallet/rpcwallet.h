@@ -5,14 +5,17 @@
 #ifndef BITCOIN_WALLET_RPCWALLET_H
 #define BITCOIN_WALLET_RPCWALLET_H
 
+#include <script/sighashtype.h>
+
 #include <string>
 
+class Config;
 class CRPCTable;
+class CTransaction;
 class CWallet;
 class JSONRPCRequest;
-class CWallet;
+struct PartiallySignedTransaction;
 class UniValue;
-class Config;
 
 void RegisterWalletRPCCommands(CRPCTable &t);
 
@@ -32,5 +35,9 @@ bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
 UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request);
 UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request);
+bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
+              const CTransaction *txConst,
+              SigHashType sighash_type = SigHashType(), bool sign = true,
+              bool bip32derivs = false);
 
 #endif // BITCOIN_WALLET_RPCWALLET_H

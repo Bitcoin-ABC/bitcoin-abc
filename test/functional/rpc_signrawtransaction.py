@@ -149,7 +149,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
             "SINGLE|FORKID",
             "ALL|FORKID|ANYONECANPAY",
             "NONE|FORKID|ANYONECANPAY",
-            "SINGLE|FORKID|ANYONECANPAY"
+            "SINGLE|FORKID|ANYONECANPAY",
         ]
         no_forkid_sighashes = [
             "ALL",
@@ -157,13 +157,13 @@ class SignRawTransactionsTest(BitcoinTestFramework):
             "SINGLE",
             "ALL|ANYONECANPAY",
             "NONE|ANYONECANPAY",
-            "SINGLE|ANYONECANPAY"
+            "SINGLE|ANYONECANPAY",
         ]
         invalid_sighashes = [
             "",
             "ALL|SINGLE|FORKID",
             str(0),
-            str(0x20)
+            str(0x20),
         ]
 
         # 1) If the sighash is valid with FORKID, the signature is complete
@@ -182,7 +182,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # 3) If the sighash is invalid the RPC throws an error
         for sighash in invalid_sighashes:
-            assert_raises_rpc_error(-8, "Invalid sighash param",
+            assert_raises_rpc_error(-1, sighash + " is not a valid sighash parameter.",
                                     self.nodes[0].signrawtransactionwithkey,
                                     rawTx, privKeys, inputs, sighash)
 

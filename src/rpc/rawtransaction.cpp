@@ -946,35 +946,10 @@ UniValue SignTransaction(CMutableTransaction &mtx,
         }
     }
 
-    SigHashType sigHashType = SigHashType().withForkId();
-    if (!hashType.isNull()) {
-        static std::map<std::string, int> mapSigHashValues = {
-            {"ALL", SIGHASH_ALL},
-            {"ALL|ANYONECANPAY", SIGHASH_ALL | SIGHASH_ANYONECANPAY},
-            {"ALL|FORKID", SIGHASH_ALL | SIGHASH_FORKID},
-            {"ALL|FORKID|ANYONECANPAY",
-             SIGHASH_ALL | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
-            {"NONE", SIGHASH_NONE},
-            {"NONE|ANYONECANPAY", SIGHASH_NONE | SIGHASH_ANYONECANPAY},
-            {"NONE|FORKID", SIGHASH_NONE | SIGHASH_FORKID},
-            {"NONE|FORKID|ANYONECANPAY",
-             SIGHASH_NONE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
-            {"SINGLE", SIGHASH_SINGLE},
-            {"SINGLE|ANYONECANPAY", SIGHASH_SINGLE | SIGHASH_ANYONECANPAY},
-            {"SINGLE|FORKID", SIGHASH_SINGLE | SIGHASH_FORKID},
-            {"SINGLE|FORKID|ANYONECANPAY",
-             SIGHASH_SINGLE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
-        };
-        std::string strHashType = hashType.get_str();
-        if (!mapSigHashValues.count(strHashType)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid sighash param");
-        }
-
-        sigHashType = SigHashType(mapSigHashValues[strHashType]);
-        if (!sigHashType.hasForkId()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Signature must use SIGHASH_FORKID");
-        }
+    SigHashType sigHashType = ParseSighashString(hashType);
+    if (!sigHashType.hasForkId()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "Signature must use SIGHASH_FORKID");
     }
 
     // Script verification errors.
@@ -1015,9 +990,8 @@ UniValue SignTransaction(CMutableTransaction &mtx,
                 // Unable to sign input and verification failed (possible
                 // attempt to partially sign).
                 TxInErrorToJSON(txin, vErrors,
-                                "Unable to sign input, invalid "
-                                "stack size (possibly missing "
-                                "key)");
+                                "Unable to sign input, invalid stack size "
+                                "(possibly missing key)");
             } else {
                 TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
             }
