@@ -6,7 +6,7 @@
 import time
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.mininode import network_thread_start, P2PDataStore
+from test_framework.mininode import P2PDataStore
 from test_framework.util import assert_equal
 from test_framework.blocktools import (
     create_block,
@@ -46,7 +46,6 @@ class InvalidChainsTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
-        network_thread_start()
         node.p2p.wait_for_verack()
 
         self.genesis_hash = int(node.getbestblockhash(), 16)

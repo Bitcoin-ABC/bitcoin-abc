@@ -5,7 +5,7 @@
 """Test that we don't leak txs to inbound peers that we haven't yet announced to"""
 
 from test_framework.messages import msg_getdata, CInv
-from test_framework.mininode import P2PDataStore, network_thread_start
+from test_framework.mininode import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -34,7 +34,6 @@ class P2PLeakTxTest(BitcoinTestFramework):
         # Backport note: the following two lines were backported out of order,
         # and should be removed in the appropriate future backports that do a
         # blanket removal of each of these calls across many tests.
-        network_thread_start()
         self.nodes[0].p2p.wait_for_verack()
 
         MAX_REPEATS = 100

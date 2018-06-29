@@ -17,7 +17,6 @@ import time
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CTransaction, FromHex, ToHex
-from test_framework.mininode import network_thread_start
 from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
@@ -57,7 +56,6 @@ class NULLDUMMYTest(BitcoinTestFramework):
         self.ms_address = self.nodes[0].addmultisigaddress(1, [self.address])[
             'address']
 
-        network_thread_start()
         # Block 2
         self.coinbase_blocks = self.nodes[0].generate(2)
         coinbase_txid = []

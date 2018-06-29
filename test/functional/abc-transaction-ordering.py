@@ -22,7 +22,7 @@ from test_framework.messages import (
     CTxIn,
     CTxOut,
 )
-from test_framework.mininode import network_thread_start, P2PDataStore
+from test_framework.mininode import P2PDataStore
 from test_framework.script import (
     CScript,
     OP_RETURN,
@@ -130,7 +130,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
-        network_thread_start()
         node.p2p.wait_for_verack()
 
         self.genesis_hash = int(node.getbestblockhash(), 16)

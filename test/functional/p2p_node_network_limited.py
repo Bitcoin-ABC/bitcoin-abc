@@ -18,8 +18,6 @@ from test_framework.messages import (
 )
 from test_framework.mininode import (
     mininode_lock,
-    network_thread_join,
-    network_thread_start,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -72,7 +70,6 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
-        network_thread_start()
         node.wait_for_verack()
 
         expected_services = NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED
@@ -103,9 +100,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
         self.log.info("Check local address relay, do a fresh connection.")
         self.nodes[0].disconnect_p2ps()
-        network_thread_join()
         node1 = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
-        network_thread_start()
         node1.wait_for_verack()
         node1.send_message(msg_verack())
 

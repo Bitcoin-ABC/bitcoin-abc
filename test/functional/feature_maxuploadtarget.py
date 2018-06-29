@@ -17,7 +17,7 @@ import time
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.blocktools import mine_big_block
 from test_framework.messages import CInv, msg_getdata
-from test_framework.mininode import network_thread_start, P2PInterface
+from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -64,7 +64,6 @@ class MaxUploadTest(BitcoinTestFramework):
         for _ in range(3):
             p2p_conns.append(self.nodes[0].add_p2p_connection(TestP2PConn()))
 
-        network_thread_start()
         for p2pc in p2p_conns:
             p2pc.wait_for_verack()
 
@@ -158,8 +157,6 @@ class MaxUploadTest(BitcoinTestFramework):
 
         # Reconnect to self.nodes[0]
         self.nodes[0].add_p2p_connection(TestP2PConn())
-
-        network_thread_start()
         self.nodes[0].p2p.wait_for_verack()
 
         # retrieve 20 blocks which should be enough to break the 1MB limit

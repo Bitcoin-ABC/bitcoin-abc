@@ -34,7 +34,6 @@ from test_framework.messages import (
 )
 from test_framework.mininode import (
     mininode_lock,
-    network_thread_start,
     P2PDataStore,
     P2PInterface,
 )
@@ -227,7 +226,6 @@ class FullBlockTest(BitcoinTestFramework):
         node = self.nodes[0]
         default_p2p = node.add_p2p_connection(P2PDataStore())
         test_p2p = node.add_p2p_connection(TestP2PConn())
-        network_thread_start()
         default_p2p.wait_for_verack()
         test_p2p.wait_for_verack()
 

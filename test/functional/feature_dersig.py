@@ -11,7 +11,6 @@ from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CTransaction, FromHex, msg_block, ToHex
 from test_framework.mininode import (
     mininode_lock,
-    network_thread_start,
     P2PInterface,
 )
 from test_framework.script import CScript
@@ -61,8 +60,6 @@ class BIP66Test(BitcoinTestFramework):
 
     def run_test(self):
         self.nodes[0].add_p2p_connection(P2PInterface())
-
-        network_thread_start()
 
         # wait_for_verack ensures that the P2P connection is fully up.
         self.nodes[0].p2p.wait_for_verack()

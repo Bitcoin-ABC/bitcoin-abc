@@ -15,7 +15,6 @@ from test_framework.mininode import (
     MAGIC_BYTES,
     mininode_lock,
     msg_ping,
-    network_thread_start,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -38,7 +37,7 @@ def msg_bad_checksum(connection, original_message):
 
 class BadVersionP2PInterface(P2PInterface):
     def peer_connect(self, *args, services=NODE_NETWORK, send_version=False, **kwargs):
-        super().peer_connect(*args, send_version=send_version, **kwargs)
+        create_conn = super().peer_connect(*args, send_version=send_version, **kwargs)
 
         # Send version message with invalid checksum
         vt = msg_version()
@@ -48,8 +47,11 @@ class BadVersionP2PInterface(P2PInterface):
         vt.addrFrom.ip = "0.0.0.0"
         vt.addrFrom.port = 0
         invalid_vt = msg_bad_checksum(self, vt)
-        # Will be sent right after handle_connect
-        self.sendbuf = invalid_vt
+        # Will be sent right after connection_made
+        self.on_connection_send_msg = invalid_vt
+        self.on_connection_send_msg_is_raw = True
+
+        return create_conn
 
 
 class InvalidMessageTest(BitcoinTestFramework):
@@ -65,8 +67,6 @@ class InvalidMessageTest(BitcoinTestFramework):
         # Also connect to a node with a valid version message
         interface = P2PInterface()
         connection = self.nodes[1].add_p2p_connection(interface)
-
-        network_thread_start()
 
         # The invalid version message should cause a disconnect on the first
         # connection because we are now banned

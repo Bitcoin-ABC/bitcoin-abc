@@ -24,8 +24,6 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.mininode import (
-    network_thread_join,
-    network_thread_start,
     P2PDataStore,
 )
 from test_framework.script import (
@@ -112,7 +110,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         for node in self.nodes:
             for _ in range(num_connections):
                 node.add_p2p_connection(P2PDataStore())
-        network_thread_start()
         for node in self.nodes:
             node.p2p.wait_for_verack()
 
@@ -123,7 +120,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         method reconnects the p2p and restarts the network thread."""
         for node in self.nodes:
             node.disconnect_p2ps()
-        network_thread_join()
         self.bootstrap_p2p(**kwargs)
 
     def run_test(self):

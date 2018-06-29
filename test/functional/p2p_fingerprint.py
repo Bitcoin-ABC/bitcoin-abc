@@ -18,7 +18,7 @@ from test_framework.messages import (
     msg_getheaders,
     msg_headers,
 )
-from test_framework.mininode import P2PInterface, network_thread_start
+from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until
 
@@ -74,8 +74,6 @@ class P2PFingerprintTest(BitcoinTestFramework):
     # last month but that have over a month's worth of work are also withheld.
     def run_test(self):
         node0 = self.nodes[0].add_p2p_connection(P2PInterface())
-
-        network_thread_start()
         node0.wait_for_verack()
 
         # Set node time to 60 days ago

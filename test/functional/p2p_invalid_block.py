@@ -19,7 +19,7 @@ from test_framework.blocktools import (
     create_transaction,
 )
 from test_framework.messages import COIN
-from test_framework.mininode import network_thread_start, P2PDataStore
+from test_framework.mininode import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -34,8 +34,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         # Add p2p connection to node0
         node = self.nodes[0]  # convenience reference to the node
         node.add_p2p_connection(P2PDataStore())
-
-        network_thread_start()
         node.p2p.wait_for_verack()
 
         best_block = node.getblock(node.getbestblockhash())

@@ -20,8 +20,6 @@ from test_framework.messages import (
 )
 from test_framework.mininode import (
     mininode_lock,
-    network_thread_join,
-    network_thread_start,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -142,8 +140,6 @@ class P2PLeakTest(BitcoinTestFramework):
         no_verack_idlenode = self.nodes[0].add_p2p_connection(
             CNodeNoVerackIdle())
 
-        network_thread_start()
-
         wait_until(lambda: no_version_bannode.ever_connected,
                    timeout=10, lock=mininode_lock)
         wait_until(lambda: no_version_idlenode.ever_connected,
@@ -162,9 +158,8 @@ class P2PLeakTest(BitcoinTestFramework):
 
         self.nodes[0].disconnect_p2ps()
 
-        # Wait until all connections are closed and the network thread has terminated
+        # Wait until all connections are closed
         wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 0)
-        network_thread_join()
 
         # Make sure no unexpected messages came in
         assert(no_version_bannode.unexpected_msg == False)

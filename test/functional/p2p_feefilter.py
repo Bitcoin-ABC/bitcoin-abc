@@ -10,7 +10,6 @@ import time
 from test_framework.messages import msg_feefilter
 from test_framework.mininode import (
     mininode_lock,
-    network_thread_start,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -58,9 +57,8 @@ class FeeFilterTest(BitcoinTestFramework):
         node1.generate(1)
         sync_blocks(self.nodes)
 
-        # Setup the p2p connections and start up the network thread.
+        # Setup the p2p connections
         self.nodes[0].add_p2p_connection(TestP2PConn())
-        network_thread_start()
         self.nodes[0].p2p.wait_for_verack()
 
         # Test that invs are received for all txs at feerate of 20 sat/byte

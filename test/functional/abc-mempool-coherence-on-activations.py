@@ -34,7 +34,7 @@ from test_framework.messages import (
     CTxOut,
     ToHex,
 )
-from test_framework.mininode import network_thread_start, P2PDataStore
+from test_framework.mininode import P2PDataStore
 from test_framework.script import (
     CScript,
     OP_CHECKSIG,
@@ -155,7 +155,6 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
-        network_thread_start()
         node.p2p.wait_for_verack()
         node.setmocktime(ACTIVATION_TIME)
 

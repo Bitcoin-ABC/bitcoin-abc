@@ -28,8 +28,6 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.mininode import (
-    network_thread_join,
-    network_thread_start,
     P2PDataStore,
 )
 from test_framework.script import (
@@ -74,7 +72,6 @@ class SchnorrTest(BitcoinTestFramework):
         Helper to connect and wait for version handshake."""
         for _ in range(num_connections):
             self.nodes[0].add_p2p_connection(P2PDataStore())
-        network_thread_start()
         self.nodes[0].p2p.wait_for_verack()
 
     def reconnect_p2p(self, **kwargs):
@@ -83,7 +80,6 @@ class SchnorrTest(BitcoinTestFramework):
         The node gets disconnected several times in this test. This helper
         method reconnects the p2p and restarts the network thread."""
         self.nodes[0].disconnect_p2ps()
-        network_thread_join()
         self.bootstrap_p2p(**kwargs)
 
     def getbestblock(self, node):

@@ -50,7 +50,7 @@ from test_framework.blocktools import (
     make_conform_to_ctor,
 )
 from test_framework.messages import COIN, CTransaction, FromHex, ToHex
-from test_framework.mininode import network_thread_start, P2PDataStore
+from test_framework.mininode import P2PDataStore
 from test_framework.script import (
     CScript,
     OP_CHECKSEQUENCEVERIFY,
@@ -226,7 +226,6 @@ class BIP68_112_113Test(BitcoinTestFramework):
 
     def run_test(self):
         self.nodes[0].add_p2p_connection(P2PDataStore())
-        network_thread_start()
         self.nodes[0].p2p.wait_for_verack()
 
         self.log.info("Generate blocks in the past for coinbase outputs.")

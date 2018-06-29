@@ -13,9 +13,9 @@ import random
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CBlockHeader, msg_block, msg_headers
-from test_framework.mininode import network_thread_start, P2PInterface
+from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import p2p_port, wait_until
+from test_framework.util import wait_until
 
 
 NUM_IBD_BLOCKS = 50
@@ -39,13 +39,9 @@ class SyncChainTest(BitcoinTestFramework):
             ["-minimumchainwork={:#x}".format(202 + 2 * NUM_IBD_BLOCKS)]]
 
     def run_test(self):
-        node0conn = BaseNode()
-        node0conn.peer_connect('127.0.0.1', p2p_port(0))
-
-        network_thread_start()
-        node0conn.wait_for_verack()
-
         node0 = self.nodes[0]
+        node0conn = node0.add_p2p_connection(BaseNode())
+        node0.p2p.wait_for_verack()
 
         tip = int(node0.getbestblockhash(), 16)
         height = node0.getblockcount() + 1
