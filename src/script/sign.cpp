@@ -217,6 +217,32 @@ bool ProduceSignature(const SigningProvider &provider,
     return sigdata.complete;
 }
 
+bool SignPSBTInput(const SigningProvider &provider,
+                   const CMutableTransaction &tx, PSBTInput &input,
+                   SignatureData &sigdata, int index, SigHashType sighash) {
+    // if this input has a final scriptsig, don't do anything with it
+    if (!input.final_script_sig.empty()) {
+        return true;
+    }
+
+    // Fill SignatureData with input info
+    input.FillSignatureData(sigdata);
+
+    // Get UTXO
+    CTxOut utxo;
+    if (input.utxo.IsNull()) {
+        return false;
+    }
+
+    utxo = input.utxo;
+    MutableTransactionSignatureCreator creator(&tx, index, utxo.nValue,
+                                               sighash);
+    bool sig_complete =
+        ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
+    input.FromSignatureData(sigdata);
+    return sig_complete;
+}
+
 class SignatureExtractorChecker final : public BaseSignatureChecker {
 private:
     SignatureData &sigdata;
