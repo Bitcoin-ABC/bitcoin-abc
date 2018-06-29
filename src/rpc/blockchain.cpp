@@ -761,22 +761,21 @@ UniValue getblock(const Config &config, const JSONRPCRequest &request) {
         request.params.size() > 2) {
         throw std::runtime_error(
             "getblock \"blockhash\" ( verbose )\n"
-            
-            "\nIf verbosity is 0, returns a string that is serialized, "
+            "\nIf verbose is 0, returns a string that is serialized, "
             "hex-encoded data for block 'hash'.\n"
-            "If verbosity is 1, returns an Object with information "
+            "If verbose is 1, returns an Object with information "
             "about block <hash>.\n"
-            "If verbosity is 2, returns an Object with information about "
+            "If verbose is 2, returns an Object with information about "
             "block <hash> and information about each transaction. \n"
             "\nArguments:\n"
             "1. \"blockhash\"          (string, required) The block hash\n"
-            "2. verbosity              (numeric, optional, default=1) 0 for "
-            "hex encoded data, 1 for a json object, and 2 for json "
+            "2. verbose                (numeric or boolean, optional, default=1"
+            ") 0 for hex encoded data, 1 for a json object, and 2 for json "
             "object with transaction data\n"
-            "\nResult (for verbosity = 0):\n"
+            "\nResult (for verbose = 0 or false):\n"
             "\"data\"             (string) A string that is serialized, "
             "hex-encoded data for block 'hash'.\n"
-            "\nResult (for verbosity = 1):\n"
+            "\nResult (for verbose = 1 or true):\n"
             "{\n"
             "  \"hash\" : \"hash\",     (string) the block hash (same as "
             "provided)\n"
@@ -806,15 +805,15 @@ UniValue getblock(const Config &config, const JSONRPCRequest &request) {
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the "
             "next block\n"
             "}\n"
-            "\nResult (for verbosity = 2):\n"
+            "\nResult (for verbose = 2):\n"
             "{\n"
-            "  ...,                     Same output as verbosity = 1.\n"
+            "  ...,                     Same output as verbose = 1.\n"
             "  \"tx\" : [               (array of Objects) The transactions "
             "in the format of the getrawtransaction RPC. Different "
-            "from verbosity = 1 \"tx\" result.\n"
+            "from verbose = 1 \"tx\" result.\n"
             "         ,...\n"
             "  ],\n"
-            "  ,...                     Same output as verbosity = 1.\n"
+            "  ,...                     Same output as verbose = 1.\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d"
@@ -830,7 +829,7 @@ UniValue getblock(const Config &config, const JSONRPCRequest &request) {
 
     int verbosity = 1;
     if (!request.params[1].isNull()) {
-        if(request.params[1].isNum())
+        if (request.params[1].isNum())
             verbosity = request.params[1].get_int();
         else
             verbosity = request.params[1].get_bool() ? 1 : 0;
