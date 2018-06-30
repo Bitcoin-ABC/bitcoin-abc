@@ -220,33 +220,48 @@ class TransactionOrderingTest(ComparisonTestFramework):
                      MAGNETIC_ANOMALY_START_TIME - 1)
 
         # Before we activate the Nov 15, 2018 HF, transaction order is respected.
-        def out_of_order_block(block_number, spend):
-            b = block(block_number, spend=spend, tx_count=3)
-            b.vtx[1], b.vtx[2] = b.vtx[2], b.vtx[1]
+        def ordered_block(block_number, spend):
+            b = block(block_number, spend=spend, tx_count=16)
+            b.vtx = [b.vtx[0]] + sorted(b.vtx[1:], key=lambda tx: tx.get_id())
             update_block(block_number)
             return b
 
-        out_of_order_block(4444, out[16])
+        ordered_block(4444, out[16])
         yield rejected(RejectResult(16, b'bad-txns-inputs-missingorspent'))
 
         # Rewind bad block.
         tip(5104)
 
         # Activate the Nov 15, 2018 HF
-        block(5556)
+        block(5556, out[16], tx_count=16)
         yield accepted()
 
         # Now MTP is exactly the fork time. Bigger blocks are now accepted.
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MAGNETIC_ANOMALY_START_TIME)
 
-        # Now that the fork activated, we can put transactions out of order in the block.
-        out_of_order_block(4445, out[16])
+        # Block with regular ordering are now rejected.
+        block(5557, out[17], tx_count=16)
+        yield rejected(RejectResult(16, b'tx-ordering'))
+
+        # Rewind bad block.
+        tip(5556)
+
+        # Now that the fork activated, we need to order transaction per txid.
+        ordered_block(4445, out[17])
         yield accepted()
 
-        oooblockhash = node.getbestblockhash()
-        node.invalidateblock(oooblockhash)
-        assert(node.getbestblockhash() != oooblockhash)
+        # Invalidate the best block and make sure we are back at the fork point.
+        ctorblockhash = node.getbestblockhash()
+        node.invalidateblock(ctorblockhash)
+        forkblockhash = node.getbestblockhash()
+        assert(forkblockhash != ctorblockhash)
+        assert_equal(node.getblockheader(forkblockhash)[
+                     'mediantime'], MAGNETIC_ANOMALY_START_TIME)
+
+        node.generate(1)
+        generatedblockhash = node.getbestblockhash()
+        assert(forkblockhash != generatedblockhash)
 
 
 if __name__ == '__main__':

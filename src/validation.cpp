@@ -3684,9 +3684,28 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
                                         ? nMedianTimePast
                                         : block.GetBlockTime();
 
+    const bool fIsMagneticAnomalyEnabled =
+        IsMagneticAnomalyEnabled(config, pindexPrev);
+
     // Check that all transactions are finalized
-    for (const auto &tx : block.vtx) {
-        if (!ContextualCheckTransaction(config, *tx, state, nHeight,
+    const CTransaction *prevTx = nullptr;
+    for (const auto &ptx : block.vtx) {
+        const CTransaction &tx = *ptx;
+        if (fIsMagneticAnomalyEnabled) {
+            if (prevTx && (tx.GetId() < prevTx->GetId())) {
+                return state.DoS(
+                    100, false, REJECT_INVALID, "tx-ordering", false,
+                    strprintf("Transaction order is invalid (%s < %s)",
+                              tx.GetId().ToString(),
+                              prevTx->GetId().ToString()));
+            }
+
+            if (prevTx || !tx.IsCoinBase()) {
+                prevTx = &tx;
+            }
+        }
+
+        if (!ContextualCheckTransaction(config, tx, state, nHeight,
                                         nLockTimeCutoff)) {
             // state set by ContextualCheckTransaction.
             return false;

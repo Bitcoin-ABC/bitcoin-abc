@@ -422,6 +422,11 @@ class CTransaction():
         self.hash = encode(
             hash256(self.serialize())[::-1], 'hex_codec').decode('ascii')
 
+    def get_id(self):
+        # For now, just forward the hash.
+        self.calc_sha256()
+        return self.hash
+
     def is_valid(self):
         self.calc_sha256()
         for tout in self.vout:

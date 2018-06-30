@@ -175,6 +175,16 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     int nDescendantsUpdated = 0;
     addPackageTxs(nPackagesSelected, nDescendantsUpdated);
 
+    if (IsMagneticAnomalyEnabled(*config, pindexPrev)) {
+        // If magnetic anomaly is enabled, we make sure transaction are
+        // canonically ordered.
+        std::sort(std::begin(pblock->vtx) + 1, std::end(pblock->vtx),
+                  [](const std::shared_ptr<const CTransaction> &a,
+                     const std::shared_ptr<const CTransaction> &b) -> bool {
+                      return a->GetId() > b->GetId();
+                  });
+    }
+
     int64_t nTime1 = GetTimeMicros();
 
     nLastBlockTx = nBlockTx;
