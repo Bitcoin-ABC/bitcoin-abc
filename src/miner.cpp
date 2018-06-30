@@ -207,8 +207,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         GetSigOpCountWithoutP2SH(*pblock->vtx[0]);
 
     CValidationState state;
-    BlockValidationOptions validationOptions =
-        BlockValidationOptions(false, false);
+    BlockValidationOptions validationOptions(false, false);
     if (!TestBlockValidity(*config, state, *pblock, pindexPrev,
                            validationOptions)) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
@@ -252,10 +251,12 @@ bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOps) {
     if (blockSizeWithPackage >= nMaxGeneratedBlockSize) {
         return false;
     }
+
     if (nBlockSigOps + packageSigOps >=
         GetMaxBlockSigOpsCount(blockSizeWithPackage)) {
         return false;
     }
+
     return true;
 }
 
@@ -295,9 +296,11 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
             blockFinished = true;
             return false;
         }
+
         if (nBlockSize > nMaxGeneratedBlockSize - 1000) {
             lastFewTxs++;
         }
+
         return false;
     }
 
@@ -311,6 +314,7 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
             blockFinished = true;
             return false;
         }
+
         // Otherwise attempt to find another tx with fewer sigops to put in the
         // block.
         return false;
@@ -362,6 +366,7 @@ int BlockAssembler::UpdatePackagesForAdded(
             if (alreadyAdded.count(desc)) {
                 continue;
             }
+
             ++nDescendantsUpdated;
             modtxiter mit = mapModifiedTx.find(desc);
             if (mit == mapModifiedTx.end()) {
@@ -375,6 +380,7 @@ int BlockAssembler::UpdatePackagesForAdded(
             }
         }
     }
+
     return nDescendantsUpdated;
 }
 
@@ -516,6 +522,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
                 // while.
                 break;
             }
+
             continue;
         }
 
@@ -648,6 +655,7 @@ void IncrementExtraNonce(const Config &config, CBlock *pblock,
         nExtraNonce = 0;
         hashPrevBlock = pblock->hashPrevBlock;
     }
+
     ++nExtraNonce;
     // Height first in coinbase required for block.version=2
     unsigned int nHeight = pindexPrev->nHeight + 1;
