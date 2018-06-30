@@ -28,5 +28,5 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Qt | [5.9.6](https://download.qt.io/official_releases/qt/) | 5.5.1 | No |  |  |
 | XCB |  |  |  |  | Yes (Linux only) |
 | xkbcommon |  |  |  |  | Yes (Linux only) |
-| ZeroMQ | [4.2.3](https://github.com/zeromq/libzmq/releases) | 4.1.5 | No |  |  |
+| ZeroMQ | [4.2.5](https://github.com/zeromq/libzmq/releases) | 4.1.5 | No |  |  |
 | zlib | [1.2.11](http://zlib.net/) |  |  |  | No |

@@ -42,7 +42,7 @@ Optional dependencies:
  protobuf    | Payments in GUI  | Data interchange format used for payment protocol (only needed when GUI enabled)
  libqrencode | QR codes in GUI  | Optional for generating QR codes (only needed when GUI enabled)
  univalue    | Utility          | JSON parsing and encoding (bundled version will be used unless --with-system-univalue passed to configure)
- libzmq3     | ZMQ notification | Optional, allows generating ZMQ notifications (requires ZMQ version >= 4.x)
+ libzmq3     | ZMQ notification | Optional, allows generating ZMQ notifications (requires ZMQ version >= 4.1.5)
 
 For the versions used, see [dependencies.md](dependencies.md)
 
@@ -104,7 +104,7 @@ Minipupnc dependencies (can be disabled by passing `-DENABLE_UPNP=OFF` on the cm
 
     sudo apt-get install libminiupnpc-dev
 
-ZMQ dependencies (provides ZMQ API 4.x, can be disabled by passing `-BUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
+ZMQ dependencies (provides ZMQ API, can be disabled by passing `-BUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
 
     sudo apt-get install libzmq3-dev
 
