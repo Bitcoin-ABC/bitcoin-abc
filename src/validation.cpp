@@ -578,13 +578,16 @@ static bool IsCurrentForFeeEstimation() {
     if (IsInitialBlockDownload()) {
         return false;
     }
+
     if (chainActive.Tip()->GetBlockTime() <
         (GetTime() - MAX_FEE_ESTIMATION_TIP_AGE)) {
         return false;
     }
+
     if (chainActive.Height() < pindexBestHeader->nHeight - 1) {
         return false;
     }
+
     return true;
 }
 
@@ -690,6 +693,7 @@ void UpdateMempoolForReorg(const Config &config,
         }
         ++it;
     }
+
     disconnectpool.queuedTx.clear();
     // AcceptToMemoryPool/addUnchecked all assume that new mempool entries have
     // no in-mempool children, which is generally not true when adding
@@ -1158,6 +1162,7 @@ bool GetTransaction(const Config &config, const TxId &txid,
             if (file.IsNull()) {
                 return error("%s: OpenBlockFile failed", __func__);
             }
+
             CBlockHeader header;
             try {
                 file >> header;
@@ -1167,10 +1172,12 @@ bool GetTransaction(const Config &config, const TxId &txid,
                 return error("%s: Deserialize or I/O error - %s", __func__,
                              e.what());
             }
+
             hashBlock = header.GetHash();
             if (txOut->GetId() != txid) {
                 return error("%s: txid mismatch", __func__);
             }
+
             return true;
         }
     }
@@ -1330,7 +1337,8 @@ static void AlertNotify(const std::string &strMessage) {
     safeStatus = singleQuote + safeStatus + singleQuote;
     boost::replace_all(strCmd, "%s", safeStatus);
 
-    boost::thread t(runCommand, strCmd); // thread runs free
+    // thread runs free
+    boost::thread t(runCommand, strCmd);
 }
 
 static void CheckForkWarningConditions() {
@@ -1361,6 +1369,7 @@ static void CheckForkWarningConditions() {
                 pindexBestForkBase->phashBlock->ToString() + std::string("'");
             AlertNotify(warning);
         }
+
         if (pindexBestForkTip && pindexBestForkBase) {
             LogPrintf("%s: Warning: Large valid fork found\n  forking the "
                       "chain at height %d (%s)\n  lasting to height %d "
@@ -1544,6 +1553,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
     if (nTxFee < Amount(0)) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
     }
+
     nFees += nTxFee;
     if (!MoneyRange(nFees)) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
@@ -2438,6 +2448,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                 if (!CheckDiskSpace(0)) {
                     return state.Error("out of disk space");
                 }
+
                 // First make sure all block and undo data is flushed to disk.
                 FlushBlockFile();
                 // Then update all block file information (which may refer to
@@ -2445,28 +2456,31 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                 {
                     std::vector<std::pair<int, const CBlockFileInfo *>> vFiles;
                     vFiles.reserve(setDirtyFileInfo.size());
-                    for (std::set<int>::iterator it = setDirtyFileInfo.begin();
-                         it != setDirtyFileInfo.end();) {
-                        vFiles.push_back(
-                            std::make_pair(*it, &vinfoBlockFile[*it]));
-                        setDirtyFileInfo.erase(it++);
+                    for (int i : setDirtyFileInfo) {
+                        vFiles.push_back(std::make_pair(i, &vinfoBlockFile[i]));
                     }
+
+                    setDirtyFileInfo.clear();
+
                     std::vector<const CBlockIndex *> vBlocks;
                     vBlocks.reserve(setDirtyBlockIndex.size());
-                    for (std::set<CBlockIndex *>::iterator it =
-                             setDirtyBlockIndex.begin();
-                         it != setDirtyBlockIndex.end();) {
-                        vBlocks.push_back(*it);
-                        setDirtyBlockIndex.erase(it++);
+                    for (const CBlockIndex *cbi : setDirtyBlockIndex) {
+                        vBlocks.push_back(cbi);
                     }
+
+                    setDirtyBlockIndex.clear();
+
                     if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile,
                                                     vBlocks)) {
                         return AbortNode(
                             state, "Failed to write to block index database");
                     }
                 }
+
                 // Finally remove any pruned files
-                if (fFlushForPrune) UnlinkPrunedFiles(setFilesToPrune);
+                if (fFlushForPrune) {
+                    UnlinkPrunedFiles(setFilesToPrune);
+                }
                 nLastWrite = nNow;
             }
             // Flush best chain related state. This can only be done if the
@@ -2481,6 +2495,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                 if (!CheckDiskSpace(48 * 2 * 2 * pcoinsTip->GetCacheSize())) {
                     return state.Error("out of disk space");
                 }
+
                 // Flush the chainstate (which may refer to block index
                 // entries).
                 if (!pcoinsTip->Flush()) {
@@ -2489,6 +2504,7 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
                 nLastFlush = nNow;
             }
         }
+
         if (fDoFullFlush ||
             ((mode == FLUSH_STATE_ALWAYS || mode == FLUSH_STATE_PERIODIC) &&
              nNow >
@@ -2814,10 +2830,12 @@ static bool ConnectTip(const Config &config, CValidationState &state,
             if (state.IsInvalid()) {
                 InvalidBlockFound(pindexNew, state);
             }
+
             return error("ConnectTip(): ConnectBlock %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          FormatStateMessage(state));
         }
+
         nTime3 = GetTimeMicros();
         nTimeConnectTotal += nTime3 - nTime2;
         LogPrint(BCLog::BENCH, "  - Connect total: %.2fms [%.2fs]\n",
@@ -2825,19 +2843,23 @@ static bool ConnectTip(const Config &config, CValidationState &state,
         bool flushed = view.Flush();
         assert(flushed);
     }
+
     int64_t nTime4 = GetTimeMicros();
     nTimeFlush += nTime4 - nTime3;
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs]\n",
              (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
+
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(config.GetChainParams(), state,
                           FLUSH_STATE_IF_NEEDED)) {
         return false;
     }
+
     int64_t nTime5 = GetTimeMicros();
     nTimeChainState += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "  - Writing chainstate: %.2fms [%.2fs]\n",
              (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
+
     // Remove conflicting transactions from the mempool.;
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
@@ -2925,8 +2947,10 @@ static CBlockIndex *FindMostWorkChain() {
     } while (true);
 }
 
-/** Delete all entries in setBlockIndexCandidates that are worse than the
- * current tip. */
+/**
+ * Delete all entries in setBlockIndexCandidates that are worse than the current
+ * tip.
+ */
 static void PruneBlockIndexCandidates() {
     // Note that we can't delete the current block itself, as we may need to
     // return to it later in case a reorganization to a better block fails.
@@ -2936,6 +2960,7 @@ static void PruneBlockIndexCandidates() {
            setBlockIndexCandidates.value_comp()(*it, chainActive.Tip())) {
         setBlockIndexCandidates.erase(it++);
     }
+
     // Either the current tip or a successor of it we're working towards is left
     // in setBlockIndexCandidates.
     assert(!setBlockIndexCandidates.empty());
@@ -2965,6 +2990,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
             UpdateMempoolForReorg(config, disconnectpool, false);
             return false;
         }
+
         fBlocksDisconnected = true;
     }
 
@@ -2983,6 +3009,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
             vpindexToConnect.push_back(pindexIter);
             pindexIter = pindexIter->pprev;
         }
+
         nHeight = nTargetHeight;
 
         // Connect new blocks.
@@ -2998,18 +3025,18 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
                     if (!state.CorruptionPossible()) {
                         InvalidChainFound(vpindexToConnect.back());
                     }
+
                     state = CValidationState();
                     fInvalidFound = true;
                     fContinue = false;
                     break;
-                } else {
-                    // A system error occurred (disk space, database error,
-                    // ...).
-                    // Make the mempool consistent with the current tip, just in
-                    // case any observers try to use it before shutdown.
-                    UpdateMempoolForReorg(config, disconnectpool, false);
-                    return false;
                 }
+
+                // A system error occurred (disk space, database error, ...).
+                // Make the mempool consistent with the current tip, just in
+                // case any observers try to use it before shutdown.
+                UpdateMempoolForReorg(config, disconnectpool, false);
+                return false;
             } else {
                 PruneBlockIndexCandidates();
                 if (!pindexOldTip ||
@@ -3055,6 +3082,7 @@ static void NotifyHeaderTip() {
             pindexHeaderOld = pindexHeader;
         }
     }
+
     // Send block tip changed notifications without cs_main
     if (fNotify) {
         uiInterface.NotifyHeaderTip(fInitialBlockDownload, pindexHeader);
@@ -3111,6 +3139,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                 // Wipe cache, we may need another branch now.
                 pindexMostWork = nullptr;
             }
+
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
             fInitialDownload = IsInitialBlockDownload();
@@ -3122,6 +3151,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
                                                 *trace.conflictedTxs);
             }
         }
+
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
 
@@ -3162,11 +3192,13 @@ bool PreciousBlock(const Config &config, CValidationState &state,
             // Nothing to do, this block is not at the tip.
             return true;
         }
+
         if (chainActive.Tip()->nChainWork > nLastPreciousChainwork) {
             // The chain has been extended since the last call, reset the
             // counter.
             nBlockReverseSequenceId = -1;
         }
+
         nLastPreciousChainwork = chainActive.Tip()->nChainWork;
         setBlockIndexCandidates.erase(pindex);
         pindex->nSequenceId = nBlockReverseSequenceId;
@@ -3175,6 +3207,7 @@ bool PreciousBlock(const Config &config, CValidationState &state,
             // call preciousblock 2**31-1 times on the same set of tips...
             nBlockReverseSequenceId--;
         }
+
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx) {
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
@@ -3246,12 +3279,14 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
                                                      it->second)) {
                 setBlockIndexCandidates.insert(it->second);
             }
+
             if (it->second == pindexBestInvalid) {
                 // Reset invalid block marker if it was pointing to one of
                 // those.
                 pindexBestInvalid = nullptr;
             }
         }
+
         it++;
     }
 
@@ -3263,6 +3298,7 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
         }
         pindex = pindex->pprev;
     }
+
     return true;
 }
 
@@ -3305,7 +3341,6 @@ static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {
     }
 
     setDirtyBlockIndex.insert(pindexNew);
-
     return pindexNew;
 }
 
@@ -3342,11 +3377,13 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
                 LOCK(cs_nBlockSequenceId);
                 pindex->nSequenceId = nBlockSequenceId++;
             }
+
             if (chainActive.Tip() == nullptr ||
                 !setBlockIndexCandidates.value_comp()(pindex,
                                                       chainActive.Tip())) {
                 setBlockIndexCandidates.insert(pindex);
             }
+
             std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
                       std::multimap<CBlockIndex *, CBlockIndex *>::iterator>
                 range = mapBlocksUnlinked.equal_range(pindex);
@@ -3414,6 +3451,7 @@ static bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos,
             if (fPruneMode) {
                 fCheckForPruning = true;
             }
+
             if (CheckDiskSpace(nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos)) {
                 FILE *file = OpenBlockFile(pos);
                 if (file) {
@@ -3454,6 +3492,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
         if (fPruneMode) {
             fCheckForPruning = true;
         }
+
         if (CheckDiskSpace(nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos)) {
             FILE *file = OpenUndoFile(pos);
             if (file) {
@@ -3796,11 +3835,13 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
             if (ppindex) {
                 *ppindex = pindex;
             }
+
             if (pindex->nStatus.isInvalid()) {
                 return state.Invalid(error("%s: block %s is marked invalid",
                                            __func__, hash.ToString()),
                                      0, "duplicate");
             }
+
             return true;
         }
 
@@ -3864,11 +3905,13 @@ bool ProcessNewBlockHeaders(const Config &config,
             if (!AcceptBlockHeader(config, header, state, &pindex)) {
                 return false;
             }
+
             if (ppindex) {
                 *ppindex = pindex;
             }
         }
     }
+
     NotifyHeaderTip();
     return true;
 }
@@ -3984,6 +4027,7 @@ static bool AcceptBlock(const Config &config,
             pindex->nStatus = pindex->nStatus.withFailed();
             setDirtyBlockIndex.insert(pindex);
         }
+
         return error("%s: %s (block %s)", __func__, FormatStateMessage(state),
                      block.GetHash().ToString());
     }
@@ -4006,15 +4050,18 @@ static bool AcceptBlock(const Config &config,
         if (dbp != nullptr) {
             blockPos = *dbp;
         }
+
         if (!FindBlockPos(state, blockPos, nBlockSize + 8, nHeight,
                           block.GetBlockTime(), dbp != nullptr)) {
             return error("AcceptBlock(): FindBlockPos failed");
         }
+
         if (dbp == nullptr) {
             if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
                 AbortNode(state, "Failed to write block");
             }
         }
+
         if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
             return error("AcceptBlock(): ReceivedBlockTransactions failed");
         }
@@ -4053,6 +4100,7 @@ bool ProcessNewBlock(const Config &config,
             ret = AcceptBlock(config, pblock, state, &pindex, fForceProcessing,
                               nullptr, fNewBlock);
         }
+
         CheckBlockIndex(chainparams.GetConsensus());
         if (!ret) {
             GetMainSignals().BlockChecked(*pblock, state);
@@ -4096,14 +4144,17 @@ bool TestBlockValidity(const Config &config, CValidationState &state,
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      FormatStateMessage(state));
     }
+
     if (!CheckBlock(config, block, state, validationOptions)) {
         return error("%s: Consensus::CheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
+
     if (!ContextualCheckBlock(config, block, state, pindexPrev)) {
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__,
                      FormatStateMessage(state));
     }
+
     if (!ConnectBlock(config, block, state, &indexDummy, viewNew, true)) {
         return false;
     }
@@ -4124,6 +4175,7 @@ static uint64_t CalculateCurrentUsage() {
     for (const CBlockFileInfo &file : vinfoBlockFile) {
         retval += file.nSize + file.nUndoSize;
     }
+
     return retval;
 }
 
@@ -4309,10 +4361,12 @@ static FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix,
     if (!file && !fReadOnly) {
         file = fsbridge::fopen(path, "wb+");
     }
+
     if (!file) {
         LogPrintf("Unable to open file %s\n", path.string());
         return nullptr;
     }
+
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
             LogPrintf("Unable to seek to position %u of %s\n", pos.nPos,
@@ -4321,6 +4375,7 @@ static FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix,
             return nullptr;
         }
     }
+
     return file;
 }
 
@@ -4375,6 +4430,7 @@ static bool LoadBlockIndexDB(const Config &config) {
         CBlockIndex *pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
     }
+
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
     for (const std::pair<int, CBlockIndex *> &item : vSortedByHeight) {
         CBlockIndex *pindex = item.second;
@@ -4398,18 +4454,22 @@ static bool LoadBlockIndexDB(const Config &config) {
                 pindex->nChainTx = pindex->nTx;
             }
         }
+
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
             (pindex->nChainTx || pindex->pprev == nullptr)) {
             setBlockIndexCandidates.insert(pindex);
         }
+
         if (pindex->nStatus.isInvalid() &&
             (!pindexBestInvalid ||
              pindex->nChainWork > pindexBestInvalid->nChainWork)) {
             pindexBestInvalid = pindex;
         }
+
         if (pindex->pprev) {
             pindex->BuildSkip();
         }
+
         if (pindex->IsValid(BlockValidity::TREE) &&
             (pindexBestHeader == nullptr ||
              CBlockIndexWorkComparator()(pindexBestHeader, pindex))) {
@@ -4424,8 +4484,10 @@ static bool LoadBlockIndexDB(const Config &config) {
     for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
         pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
     }
+
     LogPrintf("%s: last block file info: %s\n", __func__,
               vinfoBlockFile[nLastBlockFile].ToString());
+
     for (int nFile = nLastBlockFile + 1; true; nFile++) {
         CBlockFileInfo info;
         if (pblocktree->ReadBlockFileInfo(nFile, info)) {
@@ -4444,6 +4506,7 @@ static bool LoadBlockIndexDB(const Config &config) {
             setBlkDataFiles.insert(pindex->nFile);
         }
     }
+
     for (const int i : setBlkDataFiles) {
         CDiskBlockPos pos(i, 0);
         if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION)
@@ -4604,6 +4667,7 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
                              pindex->nHeight,
                              pindex->GetBlockHash().ToString());
             }
+
             pindexState = pindex->pprev;
             if (res == DISCONNECT_UNCLEAN) {
                 nGoodTransactions = 0;
@@ -4701,6 +4765,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
         // We're already in a consistent state.
         return true;
     }
+
     if (hashHeads.size() != 2) {
         return error("ReplayBlocks(): unknown inconsistent state");
     }
@@ -4719,6 +4784,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
         return error(
             "ReplayBlocks(): reorganization to unknown block requested");
     }
+
     pindexNew = mapBlockIndex[hashHeads[0]];
 
     if (!hashHeads[1].IsNull()) {
@@ -4727,6 +4793,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
             return error(
                 "ReplayBlocks(): reorganization from unknown block requested");
         }
+
         pindexOld = mapBlockIndex[hashHeads[1]];
         pindexFork = LastCommonAncestor(pindexOld, pindexNew);
         assert(pindexFork != nullptr);
@@ -4743,6 +4810,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
                              pindexOld->nHeight,
                              pindexOld->GetBlockHash().ToString());
             }
+
             LogPrintf("Rolling back %s (%i)\n",
                       pindexOld->GetBlockHash().ToString(), pindexOld->nHeight);
             DisconnectResult res = DisconnectBlock(block, pindexOld, cache);
@@ -4751,6 +4819,7 @@ bool ReplayBlocks(const Config &config, CCoinsView *view) {
                     "RollbackBlock(): DisconnectBlock failed at %d, hash=%s",
                     pindexOld->nHeight, pindexOld->GetBlockHash().ToString());
             }
+
             // If DISCONNECT_UNCLEAN is returned, it means a non-existing UTXO
             // was deleted, or an existing UTXO was overwritten. It corresponds
             // to cases where the block-to-be-disconnect never had all its
@@ -4798,11 +4867,13 @@ bool RewindBlockIndex(const Config &config) {
             // needless reindex/redownload of the blockchain).
             break;
         }
+
         if (!DisconnectTip(config, state, nullptr)) {
             return error(
                 "RewindBlockIndex: unable to disconnect block at height %i",
                 pindex->nHeight);
         }
+
         // Occasionally flush state to disk.
         if (!FlushStateToDisk(params, state, FLUSH_STATE_PERIODIC)) {
             return false;
@@ -4813,10 +4884,8 @@ bool RewindBlockIndex(const Config &config) {
     // We do this after actual disconnecting, otherwise we'll end up writing the
     // lack of data to disk before writing the chainstate, resulting in a
     // failure to continue if interrupted.
-    for (BlockMap::iterator it = mapBlockIndex.begin();
-         it != mapBlockIndex.end(); it++) {
-        CBlockIndex *pindexIter = it->second;
-
+    for (const std::pair<uint256, CBlockIndex *> &p : mapBlockIndex) {
+        CBlockIndex *pindexIter = p.second;
         if (pindexIter->IsValid(BlockValidity::TRANSACTIONS) &&
             pindexIter->nChainTx) {
             setBlockIndexCandidates.insert(pindexIter);
@@ -4857,6 +4926,7 @@ void UnloadBlockIndex() {
     for (BlockMap::value_type &entry : mapBlockIndex) {
         delete entry.second;
     }
+
     mapBlockIndex.clear();
     fHavePruned = false;
 }
@@ -4866,6 +4936,7 @@ bool LoadBlockIndex(const Config &config) {
     if (!fReindex && !LoadBlockIndexDB(config)) {
         return false;
     }
+
     return true;
 }
 
@@ -4897,10 +4968,12 @@ bool InitBlockIndex(const Config &config) {
                               block.GetBlockTime())) {
                 return error("LoadBlockIndex(): FindBlockPos failed");
             }
+
             if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
                 return error(
                     "LoadBlockIndex(): writing genesis block to disk failed");
             }
+
             CBlockIndex *pindex = AddToBlockIndex(block);
             if (!ReceivedBlockTransactions(block, state, pindex, blockPos)) {
                 return error("LoadBlockIndex(): genesis block not accepted");
@@ -4951,6 +5024,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            CMessageHeader::MESSAGE_START_SIZE)) {
                     continue;
                 }
+
                 // Read size.
                 blkdat >> nSize;
                 if (nSize < 80) {
@@ -4960,6 +5034,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 // No valid block header found; don't complain.
                 break;
             }
+
             try {
                 // read block
                 uint64_t nBlockPos = blkdat.GetPos();
@@ -4998,6 +5073,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                                     nullptr)) {
                         nLoaded++;
                     }
+
                     if (state.IsError()) {
                         break;
                     }
@@ -5065,10 +5141,12 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
     } catch (const std::runtime_error &e) {
         AbortNode(std::string("System error: ") + e.what());
     }
+
     if (nLoaded > 0) {
         LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded,
                   GetTimeMillis() - nStart);
     }
+
     return nLoaded > 0;
 }
 
@@ -5421,6 +5499,7 @@ bool LoadMempool(const Config &config) {
         if (version != MEMPOOL_DUMP_VERSION) {
             return false;
         }
+
         uint64_t num;
         file >> num;
         double prioritydummy = 0;
@@ -5451,6 +5530,7 @@ bool LoadMempool(const Config &config) {
             } else {
                 ++skipped;
             }
+
             if (ShutdownRequested()) {
                 return false;
             }
@@ -5486,6 +5566,7 @@ void DumpMempool(void) {
         for (const auto &i : mempool.mapDeltas) {
             mapDeltas[i.first] = i.second.second;
         }
+
         vinfo = mempool.infoAll();
     }
 
