@@ -124,24 +124,24 @@ static void CheckComparison(const uint160 &a, const uint160 &b) {
 // <= >= < >
 BOOST_AUTO_TEST_CASE(comparison) {
     uint256 LastL;
-    for (int i = 255; i >= 0; --i) {
+    for (int i = 0; i < 256; i++) {
         uint256 TmpL;
-        *(TmpL.begin() + (i >> 3)) |= 1 << (7 - (i & 7));
+        *(TmpL.begin() + (i >> 3)) |= 1 << (i & 7);
         CheckComparison(LastL, TmpL);
         LastL = TmpL;
     }
 
     CheckComparison(ZeroL, R1L);
-    CheckComparison(R2L, R1L);
+    CheckComparison(R1L, R2L);
     CheckComparison(ZeroL, OneL);
     CheckComparison(OneL, MaxL);
     CheckComparison(R1L, MaxL);
     CheckComparison(R2L, MaxL);
 
     uint160 LastS;
-    for (int i = 159; i >= 0; --i) {
+    for (int i = 0; i < 160; i++) {
         uint160 TmpS;
-        *(TmpS.begin() + (i >> 3)) |= 1 << (7 - (i & 7));
+        *(TmpS.begin() + (i >> 3)) |= 1 << (i & 7);
         CheckComparison(LastS, TmpS);
         LastS = TmpS;
     }

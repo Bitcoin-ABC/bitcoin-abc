@@ -38,9 +38,18 @@ public:
     void SetNull() { memset(data, 0, sizeof(data)); }
 
     inline int Compare(const base_blob &other) const {
-        // This doesn't quite work as you'd expect because the comparison use
-        // the wrong endianess.
-        return memcmp(data, other.data, sizeof(data));
+        for (size_t i = 0; i < sizeof(data); i++) {
+            uint8_t a = data[sizeof(data) - 1 - i];
+            uint8_t b = other.data[sizeof(data) - 1 - i];
+            if (a > b) {
+                return 1;
+            }
+            if (a < b) {
+                return -1;
+            }
+        }
+
+        return 0;
     }
 
     friend inline bool operator==(const base_blob &a, const base_blob &b) {
