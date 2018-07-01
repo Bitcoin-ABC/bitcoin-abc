@@ -1786,10 +1786,29 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
         return DISCONNECT_FAILED;
     }
 
-    // Undo transactions in reverse order.
-    size_t i = block.vtx.size();
-    while (i-- > 0) {
+    // First, restore inputs.
+    for (size_t i = 1; i < block.vtx.size(); i++) {
         const CTransaction &tx = *(block.vtx[i]);
+        const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
+        if (txundo.vprevout.size() != tx.vin.size()) {
+            error("DisconnectBlock(): transaction and undo data inconsistent");
+            return DISCONNECT_FAILED;
+        }
+
+        for (size_t j = 0; j < tx.vin.size(); j++) {
+            const COutPoint &out = tx.vin[j].prevout;
+            const Coin &undo = txundo.vprevout[j];
+            DisconnectResult res = UndoCoinSpend(undo, view, out);
+            if (res == DISCONNECT_FAILED) {
+                return DISCONNECT_FAILED;
+            }
+            fClean = fClean && res != DISCONNECT_UNCLEAN;
+        }
+    }
+
+    // Second, revert created outputs.
+    for (const auto &ptx : block.vtx) {
+        const CTransaction &tx = *ptx;
         uint256 txid = tx.GetId();
 
         // Check that all outputs are available and match the outputs in the
@@ -1806,28 +1825,6 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
                 // transaction output mismatch
                 fClean = false;
             }
-        }
-
-        // Restore inputs.
-        if (i < 1) {
-            // Skip the coinbase.
-            continue;
-        }
-
-        const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
-        if (txundo.vprevout.size() != tx.vin.size()) {
-            error("DisconnectBlock(): transaction and undo data inconsistent");
-            return DISCONNECT_FAILED;
-        }
-
-        for (size_t j = tx.vin.size(); j-- > 0;) {
-            const COutPoint &out = tx.vin[j].prevout;
-            const Coin &undo = txundo.vprevout[j];
-            DisconnectResult res = UndoCoinSpend(undo, view, out);
-            if (res == DISCONNECT_FAILED) {
-                return DISCONNECT_FAILED;
-            }
-            fClean = fClean && res != DISCONNECT_UNCLEAN;
         }
     }
 

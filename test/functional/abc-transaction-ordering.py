@@ -244,6 +244,10 @@ class TransactionOrderingTest(ComparisonTestFramework):
         out_of_order_block(4445, out[16])
         yield accepted()
 
+        oooblockhash = node.getbestblockhash()
+        node.invalidateblock(oooblockhash)
+        assert(node.getbestblockhash() != oooblockhash)
+
 
 if __name__ == '__main__':
     TransactionOrderingTest().main()
