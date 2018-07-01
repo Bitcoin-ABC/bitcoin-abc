@@ -50,6 +50,8 @@
 #cmakedefine HAVE_SYS_GETRANDOM 1
 #cmakedefine HAVE_SYSCTL_ARND 1
 
+#cmakedefine CHAR_EQUALS_INT8 0
+
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 
 #cmakedefine ENABLE_WALLET 1
