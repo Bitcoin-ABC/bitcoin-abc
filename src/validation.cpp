@@ -1962,7 +1962,7 @@ static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS];
 static uint32_t GetBlockScriptFlags(const Config &config,
                                     const CBlockIndex *pChainTip) {
     AssertLockHeld(cs_main);
-    const Consensus::Params &consensusparams =
+    const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 
     uint32_t flags = SCRIPT_VERIFY_NONE;
@@ -1972,19 +1972,18 @@ static uint32_t GetBlockScriptFlags(const Config &config,
         flags |= SCRIPT_VERIFY_P2SH;
     }
 
-    // Start enforcing the DERSIG (BIP66) rule
-    if ((pChainTip->nHeight + 1) >= consensusparams.BIP66Height) {
+    // Start enforcing the DERSIG (BIP66) rule.
+    if ((pChainTip->nHeight + 1) >= consensusParams.BIP66Height) {
         flags |= SCRIPT_VERIFY_DERSIG;
     }
 
-    // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule
-    if ((pChainTip->nHeight + 1) >= consensusparams.BIP65Height) {
+    // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
+    if ((pChainTip->nHeight + 1) >= consensusParams.BIP65Height) {
         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
     }
 
-    // Start enforcing BIP112 (CHECKSEQUENCEVERIFY) using versionbits logic.
-    if (VersionBitsState(pChainTip, consensusparams, Consensus::DEPLOYMENT_CSV,
-                         versionbitscache) == THRESHOLD_ACTIVE) {
+    // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
+    if ((pChainTip->nHeight + 1) >= consensusParams.CSVHeight) {
         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
     }
 
@@ -2156,9 +2155,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
     // Start enforcing BIP68 (sequence locks) using versionbits logic.
     int nLockTimeFlags = 0;
-    if (VersionBitsState(pindex->pprev, consensusParams,
-                         Consensus::DEPLOYMENT_CSV,
-                         versionbitscache) == THRESHOLD_ACTIVE) {
+    if (pindex->nHeight >= consensusParams.CSVHeight) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
     }
 
@@ -3779,8 +3776,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
 
     // Start enforcing BIP113 (Median Time Past) using versionbits logic.
     int nLockTimeFlags = 0;
-    if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_CSV,
-                         versionbitscache) == THRESHOLD_ACTIVE) {
+    if (nHeight >= consensusParams.CSVHeight) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
     }
 

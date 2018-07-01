@@ -97,6 +97,8 @@ public:
         consensus.BIP65Height = 388381;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.BIP66Height = 363725;
+        // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
+        consensus.CSVHeight = 419328;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -272,6 +274,8 @@ public:
         consensus.BIP65Height = 581885;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
         consensus.BIP66Height = 330776;
+        // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
+        consensus.CSVHeight = 770112;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -406,6 +410,8 @@ public:
         consensus.BIP65Height = 1351;
         // BIP66 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251;
+        // CSV activated on regtest (Used in rpc activation tests)
+        consensus.CSVHeight = 576;
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks

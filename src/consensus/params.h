@@ -50,6 +50,8 @@ struct Params {
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
     int BIP66Height;
+    /** Block height at which CSV (BIP68, BIP112 and BIP113) becomes active */
+    int CSVHeight;
     /** Block height at which UAHF kicks in */
     int uahfHeight;
     /** Block height at which the new DAA becomes active */
