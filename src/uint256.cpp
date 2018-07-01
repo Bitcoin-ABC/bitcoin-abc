@@ -18,8 +18,9 @@ base_blob<BITS>::base_blob(const std::vector<uint8_t> &vch) {
 
 template <unsigned int BITS> std::string base_blob<BITS>::GetHex() const {
     char psz[sizeof(data) * 2 + 1];
-    for (unsigned int i = 0; i < sizeof(data); i++)
+    for (size_t i = 0; i < sizeof(data); i++) {
         sprintf(psz + i * 2, "%02x", data[sizeof(data) - i - 1]);
+    }
     return std::string(psz, psz + sizeof(data) * 2);
 }
 
@@ -27,16 +28,21 @@ template <unsigned int BITS> void base_blob<BITS>::SetHex(const char *psz) {
     memset(data, 0, sizeof(data));
 
     // skip leading spaces
-    while (isspace(*psz))
+    while (isspace(*psz)) {
         psz++;
+    }
 
     // skip 0x
-    if (psz[0] == '0' && tolower(psz[1]) == 'x') psz += 2;
+    if (psz[0] == '0' && tolower(psz[1]) == 'x') {
+        psz += 2;
+    }
 
     // hex string to uint
     const char *pbegin = psz;
-    while (::HexDigit(*psz) != -1)
+    while (::HexDigit(*psz) != -1) {
         psz++;
+    }
+
     psz--;
     uint8_t *p1 = (uint8_t *)data;
     uint8_t *pend = p1 + WIDTH;
@@ -52,10 +58,6 @@ template <unsigned int BITS> void base_blob<BITS>::SetHex(const char *psz) {
 template <unsigned int BITS>
 void base_blob<BITS>::SetHex(const std::string &str) {
     SetHex(str.c_str());
-}
-
-template <unsigned int BITS> std::string base_blob<BITS>::ToString() const {
-    return (GetHex());
 }
 
 // Explicit instantiations for base_blob<160>
