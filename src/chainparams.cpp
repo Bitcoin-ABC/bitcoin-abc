@@ -113,14 +113,6 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             1230767999;
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        // May 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime =
-            1462060800;
-        // May 1st, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
-
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
             "000000000000000000000000000000000000000000a0f3064330647e2f6c4828");
@@ -290,14 +282,6 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             1230767999;
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        // March 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime =
-            1456790400;
-        // May 1st, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
-
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
             "00000000000000000000000000000000000000000000002a650f6ff7649485da");
@@ -421,10 +405,6 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
-            999999999999ULL;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout =
             999999999999ULL;
 
         // The best chain should have at least this much work.

@@ -362,12 +362,19 @@ class BIP68Test(BitcoinTestFramework):
             self.nodes[0].getblockhash(cur_height + 1))
         self.nodes[0].generate(10)
 
+    def get_csv_status(self):
+        softforks = self.nodes[0].getblockchaininfo()['softforks']
+        for sf in softforks:
+            if sf['id'] == 'csv' and sf['version'] == 5:
+                return sf['reject']['status']
+        raise AssertionError('Cannot find CSV fork activation informations')
+
     # Make sure that BIP68 isn't being used to validate blocks, prior to
     # versionbits activation.  If more blocks are mined prior to this test
     # being run, then it's possible the test has activated the soft fork, and
     # this test should be moved to run earlier, or deleted.
     def test_bip68_not_consensus(self):
-        assert(get_bip9_status(self.nodes[0], 'csv')['status'] != 'active')
+        assert_equal(self.get_csv_status(), False)
         txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 2)
 
         tx1 = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
@@ -414,16 +421,17 @@ class BIP68Test(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
     def activateCSV(self):
-        # activation should happen at block height 432 (3 periods)
-        # getblockchaininfo will show CSV as active at block 431 (144 * 3 -1) since it's returning whether CSV is active for the next block.
-        min_activation_height = 432
+        # activation should happen at block height 576
+        csv_activation_height = 576
         height = self.nodes[0].getblockcount()
-        assert_greater_than(min_activation_height - height, 2)
-        self.nodes[0].generate(min_activation_height - height - 2)
-        assert_equal(get_bip9_status(self.nodes[0], 'csv')[
-                     'status'], "locked_in")
+        assert_greater_than(csv_activation_height - height, 1)
+        self.nodes[0].generate(csv_activation_height - height - 1)
+        assert_equal(self.get_csv_status(), False)
         self.nodes[0].generate(1)
-        assert_equal(get_bip9_status(self.nodes[0], 'csv')['status'], "active")
+        assert_equal(self.get_csv_status(), True)
+        # We have a block that has CSV activated, but we want to be at
+        # the activation point, so we invalidate the tip.
+        self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
         sync_blocks(self.nodes)
 
     # Use self.nodes[1] to test standardness relay policy

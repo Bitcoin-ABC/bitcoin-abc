@@ -52,10 +52,6 @@
   "time": 36
  },
  {
-  "name": "bip9-softforks.py",
-  "time": 40
- },
- {
   "name": "bipdersig-p2p.py",
   "time": 6
  },

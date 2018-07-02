@@ -1187,52 +1187,6 @@ static UniValue SoftForkDesc(const std::string &name, int version,
     return rv;
 }
 
-static UniValue BIP9SoftForkDesc(const Consensus::Params &consensusParams,
-                                 Consensus::DeploymentPos id) {
-    UniValue rv(UniValue::VOBJ);
-    const ThresholdState thresholdState =
-        VersionBitsTipState(consensusParams, id);
-    switch (thresholdState) {
-        case THRESHOLD_DEFINED:
-            rv.push_back(Pair("status", "defined"));
-            break;
-        case THRESHOLD_STARTED:
-            rv.push_back(Pair("status", "started"));
-            break;
-        case THRESHOLD_LOCKED_IN:
-            rv.push_back(Pair("status", "locked_in"));
-            break;
-        case THRESHOLD_ACTIVE:
-            rv.push_back(Pair("status", "active"));
-            break;
-        case THRESHOLD_FAILED:
-            rv.push_back(Pair("status", "failed"));
-            break;
-    }
-    if (THRESHOLD_STARTED == thresholdState) {
-        rv.push_back(Pair("bit", consensusParams.vDeployments[id].bit));
-    }
-    rv.push_back(
-        Pair("startTime", consensusParams.vDeployments[id].nStartTime));
-    rv.push_back(Pair("timeout", consensusParams.vDeployments[id].nTimeout));
-    rv.push_back(
-        Pair("since", VersionBitsTipStateSinceHeight(consensusParams, id)));
-    return rv;
-}
-
-void BIP9SoftForkDescPushBack(UniValue &bip9_softforks, const std::string &name,
-                              const Consensus::Params &consensusParams,
-                              Consensus::DeploymentPos id) {
-    // Deployments with timeout value of 0 are hidden.
-    // A timeout value of 0 guarantees a softfork will never be activated.
-    // This is used when softfork codes are merged without specifying the
-    // deployment schedule.
-    if (consensusParams.vDeployments[id].nTimeout > 0) {
-        bip9_softforks.push_back(
-            Pair(name, BIP9SoftForkDesc(consensusParams, id)));
-    }
-}
-
 UniValue getblockchaininfo(const Config &config,
                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
@@ -1324,8 +1278,6 @@ UniValue getblockchaininfo(const Config &config,
     softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
-    BIP9SoftForkDescPushBack(bip9_softforks, "csv", consensusParams,
-                             Consensus::DEPLOYMENT_CSV);
     obj.push_back(Pair("softforks", softforks));
     obj.push_back(Pair("bip9_softforks", bip9_softforks));
 
