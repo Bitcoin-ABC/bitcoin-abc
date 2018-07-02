@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(netbase_networks) {
     BOOST_CHECK(ResolveIP("2001::8888").GetNetwork() == NET_IPV6);
     BOOST_CHECK(
         ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetNetwork() ==
-        NET_TOR);
+        NET_ONION);
     BOOST_CHECK(CreateInternal("foo.com").GetNetwork() == NET_INTERNAL);
 }
 
@@ -317,7 +317,7 @@ BOOST_AUTO_TEST_CASE(netbase_getgroup) {
     // Tor
     BOOST_CHECK(
         ResolveIP("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca").GetGroup() ==
-        Vec8({NET_TOR, 239}));
+        Vec8({NET_ONION, 239}));
     // he.net
     BOOST_CHECK(
         ResolveIP("2001:470:abcd:9999:9999:9999:9999:9999").GetGroup() ==

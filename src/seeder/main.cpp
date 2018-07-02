@@ -489,7 +489,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.tor, 9050));
         if (service.IsValid()) {
             printf("Using Tor proxy at %s\n", service.ToStringIPPort().c_str());
-            SetProxy(NET_TOR, proxyType(service));
+            SetProxy(NET_ONION, proxyType(service));
         }
     }
     if (opts.ipv4_proxy) {

@@ -242,7 +242,7 @@ enum Network CNetAddr::GetNetwork() const {
     }
 
     if (IsTor()) {
-        return NET_TOR;
+        return NET_ONION;
     }
 
     return NET_IPV6;
@@ -345,7 +345,7 @@ std::vector<uint8_t> CNetAddr::GetGroup() const {
         vchRet.push_back(GetByte(2) ^ 0xFF);
         return vchRet;
     } else if (IsTor()) {
-        nClass = NET_TOR;
+        nClass = NET_ONION;
         nStartByte = 6;
         nBits = 4;
     } else if (GetByte(15) == 0x20 && GetByte(14) == 0x01 &&
@@ -431,14 +431,14 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const {
                 case NET_IPV6:
                     return fTunnel ? REACH_IPV6_WEAK : REACH_IPV6_STRONG;
             }
-        case NET_TOR:
+        case NET_ONION:
             switch (ourNet) {
                 default:
                     return REACH_DEFAULT;
                 // Tor users can connect to IPv4 as well
                 case NET_IPV4:
                     return REACH_IPV4;
-                case NET_TOR:
+                case NET_ONION:
                     return REACH_PRIVATE;
             }
         case NET_TEREDO:
@@ -465,7 +465,7 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const {
                 case NET_IPV4:
                     return REACH_IPV4;
                 // either from Tor, or don't care about our address
-                case NET_TOR:
+                case NET_ONION:
                     return REACH_PRIVATE;
             }
     }
