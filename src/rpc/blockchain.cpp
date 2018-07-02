@@ -1226,24 +1226,7 @@ UniValue getblockchaininfo(const Config &config,
             "reached\n"
             "        },\n"
             "     }, ...\n"
-            "  ],\n"
-            "  \"bip9_softforks\": {          (object) status of BIP9 "
-            "softforks in progress\n"
-            "     \"xxxx\" : {                (string) name of the softfork\n"
-            "        \"status\": \"xxxx\",    (string) one of \"defined\", "
-            "\"started\", \"locked_in\", \"active\", \"failed\"\n"
-            "        \"bit\": xx,             (numeric) the bit (0-28) in the "
-            "block version field used to signal this softfork (only for "
-            "\"started\" status)\n"
-            "        \"startTime\": xx,       (numeric) the minimum median "
-            "time past of a block at which the bit gains its meaning\n"
-            "        \"timeout\": xx,         (numeric) the median time past "
-            "of a block at which the deployment is considered failed if not "
-            "yet locked in\n"
-            "        \"since\": xx            (numeric) height of the first "
-            "block to which the status applies\n"
-            "     }\n"
-            "  }\n"
+            "  ]\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getblockchaininfo", "") +
@@ -1273,13 +1256,11 @@ UniValue getblockchaininfo(const Config &config,
         config.GetChainParams().GetConsensus();
     CBlockIndex *tip = chainActive.Tip();
     UniValue softforks(UniValue::VARR);
-    UniValue bip9_softforks(UniValue::VOBJ);
     softforks.push_back(SoftForkDesc("bip34", 2, tip, consensusParams));
     softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     softforks.push_back(SoftForkDesc("csv", 5, tip, consensusParams));
     obj.push_back(Pair("softforks", softforks));
-    obj.push_back(Pair("bip9_softforks", bip9_softforks));
 
     if (fPruneMode) {
         CBlockIndex *block = chainActive.Tip();

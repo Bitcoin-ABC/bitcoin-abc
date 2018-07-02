@@ -4,3 +4,4 @@ Bitcoin ABC version 0.17.3 is now available from:
 
 This release includes the following features and fixes:
  - Remove the bip9params configuration.
+ - Remove the bip9_softforks result from the getblockchaininfo RPC call.
