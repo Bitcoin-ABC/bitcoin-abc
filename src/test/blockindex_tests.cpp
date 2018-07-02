@@ -35,4 +35,53 @@ BOOST_AUTO_TEST_CASE(get_block_header) {
     BOOST_CHECK(checkHeader.nNonce == expectedNonce);
 }
 
+BOOST_AUTO_TEST_CASE(get_disk_positions) {
+    // Test against all validity values
+    std::set<BlockValidity> validityValues{
+        BlockValidity::UNKNOWN, BlockValidity::HEADER,
+        BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
+        BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
+    for (BlockValidity validity : validityValues) {
+        // Test against all combinations of data and undo flags
+        for (int flags = 0; flags <= 0x03; flags++) {
+            // Generate some values to test against
+            const int expectedFile = flags * 123;
+            const unsigned int expectedDataPosition = flags * 234;
+            const unsigned int expectedUndoPosition = flags * 345;
+
+            CBlockIndex index;
+            index.nStatus = index.nStatus.withValidity(BlockValidity(validity));
+
+            // All combinations of data and undo
+            if (flags & 0x01) {
+                index.nStatus = index.nStatus.withData();
+                index.nFile = expectedFile;
+                index.nDataPos = expectedDataPosition;
+            }
+            if (flags & 0x02) {
+                index.nStatus = index.nStatus.withUndo();
+                index.nFile = expectedFile;
+                index.nUndoPos = expectedUndoPosition;
+            }
+
+            // Data and undo positions should be unmodified
+            CDiskBlockPos dataPosition = index.GetBlockPos();
+            if (flags & 0x01) {
+                BOOST_CHECK(dataPosition.nFile == expectedFile);
+                BOOST_CHECK(dataPosition.nPos == expectedDataPosition);
+            } else {
+                BOOST_CHECK(dataPosition == CDiskBlockPos());
+            }
+
+            CDiskBlockPos undoPosition = index.GetUndoPos();
+            if (flags & 0x02) {
+                BOOST_CHECK(undoPosition.nFile == expectedFile);
+                BOOST_CHECK(undoPosition.nPos == expectedUndoPosition);
+            } else {
+                BOOST_CHECK(undoPosition == CDiskBlockPos());
+            }
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
