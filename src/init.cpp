@@ -1793,8 +1793,6 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         }
     }
 
-    int64_t nStart;
-
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
     if (!CWallet::Verify(chainparams)) {
@@ -2010,6 +2008,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
               nCoinCacheUsage * (1.0 / 1024 / 1024),
               nMempoolSizeMax * (1.0 / 1024 / 1024));
 
+    int64_t nStart = 0;
     bool fLoaded = false;
     while (!fLoaded && !fRequestShutdown) {
         bool fReset = fReindex;
