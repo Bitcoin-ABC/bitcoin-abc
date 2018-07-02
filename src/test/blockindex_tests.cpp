@@ -8,6 +8,7 @@
 #include "test/test_bitcoin.h"
 
 #include <boost/test/unit_test.hpp>
+#include <limits>
 
 BOOST_FIXTURE_TEST_SUITE(blockindex_tests, BasicTestingSetup)
 
@@ -81,6 +82,31 @@ BOOST_AUTO_TEST_CASE(get_disk_positions) {
                 BOOST_CHECK(undoPosition == CDiskBlockPos());
             }
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(received_time) {
+    // Set to UINT32_MAX because that's the maximum value header.nTime can hold
+    const int64_t expectedBlockTime = std::numeric_limits<uint32_t>::max();
+
+    CBlockHeader header;
+    header.nTime = uint32_t(expectedBlockTime);
+
+    CBlockIndex index = CBlockIndex(header);
+
+    // nTimeReceived defaults to block time
+    BOOST_CHECK(index.nTimeReceived == expectedBlockTime);
+
+    // nTimeReceived can be updated to the actual received time, which may
+    // be before or after the miner's time.
+    for (int64_t receivedTime = expectedBlockTime - 10;
+         // Make sure that receivedTime is tested beyond 32-bit values.
+         receivedTime <= expectedBlockTime + 10; receivedTime++) {
+        index.nTimeReceived = receivedTime;
+        BOOST_CHECK(index.GetBlockTime() == expectedBlockTime);
+        BOOST_CHECK(index.GetHeaderReceivedTime() == receivedTime);
+        BOOST_CHECK(index.GetReceivedTimeDiff() ==
+                    receivedTime - expectedBlockTime);
     }
 }
 
