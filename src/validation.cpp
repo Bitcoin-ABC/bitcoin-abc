@@ -7,6 +7,7 @@
 #include "validation.h"
 
 #include "arith_uint256.h"
+#include "blockindexworkcomparator.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
@@ -93,38 +94,6 @@ const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
 // Internal stuff
 namespace {
-
-struct CBlockIndexWorkComparator {
-    bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
-        // First sort by most total work, ...
-        if (pa->nChainWork > pb->nChainWork) {
-            return false;
-        }
-        if (pa->nChainWork < pb->nChainWork) {
-            return true;
-        }
-
-        // ... then by earliest time received, ...
-        if (pa->nSequenceId < pb->nSequenceId) {
-            return false;
-        }
-        if (pa->nSequenceId > pb->nSequenceId) {
-            return true;
-        }
-
-        // Use pointer address as tie breaker (should only happen with blocks
-        // loaded from disk, as those all have id 0).
-        if (pa < pb) {
-            return false;
-        }
-        if (pa > pb) {
-            return true;
-        }
-
-        // Identical blocks.
-        return false;
-    }
-};
 
 CBlockIndex *pindexBestInvalid;
 
