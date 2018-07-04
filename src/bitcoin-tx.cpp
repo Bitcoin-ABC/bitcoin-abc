@@ -667,7 +667,8 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
         const Amount amount = coin.GetTxOut().nValue;
 
-        SignatureData sigdata;
+        SignatureData sigdata =
+            DataFromTransaction(mergedTx, i, coin.GetTxOut());
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mergedTx.vout.size())) {
@@ -681,7 +682,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
         sigdata = CombineSignatures(
             prevPubKey,
             MutableTransactionSignatureChecker(&mergedTx, i, amount), sigdata,
-            DataFromTransaction(txv, i));
+            DataFromTransaction(txv, i, coin.GetTxOut()));
         UpdateInput(txin, sigdata);
     }
 

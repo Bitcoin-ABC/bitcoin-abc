@@ -815,7 +815,7 @@ static UniValue combinerawtransaction(const Config &config,
                 sigdata = CombineSignatures(
                     prevPubKey,
                     TransactionSignatureChecker(&txConst, i, amount), sigdata,
-                    DataFromTransaction(txv, i));
+                    DataFromTransaction(txv, i, coin.GetTxOut()));
             }
         }
 
@@ -983,7 +983,7 @@ UniValue SignTransaction(CMutableTransaction &mtx,
         const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
         const Amount amount = coin.GetTxOut().nValue;
 
-        SignatureData sigdata;
+        SignatureData sigdata = DataFromTransaction(mtx, i, coin.GetTxOut());
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mtx.vout.size())) {
@@ -994,7 +994,7 @@ UniValue SignTransaction(CMutableTransaction &mtx,
         }
         sigdata = CombineSignatures(
             prevPubKey, TransactionSignatureChecker(&txConst, i, amount),
-            sigdata, DataFromTransaction(mtx, i));
+            sigdata, DataFromTransaction(mtx, i, coin.GetTxOut()));
 
         UpdateInput(txin, sigdata);
 

@@ -393,17 +393,24 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         tx.vout[0].scriptPubKey = p2pk_scriptPubKey;
 
         // Sign
-        SignatureData sigdata;
-        ProduceSignature(keystore,
-                         MutableTransactionSignatureCreator(
-                             &tx, 0, 11 * CENT, SigHashType().withForkId()),
-                         spend_tx.vout[0].scriptPubKey, sigdata);
-        UpdateInput(tx.vin[0], sigdata);
-        ProduceSignature(keystore,
-                         MutableTransactionSignatureCreator(
-                             &tx, 1, 11 * CENT, SigHashType().withForkId()),
-                         spend_tx.vout[3].scriptPubKey, sigdata);
-        UpdateInput(tx.vin[1], sigdata);
+        {
+            SignatureData sigdata;
+            BOOST_CHECK(ProduceSignature(
+                keystore,
+                MutableTransactionSignatureCreator(&tx, 0, 11 * CENT,
+                                                   SigHashType().withForkId()),
+                spend_tx.vout[0].scriptPubKey, sigdata));
+            UpdateInput(tx.vin[0], sigdata);
+        }
+        {
+            SignatureData sigdata;
+            BOOST_CHECK(ProduceSignature(
+                keystore,
+                MutableTransactionSignatureCreator(&tx, 1, 11 * CENT,
+                                                   SigHashType().withForkId()),
+                spend_tx.vout[3].scriptPubKey, sigdata));
+            UpdateInput(tx.vin[1], sigdata);
+        }
 
         // This should be valid under all script flags
         ValidateCheckInputsForAllFlags(CTransaction(tx), 0, true, false);

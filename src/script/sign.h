@@ -59,8 +59,23 @@ public:
 /** A signature creator that just produces 72-byte empty signatures. */
 extern const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR;
 
+typedef std::pair<CPubKey, std::vector<uint8_t>> SigPair;
+
+// This struct contains information from a transaction input and also contains
+// signatures for that input. The information contained here can be used to
+// create a signature and is also filled by ProduceSignature in order to
+// construct final scriptSigs.
 struct SignatureData {
+    /// Stores whether the scriptSig and scriptWitness are complete.
+    bool complete = false;
+    /// The scriptSig of an input. Contains complete signatures or the
+    /// traditional partial signatures format.
     CScript scriptSig;
+    /// The redeemScript (if any) for the input.
+    CScript redeem_script;
+    /// BIP 174 style partial signatures for the input. May contain all
+    /// signatures necessary for producing a final scriptSig.
+    std::map<CKeyID, SigPair> signatures;
 
     SignatureData() {}
     explicit SignatureData(const CScript &script) : scriptSig(script) {}
@@ -88,9 +103,9 @@ SignatureData CombineSignatures(const CScript &scriptPubKey,
                                 const SignatureData &scriptSig1,
                                 const SignatureData &scriptSig2);
 
-/** Extract signature data from a transaction, and insert it. */
+/** Extract signature data from a transaction input, and insert it. */
 SignatureData DataFromTransaction(const CMutableTransaction &tx,
-                                  unsigned int nIn);
+                                  unsigned int nIn, const CTxOut &txout);
 void UpdateInput(CTxIn &input, const SignatureData &data);
 
 #endif // BITCOIN_SCRIPT_SIGN_H
