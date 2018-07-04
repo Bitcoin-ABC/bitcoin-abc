@@ -165,7 +165,9 @@ class TestNode():
         return self.relay_fee_cache
 
     def calculate_fee(self, tx):
-        return int(self.relay_fee() * len(ToHex(tx)) * COIN)
+        # Relay fee is in satoshis per KB.  Thus the 1000, and the COIN added
+        # to get back to an amount of satoshis.
+        return int(self.relay_fee() / 1000 * len(ToHex(tx)) * COIN)
 
 
 class TestNodeCLI():
