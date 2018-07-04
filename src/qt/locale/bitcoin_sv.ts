@@ -2747,10 +2747,6 @@ Var vänlig och försök igen.</translation>
         <translation>Varning</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Varning: okända nya regler aktiverade (versionsbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Ska allt göras i endast block-läge (förval: %u)</translation>
     </message>

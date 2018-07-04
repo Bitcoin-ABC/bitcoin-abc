@@ -2603,10 +2603,6 @@
         <translation>Aviso</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Aviso: ativadas novas regras desconhecidas (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Se operar apenas num modo de blocos (predefinição: %u)</translation>
     </message>

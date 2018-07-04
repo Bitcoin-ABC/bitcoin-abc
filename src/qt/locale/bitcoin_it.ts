@@ -3103,10 +3103,6 @@ Per specificare più URL separarli con una barra verticale "|".</translation>
         <translation>Attenzione</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Attenzione: nuove regole non conosciute attivate (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Imposta se operare in modalità solo blocchi (default: %u)</translation>
     </message>

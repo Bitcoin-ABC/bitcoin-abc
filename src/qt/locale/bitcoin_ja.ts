@@ -3623,10 +3623,6 @@
         <translation>警告</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>警告: 未知の新しいルールが有効化されました (バージョンビット %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>ブロック限定モードにおいて動作を行うかどうか (初期値: %u)</translation>
     </message>

@@ -1921,42 +1921,6 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
     return nVersion;
 }
 
-/**
- * Threshold condition checker that triggers when unknown versionbits are seen
- * on the network.
- */
-class WarningBitsConditionChecker : public AbstractThresholdConditionChecker {
-private:
-    int bit;
-
-public:
-    WarningBitsConditionChecker(int bitIn) : bit(bitIn) {}
-
-    int64_t BeginTime(const Consensus::Params &params) const override {
-        return 0;
-    }
-    int64_t EndTime(const Consensus::Params &params) const override {
-        return std::numeric_limits<int64_t>::max();
-    }
-    int Period(const Consensus::Params &params) const override {
-        return params.nMinerConfirmationWindow;
-    }
-    int Threshold(const Consensus::Params &params) const override {
-        return params.nRuleChangeActivationThreshold;
-    }
-
-    bool Condition(const CBlockIndex *pindex,
-                   const Consensus::Params &params) const override {
-        return ((pindex->nVersion & VERSIONBITS_TOP_MASK) ==
-                VERSIONBITS_TOP_BITS) &&
-               ((pindex->nVersion >> bit) & 1) != 0 &&
-               ((ComputeBlockVersion(pindex->pprev, params) >> bit) & 1) == 0;
-    }
-};
-
-// Protected by cs_main
-static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS];
-
 // Returns the script flags which should be checked for a given block
 static uint32_t GetBlockScriptFlags(const Config &config,
                                     const CBlockIndex *pChainTip) {
@@ -2549,29 +2513,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     if (!IsInitialBlockDownload()) {
         int nUpgraded = 0;
         const CBlockIndex *pindex = chainActive.Tip();
-        for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
-            WarningBitsConditionChecker checker(bit);
-            ThresholdState state =
-                checker.GetStateFor(pindex, consensusParams, warningcache[bit]);
-            if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
-                if (state == THRESHOLD_ACTIVE) {
-                    std::string strWarning =
-                        strprintf(_("Warning: unknown new rules activated "
-                                    "(versionbit %i)"),
-                                  bit);
-                    SetMiscWarning(strWarning);
-                    if (!fWarned) {
-                        AlertNotify(strWarning);
-                        fWarned = true;
-                    }
-                } else {
-                    warningMessages.push_back(
-                        strprintf("unknown new rules are about to activate "
-                                  "(versionbit %i)",
-                                  bit));
-                }
-            }
-        }
+
         // Check the version of the last 100 blocks to see if we need to
         // upgrade:
         for (int i = 0; i < 100 && pindex != nullptr; i++) {
@@ -4914,9 +4856,6 @@ void UnloadBlockIndex() {
     setDirtyBlockIndex.clear();
     setDirtyFileInfo.clear();
     versionbitscache.Clear();
-    for (int b = 0; b < VERSIONBITS_NUM_BITS; b++) {
-        warningcache[b].clear();
-    }
 
     for (BlockMap::value_type &entry : mapBlockIndex) {
         delete entry.second;

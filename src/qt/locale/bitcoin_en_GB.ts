@@ -2414,10 +2414,6 @@
         <translation>Warning</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Warning: unknown new rules activated (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Whether to operate in a blocks only mode (default: %u)</translation>
     </message>

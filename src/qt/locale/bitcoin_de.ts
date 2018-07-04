@@ -3610,10 +3610,6 @@
         <translation>Warnung</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Warnung: Unbekannte neue Regeln aktiviert (Versionsbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Legt fest ob nur Blöcke Modus aktiv sein soll (Standard: %u)</translation>
     </message>

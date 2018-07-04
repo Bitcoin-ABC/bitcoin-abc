@@ -3436,10 +3436,6 @@
         <translation>警告</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>警告: 不明的交易规则被启用了(versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>是否用块方进行 (%u)</translation>
     </message>

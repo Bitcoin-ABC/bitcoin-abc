@@ -3622,10 +3622,6 @@
         <translation>Advarsel</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Advarsel: Ukendte nye regler aktiveret (versionsbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Hvorvidt der skal arbejdes i kun-blokke-tilstand (standard: %u)</translation>
     </message>
