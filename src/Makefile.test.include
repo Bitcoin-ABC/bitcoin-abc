@@ -64,6 +64,7 @@ BITCOIN_TESTS =\
   test/cuckoocache_tests.cpp \
   test/dbwrapper_tests.cpp \
   test/denialofservice_tests.cpp \
+  test/descriptor_tests.cpp \
   test/dstencode_tests.cpp \
   test/excessiveblock_tests.cpp \
   test/feerate_tests.cpp \

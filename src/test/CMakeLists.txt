@@ -76,6 +76,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	cuckoocache_tests.cpp
 	dbwrapper_tests.cpp
 	denialofservice_tests.cpp
+	descriptor_tests.cpp
 	dstencode_tests.cpp
 	excessiveblock_tests.cpp
 	feerate_tests.cpp

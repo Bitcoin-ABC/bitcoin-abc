@@ -351,6 +351,7 @@ target_link_libraries(common util secp256k1)
 # script library
 add_library(script
 	script/bitfield.cpp
+	script/descriptor.cpp
 	script/interpreter.cpp
 	script/ismine.cpp
 	script/script.cpp

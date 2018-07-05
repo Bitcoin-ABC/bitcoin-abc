@@ -187,8 +187,9 @@ BITCOIN_CORE_H = \
   rpc/util.h \
   rwcollection.h \
   scheduler.h \
-  script/scriptcache.h \
+  script/descriptor.h \
   script/ismine.h \
+  script/scriptcache.h \
   script/sigcache.h \
   script/sign.h \
   script/standard.h \
@@ -438,6 +439,7 @@ libbitcoin_common_a_SOURCES = \
   netbase.cpp \
   protocol.cpp \
   scheduler.cpp \
+  script/descriptor.cpp \
   script/ismine.cpp \
   script/sign.cpp \
   script/standard.cpp \
