@@ -78,7 +78,7 @@ bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
     uint32_t sz = tx.GetTotalSize();
-    if (sz >= MAX_STANDARD_TX_SIZE) {
+    if (sz > MAX_STANDARD_TX_SIZE) {
         reason = "tx-size";
         return false;
     }
