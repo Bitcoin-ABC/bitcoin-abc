@@ -2385,15 +2385,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
               nCoinCacheUsage * (1.0 / 1024 / 1024),
               nMempoolSizeMax * (1.0 / 1024 / 1024));
 
-    int64_t nStart = 0;
     bool fLoaded = false;
     while (!fLoaded && !ShutdownRequested()) {
         const bool fReset = fReindex;
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index...").translated);
-        nStart = GetTimeMillis();
         do {
+            const int64_t load_block_index_start_time = GetTimeMillis();
             try {
                 LOCK(cs_main);
                 UnloadBlockIndex();
@@ -2560,6 +2559,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             }
 
             fLoaded = true;
+            LogPrintf(" block index %15dms\n",
+                      GetTimeMillis() - load_block_index_start_time);
         } while (false);
 
         if (!fLoaded && !ShutdownRequested()) {
@@ -2594,9 +2595,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (ShutdownRequested()) {
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
-    }
-    if (fLoaded) {
-        LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
     }
 
     // Encoded addresses using cashaddr instead of base58.
