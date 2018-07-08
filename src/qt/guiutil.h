@@ -146,9 +146,6 @@ void openDebugLogfile();
 // Open the config file
 bool openBitcoinConf();
 
-// Replace invalid default fonts with known good ones
-void SubstituteFonts(const QString &language);
-
 /** Qt event filter that intercepts ToolTipChange events, and replaces the
  * tooltip with a rich text representation if needed.  This assures that Qt can
  * word-wrap long tooltip messages. Tooltips longer than the provided size
@@ -261,20 +258,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
-#if defined(Q_OS_MAC)
-// workaround for Qt OSX Bug:
-// https://bugreports.qt-project.org/browse/QTBUG-15631
-// QProgressBar uses around 10% CPU even when app is in background
-class ProgressBar : public ClickableProgressBar {
-    bool event(QEvent *e) override {
-        return (e->type() != QEvent::StyleAnimationUpdate)
-                   ? QProgressBar::event(e)
-                   : false;
-    }
-};
-#else
 typedef ClickableProgressBar ProgressBar;
-#endif
 
 } // namespace GUIUtil
 

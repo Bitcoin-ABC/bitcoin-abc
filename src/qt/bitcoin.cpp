@@ -698,7 +698,6 @@ int main(int argc, char *argv[]) {
     // that set the app orgname and app name! If you move the above 3 lines
     // to elsewhere, take this call with you!
     MigrateSettings();
-    GUIUtil::SubstituteFonts(GetLangTerritory());
 
     /// 4. Initialization of translations, so that intro dialog is in user's
     /// language. Now that QSettings are accessible, initialize translations.
