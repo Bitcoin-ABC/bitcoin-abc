@@ -2116,7 +2116,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         }
     }
 
-    // Start enforcing BIP68 (sequence locks) using versionbits logic.
+    // Start enforcing BIP68 (sequence locks).
     int nLockTimeFlags = 0;
     if (pindex->nHeight >= consensusParams.CSVHeight) {
         nLockTimeFlags |= LOCKTIME_VERIFY_SEQUENCE;
@@ -3715,7 +3715,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 
-    // Start enforcing BIP113 (Median Time Past) using versionbits logic.
+    // Start enforcing BIP113 (Median Time Past).
     int nLockTimeFlags = 0;
     if (nHeight >= consensusParams.CSVHeight) {
         nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
