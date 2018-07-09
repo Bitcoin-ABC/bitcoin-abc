@@ -1733,10 +1733,10 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>,
                                           "scheduler", serviceLoop));
 
-    /* Start the RPC server already.  It will be started in "warmup" mode
-     * and not really process calls already (but it will signify connections
-     * that the server is there and will be ready later).  Warmup mode will
-     * be disabled when initialisation is finished.
+    /* Start the RPC server.  It will be started in "warmup" mode and not
+     * process calls yet (but it will verify that the server is there and
+     * will be ready later).  Warmup mode will be completed when initialisation
+     * is finished.
      */
     if (gArgs.GetBoolArg("-server", false)) {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
