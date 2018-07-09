@@ -403,6 +403,7 @@ add_library(server
 	config.cpp
 	consensus/activation.cpp
 	consensus/tx_verify.cpp
+	dbwrapper.cpp
 	flatfile.cpp
 	globals.cpp
 	httprpc.cpp
@@ -412,12 +413,12 @@ add_library(server
 	init.cpp
 	interfaces/handler.cpp
 	interfaces/node.cpp
-	dbwrapper.cpp
 	merkleblock.cpp
 	miner.cpp
 	net.cpp
 	net_processing.cpp
 	noui.cpp
+	outputtype.cpp
 	policy/fees.cpp
 	policy/policy.cpp
 	pow.cpp

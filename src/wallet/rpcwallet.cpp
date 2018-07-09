@@ -11,6 +11,7 @@
 #include <core_io.h>
 #include <key_io.h>
 #include <net.h>
+#include <outputtype.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
 #include <rpc/mining.h>
@@ -1704,11 +1705,8 @@ static UniValue addmultisigaddress(const Config &config,
 
     // Construct using pay-to-script-hash:
     CScript inner = CreateMultisigRedeemscript(required, pubkeys);
-    pwallet->AddCScript(inner);
-
     CTxDestination dest =
-        pwallet->AddAndGetDestinationForScript(inner, output_type);
-
+        AddAndGetDestinationForScript(*pwallet, inner, output_type);
     pwallet->SetAddressBook(dest, label, "send");
 
     UniValue result(UniValue::VOBJ);

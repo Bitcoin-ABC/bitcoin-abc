@@ -13,6 +13,7 @@
 #include <logging.h>
 #include <net.h>
 #include <netbase.h>
+#include <outputtype.h>
 #include <rpc/blockchain.h>
 #include <rpc/misc.h>
 #include <rpc/server.h>
@@ -151,12 +152,17 @@ static UniValue createmultisig(const Config &config,
         }
     }
 
+    // Get the output type
+    OutputType output_type = OutputType::LEGACY;
+
     // Construct using pay-to-script-hash:
-    CScript inner = CreateMultisigRedeemscript(required, pubkeys);
-    CScriptID innerID(inner);
+    const CScript inner = CreateMultisigRedeemscript(required, pubkeys);
+    CBasicKeyStore keystore;
+    const CTxDestination dest =
+        AddAndGetDestinationForScript(keystore, inner, output_type);
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("address", EncodeDestination(innerID, config));
+    result.pushKV("address", EncodeDestination(dest, config));
     result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
 
     return result;

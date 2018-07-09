@@ -4778,55 +4778,12 @@ bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
     return ret;
 }
 
-static const std::string OUTPUT_TYPE_STRING_LEGACY = "legacy";
-
-bool ParseOutputType(const std::string &type, OutputType &output_type) {
-    if (type == OUTPUT_TYPE_STRING_LEGACY) {
-        output_type = OutputType::LEGACY;
-        return true;
-    }
-    return false;
-}
-
-const std::string &FormatOutputType(OutputType type) {
-    switch (type) {
-        case OutputType::LEGACY:
-            return OUTPUT_TYPE_STRING_LEGACY;
-        default:
-            assert(false);
-    }
-}
-
 void CWallet::LearnRelatedScripts(const CPubKey &key, OutputType type) {
     // Nothing to do...
 }
 
 void CWallet::LearnAllRelatedScripts(const CPubKey &key) {
     // Nothing to do...
-}
-
-CTxDestination GetDestinationForKey(const CPubKey &key, OutputType type) {
-    switch (type) {
-        case OutputType::LEGACY:
-            return key.GetID();
-        default:
-            assert(false);
-    }
-}
-
-std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key) {
-    return std::vector<CTxDestination>{key.GetID()};
-}
-
-CTxDestination CWallet::AddAndGetDestinationForScript(const CScript &script,
-                                                      OutputType type) {
-    // Note that scripts over 520 bytes are not yet supported.
-    switch (type) {
-        case OutputType::LEGACY:
-            return CScriptID(script);
-        default:
-            assert(false);
-    }
 }
 
 std::vector<OutputGroup>

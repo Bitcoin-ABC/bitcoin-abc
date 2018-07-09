@@ -8,6 +8,7 @@
 #define BITCOIN_WALLET_WALLET_H
 
 #include <amount.h>
+#include <outputtype.h>
 #include <script/ismine.h>
 #include <script/sign.h>
 #include <streams.h>
@@ -89,18 +90,6 @@ enum WalletFeature {
     FEATURE_PRE_SPLIT_KEYPOOL = 200300,
 
     FEATURE_LATEST = FEATURE_PRE_SPLIT_KEYPOOL,
-};
-
-enum class OutputType {
-    LEGACY,
-
-    /**
-     * Special output type for change outputs only. Automatically choose type
-     * based on address type setting and the types other of non-change outputs
-     * (see -changetype option documentation and implementation in
-     * CWallet::TransactionChangeType for details).
-     */
-    CHANGE_AUTO,
 };
 
 //! Default for -addresstype
@@ -1343,14 +1332,6 @@ public:
      * could be anything).
      */
     void LearnAllRelatedScripts(const CPubKey &key);
-
-    /**
-     * Get a destination of the requested type (if possible) to the specified
-     * script. This function will automatically add the necessary scripts to the
-     * wallet.
-     */
-    CTxDestination AddAndGetDestinationForScript(const CScript &script,
-                                                 OutputType);
 };
 
 /** A key allocated from the key pool. */
@@ -1399,20 +1380,6 @@ public:
         READWRITE(vchPubKey);
     }
 };
-
-bool ParseOutputType(const std::string &str, OutputType &output_type);
-const std::string &FormatOutputType(OutputType type);
-
-/**
- * Get a destination of the requested type (if possible) to the specified key.
- * The caller must make sure LearnRelatedScripts has been called beforehand.
- */
-CTxDestination GetDestinationForKey(const CPubKey &key, OutputType);
-
-/**
- * Get all destinations (potentially) supported by the wallet for the given key.
- */
-std::vector<CTxDestination> GetAllDestinationsForKey(const CPubKey &key);
 
 /** RAII object to check and reserve a wallet rescan */
 class WalletRescanReserver {
