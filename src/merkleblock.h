@@ -136,6 +136,12 @@ public:
      */
     uint256 ExtractMatches(std::vector<uint256> &vMatch,
                            std::vector<size_t> &vnIndex);
+
+    /**
+     * Get number of transactions the merkle proof is indicating for
+     * cross-reference with local blockchain knowledge.
+     */
+    uint32_t GetNumTransactions() const { return nTransactions; };
 };
 
 /**
