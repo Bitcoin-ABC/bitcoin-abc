@@ -379,7 +379,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     sixteenSigops << OP_16 << OP_CHECKMULTISIG;
     keystore.AddCScript(sixteenSigops);
     txFrom.vout[5].scriptPubKey =
-        GetScriptForDestination(CScriptID(fifteenSigops));
+        GetScriptForDestination(CScriptID(sixteenSigops));
     txFrom.vout[5].nValue = 5000 * SATOSHI;
     CScript twentySigops;
     twentySigops << OP_CHECKMULTISIG;
