@@ -244,6 +244,9 @@ namespace {
         Amount maxTxFee() override { return ::maxTxFee; }
         bool getPruneMode() override { return ::fPruneMode; }
         bool p2pEnabled() override { return g_connman != nullptr; }
+        bool isInitialBlockDownload() override {
+            return IsInitialBlockDownload();
+        }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }
         void initMessage(const std::string &message) override {
             ::uiInterface.InitMessage(message);
