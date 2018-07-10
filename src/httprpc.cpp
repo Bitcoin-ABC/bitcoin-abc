@@ -355,7 +355,7 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
 
 static bool InitRPCAuthentication(Config &config) {
     if (gArgs.GetArg("-rpcpassword", "") == "") {
-        LogPrintf("No rpcpassword set - using random cookie authentication\n");
+        LogPrintf("No rpcpassword set - using random cookie authentication.\n");
         std::string generatedUserAndPassword;
         if (!GenerateAuthCookie(&generatedUserAndPassword)) {
             // Same message as AbortNode.
@@ -376,6 +376,10 @@ static bool InitRPCAuthentication(Config &config) {
     }
 
     config.SetRPCCORSDomain(gArgs.GetArg("-rpccorsdomain", ""));
+
+    if (gArgs.GetArg("-rpcauth", "") != "") {
+        LogPrintf("Using rpcauth authentication.\n");
+    }
     return true;
 }
 
