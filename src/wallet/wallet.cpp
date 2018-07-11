@@ -1831,7 +1831,7 @@ Amount CWalletTx::GetDebit(const isminefilter &filter) const {
 Amount CWalletTx::GetCredit(const isminefilter &filter) const {
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
-    if (IsCoinBase() && GetBlocksToMaturity() > 0) {
+    if (IsImmatureCoinBase()) {
         return Amount::zero();
     }
 
@@ -1861,7 +1861,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
 }
 
 Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
-    if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain()) {
+    if (IsImmatureCoinBase() && IsInMainChain()) {
         if (fUseCache && fImmatureCreditCached) {
             return nImmatureCreditCached;
         }
@@ -1881,7 +1881,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
 
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
-    if (IsCoinBase() && GetBlocksToMaturity() > 0) {
+    if (IsImmatureCoinBase()) {
         return Amount::zero();
     }
 
@@ -1907,7 +1907,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
 }
 
 Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
-    if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain()) {
+    if (IsImmatureCoinBase() && IsInMainChain()) {
         if (fUseCache && fImmatureWatchCreditCached) {
             return nImmatureWatchCreditCached;
         }
@@ -2191,8 +2191,8 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter, int minDepth,
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
         const int depth = wtx.GetDepthInMainChain();
-        if (depth < 0 || !CheckFinalTx(*wtx.tx) ||
-            wtx.GetBlocksToMaturity() > 0) {
+        if (depth < 0 || !CheckFinalTx(*wtx.tx) || wtx.IsImmatureCoinBase()) {
+
             continue;
         }
 
@@ -2243,7 +2243,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
             continue;
         }
 
-        if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0) {
+        if (pcoin->IsImmatureCoinBase()) {
             continue;
         }
 
@@ -3523,7 +3523,7 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
             continue;
         }
 
-        if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0) {
+        if (pcoin->IsImmatureCoinBase()) {
             continue;
         }
 
@@ -4252,6 +4252,11 @@ int CMerkleTx::GetBlocksToMaturity() const {
     }
 
     return std::max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
+}
+
+bool CMerkleTx::IsImmatureCoinBase() const {
+    // note GetBlocksToMaturity is 0 for non-coinbase tx
+    return GetBlocksToMaturity() > 0;
 }
 
 bool CMerkleTx::AcceptToMemoryPool(const Amount nAbsurdFee,

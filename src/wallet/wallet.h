@@ -252,6 +252,11 @@ public:
         const CBlockIndex *pindexRet;
         return GetDepthInMainChain(pindexRet) > 0;
     }
+    /**
+     * @return number of blocks to maturity for this transaction:
+     *  0 : is not a coinbase transaction, or is a mature coinbase transaction
+     * >0 : is a coinbase transaction which matures in this many blocks
+     */
     int GetBlocksToMaturity() const;
     /**
      * Pass this transaction to the mempool. Fails if absolute fee exceeds
@@ -266,6 +271,7 @@ public:
 
     TxId GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
+    bool IsImmatureCoinBase() const;
 };
 
 /**

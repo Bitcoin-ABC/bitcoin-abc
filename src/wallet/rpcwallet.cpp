@@ -1690,7 +1690,7 @@ void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                 if (wtx.IsCoinBase()) {
                     if (wtx.GetDepthInMainChain() < 1) {
                         entry.push_back(Pair("category", "orphan"));
-                    } else if (wtx.GetBlocksToMaturity() > 0) {
+                    } else if (wtx.IsImmatureCoinBase()) {
                         entry.push_back(Pair("category", "immature"));
                     } else {
                         entry.push_back(Pair("category", "generate"));
@@ -1982,7 +1982,7 @@ static UniValue listaccounts(const Config &config,
         std::list<COutputEntry> listReceived;
         std::list<COutputEntry> listSent;
         int nDepth = wtx.GetDepthInMainChain();
-        if (wtx.GetBlocksToMaturity() > 0 || nDepth < 0) {
+        if (wtx.IsImmatureCoinBase() || nDepth < 0) {
             continue;
         }
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount,
