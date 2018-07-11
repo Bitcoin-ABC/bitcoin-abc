@@ -256,20 +256,20 @@ namespace {
 #endif
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
-            return MakeHandler(::uiInterface.InitMessage.connect(fn));
+            return MakeHandler(::uiInterface.InitMessage_connect(fn));
         }
         std::unique_ptr<Handler> handleMessageBox(MessageBoxFn fn) override {
-            return MakeHandler(::uiInterface.ThreadSafeMessageBox.connect(fn));
+            return MakeHandler(::uiInterface.ThreadSafeMessageBox_connect(fn));
         }
         std::unique_ptr<Handler> handleQuestion(QuestionFn fn) override {
-            return MakeHandler(::uiInterface.ThreadSafeQuestion.connect(fn));
+            return MakeHandler(::uiInterface.ThreadSafeQuestion_connect(fn));
         }
         std::unique_ptr<Handler>
         handleShowProgress(ShowProgressFn fn) override {
-            return MakeHandler(::uiInterface.ShowProgress.connect(fn));
+            return MakeHandler(::uiInterface.ShowProgress_connect(fn));
         }
         std::unique_ptr<Handler> handleLoadWallet(LoadWalletFn fn) override {
-            CHECK_WALLET(return MakeHandler(::uiInterface.LoadWallet.connect(
+            CHECK_WALLET(return MakeHandler(::uiInterface.LoadWallet_connect(
                 [fn](std::shared_ptr<CWallet> wallet) {
                     fn(MakeWallet(wallet));
                 })));
@@ -277,24 +277,24 @@ namespace {
         std::unique_ptr<Handler> handleNotifyNumConnectionsChanged(
             NotifyNumConnectionsChangedFn fn) override {
             return MakeHandler(
-                ::uiInterface.NotifyNumConnectionsChanged.connect(fn));
+                ::uiInterface.NotifyNumConnectionsChanged_connect(fn));
         }
         std::unique_ptr<Handler> handleNotifyNetworkActiveChanged(
             NotifyNetworkActiveChangedFn fn) override {
             return MakeHandler(
-                ::uiInterface.NotifyNetworkActiveChanged.connect(fn));
+                ::uiInterface.NotifyNetworkActiveChanged_connect(fn));
         }
         std::unique_ptr<Handler>
         handleNotifyAlertChanged(NotifyAlertChangedFn fn) override {
-            return MakeHandler(::uiInterface.NotifyAlertChanged.connect(fn));
+            return MakeHandler(::uiInterface.NotifyAlertChanged_connect(fn));
         }
         std::unique_ptr<Handler>
         handleBannedListChanged(BannedListChangedFn fn) override {
-            return MakeHandler(::uiInterface.BannedListChanged.connect(fn));
+            return MakeHandler(::uiInterface.BannedListChanged_connect(fn));
         }
         std::unique_ptr<Handler>
         handleNotifyBlockTip(NotifyBlockTipFn fn) override {
-            return MakeHandler(::uiInterface.NotifyBlockTip.connect(
+            return MakeHandler(::uiInterface.NotifyBlockTip_connect(
                 [fn](bool initial_download, const CBlockIndex *block) {
                     fn(initial_download, block->nHeight, block->GetBlockTime(),
                        GuessVerificationProgress(Params().TxData(), block));
@@ -302,7 +302,7 @@ namespace {
         }
         std::unique_ptr<Handler>
         handleNotifyHeaderTip(NotifyHeaderTipFn fn) override {
-            return MakeHandler(::uiInterface.NotifyHeaderTip.connect(
+            return MakeHandler(::uiInterface.NotifyHeaderTip_connect(
                 [fn](bool initial_download, const CBlockIndex *block) {
                     fn(initial_download, block->nHeight, block->GetBlockTime(),
                        GuessVerificationProgress(Params().TxData(), block));

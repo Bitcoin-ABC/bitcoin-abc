@@ -8,6 +8,8 @@
 #include <ui_interface.h>
 #include <util/system.h>
 
+#include <boost/signals2/connection.hpp>
+
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -53,7 +55,7 @@ static void noui_InitMessage(const std::string &message) {
 
 void noui_connect() {
     // Connect bitcoind signal handlers
-    uiInterface.ThreadSafeMessageBox.connect(noui_ThreadSafeMessageBox);
-    uiInterface.ThreadSafeQuestion.connect(noui_ThreadSafeQuestion);
-    uiInterface.InitMessage.connect(noui_InitMessage);
+    uiInterface.ThreadSafeMessageBox_connect(noui_ThreadSafeMessageBox);
+    uiInterface.ThreadSafeQuestion_connect(noui_ThreadSafeQuestion);
+    uiInterface.InitMessage_connect(noui_InitMessage);
 }

@@ -315,11 +315,11 @@ static void registerSignalHandler(int signal, void (*handler)(int)) {
 #endif
 
 static void OnRPCStarted() {
-    uiInterface.NotifyBlockTip.connect(&RPCNotifyBlockChange);
+    uiInterface.NotifyBlockTip_connect(&RPCNotifyBlockChange);
 }
 
 static void OnRPCStopped() {
-    uiInterface.NotifyBlockTip.disconnect(&RPCNotifyBlockChange);
+    uiInterface.NotifyBlockTip_disconnect(&RPCNotifyBlockChange);
     RPCNotifyBlockChange(false, nullptr);
     g_best_block_cv.notify_all();
     LogPrint(BCLog::RPC, "RPC stopped.\n");
@@ -1908,7 +1908,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
      * finished.
      */
     if (gArgs.GetBoolArg("-server", false)) {
-        uiInterface.InitMessage.connect(SetRPCWarmupStatus);
+        uiInterface.InitMessage_connect(SetRPCWarmupStatus);
         if (!AppInitServers(config, httpRPCRequestProcessor)) {
             return InitError(
                 _("Unable to start HTTP server. See debug log for details."));
@@ -2343,13 +2343,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
     if (chainActive.Tip() == nullptr) {
-        uiInterface.NotifyBlockTip.connect(BlockNotifyGenesisWait);
+        uiInterface.NotifyBlockTip_connect(BlockNotifyGenesisWait);
     } else {
         fHaveGenesis = true;
     }
 
     if (gArgs.IsArgSet("-blocknotify")) {
-        uiInterface.NotifyBlockTip.connect(BlockNotifyCallback);
+        uiInterface.NotifyBlockTip_connect(BlockNotifyCallback);
     }
 
     std::vector<fs::path> vImportFiles;
@@ -2369,7 +2369,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         while (!fHaveGenesis && !ShutdownRequested()) {
             g_genesis_wait_cv.wait_for(lock, std::chrono::milliseconds(500));
         }
-        uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
+        uiInterface.NotifyBlockTip_disconnect(BlockNotifyGenesisWait);
     }
 
     if (ShutdownRequested()) {
