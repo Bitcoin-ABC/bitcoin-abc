@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -33,8 +34,10 @@ class CBlockIndex;
 class Config;
 class CNetAddr;
 
-/** Wrapper for UniValue::VType, which includes typeAny:
- * Used to denote don't care type. Only used by RPCTypeCheckObj */
+/**
+ * Wrapper for UniValue::VType, which includes typeAny: used to denote don't
+ * care type. Only used by RPCTypeCheckObj.
+ */
 struct UniValueType {
     UniValueType(UniValue::VType _type) : typeAny(false), type(_type) {}
     UniValueType() : typeAny(true) {}
@@ -60,7 +63,9 @@ public:
     void parse(const UniValue &valRequest);
 };
 
-/** Query whether RPC is running */
+/**
+ * Query whether RPC is running
+ */
 bool IsRPCRunning();
 
 /**
@@ -68,10 +73,15 @@ bool IsRPCRunning();
  * immediately with RPC_IN_WARMUP.
  */
 void SetRPCWarmupStatus(const std::string &newStatus);
-/* Mark warmup as done.  RPC calls will be processed from now on.  */
+
+/**
+ * Mark warmup as done.  RPC calls will be processed from now on.
+ */
 void SetRPCWarmupFinished();
 
-/* returns the current warmup state.  */
+/**
+ * Returns the current warmup state
+ */
 bool RPCIsInWarmup(std::string *statusOut);
 
 /**
@@ -88,14 +98,15 @@ void RPCTypeCheck(const UniValue &params,
  */
 void RPCTypeCheckArgument(const UniValue &value, UniValue::VType typeExpected);
 
-/*
-  Check for expected keys/value types in an Object.
-*/
+/**
+ * Check for expected keys/value types in an Object.
+ */
 void RPCTypeCheckObj(const UniValue &o,
                      const std::map<std::string, UniValueType> &typesExpected,
                      bool fAllowNull = false, bool fStrict = false);
 
-/** Opaque base class for timers returned by NewTimerFunc.
+/**
+ * Opaque base class for timers returned by NewTimerFunc.
  * This provides no methods at the moment, but makes sure that delete cleans up
  * the whole state.
  */
@@ -110,9 +121,14 @@ public:
 class RPCTimerInterface {
 public:
     virtual ~RPCTimerInterface() {}
-    /** Implementation name */
+
+    /**
+     * Implementation name
+     */
     virtual const char *Name() = 0;
-    /** Factory function for timers.
+
+    /**
+     * Factory function for timers.
      * RPC will call the function to create a timer that will call func in
      * *millis* milliseconds.
      * @note As the RPC mechanism is backend-neutral, it can use different
@@ -125,11 +141,19 @@ public:
                                    int64_t millis) = 0;
 };
 
-/** Set the factory function for timers */
+/**
+ * Set the factory function for timers
+ */
 void RPCSetTimerInterface(RPCTimerInterface *iface);
-/** Set the factory function for timer, but only, if unset */
+
+/**
+ * Set the factory function for timer, but only, if unset
+ */
 void RPCSetTimerInterfaceIfUnset(RPCTimerInterface *iface);
-/** Unset factory function for timers */
+
+/**
+ * Unset factory function for timers
+ */
 void RPCUnsetTimerInterface(RPCTimerInterface *iface);
 
 /**
@@ -227,8 +251,7 @@ public:
 extern CRPCTable tableRPC;
 
 /**
- * Utilities: convert hex-encoded Values
- * (throws error if not hex).
+ * Utilities: convert hex-encoded values (throws error if not hex).
  */
 extern uint256 ParseHashV(const UniValue &v, std::string strName);
 extern uint256 ParseHashO(const UniValue &o, std::string strKey);
@@ -249,7 +272,9 @@ std::string JSONRPCExecBatch(Config &config, const JSONRPCRequest &req,
                              const UniValue &vReq);
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);
 
-// Retrieves any serialization flags requested in command line argument
+/**
+ * Retrieves any serialization flags requested in command line argument
+ */
 int RPCSerializationFlags();
 
 #endif // BITCOIN_RPCSERVER_H
