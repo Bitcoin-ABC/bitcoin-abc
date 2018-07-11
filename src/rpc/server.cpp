@@ -38,8 +38,8 @@ static std::map<std::string, std::unique_ptr<RPCTimerBase>> deadlineTimers;
 static struct CRPCSignals {
     boost::signals2::signal<void()> Started;
     boost::signals2::signal<void()> Stopped;
-    boost::signals2::signal<void(const CRPCCommand &)> PreCommand;
-    boost::signals2::signal<void(const CRPCCommand &)> PostCommand;
+    boost::signals2::signal<void(const ContextFreeRPCCommand &)> PreCommand;
+    boost::signals2::signal<void(const ContextFreeRPCCommand &)> PostCommand;
 } g_rpcSignals;
 
 void RPCServer::OnStarted(std::function<void()> slot) {
@@ -50,11 +50,13 @@ void RPCServer::OnStopped(std::function<void()> slot) {
     g_rpcSignals.Stopped.connect(slot);
 }
 
-void RPCServer::OnPreCommand(std::function<void(const CRPCCommand &)> slot) {
+void RPCServer::OnPreCommand(
+    std::function<void(const ContextFreeRPCCommand &)> slot) {
     g_rpcSignals.PreCommand.connect(boost::bind(slot, _1));
 }
 
-void RPCServer::OnPostCommand(std::function<void(const CRPCCommand &)> slot) {
+void RPCServer::OnPostCommand(
+    std::function<void(const ContextFreeRPCCommand &)> slot) {
     g_rpcSignals.PostCommand.connect(boost::bind(slot, _1));
 }
 
@@ -189,11 +191,12 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
                             const JSONRPCRequest &helpreq) const {
     std::string strRet;
     std::string category;
-    std::set<const CRPCCommand *> setDone;
-    std::vector<std::pair<std::string, const CRPCCommand *>> vCommands;
+    std::set<const ContextFreeRPCCommand *> setDone;
+    std::vector<std::pair<std::string, const ContextFreeRPCCommand *>>
+        vCommands;
 
-    for (std::map<std::string, const CRPCCommand *>::const_iterator mi =
-             mapCommands.begin();
+    for (std::map<std::string, const ContextFreeRPCCommand *>::const_iterator
+             mi = mapCommands.begin();
          mi != mapCommands.end(); ++mi) {
         vCommands.push_back(
             std::make_pair(mi->second->category + mi->first, mi->second));
@@ -204,9 +207,9 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
     jreq.fHelp = true;
     jreq.params = UniValue();
 
-    for (const std::pair<std::string, const CRPCCommand *> &command :
+    for (const std::pair<std::string, const ContextFreeRPCCommand *> &command :
          vCommands) {
-        const CRPCCommand *pcmd = command.second;
+        const ContextFreeRPCCommand *pcmd = command.second;
         std::string strMethod = pcmd->name;
         // We already filter duplicates, but these deprecated screw up the sort
         // order
@@ -307,7 +310,7 @@ static UniValue uptime(const Config &config,
  * Call Table
  */
 // clang-format off
-static const CRPCCommand vRPCCommands[] = {
+static const ContextFreeRPCCommand vRPCCommands[] = {
     //  category            name                      actor (function)        okSafe argNames
     //  ------------------- ------------------------  ----------------------  ------ ----------
     /* Overall control/query calls */
@@ -321,15 +324,16 @@ CRPCTable::CRPCTable() {
     unsigned int vcidx;
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0]));
          vcidx++) {
-        const CRPCCommand *pcmd;
+        const ContextFreeRPCCommand *pcmd;
 
         pcmd = &vRPCCommands[vcidx];
         mapCommands[pcmd->name] = pcmd;
     }
 }
 
-const CRPCCommand *CRPCTable::operator[](const std::string &name) const {
-    std::map<std::string, const CRPCCommand *>::const_iterator it =
+const ContextFreeRPCCommand *CRPCTable::
+operator[](const std::string &name) const {
+    std::map<std::string, const ContextFreeRPCCommand *>::const_iterator it =
         mapCommands.find(name);
     if (it == mapCommands.end()) {
         return nullptr;
@@ -339,13 +343,13 @@ const CRPCCommand *CRPCTable::operator[](const std::string &name) const {
 }
 
 bool CRPCTable::appendCommand(const std::string &name,
-                              const CRPCCommand *pcmd) {
+                              const ContextFreeRPCCommand *pcmd) {
     if (IsRPCRunning()) {
         return false;
     }
 
     // don't allow overwriting for now
-    std::map<std::string, const CRPCCommand *>::const_iterator it =
+    std::map<std::string, const ContextFreeRPCCommand *>::const_iterator it =
         mapCommands.find(name);
     if (it != mapCommands.end()) {
         return false;
@@ -518,7 +522,7 @@ UniValue CRPCTable::execute(Config &config,
     }
 
     // Find method
-    const CRPCCommand *pcmd = tableRPC[request.strMethod];
+    const ContextFreeRPCCommand *pcmd = tableRPC[request.strMethod];
     if (!pcmd) {
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
     }
@@ -542,7 +546,7 @@ UniValue CRPCTable::execute(Config &config,
 
 std::vector<std::string> CRPCTable::listCommands() const {
     std::vector<std::string> commandList;
-    typedef std::map<std::string, const CRPCCommand *> commandMap;
+    typedef std::map<std::string, const ContextFreeRPCCommand *> commandMap;
 
     std::transform(mapCommands.begin(), mapCommands.end(),
                    std::back_inserter(commandList),

@@ -813,7 +813,7 @@ static UniValue estimatefee(const Config &config,
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category   name                     actor (function)       okSafeMode
     //  ---------- ------------------------ ---------------------- ----------
     {"mining",     "getnetworkhashps",      getnetworkhashps,      true, {"nblocks", "height"}},

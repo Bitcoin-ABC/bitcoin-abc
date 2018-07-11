@@ -1662,7 +1662,7 @@ UniValue getchaintxstats(const Config &config, const JSONRPCRequest &request) {
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        okSafe argNames
     //  ------------------- ------------------------  ----------------------  ------ ----------
     { "blockchain",         "getblockchaininfo",      getblockchaininfo,      true,  {} },

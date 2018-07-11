@@ -300,7 +300,7 @@ void OnRPCStopped() {
     LogPrint(BCLog::RPC, "RPC stopped.\n");
 }
 
-void OnRPCPreCommand(const CRPCCommand &cmd) {
+void OnRPCPreCommand(const ContextFreeRPCCommand &cmd) {
     // Observe safe mode.
     std::string strWarning = GetWarnings("rpc");
     if (strWarning != "" &&

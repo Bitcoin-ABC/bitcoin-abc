@@ -74,7 +74,7 @@ static UniValue setexcessiveblock(Config &config,
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        okSafeMode
     //  ------------------- ------------------------  ----------------------  ----------
     { "network",            "getexcessiveblock",      getexcessiveblock,      true, {}},

@@ -745,7 +745,7 @@ static UniValue setnetworkactive(const Config &config,
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        okSafeMode
     //  ------------------- ------------------------  ----------------------  ----------
     { "network",            "getconnectioncount",     getconnectioncount,     true,  {} },

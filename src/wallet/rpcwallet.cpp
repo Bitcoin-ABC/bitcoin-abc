@@ -3474,7 +3474,7 @@ static UniValue generate(const Config &config, const JSONRPCRequest &request) {
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                        actor (function)          okSafeMode
     //  ------------------- ------------------------    ----------------------    ----------
     { "rawtransactions",    "fundrawtransaction",       fundrawtransaction,       false,  {"hexstring","options"} },

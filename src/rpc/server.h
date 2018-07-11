@@ -21,13 +21,13 @@
 
 static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
 
-class CRPCCommand;
+class ContextFreeRPCCommand;
 
 namespace RPCServer {
 void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
-void OnPreCommand(std::function<void(const CRPCCommand &)> slot);
-void OnPostCommand(std::function<void(const CRPCCommand &)> slot);
+void OnPreCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
+void OnPostCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
 } // namespace RPCServer
 
 class CBlockIndex;
@@ -168,7 +168,7 @@ typedef UniValue (*rpcfn_type)(Config &config,
 typedef UniValue (*const_rpcfn_type)(const Config &config,
                                      const JSONRPCRequest &jsonRequest);
 
-class CRPCCommand {
+class ContextFreeRPCCommand {
 public:
     std::string category;
     std::string name;
@@ -184,8 +184,9 @@ private:
 public:
     std::vector<std::string> argNames;
 
-    CRPCCommand(std::string _category, std::string _name, rpcfn_type _actor,
-                bool _okSafeMode, std::vector<std::string> _argNames)
+    ContextFreeRPCCommand(std::string _category, std::string _name,
+                          rpcfn_type _actor, bool _okSafeMode,
+                          std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
           okSafeMode{_okSafeMode}, useConstConfig{false}, argNames{std::move(
                                                               _argNames)} {
@@ -197,9 +198,9 @@ public:
      * can call the command through the proper pointer. Casting constness
      * on parameters of function is undefined behavior.
      */
-    CRPCCommand(std::string _category, std::string _name,
-                const_rpcfn_type _actor, bool _okSafeMode,
-                std::vector<std::string> _argNames)
+    ContextFreeRPCCommand(std::string _category, std::string _name,
+                          const_rpcfn_type _actor, bool _okSafeMode,
+                          std::vector<std::string> _argNames)
         : category{std::move(_category)}, name{std::move(_name)},
           okSafeMode{_okSafeMode}, useConstConfig{true}, argNames{std::move(
                                                              _argNames)} {
@@ -217,11 +218,11 @@ public:
  */
 class CRPCTable {
 private:
-    std::map<std::string, const CRPCCommand *> mapCommands;
+    std::map<std::string, const ContextFreeRPCCommand *> mapCommands;
 
 public:
     CRPCTable();
-    const CRPCCommand *operator[](const std::string &name) const;
+    const ContextFreeRPCCommand *operator[](const std::string &name) const;
     std::string help(Config &config, const std::string &name,
                      const JSONRPCRequest &helpreq) const;
 
@@ -240,12 +241,13 @@ public:
     std::vector<std::string> listCommands() const;
 
     /**
-     * Appends a CRPCCommand to the dispatch table.
+     * Appends a ContextFreeRPCCommand to the dispatch table.
      * Returns false if RPC server is already running (dump concurrency
      * protection).
      * Commands cannot be overwritten (returns false).
      */
-    bool appendCommand(const std::string &name, const CRPCCommand *pcmd);
+    bool appendCommand(const std::string &name,
+                       const ContextFreeRPCCommand *pcmd);
 };
 
 extern CRPCTable tableRPC;
