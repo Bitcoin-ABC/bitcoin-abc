@@ -99,6 +99,7 @@ const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 namespace {
 
 CBlockIndex *pindexBestInvalid;
+CBlockIndex *pindexBestParked;
 
 /**
  * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for itself
@@ -2422,6 +2423,12 @@ static CBlockIndex *FindMostWorkChain() {
                 pindexBestInvalid = pindexNew;
             }
 
+            if (fParkedChain &&
+                (pindexBestParked == nullptr ||
+                 pindexNew->nChainWork > pindexBestParked->nChainWork)) {
+                pindexBestParked = pindexNew;
+            }
+
             CBlockIndex *pindexFailed = pindexNew;
             // Remove the entire chain from the set.
             while (pindexTest != pindexFailed) {
@@ -3983,6 +3990,12 @@ static bool LoadBlockIndexDB(const Config &config) {
             pindexBestInvalid = pindex;
         }
 
+        if (pindex->nStatus.isOnParkedChain() &&
+            (!pindexBestParked ||
+             pindex->nChainWork > pindexBestParked->nChainWork)) {
+            pindexBestParked = pindex;
+        }
+
         if (pindex->pprev) {
             pindex->BuildSkip();
         }
@@ -4446,6 +4459,7 @@ void UnloadBlockIndex() {
     setBlockIndexCandidates.clear();
     chainActive.SetTip(nullptr);
     pindexBestInvalid = nullptr;
+    pindexBestParked = nullptr;
     pindexBestHeader = nullptr;
     mempool.clear();
     mapBlocksUnlinked.clear();
