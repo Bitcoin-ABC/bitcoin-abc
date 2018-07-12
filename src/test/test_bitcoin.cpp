@@ -46,7 +46,10 @@ std::ostream &operator<<(std::ostream &os, const uint256 &num) {
     return os;
 }
 
-BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
+BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
+    : m_path_root(fs::temp_directory_path() / "test_bitcoin" /
+                  strprintf("%lu_%i", static_cast<unsigned long>(GetTime()),
+                            int(InsecureRandRange(1 << 30)))) {
     SHA256AutoDetect();
     RandomInit();
     ECC_Start();
@@ -68,11 +71,20 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
 }
 
 BasicTestingSetup::~BasicTestingSetup() {
+    fs::remove_all(m_path_root);
     ECC_Stop();
+}
+
+fs::path BasicTestingSetup::SetDataDir(const std::string &name) {
+    fs::path ret = m_path_root / name;
+    fs::create_directories(ret);
+    gArgs.ForceSetArg("-datadir", ret.string());
+    return ret;
 }
 
 TestingSetup::TestingSetup(const std::string &chainName)
     : BasicTestingSetup(chainName) {
+    SetDataDir("tempdir");
     const Config &config = GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
 
@@ -92,11 +104,6 @@ TestingSetup::TestingSetup(const std::string &chainName)
     }
 
     ClearDatadirCache();
-    pathTemp = fs::temp_directory_path() /
-               strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(),
-                         (int)(InsecureRandRange(1 << 30)));
-    fs::create_directories(pathTemp);
-    gArgs.ForceSetArg("-datadir", pathTemp.string());
 
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.
@@ -139,7 +146,6 @@ TestingSetup::~TestingSetup() {
     pcoinsTip.reset();
     pcoinsdbview.reset();
     pblocktree.reset();
-    fs::remove_all(pathTemp);
 }
 
 TestChain100Setup::TestChain100Setup()

@@ -40,8 +40,7 @@ buffer size for CBufferedFile set to 2 * MAX_TX_SIZE. Test with a value
 of 10 * MAX_TX_SIZE. */
 BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     fs::path tmpfile_name =
-        pathTemp / strprintf("vlebf_test_%lu_%i", (unsigned long)GetTime(),
-                             (int)(InsecureRandRange(100000)));
+        SetDataDir("validation_load_external_block_file") / "block.dat";
 
     FILE *fp = fopen(tmpfile_name.string().c_str(), "wb+");
 
