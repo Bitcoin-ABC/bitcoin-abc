@@ -126,6 +126,9 @@ private:
     bool fDecryptionThoroughlyChecked;
 
 protected:
+    using CryptedKeyMap =
+        std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>;
+
     bool SetCrypted();
 
     //! will encrypt previously unencrypted keys

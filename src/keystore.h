@@ -42,15 +42,15 @@ public:
     virtual bool HaveWatchOnly() const = 0;
 };
 
-typedef std::map<CKeyID, CKey> KeyMap;
-typedef std::map<CKeyID, CPubKey> WatchKeyMap;
-typedef std::map<CScriptID, CScript> ScriptMap;
-typedef std::set<CScript> WatchOnlySet;
-
 /** Basic key store, that keeps keys in an address->secret map */
 class CBasicKeyStore : public CKeyStore {
 protected:
     mutable CCriticalSection cs_KeyStore;
+
+    using KeyMap = std::map<CKeyID, CKey>;
+    using WatchKeyMap = std::map<CKeyID, CPubKey>;
+    using ScriptMap = std::map<CScriptID, CScript>;
+    using WatchOnlySet = std::set<CScript>;
 
     KeyMap mapKeys GUARDED_BY(cs_KeyStore);
     WatchKeyMap mapWatchKeys GUARDED_BY(cs_KeyStore);
@@ -78,10 +78,6 @@ public:
     bool HaveWatchOnly(const CScript &dest) const override;
     bool HaveWatchOnly() const override;
 };
-
-typedef std::vector<uint8_t, secure_allocator<uint8_t>> CKeyingMaterial;
-typedef std::map<CKeyID, std::pair<CPubKey, std::vector<uint8_t>>>
-    CryptedKeyMap;
 
 /**
  * Return the CKeyID of the key involved in a script (if there is a unique one).
