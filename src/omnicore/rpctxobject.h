@@ -17,6 +17,7 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
 void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails, std::string extendedDetailsFilter);
 void populateRPCTypeSendAll(CMPTransaction& omniObj, UniValue& txobj, int confirmations);
+void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int confirmations);
 void populateRPCTypeTradeOffer(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeMetaDExTrade(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails);
 void populateRPCTypeMetaDExCancelPrice(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails);

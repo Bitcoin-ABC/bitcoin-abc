@@ -15,6 +15,7 @@
 #include "omnicore/sp.h"
 #include "omnicore/sto.h"
 #include "omnicore/tx.h"
+#include "omnicore/rules.h"
 #include "omnicore/utilsbitcoin.h"
 #include "omnicore/wallettxs.h"
 
@@ -174,6 +175,8 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
         case MSC_TYPE_SEND_ALL:
             populateRPCTypeSendAll(mp_obj, txobj, confirmations);
             break;
+	case WHC_TYPE_GET_BASE_PROPERTY:
+		populateRPCTypeGetBaseProperTy(mp_obj, txobj, confirmations);
         /*case MSC_TYPE_TRADE_OFFER:
             populateRPCTypeTradeOffer(mp_obj, txobj);
             break;
@@ -282,6 +285,23 @@ void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool 
     txobj.push_back(Pair("divisible", isPropertyDivisible(propertyId)));
     txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
     if (extendedDetails) populateRPCExtendedTypeSendToOwners(omniObj.getHash(), extendedDetailsFilter, txobj, omniObj.getVersion());
+}
+
+void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int confirmations){
+    txobj.push_back(Pair("type", "Burn BCH Get WHC"));
+    txobj.push_back(Pair("propertyid", OMNI_PROPERTY_WHC));
+    txobj.push_back(Pair("divisible", isPropertyDivisible(OMNI_PROPERTY_WHC)));
+    const CConsensusParams& params = ConsensusParams();
+    if (mp_obj.getBurnBCH() > COIN.GetSatoshis()){
+        if (confirmations < 1000){
+            txobj.push_back(Pair("mature", false));
+        }else{
+            txobj.push_back(Pair("mature", true));
+        }
+        txobj.push_back(Pair("amount", FormatMP(OMNI_PROPERTY_WHC, mp_obj.getBurnBCH() * params.exodusReward)));
+    } else{
+        txobj.push_back(Pair("Enough", "No Burn Enough BCH, less is 1 BCH"));
+    }
 }
 
 void populateRPCTypeSendAll(CMPTransaction& omniObj, UniValue& txobj, int confirmations)

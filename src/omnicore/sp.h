@@ -153,7 +153,6 @@ public:
     bool getSP(uint32_t propertyId, Entry& info) const;
     bool hasSP(uint32_t propertyId) const;
     uint32_t findSPByTX(const uint256& txid) const;
-	bool insertBurnSPInfo(uint256 &txid, int64_t block, int64_t amount);
     int64_t popBlock(const uint256& block_hash);
 
     void setWatermark(const uint256& watermark);

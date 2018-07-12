@@ -39,11 +39,6 @@ CMPSPInfo::Entry::Entry()
     close_early(false), max_tokens(false), missedTokens(0), timeclosed(0),
     fixed(false), manual(false) {}
 
-bool CMPSPInfo::insertBurnSPInfo(uint256& txid, int64_t block, int64_t amount){
-	std::vector<int64_t> txData {block, amount};
-	implied_omni.historicalData.insert(std::make_pair(txid, txData));
-}
-
 bool CMPSPInfo::Entry::isDivisible() const
 {
     switch (prop_type) {

@@ -1785,6 +1785,7 @@ static int write_WHC_burnBCH(std::ofstream& file, SHA256_CTX* shaCtx)
         // write the line
         file << lineOut << endl;
     }
+	return 0;
 }
 
 static int write_msc_balances(std::ofstream& file, SHA256_CTX* shaCtx)
@@ -3874,7 +3875,6 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 
 //change_101 add distribute WHC to burner.
 static void DistributeWHCToBurner(){
-    std::map<uint256, std::vector<int64_t> > historicalData;
     int maxHeight = 0;
     if (MainNet()){
         maxHeight = chainActive.Height() - DISTRIBUTEHEIGHT;
@@ -3884,6 +3884,9 @@ static void DistributeWHCToBurner(){
         maxHeight = chainActive.Height() - DISTRIBUTEHEIGHTREGTEST;
     }
 	
+	CMPSPInfo::Entry sp;
+    _my_sps->getSP(OMNI_PROPERTY_WHC, sp);
+    int update = 0;
     auto search = pendingCreateWHC.begin();
     for (; search != pendingCreateWHC.end(); ){
         if (search->first <= maxHeight){
@@ -3891,10 +3894,13 @@ static void DistributeWHCToBurner(){
             uint256 txid = uint256S(entry.first);
             std::string addr = entry.second.first;
             int64_t amount  = entry.second.second;
-            assert(update_tally_map(addr, OMNI_PROPERTY_WHC, amount, BALANCE));
-            search = pendingCreateWHC.erase(search);
-            std::vector<int64_t> txdata{search->first, amount};
-            historicalData.insert(std::make_pair(txid, txdata));
+		if (sp.historicalData.find(txid) == sp.historicalData.end()){
+			update++;
+                std::vector<int64_t> txdata{search->first, amount};
+                sp.historicalData.insert(std::make_pair(txid, txdata));
+                assert(update_tally_map(addr, OMNI_PROPERTY_WHC, amount, BALANCE));
+                search = pendingCreateWHC.erase(search);
+		}
             if (!p_txlistdb->exists(txid)){
                 clear_all_state();
                 nWaterlineBlock = ConsensusParams().GENESIS_BLOCK - 1;
@@ -3905,15 +3911,9 @@ static void DistributeWHCToBurner(){
             search++;
         }
     }
-	PrintToLog("%s: maxHeight: %d, update entry num : %d\n",__func__, maxHeight, historicalData.size());
-    if (historicalData.size() > 0){
-        CMPSPInfo::Entry sp;
-        int64_t total = 0;
+	PrintToLog("%s: maxHeight: %d, update entry num : %d\n",__func__, maxHeight, update);
+    if (update > 0){
         CBlockIndex *tip = chainActive.Tip();
-        _my_sps->getSP(OMNI_PROPERTY_WHC, sp);
-        assert(total = getTotalTokens(OMNI_PROPERTY_WHC, NULL));
-        sp.historicalData.insert(historicalData.begin(), historicalData.end());
-        sp.num_tokens = total;
         sp.update_block = *tip->phashBlock;
         _my_sps->updateSP(OMNI_PROPERTY_WHC, sp);
     }
@@ -4077,17 +4077,13 @@ void getBurnBCHAmonut(const CTransaction& tx, CMPTransaction& mp_tx, int nBlock)
     GetOutputType(tx.vout[1].scriptPubKey, outType);
     if (outType != TX_NULL_DATA){
     	mp_tx.SetburnBCH(amountInvested);
-	PrintToLog("%s: error second out is not op_return data \n", __func__);
         return;
     }
 
     if (ExtractDestination(tx.vout[0].scriptPubKey, dest)) {
         if(dest == ExodusCrowdsaleAddress(nBlock)) {
             amountInvested = tx.vout[0].nValue.GetSatoshis();
-        }else{
-		PrintToLog("%s: error first out is not burn bch script data \n", __func__);
-	} 
+        }
     } 
-    PrintToLog("%s: txid %s burn %d BCH to get WHC\n", __func__, mp_tx.getHash().ToString(), amountInvested);
     mp_tx.SetburnBCH(amountInvested);
 }
