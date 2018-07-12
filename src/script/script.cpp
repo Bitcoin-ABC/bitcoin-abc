@@ -227,6 +227,10 @@ const char *GetOpName(opcodetype opcode) {
             return "OP_CHECKMULTISIG";
         case OP_CHECKMULTISIGVERIFY:
             return "OP_CHECKMULTISIGVERIFY";
+        case OP_CHECKDATASIG:
+            return "OP_CHECKDATASIG";
+        case OP_CHECKDATASIGVERIFY:
+            return "OP_CHECKDATASIGVERIFY";
 
         // expansion
         case OP_NOP1:

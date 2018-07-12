@@ -1044,6 +1044,10 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         }
                     } break;
 
+                    case OP_CHECKDATASIG:
+                    case OP_CHECKDATASIGVERIFY:
+                        return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+
                     //
                     // Byte string operations
                     //
