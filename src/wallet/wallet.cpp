@@ -1169,6 +1169,15 @@ bool CWallet::TransactionCanBeAbandoned(const TxId &txid) const {
            !wtx->InMempool();
 }
 
+void CWallet::MarkInputsDirty(const CTransactionRef &tx) {
+    for (const CTxIn &txin : tx->vin) {
+        auto it = mapWallet.find(txin.prevout.GetTxId());
+        if (it != mapWallet.end()) {
+            it->second.MarkDirty();
+        }
+    }
+}
+
 bool CWallet::AbandonTransaction(const TxId &txid) {
     LOCK2(cs_main, cs_wallet);
 
@@ -1222,12 +1231,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
             // If a transaction changes 'conflicted' state, that changes the
             // balance available of the outputs it spends. So force those to be
             // recomputed.
-            for (const CTxIn &txin : wtx.tx->vin) {
-                auto it2 = mapWallet.find(txin.prevout.GetTxId());
-                if (it2 != mapWallet.end()) {
-                    it2->second.MarkDirty();
-                }
-            }
+            MarkInputsDirty(wtx.tx);
         }
     }
 
@@ -1286,12 +1290,7 @@ void CWallet::MarkConflicted(const BlockHash &hashBlock, const TxId &txid) {
             // If a transaction changes 'conflicted' state, that changes the
             // balance available of the outputs it spends. So force those to be
             // recomputed.
-            for (const CTxIn &txin : wtx.tx->vin) {
-                auto it2 = mapWallet.find(txin.prevout.GetTxId());
-                if (it2 != mapWallet.end()) {
-                    it2->second.MarkDirty();
-                }
-            }
+            MarkInputsDirty(wtx.tx);
         }
     }
 }
@@ -1309,12 +1308,7 @@ void CWallet::SyncTransaction(const CTransactionRef &ptx,
     // If a transaction changes 'conflicted' state, that changes the balance
     // available of the outputs it spends. So force those to be
     // recomputed, also:
-    for (const CTxIn &txin : tx.vin) {
-        auto it = mapWallet.find(txin.prevout.GetTxId());
-        if (it != mapWallet.end()) {
-            it->second.MarkDirty();
-        }
-    }
+    MarkInputsDirty(ptx);
 }
 
 void CWallet::TransactionAddedToMempool(const CTransactionRef &ptx) {

@@ -744,6 +744,12 @@ private:
      */
     void MarkConflicted(const BlockHash &hashBlock, const TxId &txid);
 
+    /**
+     * Mark a transaction's inputs dirty, thus forcing the outputs to be
+     * recomputed
+     */
+    void MarkInputsDirty(const CTransactionRef &tx);
+
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>);
 
     /**
