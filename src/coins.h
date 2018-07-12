@@ -72,7 +72,7 @@ public:
 class SaltedOutpointHasher {
 private:
     /** Salt */
-    const uint64_t k0, k1;
+     uint64_t k0, k1;
 
 public:
     SaltedOutpointHasher();
@@ -290,7 +290,7 @@ private:
      * By making the copy constructor private, we prevent accidentally using it
      * when one intends to create a cache on top of a base cache.
      */
-    CCoinsViewCache(const CCoinsViewCache &);
+ //   CCoinsViewCache(const CCoinsViewCache &);
 };
 
 //! Utility function to add all of a transaction's outputs to a cache.

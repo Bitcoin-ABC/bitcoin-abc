@@ -14,11 +14,11 @@ AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
-BITCOIN_DAEMON_NAME=bitcoind
-BITCOIN_GUI_NAME=bitcoin-qt
-BITCOIN_CLI_NAME=bitcoin-cli
-BITCOIN_TX_NAME=bitcoin-tx
-BITCOIN_SEEDER_NAME=bitcoin-seeder
+BITCOIN_DAEMON_NAME=omnicashd
+BITCOIN_GUI_NAME=omnicash-qt
+BITCOIN_CLI_NAME=omnicash-cli
+BITCOIN_TX_NAME=omnicash-tx
+BITCOIN_SEEDER_NAME=omnicash-seeder
 
 AC_CANONICAL_HOST
 

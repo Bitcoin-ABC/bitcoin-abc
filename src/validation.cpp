@@ -5,7 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "validation.h"
-
+#include "omnicore/omnicore.h"
 #include "arith_uint256.h"
 #include "chainparams.h"
 #include "checkpoints.h"
@@ -1317,7 +1317,7 @@ bool IsInitialBlockDownload() {
 
 CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
 
-static void AlertNotify(const std::string &strMessage) {
+void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
     std::string strCmd = gArgs.GetArg("-alertnotify", "");
     if (strCmd.empty()) {
@@ -1710,9 +1710,10 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CDiskBlockPos &pos,
     return true;
 }
 
+
+} // namespace
 /** Abort with a message */
-bool AbortNode(const std::string &strMessage,
-               const std::string &userMessage = "") {
+bool AbortNode(const std::string &strMessage, const std::string &userMessage) {
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
     uiInterface.ThreadSafeMessageBox(
@@ -1729,8 +1730,6 @@ bool AbortNode(CValidationState &state, const std::string &strMessage,
     AbortNode(strMessage, userMessage);
     return state.Error(strMessage);
 }
-
-} // namespace
 
 /** Restore the UTXO in a Coin at a given COutPoint. */
 DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
@@ -2675,10 +2674,19 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
 
     // Update chainActive and related variables.
     UpdateTip(config, pindexDelete->pprev);
+
+	//! Omni Core: begin block disconnect notification
+    LogPrint(BCLog::OMNICORE, "Omni Core handler: block disconnect begin [height: %d, reindex: %d]\n", chainActive.Height(), (int)fReindex);
+    mastercore_handler_disc_begin(chainActive.Height(), pindexDelete);
+
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
     GetMainSignals().BlockDisconnected(pblock);
-    return true;
+    
+	//! Omni Core: end of block disconnect notification
+    LogPrint(BCLog::OMNICORE, "Omni Core handler: block disconnect end [height: %d, reindex: %d]\n", chainActive.Height(), (int)fReindex);
+    mastercore_handler_disc_end(chainActive.Height(), pindexDelete);
+	return true;
 }
 
 static int64_t nTimeReadFromDisk = 0;
@@ -2826,11 +2834,31 @@ static bool ConnectTip(const Config &config, CValidationState &state,
     nTimeChainState += nTime5 - nTime4;
     LogPrint(BCLog::BENCH, "  - Writing chainstate: %.2fms [%.2fs]\n",
              (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
+
+ 	//! Omni Core: transaction position within the block
+    unsigned int nTxIdx = 0;
+    //! Omni Core: number of meta transactions found
+    unsigned int nNumMetaTxs = 0;
+	int currentHeight = chainActive.Height();
+    //! Omni Core: begin block connect notification
+    LogPrint(BCLog::OMNICORE, "Omni Core handler: block connect begin [height: %d]\n", currentHeight);
+    mastercore_handler_block_begin(currentHeight, pindexNew);
+
     // Remove conflicting transactions from the mempool.;
     mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
     // Update chainActive & related variables.
     UpdateTip(config, pindexNew);
+	currentHeight = chainActive.Height();
+
+	for(CTransactionRef tx : blockConnecting.vtx){
+        //! Omni Core: new confirmed transaction notification
+        LogPrint(BCLog::OMNICORE, "Omni Core handler: new confirmed transaction [height: %d, idx: %u]\n", currentHeight, nTxIdx);
+        if (mastercore_handler_tx(*(tx.get()), currentHeight, nTxIdx++, pindexNew)) ++nNumMetaTxs;
+    }
+    //! Omni Core: end of block connect notification
+    LogPrint(BCLog::OMNICORE, "Omni Core handler: block connect end [new height: %d, found: %u txs]\n", currentHeight, nNumMetaTxs);
+    mastercore_handler_block_end(currentHeight, pindexNew, nNumMetaTxs);
 
     int64_t nTime6 = GetTimeMicros();
     nTimePostConnect += nTime6 - nTime5;
@@ -4265,7 +4293,7 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
 
     // Check for nMinDiskSpace bytes (currently 50MB)
     if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes) {
-        return AbortNode("Disk space is low!", _("Error: Disk space is low!"));
+        return AbortNode("Disk space is low!", "Error: Disk space is low!");
     }
 
     return true;
