@@ -178,6 +178,7 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
             break;
 	case WHC_TYPE_GET_BASE_PROPERTY:
 		populateRPCTypeGetBaseProperTy(mp_obj, txobj, confirmations);
+		break;
         /*case MSC_TYPE_TRADE_OFFER:
             populateRPCTypeTradeOffer(mp_obj, txobj);
             break;
@@ -307,7 +308,7 @@ void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int
         }else{
             txobj.push_back(Pair("mature", true));
         }
-        txobj.push_back(Pair("amount", FormatMP(OMNI_PROPERTY_WHC, mp_obj.getBurnBCH() * params.exodusReward)));
+        txobj.push_back(Pair("amount", FormatMP(OMNI_PROPERTY_WHC, int64_t(mp_obj.getBurnBCH() * params.exodusReward))));
     } else{
         txobj.push_back(Pair("Enough", "No Burn Enough BCH, less is 1 BCH"));
     }
