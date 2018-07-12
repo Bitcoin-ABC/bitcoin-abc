@@ -15,6 +15,7 @@
 #include "omnicore/sp.h"
 #include "omnicore/sto.h"
 #include "omnicore/tx.h"
+#include "omnicore/omnicore.h"
 #include "omnicore/rules.h"
 #include "omnicore/utilsbitcoin.h"
 #include "omnicore/wallettxs.h"
@@ -288,12 +289,20 @@ void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool 
 }
 
 void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int confirmations){
+	int maxHeight = 0;
+    if (MainNet()){
+        maxHeight = DISTRIBUTEHEIGHT;
+    } else if(TestNet()){
+        maxHeight = DISTRIBUTEHEIGHTTEST;
+    } else if (RegTest()){
+        maxHeight = DISTRIBUTEHEIGHTREGTEST;
+    }
     txobj.push_back(Pair("type", "Burn BCH Get WHC"));
     txobj.push_back(Pair("propertyid", OMNI_PROPERTY_WHC));
     txobj.push_back(Pair("divisible", isPropertyDivisible(OMNI_PROPERTY_WHC)));
     const CConsensusParams& params = ConsensusParams();
-    if (mp_obj.getBurnBCH() > COIN.GetSatoshis()){
-        if (confirmations < 1000){
+    if (mp_obj.getBurnBCH() >= COIN.GetSatoshis()){
+        if (confirmations < maxHeight){
             txobj.push_back(Pair("mature", false));
         }else{
             txobj.push_back(Pair("mature", true));

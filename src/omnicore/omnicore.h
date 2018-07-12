@@ -62,6 +62,11 @@ int const MAX_STATE_HISTORY = 50;
 #define WHC                   100000000LL
 #define CREATE_TOKEN_FEE      (1*WHC)
 
+//mature height for network
+#define  DISTRIBUTEHEIGHT 1000
+#define DISTRIBUTEHEIGHTTEST 3
+#define DISTRIBUTEHEIGHTREGTEST 1
+
 // Transaction types, from the spec
 enum TransactionType {
   MSC_TYPE_SIMPLE_SEND                =  0,

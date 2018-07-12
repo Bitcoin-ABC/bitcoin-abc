@@ -108,9 +108,6 @@ static string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdpn3j
 static string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
 
 static int nWaterlineBlock = 0;
-#define  DISTRIBUTEHEIGHT 1000
-#define DISTRIBUTEHEIGHTTEST 3
-#define DISTRIBUTEHEIGHTREGTEST 1
 
 //! Available balances of wallet properties
 std::map<uint32_t, int64_t> global_balance_money;
