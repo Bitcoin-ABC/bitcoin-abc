@@ -1159,7 +1159,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
             // Iterate over all its outputs, and mark transactions in the wallet
             // that spend them abandoned too.
             TxSpends::const_iterator iter =
-                mapTxSpends.lower_bound(COutPoint(txid, 0));
+                mapTxSpends.lower_bound(COutPoint(now, 0));
             while (iter != mapTxSpends.end() && iter->first.GetTxId() == now) {
                 if (!done.count(iter->second)) {
                     todo.insert(iter->second);
