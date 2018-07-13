@@ -101,6 +101,8 @@ else()
 		set(LEVELDB_OS SOLARIS)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 		set(LEVELDB_OS FREEBSD)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "KFreeBSD")
+		set(LEVELDB_OS KFREEBSD)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
 		set(LEVELDB_OS NETBSD)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
@@ -116,8 +118,7 @@ else()
 		# No idea what's the proper system name is here.
 		set(LEVELDB_OS IOS)
 	else()
-		# Unknown plateform, assume linux.
-		set(LEVELDB_OS LINUX)
+		message(FATAL_ERROR "Cannot build leveldb for ${CMAKE_SYSTEM_NAME}. Please file a bug report.")
 	endif()
 endif()
 
