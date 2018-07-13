@@ -311,6 +311,7 @@ void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int
         txobj.push_back(Pair("amount", FormatMP(OMNI_PROPERTY_WHC, int64_t(mp_obj.getBurnBCH() * params.exodusReward))));
     } else{
         txobj.push_back(Pair("Enough", "No Burn Enough BCH, less is 1 BCH"));
+	txobj.push_back(Pair("burn", strprintf("%d",mp_obj.getBurnBCH())));
     }
 }
 

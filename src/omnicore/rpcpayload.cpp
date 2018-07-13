@@ -59,8 +59,8 @@ UniValue omni_createpayload_sendall(const Config &config,const JSONRPCRequest &r
             "\"payload\"               (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_createpayload_sendall", "2")
-            + HelpExampleRpc("omni_createpayload_sendall", "2")
+            + HelpExampleCli("omni_createpayload_sendall", "1")
+            + HelpExampleRpc("omni_createpayload_sendall", "1")
         );
 
     uint8_t ecosystem = ParseEcosystem(request.params[0]);
@@ -264,6 +264,7 @@ UniValue omni_createpayload_issuancecrowdsale(const Config &config,const JSONRPC
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
 
+    RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
     RequireExistingProperty(propertyIdDesired);

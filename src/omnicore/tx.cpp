@@ -976,7 +976,7 @@ int CMPTransaction::logicMath_burnBCHGetWHC()
 	PrintToLog("tx in %d blockHeight, is not in valid range [%d, %d]\n", block, params.GENESIS_BLOCK, params.LAST_EXODUS_BLOCK);
 	}
 
-    return -1;
+    return PKT_ERROR_BURN - 2;
 }
 
 /** Passive effect of crowdsale participation. */
@@ -1154,7 +1154,7 @@ int CMPTransaction::logicMath_SendToOwners()
 
     // ------------------------------------------
 
-    uint32_t distributeTo = (version == MP_TX_PKT_V0) ? property : distribution_property;
+    uint32_t distributeTo = distribution_property;
     OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue);
     uint64_t numberOfReceivers = receiversSet.size();
 

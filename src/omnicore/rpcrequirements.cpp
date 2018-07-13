@@ -38,6 +38,12 @@ void RequirePropertyEcosystem(uint8_t ecosystem){
     }
 }
 
+void RequireCrowsDesireProperty(uint32_t propertyId){
+    if (propertyId != OMNI_PROPERTY_WHC){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Property ID only support WHC");
+    }
+}
+
 void RequirePropertyName(const std::string& name)
 {
     if (name.empty()) {

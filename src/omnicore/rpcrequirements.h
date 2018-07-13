@@ -12,6 +12,7 @@ void RequireExistingProperty(uint32_t propertyId);
 void RequireSameEcosystem(uint32_t propertyId, uint32_t otherId);
 void RequireDifferentIds(uint32_t propertyId, uint32_t otherId);
 void RequireCrowdsale(uint32_t propertyId);
+void RequireCrowsDesireProperty(uint32_t propertyId);
 void RequireActiveCrowdsale(uint32_t propertyId);
 void RequireManagedProperty(uint32_t propertyId);
 void RequireTokenIssuer(const std::string& address, uint32_t propertyId);

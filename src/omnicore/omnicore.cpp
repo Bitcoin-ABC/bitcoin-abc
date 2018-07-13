@@ -103,9 +103,9 @@ using namespace mastercore;
 CCriticalSection cs_tally;
 
 // burn address for WHC property with various network.
-static string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfnhks603";
-static string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdpn3jdgd";
-static string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
+static string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqu08dsyxz98whc";
+static string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqdmwgvnjkt8whc";
+static string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3dyqwlq58whc";
 
 static int nWaterlineBlock = 0;
 
