@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE(multiple_op_return_short)
         std::vector<CTxOut> txOutputs;
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e690000111122223333");
+            scriptPubKey << OP_RETURN << ParseHex("637768630000111122223333");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
         }
@@ -257,13 +257,13 @@ BOOST_AUTO_TEST_CASE(multiple_op_return_short)
         }
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e690001000200030004");
+            scriptPubKey << OP_RETURN << ParseHex("637768630001000200030004");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
         }
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e69");
+            scriptPubKey << OP_RETURN << ParseHex("63776863");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
         }
@@ -287,19 +287,19 @@ BOOST_AUTO_TEST_CASE(multiple_op_return)
         std::vector<CTxOut> txOutputs;
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e691222222222222222222222222223");
+            scriptPubKey << OP_RETURN << ParseHex("637768631222222222222222222222222223");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
         }
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e694555555555555555555555555556");
+            scriptPubKey << OP_RETURN << ParseHex("637768634555555555555555555555555556");
             CTxOut txOut = CTxOut(5, scriptPubKey);
             txOutputs.push_back(txOut);
         }
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e69788888888889");
+            scriptPubKey << OP_RETURN << ParseHex("63776863788888888889");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
         }
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE(multiple_op_return)
         }
         {
             CScript scriptPubKey;
-            scriptPubKey << OP_RETURN << ParseHex("6f6d6e69ffff11111111111111111111"
+            scriptPubKey << OP_RETURN << ParseHex("63776863ffff11111111111111111111"
                     "11111111111111111111111111111111111111111111111111111111111111"
                     "11111111111111111111111111111111111111111111111111111111111111"
                     "111111111111111111111111111111111111111111111117");
@@ -370,7 +370,7 @@ BOOST_AUTO_TEST_CASE(multiple_op_return_pushes)
         {
             CScript scriptPubKey;
             scriptPubKey << OP_RETURN;
-            scriptPubKey << ParseHex("6f6d6e6900000000000000010000000006dac2c0");
+            scriptPubKey << ParseHex("6377686300000000000000010000000006dac2c0");
             scriptPubKey << ParseHex("00000000000000030000000000000d48");
             CTxOut txOut = CTxOut(0, scriptPubKey);
             txOutputs.push_back(txOut);
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(multiple_op_return_pushes)
         {
           CScript scriptPubKey;
           scriptPubKey << OP_RETURN;
-          scriptPubKey << ParseHex("6f6d6e69");
+          scriptPubKey << ParseHex("63776863");
           scriptPubKey << ParseHex("00000000000000010000000006dac2c0");
           CTxOut txOut = CTxOut(0, scriptPubKey);
           txOutputs.push_back(txOut);

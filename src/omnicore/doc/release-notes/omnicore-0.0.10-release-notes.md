@@ -201,7 +201,7 @@ Data embedding with OP_RETURN
 
 Omni Core 0.0.10 contains support for Class C transactions which move the data encoding from bare-multisig data outputs to an `OP_RETURN` output. `OP_RETURN` outputs carry no output value and can be immediately pruned.
 
-In addition to migrating data encoding to `OP_RETURN`, the requirement to send an output to the Exodus address has also been removed with Class C. Instead the bytes `0x6f6d6e69` ("omni") are prefixed to the data payload to provide marker identification.
+In addition to migrating data encoding to `OP_RETURN`, the requirement to send an output to the Exodus address has also been removed with Class C. Instead the bytes `0x63776863` ("omni") are prefixed to the data payload to provide marker identification.
 
 This helps to address a common criticism of systems that store data on the Bitcoin blockchain; "UTXO bloat". Since Class C transactions no longer store the data in spendable outputs, there is no need to store them in the UTXO set, and since the outputs are not stored in the UTXO set, Class C transactions do not contribute to its growth.
 
