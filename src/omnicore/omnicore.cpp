@@ -102,10 +102,6 @@ using namespace mastercore;
 
 CCriticalSection cs_tally;
 
-// burn address for WHC property with various network.
-static string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqu08dsyxz98whc";
-static string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqdmwgvnjkt8whc";
-static string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3dyqwlq58whc";
 
 static int nWaterlineBlock = 0;
 
@@ -3908,7 +3904,7 @@ static void DistributeWHCToBurner(){
             search++;
         }
     }
-	PrintToLog("%s: maxHeight: %d, update entry num : %d\n",__func__, maxHeight, update);
+	PrintToLog("%s: chainActiveHeight: %d, maxHeight: %d, update entry num : %d\n",__func__, chainActive.Height(), maxHeight, update);
     if (update > 0){
         CBlockIndex *tip = chainActive.Tip();
         sp.update_block = *tip->phashBlock;

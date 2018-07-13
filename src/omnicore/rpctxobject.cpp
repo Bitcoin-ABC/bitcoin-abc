@@ -130,6 +130,7 @@ int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHas
     txobj.push_back(Pair("fee", FormatDivisibleMP(mp_obj.getFeePaid())));
     txobj.push_back(Pair("sendingaddress", mp_obj.getSender()));
     if (showRefForTx(mp_obj.getType())) txobj.push_back(Pair("referenceaddress", mp_obj.getReceiver()));
+	if(mp_obj.getType() == WHC_TYPE_GET_BASE_PROPERTY) txobj.push_back(Pair("referenceaddress", burnwhc_mainnet));
     txobj.push_back(Pair("ismine", fMine));
     txobj.push_back(Pair("version", (uint64_t)mp_obj.getVersion()));
     txobj.push_back(Pair("type_int", (uint64_t)mp_obj.getType()));
@@ -232,6 +233,7 @@ bool showRefForTx(uint32_t txType)
     switch (txType) {
         case MSC_TYPE_SIMPLE_SEND: return true;
         case MSC_TYPE_SEND_TO_OWNERS: return false;
+	case WHC_TYPE_GET_BASE_PROPERTY: return false;
         /*case MSC_TYPE_TRADE_OFFER: return false;
         case MSC_TYPE_METADEX_TRADE: return false;
         case MSC_TYPE_METADEX_CANCEL_PRICE: return false;
