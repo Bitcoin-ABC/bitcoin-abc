@@ -8,6 +8,7 @@
 
 #include "policy/policy.h"
 
+#include "script/interpreter.h"
 #include "tinyformat.h"
 #include "util.h"
 #include "utilstrencodings.h"

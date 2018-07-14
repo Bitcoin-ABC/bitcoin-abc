@@ -164,6 +164,7 @@ add_library(bitcoinconsensus
 	script/interpreter.cpp
 	script/script.cpp
 	script/script_error.cpp
+	script/sigencoding.cpp
 	uint256.cpp
 	utilstrencodings.cpp
 )

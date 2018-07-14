@@ -7,6 +7,7 @@
 #include "dstencode.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
+#include "script/sigencoding.h"
 #include "script/standard.h"
 #include "serialize.h"
 #include "streams.h"

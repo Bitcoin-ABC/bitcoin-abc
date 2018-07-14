@@ -6,6 +6,7 @@
 #include "consensus/validation.h"
 #include "key.h"
 #include "pubkey.h"
+#include "script/interpreter.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "test/test_bitcoin.h"

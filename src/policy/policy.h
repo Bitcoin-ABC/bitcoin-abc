@@ -7,12 +7,12 @@
 #define BITCOIN_POLICY_POLICY_H
 
 #include "consensus/consensus.h"
-#include "script/interpreter.h"
 #include "script/standard.h"
 
 #include <string>
 
 class CCoinsViewCache;
+class CTransaction;
 
 /** Default for -blockmaxsize, which controls the maximum size of block the
  * mining code will create **/
