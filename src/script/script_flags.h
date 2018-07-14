@@ -94,6 +94,10 @@ enum {
     // Do we accept activate replay protection using a different fork id.
     //
     SCRIPT_ENABLE_REPLAY_PROTECTION = (1U << 17),
+
+    // Is OP_CHECKDATASIG and variant are enabled.
+    //
+    SCRIPT_ENABLE_CHECKDATASIG = (1U << 18),
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPTFLAGS_H

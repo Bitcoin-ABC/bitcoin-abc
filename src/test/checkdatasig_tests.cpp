@@ -28,10 +28,19 @@ static void CheckTestResultForAllFlags(const stacktype &original_stack,
     BaseSignatureChecker sigchecker;
 
     for (uint32_t flags : flagset) {
-        // Make sure that opcodes are disabled.
+        // The opcode are not implemented yet, so we get a bad opcode error when
+        // passing the activation flag.
         ScriptError err = SCRIPT_ERR_OK;
         stacktype stack{original_stack};
-        bool r = EvalScript(stack, script, flags, sigchecker, &err);
+        bool r = EvalScript(stack, script, flags | SCRIPT_ENABLE_CHECKDATASIG,
+                            sigchecker, &err);
+        BOOST_CHECK(!r);
+        BOOST_CHECK_EQUAL(err, SCRIPT_ERR_BAD_OPCODE);
+
+        // Make sure that we get a bad opcode when the activation flag is not
+        // passed.
+        stack = original_stack;
+        r = EvalScript(stack, script, flags, sigchecker, &err);
         BOOST_CHECK(!r);
         BOOST_CHECK_EQUAL(err, SCRIPT_ERR_BAD_OPCODE);
     }
