@@ -35,7 +35,7 @@ static const std::string strAddressBad = "1HV9Lc3sNHZxwj4Zk6fB38tEmBryq2cBiF";
 
 // get r value produced by ECDSA signing algorithm
 // (assumes ECDSA r is encoded in the canonical manner)
-std::vector<uint8_t> get_r_ECDSA(std::vector<uint8_t> sigECDSA) {
+static std::vector<uint8_t> get_r_ECDSA(std::vector<uint8_t> sigECDSA) {
     std::vector<uint8_t> ret(32, 0);
 
     assert(sigECDSA[2] == 2);
@@ -245,16 +245,16 @@ BOOST_AUTO_TEST_CASE(key_test1) {
     BOOST_CHECK(key1C.SignECDSA(hashMsg, detsigc));
     BOOST_CHECK(detsig == detsigc);
     BOOST_CHECK(detsig ==
-                ParseHex("3045022100c6ab5f8acfccc114da39dd5ad0b1ef4d39df6a721e8"
-                         "24c22e00b7bc7944a1f7802206ff23df3802e241ee234a8b66c40"
-                         "c82e56a6cc37f9b50463111c9f9229b8f3b3"));
+                ParseHex("304402200c648ad9936cae4006f0b0d7bcbacdcdf5a14260eb550"
+                         "c31ddb1eb1a13b1b58602201b868673bb5926d1610a07cd03692d"
+                         "fdcb98ed059314f66b457a794f2c4b8e79"));
     BOOST_CHECK(key2.SignECDSA(hashMsg, detsig));
     BOOST_CHECK(key2C.SignECDSA(hashMsg, detsigc));
     BOOST_CHECK(detsig == detsigc);
     BOOST_CHECK(detsig ==
-                ParseHex("304502210094dc5a77b8d5db6b42b66c29d7033cd873fac7a1272"
-                         "4a90373726f60bb9f852a02204eb4c98b9a2f5c017f9417ba7c43"
-                         "279c20c84bb058dc05b3beeb9333016b15bb"));
+                ParseHex("304402205fb8ff5dbba6110d877169812f5cd939866d9487c6b62"
+                         "5785c6876e4fb8ea69a0220711dc4ecff142f7f808905c04bbd41"
+                         "89e3d2c689c4be396ed22883c463d6ad7a"));
     // Compact
     BOOST_CHECK(key1.SignCompact(hashMsg, detsig));
     BOOST_CHECK(key1C.SignCompact(hashMsg, detsigc));
@@ -291,6 +291,43 @@ BOOST_AUTO_TEST_CASE(key_test1) {
                 ParseHex("e7167ae0afbba6019b4c7fcfe6de79165d555e8295bd72da1b8aa"
                          "1a5b54305880517cace1bcb0cb515e2eeaffd49f1e4dd49fd7282"
                          "6b4b1573c84da49a38405d"));
+}
+
+BOOST_AUTO_TEST_CASE(key_signature_tests) {
+    // When entropy is specified, we should see at least one high R signature
+    // within 20 signatures
+    CKey key = DecodeSecret(strSecret1);
+    std::string msg = "A message to be signed";
+    uint256 msg_hash = Hash(msg.begin(), msg.end());
+    std::vector<uint8_t> sig;
+    bool found = false;
+
+    for (int i = 1; i <= 20; ++i) {
+        sig.clear();
+        key.SignECDSA(msg_hash, sig, false, i);
+        found = sig[3] == 0x21 && sig[4] == 0x00;
+        if (found) {
+            break;
+        }
+    }
+    BOOST_CHECK(found);
+
+    // When entropy is not specified, we should always see low R signatures that
+    // are less than 70 bytes in 256 tries We should see at least one signature
+    // that is less than 70 bytes.
+    found = true;
+    bool found_small = false;
+    for (int i = 0; i < 256; ++i) {
+        sig.clear();
+        msg = "A message to be signed" + std::to_string(i);
+        msg_hash = Hash(msg.begin(), msg.end());
+        key.SignECDSA(msg_hash, sig);
+        found = sig[3] == 0x20;
+        BOOST_CHECK(sig.size() <= 70);
+        found_small |= sig.size() < 70;
+    }
+    BOOST_CHECK(found);
+    BOOST_CHECK(found_small);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

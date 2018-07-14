@@ -221,8 +221,24 @@ CPubKey CKey::GetPubKey() const {
     return result;
 }
 
+// Check that the sig has a low R value and will be less than 71 bytes
+static bool SigHasLowR(const secp256k1_ecdsa_signature *sig) {
+    uint8_t compact_sig[64];
+    secp256k1_ecdsa_signature_serialize_compact(secp256k1_context_sign,
+                                                compact_sig, sig);
+
+    // In DER serialization, all values are interpreted as big-endian, signed
+    // integers. The highest bit in the integer indicates its signed-ness; 0 is
+    // positive, 1 is negative. When the value is interpreted as a negative
+    // integer, it must be converted to a positive value by prepending a 0x00
+    // byte so that the highest bit is 0. We can avoid this prepending by
+    // ensuring that our highest bit is always 0, and thus we must check that
+    // the first byte is less than 0x80.
+    return compact_sig[0] < 0x80;
+}
+
 bool CKey::SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
-                     uint32_t test_case) const {
+                     bool grind, uint32_t test_case) const {
     if (!fValid) {
         return false;
     }
@@ -231,9 +247,19 @@ bool CKey::SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
     uint8_t extra_entropy[32] = {0};
     WriteLE32(extra_entropy, test_case);
     secp256k1_ecdsa_signature sig;
-    int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(),
+    uint32_t counter = 0;
+    int ret =
+        secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(),
+                             begin(), secp256k1_nonce_function_rfc6979,
+                             (!grind && test_case) ? extra_entropy : nullptr);
+
+    // Grind for low R
+    while (ret && !SigHasLowR(&sig) && grind) {
+        WriteLE32(extra_entropy, ++counter);
+        ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(),
                                    begin(), secp256k1_nonce_function_rfc6979,
-                                   test_case ? extra_entropy : nullptr);
+                                   extra_entropy);
+    }
     assert(ret);
     secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign,
                                             vchSig.data(), &nSigLen, &sig);

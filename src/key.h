@@ -113,7 +113,7 @@ public:
      * The test_case parameter tweaks the deterministic nonce.
      */
     bool SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
-                   uint32_t test_case = 0) const;
+                   bool grind = true, uint32_t test_case = 0) const;
 
     /**
      * Create a Schnorr signature.
