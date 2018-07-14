@@ -110,4 +110,55 @@ BOOST_AUTO_TEST_CASE(received_time) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(median_time_past) {
+    std::array<CBlockIndex, 12> indices;
+
+    // times in this test are pairs of <blockTime, MTP>
+
+    // Check that MTP is correctly calculated for all cases when block times
+    // are consecutive and greater than previous block times:
+    // 1) All cases where the number of blocks is < 11
+    // 2) The case where the number of blocks is exactly 11
+    // 3) The case where the number of blocks is > 11 (but only 11 are used to
+    //    calculate MTP.
+    std::array<std::pair<int, int>, 12> times = {{{0, 0},
+                                                  {1, 1},
+                                                  {2, 1},
+                                                  {4, 2},
+                                                  {4, 2},
+                                                  {5, 4},
+                                                  {7, 4},
+                                                  {10, 4},
+                                                  {12, 4},
+                                                  {14, 5},
+                                                  {17, 5},
+                                                  {20, 7}}};
+    for (size_t i = 0; i < indices.size(); i++) {
+        indices[i].nTime = times[i].first;
+        if (i > 0) {
+            indices[i].pprev = &indices[i - 1];
+        }
+
+        BOOST_CHECK(indices[i].GetMedianTimePast() == times[i].second);
+    }
+
+    // Test against non-consecutive block times
+    std::array<std::pair<int, int>, 12> times2 = {{{0, 0},
+                                                   {0, 0},
+                                                   {1, 0},
+                                                   {3, 1},
+                                                   {2, 1},
+                                                   {3, 2},
+                                                   {4, 2},
+                                                   {5, 3},
+                                                   {6, 3},
+                                                   {7, 3},
+                                                   {8, 3},
+                                                   {9, 4}}};
+    for (size_t i = 0; i < indices.size(); i++) {
+        indices[i].nTime = times2[i].first;
+        BOOST_CHECK(indices[i].GetMedianTimePast() == times2[i].second);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
