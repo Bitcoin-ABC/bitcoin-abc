@@ -473,11 +473,11 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     Amount GetImmatureCredit(bool fUseCache = true) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    Amount GetAvailableCredit(bool fUseCache = true) const
+    Amount
+    GetAvailableCredit(bool fUseCache = true,
+                       const isminefilter &filter = ISMINE_SPENDABLE) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     Amount GetImmatureWatchOnlyCredit(const bool fUseCache = true) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    Amount GetAvailableWatchOnlyCredit(const bool fUseCache = true) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     Amount GetChange() const;
 
@@ -1072,10 +1072,10 @@ public:
     std::vector<uint256> ResendWalletTransactionsBefore(int64_t nTime,
                                                         CConnman *connman)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    Amount GetBalance() const;
+    Amount GetBalance(const isminefilter &filter = ISMINE_SPENDABLE,
+                      const int min_depth = 0) const;
     Amount GetUnconfirmedBalance() const;
     Amount GetImmatureBalance() const;
-    Amount GetWatchOnlyBalance() const;
     Amount GetUnconfirmedWatchOnlyBalance() const;
     Amount GetImmatureWatchOnlyBalance() const;
     Amount GetLegacyBalance(const isminefilter &filter, int minDepth,

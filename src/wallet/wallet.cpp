@@ -2081,7 +2081,8 @@ Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
     return Amount::zero();
 }
 
-Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
+Amount CWalletTx::GetAvailableCredit(bool fUseCache,
+                                     const isminefilter &filter) const {
     if (pwallet == nullptr) {
         return Amount::zero();
     }
@@ -2092,8 +2093,19 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
         return Amount::zero();
     }
 
-    if (fUseCache && fAvailableCreditCached) {
-        return nAvailableCreditCached;
+    Amount *cache = nullptr;
+    bool *cache_used = nullptr;
+
+    if (filter == ISMINE_SPENDABLE) {
+        cache = &nAvailableCreditCached;
+        cache_used = &fAvailableCreditCached;
+    } else if (filter == ISMINE_WATCH_ONLY) {
+        cache = &nAvailableWatchCreditCached;
+        cache_used = &fAvailableWatchCreditCached;
+    }
+
+    if (fUseCache && cache_used && *cache_used) {
+        return *cache;
     }
 
     Amount nCredit = Amount::zero();
@@ -2101,7 +2113,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(COutPoint(txid, i))) {
             const CTxOut &txout = tx->vout[i];
-            nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+            nCredit += pwallet->GetCredit(txout, filter);
             if (!MoneyRange(nCredit)) {
                 throw std::runtime_error(std::string(__func__) +
                                          " : value out of range");
@@ -2109,8 +2121,10 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
         }
     }
 
-    nAvailableCreditCached = nCredit;
-    fAvailableCreditCached = true;
+    if (cache) {
+        *cache = nCredit;
+        *cache_used = true;
+    }
     return nCredit;
 }
 
@@ -2126,39 +2140,6 @@ Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool fUseCache) const {
     }
 
     return Amount::zero();
-}
-
-Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool fUseCache) const {
-    if (pwallet == nullptr) {
-        return Amount::zero();
-    }
-
-    // Must wait until coinbase is safely deep enough in the chain before
-    // valuing it.
-    if (IsCoinBase() && GetBlocksToMaturity() > 0) {
-        return Amount::zero();
-    }
-
-    if (fUseCache && fAvailableWatchCreditCached) {
-        return nAvailableWatchCreditCached;
-    }
-
-    Amount nCredit = Amount::zero();
-    const TxId &txid = GetId();
-    for (uint32_t i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(COutPoint(txid, i))) {
-            const CTxOut &txout = tx->vout[i];
-            nCredit += pwallet->GetCredit(txout, ISMINE_WATCH_ONLY);
-            if (!MoneyRange(nCredit)) {
-                throw std::runtime_error(std::string(__func__) +
-                                         ": value out of range");
-            }
-        }
-    }
-
-    nAvailableWatchCreditCached = nCredit;
-    fAvailableWatchCreditCached = true;
-    return nCredit;
 }
 
 Amount CWalletTx::GetChange() const {
@@ -2298,14 +2279,15 @@ void CWallet::ResendWalletTransactions(int64_t nBestBlockTime,
  *
  * @{
  */
-Amount CWallet::GetBalance() const {
+Amount CWallet::GetBalance(const isminefilter &filter,
+                           const int min_depth) const {
     LOCK2(cs_main, cs_wallet);
 
     Amount nTotal = Amount::zero();
     for (const auto &entry : mapWallet) {
         const CWalletTx *pcoin = &entry.second;
-        if (pcoin->IsTrusted()) {
-            nTotal += pcoin->GetAvailableCredit();
+        if (pcoin->IsTrusted() && pcoin->GetDepthInMainChain() >= min_depth) {
+            nTotal += pcoin->GetAvailableCredit(true, filter);
         }
     }
 
@@ -2339,20 +2321,6 @@ Amount CWallet::GetImmatureBalance() const {
     return nTotal;
 }
 
-Amount CWallet::GetWatchOnlyBalance() const {
-    LOCK2(cs_main, cs_wallet);
-
-    Amount nTotal = Amount::zero();
-    for (const auto &entry : mapWallet) {
-        const CWalletTx *pcoin = &entry.second;
-        if (pcoin->IsTrusted()) {
-            nTotal += pcoin->GetAvailableWatchOnlyCredit();
-        }
-    }
-
-    return nTotal;
-}
-
 Amount CWallet::GetUnconfirmedWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
@@ -2361,7 +2329,7 @@ Amount CWallet::GetUnconfirmedWatchOnlyBalance() const {
         const CWalletTx *pcoin = &entry.second;
         if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 &&
             pcoin->InMempool()) {
-            nTotal += pcoin->GetAvailableWatchOnlyCredit();
+            nTotal += pcoin->GetAvailableCredit(true, ISMINE_WATCH_ONLY);
         }
     }
 
