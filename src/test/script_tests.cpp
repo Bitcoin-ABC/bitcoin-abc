@@ -211,7 +211,6 @@ struct KeyData {
     CPubKey pubkey2, pubkey2C;
 
     KeyData() {
-
         key0.Set(vchKey0, vchKey0 + 32, false);
         key0C.Set(vchKey0, vchKey0 + 32, true);
         pubkey0 = key0.GetPubKey();

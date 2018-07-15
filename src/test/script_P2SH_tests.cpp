@@ -317,8 +317,9 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         key[i].MakeNewKey(true);
         keystore.AddKey(key[i]);
     }
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
         keys.push_back(key[i].GetPubKey());
+    }
 
     CMutableTransaction txFrom;
     txFrom.vout.resize(7);
@@ -356,8 +357,9 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     // vout[4] is max sigops:
     CScript fifteenSigops;
     fifteenSigops << OP_1;
-    for (unsigned i = 0; i < MAX_P2SH_SIGOPS; i++)
+    for (unsigned i = 0; i < MAX_P2SH_SIGOPS; i++) {
         fifteenSigops << ToByteVector(key[i % 3].GetPubKey());
+    }
     fifteenSigops << OP_15 << OP_CHECKMULTISIG;
     keystore.AddCScript(fifteenSigops);
     txFrom.vout[4].scriptPubKey =

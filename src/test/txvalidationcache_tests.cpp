@@ -107,7 +107,7 @@ void ValidateCheckInputsForAllFlags(const CMutableTransaction &mutableTx,
     PrecomputedTransactionData txdata(tx);
     // If we add many more flags, this loop can get too expensive, but we can
     // rewrite in the future to randomly pick a set of flags to evaluate.
-    for (size_t test_flags = 0; test_flags < (1U << 17); test_flags += 1) {
+    for (uint32_t test_flags = 0; test_flags < (1U << 17); test_flags += 1) {
         CValidationState state;
         // Make sure the mandatory flags are enabled.
         test_flags |= MANDATORY_SCRIPT_VERIFY_FLAGS;
