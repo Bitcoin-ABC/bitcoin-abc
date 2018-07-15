@@ -206,17 +206,27 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
 
         // If SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is specified, full key are
         // disabled.
-        bool allowFullKey = (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) == 0;
+        const bool allowFullKey =
+            (flags & SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE) == 0;
         BOOST_CHECK_EQUAL(CheckPubKeyEncoding(fullKey, flags, &err),
                           allowFullKey);
+        if (!allowFullKey) {
+            BOOST_CHECK_EQUAL(err, SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+        }
 
         // If SCRIPT_VERIFY_STRICTENC or SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE is
         // specified, we rule out invalid keys.
-        bool allowInvalidKeys =
-            allowFullKey && (flags & SCRIPT_VERIFY_STRICTENC) == 0;
+        const bool hasStrictEnc = (flags & SCRIPT_VERIFY_STRICTENC) != 0;
+        const bool allowInvalidKeys = allowFullKey && !hasStrictEnc;
         for (const valtype &key : invalidKeys) {
             BOOST_CHECK_EQUAL(CheckPubKeyEncoding(key, flags, &err),
                               allowInvalidKeys);
+            if (!allowInvalidKeys) {
+                BOOST_CHECK_EQUAL(err,
+                                  hasStrictEnc
+                                      ? SCRIPT_ERR_PUBKEYTYPE
+                                      : SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+            }
         }
     }
 }
