@@ -132,6 +132,11 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
         // Degenerate keys.
         {},
         {0x00},
+        {0x01},
+        {0x02},
+        {0x03},
+        {0x04},
+        {0x05},
         {0x42},
         {0xff},
         // Invalid first byte 0x00.
