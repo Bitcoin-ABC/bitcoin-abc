@@ -16,6 +16,17 @@ static valtype SignatureWithHashType(valtype vchSig, SigHashType sigHash) {
     return vchSig;
 }
 
+static void
+CheckSignatureErrorForAllSigHashType(const valtype &vchSig, uint32_t flags,
+                                     const ScriptError expected_error) {
+    for (int i = 0; i <= 0xff; i++) {
+        ScriptError err = SCRIPT_ERR_OK;
+        valtype sig = SignatureWithHashType(vchSig, SigHashType(i));
+        BOOST_CHECK(!CheckSignatureEncoding(sig, flags, &err));
+        BOOST_CHECK_EQUAL(err, expected_error);
+    }
+}
+
 static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
                                                   uint32_t flags) {
     const bool hasForkId = (flags & SCRIPT_ENABLE_SIGHASH_FORKID) != 0;
@@ -69,8 +80,14 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
 }
 
 BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
-    valtype nullfailsig{};
-    valtype minimalsig{0x30, 0x06, 0x02, 0x01, 0x01, 0x02, 0x01, 0x01};
+    valtype minimalSig{0x30, 0x06, 0x02, 0x01, 0x01, 0x02, 0x01, 0x01};
+    valtype highSSig{
+        0x30, 0x45, 0x02, 0x20, 0x3e, 0x45, 0x16, 0xda, 0x72, 0x53, 0xcf, 0x06,
+        0x8e, 0xff, 0xec, 0x6b, 0x95, 0xc4, 0x12, 0x21, 0xc0, 0xcf, 0x3a, 0x8e,
+        0x6c, 0xcb, 0x8c, 0xbf, 0x17, 0x25, 0xb5, 0x62, 0xe9, 0xaf, 0xde, 0x2c,
+        0x02, 0x21, 0x00, 0xab, 0x1e, 0x3d, 0xa7, 0x3d, 0x67, 0xe3, 0x20, 0x45,
+        0xa2, 0x0e, 0x0b, 0x99, 0x9e, 0x04, 0x99, 0x78, 0xea, 0x8d, 0x6e, 0xe5,
+        0x48, 0x0d, 0x48, 0x5f, 0xcf, 0x2c, 0xe0, 0xd0, 0x3b, 0x2e, 0xf0};
 
     // If we add many more flags, this loop can get too expensive, but we can
     // rewrite in the future to randomly pick a set of flags to evaluate.
@@ -81,7 +98,16 @@ BOOST_AUTO_TEST_CASE(checksignatureencoding_test) {
         BOOST_CHECK(CheckSignatureEncoding({}, flags, &err));
 
         // Signature are valid as long as the forkid flag is correct.
-        CheckSignatureEncodingWithSigHashType(minimalsig, flags);
+        CheckSignatureEncodingWithSigHashType(minimalSig, flags);
+
+        if (flags & SCRIPT_VERIFY_LOW_S) {
+            // If we do enforce low S, then high S sigs are rejected.
+            CheckSignatureErrorForAllSigHashType(highSSig, flags,
+                                                 SCRIPT_ERR_SIG_HIGH_S);
+        } else {
+            // If we do not enforce low S, then high S sigs are accepted.
+            CheckSignatureEncodingWithSigHashType(highSSig, flags);
+        }
     }
 }
 
