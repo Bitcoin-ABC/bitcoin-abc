@@ -18,8 +18,6 @@
 #include <fcntl.h>
 #endif
 
-#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
-
 #if !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
 #endif
@@ -37,7 +35,7 @@ static const int SOCKS5_RECV_TIMEOUT = 20 * 1000;
 static std::atomic<bool> interruptSocks5Recv(false);
 
 enum Network ParseNetwork(std::string net) {
-    boost::to_lower(net);
+    Downcase(net);
     if (net == "ipv4") {
         return NET_IPV4;
     }
