@@ -415,16 +415,16 @@ public:
                    std::vector<uint8_t> &vchSig, const CKeyID &keyid,
                    const CScript &scriptCode) const override {
         // Create a dummy signature that is a valid DER-encoding
-        vchSig.assign(72, '\000');
+        vchSig.assign(71, '\000');
         vchSig[0] = 0x30;
-        vchSig[1] = 69;
+        vchSig[1] = 68;
         vchSig[2] = 0x02;
-        vchSig[3] = 33;
+        vchSig[3] = 32;
         vchSig[4] = 0x01;
-        vchSig[4 + 33] = 0x02;
-        vchSig[5 + 33] = 32;
-        vchSig[6 + 33] = 0x01;
-        vchSig[6 + 33 + 32] = SIGHASH_ALL | SIGHASH_FORKID;
+        vchSig[4 + 32] = 0x02;
+        vchSig[5 + 32] = 32;
+        vchSig[6 + 32] = 0x01;
+        vchSig[6 + 32 + 32] = SIGHASH_ALL | SIGHASH_FORKID;
         return true;
     }
 };
