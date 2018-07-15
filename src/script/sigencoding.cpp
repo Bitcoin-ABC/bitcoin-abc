@@ -9,6 +9,8 @@
 #include "pubkey.h"
 #include "script_flags.h"
 
+#include <boost/range/adaptor/sliced.hpp>
+
 /**
  * A canonical signature exists of: <30> <total len> <02> <len R> <R> <02> <len
  * S> <S> <hashtype>, where R and S are not negative (their first byte has its
@@ -90,15 +92,12 @@ static bool IsValidSignatureEncoding(const valtype &sig) {
 }
 
 static bool IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
-    if (!IsValidSignatureEncoding(vchSig)) {
-        return set_error(serror, SCRIPT_ERR_SIG_DER);
+    assert(vchSig.size() > 0);
+    if (CPubKey::CheckLowS(vchSig |
+                           boost::adaptors::sliced(0, vchSig.size() - 1))) {
+        return true;
     }
-    std::vector<uint8_t> vchSigCopy(vchSig.begin(),
-                                    vchSig.begin() + vchSig.size() - 1);
-    if (!CPubKey::CheckLowS(vchSigCopy)) {
-        return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
-    }
-    return true;
+    return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
 }
 
 bool CheckSignatureEncoding(const valtype &vchSig, uint32_t flags,

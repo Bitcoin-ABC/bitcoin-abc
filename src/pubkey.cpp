@@ -291,7 +291,8 @@ bool CExtPubKey::Derive(CExtPubKey &out, unsigned int _nChild) const {
     return pubkey.Derive(out.pubkey, out.chaincode, _nChild, chaincode);
 }
 
-/* static */ bool CPubKey::CheckLowS(const std::vector<uint8_t> &vchSig) {
+bool CPubKey::CheckLowS(
+    const boost::sliced_range<const std::vector<uint8_t>> &vchSig) {
     secp256k1_ecdsa_signature sig;
     if (!ecdsa_signature_parse_der_lax(secp256k1_context_verify, &sig,
                                        &vchSig[0], vchSig.size())) {
