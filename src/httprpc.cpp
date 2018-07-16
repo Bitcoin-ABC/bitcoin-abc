@@ -370,7 +370,7 @@ static bool InitRPCAuthentication(Config &config) {
         LogPrintf("Config options rpcuser and rpcpassword will soon be "
                   "deprecated. Locally-run instances may remove rpcuser to use "
                   "cookie-based auth, or may be replaced with rpcauth. Please "
-                  "see share/rpcuser for rpcauth auth generation.\n");
+                  "see share/rpcauth for rpcauth auth generation.\n");
         config.SetRPCUserAndPassword(gArgs.GetArg("-rpcuser", "") + ":" +
                                      gArgs.GetArg("-rpcpassword", ""));
     }
