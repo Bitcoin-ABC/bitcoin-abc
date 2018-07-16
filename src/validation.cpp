@@ -366,11 +366,11 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
             // from CalculateSequenceLocks against tip+1. We know
             // EvaluateSequenceLocks will fail if there was a non-zero sequence
             // lock on a mempool input, so we can use the return value of
-            // CheckSequenceLocks to indicate the LockPoints validity
+            // CheckSequenceLocks to indicate the LockPoints validity.
             int maxInputHeight = 0;
             for (int height : prevheights) {
                 // Can ignore mempool inputs since we'll fail if they had
-                // non-zero locks
+                // non-zero locks.
                 if (height != tip->nHeight + 1) {
                     maxInputHeight = std::max(maxInputHeight, height);
                 }
