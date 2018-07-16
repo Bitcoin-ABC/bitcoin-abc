@@ -438,7 +438,7 @@ bool CScript::IsWitnessProgram(int &version,
     if ((*this)[0] != OP_0 && ((*this)[0] < OP_1 || (*this)[0] > OP_16)) {
         return false;
     }
-    if ((size_t)((*this)[1] + 2) == this->size()) {
+    if (size_t((*this)[1] + 2) == this->size()) {
         version = DecodeOP_N((opcodetype)(*this)[0]);
         program = std::vector<uint8_t>(this->begin() + 2, this->end());
         return true;
@@ -449,12 +449,17 @@ bool CScript::IsWitnessProgram(int &version,
 bool CScript::IsPushOnly(const_iterator pc) const {
     while (pc < end()) {
         opcodetype opcode;
-        if (!GetOp(pc, opcode)) return false;
+        if (!GetOp(pc, opcode)) {
+            return false;
+        }
+
         // Note that IsPushOnly() *does* consider OP_RESERVED to be a push-type
         // opcode, however execution of OP_RESERVED fails, so it's not relevant
         // to P2SH/BIP62 as the scriptSig would fail prior to the P2SH special
         // validation code being executed.
-        if (opcode > OP_16) return false;
+        if (opcode > OP_16) {
+            return false;
+        }
     }
     return true;
 }

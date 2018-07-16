@@ -346,7 +346,9 @@ public:
     std::vector<uint8_t> getvch() const { return serialize(m_value); }
 
     static std::vector<uint8_t> serialize(const int64_t &value) {
-        if (value == 0) return std::vector<uint8_t>();
+        if (value == 0) {
+            return {};
+        }
 
         std::vector<uint8_t> result;
         const bool neg = value < 0;
@@ -376,16 +378,20 @@ public:
 
 private:
     static int64_t set_vch(const std::vector<uint8_t> &vch) {
-        if (vch.empty()) return 0;
+        if (vch.empty()) {
+            return 0;
+        }
 
         int64_t result = 0;
-        for (size_t i = 0; i != vch.size(); ++i)
-            result |= static_cast<int64_t>(vch[i]) << 8 * i;
+        for (size_t i = 0; i != vch.size(); ++i) {
+            result |= int64_t(vch[i]) << 8 * i;
+        }
 
         // If the input vector's most significant byte is 0x80, remove it from
         // the result's msb and return a negative.
-        if (vch.back() & 0x80)
-            return -((int64_t)(result & ~(0x80ULL << (8 * (vch.size() - 1)))));
+        if (vch.back() & 0x80) {
+            return -int64_t(result & ~(0x80ULL << (8 * (vch.size() - 1))));
+        }
 
         return result;
     }
@@ -446,8 +452,9 @@ public:
     CScript &operator<<(int64_t b) { return push_int64(b); }
 
     CScript &operator<<(opcodetype opcode) {
-        if (opcode < 0 || opcode > 0xff)
+        if (opcode < 0 || opcode > 0xff) {
             throw std::runtime_error("CScript::operator<<(): invalid opcode");
+        }
         insert(end(), uint8_t(opcode));
         return *this;
     }
@@ -520,11 +527,12 @@ public:
 
         // Read instruction
         if (end() - pc < 1) return false;
-        unsigned int opcode = *pc++;
+
+        uint32_t opcode = *pc++;
 
         // Immediate operand
         if (opcode <= OP_PUSHDATA4) {
-            unsigned int nSize = 0;
+            uint32_t nSize = 0;
             if (opcode < OP_PUSHDATA1) {
                 nSize = opcode;
             } else if (opcode == OP_PUSHDATA1) {
@@ -539,8 +547,9 @@ public:
                 nSize = ReadLE32(&pc[0]);
                 pc += 4;
             }
-            if (end() - pc < 0 || (unsigned int)(end() - pc) < nSize)
+            if (end() - pc < 0 || uint32_t(end() - pc) < nSize) {
                 return false;
+            }
             if (pvchRet) pvchRet->assign(pc, pc + nSize);
             pc += nSize;
         }
@@ -551,25 +560,34 @@ public:
 
     /** Encode/decode small integers: */
     static int DecodeOP_N(opcodetype opcode) {
-        if (opcode == OP_0) return 0;
+        if (opcode == OP_0) {
+            return 0;
+        }
+
         assert(opcode >= OP_1 && opcode <= OP_16);
-        return (int)opcode - (int)(OP_1 - 1);
+        return int(opcode) - int(OP_1 - 1);
     }
     static opcodetype EncodeOP_N(int n) {
         assert(n >= 0 && n <= 16);
-        if (n == 0) return OP_0;
+        if (n == 0) {
+            return OP_0;
+        }
+
         return (opcodetype)(OP_1 + n - 1);
     }
 
     int FindAndDelete(const CScript &b) {
         int nFound = 0;
-        if (b.empty()) return nFound;
+        if (b.empty()) {
+            return nFound;
+        }
+
         CScript result;
         iterator pc = begin(), pc2 = begin();
         opcodetype opcode;
         do {
             result.insert(result.end(), pc2, pc);
-            while (static_cast<size_t>(end() - pc) >= b.size() &&
+            while (size_t(end() - pc) >= b.size() &&
                    std::equal(b.begin(), b.end(), pc)) {
                 pc = pc + b.size();
                 ++nFound;
@@ -587,8 +605,11 @@ public:
     int Find(opcodetype op) const {
         int nFound = 0;
         opcodetype opcode;
-        for (const_iterator pc = begin(); pc != end() && GetOp(pc, opcode);)
-            if (opcode == op) ++nFound;
+        for (const_iterator pc = begin(); pc != end() && GetOp(pc, opcode);) {
+            if (opcode == op) {
+                ++nFound;
+            }
+        }
         return nFound;
     }
 
@@ -610,8 +631,10 @@ public:
     bool IsCommitment(const std::vector<uint8_t> &data) const;
     bool IsWitnessProgram(int &version, std::vector<uint8_t> &program) const;
 
-    /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it
-     * consensus-critical). */
+    /**
+     * Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it
+     * consensus-critical).
+     */
     bool IsPushOnly(const_iterator pc) const;
     bool IsPushOnly() const;
 
