@@ -42,7 +42,7 @@ static bool IsValidSignatureEncoding(const slicedvaltype &sig) {
     }
 
     //
-    // Check that the signature is a coumpound structure of proper size.
+    // Check that the signature is a compound structure of proper size.
     //
 
     // A signature is of type 0x30 (compound).

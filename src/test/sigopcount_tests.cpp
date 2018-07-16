@@ -5,6 +5,7 @@
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "key.h"
+#include "policy/policy.h" // For STANDARD_CHECKDATASIG_VERIFY_FLAGS.
 #include "pubkey.h"
 #include "script/interpreter.h"
 #include "script/script.h"
@@ -28,15 +29,23 @@ BOOST_FIXTURE_TEST_SUITE(sigopcount_tests, BasicTestingSetup)
 
 void CheckScriptSigOps(const CScript &script, uint32_t accurate_sigops,
                        uint32_t inaccurate_sigops) {
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(false), inaccurate_sigops);
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(true), accurate_sigops);
+    const uint32_t flags = STANDARD_CHECKDATASIG_VERIFY_FLAGS;
+
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, false), inaccurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, true), accurate_sigops);
 
     const CScript p2sh = GetScriptForDestination(CScriptID(script));
     const CScript scriptSig = CScript() << OP_0 << Serialize(script);
-    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(scriptSig), accurate_sigops);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(flags, scriptSig), accurate_sigops);
+
+    // Check that GetSigOpCount do not report sigops in the P2SH script when the
+    // P2SH flags isn't passed in.
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig), 0U);
 
     // Check that GetSigOpCount report the exact count when not passed a P2SH.
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(p2sh), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, p2sh), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(SCRIPT_VERIFY_NONE, p2sh),
+                      accurate_sigops);
 }
 
 BOOST_AUTO_TEST_CASE(GetSigOpCount) {
@@ -68,7 +77,9 @@ BOOST_AUTO_TEST_CASE(GetSigOpCount) {
     CScript scriptSig2;
     scriptSig2 << OP_1 << ToByteVector(dummy) << ToByteVector(dummy)
                << Serialize(s3);
-    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(scriptSig2), 3U);
+    BOOST_CHECK_EQUAL(
+        p2sh.GetSigOpCount(STANDARD_CHECKDATASIG_VERIFY_FLAGS, scriptSig2), 3U);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig2), 0U);
 }
 
 /**

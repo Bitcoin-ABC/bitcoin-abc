@@ -384,10 +384,10 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
 uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags) {
     uint64_t nSigOps = 0;
     for (const auto &txin : tx.vin) {
-        nSigOps += txin.scriptSig.GetSigOpCount(false);
+        nSigOps += txin.scriptSig.GetSigOpCount(flags, false);
     }
     for (const auto &txout : tx.vout) {
-        nSigOps += txout.scriptPubKey.GetSigOpCount(false);
+        nSigOps += txout.scriptPubKey.GetSigOpCount(flags, false);
     }
     return nSigOps;
 }
@@ -402,7 +402,7 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx, const CCoinsViewCache &view,
     for (auto &i : tx.vin) {
         const CTxOut &prevout = view.GetOutputFor(i);
         if (prevout.scriptPubKey.IsPayToScriptHash()) {
-            nSigOps += prevout.scriptPubKey.GetSigOpCount(i.scriptSig);
+            nSigOps += prevout.scriptPubKey.GetSigOpCount(flags, i.scriptSig);
         }
     }
 
