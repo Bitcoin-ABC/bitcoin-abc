@@ -7,10 +7,12 @@
 
 #include <zmq/zmqconfig.h>
 
+#include <memory>
+
 class CBlockIndex;
 class CZMQAbstractNotifier;
 
-typedef CZMQAbstractNotifier *(*CZMQNotifierFactory)();
+using CZMQNotifierFactory = std::unique_ptr<CZMQAbstractNotifier> (*)();
 
 class CZMQAbstractNotifier {
 public:
@@ -21,8 +23,9 @@ public:
           outbound_message_high_water_mark(DEFAULT_ZMQ_SNDHWM) {}
     virtual ~CZMQAbstractNotifier();
 
-    template <typename T> static CZMQAbstractNotifier *Create() {
-        return new T();
+    template <typename T>
+    static std::unique_ptr<CZMQAbstractNotifier> Create() {
+        return std::make_unique<T>();
     }
 
     std::string GetType() const { return type; }
