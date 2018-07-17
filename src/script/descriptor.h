@@ -70,6 +70,7 @@
 // * X
 // * E/I: unhardened child
 // * E/I': hardened child
+// * E/Ih: hardened child (alternative notation)
 //
 // The top level is S.
 
