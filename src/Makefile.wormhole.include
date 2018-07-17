@@ -1,4 +1,4 @@
-OMNICORE_H = \
+WORMHOLE_H = \
   omnicore/activation.h \
   omnicore/consensushash.h \
   omnicore/convert.h \
@@ -38,7 +38,7 @@ OMNICORE_H = \
   omnicore/walletcache.h \
   omnicore/wallettxs.h
 
-OMNICORE_CPP = \
+WORMHOLE_CPP = \
   omnicore/activation.cpp \
   omnicore/consensushash.cpp \
   omnicore/convert.cpp \
@@ -76,17 +76,17 @@ OMNICORE_CPP = \
   omnicore/walletcache.cpp \
   omnicore/wallettxs.cpp
 
-libomnicashd_server_a_SOURCES += \
-  $(OMNICORE_CPP) \
-  $(OMNICORE_H)
+libwormholed_server_a_SOURCES += \
+  $(WORMHOLE_CPP) \
+  $(WORMHOLE_H)
 
 omnicore/libbitcoin_server_a-version.$(OBJEXT): obj/build.h # build info
 
-CLEAN_OMNICORE = omnicore/*.gcda omnicore/*.gcno
+CLEAN_WORMHOLE = omnicore/*.gcda omnicore/*.gcno
 
-CLEANFILES += $(CLEAN_OMNICORE)
+CLEANFILES += $(CLEAN_WORMHOLE)
 
 if ENABLE_TESTS
-# include Makefile.omnitest.include
+# include Makefile.wormtest.include
 endif
 

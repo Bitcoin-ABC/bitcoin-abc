@@ -14,11 +14,11 @@ AC_CONFIG_HEADERS([src/config/bitcoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
-BITCOIN_DAEMON_NAME=omnicashd
-BITCOIN_GUI_NAME=omnicash-qt
-BITCOIN_CLI_NAME=omnicash-cli
-BITCOIN_TX_NAME=omnicash-tx
-BITCOIN_SEEDER_NAME=omnicash-seeder
+BITCOIN_DAEMON_NAME=wormhole
+BITCOIN_GUI_NAME=wormhole-qt
+BITCOIN_CLI_NAME=wormhole-cli
+BITCOIN_TX_NAME=wormhole-tx
+BITCOIN_SEEDER_NAME=wormhole-seeder
 
 AC_CANONICAL_HOST
 

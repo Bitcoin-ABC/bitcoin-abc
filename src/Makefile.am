@@ -26,26 +26,26 @@ BITCOIN_INCLUDES += $(UNIVALUE_CFLAGS)
 BITCOIN_SEEDER_INCLUDES = -I$(srcdir)/seeder
 BITCOIN_SEEDER_INCLUDES += $(BITCOIN_INCLUDES)
 
-LIBBITCOIN_SERVER=libomnicashd_server.a
-LIBBITCOIN_COMMON=libomnicashd_common.a
-LIBBITCOIN_CONSENSUS=libomnicashd_consensus.a
-LIBBITCOIN_CLI=libomnicashd_cli.a
-LIBBITCOIN_UTIL=libomnicashd_util.a
-LIBBITCOIN_CRYPTO=crypto/libomnicashd_crypto.a
+LIBBITCOIN_SERVER=libwormholed_server.a
+LIBBITCOIN_COMMON=libwormholed_common.a
+LIBBITCOIN_CONSENSUS=libwormholed_consensus.a
+LIBBITCOIN_CLI=libwormholed_cli.a
+LIBBITCOIN_UTIL=libwormholed_util.a
+LIBBITCOIN_CRYPTO=crypto/libwormholed_crypto.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
 if ENABLE_ZMQ
-LIBBITCOIN_ZMQ=libomnicashd_zmq.a
+LIBBITCOIN_ZMQ=libwormholed_zmq.a
 endif
 if BUILD_BITCOIN_LIBS
 LIBBITCOINCONSENSUS=libbitcoinconsensus.la
 endif
 if BUILD_BITCOIN_SEEDER
-LIBBITCOIN_SEEDER=libomnicashd_seeder.a
+LIBBITCOIN_SEEDER=libwormholed_seeder.a
 endif
 if ENABLE_WALLET
-LIBBITCOIN_WALLET=libomnicashd_wallet.a
+LIBBITCOIN_WALLET=libwormholed_wallet.a
 endif
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
@@ -72,15 +72,15 @@ TESTS =
 BENCHMARKS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += omnicashd
+  bin_PROGRAMS += wormholed
 endif
 
 if BUILD_BITCOIN_SEEDER
-  bin_PROGRAMS += omnicashd-seeder
+  bin_PROGRAMS += wormholed-seeder
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += omnicashd-cli omnicashd-tx
+  bin_PROGRAMS += wormholed-cli wormholed-tx
 endif
 
 .PHONY: FORCE check-symbols check-security
@@ -192,12 +192,12 @@ obj/build.h: FORCE
 	@$(MKDIR_P) "$(builddir)/obj"
 	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
 	  "$(abs_top_srcdir)"
-libomnicashd_util_a-clientversion.$(OBJEXT): obj/build.h
+libwormholed_util_a-clientversion.$(OBJEXT): obj/build.h
 
 # server: shared between bitcoind and bitcoin-qt
-libomnicashd_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
-libomnicashd_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_server_a_SOURCES = \
+libwormholed_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
+libwormholed_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_server_a_SOURCES = \
   addrman.cpp \
   addrdb.cpp \
   bloom.cpp \
@@ -240,9 +240,9 @@ libomnicashd_server_a_SOURCES = \
   $(BITCOIN_CORE_H) 
 
 if ENABLE_ZMQ
-libomnicashd_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
-libomnicashd_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_zmq_a_SOURCES = \
+libwormholed_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
+libwormholed_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_zmq_a_SOURCES = \
   zmq/zmqabstractnotifier.cpp \
   zmq/zmqnotificationinterface.cpp \
   zmq/zmqpublishnotifier.cpp
@@ -251,9 +251,9 @@ endif
 
 # wallet: shared between bitcoind and bitcoin-qt, but only linked
 # when wallet enabled
-libomnicashd_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libomnicashd_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_wallet_a_SOURCES = \
+libwormholed_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libwormholed_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_wallet_a_SOURCES = \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/finaltx.cpp \
@@ -264,9 +264,9 @@ libomnicashd_wallet_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 # crypto primitives library
-crypto_libomnicashd_crypto_a_CPPFLAGS = $(AM_CPPFLAGS)
-crypto_libomnicashd_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-crypto_libomnicashd_crypto_a_SOURCES = \
+crypto_libwormholed_crypto_a_CPPFLAGS = $(AM_CPPFLAGS)
+crypto_libwormholed_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+crypto_libwormholed_crypto_a_SOURCES = \
   crypto/aes.cpp \
   crypto/aes.h \
   crypto/chacha20.h \
@@ -286,13 +286,13 @@ crypto_libomnicashd_crypto_a_SOURCES = \
   crypto/sha512.h
 
 if USE_ASM
-crypto_libomnicashd_crypto_a_SOURCES += crypto/sha256_sse4.cpp
+crypto_libwormholed_crypto_a_SOURCES += crypto/sha256_sse4.cpp
 endif
 
 # consensus: shared between all executables that validate any consensus rules.
-libomnicashd_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libomnicashd_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_consensus_a_SOURCES = \
+libwormholed_consensus_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libwormholed_consensus_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_consensus_a_SOURCES = \
   amount.h \
   arith_uint256.cpp \
   arith_uint256.h \
@@ -326,9 +326,9 @@ libomnicashd_consensus_a_SOURCES = \
   version.h
 
 # common: shared between bitcoind, and bitcoin-qt and non-server tools
-libomnicashd_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libomnicashd_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_common_a_SOURCES = \
+libwormholed_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libwormholed_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_common_a_SOURCES = \
   amount.cpp \
   base58.cpp \
   cashaddr.cpp \
@@ -355,9 +355,9 @@ libomnicashd_common_a_SOURCES = \
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
 # backward-compatibility objects and their sanity checks are linked.
-libomnicashd_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libomnicashd_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_util_a_SOURCES = \
+libwormholed_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libwormholed_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_util_a_SOURCES = \
   support/lockedpool.cpp \
   chainparamsbase.cpp \
   clientversion.cpp \
@@ -380,20 +380,20 @@ libomnicashd_util_a_SOURCES = \
   $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
-libomnicashd_util_a_SOURCES += compat/glibc_compat.cpp
+libwormholed_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
 # cli: shared between bitcoin-cli and bitcoin-qt
-libomnicashd_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-libomnicashd_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_cli_a_SOURCES = \
+libwormholed_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libwormholed_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_cli_a_SOURCES = \
   rpc/client.cpp \
   $(BITCOIN_CORE_H)
 
 # seeder library
-libomnicashd_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
-libomnicashd_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libomnicashd_seeder_a_SOURCES = \
+libwormholed_seeder_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIE_FLAGS) $(BITCOIN_SEEDER_INCLUDES)
+libwormholed_seeder_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libwormholed_seeder_a_SOURCES = \
   seeder/bitcoin.cpp \
   seeder/bitcoin.h \
   seeder/compat.h \
@@ -404,20 +404,20 @@ libomnicashd_seeder_a_SOURCES = \
   seeder/strlcpy.h \
   seeder/util.h
 
-nodist_libomnicashd_util_a_SOURCES = $(srcdir)/obj/build.h
+nodist_libwormholed_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-omnicashd_SOURCES = bitcoind.cpp
-omnicashd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-omnicashd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-omnicashd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+wormholed_SOURCES = bitcoind.cpp
+wormholed_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+wormholed_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+wormholed_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-omnicashd_SOURCES += bitcoind-res.rc
+wormholed_SOURCES += bitcoind-res.rc
 endif
 
-omnicashd_LDADD = \
+wormholed_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
@@ -431,53 +431,53 @@ omnicashd_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-omnicashd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+wormholed_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 
 # bitcoin-cli binary #
-omnicashd_cli_SOURCES = bitcoin-cli.cpp
-omnicashd_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-omnicashd_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-omnicashd_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+wormholed_cli_SOURCES = bitcoin-cli.cpp
+wormholed_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+wormholed_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+wormholed_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-omnicashd_cli_SOURCES += bitcoin-cli-res.rc
+wormholed_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
-omnicashd_cli_LDADD = \
+wormholed_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-omnicashd_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+wormholed_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
 # bitcoin-seeder binary #
-omnicashd_seeder_SOURCES = seeder/main.cpp
-omnicashd_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
-omnicashd_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-omnicashd_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+wormholed_seeder_SOURCES = seeder/main.cpp
+wormholed_seeder_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_SEEDER_INCLUDES)
+wormholed_seeder_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+wormholed_seeder_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-omnicashd_seeder_LDADD = \
+wormholed_seeder_LDADD = \
   $(LIBBITCOIN_SEEDER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-omnicashd_seeder_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+wormholed_seeder_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
 # bitcoin-tx binary #
-omnicashd_tx_SOURCES = bitcoin-tx.cpp
-omnicashd_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-omnicashd_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-omnicashd_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+wormholed_tx_SOURCES = bitcoin-tx.cpp
+wormholed_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+wormholed_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+wormholed_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-omnicashd_tx_SOURCES += bitcoin-tx-res.rc
+wormholed_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
-omnicashd_tx_LDADD = \
+wormholed_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
@@ -485,13 +485,13 @@ omnicashd_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
-omnicashd_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
+wormholed_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
 include_HEADERS = script/bitcoinconsensus.h
-libbitcoinconsensus_la_SOURCES = $(crypto_libomnicashd_crypto_a_SOURCES) $(libomnicashd_consensus_a_SOURCES)
+libbitcoinconsensus_la_SOURCES = $(crypto_libwormholed_crypto_a_SOURCES) $(libwormholed_consensus_a_SOURCES)
 
 if GLIBC_BACK_COMPAT
   libbitcoinconsensus_la_SOURCES += compat/glibc_compat.cpp
@@ -582,5 +582,5 @@ include Makefile.qttest.include
 endif
 
 # Omni Core
-include Makefile.omnicash.include
+include Makefile.wormhole.include
 #

@@ -1,7 +1,7 @@
-OMNICORE_TEST_H = \
+WORMHOLE_TEST_H = \
   omnicore/test/utils_tx.h
 
-OMNICORE_TEST_CPP = \
+WORMHOLE_TEST_CPP = \
   omnicore/test/alert_tests.cpp \
   omnicore/test/checkpoint_tests.cpp \
   omnicore/test/create_payload_tests.cpp \
@@ -35,10 +35,10 @@ OMNICORE_TEST_CPP = \
   omnicore/test/version_tests.cpp
 
 BITCOIN_TESTS += \
-  $(OMNICORE_TEST_CPP) \
-  $(OMNICORE_TEST_H)
+  $(WORMHOLE_TEST_CPP) \
+  $(WORMHOLE_TEST_H)
 
-CLEAN_OMNICORE_TEST = omnicore/test/*.gcda omnicore/test/*.gcno
+CLEAN_WORMHOLE_TEST = omnicore/test/*.gcda omnicore/test/*.gcno
 
-CLEANFILES += $(CLEAN_OMNICORE_TEST)
+CLEANFILES += $(CLEAN_WORMHOLE_TEST)
 
