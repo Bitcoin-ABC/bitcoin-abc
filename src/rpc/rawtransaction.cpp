@@ -12,6 +12,7 @@
 #include <core_io.h>
 #include <index/txindex.h>
 #include <init.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <keystore.h>
 #include <merkleblock.h>
@@ -936,28 +937,22 @@ static UniValue combinerawtransaction(const Config &config,
     return EncodeHexTx(CTransaction(mergedTx));
 }
 
+// TODO(https://github.com/bitcoin/bitcoin/pull/10973#discussion_r267084237):
+// This function is called from both wallet and node rpcs
+// (signrawtransactionwithwallet and signrawtransactionwithkey). It should be
+// moved to a util file so wallet code doesn't need to link against node code.
+// Also the dependency on interfaces::Chain should be removed, so
+// signrawtransactionwithkey doesn't need access to a Chain instance.
 UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
                          const UniValue &prevTxsUnival,
                          CBasicKeyStore *keystore, bool is_temp_keystore,
                          const UniValue &hashType) {
     // Fetch previous transactions (inputs):
-    CCoinsView viewDummy;
-    CCoinsViewCache view(&viewDummy);
-    {
-        LOCK2(cs_main, g_mempool.cs);
-        CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
-        // Temporarily switch cache backend to db+mempool view.
-        view.SetBackend(viewMempool);
-
-        for (const CTxIn &txin : mtx.vin) {
-            // Load entries from viewChain into view; can fail.
-            view.AccessCoin(txin.prevout);
-        }
-
-        // Switch back to avoid locking mempool for too long.
-        view.SetBackend(viewDummy);
+    std::map<COutPoint, Coin> coins;
+    for (const CTxIn &txin : mtx.vin) {
+        coins[txin.prevout]; // Create empty map entry keyed by prevout.
     }
+    chain.findCoins(coins);
 
     // Add previous txouts given in the RPC call:
     if (!prevTxsUnival.isNull()) {
@@ -996,11 +991,12 @@ UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
             CScript scriptPubKey(pkData.begin(), pkData.end());
 
             {
-                const Coin &coin = view.AccessCoin(out);
-                if (!coin.IsSpent() &&
-                    coin.GetTxOut().scriptPubKey != scriptPubKey) {
+                auto coin = coins.find(out);
+                if (coin != coins.end() && !coin->second.IsSpent() &&
+                    coin->second.GetTxOut().scriptPubKey != scriptPubKey) {
                     std::string err("Previous output scriptPubKey mismatch:\n");
-                    err = err + ScriptToAsmStr(coin.GetTxOut().scriptPubKey) +
+                    err = err +
+                          ScriptToAsmStr(coin->second.GetTxOut().scriptPubKey) +
                           "\nvs:\n" + ScriptToAsmStr(scriptPubKey);
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR, err);
                 }
@@ -1023,8 +1019,7 @@ UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
                     // eg getbalance returns "3.14152" rather than 3.14152
                     throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing amount");
                 }
-
-                view.AddCoin(out, Coin(txout, 1, false), true);
+                coins[out] = Coin(txout, 1, false);
             }
 
             // If redeemScript and private keys were given, add redeemScript to
@@ -1059,16 +1054,17 @@ UniValue SignTransaction(interfaces::Chain &chain, CMutableTransaction &mtx,
     // Sign what we can:
     for (size_t i = 0; i < mtx.vin.size(); i++) {
         CTxIn &txin = mtx.vin[i];
-        const Coin &coin = view.AccessCoin(txin.prevout);
-        if (coin.IsSpent()) {
+        auto coin = coins.find(txin.prevout);
+        if (coin == coins.end() || coin->second.IsSpent()) {
             TxInErrorToJSON(txin, vErrors, "Input not found or already spent");
             continue;
         }
 
-        const CScript &prevPubKey = coin.GetTxOut().scriptPubKey;
-        const Amount amount = coin.GetTxOut().nValue;
+        const CScript &prevPubKey = coin->second.GetTxOut().scriptPubKey;
+        const Amount amount = coin->second.GetTxOut().nValue;
 
-        SignatureData sigdata = DataFromTransaction(mtx, i, coin.GetTxOut());
+        SignatureData sigdata =
+            DataFromTransaction(mtx, i, coin->second.GetTxOut());
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if ((sigHashType.getBaseType() != BaseSigHashType::SINGLE) ||
             (i < mtx.vout.size())) {

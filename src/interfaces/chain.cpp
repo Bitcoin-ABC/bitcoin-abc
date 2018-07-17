@@ -9,6 +9,7 @@
 #include <interfaces/handler.h>
 #include <interfaces/wallet.h>
 #include <net.h>
+#include <node/coin.h>
 #include <policy/mempool.h>
 #include <primitives/block.h>
 #include <primitives/blockhash.h>
@@ -294,6 +295,9 @@ namespace {
                 block->SetNull();
             }
             return true;
+        }
+        void findCoins(std::map<COutPoint, Coin> &coins) override {
+            return FindCoins(coins);
         }
         double guessVerificationProgress(const BlockHash &block_hash) override {
             LOCK(cs_main);

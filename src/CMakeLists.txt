@@ -488,6 +488,7 @@ add_library(server
 	minerfund.cpp
 	net.cpp
 	net_processing.cpp
+	node/coin.cpp
 	node/transaction.cpp
 	noui.cpp
 	outputtype.cpp
