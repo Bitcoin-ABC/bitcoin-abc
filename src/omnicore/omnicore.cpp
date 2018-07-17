@@ -105,6 +105,11 @@ CCriticalSection cs_tally;
 
 static int nWaterlineBlock = 0;
 
+string burnwhc_address = "";
+string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqu08dsyxz98whc";
+string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqdmwgvnjkt8whc";
+string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3dyqwlq58whc";
+
 //! Available balances of wallet properties
 std::map<uint32_t, int64_t> global_balance_money;
 //! Reserved balances of wallet propertiess
@@ -505,7 +510,7 @@ bool mastercore::update_tally_map(const std::string& who, uint32_t propertyId, i
         assert(before == after);
         PrintToLog("%s(%s, %u=0x%X, %+d, ttype=%d) ERROR: insufficient balance (=%d)\n", __func__, who, propertyId, propertyId, amount, ttype, before);
     }
-    if (msc_debug_tally && (burnwhc_mainnet != who || msc_debug_exo)) {
+    if (msc_debug_tally && (burnwhc_address != who || msc_debug_exo)) {
         PrintToLog("%s(%s, %u=0x%X, %+d, ttype=%d): before=%d, after=%d\n", __func__, who, propertyId, propertyId, amount, ttype, before, after);
     }
 
@@ -942,7 +947,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
         for (unsigned k = 0; k < address_data.size(); ++k) { // how many potential reference outputs do we have, if just one select it right here
             const std::string& addr = address_data[k];
             if (msc_debug_parser_data) PrintToLog("ref? data[%d]:%s: %s (%s)\n", k, script_data[k], addr, FormatIndivisibleMP(value_data[k]));
-            if (addr != burnwhc_mainnet) {
+            if (addr != burnwhc_address) {
                 ++potentialReferenceOutputs;
                 if (1 == potentialReferenceOutputs) {
                     strReference = addr;
@@ -959,7 +964,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             if (msc_debug_parser_data) PrintToLog("Reference has not been found yet, going fishing\n");
             for (unsigned k = 0; k < address_data.size(); ++k) {
                 const std::string& addr = address_data[k];
-                if (addr != burnwhc_mainnet) { // removed strSender restriction, not to spec
+                if (addr != burnwhc_address) { // removed strSender restriction, not to spec
                     if (addr == strSender && !changeRemoved) {
                         changeRemoved = true; // per spec ignore first output to sender as change if multiple possible ref addresses
                         if (msc_debug_parser_data) PrintToLog("Removed change\n");
@@ -2102,9 +2107,12 @@ int mastercore_init()
 
     InitDebugLogLevels();
     ShrinkDebugLog();
-
-    if (isNonMainNet()) {
-        burnwhc_mainnet = burnwhc_testnet;
+    if (MainNet()) {
+        burnwhc_address = burnwhc_mainnet;
+    }else if(TestNet()){
+        burnwhc_address = burnwhc_testnet;
+    }else if(RegTest()){
+        burnwhc_address = burnwhc_regnet;
     }
 
     // check for --autocommit option and set transaction commit flag accordingly
@@ -2197,7 +2205,7 @@ int mastercore_init()
     // collect the real Exodus balances available at the snapshot time
     // redundant? do we need to show it both pre-parse and post-parse?  if so let's label the printfs accordingly
     if (msc_debug_exo) {
-        int64_t exodus_balance = getMPbalance(burnwhc_mainnet, OMNI_PROPERTY_WHC, BALANCE);
+        int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
         PrintToLog("Exodus balance at start: %s\n", FormatDivisibleMP(exodus_balance));
     }
 
@@ -2226,7 +2234,7 @@ int mastercore_init()
     msc_initial_scan(nWaterlineBlock);
 
     // display Exodus balance
-    int64_t exodus_balance = getMPbalance(burnwhc_mainnet, OMNI_PROPERTY_WHC, BALANCE);
+    int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
     PrintToLog("Exodus balance after initialization: %s\n", FormatDivisibleMP(exodus_balance));
 
     PrintToConsole("Exodus balance: %s OMNI\n", FormatDivisibleMP(exodus_balance));
@@ -3868,7 +3876,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 
 //change_101 add distribute WHC to burner.
 static void DistributeWHCToBurner(){
-    int maxHeight = 0;
+    int maxHeight = 1;
     if (MainNet()){
         maxHeight = chainActive.Height() - DISTRIBUTEHEIGHT;
     } else if(TestNet()){

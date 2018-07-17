@@ -68,9 +68,10 @@ int const MAX_STATE_HISTORY = 50;
 #define DISTRIBUTEHEIGHTREGTEST 1
 
 // burn address for WHC property with various network.
-static string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqu08dsyxz98whc";
-static string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqdmwgvnjkt8whc";
-static string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3dyqwlq58whc";
+extern string burnwhc_address;
+extern string burnwhc_mainnet;
+extern string burnwhc_testnet;
+extern string burnwhc_regnet ;
 
 // Transaction types, from the spec
 enum TransactionType {

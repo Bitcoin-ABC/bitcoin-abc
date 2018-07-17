@@ -1669,7 +1669,7 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %d\n", __func__, money);
-        return (PKT_ERROR_SP -24);
+        return (PKT_ERROR_BURN -3);
     }
 
     if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type ) {
@@ -1774,7 +1774,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %d\n", __func__, money);
-        return (PKT_ERROR_SP -25);
+        return (PKT_ERROR_BURN -3);
     }
 
     if (0 != prev_prop_id) {
@@ -1935,7 +1935,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %d\n", __func__, money);
-        return (PKT_ERROR_SP -25);
+        return (PKT_ERROR_BURN -3);
     }
 
     if (0 != prev_prop_id) {

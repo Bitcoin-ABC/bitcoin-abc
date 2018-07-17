@@ -121,12 +121,15 @@ inline std::string error_str(int ec) {
           ec_str = "Sender has insufficient balance";
           break;
 	
-	case PKT_ERROR_BURN -1:
-		ec_str = "burn BCH is less 1 BCH";
-		break;
-	case PKT_ERROR_BURN -2:
-		ec_str = "exceed get WHC deadline";
-		break;
+      case PKT_ERROR_BURN -1:
+          ec_str = "burn BCH is less 1 BCH";
+          break;
+      case PKT_ERROR_BURN -2:
+          ec_str = "exceed get WHC deadline";
+          break;
+      case PKT_ERROR_BURN -3:
+          ec_str = "no enough WHC to pay to create a New Token";
+          break;
       case PKT_ERROR_STO -22:
           ec_str = "Transaction type or version not permitted";
           break;

@@ -233,7 +233,7 @@ bool showRefForTx(uint32_t txType)
     switch (txType) {
         case MSC_TYPE_SIMPLE_SEND: return true;
         case MSC_TYPE_SEND_TO_OWNERS: return false;
-	case WHC_TYPE_GET_BASE_PROPERTY: return false;
+	    case WHC_TYPE_GET_BASE_PROPERTY: return false;
         /*case MSC_TYPE_TRADE_OFFER: return false;
         case MSC_TYPE_METADEX_TRADE: return false;
         case MSC_TYPE_METADEX_CANCEL_PRICE: return false;
@@ -292,7 +292,7 @@ void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool 
 }
 
 void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int confirmations){
-	int maxHeight = 0;
+	int maxHeight = 1;
     if (MainNet()){
         maxHeight = DISTRIBUTEHEIGHT;
     } else if(TestNet()){

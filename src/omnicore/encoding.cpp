@@ -94,3 +94,18 @@ bool OmniCore_Encode_ClassC(const std::vector<unsigned char>& vchPayload,
     vecOutputs.push_back(std::make_pair(script, 0));
     return true;
 }
+
+bool OmniCore_Encode_ClassC(const std::vector<unsigned char>& vchPayload, CRecipient& vecOutputs){
+    std::vector<unsigned char> vchData;
+    std::vector<unsigned char> vchOmBytes = GetOmMarker();
+    vchData.insert(vchData.end(), vchOmBytes.begin(), vchOmBytes.end());
+    vchData.insert(vchData.end(), vchPayload.begin(), vchPayload.end());
+    if (vchData.size() > MAX_OP_RETURN_RELAY ) { return false; }
+
+    CScript script;
+    script << OP_RETURN << vchData;
+    vecOutputs.scriptPubKey = script;
+    vecOutputs.nAmount = Amount(0);
+    vecOutputs.fSubtractFeeFromAmount = false;
+    return true;
+}

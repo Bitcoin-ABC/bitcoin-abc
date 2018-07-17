@@ -2,8 +2,10 @@
 #define OMNICORE_RPCTX
 
 #include "rpc/server.h"
+#include "wallet/wallet.h"
 #include <univalue.h>
 
+bool createNewtransaction(CWallet *const pwallet, const std::string &address, Amount nValue, CWalletTx &wtxNew);
 UniValue omni_sendrawtx(Config const&, JSONRPCRequest const&);
 UniValue omni_send(Config const&, JSONRPCRequest const&);
 UniValue omni_sendall(Config const&, JSONRPCRequest const&);
