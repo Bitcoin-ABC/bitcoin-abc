@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                               "de5c384df7ba0b8d578a4c702b6bf11d5f")
                   << OP_CHECKSIG;
     std::unique_ptr<CBlockTemplate> pblocktemplate;
-    CMutableTransaction tx, tx2;
+    CMutableTransaction tx;
     CScript script;
     TestMemPoolEntryHelper entry;
     entry.nFee = 11 * SATOSHI;
