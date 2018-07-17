@@ -54,10 +54,6 @@ script: |
   CMAKE_TOOLCHAIN_FILE[arm-linux-gnueabihf]=LinuxARM.cmake
   CMAKE_TOOLCHAIN_FILE[aarch64-linux-gnu]=LinuxAArch64.cmake
 
-  # Allow extra cmake option to be specified for each host
-  declare -A CMAKE_EXTRA_OPTIONS
-  CMAKE_EXTRA_OPTIONS[aarch64-linux-gnu]="-DBUILD_BITCOIN_QT=OFF"
-
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
@@ -163,8 +159,7 @@ script: |
       -DENABLE_STATIC_LIBSTDCXX=ON \
       -DENABLE_GLIBC_BACK_COMPAT=ON \
       -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
-      -DCCACHE=OFF \
-      ${CMAKE_EXTRA_OPTIONS[${i}]}
+      -DCCACHE=OFF
 
     ninja
     ninja check-security
