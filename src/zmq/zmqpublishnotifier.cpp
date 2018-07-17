@@ -13,6 +13,8 @@
 #include <rpc/server.h>
 #include <streams.h>
 #include <util/system.h>
+#include <zmq/zmqutil.h>
+
 #include <zmq.h>
 
 #include <cstdarg>
