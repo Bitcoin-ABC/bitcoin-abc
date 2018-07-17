@@ -32,9 +32,16 @@ void RequirePrimaryToken(uint32_t propertyId)
     }
 }
 
+void RequirePropertyType(uint16_t type)
+{
+    if(type != MSC_PROPERTY_TYPE_INDIVISIBLE){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "property type must be 1");
+    }
+}
+
 void RequirePropertyEcosystem(uint8_t ecosystem){
     if (ecosystem != 1){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "property ecosystem must be 1");
+        throw JSONRPCError(RPC_TYPE_ERROR, "property ecosystem must be 1");
     }
 }
 

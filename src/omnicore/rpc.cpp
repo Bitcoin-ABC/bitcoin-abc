@@ -346,11 +346,11 @@ UniValue omni_getfeetrigger(const Config &config, const JSONRPCRequest &request)
 }
 
 // Provides the fee share the wallet (or specific address) will receive from fee distributions
-UniValue omni_getfeeshare(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getfeeshare(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 2)
         throw runtime_error(
-            "omni_getfeeshare ( address ecosystem )\n"
+            "whc_getfeeshare ( address ecosystem )\n"
             "\nReturns the percentage share of fees distribution applied to the wallet (default) or address (if supplied).\n"
             "\nArguments:\n"
             "1. address              (string, optional) retrieve the fee share for the supplied address\n"
@@ -364,8 +364,8 @@ UniValue omni_getfeeshare(const Config &config, const JSONRPCRequest &request)
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("omni_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("whc_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("whc_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
         );
 
     std::string address;
@@ -471,11 +471,11 @@ UniValue omni_getfeecache(const Config &config, const JSONRPCRequest &request)
 }
 
 // generate a list of seed blocks based on the data in LevelDB
-UniValue omni_getseedblocks(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getseedblocks(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-            "omni_getseedblocks startblock endblock\n"
+            "whc_getseedblocks startblock endblock\n"
             "\nReturns a list of blocks containing Omni transactions for use in seed block filtering.\n"
             "\nWARNING: The Exodus crowdsale is not stored in LevelDB, thus this is currently only safe to use to generate seed blocks after block 255365."
             "\nArguments:\n"
@@ -487,8 +487,8 @@ UniValue omni_getseedblocks(const Config &config, const JSONRPCRequest &request)
             "   ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getseedblocks", "290000 300000")
-            + HelpExampleRpc("omni_getseedblocks", "290000, 300000")
+            + HelpExampleCli("whc_getseedblocks", "290000 300000")
+            + HelpExampleRpc("whc_getseedblocks", "290000, 300000")
         );
 
     int startHeight = request.params[0].get_int();
@@ -511,11 +511,11 @@ UniValue omni_getseedblocks(const Config &config, const JSONRPCRequest &request)
 }
 
 // obtain the payload for a transaction
-UniValue omni_getpayload(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getpayload(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getpayload \"txid\"\n"
+            "whc_getpayload \"txid\"\n"
             "\nGet the payload for an Omni transaction.\n"
             "\nArguments:\n"
             "1. txid                 (string, required) the hash of the transaction to retrieve payload\n"
@@ -525,8 +525,8 @@ UniValue omni_getpayload(const Config &config, const JSONRPCRequest &request)
             "  \"payloadsize\" : n                     (number) the size of the payload\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
-            + HelpExampleRpc("omni_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
+            + HelpExampleCli("whc_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
+            + HelpExampleRpc("whc_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
         );
 
     uint256 txid = ParseHashV(request.params[0], "txid");
@@ -558,19 +558,19 @@ UniValue omni_getpayload(const Config &config, const JSONRPCRequest &request)
 }
 
 // determine whether to automatically commit transactions
-UniValue omni_setautocommit(const Config &config, const JSONRPCRequest &request)
+UniValue whc_setautocommit(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_setautocommit flag\n"
+            "whc_setautocommit flag\n"
             "\nSets the global flag that determines whether transactions are automatically committed and broadcast.\n"
             "\nArguments:\n"
             "1. flag                 (boolean, required) the flag\n"
             "\nResult:\n"
             "true|false              (boolean) the updated flag status\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_setautocommit", "false")
-            + HelpExampleRpc("omni_setautocommit", "false")
+            + HelpExampleCli("whc_setautocommit", "false")
+            + HelpExampleRpc("whc_setautocommit", "false")
         );
 
     LOCK(cs_tally);
@@ -748,11 +748,11 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
 }
 
 // display an MP balance via RPC
-UniValue omni_getbalance(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-            "omni_getbalance \"address\" propertyid\n"
+            "whc_getbalance \"address\" propertyid\n"
             "\nReturns the token balance for a given address and property.\n"
             "\nArguments:\n"
             "1. address              (string, required) the address\n"
@@ -763,8 +763,8 @@ UniValue omni_getbalance(const Config &config, const JSONRPCRequest &request)
             "  \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("omni_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("whc_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("whc_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -778,11 +778,11 @@ UniValue omni_getbalance(const Config &config, const JSONRPCRequest &request)
     return balanceObj;
 }
 
-UniValue omni_getallbalancesforid(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getallbalancesforid propertyid\n"
+            "whc_getallbalancesforid propertyid\n"
             "\nReturns a list of token balances for a given currency or property identifier.\n"
             "\nArguments:\n"
             "1. propertyid           (number, required) the property identifier\n"
@@ -796,8 +796,8 @@ UniValue omni_getallbalancesforid(const Config &config, const JSONRPCRequest &re
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getallbalancesforid", "1")
-            + HelpExampleRpc("omni_getallbalancesforid", "1")
+            + HelpExampleCli("whc_getallbalancesforid", "1")
+            + HelpExampleRpc("whc_getallbalancesforid", "1")
         );
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
@@ -835,11 +835,11 @@ UniValue omni_getallbalancesforid(const Config &config, const JSONRPCRequest &re
     return response;
 }
 
-UniValue omni_getallbalancesforaddress(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getallbalancesforaddress(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getallbalancesforaddress \"address\"\n"
+            "whc_getallbalancesforaddress \"address\"\n"
             "\nReturns a list of all token balances for a given address.\n"
             "\nArguments:\n"
             "1. address              (string, required) the address\n"
@@ -853,8 +853,8 @@ UniValue omni_getallbalancesforaddress(const Config &config, const JSONRPCReques
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
-            + HelpExampleRpc("omni_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+            + HelpExampleCli("whc_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+            + HelpExampleRpc("whc_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -885,11 +885,11 @@ UniValue omni_getallbalancesforaddress(const Config &config, const JSONRPCReques
     return response;
 }
 
-UniValue omni_getproperty(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getproperty(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getproperty propertyid\n"
+            "whc_getproperty propertyid\n"
             "\nReturns details for about the tokens or smart property to lookup.\n"
             "\nArguments:\n"
             "1. propertyid           (number, required) the identifier of the tokens or property\n"
@@ -909,8 +909,8 @@ UniValue omni_getproperty(const Config &config, const JSONRPCRequest &request)
             "  \"totaltokens\" : \"n.nnnnnnnn\"     (string) the total number of tokens in existence\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getproperty", "3")
-            + HelpExampleRpc("omni_getproperty", "3")
+            + HelpExampleCli("whc_getproperty", "3")
+            + HelpExampleRpc("whc_getproperty", "3")
         );
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
@@ -945,11 +945,11 @@ UniValue omni_getproperty(const Config &config, const JSONRPCRequest &request)
     return response;
 }
 
-UniValue omni_listproperties(const Config &config, const JSONRPCRequest &request)
+UniValue whc_listproperties(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp)
         throw runtime_error(
-            "omni_listproperties\n"
+            "whc_listproperties\n"
             "\nLists all tokens or smart properties.\n"
             "\nResult:\n"
             "[                                (array of JSON objects)\n"
@@ -965,8 +965,8 @@ UniValue omni_listproperties(const Config &config, const JSONRPCRequest &request
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_listproperties", "")
-            + HelpExampleRpc("omni_listproperties", "")
+            + HelpExampleCli("whc_listproperties", "")
+            + HelpExampleRpc("whc_listproperties", "")
         );
 
     UniValue response(UniValue::VARR);
@@ -1000,11 +1000,11 @@ UniValue omni_listproperties(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
-UniValue omni_getcrowdsale(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-            "omni_getcrowdsale propertyid ( verbose )\n"
+            "whc_getcrowdsale propertyid ( verbose )\n"
             "\nReturns information about a crowdsale.\n"
             "\nArguments:\n"
             "1. propertyid           (number, required) the identifier of the crowdsale\n"
@@ -1039,8 +1039,8 @@ UniValue omni_getcrowdsale(const Config &config, const JSONRPCRequest &request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getcrowdsale", "3 true")
-            + HelpExampleRpc("omni_getcrowdsale", "3, true")
+            + HelpExampleCli("whc_getcrowdsale", "3 true")
+            + HelpExampleRpc("whc_getcrowdsale", "3, true")
         );
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
@@ -1144,11 +1144,11 @@ UniValue omni_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     return response;
 }
 
-UniValue omni_getactivecrowdsales(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getactivecrowdsales(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp)
         throw runtime_error(
-            "omni_getactivecrowdsales\n"
+            "whc_getactivecrowdsales\n"
             "\nLists currently active crowdsales.\n"
             "\nResult:\n"
             "[                                 (array of JSON objects)\n"
@@ -1166,8 +1166,8 @@ UniValue omni_getactivecrowdsales(const Config &config, const JSONRPCRequest &re
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getactivecrowdsales", "")
-            + HelpExampleRpc("omni_getactivecrowdsales", "")
+            + HelpExampleCli("whc_getactivecrowdsales", "")
+            + HelpExampleRpc("whc_getactivecrowdsales", "")
         );
 
     UniValue response(UniValue::VARR);
@@ -1212,11 +1212,11 @@ UniValue omni_getactivecrowdsales(const Config &config, const JSONRPCRequest &re
     return response;
 }
 
-UniValue omni_getgrants(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getgrants(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getgrants propertyid\n"
+            "whc_getgrants propertyid\n"
             "\nReturns information about granted and revoked units of managed tokens.\n"
             "\nArguments:\n"
             "1. propertyid           (number, required) the identifier of the managed tokens to lookup\n"
@@ -1240,8 +1240,8 @@ UniValue omni_getgrants(const Config &config, const JSONRPCRequest &request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getgrants", "31")
-            + HelpExampleRpc("omni_getgrants", "31")
+            + HelpExampleCli("whc_getgrants", "31")
+            + HelpExampleRpc("whc_getgrants", "31")
         );
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
@@ -1617,11 +1617,11 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
     return response;
 }
 
-UniValue omni_listblocktransactions(const Config &config, const JSONRPCRequest &request)
+UniValue whc_listblocktransactions(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_listblocktransactions index\n"
+            "whc_listblocktransactions index\n"
             "\nLists all Omni transactions in a block.\n"
             "\nArguments:\n"
             "1. index                (number, required) the block height or block index\n"
@@ -1632,8 +1632,8 @@ UniValue omni_listblocktransactions(const Config &config, const JSONRPCRequest &
             "]\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_listblocktransactions", "279007")
-            + HelpExampleRpc("omni_listblocktransactions", "279007")
+            + HelpExampleCli("whc_listblocktransactions", "279007")
+            + HelpExampleRpc("whc_listblocktransactions", "279007")
         );
 
     int blockHeight = request.params[0].get_int();
@@ -1668,11 +1668,11 @@ UniValue omni_listblocktransactions(const Config &config, const JSONRPCRequest &
     return response;
 }
 
-UniValue omni_gettransaction(const Config &config, const JSONRPCRequest &request)
+UniValue whc_gettransaction(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_gettransaction \"txid\"\n"
+            "whc_gettransaction \"txid\"\n"
             "\nGet detailed information about an Omni transaction.\n"
             "\nArguments:\n"
             "1. txid                 (string, required) the hash of the transaction to lookup\n"
@@ -1693,8 +1693,8 @@ UniValue omni_gettransaction(const Config &config, const JSONRPCRequest &request
             "  [...]                             (mixed) other transaction type specific properties\n"
             "}\n"
             "\nbExamples:\n"
-            + HelpExampleCli("omni_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
-            + HelpExampleRpc("omni_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
+            + HelpExampleCli("whc_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
+            + HelpExampleRpc("whc_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
         );
 
     uint256 hash = ParseHashV(request.params[0], "txid");
@@ -1706,11 +1706,11 @@ UniValue omni_gettransaction(const Config &config, const JSONRPCRequest &request
     return txobj;
 }
 
-UniValue omni_listtransactions(const Config &config, const JSONRPCRequest &request)
+UniValue whc_listtransactions(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 5)
         throw runtime_error(
-            "omni_listtransactions ( \"address\" count skip startblock endblock )\n"
+            "whc_listtransactions ( \"address\" count skip startblock endblock )\n"
             "\nList wallet transactions, optionally filtered by an address and block boundaries.\n"
             "\nArguments:\n"
             "1. address              (string, optional) address filter (default: \"*\")\n"
@@ -1737,8 +1737,8 @@ UniValue omni_listtransactions(const Config &config, const JSONRPCRequest &reque
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_listtransactions", "")
-            + HelpExampleRpc("omni_listtransactions", "")
+            + HelpExampleCli("whc_listtransactions", "")
+            + HelpExampleRpc("whc_listtransactions", "")
         );
 
     // obtains parameters - default all wallet addresses & last 10 transactions
@@ -1787,11 +1787,11 @@ UniValue omni_listtransactions(const Config &config, const JSONRPCRequest &reque
     return response;
 }
 
-UniValue omni_listpendingtransactions(const Config &config, const JSONRPCRequest &request)
+UniValue whc_listpendingtransactions(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw runtime_error(
-            "omni_listpendingtransactions ( \"address\" )\n"
+            "whc_listpendingtransactions ( \"address\" )\n"
             "\nReturns a list of unconfirmed Omni transactions, pending in the memory pool.\n"
             "\nAn optional filter can be provided to only include transactions which involve the given address.\n"
             "\nNote: the validity of pending transactions is uncertain, and the state of the memory pool may "
@@ -1815,8 +1815,8 @@ UniValue omni_listpendingtransactions(const Config &config, const JSONRPCRequest
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_listpendingtransactions", "")
-            + HelpExampleRpc("omni_listpendingtransactions", "")
+            + HelpExampleCli("whc_listpendingtransactions", "")
+            + HelpExampleRpc("whc_listpendingtransactions", "")
         );
 
     std::string filterAddress;
@@ -1838,11 +1838,11 @@ UniValue omni_listpendingtransactions(const Config &config, const JSONRPCRequest
     return result;
 }
 
-UniValue omni_getinfo(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getinfo(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
-            "omni_getinfo\n"
+            "whc_getinfo\n"
             "Returns various state information of the client and protocol.\n"
             "\nResult:\n"
             "{\n"
@@ -1865,8 +1865,8 @@ UniValue omni_getinfo(const Config &config, const JSONRPCRequest &request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getinfo", "")
-            + HelpExampleRpc("omni_getinfo", "")
+            + HelpExampleCli("whc_getinfo", "")
+            + HelpExampleRpc("whc_getinfo", "")
         );
 
     UniValue infoResponse(UniValue::VOBJ);
@@ -1986,11 +1986,11 @@ UniValue omni_getactivations(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
-UniValue omni_getsto(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getsto(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-            "omni_getsto \"txid\" \"recipientfilter\"\n"
+            "whc_getsto \"txid\" \"recipientfilter\"\n"
             "\nGet information and recipients of a send-to-owners transaction.\n"
             "\nArguments:\n"
             "1. txid                 (string, required) the hash of the transaction to lookup\n"
@@ -2020,8 +2020,8 @@ UniValue omni_getsto(const Config &config, const JSONRPCRequest &request)
             "  ]\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"*\"")
-            + HelpExampleRpc("omni_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\", \"*\"")
+            + HelpExampleCli("whc_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"*\"")
+            + HelpExampleRpc("whc_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\", \"*\"")
         );
 
     uint256 hash = ParseHashV(request.params[0], "txid");
@@ -2091,11 +2091,11 @@ UniValue omni_gettrade(const Config &config, const JSONRPCRequest &request)
     return txobj;
 }
 
-UniValue omni_getcurrentconsensushash(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getcurrentconsensushash(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 0)
         throw runtime_error(
-            "omni_getcurrentconsensushash\n"
+            "whc_getcurrentconsensushash\n"
             "\nReturns the consensus hash for all balances for the current block.\n"
             "\nResult:\n"
             "{\n"
@@ -2105,8 +2105,8 @@ UniValue omni_getcurrentconsensushash(const Config &config, const JSONRPCRequest
             "}\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_getcurrentconsensushash", "")
-            + HelpExampleRpc("omni_getcurrentconsensushash", "")
+            + HelpExampleCli("whc_getcurrentconsensushash", "")
+            + HelpExampleRpc("whc_getcurrentconsensushash", "")
         );
 
     LOCK(cs_main); // TODO - will this ensure we don't take in a new block in the couple of ms it takes to calculate the consensus hash?
@@ -2170,11 +2170,11 @@ UniValue omni_getmetadexhash(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
-UniValue omni_getbalanceshash(const Config &config, const JSONRPCRequest &request)
+UniValue whc_getbalanceshash(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "omni_getbalanceshash propertyid\n"
+            "whc_getbalanceshash propertyid\n"
             "\nReturns a hash of the balances for the property.\n"
             "\nArguments:\n"
             "1. propertyid                  (number, required) the property to hash balances for\n"
@@ -2187,8 +2187,8 @@ UniValue omni_getbalanceshash(const Config &config, const JSONRPCRequest &reques
             "}\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_getbalanceshash", "31")
-            + HelpExampleRpc("omni_getbalanceshash", "31")
+            + HelpExampleCli("whc_getbalanceshash", "31")
+            + HelpExampleRpc("whc_getbalanceshash", "31")
         );
 
     LOCK(cs_main);
@@ -2215,59 +2215,59 @@ static const CRPCCommand commands[] =
 { //  category                             name                            actor (function)               okSafeMode
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
   //change_003
-    { "omni layer (data retrieval)", "omni_getinfo",                   &omni_getinfo,                    true  , {}},
+    { "omni layer (data retrieval)", "whc_getinfo",                   &whc_getinfo,                    true  , {}},
 //    { "omni layer (data retrieval)", "omni_getactivations",            &omni_getactivations,             true  , {}},
-    { "omni layer (data retrieval)", "omni_getallbalancesforid",       &omni_getallbalancesforid,        false , {}},
-    { "omni layer (data retrieval)", "omni_getbalance",                &omni_getbalance,                 false , {}},
-    { "omni layer (data retrieval)", "omni_gettransaction",            &omni_gettransaction,             false , {}},
-    { "omni layer (data retrieval)", "omni_getproperty",               &omni_getproperty,                false , {}},
-    { "omni layer (data retrieval)", "omni_listproperties",            &omni_listproperties,             false , {}},
-    { "omni layer (data retrieval)", "omni_getcrowdsale",              &omni_getcrowdsale,               false , {}},
-    { "omni layer (data retrieval)", "omni_getgrants",                 &omni_getgrants,                  false , {}},
+    { "omni layer (data retrieval)", "whc_getallbalancesforid",       &whc_getallbalancesforid,        false , {}},
+    { "omni layer (data retrieval)", "whc_getbalance",                &whc_getbalance,                 false , {}},
+    { "omni layer (data retrieval)", "whc_gettransaction",            &whc_gettransaction,             false , {}},
+    { "omni layer (data retrieval)", "whc_getproperty",               &whc_getproperty,                false , {}},
+    { "omni layer (data retrieval)", "whc_listproperties",            &whc_listproperties,             false , {}},
+    { "omni layer (data retrieval)", "whc_getcrowdsale",              &whc_getcrowdsale,               false , {}},
+    { "omni layer (data retrieval)", "whc_getgrants",                 &whc_getgrants,                  false , {}},
 //    { "omni layer (data retrieval)", "omni_getactivedexsells",         &omni_getactivedexsells,          false , {}},
-//    { "omni layer (data retrieval)", "omni_getactivecrowdsales",       &omni_getactivecrowdsales,        false , {}},
+//    { "omni layer (data retrieval)", "whc_getactivecrowdsales",       &whc_getactivecrowdsales,        false , {}},
 //    { "omni layer (data retrieval)", "omni_getorderbook",              &omni_getorderbook,               false , {}},
 //    { "omni layer (data retrieval)", "omni_gettrade",                  &omni_gettrade,                   false , {}},
-    { "omni layer (data retrieval)", "omni_getsto",                    &omni_getsto,                     false , {}},
-    { "omni layer (data retrieval)", "omni_listblocktransactions",     &omni_listblocktransactions,      false , {}},
-    { "omni layer (data retrieval)", "omni_listpendingtransactions",   &omni_listpendingtransactions,    false , {}},
-    { "omni layer (data retrieval)", "omni_getallbalancesforaddress",  &omni_getallbalancesforaddress,   false , {}},
+    { "omni layer (data retrieval)", "whc_getsto",                    &whc_getsto,                     false , {}},
+    { "omni layer (data retrieval)", "whc_listblocktransactions",     &whc_listblocktransactions,      false , {}},
+    { "omni layer (data retrieval)", "whc_listpendingtransactions",   &whc_listpendingtransactions,    false , {}},
+    { "omni layer (data retrieval)", "whc_getallbalancesforaddress",  &whc_getallbalancesforaddress,   false , {}},
 //    { "omni layer (data retrieval)", "omni_gettradehistoryforaddress", &omni_gettradehistoryforaddress,  false , {}},
 //    { "omni layer (data retrieval)", "omni_gettradehistoryforpair",    &omni_gettradehistoryforpair,     false , {}},
-    { "omni layer (data retrieval)", "omni_getcurrentconsensushash",   &omni_getcurrentconsensushash,    false , {}},
-    { "omni layer (data retrieval)", "omni_getpayload",                &omni_getpayload,                 false , {}},
-    { "omni layer (data retrieval)", "omni_getseedblocks",             &omni_getseedblocks,              false , {}},
+    { "omni layer (data retrieval)", "whc_getcurrentconsensushash",   &whc_getcurrentconsensushash,    false , {}},
+    { "omni layer (data retrieval)", "whc_getpayload",                &whc_getpayload,                 false , {}},
+    { "omni layer (data retrieval)", "whc_getseedblocks",             &whc_getseedblocks,              false , {}},
 //    { "omni layer (data retrieval)", "omni_getmetadexhash",            &omni_getmetadexhash,             false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeecache",               &omni_getfeecache,                false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeetrigger",             &omni_getfeetrigger,              false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeedistribution",        &omni_getfeedistribution,         false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
-    { "omni layer (data retrieval)", "omni_getbalanceshash",           &omni_getbalanceshash,            false , {}},
+    { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
 #ifdef ENABLE_WALLET
-    { "omni layer (data retrieval)", "omni_listtransactions",          &omni_listtransactions,           false , {}},
-    { "omni layer (data retrieval)", "omni_getfeeshare",               &omni_getfeeshare,                false , {}},
-    { "omni layer (configuration)",  "omni_setautocommit",             &omni_setautocommit,              true  , {}},
+    { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
+    { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
+    { "omni layer (configuration)",  "whc_setautocommit",             &whc_setautocommit,              true  , {}},
 #endif
     { "hidden",                      "mscrpc",                         &mscrpc,                          true  , {}},
 
     /* depreciated: */
-    { "hidden",                      "getinfo_MP",                     &omni_getinfo,                    true  , {}},
-    { "hidden",                      "getbalance_MP",                  &omni_getbalance,                 false , {}},
-    { "hidden",                      "getallbalancesforaddress_MP",    &omni_getallbalancesforaddress,   false , {}},
-    { "hidden",                      "getallbalancesforid_MP",         &omni_getallbalancesforid,        false , {}},
-    { "hidden",                      "getproperty_MP",                 &omni_getproperty,                false , {}},
-    { "hidden",                      "listproperties_MP",              &omni_listproperties,             false , {}},
-    { "hidden",                      "getcrowdsale_MP",                &omni_getcrowdsale,               false , {}},
-    { "hidden",                      "getgrants_MP",                   &omni_getgrants,                  false , {}},
+    { "hidden",                      "getinfo_MP",                     &whc_getinfo,                    true  , {}},
+    { "hidden",                      "getbalance_MP",                  &whc_getbalance,                 false , {}},
+    { "hidden",                      "getallbalancesforaddress_MP",    &whc_getallbalancesforaddress,   false , {}},
+    { "hidden",                      "getallbalancesforid_MP",         &whc_getallbalancesforid,        false , {}},
+    { "hidden",                      "getproperty_MP",                 &whc_getproperty,                false , {}},
+    { "hidden",                      "listproperties_MP",              &whc_listproperties,             false , {}},
+    { "hidden",                      "getcrowdsale_MP",                &whc_getcrowdsale,               false , {}},
+    { "hidden",                      "getgrants_MP",                   &whc_getgrants,                  false , {}},
 //    { "hidden",                      "getactivedexsells_MP",           &omni_getactivedexsells,          false , {}},
-    { "hidden",                      "getactivecrowdsales_MP",         &omni_getactivecrowdsales,        false , {}},
-    { "hidden",                      "getsto_MP",                      &omni_getsto,                     false , {}},
+    { "hidden",                      "getactivecrowdsales_MP",         &whc_getactivecrowdsales,        false , {}},
+    { "hidden",                      "getsto_MP",                      &whc_getsto,                     false , {}},
 //    { "hidden",                      "getorderbook_MP",                &omni_getorderbook,               false , {}},
 //    { "hidden",                      "gettrade_MP",                    &omni_gettrade,                   false , {}},
-    { "hidden",                      "gettransaction_MP",              &omni_gettransaction,             false , {}},
-    { "hidden",                      "listblocktransactions_MP",       &omni_listblocktransactions,      false , {}},
+    { "hidden",                      "gettransaction_MP",              &whc_gettransaction,             false , {}},
+    { "hidden",                      "listblocktransactions_MP",       &whc_listblocktransactions,      false , {}},
 #ifdef ENABLE_WALLET
-    { "hidden",                      "listtransactions_MP",            &omni_listtransactions,           false , {}},
+    { "hidden",                      "listtransactions_MP",            &whc_listtransactions,           false , {}},
 #endif
 };
 

@@ -39,11 +39,11 @@
 using std::runtime_error;
 using namespace mastercore;
 
-UniValue omni_sendrawtx(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendrawtx(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 5)
         throw runtime_error(
-            "omni_sendrawtx \"fromaddress\" \"rawtransaction\" ( \"referenceaddress\" \"redeemaddress\" \"referenceamount\" )\n"
+            "whc_sendrawtx \"fromaddress\" \"rawtransaction\" ( \"referenceaddress\" \"redeemaddress\" \"referenceamount\" )\n"
             "\nBroadcasts a raw Omni Layer transaction.\n"
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
@@ -54,8 +54,8 @@ UniValue omni_sendrawtx(const Config &config,const JSONRPCRequest &request)
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendrawtx", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\" \"000000000000000100000000017d7840\" \"1EqTta1Rt8ixAA32DuC29oukbsSWU62qAV\"")
-            + HelpExampleRpc("omni_sendrawtx", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\", \"000000000000000100000000017d7840\", \"1EqTta1Rt8ixAA32DuC29oukbsSWU62qAV\"")
+            + HelpExampleCli("whc_sendrawtx", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\" \"000000000000000100000000017d7840\" \"1EqTta1Rt8ixAA32DuC29oukbsSWU62qAV\"")
+            + HelpExampleRpc("whc_sendrawtx", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\", \"000000000000000100000000017d7840\", \"1EqTta1Rt8ixAA32DuC29oukbsSWU62qAV\"")
         );
 
     std::string fromAddress = ParseAddress(request.params[0]);
@@ -81,11 +81,11 @@ UniValue omni_sendrawtx(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_send(const Config &config,const JSONRPCRequest &request)
+UniValue whc_send(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 6)
         throw runtime_error(
-            "omni_send \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
+            "whc_send \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
 
             "\nCreate and broadcast a simple send transaction.\n"
 
@@ -101,8 +101,8 @@ UniValue omni_send(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_send", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"100.0\"")
-            + HelpExampleRpc("omni_send", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 1, \"100.0\"")
+            + HelpExampleCli("whc_send", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"100.0\"")
+            + HelpExampleRpc("whc_send", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 1, \"100.0\"")
         );
 
     // obtain parameters & info
@@ -139,11 +139,11 @@ UniValue omni_send(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_sendall(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 5)
         throw runtime_error(
-            "omni_sendall \"fromaddress\" \"toaddress\" ecosystem ( \"redeemaddress\" \"referenceamount\" )\n"
+            "whc_sendall \"fromaddress\" \"toaddress\" ecosystem ( \"redeemaddress\" \"referenceamount\" )\n"
 
             "\nTransfers all available tokens in the given ecosystem to the recipient.\n"
 
@@ -158,8 +158,8 @@ UniValue omni_sendall(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendall", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 2")
-            + HelpExampleRpc("omni_sendall", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 2")
+            + HelpExampleCli("whc_sendall", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 2")
+            + HelpExampleRpc("whc_sendall", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 2")
         );
 
     // obtain parameters & info
@@ -193,11 +193,11 @@ UniValue omni_sendall(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 14)
         throw runtime_error(
-            "omni_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus issuerpercentage )\n"
+            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus issuerpercentage )\n"
 
             "Create new tokens as crowdsale."
 
@@ -221,8 +221,8 @@ UniValue omni_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &r
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendissuancecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
-            + HelpExampleRpc("omni_sendissuancecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2")
+            + HelpExampleCli("whc_sendissuancecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
+            + HelpExampleRpc("whc_sendissuancecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2")
         );
 
     // obtain parameters & info
@@ -242,6 +242,7 @@ UniValue omni_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &r
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);
 
     // perform checks
+    RequirePropertyType(type);
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequireExistingProperty(propertyIdDesired);
@@ -269,11 +270,11 @@ UniValue omni_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &r
     }
 }
 
-UniValue omni_sendissuancefixed(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 10)
         throw runtime_error(
-            "omni_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"amount\"\n"
+            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"amount\"\n"
 
             "\nCreate new tokens with fixed supply.\n"
 
@@ -293,8 +294,8 @@ UniValue omni_sendissuancefixed(const Config &config,const JSONRPCRequest &reque
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendissuancefixed", "\"3Ck2kEGLJtZw9ENj2tameMCtS3HB7uRar3\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" \"1000000\"")
-            + HelpExampleRpc("omni_sendissuancefixed", "\"3Ck2kEGLJtZw9ENj2tameMCtS3HB7uRar3\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", \"1000000\"")
+            + HelpExampleCli("whc_sendissuancefixed", "\"3Ck2kEGLJtZw9ENj2tameMCtS3HB7uRar3\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" \"1000000\"")
+            + HelpExampleRpc("whc_sendissuancefixed", "\"3Ck2kEGLJtZw9ENj2tameMCtS3HB7uRar3\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", \"1000000\"")
         );
 
     // obtain parameters & info
@@ -310,6 +311,7 @@ UniValue omni_sendissuancefixed(const Config &config,const JSONRPCRequest &reque
     int64_t amount = ParseAmount(request.params[9], type);
 
     // perform checks
+    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
 
@@ -333,11 +335,11 @@ UniValue omni_sendissuancefixed(const Config &config,const JSONRPCRequest &reque
     }
 }
 
-UniValue omni_sendissuancemanaged(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 9)
         throw runtime_error(
-            "omni_sendissuancemanaged \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\"\n"
+            "whc_sendissuancemanaged \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\"\n"
 
             "\nCreate new tokens with manageable supply.\n"
 
@@ -356,8 +358,8 @@ UniValue omni_sendissuancemanaged(const Config &config,const JSONRPCRequest &req
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendissuancemanaged", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\"")
-            + HelpExampleRpc("omni_sendissuancemanaged", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\"")
+            + HelpExampleCli("whc_sendissuancemanaged", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\"")
+            + HelpExampleRpc("whc_sendissuancemanaged", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", 2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\"")
         );
 
     // obtain parameters & info
@@ -372,6 +374,7 @@ UniValue omni_sendissuancemanaged(const Config &config,const JSONRPCRequest &req
     std::string data = ParseText(request.params[8]);
 
     // perform checks
+    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
 
@@ -395,11 +398,11 @@ UniValue omni_sendissuancemanaged(const Config &config,const JSONRPCRequest &req
     }
 }
 
-UniValue omni_sendsto(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendsto(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 5)
         throw runtime_error(
-            "omni_sendsto \"fromaddress\" propertyid \"amount\" ( \"redeemaddress\" distributionproperty )\n"
+            "whc_sendsto \"fromaddress\" propertyid \"amount\" ( \"redeemaddress\" distributionproperty )\n"
 
             "\nCreate and broadcast a send-to-owners transaction.\n"
 
@@ -414,8 +417,8 @@ UniValue omni_sendsto(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 3 \"5000\"")
-            + HelpExampleRpc("omni_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 3, \"5000\"")
+            + HelpExampleCli("whc_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 3 \"5000\"")
+            + HelpExampleRpc("whc_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 3, \"5000\"")
         );
 
     // obtain parameters & info
@@ -449,11 +452,11 @@ UniValue omni_sendsto(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_sendgrant(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendgrant(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 5)
         throw runtime_error(
-            "omni_sendgrant \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"memo\" )\n"
+            "whc_sendgrant \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"memo\" )\n"
 
             "\nIssue or grant new units of managed tokens.\n"
 
@@ -468,8 +471,8 @@ UniValue omni_sendgrant(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"7000\"")
-            + HelpExampleRpc("omni_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"7000\"")
+            + HelpExampleCli("whc_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"7000\"")
+            + HelpExampleRpc("whc_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"7000\"")
         );
 
     // obtain parameters & info
@@ -504,11 +507,11 @@ UniValue omni_sendgrant(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_sendrevoke(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendrevoke(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 4)
         throw runtime_error(
-            "omni_sendrevoke \"fromaddress\" propertyid \"amount\" ( \"memo\" )\n"
+            "whc_sendrevoke \"fromaddress\" propertyid \"amount\" ( \"memo\" )\n"
 
             "\nRevoke units of managed tokens.\n"
 
@@ -522,8 +525,8 @@ UniValue omni_sendrevoke(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"100\"")
-            + HelpExampleRpc("omni_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"100\"")
+            + HelpExampleCli("whc_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"100\"")
+            + HelpExampleRpc("whc_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"100\"")
         );
 
     // obtain parameters & info
@@ -558,11 +561,11 @@ UniValue omni_sendrevoke(const Config &config,const JSONRPCRequest &request)
     }
 }
 
-UniValue omni_sendclosecrowdsale(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendclosecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-            "omni_sendclosecrowdsale \"fromaddress\" propertyid\n"
+            "whc_sendclosecrowdsale \"fromaddress\" propertyid\n"
 
             "\nManually close a crowdsale.\n"
 
@@ -574,8 +577,8 @@ UniValue omni_sendclosecrowdsale(const Config &config,const JSONRPCRequest &requ
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 70")
-            + HelpExampleRpc("omni_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\", 70")
+            + HelpExampleCli("whc_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 70")
+            + HelpExampleRpc("whc_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\", 70")
         );
 
     // obtain parameters & info
@@ -608,11 +611,11 @@ UniValue omni_sendclosecrowdsale(const Config &config,const JSONRPCRequest &requ
     }
 }
 
-UniValue omni_sendchangeissuer(const Config &config,const JSONRPCRequest &request)
+UniValue whc_sendchangeissuer(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
-            "omni_sendchangeissuer \"fromaddress\" \"toaddress\" propertyid\n"
+            "whc_sendchangeissuer \"fromaddress\" \"toaddress\" propertyid\n"
 
             "\nChange the issuer on record of the given tokens.\n"
 
@@ -625,8 +628,8 @@ UniValue omni_sendchangeissuer(const Config &config,const JSONRPCRequest &reques
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_sendchangeissuer", "\"1ARjWDkZ7kT9fwjPrjcQyvbXDkEySzKHwu\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 3")
-            + HelpExampleRpc("omni_sendchangeissuer", "\"1ARjWDkZ7kT9fwjPrjcQyvbXDkEySzKHwu\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 3")
+            + HelpExampleCli("whc_sendchangeissuer", "\"1ARjWDkZ7kT9fwjPrjcQyvbXDkEySzKHwu\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 3")
+            + HelpExampleRpc("whc_sendchangeissuer", "\"1ARjWDkZ7kT9fwjPrjcQyvbXDkEySzKHwu\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 3")
         );
 
     // obtain parameters & info
@@ -658,11 +661,11 @@ UniValue omni_sendchangeissuer(const Config &config,const JSONRPCRequest &reques
     }
 }
 
-UniValue omni_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
+UniValue whc_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-                "omni_burnbchgetwhc \"amount\" redeemaddress\n"
+                "whc_burnbchgetwhc \"amount\" redeemaddress\n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
                         "1. amount          	(numeric or string, required) The burn bch amount, required less amount is 1BCH\n"
@@ -670,8 +673,8 @@ UniValue omni_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("omni_burnbchgetwhc", "1, \"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
-                + HelpExampleRpc("omni_burnbchgetwhc", "1, \"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+                + HelpExampleCli("whc_burnbchgetwhc", "1, \"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+                + HelpExampleRpc("whc_burnbchgetwhc", "1, \"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
         );
 
     // obtain parameters & info
@@ -789,23 +792,23 @@ static const CRPCCommand commands[] =
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
 #ifdef ENABLE_WALLET
     //change_003
-    { "omni layer (transaction creation)", "omni_sendrawtx",               &omni_sendrawtx,               false, {} },
-    { "omni layer (transaction creation)", "omni_send",                    &omni_send,                    false, {} },
-    { "omni layer (transaction creation)", "omni_sendissuancecrowdsale",   &omni_sendissuancecrowdsale,   false, {} },
-    { "omni layer (transaction creation)", "omni_sendissuancefixed",       &omni_sendissuancefixed,       false, {} },
-    { "omni layer (transaction creation)", "omni_sendissuancemanaged",     &omni_sendissuancemanaged,     false, {} },
-    { "omni layer (transaction creation)", "omni_sendsto",                 &omni_sendsto,                 false, {} },
-    { "omni layer (transaction creation)", "omni_burnbchgetwhc",           &omni_burnbchgetwhc,           false, {} },
-    { "omni layer (transaction creation)", "omni_sendgrant",               &omni_sendgrant,               false, {} },
-    { "omni layer (transaction creation)", "omni_sendrevoke",              &omni_sendrevoke,              false, {} },
-    { "omni layer (transaction creation)", "omni_sendclosecrowdsale",      &omni_sendclosecrowdsale,      false, {} },
-    { "omni layer (transaction creation)", "omni_sendchangeissuer",        &omni_sendchangeissuer,        false, {} },
-    { "omni layer (transaction creation)", "omni_sendall",                 &omni_sendall,                 false, {} },
+    { "omni layer (transaction creation)", "whc_sendrawtx",               &whc_sendrawtx,               false, {} },
+    { "omni layer (transaction creation)", "whc_send",                    &whc_send,                    false, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancecrowdsale",   &whc_sendissuancecrowdsale,   false, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancefixed",       &whc_sendissuancefixed,       false, {} },
+    { "omni layer (transaction creation)", "whc_sendissuancemanaged",     &whc_sendissuancemanaged,     false, {} },
+    { "omni layer (transaction creation)", "whc_sendsto",                 &whc_sendsto,                 false, {} },
+    { "omni layer (transaction creation)", "whc_burnbchgetwhc",           &whc_burnbchgetwhc,           false, {} },
+    { "omni layer (transaction creation)", "whc_sendgrant",               &whc_sendgrant,               false, {} },
+    { "omni layer (transaction creation)", "whc_sendrevoke",              &whc_sendrevoke,              false, {} },
+    { "omni layer (transaction creation)", "whc_sendclosecrowdsale",      &whc_sendclosecrowdsale,      false, {} },
+    { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
+    { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
 
 	/* depreciated: */
-    { "hidden",                            "sendrawtx_MP",                 &omni_sendrawtx,               false, {} },
-    { "hidden",                            "send_MP",                      &omni_send,                    false, {} },
-    { "hidden",                            "sendtoowners_MP",              &omni_sendsto,                 false, {} },
+    { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx,               false, {} },
+    { "hidden",                            "send_MP",                      &whc_send,                    false, {} },
+    { "hidden",                            "sendtoowners_MP",              &whc_sendsto,                 false, {} },
 
 #endif
 };
