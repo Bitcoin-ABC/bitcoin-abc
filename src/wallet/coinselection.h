@@ -37,8 +37,6 @@ public:
     COutPoint outpoint;
     CTxOut txout;
     Amount effective_value;
-    Amount fee = Amount::zero();
-    Amount long_term_fee = Amount::zero();
 
     /**
      * Pre-computed estimated size of this output as a fully-signed input in a
