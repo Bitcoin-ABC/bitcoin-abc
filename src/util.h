@@ -314,4 +314,18 @@ template <typename Callable> void TraceThread(const char *name, Callable func) {
 
 std::string CopyrightHolders(const std::string &strPrefix);
 
+namespace util {
+
+//! Simplification of std insertion
+template <typename Tdst, typename Tsrc>
+inline void insert(Tdst &dst, const Tsrc &src) {
+    dst.insert(dst.begin(), src.begin(), src.end());
+}
+template <typename TsetT, typename Tsrc>
+inline void insert(std::set<TsetT> &dst, const Tsrc &src) {
+    dst.insert(src.begin(), src.end());
+}
+
+} // namespace util
+
 #endif // BITCOIN_UTIL_H
