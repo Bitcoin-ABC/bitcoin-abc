@@ -529,6 +529,10 @@ public:
     }
 
     std::string ToString() const;
+
+    inline CInputCoin GetInputCoin() const {
+        return CInputCoin(tx->tx, i, nInputBytes);
+    }
 };
 
 /** Private key that includes an expiration date in case it never gets used. */
