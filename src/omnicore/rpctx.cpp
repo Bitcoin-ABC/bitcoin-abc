@@ -660,7 +660,7 @@ UniValue omni_sendchangeissuer(const Config &config,const JSONRPCRequest &reques
 
 UniValue omni_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 2)
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
                 "omni_burnbchgetwhc \"amount\" redeemaddress\n"
                         "\nburn BCH to get WHC"
