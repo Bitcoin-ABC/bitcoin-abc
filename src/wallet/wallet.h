@@ -47,6 +47,8 @@ static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000 * SATOSHI);
 static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
 //! Default for -walletrejectlongchains
 static const bool DEFAULT_WALLET_REJECT_LONG_CHAINS = false;
+//! Default for -avoidpartialspends
+static const bool DEFAULT_AVOIDPARTIALSPENDS = false;
 static const bool DEFAULT_WALLETBROADCAST = true;
 static const bool DEFAULT_DISABLE_WALLET = false;
 

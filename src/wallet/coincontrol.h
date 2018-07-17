@@ -26,18 +26,12 @@ public:
     boost::optional<CFeeRate> m_feerate;
     //! Override the default confirmation target if set
     boost::optional<unsigned int> m_confirm_target;
+    //! Avoid partial use of funds sent to a given address
+    bool m_avoid_partial_spends;
 
     CCoinControl() { SetNull(); }
 
-    void SetNull() {
-        destChange = CNoDestination();
-        fAllowOtherInputs = false;
-        fAllowWatchOnly = false;
-        setSelected.clear();
-        m_feerate.reset();
-        fOverrideFeeRate = false;
-        m_confirm_target.reset();
-    }
+    void SetNull();
 
     bool HasSelected() const { return (setSelected.size() > 0); }
 
