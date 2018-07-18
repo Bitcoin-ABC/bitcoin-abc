@@ -215,10 +215,17 @@ public:
      */
     operator const CTransaction &() const { return *tx; }
 
+	const CTransaction& getTx() const{
+		return *(tx.get());
+	}
     void Init() {
         hashBlock = uint256();
         nIndex = -1;
     }
+	
+	std::string ToString(){
+		return tx.get()->ToString();
+	}
 
     void SetTx(CTransactionRef arg) { tx = std::move(arg); }
 

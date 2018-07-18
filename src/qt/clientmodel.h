@@ -79,6 +79,10 @@ public:
     bool isReleaseVersion() const;
     QString formatClientStartupTime() const;
     QString dataDir() const;
+	
+	// Try to avoid Omni queuing too many messages
+    bool tryLockOmniStateChanged();
+    bool tryLockOmniBalanceChanged();
 
 private:
     OptionsModel *optionsModel;
@@ -90,6 +94,9 @@ private:
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 
+	// Locks for Omni state changes
+    bool lockedOmniStateChanged;
+    bool lockedOmniBalanceChanged;
 Q_SIGNALS:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, const QDateTime &blockDate,
@@ -98,6 +105,12 @@ Q_SIGNALS:
     void networkActiveChanged(bool networkActive);
     void alertsChanged(const QString &warnings);
     void bytesChanged(quint64 totalBytesIn, quint64 totalBytesOut);
+
+    // Additional Omni signals
+    void reinitOmniState();
+    void refreshOmniState();
+    void refreshOmniBalance();
+    void refreshOmniPending(bool pending);
 
     //! Fired when a message should be reported to the user
     void message(const QString &title, const QString &message,
@@ -112,6 +125,13 @@ public Q_SLOTS:
     void updateNetworkActive(bool networkActive);
     void updateAlert();
     void updateBanlist();
+	
+
+    // Additional Omni slots
+    void invalidateOmniState();
+    void updateOmniState();
+    void updateOmniBalance();
+    void updateOmniPending(bool pending);
 };
 
 #endif // BITCOIN_QT_CLIENTMODEL_H

@@ -91,3 +91,7 @@ std::string ChainNameFromCommandLine() {
     if (fTestNet) return CBaseChainParams::TESTNET;
     return CBaseChainParams::MAIN;
 }
+
+bool AreBaseParamsConfigured(){
+    return globalChainBaseParams != NULL;
+}

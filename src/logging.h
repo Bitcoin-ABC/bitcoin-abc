@@ -18,7 +18,7 @@ static const bool DEFAULT_LOGIPS = false;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
 
 extern bool fLogIPs;
-
+extern std::atomic<bool> fReopenOmniCoreLog;
 namespace BCLog {
 
 enum LogFlags : uint32_t {
@@ -44,6 +44,7 @@ enum LogFlags : uint32_t {
     COINDB = (1 << 18),
     QT = (1 << 19),
     LEVELDB = (1 << 20),
+	OMNICORE = (1 << 21),
     ALL = ~uint32_t(0),
 };
 

@@ -755,4 +755,7 @@ void DumpMempool();
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config);
 
+bool AbortNode(const std::string &strMessage, const std::string &userMessage = "");
+
+void AlertNotify(const std::string &strMessage);
 #endif // BITCOIN_VALIDATION_H

@@ -40,6 +40,7 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validation.h"
+#include "omnicore/omnicore.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "wallet/rpcdump.h"
@@ -274,6 +275,7 @@ void Shutdown() {
  */
 void HandleSIGTERM(int) {
     fRequestShutdown = true;
+	fReopenOmniCoreLog = true;
 }
 
 void HandleSIGHUP(int) {
@@ -2193,6 +2195,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
     // Activates by default on Jan, 14
     config.SetCashAddrEncoding(
         gArgs.GetBoolArg("-usecashaddr", GetAdjustedTime() > 1515900000));
+	mastercore_init();
 
 // Step 8: load wallet
 #ifdef ENABLE_WALLET
