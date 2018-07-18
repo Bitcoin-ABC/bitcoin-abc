@@ -74,7 +74,7 @@ CMPSPInfo::CMPSPInfo(const boost::filesystem::path& path, bool fWipe)
     implied_omni.category = "N/A";
     implied_omni.subcategory = "N/A";
     implied_omni.name = "WHC";
-    implied_omni.url = "http://www.whc.org";
+    implied_omni.url = "http://www.wormhole.cash";
     implied_omni.data = "WHC serve as the binding between Bitcoin, smart properties and contracts created on the Omni Layer.";
     implied_omni.creation_block = uint256S("");
     implied_omni.update_block = uint256S("");
