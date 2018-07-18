@@ -83,7 +83,7 @@ static int verify_script(const uint8_t *scriptPubKey,
                          unsigned int nIn, unsigned int flags,
                          bitcoinconsensus_error *err) {
     if (!verify_flags(flags)) {
-        return bitcoinconsensus_ERR_INVALID_FLAGS;
+        return set_error(err, bitcoinconsensus_ERR_INVALID_FLAGS);
     }
     try {
         TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
