@@ -28,6 +28,14 @@ inline SigHashType GetHashType(const valtype &vchSig) {
 } // namespace
 
 /**
+ * Check that the signature provided on some data is properly encoded.
+ * Signatures passed to OP_CHECKDATASIG and its verify variant must be checked
+ * using this function.
+ */
+bool CheckDataSignatureEncoding(const valtype &vchSig, uint32_t flags,
+                                ScriptError *serror);
+
+/**
  * Check that the signature provided to authentify a transaction is properly
  * encoded. Signatures passed to OP_CHECKSIG, OP_CHECKMULTISIG and their verify
  * variants must be checked using this function.

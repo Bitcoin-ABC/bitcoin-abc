@@ -168,6 +168,18 @@ static bool CheckRawSignatureEncoding(const slicedvaltype &sig, uint32_t flags,
     return true;
 }
 
+bool CheckDataSignatureEncoding(const valtype &vchSig, uint32_t flags,
+                                ScriptError *serror) {
+    // Empty signature. Not strictly DER encoded, but allowed to provide a
+    // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
+    if (vchSig.size() == 0) {
+        return true;
+    }
+
+    return CheckRawSignatureEncoding(
+        vchSig | boost::adaptors::sliced(0, vchSig.size()), flags, serror);
+}
+
 bool CheckTransactionSignatureEncoding(const valtype &vchSig, uint32_t flags,
                                        ScriptError *serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
