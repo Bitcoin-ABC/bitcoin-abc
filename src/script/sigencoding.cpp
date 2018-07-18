@@ -11,6 +11,8 @@
 
 #include <boost/range/adaptor/sliced.hpp>
 
+typedef boost::sliced_range<const valtype> slicedvaltype;
+
 /**
  * A canonical signature exists of: <30> <total len> <02> <len R> <R> <02> <len
  * S> <S> <hashtype>, where R and S are not negative (their first byte has its
@@ -22,8 +24,7 @@
  *
  * This function is consensus-critical since BIP66.
  */
-static bool
-IsValidSignatureEncoding(const boost::sliced_range<const valtype> &sig) {
+static bool IsValidSignatureEncoding(const slicedvaltype &sig) {
     // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
     // * total-length: 1-byte length descriptor of everything that follows,
     // excluding the sighash byte.
@@ -152,46 +153,52 @@ IsValidSignatureEncoding(const boost::sliced_range<const valtype> &sig) {
     return true;
 }
 
-static bool IsLowDERSignature(const valtype &vchSig, ScriptError *serror) {
-    assert(vchSig.size() > 0);
-    if (CPubKey::CheckLowS(vchSig |
-                           boost::adaptors::sliced(0, vchSig.size() - 1))) {
-        return true;
+static bool CheckRawSignatureEncoding(const slicedvaltype &sig, uint32_t flags,
+                                      ScriptError *serror) {
+    if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S |
+                  SCRIPT_VERIFY_STRICTENC)) &&
+        !IsValidSignatureEncoding(sig)) {
+        return set_error(serror, SCRIPT_ERR_SIG_DER);
     }
-    return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
+
+    if ((flags & SCRIPT_VERIFY_LOW_S) && !CPubKey::CheckLowS(sig)) {
+        return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
+    }
+
+    return true;
 }
 
-bool CheckSignatureEncoding(const valtype &vchSig, uint32_t flags,
-                            ScriptError *serror) {
+bool CheckTransactionSignatureEncoding(const valtype &vchSig, uint32_t flags,
+                                       ScriptError *serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
     if (vchSig.size() == 0) {
         return true;
     }
-    if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S |
-                  SCRIPT_VERIFY_STRICTENC)) != 0 &&
-        !IsValidSignatureEncoding(
-            vchSig | boost::adaptors::sliced(0, vchSig.size() - 1))) {
-        return set_error(serror, SCRIPT_ERR_SIG_DER);
-    }
-    if ((flags & SCRIPT_VERIFY_LOW_S) != 0 &&
-        !IsLowDERSignature(vchSig, serror)) {
+
+    if (!CheckRawSignatureEncoding(
+            vchSig | boost::adaptors::sliced(0, vchSig.size() - 1), flags,
+            serror)) {
         // serror is set
         return false;
     }
-    if ((flags & SCRIPT_VERIFY_STRICTENC) != 0) {
+
+    if (flags & SCRIPT_VERIFY_STRICTENC) {
         if (!GetHashType(vchSig).isDefined()) {
             return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
         }
+
         bool usesForkId = GetHashType(vchSig).hasForkId();
         bool forkIdEnabled = flags & SCRIPT_ENABLE_SIGHASH_FORKID;
         if (!forkIdEnabled && usesForkId) {
             return set_error(serror, SCRIPT_ERR_ILLEGAL_FORKID);
         }
+
         if (forkIdEnabled && !usesForkId) {
             return set_error(serror, SCRIPT_ERR_MUST_USE_FORKID);
         }
     }
+
     return true;
 }
 

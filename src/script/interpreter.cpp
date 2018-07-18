@@ -876,7 +876,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype &vchSig = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        if (!CheckSignatureEncoding(vchSig, flags, serror) ||
+                        if (!CheckTransactionSignatureEncoding(vchSig, flags,
+                                                               serror) ||
                             !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             // serror is set
                             return false;
@@ -974,8 +975,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             // pubkey/signature evaluation distinguishable by
                             // CHECKMULTISIG NOT if the STRICTENC flag is set.
                             // See the script_(in)valid tests for details.
-                            if (!CheckSignatureEncoding(vchSig, flags,
-                                                        serror) ||
+                            if (!CheckTransactionSignatureEncoding(
+                                    vchSig, flags, serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
                                                      serror)) {
                                 // serror is set
