@@ -536,7 +536,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
     try {
         int nMinVersion = 0;
         if (m_batch.Read((std::string) "minversion", nMinVersion)) {
-            if (nMinVersion > CLIENT_VERSION) {
+            if (nMinVersion > FEATURE_LATEST) {
                 return DBErrors::TOO_NEW;
             }
             pwallet->LoadMinVersion(nMinVersion);
@@ -654,7 +654,7 @@ DBErrors WalletBatch::FindWalletTx(std::vector<TxId> &txIds,
     try {
         int nMinVersion = 0;
         if (m_batch.Read((std::string) "minversion", nMinVersion)) {
-            if (nMinVersion > CLIENT_VERSION) {
+            if (nMinVersion > FEATURE_LATEST) {
                 return DBErrors::TOO_NEW;
             }
         }

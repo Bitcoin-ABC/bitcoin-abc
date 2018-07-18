@@ -4454,7 +4454,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         // The -upgradewallet without argument case
         if (nMaxVersion == 0) {
             LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
-            nMaxVersion = CLIENT_VERSION;
+            nMaxVersion = FEATURE_LATEST;
             // permanently upgrade the wallet immediately
             walletInstance->SetMinVersion(FEATURE_LATEST);
         } else {
