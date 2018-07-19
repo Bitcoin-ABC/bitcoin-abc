@@ -832,7 +832,9 @@ bool ParseHDKeypath(const std::string &keypath_str,
             return false;
         }
         uint32_t number;
-        ParseUInt32(item, &number);
+        if (!ParseUInt32(item, &number)) {
+            return false;
+        }
         path |= number;
 
         keypath.push_back(path);
