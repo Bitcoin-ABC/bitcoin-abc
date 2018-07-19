@@ -890,6 +890,8 @@ public:
                             bool &bnb_used) const;
 
     bool IsSpent(const TxId &txid, uint32_t n) const;
+    std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
+                                          bool single_coin) const;
 
     bool IsLockedCoin(const TxId &txid, uint32_t n) const;
     void LockCoin(const COutPoint &output);

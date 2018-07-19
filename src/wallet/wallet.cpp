@@ -4640,3 +4640,44 @@ CTxDestination CWallet::AddAndGetDestinationForScript(const CScript &script,
             assert(false);
     }
 }
+
+std::vector<OutputGroup>
+CWallet::GroupOutputs(const std::vector<COutput> &outputs,
+                      bool single_coin) const {
+    std::vector<OutputGroup> groups;
+    std::map<CTxDestination, OutputGroup> gmap;
+    CTxDestination dst;
+    for (const auto &output : outputs) {
+        if (output.fSpendable) {
+            CInputCoin input_coin = output.GetInputCoin();
+
+            size_t ancestors, descendants;
+            g_mempool.GetTransactionAncestry(output.tx->GetId(), ancestors,
+                                             descendants);
+            if (!single_coin &&
+                ExtractDestination(output.tx->tx->vout[output.i].scriptPubKey,
+                                   dst)) {
+                // Limit output groups to no more than 10 entries, to protect
+                // against inadvertently creating a too-large transaction
+                // when using -avoidpartialspends
+                if (gmap[dst].m_outputs.size() >= 10) {
+                    groups.push_back(gmap[dst]);
+                    gmap.erase(dst);
+                }
+                gmap[dst].Insert(input_coin, output.nDepth,
+                                 output.tx->IsFromMe(ISMINE_ALL), ancestors,
+                                 descendants);
+            } else {
+                groups.emplace_back(input_coin, output.nDepth,
+                                    output.tx->IsFromMe(ISMINE_ALL), ancestors,
+                                    descendants);
+            }
+        }
+    }
+    if (!single_coin) {
+        for (const auto &it : gmap) {
+            groups.push_back(it.second);
+        }
+    }
+    return groups;
+}
