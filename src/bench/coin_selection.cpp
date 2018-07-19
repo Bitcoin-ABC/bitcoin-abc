@@ -10,7 +10,7 @@
 #include <set>
 
 static void addCoin(const Amount nValue, const CWallet &wallet,
-                    std::vector<COutput> &vCoins) {
+                    std::vector<OutputGroup> &groups) {
     int nInput = 0;
 
     static int nextLockTime = 0;
@@ -24,7 +24,7 @@ static void addCoin(const Amount nValue, const CWallet &wallet,
     int nAge = 6 * 24;
     COutput output(wtx, nInput, nAge, true /* spendable */, true /* solvable */,
                    true /* safe */);
-    vCoins.push_back(output);
+    groups.emplace_back(output.GetInputCoin(), 0, false, 0, 0);
 }
 
 // Simple benchmark for wallet coin selection. Note that it maybe be necessary
@@ -40,11 +40,11 @@ static void CoinSelection(benchmark::State &state) {
     LOCK(wallet.cs_wallet);
 
     // Add coins.
-    std::vector<COutput> vCoins;
+    std::vector<OutputGroup> groups;
     for (int i = 0; i < 1000; ++i) {
-        addCoin(1000 * COIN, wallet, vCoins);
+        addCoin(1000 * COIN, wallet, groups);
     }
-    addCoin(3 * COIN, wallet, vCoins);
+    addCoin(3 * COIN, wallet, groups);
 
     const CoinEligibilityFilter filter_standard(1, 6, 0);
     const CoinSelectionParams coin_selection_params(
@@ -54,7 +54,7 @@ static void CoinSelection(benchmark::State &state) {
         Amount nValueRet;
         bool bnb_used;
         bool success = wallet.SelectCoinsMinConf(
-            1003 * COIN, filter_standard, vCoins, setCoinsRet, nValueRet,
+            1003 * COIN, filter_standard, groups, setCoinsRet, nValueRet,
             coin_selection_params, bnb_used);
         assert(success);
         assert(nValueRet == 1003 * COIN);
@@ -63,40 +63,51 @@ static void CoinSelection(benchmark::State &state) {
 }
 
 typedef std::set<CInputCoin> CoinSet;
+std::vector<std::unique_ptr<CWalletTx>> wtxn;
 
 // Copied from src/wallet/test/coinselector_tests.cpp
-static void add_coin(const Amount nValue, int nInput,
-                     std::vector<CInputCoin> &set) {
+static void add_coin(const CWallet &wallet, const Amount nValue, int nInput,
+                     std::vector<OutputGroup> &set) {
     CMutableTransaction tx;
     tx.vout.resize(nInput + 1);
     tx.vout[nInput].nValue = nValue;
-    set.emplace_back(MakeTransactionRef(tx), nInput);
+    auto wtx =
+        std::make_unique<CWalletTx>(&wallet, MakeTransactionRef(std::move(tx)));
+    set.emplace_back(
+        COutput(wtx.get(), nInput, 0, true, true, true).GetInputCoin(), 0, true,
+        0, 0);
+    wtxn.emplace_back(std::move(wtx));
 }
 
 // Copied from src/wallet/test/coinselector_tests.cpp
-static Amount make_hard_case(int utxos, std::vector<CInputCoin> &utxo_pool) {
+static Amount make_hard_case(const CWallet &wallet, int utxos,
+                             std::vector<OutputGroup> &utxo_pool) {
     utxo_pool.clear();
     Amount target = Amount::zero();
     for (int i = 0; i < utxos; ++i) {
         const Amount base = (int64_t(1) << (utxos + i)) * SATOSHI;
         target += base;
-        add_coin(base, 2 * i, utxo_pool);
-        add_coin(base + (int64_t(1) << (utxos - 1 - i)) * SATOSHI, 2 * i + 1,
-                 utxo_pool);
+        add_coin(wallet, base, 2 * i, utxo_pool);
+        add_coin(wallet, base + (int64_t(1) << (utxos - 1 - i)) * SATOSHI,
+                 2 * i + 1, utxo_pool);
     }
     return target;
 }
 
 static void BnBExhaustion(benchmark::State &state) {
+    SelectParams(CBaseChainParams::REGTEST);
+    const CWallet wallet(Params(), "dummy", CWalletDBWrapper::CreateDummy());
+    LOCK(wallet.cs_wallet);
+
     // Setup
-    std::vector<CInputCoin> utxo_pool;
+    std::vector<OutputGroup> utxo_pool;
     CoinSet selection;
     Amount value_ret = Amount::zero();
     Amount not_input_fees = Amount::zero();
 
     while (state.KeepRunning()) {
         // Benchmark
-        Amount target = make_hard_case(17, utxo_pool);
+        Amount target = make_hard_case(wallet, 17, utxo_pool);
         // Should exhaust
         SelectCoinsBnB(utxo_pool, target, Amount::zero(), selection, value_ret,
                        not_input_fees);

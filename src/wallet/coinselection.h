@@ -103,13 +103,13 @@ struct OutputGroup {
     EligibleForSpending(const CoinEligibilityFilter &eligibility_filter) const;
 };
 
-bool SelectCoinsBnB(std::vector<CInputCoin> &utxo_pool,
+bool SelectCoinsBnB(std::vector<OutputGroup> &utxo_pool,
                     const Amount &target_value, const Amount &cost_of_change,
                     std::set<CInputCoin> &out_set, Amount &value_ret,
                     const Amount not_input_fees);
 
 // Original coin selection algorithm as a fallback
-bool KnapsackSolver(const Amount nTargetValue, std::vector<CInputCoin> &vCoins,
+bool KnapsackSolver(const Amount nTargetValue, std::vector<OutputGroup> &groups,
                     std::set<CInputCoin> &setCoinsRet, Amount &nValueRet);
 
 #endif // BITCOIN_WALLET_COINSELECTION_H

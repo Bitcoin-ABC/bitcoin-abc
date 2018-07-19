@@ -885,7 +885,7 @@ public:
      */
     bool SelectCoinsMinConf(const Amount nTargetValue,
                             const CoinEligibilityFilter &eligibility_filter,
-                            std::vector<COutput> vCoins,
+                            std::vector<OutputGroup> groups,
                             std::set<CInputCoin> &setCoinsRet,
                             Amount &nValueRet,
                             const CoinSelectionParams &coin_selection_params,
