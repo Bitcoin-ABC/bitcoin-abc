@@ -48,6 +48,22 @@ public:
     }
 };
 
+struct CoinEligibilityFilter {
+    const int conf_mine;
+    const int conf_theirs;
+    const uint64_t max_ancestors;
+    const uint64_t max_descendants;
+
+    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
+                          uint64_t max_ancestors_)
+        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
+          max_ancestors(max_ancestors_), max_descendants(max_ancestors_) {}
+    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
+                          uint64_t max_ancestors_, uint64_t max_descendants_)
+        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
+          max_ancestors(max_ancestors_), max_descendants(max_descendants_) {}
+};
+
 bool SelectCoinsBnB(std::vector<CInputCoin> &utxo_pool,
                     const Amount &target_value, const Amount &cost_of_change,
                     std::set<CInputCoin> &out_set, Amount &value_ret,
