@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2017 The Bitcoin Core developers
+# Copyright (c) 2017-2018 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Check RPC argument consistency."""
@@ -102,6 +102,10 @@ def process_mapping(fname):
 
 
 def main():
+    if len(sys.argv) != 2:
+        print('Usage: {} ROOT-DIR'.format(sys.argv[0]), file=sys.stderr)
+        sys.exit(1)
+
     root = sys.argv[1]
 
     # Get all commands from dispatch tables
