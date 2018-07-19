@@ -5,8 +5,10 @@ Developer Notes
 **Table of Contents**
 
 - [Developer Notes](#developer-notes)
-    - [Coding Style](#coding-style)
+    - [Coding Style (General)](#coding-style-general)
+    - [Coding Style (C++)](#coding-style-c)
     - [Doxygen comments](#doxygen-comments)
+    - [Coding Style (Python)](#coding-style-python)
     - [Development tips and tricks](#development-tips-and-tricks)
         - [Compiling for debugging](#compiling-for-debugging)
         - [Compiling for gprof profiling](#compiling-for-gprof-profiling)
@@ -41,8 +43,8 @@ Developer Notes
 
 <!-- markdown-toc end -->
 
-Coding Style
----------------
+Coding Style (General)
+----------------------
 
 Various coding styles have been used during the history of the codebase,
 and the result is not very consistent. However, we're now trying to converge to
@@ -50,6 +52,10 @@ a single style, so please use it in new code. Old code will be converted
 gradually and a handful of linters will help you to clean up your patches before
 submitting them for review. These linters are run automatically when using
 `arc diff` but can also be explicitly called with `arc lint`.
+
+
+Coding Style (C++)
+------------------
 
 - Basic rules specified in [src/.clang-format](/src/.clang-format).
   - Braces on new lines for namespaces, classes, functions, methods.
@@ -204,6 +210,11 @@ To build doxygen locally to test changes to the Doxyfile or visualize your comme
 ninja doc-doxygen
 # output goes to doc/doxygen/html/
 ```
+
+Coding Style (Python)
+---------------------
+
+Refer to [functional-tests.md#style-guidelines](functional-tests.md#style-guidelines).
 
 Development tips and tricks
 ---------------------------
