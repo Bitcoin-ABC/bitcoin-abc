@@ -127,6 +127,10 @@ check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
 check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)
 check_symbol_exists(getentropy "sys/random.h" HAVE_GETENTROPY_RAND)
 
+# getifaddrs and freeifaddrs may be unavailable with some Android versions
+check_symbol_exists(getifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_GETIFADDRS)
+check_symbol_exists(freeifaddrs "sys/types.h;ifaddrs.h" HAVE_DECL_FREEIFADDRS)
+
 check_cxx_source_compiles("
 	#include <unistd.h>  /* for syscall */
 	#include <sys/syscall.h>  /* for SYS_getrandom */
