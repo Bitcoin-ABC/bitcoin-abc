@@ -35,6 +35,8 @@ static void SetupCliArgs() {
         CreateBaseChainParams(CBaseChainParams::TESTNET);
 
     gArgs.AddArg("-?", _("This help message"), false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-version", "Print version and exit", false,
+                 OptionsCategory::OPTIONS);
     gArgs.AddArg("-conf=<file>",
                  strprintf(_("Specify configuration file (default: %s)"),
                            BITCOIN_CONF_FILENAME),
