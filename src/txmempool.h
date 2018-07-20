@@ -388,6 +388,8 @@ public:
     }
 };
 
+typedef std::pair<double, Amount> TXModifier;
+
 /**
  * CTxMemPool stores valid-according-to-the-current-best-chain transactions that
  * may be included in the next block.
@@ -555,7 +557,7 @@ private:
 
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx;
-    std::map<uint256, std::pair<double, Amount>> mapDeltas;
+    std::map<uint256, TXModifier> mapDeltas;
 
     /** Create a new CTxMemPool.
      */

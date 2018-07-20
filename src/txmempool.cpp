@@ -423,10 +423,9 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
     // Update transaction for any feeDelta created by PrioritiseTransaction
     // TODO: refactor so that the fee delta is calculated before inserting into
     // mapTx.
-    std::map<uint256, std::pair<double, Amount>>::const_iterator pos =
-        mapDeltas.find(hash);
+    std::map<uint256, TXModifier>::const_iterator pos = mapDeltas.find(hash);
     if (pos != mapDeltas.end()) {
-        const std::pair<double, Amount> &deltas = pos->second;
+        const TXModifier &deltas = pos->second;
         if (deltas.second != Amount(0)) {
             mapTx.modify(newit, update_fee_delta(deltas.second));
         }
@@ -984,7 +983,7 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
                                        const Amount nFeeDelta) {
     {
         LOCK(cs);
-        std::pair<double, Amount> &deltas = mapDeltas[hash];
+        TXModifier &deltas = mapDeltas[hash];
         deltas.first += dPriorityDelta;
         deltas.second += nFeeDelta;
         txiter it = mapTx.find(hash);
@@ -1018,13 +1017,12 @@ void CTxMemPool::PrioritiseTransaction(const uint256 hash,
 void CTxMemPool::ApplyDeltas(const uint256 hash, double &dPriorityDelta,
                              Amount &nFeeDelta) const {
     LOCK(cs);
-    std::map<uint256, std::pair<double, Amount>>::const_iterator pos =
-        mapDeltas.find(hash);
+    std::map<uint256, TXModifier>::const_iterator pos = mapDeltas.find(hash);
     if (pos == mapDeltas.end()) {
         return;
     }
 
-    const std::pair<double, Amount> &deltas = pos->second;
+    const TXModifier &deltas = pos->second;
     dPriorityDelta += deltas.first;
     nFeeDelta += deltas.second;
 }
