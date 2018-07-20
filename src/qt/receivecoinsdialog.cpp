@@ -107,6 +107,10 @@ void ReceiveCoinsDialog::setModel(WalletModel *_model) {
         // geometry is ready.
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(
             tableView, AMOUNT_MINIMUM_COLUMN_WIDTH, DATE_COLUMN_WIDTH, this);
+
+        // Eventually disable the main receive button if private key operations
+        // are disabled.
+        ui->receiveButton->setEnabled(!model->privateKeysDisabled());
     }
 }
 

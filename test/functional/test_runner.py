@@ -77,6 +77,7 @@ TEST_PARAMS = {
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],
     "wallet_multiwallet.py": [["--usecli"]],
+    "wallet_disableprivatekeys.py": [["--usecli"]],
 }
 
 # Used to limit the number of tests, when list of tests is not provided on command line

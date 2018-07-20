@@ -392,6 +392,9 @@ namespace {
         OutputType getDefaultAddressType() override {
             return m_wallet.m_default_address_type;
         }
+        bool IsWalletFlagSet(uint64_t flag) override {
+            return m_wallet.IsWalletFlagSet(flag);
+        }
         OutputType getDefaultChangeType() override {
             return m_wallet.m_default_change_type;
         }

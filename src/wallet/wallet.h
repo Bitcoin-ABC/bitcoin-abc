@@ -98,6 +98,19 @@ constexpr OutputType DEFAULT_ADDRESS_TYPE{OutputType::LEGACY};
 //! Default for -changetype
 constexpr OutputType DEFAULT_CHANGE_TYPE{OutputType::CHANGE_AUTO};
 
+enum WalletFlags : uint64_t {
+    // Wallet flags in the upper section (> 1 << 31) will lead to not opening
+    // the wallet if flag is unknown.
+    // Unknown wallet flags in the lower section <= (1 << 31) will be tolerated.
+
+    // Will enforce the rule that the wallet can't contain any private keys
+    // (only watch-only/pubkeys).
+    WALLET_FLAG_DISABLE_PRIVATE_KEYS = (1ULL << 32),
+};
+
+static constexpr uint64_t g_known_wallet_flags =
+    WALLET_FLAG_DISABLE_PRIVATE_KEYS;
+
 /** A key pool entry */
 class CKeyPool {
 public:
@@ -751,6 +764,7 @@ private:
     std::set<int64_t> set_pre_split_keypool;
     int64_t m_max_keypool_index = 0;
     std::map<CKeyID, int64_t> m_pool_key_to_index;
+    std::atomic<uint64_t> m_wallet_flags{0};
 
     int64_t nTimeFirstKey = 0;
 
@@ -1290,7 +1304,8 @@ public:
      */
     static std::shared_ptr<CWallet>
     CreateWalletFromFile(const CChainParams &chainParams,
-                         const std::string &name, const fs::path &path);
+                         const std::string &name, const fs::path &path,
+                         uint64_t wallet_creation_flags = 0);
 
     /**
      * Wallet post-init setup
@@ -1345,6 +1360,22 @@ public:
      * could be anything).
      */
     void LearnAllRelatedScripts(const CPubKey &key);
+
+    /**
+     * Set a single wallet flag.
+     */
+    void SetWalletFlag(uint64_t flags);
+
+    /**
+     * Check if a certain wallet flag is set.
+     */
+    bool IsWalletFlagSet(uint64_t flag);
+
+    /**
+     * Overwrite all flags by the given uint64_t.
+     * Returns false if unknown, non-tolerable flags are present.
+     */
+    bool SetWalletFlags(uint64_t overwriteFlags, bool memOnly);
 };
 
 /** A key allocated from the key pool. */

@@ -452,7 +452,8 @@ class TestNodeCLI():
     def send_cli(self, command=None, *args, **kwargs):
         """Run bitcoin-cli command. Deserializes returned string as python object."""
 
-        pos_args = [str(arg) for arg in args]
+        pos_args = [str(arg).lower() if type(
+            arg) is bool else str(arg) for arg in args]
         named_args = [str(key) + "=" + str(value)
                       for (key, value) in kwargs.items()]
         assert not (

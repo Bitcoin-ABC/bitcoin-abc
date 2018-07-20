@@ -505,6 +505,14 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             CHDChain chain;
             ssValue >> chain;
             pwallet->SetHDChain(chain, true);
+        } else if (strType == "flags") {
+            uint64_t flags;
+            ssValue >> flags;
+            if (!pwallet->SetWalletFlags(flags, true)) {
+                strErr = "Error reading wallet database: Unknown non-tolerable "
+                         "wallet flags found";
+                return false;
+            }
         } else if (strType != "bestblock" && strType != "bestblock_nomerkle") {
             wss.m_unknown_records++;
         }
@@ -562,6 +570,10 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
                 // we assume the user can live with:
                 if (IsKeyType(strType) || strType == "defaultkey") {
                     result = DBErrors::CORRUPT;
+                } else if (strType == "flags") {
+                    // Reading the wallet flags can only fail if unknown flags
+                    // are present.
+                    result = DBErrors::TOO_NEW;
                 } else {
                     // Leave other errors alone, if we try to fix them we might
                     // make things worse. But do warn the user there is
@@ -862,6 +874,10 @@ bool WalletBatch::EraseDestData(const CTxDestination &address,
 
 bool WalletBatch::WriteHDChain(const CHDChain &chain) {
     return WriteIC(std::string("hdchain"), chain);
+}
+
+bool WalletBatch::WriteWalletFlags(const uint64_t flags) {
+    return WriteIC(std::string("flags"), flags);
 }
 
 bool WalletBatch::TxnBegin() {
