@@ -5,7 +5,6 @@
 #include <key_io.h>
 #include <script/sign.h>
 #include <util/strencodings.h>
-#include <wallet/rpcwallet.h>
 #include <wallet/test/wallet_test_fixture.h>
 #include <wallet/wallet.h>
 

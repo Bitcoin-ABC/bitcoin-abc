@@ -801,6 +801,46 @@ bool ParseFixedPoint(const std::string &val, int decimals,
     return true;
 }
 
+bool ParseHDKeypath(const std::string &keypath_str,
+                    std::vector<uint32_t> &keypath) {
+    std::stringstream ss(keypath_str);
+    std::string item;
+    bool first = true;
+    while (std::getline(ss, item, '/')) {
+        if (item.compare("m") == 0) {
+            if (first) {
+                first = false;
+                continue;
+            }
+            return false;
+        }
+        // Finds whether it is hardened
+        uint32_t path = 0;
+        size_t pos = item.find("'");
+        if (pos != std::string::npos) {
+            // The hardened tick can only be in the last index of the string
+            if (pos != item.size() - 1) {
+                return false;
+            }
+            path |= 0x80000000;
+            // Drop the last character which is the hardened tick
+            item = item.substr(0, item.size() - 1);
+        }
+
+        // Ensure this is only numbers
+        if (item.find_first_not_of("0123456789") != std::string::npos) {
+            return false;
+        }
+        uint32_t number;
+        ParseUInt32(item, &number);
+        path |= number;
+
+        keypath.push_back(path);
+        first = false;
+    }
+    return true;
+}
+
 void Downcase(std::string &str) {
     std::transform(str.begin(), str.end(), str.begin(),
                    [](uint8_t c) { return ToLower(c); });

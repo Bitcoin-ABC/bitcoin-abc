@@ -205,6 +205,10 @@ bool ConvertBits(O &out, I it, I end) {
     return true;
 }
 
+/** Parse an HD keypaths like "m/7/0'/2000". */
+bool ParseHDKeypath(const std::string &keypath_str,
+                    std::vector<uint32_t> &keypath);
+
 /**
  * Converts the given character to its lowercase equivalent.
  * This function is locale independent. It only converts uppercase
