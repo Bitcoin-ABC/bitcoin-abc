@@ -455,6 +455,7 @@ void PartiallySignedTransaction::Merge(const PartiallySignedTransaction &psbt) {
     for (size_t i = 0; i < outputs.size(); ++i) {
         outputs[i].Merge(psbt.outputs[i]);
     }
+    unknown.insert(psbt.unknown.begin(), psbt.unknown.end());
 }
 
 bool PartiallySignedTransaction::IsSane() const {
