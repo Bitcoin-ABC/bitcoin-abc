@@ -1113,9 +1113,9 @@ bool InitSanityCheck(void) {
 }
 
 static bool AppInitServers(Config &config, boost::thread_group &threadGroup) {
-    RPCServer::OnStarted(&OnRPCStarted);
-    RPCServer::OnStopped(&OnRPCStopped);
-    RPCServer::OnPreCommand(&OnRPCPreCommand);
+    RPCServerSignals::OnStarted(&OnRPCStarted);
+    RPCServerSignals::OnStopped(&OnRPCStopped);
+    RPCServerSignals::OnPreCommand(&OnRPCPreCommand);
     if (!InitHTTPServer(config)) return false;
     if (!StartRPC()) return false;
     if (!StartHTTPRPC()) return false;

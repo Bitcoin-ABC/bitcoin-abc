@@ -23,12 +23,12 @@ static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
 
 class ContextFreeRPCCommand;
 
-namespace RPCServer {
+namespace RPCServerSignals {
 void OnStarted(std::function<void()> slot);
 void OnStopped(std::function<void()> slot);
 void OnPreCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
 void OnPostCommand(std::function<void(const ContextFreeRPCCommand &)> slot);
-} // namespace RPCServer
+} // namespace RPCServerSignals
 
 class CBlockIndex;
 class Config;

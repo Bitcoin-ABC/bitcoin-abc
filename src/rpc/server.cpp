@@ -42,20 +42,20 @@ static struct CRPCSignals {
     boost::signals2::signal<void(const ContextFreeRPCCommand &)> PostCommand;
 } g_rpcSignals;
 
-void RPCServer::OnStarted(std::function<void()> slot) {
+void RPCServerSignals::OnStarted(std::function<void()> slot) {
     g_rpcSignals.Started.connect(slot);
 }
 
-void RPCServer::OnStopped(std::function<void()> slot) {
+void RPCServerSignals::OnStopped(std::function<void()> slot) {
     g_rpcSignals.Stopped.connect(slot);
 }
 
-void RPCServer::OnPreCommand(
+void RPCServerSignals::OnPreCommand(
     std::function<void(const ContextFreeRPCCommand &)> slot) {
     g_rpcSignals.PreCommand.connect(boost::bind(slot, _1));
 }
 
-void RPCServer::OnPostCommand(
+void RPCServerSignals::OnPostCommand(
     std::function<void(const ContextFreeRPCCommand &)> slot) {
     g_rpcSignals.PostCommand.connect(boost::bind(slot, _1));
 }
