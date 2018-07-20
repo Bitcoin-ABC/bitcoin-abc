@@ -128,7 +128,7 @@ struct SignatureData {
     /// BIP 174 style partial signatures for the input. May contain all
     /// signatures necessary for producing a final scriptSig.
     std::map<CKeyID, SigPair> signatures;
-    std::map<CKeyID, CPubKey> misc_pubkeys;
+    std::map<CKeyID, std::pair<CPubKey, KeyOriginInfo>> misc_pubkeys;
 
     SignatureData() {}
     explicit SignatureData(const CScript &script) : scriptSig(script) {}

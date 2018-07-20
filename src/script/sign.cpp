@@ -52,10 +52,6 @@ static bool GetCScript(const SigningProvider &provider,
 
 static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
                       const CKeyID &address, CPubKey &pubkey) {
-    if (provider.GetPubKey(address, pubkey)) {
-        sigdata.misc_pubkeys.emplace(pubkey.GetID(), pubkey);
-        return true;
-    }
     // Look for pubkey in all partial sigs
     const auto it = sigdata.signatures.find(address);
     if (it != sigdata.signatures.end()) {
@@ -65,7 +61,16 @@ static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
     // Look for pubkey in pubkey list
     const auto &pk_it = sigdata.misc_pubkeys.find(address);
     if (pk_it != sigdata.misc_pubkeys.end()) {
-        pubkey = pk_it->second;
+        pubkey = pk_it->second.first;
+        return true;
+    }
+    // Query the underlying provider
+    if (provider.GetPubKey(address, pubkey)) {
+        KeyOriginInfo info;
+        if (provider.GetKeyOrigin(address, info)) {
+            sigdata.misc_pubkeys.emplace(
+                address, std::make_pair(pubkey, std::move(info)));
+        }
         return true;
     }
     return false;
@@ -494,7 +499,7 @@ void PSBTInput::FillSignatureData(SignatureData &sigdata) const {
         sigdata.redeem_script = redeem_script;
     }
     for (const auto &key_pair : hd_keypaths) {
-        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair.first);
+        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);
     }
 }
 
@@ -513,6 +518,9 @@ void PSBTInput::FromSignatureData(const SignatureData &sigdata) {
     partial_sigs.insert(sigdata.signatures.begin(), sigdata.signatures.end());
     if (redeem_script.empty() && !sigdata.redeem_script.empty()) {
         redeem_script = sigdata.redeem_script;
+    }
+    for (const auto &entry : sigdata.misc_pubkeys) {
+        hd_keypaths.emplace(entry.second);
     }
 }
 
@@ -542,13 +550,16 @@ void PSBTOutput::FillSignatureData(SignatureData &sigdata) const {
         sigdata.redeem_script = redeem_script;
     }
     for (const auto &key_pair : hd_keypaths) {
-        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair.first);
+        sigdata.misc_pubkeys.emplace(key_pair.first.GetID(), key_pair);
     }
 }
 
 void PSBTOutput::FromSignatureData(const SignatureData &sigdata) {
     if (redeem_script.empty() && !sigdata.redeem_script.empty()) {
         redeem_script = sigdata.redeem_script;
+    }
+    for (const auto &entry : sigdata.misc_pubkeys) {
+        hd_keypaths.emplace(entry.second);
     }
 }
 

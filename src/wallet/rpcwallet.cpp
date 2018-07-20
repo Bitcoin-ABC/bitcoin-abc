@@ -5127,15 +5127,9 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
         }
 
         SignatureData sigdata;
-        complete &= SignPSBTInput(HidingSigningProvider(pwallet, !sign, false),
-                                  *psbtx.tx, input, sigdata, i, sighash_type);
-
-        // Get public key paths
-        if (bip32derivs) {
-            for (const auto &pubkey_it : sigdata.misc_pubkeys) {
-                AddKeypathToMap(pwallet, pubkey_it.first, input.hd_keypaths);
-            }
-        }
+        complete &=
+            SignPSBTInput(HidingSigningProvider(pwallet, !sign, !bip32derivs),
+                          *psbtx.tx, input, sigdata, i, sighash_type);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
@@ -5155,15 +5149,9 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
 
         MutableTransactionSignatureCreator creator(
             psbtx.tx.get_ptr(), 0, out.nValue, SigHashType().withForkId());
-        ProduceSignature(*pwallet, creator, out.scriptPubKey, sigdata);
+        ProduceSignature(HidingSigningProvider(pwallet, true, !bip32derivs),
+                         creator, out.scriptPubKey, sigdata);
         psbt_out.FromSignatureData(sigdata);
-
-        // Get public key paths
-        if (bip32derivs) {
-            for (const auto &pubkey_it : sigdata.misc_pubkeys) {
-                AddKeypathToMap(pwallet, pubkey_it.first, psbt_out.hd_keypaths);
-            }
-        }
     }
     return complete;
 }
