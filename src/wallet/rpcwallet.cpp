@@ -5146,14 +5146,8 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
         }
 
         SignatureData sigdata;
-        if (sign) {
-            complete &= SignPSBTInput(*pwallet, *psbtx.tx, input, sigdata, i,
-                                      sighash_type);
-        } else {
-            complete &=
-                SignPSBTInput(PublicOnlySigningProvider(pwallet), *psbtx.tx,
-                              input, sigdata, i, sighash_type);
-        }
+        complete &= SignPSBTInput(HidingSigningProvider(pwallet, !sign, false),
+                                  *psbtx.tx, input, sigdata, i, sighash_type);
 
         // Get public key paths
         if (bip32derivs) {
