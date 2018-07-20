@@ -1376,6 +1376,11 @@ public:
      * Returns false if unknown, non-tolerable flags are present.
      */
     bool SetWalletFlags(uint64_t overwriteFlags, bool memOnly);
+
+    /**
+     * Implement lookup of key origin information through wallet key metadata.
+     */
+    bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override;
 };
 
 /** A key allocated from the key pool. */
