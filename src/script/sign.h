@@ -301,6 +301,9 @@ struct PSBTInput {
                     if (!utxo.IsNull()) {
                         throw std::ios_base::failure(
                             "Duplicate Key, input utxo already provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "utxo key is more than one byte type");
                     }
                     UnserializeFromVector(s, utxo);
                     break;
@@ -337,6 +340,9 @@ struct PSBTInput {
                         throw std::ios_base::failure(
                             "Duplicate Key, input sighash type already "
                             "provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "Sighash type key is more than one byte type");
                     }
                     UnserializeFromVector(s, sighash_type);
                     break;
@@ -345,6 +351,10 @@ struct PSBTInput {
                         throw std::ios_base::failure(
                             "Duplicate Key, input redeemScript already "
                             "provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "Input redeemScript key is more than one byte "
+                            "type");
                     }
                     s >> redeem_script;
                     break;
@@ -358,6 +368,9 @@ struct PSBTInput {
                         throw std::ios_base::failure(
                             "Duplicate Key, input final scriptSig already "
                             "provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "Final scriptSig key is more than one byte type");
                     }
                     s >> final_script_sig;
                     break;
@@ -439,6 +452,10 @@ struct PSBTOutput {
                         throw std::ios_base::failure(
                             "Duplicate Key, output redeemScript already "
                             "provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "Output redeemScript key is more than one byte "
+                            "type");
                     }
                     s >> redeem_script;
                     break;
@@ -556,6 +573,10 @@ struct PartiallySignedTransaction {
                     if (tx) {
                         throw std::ios_base::failure(
                             "Duplicate Key, unsigned tx already provided");
+                    } else if (key.size() != 1) {
+                        throw std::ios_base::failure(
+                            "Global unsigned tx key is more than one byte "
+                            "type");
                     }
                     CMutableTransaction mtx;
                     UnserializeFromVector(s, mtx);
