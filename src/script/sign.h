@@ -39,6 +39,9 @@ public:
     virtual bool GetKey(const CKeyID &address, CKey &key) const {
         return false;
     }
+    virtual bool GetKeyOrigin(const CKeyID &id, KeyOriginInfo &info) const {
+        return false;
+    }
 };
 
 extern const SigningProvider &DUMMY_SIGNING_PROVIDER;
@@ -52,6 +55,7 @@ public:
         : m_provider(provider) {}
     bool GetCScript(const CScriptID &scriptid, CScript &script) const;
     bool GetPubKey(const CKeyID &address, CPubKey &pubkey) const;
+    bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const;
 };
 
 struct FlatSigningProvider final : public SigningProvider {
