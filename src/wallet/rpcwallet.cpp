@@ -5126,10 +5126,9 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
                 "Specified sighash and sighash in PSBT do not match.");
         }
 
-        SignatureData sigdata;
         complete &=
             SignPSBTInput(HidingSigningProvider(pwallet, !sign, !bip32derivs),
-                          *psbtx.tx, input, sigdata, i, sighash_type);
+                          *psbtx.tx, input, i, sighash_type);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that

@@ -1721,9 +1721,8 @@ static UniValue finalizepsbt(const Config &config,
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
         PSBTInput &input = psbtx.inputs.at(i);
 
-        SignatureData sigdata;
-        complete &= SignPSBTInput(DUMMY_SIGNING_PROVIDER, *psbtx.tx, input,
-                                  sigdata, i, SigHashType());
+        complete &= SignPSBTInput(DUMMY_SIGNING_PROVIDER, *psbtx.tx, input, i,
+                                  SigHashType());
     }
 
     UniValue result(UniValue::VOBJ);

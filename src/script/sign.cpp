@@ -223,14 +223,15 @@ bool ProduceSignature(const SigningProvider &provider,
 }
 
 bool SignPSBTInput(const SigningProvider &provider,
-                   const CMutableTransaction &tx, PSBTInput &input,
-                   SignatureData &sigdata, int index, SigHashType sighash) {
+                   const CMutableTransaction &tx, PSBTInput &input, int index,
+                   SigHashType sighash) {
     // If this input has a final scriptsig, don't do anything with it.
     if (!input.final_script_sig.empty()) {
         return true;
     }
 
     // Fill SignatureData with input info
+    SignatureData sigdata;
     input.FillSignatureData(sigdata);
 
     // Get UTXO
@@ -245,6 +246,7 @@ bool SignPSBTInput(const SigningProvider &provider,
     bool sig_complete =
         ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
     input.FromSignatureData(sigdata);
+
     return sig_complete;
 }
 

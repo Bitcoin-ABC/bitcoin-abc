@@ -118,7 +118,7 @@ typedef std::pair<CPubKey, std::vector<uint8_t>> SigPair;
 // create a signature and is also filled by ProduceSignature in order to
 // construct final scriptSigs.
 struct SignatureData {
-    /// Stores whether the scriptSig and scriptWitness are complete.
+    /// Stores whether the scriptSig are complete.
     bool complete = false;
     /// The scriptSig of an input. Contains complete signatures or the
     /// traditional partial signatures format.
@@ -692,8 +692,7 @@ bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
  * signed.
  */
 bool SignPSBTInput(const SigningProvider &provider,
-                   const CMutableTransaction &tx, PSBTInput &input,
-                   SignatureData &sigdata, int index,
+                   const CMutableTransaction &tx, PSBTInput &input, int index,
                    SigHashType sighash = SigHashType());
 
 /** Extract signature data from a transaction input, and insert it. */
