@@ -5,7 +5,9 @@
 """Utilities for manipulating blocks and transactions."""
 
 from .mininode import *
-from .script import CScript, OP_TRUE, OP_CHECKSIG, OP_RETURN
+from .script import CScript, OP_TRUE, OP_CHECKSIG, OP_RETURN, OP_PUSHDATA2
+from .mininode import CTransaction, CTxOut, CTxIn
+from .util import satoshi_round
 
 # Create a block (with regtest difficulty)
 
@@ -89,3 +91,25 @@ def get_legacy_sigopcount_tx(tx, fAccurate=True):
         # scriptSig might be of type bytes, so convert to CScript for the moment
         count += CScript(j.scriptSig).GetSigOpCount(fAccurate)
     return count
+
+
+def send_big_transactions(node, utxos, num, fee_multiplier):
+    txids = []
+    padding = "1"*(512*127)
+
+    for _ in range(num):
+        ctx = CTransaction()
+        utxo = utxos.pop()
+        txid = int(utxo['txid'], 16)
+        ctx.vin.append(CTxIn(COutPoint(txid, int(utxo["vout"])), b""))
+        ctx.vout.append(CTxOut(0, CScript(
+            [OP_RETURN, OP_PUSHDATA2, len(padding), bytes(padding, 'utf-8')])))
+        ctx.vout.append(
+            CTxOut(int(satoshi_round(utxo['amount']*COIN)), CScript([OP_TRUE])))
+        # Create a proper fee for the transaction to be mined
+        ctx.vout[1].nValue -= int(fee_multiplier * node.calculate_fee(ctx))
+        signresult = node.signrawtransaction(
+            ToHex(ctx), None, None, "NONE|FORKID")
+        txid = node.sendrawtransaction(signresult["hex"], True)
+        txids.append(txid)
+    return txids
