@@ -8,6 +8,7 @@
 import json
 import os
 
+from decimal import Decimal
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -248,6 +249,34 @@ class PSBTTest(BitcoinTestFramework):
         decoded = self.nodes[1].decodepsbt(psbt)
         updated = self.nodes[1].utxoupdatepsbt(psbt)
         decoded = self.nodes[1].decodepsbt(updated)
+
+        # Two PSBTs with a common input should not be joinable
+        psbt1 = self.nodes[1].createpsbt([{"txid": txid1, "vout": vout1}], {
+                                         self.nodes[0].getnewaddress(): Decimal('10.999')})
+        assert_raises_rpc_error(-8, "exists in multiple PSBTs",
+                                self.nodes[1].joinpsbts, [psbt1, updated])
+
+        # Join two distinct PSBTs
+        addr4 = self.nodes[1].getnewaddress("")
+        txid4 = self.nodes[0].sendtoaddress(addr4, 5)
+        vout4 = find_output(self.nodes[0], txid4, 5)
+        self.nodes[0].generate(6)
+        self.sync_all()
+        psbt2 = self.nodes[1].createpsbt([{"txid": txid4, "vout": vout4}], {
+                                         self.nodes[0].getnewaddress(): Decimal('4.999')})
+        psbt2 = self.nodes[1].walletprocesspsbt(psbt2)['psbt']
+        psbt2_decoded = self.nodes[0].decodepsbt(psbt2)
+        assert "final_scriptSig" in psbt2_decoded['inputs'][0]
+        joined = self.nodes[0].joinpsbts([psbt, psbt2])
+        joined_decoded = self.nodes[0].decodepsbt(joined)
+        assert len(joined_decoded['inputs']) == 4 and len(
+            joined_decoded['outputs']) == 2 and "final_scriptSig" not in joined_decoded['inputs'][3]
+
+        # Fail when trying to join less than two PSBTs
+        assert_raises_rpc_error(-8,
+                                "At least two PSBTs are required to join PSBTs.", self.nodes[1].joinpsbts, [])
+        assert_raises_rpc_error(-8,
+                                "At least two PSBTs are required to join PSBTs.", self.nodes[1].joinpsbts, [psbt2])
 
 
 if __name__ == '__main__':

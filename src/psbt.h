@@ -323,6 +323,8 @@ struct PartiallySignedTransaction {
      */
     NODISCARD bool Merge(const PartiallySignedTransaction &psbt);
     bool IsSane() const;
+    bool AddInput(const CTxIn &txin, PSBTInput &psbtin);
+    bool AddOutput(const CTxOut &txout, const PSBTOutput &psbtout);
     PartiallySignedTransaction() {}
     PartiallySignedTransaction(const PartiallySignedTransaction &psbt_in)
         : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs),

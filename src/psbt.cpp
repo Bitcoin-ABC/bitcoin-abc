@@ -41,6 +41,25 @@ bool PartiallySignedTransaction::IsSane() const {
     return true;
 }
 
+bool PartiallySignedTransaction::AddInput(const CTxIn &txin,
+                                          PSBTInput &psbtin) {
+    if (std::find(tx->vin.begin(), tx->vin.end(), txin) != tx->vin.end()) {
+        return false;
+    }
+    tx->vin.push_back(txin);
+    psbtin.partial_sigs.clear();
+    psbtin.final_script_sig.clear();
+    inputs.push_back(psbtin);
+    return true;
+}
+
+bool PartiallySignedTransaction::AddOutput(const CTxOut &txout,
+                                           const PSBTOutput &psbtout) {
+    tx->vout.push_back(txout);
+    outputs.push_back(psbtout);
+    return true;
+}
+
 bool PSBTInput::IsNull() const {
     return utxo.IsNull() && partial_sigs.empty() && unknown.empty() &&
            hd_keypaths.empty() && redeem_script.empty();
