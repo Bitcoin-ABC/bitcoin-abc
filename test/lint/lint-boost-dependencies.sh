@@ -30,7 +30,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/preprocessor/stringize.hpp
     boost/range/iterator.hpp
     boost/range/adaptor/sliced.hpp
-    boost/scoped_array.hpp
     boost/signals2/connection.hpp
     boost/signals2/last_value.hpp
     boost/signals2/signal.hpp
