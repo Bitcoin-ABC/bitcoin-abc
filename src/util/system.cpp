@@ -483,7 +483,7 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
 
         // Check that the arg is known
         if (!(IsSwitchChar(key[0]) && key.size() == 1)) {
-            if (!IsArgKnown(key, error)) {
+            if (!IsArgKnown(key)) {
                 error = strprintf("Invalid parameter %s", key.c_str());
                 return false;
             }
@@ -506,7 +506,7 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
     return true;
 }
 
-bool ArgsManager::IsArgKnown(const std::string &key, std::string &error) {
+bool ArgsManager::IsArgKnown(const std::string &key) const {
     size_t option_index = key.find('.');
     std::string arg_no_net;
     if (option_index == std::string::npos) {
@@ -673,7 +673,7 @@ void ArgsManager::ClearArg(const std::string &strArg) {
     m_config_args.erase(strArg);
 }
 
-std::string ArgsManager::GetHelpMessage() {
+std::string ArgsManager::GetHelpMessage() const {
     const bool show_debug = gArgs.GetBoolArg("-help-debug", false);
 
     std::string usage = "";
@@ -950,7 +950,7 @@ bool ArgsManager::ReadConfigStream(std::istream &stream, std::string &error,
         }
 
         // Check that the arg is known
-        if (!IsArgKnown(strKey, error) && !ignore_invalid_keys) {
+        if (!IsArgKnown(strKey) && !ignore_invalid_keys) {
             error = strprintf("Invalid configuration value %s",
                               option.first.c_str());
             return false;
