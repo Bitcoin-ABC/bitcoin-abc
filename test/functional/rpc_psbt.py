@@ -230,6 +230,25 @@ class PSBTTest(BitcoinTestFramework):
             [], [{p2pkh: 1}], 0, {"includeWatching": True}, True)
         self.nodes[0].decodepsbt(psbt['psbt'])
 
+        # Send to all types of addresses
+        addr1 = self.nodes[1].getnewaddress("")  # originally bech32
+        txid1 = self.nodes[0].sendtoaddress(addr1, 11)
+        vout1 = find_output(self.nodes[0], txid1, 11)
+        addr2 = self.nodes[1].getnewaddress("")  # originally legacy
+        txid2 = self.nodes[0].sendtoaddress(addr2, 11)
+        vout2 = find_output(self.nodes[0], txid2, 11)
+        addr3 = self.nodes[1].getnewaddress("")  # originally p2sh-segwit
+        txid3 = self.nodes[0].sendtoaddress(addr3, 11)
+        vout3 = find_output(self.nodes[0], txid3, 11)
+        self.sync_all()
+
+        # Update a PSBT with UTXOs from the node
+        psbt = self.nodes[1].createpsbt([{"txid": txid1, "vout": vout1}, {"txid": txid2, "vout": vout2}, {
+                                        "txid": txid3, "vout": vout3}], {self.nodes[0].getnewaddress(): 32.999})
+        decoded = self.nodes[1].decodepsbt(psbt)
+        updated = self.nodes[1].utxoupdatepsbt(psbt)
+        decoded = self.nodes[1].decodepsbt(updated)
+
 
 if __name__ == '__main__':
     PSBTTest().main()
