@@ -280,18 +280,11 @@ namespace {
 struct Stacks {
     std::vector<valtype> script;
 
-    Stacks() {}
-    explicit Stacks(const std::vector<valtype> &scriptSigStack_)
-        : script(scriptSigStack_) {}
+    Stacks() = delete;
+    Stacks(const Stacks &) = delete;
     explicit Stacks(const SignatureData &data) {
         EvalScript(script, data.scriptSig, MANDATORY_SCRIPT_VERIFY_FLAGS,
                    BaseSignatureChecker());
-    }
-
-    SignatureData Output() const {
-        SignatureData result;
-        result.scriptSig = PushAll(script);
-        return result;
     }
 };
 } // namespace
