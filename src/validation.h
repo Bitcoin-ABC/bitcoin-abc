@@ -12,6 +12,7 @@
 #endif
 
 #include "amount.h"
+#include "blockfileinfo.h"
 #include "chain.h"
 #include "coins.h"
 #include "consensus/consensus.h"
