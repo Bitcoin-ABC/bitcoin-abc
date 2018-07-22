@@ -447,8 +447,6 @@ static UniValue getblocktemplate(const Config &config,
                 "SigOps count, as counted for purposes of block limits; if key "
                 "is not present, sigop count is unknown and clients MUST NOT "
                 "assume it is zero\n"
-                "         \"required\" : true|false      (boolean) if provided "
-                "and true, this transaction must be in the final block\n"
                 "      }\n"
                 "      ,...\n"
                 "  ],\n"
