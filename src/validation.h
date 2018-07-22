@@ -16,6 +16,7 @@
 #include "chain.h"
 #include "coins.h"
 #include "consensus/consensus.h"
+#include "diskblockpos.h"
 #include "fs.h"
 #include "protocol.h" // For CMessageHeader::MessageMagic
 #include "script/script_error.h"

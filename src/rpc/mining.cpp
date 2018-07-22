@@ -5,6 +5,7 @@
 
 #include "rpc/mining.h"
 #include "amount.h"
+#include "blockvalidity.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "config.h"

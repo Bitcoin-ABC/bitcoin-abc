@@ -8,6 +8,7 @@
 
 #include "arith_uint256.h"
 #include "blockindexworkcomparator.h"
+#include "blockvalidity.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"

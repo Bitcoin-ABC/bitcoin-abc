@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "blockvalidity.h"
 #include "chain.h"
 #include "diskblockpos.h"
 #include "uint256.h"
