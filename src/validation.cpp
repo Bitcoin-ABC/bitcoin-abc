@@ -592,10 +592,10 @@ static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           gArgs.GetArg(
-               "-replayprotectionactivationtime",
-               config.GetChainParams().GetConsensus().greatWallActivationTime);
+    return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
+                                           config.GetChainParams()
+                                           .GetConsensus()
+                                           .greatWallActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Config &config,
