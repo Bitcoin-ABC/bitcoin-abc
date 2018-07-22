@@ -37,6 +37,7 @@ class CBlockTreeDB;
 class CBloomFilter;
 class CChainParams;
 class CConnman;
+class CDiskBlockPos;
 class CInv;
 class Config;
 class CScriptCheck;

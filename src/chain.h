@@ -8,6 +8,7 @@
 
 #include "arith_uint256.h"
 #include "consensus/params.h"
+#include "diskblockpos.h"
 #include "pow.h"
 #include "primitives/block.h"
 #include "tinyformat.h"
@@ -29,44 +30,6 @@ static const int64_t MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60;
  * MAX_FUTURE_BLOCK_TIME.
  */
 static const int64_t TIMESTAMP_WINDOW = MAX_FUTURE_BLOCK_TIME;
-
-struct CDiskBlockPos {
-    int nFile;
-    unsigned int nPos;
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(VARINT(nFile));
-        READWRITE(VARINT(nPos));
-    }
-
-    CDiskBlockPos() { SetNull(); }
-
-    CDiskBlockPos(int nFileIn, unsigned int nPosIn) {
-        nFile = nFileIn;
-        nPos = nPosIn;
-    }
-
-    friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return (a.nFile == b.nFile && a.nPos == b.nPos);
-    }
-
-    friend bool operator!=(const CDiskBlockPos &a, const CDiskBlockPos &b) {
-        return !(a == b);
-    }
-
-    void SetNull() {
-        nFile = -1;
-        nPos = 0;
-    }
-    bool IsNull() const { return (nFile == -1); }
-
-    std::string ToString() const {
-        return strprintf("CBlockDiskPos(nFile=%i, nPos=%i)", nFile, nPos);
-    }
-};
 
 enum class BlockValidity : uint32_t {
     /**
