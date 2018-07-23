@@ -14,7 +14,7 @@ for example, when specifying the path of the dependency:
 Here BDB_PREFIX must be an absolute path - it is defined using $(pwd) which ensures
 the usage of the absolute path.
 
-To Build
+Build
 ---------------------
 
 ```bash
@@ -23,8 +23,20 @@ To Build
 make
 make install # optional
 ```
-
 This will build bitcoin-qt as well if the dependencies are met.
+
+If you encounter the error:
+`
+build.h No such file or directory
+`
+The following steps will help you:
+```
+make clean
+cd share
+./genbuild.sh ../src/obj/build.h # generate missing file manually.
+cd ..
+```
+Then rebuild your project.
 
 Dependencies
 ---------------------
@@ -69,7 +81,7 @@ Build requirements:
 
 Options when installing required Boost library files:
 
-1. On at least Ubuntu 14.04+ and Debian 7+ there are generic names for the
+1. On at least Ubuntu 16.04+ and Debian 7+ there are generic names for the
 individual boost development packages, so the following can be used to only
 install necessary parts of boost:
 
