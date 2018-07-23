@@ -641,31 +641,6 @@ void CheckWalletUpdate(bool forceUpdate)
 }
 
 /**
- * Executes Exodus crowdsale purchases.
- *
- * @return True, if it was a valid purchase
- */
-static bool TXExodusFundraiser(const CTransaction& tx, const std::string& sender, int64_t amountInvested, int nBlock, unsigned int nTime)
-{
-    const int secondsPerWeek = 60 * 60 * 24 * 7;
-    const CConsensusParams& params = ConsensusParams();
-
-    if (nBlock >= params.GENESIS_BLOCK && nBlock <= params.LAST_EXODUS_BLOCK) {
-        int64_t amountGenerated = round(params.exodusReward * amountInvested);
-        if (amountGenerated > 0) {
-            PrintToLog("Exodus Fundraiser tx detected, tx %s generated %s\n", tx.GetHash().ToString(), FormatDivisibleMP(amountGenerated));
-
-            assert(update_tally_map(sender, OMNI_PROPERTY_WHC, amountGenerated, BALANCE));
-            assert(update_tally_map(sender, OMNI_PROPERTY_TWHC, amountGenerated, BALANCE));
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
  * Returns the encoding class, used to embed a payload.
  *
  *   0 None
@@ -799,23 +774,23 @@ static bool FillTxInputCache(const CTransaction& tx)
     }
 
     for (std::vector<CTxIn>::const_iterator it = tx.vin.begin(); it != tx.vin.end(); ++it) {
-	const CTxIn& txIn = *it;
-	unsigned int nOut = txIn.prevout.GetN();
-	if (view.HaveCoin(txIn.prevout)){
-            ++nCacheHits;
-            continue;
-	}else{
-            ++nCacheMiss;
-	}
+	    const CTxIn& txIn = *it;
+	    unsigned int nOut = txIn.prevout.GetN();
+        if (view.HaveCoin(txIn.prevout)){
+                ++nCacheHits;
+                continue;
+        }else{
+                ++nCacheMiss;
+        }
 
-    CTransactionRef txPrev;
-    uint256 hashBlock; 
-    if (!GetTransaction(GetConfig(), txIn.prevout.GetTxId(), txPrev, hashBlock, true)) {
-        return false;
-    }
+        CTransactionRef txPrev;
+        uint256 hashBlock;
+        if (!GetTransaction(GetConfig(), txIn.prevout.GetTxId(), txPrev, hashBlock, true)) {
+            return false;
+        }
 
-	Coin newCoin(txPrev.get()->vout[nOut], 0, tx.IsCoinBase());
-	view.AddCoin(txIn.prevout, newCoin, false);
+        Coin newCoin(txPrev.get()->vout[nOut], 0, tx.IsCoinBase());
+        view.AddCoin(txIn.prevout, newCoin, false);
 	}
 
     return true;
@@ -1061,67 +1036,6 @@ int ParseTransaction(const CTransaction& tx, int nBlock, unsigned int idx, CMPTr
 }
 
 /**
- * Handles potential DEx payments.
- *
- * Note: must *not* be called outside of the transaction handler, and it does not
- * check, if a transaction marker exists.
- *
- * @return True, if valid
- */
-static bool HandleDExPayments(const CTransaction& tx, int nBlock, const std::string& strSender)
-{
-    int count = 0;
-	const CChainParams& params = GetConfig().GetChainParams();
-    for (unsigned int n = 0; n < tx.vout.size(); ++n) {
-        CTxDestination dest;
-        if (ExtractDestination(tx.vout[n].scriptPubKey, dest)) {
-            if (dest == ExodusAddress()) {
-                continue;
-            }
-            std::string strAddress = EncodeCashAddr(dest, params);
-            if (msc_debug_parser_dex) PrintToLog("payment #%d %s %s\n", count, strAddress, FormatIndivisibleMP(tx.vout[n].nValue.GetSatoshis()));
-
-            // check everything and pay BTC for the property we are buying here...
-            if (0 == DEx_payment(tx.GetHash(), n, strAddress, strSender, tx.vout[n].nValue.GetSatoshis(), nBlock)) ++count;
-        }
-    }
-
-    return (count > 0);
-}
-
-/**
- * Handles potential Exodus crowdsale purchases.
- *
- * Note: must *not* be called outside of the transaction handler, and it does not
- * check, if a transaction marker exists.
- *
- * @return True, if it was a valid purchase
- */
-static bool HandleExodusPurchase(const CTransaction& tx, int nBlock, const std::string& strSender, unsigned int nTime)
-{
-    int64_t amountInvested = 0;
-    if (tx.vout.size() > 2){
-        return false;
-    }
-
-    for (unsigned int n = 0; n < tx.vout.size(); ++n) {
-        CTxDestination dest;
-        if (ExtractDestination(tx.vout[n].scriptPubKey, dest)) {
-            if (dest == ExodusCrowdsaleAddress(nBlock)) {
-                amountInvested = tx.vout[n].nValue.GetSatoshis();
-                break; // TODO: maybe sum all values
-            }
-        }
-    }
-
-    if (0 < amountInvested) {
-        return TXExodusFundraiser(tx, strSender, amountInvested, nBlock, nTime);
-    }
-
-    return false;
-}
-
-/**
  * Reports the progress of the initial transaction scanning.
  *
  * The progress is printed to the console, written to the debug log file, and
@@ -1260,8 +1174,7 @@ static int msc_initial_scan(int nFirstBlock)
         if (!seedBlockFilterEnabled || !SkipBlock(nBlock)) {
             CBlock block;
             if (!ReadBlockFromDisk(block, pblockindex, GetConfig())) break;
-		
-		for(CTransactionRef& tx : block.vtx){
+		    for(CTransactionRef& tx : block.vtx){
                 if (mastercore_handler_tx(*(tx.get()), nBlock, nTxNum, pblockindex)) ++nTxsFoundInBlock;
                 ++nTxNum;
             }
@@ -1829,54 +1742,6 @@ static int write_msc_balances(std::ofstream& file, SHA256_CTX* shaCtx)
     }
 
     return 0;
-}
-
-static int write_mp_offers(ofstream &file, SHA256_CTX *shaCtx)
-{
-  OfferMap::const_iterator iter;
-  for (iter = my_offers.begin(); iter != my_offers.end(); ++iter) {
-    // decompose the key for address
-    std::vector<std::string> vstr;
-    boost::split(vstr, (*iter).first, boost::is_any_of("-"), token_compress_on);
-    CMPOffer const &offer = (*iter).second;
-    offer.saveOffer(file, shaCtx, vstr[0]);
-  }
-
-
-  return 0;
-}
-
-static int write_mp_metadex(ofstream &file, SHA256_CTX *shaCtx)
-{
-  for (md_PropertiesMap::iterator my_it = metadex.begin(); my_it != metadex.end(); ++my_it)
-  {
-    md_PricesMap & prices = my_it->second;
-    for (md_PricesMap::iterator it = prices.begin(); it != prices.end(); ++it)
-    {
-      md_Set & indexes = (it->second);
-      for (md_Set::iterator it = indexes.begin(); it != indexes.end(); ++it)
-      {
-        CMPMetaDEx meta = *it;
-        meta.saveOffer(file, shaCtx);
-      }
-    }
-  }
-
-  return 0;
-}
-
-static int write_mp_accepts(ofstream &file, SHA256_CTX *shaCtx)
-{
-  AcceptMap::const_iterator iter;
-  for (iter = my_accepts.begin(); iter != my_accepts.end(); ++iter) {
-    // decompose the key for address
-    std::vector<std::string> vstr;
-    boost::split(vstr, (*iter).first, boost::is_any_of("-+"), token_compress_on);
-    CMPAccept const &accept = (*iter).second;
-    accept.saveAccept(file, shaCtx, vstr[0], vstr[1]);
-  }
-
-  return 0;
 }
 
 static int write_globals_state(ofstream &file, SHA256_CTX *shaCtx)
@@ -3895,13 +3760,13 @@ static void DistributeWHCToBurner(){
             uint256 txid = uint256S(entry.first);
             std::string addr = entry.second.first;
             int64_t amount  = entry.second.second;
-		if (sp.historicalData.find(txid) == sp.historicalData.end()){
-			update++;
+            if (sp.historicalData.find(txid) == sp.historicalData.end()){
+                update++;
                 std::vector<int64_t> txdata{search->first, amount};
                 sp.historicalData.insert(std::make_pair(txid, txdata));
                 assert(update_tally_map(addr, OMNI_PROPERTY_WHC, amount, BALANCE));
                 search = pendingCreateWHC.erase(search);
-		}
+            }
             if (!p_txlistdb->exists(txid)){
                 clear_all_state();
                 nWaterlineBlock = ConsensusParams().GENESIS_BLOCK - 1;

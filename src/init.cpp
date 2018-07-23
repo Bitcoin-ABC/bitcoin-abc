@@ -1721,7 +1721,8 @@ bool AppInitSanityChecks() {
     return LockDataDirectory(true);
 }
 
-bool AppInitMain(Config &config, boost::thread_group &threadGroup,
+bool
+AppInitMain(Config &config, boost::thread_group &threadGroup,
                  CScheduler &scheduler) {
     const CChainParams &chainparams = config.GetChainParams();
     // Step 4a: application initialization
@@ -1795,7 +1796,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         }
     }
 
-    int64_t nStart;
+    int64_t nStart = 0;
 
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET

@@ -1146,9 +1146,10 @@ int CMPTransaction::logicMath_SendToOwners()
         PrintToLog("%s(): rejected: sender %s has insufficient balance of property %d [%s < %s]\n",
                 __func__,
                 sender,
+                property,
                 FormatMP(property, nBalance),
-                FormatMP(property, nValue),
-                property);
+                FormatMP(property, nValue)
+                );
         return (PKT_ERROR_STO -25);
     }
 

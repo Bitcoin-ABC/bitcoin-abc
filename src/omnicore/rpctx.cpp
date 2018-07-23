@@ -668,7 +668,7 @@ UniValue whc_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
                 "whc_burnbchgetwhc \"amount\" redeemaddress\n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. amount          	(numeric or string, required) The burn bch amount, required less amount is 1BCH\n"
+                        "1. amount          	(numeric or string, required) The burn bch amount, required minimum amount is 1BCH\n"
                         "2. redeemaddress       (string, optional) the redeem bitcoin address \n"
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
