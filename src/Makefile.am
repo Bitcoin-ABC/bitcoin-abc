@@ -140,6 +140,7 @@ BITCOIN_CORE_H = \
   reverselock.h \
   rpc/blockchain.h \
   rpc/client.h \
+  rpc/jsonrpcrequest.h \
   rpc/mining.h \
   rpc/misc.h \
   rpc/protocol.h \
@@ -221,6 +222,7 @@ libbitcoin_server_a_SOURCES = \
   rest.cpp \
   rpc/abc.cpp \
   rpc/blockchain.cpp \
+  rpc/jsonrpcrequest.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \

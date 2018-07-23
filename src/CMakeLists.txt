@@ -196,6 +196,7 @@ add_library(server
 	rest.cpp
 	rpc/abc.cpp
 	rpc/blockchain.cpp
+	rpc/jsonrpcrequest.cpp
 	rpc/mining.cpp
 	rpc/misc.cpp
 	rpc/net.cpp

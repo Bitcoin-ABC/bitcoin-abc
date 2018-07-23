@@ -8,6 +8,7 @@
 #define BITCOIN_RPCSERVER_H
 
 #include "amount.h"
+#include "rpc/jsonrpcrequest.h"
 #include "rpc/protocol.h"
 #include "uint256.h"
 
@@ -43,24 +44,6 @@ struct UniValueType {
     UniValueType() : typeAny(true) {}
     bool typeAny;
     UniValue::VType type;
-};
-
-class JSONRPCRequest {
-public:
-    UniValue id;
-    std::string strMethod;
-    UniValue params;
-    bool fHelp;
-    std::string URI;
-    std::string authUser;
-
-    JSONRPCRequest() {
-        id = NullUniValue;
-        params = NullUniValue;
-        fHelp = false;
-    }
-
-    void parse(const UniValue &valRequest);
 };
 
 /**
