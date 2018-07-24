@@ -123,8 +123,8 @@ bool AreInputsStandard(const CTransaction &tx,
         return true;
     }
 
-    for (size_t i = 0; i < tx.vin.size(); i++) {
-        const CTxOut &prev = mapInputs.GetOutputFor(tx.vin[i]);
+    for (const CTxIn &in : tx.vin) {
+        const CTxOut &prev = mapInputs.GetOutputFor(in);
 
         std::vector<std::vector<uint8_t>> vSolutions;
         txnouttype whichType;
@@ -138,7 +138,7 @@ bool AreInputsStandard(const CTransaction &tx,
             std::vector<std::vector<uint8_t>> stack;
             // convert the scriptSig into a stack, so we can inspect the
             // redeemScript
-            if (!EvalScript(stack, tx.vin[i].scriptSig, SCRIPT_VERIFY_NONE,
+            if (!EvalScript(stack, in.scriptSig, SCRIPT_VERIFY_NONE,
                             BaseSignatureChecker())) {
                 return false;
             }
@@ -157,4 +157,4 @@ bool AreInputsStandard(const CTransaction &tx,
 }
 
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
-unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
+uint32_t nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP;
