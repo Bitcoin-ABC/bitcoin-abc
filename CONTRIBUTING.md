@@ -125,6 +125,11 @@ If code formatting tools do not install automatically on your system, you
 may have to install clang-format-4.0 and autopep8. clang-format-4.0.0 can be installed
 from http://releases.llvm.org/download.html
 
+To install autopep8 on Ubuntu:
+```
+sudo apt-get install python-autopep8
+```
+
 
 Working with The Bitcoin ABC Repository
 ---------------------------------------
