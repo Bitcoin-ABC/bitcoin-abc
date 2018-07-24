@@ -161,7 +161,7 @@ CMainConsensusParams::CMainConsensusParams()
     exodusBonusPerWeek = 0.10;
     exodusDeadline = 1377993600;
     exodusReward = 100;
-    GENESIS_BLOCK = 538365;
+    GENESIS_BLOCK = 540336;
     LAST_EXODUS_BLOCK = std::numeric_limits<int>::max();
     // Notice range for feature activations:
     MIN_ACTIVATION_BLOCKS = 2048;  // ~2 weeks
