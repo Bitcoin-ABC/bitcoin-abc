@@ -12,7 +12,6 @@
 #include <util/system.h>
 
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/signals2/signal.hpp>

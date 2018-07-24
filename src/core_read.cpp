@@ -15,10 +15,10 @@
 #include <version.h>
 
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include <algorithm>
 #include <univalue.h>
 
 CScript ParseScript(const std::string &s) {
@@ -69,10 +69,9 @@ CScript ParseScript(const std::string &s) {
         next_push_size = 0;
 
         // Decimal numbers
-        if (all(w, boost::algorithm::is_digit()) ||
-            (boost::algorithm::starts_with(w, "-") &&
-             all(std::string(w.begin() + 1, w.end()),
-                 boost::algorithm::is_digit()))) {
+        if (std::all_of(w.begin(), w.end(), ::IsDigit) ||
+            (w.front() == '-' && w.size() > 1 &&
+             std::all_of(w.begin() + 1, w.end(), ::IsDigit))) {
             // Number
             int64_t n = atoi64(w);
             result << n;
@@ -80,8 +79,7 @@ CScript ParseScript(const std::string &s) {
         }
 
         // Hex Data
-        if (boost::algorithm::starts_with(w, "0x") &&
-            (w.begin() + 2 != w.end())) {
+        if (w.substr(0, 2) == "0x" && w.size() > 2) {
             if (!IsHex(std::string(w.begin() + 2, w.end()))) {
                 // Should only arrive here for improperly formatted hex values
                 throw std::runtime_error("Hex numbers expected to be formatted "
@@ -97,8 +95,7 @@ CScript ParseScript(const std::string &s) {
             goto next;
         }
 
-        if (w.size() >= 2 && boost::algorithm::starts_with(w, "'") &&
-            boost::algorithm::ends_with(w, "'")) {
+        if (w.size() >= 2 && w.front() == '\'' && w.back() == '\'') {
             // Single-quoted string, pushed as data. NOTE: this is poor-man's
             // parsing, spaces/tabs/newlines in single-quoted strings won't
             // work.

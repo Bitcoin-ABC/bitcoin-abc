@@ -70,6 +70,15 @@ int64_t atoi64(const std::string &str);
 int atoi(const std::string &str);
 
 /**
+ * Tests if the given character is a decimal digit.
+ * @param[in] c     character to test
+ * @return          true if the argument is a decimal digit; otherwise false.
+ */
+constexpr bool IsDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+/**
  * Tests if the given character is a whitespace character. The whitespace
  * characters are: space, form-feed ('\f'), newline ('\n'), carriage return
  * ('\r'), horizontal tab ('\t'), and vertical tab ('\v').

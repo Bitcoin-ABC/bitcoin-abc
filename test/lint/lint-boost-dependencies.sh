@@ -11,7 +11,6 @@ export LC_ALL=C
 EXPECTED_BOOST_INCLUDES=(
     boost/algorithm/string.hpp
     boost/algorithm/string/classification.hpp
-    boost/algorithm/string/predicate.hpp
     boost/algorithm/string/replace.hpp
     boost/algorithm/string/split.hpp
     boost/assign/std/vector.hpp

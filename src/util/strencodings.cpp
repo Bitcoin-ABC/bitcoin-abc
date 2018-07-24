@@ -700,7 +700,7 @@ bool ParseFixedPoint(const std::string &val, int decimals,
             // pass single 0
             ++ptr;
         } else if (val[ptr] >= '1' && val[ptr] <= '9') {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (!ProcessMantissaDigit(val[ptr], mantissa,
                                           mantissa_tzeros)) {
                     // overflow
@@ -718,8 +718,8 @@ bool ParseFixedPoint(const std::string &val, int decimals,
     }
     if (ptr < end && val[ptr] == '.') {
         ++ptr;
-        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+        if (ptr < end && IsDigit(val[ptr])) {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (!ProcessMantissaDigit(val[ptr], mantissa,
                                           mantissa_tzeros)) {
                     // overflow
@@ -741,8 +741,8 @@ bool ParseFixedPoint(const std::string &val, int decimals,
             exponent_sign = true;
             ++ptr;
         }
-        if (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
-            while (ptr < end && val[ptr] >= '0' && val[ptr] <= '9') {
+        if (ptr < end && IsDigit(val[ptr])) {
+            while (ptr < end && IsDigit(val[ptr])) {
                 if (exponent > (UPPER_BOUND / 10LL)) {
                     // overflow
                     return false;
