@@ -996,6 +996,9 @@ int CMPTransaction::logicHelper_CrowdsaleParticipation()
     CMPSPInfo::Entry sp;
     assert(_my_sps->getSP(pcrowdsale->getPropertyId(), sp));
     PrintToLog("INVESTMENT SEND to Crowdsale Issuer: %s\n", receiver);
+	if(sp.issuer == sender){
+		return (PKT_ERROR_CROWD -2);
+	}
 
     // Holds the tokens to be credited to the sender and issuer
     std::pair<int64_t, int64_t> tokens;
