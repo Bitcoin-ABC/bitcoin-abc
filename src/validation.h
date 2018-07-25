@@ -464,7 +464,7 @@ std::string FormatStateMessage(const CValidationState &state);
  * @return number of sigops this transaction's outputs will produce when spent
  * @see CTransaction::FetchInputs
  */
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx);
+uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags);
 
 /**
  * Count ECDSA signature operations in pay-to-script-hash inputs.
@@ -476,18 +476,19 @@ uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx);
  * @see CTransaction::FetchInputs
  */
 uint64_t GetP2SHSigOpCount(const CTransaction &tx,
-                           const CCoinsViewCache &mapInputs);
+                           const CCoinsViewCache &mapInputs, uint32_t flags);
 
 /**
  * Compute total signature operation of a transaction.
  * @param[in] tx     Transaction for which we are computing the cost
  * @param[in] inputs Map of previous transactions that have outputs we're
  * spending
- * @param[out] flags Script verification flags
+ * @param[in] flags  Script verification flags
  * @return Total signature operation cost of tx
  */
 uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &inputs, int flags);
+                                  const CCoinsViewCache &inputs,
+                                  uint32_t flags);
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends,
@@ -523,8 +524,10 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
 
 /** Transaction validation functions */
 
-/** Context-independent validity checks for coinbase and non-coinbase
- * transactions */
+/**
+ * Context-independent validity checks for coinbase and non-coinbase
+ * transactions.
+ */
 bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
                              bool fCheckDuplicateInputs = true);
 bool CheckCoinbase(const CTransaction &tx, CValidationState &state,

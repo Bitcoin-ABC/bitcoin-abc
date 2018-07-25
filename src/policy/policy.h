@@ -88,6 +88,14 @@ static const uint32_t STANDARD_NOT_MANDATORY_VERIFY_FLAGS =
 static const uint32_t STANDARD_LOCKTIME_VERIFY_FLAGS =
     LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
 
+/**
+ * Used as the flags parameters to check for sigops as if OP_CHECKDATASIG is
+ * enabled. Can be removed after OP_CHECKDATASIG is activated as the flag is
+ * made standard.
+ */
+static const uint32_t STANDARD_CHECKDATASIG_VERIFY_FLAGS =
+    STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG;
+
 bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType);
 
 /**

@@ -212,8 +212,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     UpdateTime(pblock, *config, pindexPrev);
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, *config);
     pblock->nNonce = 0;
-    pblocktemplate->vTxSigOpsCount[0] =
-        GetSigOpCountWithoutP2SH(*pblock->vtx[0]);
+    pblocktemplate->vTxSigOpsCount[0] = GetSigOpCountWithoutP2SH(
+        *pblock->vtx[0], STANDARD_CHECKDATASIG_VERIFY_FLAGS);
 
     CValidationState state;
     BlockValidationOptions validationOptions(false, false);

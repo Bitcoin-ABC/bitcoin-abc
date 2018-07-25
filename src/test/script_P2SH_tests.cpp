@@ -413,7 +413,12 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
 
     BOOST_CHECK(::AreInputsStandard(CTransaction(txTo), coins));
     // 22 P2SH sigops for all inputs (1 for vin[0], 6 for vin[3], 15 for vin[4]
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txTo), coins), 22U);
+    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txTo), coins,
+                                        STANDARD_CHECKDATASIG_VERIFY_FLAGS),
+                      22U);
+    // Check that no sigops show up when P2SH is not activated.
+    BOOST_CHECK_EQUAL(
+        GetP2SHSigOpCount(CTransaction(txTo), coins, SCRIPT_VERIFY_NONE), 0);
 
     CMutableTransaction txToNonStd1;
     txToNonStd1.vout.resize(1);
@@ -426,7 +431,13 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         << std::vector<uint8_t>(sixteenSigops.begin(), sixteenSigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd1), coins));
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd1), coins), 16U);
+    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd1), coins,
+                                        STANDARD_CHECKDATASIG_VERIFY_FLAGS),
+                      16U);
+    // Check that no sigops show up when P2SH is not activated.
+    BOOST_CHECK_EQUAL(
+        GetP2SHSigOpCount(CTransaction(txToNonStd1), coins, SCRIPT_VERIFY_NONE),
+        0);
 
     CMutableTransaction txToNonStd2;
     txToNonStd2.vout.resize(1);
@@ -439,7 +450,13 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
         << std::vector<uint8_t>(twentySigops.begin(), twentySigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(CTransaction(txToNonStd2), coins));
-    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd2), coins), 20U);
+    BOOST_CHECK_EQUAL(GetP2SHSigOpCount(CTransaction(txToNonStd2), coins,
+                                        STANDARD_CHECKDATASIG_VERIFY_FLAGS),
+                      20U);
+    // Check that no sigops show up when P2SH is not activated.
+    BOOST_CHECK_EQUAL(
+        GetP2SHSigOpCount(CTransaction(txToNonStd2), coins, SCRIPT_VERIFY_NONE),
+        0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

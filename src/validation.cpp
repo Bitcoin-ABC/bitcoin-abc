@@ -381,7 +381,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
     return EvaluateSequenceLocks(index, lockPair);
 }
 
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx) {
+uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags) {
     uint64_t nSigOps = 0;
     for (const auto &txin : tx.vin) {
         nSigOps += txin.scriptSig.GetSigOpCount(false);
@@ -392,9 +392,9 @@ uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx) {
     return nSigOps;
 }
 
-uint64_t GetP2SHSigOpCount(const CTransaction &tx,
-                           const CCoinsViewCache &view) {
-    if (tx.IsCoinBase()) {
+uint64_t GetP2SHSigOpCount(const CTransaction &tx, const CCoinsViewCache &view,
+                           uint32_t flags) {
+    if ((flags & SCRIPT_VERIFY_P2SH) == 0 || tx.IsCoinBase()) {
         return 0;
     }
 
@@ -405,21 +405,14 @@ uint64_t GetP2SHSigOpCount(const CTransaction &tx,
             nSigOps += prevout.scriptPubKey.GetSigOpCount(i.scriptSig);
         }
     }
+
     return nSigOps;
 }
 
 uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &view, int flags) {
-    uint64_t nSigOps = GetSigOpCountWithoutP2SH(tx);
-    if (tx.IsCoinBase()) {
-        return nSigOps;
-    }
-
-    if (flags & SCRIPT_VERIFY_P2SH) {
-        nSigOps += GetP2SHSigOpCount(tx, view);
-    }
-
-    return nSigOps;
+                                  const CCoinsViewCache &view, uint32_t flags) {
+    return GetSigOpCountWithoutP2SH(tx, flags) +
+           GetP2SHSigOpCount(tx, view, flags);
 }
 
 static bool CheckTransactionCommon(const CTransaction &tx,
@@ -459,7 +452,8 @@ static bool CheckTransactionCommon(const CTransaction &tx,
         }
     }
 
-    if (GetSigOpCountWithoutP2SH(tx) > MAX_TX_SIGOPS_COUNT) {
+    if (GetSigOpCountWithoutP2SH(tx, STANDARD_CHECKDATASIG_VERIFY_FLAGS) >
+        MAX_TX_SIGOPS_COUNT) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
     }
 
@@ -2118,7 +2112,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
         if (tx.IsCoinBase()) {
             // We've already checked for sigops count before P2SH in CheckBlock.
-            nSigOpsCount += GetSigOpCountWithoutP2SH(tx);
+            nSigOpsCount += GetSigOpCountWithoutP2SH(tx, flags);
         }
 
         if (fIsMagneticAnomalyEnabled || tx.IsCoinBase()) {
@@ -3507,7 +3501,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
     while (true) {
         // Count the sigops for the current transaction. If the total sigops
         // count is too high, the the block is invalid.
-        nSigOps += GetSigOpCountWithoutP2SH(*tx);
+        nSigOps += GetSigOpCountWithoutP2SH(*tx, STANDARD_SCRIPT_VERIFY_FLAGS);
         if (nSigOps > nMaxSigOpsCount) {
             return state.DoS(100, false, REJECT_INVALID, "bad-blk-sigops",
                              false, "out-of-bounds SigOpCount");
