@@ -629,29 +629,35 @@ void BlockAssembler::addPriorityTxs() {
         }
 
         // If this tx fits in the block add it, otherwise keep looping.
-        if (TestForBlock(iter)) {
-            AddToBlock(iter);
+        if (!TestForBlock(iter)) {
+            continue;
+        }
 
-            // If now that this txs is added we've surpassed our desired
-            // priority size or have dropped below the AllowFreeThreshold, then
-            // we're done adding priority txs.
-            if (nBlockSize >= nBlockPrioritySize ||
-                !AllowFree(actualPriority)) {
-                break;
+        AddToBlock(iter);
+
+        // If now that this txs is added we've surpassed our desired priority
+        // size, then we're done adding priority transactions.
+        if (nBlockSize >= nBlockPrioritySize) {
+            break;
+        }
+
+        // if we have dropped below the AllowFreeThreshold, then we're done
+        // adding priority transactions.
+        if (!AllowFree(actualPriority)) {
+            break;
+        }
+
+        // This tx was successfully added, so add transactions that depend
+        // on this one to the priority queue to try again.
+        for (CTxMemPool::txiter child : mempool.GetMemPoolChildren(iter)) {
+            waitPriIter wpiter = waitPriMap.find(child);
+            if (wpiter == waitPriMap.end()) {
+                continue;
             }
 
-            // This tx was successfully added, so add transactions that depend
-            // on this one to the priority queue to try again.
-            for (CTxMemPool::txiter child : mempool.GetMemPoolChildren(iter)) {
-                waitPriIter wpiter = waitPriMap.find(child);
-                if (wpiter != waitPriMap.end()) {
-                    vecPriority.push_back(
-                        TxCoinAgePriority(wpiter->second, child));
-                    std::push_heap(vecPriority.begin(), vecPriority.end(),
-                                   pricomparer);
-                    waitPriMap.erase(wpiter);
-                }
-            }
+            vecPriority.push_back(TxCoinAgePriority(wpiter->second, child));
+            std::push_heap(vecPriority.begin(), vecPriority.end(), pricomparer);
+            waitPriMap.erase(wpiter);
         }
     }
 }
