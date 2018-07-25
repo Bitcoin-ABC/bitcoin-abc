@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
     key.MakeNewKey(true);
     CPubKey pubkey = key.GetPubKey();
     // Default flags
-    int flags = SCRIPT_VERIFY_P2SH;
+    const uint32_t flags = SCRIPT_VERIFY_P2SH;
 
     // Multisig script (legacy counting)
     {
@@ -151,6 +151,15 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
         BOOST_CHECK_EQUAL(
             VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
             SCRIPT_ERR_CHECKMULTISIGVERIFY);
+
+        // Make sure non P2SH sigops are counted even if the flag for P2SH is
+        // not passed in.
+        BOOST_CHECK_EQUAL(GetTransactionSigOpCount(CTransaction(spendingTx),
+                                                   coins, SCRIPT_VERIFY_NONE),
+                          0);
+        BOOST_CHECK_EQUAL(GetTransactionSigOpCount(CTransaction(creationTx),
+                                                   coins, SCRIPT_VERIFY_NONE),
+                          MAX_PUBKEYS_PER_MULTISIG);
     }
 
     // Multisig nested in P2SH
@@ -169,6 +178,12 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
         BOOST_CHECK_EQUAL(
             VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
             SCRIPT_ERR_CHECKMULTISIGVERIFY);
+
+        // Make sure P2SH sigops are not counted if the flag for P2SH is not
+        // passed in.
+        BOOST_CHECK_EQUAL(GetTransactionSigOpCount(CTransaction(spendingTx),
+                                                   coins, SCRIPT_VERIFY_NONE),
+                          0);
     }
 }
 
