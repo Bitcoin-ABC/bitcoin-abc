@@ -75,7 +75,7 @@ ScriptError VerifyWithFlag(const CTransaction &output,
     bool ret = VerifyScript(
         inputi.vin[0].scriptSig, output.vout[0].scriptPubKey, flags,
         TransactionSignatureChecker(&inputi, 0, output.vout[0].nValue), &error);
-    BOOST_CHECK((ret == true) == (error == SCRIPT_ERR_OK));
+    BOOST_CHECK_EQUAL((ret == true), (error == SCRIPT_ERR_OK));
 
     return error;
 }
@@ -138,16 +138,19 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
         // scriptPubKeys of a transaction and does not take the actual executed
         // sig operations into account. spendingTx in itself does not contain a
         // signature operation.
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins,
-                                        flags) == 0);
+        BOOST_CHECK_EQUAL(
+            GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags),
+            0);
         // creationTx contains two signature operations in its scriptPubKey, but
         // legacy counting is not accurate.
-        assert(GetTransactionSigOpCount(CTransaction(creationTx), coins,
-                                        flags) == MAX_PUBKEYS_PER_MULTISIG);
+        BOOST_CHECK_EQUAL(
+            GetTransactionSigOpCount(CTransaction(creationTx), coins, flags),
+            MAX_PUBKEYS_PER_MULTISIG);
         // Sanity check: script verification fails because of an invalid
         // signature.
-        assert(VerifyWithFlag(CTransaction(creationTx), spendingTx, flags) ==
-               SCRIPT_ERR_CHECKMULTISIGVERIFY);
+        BOOST_CHECK_EQUAL(
+            VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
+            SCRIPT_ERR_CHECKMULTISIGVERIFY);
     }
 
     // Multisig nested in P2SH
@@ -160,10 +163,12 @@ BOOST_AUTO_TEST_CASE(GetTxSigOpCost) {
                             << OP_0 << OP_0 << ToByteVector(redeemScript);
 
         BuildTxs(spendingTx, coins, creationTx, scriptPubKey, scriptSig);
-        assert(GetTransactionSigOpCount(CTransaction(spendingTx), coins,
-                                        flags) == 2);
-        assert(VerifyWithFlag(CTransaction(creationTx), spendingTx, flags) ==
-               SCRIPT_ERR_CHECKMULTISIGVERIFY);
+        BOOST_CHECK_EQUAL(
+            GetTransactionSigOpCount(CTransaction(spendingTx), coins, flags),
+            2);
+        BOOST_CHECK_EQUAL(
+            VerifyWithFlag(CTransaction(creationTx), spendingTx, flags),
+            SCRIPT_ERR_CHECKMULTISIGVERIFY);
     }
 }
 
