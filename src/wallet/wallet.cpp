@@ -44,6 +44,13 @@
 #include <cassert>
 #include <future>
 
+const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
+    {WALLET_FLAG_AVOID_REUSE,
+     "You need to rescan the blockchain in order to correctly mark used "
+     "destinations in the past. Until this is done, some destinations may "
+     "be considered unused, even if the opposite is the case."},
+};
+
 static RecursiveMutex cs_wallets;
 static std::vector<std::shared_ptr<CWallet>> vpwallets GUARDED_BY(cs_wallets);
 
