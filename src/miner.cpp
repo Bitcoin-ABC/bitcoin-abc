@@ -117,7 +117,6 @@ void BlockAssembler::resetBlock() {
     nFees = Amount(0);
 
     lastFewTxs = 0;
-    blockFinished = false;
 }
 
 static const std::vector<uint8_t>
@@ -297,21 +296,21 @@ bool BlockAssembler::TestPackageTransactions(
     return true;
 }
 
-bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
+BlockAssembler::TestForBlockResult
+BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     auto blockSizeWithTx =
         nBlockSize +
         ::GetSerializeSize(it->GetTx(), SER_NETWORK, PROTOCOL_VERSION);
     if (blockSizeWithTx >= nMaxGeneratedBlockSize) {
         if (nBlockSize > nMaxGeneratedBlockSize - 100 || lastFewTxs > 50) {
-            blockFinished = true;
-            return false;
+            return TestForBlockResult::BlockFinished;
         }
 
         if (nBlockSize > nMaxGeneratedBlockSize - 1000) {
             lastFewTxs++;
         }
 
-        return false;
+        return TestForBlockResult::TXCantFit;
     }
 
     auto maxBlockSigOps = GetMaxBlockSigOpsCount(blockSizeWithTx);
@@ -321,13 +320,12 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
         // TODO: We should consider adding another transaction that isn't very
         // dense in sigops instead of bailing out so easily.
         if (nBlockSigOps > maxBlockSigOps - 2) {
-            blockFinished = true;
-            return false;
+            return TestForBlockResult::BlockFinished;
         }
 
         // Otherwise attempt to find another tx with fewer sigops to put in the
         // block.
-        return false;
+        return TestForBlockResult::TXCantFit;
     }
 
     // Must check that lock times are still valid. This can be removed once MTP
@@ -335,10 +333,10 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     CValidationState state;
     if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
                                     nLockTimeCutoff)) {
-        return false;
+        return TestForBlockResult::TXCantFit;
     }
 
-    return true;
+    return TestForBlockResult::TXFits;
 }
 
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
@@ -608,7 +606,7 @@ void BlockAssembler::addPriorityTxs() {
 
     // Add a tx from priority queue to fill the part of block reserved to
     // priority transactions.
-    while (!vecPriority.empty() && !blockFinished) {
+    while (!vecPriority.empty()) {
         iter = vecPriority.front().second;
         actualPriority = vecPriority.front().first;
         std::pop_heap(vecPriority.begin(), vecPriority.end(), pricomparer);
@@ -628,8 +626,14 @@ void BlockAssembler::addPriorityTxs() {
             continue;
         }
 
-        // If this tx fits in the block add it, otherwise keep looping.
-        if (!TestForBlock(iter)) {
+        TestForBlockResult testResult = TestForBlock(iter);
+        // Break if the block is completed
+        if (testResult == TestForBlockResult::BlockFinished) {
+            break;
+        }
+
+        // If this tx does not fit in the block, skip to next transaction.
+        if (testResult != TestForBlockResult::TXFits) {
             continue;
         }
 

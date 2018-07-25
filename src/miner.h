@@ -151,7 +151,6 @@ private:
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
-    bool blockFinished;
 
 public:
     BlockAssembler(const Config &_config);
@@ -176,9 +175,16 @@ private:
      * statistics from the package selection (for logging statistics). */
     void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated);
 
+    /** Enum for the results from TestForBlock */
+    enum class TestForBlockResult : uint8_t {
+        TXFits = 0,
+        TXCantFit = 1,
+        BlockFinished = 3,
+    };
+
     // helper function for addPriorityTxs
     /** Test if tx will still "fit" in the block */
-    bool TestForBlock(CTxMemPool::txiter iter);
+    TestForBlockResult TestForBlock(CTxMemPool::txiter iter);
     /** Test if tx still has unconfirmed parents not yet in block */
     bool isStillDependent(CTxMemPool::txiter iter);
 
