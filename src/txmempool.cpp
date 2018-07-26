@@ -723,8 +723,6 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                       memusage::DynamicUsage(links.children);
         bool fDependsWait = false;
         setEntries setParentCheck;
-        int64_t parentSizes = 0;
-        int64_t parentSigOpCount = 0;
         for (const CTxIn &txin : tx.vin) {
             // Check that every mempool transaction's inputs refer to available
             // coins, or other mempool tx's.
@@ -735,10 +733,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
                 assert(tx2.vout.size() > txin.prevout.GetN() &&
                        !tx2.vout[txin.prevout.GetN()].IsNull());
                 fDependsWait = true;
-                if (setParentCheck.insert(it2).second) {
-                    parentSizes += it2->GetTxSize();
-                    parentSigOpCount += it2->GetSigOpCount();
-                }
+                setParentCheck.insert(it2);
             } else {
                 assert(pcoins->HaveCoin(txin.prevout));
             }
