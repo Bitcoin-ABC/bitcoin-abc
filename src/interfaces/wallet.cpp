@@ -90,7 +90,7 @@ namespace {
         WalletTxStatus result;
         CBlockIndex *block = LookupBlockIndex(wtx.hashBlock);
         result.block_height =
-            (block ? block->nHeight : std::numeric_limits<int>::max()),
+            (block ? block->nHeight : std::numeric_limits<int>::max());
         result.blocks_to_maturity = wtx.GetBlocksToMaturity();
         result.depth_in_main_chain = wtx.GetDepthInMainChain();
         result.time_received = wtx.nTimeReceived;
