@@ -15,7 +15,7 @@ import os
 READELF_CMD = os.getenv('READELF', '/usr/bin/readelf')
 OBJDUMP_CMD = os.getenv('OBJDUMP', '/usr/bin/objdump')
 # checks which are non-fatal for now but only generate a warning
-NONFATAL = {'HIGH_ENTROPY_VA'}
+NONFATAL = {}
 
 
 def check_ELF_PIE(executable):
