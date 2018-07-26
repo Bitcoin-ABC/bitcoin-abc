@@ -484,7 +484,8 @@ bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
         return false;
     }
 
-    if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100) {
+    if (tx.vin[0].scriptSig.size() < 2 ||
+        tx.vin[0].scriptSig.size() > MAX_COINBASE_SCRIPTSIG_SIZE) {
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
     }
 

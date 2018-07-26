@@ -33,8 +33,6 @@
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 
-static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitcoinMiner
