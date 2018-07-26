@@ -3870,11 +3870,9 @@ static bool AcceptBlock(const Config &config,
         chainActive.Tip() ? std::llabs(chainActive.Tip()->GetReceivedTimeDiff())
                           : 0;
 
-    bool isSameHeightAndMoreHonestlyMined =
-        chainActive.Tip() &&
-        (pindex->nChainWork == chainActive.Tip()->nChainWork) &&
-        (newBlockTimeDiff < chainTipTimeDiff);
-    if (isSameHeightAndMoreHonestlyMined) {
+    bool isSameHeight = chainActive.Tip() &&
+                        (pindex->nChainWork == chainActive.Tip()->nChainWork);
+    if (isSameHeight) {
         LogPrintf("Chain tip timestamp-to-received-time difference: hash=%s, "
                   "diff=%d\n",
                   chainActive.Tip()->GetBlockHash().ToString(),
