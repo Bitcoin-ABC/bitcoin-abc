@@ -28,38 +28,47 @@ static std::vector<uint8_t> Serialize(const CScript &s) {
 BOOST_FIXTURE_TEST_SUITE(sigopcount_tests, BasicTestingSetup)
 
 void CheckScriptSigOps(const CScript &script, uint32_t accurate_sigops,
-                       uint32_t inaccurate_sigops) {
-    const uint32_t flags = STANDARD_CHECKDATASIG_VERIFY_FLAGS;
+                       uint32_t inaccurate_sigops, uint32_t datasigops) {
+    const uint32_t stdflags = STANDARD_SCRIPT_VERIFY_FLAGS;
+    const uint32_t datasigflags = STANDARD_CHECKDATASIG_VERIFY_FLAGS;
 
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, false), inaccurate_sigops);
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, true), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, false), inaccurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, false),
+                      inaccurate_sigops + datasigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, true), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, true),
+                      accurate_sigops + datasigops);
 
     const CScript p2sh = GetScriptForDestination(CScriptID(script));
     const CScript scriptSig = CScript() << OP_0 << Serialize(script);
-    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(flags, scriptSig), accurate_sigops);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(stdflags, scriptSig), accurate_sigops);
+    BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(datasigflags, scriptSig),
+                      accurate_sigops + datasigops);
 
     // Check that GetSigOpCount do not report sigops in the P2SH script when the
     // P2SH flags isn't passed in.
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig), 0U);
 
     // Check that GetSigOpCount report the exact count when not passed a P2SH.
-    BOOST_CHECK_EQUAL(script.GetSigOpCount(flags, p2sh), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(stdflags, p2sh), accurate_sigops);
+    BOOST_CHECK_EQUAL(script.GetSigOpCount(datasigflags, p2sh),
+                      accurate_sigops + datasigops);
     BOOST_CHECK_EQUAL(script.GetSigOpCount(SCRIPT_VERIFY_NONE, p2sh),
                       accurate_sigops);
 }
 
 BOOST_AUTO_TEST_CASE(GetSigOpCount) {
     // Test CScript::GetSigOpCount()
-    CheckScriptSigOps(CScript(), 0, 0);
+    CheckScriptSigOps(CScript(), 0, 0, 0);
 
     uint160 dummy;
     const CScript s1 = CScript()
                        << OP_1 << ToByteVector(dummy) << ToByteVector(dummy)
                        << OP_2 << OP_CHECKMULTISIG;
-    CheckScriptSigOps(s1, 2, 20);
+    CheckScriptSigOps(s1, 2, 20, 0);
 
     const CScript s2 = CScript(s1) << OP_IF << OP_CHECKSIG << OP_ENDIF;
-    CheckScriptSigOps(s2, 3, 21);
+    CheckScriptSigOps(s2, 3, 21, 0);
 
     std::vector<CPubKey> keys;
     for (int i = 0; i < 3; i++) {
@@ -69,17 +78,25 @@ BOOST_AUTO_TEST_CASE(GetSigOpCount) {
     }
 
     const CScript s3 = GetScriptForMultisig(1, keys);
-    CheckScriptSigOps(s3, 3, 20);
+    CheckScriptSigOps(s3, 3, 20, 0);
 
     const CScript p2sh = GetScriptForDestination(CScriptID(s3));
-    CheckScriptSigOps(p2sh, 0, 0);
+    CheckScriptSigOps(p2sh, 0, 0, 0);
 
     CScript scriptSig2;
     scriptSig2 << OP_1 << ToByteVector(dummy) << ToByteVector(dummy)
                << Serialize(s3);
     BOOST_CHECK_EQUAL(
+        p2sh.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, scriptSig2), 3U);
+    BOOST_CHECK_EQUAL(
         p2sh.GetSigOpCount(STANDARD_CHECKDATASIG_VERIFY_FLAGS, scriptSig2), 3U);
     BOOST_CHECK_EQUAL(p2sh.GetSigOpCount(SCRIPT_VERIFY_NONE, scriptSig2), 0U);
+
+    const CScript s4 = CScript(s1) << OP_IF << OP_CHECKDATASIG << OP_ENDIF;
+    CheckScriptSigOps(s4, 2, 20, 1);
+
+    const CScript s5 = CScript(s4) << OP_CHECKDATASIGVERIFY;
+    CheckScriptSigOps(s5, 2, 20, 2);
 }
 
 /**

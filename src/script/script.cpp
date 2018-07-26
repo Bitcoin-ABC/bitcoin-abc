@@ -359,6 +359,13 @@ uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
                 n++;
                 break;
 
+            case OP_CHECKDATASIG:
+            case OP_CHECKDATASIGVERIFY:
+                if (flags & SCRIPT_ENABLE_CHECKDATASIG) {
+                    n++;
+                }
+                break;
+
             case OP_CHECKMULTISIG:
             case OP_CHECKMULTISIGVERIFY:
                 if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16) {
