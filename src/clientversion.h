@@ -1,4 +1,5 @@
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,8 +17,8 @@
 //! These need to be macros, as clientversion.cpp's and bitcoin*-res.rc's voodoo
 //! requires it
 #define CLIENT_VERSION_MAJOR 0
-#define CLIENT_VERSION_MINOR 17
-#define CLIENT_VERSION_REVISION 3
+#define CLIENT_VERSION_MINOR 18
+#define CLIENT_VERSION_REVISION 0
 #define CLIENT_VERSION_BUILD 0
 
 //! Set to true for release, false for prerelease or test build

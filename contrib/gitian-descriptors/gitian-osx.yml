@@ -1,5 +1,5 @@
 ---
-name: "bitcoin-abc-0.17-osx"
+name: "bitcoin-abc-0.18-osx"
 enable_cache: true
 suites:
 - "xenial"

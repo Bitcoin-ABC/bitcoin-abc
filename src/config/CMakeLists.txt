@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Bitcoin developers
+# Copyright (c) 2017-2018 The Bitcoin developers
 
 # This generates config.h which provides numerous defines
 # about the state of the plateform we are building on.
@@ -11,14 +11,14 @@ set(PACKAGE_NAME "Bitcoin ABC")
 
 # Version
 set(CLIENT_VERSION_MAJOR 0)
-set(CLIENT_VERSION_MINOR 17)
-set(CLIENT_VERSION_REVISION 3)
+set(CLIENT_VERSION_MINOR 18)
+set(CLIENT_VERSION_REVISION 0)
 set(CLIENT_VERSION_BUILD 0)
 
 option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
 
 # Copyright
-set(COPYRIGHT_YEAR 2017)
+set(COPYRIGHT_YEAR 2018)
 set(COPYRIGHT_HOLDERS "The %s developers")
 set(COPYRIGHT_HOLDERS_SUBSTITUTION Bitcoin)
 string(REPLACE "%s" ${COPYRIGHT_HOLDERS_SUBSTITUTION} COPYRIGHT_HOLDERS_FINAL ${COPYRIGHT_HOLDERS})
