@@ -4497,7 +4497,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         // Regenerate the keypool if upgraded to HD
         if (hd_upgrade) {
             if (!walletInstance->TopUpKeyPool()) {
-                InitError(_("Unable to generate keys") += "\n");
+                InitError(_("Unable to generate keys"));
                 return nullptr;
             }
         }
@@ -4527,7 +4527,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         if (!walletInstance->IsWalletFlagSet(
                 WALLET_FLAG_DISABLE_PRIVATE_KEYS) &&
             !walletInstance->TopUpKeyPool()) {
-            InitError(_("Unable to generate initial keys") += "\n");
+            InitError(_("Unable to generate initial keys"));
             return nullptr;
         }
 
