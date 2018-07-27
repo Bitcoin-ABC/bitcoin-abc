@@ -589,8 +589,8 @@ public:
     // Note that addUnchecked is ONLY called from ATMP outside of tests
     // and any other callers may break wallet's in-mempool tracking (due to
     // lack of CValidationInterface::TransactionAddedToMempool callbacks).
-    bool addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry);
-    bool addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
+    void addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry);
+    void addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
                       setEntries &setAncestors);
 
     void removeRecursive(

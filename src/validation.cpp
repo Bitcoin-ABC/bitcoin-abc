@@ -166,7 +166,7 @@ public:
                        CBlockIndex *pindex);
     bool UnwindBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex, bool invalidate);
-    bool ResetBlockFailureFlags(CBlockIndex *pindex);
+    void ResetBlockFailureFlags(CBlockIndex *pindex);
     template <typename F>
     void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f);
     template <typename F, typename C>
@@ -176,7 +176,7 @@ public:
     void UpdateFlags(CBlockIndex *pindex, F f)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /** Remove parked status from a block and its descendants. */
-    bool UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren);
+    void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren);
 
     bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
     bool RewindBlockIndex(const Config &config);
@@ -3219,7 +3219,7 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, F f)
     UpdateFlags(pindex, f, f);
 }
 
-bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
+void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     if (pindexBestInvalid &&
@@ -3239,15 +3239,13 @@ bool CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     UpdateFlags(pindex, [](const BlockStatus status) {
         return status.withClearedFailureFlags();
     });
-
-    return true;
 }
 
-bool ResetBlockFailureFlags(CBlockIndex *pindex) {
+void ResetBlockFailureFlags(CBlockIndex *pindex) {
     return g_chainstate.ResetBlockFailureFlags(pindex);
 }
 
-bool CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
+void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
     AssertLockHeld(cs_main);
 
     if (pindexBestParked &&
@@ -3265,15 +3263,13 @@ bool CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
                     return fClearChildren ? status.withClearedParkedFlags()
                                           : status.withParkedParent(false);
                 });
-
-    return true;
 }
 
-bool UnparkBlockAndChildren(CBlockIndex *pindex) {
+void UnparkBlockAndChildren(CBlockIndex *pindex) {
     return g_chainstate.UnparkBlockImpl(pindex, true);
 }
 
-bool UnparkBlock(CBlockIndex *pindex) {
+void UnparkBlock(CBlockIndex *pindex) {
     return g_chainstate.UnparkBlockImpl(pindex, false);
 }
 

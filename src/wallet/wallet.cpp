@@ -319,21 +319,19 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey,
         vchPubKey, vchCryptedSecret, mapKeyMetadata[vchPubKey.GetID()]);
 }
 
-bool CWallet::LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &meta) {
+void CWallet::LoadKeyMetadata(const CKeyID &keyID, const CKeyMetadata &meta) {
     // mapKeyMetadata
     AssertLockHeld(cs_wallet);
     UpdateTimeFirstKey(meta.nCreateTime);
     mapKeyMetadata[keyID] = meta;
-    return true;
 }
 
-bool CWallet::LoadScriptMetadata(const CScriptID &script_id,
+void CWallet::LoadScriptMetadata(const CScriptID &script_id,
                                  const CKeyMetadata &meta) {
     // m_script_metadata
     AssertLockHeld(cs_wallet);
     UpdateTimeFirstKey(meta.nCreateTime);
     m_script_metadata[script_id] = meta;
-    return true;
 }
 
 bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey,
@@ -526,12 +524,12 @@ void CWallet::ChainStateFlushed(const CBlockLocator &loc) {
     batch.WriteBestBlock(loc);
 }
 
-bool CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch *batch_in,
+void CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch *batch_in,
                             bool fExplicit) {
     // nWalletVersion
     LOCK(cs_wallet);
     if (nWalletVersion >= nVersion) {
-        return true;
+        return;
     }
 
     // When doing an explicit upgrade, if we pass the max version permitted,
@@ -553,8 +551,6 @@ bool CWallet::SetMinVersion(enum WalletFeature nVersion, WalletBatch *batch_in,
     if (!batch_in) {
         delete batch;
     }
-
-    return true;
 }
 
 bool CWallet::SetMaxVersion(int nVersion) {
@@ -785,9 +781,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
 
         // If we are using HD, replace the HD master key (seed) with a new one.
         if (IsHDEnabled()) {
-            if (!SetHDMasterKey(GenerateNewHDMasterKey())) {
-                return false;
-            }
+            SetHDMasterKey(GenerateNewHDMasterKey());
         }
 
         NewKeyPool();
@@ -1049,7 +1043,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     return true;
 }
 
-bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
+void CWallet::LoadToWallet(const CWalletTx &wtxIn) {
     const TxId &txid = wtxIn.GetId();
     CWalletTx &wtx = mapWallet.emplace(txid, wtxIn).first->second;
     wtx.BindWallet(this);
@@ -1064,8 +1058,6 @@ bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
             }
         }
     }
-
-    return true;
 }
 
 /**
@@ -1576,7 +1568,7 @@ CPubKey CWallet::GenerateNewHDMasterKey() {
     return pubkey;
 }
 
-bool CWallet::SetHDMasterKey(const CPubKey &pubkey) {
+void CWallet::SetHDMasterKey(const CPubKey &pubkey) {
     LOCK(cs_wallet);
 
     // Store the keyid (hash160) together with the child index counter in the
@@ -1587,11 +1579,9 @@ bool CWallet::SetHDMasterKey(const CPubKey &pubkey) {
                               : CHDChain::VERSION_HD_BASE;
     newHdChain.masterKeyID = pubkey.GetID();
     SetHDChain(newHdChain, false);
-
-    return true;
 }
 
-bool CWallet::SetHDChain(const CHDChain &chain, bool memonly) {
+void CWallet::SetHDChain(const CHDChain &chain, bool memonly) {
     LOCK(cs_wallet);
     if (!memonly && !WalletBatch(*database).WriteHDChain(chain)) {
         throw std::runtime_error(std::string(__func__) +
@@ -1599,7 +1589,6 @@ bool CWallet::SetHDChain(const CHDChain &chain, bool memonly) {
     }
 
     hdChain = chain;
-    return true;
 }
 
 bool CWallet::IsHDEnabled() const {
@@ -4203,10 +4192,9 @@ bool CWallet::EraseDestData(const CTxDestination &dest,
     return WalletBatch(*database).EraseDestData(dest, key);
 }
 
-bool CWallet::LoadDestData(const CTxDestination &dest, const std::string &key,
+void CWallet::LoadDestData(const CTxDestination &dest, const std::string &key,
                            const std::string &value) {
     mapAddressBook[dest].destdata.insert(std::make_pair(key, value));
-    return true;
 }
 
 bool CWallet::GetDestData(const CTxDestination &dest, const std::string &key,
@@ -4396,10 +4384,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
 
         // Generate a new master key.
         CPubKey masterPubKey = walletInstance->GenerateNewHDMasterKey();
-        if (!walletInstance->SetHDMasterKey(masterPubKey)) {
-            throw std::runtime_error(std::string(__func__) +
-                                     ": Storing master key failed");
-        }
+        walletInstance->SetHDMasterKey(masterPubKey);
 
         // Top up the keypool
         if (!walletInstance->TopUpKeyPool()) {

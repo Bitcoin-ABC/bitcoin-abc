@@ -665,13 +665,13 @@ bool ParkBlock(const Config &config, CValidationState &state,
                CBlockIndex *pindex);
 
 /** Remove invalidity status from a block and its descendants. */
-bool ResetBlockFailureFlags(CBlockIndex *pindex);
+void ResetBlockFailureFlags(CBlockIndex *pindex);
 
 /** Remove parked status from a block and its descendants. */
-bool UnparkBlockAndChildren(CBlockIndex *pindex);
+void UnparkBlockAndChildren(CBlockIndex *pindex);
 
 /** Remove parked status from a block. */
-bool UnparkBlock(CBlockIndex *pindex);
+void UnparkBlock(CBlockIndex *pindex);
 
 /**
  * Retrieve the topmost finalized block.

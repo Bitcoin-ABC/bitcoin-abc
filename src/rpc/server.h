@@ -282,7 +282,7 @@ extern std::string HelpExampleCli(const std::string &methodname,
 extern std::string HelpExampleRpc(const std::string &methodname,
                                   const std::string &args);
 
-bool StartRPC();
+void StartRPC();
 void InterruptRPC();
 void StopRPC();
 std::string JSONRPCExecBatch(Config &config, RPCServer &rpcServer,

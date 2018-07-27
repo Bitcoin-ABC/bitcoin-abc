@@ -409,7 +409,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
+void CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
                               setEntries &setAncestors) {
     NotifyEntryAdded(entry.GetSharedTx());
     // Add to memory pool without checking anything.
@@ -462,8 +462,6 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 
     vTxHashes.emplace_back(tx.GetHash(), newit);
     newit->vTxHashesIdx = vTxHashes.size() - 1;
-
-    return true;
 }
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
@@ -1084,7 +1082,7 @@ void CTxMemPool::LimitSize(size_t limit, unsigned long age) {
     }
 }
 
-bool CTxMemPool::addUnchecked(const uint256 &hash,
+void CTxMemPool::addUnchecked(const uint256 &hash,
                               const CTxMemPoolEntry &entry) {
     LOCK(cs);
     setEntries setAncestors;

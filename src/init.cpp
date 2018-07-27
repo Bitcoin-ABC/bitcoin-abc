@@ -1242,18 +1242,17 @@ static bool AppInitServers(Config &config,
     if (!InitHTTPServer(config)) {
         return false;
     }
-    if (!StartRPC()) {
-        return false;
-    }
+
+    StartRPC();
+
     if (!StartHTTPRPC(config, httpRPCRequestProcessor)) {
         return false;
     }
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) {
         return false;
     }
-    if (!StartHTTPServer()) {
-        return false;
-    }
+
+    StartHTTPServer();
     return true;
 }
 
