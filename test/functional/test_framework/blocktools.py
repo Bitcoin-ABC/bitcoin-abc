@@ -60,6 +60,12 @@ def create_coinbase(height, pubkey=None):
     else:
         coinbaseoutput.scriptPubKey = CScript([OP_TRUE])
     coinbase.vout = [coinbaseoutput]
+
+    # Make sure the coinbase is at least 100 bytes
+    coinbase_size = len(coinbase.serialize())
+    if coinbase_size < 100:
+        coinbase.vin[0].scriptSig += b'x' * (100 - coinbase_size)
+
     coinbase.calc_sha256()
     return coinbase
 

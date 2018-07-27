@@ -3617,12 +3617,21 @@ static bool ContextualCheckBlockHeader(const Config &config,
 
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff) {
+                                int64_t nLockTimeCutoff,
+                                int64_t nMedianTimePast) {
     if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-nonfinal", false,
                          "non-final transaction");
+    }
+
+    if (IsMagneticAnomalyEnabled(config, nMedianTimePast)) {
+        // Size limit
+        if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) <
+            MIN_TX_SIZE) {
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-undersize");
+        }
     }
 
     return true;
@@ -3654,12 +3663,15 @@ bool ContextualCheckTransactionForCurrentBlock(const Config &config,
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
+    const int64_t nMedianTimePast =
+        chainActive.Tip() == nullptr ? 0
+                                     : chainActive.Tip()->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                        ? chainActive.Tip()->GetMedianTimePast()
+                                        ? nMedianTimePast
                                         : GetAdjustedTime();
 
     return ContextualCheckTransaction(config, tx, state, nBlockHeight,
-                                      nLockTimeCutoff);
+                                      nLockTimeCutoff, nMedianTimePast);
 }
 
 static bool ContextualCheckBlock(const Config &config, const CBlock &block,
@@ -3704,7 +3716,7 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
         }
 
         if (!ContextualCheckTransaction(config, tx, state, nHeight,
-                                        nLockTimeCutoff)) {
+                                        nLockTimeCutoff, nMedianTimePast)) {
             // state set by ContextualCheckTransaction.
             return false;
         }

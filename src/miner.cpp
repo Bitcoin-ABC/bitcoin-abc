@@ -162,9 +162,10 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nTime = GetAdjustedTime();
     nMaxGeneratedBlockSize = ComputeMaxGeneratedBlockSize(*config, pindexPrev);
 
+    nMedianTimePast = pindexPrev->GetMedianTimePast();
     nLockTimeCutoff =
         (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
-            ? pindexPrev->GetMedianTimePast()
+            ? nMedianTimePast
             : pblock->GetBlockTime();
 
     addPriorityTxs();
@@ -196,6 +197,15 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     coinbaseTx.vout[0].nValue =
         nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+
+    // Make sure the coinbase is big enough.
+    uint64_t coinbaseSize =
+        ::GetSerializeSize(coinbaseTx, SER_NETWORK, PROTOCOL_VERSION);
+    if (coinbaseSize < MIN_TX_SIZE) {
+        coinbaseTx.vin[0].scriptSig
+            << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
+    }
+
     pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
     pblocktemplate->vTxFees[0] = -1 * nFees;
 
@@ -278,7 +288,7 @@ bool BlockAssembler::TestPackageTransactions(
     for (const CTxMemPool::txiter it : package) {
         CValidationState state;
         if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
-                                        nLockTimeCutoff)) {
+                                        nLockTimeCutoff, nMedianTimePast)) {
             return false;
         }
 
@@ -330,7 +340,7 @@ BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
     // is always enforced as long as reorgs keep the mempool consistent.
     CValidationState state;
     if (!ContextualCheckTransaction(*config, it->GetTx(), state, nHeight,
-                                    nLockTimeCutoff)) {
+                                    nLockTimeCutoff, nMedianTimePast)) {
         return TestForBlockResult::TXCantFit;
     }
 

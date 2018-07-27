@@ -3,17 +3,15 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-This test checks that the node software accepts transactions in
-non topological order once the feature is activated.
+This test checks that simple features of the magnetic anomaly fork
+activates properly. More complex features are given their own tests.
 """
 
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.comptool import TestManager, TestInstance, RejectResult
 from test_framework.blocktools import *
-import time
-from test_framework.key import CECKey
-from test_framework.script import *
+from test_framework.cdefs import MIN_TX_SIZE
 from collections import deque
 
 # far into the future
@@ -27,11 +25,7 @@ class PreviousSpendableOutput():
         self.n = n  # the output we're spending
 
 
-class TransactionOrderingTest(ComparisonTestFramework):
-
-    # Can either run this test as 1 node with expected answers, or two and compare them.
-    # Change the "outcome" variable from each TestInstance object to only do
-    # the comparison.
+class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
@@ -56,7 +50,7 @@ class TransactionOrderingTest(ComparisonTestFramework):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
-    def next_block(self, number, spend=None, tx_count=0):
+    def next_block(self, number, spend=None, tx_size=0):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -79,23 +73,23 @@ class TransactionOrderingTest(ComparisonTestFramework):
             # Make sure we have plenty enough to spend going forward.
             spendable_outputs = deque([spend])
 
-            def get_base_transaction():
-                # Create the new transaction
-                tx = CTransaction()
-                # Spend from one of the spendable outputs
-                spend = spendable_outputs.popleft()
-                tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
-                # Add spendable outputs
-                for i in range(4):
-                    tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
-                    spendable_outputs.append(PreviousSpendableOutput(tx, i))
-                # Put some random data into the transaction in order to randomize ids.
-                # This also ensures that transaction are larger than 100 bytes.
+            # Create the new transaction
+            tx = CTransaction()
+            # Spend from one of the spendable outputs
+            spend = spendable_outputs.popleft()
+            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+            # Add spendable outputs
+            for i in range(2):
+                tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
+                spendable_outputs.append(PreviousSpendableOutput(tx, i))
+            # Put some random data into the transaction in order to randomize ids.
+            if tx_size == 0:
                 tx.vout.append(
-                    CTxOut(0, CScript([random.getrandbits(256), OP_RETURN])))
-                return tx
-
-            tx = get_base_transaction()
+                    CTxOut(0, CScript([random.getrandbits(8), OP_RETURN])))
+            else:
+                tx.vout.append(
+                    CTxOut(0, CScript([random.getrandbits(8 * (tx_size - 82) - 1), OP_RETURN])))
+                assert_equal(len(tx.serialize()), tx_size)
 
             # Make it the same format as transaction added for padding and save the size.
             # It's missing the padding output, so we add a constant to account for it.
@@ -104,18 +98,9 @@ class TransactionOrderingTest(ComparisonTestFramework):
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
 
-            # If we have a transaction count requirement, just fill the block until we get there
-            while len(block.vtx) < tx_count:
-                # Create the new transaction and add it.
-                tx = get_base_transaction()
-                self.add_transactions_to_block(block, [tx])
-
             # Now that we added a bunch of transaction, we need to recompute
             # the merkle root.
             block.hashMerkleRoot = block.calc_merkle_root()
-
-        if tx_count > 0:
-            assert_equal(len(block.vtx), tx_count)
 
         # Do PoW, which is cheap on regnet
         block.solve()
@@ -212,50 +197,29 @@ class TransactionOrderingTest(ComparisonTestFramework):
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MAGNETIC_ANOMALY_START_TIME - 1)
 
-        # Before we activate the Nov 15, 2018 HF, transaction order is respected.
-        def ordered_block(block_number, spend):
-            b = block(block_number, spend=spend, tx_count=16)
-            b.vtx = [b.vtx[0]] + sorted(b.vtx[1:], key=lambda tx: tx.get_id())
-            update_block(block_number)
-            return b
-
-        ordered_block(4444, out[16])
-        yield rejected(RejectResult(16, b'bad-txns-inputs-missingorspent'))
-
-        # Rewind bad block.
-        tip(5104)
-
-        # Activate the Nov 15, 2018 HF
-        block(5556, out[16], tx_count=16)
+        # Check that block with small transactions are still accepted.
+        small_tx_block = block(4444, out[0], MIN_TX_SIZE - 1)
+        assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
         yield accepted()
 
-        # Now MTP is exactly the fork time. Transactions are expected to be ordered now.
+        # Now MTP is exactly the fork time. Small transaction are now rejected.
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MAGNETIC_ANOMALY_START_TIME)
 
-        # Block with regular ordering are now rejected.
-        block(5557, out[17], tx_count=16)
-        yield rejected(RejectResult(16, b'tx-ordering'))
+        # Now that the for activated, it is not possible to have
+        # small transactions anymore.
+        small_tx_block = block(4445, out[1], MIN_TX_SIZE - 1)
+        assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
+        yield rejected(RejectResult(16, b'bad-txns-undersize'))
 
         # Rewind bad block.
-        tip(5556)
+        tip(4444)
 
-        # Now that the fork activated, we need to order transaction per txid.
-        ordered_block(4445, out[17])
+        # But large transactions are still ok.
+        large_tx_block = block(4446, out[1], MIN_TX_SIZE)
+        assert_equal(len(large_tx_block.vtx[1].serialize()), MIN_TX_SIZE)
         yield accepted()
-
-        # Invalidate the best block and make sure we are back at the fork point.
-        ctorblockhash = node.getbestblockhash()
-        node.invalidateblock(ctorblockhash)
-        forkblockhash = node.getbestblockhash()
-        assert(forkblockhash != ctorblockhash)
-        assert_equal(node.getblockheader(forkblockhash)[
-                     'mediantime'], MAGNETIC_ANOMALY_START_TIME)
-
-        node.generate(1)
-        generatedblockhash = node.getbestblockhash()
-        assert(forkblockhash != generatedblockhash)
 
 
 if __name__ == '__main__':
-    TransactionOrderingTest().main()
+    MagneticAnomalyActivationTest().main()

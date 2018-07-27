@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,8 +7,10 @@
 #include "data/tx_valid.json.h"
 #include "test/test_bitcoin.h"
 
+#include "chainparams.h" // For CChainParams
 #include "checkqueue.h"
 #include "clientversion.h"
+#include "config.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "key.h"
@@ -20,7 +23,7 @@
 #include "test/jsonutil.h"
 #include "test/scriptflags.h"
 #include "utilstrencodings.h"
-#include "validation.h" // For CheckRegularTransaction
+#include "validation.h" // For CheckRegularTransaction and ContextualCheckTransaction
 
 #include <map>
 #include <string>
@@ -755,6 +758,23 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vout[0].scriptPubKey = CScript() << OP_RETURN;
     t.vout[1].scriptPubKey = CScript() << OP_RETURN;
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
+}
+
+BOOST_AUTO_TEST_CASE(txsize_activation_test) {
+    const Config &config = GetConfig();
+    const int64_t magneticAnomalyActivationTime =
+        config.GetChainParams().GetConsensus().magneticAnomalyActivationTime;
+
+    // A minimaly sized transction.
+    CTransaction minTx;
+    CValidationState state;
+
+    BOOST_CHECK(ContextualCheckTransaction(config, minTx, state, 1234, 5678,
+                                           magneticAnomalyActivationTime - 1));
+    BOOST_CHECK(!ContextualCheckTransaction(config, minTx, state, 1234, 5678,
+                                            magneticAnomalyActivationTime));
+    BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
+    BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

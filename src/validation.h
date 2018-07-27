@@ -644,7 +644,8 @@ bool CheckBlock(
  */
 bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
                                 CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff);
+                                int64_t nLockTimeCutoff,
+                                int64_t nMedianTimePast);
 
 /**
  * This is a variant of ContextualCheckTransaction which computes the contextual

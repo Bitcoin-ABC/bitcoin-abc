@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -285,8 +286,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         txCoinbase.vout.resize(1);
         txCoinbase.vout[0].scriptPubKey = CScript();
         pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
-        if (txFirst.size() == 0) baseheight = chainActive.Height();
-        if (txFirst.size() < 4) txFirst.push_back(pblock->vtx[0]);
+        if (txFirst.size() == 0) {
+            baseheight = chainActive.Height();
+        }
+        if (txFirst.size() < 4) {
+            txFirst.push_back(pblock->vtx[0]);
+        }
         pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
         pblock->nNonce = blockinfo[i].nonce;
         std::shared_ptr<const CBlock> shared_pblock =
@@ -615,9 +620,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes on 2nd block.
         GlobalConfig config;
         CValidationState state;
+        int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast();
         BOOST_CHECK(ContextualCheckTransaction(
             config, CTransaction(tx), state, chainActive.Tip()->nHeight + 2,
-            chainActive.Tip()->GetMedianTimePast()));
+            nMedianTimePast, nMedianTimePast));
     }
 
     // Absolute time locked.
@@ -644,9 +650,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes 1 second later.
         GlobalConfig config;
         CValidationState state;
+        int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast() + 1;
         BOOST_CHECK(ContextualCheckTransaction(
             config, CTransaction(tx), state, chainActive.Tip()->nHeight + 1,
-            chainActive.Tip()->GetMedianTimePast() + 1));
+            nMedianTimePast, nMedianTimePast));
     }
 
     // mempool-dependent transactions (not added)
