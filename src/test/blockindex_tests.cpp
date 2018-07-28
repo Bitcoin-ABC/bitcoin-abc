@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(median_time_past) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(index_isvalid) {
+BOOST_AUTO_TEST_CASE(index_validity_tests) {
     CBlockIndex index;
 
     // Test against all validity values
@@ -171,22 +171,46 @@ BOOST_AUTO_TEST_CASE(index_isvalid) {
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
     std::set<bool> boolValues = {false, true};
     for (BlockValidity validity : validityValues) {
-        index.nStatus = BlockStatus().withValidity(validity);
-
         for (bool withFailed : boolValues) {
-            index.nStatus = index.nStatus.withFailed(withFailed);
-
             for (bool withFailedParent : boolValues) {
-                index.nStatus =
-                    index.nStatus.withFailedParent(withFailedParent);
+                index.nStatus = BlockStatus()
+                                    .withValidity(validity)
+                                    .withFailed(withFailed)
+                                    .withFailedParent(withFailedParent);
 
                 for (BlockValidity validUpTo : validityValues) {
+                    // Test isValidity()
                     bool isValid = index.IsValid(validUpTo);
                     if (validUpTo <= validity && !withFailed &&
                         !withFailedParent) {
                         BOOST_CHECK(isValid);
                     } else {
                         BOOST_CHECK(!isValid);
+                    }
+
+                    // Test RaiseValidity()
+                    CBlockIndex indexRaiseValidity;
+                    for (BlockValidity validFrom : validityValues) {
+                        indexRaiseValidity.nStatus =
+                            BlockStatus()
+                                .withValidity(validFrom)
+                                .withFailed(withFailed)
+                                .withFailedParent(withFailedParent);
+
+                        bool raisedValidity =
+                            indexRaiseValidity.RaiseValidity(validUpTo);
+                        if (validFrom < validUpTo && !withFailed &&
+                            !withFailedParent) {
+                            BOOST_CHECK(raisedValidity);
+                            BOOST_CHECK(
+                                indexRaiseValidity.nStatus.getValidity() ==
+                                validUpTo);
+                        } else {
+                            BOOST_CHECK(!raisedValidity);
+                            BOOST_CHECK(
+                                indexRaiseValidity.nStatus.getValidity() ==
+                                validFrom);
+                        }
                     }
                 }
             }
