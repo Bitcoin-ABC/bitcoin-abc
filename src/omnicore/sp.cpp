@@ -682,10 +682,14 @@ int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCr
 
 // calculateFundraiser does token calculations per transaction
 // calcluateFractional does calculations for missed tokens
-void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, uint8_t bonusPerc,
-        int64_t fundraiserSecs, int64_t currentSecs, int64_t numProps, uint8_t issuerPerc, int64_t totalTokens,
-        std::pair<int64_t, int64_t>& tokens, bool& close_crowdsale)
+void calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
+                         uint8_t bonusPerc, int64_t closeSeconds,
+                         int64_t currentSeconds, int64_t price,
+                         int64_t soldTokens, int64_t totalTokens,
+                         int64_t &purchasedTokens,
+                         bool &closeCrowdsale, int64_t &refund)
 {
+    /*
     // Weeks in seconds
     arith_uint256 weeks_sec_ = ConvertTo256(604800);
 
@@ -768,6 +772,7 @@ void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, ui
 
     // The tokens to credit
     tokens = std::make_pair(ConvertTo64(createdTokens_int), ConvertTo64(issuerTokens_int));
+    */
 }
 
 // go hunting for whether a simple send is a crowdsale purchase
