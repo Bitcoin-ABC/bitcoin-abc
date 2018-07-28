@@ -3302,6 +3302,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                          DEFAULT_DESCENDANT_SIZE_LIMIT) *
             1000;
         std::string errString;
+        LOCK(::g_mempool.cs);
         if (!g_mempool.CalculateMemPoolAncestors(
                 entry, setAncestors, nLimitAncestors, nLimitAncestorSize,
                 nLimitDescendants, nLimitDescendantSize, errString)) {

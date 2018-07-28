@@ -183,7 +183,6 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     uint64_t limitAncestorCount, uint64_t limitAncestorSize,
     uint64_t limitDescendantCount, uint64_t limitDescendantSize,
     std::string &errString, bool fSearchForParents /* = true */) const {
-    LOCK(cs);
 
     setEntries parentHashes;
     const CTransaction &tx = entry.GetTx();
@@ -414,7 +413,6 @@ void CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
     NotifyEntryAdded(entry.GetSharedTx());
     // Add to memory pool without checking anything.
     // Used by AcceptToMemoryPool(), which DOES do all the appropriate checks.
-    LOCK(cs);
     indexed_transaction_set::iterator newit = mapTx.insert(entry).first;
     mapLinks.insert(make_pair(newit, TxLinks()));
 
@@ -1084,7 +1082,6 @@ void CTxMemPool::LimitSize(size_t limit, unsigned long age) {
 
 void CTxMemPool::addUnchecked(const uint256 &hash,
                               const CTxMemPoolEntry &entry) {
-    LOCK(cs);
     setEntries setAncestors;
     uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
     std::string dummy;

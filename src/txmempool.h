@@ -589,9 +589,10 @@ public:
     // Note that addUnchecked is ONLY called from ATMP outside of tests
     // and any other callers may break wallet's in-mempool tracking (due to
     // lack of CValidationInterface::TransactionAddedToMempool callbacks).
-    void addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry);
+    void addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
     void addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
-                      setEntries &setAncestors);
+                      setEntries &setAncestors) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void removeRecursive(
         const CTransaction &tx,
@@ -667,7 +668,8 @@ public:
         const CTxMemPoolEntry &entry, setEntries &setAncestors,
         uint64_t limitAncestorCount, uint64_t limitAncestorSize,
         uint64_t limitDescendantCount, uint64_t limitDescendantSize,
-        std::string &errString, bool fSearchForParents = true) const;
+        std::string &errString, bool fSearchForParents = true) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Populate setDescendants with all in-mempool descendants of hash.

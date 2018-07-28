@@ -104,8 +104,9 @@ static bool TestSequenceLocks(const CTransaction &tx, int flags)
 // allow reusing the blockchain created in CreateNewBlock_validity.
 // Note that this test assumes blockprioritypercentage is 0.
 static void TestPackageSelection(const CChainParams &chainparams,
-                                 CScript scriptPubKey,
-                                 std::vector<CTransactionRef> &txFirst) {
+                                 const CScript &scriptPubKey,
+                                 const std::vector<CTransactionRef> &txFirst)
+    EXCLUSIVE_LOCKS_REQUIRED(::g_mempool.cs) {
     // Test the ancestor feerate transaction selection.
     TestMemPoolEntryHelper entry;
 
@@ -323,6 +324,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     }
 
     LOCK(cs_main);
+    LOCK(::g_mempool.cs);
 
     // Just to make sure we can still make simple blocks.
     BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams, g_mempool)

@@ -163,6 +163,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     }
 
     CTxMemPool testPool;
+    LOCK(testPool.cs);
 
     // Nothing in pool, remove should do nothing:
     unsigned int poolSize = testPool.size();
@@ -270,6 +271,7 @@ static void CheckSort(CTxMemPool &pool, std::vector<std::string> &sortedOrder,
 
 BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     CTxMemPool pool;
+    LOCK(pool.cs);
     TestMemPoolEntryHelper entry;
 
     /* 3rd highest fee */
@@ -321,7 +323,6 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     sortedOrder[2] = tx1.GetId().ToString(); // 10000
     sortedOrder[3] = tx4.GetId().ToString(); // 15000
     sortedOrder[4] = tx2.GetId().ToString(); // 20000
-    LOCK(pool.cs);
     CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest1");
 
     /* low fee but with high fee child */
@@ -461,6 +462,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
 
 BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     CTxMemPool pool;
+    LOCK(pool.cs);
     TestMemPoolEntryHelper entry;
 
     /* 3rd highest fee */
@@ -520,7 +522,6 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     }
     sortedOrder[4] = tx3.GetId().ToString(); // 0
 
-    LOCK(pool.cs);
     CheckSort<ancestor_score>(pool, sortedOrder,
                               "MempoolAncestorIndexingTest1");
 
@@ -601,6 +602,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
 
 BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     CTxMemPool pool;
+    LOCK(pool.cs);
     TestMemPoolEntryHelper entry;
     entry.dPriority = 10.0;
     Amount feeIncrement = MEMPOOL_FULL_FEE_INCREMENT.GetFeePerK();
@@ -894,6 +896,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestryTests) {
     size_t ancestors, descendants;
 
     CTxMemPool pool;
+    LOCK(pool.cs);
     TestMemPoolEntryHelper entry;
 
     /* Base transaction */
