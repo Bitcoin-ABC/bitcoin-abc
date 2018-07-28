@@ -71,6 +71,7 @@ private:
     uint64_t deadline;
     unsigned char early_bird;
     unsigned char percentage;
+	uint64_t totalCrowsToken;
 
     // MetaDEx
     unsigned int desired_property;

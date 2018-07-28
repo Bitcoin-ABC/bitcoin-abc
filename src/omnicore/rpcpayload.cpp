@@ -221,14 +221,14 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
 
 UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 13)
+    if (request.fHelp || request.params.size() != 14)
         throw runtime_error(
             "whc_createpayload_issuancecrowdsale ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus issuerpercentage\n"
 
             "\nCreates the payload for a new tokens issuance with crowdsale.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
+            "1. Undefine             (string, required) the value must be 1\n"
             "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
@@ -240,7 +240,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "10. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "11. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "12. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "13. issuerpercentage    (number, required) a percentage of tokens that will be granted to the issuer\n"
+            "13. Undefine 	(number, required) the value must be 0\n"
+		"14. amount               (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
@@ -263,6 +264,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
+    int64_t amount = ParseAmount(request.params[13], type);
+	
 
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
@@ -270,7 +273,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
 
-    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage);
+    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
     return HexStr(payload.begin(), payload.end());
 }

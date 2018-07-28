@@ -523,6 +523,8 @@ bool CMPTransaction::interpret_CreatePropertyVariable()
     p += 8;
     memcpy(&early_bird, p++, 1);
     memcpy(&percentage, p++, 1);
+	memcpy(&totalCrowsToken, p, 8);
+	swapByteOrder64(totalCrowsToken);
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t       ecosystem: %d\n", ecosystem);

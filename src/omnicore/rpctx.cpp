@@ -195,7 +195,7 @@ UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
 
 UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 14)
+    if (request.fHelp || request.params.size() != 15)
         throw runtime_error(
             "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus issuerpercentage )\n"
 
@@ -203,7 +203,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
+            "2. Undefine (string, required) the value must be 0\n"
             "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
             "4. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
@@ -215,7 +215,8 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
             "11. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "12. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "13. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "14. issuerpercentage    (number, required) a percentage of tokens that will be granted to the issuer\n"
+            "14. Undefine    (number, required) the value must be 0\n"
+		"15. amount              (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
@@ -240,17 +241,17 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     int64_t deadline = ParseDeadline(request.params[11]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[12]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);
-
-    // perform checks
+	int64_t amount = ParseAmount(request.params[14], type);
+    
+	// perform checks
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
     RequirePropertyEcosystem(ecosystem);
 
-
     // create a payload for the transaction
-    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage);
+    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
     // request the wallet build the transaction (and if needed commit it)
     uint256 txid;

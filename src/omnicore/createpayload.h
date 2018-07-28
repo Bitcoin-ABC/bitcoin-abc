@@ -14,7 +14,7 @@ std::vector<unsigned char> CreatePayload_IssuanceFixed(uint8_t ecosystem, uint16
                                                        std::string subcategory, std::string name, std::string url, std::string data, uint64_t amount);
 std::vector<unsigned char> CreatePayload_IssuanceVariable(uint8_t ecosystem, uint16_t propertyType, uint32_t previousPropertyId, std::string category,
                                                           std::string subcategory, std::string name, std::string url, std::string data, uint32_t propertyIdDesired,
-                                                          uint64_t amountPerUnit, uint64_t deadline, uint8_t earlyBonus, uint8_t issuerPercentage);
+                                                          uint64_t amountPerUnit, uint64_t deadline, uint8_t earlyBonus, uint8_t issuerPercentage, uint64_t amount);
 std::vector<unsigned char> CreatePayload_IssuanceManaged(uint8_t ecosystem, uint16_t propertyType, uint32_t previousPropertyId, std::string category,
                                                        std::string subcategory, std::string name, std::string url, std::string data);
 std::vector<unsigned char> CreatePayload_CloseCrowdsale(uint32_t propertyId);
