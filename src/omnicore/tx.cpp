@@ -2216,10 +2216,12 @@ int CMPTransaction::logicMath_GrantTokens()
      * As long as the feature to disable the side effects of "granting tokens"
      * is not activated, "granting tokens" can trigger crowdsale participations.
      */
+    /*
     if (!IsFeatureActivated(FEATURE_GRANTEFFECTS, block)) {
         // Is there an active crowdsale running from this recepient?
         logicHelper_CrowdsaleParticipation();
     }
+    */
 
     NotifyTotalTokensChanged(property, block);
 
