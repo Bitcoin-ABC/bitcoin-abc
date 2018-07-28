@@ -69,6 +69,7 @@ public:
         // crowdsale generated SP
         uint32_t property_desired;
         int64_t deadline;
+        int64_t rate;
         uint8_t early_bird;
         uint8_t percentage;
 
@@ -127,6 +128,7 @@ public:
         }
 
         bool isDivisible() const;
+        int getPrecision() const;
         void print() const;
     };
 

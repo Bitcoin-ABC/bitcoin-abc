@@ -41,13 +41,27 @@ CMPSPInfo::Entry::Entry()
 
 bool CMPSPInfo::Entry::isDivisible() const
 {
-    switch (prop_type) {
-        case MSC_PROPERTY_TYPE_DIVISIBLE:
-        case MSC_PROPERTY_TYPE_DIVISIBLE_REPLACING:
-        case MSC_PROPERTY_TYPE_DIVISIBLE_APPENDING:
-            return true;
+    if(prop_type == MSC_PROPERTY_TYPE_INDIVISIBLE){
+        return false;
     }
-    return false;
+
+    return true;
+}
+
+int CMPSPInfo::Entry::getPrecision() const
+{
+    bool type;
+    type = isDivisible();
+    if(type){
+        if(prop_type >= MSC_PROPERTY_MIN_PRECISION && prop_type <= MSC_PROPERTY_MAX_PRECISION){
+            return prop_type;
+        }
+        else {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 void CMPSPInfo::Entry::print() const
@@ -75,7 +89,7 @@ CMPSPInfo::CMPSPInfo(const boost::filesystem::path& path, bool fWipe)
     implied_omni.subcategory = "N/A";
     implied_omni.name = "WHC";
     implied_omni.url = "http://www.wormhole.cash";
-    implied_omni.data = "WHC serve as the binding between Bitcoin, smart properties and contracts created on the Omni Layer.";
+    implied_omni.data = "WHC serve as the binding between Bitcoin cash, smart properties and contracts created on the Wormhole.";
     implied_omni.creation_block = uint256S("");
     implied_omni.update_block = uint256S("");
     init();
