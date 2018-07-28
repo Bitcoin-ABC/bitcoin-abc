@@ -598,14 +598,14 @@ bool mastercore::IsPropertyIdValid(uint32_t propertyId)
     return false;
 }
 
-bool mastercore::isPropertyDivisible(uint32_t propertyId)
+int mastercore::isPropertyDivisible(uint32_t propertyId)
 {
     // TODO: is a lock here needed
     CMPSPInfo::Entry sp;
 
-    if (_my_sps->getSP(propertyId, sp)) return sp.isDivisible();
+    if (_my_sps->getSP(propertyId, sp)) return sp.getPrecision();
 
-    return true;
+    return -1;
 }
 
 std::string mastercore::getPropertyName(uint32_t propertyId)
@@ -895,12 +895,15 @@ unsigned int mastercore::eraseExpiredCrowdsale(const CBlockIndex* pBlockIndex)
     return how_many_erased;
 }
 
-std::string mastercore::strPropertyType(uint16_t propertyType)
+std::string mastercore::strPropertyType(int propertyType)
 {
-    switch (propertyType) {
-        case MSC_PROPERTY_TYPE_DIVISIBLE: return "divisible";
-        case MSC_PROPERTY_TYPE_INDIVISIBLE: return "indivisible";
-    }
+	char buf[14];
+    if (propertyType == 0){
+	return "indivisible";
+	}else if(propertyType >= 1 && propertyType <= 8){
+		sprintf(buf, "precision : %d", propertyType);
+		return buf;
+	}
 
     return "unknown";
 }

@@ -1798,7 +1798,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     newSP.issuer = sender;
     newSP.txid = txid;
     newSP.prop_type = prop_type;
-    newSP.num_tokens = nValue;
+    newSP.num_tokens = totalCrowsToken;
     newSP.category.assign(category);
     newSP.subcategory.assign(subcategory);
     newSP.name.assign(name);
@@ -1807,7 +1807,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     newSP.fixed = false;
     //change_002
     newSP.manual = false;
-    newSP.rate = rate;
+    newSP.rate = nValue;
     newSP.property_desired = OMNI_PROPERTY_WHC;
     newSP.deadline = deadline;
     newSP.early_bird = early_bird;

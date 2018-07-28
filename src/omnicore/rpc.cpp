@@ -1098,8 +1098,10 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
 
     // note the database is already deserialized here and there is minimal performance penalty to iterate recipients to calculate amountRaised
     int64_t amountRaised = 0;
-    uint16_t propertyIdType = isPropertyDivisible(propertyId) ? MSC_PROPERTY_TYPE_DIVISIBLE : MSC_PROPERTY_TYPE_INDIVISIBLE;
-    uint16_t desiredIdType = isPropertyDivisible(sp.property_desired) ? MSC_PROPERTY_TYPE_DIVISIBLE : MSC_PROPERTY_TYPE_INDIVISIBLE;
+    int propertyIdType = isPropertyDivisible(propertyId);
+	RequirePropertyType(propertyIdType);
+    int desiredIdType = isPropertyDivisible(sp.property_desired);
+	RequirePropertyType(desiredIdType);
     std::map<std::string, UniValue> sortMap;
     for (std::map<uint256, std::vector<int64_t> >::const_iterator it = database.begin(); it != database.end(); it++) {
         UniValue participanttx(UniValue::VOBJ);

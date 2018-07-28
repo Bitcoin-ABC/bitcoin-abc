@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string>
 
-void RequirePropertyType(uint16_t type);
+void RequirePropertyType(int type);
 void RequireBalance(const std::string& address, uint32_t propertyId, int64_t amount);
 void RequirePrimaryToken(uint32_t propertyId);
 void RequirePropertyName(const std::string& name);
