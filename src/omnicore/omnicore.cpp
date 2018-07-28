@@ -181,12 +181,23 @@ std::string mastercore::strMPProperty(uint32_t propertyId)
     return str;
 }
 
-std::string FormatDivisibleShortMP(int64_t n)
+std::string FormatDivisibleShortMP(int64_t n, int decimal)
 {
     int64_t n_abs = (n > 0 ? n : -n);
-    int64_t quotient = n_abs / COIN.GetSatoshis();
-    int64_t remainder = n_abs % COIN.GetSatoshis();
-    std::string str = strprintf("%d.%08d", quotient, remainder);
+	int array[9] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int64_t quotient = n_abs / array[decimal];
+    int64_t remainder = n_abs % array[decimal];
+    std::string str;
+	switch (decimal){
+		case 1: str = strprintf("%d.%01d", quotient, remainder);
+		case 2: str = strprintf("%d.%02d", quotient, remainder);
+		case 3: str = strprintf("%d.%03d", quotient, remainder);
+		case 4: str = strprintf("%d.%04d", quotient, remainder);
+		case 5: str = strprintf("%d.%05d", quotient, remainder);
+		case 6: str = strprintf("%d.%06d", quotient, remainder);
+		case 7: str = strprintf("%d.%07d", quotient, remainder);
+		case 8: str = strprintf("%d.%08d", quotient, remainder);
+	}  
     // clean up trailing zeros - good for RPC not so much for UI
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
     if (str.length() > 0) {
@@ -198,15 +209,25 @@ std::string FormatDivisibleShortMP(int64_t n)
     return str;
 }
 
-std::string FormatDivisibleMP(int64_t n, bool fSign)
+std::string FormatDivisibleMP(int64_t n, int decimal, bool fSign)
 {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.
     int64_t n_abs = (n > 0 ? n : -n);
-    int64_t quotient = n_abs / COIN.GetSatoshis();
-    int64_t remainder = n_abs % COIN.GetSatoshis();
-    std::string str = strprintf("%d.%08d", quotient, remainder);
-
+	int array[9] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int64_t quotient = n_abs / array[decimal];
+    int64_t remainder = n_abs % array[decimal];
+    std::string str;
+	switch (decimal){
+		case 1: str = strprintf("%d.%01d", quotient, remainder);
+		case 2: str = strprintf("%d.%02d", quotient, remainder);
+		case 3: str = strprintf("%d.%03d", quotient, remainder);
+		case 4: str = strprintf("%d.%04d", quotient, remainder);
+		case 5: str = strprintf("%d.%05d", quotient, remainder);
+		case 6: str = strprintf("%d.%06d", quotient, remainder);
+		case 7: str = strprintf("%d.%07d", quotient, remainder);
+		case 8: str = strprintf("%d.%08d", quotient, remainder);
+	}  
     if (!fSign) return str;
 
     if (n < 0)
@@ -224,7 +245,8 @@ std::string mastercore::FormatIndivisibleMP(int64_t n)
 std::string FormatShortMP(uint32_t property, int64_t n)
 {
     if (isPropertyDivisible(property)) {
-        return FormatDivisibleShortMP(n);
+	int type = getPropertyType(property);
+        return FormatDivisibleShortMP(n, type);
     } else {
         return FormatIndivisibleMP(n);
     }
@@ -233,7 +255,8 @@ std::string FormatShortMP(uint32_t property, int64_t n)
 std::string FormatMP(uint32_t property, int64_t n, bool fSign)
 {
     if (isPropertyDivisible(property)) {
-        return FormatDivisibleMP(n, fSign);
+	int type = getPropertyType(property);
+        return FormatDivisibleMP(n, type, fSign);
     } else {
         return FormatIndivisibleMP(n);
     }
@@ -244,7 +267,7 @@ std::string FormatByType(int64_t amount, uint16_t propertyType)
     if (propertyType & MSC_PROPERTY_TYPE_INDIVISIBLE) {
         return FormatIndivisibleMP(amount);
     } else {
-        return FormatDivisibleMP(amount);
+        return FormatDivisibleMP(amount, propertyType);
     }
 }
 
@@ -918,7 +941,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
     int64_t txFee = inAll - outAll; // miner fee
 
     if (!strSender.empty()) {
-        if (msc_debug_verbose) PrintToLog("The Sender: %s : fee= %s\n", strSender, FormatDivisibleMP(txFee));
+        if (msc_debug_verbose) PrintToLog("The Sender: %s : fee= %s\n", strSender, FormatDivisibleMP(txFee, 8));
     } else {
         PrintToLog("The sender is still EMPTY !!! txid: %s\n", wtx.GetHash().GetHex());
         return -5;
@@ -3213,7 +3236,8 @@ void CMPSTOList::getRecipients(const uint256 txid, string filterAddress, UniValu
                       recipient.push_back(Pair("address", recipientAddress));
                       if(isPropertyDivisible(propertyId))
                       {
-                         recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+				int type = getPropertyType(propertyId);
+                         recipient.push_back(Pair("amount", FormatDivisibleMP(amount, type)));
                       }
                       else
                       {
@@ -3790,6 +3814,7 @@ static void DistributeWHCToBurner(){
     } else if (RegTest()){
         maxHeight = chainActive.Height() - DISTRIBUTEHEIGHTREGTEST;
     }
+	maxHeight +=1;
 	
 	CMPSPInfo::Entry sp;
     _my_sps->getSP(OMNI_PROPERTY_WHC, sp);

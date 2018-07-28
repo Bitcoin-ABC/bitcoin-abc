@@ -34,7 +34,7 @@ void RequirePrimaryToken(uint32_t propertyId)
 
 void RequirePropertyType(int type)
 {
-    if(type == -1){
+    if(type < 0 || type > 8 ){
         throw JSONRPCError(RPC_INVALID_PARAMETER, "property type must be [0, 8] range");
     }
 }

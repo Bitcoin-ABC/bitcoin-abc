@@ -1650,6 +1650,10 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if (prop_type < 0 || prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
@@ -1730,6 +1734,10 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if (prop_type < 0 || prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     //if (IsFeatureActivated(FEATURE_SPCROWDCROSSOVER, block)) {
     /**
@@ -1912,6 +1920,10 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if (prop_type < 0 || prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",

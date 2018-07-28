@@ -560,7 +560,7 @@ void populateRPCExtendedTypeSendToOwners(const uint256 txid, std::string extende
     } else {
         stoFee = numRecipients * TRANSFER_FEE_PER_OWNER_V1;
     }
-    txobj.push_back(Pair("totalstofee", FormatDivisibleMP(stoFee))); // fee always OMNI so always divisible
+    txobj.push_back(Pair("totalstofee", FormatIndivisibleMP(stoFee))); // fee always OMNI so always divisible
     txobj.push_back(Pair("recipients", receiveArray));
 }
 
@@ -670,11 +670,11 @@ int populateRPCDExPurchases(const CTransaction& wtx, UniValue& purchases, std::s
         if (IsMyAddress(buyer) || IsMyAddress(seller)) bIsMine = true;
         int64_t amountPaid = wtx.vout[vout].nValue.GetSatoshis();
         purchaseObj.push_back(Pair("vout", vout));
-        purchaseObj.push_back(Pair("amountpaid", FormatDivisibleMP(amountPaid)));
+        purchaseObj.push_back(Pair("amountpaid", FormatDivisibleMP(amountPaid, 8)));
         purchaseObj.push_back(Pair("ismine", bIsMine));
         purchaseObj.push_back(Pair("referenceaddress", seller));
         purchaseObj.push_back(Pair("propertyid", propertyId));
-        purchaseObj.push_back(Pair("amountbought", FormatDivisibleMP(nValue)));
+        purchaseObj.push_back(Pair("amountbought", FormatDivisibleMP(nValue, 8)));
         purchaseObj.push_back(Pair("valid", true)); //only valid purchases are stored, anything else is regular BTC tx
         purchases.push_back(purchaseObj);
     }

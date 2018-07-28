@@ -109,7 +109,9 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-    int64_t amount = ParseAmount(request.params[3], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
     std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";
     int64_t referenceAmount = (request.params.size() > 5) ? ParseAmount(request.params[5], true): 0;
 
@@ -249,6 +251,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
@@ -313,6 +316,7 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
     // perform checks
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
@@ -375,6 +379,7 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
     // perform checks
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceManaged(ecosystem, type, previousId, category, subcategory, name, url, data);
@@ -422,7 +427,9 @@ UniValue whc_sendsto(const Config &config,const JSONRPCRequest &request)
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[2], mtype);
     std::string redeemAddress = (request.params.size() > 3 && !ParseText(request.params[3]).empty()) ? ParseAddress(request.params[3]): "";
     uint32_t distributionPropertyId = (request.params.size() > 4) ? ParsePropertyId(request.params[4]) : propertyId;
 
@@ -477,7 +484,9 @@ UniValue whc_sendgrant(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = !ParseText(request.params[1]).empty() ? ParseAddress(request.params[1]): "";
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-    int64_t amount = ParseAmount(request.params[3], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
     std::string memo = (request.params.size() > 4) ? ParseText(request.params[4]): "";
 
     // perform checks
@@ -530,7 +539,9 @@ UniValue whc_sendrevoke(const Config &config,const JSONRPCRequest &request)
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[2], mtype);
     std::string memo = (request.params.size() > 3) ? ParseText(request.params[3]): "";
 
     // perform checks

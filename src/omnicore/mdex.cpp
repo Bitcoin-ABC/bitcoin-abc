@@ -344,6 +344,7 @@ static MatchReturnType x_Trade(CMPMetaDEx* const pnew)
  */
 std::string CMPMetaDEx::displayUnitPrice() const
 {
+#if 0
      rational_t tmpDisplayPrice;
      if (getDesProperty() == OMNI_PROPERTY_WHC || getDesProperty() == OMNI_PROPERTY_TWHC) {
          tmpDisplayPrice = unitPrice();
@@ -362,6 +363,8 @@ std::string CMPMetaDEx::displayUnitPrice() const
      // round: 0.33333334 - price will be sufficient to result in a trade
      std::string displayValue = FormatDivisibleMP(xToRoundUpInt64(tmpDisplayPrice));
      return displayValue;
+#endif 
+	return "";
 }
 
 /**

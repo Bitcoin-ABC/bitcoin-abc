@@ -125,7 +125,7 @@ void MetaDexObjectsToJSON(std::vector<CMPMetaDEx>& vMetaDexObjs, UniValue& respo
     }
 }
 
-bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, bool divisible)
+bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, int divisible)
 {
     // confirmed balance minus unconfirmed, spent amounts
     int64_t nAvailable = getUserAvailableMPbalance(address, property);
@@ -138,9 +138,9 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
     int64_t nFrozen = getUserFrozenMPbalance(address, property);
 
     if (divisible) {
-        balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable)));
-        balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved)));
-        if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen)));
+        balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, divisible)));
+        balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, divisible)));
+        if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
     } else {
         balance_obj.push_back(Pair("balance", FormatIndivisibleMP(nAvailable)));
         balance_obj.push_back(Pair("reserved", FormatIndivisibleMP(nReserved)));
@@ -200,15 +200,15 @@ UniValue omni_getfeedistribution(const Config &config, const JSONRPCRequest &req
     response.push_back(Pair("amount", FormatMP(propertyId, total)));
     UniValue recipients(UniValue::VARR);
     std::set<std::pair<std::string,int64_t> > sRecipients = p_feehistory->GetFeeDistribution(id);
-    bool divisible = isPropertyDivisible(propertyId);
+    int mtype = getPropertyType(propertyId);
     if (!sRecipients.empty()) {
         for (std::set<std::pair<std::string,int64_t> >::iterator it = sRecipients.begin(); it != sRecipients.end(); it++) {
             std::string address = (*it).first;
             int64_t amount = (*it).second;
             UniValue recipient(UniValue::VOBJ);
             recipient.push_back(Pair("address", address));
-            if (divisible) {
-                recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+            if (mtype) {
+                recipient.push_back(Pair("amount", FormatDivisibleMP(amount, mtype)));
             } else {
                 recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
             }
@@ -273,15 +273,15 @@ UniValue omni_getfeedistributions(const Config &config, const JSONRPCRequest &re
             responseObj.push_back(Pair("amount", FormatMP(propertyId, total)));
             UniValue recipients(UniValue::VARR);
             std::set<std::pair<std::string,int64_t> > sRecipients = p_feehistory->GetFeeDistribution(id);
-            bool divisible = isPropertyDivisible(propertyId);
+            int mtype = getPropertyType(propertyId);
             if (!sRecipients.empty()) {
                 for (std::set<std::pair<std::string,int64_t> >::iterator it = sRecipients.begin(); it != sRecipients.end(); it++) {
                     std::string address = (*it).first;
                     int64_t amount = (*it).second;
                     UniValue recipient(UniValue::VOBJ);
                     recipient.push_back(Pair("address", address));
-                    if (divisible) {
-                        recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+                    if (mtype) {
+                        recipient.push_back(Pair("amount", FormatDivisibleMP(amount, mtype)));
                     } else {
                         recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
                     }
@@ -602,7 +602,7 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
 
     PrintToConsole("%s(extra=%d,extra2=%d,extra3=%d)\n", __FUNCTION__, extra, extra2, extra3);
 
-    bool bDivisible = isPropertyDivisible(extra2);
+    int mtype = getPropertyType(extra2);
 
     // various extra tests
     switch (extra) {
@@ -613,9 +613,9 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
             // display all balances
             for (std::unordered_map<std::string, CMPTally>::iterator my_it = mp_tally_map.begin(); my_it != mp_tally_map.end(); ++my_it) {
                 PrintToConsole("%34s => ", my_it->first);
-                total += (my_it->second).print(extra2, bDivisible);
+                total += (my_it->second).print(extra2, mtype);
             }
-            PrintToConsole("total for property %d  = %X is %s\n", extra2, extra2, FormatDivisibleMP(total));
+            PrintToConsole("total for property %d  = %X is %s\n", extra2, extra2, FormatDivisibleMP(total, mtype));
             break;
         }
         case 1:
@@ -640,7 +640,7 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
             // for each address display all currencies it holds
             for (std::unordered_map<std::string, CMPTally>::iterator my_it = mp_tally_map.begin(); my_it != mp_tally_map.end(); ++my_it) {
                 PrintToConsole("%34s => ", my_it->first);
-                (my_it->second).print(extra2);
+                (my_it->second).print(extra2, mtype);
                 (my_it->second).init();
                 while (0 != (id = (my_it->second).next())) {
                     PrintToConsole("Id: %u=0x%X ", id, id);
@@ -773,7 +773,7 @@ UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
     RequireExistingProperty(propertyId);
 
     UniValue balanceObj(UniValue::VOBJ);
-    BalanceToJSON(address, propertyId, balanceObj, isPropertyDivisible(propertyId));
+    BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 
     return balanceObj;
 }
@@ -805,7 +805,7 @@ UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &req
     RequireExistingProperty(propertyId);
 
     UniValue response(UniValue::VARR);
-    bool isDivisible = isPropertyDivisible(propertyId); // we want to check this BEFORE the loop
+    int mtype = getPropertyType(propertyId); // we want to check this BEFORE the loop
 
     LOCK(cs_tally);
 
@@ -825,7 +825,7 @@ UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &req
         }
         UniValue balanceObj(UniValue::VOBJ);
         balanceObj.push_back(Pair("address", address));
-        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, isDivisible);
+        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, mtype);
 
         if (nonEmptyBalance) {
             response.push_back(balanceObj);
@@ -875,7 +875,7 @@ UniValue whc_getallbalancesforaddress(const Config &config, const JSONRPCRequest
     while (0 != (propertyId = addressTally->next())) {
         UniValue balanceObj(UniValue::VOBJ);
         balanceObj.push_back(Pair("propertyid", (uint64_t) propertyId));
-        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, isPropertyDivisible(propertyId));
+        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 
         if (nonEmptyBalance) {
             response.push_back(balanceObj);
@@ -1098,9 +1098,9 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
 
     // note the database is already deserialized here and there is minimal performance penalty to iterate recipients to calculate amountRaised
     int64_t amountRaised = 0;
-    int propertyIdType = isPropertyDivisible(propertyId);
+    int propertyIdType = getPropertyType(propertyId);
 	RequirePropertyType(propertyIdType);
-    int desiredIdType = isPropertyDivisible(sp.property_desired);
+    int desiredIdType = getPropertyType(sp.property_desired);
 	RequirePropertyType(desiredIdType);
     std::map<std::string, UniValue> sortMap;
     for (std::map<uint256, std::vector<int64_t> >::const_iterator it = database.begin(); it != database.end(); it++) {

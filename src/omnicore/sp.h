@@ -220,8 +220,9 @@ std::string strPropertyType(int propertyType);
 std::string strEcosystem(uint8_t ecosystem);
 
 std::string getPropertyName(uint32_t propertyId);
-int isPropertyDivisible(uint32_t propertyId);
+bool isPropertyDivisible(uint32_t propertyId);
 bool IsPropertyIdValid(uint32_t propertyId);
+int getPropertyType(uint32_t propertyId);
 
 CMPCrowd* getCrowd(const std::string& address);
 
