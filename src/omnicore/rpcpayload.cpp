@@ -212,7 +212,6 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
     int64_t amount = ParseAmount(request.params[8], type);
 
     RequirePropertyName(name);
-    RequirePropertyType(type);
     RequirePropertyEcosystem(ecosystem);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
@@ -266,7 +265,6 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
 
     RequireCrowsDesireProperty(propertyIdDesired);
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
     RequireExistingProperty(propertyIdDesired);
@@ -313,7 +311,6 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
     std::string data = ParseText(request.params[7]);
 
     RequirePropertyName(name);
-    RequirePropertyType(type);
     RequirePropertyEcosystem(ecosystem);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceManaged(ecosystem, type, previousId, category, subcategory, name, url, data);
