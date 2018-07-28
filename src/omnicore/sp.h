@@ -233,9 +233,13 @@ bool isCrowdsalePurchase(const uint256& txid, const std::string& address, int64_
 int64_t GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCrowd& crowdsale);
 
 /** Calculates amounts credited for a crowdsale purchase. */
-void calculateFundraiser(bool inflateAmount, int64_t amtTransfer, uint8_t bonusPerc,
-        int64_t fundraiserSecs, int64_t currentSecs, int64_t numProps, uint8_t issuerPerc, int64_t totalTokens,
-        std::pair<int64_t, int64_t>& tokens, bool& close_crowdsale);
+void calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
+                                         uint8_t bonusPerc, int64_t closeSeconds,
+                                         int64_t currentSeconds, int64_t price,
+                                         int64_t soldTokens, int64_t totalTokens,
+                                         int64_t &purchasedTokens,
+                                         bool &closeCrowdsale, int64_t &refund);
+
 
 void eraseMaxedCrowdsale(const std::string& address, int64_t blockTime, int block);
 

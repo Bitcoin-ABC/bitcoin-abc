@@ -107,6 +107,7 @@ private:
      */
     bool interpret_TransactionType();
     bool interpret_SimpleSend();
+    bool interpret_BuyToken();
     bool interpret_SendToOwners();
     bool interpret_SendAll();
     bool interpret_TradeOffer();
@@ -135,6 +136,7 @@ private:
      * Logic and "effects"
      */
     int logicMath_SimpleSend();
+    int logicMath_BuyToken();
     int logicMath_SendToOwners();
     int logicMath_SendAll();
     int logicMath_TradeOffer();
