@@ -113,6 +113,9 @@ bool CMPTransaction::interpret_Transaction()
         case MSC_TYPE_SIMPLE_SEND:
             return interpret_SimpleSend();
 
+        case MSC_TYPE_BUY_TOKEN:
+            return interpret_BuyToken();
+
         case MSC_TYPE_SEND_TO_OWNERS:
             return interpret_SendToOwners();
 
@@ -220,7 +223,7 @@ bool CMPTransaction::interpret_BurnBCHGetWHC()
     return true;
 }
 
-/** Tx 1 */
+/** Tx 0 */
 bool CMPTransaction::interpret_SimpleSend()
 {
     if (pkt_size < 16) {
@@ -240,6 +243,25 @@ bool CMPTransaction::interpret_SimpleSend()
     return true;
 }
 
+/** Tx 1 */
+bool CMPTransaction::interpret_BuyToken()
+{
+    if (pkt_size < 16) {
+        return false;
+    }
+    memcpy(&property, &pkt[4], 4);
+    swapByteOrder32(property);
+    memcpy(&nValue, &pkt[8], 8);
+    swapByteOrder64(nValue);
+    nNewValue = nValue;
+
+    if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
+        PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
+        PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
+    }
+
+    return true;
+}
 /** Tx 3 */
 bool CMPTransaction::interpret_SendToOwners()
 {
@@ -878,6 +900,9 @@ int CMPTransaction::interpretPacket()
         case MSC_TYPE_SIMPLE_SEND:
             return logicMath_SimpleSend();
 
+        case MSC_TYPE_BUY_TOKEN:
+            return logicMath_BuyToken();
+
         case MSC_TYPE_SEND_TO_OWNERS:
             return logicMath_SendToOwners();
 
@@ -982,6 +1007,7 @@ int CMPTransaction::logicMath_burnBCHGetWHC()
 }
 
 /** Passive effect of crowdsale participation. */
+/*
 int CMPTransaction::logicHelper_CrowdsaleParticipation()
 {
     CMPCrowd* pcrowdsale = getCrowd(receiver);
@@ -1062,6 +1088,7 @@ int CMPTransaction::logicHelper_CrowdsaleParticipation()
 
     return 0;
 }
+*/
 
 /** Tx 0 */
 int CMPTransaction::logicMath_SimpleSend()
@@ -1108,8 +1135,133 @@ int CMPTransaction::logicMath_SimpleSend()
     assert(update_tally_map(sender, property, -nValue, BALANCE));
     assert(update_tally_map(receiver, property, nValue, BALANCE));
 
+    return 0;
+}
+
+/** Tx 1 */
+int CMPTransaction::logicMath_BuyToken()
+{
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   property,
+                   block);
+        return (PKT_ERROR_SEND -22);
+    }
+
+    if (nValue <= 0 || MAX_INT_8_BYTES < nValue) {
+        PrintToLog("%s(): rejected: value out of range or zero: %d", __func__, nValue);
+        return (PKT_ERROR_SEND -23);
+    }
+
+    if (!IsPropertyIdValid(property)) {
+        PrintToLog("%s(): rejected: property %d does not exist\n", __func__, property);
+        return (PKT_ERROR_SEND -24);
+    }
+
+    int64_t nBalance = getMPbalance(sender, property, BALANCE);
+    if (nBalance < (int64_t) nValue) {
+        PrintToLog("%s(): rejected: sender %s has insufficient balance of property %d [%s < %s]\n",
+                   __func__,
+                   sender,
+                   property,
+                   FormatMP(property, nBalance),
+                   FormatMP(property, nValue));
+        return (PKT_ERROR_SEND -25);
+    }
+
+    // ------------------------------------------
+
+    if (receiver.empty()) {
+        return (PKT_ERROR_SEND -26);
+    }
+
     // Is there an active crowdsale running from this recepient?
-    logicHelper_CrowdsaleParticipation();
+    CMPCrowd* pcrowdsale = getCrowd(receiver);
+
+    // No active crowdsale
+    if (pcrowdsale == NULL) {
+        return (PKT_ERROR_CROWD -1);
+    }
+    // Active crowdsale, but not for this property
+    if (pcrowdsale->getCurrDes() != property) {
+        return (PKT_ERROR_CROWD -2);
+    }
+
+    CMPSPInfo::Entry sp;
+    assert(_my_sps->getSP(pcrowdsale->getPropertyId(), sp));
+    PrintToLog("INVESTMENT SEND to Crowdsale Issuer: %s\n", receiver);
+    if(sp.issuer == sender){
+        return (PKT_ERROR_CROWD -3);
+    }
+
+    // Holds the tokens to be credited to the sender and issuer
+    std::pair<int64_t, int64_t> tokens;
+    int64_t refund,money;
+
+    // Passed by reference to determine, if max_tokens has been reached
+    bool close_crowdsale = false;
+
+    // Units going into the calculateFundraiser function must match the unit of
+    // the fundraiser's property_type. By default this means satoshis in and
+    // satoshis out. In the condition that the fundraiser is divisible, but
+    // indivisible tokens are accepted, it must account for .0 Div != 1 Indiv,
+    // but actually 1.0 Div == 100000000 Indiv. The unit must be shifted or the
+    // values will be incorrect, which is what is checked below.
+    uint16_t precision = sp.getPrecision();
+
+    // Calculate the amounts to credit for this fundraiser
+    calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime,sp.rate,
+                        getTotalTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
+                        tokens.first, close_crowdsale,refund);
+
+    if (msc_debug_sp) {
+        PrintToLog("%s(): granting via crowdsale to user: %s %d (%s)\n",
+                   __func__, FormatMP(property, tokens.first), property, strMPProperty(property));
+        PrintToLog("%s(): granting via crowdsale to issuer: %s %d (%s)\n",
+                   __func__, FormatMP(property, tokens.second), property, strMPProperty(property));
+    }
+
+    if(refund >= 0) {
+        money = nValue - refund;
+    }
+    else {
+        return (PKT_ERROR_CROWD -4);
+    }
+
+    // Update the crowdsale object
+    pcrowdsale->incTokensUserCreated(tokens.first);
+    pcrowdsale->incTokensIssuerCreated(tokens.second);
+
+    // Data to pass to txFundraiserData
+    int64_t txdata[] = {(int64_t) nValue, blockTime, tokens.first, tokens.second};
+    std::vector<int64_t> txDataVec(txdata, txdata + sizeof(txdata) / sizeof(txdata[0]));
+
+    // Insert data about crowdsale participation
+    pcrowdsale->insertDatabase(txid, txDataVec);
+
+    // Credit tokens for this fundraiser
+    if (tokens.first > 0) {
+        assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
+    }
+    if (tokens.second > 0) {
+        assert(update_tally_map(receiver, pcrowdsale->getPropertyId(), tokens.second, BALANCE));
+    }
+
+    if(money > 0) {
+        assert(update_tally_map(sender, property, -money, BALANCE));
+        assert(update_tally_map(receiver, property, money, BALANCE));
+    }
+
+    // Number of tokens has changed, update fee distribution thresholds
+    NotifyTotalTokensChanged(pcrowdsale->getPropertyId(), block);
+
+    // Close crowdsale, if we hit MAX_TOKENS
+    if (close_crowdsale) {
+        eraseMaxedCrowdsale(receiver, blockTime, block);
+    }
 
     return 0;
 }

@@ -76,6 +76,7 @@ extern string burnwhc_regnet ;
 // Transaction types, from the spec
 enum TransactionType {
   MSC_TYPE_SIMPLE_SEND                =  0,
+  MSC_TYPE_BUY_TOKEN                  =  1,
   MSC_TYPE_RESTRICTED_SEND            =  2,
   MSC_TYPE_SEND_TO_OWNERS             =  3,
   MSC_TYPE_SEND_ALL                   =  4,
