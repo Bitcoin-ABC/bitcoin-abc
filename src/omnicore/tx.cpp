@@ -1676,11 +1676,6 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
         return (PKT_ERROR_BURN -3);
     }
 
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type ) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
-    }
-
     if ('\0' == name[0]) {
         PrintToLog("%s(): rejected: property name must not be empty\n", __func__);
         return (PKT_ERROR_SP -37);
@@ -1767,12 +1762,6 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     if (property != OMNI_PROPERTY_WHC) {
         PrintToLog("%s(): rejected: property %d does not support\n", __func__, property);
         return (PKT_ERROR_SP -24);
-    }
-
-    //change_002
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
@@ -1928,12 +1917,6 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
                 property,
                 block);
         return (PKT_ERROR_SP -22);
-    }
-
-    //change_002
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);

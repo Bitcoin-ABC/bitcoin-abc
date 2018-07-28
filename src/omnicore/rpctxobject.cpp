@@ -130,7 +130,7 @@ int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHas
     txobj.push_back(Pair("fee", FormatDivisibleMP(mp_obj.getFeePaid())));
     txobj.push_back(Pair("sendingaddress", mp_obj.getSender()));
     if (showRefForTx(mp_obj.getType())) txobj.push_back(Pair("referenceaddress", mp_obj.getReceiver()));
-	if(mp_obj.getType() == WHC_TYPE_GET_BASE_PROPERTY) txobj.push_back(Pair("referenceaddress", burnwhc_mainnet));
+	if(mp_obj.getType() == WHC_TYPE_GET_BASE_PROPERTY) txobj.push_back(Pair("referenceaddress", burnwhc_address));
     txobj.push_back(Pair("ismine", fMine));
     txobj.push_back(Pair("version", (uint64_t)mp_obj.getVersion()));
     txobj.push_back(Pair("type_int", (uint64_t)mp_obj.getType()));

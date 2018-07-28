@@ -242,7 +242,6 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);
 
     // perform checks
-    RequirePropertyType(type);
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequireExistingProperty(propertyIdDesired);
@@ -311,7 +310,6 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
     int64_t amount = ParseAmount(request.params[9], type);
 
     // perform checks
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
 
@@ -374,7 +372,6 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
     std::string data = ParseText(request.params[8]);
 
     // perform checks
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
 
