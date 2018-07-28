@@ -16,7 +16,6 @@ std::string ParseAddress(const UniValue& value);
 std::string ParseAddressOrEmpty(const UniValue& value);
 std::string ParseAddressOrWildcard(const UniValue& value);
 uint32_t ParsePropertyId(const UniValue& value);
-int64_t ParseAmount(const UniValue& value, bool isDivisible);
 int64_t ParseAmount(const UniValue& value, int propertyType);
 uint8_t ParseDExPaymentWindow(const UniValue& value);
 int64_t ParseDExFee(const UniValue& value);

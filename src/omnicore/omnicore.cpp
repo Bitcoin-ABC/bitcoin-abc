@@ -2135,7 +2135,7 @@ int mastercore_init()
     // redundant? do we need to show it both pre-parse and post-parse?  if so let's label the printfs accordingly
     if (msc_debug_exo) {
         int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
-        PrintToLog("Exodus balance at start: %s\n", FormatDivisibleMP(exodus_balance));
+        PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
     // load feature activation messages from txlistdb and process them accordingly
@@ -2164,9 +2164,9 @@ int mastercore_init()
 
     // display Exodus balance
     int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
-    PrintToLog("Exodus balance after initialization: %s\n", FormatDivisibleMP(exodus_balance));
+    PrintToLog("Exodus balance after initialization: %s\n", FormatIndivisibleMP(exodus_balance));
 
-    PrintToConsole("Exodus balance: %s OMNI\n", FormatDivisibleMP(exodus_balance));
+    PrintToConsole("Exodus balance: %s OMNI\n", FormatIndivisibleMP(exodus_balance));
     PrintToConsole("Omni Core initialization completed\n");
 
     return 0;
@@ -3460,6 +3460,7 @@ bool CompareTradePair(const std::pair<int64_t, UniValue>& firstJSONObj, const st
 // obtains an array of matching trades with pricing and volume details for a pair sorted by blocknumber
 void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyIdSideB, UniValue& responseArray, uint64_t count)
 {
+#if 0
   if (!pdb) return;
   leveldb::Iterator* it = NewIterator();
   std::vector<std::pair<int64_t, UniValue> > vecResponse;
@@ -3547,6 +3548,7 @@ void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyI
   }
 
   delete it;
+#endif
 }
 
 // obtains a vector of txids where the supplied address participated in a trade (needed for gettradehistory_MP)

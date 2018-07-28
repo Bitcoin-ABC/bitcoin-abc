@@ -1579,14 +1579,14 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
         responseObj.push_back(Pair("txid", txid));
         responseObj.push_back(Pair("propertyid", (uint64_t) propertyId));
         responseObj.push_back(Pair("seller", seller));
-        responseObj.push_back(Pair("amountavailable", FormatDivisibleMP(amountAvailable)));
-        responseObj.push_back(Pair("bitcoindesired", FormatDivisibleMP(bitcoinDesired)));
-        responseObj.push_back(Pair("unitprice", FormatDivisibleMP(unitPrice)));
+        responseObj.push_back(Pair("amountavailable", FormatDivisibleMP(amountAvailable, 8)));
+        responseObj.push_back(Pair("bitcoindesired", FormatDivisibleMP(bitcoinDesired, 8)));
+        responseObj.push_back(Pair("unitprice", FormatDivisibleMP(unitPrice, 8)));
         responseObj.push_back(Pair("timelimit", timeLimit));
-        responseObj.push_back(Pair("minimumfee", FormatDivisibleMP(minFee)));
+        responseObj.push_back(Pair("minimumfee", FormatDivisibleMP(minFee, 8)));
 
         // display info about accepts related to sell
-        responseObj.push_back(Pair("amountaccepted", FormatDivisibleMP(amountAccepted)));
+        responseObj.push_back(Pair("amountaccepted", FormatDivisibleMP(amountAccepted, 8)));
         UniValue acceptsMatched(UniValue::VARR);
         for (AcceptMap::const_iterator ait = my_accepts.begin(); ait != my_accepts.end(); ++ait) {
             UniValue matchedAccept(UniValue::VOBJ);
@@ -1605,8 +1605,8 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
                 matchedAccept.push_back(Pair("buyer", buyer));
                 matchedAccept.push_back(Pair("block", blockOfAccept));
                 matchedAccept.push_back(Pair("blocksleft", blocksLeftToPay));
-                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAccepted)));
-                matchedAccept.push_back(Pair("amounttopay", FormatDivisibleMP(amountToPayInBTC)));
+                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAccepted, 8)));
+                matchedAccept.push_back(Pair("amounttopay", FormatDivisibleMP(amountToPayInBTC, 8)));
                 acceptsMatched.push_back(matchedAccept);
             }
         }

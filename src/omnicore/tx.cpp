@@ -307,9 +307,9 @@ bool CMPTransaction::interpret_TradeOffer()
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
-        PrintToLog("\t  amount desired: %s\n", FormatDivisibleMP(amount_desired));
+        PrintToLog("\t  amount desired: %s\n", FormatDivisibleMP(amount_desired, 8));
         PrintToLog("\tblock time limit: %d\n", blocktimelimit);
-        PrintToLog("\t         min fee: %s\n", FormatDivisibleMP(min_fee));
+        PrintToLog("\t         min fee: %s\n", FormatDivisibleMP(min_fee, 8));
         if (version > MP_TX_PKT_V0) {
             PrintToLog("\t      sub-action: %d\n", subaction);
         }
@@ -1174,7 +1174,7 @@ int CMPTransaction::logicMath_SendToOwners()
     uint32_t feeProperty = isTestEcosystemProperty(property) ? OMNI_PROPERTY_TWHC : OMNI_PROPERTY_WHC;
     int64_t feePerOwner = (version == MP_TX_PKT_V0) ? TRANSFER_FEE_PER_OWNER : TRANSFER_FEE_PER_OWNER_V1;
     int64_t transferFee = feePerOwner * numberOfReceivers;
-    PrintToLog("\t    Transfer fee: %s %s\n", FormatDivisibleMP(transferFee), strMPProperty(feeProperty));
+    PrintToLog("\t    Transfer fee: %s %s\n", FormatIndivisibleMP(transferFee), strMPProperty(feeProperty));
 
     // enough coins to pay the fee?
     if (feeProperty != property) {
@@ -1650,7 +1650,7 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
-	if (prop_type < 0 || prop_type > 8){
+	if ( prop_type > 8){
         PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
         return (PKT_ERROR_SP -36);
 	}
@@ -1734,7 +1734,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
-	if (prop_type < 0 || prop_type > 8){
+	if (prop_type > 8){
         PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
         return (PKT_ERROR_SP -36);
 	}
@@ -1920,7 +1920,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
-	if (prop_type < 0 || prop_type > 8){
+	if ( prop_type > 8){
         PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
         return (PKT_ERROR_SP -36);
 	}

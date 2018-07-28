@@ -62,19 +62,13 @@ uint32_t ParsePropertyId(const UniValue& value)
     return static_cast<uint32_t>(propertyId);
 }
 
-int64_t ParseAmount(const UniValue& value, bool isDivisible)
+int64_t ParseAmount(const UniValue& value, int propertyType)
 {
-    int64_t amount = mastercore::StrToInt64(value.get_str(), isDivisible);
+    int64_t amount = mastercore::StrToInt64(value.get_str(), propertyType);
     if (amount < 1) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     }
     return amount;
-}
-
-int64_t ParseAmount(const UniValue& value, int propertyType)
-{
-    bool fDivisible = (propertyType == 2);  // 1 = indivisible, 2 = divisible
-    return ParseAmount(value, fDivisible);
 }
 
 uint8_t ParseDExPaymentWindow(const UniValue& value)

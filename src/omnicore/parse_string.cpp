@@ -9,7 +9,7 @@
 
 namespace mastercore
 {
-int64_t StrToInt64(const std::string& str, bool divisible)
+int64_t StrToInt64(const std::string& str, int decimal)
 {    
     // copy original, so it remains unchanged
     std::string strAmount (str);
@@ -18,23 +18,23 @@ int64_t StrToInt64(const std::string& str, bool divisible)
     // check for a negative (minus sign) and invalidate if present
     size_t negSignPos = strAmount.find("-");
     if (negSignPos != std::string::npos) return 0;
-
+	std::string array[9] = {"", "0", "00", "000", "0000", "00000", "000000", "0000000", "00000000"};
     // convert the string into a usable int64
-    if (divisible) {
+    if (decimal) {
         // check for existance of decimal point
         size_t pos = strAmount.find(".");
         if (pos == std::string::npos) {
             // no decimal point but divisible so pad 8 zeros on right
-            strAmount += "00000000";
+            strAmount += array[decimal];
         } else {
             // check for existence of second decimal point, if so invalidate amount
             size_t posSecond = strAmount.find(".", pos + 1);
             if (posSecond != std::string::npos) return 0;
             
-            if ((strAmount.size() - pos) < 9) {
+            if ((strAmount.size() - pos) < decimal + 1) {
                 // there are decimals either exact or not enough, pad as needed
                 std::string strRightOfDecimal = strAmount.substr(pos + 1);
-                unsigned int zerosToPad = 8 - strRightOfDecimal.size();
+                unsigned int zerosToPad = decimal - strRightOfDecimal.size();
                 
                 // do we need to pad?
                 if (zerosToPad > 0) 
@@ -45,7 +45,7 @@ int64_t StrToInt64(const std::string& str, bool divisible)
                 }
             } else {
                 // there are too many decimals, truncate after 8
-                strAmount = strAmount.substr(0, pos + 9);
+                strAmount = strAmount.substr(0, pos + decimal + 1);
             }
         }
         strAmount.erase(std::remove(strAmount.begin(), strAmount.end(), '.'), strAmount.end());

@@ -127,7 +127,7 @@ int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHas
     bool fMine = false;
     if (IsMyAddress(mp_obj.getSender()) || IsMyAddress(mp_obj.getReceiver())) fMine = true;
     txobj.push_back(Pair("txid", txid.GetHex()));
-    txobj.push_back(Pair("fee", FormatDivisibleMP(mp_obj.getFeePaid())));
+    txobj.push_back(Pair("fee", FormatIndivisibleMP(mp_obj.getFeePaid())));
     txobj.push_back(Pair("sendingaddress", mp_obj.getSender()));
     if (showRefForTx(mp_obj.getType())) txobj.push_back(Pair("referenceaddress", mp_obj.getReceiver()));
 	if(mp_obj.getType() == WHC_TYPE_GET_BASE_PROPERTY) txobj.push_back(Pair("referenceaddress", burnwhc_address));
@@ -361,9 +361,9 @@ void populateRPCTypeTradeOffer(CMPTransaction& omniObj, UniValue& txobj)
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("divisible", isPropertyDivisible(propertyId)));
     txobj.push_back(Pair("amount", FormatMP(propertyId, amountOffered)));
-    txobj.push_back(Pair("bitcoindesired", FormatDivisibleMP(amountDesired)));
+    txobj.push_back(Pair("bitcoindesired", FormatDivisibleMP(amountDesired, 8)));
     txobj.push_back(Pair("timelimit",  temp_offer.getBlockTimeLimit()));
-    txobj.push_back(Pair("feerequired", FormatDivisibleMP(temp_offer.getMinFee())));
+    txobj.push_back(Pair("feerequired", FormatIndivisibleMP(temp_offer.getMinFee())));
     if (sellSubAction == 1) txobj.push_back(Pair("action", "new"));
     if (sellSubAction == 2) txobj.push_back(Pair("action", "update"));
     if (sellSubAction == 3) txobj.push_back(Pair("action", "cancel"));
