@@ -372,6 +372,7 @@ uint32_t GetNextPropertyId(bool maineco); // maybe move into sp
 CMPTally* getTally(const std::string& address);
 
 int64_t getTotalTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
+int64_t getSaledTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
 
 std::string strTransactionType(uint16_t txType);
 

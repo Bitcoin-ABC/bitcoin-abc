@@ -112,6 +112,7 @@ public:
             READWRITE(num_tokens);
             READWRITE(property_desired);
             READWRITE(deadline);
+            READWRITE(rate);
             READWRITE(early_bird);
             READWRITE(percentage);
             READWRITE(close_early);

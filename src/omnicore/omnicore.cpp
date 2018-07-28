@@ -437,6 +437,7 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
     int64_t prev = 0;
     int64_t owners = 0;
     int64_t totalTokens = 0;
+    uint8_t crowdsale = 0;
 
     LOCK(cs_tally);
 
@@ -445,7 +446,11 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         return 0; // property ID does not exist
     }
 
-    if (!property.fixed || n_owners_total) {
+    if(property.fixed == false && property.manual == false) {
+        crowdsale = 1;
+    }
+
+    if (property.manual || n_owners_total) {
         for (std::unordered_map<std::string, CMPTally>::const_iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
             const CMPTally& tally = it->second;
 
@@ -463,9 +468,45 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         totalTokens += cachedFee;
     }
 
-    if (property.fixed) {
+    if (property.fixed || crowdsale) {
         totalTokens = property.num_tokens; // only valid for TX50
     }
+
+    if (n_owners_total) *n_owners_total = owners;
+
+    return totalTokens;
+}
+
+int64_t mastercore::getSaledTokens(uint32_t propertyId, int64_t* n_owners_total)
+{
+    int64_t prev = 0;
+    int64_t owners = 0;
+    int64_t totalTokens = 0;
+
+    CMPSPInfo::Entry property;
+    if (false == _my_sps->getSP(propertyId, property)) {
+        return 0; // property ID does not exist
+    }
+
+    if(property.manual != false || property.fixed != false ){
+        return -1;
+    }
+
+    for (std::unordered_map<std::string, CMPTally>::const_iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
+        const CMPTally& tally = it->second;
+
+        totalTokens += tally.getMoney(propertyId, BALANCE);
+        totalTokens += tally.getMoney(propertyId, SELLOFFER_RESERVE);
+        totalTokens += tally.getMoney(propertyId, ACCEPT_RESERVE);
+        totalTokens += tally.getMoney(propertyId, METADEX_RESERVE);
+
+        if (prev != totalTokens) {
+            prev = totalTokens;
+            owners++;
+        }
+    }
+    int64_t cachedFee = p_feecache->GetCachedAmount(propertyId);
+    totalTokens += cachedFee;
 
     if (n_owners_total) *n_owners_total = owners;
 
