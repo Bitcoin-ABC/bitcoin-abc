@@ -85,7 +85,7 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
 {
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 6)
         throw runtime_error(
-            "whc_particrowsale\"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
+            "whc_particrowsale \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
 
             "\nCreate and broadcast a participate crowsale transaction.\n"
 
@@ -257,7 +257,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 {
     if (request.fHelp || request.params.size() != 15)
         throw runtime_error(
-            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus undefine ) amount \n"
+            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus undefine ) totalNumber \n"
 
             "Create new tokens as crowdsale."
 
@@ -276,7 +276,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
             "12. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "13. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
             "14. Undefine    (number, required) the value must be 0\n"
-		"15. amount              (string, required) the number of tokens to create\n"
+		"15. totalNumber              (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
@@ -335,7 +335,7 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
 {
     if (request.fHelp || request.params.size() != 10)
         throw runtime_error(
-            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"amount\"\n"
+            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"totalNumber\"\n"
 
             "\nCreate new tokens with fixed supply.\n"
 
@@ -349,7 +349,7 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
             "7. name                 (string, required) the name of the new tokens to create\n"
             "8. url                  (string, required) an URL for further information about the new tokens (can be \"\")\n"
             "9. data                 (string, required) a description for the new tokens (can be \"\")\n"
-            "10. amount              (string, required) the number of tokens to create\n"
+            "10. totalNumber              (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
