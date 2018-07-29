@@ -8,6 +8,7 @@
 bool createNewtransaction(CWallet *const pwallet, const std::string &address, Amount nValue, CWalletTx &wtxNew);
 UniValue whc_sendrawtx(Config const&, JSONRPCRequest const&);
 UniValue whc_send(Config const&, JSONRPCRequest const&);
+UniValue whc_particrowsale(Config const&, JSONRPCRequest const&);
 UniValue whc_sendall(Config const&, JSONRPCRequest const&);
 UniValue whc_senddexsell(Config const&, JSONRPCRequest const&);
 UniValue whc_senddexaccept(Config const&, JSONRPCRequest const&);

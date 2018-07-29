@@ -15,6 +15,34 @@
 using std::runtime_error;
 using namespace mastercore;
 
+UniValue whc_createpayload_particrwos(const Config &config,const JSONRPCRequest &request){
+   if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+            "whc_createpayload_particrwos propertyid \"amount\"\n"
+
+            "\nCreate the payload for a participate crowsale transaction.\n"
+
+            "\nArguments:\n"
+            "1. propertyid           (number, required) the identifier of the tokens to send\n"
+            "2. amount               (string, required) the amount to send\n"
+
+            "\nResult:\n"
+            "\"payload\"             (string) the hex-encoded payload\n"
+
+            "\nExamples:\n"
+            + HelpExampleCli("whc_createpayload_particrwos", "1 \"100.0\"")
+            + HelpExampleRpc("whc_createpayload_particrwos", "1, \"100.0\"")
+        );
+	
+    uint32_t propertyId = ParsePropertyId(request.params[0]);
+    RequireExistingProperty(propertyId);
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+
+    std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
+
+    return HexStr(payload.begin(), payload.end());
+}
+
 UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest &request)
 {
    if (request.fHelp || request.params.size() != 2)
@@ -743,6 +771,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (payload creation)", "omni_createpayload_freeze",              &omni_createpayload_freeze,              true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_unfreeze",            &omni_createpayload_unfreeze,            true, {} },
     { "omni layer (payload creation)", "whc_createpayload_burnbch",             &whc_createpayload_burnbch,             true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_particrwos",             &whc_createpayload_particrwos,             true, {} },
 };
 
 void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)
