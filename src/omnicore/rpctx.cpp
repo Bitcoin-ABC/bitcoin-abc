@@ -257,7 +257,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 {
     if (request.fHelp || request.params.size() != 15)
         throw runtime_error(
-            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus issuerpercentage )\n"
+            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus undefine ) amount \n"
 
             "Create new tokens as crowdsale."
 

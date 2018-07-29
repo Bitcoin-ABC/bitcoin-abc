@@ -644,6 +644,8 @@ bool CMPTransaction::interpret_GrantTokens()
     nNewValue = nValue;
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
+	int type = getPropertyType();
+	PrintToLog("\t %s   *************************    property: %d (%s)\n",__func__, property, getPropertyType());
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
     }
@@ -664,6 +666,8 @@ bool CMPTransaction::interpret_RevokeTokens()
     nNewValue = nValue;
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
+	int type = getPropertyType();
+	PrintToLog("\t %s   *************************    property: %d (%s)\n",__func__, property, getPropertyType());
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
     }
@@ -2149,6 +2153,7 @@ int CMPTransaction::logicMath_GrantTokens()
 		return (PKT_ERROR_TOKENS - 25);
 	}	
 
+		printf("%s(): property: %d property type : %d\n", __func__, property, getPropertyType());
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -2247,6 +2252,8 @@ int CMPTransaction::logicMath_RevokeTokens()
 		PrintToLog("%s(): property: %d should not be OMNI_PROPERTY_TWHC or OMNI_PROPERTY_MSC\n", __func__, property);
 		return (PKT_ERROR_TOKENS - 25);
 	}	
+	
+		printf("%s(): property: %d property type : %d\n", __func__, property, getPropertyType());
 
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",

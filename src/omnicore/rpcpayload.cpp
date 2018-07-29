@@ -15,10 +15,10 @@
 using std::runtime_error;
 using namespace mastercore;
 
-UniValue whc_createpayload_particrwos(const Config &config,const JSONRPCRequest &request){
+UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCRequest &request){
    if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-            "whc_createpayload_particrwos propertyid \"amount\"\n"
+            "whc_createpayload_particrwosale propertyid \"amount\"\n"
 
             "\nCreate the payload for a participate crowsale transaction.\n"
 
@@ -30,8 +30,8 @@ UniValue whc_createpayload_particrwos(const Config &config,const JSONRPCRequest 
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_createpayload_particrwos", "1 \"100.0\"")
-            + HelpExampleRpc("whc_createpayload_particrwos", "1, \"100.0\"")
+            + HelpExampleCli("whc_createpayload_particrwosale", "1 \"100.0\"")
+            + HelpExampleRpc("whc_createpayload_particrwosale", "1, \"100.0\"")
         );
 	
     uint32_t propertyId = ParsePropertyId(request.params[0]);
@@ -252,7 +252,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
 {
     if (request.fHelp || request.params.size() != 14)
         throw runtime_error(
-            "whc_createpayload_issuancecrowdsale ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus issuerpercentage\n"
+            "whc_createpayload_issuancecrowdsale ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus issuerpercentage amount\n"
 
             "\nCreates the payload for a new tokens issuance with crowdsale.\n"
 
@@ -276,8 +276,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_createpayload_issuancecrowdsale", "1 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
-            + HelpExampleRpc("whc_createpayload_issuancecrowdsale", "1, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2")
+            + HelpExampleCli("whc_createpayload_issuancecrowdsale", "1 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2 10383903719")
+            + HelpExampleRpc("whc_createpayload_issuancecrowdsale", "1, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2 192978657")
         );
 
     uint8_t ecosystem = ParseEcosystem(request.params[0]);
@@ -771,7 +771,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (payload creation)", "omni_createpayload_freeze",              &omni_createpayload_freeze,              true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_unfreeze",            &omni_createpayload_unfreeze,            true, {} },
     { "omni layer (payload creation)", "whc_createpayload_burnbch",             &whc_createpayload_burnbch,             true, {} },
-    { "omni layer (payload creation)", "whc_createpayload_particrwos",             &whc_createpayload_particrwos,             true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_particrwosale",             &whc_createpayload_particrwosale,             true, {} },
 };
 
 void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)
