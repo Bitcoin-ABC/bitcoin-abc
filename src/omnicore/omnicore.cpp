@@ -940,13 +940,8 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
             for (unsigned k = 0; k < address_data.size(); ++k) {
                 const std::string& addr = address_data[k];
                 if (addr != burnwhc_address) { // removed strSender restriction, not to spec
-                    if (addr == strSender && !changeRemoved) {
-                        changeRemoved = true; // per spec ignore first output to sender as change if multiple possible ref addresses
-                        if (msc_debug_parser_data) PrintToLog("Removed change\n");
-                    } else {
                         strReference = addr; // this may be set several times, but last time will be highest vout
                         if (msc_debug_parser_data) PrintToLog("Resetting strReference as follows: %s \n ", strReference);
-                    }
                 }
             }
         }
