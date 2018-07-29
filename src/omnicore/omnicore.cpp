@@ -3939,7 +3939,11 @@ void getBurnBCHAmonut(const CTransaction& tx, CMPTransaction& mp_tx, int nBlock)
     int64_t amountInvested = 0;
     CTxDestination dest;
     txnouttype outType;
-
+	
+	if (tx.vout.size() < 2){
+		return;
+	}
+	
     GetOutputType(tx.vout[1].scriptPubKey, outType);
     if (outType != TX_NULL_DATA){
     	mp_tx.SetburnBCH(amountInvested);
