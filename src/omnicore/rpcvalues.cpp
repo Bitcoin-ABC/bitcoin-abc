@@ -110,8 +110,8 @@ uint8_t ParseEcosystem(const UniValue& value)
 uint16_t ParsePropertyType(const UniValue& value)
 {
     int64_t propertyType = value.get_int64();
-    if (propertyType < 1 || 2 < propertyType) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid property type (1 = indivisible, 2 = divisible only)");
+    if (propertyType < 0 || 8 < propertyType) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid property type, type range must be [0, 8]");
     }
     return static_cast<uint16_t>(propertyType);
 }
