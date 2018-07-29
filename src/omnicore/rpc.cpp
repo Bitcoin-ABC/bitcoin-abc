@@ -86,7 +86,7 @@ void PropertyToJSON(const CMPSPInfo::Entry& sProperty, UniValue& property_obj)
     property_obj.push_back(Pair("subcategory", sProperty.subcategory));
     property_obj.push_back(Pair("data", sProperty.data));
     property_obj.push_back(Pair("url", sProperty.url));
-    property_obj.push_back(Pair("divisible", sProperty.isDivisible()));
+    property_obj.push_back(Pair("precision", sProperty.getPrecision()));
 }
 
 void MetaDexObjectToJSON(const CMPMetaDEx& obj, UniValue& metadex_obj)
