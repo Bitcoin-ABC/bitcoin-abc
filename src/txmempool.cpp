@@ -29,12 +29,10 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
                                  int64_t _nTime, unsigned int _entryHeight,
                                  bool _spendsCoinbase, int64_t _sigOpsCount,
                                  LockPoints lp)
-    : tx(_tx), nFee(_nFee), nTime(_nTime), entryHeight(_entryHeight),
-      spendsCoinbase(_spendsCoinbase), sigOpCount(_sigOpsCount),
-      lockPoints(lp) {
-    nTxSize = tx->GetTotalSize();
-    nUsageSize = RecursiveDynamicUsage(tx);
-
+    : tx(_tx), nFee(_nFee), nTxSize(tx->GetTotalSize()),
+      nUsageSize(RecursiveDynamicUsage(tx)), nTime(_nTime),
+      entryHeight(_entryHeight), spendsCoinbase(_spendsCoinbase),
+      sigOpCount(_sigOpsCount), lockPoints(lp) {
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nModFeesWithDescendants = nFee;

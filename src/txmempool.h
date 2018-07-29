@@ -66,21 +66,21 @@ class CTxMemPool;
 
 class CTxMemPoolEntry {
 private:
-    CTransactionRef tx;
+    const CTransactionRef tx;
     //!< Cached to avoid expensive parent-transaction lookups
-    Amount nFee;
+    const Amount nFee;
     //!< ... and avoid recomputing tx size
-    size_t nTxSize;
+    const size_t nTxSize;
     //!< ... and total memory usage
-    size_t nUsageSize;
+    const size_t nUsageSize;
     //!< Local time when entering the mempool
-    int64_t nTime;
+    const int64_t nTime;
     //!< Chain height when entering the mempool
-    unsigned int entryHeight;
+    const unsigned int entryHeight;
     //!< keep track of transactions that spend a coinbase
-    bool spendsCoinbase;
+    const bool spendsCoinbase;
     //!< Total sigop plus P2SH sigops count
-    int64_t sigOpCount;
+    const int64_t sigOpCount;
     //!< Used for determining the priority of the transaction for mining in a
     //! block
     Amount feeDelta;
