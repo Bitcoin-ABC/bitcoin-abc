@@ -755,7 +755,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
 
     // The part of token that is smaller than the smallest unit
     // e.g. for token with precision 1, 0.05 token < 0.1 token
-    arith_uint256 created_tokens_rem = created_tokens - created_tokens_int;
+    arith_uint256 created_tokens_rem = created_tokens - created_tokens_int * precision;
     // 10**8 C = price token, then token_price = 10**8 / price
     arith_uint256 token_price =
             (whc_precision * precision) / ConvertTo256(price);

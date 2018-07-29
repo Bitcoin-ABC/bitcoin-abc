@@ -245,7 +245,10 @@ std::string mastercore::FormatIndivisibleMP(int64_t n)
 std::string FormatShortMP(uint32_t property, int64_t n)
 {
     if (isPropertyDivisible(property)) {
-	int type = getPropertyType(property);
+	    int type = getPropertyType(property);
+        if(type < 0) {
+            return NULL;
+        }
         return FormatDivisibleShortMP(n, type);
     } else {
         return FormatIndivisibleMP(n);
@@ -255,7 +258,10 @@ std::string FormatShortMP(uint32_t property, int64_t n)
 std::string FormatMP(uint32_t property, int64_t n, bool fSign)
 {
     if (isPropertyDivisible(property)) {
-	int type = getPropertyType(property);
+	    int type = getPropertyType(property);
+	    if(type < 0) {
+	        return NULL;
+	    }
         return FormatDivisibleMP(n, type, fSign);
     } else {
         return FormatIndivisibleMP(n);
