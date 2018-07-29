@@ -1,7 +1,7 @@
-wormhole v0.0.3
+wormhole v0.0.4
 ===================
 
-v0.0.3 is a pre release
+v0.0.4 is a pre release
 
 Please report bugs using the issue tracker on GitHub:
 
@@ -10,7 +10,7 @@ Please report bugs using the issue tracker on GitHub:
 Table of contents
 =================
 
-- [wormhole v0.0.3](#wormhole-core-v003)
+- [wormhole v0.0.4](#wormhole-core-v004)
 - [Upgrading and downgrading](#upgrading-and-downgrading)
   - [How to upgrade](#how-to-upgrade)
   - [Downgrading](#downgrading)
@@ -33,7 +33,7 @@ During the first startup historical Wormhole transactions are reprocessed and Wo
 Downgrading
 -----------
 
-Downgrading to an Wormhole Core version prior 0.0.3 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
+Downgrading to an Wormhole Core version prior 0.0.4 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
 
 Compatibility with Bitcoin ABC
 -------------------------------
@@ -45,12 +45,10 @@ Wormhole Core is based on Bitcoin ABC v0.17.2.0-0d18a09 and can be used as repla
 Various bug fixes and improvements
 ----------------------------------
 
-Various smaller improvements were added Wormhole Core 0.0.2, such as:
+Various smaller improvements were added Wormhole Core 0.0.3 such as:
 
-- mofify txindex logic, fix warning
-- remove exchange code
-- add Crowdsale Participation logic
-- modify mainnet deploy height and wormhole version
+- fix logic bug for parse transaction
+- fix logic bug for receiver address
 
 Change log
 ==========
