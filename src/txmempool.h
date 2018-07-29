@@ -665,7 +665,21 @@ public:
                      Amount &nFeeDelta) const;
     void ClearPrioritisation(const TxId &txid);
 
-public:
+    /** Get the transaction in the pool that spends the same prevout */
+    const CTransaction *GetConflictTx(const COutPoint &prevout) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    /** Returns an iterator to the given txid, if found */
+    boost::optional<txiter> GetIter(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    /**
+     * Translate a set of txids into a set of pool iterators to avoid repeated
+     * lookups.
+     */
+    setEntries GetIterSet(const std::set<TxId> &txids) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+
     /**
      * Remove a set of transactions from the mempool. If a transaction is in
      * this set, then all in-mempool descendants must also be in the set, unless
