@@ -223,6 +223,7 @@ std::string getPropertyName(uint32_t propertyId);
 bool isPropertyDivisible(uint32_t propertyId);
 bool IsPropertyIdValid(uint32_t propertyId);
 int getPropertyType(uint32_t propertyId);
+std::string getprecision(uint32_t property);
 
 CMPCrowd* getCrowd(const std::string& address);
 

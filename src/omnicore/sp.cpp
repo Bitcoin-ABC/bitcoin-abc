@@ -698,7 +698,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 whc_precision = ConvertTo256(100000000L);  // 1WHC=10**8C
     static const int64_t decimalArr[9] = {
             1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-    assert(tokenPrecision >= 0 && tokenPrecision <= 8);
+    assert(tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
 
     // Calculate the bonus seconds
@@ -906,15 +906,18 @@ unsigned int mastercore::eraseExpiredCrowdsale(const CBlockIndex* pBlockIndex)
 
 std::string mastercore::strPropertyType(int propertyType)
 {
-	char buf[14];
-    if (propertyType == 0){
-	return "indivisible";
-	}else if(propertyType >= 1 && propertyType <= 8){
-		sprintf(buf, "precision : %d", propertyType);
-		return buf;
-	}
-
+	char buf[2];
+    memset(buf, 0, 2);
+    if (propertyType >= 0 && propertyType <= 8){
+        sprintf(buf, "%d", propertyType);
+        return buf;
+    }
     return "unknown";
+}
+
+std::string mastercore::getprecision(uint32_t property){
+    int type = getPropertyType(property);
+    return strPropertyType(type);
 }
 
 std::string mastercore::strEcosystem(uint8_t ecosystem)

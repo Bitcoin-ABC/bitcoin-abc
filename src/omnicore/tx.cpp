@@ -644,8 +644,6 @@ bool CMPTransaction::interpret_GrantTokens()
     nNewValue = nValue;
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
-	int type = getPropertyType();
-	PrintToLog("\t %s   *************************    property: %d (%s)\n",__func__, property, getPropertyType());
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
     }
@@ -666,8 +664,6 @@ bool CMPTransaction::interpret_RevokeTokens()
     nNewValue = nValue;
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
-	int type = getPropertyType();
-	PrintToLog("\t %s   *************************    property: %d (%s)\n",__func__, property, getPropertyType());
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
     }
