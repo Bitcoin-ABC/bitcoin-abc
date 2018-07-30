@@ -16,29 +16,26 @@ using std::runtime_error;
 using namespace mastercore;
 
 UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCRequest &request){
-   if (request.fHelp || request.params.size() != 2)
+   if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "whc_createpayload_particrwosale propertyid \"amount\"\n"
 
             "\nCreate the payload for a participate crowsale transaction.\n"
 
             "\nArguments:\n"
-            "1. propertyid           (number, required) the identifier of the tokens to send\n"
-            "2. amount               (string, required) the amount to send\n"
+            "1. amount               (string, required) the amount of WHC to particrowsale\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_createpayload_particrwosale", "1 \"100.0\"")
-            + HelpExampleRpc("whc_createpayload_particrwosale", "1, \"100.0\"")
+            + HelpExampleCli("whc_createpayload_particrwosale", " \"100.0\"")
+            + HelpExampleRpc("whc_createpayload_particrwosale", " \"100.0\"")
         );
 	
-    uint32_t propertyId = ParsePropertyId(request.params[0]);
-    RequireExistingProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+    int64_t amount = ParseAmount(request.params[0], PRICE_PRICISION);
 
-    std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
+    std::vector<unsigned char> payload = CreatePayload_PartiCrowsale(OMNI_PROPERTY_WHC, amount);
 
     return HexStr(payload.begin(), payload.end());
 }

@@ -3,6 +3,7 @@
 #include "omnicore/createpayload.h"
 
 #include "omnicore/convert.h"
+#include "omnicore/omnicore.h"
 #include "omnicore/utils.h"
 
 #include "tinyformat.h"
@@ -25,6 +26,23 @@
     vector.insert(vector.end(), reinterpret_cast<unsigned char *>((ptr)),\
     reinterpret_cast<unsigned char *>((ptr)) + (size));
 
+std::vector<unsigned char> CreatePayload_PartiCrowsale(uint32_t propertyId, uint64_t amount)
+{
+    std::vector<unsigned char> payload;
+    uint16_t messageType = MSC_TYPE_BUY_TOKEN;
+    uint16_t messageVer = 0;
+    mastercore::swapByteOrder16(messageType);
+    mastercore::swapByteOrder16(messageVer);
+    mastercore::swapByteOrder32(propertyId);
+    mastercore::swapByteOrder64(amount);
+
+    PUSH_BACK_BYTES(payload, messageVer);
+    PUSH_BACK_BYTES(payload, messageType);
+    PUSH_BACK_BYTES(payload, propertyId);
+    PUSH_BACK_BYTES(payload, amount);
+
+    return payload;
+}
 
 std::vector<unsigned char> CreatePayload_SimpleSend(uint32_t propertyId, uint64_t amount)
 {
