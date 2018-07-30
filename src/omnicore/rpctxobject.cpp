@@ -486,7 +486,7 @@ void populateRPCTypeCreatePropertyVariable(CMPTransaction& omniObj, UniValue& tx
     txobj.push_back(Pair("tokensperunit", strPerUnit));
     txobj.push_back(Pair("deadline", omniObj.getDeadline()));
     txobj.push_back(Pair("earlybonus", omniObj.getEarlyBirdBonus()));
-    std::string strAmount = FormatByType(, omniObj.getPropertyType());
+    std::string strAmount = FormatByType(omniObj.getTotalNumber(), omniObj.getPropertyType());
     txobj.push_back(Pair("amount", strAmount)); // crowdsale token creations don't issue tokens with the create tx
 }
 

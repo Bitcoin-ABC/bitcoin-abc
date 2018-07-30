@@ -194,6 +194,7 @@ public:
     std::string getReceiver() const { return receiver; }
     std::string getPayload() const { return HexStr(pkt, pkt + pkt_size); }
     uint64_t getAmount() const { return nValue; }
+    uint64_t getTotalNumber() const { return totalCrowsToken; }
     uint64_t getNewAmount() const { return nNewValue; }
     uint8_t getEcosystem() const { return ecosystem; }
     uint32_t getPreviousId() const { return prev_prop_id; }

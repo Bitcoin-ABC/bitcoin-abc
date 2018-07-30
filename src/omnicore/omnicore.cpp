@@ -994,7 +994,6 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
     if ( omniClass == OMNI_CLASS_C) {
         if (msc_debug_parser_data) PrintToLog("Beginning reference identification\n");
         bool referenceFound = false; // bool to hold whether we've found the reference yet
-        bool changeRemoved = false; // bool to hold whether we've ignored the first output to sender as change
         unsigned int potentialReferenceOutputs = 0; // int to hold number of potential reference outputs
         for (unsigned k = 0; k < address_data.size(); ++k) { // how many potential reference outputs do we have, if just one select it right here
             const std::string& addr = address_data[k];
