@@ -211,8 +211,8 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
             "\nCreates the payload for a new tokens issuance with fixed supply.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -257,8 +257,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "\nCreates the payload for a new tokens issuance with crowdsale.\n"
 
             "\nArguments:\n"
-            "1. Undefine             (string, required) the value must be 1\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -317,8 +317,8 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
             "\nCreates the payload for a new tokens issuance with manageable supply.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"

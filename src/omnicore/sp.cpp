@@ -680,8 +680,10 @@ int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCr
     return ConvertTo64(amountMissing);
 }
 
-// calculateFundraiser does token calculations per transaction
-// calcluateFractional does calculations for missed tokens
+// @price, the value assigned to this argument is enlarged by 10**8
+// e.g. 1WHC = 10**-8 Token --> price = 1, supported most expensive token
+// e.g. 1WHC = 1      Token --> price = 10**8
+// e.g. 1WHC = 10**8  Token --> price = 10**16, supported most cheap token
 void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
                                      uint8_t bonusPerc, int64_t closeSeconds,
                                      int64_t currentSeconds, int64_t price,
@@ -695,11 +697,12 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 precision = ConvertTo256(1000000000000LL);  // 10**12
     // Precision for all percentages (10/100 = 10%)
     arith_uint256 percentage_precision = ConvertTo256(100);
-    arith_uint256 whc_precision = ConvertTo256(100000000L);  // 1WHC=10**8C
+    arith_uint256 whc_precision = ConvertTo256(100000000LL);  // 1WHC=10**8C
     static const int64_t decimalArr[9] = {
             1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-    assert(tokenPrecision <= 8);
+    assert(tokenPrecision >= 0 && tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
+    arith_uint256 price_factor = ConvertTo256(100000000LL);  // 10**8
 
     // Calculate the bonus seconds
     arith_uint256 bonus_seconds = 0;
@@ -727,37 +730,46 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     created_tokens /= whc_precision;
 
     arith_uint256 created_tokens_int = created_tokens / precision;
+    // price is enlarged by 10**8 (price_factor) to support the case
+    // 1WHC=10**-8Token
+    created_tokens_int = created_tokens_int / price_factor;
 
     arith_uint256 max_creatable =
             ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
 
     if (created_tokens_int <= max_creatable) {
         purchasedTokens = ConvertTo64(created_tokens_int);
-        closeCrowdsale = false;
+        closeCrowdsale = (created_tokens  == max_creatable) ? true : false;
 
         // Refund the part that are not enough for smallest token unit
         // Note that, there is no bonus for this part
 
         // The part of token that is smaller than the smallest unit
         // e.g. for token with precision 1, 0.05 token < 0.1 token
-        arith_uint256 created_tokens_rem =
-                created_tokens - created_tokens_int * precision;
+        arith_uint256 created_tokens_rem = created_tokens_int;
+        created_tokens_rem *= precision;
+        created_tokens_rem *= price_factor;
+        created_tokens_rem = created_tokens - created_tokens_rem;
         // 10**8 C = price token, then token_price = 10**8 / price
+        // Note that, price is enlarged by x price_factor
         arith_uint256 token_price =
-                (whc_precision * precision) / ConvertTo256(price);
+                (whc_precision * precision * price_factor) / ConvertTo256(price);
 
         arith_uint256 refund_money = token_price * created_tokens_rem;
-        refund_money /= precision;
         // remove the earlybird bonus from refund_whc
         // e.g. suppose extra bonus percentage is 0.1,
         // then tokens buyer gets is enlarged by x1.1
         // to remove the earlybird bonus, we simply divide the refund by 1.1
         refund_money /= bonus_percentage;
-        assert(refund_money < token_price / token_precision);
         refund_money /= token_precision;
+        refund_money /= precision;
+        refund_money /= price_factor;
 
         refund = ConvertTo64(refund_money);
     } else {  // created_tokens_int > max_creatable
+        purchasedTokens = ConvertTo64(max_creatable);
+        closeCrowdsale = true;  // close crowdsale
+
         // ratio = created_tokens_int / max_creatable
         arith_uint256 ratio = created_tokens_int * precision;
         ratio *= token_precision;
@@ -768,8 +780,6 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
         remainder *= token_precision;
         remainder -= remainder / ratio;  // transfer that are not spent
 
-        purchasedTokens = ConvertTo64(max_creatable);
-        closeCrowdsale = true;            // close crowdsale
         refund = ConvertTo64(remainder);  // refund buyer's unspent money
     }
 }

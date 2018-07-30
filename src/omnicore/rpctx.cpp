@@ -263,8 +263,8 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. Undefine (string, required) the value must be 0\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -275,8 +275,8 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
             "11. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "12. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "13. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "14. Undefine    (number, required) the value must be 0\n"
-		"15. totalNumber              (string, required) the number of tokens to create\n"
+            "14. Undefine            (number, required) the value must be 0\n"
+		    "15. totalNumber         (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
@@ -341,8 +341,8 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -406,8 +406,8 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
