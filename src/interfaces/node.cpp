@@ -59,7 +59,7 @@ namespace {
             return gArgs.ParseParameters(argc, argv, error);
         }
         bool readConfigFiles(std::string &error) override {
-            return gArgs.ReadConfigFiles(error);
+            return gArgs.ReadConfigFiles(error, true);
         }
         bool softSetArg(const std::string &arg,
                         const std::string &value) override {

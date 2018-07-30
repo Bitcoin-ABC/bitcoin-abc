@@ -113,7 +113,7 @@ static bool AppInit(int argc, char *argv[]) {
                     gArgs.GetArg("-datadir", "").c_str());
             return false;
         }
-        if (!gArgs.ReadConfigFiles(error)) {
+        if (!gArgs.ReadConfigFiles(error, true)) {
             fprintf(stderr, "Error reading configuration file: %s\n",
                     error.c_str());
             return false;
