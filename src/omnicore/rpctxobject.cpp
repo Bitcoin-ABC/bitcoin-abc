@@ -285,7 +285,6 @@ void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
 {
     uint32_t propertyId = omniObj.getProperty();
     LOCK(cs_tally);
-    int mtype;
     txobj.push_back(Pair("type", "Simple Send"));
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
