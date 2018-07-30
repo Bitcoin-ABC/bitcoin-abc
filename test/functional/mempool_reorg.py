@@ -9,7 +9,8 @@ that spend (directly or indirectly) coinbase transactions.
 """
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, create_tx
+from test_framework.blocktools import create_raw_transaction
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 # Create one-input, one-output, no-fee transaction:
 
@@ -41,11 +42,11 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # and make sure the mempool code behaves correctly.
         b = [self.nodes[0].getblockhash(n) for n in range(101, 105)]
         coinbase_txids = [self.nodes[0].getblock(h)['tx'][0] for h in b]
-        spend_101_raw = create_tx(
+        spend_101_raw = create_raw_transaction(
             self.nodes[0], coinbase_txids[1], node1_address, 49.99)
-        spend_102_raw = create_tx(
+        spend_102_raw = create_raw_transaction(
             self.nodes[0], coinbase_txids[2], node0_address, 49.99)
-        spend_103_raw = create_tx(
+        spend_103_raw = create_raw_transaction(
             self.nodes[0], coinbase_txids[3], node0_address, 49.99)
 
         # Create a transaction which is time-locked to two blocks in the future
@@ -70,9 +71,9 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
                                 self.nodes[0].sendrawtransaction, timelock_tx)
 
         # Create 102_1 and 103_1:
-        spend_102_1_raw = create_tx(
+        spend_102_1_raw = create_raw_transaction(
             self.nodes[0], spend_102_id, node1_address, 49.98)
-        spend_103_1_raw = create_tx(
+        spend_103_1_raw = create_raw_transaction(
             self.nodes[0], spend_103_id, node1_address, 49.98)
 
         # Broadcast and mine 103_1:
