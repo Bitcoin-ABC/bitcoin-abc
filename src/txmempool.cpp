@@ -387,7 +387,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::addUnchecked(const TxId &txid, const CTxMemPoolEntry &entry,
+void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
                               setEntries &setAncestors) {
     NotifyEntryAdded(entry.GetSharedTx());
     // Add to memory pool without checking anything.
@@ -1069,13 +1069,13 @@ void CTxMemPool::LimitSize(size_t limit, unsigned long age) {
     }
 }
 
-void CTxMemPool::addUnchecked(const TxId &txid, const CTxMemPoolEntry &entry) {
+void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry) {
     setEntries setAncestors;
     uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
     std::string dummy;
     CalculateMemPoolAncestors(entry, setAncestors, nNoLimit, nNoLimit, nNoLimit,
                               nNoLimit, dummy);
-    return addUnchecked(txid, entry, setAncestors);
+    return addUnchecked(entry, setAncestors);
 }
 
 void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {

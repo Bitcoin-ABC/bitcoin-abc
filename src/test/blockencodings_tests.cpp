@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     CBlock block(BuildBlockTestCase());
 
     LOCK2(cs_main, pool.cs);
-    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(block.vtx[2]));
+    pool.addUnchecked(entry.FromTx(block.vtx[2]));
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
     CBlock block(BuildBlockTestCase());
 
     LOCK2(cs_main, pool.cs);
-    pool.addUnchecked(block.vtx[2]->GetId(), entry.FromTx(block.vtx[2]));
+    pool.addUnchecked(entry.FromTx(block.vtx[2]));
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);
@@ -279,7 +279,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
     CBlock block(BuildBlockTestCase());
 
     LOCK2(cs_main, pool.cs);
-    pool.addUnchecked(block.vtx[1]->GetId(), entry.FromTx(block.vtx[1]));
+    pool.addUnchecked(entry.FromTx(block.vtx[1]));
     BOOST_CHECK_EQUAL(
         pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
         SHARED_TX_OFFSET + 0);

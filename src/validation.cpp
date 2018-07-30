@@ -795,7 +795,7 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         }
 
         // Store transaction in memory.
-        pool.addUnchecked(txid, entry, setAncestors);
+        pool.addUnchecked(entry, setAncestors);
 
         // Trim mempool and check if tx was trimmed.
         if (!bypass_limits) {
