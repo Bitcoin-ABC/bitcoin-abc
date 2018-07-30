@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
 #ifndef BITCOIN_RPCREGISTER_H
 #define BITCOIN_RPCREGISTER_H
 
@@ -21,6 +22,14 @@ void RegisterMiningRPCCommands(CRPCTable &tableRPC);
 void RegisterRawTransactionRPCCommands(CRPCTable &tableRPC);
 /** Register ABC RPC commands */
 void RegisterABCRPCCommands(CRPCTable &tableRPC);
+/** Register Omni data retrieval RPC commands */
+void RegisterOmniDataRetrievalRPCCommands(CRPCTable &tableRPC);
+/** Register Omni transaction creation RPC commands */
+void RegisterOmniTransactionCreationRPCCommands(CRPCTable &tableRPC);
+/** Register Omni payload creation RPC commands */
+void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC);
+/** Register Omni raw transaction RPC commands */
+void RegisterOmniRawTransactionRPCCommands(CRPCTable &tableRPC);
 
 static inline void RegisterAllRPCCommands(CRPCTable &t) {
     RegisterBlockchainRPCCommands(t);
@@ -29,6 +38,13 @@ static inline void RegisterAllRPCCommands(CRPCTable &t) {
     RegisterMiningRPCCommands(t);
     RegisterRawTransactionRPCCommands(t);
     RegisterABCRPCCommands(t);
+
+	/* Omni Core RPCs: */
+	RegisterOmniDataRetrievalRPCCommands(t);
+	RegisterOmniTransactionCreationRPCCommands(t);
+	RegisterOmniPayloadCreationRPCCommands(t);
+	RegisterOmniRawTransactionRPCCommands(t);
+
 }
 
 #endif

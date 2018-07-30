@@ -9,6 +9,7 @@
 #include "utiltime.h"
 
 bool fLogIPs = DEFAULT_LOGIPS;
+std::atomic<bool> fReopenOmniCoreLog(false);
 
 /**
  * NOTE: the logger instance is leaked on exit. This is ugly, but will be

@@ -170,7 +170,7 @@ static const int64_t MAX_FEE_ESTIMATION_TIP_AGE = 3 * 60 * 60;
 /** Default for -permitbaremultisig */
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
-static const bool DEFAULT_TXINDEX = false;
+static const bool DEFAULT_TXINDEX = true;
 static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 
 /** Default for -persistmempool */
@@ -755,4 +755,7 @@ void DumpMempool();
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config);
 
+bool AbortNode(const std::string &strMessage, const std::string &userMessage = "");
+
+void AlertNotify(const std::string &strMessage);
 #endif // BITCOIN_VALIDATION_H

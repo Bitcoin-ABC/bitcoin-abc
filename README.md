@@ -1,44 +1,21 @@
-[Bitcoin ABC](https://www.bitcoinabc.org)
-===========
+Wormhole (beta) integration/staging tree
+========================================
 
-The goal of Bitcoin ABC is to create sound money that is usable by everyone in
-the world. We believe this is a civilization-changing technology which will
-dramatically increase human flourishing, freedom, and prosperity. The project
-aims to achieve this goal by implementing a series of optimizations and
-protocol upgrades that will enable peer-to-peer digital cash to scale many
-orders of magnitude beyond current limits.
+[![Build Status](https://travis-ci.org/copernet/wormhole.svg?branch=master)](https://travis-ci.org/copernet/wormhole)
 
-What is Bitcoin Cash?
----------------------
 
-[Bitcoin Cash](https://www.bitcoincash.org/) is an experimental digital
-currency that enables instant payments to anyone, anywhere in the world. It
-uses peer-to-peer technology to operate with no central authority: managing
-transactions and issuing money are carried out collectively by the network.
-Bitcoin Cash is a descendant of Bitcoin. It became a separate currency from
-the version supported by Bitcoin Core when the two split on August 1, 2017.
-Bitcoin Cash and the Bitcoin Core version of Bitcoin share the same
-transaction history up until the split.
+What is Wormhole
+-----------------
 
-What is Bitcoin ABC?
+Wormhole is a fast, portable Omni Layer implementation that is based off the Bitcoin ABC codebase (currently 0.17.2). This implementation requires no external dependencies extraneous to Bitcoin ABC, and is native to the Bitcoin Cash network just like other Bitcoin Cash nodes. It currently supports a wallet mode and is seamlessly available on three platforms: Windows, Linux and Mac OS. Wormhole Cash Layer extensions are exposed via the JSON-RPC interface. Development has been consolidated on the Wormhole product, and it is the reference client for the Wormhole Cash Layer.
+
+
+What is Bitcoin Cash
 --------------------
+Bitcoin Cash is an experimental digital currency that enables instant payments to anyone, anywhere in the world. It uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Bitcoin Cash is a descendant of Bitcoin. It became a separate currency from the version supported by Bitcoin Core when the two split on August 1, 2017. Bitcoin Cash and the Bitcoin Core version of Bitcoin share the same transaction history up until the split.
 
-Bitcoin ABC is the name of open-source software which enables the use of
-Bitcoin Cash. It is a fork of the [Bitcoin Core](https://bitcoincore.org)
-software project.
+What is the Omni Layer
+----------------------
+The Omni Layer is a communications protocol that uses the Bitcoin block chain to enable features such as smart contracts, user currencies and decentralized peer-to-peer exchanges. A common analogy that is used to describe the relation of the Omni Layer to Bitcoin is that of HTTP to TCP/IP: HTTP, like the Omni Layer, is the application layer to the more fundamental transport and internet layer of TCP/IP, like Bitcoin.
 
-License
--------
-
-Bitcoin ABC is released under the terms of the MIT license. See
-[COPYING](COPYING) for more information or see
-https://opensource.org/licenses/MIT.
-
-Development Process
--------------------
-
-This Github repository contains only source code of releases.
-
-Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/
-
-If you would like to contribute, please read [CONTRIBUTING](CONTRIBUTING.md)
+http://www.omnilayer.org

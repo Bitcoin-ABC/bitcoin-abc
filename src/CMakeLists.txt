@@ -1,291 +1,838 @@
-# Copyright (c) 2017 The Bitcoin developers
-
-cmake_minimum_required(VERSION 3.5)
-project(BitcoinABC)
+cmake_minimum_required(VERSION 3.10)
+project(src)
 
 set(CMAKE_CXX_STANDARD 11)
 
-# Default visibility is hidden on all targets.
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+include_directories(.)
+include_directories(bench)
+include_directories(compat)
+include_directories(consensus)
+include_directories(crypto)
+include_directories(crypto/ctaes)
+include_directories(leveldb/db)
+include_directories(leveldb/helpers/memenv)
+include_directories(leveldb/include)
+include_directories(leveldb/include/leveldb)
+include_directories(leveldb/port)
+include_directories(leveldb/port/win)
+include_directories(leveldb/table)
+include_directories(leveldb/util)
+include_directories(omnicore)
+include_directories(omnicore/test)
+include_directories(policy)
+include_directories(primitives)
+include_directories(qt)
+include_directories(qt/test)
+include_directories(rpc)
+include_directories(script)
+include_directories(secp256k1/contrib)
+include_directories(secp256k1/include)
+include_directories(secp256k1/src)
+include_directories(secp256k1/src/java)
+include_directories(secp256k1/src/modules)
+include_directories(secp256k1/src/modules/ecdh)
+include_directories(secp256k1/src/modules/multiset)
+include_directories(secp256k1/src/modules/recovery)
+include_directories(seeder)
+include_directories(support)
+include_directories(support/allocators)
+include_directories(test)
+include_directories(univalue/include)
+include_directories(univalue/lib)
+include_directories(wallet)
+include_directories(wallet/test)
+include_directories(zmq)
 
-option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
-option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
-option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
-option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
-option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
-option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
-
-# Ensure that WINDRES_PREPROC is enabled when using windres.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND CMAKE_RC_FLAGS "-DWINDRES_PREPROC")
-endif()
-
-# Enable warning
-include(AddCompilerFlags)
-
-add_c_compiler_flag(-Wnested-externs -Wstrict-prototypes)
-add_compiler_flag(
-	-Wall
-	-Wextra
-	-Wformat
-	-Wvla
-	-Wformat-security
-	-Wcast-align
-	-Wunused-parameter
-)
-
-option(EXTRA_WARNINGS "Enable extra warnings" OFF)
-if(EXTRA_WARNINGS)
-	add_compiler_flag(-Wshadow)
-	add_cxx_compiler_flag(-Wsuggest-override)
-else()
-	add_compiler_flag(-Wno-unused-parameter)
-endif()
-
-# libtool style configure
-add_subdirectory(config)
-
-# libraries
-add_subdirectory(crypto)
-add_subdirectory(leveldb)
-add_subdirectory(secp256k1)
-add_subdirectory(univalue)
-
-# Because the Bitcoin ABc source code is disorganised, we
-# end up with a bunch of libraries without any aparent
-# cohesive structure. This is inherited from Bitcoin Core
-# and reflecting this.
-# TODO: Improve the structure once cmake is rocking.
-
-# Various completely unrelated features shared by all executables.
-add_library(util
-	chainparamsbase.cpp
-	clientversion.cpp
-	compat/glibc_sanity.cpp
-	compat/glibcxx_sanity.cpp
-	compat/strnlen.cpp
-	fs.cpp
-	logging.cpp
-	random.cpp
-	rpc/protocol.cpp
-	support/cleanse.cpp
-	support/lockedpool.cpp
-	sync.cpp
-	threadinterrupt.cpp
-	uint256.cpp
-	util.cpp
-	utilmoneystr.cpp
-	utilstrencodings.cpp
-	utiltime.cpp
-)
-
-target_compile_definitions(util PUBLIC HAVE_CONFIG_H)
-target_include_directories(util
-	PUBLIC
-		.
-		# To access the config.
-		${CMAKE_CURRENT_BINARY_DIR}
-	PRIVATE
-		${OPENSSL_INCLUDE_DIR}
-)
-
-# Target specific configs
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(Boost_USE_STATIC_LIBS ON)
-	set(Boost_THREADAPI win32)
-
-	find_package(SHLWAPI REQUIRED)
-	target_link_libraries(util ${SHLWAPI_LIBRARY})
-	target_include_directories(util PUBLIC ${SHLWAPI_INCLUDE_DIR})
-
-	find_library(WS2_32_LIBRARY NAMES ws2_32)
-	target_link_libraries(util ${WS2_32_LIBRARY})
-	
-	target_compile_definitions(util PUBLIC BOOST_THREAD_USE_LIB)
-endif()
-
-# Boost packages
-set(BOOST_PACKAGES_REQUIRED chrono filesystem program_options thread)
-
-function(prepend var prefix)
-	set(listVar "")
-	foreach(f ${ARGN})
-		list(APPEND listVar "${prefix}${f}")
-	endforeach(f)
-	set(${var} "${listVar}" PARENT_SCOPE)
-endfunction(prepend)
-
-prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
-
-find_package(Boost 1.58 REQUIRED ${BOOST_PACKAGES_REQUIRED})
-target_link_libraries(util univalue crypto ${BOOST_LIBRARIES})
-
-# Make sure boost uses std::atomic (it doesn't before 1.63)
-target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
-
-# More completely unrelated features shared by all executables.
-# Because nothing says this is different from util than "common"
-add_library(common
-	amount.cpp
-	base58.cpp
-	cashaddr.cpp
-	cashaddrenc.cpp
-	chainparams.cpp
-	config.cpp
-	consensus/merkle.cpp
-	coins.cpp
-	compressor.cpp
-	dstencode.cpp
-	globals.cpp
-	core_read.cpp
-	core_write.cpp
-	key.cpp
-	keystore.cpp
-	netaddress.cpp
-	netbase.cpp
-	primitives/block.cpp
-	protocol.cpp
-	scheduler.cpp
-	script/sign.cpp
-	script/standard.cpp
-	warnings.cpp
-)
-
-target_link_libraries(common util secp256k1)
-
-# libbitcoinconsensus
-add_library(bitcoinconsensus
-	arith_uint256.cpp
-	hash.cpp
-	primitives/transaction.cpp
-	pubkey.cpp
-	script/bitcoinconsensus.cpp
-	script/interpreter.cpp
-	script/script.cpp
-	script/script_error.cpp
-	uint256.cpp
-	utilstrencodings.cpp
-)
-
-target_link_libraries(bitcoinconsensus common)
-
-# Bitcoin server facilities
-add_library(server
-	addrman.cpp
-	addrdb.cpp
-	bloom.cpp
-	blockencodings.cpp
-	chain.cpp
-	checkpoints.cpp
-	config.cpp
-	globals.cpp
-	httprpc.cpp
-	httpserver.cpp
-	init.cpp
-	dbwrapper.cpp
-	merkleblock.cpp
-	miner.cpp
-	net.cpp
-	net_processing.cpp
-	noui.cpp
-	policy/fees.cpp
-	policy/policy.cpp
-	pow.cpp
-	rest.cpp
-	rpc/abc.cpp
-	rpc/blockchain.cpp
-	rpc/mining.cpp
-	rpc/misc.cpp
-	rpc/net.cpp
-	rpc/rawtransaction.cpp
-	rpc/server.cpp
-	script/scriptcache.cpp
-	script/sigcache.cpp
-	script/ismine.cpp
-	timedata.cpp
-	torcontrol.cpp
-	txdb.cpp
-	txmempool.cpp
-	ui_interface.cpp
-	validation.cpp
-	validationinterface.cpp
-	versionbits.cpp
-)
-
-# This require libevent
-find_package(Event REQUIRED)
-
-target_include_directories(server
-	PRIVATE
-		leveldb/helpers/memenv
-		${EVENT_INCLUDE_DIR}
-)
-
-target_link_libraries(server
-	${EVENT_LIBRARY}
-	bitcoinconsensus
-	leveldb
-	memenv
-)
-
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(server ${EVENT_PTHREAD_LIBRARY})
-endif()
-
-# Test suite.
-add_subdirectory(test)
-
-# Wallet
-if(BUILD_BITCOIN_WALLET)
-	add_subdirectory(wallet)
-	target_link_libraries(server wallet)
-endif()
-
-# ZeroMQ
-if(BUILD_BITCOIN_ZMQ)
-	add_subdirectory(zmq)
-	target_link_libraries(server zmq)
-endif()
-
-# RPC client support
-add_library(rpcclient rpc/client.cpp)
-target_link_libraries(rpcclient univalue util)
-
-# bitcoin-seeder
-if(BUILD_BITCOIN_SEEDER)
-	add_subdirectory(seeder)
-endif()
-
-# bitcoin-cli
-if(BUILD_BITCOIN_CLI)
-	add_executable(bitcoin-cli bitcoin-cli.cpp)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
-	endif()
-
-	target_include_directories(bitcoin-cli PRIVATE ${EVENT_INCLUDE_DIR})
-	target_link_libraries(bitcoin-cli common rpcclient ${EVENT_LIBRARY})
-endif()
-
-# bitcoin-tx
-if(BUILD_BITCOIN_TX)
-	add_executable(bitcoin-tx bitcoin-tx.cpp)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-tx PRIVATE bitcoin-tx-res.rc)
-	endif()
-
-	target_link_libraries(bitcoin-tx bitcoinconsensus)
-endif()
-
-# bitcoind
-add_executable(bitcoind bitcoind.cpp)
-target_link_libraries(bitcoind server)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_sources(bitcoind PRIVATE bitcoind-res.rc)
-endif()
-
-# Bitcoin-qt
-if(BUILD_BITCOIN_QT)
-	add_subdirectory(qt)
-endif()
+add_executable(src
+        bench/base58.cpp
+        bench/bench.cpp
+        bench/bench.h
+        bench/bench_bitcoin.cpp
+        bench/ccoins_caching.cpp
+        bench/checkblock.cpp
+        bench/checkqueue.cpp
+        bench/coin_selection.cpp
+        bench/crypto_hash.cpp
+        bench/Examples.cpp
+        bench/lockedpool.cpp
+        bench/mempool_eviction.cpp
+        bench/perf.cpp
+        bench/perf.h
+        bench/rollingbloom.cpp
+        compat/byteswap.h
+        compat/endian.h
+        compat/glibc_compat.cpp
+        compat/glibc_sanity.cpp
+        compat/glibcxx_sanity.cpp
+        compat/sanity.h
+        compat/strnlen.cpp
+        consensus/consensus.h
+        consensus/merkle.cpp
+        consensus/merkle.h
+        consensus/params.h
+        consensus/validation.h
+        crypto/ctaes/bench.c
+        crypto/ctaes/ctaes.c
+        crypto/ctaes/ctaes.h
+        crypto/ctaes/test.c
+        crypto/aes.cpp
+        crypto/aes.h
+        crypto/chacha20.cpp
+        crypto/chacha20.h
+        crypto/common.h
+        crypto/hmac_sha256.cpp
+        crypto/hmac_sha256.h
+        crypto/hmac_sha512.cpp
+        crypto/hmac_sha512.h
+        crypto/ripemd160.cpp
+        crypto/ripemd160.h
+        crypto/sha1.cpp
+        crypto/sha1.h
+        crypto/sha256.cpp
+        crypto/sha256.h
+        crypto/sha256_sse4.cpp
+        crypto/sha512.cpp
+        crypto/sha512.h
+        leveldb/db/autocompact_test.cc
+        leveldb/db/builder.cc
+        leveldb/db/builder.h
+        leveldb/db/c.cc
+        leveldb/db/c_test.c
+        leveldb/db/corruption_test.cc
+        leveldb/db/db_bench.cc
+        leveldb/db/db_impl.cc
+        leveldb/db/db_impl.h
+        leveldb/db/db_iter.cc
+        leveldb/db/db_iter.h
+        leveldb/db/db_test.cc
+        leveldb/db/dbformat.cc
+        leveldb/db/dbformat.h
+        leveldb/db/dbformat_test.cc
+        leveldb/db/dumpfile.cc
+        leveldb/db/fault_injection_test.cc
+        leveldb/db/filename.cc
+        leveldb/db/filename.h
+        leveldb/db/filename_test.cc
+        leveldb/db/leveldbutil.cc
+        leveldb/db/log_format.h
+        leveldb/db/log_reader.cc
+        leveldb/db/log_reader.h
+        leveldb/db/log_test.cc
+        leveldb/db/log_writer.cc
+        leveldb/db/log_writer.h
+        leveldb/db/memtable.cc
+        leveldb/db/memtable.h
+        leveldb/db/recovery_test.cc
+        leveldb/db/repair.cc
+        leveldb/db/skiplist.h
+        leveldb/db/skiplist_test.cc
+        leveldb/db/snapshot.h
+        leveldb/db/table_cache.cc
+        leveldb/db/table_cache.h
+        leveldb/db/version_edit.cc
+        leveldb/db/version_edit.h
+        leveldb/db/version_edit_test.cc
+        leveldb/db/version_set.cc
+        leveldb/db/version_set.h
+        leveldb/db/version_set_test.cc
+        leveldb/db/write_batch.cc
+        leveldb/db/write_batch_internal.h
+        leveldb/db/write_batch_test.cc
+        leveldb/doc/bench/db_bench_sqlite3.cc
+        leveldb/doc/bench/db_bench_tree_db.cc
+        leveldb/helpers/memenv/memenv.cc
+        leveldb/helpers/memenv/memenv.h
+        leveldb/helpers/memenv/memenv_test.cc
+        leveldb/include/leveldb/c.h
+        leveldb/include/leveldb/cache.h
+        leveldb/include/leveldb/comparator.h
+        leveldb/include/leveldb/db.h
+        leveldb/include/leveldb/dumpfile.h
+        leveldb/include/leveldb/env.h
+        leveldb/include/leveldb/filter_policy.h
+        leveldb/include/leveldb/iterator.h
+        leveldb/include/leveldb/options.h
+        leveldb/include/leveldb/slice.h
+        leveldb/include/leveldb/status.h
+        leveldb/include/leveldb/table.h
+        leveldb/include/leveldb/table_builder.h
+        leveldb/include/leveldb/write_batch.h
+        leveldb/issues/issue178_test.cc
+        leveldb/issues/issue200_test.cc
+        leveldb/port/win/stdint.h
+        leveldb/port/atomic_pointer.h
+        leveldb/port/port.h
+        leveldb/port/port_example.h
+        leveldb/port/port_posix.cc
+        leveldb/port/port_posix.h
+        leveldb/port/port_posix_sse.cc
+        leveldb/port/port_win.cc
+        leveldb/port/port_win.h
+        leveldb/port/thread_annotations.h
+        leveldb/table/block.cc
+        leveldb/table/block.h
+        leveldb/table/block_builder.cc
+        leveldb/table/block_builder.h
+        leveldb/table/filter_block.cc
+        leveldb/table/filter_block.h
+        leveldb/table/filter_block_test.cc
+        leveldb/table/format.cc
+        leveldb/table/format.h
+        leveldb/table/iterator.cc
+        leveldb/table/iterator_wrapper.h
+        leveldb/table/merger.cc
+        leveldb/table/merger.h
+        leveldb/table/table.cc
+        leveldb/table/table_builder.cc
+        leveldb/table/table_test.cc
+        leveldb/table/two_level_iterator.cc
+        leveldb/table/two_level_iterator.h
+        leveldb/util/arena.cc
+        leveldb/util/arena.h
+        leveldb/util/arena_test.cc
+        leveldb/util/bloom.cc
+        leveldb/util/bloom_test.cc
+        leveldb/util/cache.cc
+        leveldb/util/cache_test.cc
+        leveldb/util/coding.cc
+        leveldb/util/coding.h
+        leveldb/util/coding_test.cc
+        leveldb/util/comparator.cc
+        leveldb/util/crc32c.cc
+        leveldb/util/crc32c.h
+        leveldb/util/crc32c_test.cc
+        leveldb/util/env.cc
+        leveldb/util/env_posix.cc
+        leveldb/util/env_posix_test.cc
+        leveldb/util/env_posix_test_helper.h
+        leveldb/util/env_test.cc
+        leveldb/util/env_win.cc
+        leveldb/util/filter_policy.cc
+        leveldb/util/hash.cc
+        leveldb/util/hash.h
+        leveldb/util/hash_test.cc
+        leveldb/util/histogram.cc
+        leveldb/util/histogram.h
+        leveldb/util/logging.cc
+        leveldb/util/logging.h
+        leveldb/util/mutexlock.h
+        leveldb/util/options.cc
+        leveldb/util/posix_logger.h
+        leveldb/util/random.h
+        leveldb/util/status.cc
+        leveldb/util/testharness.cc
+        leveldb/util/testharness.h
+        leveldb/util/testutil.cc
+        leveldb/util/testutil.h
+        omnicore/test/alert_tests.cpp
+        omnicore/test/checkpoint_tests.cpp
+        omnicore/test/create_payload_tests.cpp
+        omnicore/test/create_tx_tests.cpp
+        omnicore/test/crowdsale_participation_tests.cpp
+        omnicore/test/dex_purchase_tests.cpp
+        omnicore/test/encoding_b_tests.cpp
+        omnicore/test/encoding_c_tests.cpp
+        omnicore/test/exodus_tests.cpp
+        omnicore/test/lock_tests.cpp
+        omnicore/test/marker_tests.cpp
+        omnicore/test/mbstring_tests.cpp
+        omnicore/test/obfuscation_tests.cpp
+        omnicore/test/output_restriction_tests.cpp
+        omnicore/test/params_tests.cpp
+        omnicore/test/parsing_a_tests.cpp
+        omnicore/test/parsing_b_tests.cpp
+        omnicore/test/parsing_c_tests.cpp
+        omnicore/test/rounduint64_tests.cpp
+        omnicore/test/rules_txs_tests.cpp
+        omnicore/test/script_dust_tests.cpp
+        omnicore/test/script_extraction_tests.cpp
+        omnicore/test/script_solver_tests.cpp
+        omnicore/test/sender_bycontribution_tests.cpp
+        omnicore/test/sender_firstin_tests.cpp
+        omnicore/test/strtoint64_tests.cpp
+        omnicore/test/swapbyteorder_tests.cpp
+        omnicore/test/tally_tests.cpp
+        omnicore/test/uint256_extensions_tests.cpp
+        omnicore/test/utils_tx.cpp
+        omnicore/test/utils_tx.h
+        omnicore/test/version_tests.cpp
+        omnicore/activation.cpp
+        omnicore/activation.h
+        omnicore/consensushash.cpp
+        omnicore/consensushash.h
+        omnicore/convert.cpp
+        omnicore/convert.h
+        omnicore/createpayload.cpp
+        omnicore/createpayload.h
+        omnicore/createtx.cpp
+        omnicore/createtx.h
+        omnicore/dex.cpp
+        omnicore/dex.h
+        omnicore/encoding.cpp
+        omnicore/encoding.h
+        omnicore/errors.h
+        omnicore/fees.cpp
+        omnicore/fees.h
+        omnicore/fetchwallettx.cpp
+        omnicore/fetchwallettx.h
+        omnicore/log.cpp
+        omnicore/log.h
+        omnicore/mbstring.cpp
+        omnicore/mbstring.h
+        omnicore/mdex.cpp
+        omnicore/mdex.h
+        omnicore/notifications.cpp
+        omnicore/notifications.h
+        omnicore/omnicore.cpp
+        omnicore/omnicore.h
+        omnicore/parse_string.cpp
+        omnicore/parse_string.h
+        omnicore/pending.cpp
+        omnicore/pending.h
+        omnicore/persistence.cpp
+        omnicore/persistence.h
+        omnicore/rpc.cpp
+        omnicore/rpc.h
+        omnicore/rpcpayload.cpp
+        omnicore/rpcpayload.h
+        omnicore/rpcrawtx.cpp
+        omnicore/rpcrawtx.h
+        omnicore/rpcrequirements.cpp
+        omnicore/rpcrequirements.h
+        omnicore/rpctx.cpp
+        omnicore/rpctx.h
+        omnicore/rpctxobject.cpp
+        omnicore/rpctxobject.h
+        omnicore/rpcvalues.cpp
+        omnicore/rpcvalues.h
+        omnicore/rules.cpp
+        omnicore/rules.h
+        omnicore/script.cpp
+        omnicore/script.h
+        omnicore/seedblocks.cpp
+        omnicore/seedblocks.h
+        omnicore/sp.cpp
+        omnicore/sp.h
+        omnicore/sto.cpp
+        omnicore/sto.h
+        omnicore/tally.cpp
+        omnicore/tally.h
+        omnicore/tx.cpp
+        omnicore/tx.h
+        omnicore/uint256_extensions.h
+        omnicore/utils.cpp
+        omnicore/utils.h
+        omnicore/utilsbitcoin.cpp
+        omnicore/utilsbitcoin.h
+        omnicore/version.cpp
+        omnicore/version.h
+        omnicore/walletcache.cpp
+        omnicore/walletcache.h
+        omnicore/wallettxs.cpp
+        omnicore/wallettxs.h
+        policy/fees.cpp
+        policy/fees.h
+        policy/policy.cpp
+        policy/policy.h
+        primitives/block.cpp
+        primitives/block.h
+        primitives/transaction.cpp
+        primitives/transaction.h
+        qt/test/bitcoinaddressvalidatortests.cpp
+        qt/test/bitcoinaddressvalidatortests.h
+        qt/test/compattests.cpp
+        qt/test/compattests.h
+        qt/test/guiutiltests.cpp
+        qt/test/guiutiltests.h
+        qt/test/paymentrequestdata.h
+        qt/test/paymentservertests.cpp
+        qt/test/paymentservertests.h
+        qt/test/rpcnestedtests.cpp
+        qt/test/rpcnestedtests.h
+        qt/test/test_main.cpp
+        qt/test/uritests.cpp
+        qt/test/uritests.h
+        qt/test/wallettests.cpp
+        qt/test/wallettests.h
+        qt/addressbookpage.cpp
+        qt/addressbookpage.h
+        qt/addresstablemodel.cpp
+        qt/addresstablemodel.h
+        qt/askpassphrasedialog.cpp
+        qt/askpassphrasedialog.h
+        qt/bantablemodel.cpp
+        qt/bantablemodel.h
+        qt/bitcoin.cpp
+        qt/bitcoinaddressvalidator.cpp
+        qt/bitcoinaddressvalidator.h
+        qt/bitcoinamountfield.cpp
+        qt/bitcoinamountfield.h
+        qt/bitcoingui.cpp
+        qt/bitcoingui.h
+        qt/bitcoinstrings.cpp
+        qt/bitcoinunits.cpp
+        qt/bitcoinunits.h
+        qt/clientmodel.cpp
+        qt/clientmodel.h
+        qt/coincontroldialog.cpp
+        qt/coincontroldialog.h
+        qt/coincontroltreewidget.cpp
+        qt/coincontroltreewidget.h
+        qt/csvmodelwriter.cpp
+        qt/csvmodelwriter.h
+        qt/editaddressdialog.cpp
+        qt/editaddressdialog.h
+        qt/guiconstants.h
+        qt/guiutil.cpp
+        qt/guiutil.h
+        qt/intro.cpp
+        qt/intro.h
+        qt/macdockiconhandler.h
+        qt/macdockiconhandler.mm
+        qt/macnotificationhandler.h
+        qt/macnotificationhandler.mm
+        qt/modaloverlay.cpp
+        qt/modaloverlay.h
+        qt/networkstyle.cpp
+        qt/networkstyle.h
+        qt/notificator.cpp
+        qt/notificator.h
+        qt/openuridialog.cpp
+        qt/openuridialog.h
+        qt/optionsdialog.cpp
+        qt/optionsdialog.h
+        qt/optionsmodel.cpp
+        qt/optionsmodel.h
+        qt/overviewpage.cpp
+        qt/overviewpage.h
+        qt/paymentrequestplus.cpp
+        qt/paymentrequestplus.h
+        qt/paymentserver.cpp
+        qt/paymentserver.h
+        qt/peertablemodel.cpp
+        qt/peertablemodel.h
+        qt/platformstyle.cpp
+        qt/platformstyle.h
+        qt/qvalidatedlineedit.cpp
+        qt/qvalidatedlineedit.h
+        qt/qvaluecombobox.cpp
+        qt/qvaluecombobox.h
+        qt/receivecoinsdialog.cpp
+        qt/receivecoinsdialog.h
+        qt/receiverequestdialog.cpp
+        qt/receiverequestdialog.h
+        qt/recentrequeststablemodel.cpp
+        qt/recentrequeststablemodel.h
+        qt/rpcconsole.cpp
+        qt/rpcconsole.h
+        qt/sendcoinsdialog.cpp
+        qt/sendcoinsdialog.h
+        qt/sendcoinsentry.cpp
+        qt/sendcoinsentry.h
+        qt/signverifymessagedialog.cpp
+        qt/signverifymessagedialog.h
+        qt/splashscreen.cpp
+        qt/splashscreen.h
+        qt/trafficgraphwidget.cpp
+        qt/trafficgraphwidget.h
+        qt/transactiondesc.cpp
+        qt/transactiondesc.h
+        qt/transactiondescdialog.cpp
+        qt/transactiondescdialog.h
+        qt/transactionfilterproxy.cpp
+        qt/transactionfilterproxy.h
+        qt/transactionrecord.cpp
+        qt/transactionrecord.h
+        qt/transactiontablemodel.cpp
+        qt/transactiontablemodel.h
+        qt/transactionview.cpp
+        qt/transactionview.h
+        qt/utilitydialog.cpp
+        qt/utilitydialog.h
+        qt/walletframe.cpp
+        qt/walletframe.h
+        qt/walletmodel.cpp
+        qt/walletmodel.h
+        qt/walletmodeltransaction.cpp
+        qt/walletmodeltransaction.h
+        qt/walletview.cpp
+        qt/walletview.h
+        qt/winshutdownmonitor.cpp
+        qt/winshutdownmonitor.h
+        rpc/abc.cpp
+        rpc/blockchain.cpp
+        rpc/blockchain.h
+        rpc/client.cpp
+        rpc/client.h
+        rpc/mining.cpp
+        rpc/mining.h
+        rpc/misc.cpp
+        rpc/misc.h
+        rpc/net.cpp
+        rpc/protocol.cpp
+        rpc/protocol.h
+        rpc/rawtransaction.cpp
+        rpc/register.h
+        rpc/server.cpp
+        rpc/server.h
+        rpc/tojson.h
+        script/bitcoinconsensus.cpp
+        script/bitcoinconsensus.h
+        script/interpreter.cpp
+        script/interpreter.h
+        script/ismine.cpp
+        script/ismine.h
+        script/script.cpp
+        script/script.h
+        script/script_error.cpp
+        script/script_error.h
+        script/scriptcache.cpp
+        script/scriptcache.h
+        script/sigcache.cpp
+        script/sigcache.h
+        script/sighashtype.h
+        script/sign.cpp
+        script/sign.h
+        script/standard.cpp
+        script/standard.h
+        secp256k1/contrib/lax_der_parsing.c
+        secp256k1/contrib/lax_der_parsing.h
+        secp256k1/contrib/lax_der_privatekey_parsing.c
+        secp256k1/contrib/lax_der_privatekey_parsing.h
+        secp256k1/include/secp256k1.h
+        secp256k1/include/secp256k1_ecdh.h
+        secp256k1/include/secp256k1_multiset.h
+        secp256k1/include/secp256k1_recovery.h
+        secp256k1/src/java/org_bitcoin_NativeSecp256k1.c
+        secp256k1/src/java/org_bitcoin_NativeSecp256k1.h
+        secp256k1/src/java/org_bitcoin_Secp256k1Context.c
+        secp256k1/src/java/org_bitcoin_Secp256k1Context.h
+        secp256k1/src/modules/ecdh/main_impl.h
+        secp256k1/src/modules/ecdh/tests_impl.h
+        secp256k1/src/modules/multiset/main_impl.h
+        secp256k1/src/modules/multiset/tests_impl.h
+        secp256k1/src/modules/recovery/main_impl.h
+        secp256k1/src/modules/recovery/tests_impl.h
+        secp256k1/src/basic-config.h
+        secp256k1/src/bench.h
+        secp256k1/src/bench_ecdh.c
+        secp256k1/src/bench_internal.c
+        secp256k1/src/bench_multiset.c
+        secp256k1/src/bench_recover.c
+        secp256k1/src/bench_sign.c
+        secp256k1/src/bench_verify.c
+        secp256k1/src/ecdsa.h
+        secp256k1/src/ecdsa_impl.h
+        secp256k1/src/eckey.h
+        secp256k1/src/eckey_impl.h
+        secp256k1/src/ecmult.h
+        secp256k1/src/ecmult_const.h
+        secp256k1/src/ecmult_const_impl.h
+        secp256k1/src/ecmult_gen.h
+        secp256k1/src/ecmult_gen_impl.h
+        secp256k1/src/ecmult_impl.h
+        secp256k1/src/field.h
+        secp256k1/src/field_10x26.h
+        secp256k1/src/field_10x26_impl.h
+        secp256k1/src/field_5x52.h
+        secp256k1/src/field_5x52_asm_impl.h
+        secp256k1/src/field_5x52_impl.h
+        secp256k1/src/field_5x52_int128_impl.h
+        secp256k1/src/field_impl.h
+        secp256k1/src/gen_context.c
+        secp256k1/src/group.h
+        secp256k1/src/group_impl.h
+        secp256k1/src/hash.h
+        secp256k1/src/hash_impl.h
+        secp256k1/src/num.h
+        secp256k1/src/num_gmp.h
+        secp256k1/src/num_gmp_impl.h
+        secp256k1/src/num_impl.h
+        secp256k1/src/scalar.h
+        secp256k1/src/scalar_4x64.h
+        secp256k1/src/scalar_4x64_impl.h
+        secp256k1/src/scalar_8x32.h
+        secp256k1/src/scalar_8x32_impl.h
+        secp256k1/src/scalar_impl.h
+        secp256k1/src/scalar_low.h
+        secp256k1/src/scalar_low_impl.h
+        secp256k1/src/secp256k1.c
+        secp256k1/src/testrand.h
+        secp256k1/src/testrand_impl.h
+        secp256k1/src/tests.c
+        secp256k1/src/tests_exhaustive.c
+        secp256k1/src/util.h
+        seeder/bitcoin.cpp
+        seeder/bitcoin.h
+        seeder/compat.h
+        seeder/db.cpp
+        seeder/db.h
+        seeder/dns.cpp
+        seeder/dns.h
+        seeder/main.cpp
+        seeder/strlcpy.h
+        seeder/util.h
+        support/allocators/secure.h
+        support/allocators/zeroafterfree.h
+        support/cleanse.cpp
+        support/cleanse.h
+        support/events.h
+        support/lockedpool.cpp
+        support/lockedpool.h
+        test/addrman_tests.cpp
+        test/allocator_tests.cpp
+        test/amount_tests.cpp
+        test/arith_uint256_tests.cpp
+        test/base32_tests.cpp
+        test/base58_tests.cpp
+        test/base64_tests.cpp
+        test/bip32_tests.cpp
+        test/blockcheck_tests.cpp
+        test/blockencodings_tests.cpp
+        test/blockstatus_tests.cpp
+        test/bloom_tests.cpp
+        test/bswap_tests.cpp
+        test/cashaddr_tests.cpp
+        test/cashaddrenc_tests.cpp
+        test/checkpoints_tests.cpp
+        test/coins_tests.cpp
+        test/compress_tests.cpp
+        test/config_tests.cpp
+        test/core_io_tests.cpp
+        test/crypto_tests.cpp
+        test/cuckoocache_tests.cpp
+        test/dbwrapper_tests.cpp
+        test/DoS_tests.cpp
+        test/dstencode_tests.cpp
+        test/excessiveblock_tests.cpp
+        test/getarg_tests.cpp
+        test/hash_tests.cpp
+        test/inv_tests.cpp
+        test/jsonutil.cpp
+        test/jsonutil.h
+        test/key_tests.cpp
+        test/limitedmap_tests.cpp
+        test/main_tests.cpp
+        test/mempool_tests.cpp
+        test/merkle_tests.cpp
+        test/miner_tests.cpp
+        test/monolith_opcodes.cpp
+        test/multisig_tests.cpp
+        test/net_tests.cpp
+        test/netbase_tests.cpp
+        test/pmt_tests.cpp
+        test/policyestimator_tests.cpp
+        test/pow_tests.cpp
+        test/prevector_tests.cpp
+        test/raii_event_tests.cpp
+        test/random_tests.cpp
+        test/reverselock_tests.cpp
+        test/rpc_tests.cpp
+        test/sanity_tests.cpp
+        test/scheduler_tests.cpp
+        test/script_commitment_tests.cpp
+        test/script_P2SH_tests.cpp
+        test/script_tests.cpp
+        test/scriptflags.cpp
+        test/scriptflags.h
+        test/scriptnum10.h
+        test/scriptnum_tests.cpp
+        test/serialize_tests.cpp
+        test/sighash_tests.cpp
+        test/sighashtype_tests.cpp
+        test/sigopcount_tests.cpp
+        test/sigutil.cpp
+        test/sigutil.h
+        test/skiplist_tests.cpp
+        test/streams_tests.cpp
+        test/test_bitcoin.cpp
+        test/test_bitcoin.h
+        test/test_bitcoin_fuzzy.cpp
+        test/test_bitcoin_main.cpp
+        test/testutil.cpp
+        test/testutil.h
+        test/timedata_tests.cpp
+        test/transaction_tests.cpp
+        test/txvalidationcache_tests.cpp
+        test/uint256_tests.cpp
+        test/undo_tests.cpp
+        test/univalue_tests.cpp
+        test/util_tests.cpp
+        test/validation_tests.cpp
+        test/versionbits_tests.cpp
+        univalue/gen/gen.cpp
+        univalue/include/univalue.h
+        univalue/lib/univalue.cpp
+        univalue/lib/univalue_escapes.h
+        univalue/lib/univalue_get.cpp
+        univalue/lib/univalue_read.cpp
+        univalue/lib/univalue_utffilter.h
+        univalue/lib/univalue_write.cpp
+        univalue/test/no_nul.cpp
+        univalue/test/object.cpp
+        univalue/test/test_json.cpp
+        univalue/test/unitester.cpp
+        wallet/test/accounting_tests.cpp
+        wallet/test/crypto_tests.cpp
+        wallet/test/wallet_test_fixture.cpp
+        wallet/test/wallet_test_fixture.h
+        wallet/test/wallet_tests.cpp
+        wallet/test/walletdb_tests.cpp
+        wallet/coincontrol.h
+        wallet/crypter.cpp
+        wallet/crypter.h
+        wallet/db.cpp
+        wallet/db.h
+        wallet/finaltx.cpp
+        wallet/finaltx.h
+        wallet/rpcdump.cpp
+        wallet/rpcdump.h
+        wallet/rpcwallet.cpp
+        wallet/rpcwallet.h
+        wallet/wallet.cpp
+        wallet/wallet.h
+        wallet/walletdb.cpp
+        wallet/walletdb.h
+        zmq/zmqabstractnotifier.cpp
+        zmq/zmqabstractnotifier.h
+        zmq/zmqconfig.h
+        zmq/zmqnotificationinterface.cpp
+        zmq/zmqnotificationinterface.h
+        zmq/zmqpublishnotifier.cpp
+        zmq/zmqpublishnotifier.h
+        addrdb.cpp
+        addrdb.h
+        addrman.cpp
+        addrman.h
+        amount.cpp
+        amount.h
+        arith_uint256.cpp
+        arith_uint256.h
+        base58.cpp
+        base58.h
+        bitcoin-cli.cpp
+        bitcoin-tx.cpp
+        bitcoind.cpp
+        blockencodings.cpp
+        blockencodings.h
+        bloom.cpp
+        bloom.h
+        cashaddr.cpp
+        cashaddr.h
+        cashaddrenc.cpp
+        cashaddrenc.h
+        chain.cpp
+        chain.h
+        chainparams.cpp
+        chainparams.h
+        chainparamsbase.cpp
+        chainparamsbase.h
+        chainparamsseeds.h
+        checkpoints.cpp
+        checkpoints.h
+        checkqueue.h
+        clientversion.cpp
+        clientversion.h
+        coins.cpp
+        coins.h
+        compat.h
+        compressor.cpp
+        compressor.h
+        config.cpp
+        config.h
+        core_io.h
+        core_memusage.h
+        core_read.cpp
+        core_write.cpp
+        cuckoocache.h
+        dbwrapper.cpp
+        dbwrapper.h
+        dstencode.cpp
+        dstencode.h
+        fs.cpp
+        fs.h
+        globals.cpp
+        globals.h
+        hash.cpp
+        hash.h
+        httprpc.cpp
+        httprpc.h
+        httpserver.cpp
+        httpserver.h
+        indirectmap.h
+        init.cpp
+        init.h
+        key.cpp
+        key.h
+        keystore.cpp
+        keystore.h
+        limitedmap.h
+        logging.cpp
+        logging.h
+        memusage.h
+        merkleblock.cpp
+        merkleblock.h
+        miner.cpp
+        miner.h
+        net.cpp
+        net.h
+        net_processing.cpp
+        net_processing.h
+        netaddress.cpp
+        netaddress.h
+        netbase.cpp
+        netbase.h
+        netmessagemaker.h
+        noui.cpp
+        noui.h
+        pow.cpp
+        pow.h
+        prevector.h
+        protocol.cpp
+        protocol.h
+        pubkey.cpp
+        pubkey.h
+        random.cpp
+        random.h
+        rest.cpp
+        reverselock.h
+        scheduler.cpp
+        scheduler.h
+        serialize.h
+        streams.h
+        sync.cpp
+        sync.h
+        threadinterrupt.cpp
+        threadinterrupt.h
+        threadsafety.h
+        timedata.cpp
+        timedata.h
+        tinyformat.h
+        torcontrol.cpp
+        torcontrol.h
+        txdb.cpp
+        txdb.h
+        txmempool.cpp
+        txmempool.h
+        ui_interface.cpp
+        ui_interface.h
+        uint256.cpp
+        uint256.h
+        undo.h
+        util.cpp
+        util.h
+        utilmoneystr.cpp
+        utilmoneystr.h
+        utilstrencodings.cpp
+        utilstrencodings.h
+        utiltime.cpp
+        utiltime.h
+        validation.cpp
+        validation.h
+        validationinterface.cpp
+        validationinterface.h
+        version.h
+        versionbits.cpp
+        versionbits.h
+        warnings.cpp
+        warnings.h)
