@@ -2245,7 +2245,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
     CCoinControl coinControl;
     CWalletTx wtxNew;
     Amount nFeeRet(0);
-    int nChangePosInOut = -1;
+    int nChangePosInOut = 1;
     std::string strFailReason;
     std::vector<std::pair<CScript, int64_t> > vecSend;
     CReserveKey reserveKey(pwalletMain);
