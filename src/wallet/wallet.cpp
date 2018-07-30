@@ -19,6 +19,7 @@
 #include <policy/policy.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
+#include <random.h>
 #include <rpc/server.h> // for IsDeprecatedRPCEnabled
 #include <scheduler.h>
 #include <script/script.h>
@@ -37,8 +38,11 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <future>
+
+static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
 std::vector<CWalletRef> vpwallets;
 
@@ -2720,6 +2724,14 @@ bool CWallet::SelectCoins(const std::vector<COutput> &vAvailableCoins,
 
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included
+    if (coin_control.m_avoid_partial_spends &&
+        vCoins.size() > OUTPUT_GROUP_MAX_ENTRIES) {
+        // Cases where we have 11+ outputs all pointing to the same destination
+        // may result in privacy leaks as they will potentially be
+        // deterministically sorted. We solve that by explicitly shuffling the
+        // outputs before processing
+        std::shuffle(vCoins.begin(), vCoins.end(), FastRandomContext());
+    }
     std::vector<OutputGroup> groups =
         GroupOutputs(vCoins, !coin_control.m_avoid_partial_spends);
 
@@ -4652,7 +4664,7 @@ CWallet::GroupOutputs(const std::vector<COutput> &outputs,
                 // Limit output groups to no more than 10 entries, to protect
                 // against inadvertently creating a too-large transaction
                 // when using -avoidpartialspends
-                if (gmap[dst].m_outputs.size() >= 10) {
+                if (gmap[dst].m_outputs.size() >= OUTPUT_GROUP_MAX_ENTRIES) {
                     groups.push_back(gmap[dst]);
                     gmap.erase(dst);
                 }
