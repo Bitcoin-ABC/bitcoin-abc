@@ -243,7 +243,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_METADEX -35:
           ec_str = "One side of the trade must be OMNI or TOMNI";
           break;
-
+      case PKT_ERROR_CROWD -1:
+          ec_str = "the receive address no have active crowd property";
+          break;
       case METADEX_ERROR -1:
           ec_str = "Unknown MetaDEx (Add) error";
           break;
