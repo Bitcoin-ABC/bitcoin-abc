@@ -177,9 +177,9 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
         case MSC_TYPE_SEND_ALL:
             populateRPCTypeSendAll(mp_obj, txobj, confirmations);
             break;
-	case WHC_TYPE_GET_BASE_PROPERTY:
-		populateRPCTypeGetBaseProperTy(mp_obj, txobj, confirmations);
-		break;
+        case WHC_TYPE_GET_BASE_PROPERTY:
+            populateRPCTypeGetBaseProperTy(mp_obj, txobj, confirmations);
+            break;
         /*case MSC_TYPE_TRADE_OFFER:
             populateRPCTypeTradeOffer(mp_obj, txobj);
             break;
@@ -486,8 +486,7 @@ void populateRPCTypeCreatePropertyVariable(CMPTransaction& omniObj, UniValue& tx
     txobj.push_back(Pair("tokensperunit", strPerUnit));
     txobj.push_back(Pair("deadline", omniObj.getDeadline()));
     txobj.push_back(Pair("earlybonus", omniObj.getEarlyBirdBonus()));
-    txobj.push_back(Pair("percenttoissuer", omniObj.getIssuerBonus()));
-    std::string strAmount = FormatByType(0, omniObj.getPropertyType());
+    std::string strAmount = FormatByType(, omniObj.getPropertyType());
     txobj.push_back(Pair("amount", strAmount)); // crowdsale token creations don't issue tokens with the create tx
 }
 

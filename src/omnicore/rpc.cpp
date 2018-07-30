@@ -42,6 +42,8 @@
 #include "uint256.h"
 #include "utilstrencodings.h"
 #include "chain.h"
+#include "sp.h"
+
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #endif
@@ -1110,7 +1112,6 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
         participanttx.push_back(Pair("txid", txid));
         participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), desiredIdType)));
         participanttx.push_back(Pair("participanttokens", FormatByType(it->second.at(2), propertyIdType)));
-        participanttx.push_back(Pair("issuertokens", FormatByType(it->second.at(3), propertyIdType)));
         std::string sortKey = strprintf("%d-%s", it->second.at(1), txid);
         sortMap.insert(std::make_pair(sortKey, participanttx));
     }
@@ -1120,9 +1121,8 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     response.push_back(Pair("active", active));
     response.push_back(Pair("issuer", sp.issuer));
     response.push_back(Pair("propertyiddesired", (uint64_t) sp.property_desired));
-    response.push_back(Pair("tokensperunit", FormatMP(propertyId, sp.num_tokens)));
+    response.push_back(Pair("tokensperunit", FormatMP(propertyId, sp.rate)));
     response.push_back(Pair("earlybonus", sp.early_bird));
-    response.push_back(Pair("percenttoissuer", sp.percentage));
     response.push_back(Pair("starttime", startTime));
     response.push_back(Pair("deadline", sp.deadline));
     response.push_back(Pair("amountraised", FormatMP(sp.property_desired, amountRaised)));

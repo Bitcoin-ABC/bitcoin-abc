@@ -169,9 +169,9 @@ std::string mastercore::strMPProperty(uint32_t propertyId)
         switch (propertyId) {
             case OMNI_PROPERTY_BTC: str = "BTC";
                 break;
-            case OMNI_PROPERTY_WHC: str = "OMNI";
+            case OMNI_PROPERTY_WHC: str = "WHC";
                 break;
-            case OMNI_PROPERTY_TWHC: str = "TOMNI";
+            case OMNI_PROPERTY_TWHC: str = "TWHC";
                 break;
             default:
                 str = strprintf("SP token: %d", propertyId);
@@ -227,7 +227,9 @@ std::string FormatDivisibleMP(int64_t n, int decimal, bool fSign)
 		case 6: str = strprintf("%d.%06d", quotient, remainder);
 		case 7: str = strprintf("%d.%07d", quotient, remainder);
 		case 8: str = strprintf("%d.%08d", quotient, remainder);
-	}  
+	}
+
+    PrintToLog("%s:quotient : %d, remainder : %d, decimal : %d, result : %s\n", __func__, quotient, remainder, decimal, str);
     if (!fSign) return str;
 
     if (n < 0)
@@ -266,6 +268,11 @@ std::string FormatMP(uint32_t property, int64_t n, bool fSign)
     } else {
         return FormatIndivisibleMP(n);
     }
+}
+
+std::string FormatRate(int rate)
+{
+    return strprintf("%d", rate);
 }
 
 std::string FormatByType(int64_t amount, uint16_t propertyType)

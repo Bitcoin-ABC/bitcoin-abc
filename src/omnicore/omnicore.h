@@ -160,6 +160,7 @@ std::string FormatDivisibleShortMP(int64_t amount, int decimal);
 std::string FormatMP(uint32_t propertyId, int64_t amount, bool fSign = false);
 std::string FormatShortMP(uint32_t propertyId, int64_t amount);
 std::string FormatByType(int64_t amount, uint16_t propertyType);
+std::string FormatRate(int rate);
 
 /** Returns the Exodus address. */
 const CTxDestination ExodusAddress();
