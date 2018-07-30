@@ -92,7 +92,7 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. toaddress            (string, required) the address of the receiver\n"
-            "3. amount               (string, required) the amount of WHC to participate crowsale"
+            "3. amount               (string, required) the amount of WHC to participate crowsale\n"
             "4. redeemaddress        (string, optional) an address that can spend the transaction dust (sender by default)\n"
             "5. referenceamount      (string, optional) a bitcoin amount that is sent to the receiver (minimal by default)\n"
 

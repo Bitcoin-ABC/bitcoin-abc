@@ -241,8 +241,6 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     { "whc_createpayload_canceltradesbypair", 0, "" },
     { "whc_createpayload_canceltradesbypair", 1, "" },
     { "whc_createpayload_cancelalltrades", 0, ""},
-    { "whc_particrowsale", 2, ""},
-	
 
     /* Whc Core - backwards compatibility */
     { "getcrowdsale_MP", 0, "" },
