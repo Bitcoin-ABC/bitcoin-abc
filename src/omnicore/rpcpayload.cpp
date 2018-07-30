@@ -15,6 +15,34 @@
 using std::runtime_error;
 using namespace mastercore;
 
+UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCRequest &request){
+   if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+            "whc_createpayload_particrwosale propertyid \"amount\"\n"
+
+            "\nCreate the payload for a participate crowsale transaction.\n"
+
+            "\nArguments:\n"
+            "1. propertyid           (number, required) the identifier of the tokens to send\n"
+            "2. amount               (string, required) the amount to send\n"
+
+            "\nResult:\n"
+            "\"payload\"             (string) the hex-encoded payload\n"
+
+            "\nExamples:\n"
+            + HelpExampleCli("whc_createpayload_particrwosale", "1 \"100.0\"")
+            + HelpExampleRpc("whc_createpayload_particrwosale", "1, \"100.0\"")
+        );
+	
+    uint32_t propertyId = ParsePropertyId(request.params[0]);
+    RequireExistingProperty(propertyId);
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+
+    std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
+
+    return HexStr(payload.begin(), payload.end());
+}
+
 UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest &request)
 {
    if (request.fHelp || request.params.size() != 2)
@@ -37,7 +65,7 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
 
     std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
 
@@ -166,7 +194,7 @@ UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &reques
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     uint32_t distributionPropertyId = (request.params.size() > 2) ? ParsePropertyId(request.params[2]) : propertyId;
 
     std::vector<unsigned char> payload = CreatePayload_SendToOwners(propertyId, amount, distributionPropertyId);
@@ -183,8 +211,8 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
             "\nCreates the payload for a new tokens issuance with fixed supply.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -212,8 +240,8 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
     int64_t amount = ParseAmount(request.params[8], type);
 
     RequirePropertyName(name);
-    RequirePropertyType(type);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
 
@@ -222,15 +250,15 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
 
 UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 13)
+    if (request.fHelp || request.params.size() != 14)
         throw runtime_error(
-            "whc_createpayload_issuancecrowdsale ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus issuerpercentage\n"
+            "whc_createpayload_issuancecrowdsale ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus issuerpercentage amount\n"
 
             "\nCreates the payload for a new tokens issuance with crowdsale.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -241,14 +269,15 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "10. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "11. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "12. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "13. issuerpercentage    (number, required) a percentage of tokens that will be granted to the issuer\n"
+            "13. Undefine 	(number, required) the value must be 0\n"
+		"14. amount               (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_createpayload_issuancecrowdsale", "1 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
-            + HelpExampleRpc("whc_createpayload_issuancecrowdsale", "1, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2")
+            + HelpExampleCli("whc_createpayload_issuancecrowdsale", "1 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2 10383903719")
+            + HelpExampleRpc("whc_createpayload_issuancecrowdsale", "1, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2 192978657")
         );
 
     uint8_t ecosystem = ParseEcosystem(request.params[0]);
@@ -260,19 +289,21 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     std::string url = ParseText(request.params[6]);
     std::string data = ParseText(request.params[7]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[8]);
-    int64_t numTokens = ParseAmount(request.params[9], type);
+    int64_t numTokens = ParseAmount(request.params[9], PRICE_PRICISION);
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
+    int64_t amount = ParseAmount(request.params[13], type);
+	
 
     RequireCrowsDesireProperty(propertyIdDesired);
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
+	RequirePropertyType(type);
 
-    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage);
+    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
     return HexStr(payload.begin(), payload.end());
 }
@@ -286,8 +317,8 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
             "\nCreates the payload for a new tokens issuance with manageable supply.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem)\n"
-            "2. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -313,8 +344,8 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
     std::string data = ParseText(request.params[7]);
 
     RequirePropertyName(name);
-    RequirePropertyType(type);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceManaged(ecosystem, type, previousId, category, subcategory, name, url, data);
 
@@ -394,7 +425,7 @@ UniValue whc_createpayload_grant(const Config &config,const JSONRPCRequest &requ
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
     RequireManagedProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     std::string memo = (request.params.size() > 2) ? ParseText(request.params[2]): "";
 
     std::vector<unsigned char> payload = CreatePayload_Grant(propertyId, amount, memo);
@@ -426,7 +457,7 @@ UniValue whc_createpayload_revoke(const Config &config,const JSONRPCRequest &req
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
     RequireManagedProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     std::string memo = (request.params.size() > 2) ? ParseText(request.params[2]): "";
 
     std::vector<unsigned char> payload = CreatePayload_Revoke(propertyId, amount, memo);
@@ -485,10 +516,10 @@ UniValue omni_createpayload_trade(const Config &config,const JSONRPCRequest &req
 
     uint32_t propertyIdForSale = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyIdForSale);
-    int64_t amountForSale = ParseAmount(request.params[1], isPropertyDivisible(propertyIdForSale));
+    int64_t amountForSale = ParseAmount(request.params[1], getPropertyType(propertyIdForSale));
     uint32_t propertyIdDesired = ParsePropertyId(request.params[2]);
     RequireExistingProperty(propertyIdDesired);
-    int64_t amountDesired = ParseAmount(request.params[3], isPropertyDivisible(propertyIdDesired));
+    int64_t amountDesired = ParseAmount(request.params[3], getPropertyType(propertyIdDesired));
     RequireSameEcosystem(propertyIdForSale, propertyIdDesired);
     RequireDifferentIds(propertyIdForSale, propertyIdDesired);
     RequireDifferentIds(propertyIdForSale, propertyIdDesired);
@@ -522,10 +553,10 @@ UniValue omni_createpayload_canceltradesbyprice(const Config &config,const JSONR
 
     uint32_t propertyIdForSale = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyIdForSale);
-    int64_t amountForSale = ParseAmount(request.params[1], isPropertyDivisible(propertyIdForSale));
+    int64_t amountForSale = ParseAmount(request.params[1], getPropertyType(propertyIdForSale));
     uint32_t propertyIdDesired = ParsePropertyId(request.params[2]);
     RequireExistingProperty(propertyIdDesired);
-    int64_t amountDesired = ParseAmount(request.params[3], isPropertyDivisible(propertyIdDesired));
+    int64_t amountDesired = ParseAmount(request.params[3], getPropertyType(propertyIdDesired));
     RequireSameEcosystem(propertyIdForSale, propertyIdDesired);
     RequireDifferentIds(propertyIdForSale, propertyIdDesired);
 
@@ -672,7 +703,7 @@ UniValue omni_createpayload_freeze(const Config &config,const JSONRPCRequest &re
 
     std::string refAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[2], getPropertyType(propertyId));
 
     RequireExistingProperty(propertyId);
     RequireManagedProperty(propertyId);
@@ -705,7 +736,7 @@ UniValue omni_createpayload_unfreeze(const Config &config,const JSONRPCRequest &
 
     std::string refAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+    int64_t amount = ParseAmount(request.params[2], getPropertyType(propertyId));
 
     RequireExistingProperty(propertyId);
     RequireManagedProperty(propertyId);
@@ -740,6 +771,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (payload creation)", "omni_createpayload_freeze",              &omni_createpayload_freeze,              true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_unfreeze",            &omni_createpayload_unfreeze,            true, {} },
     { "omni layer (payload creation)", "whc_createpayload_burnbch",             &whc_createpayload_burnbch,             true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_particrwosale",             &whc_createpayload_particrwosale,             true, {} },
 };
 
 void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)

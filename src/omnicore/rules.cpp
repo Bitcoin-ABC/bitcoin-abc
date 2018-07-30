@@ -202,7 +202,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     exodusBonusPerWeek = 0.00;
     exodusDeadline = 1377993600;
     exodusReward = 100;
-    GENESIS_BLOCK = 1245942;
+    GENESIS_BLOCK = 1249116;
     LAST_EXODUS_BLOCK = std::numeric_limits<int>::max();
     // Notice range for feature activations:
     MIN_ACTIVATION_BLOCKS = 0;

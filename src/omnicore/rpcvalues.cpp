@@ -62,19 +62,13 @@ uint32_t ParsePropertyId(const UniValue& value)
     return static_cast<uint32_t>(propertyId);
 }
 
-int64_t ParseAmount(const UniValue& value, bool isDivisible)
+int64_t ParseAmount(const UniValue& value, int propertyType)
 {
-    int64_t amount = mastercore::StrToInt64(value.get_str(), isDivisible);
+    int64_t amount = mastercore::StrToInt64(value.get_str(), propertyType);
     if (amount < 1) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     }
     return amount;
-}
-
-int64_t ParseAmount(const UniValue& value, int propertyType)
-{
-    bool fDivisible = (propertyType == 2);  // 1 = indivisible, 2 = divisible
-    return ParseAmount(value, fDivisible);
 }
 
 uint8_t ParseDExPaymentWindow(const UniValue& value)
@@ -116,8 +110,8 @@ uint8_t ParseEcosystem(const UniValue& value)
 uint16_t ParsePropertyType(const UniValue& value)
 {
     int64_t propertyType = value.get_int64();
-    if (propertyType < 1 || 2 < propertyType) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid property type (1 = indivisible, 2 = divisible only)");
+    if (propertyType < 0 || 8 < propertyType) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid property type, type range must be [0, 8]");
     }
     return static_cast<uint16_t>(propertyType);
 }

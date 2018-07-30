@@ -113,6 +113,9 @@ bool CMPTransaction::interpret_Transaction()
         case MSC_TYPE_SIMPLE_SEND:
             return interpret_SimpleSend();
 
+        case MSC_TYPE_BUY_TOKEN:
+            return interpret_BuyToken();
+
         case MSC_TYPE_SEND_TO_OWNERS:
             return interpret_SendToOwners();
 
@@ -220,7 +223,7 @@ bool CMPTransaction::interpret_BurnBCHGetWHC()
     return true;
 }
 
-/** Tx 1 */
+/** Tx 0 */
 bool CMPTransaction::interpret_SimpleSend()
 {
     if (pkt_size < 16) {
@@ -240,6 +243,25 @@ bool CMPTransaction::interpret_SimpleSend()
     return true;
 }
 
+/** Tx 1 */
+bool CMPTransaction::interpret_BuyToken()
+{
+    if (pkt_size < 16) {
+        return false;
+    }
+    memcpy(&property, &pkt[4], 4);
+    swapByteOrder32(property);
+    memcpy(&nValue, &pkt[8], 8);
+    swapByteOrder64(nValue);
+    nNewValue = nValue;
+
+    if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
+        PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
+        PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
+    }
+
+    return true;
+}
 /** Tx 3 */
 bool CMPTransaction::interpret_SendToOwners()
 {
@@ -307,9 +329,9 @@ bool CMPTransaction::interpret_TradeOffer()
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t        property: %d (%s)\n", property, strMPProperty(property));
         PrintToLog("\t           value: %s\n", FormatMP(property, nValue));
-        PrintToLog("\t  amount desired: %s\n", FormatDivisibleMP(amount_desired));
+        PrintToLog("\t  amount desired: %s\n", FormatDivisibleMP(amount_desired, 8));
         PrintToLog("\tblock time limit: %d\n", blocktimelimit);
-        PrintToLog("\t         min fee: %s\n", FormatDivisibleMP(min_fee));
+        PrintToLog("\t         min fee: %s\n", FormatDivisibleMP(min_fee, 8));
         if (version > MP_TX_PKT_V0) {
             PrintToLog("\t      sub-action: %d\n", subaction);
         }
@@ -523,6 +545,8 @@ bool CMPTransaction::interpret_CreatePropertyVariable()
     p += 8;
     memcpy(&early_bird, p++, 1);
     memcpy(&percentage, p++, 1);
+	memcpy(&totalCrowsToken, p, 8);
+	swapByteOrder64(totalCrowsToken);
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t       ecosystem: %d\n", ecosystem);
@@ -534,7 +558,7 @@ bool CMPTransaction::interpret_CreatePropertyVariable()
         PrintToLog("\t             url: %s\n", url);
         PrintToLog("\t            data: %s\n", data);
         PrintToLog("\tproperty desired: %d (%s)\n", property, strMPProperty(property));
-        PrintToLog("\t tokens per unit: %s\n", FormatByType(nValue, prop_type));
+        PrintToLog("\t tokens per unit: %s\n", FormatRate(nValue));
         PrintToLog("\t        deadline: %s (%x)\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", deadline), deadline);
         PrintToLog("\tearly bird bonus: %d\n", early_bird);
         PrintToLog("\t    issuer bonus: %d\n", percentage);
@@ -876,6 +900,9 @@ int CMPTransaction::interpretPacket()
         case MSC_TYPE_SIMPLE_SEND:
             return logicMath_SimpleSend();
 
+        case MSC_TYPE_BUY_TOKEN:
+            return logicMath_BuyToken();
+
         case MSC_TYPE_SEND_TO_OWNERS:
             return logicMath_SendToOwners();
 
@@ -980,6 +1007,7 @@ int CMPTransaction::logicMath_burnBCHGetWHC()
 }
 
 /** Passive effect of crowdsale participation. */
+/*
 int CMPTransaction::logicHelper_CrowdsaleParticipation()
 {
     CMPCrowd* pcrowdsale = getCrowd(receiver);
@@ -1060,6 +1088,7 @@ int CMPTransaction::logicHelper_CrowdsaleParticipation()
 
     return 0;
 }
+*/
 
 /** Tx 0 */
 int CMPTransaction::logicMath_SimpleSend()
@@ -1106,8 +1135,133 @@ int CMPTransaction::logicMath_SimpleSend()
     assert(update_tally_map(sender, property, -nValue, BALANCE));
     assert(update_tally_map(receiver, property, nValue, BALANCE));
 
+    return 0;
+}
+
+/** Tx 1 */
+int CMPTransaction::logicMath_BuyToken()
+{
+    if (!IsTransactionTypeAllowed(block, property, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   property,
+                   block);
+        return (PKT_ERROR_SEND -22);
+    }
+
+    if (nValue <= 0 || MAX_INT_8_BYTES < nValue) {
+        PrintToLog("%s(): rejected: value out of range or zero: %d", __func__, nValue);
+        return (PKT_ERROR_SEND -23);
+    }
+
+    if (!IsPropertyIdValid(property)) {
+        PrintToLog("%s(): rejected: property %d does not exist\n", __func__, property);
+        return (PKT_ERROR_SEND -24);
+    }
+
+    int64_t nBalance = getMPbalance(sender, property, BALANCE);
+    if (nBalance < (int64_t) nValue) {
+        PrintToLog("%s(): rejected: sender %s has insufficient balance of property %d [%s < %s]\n",
+                   __func__,
+                   sender,
+                   property,
+                   FormatMP(property, nBalance),
+                   FormatMP(property, nValue));
+        return (PKT_ERROR_SEND -25);
+    }
+
+    // ------------------------------------------
+
+    if (receiver.empty()) {
+        return (PKT_ERROR_SEND -26);
+    }
+
     // Is there an active crowdsale running from this recepient?
-    logicHelper_CrowdsaleParticipation();
+    CMPCrowd* pcrowdsale = getCrowd(receiver);
+
+    // No active crowdsale
+    if (pcrowdsale == NULL) {
+        return (PKT_ERROR_CROWD -1);
+    }
+    // Active crowdsale, but not for this property
+    if (pcrowdsale->getCurrDes() != property) {
+        return (PKT_ERROR_CROWD -2);
+    }
+
+    CMPSPInfo::Entry sp;
+    assert(_my_sps->getSP(pcrowdsale->getPropertyId(), sp));
+    PrintToLog("INVESTMENT SEND to Crowdsale Issuer: %s\n", receiver);
+    if(sp.issuer == sender){
+        return (PKT_ERROR_CROWD -3);
+    }
+
+    // Holds the tokens to be credited to the sender and issuer
+    std::pair<int64_t, int64_t> tokens;
+    int64_t refund,money;
+
+    // Passed by reference to determine, if max_tokens has been reached
+    bool close_crowdsale = false;
+
+    // Units going into the calculateFundraiser function must match the unit of
+    // the fundraiser's property_type. By default this means satoshis in and
+    // satoshis out. In the condition that the fundraiser is divisible, but
+    // indivisible tokens are accepted, it must account for .0 Div != 1 Indiv,
+    // but actually 1.0 Div == 100000000 Indiv. The unit must be shifted or the
+    // values will be incorrect, which is what is checked below.
+    uint16_t precision = sp.getPrecision();
+
+    // Calculate the amounts to credit for this fundraiser
+    calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime,sp.rate,
+                        getTotalTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
+                        tokens.first, close_crowdsale,refund);
+
+    if (msc_debug_sp) {
+        PrintToLog("%s(): granting via crowdsale to user: %s %d (%s)\n",
+                   __func__, FormatMP(property, tokens.first), property, strMPProperty(property));
+        PrintToLog("%s(): granting via crowdsale to issuer: %s %d (%s)\n",
+                   __func__, FormatMP(property, tokens.second), property, strMPProperty(property));
+    }
+
+    if(refund >= 0) {
+        money = nValue - refund;
+    }
+    else {
+        return (PKT_ERROR_CROWD -4);
+    }
+
+    // Update the crowdsale object
+    pcrowdsale->incTokensUserCreated(tokens.first);
+    pcrowdsale->incTokensIssuerCreated(tokens.second);
+
+    // Data to pass to txFundraiserData
+    int64_t txdata[] = {(int64_t) nValue, blockTime, tokens.first, tokens.second};
+    std::vector<int64_t> txDataVec(txdata, txdata + sizeof(txdata) / sizeof(txdata[0]));
+
+    // Insert data about crowdsale participation
+    pcrowdsale->insertDatabase(txid, txDataVec);
+
+    // Credit tokens for this fundraiser
+    if (tokens.first > 0) {
+        assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
+    }
+    if (tokens.second > 0) {
+        assert(update_tally_map(receiver, pcrowdsale->getPropertyId(), tokens.second, BALANCE));
+    }
+
+    if(money > 0) {
+        assert(update_tally_map(sender, property, -money, BALANCE));
+        assert(update_tally_map(receiver, property, money, BALANCE));
+    }
+
+    // Number of tokens has changed, update fee distribution thresholds
+    NotifyTotalTokensChanged(pcrowdsale->getPropertyId(), block);
+
+    // Close crowdsale, if we hit MAX_TOKENS
+    if (close_crowdsale) {
+        eraseMaxedCrowdsale(receiver, blockTime, block);
+    }
 
     return 0;
 }
@@ -1172,7 +1326,7 @@ int CMPTransaction::logicMath_SendToOwners()
     uint32_t feeProperty = isTestEcosystemProperty(property) ? OMNI_PROPERTY_TWHC : OMNI_PROPERTY_WHC;
     int64_t feePerOwner = (version == MP_TX_PKT_V0) ? TRANSFER_FEE_PER_OWNER : TRANSFER_FEE_PER_OWNER_V1;
     int64_t transferFee = feePerOwner * numberOfReceivers;
-    PrintToLog("\t    Transfer fee: %s %s\n", FormatDivisibleMP(transferFee), strMPProperty(feeProperty));
+    PrintToLog("\t    Transfer fee: %s %s\n", FormatIndivisibleMP(transferFee), strMPProperty(feeProperty));
 
     // enough coins to pay the fee?
     if (feeProperty != property) {
@@ -1648,6 +1802,10 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if ( prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
@@ -1674,11 +1832,6 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %d\n", __func__, money);
         return (PKT_ERROR_BURN -3);
-    }
-
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type ) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
     }
 
     if ('\0' == name[0]) {
@@ -1733,6 +1886,10 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if (prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     //if (IsFeatureActivated(FEATURE_SPCROWDCROSSOVER, block)) {
     /**
@@ -1769,12 +1926,6 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         return (PKT_ERROR_SP -24);
     }
 
-    //change_002
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
-    }
-
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %d\n", __func__, money);
@@ -1807,7 +1958,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     newSP.issuer = sender;
     newSP.txid = txid;
     newSP.prop_type = prop_type;
-    newSP.num_tokens = nValue;
+    newSP.num_tokens = totalCrowsToken;
     newSP.category.assign(category);
     newSP.subcategory.assign(subcategory);
     newSP.name.assign(name);
@@ -1815,6 +1966,8 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     newSP.data.assign(data);
     newSP.fixed = false;
     //change_002
+    newSP.manual = false;
+    newSP.rate = nValue;
     newSP.property_desired = OMNI_PROPERTY_WHC;
     newSP.deadline = deadline;
     newSP.early_bird = early_bird;
@@ -1919,6 +2072,10 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
         PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
         return (PKT_ERROR_SP -21);
     }
+	if ( prop_type > 8){
+        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -36);
+	}
 
     if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
@@ -1928,12 +2085,6 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
                 property,
                 block);
         return (PKT_ERROR_SP -22);
-    }
-
-    //change_002
-    if (MSC_PROPERTY_TYPE_INDIVISIBLE != prop_type) {
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, prop_type);
-        return (PKT_ERROR_SP -36);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
@@ -1998,6 +2149,7 @@ int CMPTransaction::logicMath_GrantTokens()
 		return (PKT_ERROR_TOKENS - 25);
 	}	
 
+		printf("%s(): property: %d property type : %d\n", __func__, property, getPropertyType());
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -2065,10 +2217,12 @@ int CMPTransaction::logicMath_GrantTokens()
      * As long as the feature to disable the side effects of "granting tokens"
      * is not activated, "granting tokens" can trigger crowdsale participations.
      */
+    /*
     if (!IsFeatureActivated(FEATURE_GRANTEFFECTS, block)) {
         // Is there an active crowdsale running from this recepient?
         logicHelper_CrowdsaleParticipation();
     }
+    */
 
     NotifyTotalTokensChanged(property, block);
 
@@ -2094,6 +2248,8 @@ int CMPTransaction::logicMath_RevokeTokens()
 		PrintToLog("%s(): property: %d should not be OMNI_PROPERTY_TWHC or OMNI_PROPERTY_MSC\n", __func__, property);
 		return (PKT_ERROR_TOKENS - 25);
 	}	
+	
+		printf("%s(): property: %d property type : %d\n", __func__, property, getPropertyType());
 
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",

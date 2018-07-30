@@ -42,6 +42,8 @@
 #include "uint256.h"
 #include "utilstrencodings.h"
 #include "chain.h"
+#include "sp.h"
+
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #endif
@@ -86,7 +88,7 @@ void PropertyToJSON(const CMPSPInfo::Entry& sProperty, UniValue& property_obj)
     property_obj.push_back(Pair("subcategory", sProperty.subcategory));
     property_obj.push_back(Pair("data", sProperty.data));
     property_obj.push_back(Pair("url", sProperty.url));
-    property_obj.push_back(Pair("divisible", sProperty.isDivisible()));
+    property_obj.push_back(Pair("precision", sProperty.getPrecision()));
 }
 
 void MetaDexObjectToJSON(const CMPMetaDEx& obj, UniValue& metadex_obj)
@@ -125,7 +127,7 @@ void MetaDexObjectsToJSON(std::vector<CMPMetaDEx>& vMetaDexObjs, UniValue& respo
     }
 }
 
-bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, bool divisible)
+bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, int divisible)
 {
     // confirmed balance minus unconfirmed, spent amounts
     int64_t nAvailable = getUserAvailableMPbalance(address, property);
@@ -138,9 +140,9 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
     int64_t nFrozen = getUserFrozenMPbalance(address, property);
 
     if (divisible) {
-        balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable)));
-        balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved)));
-        if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen)));
+        balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, divisible)));
+        balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, divisible)));
+        if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
     } else {
         balance_obj.push_back(Pair("balance", FormatIndivisibleMP(nAvailable)));
         balance_obj.push_back(Pair("reserved", FormatIndivisibleMP(nReserved)));
@@ -200,15 +202,15 @@ UniValue omni_getfeedistribution(const Config &config, const JSONRPCRequest &req
     response.push_back(Pair("amount", FormatMP(propertyId, total)));
     UniValue recipients(UniValue::VARR);
     std::set<std::pair<std::string,int64_t> > sRecipients = p_feehistory->GetFeeDistribution(id);
-    bool divisible = isPropertyDivisible(propertyId);
+    int mtype = getPropertyType(propertyId);
     if (!sRecipients.empty()) {
         for (std::set<std::pair<std::string,int64_t> >::iterator it = sRecipients.begin(); it != sRecipients.end(); it++) {
             std::string address = (*it).first;
             int64_t amount = (*it).second;
             UniValue recipient(UniValue::VOBJ);
             recipient.push_back(Pair("address", address));
-            if (divisible) {
-                recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+            if (mtype) {
+                recipient.push_back(Pair("amount", FormatDivisibleMP(amount, mtype)));
             } else {
                 recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
             }
@@ -273,15 +275,15 @@ UniValue omni_getfeedistributions(const Config &config, const JSONRPCRequest &re
             responseObj.push_back(Pair("amount", FormatMP(propertyId, total)));
             UniValue recipients(UniValue::VARR);
             std::set<std::pair<std::string,int64_t> > sRecipients = p_feehistory->GetFeeDistribution(id);
-            bool divisible = isPropertyDivisible(propertyId);
+            int mtype = getPropertyType(propertyId);
             if (!sRecipients.empty()) {
                 for (std::set<std::pair<std::string,int64_t> >::iterator it = sRecipients.begin(); it != sRecipients.end(); it++) {
                     std::string address = (*it).first;
                     int64_t amount = (*it).second;
                     UniValue recipient(UniValue::VOBJ);
                     recipient.push_back(Pair("address", address));
-                    if (divisible) {
-                        recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+                    if (mtype) {
+                        recipient.push_back(Pair("amount", FormatDivisibleMP(amount, mtype)));
                     } else {
                         recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
                     }
@@ -602,7 +604,7 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
 
     PrintToConsole("%s(extra=%d,extra2=%d,extra3=%d)\n", __FUNCTION__, extra, extra2, extra3);
 
-    bool bDivisible = isPropertyDivisible(extra2);
+    int mtype = getPropertyType(extra2);
 
     // various extra tests
     switch (extra) {
@@ -613,9 +615,9 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
             // display all balances
             for (std::unordered_map<std::string, CMPTally>::iterator my_it = mp_tally_map.begin(); my_it != mp_tally_map.end(); ++my_it) {
                 PrintToConsole("%34s => ", my_it->first);
-                total += (my_it->second).print(extra2, bDivisible);
+                total += (my_it->second).print(extra2, mtype);
             }
-            PrintToConsole("total for property %d  = %X is %s\n", extra2, extra2, FormatDivisibleMP(total));
+            PrintToConsole("total for property %d  = %X is %s\n", extra2, extra2, FormatDivisibleMP(total, mtype));
             break;
         }
         case 1:
@@ -640,7 +642,7 @@ UniValue mscrpc(const Config &config, const JSONRPCRequest &request)
             // for each address display all currencies it holds
             for (std::unordered_map<std::string, CMPTally>::iterator my_it = mp_tally_map.begin(); my_it != mp_tally_map.end(); ++my_it) {
                 PrintToConsole("%34s => ", my_it->first);
-                (my_it->second).print(extra2);
+                (my_it->second).print(extra2, mtype);
                 (my_it->second).init();
                 while (0 != (id = (my_it->second).next())) {
                     PrintToConsole("Id: %u=0x%X ", id, id);
@@ -773,7 +775,7 @@ UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
     RequireExistingProperty(propertyId);
 
     UniValue balanceObj(UniValue::VOBJ);
-    BalanceToJSON(address, propertyId, balanceObj, isPropertyDivisible(propertyId));
+    BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 
     return balanceObj;
 }
@@ -805,7 +807,7 @@ UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &req
     RequireExistingProperty(propertyId);
 
     UniValue response(UniValue::VARR);
-    bool isDivisible = isPropertyDivisible(propertyId); // we want to check this BEFORE the loop
+    int mtype = getPropertyType(propertyId); // we want to check this BEFORE the loop
 
     LOCK(cs_tally);
 
@@ -825,7 +827,7 @@ UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &req
         }
         UniValue balanceObj(UniValue::VOBJ);
         balanceObj.push_back(Pair("address", address));
-        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, isDivisible);
+        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, mtype);
 
         if (nonEmptyBalance) {
             response.push_back(balanceObj);
@@ -875,7 +877,7 @@ UniValue whc_getallbalancesforaddress(const Config &config, const JSONRPCRequest
     while (0 != (propertyId = addressTally->next())) {
         UniValue balanceObj(UniValue::VOBJ);
         balanceObj.push_back(Pair("propertyid", (uint64_t) propertyId));
-        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, isPropertyDivisible(propertyId));
+        bool nonEmptyBalance = BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 
         if (nonEmptyBalance) {
             response.push_back(balanceObj);
@@ -1098,8 +1100,10 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
 
     // note the database is already deserialized here and there is minimal performance penalty to iterate recipients to calculate amountRaised
     int64_t amountRaised = 0;
-    uint16_t propertyIdType = isPropertyDivisible(propertyId) ? MSC_PROPERTY_TYPE_DIVISIBLE : MSC_PROPERTY_TYPE_INDIVISIBLE;
-    uint16_t desiredIdType = isPropertyDivisible(sp.property_desired) ? MSC_PROPERTY_TYPE_DIVISIBLE : MSC_PROPERTY_TYPE_INDIVISIBLE;
+    int propertyIdType = getPropertyType(propertyId);
+	RequirePropertyType(propertyIdType);
+    int desiredIdType = getPropertyType(sp.property_desired);
+	RequirePropertyType(desiredIdType);
     std::map<std::string, UniValue> sortMap;
     for (std::map<uint256, std::vector<int64_t> >::const_iterator it = database.begin(); it != database.end(); it++) {
         UniValue participanttx(UniValue::VOBJ);
@@ -1108,7 +1112,6 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
         participanttx.push_back(Pair("txid", txid));
         participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), desiredIdType)));
         participanttx.push_back(Pair("participanttokens", FormatByType(it->second.at(2), propertyIdType)));
-        participanttx.push_back(Pair("issuertokens", FormatByType(it->second.at(3), propertyIdType)));
         std::string sortKey = strprintf("%d-%s", it->second.at(1), txid);
         sortMap.insert(std::make_pair(sortKey, participanttx));
     }
@@ -1118,9 +1121,8 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     response.push_back(Pair("active", active));
     response.push_back(Pair("issuer", sp.issuer));
     response.push_back(Pair("propertyiddesired", (uint64_t) sp.property_desired));
-    response.push_back(Pair("tokensperunit", FormatMP(propertyId, sp.num_tokens)));
+    response.push_back(Pair("tokensperunit", FormatMP(PRICE_PRICISION, sp.rate)));
     response.push_back(Pair("earlybonus", sp.early_bird));
-    response.push_back(Pair("percenttoissuer", sp.percentage));
     response.push_back(Pair("starttime", startTime));
     response.push_back(Pair("deadline", sp.deadline));
     response.push_back(Pair("amountraised", FormatMP(sp.property_desired, amountRaised)));
@@ -1577,14 +1579,14 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
         responseObj.push_back(Pair("txid", txid));
         responseObj.push_back(Pair("propertyid", (uint64_t) propertyId));
         responseObj.push_back(Pair("seller", seller));
-        responseObj.push_back(Pair("amountavailable", FormatDivisibleMP(amountAvailable)));
-        responseObj.push_back(Pair("bitcoindesired", FormatDivisibleMP(bitcoinDesired)));
-        responseObj.push_back(Pair("unitprice", FormatDivisibleMP(unitPrice)));
+        responseObj.push_back(Pair("amountavailable", FormatDivisibleMP(amountAvailable, 8)));
+        responseObj.push_back(Pair("bitcoindesired", FormatDivisibleMP(bitcoinDesired, 8)));
+        responseObj.push_back(Pair("unitprice", FormatDivisibleMP(unitPrice, 8)));
         responseObj.push_back(Pair("timelimit", timeLimit));
-        responseObj.push_back(Pair("minimumfee", FormatDivisibleMP(minFee)));
+        responseObj.push_back(Pair("minimumfee", FormatDivisibleMP(minFee, 8)));
 
         // display info about accepts related to sell
-        responseObj.push_back(Pair("amountaccepted", FormatDivisibleMP(amountAccepted)));
+        responseObj.push_back(Pair("amountaccepted", FormatDivisibleMP(amountAccepted, 8)));
         UniValue acceptsMatched(UniValue::VARR);
         for (AcceptMap::const_iterator ait = my_accepts.begin(); ait != my_accepts.end(); ++ait) {
             UniValue matchedAccept(UniValue::VOBJ);
@@ -1603,8 +1605,8 @@ UniValue omni_getactivedexsells(const Config &config, const JSONRPCRequest &requ
                 matchedAccept.push_back(Pair("buyer", buyer));
                 matchedAccept.push_back(Pair("block", blockOfAccept));
                 matchedAccept.push_back(Pair("blocksleft", blocksLeftToPay));
-                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAccepted)));
-                matchedAccept.push_back(Pair("amounttopay", FormatDivisibleMP(amountToPayInBTC)));
+                matchedAccept.push_back(Pair("amount", FormatDivisibleMP(amountAccepted, 8)));
+                matchedAccept.push_back(Pair("amounttopay", FormatDivisibleMP(amountToPayInBTC, 8)));
                 acceptsMatched.push_back(matchedAccept);
             }
         }

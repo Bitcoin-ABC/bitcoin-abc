@@ -81,6 +81,64 @@ UniValue whc_sendrawtx(const Config &config,const JSONRPCRequest &request)
     }
 }
 
+UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
+{
+    if (request.fHelp || request.params.size() < 4 || request.params.size() > 6)
+        throw runtime_error(
+            "whc_particrowsale \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
+
+            "\nCreate and broadcast a participate crowsale transaction.\n"
+
+            "\nArguments:\n"
+            "1. fromaddress          (string, required) the address to send from\n"
+            "2. toaddress            (string, required) the address of the receiver\n"
+            "3. propertyid           (number, required) the identifier of the tokens to send\n"
+            "4. amount               (string, required) the amount to send\n"
+            "5. redeemaddress        (string, optional) an address that can spend the transaction dust (sender by default)\n"
+            "6. referenceamount      (string, optional) a bitcoin amount that is sent to the receiver (minimal by default)\n"
+
+            "\nResult:\n"
+            "\"hash\"                  (string) the hex-encoded transaction hash\n"
+
+            "\nExamples:\n"
+            + HelpExampleCli("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"100.0\"")
+            + HelpExampleRpc("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 1, \"100.0\"")
+        );
+    // obtain parameters & info
+    std::string fromAddress = ParseAddress(request.params[0]);
+    std::string toAddress = ParseAddress(request.params[1]);
+    uint32_t propertyId = ParsePropertyId(request.params[2]);
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
+    std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";
+    int64_t referenceAmount = (request.params.size() > 5) ? ParseAmount(request.params[5], true): 0;
+
+    // perform checks
+    RequireExistingProperty(propertyId);
+    RequireBalance(fromAddress, propertyId, amount);
+    RequireSaneReferenceAmount(referenceAmount);
+
+    // create a payload for the transaction
+    std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(fromAddress, toAddress, redeemAddress, referenceAmount, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            PendingAdd(txid, fromAddress, MSC_TYPE_SIMPLE_SEND, propertyId, amount);
+            return txid.GetHex();
+        }
+    }
+}
 UniValue whc_send(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 4 || request.params.size() > 6)
@@ -109,7 +167,9 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-    int64_t amount = ParseAmount(request.params[3], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
     std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";
     int64_t referenceAmount = (request.params.size() > 5) ? ParseAmount(request.params[5], true): 0;
 
@@ -195,16 +255,16 @@ UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
 
 UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &request)
 {
-    if (request.fHelp || request.params.size() != 14)
+    if (request.fHelp || request.params.size() != 15)
         throw runtime_error(
-            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus issuerpercentage )\n"
+            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus undefine ) totalNumber \n"
 
             "Create new tokens as crowdsale."
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -215,7 +275,8 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
             "11. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "12. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "13. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "14. issuerpercentage    (number, required) a percentage of tokens that will be granted to the issuer\n"
+            "14. Undefine            (number, required) the value must be 0\n"
+		    "15. totalNumber         (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
@@ -236,22 +297,22 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     std::string url = ParseText(request.params[7]);
     std::string data = ParseText(request.params[8]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[9]);
-    int64_t numTokens = ParseAmount(request.params[10], type);
+    int64_t numTokens = ParseAmount(request.params[10], PRICE_PRICISION);
     int64_t deadline = ParseDeadline(request.params[11]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[12]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);
-
-    // perform checks
-    RequirePropertyType(type);
+	int64_t amount = ParseAmount(request.params[14], type);
+    
+	// perform checks
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
     RequirePropertyEcosystem(ecosystem);
-
+	RequirePropertyType(type);
 
     // create a payload for the transaction
-    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage);
+    std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
     // request the wallet build the transaction (and if needed commit it)
     uint256 txid;
@@ -274,21 +335,21 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
 {
     if (request.fHelp || request.params.size() != 10)
         throw runtime_error(
-            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"amount\"\n"
+            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"totalNumber\"\n"
 
             "\nCreate new tokens with fixed supply.\n"
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
             "7. name                 (string, required) the name of the new tokens to create\n"
             "8. url                  (string, required) an URL for further information about the new tokens (can be \"\")\n"
             "9. data                 (string, required) a description for the new tokens (can be \"\")\n"
-            "10. amount              (string, required) the number of tokens to create\n"
+            "10. totalNumber              (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
@@ -311,9 +372,9 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
     int64_t amount = ParseAmount(request.params[9], type);
 
     // perform checks
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
@@ -345,8 +406,8 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in (1 for main ecosystem, 2 for test ecosystem)\n"
-            "3. type                 (number, required) the type of the tokens to create: (1 for indivisible tokens, 2 for divisible tokens)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "3. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -374,9 +435,9 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
     std::string data = ParseText(request.params[8]);
 
     // perform checks
-    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
+	RequirePropertyType(type);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceManaged(ecosystem, type, previousId, category, subcategory, name, url, data);
@@ -424,7 +485,9 @@ UniValue whc_sendsto(const Config &config,const JSONRPCRequest &request)
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[2], mtype);
     std::string redeemAddress = (request.params.size() > 3 && !ParseText(request.params[3]).empty()) ? ParseAddress(request.params[3]): "";
     uint32_t distributionPropertyId = (request.params.size() > 4) ? ParsePropertyId(request.params[4]) : propertyId;
 
@@ -479,7 +542,9 @@ UniValue whc_sendgrant(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = !ParseText(request.params[1]).empty() ? ParseAddress(request.params[1]): "";
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-    int64_t amount = ParseAmount(request.params[3], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
     std::string memo = (request.params.size() > 4) ? ParseText(request.params[4]): "";
 
     // perform checks
@@ -532,7 +597,9 @@ UniValue whc_sendrevoke(const Config &config,const JSONRPCRequest &request)
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], isPropertyDivisible(propertyId));
+	int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[2], mtype);
     std::string memo = (request.params.size() > 3) ? ParseText(request.params[3]): "";
 
     // perform checks
@@ -804,7 +871,7 @@ static const CRPCCommand commands[] =
     { "omni layer (transaction creation)", "whc_sendclosecrowdsale",      &whc_sendclosecrowdsale,      false, {} },
     { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
     { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
-
+    { "omni layer (transaction creation)", "whc_particrowsale",                 &whc_particrowsale,                 false, {} },
 	/* depreciated: */
     { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx,               false, {} },
     { "hidden",                            "send_MP",                      &whc_send,                    false, {} },

@@ -32,10 +32,10 @@ void RequirePrimaryToken(uint32_t propertyId)
     }
 }
 
-void RequirePropertyType(uint16_t type)
+void RequirePropertyType(int type)
 {
-    if(type != MSC_PROPERTY_TYPE_INDIVISIBLE){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "property type must be 1");
+    if(type < 0 || type > 8 ){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "property type must be [0, 8] range");
     }
 }
 

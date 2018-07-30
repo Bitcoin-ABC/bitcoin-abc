@@ -176,7 +176,7 @@ std::vector<unsigned char> CreatePayload_IssuanceFixed(uint8_t ecosystem, uint16
 
 std::vector<unsigned char> CreatePayload_IssuanceVariable(uint8_t ecosystem, uint16_t propertyType, uint32_t previousPropertyId, std::string category,
                                                           std::string subcategory, std::string name, std::string url, std::string data, uint32_t propertyIdDesired,
-                                                          uint64_t amountPerUnit, uint64_t deadline, uint8_t earlyBonus, uint8_t issuerPercentage)
+                                                          uint64_t amountPerUnit, uint64_t deadline, uint8_t earlyBonus, uint8_t issuerPercentage, uint64_t amount)
 {
     std::vector<unsigned char> payload;
     uint16_t messageType = 51;
@@ -188,6 +188,7 @@ std::vector<unsigned char> CreatePayload_IssuanceVariable(uint8_t ecosystem, uin
     mastercore::swapByteOrder32(propertyIdDesired);
     mastercore::swapByteOrder64(amountPerUnit);
     mastercore::swapByteOrder64(deadline);
+	mastercore::swapByteOrder64(amount);
     if (category.size() > 255) category = category.substr(0,255);
     if (subcategory.size() > 255) subcategory = subcategory.substr(0,255);
     if (name.size() > 255) name = name.substr(0,255);
@@ -214,6 +215,7 @@ std::vector<unsigned char> CreatePayload_IssuanceVariable(uint8_t ecosystem, uin
     PUSH_BACK_BYTES(payload, deadline);
     PUSH_BACK_BYTES(payload, earlyBonus);
     PUSH_BACK_BYTES(payload, issuerPercentage);
+	PUSH_BACK_BYTES(payload, amount);
 
     return payload;
 }

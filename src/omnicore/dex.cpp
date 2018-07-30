@@ -140,6 +140,7 @@ int64_t calculateDesiredBTC(const int64_t amountOffered, const int64_t amountDes
  */
 int DEx_offerCreate(const std::string& addressSeller, uint32_t propertyId, int64_t amountOffered, int block, int64_t amountDesired, int64_t minAcceptFee, uint8_t paymentWindow, const uint256& txid, uint64_t* nAmended)
 {
+#if 0
     int rc = DEX_ERROR_SELLOFFER;
 
     // sanity checks
@@ -165,8 +166,9 @@ int DEx_offerCreate(const std::string& addressSeller, uint32_t propertyId, int64
      */
     if (IsFeatureActivated(FEATURE_DEXMATH, block)) {
         if (amountOffered > balanceReallyAvailable) {
+		int type = getPropertyType(propertyId);
             PrintToLog("%s: rejected: sender %s has insufficient balance of property %d [%s < %s]\n", __func__,
-                        addressSeller, propertyId, FormatDivisibleMP(balanceReallyAvailable), FormatDivisibleMP(amountOffered));
+                        addressSeller, propertyId, FormatDivisibleMP(balanceReallyAvailable, type), FormatDivisibleMP(amountOffered));
             return (DEX_ERROR_SELLOFFER -25);
         }
     }
@@ -201,6 +203,8 @@ int DEx_offerCreate(const std::string& addressSeller, uint32_t propertyId, int64
     }
 
     return rc;
+#endif
+	return 0;
 }
 
 /**
@@ -440,6 +444,7 @@ int64_t calculateDExPurchase(const int64_t amountOffered, const int64_t amountDe
  */
 int DEx_payment(const uint256& txid, unsigned int vout, const std::string& addressSeller, const std::string& addressBuyer, int64_t amountPaid, int block, uint64_t* nAmended)
 {
+#if 0
     if (msc_debug_dex) PrintToLog("%s(%s, %s)\n", __func__, addressSeller, addressBuyer);
 
     int rc = DEX_ERROR_PAYMENT;
@@ -534,6 +539,8 @@ int DEx_payment(const uint256& txid, unsigned int vout, const std::string& addre
     }
 
     return rc;
+#endif
+	return 0;
 }
 
 unsigned int eraseExpiredAccepts(int blockNow)

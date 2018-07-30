@@ -76,6 +76,7 @@ extern string burnwhc_regnet ;
 // Transaction types, from the spec
 enum TransactionType {
   MSC_TYPE_SIMPLE_SEND                =  0,
+  MSC_TYPE_BUY_TOKEN                  =  1,
   MSC_TYPE_RESTRICTED_SEND            =  2,
   MSC_TYPE_SEND_TO_OWNERS             =  3,
   MSC_TYPE_SEND_ALL                   =  4,
@@ -109,12 +110,9 @@ enum TransactionType {
   OMNICORE_MESSAGE_TYPE_ALERT         = 65535
 };
 
-#define MSC_PROPERTY_TYPE_INDIVISIBLE             1
-#define MSC_PROPERTY_TYPE_DIVISIBLE               2
-#define MSC_PROPERTY_TYPE_INDIVISIBLE_REPLACING   65
-#define MSC_PROPERTY_TYPE_DIVISIBLE_REPLACING     66
-#define MSC_PROPERTY_TYPE_INDIVISIBLE_APPENDING   129
-#define MSC_PROPERTY_TYPE_DIVISIBLE_APPENDING     130
+#define MSC_PROPERTY_TYPE_INDIVISIBLE   0
+#define MSC_PROPERTY_MIN_PRECISION      1
+#define MSC_PROPERTY_MAX_PRECISION      8
 
 enum FILETYPES {
   FILETYPE_BALANCES = 0,
@@ -157,11 +155,12 @@ enum FILETYPES {
 #define OMNI_PROPERTY_TWHC  2
 
 // forward declarations
-std::string FormatDivisibleMP(int64_t amount, bool fSign = false);
-std::string FormatDivisibleShortMP(int64_t amount);
+std::string FormatDivisibleMP(int64_t amount, int decimal, bool fSign = false);
+std::string FormatDivisibleShortMP(int64_t amount, int decimal);
 std::string FormatMP(uint32_t propertyId, int64_t amount, bool fSign = false);
 std::string FormatShortMP(uint32_t propertyId, int64_t amount);
 std::string FormatByType(int64_t amount, uint16_t propertyType);
+std::string FormatRate(int rate);
 
 /** Returns the Exodus address. */
 const CTxDestination ExodusAddress();
@@ -375,6 +374,7 @@ uint32_t GetNextPropertyId(bool maineco); // maybe move into sp
 CMPTally* getTally(const std::string& address);
 
 int64_t getTotalTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
+int64_t getSaledTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
 
 std::string strTransactionType(uint16_t txType);
 

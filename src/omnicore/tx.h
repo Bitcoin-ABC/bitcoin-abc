@@ -71,6 +71,7 @@ private:
     uint64_t deadline;
     unsigned char early_bird;
     unsigned char percentage;
+	uint64_t totalCrowsToken;
 
     // MetaDEx
     unsigned int desired_property;
@@ -106,6 +107,7 @@ private:
      */
     bool interpret_TransactionType();
     bool interpret_SimpleSend();
+    bool interpret_BuyToken();
     bool interpret_SendToOwners();
     bool interpret_SendAll();
     bool interpret_TradeOffer();
@@ -134,6 +136,7 @@ private:
      * Logic and "effects"
      */
     int logicMath_SimpleSend();
+    int logicMath_BuyToken();
     int logicMath_SendToOwners();
     int logicMath_SendAll();
     int logicMath_TradeOffer();
@@ -191,6 +194,7 @@ public:
     std::string getReceiver() const { return receiver; }
     std::string getPayload() const { return HexStr(pkt, pkt + pkt_size); }
     uint64_t getAmount() const { return nValue; }
+    uint64_t getTotalNumber() const { return totalCrowsToken; }
     uint64_t getNewAmount() const { return nNewValue; }
     uint8_t getEcosystem() const { return ecosystem; }
     uint32_t getPreviousId() const { return prev_prop_id; }

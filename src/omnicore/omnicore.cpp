@@ -169,9 +169,9 @@ std::string mastercore::strMPProperty(uint32_t propertyId)
         switch (propertyId) {
             case OMNI_PROPERTY_BTC: str = "BTC";
                 break;
-            case OMNI_PROPERTY_WHC: str = "OMNI";
+            case OMNI_PROPERTY_WHC: str = "WHC";
                 break;
-            case OMNI_PROPERTY_TWHC: str = "TOMNI";
+            case OMNI_PROPERTY_TWHC: str = "TWHC";
                 break;
             default:
                 str = strprintf("SP token: %d", propertyId);
@@ -181,12 +181,23 @@ std::string mastercore::strMPProperty(uint32_t propertyId)
     return str;
 }
 
-std::string FormatDivisibleShortMP(int64_t n)
+std::string FormatDivisibleShortMP(int64_t n, int decimal)
 {
     int64_t n_abs = (n > 0 ? n : -n);
-    int64_t quotient = n_abs / COIN.GetSatoshis();
-    int64_t remainder = n_abs % COIN.GetSatoshis();
-    std::string str = strprintf("%d.%08d", quotient, remainder);
+	int array[9] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int64_t quotient = n_abs / array[decimal];
+    int64_t remainder = n_abs % array[decimal];
+    std::string str;
+	switch (decimal){
+		case 1: str = strprintf("%d.%01d", quotient, remainder);    break;
+		case 2: str = strprintf("%d.%02d", quotient, remainder);    break;
+		case 3: str = strprintf("%d.%03d", quotient, remainder);    break;
+		case 4: str = strprintf("%d.%04d", quotient, remainder);    break;
+		case 5: str = strprintf("%d.%05d", quotient, remainder);    break;
+		case 6: str = strprintf("%d.%06d", quotient, remainder);    break;
+		case 7: str = strprintf("%d.%07d", quotient, remainder);    break;
+		case 8: str = strprintf("%d.%08d", quotient, remainder);    break;
+	}  
     // clean up trailing zeros - good for RPC not so much for UI
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
     if (str.length() > 0) {
@@ -198,15 +209,27 @@ std::string FormatDivisibleShortMP(int64_t n)
     return str;
 }
 
-std::string FormatDivisibleMP(int64_t n, bool fSign)
+std::string FormatDivisibleMP(int64_t n, int decimal, bool fSign)
 {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.
     int64_t n_abs = (n > 0 ? n : -n);
-    int64_t quotient = n_abs / COIN.GetSatoshis();
-    int64_t remainder = n_abs % COIN.GetSatoshis();
-    std::string str = strprintf("%d.%08d", quotient, remainder);
+	int array[9] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int64_t quotient = n_abs / array[decimal];
+    int64_t remainder = n_abs % array[decimal];
+    std::string str;
+	switch (decimal){
+		case 1: str = strprintf("%d.%01d", quotient, remainder);    break;
+		case 2: str = strprintf("%d.%02d", quotient, remainder);    break;
+		case 3: str = strprintf("%d.%03d", quotient, remainder);    break;
+		case 4: str = strprintf("%d.%04d", quotient, remainder);    break;
+		case 5: str = strprintf("%d.%05d", quotient, remainder);    break;
+		case 6: str = strprintf("%d.%06d", quotient, remainder);    break;
+		case 7: str = strprintf("%d.%07d", quotient, remainder);    break;
+		case 8: str = strprintf("%d.%08d", quotient, remainder);    break;
+	}
 
+    PrintToLog("%s:quotient : %d, remainder : %d, decimal : %d, result : %s\n", __func__, quotient, remainder, decimal, str);
     if (!fSign) return str;
 
     if (n < 0)
@@ -224,7 +247,11 @@ std::string mastercore::FormatIndivisibleMP(int64_t n)
 std::string FormatShortMP(uint32_t property, int64_t n)
 {
     if (isPropertyDivisible(property)) {
-        return FormatDivisibleShortMP(n);
+	    int type = getPropertyType(property);
+        if(type < 0) {
+            return "";
+        }
+        return FormatDivisibleShortMP(n, type);
     } else {
         return FormatIndivisibleMP(n);
     }
@@ -233,18 +260,27 @@ std::string FormatShortMP(uint32_t property, int64_t n)
 std::string FormatMP(uint32_t property, int64_t n, bool fSign)
 {
     if (isPropertyDivisible(property)) {
-        return FormatDivisibleMP(n, fSign);
+	    int type = getPropertyType(property);
+	    if(type < 0) {
+	        return "";
+	    }
+        return FormatDivisibleMP(n, type, fSign);
     } else {
         return FormatIndivisibleMP(n);
     }
 }
 
+std::string FormatRate(int rate)
+{
+    return strprintf("%d", rate);
+}
+
 std::string FormatByType(int64_t amount, uint16_t propertyType)
 {
-    if (propertyType & MSC_PROPERTY_TYPE_INDIVISIBLE) {
+    if (propertyType == MSC_PROPERTY_TYPE_INDIVISIBLE) {
         return FormatIndivisibleMP(amount);
     } else {
-        return FormatDivisibleMP(amount);
+        return FormatDivisibleMP(amount, propertyType);
     }
 }
 
@@ -437,6 +473,7 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
     int64_t prev = 0;
     int64_t owners = 0;
     int64_t totalTokens = 0;
+    uint8_t crowdsale = 0;
 
     LOCK(cs_tally);
 
@@ -445,7 +482,11 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         return 0; // property ID does not exist
     }
 
-    if (!property.fixed || n_owners_total) {
+    if(property.fixed == false && property.manual == false) {
+        crowdsale = 1;
+    }
+
+    if (property.manual || n_owners_total) {
         for (std::unordered_map<std::string, CMPTally>::const_iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
             const CMPTally& tally = it->second;
 
@@ -463,9 +504,45 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         totalTokens += cachedFee;
     }
 
-    if (property.fixed) {
+    if (property.fixed || crowdsale) {
         totalTokens = property.num_tokens; // only valid for TX50
     }
+
+    if (n_owners_total) *n_owners_total = owners;
+
+    return totalTokens;
+}
+
+int64_t mastercore::getSaledTokens(uint32_t propertyId, int64_t* n_owners_total)
+{
+    int64_t prev = 0;
+    int64_t owners = 0;
+    int64_t totalTokens = 0;
+
+    CMPSPInfo::Entry property;
+    if (false == _my_sps->getSP(propertyId, property)) {
+        return 0; // property ID does not exist
+    }
+
+    if(property.manual != false || property.fixed != false ){
+        return -1;
+    }
+
+    for (std::unordered_map<std::string, CMPTally>::const_iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
+        const CMPTally& tally = it->second;
+
+        totalTokens += tally.getMoney(propertyId, BALANCE);
+        totalTokens += tally.getMoney(propertyId, SELLOFFER_RESERVE);
+        totalTokens += tally.getMoney(propertyId, ACCEPT_RESERVE);
+        totalTokens += tally.getMoney(propertyId, METADEX_RESERVE);
+
+        if (prev != totalTokens) {
+            prev = totalTokens;
+            owners++;
+        }
+    }
+    int64_t cachedFee = p_feecache->GetCachedAmount(propertyId);
+    totalTokens += cachedFee;
 
     if (n_owners_total) *n_owners_total = owners;
 
@@ -877,7 +954,7 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
     int64_t txFee = inAll - outAll; // miner fee
 
     if (!strSender.empty()) {
-        if (msc_debug_verbose) PrintToLog("The Sender: %s : fee= %s\n", strSender, FormatDivisibleMP(txFee));
+        if (msc_debug_verbose) PrintToLog("The Sender: %s : fee= %s\n", strSender, FormatDivisibleMP(txFee, 8));
     } else {
         PrintToLog("The sender is still EMPTY !!! txid: %s\n", wtx.GetHash().GetHex());
         return -5;
@@ -917,7 +994,6 @@ static int parseTransaction(bool bRPConly, const CTransaction& wtx, int nBlock, 
     if ( omniClass == OMNI_CLASS_C) {
         if (msc_debug_parser_data) PrintToLog("Beginning reference identification\n");
         bool referenceFound = false; // bool to hold whether we've found the reference yet
-        bool changeRemoved = false; // bool to hold whether we've ignored the first output to sender as change
         unsigned int potentialReferenceOutputs = 0; // int to hold number of potential reference outputs
         for (unsigned k = 0; k < address_data.size(); ++k) { // how many potential reference outputs do we have, if just one select it right here
             const std::string& addr = address_data[k];
@@ -2066,7 +2142,7 @@ int mastercore_init()
     // redundant? do we need to show it both pre-parse and post-parse?  if so let's label the printfs accordingly
     if (msc_debug_exo) {
         int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
-        PrintToLog("Exodus balance at start: %s\n", FormatDivisibleMP(exodus_balance));
+        PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
     // load feature activation messages from txlistdb and process them accordingly
@@ -2095,9 +2171,9 @@ int mastercore_init()
 
     // display Exodus balance
     int64_t exodus_balance = getMPbalance(burnwhc_address, OMNI_PROPERTY_WHC, BALANCE);
-    PrintToLog("Exodus balance after initialization: %s\n", FormatDivisibleMP(exodus_balance));
+    PrintToLog("Exodus balance after initialization: %s\n", FormatIndivisibleMP(exodus_balance));
 
-    PrintToConsole("Exodus balance: %s OMNI\n", FormatDivisibleMP(exodus_balance));
+    PrintToConsole("Exodus balance: %s OMNI\n", FormatIndivisibleMP(exodus_balance));
     PrintToConsole("Omni Core initialization completed\n");
 
     return 0;
@@ -3167,7 +3243,8 @@ void CMPSTOList::getRecipients(const uint256 txid, string filterAddress, UniValu
                       recipient.push_back(Pair("address", recipientAddress));
                       if(isPropertyDivisible(propertyId))
                       {
-                         recipient.push_back(Pair("amount", FormatDivisibleMP(amount)));
+				int type = getPropertyType(propertyId);
+                         recipient.push_back(Pair("amount", FormatDivisibleMP(amount, type)));
                       }
                       else
                       {
@@ -3390,6 +3467,7 @@ bool CompareTradePair(const std::pair<int64_t, UniValue>& firstJSONObj, const st
 // obtains an array of matching trades with pricing and volume details for a pair sorted by blocknumber
 void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyIdSideB, UniValue& responseArray, uint64_t count)
 {
+#if 0
   if (!pdb) return;
   leveldb::Iterator* it = NewIterator();
   std::vector<std::pair<int64_t, UniValue> > vecResponse;
@@ -3477,6 +3555,7 @@ void CMPTradeList::getTradesForPair(uint32_t propertyIdSideA, uint32_t propertyI
   }
 
   delete it;
+#endif
 }
 
 // obtains a vector of txids where the supplied address participated in a trade (needed for gettradehistory_MP)
@@ -3744,6 +3823,7 @@ static void DistributeWHCToBurner(){
     } else if (RegTest()){
         maxHeight = chainActive.Height() - DISTRIBUTEHEIGHTREGTEST;
     }
+	maxHeight +=1;
 	
 	CMPSPInfo::Entry sp;
     _my_sps->getSP(OMNI_PROPERTY_WHC, sp);
@@ -3938,7 +4018,6 @@ void getBurnBCHAmonut(const CTransaction& tx, CMPTransaction& mp_tx, int nBlock)
 	if (tx.vout.size() < 2){
 		return;
 	}
-	
     GetOutputType(tx.vout[1].scriptPubKey, outType);
     if (outType != TX_NULL_DATA){
     	mp_tx.SetburnBCH(amountInvested);

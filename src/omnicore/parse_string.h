@@ -14,7 +14,7 @@ namespace mastercore
 // Characters after decimal mark are ignored for indivisible
 // amounts.
 // Any minus sign invalidates.
-int64_t StrToInt64(const std::string& str, bool divisible);
+int64_t StrToInt64(const std::string& str, int decimal);
 }
 
 

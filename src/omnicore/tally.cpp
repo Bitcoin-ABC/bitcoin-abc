@@ -220,7 +220,7 @@ bool CMPTally::operator!=(const CMPTally& rhs) const
  * @param bDivisible  Whether the token is divisible or indivisible
  * @return The total number of tokens of the tally
  */
-int64_t CMPTally::print(uint32_t propertyId, bool bDivisible) const
+int64_t CMPTally::print(uint32_t propertyId, int bDivisible) const
 {
     int64_t balance = 0;
     int64_t selloffer_reserve = 0;
@@ -241,9 +241,9 @@ int64_t CMPTally::print(uint32_t propertyId, bool bDivisible) const
 
     if (bDivisible) {
         PrintToConsole("%22s [ SO_RESERVE= %22s, ACCEPT_RESERVE= %22s, METADEX_RESERVE= %22s ] %22s\n",
-                FormatDivisibleMP(balance, true), FormatDivisibleMP(selloffer_reserve, true),
-                FormatDivisibleMP(accept_reserve, true), FormatDivisibleMP(metadex_reserve, true),
-                FormatDivisibleMP(pending, true));
+                FormatDivisibleMP(balance, bDivisible, true), FormatDivisibleMP(selloffer_reserve, bDivisible, true),
+                FormatDivisibleMP(accept_reserve, bDivisible, true), FormatDivisibleMP(metadex_reserve, bDivisible, true),
+                FormatDivisibleMP(pending, bDivisible, true));
     } else {
         PrintToConsole("%14d [ SO_RESERVE= %14d, ACCEPT_RESERVE= %14d, METADEX_RESERVE= %14d ] %14d\n",
                 balance, selloffer_reserve, accept_reserve, metadex_reserve, pending);

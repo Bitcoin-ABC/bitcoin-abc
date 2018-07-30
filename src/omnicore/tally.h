@@ -60,7 +60,7 @@ public:
     bool operator!=(const CMPTally& rhs) const;
 
     /** Prints a balance record to the console. */
-    int64_t print(uint32_t propertyId = 1, bool bDivisible = true) const;
+    int64_t print(uint32_t propertyId , int bDivisible) const;
 };
 
 

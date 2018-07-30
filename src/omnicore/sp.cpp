@@ -35,19 +35,33 @@ using namespace mastercore;
 
 CMPSPInfo::Entry::Entry()
   : prop_type(0), prev_prop_id(0), num_tokens(0), property_desired(0),
-    deadline(0), early_bird(0), percentage(0),
+    deadline(0), rate(0), early_bird(0), percentage(0),
     close_early(false), max_tokens(false), missedTokens(0), timeclosed(0),
     fixed(false), manual(false) {}
 
 bool CMPSPInfo::Entry::isDivisible() const
 {
-    switch (prop_type) {
-        case MSC_PROPERTY_TYPE_DIVISIBLE:
-        case MSC_PROPERTY_TYPE_DIVISIBLE_REPLACING:
-        case MSC_PROPERTY_TYPE_DIVISIBLE_APPENDING:
-            return true;
+    if(prop_type == MSC_PROPERTY_TYPE_INDIVISIBLE){
+        return false;
     }
-    return false;
+
+    return true;
+}
+
+int CMPSPInfo::Entry::getPrecision() const
+{
+    bool type;
+    type = isDivisible();
+    if(type){
+        if(prop_type >= MSC_PROPERTY_MIN_PRECISION && prop_type <= MSC_PROPERTY_MAX_PRECISION){
+            return prop_type;
+        }
+        else {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 void CMPSPInfo::Entry::print() const
@@ -75,7 +89,7 @@ CMPSPInfo::CMPSPInfo(const boost::filesystem::path& path, bool fWipe)
     implied_omni.subcategory = "N/A";
     implied_omni.name = "WHC";
     implied_omni.url = "http://www.wormhole.cash";
-    implied_omni.data = "WHC serve as the binding between Bitcoin, smart properties and contracts created on the Omni Layer.";
+    implied_omni.data = "WHC serve as the binding between Bitcoin cash, smart properties and contracts created on the Wormhole.";
     implied_omni.creation_block = uint256S("");
     implied_omni.update_block = uint256S("");
     init();
@@ -594,6 +608,12 @@ bool mastercore::isPropertyDivisible(uint32_t propertyId)
     return true;
 }
 
+int mastercore::getPropertyType(uint32_t propertyId){
+	CMPSPInfo::Entry sp;
+	if (_my_sps->getSP(propertyId, sp))	return sp.getPrecision();
+	return -1;
+}
+
 std::string mastercore::getPropertyName(uint32_t propertyId)
 {
     CMPSPInfo::Entry sp;
@@ -660,94 +680,108 @@ int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCr
     return ConvertTo64(amountMissing);
 }
 
-// calculateFundraiser does token calculations per transaction
-// calcluateFractional does calculations for missed tokens
-void mastercore::calculateFundraiser(bool inflateAmount, int64_t amtTransfer, uint8_t bonusPerc,
-        int64_t fundraiserSecs, int64_t currentSecs, int64_t numProps, uint8_t issuerPerc, int64_t totalTokens,
-        std::pair<int64_t, int64_t>& tokens, bool& close_crowdsale)
-{
+// @price, the value assigned to this argument is enlarged by 10**8
+// e.g. 1WHC = 10**-8 Token --> price = 1, supported most expensive token
+// e.g. 1WHC = 1      Token --> price = 10**8
+// e.g. 1WHC = 10**8  Token --> price = 10**16, supported most cheap token
+void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
+                                     uint8_t bonusPerc, int64_t closeSeconds,
+                                     int64_t currentSeconds, int64_t price,
+                                     int64_t soldTokens, int64_t totalTokens,
+                                     int64_t &purchasedTokens,
+                                     bool &closeCrowdsale, int64_t &refund) {
     // Weeks in seconds
-    arith_uint256 weeks_sec_ = ConvertTo256(604800);
+    arith_uint256 week_sec = ConvertTo256(604800);
 
     // Precision for all non-bitcoin values (bonus percentages, for example)
-    arith_uint256 precision_ = ConvertTo256(1000000000000LL);
-
+    arith_uint256 precision = ConvertTo256(1000000000000LL);  // 10**12
     // Precision for all percentages (10/100 = 10%)
     arith_uint256 percentage_precision = ConvertTo256(100);
+    arith_uint256 whc_precision = ConvertTo256(100000000LL);  // 1WHC=10**8C
+    static const int64_t decimalArr[9] = {
+            1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    assert(tokenPrecision <= 8);
+    arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
+    arith_uint256 price_factor = ConvertTo256(100000000LL);  // 10**8
 
     // Calculate the bonus seconds
-    arith_uint256 bonusSeconds_ = 0;
-    if (currentSecs < fundraiserSecs) {
-        bonusSeconds_ = ConvertTo256(fundraiserSecs) - ConvertTo256(currentSecs);
+    arith_uint256 bonus_seconds = 0;
+    if (currentSeconds < closeSeconds) {
+        bonus_seconds =
+                ConvertTo256(closeSeconds) - ConvertTo256(currentSeconds);
     }
-
     // Calculate the whole number of weeks to apply bonus
-    arith_uint256 weeks_ = (bonusSeconds_ / weeks_sec_) * precision_;
-    weeks_ += (Modulo256(bonusSeconds_, weeks_sec_) * precision_) / weeks_sec_;
+    arith_uint256 weeks = (bonus_seconds / week_sec) * precision;
+    weeks += (Modulo256(bonus_seconds, week_sec) * precision) / week_sec;
 
     // Calculate the earlybird percentage to be applied
-    arith_uint256 ebPercentage_ = weeks_ * ConvertTo256(bonusPerc);
+    arith_uint256 earlybird_percentage = weeks * ConvertTo256(bonusPerc);
 
-    // Calcluate the bonus percentage to apply up to percentage_precision number of digits
-    arith_uint256 bonusPercentage_ = (precision_ * percentage_precision);
-    bonusPercentage_ += ebPercentage_;
-    bonusPercentage_ /= percentage_precision;
+    arith_uint256 bonus_percentage = (precision * percentage_precision);
+    bonus_percentage += earlybird_percentage;
+    bonus_percentage /= percentage_precision;
 
-    // Calculate the bonus percentage for the issuer
-    arith_uint256 issuerPercentage_ = ConvertTo256(issuerPerc);
-    issuerPercentage_ *= precision_;
-    issuerPercentage_ /= percentage_precision;
+    // transfer is measured with unit of C while price is measured with WHC
+    // created_tokens = (transfer / 10**8) x price x bonus x 10**tokenPrecision
+    arith_uint256 created_tokens = ConvertTo256(transfer);
+    created_tokens *= ConvertTo256(price);
+    created_tokens *= token_precision;
+    created_tokens *= bonus_percentage;
+    created_tokens /= whc_precision;
 
-    // Precision for bitcoin amounts (satoshi)
-    arith_uint256 satoshi_precision_ = ConvertTo256(100000000L);
+    arith_uint256 created_tokens_int = created_tokens / precision;
+    // price is enlarged by 10**8 (price_factor) to support the case
+    // 1WHC=10**-8Token
+    created_tokens_int = created_tokens_int / price_factor;
 
-    // Total tokens including remainders
-    arith_uint256 createdTokens = ConvertTo256(amtTransfer);
-    if (inflateAmount) {
-        createdTokens *= ConvertTo256(100000000L);
+    arith_uint256 max_creatable =
+            ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
+
+    if (created_tokens_int <= max_creatable) {
+        purchasedTokens = ConvertTo64(created_tokens_int);
+        closeCrowdsale = (created_tokens  == max_creatable) ? true : false;
+
+        // Refund the part that are not enough for smallest token unit
+        // Note that, there is no bonus for this part
+
+        // The part of token that is smaller than the smallest unit
+        // e.g. for token with precision 1, 0.05 token < 0.1 token
+        arith_uint256 created_tokens_rem = created_tokens_int;
+        created_tokens_rem *= precision;
+        created_tokens_rem *= price_factor;
+        created_tokens_rem = created_tokens - created_tokens_rem;
+        // 10**8 C = price token, then token_price = 10**8 / price
+        // Note that, price is enlarged by x price_factor
+        arith_uint256 token_price =
+                (whc_precision * precision * price_factor) / ConvertTo256(price);
+
+        arith_uint256 refund_money = token_price * created_tokens_rem;
+        // remove the earlybird bonus from refund_whc
+        // e.g. suppose extra bonus percentage is 0.1,
+        // then tokens buyer gets is enlarged by x1.1
+        // to remove the earlybird bonus, we simply divide the refund by 1.1
+        refund_money /= bonus_percentage;
+        refund_money /= token_precision;
+        refund_money /= precision;
+        refund_money /= price_factor;
+
+        refund = ConvertTo64(refund_money);
+    } else {  // created_tokens_int > max_creatable
+        purchasedTokens = ConvertTo64(max_creatable);
+        closeCrowdsale = true;  // close crowdsale
+
+        // ratio = created_tokens_int / max_creatable
+        arith_uint256 ratio = created_tokens_int * precision;
+        ratio *= token_precision;
+        ratio /= max_creatable;
+
+        arith_uint256 remainder = ConvertTo256(transfer);
+        remainder *= precision;
+        remainder *= token_precision;
+        remainder -= remainder / ratio;  // transfer that are not spent
+
+        refund = ConvertTo64(remainder);  // refund buyer's unspent money
     }
-    createdTokens *= ConvertTo256(numProps);
-    createdTokens *= bonusPercentage_;
-
-    arith_uint256 issuerTokens = createdTokens / satoshi_precision_;
-    issuerTokens /= precision_;
-    issuerTokens *= (issuerPercentage_ / 100);
-    issuerTokens *= precision_;
-
-    arith_uint256 createdTokens_int = createdTokens / precision_;
-    createdTokens_int /= satoshi_precision_;
-
-    arith_uint256 issuerTokens_int = issuerTokens / precision_;
-    issuerTokens_int /= satoshi_precision_;
-    issuerTokens_int /= 100;
-
-    arith_uint256 newTotalCreated = ConvertTo256(totalTokens) + createdTokens_int + issuerTokens_int;
-
-    if (newTotalCreated > uint256_const::max_int64) {
-        arith_uint256 maxCreatable = uint256_const::max_int64 - ConvertTo256(totalTokens);
-        arith_uint256 created = createdTokens_int + issuerTokens_int;
-
-        // Calcluate the ratio of tokens for what we can create and apply it
-        arith_uint256 ratio = created * precision_;
-        ratio *= satoshi_precision_;
-        ratio /= maxCreatable;
-
-        // The tokens for the issuer
-        issuerTokens_int = issuerTokens_int * precision_;
-        issuerTokens_int *= satoshi_precision_;
-        issuerTokens_int /= ratio;
-
-        assert(issuerTokens_int <= maxCreatable);
-
-        // The tokens for the user
-        createdTokens_int = maxCreatable - issuerTokens_int;
-
-        // Close the crowdsale after assigning all tokens
-        close_crowdsale = true;
-    }
-
-    // The tokens to credit
-    tokens = std::make_pair(ConvertTo64(createdTokens_int), ConvertTo64(issuerTokens_int));
 }
 
 // go hunting for whether a simple send is a crowdsale purchase
@@ -881,14 +915,20 @@ unsigned int mastercore::eraseExpiredCrowdsale(const CBlockIndex* pBlockIndex)
     return how_many_erased;
 }
 
-std::string mastercore::strPropertyType(uint16_t propertyType)
+std::string mastercore::strPropertyType(int propertyType)
 {
-    switch (propertyType) {
-        case MSC_PROPERTY_TYPE_DIVISIBLE: return "divisible";
-        case MSC_PROPERTY_TYPE_INDIVISIBLE: return "indivisible";
+	char buf[2];
+    memset(buf, 0, 2);
+    if (propertyType >= 0 && propertyType <= 8){
+        sprintf(buf, "%d", propertyType);
+        return buf;
     }
-
     return "unknown";
+}
+
+std::string mastercore::getprecision(uint32_t property){
+    int type = getPropertyType(property);
+    return strPropertyType(type);
 }
 
 std::string mastercore::strEcosystem(uint8_t ecosystem)
