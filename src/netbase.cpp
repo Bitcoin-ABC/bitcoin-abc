@@ -869,7 +869,7 @@ std::unique_ptr<Sock> ConnectThroughProxy(const Proxy &proxy,
         if (!Socks5(dest, port, &random_auth, *sock)) {
             return {};
         }
-    } else if (!Socks5(dest, port, 0, *sock)) {
+    } else if (!Socks5(dest, port, nullptr, *sock)) {
         return {};
     }
     return sock;

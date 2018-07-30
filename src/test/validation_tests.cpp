@@ -128,7 +128,8 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     outs << size;
     outs << block;
 
-    BOOST_CHECK_NO_THROW({ m_node.chainman->LoadExternalBlockFile(outs, 0); });
+    BOOST_CHECK_NO_THROW(
+        { m_node.chainman->LoadExternalBlockFile(outs, nullptr); });
 }
 
 //! Test retrieval of valid assumeutxo values.

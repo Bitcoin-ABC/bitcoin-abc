@@ -526,7 +526,7 @@ void PaymentServer::LoadRootCAs(X509_STORE *_store) {
         const uint8_t *data = (const uint8_t *)certData.data();
 
         std::unique_ptr<X509, X509Deleter> x509(
-            d2i_X509(0, &data, certData.size()));
+            d2i_X509(nullptr, &data, certData.size()));
         if (x509 && X509_STORE_add_cert(certStore.get(), x509.get())) {
             // Note: X509_STORE increases the reference count to the X509
             // object, we still have to release our reference to it.

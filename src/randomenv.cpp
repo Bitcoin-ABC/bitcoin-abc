@@ -403,10 +403,10 @@ void RandAddStaticEnv(CSHA512 &hasher) {
 
 #if HAVE_DECL_GETIFADDRS
     // Network interfaces
-    struct ifaddrs *ifad = NULL;
+    struct ifaddrs *ifad = nullptr;
     getifaddrs(&ifad);
     struct ifaddrs *ifit = ifad;
-    while (ifit != NULL) {
+    while (ifit != nullptr) {
         hasher.Write((const uint8_t *)&ifit, sizeof(ifit));
         hasher.Write((const uint8_t *)ifit->ifa_name,
                      strlen(ifit->ifa_name) + 1);

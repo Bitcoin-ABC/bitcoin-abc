@@ -2564,7 +2564,7 @@ static void TestOtherProcess(fs::path dirname, std::string lockname, int fd) {
                 // not available on all non glibc platforms.
                 // Using exec also stops valgrind from thinking it needs to
                 // analyze the memory leaks in this forked process.
-                execlp("true", "true", (char *)NULL);
+                execlp("true", "true", static_cast<char *>(nullptr));
             default:
                 assert(0);
         }

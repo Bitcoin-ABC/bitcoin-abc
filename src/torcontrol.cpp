@@ -382,7 +382,7 @@ std::map<std::string, std::string> ParseTorReplyMapping(const std::string &s) {
                             j--;
                         }
                         escaped_value.push_back(
-                            strtol(value.substr(i, j).c_str(), NULL, 8));
+                            strtol(value.substr(i, j).c_str(), nullptr, 8));
                         // Account for automatic incrementing at loop end
                         i += j - 1;
                     } else {

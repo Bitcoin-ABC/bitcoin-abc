@@ -199,7 +199,8 @@ class ToolTipToRichTextFilter : public QObject {
     Q_OBJECT
 
 public:
-    explicit ToolTipToRichTextFilter(int size_threshold, QObject *parent = 0);
+    explicit ToolTipToRichTextFilter(int size_threshold,
+                                     QObject *parent = nullptr);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *evt) override;
