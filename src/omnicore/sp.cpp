@@ -700,7 +700,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 whc_precision = ConvertTo256(100000000LL);  // 1WHC=10**8C
     static const int64_t decimalArr[9] = {
             1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
-    assert(tokenPrecision >= 0 && tokenPrecision <= 8);
+    assert(tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
     arith_uint256 price_factor = ConvertTo256(100000000LL);  // 10**8
 

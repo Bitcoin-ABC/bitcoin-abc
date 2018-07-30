@@ -1121,7 +1121,7 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     response.push_back(Pair("active", active));
     response.push_back(Pair("issuer", sp.issuer));
     response.push_back(Pair("propertyiddesired", (uint64_t) sp.property_desired));
-    response.push_back(Pair("tokensperunit", FormatMP(propertyId, sp.rate)));
+    response.push_back(Pair("tokensperunit", FormatMP(PRICE_PRICISION, sp.rate)));
     response.push_back(Pair("earlybonus", sp.early_bird));
     response.push_back(Pair("starttime", startTime));
     response.push_back(Pair("deadline", sp.deadline));

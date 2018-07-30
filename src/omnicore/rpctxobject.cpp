@@ -6,6 +6,7 @@
 
 #include "omnicore/rpctxobject.h"
 
+#include "omnicore/rpcvalues.h"
 #include "omnicore/dex.h"
 #include "omnicore/errors.h"
 #include "omnicore/mdex.h"
@@ -482,7 +483,7 @@ void populateRPCTypeCreatePropertyVariable(CMPTransaction& omniObj, UniValue& tx
     txobj.push_back(Pair("data", omniObj.getSPData()));
     txobj.push_back(Pair("url", omniObj.getSPUrl()));
     txobj.push_back(Pair("propertyiddesired", (uint64_t) omniObj.getProperty()));
-    std::string strPerUnit = FormatMP(omniObj.getProperty(), omniObj.getAmount());
+    std::string strPerUnit = FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false);;
     txobj.push_back(Pair("tokensperunit", strPerUnit));
     txobj.push_back(Pair("deadline", omniObj.getDeadline()));
     txobj.push_back(Pair("earlybonus", omniObj.getEarlyBirdBonus()));

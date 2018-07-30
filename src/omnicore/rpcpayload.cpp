@@ -289,7 +289,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     std::string url = ParseText(request.params[6]);
     std::string data = ParseText(request.params[7]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[8]);
-    int64_t numTokens = ParseAmount(request.params[9], type);
+    int64_t numTokens = ParseAmount(request.params[9], PRICE_PRICISION);
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);

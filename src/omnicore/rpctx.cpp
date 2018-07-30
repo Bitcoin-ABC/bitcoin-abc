@@ -297,7 +297,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     std::string url = ParseText(request.params[7]);
     std::string data = ParseText(request.params[8]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[9]);
-    int64_t numTokens = ParseAmount(request.params[10], type);
+    int64_t numTokens = ParseAmount(request.params[10], PRICE_PRICISION);
     int64_t deadline = ParseDeadline(request.params[11]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[12]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);

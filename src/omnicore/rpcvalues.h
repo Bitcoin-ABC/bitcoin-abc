@@ -12,6 +12,8 @@ struct PrevTxsEntry;
 #include <string>
 #include <vector>
 
+#define PRICE_PRICISION 8
+
 std::string ParseAddress(const UniValue& value);
 std::string ParseAddressOrEmpty(const UniValue& value);
 std::string ParseAddressOrWildcard(const UniValue& value);

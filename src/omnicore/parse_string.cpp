@@ -31,7 +31,8 @@ int64_t StrToInt64(const std::string& str, int decimal)
             size_t posSecond = strAmount.find(".", pos + 1);
             if (posSecond != std::string::npos) return 0;
             
-            if ((strAmount.size() - pos) < decimal + 1) {
+			if ((strAmount.size() - pos) > size_t(decimal + 1) ) return 0;
+            if ((strAmount.size() - pos) < size_t (decimal + 1)) {
                 // there are decimals either exact or not enough, pad as needed
                 std::string strRightOfDecimal = strAmount.substr(pos + 1);
                 unsigned int zerosToPad = decimal - strRightOfDecimal.size();
