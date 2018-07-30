@@ -62,7 +62,11 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+    int mtype;
+    if (propertyId == OMNI_PROPERTY_WHC)    mtype = PRICE_PRICISION;
+    else    mtype = getPropertyType(propertyId);
+    RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[1], mtype);
 
     std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
 

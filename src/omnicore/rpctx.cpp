@@ -162,7 +162,9 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-	int mtype = getPropertyType(propertyId);
+	int mtype;
+    if (propertyId == OMNI_PROPERTY_WHC)    mtype = PRICE_PRICISION;
+    else    mtype = getPropertyType(propertyId);
 	RequirePropertyType(mtype);
     int64_t amount = ParseAmount(request.params[3], mtype);
     std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";

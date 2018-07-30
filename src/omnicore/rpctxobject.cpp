@@ -285,10 +285,15 @@ void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
 {
     uint32_t propertyId = omniObj.getProperty();
     LOCK(cs_tally);
+    int mtype;
     txobj.push_back(Pair("type", "Simple Send"));
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
-    txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+    if (propertyId == OMNI_PROPERTY_WHC){
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
+    } else {
+        txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+    }
 }
 
 void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails, std::string extendedDetailsFilter)
