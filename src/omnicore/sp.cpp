@@ -722,48 +722,53 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     bonus_percentage /= percentage_precision;
 
     // transfer is measured with unit of C while price is measured with WHC
-    // created_tokens = (transfer / 10**8) x price x bonus x 10**tokenPrecision
-    arith_uint256 created_tokens = ConvertTo256(transfer);
-    created_tokens *= ConvertTo256(price);
-    created_tokens *= token_precision;
+    // created_tokens = token_precision * transfer * bonus * price
+    arith_uint256 created_tokens = token_precision;
+    created_tokens *= ConvertTo256(transfer);
     created_tokens *= bonus_percentage;
-    created_tokens /= whc_precision;
+    created_tokens *= ConvertTo256(price);
 
     arith_uint256 created_tokens_int = created_tokens / precision;
-    // price is enlarged by 10**8 (price_factor) to support the case
-    // 1WHC=10**-8Token
-    created_tokens_int = created_tokens_int / price_factor;
+    created_tokens_int = created_tokens_int / whc_precision;
 
     arith_uint256 max_creatable =
             ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
 
-    if (created_tokens_int <= max_creatable) {
+    // min_num: the smallest num of tokens that can be sold (worth at least 1C)
+    arith_uint256 min_num = ConvertTo256(price);
+    min_num *= precision;
+    min_num *= token_precision;
+    min_num /= whc_precision;
+    if (max_creatable * precision < min_num) {
+        // not a single C can be spent in this case
+        purchasedTokens = 0;
+        closeCrowdsale = true;
+        refund = transfer;
+        return;
+    }
+
+    if (created_tokens_int < max_creatable) {
         purchasedTokens = ConvertTo64(created_tokens_int);
-        closeCrowdsale = (created_tokens  == max_creatable) ? true : false;
+        closeCrowdsale = false;
 
         // Refund the part that are not enough for smallest token unit
         // Note that, there is no bonus for this part
-
+        //
         // The part of token that is smaller than the smallest unit
         // e.g. for token with precision 1, 0.05 token < 0.1 token
         arith_uint256 created_tokens_rem = created_tokens_int;
         created_tokens_rem *= precision;
-        created_tokens_rem *= price_factor;
+        created_tokens_rem *= whc_precision;
         created_tokens_rem = created_tokens - created_tokens_rem;
-        // 10**8 C = price token, then token_price = 10**8 / price
-        // Note that, price is enlarged by x price_factor
-        arith_uint256 token_price =
-                (whc_precision * precision * price_factor) / ConvertTo256(price);
 
-        arith_uint256 refund_money = token_price * created_tokens_rem;
         // remove the earlybird bonus from refund_whc
         // e.g. suppose extra bonus percentage is 0.1,
         // then tokens buyer gets is enlarged by x1.1
         // to remove the earlybird bonus, we simply divide the refund by 1.1
+        arith_uint256 refund_money = created_tokens_rem;
         refund_money /= bonus_percentage;
+        refund_money /= price;
         refund_money /= token_precision;
-        refund_money /= precision;
-        refund_money /= price_factor;
 
         refund = ConvertTo64(refund_money);
     } else {  // created_tokens_int > max_creatable
@@ -772,17 +777,16 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
 
         // ratio = created_tokens_int / max_creatable
         arith_uint256 ratio = created_tokens_int * precision;
-        ratio *= token_precision;
         ratio /= max_creatable;
 
-        arith_uint256 remainder = ConvertTo256(transfer);
-        remainder *= precision;
-        remainder *= token_precision;
-        remainder -= remainder / ratio;  // transfer that are not spent
-
-        refund = ConvertTo64(remainder);  // refund buyer's unspent money
+        arith_uint256 spent = ConvertTo256(transfer);
+        spent *= precision;
+        spent /= ratio;
+        arith_uint256 total = ConvertTo256(transfer);
+        refund = ConvertTo64(total - spent);
     }
 }
+
 
 // go hunting for whether a simple send is a crowdsale purchase
 // TODO !!!! horribly inefficient !!!! find a more efficient way to do this
