@@ -189,14 +189,14 @@ std::string FormatDivisibleShortMP(int64_t n, int decimal)
     int64_t remainder = n_abs % array[decimal];
     std::string str;
 	switch (decimal){
-		case 1: str = strprintf("%d.%01d", quotient, remainder);
-		case 2: str = strprintf("%d.%02d", quotient, remainder);
-		case 3: str = strprintf("%d.%03d", quotient, remainder);
-		case 4: str = strprintf("%d.%04d", quotient, remainder);
-		case 5: str = strprintf("%d.%05d", quotient, remainder);
-		case 6: str = strprintf("%d.%06d", quotient, remainder);
-		case 7: str = strprintf("%d.%07d", quotient, remainder);
-		case 8: str = strprintf("%d.%08d", quotient, remainder);
+		case 1: str = strprintf("%d.%01d", quotient, remainder);    break;
+		case 2: str = strprintf("%d.%02d", quotient, remainder);    break;
+		case 3: str = strprintf("%d.%03d", quotient, remainder);    break;
+		case 4: str = strprintf("%d.%04d", quotient, remainder);    break;
+		case 5: str = strprintf("%d.%05d", quotient, remainder);    break;
+		case 6: str = strprintf("%d.%06d", quotient, remainder);    break;
+		case 7: str = strprintf("%d.%07d", quotient, remainder);    break;
+		case 8: str = strprintf("%d.%08d", quotient, remainder);    break;
 	}  
     // clean up trailing zeros - good for RPC not so much for UI
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
@@ -219,14 +219,14 @@ std::string FormatDivisibleMP(int64_t n, int decimal, bool fSign)
     int64_t remainder = n_abs % array[decimal];
     std::string str;
 	switch (decimal){
-		case 1: str = strprintf("%d.%01d", quotient, remainder);
-		case 2: str = strprintf("%d.%02d", quotient, remainder);
-		case 3: str = strprintf("%d.%03d", quotient, remainder);
-		case 4: str = strprintf("%d.%04d", quotient, remainder);
-		case 5: str = strprintf("%d.%05d", quotient, remainder);
-		case 6: str = strprintf("%d.%06d", quotient, remainder);
-		case 7: str = strprintf("%d.%07d", quotient, remainder);
-		case 8: str = strprintf("%d.%08d", quotient, remainder);
+		case 1: str = strprintf("%d.%01d", quotient, remainder);    break;
+		case 2: str = strprintf("%d.%02d", quotient, remainder);    break;
+		case 3: str = strprintf("%d.%03d", quotient, remainder);    break;
+		case 4: str = strprintf("%d.%04d", quotient, remainder);    break;
+		case 5: str = strprintf("%d.%05d", quotient, remainder);    break;
+		case 6: str = strprintf("%d.%06d", quotient, remainder);    break;
+		case 7: str = strprintf("%d.%07d", quotient, remainder);    break;
+		case 8: str = strprintf("%d.%08d", quotient, remainder);    break;
 	}
 
     PrintToLog("%s:quotient : %d, remainder : %d, decimal : %d, result : %s\n", __func__, quotient, remainder, decimal, str);
