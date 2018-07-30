@@ -83,7 +83,7 @@ UniValue whc_sendrawtx(const Config &config,const JSONRPCRequest &request)
 
 UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
 {
-    if (request.fHelp || request.params.size() < 4 || request.params.size() > 6)
+    if (request.fHelp || request.params.size() < 3 || request.params.size() > 5)
         throw runtime_error(
             "whc_particrowsale \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
 
@@ -92,35 +92,30 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. toaddress            (string, required) the address of the receiver\n"
-            "3. propertyid           (number, required) the identifier of the tokens to send\n"
-            "4. amount               (string, required) the amount to send\n"
-            "5. redeemaddress        (string, optional) an address that can spend the transaction dust (sender by default)\n"
-            "6. referenceamount      (string, optional) a bitcoin amount that is sent to the receiver (minimal by default)\n"
+            "3. amount               (string, required) the amount of WHC to participate crowsale"
+            "4. redeemaddress        (string, optional) an address that can spend the transaction dust (sender by default)\n"
+            "5. referenceamount      (string, optional) a bitcoin amount that is sent to the receiver (minimal by default)\n"
 
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"100.0\"")
-            + HelpExampleRpc("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 1, \"100.0\"")
+            + HelpExampleCli("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\"  \"100.0\"")
+            + HelpExampleRpc("whc_particrowsale", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\",  \"100.0\"")
         );
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
-    uint32_t propertyId = ParsePropertyId(request.params[2]);
-	int mtype = getPropertyType(propertyId);
-	RequirePropertyType(mtype);
-    int64_t amount = ParseAmount(request.params[3], mtype);
-    std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";
-    int64_t referenceAmount = (request.params.size() > 5) ? ParseAmount(request.params[5], true): 0;
+    int64_t amount = ParseAmount(request.params[2], PRICE_PRICISION);
+    std::string redeemAddress = (request.params.size() > 3 && !ParseText(request.params[3]).empty()) ? ParseAddress(request.params[3]): "";
+    int64_t referenceAmount = (request.params.size() > 4) ? ParseAmount(request.params[4], true): 0;
 
     // perform checks
-    RequireExistingProperty(propertyId);
-    RequireBalance(fromAddress, propertyId, amount);
+    RequireBalance(fromAddress, OMNI_PROPERTY_WHC, amount);
     RequireSaneReferenceAmount(referenceAmount);
 
     // create a payload for the transaction
-    std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
+    std::vector<unsigned char> payload = CreatePayload_PartiCrowsale(OMNI_PROPERTY_WHC, amount);
 
     // request the wallet build the transaction (and if needed commit it)
     uint256 txid;
@@ -134,7 +129,7 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
         if (!autoCommit) {
             return rawHex;
         } else {
-            PendingAdd(txid, fromAddress, MSC_TYPE_SIMPLE_SEND, propertyId, amount);
+            PendingAdd(txid, fromAddress, MSC_TYPE_BUY_TOKEN, OMNI_PROPERTY_WHC, amount);
             return txid.GetHex();
         }
     }
