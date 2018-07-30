@@ -181,6 +181,9 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
         case WHC_TYPE_GET_BASE_PROPERTY:
             populateRPCTypeGetBaseProperTy(mp_obj, txobj, confirmations);
             break;
+        case MSC_TYPE_BUY_TOKEN:
+            populateRPCTypePartiCrowsale(mp_obj, txobj);
+            break;
         /*case MSC_TYPE_TRADE_OFFER:
             populateRPCTypeTradeOffer(mp_obj, txobj);
             break;
@@ -254,7 +257,7 @@ bool showRefForTx(uint32_t txType)
     return true; // default to true, shouldn't be needed but just in case
 }
 
-void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
+void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
 {
     uint32_t propertyId = omniObj.getProperty();
     int64_t crowdPropertyId = 0, crowdTokens = 0, issuerTokens = 0;
@@ -272,15 +275,21 @@ void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
         txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
         txobj.push_back(Pair("purchasedpropertyid", crowdPropertyId));
         txobj.push_back(Pair("purchasedpropertyname", sp.name));
-        txobj.push_back(Pair("purchasedpropertydivisible", sp.isDivisible()));
+        txobj.push_back(Pair("purchasedpropertyprecision", getprecision(crowdPropertyId)));
         txobj.push_back(Pair("purchasedtokens", FormatMP(crowdPropertyId, crowdTokens)));
         txobj.push_back(Pair("issuertokens", FormatMP(crowdPropertyId, issuerTokens)));
-    } else {
-        txobj.push_back(Pair("type", "Simple Send"));
-        txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
-        txobj.push_back(Pair("precision", getprecision(propertyId)));
-        txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
     }
+}
+
+void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
+{
+    uint32_t propertyId = omniObj.getProperty();
+    int64_t crowdPropertyId = 0, crowdTokens = 0, issuerTokens = 0;
+    LOCK(cs_tally);
+    txobj.push_back(Pair("type", "Simple Send"));
+    txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
+    txobj.push_back(Pair("precision", getprecision(propertyId)));
+    txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
 }
 
 void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails, std::string extendedDetailsFilter)

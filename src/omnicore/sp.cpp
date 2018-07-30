@@ -702,9 +702,8 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
             1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
     assert(tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
-    arith_uint256 price_factor = ConvertTo256(100000000LL);  // 10**8
 
-    // Calculate the bonus seconds
+    // Calculate the bonusL seconds
     arith_uint256 bonus_seconds = 0;
     if (currentSeconds < closeSeconds) {
         bonus_seconds =

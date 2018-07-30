@@ -13,7 +13,7 @@ int populateRPCTransactionObject(const uint256& txid, UniValue& txobj, std::stri
 int populateRPCTransactionObject(const CTransaction& tx, const uint256& blockHash, UniValue& txobj, std::string filterAddress = "", bool extendedDetails = false, std::string extendedDetailsFilter = "", int blockHeight = 0);
 
 void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txType, bool extendedDetails, std::string extendedDetailsFilter, int confirmations);
-
+void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool extendedDetails, std::string extendedDetailsFilter);
 void populateRPCTypeSendAll(CMPTransaction& omniObj, UniValue& txobj, int confirmations);
