@@ -13,7 +13,7 @@ Derived from a variety of functional tests.
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_transaction,
+    create_tx_with_script,
     make_conform_to_ctor,
 )
 from test_framework.key import CECKey
@@ -163,7 +163,7 @@ class SchnorrTest(BitcoinTestFramework):
             value = spendfrom.vout[0].nValue
 
             # Fund transaction
-            txfund = create_transaction(spendfrom, 0, b'', value, script)
+            txfund = create_tx_with_script(spendfrom, 0, b'', value, script)
             txfund.rehash()
             fundings.append(txfund)
 

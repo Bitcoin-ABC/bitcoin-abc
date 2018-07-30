@@ -13,7 +13,7 @@ import time
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_transaction,
+    create_tx_with_script,
 )
 from test_framework.cdefs import MAX_STANDARD_TX_SIGOPS
 from test_framework.key import CECKey
@@ -80,7 +80,7 @@ class FullBlockTest(BitcoinTestFramework):
 
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
-        tx = create_transaction(spend_tx, n, b"", value, script)
+        tx = create_tx_with_script(spend_tx, n, b"", value, script)
         return tx
 
     # sign a transaction, using the key we know about
@@ -123,7 +123,7 @@ class FullBlockTest(BitcoinTestFramework):
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
             # spend 1 satoshi
-            tx = create_transaction(spend.tx, spend.n, b"", 1, script)
+            tx = create_tx_with_script(spend.tx, spend.n, b"", 1, script)
             self.sign_tx(tx, spend.tx, spend.n)
             self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()

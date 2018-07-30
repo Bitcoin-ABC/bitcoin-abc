@@ -7,8 +7,8 @@
 Test that the DERSIG soft-fork activates at (regtest) height 1251.
 """
 
-from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import CTransaction, FromHex, msg_block, ToHex
+from test_framework.blocktools import create_block, create_coinbase, create_transaction
+from test_framework.messages import msg_block, ToHex
 from test_framework.mininode import (
     mininode_lock,
     P2PInterface,
@@ -43,15 +43,6 @@ def unDERify(tx):
     tx.vin[0].scriptSig = CScript(newscript)
 
 
-def create_transaction(node, coinbase, to_address, amount):
-    from_txid = node.getblock(coinbase)['tx'][0]
-    inputs = [{"txid": from_txid, "vout": 0}]
-    outputs = {to_address: amount}
-    rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransactionwithwallet(rawtx)
-    return FromHex(CTransaction(), signresult['hex'])
-
-
 class BIP66Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
@@ -62,7 +53,8 @@ class BIP66Test(BitcoinTestFramework):
         self.nodes[0].add_p2p_connection(P2PInterface())
 
         self.log.info("Mining {} blocks".format(DERSIG_HEIGHT - 1))
-        self.coinbase_blocks = self.nodes[0].generate(DERSIG_HEIGHT - 1)
+        self.coinbase_txids = [self.nodes[0].getblock(
+            b)['tx'][0] for b in self.nodes[0].generate(DERSIG_HEIGHT - 1)]
         self.nodeaddress = self.nodes[0].getnewaddress()
 
         self.log.info("Test that blocks must now be at least version 3")
@@ -83,7 +75,7 @@ class BIP66Test(BitcoinTestFramework):
             "Test that transactions with non-DER signatures cannot appear in a block")
         block.nVersion = 3
 
-        spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[1],
+        spendtx = create_transaction(self.nodes[0], self.coinbase_txids[1],
                                      self.nodeaddress, 1.0)
         unDERify(spendtx)
         spendtx.rehash()
@@ -120,7 +112,7 @@ class BIP66Test(BitcoinTestFramework):
         self.log.info(
             "Test that a version 3 block with a DERSIG-compliant transaction is accepted")
         block.vtx[1] = create_transaction(self.nodes[0],
-                                          self.coinbase_blocks[1], self.nodeaddress, 1.0)
+                                          self.coinbase_txids[1], self.nodeaddress, 1.0)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()

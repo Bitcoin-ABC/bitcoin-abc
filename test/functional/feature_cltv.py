@@ -8,7 +8,7 @@ Test that the CHECKLOCKTIMEVERIFY soft-fork activates at (regtest) block height
 1351.
 """
 
-from test_framework.blocktools import create_block, create_coinbase, make_conform_to_ctor
+from test_framework.blocktools import create_block, create_coinbase, create_transaction, make_conform_to_ctor
 from test_framework.messages import (
     CTransaction,
     FromHex,
@@ -81,16 +81,6 @@ def cltv_lock_to_height(node, tx, to_address, amount, height=-1):
     return fundtx, spendtx
 
 
-def spend_from_coinbase(node, coinbase, to_address, amount):
-    from_txid = node.getblock(coinbase)['tx'][0]
-    inputs = [{"txid": from_txid, "vout": 0}]
-    outputs = {to_address: amount}
-    rawtx = node.createrawtransaction(inputs, outputs)
-    signresult = node.signrawtransactionwithwallet(rawtx)
-    tx = FromHex(CTransaction(), signresult['hex'])
-    return tx
-
-
 class BIP65Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
@@ -101,14 +91,15 @@ class BIP65Test(BitcoinTestFramework):
         self.nodes[0].add_p2p_connection(P2PInterface())
 
         self.log.info("Mining {} blocks".format(CLTV_HEIGHT - 2))
-        self.coinbase_blocks = self.nodes[0].generate(CLTV_HEIGHT - 2)
+        self.coinbase_txids = [self.nodes[0].getblock(
+            b)['tx'][0] for b in self.nodes[0].generate(CLTV_HEIGHT - 2)]
         self.nodeaddress = self.nodes[0].getnewaddress()
 
         self.log.info(
             "Test that an invalid-according-to-CLTV transaction can still appear in a block")
 
-        fundtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[0],
-                                     self.nodeaddress, 49.99)
+        fundtx = create_transaction(self.nodes[0], self.coinbase_txids[0],
+                                    self.nodeaddress, 49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98)
 
@@ -144,8 +135,8 @@ class BIP65Test(BitcoinTestFramework):
             "Test that invalid-according-to-cltv transactions cannot appear in a block")
         block.nVersion = 4
 
-        fundtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[1],
-                                     self.nodeaddress, 49.99)
+        fundtx = create_transaction(self.nodes[0], self.coinbase_txids[1],
+                                    self.nodeaddress, 49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98)
 
@@ -193,8 +184,8 @@ class BIP65Test(BitcoinTestFramework):
 
         self.log.info(
             "Test that a version 4 block with a valid-according-to-CLTV transaction is accepted")
-        fundtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[2],
-                                     self.nodeaddress, 49.99)
+        fundtx = create_transaction(self.nodes[0], self.coinbase_txids[2],
+                                    self.nodeaddress, 49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98, CLTV_HEIGHT)
 

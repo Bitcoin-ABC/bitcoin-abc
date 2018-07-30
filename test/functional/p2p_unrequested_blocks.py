@@ -56,7 +56,7 @@ import time
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_transaction,
+    create_tx_with_script,
 )
 from test_framework.messages import (
     CBlockHeader,
@@ -279,8 +279,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         block_291 = create_block(
             block_290f.sha256, create_coinbase(291), block_290f.nTime + 1)
         # block_291 spends a coinbase below maturity!
-        block_291.vtx.append(create_transaction(
-            block_290f.vtx[0], 0, b"42", 1))
+        block_291.vtx.append(create_tx_with_script(
+            block_290f.vtx[0], 0, script_sig=b"42", amount=1))
         block_291.hashMerkleRoot = block_291.calc_merkle_root()
         block_291.solve()
         block_292 = create_block(

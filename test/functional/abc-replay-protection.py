@@ -14,7 +14,7 @@ import time
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_transaction,
+    create_tx_with_script,
     make_conform_to_ctor,
 )
 from test_framework.key import CECKey
@@ -152,7 +152,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         def create_fund_and_spend_tx(spend, forkvalue=0):
             # Fund transaction
             script = CScript([public_key, OP_CHECKSIG])
-            txfund = create_transaction(
+            txfund = create_tx_with_script(
                 spend.tx, spend.n, b'', 50 * COIN - 1000, script)
             txfund.rehash()
 

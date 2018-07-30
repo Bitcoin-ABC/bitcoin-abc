@@ -92,17 +92,30 @@ def create_coinbase(height, pubkey=None):
     coinbase.calc_sha256()
     return coinbase
 
-# Create a transaction.
-# If the scriptPubKey is not specified, make it anyone-can-spend.
 
+def create_tx_with_script(prevtx, n, script_sig=b"", amount=1, script_pub_key=CScript()):
+    """Return one-input, one-output transaction object
+       spending the prevtx's n-th output with the given amount.
 
-def create_transaction(prevtx, n, sig, value, scriptPubKey=CScript()):
+       Can optionally pass scriptPubKey and scriptSig, default is anyone-can-spend output.
+    """
     tx = CTransaction()
-    assert n < len(prevtx.vout)
-    tx.vin.append(CTxIn(COutPoint(prevtx.sha256, n), sig, 0xffffffff))
-    tx.vout.append(CTxOut(value, scriptPubKey))
+    assert(n < len(prevtx.vout))
+    tx.vin.append(CTxIn(COutPoint(prevtx.sha256, n), script_sig, 0xffffffff))
+    tx.vout.append(CTxOut(amount, script_pub_key))
     pad_tx(tx)
     tx.calc_sha256()
+    return tx
+
+
+def create_transaction(node, txid, to_address, amount):
+    """ Return signed transaction spending the first output of the
+        input txid. Note that the node must be able to sign for the
+        output that is being spent, and the node must not be running
+        multiple wallets.
+    """
+    raw_tx = create_raw_transaction(node, txid, to_address, amount)
+    tx = FromHex(CTransaction(), raw_tx)
     return tx
 
 
