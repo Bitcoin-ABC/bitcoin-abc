@@ -645,7 +645,7 @@ bool mastercore::isCrowdsaleActive(uint32_t propertyId)
 int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCrowd& crowdsale)
 {
     // consistency check
-    assert(getTotalTokens(crowdsale.getPropertyId())
+    assert(getSaledTokens(crowdsale.getPropertyId())
             == (crowdsale.getIssuerCreated() + crowdsale.getUserCreated()));
 
     arith_uint256 amountMissing = 0;
