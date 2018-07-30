@@ -1213,6 +1213,9 @@ int CMPTransaction::logicMath_BuyToken()
     // values will be incorrect, which is what is checked below.
     uint16_t precision = sp.getPrecision();
 
+    tokens.first = 0;
+    tokens.second = 0;
+
     // Calculate the amounts to credit for this fundraiser
     calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime,sp.rate,
                         getSaledTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
@@ -1246,14 +1249,16 @@ int CMPTransaction::logicMath_BuyToken()
     // Credit tokens for this fundraiser
     if (tokens.first > 0) {
         assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
+        if(money > 0) {
+            assert(update_tally_map(sender, property, -money, BALANCE));
+            assert(update_tally_map(receiver, property, money, BALANCE));
+        }
+        else {
+            return (PKT_ERROR_CROWD -5);
+        }
     }
     if (tokens.second > 0) {
         assert(update_tally_map(receiver, pcrowdsale->getPropertyId(), tokens.second, BALANCE));
-    }
-
-    if(money > 0) {
-        assert(update_tally_map(sender, property, -money, BALANCE));
-        assert(update_tally_map(receiver, property, money, BALANCE));
     }
 
     // Number of tokens has changed, update fee distribution thresholds
