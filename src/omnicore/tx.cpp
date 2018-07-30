@@ -1215,7 +1215,7 @@ int CMPTransaction::logicMath_BuyToken()
 
     // Calculate the amounts to credit for this fundraiser
     calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime,sp.rate,
-                        getTotalTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
+                        getSaledTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
                         tokens.first, close_crowdsale,refund);
 
     if (msc_debug_sp) {
