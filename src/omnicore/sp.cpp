@@ -731,7 +731,33 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 max_creatable =
             ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
 
-    if (created_tokens_int > max_creatable) {
+    if (created_tokens_int <= max_creatable) {
+        purchasedTokens = ConvertTo64(created_tokens_int);
+        closeCrowdsale = false;
+
+        // Refund the part that are not enough for smallest token unit
+        // Note that, there is no bonus for this part
+
+        // The part of token that is smaller than the smallest unit
+        // e.g. for token with precision 1, 0.05 token < 0.1 token
+        arith_uint256 created_tokens_rem =
+                created_tokens - created_tokens_int * precision;
+        // 10**8 C = price token, then token_price = 10**8 / price
+        arith_uint256 token_price =
+                (whc_precision * precision) / ConvertTo256(price);
+
+        arith_uint256 refund_money = token_price * created_tokens_rem;
+        refund_money /= precision;
+        // remove the earlybird bonus from refund_whc
+        // e.g. suppose extra bonus percentage is 0.1,
+        // then tokens buyer gets is enlarged by x1.1
+        // to remove the earlybird bonus, we simply divide the refund by 1.1
+        refund_money /= bonus_percentage;
+        assert(refund_money < token_price / token_precision);
+        refund_money /= token_precision;
+
+        refund = ConvertTo64(refund_money);
+    } else {  // created_tokens_int > max_creatable
         // ratio = created_tokens_int / max_creatable
         arith_uint256 ratio = created_tokens_int * precision;
         ratio *= token_precision;
@@ -746,31 +772,6 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
         closeCrowdsale = true;            // close crowdsale
         refund = ConvertTo64(remainder);  // refund buyer's unspent money
     }
-
-    purchasedTokens = ConvertTo64(created_tokens_int);
-    closeCrowdsale = false;
-
-    // Refund the part that are not enough for smallest token unit
-    // Note that, there is no bonus for this part
-
-    // The part of token that is smaller than the smallest unit
-    // e.g. for token with precision 1, 0.05 token < 0.1 token
-    arith_uint256 created_tokens_rem = created_tokens - created_tokens_int * precision;
-    // 10**8 C = price token, then token_price = 10**8 / price
-    arith_uint256 token_price =
-            (whc_precision * precision) / ConvertTo256(price);
-
-    arith_uint256 refund_money = token_price * created_tokens_rem;
-    refund_money /= precision;
-    // remove the earlybird bonus from refund_whc
-    // e.g. suppose extra bonus percentage is 0.1,
-    // then tokens buyer gets is enlarged by x1.1
-    // to remove the earlybird bonus, we simply divide the refund by 1.1
-    refund_money /= bonus_percentage;
-    assert(refund_money < token_price / token_precision);
-    refund_money /= precision;
-
-    refund = ConvertTo64(refund_money);
 }
 
 // go hunting for whether a simple send is a crowdsale purchase
