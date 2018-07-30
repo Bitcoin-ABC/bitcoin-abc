@@ -284,7 +284,6 @@ void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
 void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
 {
     uint32_t propertyId = omniObj.getProperty();
-    int64_t crowdPropertyId = 0, crowdTokens = 0, issuerTokens = 0;
     LOCK(cs_tally);
     txobj.push_back(Pair("type", "Simple Send"));
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));

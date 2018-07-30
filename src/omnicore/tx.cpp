@@ -72,6 +72,7 @@ std::string mastercore::strTransactionType(uint16_t txType)
         case OMNICORE_MESSAGE_TYPE_DEACTIVATION: return "Feature Deactivation";
         case OMNICORE_MESSAGE_TYPE_ACTIVATION: return "Feature Activation";
         case WHC_TYPE_GET_BASE_PROPERTY:    return "burn BCH to get WHC";
+        case MSC_TYPE_BUY_TOKEN: return "Crowdsale Purchase";
 
         default: return "* unknown type *";
     }
