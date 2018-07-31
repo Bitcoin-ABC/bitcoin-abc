@@ -229,7 +229,6 @@ std::string FormatDivisibleMP(int64_t n, int decimal, bool fSign)
 		case 8: str = strprintf("%d.%08d", quotient, remainder);    break;
 	}
 
-    PrintToLog("%s:quotient : %d, remainder : %d, decimal : %d, result : %s\n", __func__, quotient, remainder, decimal, str);
     if (!fSign) return str;
 
     if (n < 0)

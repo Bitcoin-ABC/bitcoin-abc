@@ -301,6 +301,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 	int64_t amount = ParseAmount(request.params[14], type);
     
 	// perform checks
+    RequireIssuerPercentage(issuerPercentage);
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequireExistingProperty(propertyIdDesired);

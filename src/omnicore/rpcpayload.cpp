@@ -295,8 +295,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
     int64_t amount = ParseAmount(request.params[13], type);
-	
 
+    RequireIssuerPercentage(issuerPercentage);
     RequireCrowsDesireProperty(propertyIdDesired);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);

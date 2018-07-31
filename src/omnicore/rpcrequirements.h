@@ -13,6 +13,7 @@ void RequireExistingProperty(uint32_t propertyId);
 void RequireSameEcosystem(uint32_t propertyId, uint32_t otherId);
 void RequireDifferentIds(uint32_t propertyId, uint32_t otherId);
 void RequireCrowdsale(uint32_t propertyId);
+void RequireIssuerPercentage(uint8_t percentage);
 void RequireCrowsDesireProperty(uint32_t propertyId);
 void RequireActiveCrowdsale(uint32_t propertyId);
 void RequireManagedProperty(uint32_t propertyId);

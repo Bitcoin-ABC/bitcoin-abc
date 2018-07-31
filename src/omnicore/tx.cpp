@@ -514,7 +514,7 @@ bool CMPTransaction::interpret_CreatePropertyFixed()
 /** Tx 51 */
 bool CMPTransaction::interpret_CreatePropertyVariable()
 {
-    if (pkt_size < 39) {
+    if (pkt_size < 47) {
         return false;
     }
     const char* p = 11 + (char*) &pkt;
@@ -548,6 +548,11 @@ bool CMPTransaction::interpret_CreatePropertyVariable()
     memcpy(&percentage, p++, 1);
 	memcpy(&totalCrowsToken, p, 8);
 	swapByteOrder64(totalCrowsToken);
+
+    if(percentage != 0){
+        PrintToLog("%s(): rejected: undefined field must be 0(s)\n", __func__);
+        return false;
+    }
 
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t       ecosystem: %d\n", ecosystem);

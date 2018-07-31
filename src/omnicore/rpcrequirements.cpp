@@ -51,6 +51,13 @@ void RequireCrowsDesireProperty(uint32_t propertyId){
     }
 }
 
+void RequireIssuerPercentage(uint8_t percentage){
+    if (percentage != 0){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "undefiend field must be 0");
+    }
+}
+
+
 void RequirePropertyName(const std::string& name)
 {
     if (name.empty()) {
