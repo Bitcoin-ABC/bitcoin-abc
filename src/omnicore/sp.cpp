@@ -690,7 +690,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
                                      int64_t soldTokens, int64_t totalTokens,
                                      int64_t &purchasedTokens,
                                      bool &closeCrowdsale, int64_t &refund) {
-    // Weeks in seconds
+// Weeks in seconds
     arith_uint256 week_sec = ConvertTo256(604800);
 
     // Precision for all non-bitcoin values (bonus percentages, for example)
@@ -699,15 +699,15 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 percentage_precision = ConvertTo256(100);
     arith_uint256 whc_precision = ConvertTo256(100000000LL);  // 1WHC=10**8C
     static const int64_t decimalArr[9] = {
-            1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+        1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
     assert(tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
 
-    // Calculate the bonusL seconds
+    // Calculate the bonus seconds
     arith_uint256 bonus_seconds = 0;
     if (currentSeconds < closeSeconds) {
         bonus_seconds =
-                ConvertTo256(closeSeconds) - ConvertTo256(currentSeconds);
+            ConvertTo256(closeSeconds) - ConvertTo256(currentSeconds);
     }
     // Calculate the whole number of weeks to apply bonus
     arith_uint256 weeks = (bonus_seconds / week_sec) * precision;
@@ -721,19 +721,18 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     bonus_percentage /= percentage_precision;
 
     // transfer is measured with unit of C while price is measured with WHC
-    // created_tokens = token_precision * transfer * bonus * price
-    arith_uint256 created_tokens = token_precision;
-    created_tokens *= ConvertTo256(transfer);
-    created_tokens *= bonus_percentage;
-    created_tokens *= ConvertTo256(price);
-    created_tokens /= whc_precision;
+    // created_tokens_cal = token_precision * transfer * bonus * price
+    arith_uint256 created_tokens_cal = token_precision;
+    created_tokens_cal *= ConvertTo256(transfer);
+    created_tokens_cal *= bonus_percentage;
+    created_tokens_cal *= ConvertTo256(price);
+    created_tokens_cal /= whc_precision;
 
-
-    arith_uint256 created_tokens_int = created_tokens / precision;
+    arith_uint256 created_tokens_int = created_tokens_cal / precision;
     created_tokens_int = created_tokens_int / whc_precision;
 
     arith_uint256 max_creatable =
-            ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
+        ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
 
     // min_num: the smallest num of tokens that can be sold (worth at least 1C)
     arith_uint256 min_num = ConvertTo256(price);
@@ -760,32 +759,34 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
         arith_uint256 created_tokens_rem = created_tokens_int;
         created_tokens_rem *= precision;
         created_tokens_rem *= whc_precision;
-        created_tokens_rem = created_tokens - created_tokens_rem;
+        created_tokens_rem = created_tokens_cal - created_tokens_rem;
 
         // remove the earlybird bonus from refund_whc
         // e.g. suppose extra bonus percentage is 0.1,
         // then tokens buyer gets is enlarged by x1.1
         // to remove the earlybird bonus, we simply divide the refund by 1.1
         arith_uint256 refund_money = created_tokens_rem;
+        refund_money *= whc_precision;
+        refund_money *= precision;
         refund_money /= bonus_percentage;
         refund_money /= price;
         refund_money /= token_precision;
-
+        refund_money /= precision;
         refund = ConvertTo64(refund_money);
+
     } else {  // created_tokens_int > max_creatable
         purchasedTokens = ConvertTo64(max_creatable);
         closeCrowdsale = true;  // close crowdsale
 
-        // ratio = created_tokens_int / max_creatable
         arith_uint256 ratio = created_tokens_int * precision;
         ratio /= max_creatable;
 
         arith_uint256 spent = ConvertTo256(transfer);
         spent *= precision;
         spent /= ratio;
-        arith_uint256 total = ConvertTo256(transfer);
-        refund = ConvertTo64(total - spent);
+        refund = ConvertTo64(ConvertTo256(transfer) - spent);
     }
+ 
 }
 
 
