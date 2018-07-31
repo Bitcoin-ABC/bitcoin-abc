@@ -726,6 +726,8 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     created_tokens *= ConvertTo256(transfer);
     created_tokens *= bonus_percentage;
     created_tokens *= ConvertTo256(price);
+    created_tokens /= whc_precision;
+
 
     arith_uint256 created_tokens_int = created_tokens / precision;
     created_tokens_int = created_tokens_int / whc_precision;
