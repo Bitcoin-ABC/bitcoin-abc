@@ -30,7 +30,7 @@ static void ResetArgs(ArgsManager &am, const std::string &strArg) {
     }
 
     std::string error;
-    am.ParseParameters(vecChar.size(), vecChar.data(), error);
+    BOOST_CHECK(am.ParseParameters(vecChar.size(), vecChar.data(), error));
 }
 
 static void SetupArgs(ArgsManager &am, const std::vector<std::string> &args) {

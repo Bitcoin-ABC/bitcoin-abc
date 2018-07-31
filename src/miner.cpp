@@ -91,9 +91,9 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
             gArgs.GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }
 
-    if (gArgs.IsArgSet("-blockmintxfee")) {
-        Amount n = Amount::zero();
-        ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n);
+    Amount n = Amount::zero();
+    if (gArgs.IsArgSet("-blockmintxfee") &&
+        ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n)) {
         options.blockMinFeeRate = CFeeRate(n);
     }
 

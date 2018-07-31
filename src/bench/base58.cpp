@@ -35,7 +35,7 @@ static void Base58Decode(benchmark::State &state) {
     const char *addr = "17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem";
     std::vector<uint8_t> vch;
     while (state.KeepRunning()) {
-        DecodeBase58(addr, vch);
+        (void)DecodeBase58(addr, vch);
     }
 }
 

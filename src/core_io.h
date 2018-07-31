@@ -5,6 +5,7 @@
 #ifndef BITCOIN_CORE_IO_H
 #define BITCOIN_CORE_IO_H
 
+#include <attributes.h>
 #include <script/sighashtype.h>
 
 #include <string>
@@ -24,13 +25,14 @@ class UniValue;
 CScript ParseScript(const std::string &s);
 std::string ScriptToAsmStr(const CScript &script,
                            const bool fAttemptSighashDecode = false);
-bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx);
-bool DecodeHexBlk(CBlock &, const std::string &strHexBlk);
+NODISCARD bool DecodeHexTx(CMutableTransaction &tx,
+                           const std::string &strHexTx);
+NODISCARD bool DecodeHexBlk(CBlock &, const std::string &strHexBlk);
 bool DecodeHexBlockHeader(CBlockHeader &, const std::string &hex_header);
 uint256 ParseHashStr(const std::string &, const std::string &strName);
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
-bool DecodePSBT(PartiallySignedTransaction &psbt, const std::string &base64_tx,
-                std::string &error);
+NODISCARD bool DecodePSBT(PartiallySignedTransaction &psbt,
+                          const std::string &base64_tx, std::string &error);
 SigHashType ParseSighashString(const UniValue &sighash);
 
 // core_write.cpp

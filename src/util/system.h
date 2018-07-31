@@ -14,6 +14,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <attributes.h>
 #include <compat.h>
 #include <compat/assumptions.h>
 #include <fs.h>
@@ -162,8 +163,8 @@ public:
      */
     void SelectConfigNetwork(const std::string &network);
 
-    bool ParseParameters(int argc, const char *const argv[],
-                         std::string &error);
+    NODISCARD bool ParseParameters(int argc, const char *const argv[],
+                                   std::string &error);
     bool ReadConfigFiles(std::string &error, bool ignore_invalid_keys = false);
 
     /**

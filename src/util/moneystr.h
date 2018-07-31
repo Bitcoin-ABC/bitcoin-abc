@@ -10,6 +10,7 @@
 #define BITCOIN_UTIL_MONEYSTR_H
 
 #include <amount.h>
+#include <attributes.h>
 
 #include <cstdint>
 #include <string>
@@ -19,7 +20,7 @@
  * JSON but use AmountFromValue and ValueFromAmount for that.
  */
 std::string FormatMoney(const Amount n);
-bool ParseMoney(const std::string &str, Amount &nRet);
-bool ParseMoney(const char *pszIn, Amount &nRet);
+NODISCARD bool ParseMoney(const std::string &str, Amount &nRet);
+NODISCARD bool ParseMoney(const char *pszIn, Amount &nRet);
 
 #endif // BITCOIN_UTIL_MONEYSTR_H
