@@ -101,6 +101,7 @@ The Bitcoin ABC repo's [root README](/README.md) contains relevant information o
 - [Tor Support](tor.md)
 - [Init Scripts (systemd/upstart/openrc)](init.md)
 - [ZMQ](zmq.md)
+- [PSBT support](psbt.md)
 
 License
 ---------------------
