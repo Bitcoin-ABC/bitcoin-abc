@@ -39,6 +39,8 @@ int const MAX_STATE_HISTORY = 50;
 // could probably also use: int64_t maxInt64 = std::numeric_limits<int64_t>::max();
 // maximum numeric values from the spec:
 #define MAX_INT_8_BYTES (9223372036854775807UL)
+#define MAX_TOKENPRICE  10000000000000000
+#define MIN_TOKENPRICE  1
 
 // maximum size of string fields
 #define SP_STRING_FIELD_LEN 256

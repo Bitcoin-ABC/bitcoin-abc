@@ -246,6 +246,18 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_CROWD -1:
           ec_str = "the receive address no have active crowd property";
           break;
+      case PKT_ERROR_CROWD -2:
+          ec_str = "the particiCrowdSale property should be WHC";
+          break;
+      case PKT_ERROR_CROWD -3:
+          ec_str = "the crowdsale sender and issuer have same address";
+          break;
+      case PKT_ERROR_CROWD -4:
+          ec_str = "refund amount should not be negative";
+          break;
+      case PKT_ERROR_CROWD -5:
+          ec_str = "crowdsale failure, participate amount less the Crowd Token minium Pricision";
+          break;
       case METADEX_ERROR -1:
           ec_str = "Unknown MetaDEx (Add) error";
           break;

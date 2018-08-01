@@ -1116,7 +1116,7 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
         std::string txid = it->first.GetHex();
         amountRaised += it->second.at(0);
         participanttx.push_back(Pair("txid", txid));
-        participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), desiredIdType)));
+        participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), PRICE_PRICISION)));
         participanttx.push_back(Pair("participanttokens", FormatByType(it->second.at(2), propertyIdType)));
         std::string sortKey = strprintf("%d-%s", it->second.at(1), txid);
         sortMap.insert(std::make_pair(sortKey, participanttx));
@@ -1132,7 +1132,7 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     response.push_back(Pair("earlybonus", sp.early_bird));
     response.push_back(Pair("starttime", startTime));
     response.push_back(Pair("deadline", sp.deadline));
-    response.push_back(Pair("amountraised", FormatMP(sp.property_desired, amountRaised)));
+    response.push_back(Pair("amountraised", FormatByType(amountRaised, PRICE_PRICISION)));
     response.push_back(Pair("tokensissued", FormatMP(propertyId, tokensIssued)));
     response.push_back(Pair("addedissuertokens", FormatMP(propertyId, sp.missedTokens)));
 

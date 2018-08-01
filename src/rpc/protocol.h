@@ -49,6 +49,8 @@ enum RPCErrorCode {
     RPC_FORBIDDEN_BY_SAFE_MODE = -2,
     //!< Unexpected type was passed as parameter
     RPC_TYPE_ERROR = -3,
+    //!< Token price
+    RPC_TOKEN_PRICE_ERROR = -9,
     //!< Invalid address or key
     RPC_INVALID_ADDRESS_OR_KEY = -5,
     //!< Ran out of memory during operation

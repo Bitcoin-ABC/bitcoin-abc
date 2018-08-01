@@ -57,6 +57,11 @@ void RequireIssuerPercentage(uint8_t percentage){
     }
 }
 
+void RequireTokenPrice(int64_t price){
+    if (price < MIN_TOKENPRICE || price > MAX_TOKENPRICE){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "token price must be [1, 10 ** 16]");
+    }
+}
 
 void RequirePropertyName(const std::string& name)
 {
