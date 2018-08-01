@@ -785,7 +785,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
         arith_uint256 spent = ConvertTo256(transfer);
         spent *= precision;
         spent /= ratio;
-        refund = ConvertTo64(ConvertTo256(transfer) - spent)
+        refund = ConvertTo64(ConvertTo256(transfer) - spent);
     }
 }
 
