@@ -134,7 +134,7 @@ static bool SignStep(const SigningProvider &provider,
         case TX_PUBKEYHASH: {
             CKeyID keyID = CKeyID(uint160(vSolutions[0]));
             CPubKey pubkey;
-            if (!provider.GetPubKey(keyID, pubkey)) {
+            if (!GetPubKey(provider, sigdata, keyID, pubkey)) {
                 // Pubkey could not be found, add to missing
                 sigdata.missing_pubkeys.push_back(keyID);
                 return false;
