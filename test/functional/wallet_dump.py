@@ -74,13 +74,10 @@ class WalletDumpTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [["-keypool=90"]]
+        self.rpc_timewait = 120
 
     def setup_network(self, split=False):
-        # Use 1 minute timeout because the initial getnewaddress RPC can take
-        # longer than the default 30 seconds due to an expensive
-        # CWallet::TopUpKeyPool call, and the encryptwallet RPC made later in
-        # the test often takes even longer.
-        self.add_nodes(self.num_nodes, extra_args=self.extra_args, timewait=60)
+        self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 
     def run_test(self):
