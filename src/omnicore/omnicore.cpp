@@ -108,7 +108,7 @@ static int nWaterlineBlock = 0;
 string burnwhc_address = "";
 string burnwhc_mainnet = "bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqu08dsyxz98whc";
 string burnwhc_testnet = "bchtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqdmwgvnjkt8whc";
-string burnwhc_regnet = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3dyqwlq58whc";
+string burnwhc_regnet = "bchreg:pqqqqqqqqqqqqqqqqqqqqqqqqqqqqp0kvc457r8whc";
 
 //! Available balances of wallet properties
 std::map<uint32_t, int64_t> global_balance_money;
@@ -3989,7 +3989,7 @@ const CTxDestination ExodusCrowdsaleAddress(int nBlock)
 {
 	CChainParams param = GetConfig().GetChainParams();
     if (MONEYMAN_REGTEST_BLOCK <= nBlock && RegTest()) {
-	static CTxDestination moneyAddress = DecodeCashAddr(burnwhc_regnet, param);
+	    static CTxDestination moneyAddress = DecodeCashAddr(burnwhc_regnet, param);
         return moneyAddress;
     }
 

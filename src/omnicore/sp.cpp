@@ -690,7 +690,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
                                      int64_t soldTokens, int64_t totalTokens,
                                      int64_t &purchasedTokens,
                                      bool &closeCrowdsale, int64_t &refund) {
-// Weeks in seconds
+    // Weeks in seconds
     arith_uint256 week_sec = ConvertTo256(604800);
 
     // Precision for all non-bitcoin values (bonus percentages, for example)
@@ -699,7 +699,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 percentage_precision = ConvertTo256(100);
     arith_uint256 whc_precision = ConvertTo256(100000000LL);  // 1WHC=10**8C
     static const int64_t decimalArr[9] = {
-        1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+            1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
     assert(tokenPrecision <= 8);
     arith_uint256 token_precision = ConvertTo256(decimalArr[tokenPrecision]);
 
@@ -707,7 +707,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     arith_uint256 bonus_seconds = 0;
     if (currentSeconds < closeSeconds) {
         bonus_seconds =
-            ConvertTo256(closeSeconds) - ConvertTo256(currentSeconds);
+                ConvertTo256(closeSeconds) - ConvertTo256(currentSeconds);
     }
     // Calculate the whole number of weeks to apply bonus
     arith_uint256 weeks = (bonus_seconds / week_sec) * precision;
@@ -732,12 +732,13 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
     created_tokens_int = created_tokens_int / whc_precision;
 
     arith_uint256 max_creatable =
-        ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
+            ConvertTo256(totalTokens) - ConvertTo256(soldTokens);
 
     // min_num: the smallest num of tokens that can be sold (worth at least 1C)
     arith_uint256 min_num = ConvertTo256(price);
     min_num *= precision;
     min_num *= token_precision;
+    min_num /= whc_precision;
     min_num /= whc_precision;
     if (max_creatable * precision < min_num) {
         // not a single C can be spent in this case
@@ -784,11 +785,9 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
         arith_uint256 spent = ConvertTo256(transfer);
         spent *= precision;
         spent /= ratio;
-        refund = ConvertTo64(ConvertTo256(transfer) - spent);
+        refund = ConvertTo64(ConvertTo256(transfer) - spent)
     }
- 
 }
-
 
 // go hunting for whether a simple send is a crowdsale purchase
 // TODO !!!! horribly inefficient !!!! find a more efficient way to do this
