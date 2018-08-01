@@ -60,6 +60,17 @@ bool PartiallySignedTransaction::AddOutput(const CTxOut &txout,
     return true;
 }
 
+bool PartiallySignedTransaction::GetInputUTXO(CTxOut &utxo,
+                                              int input_index) const {
+    PSBTInput input = inputs[input_index];
+    if (!input.utxo.IsNull()) {
+        utxo = input.utxo;
+    } else {
+        return false;
+    }
+    return true;
+}
+
 bool PSBTInput::IsNull() const {
     return utxo.IsNull() && partial_sigs.empty() && unknown.empty() &&
            hd_keypaths.empty() && redeem_script.empty();
