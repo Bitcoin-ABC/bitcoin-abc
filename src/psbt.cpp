@@ -173,7 +173,8 @@ bool PSBTInputSigned(PSBTInput &input) {
 
 bool SignPSBTInput(const SigningProvider &provider,
                    PartiallySignedTransaction &psbt, int index,
-                   SigHashType sighash) {
+                   SigHashType sighash, SignatureData *out_sigdata,
+                   bool use_dummy) {
     PSBTInput &input = psbt.inputs.at(index);
     const CMutableTransaction &tx = *psbt.tx;
 
@@ -198,11 +199,25 @@ bool SignPSBTInput(const SigningProvider &provider,
     }
 
     utxo = input.utxo;
-    MutableTransactionSignatureCreator creator(&tx, index, utxo.nValue,
-                                               sighash);
-    bool sig_complete =
-        ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
+
+    bool sig_complete{false};
+    if (use_dummy) {
+        sig_complete = ProduceSignature(provider, DUMMY_SIGNATURE_CREATOR,
+                                        utxo.scriptPubKey, sigdata);
+    } else {
+        MutableTransactionSignatureCreator creator(&tx, index, utxo.nValue,
+                                                   sighash);
+        sig_complete =
+            ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
+    }
     input.FromSignatureData(sigdata);
+
+    // Fill in the missing info
+    if (out_sigdata != nullptr) {
+        out_sigdata->missing_pubkeys = sigdata.missing_pubkeys;
+        out_sigdata->missing_sigs = sigdata.missing_sigs;
+        out_sigdata->missing_redeem_script = sigdata.missing_redeem_script;
+    }
 
     return sig_complete;
 }

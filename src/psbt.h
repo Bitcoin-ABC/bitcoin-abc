@@ -490,7 +490,9 @@ bool PSBTInputSigned(PSBTInput &input);
  */
 bool SignPSBTInput(const SigningProvider &provider,
                    PartiallySignedTransaction &psbt, int index,
-                   SigHashType sighash = SigHashType());
+                   SigHashType sighash = SigHashType(),
+                   SignatureData *out_sigdata = nullptr,
+                   bool use_dummy = false);
 
 /**
  * Finalizes a PSBT if possible, combining partial signatures.

@@ -131,6 +131,12 @@ struct SignatureData {
     /// signatures necessary for producing a final scriptSig.
     std::map<CKeyID, SigPair> signatures;
     std::map<CKeyID, std::pair<CPubKey, KeyOriginInfo>> misc_pubkeys;
+    /// KeyIDs of pubkeys which could not be found
+    std::vector<CKeyID> missing_pubkeys;
+    /// KeyIDs of pubkeys for signatures which could not be found
+    std::vector<CKeyID> missing_sigs;
+    /// ScriptID of the missing redeemScript (if any)
+    uint160 missing_redeem_script;
 
     SignatureData() {}
     explicit SignatureData(const CScript &script) : scriptSig(script) {}

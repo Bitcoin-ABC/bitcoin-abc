@@ -96,6 +96,8 @@ static bool CreateSig(const BaseSignatureCreator &creator,
         assert(i.second);
         return true;
     }
+    // Could not make signature or signature not found, add keyid to missing
+    sigdata.missing_sigs.push_back(keyid);
     return false;
 }
 
@@ -133,6 +135,8 @@ static bool SignStep(const SigningProvider &provider,
             CKeyID keyID = CKeyID(uint160(vSolutions[0]));
             CPubKey pubkey;
             if (!provider.GetPubKey(keyID, pubkey)) {
+                // Pubkey could not be found, add to missing
+                sigdata.missing_pubkeys.push_back(keyID);
                 return false;
             }
             if (!CreateSig(creator, sigdata, provider, sig, pubkey,
@@ -144,12 +148,14 @@ static bool SignStep(const SigningProvider &provider,
             return true;
         }
         case TX_SCRIPTHASH:
-            if (GetCScript(provider, sigdata, uint160(vSolutions[0]),
-                           scriptRet)) {
+            h160 = uint160(vSolutions[0]);
+            if (GetCScript(provider, sigdata, h160, scriptRet)) {
                 ret.push_back(
                     std::vector<uint8_t>(scriptRet.begin(), scriptRet.end()));
                 return true;
             }
+            // Could not find redeemScript, add to missing
+            sigdata.missing_redeem_script = h160;
             return false;
         case TX_MULTISIG: {
             size_t required = vSolutions.front()[0];
