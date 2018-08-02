@@ -473,7 +473,7 @@ void SetupServerArgs() {
                   "This mode is incompatible with -txindex and -rescan. "
                   "Warning: Reverting this setting requires re-downloading the "
                   "entire blockchain. (default: 0 = disable pruning blocks, 1 "
-                  "= allow manual pruning via RPC, >%u = automatically prune "
+                  "= allow manual pruning via RPC, >=%u = automatically prune "
                   "block files to stay under the specified target size in MiB)",
                   MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024),
         false, OptionsCategory::OPTIONS);
