@@ -1726,7 +1726,7 @@ UniValue whc_listtransactions(const Config &config, const JSONRPCRequest &reques
             "2. count                (number, optional) show at most n transactions (default: 10)\n"
             "3. skip                 (number, optional) skip the first n transactions (default: 0)\n"
             "4. startblock           (number, optional) first block to begin the search (default: 0)\n"
-            "5. endblock             (number, optional) last block to include in the search (default: 999999)\n"
+            "5. endblock             (number, optional) last block to include in the search (default: 9999999)\n"
             "\nResult:\n"
             "[                                 (array of JSON objects)\n"
             "  {\n"
@@ -1764,7 +1764,7 @@ UniValue whc_listtransactions(const Config &config, const JSONRPCRequest &reques
     int64_t nStartBlock = 0;
     if (request.params.size() > 3) nStartBlock = request.params[3].get_int64();
     if (nStartBlock < 0) throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative start block");
-    int64_t nEndBlock = 999999;
+    int64_t nEndBlock = 9999999;
     if (request.params.size() > 4) nEndBlock = request.params[4].get_int64();
     if (nEndBlock < 0) throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative end block");
 
