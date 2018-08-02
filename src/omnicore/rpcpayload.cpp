@@ -195,9 +195,13 @@ UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &reques
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+    int64_t amount;
+    if (propertyId == OMNI_PROPERTY_WHC){
+        amount = ParseAmount(request.params[1], PRICE_PRICISION);
+    } else{
+        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+    }
     uint32_t distributionPropertyId = (request.params.size() > 2) ? ParsePropertyId(request.params[2]) : propertyId;
-
     std::vector<unsigned char> payload = CreatePayload_SendToOwners(propertyId, amount, distributionPropertyId);
 
     return HexStr(payload.begin(), payload.end());

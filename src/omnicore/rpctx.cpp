@@ -162,16 +162,17 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-	int mtype;
-    if (propertyId == OMNI_PROPERTY_WHC)    mtype = PRICE_PRICISION;
-    else    mtype = getPropertyType(propertyId);
-	RequirePropertyType(mtype);
-    int64_t amount = ParseAmount(request.params[3], mtype);
+    RequireExistingProperty(propertyId);
+    int64_t amount;
+    if (propertyId == OMNI_PROPERTY_WHC) {
+        amount = ParseAmount(request.params[3], PRICE_PRICISION);
+    } else {
+        amount = ParseAmount(request.params[3], getPropertyType(propertyId));
+    }
     std::string redeemAddress = (request.params.size() > 4 && !ParseText(request.params[4]).empty()) ? ParseAddress(request.params[4]): "";
     int64_t referenceAmount = (request.params.size() > 5) ? ParseAmount(request.params[5], true): 0;
 
     // perform checks
-    RequireExistingProperty(propertyId);
     RequireBalance(fromAddress, propertyId, amount);
     RequireSaneReferenceAmount(referenceAmount);
 
@@ -476,16 +477,20 @@ UniValue whc_sendsto(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 3 \"5000\"")
-            + HelpExampleRpc("whc_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\", \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\", 3, \"5000\"")
+            + HelpExampleCli("whc_sendsto", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\",  3 \"5000\"")
+            + HelpExampleRpc("whc_sendsto", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\",  3, \"5000\"")
         );
 
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     uint32_t propertyId = ParsePropertyId(request.params[1]);
-	int mtype = getPropertyType(propertyId);
-	RequirePropertyType(mtype);
-    int64_t amount = ParseAmount(request.params[2], mtype);
+    RequireExistingProperty(propertyId);
+    int64_t amount;
+    if (propertyId == OMNI_PROPERTY_WHC){
+        amount = ParseAmount(request.params[2], PRICE_PRICISION);
+    } else{
+        amount = ParseAmount(request.params[2], getPropertyType(propertyId));
+    }
     std::string redeemAddress = (request.params.size() > 3 && !ParseText(request.params[3]).empty()) ? ParseAddress(request.params[3]): "";
     uint32_t distributionPropertyId = (request.params.size() > 4) ? ParsePropertyId(request.params[4]) : propertyId;
 
@@ -532,8 +537,8 @@ UniValue whc_sendgrant(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"7000\"")
-            + HelpExampleRpc("whc_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"7000\"")
+            + HelpExampleCli("whc_sendgrant", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\" \"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\" 51 \"7000\"")
+            + HelpExampleRpc("whc_sendgrant", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\", \"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 51, \"7000\"")
         );
 
     // obtain parameters & info
@@ -588,8 +593,8 @@ UniValue whc_sendrevoke(const Config &config,const JSONRPCRequest &request)
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"100\"")
-            + HelpExampleRpc("whc_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\", \"\", 51, \"100\"")
+            + HelpExampleCli("whc_sendrevoke", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 51 \"100\"")
+            + HelpExampleRpc("whc_sendrevoke", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 51, \"100\"")
         );
 
     // obtain parameters & info
@@ -642,8 +647,8 @@ UniValue whc_sendclosecrowdsale(const Config &config,const JSONRPCRequest &reque
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 70")
-            + HelpExampleRpc("whc_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\", 70")
+            + HelpExampleCli("whc_sendclosecrowdsale", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\" 70")
+            + HelpExampleRpc("whc_sendclosecrowdsale", "\"qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn\", 70")
         );
 
     // obtain parameters & info

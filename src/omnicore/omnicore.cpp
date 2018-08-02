@@ -3965,13 +3965,17 @@ int mastercore_handler_disc_end(int nBlockNow, CBlockIndex const * pBlockIndex)
 const CTxDestination ExodusAddress()
 {
 	CChainParams param = GetConfig().GetChainParams();
-    if (isNonMainNet()) {
- 	static CTxDestination testAddress = DecodeCashAddr(burnwhc_testnet, param);
-        return testAddress;
-    } else {
-	static CTxDestination mainAddress = DecodeCashAddr(burnwhc_mainnet, param);
+    if (MainNet()) {
+ 	    static CTxDestination mainAddress = DecodeCashAddr(burnwhc_mainnet , param);
         return mainAddress;
+    } else if(TestNet()){
+	    static CTxDestination testAddress = DecodeCashAddr(burnwhc_testnet, param);
+        return testAddress;
+    } else if(RegTest()){
+        static CTxDestination regAddress = DecodeCashAddr(burnwhc_regnet, param);
+        return regAddress;
     }
+    return CNoDestination();
 }
 
 /**
