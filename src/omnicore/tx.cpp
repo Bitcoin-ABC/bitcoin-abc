@@ -1245,7 +1245,7 @@ int CMPTransaction::logicMath_BuyToken()
     pcrowdsale->incTokensIssuerCreated(tokens.second);
 
     // Data to pass to txFundraiserData
-    int64_t txdata[] = {(int64_t) nValue, blockTime, tokens.first, tokens.second};
+    int64_t txdata[] = {(int64_t)money, blockTime, tokens.first, tokens.second};
     std::vector<int64_t> txDataVec(txdata, txdata + sizeof(txdata) / sizeof(txdata[0]));
 
     // Insert data about crowdsale participation
