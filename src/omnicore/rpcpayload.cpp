@@ -18,7 +18,7 @@ using namespace mastercore;
 UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCRequest &request){
    if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "whc_createpayload_particrwosale propertyid \"amount\"\n"
+            "whc_createpayload_particrwosale \"amount\"\n"
 
             "\nCreate the payload for a participate crowsale transaction.\n"
 
@@ -62,12 +62,12 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int mtype;
-    if (propertyId == OMNI_PROPERTY_WHC)    mtype = PRICE_PRICISION;
-    else    mtype = getPropertyType(propertyId);
-    RequirePropertyType(mtype);
-    int64_t amount = ParseAmount(request.params[1], mtype);
-
+    int64_t amount;
+    if (propertyId == OMNI_PROPERTY_WHC) {
+        amount = ParseAmount(request.params[1], PRICE_PRICISION);
+    } else{
+        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
+    }
     std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
 
     return HexStr(payload.begin(), payload.end());
@@ -217,7 +217,7 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -263,7 +263,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -274,8 +274,8 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "10. tokensperunit       (string, required) the amount of tokens granted per unit invested in the crowdsale\n"
             "11. deadline            (number, required) the deadline of the crowdsale as Unix timestamp\n"
             "12. earlybonus          (number, required) an early bird bonus for participants in percent per week\n"
-            "13. Undefine 	(number, required) the value must be 0\n"
-		"14. amount               (string, required) the number of tokens to create\n"
+            "13. Undefine 	         (number, required) the value must be 0\n"
+		    "14. totalNumber         (string, required) the number of tokens to create\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
@@ -323,7 +323,7 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. type                 (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -377,7 +377,6 @@ UniValue whc_createpayload_closecrowdsale(const Config &config,const JSONRPCRequ
         );
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
-
     // checks bypassed because someone may wish to prepare the payload to close a crowdsale creation not yet broadcast
 
     std::vector<unsigned char> payload = CreatePayload_CloseCrowdsale(propertyId);
