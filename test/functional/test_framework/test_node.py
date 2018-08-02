@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.parse
 
 from .authproxy import JSONRPCException
 from .messages import COIN, CTransaction, FromHex
@@ -248,7 +249,7 @@ class TestNode():
                 "Error: RPC not initialized")
             assert self.rpc_connected, self._node_msg(
                 "Error: RPC not connected")
-            wallet_path = "wallet/{}".format(wallet_name)
+            wallet_path = "wallet/{}".format(urllib.parse.quote(wallet_name))
             return self.rpc / wallet_path
 
     def stop_node(self, expected_stderr='', wait=0):
