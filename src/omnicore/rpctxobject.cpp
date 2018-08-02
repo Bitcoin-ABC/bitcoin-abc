@@ -300,7 +300,11 @@ void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool 
     uint32_t propertyId = omniObj.getProperty();
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
-    txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+    if (propertyId == OMNI_PROPERTY_WHC){
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
+    } else {
+        txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+    }
     if (extendedDetails) populateRPCExtendedTypeSendToOwners(omniObj.getHash(), extendedDetailsFilter, txobj, omniObj.getVersion());
 }
 
