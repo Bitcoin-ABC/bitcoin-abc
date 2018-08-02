@@ -1500,7 +1500,7 @@ public:
     /**
      * Check if a certain wallet flag is set.
      */
-    bool IsWalletFlagSet(uint64_t flag);
+    bool IsWalletFlagSet(uint64_t flag) const;
 
     /**
      * Overwrite all flags by the given uint64_t.

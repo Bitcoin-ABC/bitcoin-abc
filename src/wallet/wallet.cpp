@@ -1694,7 +1694,7 @@ void CWallet::UnsetWalletFlag(uint64_t flag) {
     }
 }
 
-bool CWallet::IsWalletFlagSet(uint64_t flag) {
+bool CWallet::IsWalletFlagSet(uint64_t flag) const {
     return (m_wallet_flags & flag);
 }
 
