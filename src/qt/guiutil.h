@@ -10,6 +10,7 @@
 
 #include <QEvent>
 #include <QHeaderView>
+#include <QItemDelegate>
 #include <QLabel>
 #include <QMessageBox>
 #include <QObject>
@@ -265,6 +266,17 @@ protected:
 
 typedef ClickableProgressBar ProgressBar;
 
+class ItemDelegate : public QItemDelegate {
+    Q_OBJECT
+public:
+    ItemDelegate(QObject *parent) : QItemDelegate(parent) {}
+
+Q_SIGNALS:
+    void keyEscapePressed();
+
+private:
+    bool eventFilter(QObject *object, QEvent *event);
+};
 } // namespace GUIUtil
 
 #endif // BITCOIN_QT_GUIUTIL_H
