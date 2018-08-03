@@ -205,7 +205,7 @@ def main():
     logging.info("Starting {}".format(args.testsuitename))
 
     # Create base test directory
-    tmpdir = os.path.join("{}", "bitcoin_test_runner_{:%Y%m%d_%H%M%S}").format(
+    tmpdir = os.path.join("{}", "test_runner_₿_🏃_{:%Y%m%d_%H%M%S}").format(
         args.tmpdirprefix, datetime.datetime.now())
     os.makedirs(tmpdir)
 
