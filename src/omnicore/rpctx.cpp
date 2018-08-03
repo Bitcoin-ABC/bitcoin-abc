@@ -874,7 +874,7 @@ static const CRPCCommand commands[] =
     { "omni layer (transaction creation)", "whc_sendclosecrowdsale",      &whc_sendclosecrowdsale,      false, {} },
     { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
     { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
-    { "omni layer (transaction creation)", "whc_particrowsale",                 &whc_particrowsale,                 false, {} },
+    { "omni layer (transaction creation)", "whc_particrowsale",           &whc_particrowsale,           false, {} },
 	/* depreciated: */
     { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx,               false, {} },
     { "hidden",                            "send_MP",                      &whc_send,                    false, {} },

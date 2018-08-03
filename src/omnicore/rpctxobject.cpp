@@ -272,7 +272,7 @@ void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
         txobj.push_back(Pair("type", "Crowdsale Purchase"));
         txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
         txobj.push_back(Pair("precision", getprecision(propertyId)));
-        txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
         txobj.push_back(Pair("purchasedpropertyid", crowdPropertyId));
         txobj.push_back(Pair("purchasedpropertyname", sp.name));
         txobj.push_back(Pair("purchasedpropertyprecision", getprecision(crowdPropertyId)));

@@ -2306,6 +2306,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getfeedistribution",        &omni_getfeedistribution,         false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
+    { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,            false , {}},
 #ifdef ENABLE_WALLET
     { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
     { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
@@ -2329,7 +2330,6 @@ static const CRPCCommand commands[] =
 //    { "hidden",                      "gettrade_MP",                    &omni_gettrade,                   false , {}},
     { "hidden",                      "gettransaction_MP",              &whc_gettransaction,             false , {}},
     { "hidden",                      "listblocktransactions_MP",       &whc_listblocktransactions,      false , {}},
-    { "hidden",                      "whc_getactivecrowd",              &whc_getactivecrowd,            false , {}},
 #ifdef ENABLE_WALLET
     { "hidden",                      "listtransactions_MP",            &whc_listtransactions,           false , {}},
 #endif
