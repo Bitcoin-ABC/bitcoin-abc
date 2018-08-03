@@ -190,8 +190,8 @@ class TestNode():
             self.default_args = [def_arg for def_arg in self.default_args
                                  if rm_arg != def_arg and not def_arg.startswith(rm_arg + '=')]
 
-    def start(self, extra_args=None, stdout=None,
-              stderr=None, *args, **kwargs):
+    def start(self, extra_args=None, *, stdout=None,
+              stderr=None, **kwargs):
         """Start the node."""
         if extra_args is None:
             extra_args = self.extra_args
@@ -223,7 +223,6 @@ class TestNode():
             env=subp_env,
             stdout=stdout,
             stderr=stderr,
-            *args,
             **kwargs)
 
         self.running = True
@@ -298,6 +297,9 @@ class TestNode():
         if stderr != expected_stderr:
             raise AssertionError(
                 "Unexpected stderr {} != {}".format(stderr, expected_stderr))
+
+        self.stdout.close()
+        self.stderr.close()
 
         del self.p2ps[:]
 

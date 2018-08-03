@@ -4,13 +4,14 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test multiple RPC users."""
 
+import configparser
 import http.client
 import os
-import urllib.parse
-import subprocess
 from random import SystemRandom
 import string
-import configparser
+import subprocess
+import sys
+import urllib.parse
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -37,7 +38,7 @@ class HTTPBasicsTest(BitcoinTestFramework):
         config = configparser.ConfigParser()
         config.read_file(open(self.options.configfile, encoding='utf-8'))
         gen_rpcauth = config['environment']['RPCAUTH']
-        p = subprocess.Popen([gen_rpcauth, self.user],
+        p = subprocess.Popen([sys.executable, gen_rpcauth, self.user],
                              stdout=subprocess.PIPE, universal_newlines=True)
         lines = p.stdout.read().splitlines()
         rpcauth3 = lines[1]
