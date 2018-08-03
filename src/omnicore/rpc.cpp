@@ -372,8 +372,8 @@ UniValue whc_getfeeshare(const Config &config, const JSONRPCRequest &request)
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("whc_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("whc_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("whc_getfeeshare", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\" 1")
+            + HelpExampleRpc("whc_getfeeshare", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\", 1")
         );
 
     std::string address;
@@ -771,8 +771,8 @@ UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
             "  \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("whc_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("whc_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("whc_getbalance", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\" 1")
+            + HelpExampleRpc("whc_getbalance", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\", 1")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -861,8 +861,8 @@ UniValue whc_getallbalancesforaddress(const Config &config, const JSONRPCRequest
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("whc_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
-            + HelpExampleRpc("whc_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+            + HelpExampleCli("whc_getallbalancesforaddress", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\"")
+            + HelpExampleRpc("whc_getallbalancesforaddress", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\"")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -953,6 +953,59 @@ UniValue whc_getproperty(const Config &config, const JSONRPCRequest &request)
     return response;
 }
 
+UniValue whc_getactivecrowd(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_getactivecrowd address\n"
+                        "\nReturns details for about the active crowd with special address.\n"
+                        "\nArguments:\n"
+                        "1. address           (number, required) the special address\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "  \"propertyid\" : n,                (number) the identifier\n"
+                        "  \"name\" : \"name\",                 (string) the name of the tokens\n"
+                        "  \"category\" : \"category\",         (string) the category used for the tokens\n"
+                        "  \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
+                        "  \"data\" : \"information\",          (string) additional information or a description\n"
+                        "  \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
+                        "  \"property pricision\" : [0, 8],        (boolean) whether the tokens are divisible\n"
+                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                        "  \"totaltokens\" : \"n.nnnnnnnn\"     (string) the total number of tokens in existence\n"
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_getactivecrowd", "qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn")
+                + HelpExampleRpc("whc_getactivecrowd", "qrutdtt3mwcutj8dusjkt9y75x0m07mukvs8v8g4tn")
+        );
+
+    std::string address = ParseAddress(request.params[0]);
+
+    UniValue response(UniValue::VOBJ);
+    CMPCrowd* find = getCrowd(address);
+    if (find == NULL){
+        response.push_back("");
+    }
+    uint32_t propertyId = find->getPropertyId();
+    CMPSPInfo::Entry sp;
+    {
+        LOCK(cs_tally);
+        if (!_my_sps->getSP(propertyId, sp)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
+        }
+    }
+    int64_t nTotalTokens = getTotalTokens(propertyId);
+    std::string strCreationHash = sp.txid.GetHex();
+    std::string strTotalTokens = FormatMP(propertyId, nTotalTokens);
+    response.push_back(Pair("propertyid", (uint64_t) propertyId));
+    PropertyToJSON(sp, response); // name, category, subcategory, data, url, divisible
+    response.push_back(Pair("issuer", sp.issuer));
+    response.push_back(Pair("creationtxid", strCreationHash));
+    response.push_back(Pair("totaltokens", strTotalTokens));
+
+    return response;
+}
+
 UniValue whc_listproperties(const Config &config, const JSONRPCRequest &request)
 {
     if (request.fHelp)
@@ -968,7 +1021,7 @@ UniValue whc_listproperties(const Config &config, const JSONRPCRequest &request)
             "    \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
             "    \"data\" : \"information\",          (string) additional information or a description\n"
             "    \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
-            "    \"divisible\" : true|false         (boolean) whether the tokens are divisible\n"
+            "    \"property pricision\" : [0, 8]      (int)  the property pricision \n"
             "  },\n"
             "  ...\n"
             "]\n"
@@ -2275,6 +2328,7 @@ static const CRPCCommand commands[] =
 //    { "hidden",                      "gettrade_MP",                    &omni_gettrade,                   false , {}},
     { "hidden",                      "gettransaction_MP",              &whc_gettransaction,             false , {}},
     { "hidden",                      "listblocktransactions_MP",       &whc_listblocktransactions,      false , {}},
+    { "hidden",                      "whc_getactivecrowd",              &whc_getactivecrowd,            false , {}},
 #ifdef ENABLE_WALLET
     { "hidden",                      "listtransactions_MP",            &whc_listtransactions,           false , {}},
 #endif
