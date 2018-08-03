@@ -985,6 +985,7 @@ UniValue whc_getactivecrowd(const Config &config, const JSONRPCRequest &request)
     CMPCrowd* find = getCrowd(address);
     if (find == NULL){
         response.push_back("");
+        return response;
     }
     uint32_t propertyId = find->getPropertyId();
     CMPSPInfo::Entry sp;
