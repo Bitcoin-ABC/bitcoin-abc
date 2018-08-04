@@ -3813,14 +3813,14 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 }
 
 //change_101 add distribute WHC to burner.
-static void DistributeWHCToBurner(){
+static void DistributeWHCToBurner(int nblockNow){
     int maxHeight = 1;
     if (MainNet()){
-        maxHeight = chainActive.Height() - DISTRIBUTEHEIGHT;
+        maxHeight = nblockNow - DISTRIBUTEHEIGHT;
     } else if(TestNet()){
-        maxHeight = chainActive.Height() - DISTRIBUTEHEIGHTTEST;
+        maxHeight = nblockNow - DISTRIBUTEHEIGHTTEST;
     } else if (RegTest()){
-        maxHeight = chainActive.Height() - DISTRIBUTEHEIGHTREGTEST;
+        maxHeight = nblockNow - DISTRIBUTEHEIGHTREGTEST;
     }
 	maxHeight +=1;
 	
@@ -3900,7 +3900,7 @@ int mastercore_handler_block_end(int nBlockNow, CBlockIndex const * pBlockIndex,
 
     // when the current tip height is greater than the burning height reach 100,
     // distribute  corresponding WHC property to burn BCH person.
-    DistributeWHCToBurner();
+    DistributeWHCToBurner(nBlockNow);
 
     // check that pending transactions are still in the mempool
     PendingCheck();
