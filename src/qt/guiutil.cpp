@@ -410,7 +410,7 @@ bool openBitcoinConf() {
         GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
 
     /* Create the file */
-    fs::ofstream configFile(pathConfig, std::ios_base::app);
+    fsbridge::ofstream configFile(pathConfig, std::ios_base::app);
 
     if (!configFile.good()) {
         return false;
@@ -674,7 +674,7 @@ static fs::path GetAutostartFilePath() {
 }
 
 bool GetStartOnSystemStartup() {
-    fs::ifstream optionFile(GetAutostartFilePath());
+    fsbridge::ifstream optionFile(GetAutostartFilePath());
     if (!optionFile.good()) {
         return false;
     }
@@ -706,8 +706,8 @@ bool SetStartOnSystemStartup(bool fAutoStart) {
 
         fs::create_directories(GetAutostartDir());
 
-        fs::ofstream optionFile(GetAutostartFilePath(),
-                                std::ios_base::out | std::ios_base::trunc);
+        fsbridge::ofstream optionFile(
+            GetAutostartFilePath(), std::ios_base::out | std::ios_base::trunc);
         if (!optionFile.good()) {
             return false;
         }

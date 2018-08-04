@@ -13,7 +13,6 @@
 #include <version.h>
 
 #include <cstdint>
-#include <fstream>
 
 /**
  * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility, but
@@ -85,9 +84,9 @@ bool GenerateAuthCookie(std::string *cookie_out) {
     /** the umask determines what permissions are used to create this file -
      * these are set to 077 in init.cpp unless overridden with -sysperms.
      */
-    std::ofstream file;
+    fsbridge::ofstream file;
     fs::path filepath_tmp = GetAuthCookieFile(true);
-    file.open(filepath_tmp.string().c_str());
+    file.open(filepath_tmp);
     if (!file.is_open()) {
         LogPrintf("Unable to open cookie authentication file %s for writing\n",
                   filepath_tmp.string());
@@ -111,10 +110,10 @@ bool GenerateAuthCookie(std::string *cookie_out) {
 }
 
 bool GetAuthCookie(std::string *cookie_out) {
-    std::ifstream file;
+    fsbridge::ifstream file;
     std::string cookie;
     fs::path filepath = GetAuthCookieFile();
-    file.open(filepath.string().c_str());
+    file.open(filepath);
     if (!file.is_open()) {
         return false;
     }

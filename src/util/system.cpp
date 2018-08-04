@@ -963,7 +963,7 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
     }
 
     const std::string confPath = GetArg("-conf", BITCOIN_CONF_FILENAME);
-    fs::ifstream stream(GetConfigFile(confPath));
+    fsbridge::ifstream stream(GetConfigFile(confPath));
 
     // ok to not have a config file
     if (stream.good()) {
@@ -1001,7 +1001,7 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
             }
 
             for (const std::string &to_include : includeconf) {
-                fs::ifstream include_config(GetConfigFile(to_include));
+                fsbridge::ifstream include_config(GetConfigFile(to_include));
                 if (include_config.good()) {
                     if (!ReadConfigStream(include_config, error,
                                           ignore_invalid_keys)) {

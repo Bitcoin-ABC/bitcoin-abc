@@ -36,7 +36,7 @@ static bool IsBerkeleyBtree(const fs::path &path) {
         return false;
     }
 
-    fs::ifstream file(path.string(), std::ios::binary);
+    fsbridge::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
         return false;
     }
