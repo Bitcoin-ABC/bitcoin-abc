@@ -627,6 +627,10 @@ static void MigrateSettings() {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef WIN32
+    util::WinCmdLineArgs winArgs;
+    std::tie(argc, argv) = winArgs.get();
+#endif
     SetupEnvironment();
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
