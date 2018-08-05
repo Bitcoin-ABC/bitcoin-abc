@@ -595,6 +595,11 @@ bool IsMagneticAnomalyEnabled(const Config &config,
     return IsMagneticAnomalyEnabled(config, pindexPrev->GetMedianTimePast());
 }
 
+static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {
+    AssertLockHeld(cs_main);
+    return IsMagneticAnomalyEnabled(config, chainActive.Tip());
+}
+
 static bool IsReplayProtectionEnabled(const Config &config,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
@@ -970,6 +975,10 @@ static bool AcceptToMemoryPoolWorker(
         uint32_t extraFlags = SCRIPT_VERIFY_NONE;
         if (IsReplayProtectionEnabledForCurrentBlock(config)) {
             extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+        }
+
+        if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
+            extraFlags |= SCRIPT_ENABLE_CHECKDATASIG;
         }
 
         // Check inputs based on the set of flags we activate.
@@ -1916,7 +1925,11 @@ static uint32_t GetBlockScriptFlags(const Config &config,
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
 
+    // When the magnetic anomaly fork is enabled, we start accepting
+    // transactions using the OP_CHECKDATASIG opcode and it's verify
+    // alternative. We also start enforcing push only signatures.
     if (IsMagneticAnomalyEnabled(config, pChainTip)) {
+        flags |= SCRIPT_ENABLE_CHECKDATASIG;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
     }
 
@@ -2566,8 +2579,14 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // remove transactions that are replay protected from the mempool. There is
     // no easy way to do this so we'll just discard the whole mempool and then
     // add the transaction of the block we just disconnected back.
-    if (IsReplayProtectionEnabled(config, pindexDelete) &&
-        !IsReplayProtectionEnabled(config, pindexDelete->pprev)) {
+    //
+    // If we are deactivating Magnetic anomaly, we want to make sure we do not
+    // have transactions in the mempool that use newly introduced opcodes. As a
+    // result, we also cleanup the mempool.
+    if ((IsReplayProtectionEnabled(config, pindexDelete) &&
+         !IsReplayProtectionEnabled(config, pindexDelete->pprev)) ||
+        (IsMagneticAnomalyEnabled(config, pindexDelete) &&
+         !IsMagneticAnomalyEnabled(config, pindexDelete->pprev))) {
         LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
 
         mempool.clear();
