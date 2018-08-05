@@ -485,7 +485,7 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         crowdsale = 1;
     }
 
-    if (property.manual || n_owners_total) {
+    if (property.manual || n_owners_total || propertyId == OMNI_PROPERTY_WHC) {
         for (std::unordered_map<std::string, CMPTally>::const_iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
             const CMPTally& tally = it->second;
 

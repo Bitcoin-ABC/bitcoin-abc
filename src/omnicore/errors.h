@@ -341,6 +341,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_TOKENS -43:
           ec_str = "Sender is not the issuer of the property";
           break;
+      case PKT_ERROR_TOKENS -44:
+          ec_str = "value out of range ";
+          break
       case PKT_ERROR_TOKENS -45:
           ec_str = "Receiver is empty";
           break;

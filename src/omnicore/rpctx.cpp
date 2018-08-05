@@ -545,15 +545,14 @@ UniValue whc_sendgrant(const Config &config,const JSONRPCRequest &request)
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = !ParseText(request.params[1]).empty() ? ParseAddress(request.params[1]): "";
     uint32_t propertyId = ParsePropertyId(request.params[2]);
-	int mtype = getPropertyType(propertyId);
-	RequirePropertyType(mtype);
-    int64_t amount = ParseAmount(request.params[3], mtype);
-    std::string memo = (request.params.size() > 4) ? ParseText(request.params[4]): "";
-
     // perform checks
     RequireExistingProperty(propertyId);
     RequireManagedProperty(propertyId);
     RequireTokenIssuer(fromAddress, propertyId);
+    int mtype = getPropertyType(propertyId);
+	RequirePropertyType(mtype);
+    int64_t amount = ParseAmount(request.params[3], mtype);
+    std::string memo = (request.params.size() > 4) ? ParseText(request.params[4]): "";
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_Grant(propertyId, amount, memo);
