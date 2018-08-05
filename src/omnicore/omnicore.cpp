@@ -503,7 +503,7 @@ int64_t mastercore::getTotalTokens(uint32_t propertyId, int64_t* n_owners_total)
         totalTokens += cachedFee;
     }
 
-    if (property.fixed || crowdsale) {
+    if ((property.fixed || crowdsale) && propertyId != OMNI_PROPERTY_WHC) {
         totalTokens = property.num_tokens; // only valid for TX50
     }
 

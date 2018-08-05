@@ -934,7 +934,9 @@ UniValue whc_getproperty(const Config &config, const JSONRPCRequest &request)
     }
     int64_t nTotalTokens = getTotalTokens(propertyId);
     std::string strCreationHash = sp.txid.GetHex();
-    std::string strTotalTokens = FormatMP(propertyId, nTotalTokens);
+    std::string strTotalTokens;
+    if (propertyId == OMNI_PROPERTY_WHC)    strTotalTokens = FormatDivisibleMP(nTotalTokens, PRICE_PRICISION);
+    else    strTotalTokens = FormatMP(propertyId, nTotalTokens);
 
     UniValue response(UniValue::VOBJ);
     response.push_back(Pair("propertyid", (uint64_t) propertyId));
