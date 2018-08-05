@@ -343,7 +343,7 @@ inline std::string error_str(int ec) {
           break;
       case PKT_ERROR_TOKENS -44:
           ec_str = "value out of range ";
-          break
+          break;
       case PKT_ERROR_TOKENS -45:
           ec_str = "Receiver is empty";
           break;
