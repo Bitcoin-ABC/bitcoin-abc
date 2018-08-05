@@ -1916,6 +1916,10 @@ static uint32_t GetBlockScriptFlags(const Config &config,
         flags |= SCRIPT_VERIFY_NULLFAIL;
     }
 
+    if (IsMagneticAnomalyEnabled(config, pChainTip)) {
+        flags |= SCRIPT_VERIFY_SIGPUSHONLY;
+    }
+
     // We make sure this node will have replay protection during the next hard
     // fork.
     if (IsReplayProtectionEnabled(config, pChainTip)) {
