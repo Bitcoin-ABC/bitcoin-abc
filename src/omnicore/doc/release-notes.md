@@ -30,8 +30,10 @@ If you are running Bitcoin ABC or an older version of Wormhole Core, shut it dow
 
 `wormhole-cli stop`
 
-when you complie successfully and please start the client using the following command:
+when you complie successfully and start the client using the following command at the first time:
 `wormholed -daemon -startclean=1`
+
+You can just use `wormhole -daemon` to restart the client after you have run successfully. 
 
 During the first startup historical Wormhole transactions are reprocessed and Wormhole Core will not be usable for approximately 15 minutes up to two hours. The progress of the initial scan is reported on the console, the GUI and written to the `debug.log`. The scan may be interrupted, but can not be resumed, and then needs to start from the beginning.
 
