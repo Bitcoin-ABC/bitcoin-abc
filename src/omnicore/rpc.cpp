@@ -362,7 +362,7 @@ UniValue whc_getfeeshare(const Config &config, const JSONRPCRequest &request)
             "\nReturns the percentage share of fees distribution applied to the wallet (default) or address (if supplied).\n"
             "\nArguments:\n"
             "1. address              (string, optional) retrieve the fee share for the supplied address\n"
-            "2. ecosystem            (number, optional) the ecosystem to check the fee share (1 for main ecosystem, 2 for test ecosystem)\n"
+            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
             "\nResult:\n"
             "[                       (array of JSON objects)\n"
             "  {\n"
@@ -387,6 +387,7 @@ UniValue whc_getfeeshare(const Config &config, const JSONRPCRequest &request)
     }
     if (1 < request.params.size()) {
         ecosystem = ParseEcosystem(request.params[1]);
+        RequirePropertyEcosystem(ecosystem);
     }
 
     UniValue response(UniValue::VARR);
@@ -2311,7 +2312,7 @@ static const CRPCCommand commands[] =
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,            false , {}},
 #ifdef ENABLE_WALLET
     { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
-    { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
+//    { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
     { "omni layer (configuration)",  "whc_setautocommit",             &whc_setautocommit,              true  , {}},
 #endif
     { "hidden",                      "mscrpc",                         &mscrpc,                          true  , {}},

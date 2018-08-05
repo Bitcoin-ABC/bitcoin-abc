@@ -208,7 +208,7 @@ UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. toaddress            (string, required) the address of the receiver\n"
-            "3. ecosystem            (number, required) the ecosystem of the tokens to send (1 for main ecosystem, 2 for test ecosystem)\n"
+            "3. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
             "4. redeemaddress        (string, optional) an address that can spend the transaction dust (sender by default)\n"
             "5. referenceamount      (string, optional) a bitcoin amount that is sent to the receiver (minimal by default)\n"
 
@@ -228,6 +228,7 @@ UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
     int64_t referenceAmount = (request.params.size() > 4) ? ParseAmount(request.params[4], true): 0;
 
     // perform checks
+    RequirePropertyEcosystem(ecosystem);
     RequireSaneReferenceAmount(referenceAmount);
 
     // create a payload for the transaction

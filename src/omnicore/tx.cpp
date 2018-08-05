@@ -1428,6 +1428,12 @@ int CMPTransaction::logicMath_SendAll()
         receiver = sender;
     }
 
+    //change_002
+    if (OMNI_PROPERTY_WHC != ecosystem) {
+        PrintToLog("%s(): rejected: invalid ecosystem: %d\n", __func__, (uint32_t) ecosystem);
+        return (PKT_ERROR_SP -21);
+    }
+
     CMPTally* ptally = getTally(sender);
     if (ptally == NULL) {
         PrintToLog("%s(): rejected: sender %s has no tokens to send\n", __func__, sender);

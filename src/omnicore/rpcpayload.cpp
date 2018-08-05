@@ -82,7 +82,7 @@ UniValue whc_createpayload_sendall(const Config &config,const JSONRPCRequest &re
             "\nCreate the payload for a send all transaction.\n"
 
             "\nArguments:\n"
-            "1. ecosystem              (number, required) the ecosystem of the tokens to send (1 for main ecosystem, 2 for test ecosystem)\n"
+            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
 
             "\nResult:\n"
             "\"payload\"               (string) the hex-encoded payload\n"
@@ -93,7 +93,7 @@ UniValue whc_createpayload_sendall(const Config &config,const JSONRPCRequest &re
         );
 
     uint8_t ecosystem = ParseEcosystem(request.params[0]);
-
+    RequirePropertyEcosystem(ecosystem);
     std::vector<unsigned char> payload = CreatePayload_SendAll(ecosystem);
 
     return HexStr(payload.begin(), payload.end());
