@@ -1,4 +1,4 @@
-wormhole v0.0.6
+Wormhole v0.0.6
 ===================
 
 v0.0.6 is a pre release
