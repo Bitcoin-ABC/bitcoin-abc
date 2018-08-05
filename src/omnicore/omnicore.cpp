@@ -3853,8 +3853,8 @@ static void DistributeWHCToBurner(int nblockNow){
     }
 	PrintToLog("%s: chainActiveHeight: %d, maxHeight: %d, update entry num : %d\n",__func__, chainActive.Height(), maxHeight, update);
     if (update > 0){
-        CBlockIndex *tip = chainActive.Tip();
-        sp.update_block = *tip->phashBlock;
+        CBlockIndex *updateBlock = chainActive[nblockNow];
+        sp.update_block = *updateBlock->phashBlock;
         _my_sps->updateSP(OMNI_PROPERTY_WHC, sp);
     }
 }
