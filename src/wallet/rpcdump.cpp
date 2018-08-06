@@ -659,7 +659,9 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
         // uiInterface.ShowProgress does not have a cancel button.
 
         // show progress dialog in GUI
-        uiInterface.ShowProgress(_("Importing..."), 0, false);
+        uiInterface.ShowProgress(
+            strprintf("%s " + _("Importing..."), pwallet->GetDisplayName()), 0,
+            false);
         while (file.good()) {
             uiInterface.ShowProgress(
                 "",
@@ -684,8 +686,9 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 assert(key.VerifyPubKey(pubkey));
                 CKeyID keyid = pubkey.GetID();
                 if (pwallet->HaveKey(keyid)) {
-                    LogPrintf("Skipping import of %s (key already present)\n",
-                              EncodeDestination(keyid, config));
+                    pwallet->WalletLogPrintf(
+                        "Skipping import of %s (key already present)\n",
+                        EncodeDestination(keyid, config));
                     continue;
                 }
                 int64_t nTime = DecodeDumpTime(vstr[1]);
@@ -706,8 +709,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                         fLabel = true;
                     }
                 }
-                LogPrintf("Importing %s...\n",
-                          EncodeDestination(keyid, config));
+                pwallet->WalletLogPrintf("Importing %s...\n",
+                                         EncodeDestination(keyid, config));
                 if (!pwallet->AddKeyPubKey(key, pubkey)) {
                     fGood = false;
                     continue;
@@ -721,13 +724,14 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
                 std::vector<uint8_t> vData(ParseHex(vstr[0]));
                 CScript script = CScript(vData.begin(), vData.end());
                 if (pwallet->HaveCScript(script)) {
-                    LogPrintf(
+                    pwallet->WalletLogPrintf(
                         "Skipping import of %s (script already present)\n",
                         vstr[0]);
                     continue;
                 }
                 if (!pwallet->AddCScript(script)) {
-                    LogPrintf("Error importing script %s\n", vstr[0]);
+                    pwallet->WalletLogPrintf("Error importing script %s\n",
+                                             vstr[0]);
                     fGood = false;
                     continue;
                 }

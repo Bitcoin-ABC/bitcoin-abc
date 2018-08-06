@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Ensure the calls to LogPrint() and LogPrintf() end with a newline.
+ * Ensure the calls to (Wallet)LogPrint() and (Wallet)LogPrintf() end with a
+ * newline.
  */
 final class LogLinter extends ArcanistLinter {
 
@@ -41,7 +42,7 @@ final class LogLinter extends ArcanistLinter {
     $fileContent = Filesystem::readFile($absPath);
 
     /* Recursive patterns to match balanced parenthesis and quotes content. */
-    $logPrintPattern = '/LogPrintf?(\((?>[^()]|(?1))*\));/';
+    $logPrintPattern = '/(?:Wallet)?LogPrintf?(\((?>[^()]|(?1))*\));/';
     $logPrintContentPattern = '/("(?>[^"]|(?1))*")(?:,|\))/U';
 
     if (preg_match_all($logPrintPattern, $fileContent, $logPrints,
@@ -60,7 +61,7 @@ final class LogLinter extends ArcanistLinter {
               $offsetPrint + $offsetMessage,
               self::MISSING_NEWLINE,
               pht('If this is deliberate, please use the '.
-                  '`LogPrint*ToBeContinued()` method instead.'),
+                  '`(Wallet)LogPrint*ToBeContinued()` method instead.'),
               $message,
               null);
           }
