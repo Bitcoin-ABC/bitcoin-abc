@@ -134,6 +134,18 @@ def create_confirmed_utxos(fee, node, count, age=101):
     return utxos
 
 
+def mine_big_block(node, utxos=None):
+    # generate a 66k transaction,
+    # and 14 of them is close to the 1MB block limit
+    num = 14
+    utxos = utxos if utxos is not None else []
+    if len(utxos) < num:
+        utxos.clear()
+        utxos.extend(node.listunspent())
+    send_big_transactions(node, utxos, num, 100)
+    node.generate(1)
+
+
 def send_big_transactions(node, utxos, num, fee_multiplier):
     from .cashaddr import decode
     txids = []
