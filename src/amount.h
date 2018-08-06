@@ -12,6 +12,10 @@
 #include <string>
 #include <type_traits>
 
+#ifdef __APPLE__
+#include <iostream>
+#endif
+
 struct Amount {
 private:
     int64_t amount;
