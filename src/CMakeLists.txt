@@ -137,6 +137,7 @@ add_compiler_flags(
 	-Wthread-safety-analysis
 	-Wshadow
 	-Wrange-loop-analysis
+	-Wredundant-decls
 )
 
 option(EXTRA_WARNINGS "Enable extra warnings" OFF)
