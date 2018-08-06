@@ -402,6 +402,12 @@ class CTransaction():
         self.sha256 = None
         self.hash = None
 
+    def billable_size(self):
+        """
+        Returns the size used for billing the against the transaction
+        """
+        return len(self.serialize())
+
     def serialize(self):
         r = b""
         r += struct.pack("<i", self.nVersion)
