@@ -1612,13 +1612,17 @@ int64_t CWalletTx::GetTxTime() const {
 }
 
 // Helper for producing a max-sized low-S low-R signature (eg 71 bytes)
-bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout) const {
+// or a max-sized low-S signature (e.g. 72 bytes) if use_max_sig is true
+bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout,
+                             bool use_max_sig) const {
     // Fill in dummy signatures for fee calculation.
     const CScript &scriptPubKey = txout.scriptPubKey;
     SignatureData sigdata;
 
-    if (!ProduceSignature(*this, DUMMY_SIGNATURE_CREATOR, scriptPubKey,
-                          sigdata)) {
+    if (!ProduceSignature(*this,
+                          use_max_sig ? DUMMY_MAXIMUM_SIGNATURE_CREATOR
+                                      : DUMMY_SIGNATURE_CREATOR,
+                          scriptPubKey, sigdata)) {
         return false;
     }
 
@@ -1629,11 +1633,12 @@ bool CWallet::DummySignInput(CTxIn &tx_in, const CTxOut &txout) const {
 // Helper for producing a bunch of max-sized low-S low-R signatures (eg 71
 // bytes)
 bool CWallet::DummySignTx(CMutableTransaction &txNew,
-                          const std::vector<CTxOut> &txouts) const {
+                          const std::vector<CTxOut> &txouts,
+                          bool use_max_sig) const {
     // Fill in dummy signatures for fee calculation.
     int nIn = 0;
     for (const auto &txout : txouts) {
-        if (!DummySignInput(txNew.vin[nIn], txout)) {
+        if (!DummySignInput(txNew.vin[nIn], txout, use_max_sig)) {
             return false;
         }
 
@@ -1643,7 +1648,7 @@ bool CWallet::DummySignTx(CMutableTransaction &txNew,
 }
 
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
-                                     const CWallet *wallet) {
+                                     const CWallet *wallet, bool use_max_sig) {
     std::vector<CTxOut> txouts;
     // Look up the inputs.  We should have already checked that this transaction
     // IsAllFromMe(ISMINE_SPENDABLE), so every input should already be in our
@@ -1656,15 +1661,16 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
         assert(input.prevout.GetN() < mi->second.tx->vout.size());
         txouts.emplace_back(mi->second.tx->vout[input.prevout.GetN()]);
     }
-    return CalculateMaximumSignedTxSize(tx, wallet, txouts);
+    return CalculateMaximumSignedTxSize(tx, wallet, txouts, use_max_sig);
 }
 
 // txouts needs to be in the order of tx.vin
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
                                      const CWallet *wallet,
-                                     const std::vector<CTxOut> &txouts) {
+                                     const std::vector<CTxOut> &txouts,
+                                     bool use_max_sig) {
     CMutableTransaction txNew(tx);
-    if (!wallet->DummySignTx(txNew, txouts)) {
+    if (!wallet->DummySignTx(txNew, txouts, use_max_sig)) {
         // This should never happen, because IsAllFromMe(ISMINE_SPENDABLE)
         // implies that we can sign for every input.
         return -1;
@@ -1672,11 +1678,11 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
     return GetVirtualTransactionSize(CTransaction(txNew));
 }
 
-int CalculateMaximumSignedInputSize(const CTxOut &txout,
-                                    const CWallet *wallet) {
+int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *wallet,
+                                    bool use_max_sig) {
     CMutableTransaction txn;
     txn.vin.push_back(CTxIn(COutPoint()));
-    if (!wallet->DummySignInput(txn.vin[0], txout)) {
+    if (!wallet->DummySignInput(txn.vin[0], txout, use_max_sig)) {
         // This should never happen, because IsAllFromMe(ISMINE_SPENDABLE)
         // implies that we can sign for every input.
         return -1;
@@ -2501,7 +2507,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                 ISMINE_NO;
 
             vCoins.push_back(
-                COutput(pcoin, i, nDepth, fSpendableIn, fSolvableIn, safeTx));
+                COutput(pcoin, i, nDepth, fSpendableIn, fSolvableIn, safeTx,
+                        (coinControl && coinControl->fAllowWatchOnly)));
 
             // Checks the sum amount of all UTXO's.
             if (nMinimumSumAmount != MAX_MONEY) {
@@ -3145,7 +3152,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             CTransaction txNewConst(txNew);
-            int nBytes = CalculateMaximumSignedTxSize(txNewConst, this);
+            int nBytes = CalculateMaximumSignedTxSize(
+                txNewConst, this, coinControl.fAllowWatchOnly);
             if (nBytes < 0) {
                 strFailReason = _("Signing transaction failed");
                 return false;

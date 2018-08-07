@@ -92,8 +92,10 @@ public:
                    const CScript &scriptCode) const override;
 };
 
-/** A signature creator that just produces 72-byte empty signatures. */
+/** A signature creator that just produces 71-byte empty signatures. */
 extern const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR;
+/** A signature creator that just produces 72-byte empty signatures. */
+extern const BaseSignatureCreator &DUMMY_MAXIMUM_SIGNATURE_CREATOR;
 
 typedef std::pair<CPubKey, std::vector<uint8_t>> SigPair;
 
