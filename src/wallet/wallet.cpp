@@ -5165,8 +5165,10 @@ int CMerkleTx::GetBlocksToMaturity(
         return 0;
     }
 
-    return std::max(0, (COINBASE_MATURITY + 1) -
-                           GetDepthInMainChain(locked_chain));
+    int chain_depth = GetDepthInMainChain(locked_chain);
+    // coinbase tx should not be conflicted
+    assert(chain_depth >= 0);
+    return std::max(0, (COINBASE_MATURITY + 1) - chain_depth);
 }
 
 bool CMerkleTx::IsImmatureCoinBase(
