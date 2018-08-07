@@ -8,7 +8,7 @@ Test that the DERSIG soft-fork activates at (regtest) height 1251.
 """
 
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import CTransaction, FromHex, msg_block
+from test_framework.messages import CTransaction, FromHex, msg_block, ToHex
 from test_framework.mininode import (
     mininode_lock,
     network_thread_start,
@@ -56,8 +56,7 @@ def create_transaction(node, coinbase, to_address, amount):
 class BIP66Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [
-            ['-promiscuousmempoolflags=1', '-whitelist=127.0.0.1']]
+        self.extra_args = [['-whitelist=127.0.0.1']]
         self.setup_clean_chain = True
 
     def run_test(self):
@@ -103,7 +102,16 @@ class BIP66Test(BitcoinTestFramework):
         unDERify(spendtx)
         spendtx.rehash()
 
-        # Now we verify that a block with this transaction is invalid.
+        # First we show that this tx is valid except for DERSIG by getting it
+        # rejected from the mempool for exactly that reason.
+        assert_equal(
+            [{'txid': spendtx.hash, 'allowed': False,
+                'reject-reason': '16: mandatory-script-verify-flag-failed (Non-canonical DER signature)'}],
+            self.nodes[0].testmempoolaccept(
+                rawtxs=[ToHex(spendtx)], allowhighfees=True)
+        )
+
+        # Now we verify that a block with this transaction is also invalid.
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()

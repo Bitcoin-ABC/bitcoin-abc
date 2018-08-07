@@ -725,16 +725,9 @@ static bool AcceptToMemoryPoolWorker(
             extraFlags |= SCRIPT_ENABLE_SCHNORR;
         }
 
-        // Check inputs based on the set of flags we activate.
-        uint32_t scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
-        if (!config.GetChainParams().RequireStandard()) {
-            scriptVerifyFlags =
-                SCRIPT_ENABLE_SIGHASH_FORKID |
-                gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
-        }
-
         // Make sure whatever we need to activate is actually activated.
-        scriptVerifyFlags |= extraFlags;
+        const uint32_t scriptVerifyFlags =
+            STANDARD_SCRIPT_VERIFY_FLAGS | extraFlags;
 
         // Check against previous transactions. This is done last to help
         // prevent CPU exhaustion denial-of-service attacks.
@@ -766,28 +759,9 @@ static bool AcceptToMemoryPoolWorker(
         if (!CheckInputsFromMempoolAndCache(tx, state, view, pool,
                                             currentBlockScriptVerifyFlags, true,
                                             txdata)) {
-            // If we're using promiscuousmempoolflags, we may hit this normally.
-            // Check if current block has some flags that scriptVerifyFlags does
-            // not before printing an ominous warning.
-            if (!(~scriptVerifyFlags & currentBlockScriptVerifyFlags)) {
-                return error(
-                    "%s: BUG! PLEASE REPORT THIS! ConnectInputs failed against "
-                    "MANDATORY but not STANDARD flags %s, %s",
-                    __func__, txid.ToString(), FormatStateMessage(state));
-            }
-
-            if (!CheckInputs(tx, state, view, true,
-                             MANDATORY_SCRIPT_VERIFY_FLAGS | extraFlags, true,
-                             false, txdata)) {
-                return error(
-                    "%s: ConnectInputs failed against MANDATORY but not "
-                    "STANDARD flags due to promiscuous mempool %s, %s",
-                    __func__, txid.ToString(), FormatStateMessage(state));
-            }
-
-            LogPrintf("Warning: -promiscuousmempool flags set to not include "
-                      "currently enforced soft forks, this may break mining or "
-                      "otherwise cause instability!\n");
+            return error("%s: BUG! PLEASE REPORT THIS! CheckInputs failed "
+                         "against latest-block but not STANDARD flags %s, %s",
+                         __func__, txid.ToString(), FormatStateMessage(state));
         }
 
         if (test_accept) {
