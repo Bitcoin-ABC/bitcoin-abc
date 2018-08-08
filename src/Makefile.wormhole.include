@@ -87,6 +87,6 @@ CLEAN_WORMHOLE = omnicore/*.gcda omnicore/*.gcno
 CLEANFILES += $(CLEAN_WORMHOLE)
 
 if ENABLE_TESTS
-# include Makefile.wormtest.include
+include Makefile.wormtest.include
 endif
 
