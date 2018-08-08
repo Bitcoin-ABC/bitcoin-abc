@@ -5,7 +5,7 @@
 """Utilities for manipulating blocks and transactions."""
 
 from .mininode import *
-from .script import CScript, OP_TRUE, OP_CHECKSIG, OP_RETURN, OP_PUSHDATA2
+from .script import CScript, OP_TRUE, OP_CHECKSIG, OP_RETURN, OP_PUSHDATA2, OP_DUP, OP_HASH160, OP_EQUALVERIFY
 from .mininode import CTransaction, CTxOut, CTxIn
 from .util import satoshi_round
 
@@ -135,8 +135,10 @@ def create_confirmed_utxos(fee, node, count, age=101):
 
 
 def send_big_transactions(node, utxos, num, fee_multiplier):
+    from .cashaddr import decode
     txids = []
     padding = "1"*(512*127)
+    addrHash = decode(node.getnewaddress())[2]
 
     for _ in range(num):
         ctx = CTransaction()
@@ -146,7 +148,8 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         ctx.vout.append(CTxOut(0, CScript(
             [OP_RETURN, OP_PUSHDATA2, len(padding), bytes(padding, 'utf-8')])))
         ctx.vout.append(
-            CTxOut(int(satoshi_round(utxo['amount']*COIN)), CScript([OP_TRUE])))
+            CTxOut(int(satoshi_round(utxo['amount']*COIN)),
+                   CScript([OP_DUP, OP_HASH160, addrHash, OP_EQUALVERIFY, OP_CHECKSIG])))
         # Create a proper fee for the transaction to be mined
         ctx.vout[1].nValue -= int(fee_multiplier * node.calculate_fee(ctx))
         signresult = node.signrawtransaction(
