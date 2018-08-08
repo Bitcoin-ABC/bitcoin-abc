@@ -22,7 +22,7 @@ class PSBTTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.setup_clean_chain = False
-        self.num_nodes = 4
+        self.num_nodes = 3
 
     def run_test(self):
         # Create and fund a raw tx for sending 10 BTC
@@ -170,9 +170,11 @@ class PSBTTest(BitcoinTestFramework):
 
         # Signer tests
         for i, signer in enumerate(signers):
+            self.nodes[2].createwallet("wallet{}".format(i))
+            wrpc = self.nodes[2].get_wallet_rpc("wallet{}".format(i))
             for key in signer['privkeys']:
-                self.nodes[i].importprivkey(key)
-            signed_tx = self.nodes[i].walletprocesspsbt(signer['psbt'])['psbt']
+                wrpc.importprivkey(key)
+            signed_tx = wrpc.walletprocesspsbt(signer['psbt'])['psbt']
             assert_equal(signed_tx, signer['result'])
 
         # Combiner test
