@@ -5140,10 +5140,11 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
         // If we don't know about this input, skip it and let someone else deal
         // with it
         const TxId &txid = txin.prevout.GetTxId();
-        const auto &it = pwallet->mapWallet.find(txid);
+        const auto it = pwallet->mapWallet.find(txid);
         if (it != pwallet->mapWallet.end()) {
             const CWalletTx &wtx = it->second;
             CTxOut utxo = wtx.tx->vout[txin.prevout.GetN()];
+            // Update UTXOs from the wallet.
             input.utxo = utxo;
         }
 

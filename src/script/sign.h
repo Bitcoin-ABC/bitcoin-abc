@@ -665,7 +665,10 @@ bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType);
 
-/** Signs a PSBTInput */
+/**
+ * Signs a PSBTInput, verifying that all provided data matches what is being
+ * signed.
+ */
 bool SignPSBTInput(const SigningProvider &provider,
                    const CMutableTransaction &tx, PSBTInput &input,
                    SignatureData &sigdata, int index,
