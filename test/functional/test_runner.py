@@ -239,9 +239,9 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, jobs=
     # Set env vars
     if "BITCOIND" not in os.environ:
         os.environ["BITCOIND"] = os.path.join(
-            build_dir, 'src', 'bitcoind' + exeext)
+            build_dir, 'src', 'wormholed' + exeext)
         os.environ["BITCOINCLI"] = os.path.join(
-            build_dir, 'src', 'bitcoin-cli' + exeext)
+            build_dir, 'src', 'wormholed-cli' + exeext)
 
     flags = [os.path.join("--srcdir={}".format(build_dir), "src")] + args
     flags.append("--cachedir=%s" % cache_dir)
