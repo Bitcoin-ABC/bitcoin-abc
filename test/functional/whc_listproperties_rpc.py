@@ -4,6 +4,7 @@
 # Exercise the Bitcoin whc_listproperties RPC calls.
 
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import (assert_equal, assert_raises_rpc_error, assert_emptylist)
 
 class WHC_ListProperties_RPC_Test(BitcoinTestFramework):
     def set_test_params(self):
@@ -16,8 +17,8 @@ class WHC_ListProperties_RPC_Test(BitcoinTestFramework):
     def run_test(self):
         self.log.info(
             "Compare responses from whc_listproperties RPC ")
-        rpc_response = self.nodes[0].whc_listproperties()
-        assert_emptylist(rpc_response)
+        rpc_response = self.nodes[0].cli.whc_listproperties()
+        assert_notemptylist(rpc_response)
 
 
 if __name__ == '__main__':
