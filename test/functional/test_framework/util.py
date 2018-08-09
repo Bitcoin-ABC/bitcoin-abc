@@ -46,7 +46,7 @@ def assert_emptylist(l1):
         raise AssertionError("not empty list")
 
 def assert_notemptylist(l1):
-    if len(l1) !=0 :
+    if len(l1) == 0 :
         raise AssertionError("empty list")
 
 def assert_greater_than(thing1, thing2):
