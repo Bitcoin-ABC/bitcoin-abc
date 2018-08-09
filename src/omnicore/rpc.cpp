@@ -1914,7 +1914,6 @@ UniValue whc_getinfo(const Config &config, const JSONRPCRequest &request)
             "{\n"
             "  \"wormholeversion_int\" : xxxxxxx,       (number) client version as integer\n"
             "  \"wormholeversion\" : \"x.x.x.x-xxx\",     (string) client version\n"
-            "  \"wormholeversion\" : \"x.x.x.x-xxx\",   (string) client version (DEPRECIATED)\n"
             "  \"bitcoincoreversion\" : \"x.x.x\",        (string) Bitcoin Core version\n"
             "  \"block\" : nnnnnn,                      (number) index of the last processed block\n"
             "  \"blocktime\" : nnnnnnnnnn,              (number) timestamp of the last processed block\n"
@@ -1939,7 +1938,6 @@ UniValue whc_getinfo(const Config &config, const JSONRPCRequest &request)
 
     // provide the mastercore and bitcoin version
     infoResponse.push_back(Pair("wormholeversion_int", OMNICORE_VERSION));
-    infoResponse.push_back(Pair("wormholeversion", OmniCoreVersion()));
     infoResponse.push_back(Pair("wormholeversion", OmniCoreVersion()));
     infoResponse.push_back(Pair("bitcoincoreversion", BitcoinCoreVersion()));
 
