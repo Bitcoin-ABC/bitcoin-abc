@@ -110,8 +110,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         for node in self.nodes:
             for _ in range(num_connections):
                 node.add_p2p_connection(P2PDataStore())
-        for node in self.nodes:
-            node.p2p.wait_for_verack()
 
     def reconnect_p2p(self, **kwargs):
         """Tear down and bootstrap the P2P connection to the node.

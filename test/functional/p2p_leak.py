@@ -134,9 +134,9 @@ class P2PLeakTest(BitcoinTestFramework):
 
     def run_test(self):
         no_version_bannode = self.nodes[0].add_p2p_connection(
-            CNodeNoVersionBan(), send_version=False)
+            CNodeNoVersionBan(), send_version=False, wait_for_verack=False)
         no_version_idlenode = self.nodes[0].add_p2p_connection(
-            CNodeNoVersionIdle(), send_version=False)
+            CNodeNoVersionIdle(), send_version=False, wait_for_verack=False)
         no_verack_idlenode = self.nodes[0].add_p2p_connection(
             CNodeNoVerackIdle())
 

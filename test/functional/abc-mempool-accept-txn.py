@@ -143,7 +143,6 @@ class FullBlockTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
-        node.p2p.wait_for_verack()
 
         self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0

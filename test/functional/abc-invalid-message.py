@@ -62,18 +62,17 @@ class InvalidMessageTest(BitcoinTestFramework):
     def run_test(self):
         # Try to connect to a node using an invalid checksum on version message
         bad_interface = BadVersionP2PInterface()
-        self.nodes[0].add_p2p_connection(bad_interface)
+        self.nodes[0].add_p2p_connection(
+            bad_interface, send_version=False, wait_for_verack=False)
 
         # Also connect to a node with a valid version message
         interface = P2PInterface()
+        # Node with valid version message should connect successfully
         connection = self.nodes[1].add_p2p_connection(interface)
 
         # The invalid version message should cause a disconnect on the first
         # connection because we are now banned
         bad_interface.wait_for_disconnect()
-
-        # Node with valid version message should connect successfully
-        connection.wait_for_verack()
 
         # Create a valid message
         valid_message = msg_ping(interface.ping_counter)

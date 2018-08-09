@@ -31,10 +31,6 @@ class P2PLeakTxTest(BitcoinTestFramework):
 
         # An "attacking" inbound peer
         inbound_peer = self.nodes[0].add_p2p_connection(P2PNode())
-        # Backport note: the following two lines were backported out of order,
-        # and should be removed in the appropriate future backports that do a
-        # blanket removal of each of these calls across many tests.
-        self.nodes[0].p2p.wait_for_verack()
 
         MAX_REPEATS = 100
         self.log.info("Running test up to {} times.".format(MAX_REPEATS))

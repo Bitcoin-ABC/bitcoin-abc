@@ -201,7 +201,7 @@ class FullBlockTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
-        node.p2p.wait_for_verack()
+
         # Set the blocksize to 2MB as initial condition
         node.setexcessiveblock(self.excessive_block_size)
 

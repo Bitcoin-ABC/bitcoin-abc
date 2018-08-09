@@ -41,7 +41,6 @@ class SyncChainTest(BitcoinTestFramework):
     def run_test(self):
         node0 = self.nodes[0]
         node0conn = node0.add_p2p_connection(BaseNode())
-        node0.p2p.wait_for_verack()
 
         tip = int(node0.getbestblockhash(), 16)
         height = node0.getblockcount() + 1
