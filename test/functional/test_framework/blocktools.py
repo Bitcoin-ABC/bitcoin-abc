@@ -99,11 +99,10 @@ def get_legacy_sigopcount_tx(tx, fAccurate=True):
     return count
 
 
-# Helper to create at least "count" utxos
-# Pass in a fee that is sufficient for relay and mining new transactions.
-
-
-def create_confirmed_utxos(fee, node, count, age=101):
+def create_confirmed_utxos(node, count, age=101):
+    """
+    Helper to create at least "count" utxos
+    """
     to_generate = int(0.5 * count) + age
     while to_generate > 0:
         node.generate(min(25, to_generate))
@@ -119,11 +118,16 @@ def create_confirmed_utxos(fee, node, count, age=101):
         inputs = []
         inputs.append({"txid": t["txid"], "vout": t["vout"]})
         outputs = {}
-        send_value = t['amount'] - fee
-        outputs[addr1] = satoshi_round(send_value / 2)
-        outputs[addr2] = satoshi_round(send_value / 2)
+        outputs[addr1] = satoshi_round(t['amount'] / 2)
+        outputs[addr2] = satoshi_round(t['amount'] / 2)
         raw_tx = node.createrawtransaction(inputs, outputs)
-        signed_tx = node.signrawtransaction(raw_tx)["hex"]
+        ctx = FromHex(CTransaction(), raw_tx)
+        fee = node.calculate_fee(ctx) // 2
+        ctx.vout[0].nValue -= fee
+        # Due to possible truncation, we go ahead and take another satoshi in
+        # fees to ensure the transaction gets through
+        ctx.vout[1].nValue -= fee + 1
+        signed_tx = node.signrawtransaction(ToHex(ctx))["hex"]
         node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):

@@ -43,8 +43,7 @@ class HighPriorityTransactionTest(BitcoinTestFramework):
         hiprio_utxo_count = 150
         age = 250
         # be sure to make this utxo aged enough
-        hiprio_utxos = create_confirmed_utxos(
-            self.relayfee, node, hiprio_utxo_count, age)
+        hiprio_utxos = create_confirmed_utxos(node, hiprio_utxo_count, age)
         txids = []
 
         # Create hiprio_utxo_count number of txns with 0 fee
