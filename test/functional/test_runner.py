@@ -223,7 +223,7 @@ def main():
 def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, jobs=1, enable_coverage=False, args=[], build_timings=None):
     # Warn if bitcoind is already running (unix only)
     try:
-        pidofOutput = subprocess.check_output(["pidof", "bitcoind"])
+        pidofOutput = subprocess.check_output(["pidof", "wormholed"])
         if pidofOutput is not None and pidofOutput != b'':
             print("%sWARNING!%s There is already a bitcoind process running on this system. Tests may fail unexpectedly due to resource contention!" % (
                 BOLD[1], BOLD[0]))
