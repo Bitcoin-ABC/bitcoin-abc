@@ -35,6 +35,7 @@ from test_framework.mininode import *
 from test_framework.script import *
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.blocktools import create_confirmed_utxos
 
 HTTP_DISCONNECT_ERRORS = [http.client.CannotSendRequest]
 try:

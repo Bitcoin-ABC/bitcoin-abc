@@ -7,7 +7,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-from test_framework.blocktools import send_big_transactions
+from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
 
 
 class MempoolLimitTest(BitcoinTestFramework):

@@ -12,7 +12,7 @@ from test_framework.util import *
 from test_framework.mininode import COIN
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
-from test_framework.blocktools import send_big_transactions
+from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
