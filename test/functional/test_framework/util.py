@@ -41,7 +41,13 @@ def assert_equal(thing1, thing2, *args):
     if thing1 != thing2 or any(thing1 != arg for arg in args):
         raise AssertionError("not(%s)" % " == ".join(str(arg)
                                                      for arg in (thing1, thing2) + args))
+def assert_emptylist(l1):
+    if len(l1) !=0 :
+        raise AssertionError("not empty list")
 
+def assert_notemptylist(l1):
+    if len(l1) == 0 :
+        raise AssertionError("empty list")
 
 def assert_greater_than(thing1, thing2):
     if thing1 <= thing2:

@@ -47,7 +47,7 @@ class TestNode():
             # Wait for up to 60 seconds for the RPC server to respond
             self.rpc_timeout = 60
         if binary is None:
-            self.binary = os.getenv("BITCOIND", "bitcoind")
+            self.binary = os.getenv("BITCOIND", "wormholed")
         else:
             self.binary = binary
         self.stderr = stderr
@@ -58,7 +58,7 @@ class TestNode():
                      "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=testnode%d" % i]
 
         self.cli = TestNodeCLI(
-            os.getenv("BITCOINCLI", "bitcoin-cli"), self.datadir)
+            os.getenv("BITCOINCLI", "wormholed-cli"), self.datadir)
 
         self.running = False
         self.process = None
