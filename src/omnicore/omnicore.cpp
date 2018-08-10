@@ -864,7 +864,9 @@ static bool FillTxInputCache(const CTransaction& tx)
         if (!GetTransaction(GetConfig(), txIn.prevout.GetTxId(), txPrev, hashBlock, true)) {
             return false;
         }
-
+        if (txPrev.get()->vout.size() <= nOut){
+            return false;
+        }
         Coin newCoin(txPrev.get()->vout[nOut], 0, tx.IsCoinBase());
         view.AddCoin(txIn.prevout, newCoin, false);
 	}
