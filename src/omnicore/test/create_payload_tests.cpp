@@ -27,20 +27,9 @@ BOOST_AUTO_TEST_CASE(payload_send_to_owners)
     std::vector<unsigned char> vch = CreatePayload_SendToOwners(
         static_cast<uint32_t>(1),          // property: OMNI
         static_cast<int64_t>(100000000),   // amount to transfer: 1.0 OMNI (in willets)
-        static_cast<uint32_t>(1));         // property: OMNI
+        static_cast<uint32_t>(1));         // distributionProperty: WORMHOLE
 
-    BOOST_CHECK_EQUAL(HexStr(vch), "00000003000000010000000005f5e100");
-}
-
-BOOST_AUTO_TEST_CASE(payload_send_to_owners_v1)
-{
-    // Send to owners [type 3, version 1] (cross property)
-    std::vector<unsigned char> vch = CreatePayload_SendToOwners(
-        static_cast<uint32_t>(1),          // property: OMNI
-        static_cast<int64_t>(100000000),   // amount to transfer: 1.0 OMNI (in willets)
-        static_cast<uint32_t>(3));         // property: SP#3
-
-    BOOST_CHECK_EQUAL(HexStr(vch), "00010003000000010000000005f5e10000000003");
+    BOOST_CHECK_EQUAL(HexStr(vch), "00000003000000010000000005f5e10000000001");
 }
 
 BOOST_AUTO_TEST_CASE(payload_send_all)
@@ -50,78 +39,6 @@ BOOST_AUTO_TEST_CASE(payload_send_all)
         static_cast<uint8_t>(2));          // ecosystem: Test
 
     BOOST_CHECK_EQUAL(HexStr(vch), "0000000402");
-}
-
-BOOST_AUTO_TEST_CASE(payload_dex_offer)
-{
-    // Sell tokens for bitcoins [type 20, version 1]
-    std::vector<unsigned char> vch = CreatePayload_DExSell(
-        static_cast<uint32_t>(1),         // property: MSC
-        static_cast<int64_t>(100000000),  // amount to transfer: 1.0 MSC (in willets)
-        static_cast<int64_t>(20000000),   // amount desired: 0.2 BTC (in satoshis)
-        static_cast<uint8_t>(10),         // payment window in blocks
-        static_cast<int64_t>(10000),      // commitment fee in satoshis
-        static_cast<uint8_t>(1));         // sub-action: new offer
-
-    BOOST_CHECK_EQUAL(HexStr(vch),
-        "00010014000000010000000005f5e1000000000001312d000a000000000000271001");
-}
-
-BOOST_AUTO_TEST_CASE(payload_meta_dex_new_trade)
-{
-    // Trade tokens for tokens [type 25, version 0]
-    std::vector<unsigned char> vch = CreatePayload_MetaDExTrade(
-        static_cast<uint32_t>(1),          // property: MSC
-        static_cast<int64_t>(250000000),   // amount for sale: 2.5 MSC
-        static_cast<uint32_t>(31),         // property desired: TetherUS
-        static_cast<int64_t>(5000000000)); // amount desired: 50.0 TetherUS
-
-    BOOST_CHECK_EQUAL(HexStr(vch),
-        "0000001900000001000000000ee6b2800000001f000000012a05f200");
-}
-
-BOOST_AUTO_TEST_CASE(payload_meta_dex_cancel_at_price)
-{
-    // Trade tokens for tokens [type 26, version 0]
-    std::vector<unsigned char> vch = CreatePayload_MetaDExCancelPrice(
-        static_cast<uint32_t>(1),          // property: MSC
-        static_cast<int64_t>(250000000),   // amount for sale: 2.5 MSC
-        static_cast<uint32_t>(31),         // property desired: TetherUS
-        static_cast<int64_t>(5000000000)); // amount desired: 50.0 TetherUS
-
-    BOOST_CHECK_EQUAL(HexStr(vch),
-        "0000001a00000001000000000ee6b2800000001f000000012a05f200");
-}
-
-BOOST_AUTO_TEST_CASE(payload_meta_dex_cancel_pair)
-{
-    // Trade tokens for tokens [type 27, version 0]
-    std::vector<unsigned char> vch = CreatePayload_MetaDExCancelPair(
-        static_cast<uint32_t>(1),          // property: MSC
-        static_cast<uint32_t>(31));        // property desired: TetherUS
-
-    BOOST_CHECK_EQUAL(HexStr(vch),
-        "0000001b000000010000001f");
-}
-
-BOOST_AUTO_TEST_CASE(payload_meta_dex_cancel_ecosystem)
-{
-    // Trade tokens for tokens [type 28, version 0]
-    std::vector<unsigned char> vch = CreatePayload_MetaDExCancelEcosystem(
-        static_cast<uint8_t>(1));          // ecosystem: Main
-
-    BOOST_CHECK_EQUAL(HexStr(vch),
-        "0000001c01");
-}
-
-BOOST_AUTO_TEST_CASE(payload_accept_dex_offer)
-{
-    // Purchase tokens with bitcoins [type 22, version 0]
-    std::vector<unsigned char> vch = CreatePayload_DExAccept(
-        static_cast<uint32_t>(1),          // property: MSC
-        static_cast<int64_t>(130000000));  // amount to transfer: 1.3 MSC (in willets)
-
-    BOOST_CHECK_EQUAL(HexStr(vch), "00000016000000010000000007bfa480");
 }
 
 BOOST_AUTO_TEST_CASE(payload_create_property)
@@ -194,12 +111,13 @@ BOOST_AUTO_TEST_CASE(payload_create_crowdsale)
         static_cast<int64_t>(100),           // tokens per unit vested
         static_cast<uint64_t>(7731414000L),  // deadline: 31 Dec 2214 23:00:00 UTC
         static_cast<uint8_t>(10),            // early bird bonus: 10 % per week
-        static_cast<uint8_t>(12));           // issuer bonus: 12 %
+        static_cast<uint8_t>(12),            // issuer bonus: 12 %
+        static_cast<uint64_t>(1));           // amount: 1
 
     BOOST_CHECK_EQUAL(HexStr(vch),
         "0000003301000100000000436f6d70616e69657300426974636f696e204d696e696e67"
         "005175616e74756d204d696e6572006275696c6465722e62697477617463682e636f00"
-        "0000000001000000000000006400000001ccd403f00a0c");
+        "0000000001000000000000006400000001ccd403f00a0c0000000000000001");
 }
 
 BOOST_AUTO_TEST_CASE(payload_create_crowdsale_empty)
@@ -218,9 +136,10 @@ BOOST_AUTO_TEST_CASE(payload_create_crowdsale_empty)
         static_cast<int64_t>(100),          // tokens per unit vested
         static_cast<uint64_t>(7731414000L), // deadline: 31 Dec 2214 23:00:00 UTC
         static_cast<uint8_t>(10),           // early bird bonus: 10 % per week
-        static_cast<uint8_t>(12));          // issuer bonus: 12 %
+        static_cast<uint8_t>(12),           // issuer bonus: 12 %
+        static_cast<uint64_t>(1));          // amount: 1
 
-    BOOST_CHECK_EQUAL(vch.size(), 38);
+    BOOST_CHECK_EQUAL(vch.size(), 46);
 }
 
 BOOST_AUTO_TEST_CASE(payload_create_crowdsale_full)
@@ -239,9 +158,10 @@ BOOST_AUTO_TEST_CASE(payload_create_crowdsale_full)
         static_cast<int64_t>(100),          // tokens per unit vested
         static_cast<uint64_t>(7731414000L), // deadline: 31 Dec 2214 23:00:00 UTC
         static_cast<uint8_t>(10),           // early bird bonus: 10 % per week
-        static_cast<uint8_t>(12));          // issuer bonus: 12 %
+        static_cast<uint8_t>(12),           // issuer bonus: 12 %
+        static_cast<uint64_t>(1));          // amount: 1
 
-    BOOST_CHECK_EQUAL(vch.size(), 1313);
+    BOOST_CHECK_EQUAL(vch.size(), 1321);
 }
 
 BOOST_AUTO_TEST_CASE(payload_close_crowdsale)
@@ -374,6 +294,15 @@ BOOST_AUTO_TEST_CASE(payload_revoke_tokens_full)
     BOOST_CHECK_EQUAL(vch.size(), 272);
 }
 
+BOOST_AUTO_TEST_CASE(payload_burn_bch)
+{
+    // Burn BCH [type 68, version 0]
+    std::vector<unsigned char> vch = CreatePayload_BurnBch();  // property: SP #13
+
+    BOOST_CHECK_EQUAL(HexStr(vch), "00000044");
+}
+
+
 BOOST_AUTO_TEST_CASE(payload_change_property_manager)
 {
     // Change property manager [type 70, version 0]
@@ -382,7 +311,7 @@ BOOST_AUTO_TEST_CASE(payload_change_property_manager)
 
     BOOST_CHECK_EQUAL(HexStr(vch), "000000460000000d");
 }
-
+/*
 BOOST_AUTO_TEST_CASE(payload_enable_freezing)
 {
     // Enable freezing [type 71, version 0]
@@ -477,5 +406,5 @@ BOOST_AUTO_TEST_CASE(payload_omnicore_alert_minclient)
 
     BOOST_CHECK_EQUAL(HexStr(vch), "ffffffff0003000dbc047465737400");
 }
-
+*/
 BOOST_AUTO_TEST_SUITE_END()

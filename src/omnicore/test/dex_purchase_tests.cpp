@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/dex.h"
 
 #include "test/test_bitcoin.h"
@@ -75,3 +76,4 @@ BOOST_AUTO_TEST_CASE(overflow_protection)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

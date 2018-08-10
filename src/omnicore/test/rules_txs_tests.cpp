@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/omnicore.h"
 #include "omnicore/rules.h"
 
@@ -36,3 +37,4 @@ BOOST_AUTO_TEST_CASE(simple_send_restrictions)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif
