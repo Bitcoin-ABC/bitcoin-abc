@@ -24,7 +24,7 @@ class ReindexTest(BitcoinTestFramework):
         blockcount = self.nodes[0].getblockcount()
         self.stop_nodes()
         extra_args = [
-            ["-reindex-chainstate" if justchainstate else "-reindex", "-checkblockindex=1"]]
+            ["-reindex-chainstate" if justchainstate else "-reindex"]]
         self.start_nodes(extra_args)
         wait_until(lambda: self.nodes[0].getblockcount() == blockcount)
         self.log.info("Success")
