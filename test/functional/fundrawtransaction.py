@@ -653,10 +653,11 @@ class RawTransactionsTest(BitcoinTestFramework):
             rawtx, {"feeRate": 2 * min_relay_tx_fee})
         result3 = self.nodes[3].fundrawtransaction(
             rawtx, {"feeRate": 10 * min_relay_tx_fee})
+        result_fee_rate = result['fee'] * 1000 / count_bytes(result['hex'])
         assert_fee_amount(
-            result2['fee'], FromHex(CTransaction(), result2['hex']).billable_size(), 2 * min_relay_tx_fee)
+            result2['fee'], FromHex(CTransaction(), result2['hex']).billable_size(), 2 * result_fee_rate)
         assert_fee_amount(
-            result3['fee'], FromHex(CTransaction(), result3['hex']).billable_size(), 10 * min_relay_tx_fee)
+            result3['fee'], FromHex(CTransaction(), result3['hex']).billable_size(), 10 * result_fee_rate)
 
         #
         # Test address reuse option #
