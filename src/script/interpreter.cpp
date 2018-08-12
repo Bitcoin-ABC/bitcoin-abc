@@ -928,12 +928,6 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype &vchMessage = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        // The size of the message must be 32 bytes.
-                        if (vchMessage.size() != 32) {
-                            return set_error(serror,
-                                             SCRIPT_ERR_INVALID_OPERAND_SIZE);
-                        }
-
                         if (!CheckDataSignatureEncoding(vchSig, flags,
                                                         serror) ||
                             !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
@@ -943,7 +937,9 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                         bool fSuccess = false;
                         if (vchSig.size()) {
-                            uint256 message(vchMessage);
+                            CHashWriter ss(SER_GETHASH, 0);
+                            ss << vchMessage;
+                            uint256 message = ss.GetHash();
                             CPubKey pubkey(vchPubKey);
                             fSuccess = pubkey.Verify(message, vchSig);
                         }

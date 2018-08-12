@@ -342,9 +342,12 @@ public:
         return *this;
     }
 
-    TestBuilder &PushDataSig(const CKey &key, const uint256 &hash,
+    TestBuilder &PushDataSig(const CKey &key, const std::vector<uint8_t> &data,
                              unsigned int lenR = 32, unsigned int lenS = 32) {
-        DoPush(DoSign(key, hash, lenR, lenS));
+        CHashWriter ss(SER_GETHASH, 0);
+        ss << data;
+
+        DoPush(DoSign(key, ss.GetHash(), lenR, lenS));
         return *this;
     }
 
@@ -1127,10 +1130,6 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .ScriptError(SCRIPT_ERR_EVAL_FALSE));
 
     // Test OP_CHECKDATASIG
-    static const uint256 one(uint256S(
-        "0000000000000000000000000000000000000000000000000000000000000001"));
-    static const uint256 two(uint256S(
-        "0000000000000000000000000000000000000000000000000000000000000002"));
     const uint32_t checkdatasigflags = SCRIPT_VERIFY_STRICTENC |
                                        SCRIPT_VERIFY_NULLFAIL |
                                        SCRIPT_ENABLE_CHECKDATASIG;
@@ -1138,80 +1137,80 @@ BOOST_AUTO_TEST_CASE(script_build) {
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKDATASIG,
                     "Standard CHECKDATASIG", checkdatasigflags)
-            .PushDataSig(keys.key1, one)
-            .Push(one));
+            .PushDataSig(keys.key1, {})
+            .Num(0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIG << OP_NOT,
                                 "CHECKDATASIG with NULLFAIL flags",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key1, one)
-                        .Push(two)
+                        .PushDataSig(keys.key1, {})
+                        .Num(1)
                         .ScriptError(SCRIPT_ERR_SIG_NULLFAIL));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIG << OP_NOT,
                                 "CHECKDATASIG without NULLFAIL flags",
                                 checkdatasigflags & ~SCRIPT_VERIFY_NULLFAIL)
-                        .PushDataSig(keys.key1, one)
-                        .Push(two));
+                        .PushDataSig(keys.key1, {})
+                        .Num(1));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIG << OP_NOT,
                                 "CHECKDATASIG empty signature",
                                 checkdatasigflags)
                         .Num(0)
-                        .Push(one));
+                        .Num(0));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKDATASIG,
                     "CHECKDATASIG with High S but no Low S", checkdatasigflags)
-            .PushDataSig(keys.key1, one, 32, 33)
-            .Push(one));
+            .PushDataSig(keys.key1, {}, 32, 33)
+            .Num(0));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKDATASIG,
                     "CHECKDATASIG with High S",
                     checkdatasigflags | SCRIPT_VERIFY_LOW_S)
-            .PushDataSig(keys.key1, one, 32, 33)
-            .Push(one)
+            .PushDataSig(keys.key1, {}, 32, 33)
+            .Num(0)
             .ScriptError(SCRIPT_ERR_SIG_HIGH_S));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKDATASIG,
                     "CHECKDATASIG with too little R padding but no DERSIG",
                     checkdatasigflags & ~SCRIPT_VERIFY_STRICTENC)
-            .PushDataSig(keys.key1, one, 33, 32)
+            .PushDataSig(keys.key1, {}, 33, 32)
             .EditPush(1, "45022100", "440220")
-            .Push(one));
+            .Num(0));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey1C) << OP_CHECKDATASIG,
                     "CHECKDATASIG with too little R padding", checkdatasigflags)
-            .PushDataSig(keys.key1, one, 33, 32)
+            .PushDataSig(keys.key1, {}, 33, 32)
             .EditPush(1, "45022100", "440220")
-            .Push(one)
+            .Num(0)
             .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKDATASIG,
                     "CHECKDATASIG with hybrid pubkey but no STRICTENC",
                     checkdatasigflags & ~SCRIPT_VERIFY_STRICTENC)
-            .PushDataSig(keys.key0, one)
-            .Push(one));
+            .PushDataSig(keys.key0, {})
+            .Num(0));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKDATASIG,
                     "CHECKDATASIG with hybrid pubkey", checkdatasigflags)
-            .PushDataSig(keys.key0, one)
-            .Push(one)
+            .PushDataSig(keys.key0, {})
+            .Num(0)
             .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKDATASIG
                               << OP_NOT,
                     "CHECKDATASIG with invalid hybrid pubkey but no STRICTENC",
                     SCRIPT_ENABLE_CHECKDATASIG)
-            .PushDataSig(keys.key0, one)
+            .PushDataSig(keys.key0, {})
             .DamagePush(10)
-            .Push(one));
+            .Num(0));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H) << OP_CHECKDATASIG,
                     "CHECKDATASIG with invalid hybrid pubkey",
                     checkdatasigflags)
-            .PushDataSig(keys.key0, one)
+            .PushDataSig(keys.key0, {})
             .DamagePush(10)
-            .Push(one)
+            .Num(0)
             .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
 
     // Test OP_CHECKDATASIGVERIFY
@@ -1219,41 +1218,41 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "Standard CHECKDATASIGVERIFY",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key1, one)
-                        .Push(one));
+                        .PushDataSig(keys.key1, {})
+                        .Num(0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY with NULLFAIL flags",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key1, one)
-                        .Push(two)
+                        .PushDataSig(keys.key1, {})
+                        .Num(1)
                         .ScriptError(SCRIPT_ERR_SIG_NULLFAIL));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY without NULLFAIL flags",
                                 checkdatasigflags & ~SCRIPT_VERIFY_NULLFAIL)
-                        .PushDataSig(keys.key1, one)
-                        .Push(two)
+                        .PushDataSig(keys.key1, {})
+                        .Num(1)
                         .ScriptError(SCRIPT_ERR_CHECKDATASIGVERIFY));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY empty signature",
                                 checkdatasigflags)
                         .Num(0)
-                        .Push(one)
+                        .Num(0)
                         .ScriptError(SCRIPT_ERR_CHECKDATASIGVERIFY));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIG with High S but no Low S",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key1, one, 32, 33)
-                        .Push(one));
+                        .PushDataSig(keys.key1, {}, 32, 33)
+                        .Num(0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIG with High S",
                                 checkdatasigflags | SCRIPT_VERIFY_LOW_S)
-                        .PushDataSig(keys.key1, one, 32, 33)
-                        .Push(one)
+                        .PushDataSig(keys.key1, {}, 32, 33)
+                        .Num(0)
                         .ScriptError(SCRIPT_ERR_SIG_HIGH_S));
     tests.push_back(
         TestBuilder(
@@ -1261,30 +1260,30 @@ BOOST_AUTO_TEST_CASE(script_build) {
                       << OP_TRUE,
             "CHECKDATASIGVERIFY with too little R padding but no DERSIG",
             checkdatasigflags & ~SCRIPT_VERIFY_STRICTENC)
-            .PushDataSig(keys.key1, one, 33, 32)
+            .PushDataSig(keys.key1, {}, 33, 32)
             .EditPush(1, "45022100", "440220")
-            .Push(one));
+            .Num(0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey1C)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY with too little R padding",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key1, one, 33, 32)
+                        .PushDataSig(keys.key1, {}, 33, 32)
                         .EditPush(1, "45022100", "440220")
-                        .Push(one)
+                        .Num(0)
                         .ScriptError(SCRIPT_ERR_SIG_DER));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0H)
                               << OP_CHECKDATASIGVERIFY << OP_TRUE,
                     "CHECKDATASIGVERIFY with hybrid pubkey but no STRICTENC",
                     checkdatasigflags & ~SCRIPT_VERIFY_STRICTENC)
-            .PushDataSig(keys.key0, one)
-            .Push(one));
+            .PushDataSig(keys.key0, {})
+            .Num(0));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey0H)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY with hybrid pubkey",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key0, one)
-                        .Push(one)
+                        .PushDataSig(keys.key0, {})
+                        .Num(0)
                         .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
     tests.push_back(
         TestBuilder(
@@ -1292,17 +1291,17 @@ BOOST_AUTO_TEST_CASE(script_build) {
                       << OP_TRUE,
             "CHECKDATASIGVERIFY with invalid hybrid pubkey but no STRICTENC",
             SCRIPT_ENABLE_CHECKDATASIG)
-            .PushDataSig(keys.key0, one)
+            .PushDataSig(keys.key0, {})
             .DamagePush(10)
-            .Push(one)
+            .Num(0)
             .ScriptError(SCRIPT_ERR_CHECKDATASIGVERIFY));
     tests.push_back(TestBuilder(CScript() << ToByteVector(keys.pubkey0H)
                                           << OP_CHECKDATASIGVERIFY << OP_TRUE,
                                 "CHECKDATASIGVERIFY with invalid hybrid pubkey",
                                 checkdatasigflags)
-                        .PushDataSig(keys.key0, one)
+                        .PushDataSig(keys.key0, {})
                         .DamagePush(10)
-                        .Push(one)
+                        .Num(0)
                         .ScriptError(SCRIPT_ERR_PUBKEYTYPE));
 
     std::set<std::string> tests_set;

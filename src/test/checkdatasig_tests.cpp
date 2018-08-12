@@ -102,24 +102,12 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
     CheckErrorForAllFlags({{0x00}, {0x00}}, CScript() << OP_CHECKDATASIGVERIFY,
                           SCRIPT_ERR_INVALID_STACK_OPERATION);
 
-    // Check invalid message sizes.
-    for (valtype message; message.size() < 42; message.push_back(0x00)) {
-        if (message.size() == 32) {
-            // 32 is the expected size, skip.
-            continue;
-        }
-
-        CheckErrorForAllFlags({{0x00}, message, {0x00}},
-                              CScript() << OP_CHECKDATASIG,
-                              SCRIPT_ERR_INVALID_OPERAND_SIZE);
-
-        CheckErrorForAllFlags({{0x00}, message, {0x00}},
-                              CScript() << OP_CHECKDATASIGVERIFY,
-                              SCRIPT_ERR_INVALID_OPERAND_SIZE);
-    }
-
     // Check various pubkey encoding.
-    const valtype message(32, 0x00);
+    const valtype message{};
+
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << message;
+    uint256 messageHash = ss.GetHash();
 
     KeyData kd;
     valtype pubkey = ToByteVector(kd.pubkey);
@@ -141,18 +129,13 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
     const CScript script = CScript() << OP_CHECKDATASIG << OP_NOT << OP_VERIFY;
     const CScript scriptverify = CScript() << OP_CHECKDATASIGVERIFY;
 
-    // Check valid signatures.
-    const uint256 one(uint256S(
-        "0000000000000000000000000000000000000000000000000000000000000001"));
-    const uint256 two(uint256S(
-        "0000000000000000000000000000000000000000000000000000000000000002"));
-
+    // Check valid signatures (as in the signature format is valid).
     valtype validsig;
-    kd.privkey.Sign(one, validsig);
+    kd.privkey.Sign(messageHash, validsig);
 
-    CheckTestResultForAllFlags({validsig, ToByteVector(one), pubkey},
+    CheckTestResultForAllFlags({validsig, message, pubkey},
                                CScript() << OP_CHECKDATASIG, {{0x01}});
-    CheckTestResultForAllFlags({validsig, ToByteVector(one), pubkey},
+    CheckTestResultForAllFlags({validsig, message, pubkey},
                                CScript() << OP_CHECKDATASIGVERIFY, {});
 
     const valtype minimalsig{0x30, 0x06, 0x02, 0x01, 0x01, 0x02, 0x01, 0x01};
@@ -193,10 +176,10 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        SCRIPT_ERR_SIG_NULLFAIL);
 
             // Invalid message cause checkdatasig to fail.
-            CheckError(flags, {validsig, ToByteVector(two), pubkey}, script,
+            CheckError(flags, {validsig, {0x01}, pubkey}, script,
                        SCRIPT_ERR_SIG_NULLFAIL);
-            CheckError(flags, {validsig, ToByteVector(two), pubkey},
-                       scriptverify, SCRIPT_ERR_SIG_NULLFAIL);
+            CheckError(flags, {validsig, {0x01}, pubkey}, scriptverify,
+                       SCRIPT_ERR_SIG_NULLFAIL);
         } else {
             // When nullfail is not enforced, invalid signature are just false.
             CheckPass(flags, {minimalsig, message, pubkey}, script, {});
@@ -204,9 +187,9 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
                        SCRIPT_ERR_CHECKDATASIGVERIFY);
 
             // Invalid message cause checkdatasig to fail.
-            CheckPass(flags, {validsig, ToByteVector(two), pubkey}, script, {});
-            CheckError(flags, {validsig, ToByteVector(two), pubkey},
-                       scriptverify, SCRIPT_ERR_CHECKDATASIGVERIFY);
+            CheckPass(flags, {validsig, {0x01}, pubkey}, script, {});
+            CheckError(flags, {validsig, {0x01}, pubkey}, scriptverify,
+                       SCRIPT_ERR_CHECKDATASIGVERIFY);
         }
 
         if (flags & SCRIPT_VERIFY_LOW_S) {
