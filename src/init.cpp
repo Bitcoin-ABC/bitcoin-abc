@@ -1223,8 +1223,8 @@ static bool AppInitServers(Config &config,
     if (!StartHTTPRPC(config, httpRPCRequestProcessor)) {
         return false;
     }
-    if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) {
-        return false;
+    if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE)) {
+        StartREST();
     }
 
     StartHTTPServer();

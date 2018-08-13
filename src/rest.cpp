@@ -670,13 +670,11 @@ static const struct {
     {"/rest/getutxos", rest_getutxos},
 };
 
-bool StartREST() {
+void StartREST() {
     for (size_t i = 0; i < ARRAYLEN(uri_prefixes); i++) {
         RegisterHTTPHandler(uri_prefixes[i].prefix, false,
                             uri_prefixes[i].handler);
     }
-
-    return true;
 }
 
 void InterruptREST() {}

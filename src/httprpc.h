@@ -50,7 +50,7 @@ void StopHTTPRPC();
  * Start HTTP REST subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartREST();
+void StartREST();
 
 /** Interrupt RPC REST subsystem */
 void InterruptREST();
