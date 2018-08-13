@@ -515,7 +515,8 @@ static void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash)
  * removing the first element if necessary.
  */
 static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
-                                                 CConnman *connman) {
+                                                 CConnman *connman)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
     if (!nodestate) {
@@ -976,7 +977,8 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
 // best equivalent proof of work) than the best header chain we know about and
 // we fully-validated them at some point.
 static bool BlockRequestAllowed(const CBlockIndex *pindex,
-                                const Consensus::Params &consensusParams) {
+                                const Consensus::Params &consensusParams)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     if (chainActive.Contains(pindex)) {
         return true;
@@ -1473,7 +1475,8 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
 
 static void ProcessGetData(const Config &config, CNode *pfrom,
                            CConnman *connman,
-                           const std::atomic<bool> &interruptMsgProc) {
+                           const std::atomic<bool> &interruptMsgProc)
+    LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
 
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
@@ -3378,7 +3381,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 }
 
 static bool SendRejectsAndCheckIfBanned(CNode *pnode, CConnman *connman,
-                                        bool enable_bip61) {
+                                        bool enable_bip61)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode->GetId());
 

@@ -471,7 +471,8 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         bool fLimitFree, bool *pfMissingInputs,
                         bool fOverrideMempoolLimit = false,
                         const Amount nAbsurdFee = Amount::zero(),
-                        bool test_accept = false);
+                        bool test_accept = false)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);
@@ -512,7 +513,8 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
  * Test whether the LockPoints height and time are still valid on the current
  * chain.
  */
-bool TestLockPointValidity(const LockPoints *lp);
+bool TestLockPointValidity(const LockPoints *lp)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Check if transaction will be BIP 68 final in the next block to be created.
@@ -527,7 +529,8 @@ bool TestLockPointValidity(const LockPoints *lp);
  */
 bool CheckSequenceLocks(const CTransaction &tx, int flags,
                         LockPoints *lp = nullptr,
-                        bool useExistingLockPoints = false);
+                        bool useExistingLockPoints = false)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Closure representing one script verification.

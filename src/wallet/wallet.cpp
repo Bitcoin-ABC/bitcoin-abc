@@ -4660,7 +4660,8 @@ bool CMerkleTx::IsImmatureCoinBase() const {
 }
 
 bool CWalletTx::AcceptToMemoryPool(const Amount nAbsurdFee,
-                                   CValidationState &state) {
+                                   CValidationState &state)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     // Quick check to avoid re-setting fInMempool to false
     if (g_mempool.exists(tx->GetId())) {
         return false;

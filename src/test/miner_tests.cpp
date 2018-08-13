@@ -73,7 +73,8 @@ static CBlockIndex CreateBlockIndex(int nHeight) {
     return index;
 }
 
-static bool TestSequenceLocks(const CTransaction &tx, int flags) {
+static bool TestSequenceLocks(const CTransaction &tx, int flags)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     LOCK(g_mempool.cs);
     return CheckSequenceLocks(tx, flags);
 }

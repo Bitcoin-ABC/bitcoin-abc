@@ -90,7 +90,8 @@ public:
      * Consider evicting an outbound peer based on the amount of time they've
      * been behind our tip.
      */
-    void ConsiderEviction(CNode *pto, int64_t time_in_seconds);
+    void ConsiderEviction(CNode *pto, int64_t time_in_seconds)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /**
      * Evict extra outbound peers. If we think our tip may be stale, connect to
      * an extra outbound.

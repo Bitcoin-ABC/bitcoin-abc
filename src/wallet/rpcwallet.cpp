@@ -109,7 +109,8 @@ void EnsureWalletIsUnlocked(CWallet *const pwallet) {
     }
 }
 
-static void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
+static void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     int confirms = wtx.GetDepthInMainChain();
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
@@ -1484,7 +1485,8 @@ struct tallyitem {
 };
 
 static UniValue ListReceived(const Config &config, CWallet *const pwallet,
-                             const UniValue &params, bool by_label) {
+                             const UniValue &params, bool by_label)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
@@ -1773,7 +1775,8 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
 static void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                              const std::string &strAccount, int nMinDepth,
                              bool fLong, UniValue &ret,
-                             const isminefilter &filter) {
+                             const isminefilter &filter)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     Amount nFee;
     std::string strSentAccount;
     std::list<COutputEntry> listReceived;

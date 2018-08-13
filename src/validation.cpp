@@ -152,11 +152,13 @@ public:
     bool ConnectBlock(const CBlock &block, CValidationState &state,
                       CBlockIndex *pindex, CCoinsViewCache &view,
                       const CChainParams &params,
-                      BlockValidationOptions options, bool fJustCheck = false);
+                      BlockValidationOptions options, bool fJustCheck = false)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Block disconnection on our pcoinsTip:
     bool DisconnectTip(const Config &config, CValidationState &state,
-                       DisconnectedBlockTransactions *disconnectpool);
+                       DisconnectedBlockTransactions *disconnectpool)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Manual block validity manipulation:
     bool PreciousBlock(const Config &config, CValidationState &state,
@@ -167,8 +169,11 @@ public:
     template <typename F>
     void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f);
     template <typename F, typename C>
-    void UpdateFlags(CBlockIndex *pindex, F f, C fchild);
-    template <typename F> void UpdateFlags(CBlockIndex *pindex, F f);
+    void UpdateFlags(CBlockIndex *pindex, F f, C fchild)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    template <typename F>
+    void UpdateFlags(CBlockIndex *pindex, F f)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /** Remove parked status from a block and its descendants. */
     bool UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren);
 
@@ -184,23 +189,28 @@ private:
     bool ActivateBestChainStep(const Config &config, CValidationState &state,
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
-                               bool &fInvalidFound, ConnectTrace &connectTrace);
+                               bool &fInvalidFound, ConnectTrace &connectTrace)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool ConnectTip(const Config &config, CValidationState &state,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
-                    DisconnectedBlockTransactions &disconnectpool);
+                    DisconnectedBlockTransactions &disconnectpool)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    CBlockIndex *AddToBlockIndex(const CBlockHeader &block);
+    CBlockIndex *AddToBlockIndex(const CBlockHeader &block)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /** Create a new block index entry for a given block hash */
     CBlockIndex *InsertBlockIndex(const uint256 &hash);
     void CheckBlockIndex(const Consensus::Params &consensusParams);
 
-    void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state);
-    CBlockIndex *FindMostWorkChain();
+    void InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
                                    CBlockIndex *pindexNew,
-                                   const FlatFilePos &pos);
+                                   const FlatFilePos &pos)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
                           const Consensus::Params &params);
@@ -320,7 +330,8 @@ static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
 static FlatFileSeq BlockFileSeq();
 static FlatFileSeq UndoFileSeq();
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
-                                        const CBlockIndex *pindex);
+                                        const CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 bool TestLockPointValidity(const LockPoints *lp) {
     AssertLockHeld(cs_main);
@@ -421,12 +432,14 @@ std::string FormatStateMessage(const CValidationState &state) {
 }
 
 static bool
-IsMagneticAnomalyEnabledForCurrentBlock(const Consensus::Params &params) {
+IsMagneticAnomalyEnabledForCurrentBlock(const Consensus::Params &params)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     return IsMagneticAnomalyEnabled(params, chainActive.Tip());
 }
 
-static bool IsGravitonEnabledForCurrentBlock(const Consensus::Params &params) {
+static bool IsGravitonEnabledForCurrentBlock(const Consensus::Params &params)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     return IsGravitonEnabled(params, chainActive.Tip());
 }
@@ -451,7 +464,8 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
 }
 
 static bool
-IsReplayProtectionEnabledForCurrentBlock(const Consensus::Params &params) {
+IsReplayProtectionEnabledForCurrentBlock(const Consensus::Params &params)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     return IsReplayProtectionEnabled(params, chainActive.Tip());
 }
@@ -461,7 +475,8 @@ IsReplayProtectionEnabledForCurrentBlock(const Consensus::Params &params) {
 static bool CheckInputsFromMempoolAndCache(
     const CTransaction &tx, CValidationState &state,
     const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
-    bool cacheSigStore, PrecomputedTransactionData &txdata) {
+    bool cacheSigStore, PrecomputedTransactionData &txdata)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     // pool.cs should be locked already, but go ahead and re-take the lock here
@@ -501,7 +516,8 @@ static bool AcceptToMemoryPoolWorker(
     const Config &config, CTxMemPool &pool, CValidationState &state,
     const CTransactionRef &ptx, bool fLimitFree, bool *pfMissingInputs,
     int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
-    std::vector<COutPoint> &coins_to_uncache, bool test_accept) {
+    std::vector<COutPoint> &coins_to_uncache, bool test_accept)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     const Consensus::Params &consensusParams =
@@ -825,12 +841,11 @@ static bool AcceptToMemoryPoolWorker(
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool
-AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
-                           CValidationState &state, const CTransactionRef &tx,
-                           bool fLimitFree, bool *pfMissingInputs,
-                           int64_t nAcceptTime, bool fOverrideMempoolLimit,
-                           const Amount nAbsurdFee, bool test_accept) {
+static bool AcceptToMemoryPoolWithTime(
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
+    int64_t nAcceptTime, bool fOverrideMempoolLimit, const Amount nAbsurdFee,
+    bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
@@ -1051,7 +1066,7 @@ static void AlertNotify(const std::string &strMessage) {
     t.detach();
 }
 
-static void CheckForkWarningConditions() {
+static void CheckForkWarningConditions() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     // Before we get past initial download, we cannot reliably alert about forks
     // (we assume we don't get stuck on a fork before finishing our initial
@@ -1102,8 +1117,8 @@ static void CheckForkWarningConditions() {
     }
 }
 
-static void
-CheckForkWarningConditionsOnNewFork(const CBlockIndex *pindexNewForkTip) {
+static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     // If we are on a fork that is sufficiently large, set a warning flag.
     const CBlockIndex *pfork = chainActive.FindFork(pindexNewForkTip);
@@ -1129,7 +1144,8 @@ CheckForkWarningConditionsOnNewFork(const CBlockIndex *pindexNewForkTip) {
     CheckForkWarningConditions();
 }
 
-static void InvalidChainFound(CBlockIndex *pindexNew) {
+void static InvalidChainFound(CBlockIndex *pindexNew)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (!pindexBestInvalid ||
         pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
         pindexBestInvalid = pindexNew;
@@ -1217,7 +1233,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const uint32_t flags, bool sigCacheStore,
                  bool scriptCacheStore,
                  const PrecomputedTransactionData &txdata,
-                 std::vector<CScriptCheck> *pvChecks) {
+                 std::vector<CScriptCheck> *pvChecks)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     assert(!tx.IsCoinBase());
 
     if (pvChecks) {
@@ -1581,7 +1598,8 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
 // Returns the script flags which should be checked for the block after
 // the given block.
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
-                                        const CBlockIndex *pindex) {
+                                        const CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     uint32_t flags = SCRIPT_VERIFY_NONE;
 
@@ -1662,8 +1680,8 @@ static int64_t nBlocksTotal = 0;
 bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                                CBlockIndex *pindex, CCoinsViewCache &view,
                                const CChainParams &params,
-                               BlockValidationOptions options,
-                               bool fJustCheck) {
+                               BlockValidationOptions options, bool fJustCheck)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     assert(pindex);
     assert(*pindex->phashBlock == block.GetHash());
@@ -2202,7 +2220,8 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
  * in any case).
  */
 bool CChainState::DisconnectTip(const Config &config, CValidationState &state,
-                                DisconnectedBlockTransactions *disconnectpool) {
+                                DisconnectedBlockTransactions *disconnectpool)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CBlockIndex *pindexDelete = chainActive.Tip();
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -3097,7 +3116,8 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
 }
 
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
-                                CBlockIndex *pindex) {
+                                CBlockIndex *pindex)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     if (!FinalizeBlockInternal(config, state, pindex)) {
         // state is set by FinalizeBlockInternal.
@@ -3150,7 +3170,8 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
 }
 
 template <typename F, typename C>
-void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
+void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     // Update the current block.
@@ -3177,7 +3198,9 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
     }
 }
 
-template <typename F> void CChainState::UpdateFlags(CBlockIndex *pindex, F f) {
+template <typename F>
+void CChainState::UpdateFlags(CBlockIndex *pindex, F f)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     // Handy shorthand.
     UpdateFlags(pindex, f, f);
 }
@@ -3251,7 +3274,8 @@ bool IsBlockFinalized(const CBlockIndex *pindex) {
            pindexFinalized->GetAncestor(pindex->nHeight) == pindex;
 }
 
-CBlockIndex *CChainState::AddToBlockIndex(const CBlockHeader &block) {
+CBlockIndex *CChainState::AddToBlockIndex(const CBlockHeader &block)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     // Check for duplicate

@@ -55,7 +55,8 @@ namespace {
     };
 
     //! Construct wallet tx struct.
-    WalletTx MakeWalletTx(CWallet &wallet, const CWalletTx &wtx) {
+    static WalletTx MakeWalletTx(CWallet &wallet, const CWalletTx &wtx)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
         WalletTx result;
         result.tx = wtx.tx;
         result.txin_is_mine.reserve(wtx.tx->vin.size());
@@ -84,7 +85,8 @@ namespace {
     }
 
     //! Construct wallet tx status struct.
-    WalletTxStatus MakeWalletTxStatus(const CWalletTx &wtx) {
+    static WalletTxStatus MakeWalletTxStatus(const CWalletTx &wtx)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
         WalletTxStatus result;
         CBlockIndex *block = LookupBlockIndex(wtx.hashBlock);
         result.block_height =
@@ -102,8 +104,9 @@ namespace {
     }
 
     //! Construct wallet TxOut struct.
-    WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx, int n,
-                                int depth) {
+    static WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx,
+                                       int n, int depth)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
         WalletTxOut result;
         result.txout = wtx.tx->vout[n];
         result.time = wtx.GetTxTime();
