@@ -52,7 +52,7 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
-    def next_block(self, number, spend=None, tx_size=0, pushonly=True):
+    def next_block(self, number, spend=None, tx_size=0, pushonly=True, cleanstack=True):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             import time
@@ -81,8 +81,12 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
             # Spend from one of the spendable outputs
             spend = spendable_outputs.popleft()
             tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+            extra_ops = []
             if pushonly == False:
-                tx.vin[0].scriptSig = CScript([OP_TRUE, OP_DROP])
+                extra_ops += [OP_TRUE, OP_DROP]
+            if cleanstack == False:
+                extra_ops += [OP_TRUE]
+            tx.vin[0].scriptSig = CScript(extra_ops)
             # Add spendable outputs
             for i in range(2):
                 tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
@@ -213,9 +217,10 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MAGNETIC_ANOMALY_START_TIME - 1)
 
-        # Check that block with small transactions and non push only signatures
-        # are still accepted.
-        small_tx_block = block(4444, out[0], MIN_TX_SIZE - 1, False)
+        # Check that block with small transactions, non push only signatures and
+        # non clean stack are still accepted.
+        small_tx_block = block(
+            4444, out[0], MIN_TX_SIZE - 1, pushonly=False, cleanstack=False)
         assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
         yield accepted()
 
@@ -234,8 +239,17 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Now that the for activated, it is not possible to have
         # non push only transactions.
-        non_pushonly_tx_block = block(4446, out[1], MIN_TX_SIZE, False)
-        assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
+        non_pushonly_tx_block = block(
+            4446, out[1], MIN_TX_SIZE, pushonly=False)
+        yield rejected(RejectResult(16, b'blk-bad-inputs'))
+
+        # Rewind bad block.
+        tip(4444)
+
+        # Now that the for activated, it is not possible to have
+        # non clean stack transactions.
+        non_cleanstack_tx_block = block(
+            4447, out[1], MIN_TX_SIZE, cleanstack=False)
         yield rejected(RejectResult(16, b'blk-bad-inputs'))
 
         # Rewind bad block.

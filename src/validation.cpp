@@ -1931,10 +1931,12 @@ static uint32_t GetBlockScriptFlags(const Config &config,
 
     // When the magnetic anomaly fork is enabled, we start accepting
     // transactions using the OP_CHECKDATASIG opcode and it's verify
-    // alternative. We also start enforcing push only signatures.
+    // alternative. We also start enforcing push only signatures and
+    // clean stack.
     if (IsMagneticAnomalyEnabled(config, pChainTip)) {
         flags |= SCRIPT_ENABLE_CHECKDATASIG;
         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
+        flags |= SCRIPT_VERIFY_CLEANSTACK;
     }
 
     // We make sure this node will have replay protection during the next hard

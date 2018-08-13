@@ -16,4 +16,5 @@ This release includes the following features and fixes:
  - Add OP_CHECKDATASIG and OP_CHECKDATASIGVERIFY, activates Nov, 15 2018.
  - Enforce minimum transaction size of 100 bytes, starting Nov, 15 2018.
  - Enforce PUSH ONLY rule for scriptSig, starting Nov, 15 2018.
+ - Enforce CLEANSTACK rule, starting Nov 15, 2018.
 
