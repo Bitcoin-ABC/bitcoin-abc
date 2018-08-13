@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/test/utils_tx.h"
 
 #include "omnicore/omnicore.h"
@@ -429,3 +430,4 @@ void shuffleAndCheck(std::vector<CTxOut>& vouts, unsigned nRounds)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

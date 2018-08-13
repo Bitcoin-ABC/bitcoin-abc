@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/script.h"
 
 #include "amount.h"
@@ -146,3 +147,4 @@ BOOST_AUTO_TEST_CASE(dust_threshold_multisig_uncompressed_compressed_compressed)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

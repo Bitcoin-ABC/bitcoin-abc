@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/notifications.h"
 #include "omnicore/version.h"
 
@@ -76,3 +77,4 @@ BOOST_AUTO_TEST_CASE(alert_authorize_any_source)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

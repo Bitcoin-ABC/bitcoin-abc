@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/encoding.h"
 
 #include "omnicore/script.h"
@@ -99,3 +100,4 @@ BOOST_AUTO_TEST_CASE(class_c_with_empty_payload)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

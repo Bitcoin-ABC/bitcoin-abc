@@ -1,3 +1,4 @@
+#if 0
 #include "random.h"
 #include "sync.h"
 #include "test/test_bitcoin.h"
@@ -46,3 +47,4 @@ BOOST_AUTO_TEST_CASE(multithread_locking)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif
