@@ -2,13 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <addrman.h>
 #include <chain.h>
 #include <coins.h>
 #include <compressor.h>
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
-#endif
 #include <consensus/merkle.h>
 #include <net.h>
 #include <primitives/block.h>
@@ -23,6 +24,8 @@
 #include <cstdint>
 #include <unistd.h>
 #include <vector>
+
+const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 enum TEST_ID {
     CBLOCK_DESERIALIZE = 0,

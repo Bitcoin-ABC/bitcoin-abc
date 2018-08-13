@@ -5,6 +5,7 @@
 #include <seeder/db.h>
 #include <seeder/dns.h>
 #include <streams.h>
+#include <util/system.h>
 
 #include <algorithm>
 #include <atomic>
@@ -14,6 +15,8 @@
 #include <cstdlib>
 #include <getopt.h>
 #include <pthread.h>
+
+const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 class CDnsSeedOpts {
 public:
