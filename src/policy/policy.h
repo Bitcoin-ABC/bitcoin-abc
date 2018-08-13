@@ -33,6 +33,17 @@ static const Amount DEFAULT_BLOCK_MIN_TX_FEE(1000);
  * The maximum size for transactions we're willing to relay/mine.
  */
 static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
+
+/**
+ * Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
+ * keys (remember the 520 byte limit on redeemScript size). That works
+ * out to a (15*(33+1))+3=513 byte redeemScript, 513+1+15*(73+1)+3=1627
+ * bytes of scriptSig, which we round off to 1650 bytes for some minor
+ * future-proofing. That's also enough to spend a 20-of-20 CHECKMULTISIG
+ * scriptPubKey, though such a scriptPubKey is not considered standard.
+ */
+static const unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE = 1650;
+
 /**
  * Maximum number of signature check operations in an IsStandard() P2SH script.
  */
