@@ -21,7 +21,9 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
         issuer_change_addr = self.nodes[0].getnewaddress("")
         sendall_addr = self.nodes[0].getnewaddress("")
 
-        # generate some test coin
+        '''
+        generate some test coin
+        '''
         self.nodes[0].generatetoaddress(101, addr0)
         # burn 3 BCH
         self.nodes[0].whc_burnbchgetwhc(6)
@@ -60,7 +62,9 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
         ret = self.nodes[0].whc_getbalance(addr3, ppid1)
         assert ret["balance"] == "1.090"
 
-        # change issuer test
+        '''
+        change issuer test
+        '''
         tx = self.nodes[0].whc_sendchangeissuer(addr1, issuer_change_addr, ppid1)
         self.nodes[0].generatetoaddress(1, addr1)
         ret = self.nodes[0].whc_gettransaction(tx)
@@ -82,8 +86,9 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
         assert_array_result(self.nodes[0].whc_getallbalancesforid(ppid1),
                             {"address": addr3},
                             {"address": addr3, "balance": "97.379", "reserved": "0.000"})
-
-        # whc_sendsto test(other id)
+        '''
+        whc_sendsto test(other id)
+        '''
         # step1. generate other issuerance
         ret = self.nodes[0].whc_getbalance(addr4, 1)
         tx = self.nodes[0].whc_sendissuancefixed(addr4, 1, 2, 0, "reg fix2", "fix2",
@@ -103,7 +108,7 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
                             {"address": addr2},
                             {"address": addr2, "balance": "500000.00", "reserved": "0.00"})
 
-        # # step2 whc_sendsto
+        # step2 whc_sendsto
         tx = self.nodes[0].whc_sendsto(addr1, ppid1, "1000.123", "", ppid2)
         self.nodes[0].generatetoaddress(1, addr1)
         assert_array_result(self.nodes[0].whc_getallbalancesforid(ppid1),
@@ -119,6 +124,30 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
                             {"address": addr4},
                             {"address": addr4, "balance": "666.749", "reserved": "0.000"})
 
+        '''
+        sendall test
+        '''
+        tx_sa = self.nodes[0].whc_sendall(addr1, sendall_addr, 1)
+        ret = self.nodes[0].whc_getallbalancesforaddress(addr1)
+        assert_array_result(self.nodes[0].whc_getallbalancesforaddress(addr1),
+                            {"propertyid": 1},
+                            {"balance": "298.99999996", "reserved": "0.00000000"})
+        assert_array_result(self.nodes[0].whc_getallbalancesforaddress(addr1),
+                            {"propertyid": ppid1},
+                            {"balance": "10334.235", "reserved": "0.000"})
+        self.nodes[0].generatetoaddress(1, addr4)
+        ret = self.nodes[0].whc_gettransaction(tx_sa)
+        assert ret["valid"] == True
+
+        assert_array_result(self.nodes[0].whc_getallbalancesforaddress(sendall_addr),
+                            {"propertyid": 1},
+                            {"balance": "298.99999996", "reserved": "0.00000000"})
+        assert_array_result(self.nodes[0].whc_getallbalancesforaddress(sendall_addr),
+                            {"propertyid": ppid1},
+                            {"balance": "10334.235", "reserved": "0.000"})
+        assert len(self.nodes[0].whc_getallbalancesforaddress(addr1)) == 0
+
 
 if __name__ == '__main__':
     WHC_FixedIssuance_Test().main()
+
