@@ -54,11 +54,6 @@ private:
     uint32_t Hash(uint32_t nHashNum,
                   const std::vector<uint8_t> &vDataToHash) const;
 
-    // Private constructor for CRollingBloomFilter, no restrictions on size
-    CBloomFilter(const uint32_t nElements, const double nFPRate,
-                 const uint32_t nTweak);
-    friend class CRollingBloomFilter;
-
 public:
     /**
      * Creates a new bloom filter which will provide the given fp rate when
