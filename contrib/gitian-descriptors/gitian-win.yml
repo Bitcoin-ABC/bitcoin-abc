@@ -1,5 +1,5 @@
 ---
-name: "wormhole-0.17-win"
+name: "wormhole-0.0.6-win"
 enable_cache: true
 suites:
 - "xenial"
@@ -31,7 +31,7 @@ alternatives:
 - "package" : "x86_64-w64-mingw32-g++"
   "path" : "/usr/bin/x86_64-w64-mingw32-g++-posix"
 remotes:
-- "url": "https://github.com/zymap/wormhole.git"
+- "url": "https://github.com/copernet/wormhole.git"
   "dir": "wormhole"
 files: []
 script: |

@@ -1,5 +1,5 @@
 ---
-name: "wormhole-0.17-linux"
+name: "wormhole-0.0.6-linux"
 enable_cache: true
 suites:
 - "xenial"
@@ -36,7 +36,7 @@ packages:
 - "libstdc++6:i386"
 - "libdb++-dev"
 remotes:
-- "url": "https://github.com/zymap/wormhole.git"
+- "url": "https://github.com/copernet/wormhole.git"
   "dir": "wormhole"
 files: []
 script: |
