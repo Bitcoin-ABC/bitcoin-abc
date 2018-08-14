@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/convert.h"
 
 #include "test/test_bitcoin.h"
@@ -31,3 +32,4 @@ BOOST_AUTO_TEST_CASE(swapbyteorder_cycle)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+#endif

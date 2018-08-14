@@ -10,19 +10,15 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
-  cmake -GNinja -DCMAKE_INSTALL_PREFIX=$(build_prefix)
+  cmake -DCMAKE_INSTALL_PREFIX=$(build_prefix)
 endef
 
 define $(package)_build_cmds
-  ninja genisoimage
+  $(MAKE) genisoimage
 endef
 
-# Older versions of cmake do not generate install target properly, but we
-# need to support them because that's what is in xenial and we use xenial
-# for reproducible builds. So we just fallback on installing everything.
 define $(package)_stage_cmds
-  DESTDIR=$($(package)_staging_dir) ninja genisoimage/install || \
-      DESTDIR=$($(package)_staging_dir) ninja install
+  $(MAKE) DESTDIR=$($(package)_staging_dir) -C genisoimage install
 endef
 
 define $(package)_postprocess_cmds

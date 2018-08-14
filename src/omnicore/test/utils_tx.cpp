@@ -1,3 +1,4 @@
+#if 0
 #include "omnicore/test/utils_tx.h"
 
 #include "omnicore/omnicore.h"
@@ -211,4 +212,5 @@ CTxOut NonStandardOutput()
 
     return CTxOut(amount, scriptPubKey);
 }
+#endif
 

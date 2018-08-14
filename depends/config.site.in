@@ -1,4 +1,4 @@
-depends_prefix=$(cd `dirname ${ac_site_file}`/..; pwd -P)
+depends_prefix="`dirname ${ac_site_file}`/.."
 
 cross_compiling=maybe
 host_alias=@HOST@
@@ -18,6 +18,9 @@ if test -z $with_qt_bindir; then
 fi
 if test -z $with_protoc_bindir; then
   with_protoc_bindir=$depends_prefix/native/bin
+fi
+if test -z $with_comparison_tool; then
+  with_comparison_tool=$depends_prefix/native/share/BitcoindComparisonTool_jar/BitcoindComparisonTool.jar
 fi
 
 
@@ -63,6 +66,7 @@ LDFLAGS="-L$depends_prefix/lib $LDFLAGS"
 CC="@CC@"
 CXX="@CXX@"
 OBJC="${CC}"
+OBJCXX="${CXX}"
 CCACHE=$depends_prefix/native/bin/ccache
 PYTHONPATH=$depends_prefix/native/lib/python/dist-packages:$PYTHONPATH
 
