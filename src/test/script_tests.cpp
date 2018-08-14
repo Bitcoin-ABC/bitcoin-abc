@@ -1,4 +1,5 @@
 // Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -344,10 +345,10 @@ public:
 
     TestBuilder &PushDataSig(const CKey &key, const std::vector<uint8_t> &data,
                              unsigned int lenR = 32, unsigned int lenS = 32) {
-        CHashWriter ss(SER_GETHASH, 0);
-        ss << data;
+        std::vector<uint8_t> vchHash(32);
+        CSHA256().Write(data.data(), data.size()).Finalize(vchHash.data());
 
-        DoPush(DoSign(key, ss.GetHash(), lenR, lenS));
+        DoPush(DoSign(key, uint256(vchHash), lenR, lenS));
         return *this;
     }
 

@@ -47,7 +47,7 @@ class CheckDataSigActivationTest(ComparisonTestFramework):
         tx.vin = [CTxIn(COutPoint(int(utxo["txid"], 16), utxo["vout"]))]
         tx.vout = []
         signature = bytearray.fromhex(
-            '304402203fcefd3a307407b8580565aa41fa57ef8fbfc9470cccab19ed111b3d009b01b8022057e5e2f73a3e6d5e1036bce94a2ea40ecdc7e81a0c1c8bfd6b3dc191f511e312')
+            '30440220256c12175e809381f97637933ed6ab97737d263eaaebca6add21bced67fd12a402205ce29ecc1369d6fc1b51977ed38faaf41119e3be1d7edfafd7cfaf0b6061bd07')
         message = bytearray.fromhex('')
         pubkey = bytearray.fromhex(
             '038282263212c609d9ea2a6e3e172de238d8c39cabd5ac1ca10646e23fd5f51508')
