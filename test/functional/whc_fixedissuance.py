@@ -120,7 +120,5 @@ class WHC_FixedIssuance_Test(BitcoinTestFramework):
                             {"address": addr4, "balance": "666.749", "reserved": "0.000"})
 
 
-1
-
 if __name__ == '__main__':
     WHC_FixedIssuance_Test().main()
