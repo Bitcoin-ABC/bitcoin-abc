@@ -272,7 +272,7 @@ void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
         txobj.push_back(Pair("type", "Crowdsale Purchase"));
         txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
         txobj.push_back(Pair("precision", getprecision(propertyId)));
-        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false)));
         txobj.push_back(Pair("purchasedpropertyid", crowdPropertyId));
         txobj.push_back(Pair("purchasedpropertyname", sp.name));
         txobj.push_back(Pair("purchasedpropertyprecision", getprecision(crowdPropertyId)));
@@ -289,7 +289,7 @@ void populateRPCTypeSimpleSend(CMPTransaction& omniObj, UniValue& txobj)
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
     if (propertyId == OMNI_PROPERTY_WHC){
-        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false)));
     } else {
         txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
     }
@@ -301,7 +301,7 @@ void populateRPCTypeSendToOwners(CMPTransaction& omniObj, UniValue& txobj, bool 
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
     if (propertyId == OMNI_PROPERTY_WHC){
-        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false)));
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false)));
     } else {
         txobj.push_back(Pair("amount", FormatMP(propertyId, omniObj.getAmount())));
     }
@@ -327,7 +327,7 @@ void populateRPCTypeGetBaseProperTy(CMPTransaction& mp_obj, UniValue& txobj, int
         }else{
             txobj.push_back(Pair("mature", true));
         }
-        txobj.push_back(Pair("amount", FormatByType(int64_t(mp_obj.getBurnBCH() * params.exodusReward), PRICE_PRICISION)));
+        txobj.push_back(Pair("amount", FormatByType(int64_t(mp_obj.getBurnBCH() * params.exodusReward), PRICE_PRECISION)));
     } else{
         txobj.push_back(Pair("Enough", "No Burn Enough BCH, minium is 1 BCH"));
 	    txobj.push_back(Pair("burn", strprintf("%d",mp_obj.getBurnBCH())));
@@ -499,7 +499,7 @@ void populateRPCTypeCreatePropertyVariable(CMPTransaction& omniObj, UniValue& tx
     txobj.push_back(Pair("data", omniObj.getSPData()));
     txobj.push_back(Pair("url", omniObj.getSPUrl()));
     txobj.push_back(Pair("propertyiddesired", (uint64_t) omniObj.getProperty()));
-    std::string strPerUnit = FormatDivisibleMP(omniObj.getAmount(), PRICE_PRICISION, false);;
+    std::string strPerUnit = FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false);;
     txobj.push_back(Pair("tokensperunit", strPerUnit));
     txobj.push_back(Pair("deadline", omniObj.getDeadline()));
     txobj.push_back(Pair("earlybonus", omniObj.getEarlyBirdBonus()));
@@ -576,7 +576,7 @@ void populateRPCExtendedTypeSendToOwners(const uint256 txid, std::string extende
     } else {
         stoFee = numRecipients * TRANSFER_FEE_PER_OWNER_V1;
     }
-    txobj.push_back(Pair("totalstofee", FormatIndivisibleMP(stoFee))); // fee always OMNI so always divisible
+    txobj.push_back(Pair("totalstofee", FormatDivisibleMP(stoFee, PRICE_PRECISION))); // fee always OMNI so always divisible
     txobj.push_back(Pair("recipients", receiveArray));
 }
 

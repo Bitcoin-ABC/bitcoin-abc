@@ -15,10 +15,10 @@
 using std::runtime_error;
 using namespace mastercore;
 
-UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCRequest &request){
+UniValue whc_createpayload_particrowdsale(const Config &config,const JSONRPCRequest &request){
    if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "whc_createpayload_particrwosale \"amount\"\n"
+            "whc_createpayload_particrowdsale \"amount\"\n"
 
             "\nCreate the payload for a participate crowsale transaction.\n"
 
@@ -29,11 +29,11 @@ UniValue whc_createpayload_particrwosale(const Config &config,const JSONRPCReque
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("whc_createpayload_particrwosale", " \"100.0\"")
-            + HelpExampleRpc("whc_createpayload_particrwosale", " \"100.0\"")
+            + HelpExampleCli("whc_createpayload_particrowdsale", " \"100.0\"")
+            + HelpExampleRpc("whc_createpayload_particrowdsale", " \"100.0\"")
         );
 	
-    int64_t amount = ParseAmount(request.params[0], PRICE_PRICISION);
+    int64_t amount = ParseAmount(request.params[0], PRICE_PRECISION);
 
     std::vector<unsigned char> payload = CreatePayload_PartiCrowsale(OMNI_PROPERTY_WHC, amount);
 
@@ -217,7 +217,7 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -263,7 +263,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -294,7 +294,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     std::string url = ParseText(request.params[6]);
     std::string data = ParseText(request.params[7]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[8]);
-    int64_t numTokens = ParseAmount(request.params[9], PRICE_PRICISION);
+    int64_t numTokens = ParseAmount(request.params[9], PRICE_PRECISION);
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
@@ -324,7 +324,7 @@ UniValue whc_createpayload_issuancemanaged(const Config &config,const JSONRPCReq
 
             "\nArguments:\n"
             "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "2. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "2. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"
             "5. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -776,7 +776,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (payload creation)", "omni_createpayload_freeze",              &omni_createpayload_freeze,              true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_unfreeze",            &omni_createpayload_unfreeze,            true, {} },
     { "omni layer (payload creation)", "whc_createpayload_burnbch",             &whc_createpayload_burnbch,             true, {} },
-    { "omni layer (payload creation)", "whc_createpayload_particrwosale",             &whc_createpayload_particrwosale,             true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_particrowdsale",             &whc_createpayload_particrowdsale,             true, {} },
 };
 
 void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)

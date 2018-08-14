@@ -13,7 +13,7 @@ BOOST_FIXTURE_TEST_SUITE(omnicore_crowdsale_participation_tests, BasicTestingSet
 BOOST_AUTO_TEST_CASE(overpayment_close)
 {
 
-    uint16_t   pricision = 2;
+    uint16_t   precision = 2;
     int64_t amountInvested = 300000000;
     uint8_t earlyBirdBonus = 10;
     int64_t deadline = 1535644800;
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(overpayment_close)
     bool fClosed = false;
 
     //txid : db7782198b2640aa8891453fd5077968d1642bfa5947f839396ce77f8e51d286
-    mastercore::calculateFundraiser(pricision, amountInvested, earlyBirdBonus, deadline,
+    mastercore::calculateFundraiser(precision, amountInvested, earlyBirdBonus, deadline,
                                     timestamp, amountPerUnitInvested, soldTokens , totalTokens, purchasedTokens,
                                     fClosed, refund);
 

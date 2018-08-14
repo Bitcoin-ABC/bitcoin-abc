@@ -6,7 +6,7 @@
 
 UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest &request);
 UniValue whc_createpayload_sendall(const Config &config,const JSONRPCRequest &request);
-UniValue whc_createpayload_particrwos(const Config &config,const JSONRPCRequest &request);
+UniValue whc_createpayload_particrowdsale(const Config &config,const JSONRPCRequest &request);
 UniValue omni_createpayload_dexsell(const Config &config,const JSONRPCRequest &request);
 UniValue omni_createpayload_dexaccept(const Config &config,const JSONRPCRequest &request);
 UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &request);

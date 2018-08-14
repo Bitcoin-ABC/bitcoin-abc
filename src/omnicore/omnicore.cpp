@@ -3244,12 +3244,16 @@ void CMPSTOList::getRecipients(const uint256 txid, string filterAddress, UniValu
                       recipient.push_back(Pair("address", recipientAddress));
                       if(isPropertyDivisible(propertyId))
                       {
-				int type = getPropertyType(propertyId);
-                         recipient.push_back(Pair("amount", FormatDivisibleMP(amount, type)));
+                          int type = getPropertyType(propertyId);
+                          recipient.push_back(Pair("amount", FormatDivisibleMP(amount, type)));
                       }
                       else
                       {
-                         recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
+                          if (propertyId == OMNI_PROPERTY_WHC)  {
+                              recipient.push_back(Pair("amount", FormatDivisibleMP(amount, PRICE_PRICISION)));
+                          }else{
+                              recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
+                          }
                       }
                       *total += amount;
                       recipientArray->push_back(recipient);

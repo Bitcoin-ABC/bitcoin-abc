@@ -256,7 +256,7 @@ inline std::string error_str(int ec) {
           ec_str = "refund amount should not be negative";
           break;
       case PKT_ERROR_CROWD -5:
-          ec_str = "crowdsale failure, participate amount less the Crowd Token minium Pricision";
+          ec_str = "crowdsale failure, participate amount less the Crowd Token minium precision";
           break;
       case METADEX_ERROR -1:
           ec_str = "Unknown MetaDEx (Add) error";
