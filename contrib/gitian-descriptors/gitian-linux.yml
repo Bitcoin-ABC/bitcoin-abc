@@ -1,5 +1,5 @@
 ---
-name: "bitcoin-abc-0.17-linux"
+name: "wormhole-0.17-linux"
 enable_cache: true
 suites:
 - "xenial"
@@ -34,9 +34,10 @@ packages:
 - "python"
 - "libc6-dev:i386"
 - "libstdc++6:i386"
+- "libdb++-dev"
 remotes:
-- "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
-  "dir": "bitcoin"
+- "url": "https://github.com/zymap/wormhole.git"
+  "dir": "wormhole"
 files: []
 script: |
 
@@ -120,7 +121,7 @@ script: |
   chmod +x ${WRAP_DIR}/${prog}
   done
 
-  cd bitcoin
+  cd wormhole
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -141,14 +142,19 @@ script: |
   # Create the release tarball using (arbitrarily) the first host
   ./autogen.sh
   CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
+  cd share
+  ./genbuild.sh ../src/obj/build.h
+  cd ..
+
+  #make 
   make dist
-  SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
+  SOURCEDIST=`echo wormhole-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
   mkdir -p temp
   pushd temp
   tar xf ../$SOURCEDIST
-  find bitcoin-abc-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
+  find wormhole-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
 
   ORIGPATH="$PATH"
