@@ -145,7 +145,7 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
         if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
     } else {
         if(property == OMNI_PROPERTY_WHC){
-            balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, PRICE_PRICISION)));
+            balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, PRICE_PRECISION)));
             balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, PRICE_PRECISION)));
             if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
         }else  {
