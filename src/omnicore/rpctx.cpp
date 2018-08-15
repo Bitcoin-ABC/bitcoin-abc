@@ -85,7 +85,7 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
 {
     if (request.fHelp || request.params.size() < 3 || request.params.size() > 5)
         throw runtime_error(
-            "whc_particrowsale \"fromaddress\" \"toaddress\" propertyid \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
+            "whc_particrowsale \"fromaddress\" \"toaddress\" \"amount\" ( \"redeemaddress\" \"referenceamount\" )\n"
 
             "\nCreate and broadcast a participate crowsale transaction.\n"
 
@@ -106,7 +106,7 @@ UniValue whc_particrowsale(Config const&, JSONRPCRequest const& request)
     // obtain parameters & info
     std::string fromAddress = ParseAddress(request.params[0]);
     std::string toAddress = ParseAddress(request.params[1]);
-    int64_t amount = ParseAmount(request.params[2], PRICE_PRICISION);
+    int64_t amount = ParseAmount(request.params[2], PRICE_PRECISION);
     std::string redeemAddress = (request.params.size() > 3 && !ParseText(request.params[3]).empty()) ? ParseAddress(request.params[3]): "";
     int64_t referenceAmount = (request.params.size() > 4) ? ParseAmount(request.params[4], true): 0;
 
@@ -165,7 +165,7 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
     RequireExistingProperty(propertyId);
     int64_t amount;
     if (propertyId == OMNI_PROPERTY_WHC) {
-        amount = ParseAmount(request.params[3], PRICE_PRICISION);
+        amount = ParseAmount(request.params[3], PRICE_PRECISION);
     } else {
         amount = ParseAmount(request.params[3], getPropertyType(propertyId));
     }
@@ -256,14 +256,14 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 {
     if (request.fHelp || request.params.size() != 15)
         throw runtime_error(
-            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline ( earlybonus undefine ) totalNumber \n"
+            "whc_sendissuancecrowdsale \"fromaddress\" ecosystem precision previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" propertyiddesired tokensperunit deadline earlybonus undefine totalNumber \n"
 
             "Create new tokens as crowdsale."
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "3. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "3. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -296,7 +296,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     std::string url = ParseText(request.params[7]);
     std::string data = ParseText(request.params[8]);
     uint32_t propertyIdDesired = ParsePropertyId(request.params[9]);
-    int64_t numTokens = ParseAmount(request.params[10], PRICE_PRICISION);
+    int64_t numTokens = ParseAmount(request.params[10], PRICE_PRECISION);
     int64_t deadline = ParseDeadline(request.params[11]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[12]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[13]);
@@ -336,14 +336,14 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
 {
     if (request.fHelp || request.params.size() != 10)
         throw runtime_error(
-            "whc_sendissuancefixed \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"totalNumber\"\n"
+            "whc_sendissuancefixed \"fromaddress\" ecosystem precision previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\" \"totalNumber\"\n"
 
             "\nCreate new tokens with fixed supply.\n"
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "3. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "3. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -401,14 +401,14 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
 {
     if (request.fHelp || request.params.size() != 9)
         throw runtime_error(
-            "whc_sendissuancemanaged \"fromaddress\" ecosystem type previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\"\n"
+            "whc_sendissuancemanaged \"fromaddress\" ecosystem precision previousid \"category\" \"subcategory\" \"name\" \"url\" \"data\"\n"
 
             "\nCreate new tokens with manageable supply.\n"
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
             "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
-            "3. property pricision   (number, required) the pricision of the tokens to create:[0, 8]\n"
+            "3. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
             "6. subcategory          (string, required) a subcategory for the new tokens  (can be \"\")\n"
@@ -489,7 +489,7 @@ UniValue whc_sendsto(const Config &config,const JSONRPCRequest &request)
     RequireExistingProperty(propertyId);
     int64_t amount;
     if (propertyId == OMNI_PROPERTY_WHC){
-        amount = ParseAmount(request.params[2], PRICE_PRICISION);
+        amount = ParseAmount(request.params[2], PRICE_PRECISION);
     } else{
         amount = ParseAmount(request.params[2], getPropertyType(propertyId));
     }

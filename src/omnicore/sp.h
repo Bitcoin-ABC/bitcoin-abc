@@ -228,7 +228,7 @@ std::string getprecision(uint32_t property);
 CMPCrowd* getCrowd(const std::string& address);
 
 bool isCrowdsaleActive(uint32_t propertyId);
-bool isCrowdsalePurchase(const uint256& txid, const std::string& address, int64_t* propertyId, int64_t* userTokens, int64_t* issuerTokens);
+bool isCrowdsalePurchase(const uint256& txid, const std::string& address, int64_t* propertyId, int64_t* userTokens, int64_t* issuerTokens, int64_t* invested);
 
 /** Calculates missing bonus tokens, which are credited to the crowdsale issuer. */
 int64_t GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCrowd& crowdsale);

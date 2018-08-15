@@ -145,9 +145,9 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
         if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
     } else {
         if(property == OMNI_PROPERTY_WHC){
-            balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, PRICE_PRICISION)));
-            balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, PRICE_PRICISION)));
-            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRICISION)));
+            balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, PRICE_PRECISION)));
+            balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, PRICE_PRECISION)));
+            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
         }else  {
             balance_obj.push_back(Pair("balance", FormatIndivisibleMP(nAvailable)));
             balance_obj.push_back(Pair("reserved", FormatIndivisibleMP(nReserved)));
@@ -936,7 +936,7 @@ UniValue whc_getproperty(const Config &config, const JSONRPCRequest &request)
     int64_t nTotalTokens = getTotalTokens(propertyId);
     std::string strCreationHash = sp.txid.GetHex();
     std::string strTotalTokens;
-    if (propertyId == OMNI_PROPERTY_WHC)    strTotalTokens = FormatDivisibleMP(nTotalTokens, PRICE_PRICISION);
+    if (propertyId == OMNI_PROPERTY_WHC)    strTotalTokens = FormatDivisibleMP(nTotalTokens, PRICE_PRECISION);
     else    strTotalTokens = FormatMP(propertyId, nTotalTokens);
 
     UniValue response(UniValue::VOBJ);
@@ -972,7 +972,7 @@ UniValue whc_getactivecrowd(const Config &config, const JSONRPCRequest &request)
                         "  \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
                         "  \"data\" : \"information\",          (string) additional information or a description\n"
                         "  \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
-                        "  \"property pricision\" : [0, 8],        (boolean) whether the tokens are divisible\n"
+                        "  \"property precision\" : [0, 8],        (boolean) whether the tokens are divisible\n"
                         "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "  \"totaltokens\" : \"n.nnnnnnnn\"     (string) the total number of tokens in existence\n"
@@ -1025,7 +1025,7 @@ UniValue whc_listproperties(const Config &config, const JSONRPCRequest &request)
             "    \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
             "    \"data\" : \"information\",          (string) additional information or a description\n"
             "    \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
-            "    \"property pricision\" : [0, 8]      (int)  the property pricision \n"
+            "    \"property precision\" : [0, 8]      (int)  the property precision \n"
             "  },\n"
             "  ...\n"
             "]\n"
@@ -1083,7 +1083,6 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
             "  \"propertyiddesired\" : n,              (number) the identifier of the tokens eligible to participate in the crowdsale\n"
             "  \"tokensperunit\" : \"n.nnnnnnnn\",       (string) the amount of tokens granted per unit invested in the crowdsale\n"
             "  \"earlybonus\" : n,                     (number) an early bird bonus for participants in percent per week\n"
-            "  \"percenttoissuer\" : n,                (number) a percentage of tokens that will be granted to the issuer\n"
             "  \"starttime\" : nnnnnnnnnn,             (number) the start time of the of the crowdsale as Unix timestamp\n"
             "  \"deadline\" : nnnnnnnnnn,              (number) the deadline of the crowdsale as Unix timestamp\n"
             "  \"amountraised\" : \"n.nnnnnnnn\",        (string) the amount of tokens invested by participants\n"
@@ -1098,7 +1097,6 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
             "      \"txid\" : \"hash\",                      (string) the hex-encoded hash of participation transaction\n"
             "      \"amountsent\" : \"n.nnnnnnnn\",          (string) the amount of tokens invested by the participant\n"
             "      \"participanttokens\" : \"n.nnnnnnnn\",   (string) the tokens granted to the participant\n"
-            "      \"issuertokens\" : \"n.nnnnnnnn\"         (string) the tokens granted to the issuer as bonus\n"
             "    },\n"
             "    ...\n"
             "  ]\n"
@@ -1173,7 +1171,7 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
         std::string txid = it->first.GetHex();
         amountRaised += it->second.at(0);
         participanttx.push_back(Pair("txid", txid));
-        participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), PRICE_PRICISION)));
+        participanttx.push_back(Pair("amountsent", FormatByType(it->second.at(0), PRICE_PRECISION)));
         participanttx.push_back(Pair("participanttokens", FormatByType(it->second.at(2), propertyIdType)));
         std::string sortKey = strprintf("%d-%s", it->second.at(1), txid);
         sortMap.insert(std::make_pair(sortKey, participanttx));
@@ -1185,11 +1183,11 @@ UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
     response.push_back(Pair("issuer", sp.issuer));
     response.push_back(Pair("propertyiddesired", (uint64_t) sp.property_desired));
 	response.push_back(Pair("precision", strPropertyType(sp.prop_type)));
-    response.push_back(Pair("tokensperunit", FormatDivisibleMP(sp.rate, PRICE_PRICISION, false)));
+    response.push_back(Pair("tokensperunit", FormatDivisibleMP(sp.rate, PRICE_PRECISION, false)));
     response.push_back(Pair("earlybonus", sp.early_bird));
     response.push_back(Pair("starttime", startTime));
     response.push_back(Pair("deadline", sp.deadline));
-    response.push_back(Pair("amountraised", FormatByType(amountRaised, PRICE_PRICISION)));
+    response.push_back(Pair("amountraised", FormatByType(amountRaised, PRICE_PRECISION)));
     response.push_back(Pair("tokensissued", FormatMP(propertyId, tokensIssued)));
     response.push_back(Pair("addedissuertokens", FormatMP(propertyId, sp.missedTokens)));
 
@@ -1955,7 +1953,6 @@ UniValue whc_getinfo(const Config &config, const JSONRPCRequest &request)
     infoResponse.push_back(Pair("blocktransactions", blockMPTransactions));
 
     // provide the number of trades completed
-    infoResponse.push_back(Pair("totaltrades", totalMPTrades));
     // provide the number of transactions parsed
     infoResponse.push_back(Pair("totaltransactions", totalMPTransactions));
 

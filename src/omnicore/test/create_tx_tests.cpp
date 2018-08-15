@@ -9,6 +9,7 @@
 #include "script/standard.h"
 #include "test/test_bitcoin.h"
 #include "utilstrencodings.h"
+#include "validation.h"
 
 #include <boost/test/unit_test.hpp>
 

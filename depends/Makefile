@@ -6,7 +6,7 @@ SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
 NO_WALLET ?=
 NO_UPNP ?=
-FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
+FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
 
 BUILD = $(shell ./config.guess)
 HOST ?= $(BUILD)
@@ -167,6 +167,7 @@ check-packages: check-sources
 
 install: check-packages $(host_prefix)/share/config.site
 
+
 download-one: check-sources $(all_sources)
 
 download-osx:
@@ -176,22 +177,5 @@ download-linux:
 download-win:
 	@$(MAKE) -s HOST=x86_64-w64-mingw32 download-one
 download: download-osx download-linux download-win
-
-build-linux64: download-linux
-	@$(MAKE) -s HOST=x86_64-linux-gnu install
-build-linux32: download-linux
-	@$(MAKE) -s HOST=i686-pc-linux-gnu install
-build-linux-arm: download-linux
-	@$(MAKE) -s HOST=arm-linux-gnueabihf install
-build-linux-aarch64: download-linux
-	@$(MAKE) -s HOST=aarch64-linux-gnu install
-build-osx: download-osx
-	@$(MAKE) -s HOST=x86_64-apple-darwin11 install
-build-win32: download-win
-	@$(MAKE) -s HOST=i686-w64-mingw32 install
-build-win64: download-win
-	@$(MAKE) -s HOST=x86_64-w64-mingw32 install
-
-build-all: build-linux64 build-linux32 build-linux-arm build-linux-aarch64 build-osx build-win32 build-win64
 
 .PHONY: install cached download-one download-osx download-linux download-win download check-packages check-sources
