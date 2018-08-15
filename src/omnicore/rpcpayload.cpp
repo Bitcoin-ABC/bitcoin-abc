@@ -64,7 +64,7 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
     RequireExistingProperty(propertyId);
     int64_t amount;
     if (propertyId == OMNI_PROPERTY_WHC) {
-        amount = ParseAmount(request.params[1], PRICE_PRICISION);
+        amount = ParseAmount(request.params[1], PRICE_PRECISION);
     } else{
         amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     }
@@ -197,7 +197,7 @@ UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &reques
     RequireExistingProperty(propertyId);
     int64_t amount;
     if (propertyId == OMNI_PROPERTY_WHC){
-        amount = ParseAmount(request.params[1], PRICE_PRICISION);
+        amount = ParseAmount(request.params[1], PRICE_PRECISION);
     } else{
         amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     }

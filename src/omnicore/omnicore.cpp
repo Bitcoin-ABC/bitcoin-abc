@@ -3250,7 +3250,7 @@ void CMPSTOList::getRecipients(const uint256 txid, string filterAddress, UniValu
                       else
                       {
                           if (propertyId == OMNI_PROPERTY_WHC)  {
-                              recipient.push_back(Pair("amount", FormatDivisibleMP(amount, PRICE_PRICISION)));
+                              recipient.push_back(Pair("amount", FormatDivisibleMP(amount, PRICE_PRECISION)));
                           }else{
                               recipient.push_back(Pair("amount", FormatIndivisibleMP(amount)));
                           }
