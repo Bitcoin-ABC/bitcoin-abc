@@ -10,3 +10,4 @@ This release includes the following features and fixes:
    `fundrawtransaction -reserveChangeKey`, parts of `validateaddress`, use of
    addresses in `createmultisig`, and other miscellaneous behaviors.
  - Minor logging improvements.
+ - Introduced `submitheader` RPC for submitting header candidates as chaintips.

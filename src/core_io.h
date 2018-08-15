@@ -10,6 +10,7 @@
 
 struct Amount;
 class CBlock;
+class CBlockHeader;
 class CMutableTransaction;
 class CScript;
 class CTransaction;
@@ -22,6 +23,7 @@ std::string ScriptToAsmStr(const CScript &script,
                            const bool fAttemptSighashDecode = false);
 bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx);
 bool DecodeHexBlk(CBlock &, const std::string &strHexBlk);
+bool DecodeHexBlockHeader(CBlockHeader &, const std::string &hex_header);
 uint256 ParseHashUV(const UniValue &v, const std::string &strName);
 uint256 ParseHashStr(const std::string &, const std::string &strName);
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
