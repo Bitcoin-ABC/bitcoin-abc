@@ -791,7 +791,7 @@ void mastercore::calculateFundraiser(uint16_t tokenPrecision, int64_t transfer,
 
 // go hunting for whether a simple send is a crowdsale purchase
 // TODO !!!! horribly inefficient !!!! find a more efficient way to do this
-bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& address, int64_t* propertyId, int64_t* userTokens, int64_t* issuerTokens)
+bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& address, int64_t* propertyId, int64_t* userTokens, int64_t* issuerTokens, int64_t* invested)
 {
     // 1. loop crowdsales (active/non-active) looking for issuer address
     // 2. loop those crowdsales for that address and check their participant txs in database
@@ -805,6 +805,7 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
             const uint256& tmpTxid = it->first;
             if (tmpTxid == txid) {
                 *propertyId = pcrowdsale->getPropertyId();
+                *invested = it->second.at(0);
                 *userTokens = it->second.at(2);
                 *issuerTokens = it->second.at(3);
                 return true;
@@ -822,6 +823,7 @@ bool mastercore::isCrowdsalePurchase(const uint256& txid, const std::string& add
             for (std::map<uint256, std::vector<int64_t> >::const_iterator it = sp.historicalData.begin(); it != sp.historicalData.end(); it++) {
                 if (it->first == txid) {
                     *propertyId = loopPropertyId;
+                    *invested = it->second.at(0);
                     *userTokens = it->second.at(2);
                     *issuerTokens = it->second.at(3);
                     return true;

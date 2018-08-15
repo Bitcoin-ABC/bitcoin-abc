@@ -260,9 +260,9 @@ bool showRefForTx(uint32_t txType)
 void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
 {
     uint32_t propertyId = omniObj.getProperty();
-    int64_t crowdPropertyId = 0, crowdTokens = 0, issuerTokens = 0;
+    int64_t crowdPropertyId = 0, crowdTokens = 0, issuerTokens = 0, invested = 0;
     LOCK(cs_tally);
-    bool crowdPurchase = isCrowdsalePurchase(omniObj.getHash(), omniObj.getReceiver(), &crowdPropertyId, &crowdTokens, &issuerTokens);
+    bool crowdPurchase = isCrowdsalePurchase(omniObj.getHash(), omniObj.getReceiver(), &crowdPropertyId, &crowdTokens, &issuerTokens, &invested);
     if (crowdPurchase) {
         CMPSPInfo::Entry sp;
         if (false == _my_sps->getSP(crowdPropertyId, sp)) {
@@ -273,11 +273,13 @@ void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
         txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
         txobj.push_back(Pair("precision", getprecision(propertyId)));
         txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false)));
+        txobj.push_back(Pair("actualInvested", FormatByType(invested, PRICE_PRECISION)));
         txobj.push_back(Pair("purchasedpropertyid", crowdPropertyId));
         txobj.push_back(Pair("purchasedpropertyname", sp.name));
         txobj.push_back(Pair("purchasedpropertyprecision", getprecision(crowdPropertyId)));
         txobj.push_back(Pair("purchasedtokens", FormatMP(crowdPropertyId, crowdTokens)));
         txobj.push_back(Pair("issuertokens", FormatMP(crowdPropertyId, issuerTokens)));
+
     }
 }
 

@@ -29,6 +29,7 @@
 #include "omnicore/version.h"
 #include "omnicore/walletcache.h"
 #include "omnicore/wallettxs.h"
+#include "omnicore/rpcvalues.h"
 
 #include "consensus/validation.h"
 #include "net.h"
