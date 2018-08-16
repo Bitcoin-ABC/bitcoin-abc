@@ -37,7 +37,6 @@ URL=https://github.com/copernet/wormhole.git
 COMMIT=Earth-0.0.6-pre-release # or whatever release tag you wish
 WHPATH # wormhole path
 
-# Note the path to descriptors assumes vagrant was used.  These files are within the ABC repository normally.
 ./bin/gbuild --commit wormhole=${COMMIT} ${WHPATH}/contrib/gitian-descriptors/gitian-linux.yml
 ./bin/gbuild --commit wormhole=${COMMIT} ${WHPATH}/contrib/gitian-descriptors/gitian-win.yml
 ./bin/gbuild --commit wormhole=${COMMIT} ${WHPATH}/contrib/gitian-descriptors/gitian-osx.yml
