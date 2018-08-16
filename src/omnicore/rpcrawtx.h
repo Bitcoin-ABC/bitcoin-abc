@@ -3,12 +3,12 @@
 
 #include <univalue.h>
 
-UniValue whc_decodetransaction(const UniValue& params, bool fHelp);
-UniValue whc_createrawtx_opreturn(const UniValue& params, bool fHelp);
-UniValue whc_createrawtx_multisig(const UniValue& params, bool fHelp);
-UniValue whc_createrawtx_input(const UniValue& params, bool fHelp);
-UniValue whc_createrawtx_reference(const UniValue& params, bool fHelp);
-UniValue whc_createrawtx_change(const UniValue& params, bool fHelp);
-
+UniValue whc_decodetransaction(const Config &config, const JSONRPCRequest &request);
+UniValue whc_createrawtx_opreturn(const Config &config, const JSONRPCRequest &request);
+UniValue whc_createrawtx_multisig(const Config &config, const JSONRPCRequest &request);
+UniValue whc_createrawtx_input(const Config &config, const JSONRPCRequest &request);
+UniValue whc_createrawtx_reference(const Config &config, const JSONRPCRequest &request);
+UniValue whc_createrawtx_change(const Config &config, const JSONRPCRequest &request);
+UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &request);
 
 #endif // OMNICORE_RPCRAWTX_H

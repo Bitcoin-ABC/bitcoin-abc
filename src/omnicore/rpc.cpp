@@ -7,6 +7,7 @@
 #include "omnicore/rpc.h"
 
 #include "omnicore/activation.h"
+#include "omnicore/tx.h"
 #include "omnicore/consensushash.h"
 #include "omnicore/convert.h"
 #include "omnicore/dex.h"
@@ -31,6 +32,7 @@
 #include "omnicore/wallettxs.h"
 
 #include "config.h"
+#include "core_io.h"
 #include "amount.h"
 #include "chainparams.h"
 #include "init.h"
@@ -1767,7 +1769,7 @@ UniValue whc_verifyrawtransaction(const Config &config, const JSONRPCRequest &re
     }
 
     CMPTransaction mp_obj;
-    int pop_ret = parseTransaction(CTransaction(std::move(mtx)), blockHeight, 0, mp_obj, blockTime);
+    int pop_ret = ParseTransaction(CTransaction(std::move(mtx)), blockHeight, 0, mp_obj, blockTime);
     if (0 != pop_ret) {
 
         if (mp_obj.getEncodingClass() != OMNI_CLASS_C){
