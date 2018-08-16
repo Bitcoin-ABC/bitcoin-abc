@@ -10,10 +10,31 @@ More independent Gitian builders are needed, which is why this guide exists. It 
 
 Preparing the Gitian builder host
 ---------------------------------
+The first step is to prepare the host environment that will be used to perform the Gitian builds. This guide explains how to set up the environment, and how to start the builds.
+
+The gitian build is easiest performed under Ubuntu Xenial. This guide will focus on creating and using a KVM. 
+
 Requirements:
 
- - Gitian-builder
+ - [Gitian-builder](https://github.com/devrandom/gitian-builder)
 
+After you have installed tools, you will need to add a environment variable ```GITTIAN_HOST_IP```, the variable can't be set as  ```127.0.0.1```.
+
+You will need to add the scirpt at the end of  ```target-bin/bootstrap-fixup.in```
+
+```
+cat  > /etc/network/interfaces  <<EOF
+auto lo
+iface lo inet loopback
+
+auto ens3
+iface  ens3 inet dhcp
+EOF
+
+sudo systemctl restart networking
+```
+
+The script is used to config the virtual machine network, the machine can't get ip automatic if you don't add this. 
 
 Setting up the Gitian image
 -----------------------------
@@ -22,10 +43,20 @@ Gitian needs a virtual image of the operating system to build in. Currently this
 Execute the following :
 
 ```
-cd gitian-builder
 bin/make-base-vm --arch amd64 --suite xenial
 ```
 There will be a lot of warnings printed during the build of the image. These can be ignored.
+
+testing
+--------
+
+```
+PATH=$PATH:$(pwd)/libexec
+make-clean-vm --suite xenial --arch amd64
+
+on-target ls -la
+stop-target
+```
 
 
 
@@ -44,6 +75,20 @@ WHPATH # wormhole path
 ```
 
 This may take some time as it will build all the dependencies needed for each descriptor. These dependencies will be cached after a successful build to avoid rebuilding them when possible.
+
+Note:
+If you build with ```gitian-osx.yml```, you will need put [MacOSX10.11.sdk.tar.gz](https://github.com/phracker/MacOSX-SDKs/releases) in directory```gitian-build/inputs```, because build in osx need depend it. You can follow this step to build it.
+
+```
+cd gitian-builder
+
+wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz
+xz -d MacOSX10.11.sdk.tar.xz
+tar -xvf MacOSX10.11.sdk.tar
+tar zcvf MacOSX10.11.sdk.tar.gz MacOSX10.11.sdk
+
+mv MacOSX10.11.sdk.tar.gz inputs
+```
 
 At any time you can check the package installation and build progress with
 
