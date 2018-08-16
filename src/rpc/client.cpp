@@ -127,6 +127,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
 	/* Whc Core - data retrieval calls */
     { "whc_gettradehistoryforaddress", 1, "" },
     { "whc_gettradehistoryforaddress", 2, ""},
+    {"whc_verifyrawtransaction", 1, ""},
     { "whc_gettradehistoryforpair", 0, "" },
     { "whc_gettradehistoryforpair", 1, "" },
     { "whc_gettradehistoryforpair", 2, "" },
