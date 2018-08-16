@@ -1,6 +1,7 @@
 #ifndef OMNICORE_RPCRAWTX_H
 #define OMNICORE_RPCRAWTX_H
 
+#include "rpc/server.h"
 #include <univalue.h>
 
 UniValue whc_decodetransaction(const Config &config, const JSONRPCRequest &request);

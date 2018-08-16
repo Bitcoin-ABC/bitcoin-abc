@@ -3,10 +3,15 @@
 #include "omnicore/createtx.h"
 #include "omnicore/omnicore.h"
 #include "omnicore/rpc.h"
+#include "omnicore/errors.h"
+#include "omnicore/tx.h"
+#include "omnicore/utilsbitcoin.h"
 #include "omnicore/rpctxobject.h"
 #include "omnicore/rpcvalues.h"
+#include "consensus/validation.h"
 
 #include "coins.h"
+#include "net.h"
 #include "core_io.h"
 #include "primitives/transaction.h"
 #include "pubkey.h"
@@ -186,9 +191,9 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
                            "transaction already in block chain");
     }
 
-    int blockHeight = GetHeight();
+    int blockHeight = mastercore::GetHeight();
     CMPTransaction mp_obj;
-    int pop_ret = parseTransaction(*tx.get(), blockHeight, 0, mp_obj);
+    int pop_ret = ParseTransaction(*tx.get(), blockHeight, 0, mp_obj);
     if (0 == pop_ret) {
         if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
             mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
