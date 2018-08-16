@@ -1,4 +1,5 @@
-##Gitian building
+Gitian building
+================
 Setup instructions for a Gitian build of Wormhole using a Ubuntu VM. 
 
 Gitian is the deterministic build process that is used to build the Wormhole executables. It provides a way to be reasonably sure that the executables are really built from the source on GitHub. It also makes sure that the same, tested dependencies are used and statically built into the executable.
@@ -7,7 +8,8 @@ Multiple developers build the source code by following a specific descriptor ("r
 
 More independent Gitian builders are needed, which is why this guide exists. It is preferred you follow these steps yourself instead of using someone else's VM image to avoid 'contaminating' the build.
 
-##Preparing the Gitian builder host
+Preparing the Gitian builder host
+---------------------------------
 Requirements:
 
  - Gitian-builder
@@ -26,7 +28,8 @@ There will be a lot of warnings printed during the build of the image. These can
 
 
 
-##Building Wormhole
+Building Wormhole
+-------------------
 To build Womrhole run the following commands:
 
 ```
