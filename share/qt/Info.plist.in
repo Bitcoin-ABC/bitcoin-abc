@@ -17,22 +17,22 @@
   <string>APPL</string>
 
   <key>CFBundleGetInfoString</key>
-  <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@, Copyright © 2009-@COPYRIGHT_YEAR@ @COPYRIGHT_HOLDERS_FINAL@</string>
+  <string>@WORMHOLE_VERSION_MAJOR@.@WORMHOLE_VERSION_MINOR@.@WORMHOLE_VERSION_PATCH@, Copyright © 2009-@COPYRIGHT_YEAR@ @COPYRIGHT_HOLDERS_FINAL@</string>
 
   <key>CFBundleShortVersionString</key>
-  <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@</string>
+  <string>@WORMHOLE_VERSION_MAJOR@.@WORMHOLE_VERSION_MINOR@.@WORMHOLE_VERSION_PATCH@</string>
 
   <key>CFBundleVersion</key>
-  <string>@CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@</string>
+  <string>@WORMHOLE_VERSION_MAJOR@.@WORMHOLE_VERSION_MINOR@.@WORMHOLE_VERSION_PATCH@</string>
 
   <key>CFBundleSignature</key>
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>BitcoinABC-Qt</string>
+  <string>Wormhole-Qt</string>
   
   <key>CFBundleName</key>
-  <string>BitcoinABC-Qt</string>
+  <string>Wormhole-Qt</string>
 
   <key>LSHasLocalizedDisplayName</key>
   <true/>
