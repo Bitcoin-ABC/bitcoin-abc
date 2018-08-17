@@ -19,6 +19,7 @@ Table of contents
   - [Various bug fixes and improvements](#various-bug-fixes-and-improvements)
 - [Change log](#change-log)
 - [Credits](#credits)
+- [Document](#document)
 
 Upgrading and downgrading
 =========================
@@ -69,3 +70,13 @@ Credits
 =======
 
 Thanks to everyone who contributed to this release, and especially the Bitcoin ABC developers and Omni core developers for providing the foundation for Wormhole Core!
+
+Document
+========
+The following is the detailed wormhole document link:
+1. WhitePaper : https://github.com/copernet/spec/blob/master/whcwhitepaper.md
+2. YellowPaper : https://github.com/copernet/spec/blob/master/Wormhole-YellowPaper.md
+3. Wormhole-Spec : https://github.com/copernet/spec/blob/master/wormhole-spec.md
+4. RPC : https://github.com/copernet/spec/blob/master/wormhole-RPC.md
+5. Test-Manual : https://github.com/copernet/spec/blob/master/wormhole-testmanual-0.0.6.md
+
