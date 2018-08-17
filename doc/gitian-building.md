@@ -36,6 +36,15 @@ sudo systemctl restart networking
 
 The script is used to config the virtual machine network, the machine can't get ip automatic if you don't add this. 
 
+And you should modify the script in ```libexec/start-target```change
+```
+$KVM -enable-kvm -m ${VMEM:-2000} -smp ${NPROCS:-2} -drive file=target-$SUFFIX.qcow2,cache=writeback,if=virtio -net nic,model=virtio -net user,hostfwd=tcp:127.0.0.1:$VM_SSH_PORT-:22 -vnc 127.0.0.1:16 > var/target.log 2>&1 &
+```  
+to  
+```
+$KVM -enable-kvm -m ${VMEM:-2000} -smp ${NPROCS:-2} -drive file=target-$SUFFIX.qcow2,cache=writeback,if=virtio -net nic,model=virtio -net user,hostfwd=tcp:0.0.0.0:$VM_SSH_PORT-:22 -vnc 0.0.0.0:16 > var/target.log 2>&1 &
+```
+
 Setting up the Gitian image
 -----------------------------
 Gitian needs a virtual image of the operating system to build in. Currently this is Ubuntu Xenial x86_64. This image will be copied and used every time that a build is started to make sure that the build is deterministic. Creating the image will take a while, but only has to be done once. We use kvm to build Wormhole.
@@ -44,6 +53,9 @@ Execute the following :
 
 ```
 bin/make-base-vm --arch amd64 --suite xenial
+
+PATH=$PATH:$(pwd)/libexec
+start-target 64 xenial-amd64 &
 ```
 There will be a lot of warnings printed during the build of the image. These can be ignored.
 
@@ -51,11 +63,9 @@ testing
 --------
 
 ```
-PATH=$PATH:$(pwd)/libexec
 make-clean-vm --suite xenial --arch amd64
 
 on-target ls -la
-stop-target
 ```
 
 
