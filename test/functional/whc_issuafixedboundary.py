@@ -23,10 +23,10 @@ class WHC_CreateIssuanceFixed_Test(BitcoinTestFramework):
                                                                 "wshhgdygwq", "123721.15")
         pecosystem = payload[:9] + "4" + payload[10:]
         optx = self.nodes[0].whc_createrawtx_opreturn(rawtx, pecosystem)
-        comtx = self.nodes[0].whc_createrawtx_reference(optx, addr0, "49.99")
+
+        comtx = self.nodes[0].whc_createrawtx_reference(optx, addr0, float(ret[0]["amount"]) - 0.05)
         oktx = self.nodes[0].signrawtransaction(comtx)
         txhash = self.nodes[0].sendrawtransaction(oktx["hex"])
-        print("txhash : ", txhash)
 
         self.nodes[0].generatetoaddress(1, addr0)
 
@@ -41,4 +41,5 @@ class WHC_CreateIssuanceFixed_Test(BitcoinTestFramework):
 
 if __name__ == '__main__':
     WHC_CreateIssuanceFixed_Test().main()
+
 
