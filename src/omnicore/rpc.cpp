@@ -79,7 +79,7 @@ void PopulateFailure(int error)
         case MP_INVALID_TX_IN_DB_FOUND:
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Potential database corruption: Invalid transaction found");
         case MP_TX_IS_NOT_MASTER_PROTOCOL:
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Master Protocol transaction");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
     }
     throw JSONRPCError(RPC_INTERNAL_ERROR, "Generic transaction population failure");
 }
@@ -1774,7 +1774,7 @@ UniValue whc_verifyrawtransaction(const Config &config, const JSONRPCRequest &re
 
         if (mp_obj.getEncodingClass() != OMNI_CLASS_C){
             infoResponse.push_back(Pair("valid", false));
-            infoResponse.push_back(Pair("invalidReason", "Not a Master Protocol transaction"));
+            infoResponse.push_back(Pair("invalidReason", "Not a Wormhole Protocol transaction"));
             return infoResponse;
         }
 
@@ -2369,7 +2369,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
-    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
+//    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
 
 #ifdef ENABLE_WALLET
     { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
