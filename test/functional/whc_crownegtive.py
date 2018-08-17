@@ -57,7 +57,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
         try:
             trans = self.nodes[0].whc_gettransaction(trans_id)
         except JSONRPCException as e:
-            assert str(e) == "Not a Master Protocol transaction (-5)"
+            assert str(e) == "Not a Wormhole Protocol transaction (-5)"
 
         # exp3: Desired property not 1
         ret = self.nodes[0].whc_createrawtx_input("", trans_id, 1)
@@ -88,7 +88,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
         try:
             trans = self.nodes[0].whc_gettransaction(trans_id)
         except JSONRPCException as e:
-            assert str(e) == "Not a Master Protocol transaction (-5)"
+            assert str(e) == "Not a Wormhole Protocol transaction (-5)"
 
         # exp5: deadline has pasted
         ret = self.nodes[0].whc_createrawtx_input("", trans_id, 1)
