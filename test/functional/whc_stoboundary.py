@@ -57,7 +57,7 @@ class WHC_Stobound_Test(BitcoinTestFramework):
         payload = self.nodes[0].whc_createpayload_sto(3, "1000", 3)
         p1 = payload[:28] + '1' + payload[29:]
         tx2 = self.nodes[0].whc_createrawtx_opreturn(tx, p1)
-        tx3 = self.nodes[0].whc_createrawtx_reference(tx2, addr1, float(spent["amount"]) - 0.01)
+        tx3 = self.nodes[0].whc_createrawtx_reference(tx2, addr1, round(float(spent["amount"]) - 0.01, 8))
         tx4 = self.nodes[0].signrawtransaction(tx3)
         txhash = self.nodes[0].sendrawtransaction(tx4["hex"])
         self.nodes[0].generatetoaddress(1, addr0)
