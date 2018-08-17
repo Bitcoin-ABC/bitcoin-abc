@@ -7,6 +7,7 @@
 #include "omnicore/rpc.h"
 
 #include "omnicore/activation.h"
+#include "omnicore/tx.h"
 #include "omnicore/consensushash.h"
 #include "omnicore/convert.h"
 #include "omnicore/dex.h"
@@ -31,6 +32,7 @@
 #include "omnicore/wallettxs.h"
 
 #include "config.h"
+#include "core_io.h"
 #include "amount.h"
 #include "chainparams.h"
 #include "init.h"
@@ -43,6 +45,7 @@
 #include "utilstrencodings.h"
 #include "chain.h"
 #include "sp.h"
+#include "../rpc/server.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -910,7 +913,6 @@ UniValue whc_getproperty(const Config &config, const JSONRPCRequest &request)
             "  \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
             "  \"data\" : \"information\",          (string) additional information or a description\n"
             "  \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
-            "  \"divisible\" : true|false,        (boolean) whether the tokens are divisible\n"
             "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
             "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
             "  \"fixedissuance\" : true|false,    (boolean) whether the token supply is fixed\n"
@@ -1686,7 +1688,7 @@ UniValue whc_listblocktransactions(const Config &config, const JSONRPCRequest &r
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
             "whc_listblocktransactions index\n"
-            "\nLists all Omni transactions in a block.\n"
+            "\nLists all Wormhole transactions in a block.\n"
             "\nArguments:\n"
             "1. index                (number, required) the block height or block index\n"
             "\nResult:\n"
@@ -1730,6 +1732,68 @@ UniValue whc_listblocktransactions(const Config &config, const JSONRPCRequest &r
     }
 
     return response;
+}
+
+UniValue whc_verifyrawtransaction(const Config &config, const JSONRPCRequest &request) {
+    if(request.fHelp || request.params.size() <= 1 || request.params.size() >= 2){
+        throw runtime_error("whc_verifyrawtransaction rawtx (txHeight) \n"
+            "check whether the transaction is compliable with wormhole protocol or not \n"
+            "\nArguments:\n"
+            "1. rawtx                 (string, required) the transaction hex\n"
+            "2. txHeight              (int, optional) the transaction in which block"
+            "\nResult:\n"
+            "{\n"
+            "  \"valid\" : true|false,             (boolean) whether the transaction is valid\n"
+            "  \"invalidreason\" : \"reason\",     (string) if a transaction is invalid, the reason \n"
+            "}\n"
+            "\nbExamples:\n"
+            + HelpExampleCli("whc_verifyrawtransaction", "\"hexstring\"")
+            + HelpExampleRpc("whc_verifyrawtransaction", "\"hexstring\"")
+        );
+    }
+
+    UniValue infoResponse;
+    RPCTypeCheck(request.params[0], {UniValue::VSTR});
+    CMutableTransaction mtx;
+    if (!DecodeHexTx(mtx, request.params[0].get_str())) {
+        infoResponse.push_back(Pair("valid", false));
+        infoResponse.push_back(Pair("invalidReason", "TX decode failed"));
+        return  infoResponse;
+    }
+    int blockHeight = 0;
+    int blockTime = 0;
+    if (request.params.size() == 2){
+        blockHeight = request.params[1].get_int();
+    } else{
+        blockHeight = GetHeight();
+    }
+
+    CMPTransaction mp_obj;
+    int pop_ret = ParseTransaction(CTransaction(std::move(mtx)), blockHeight, 0, mp_obj, blockTime);
+    if (0 != pop_ret) {
+
+        if (mp_obj.getEncodingClass() != OMNI_CLASS_C){
+            infoResponse.push_back(Pair("valid", false));
+            infoResponse.push_back(Pair("invalidReason", "Not a Master Protocol transaction"));
+            return infoResponse;
+        }
+
+        if (mp_obj.getSender().empty() == false){
+            infoResponse.push_back(Pair("valid", false));
+            infoResponse.push_back(Pair("invalidReason", "The transaction no have sender"));
+            return infoResponse;
+        }
+
+        int interp_ret = mp_obj.interpretPacket();
+        if (interp_ret < 0){
+            infoResponse.push_back(Pair("valid", false));
+            infoResponse.push_back(Pair("invalidReason", error_str(interp_ret)));
+            return infoResponse;
+        }
+    }
+
+    infoResponse.push_back(Pair("valid", true));
+    return infoResponse;
 }
 
 UniValue whc_gettransaction(const Config &config, const JSONRPCRequest &request)
@@ -2304,13 +2368,15 @@ static const CRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getfeedistribution",        &omni_getfeedistribution,         false , {}},
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
-    { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,            false , {}},
+    { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
+    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
+
 #ifdef ENABLE_WALLET
     { "omni layer (data retrieval)", "whc_listtransactions",          &whc_listtransactions,           false , {}},
 //    { "omni layer (data retrieval)", "whc_getfeeshare",               &whc_getfeeshare,                false , {}},
     { "omni layer (configuration)",  "whc_setautocommit",             &whc_setautocommit,              true  , {}},
 #endif
-    { "hidden",                      "mscrpc",                         &mscrpc,                          true  , {}},
+    { "hidden",                      "mscrpc",                         &mscrpc,                        true  , {}},
 
     /* depreciated: */
     { "hidden",                      "getinfo_MP",                     &whc_getinfo,                    true  , {}},

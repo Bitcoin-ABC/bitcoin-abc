@@ -3,10 +3,15 @@
 #include "omnicore/createtx.h"
 #include "omnicore/omnicore.h"
 #include "omnicore/rpc.h"
+#include "omnicore/errors.h"
+#include "omnicore/tx.h"
+#include "omnicore/utilsbitcoin.h"
 #include "omnicore/rpctxobject.h"
 #include "omnicore/rpcvalues.h"
+#include "consensus/validation.h"
 
 #include "coins.h"
+#include "net.h"
 #include "core_io.h"
 #include "primitives/transaction.h"
 #include "pubkey.h"
@@ -14,6 +19,7 @@
 #include "sync.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
+#include "../txmempool.h"
 
 #include <univalue.h>
 
@@ -103,6 +109,120 @@ UniValue whc_decodetransaction(const Config &config,const JSONRPCRequest &reques
     if (populateResult != 0) PopulateFailure(populateResult);
 
     return txObj;
+}
+
+UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() < 1 ||
+        request.params.size() > 2) {
+        throw std::runtime_error(
+                "whc_sendrawtransaction \"hexstring\" ( allowhighfees )\n"
+                        "\nSubmits raw transaction (serialized, hex-encoded) to local node "
+                        "and network.\n"
+                        "\nAlso see createrawtransaction and signrawtransaction calls.\n"
+                        "\nArguments:\n"
+                        "1. \"hexstring\"    (string, required) The hex string of the raw "
+                        "transaction)\n"
+                        "2. allowhighfees    (boolean, optional, default=false) Allow high "
+                        "fees\n"
+                        "\nResult:\n"
+                        "\"hex\"             (string) The transaction hash in hex\n"
+                        "\nExamples:\n"
+                        "\nCreate a transaction\n" +
+                HelpExampleCli("createrawtransaction",
+                               "\"[{\\\"txid\\\" : "
+                                       "\\\"mytxid\\\",\\\"vout\\\":0}]\" "
+                                       "\"{\\\"myaddress\\\":0.01}\"") +
+                "Sign the transaction, and get back the hex\n" +
+                HelpExampleCli("signrawtransaction", "\"myhex\"") +
+                "\nSend the transaction (signed hex)\n" +
+                HelpExampleCli("sendrawtransaction", "\"signedhex\"") +
+                "\nAs a json rpc call\n" +
+                HelpExampleRpc("sendrawtransaction", "\"signedhex\""));
+    }
+
+    LOCK(cs_main);
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL});
+
+    // parse hex string from parameter
+    CMutableTransaction mtx;
+    if (!DecodeHexTx(mtx, request.params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
+    }
+
+    CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
+    const uint256 &txid = tx->GetId();
+
+    bool fLimitFree = false;
+    Amount nMaxRawTxFee = maxTxFee;
+    if (request.params.size() > 1 && request.params[1].get_bool()) {
+        nMaxRawTxFee = Amount(0);
+    }
+
+    CCoinsViewCache &view = *pcoinsTip;
+    bool fHaveChain = false;
+    for (size_t o = 0; !fHaveChain && o < tx->vout.size(); o++) {
+        const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
+        fHaveChain = !existingCoin.IsSpent();
+    }
+
+    bool fHaveMempool = mempool.exists(txid);
+    if (!fHaveMempool && !fHaveChain) {
+        // Push to local node and sync with wallets.
+        CValidationState state;
+        bool fMissingInputs;
+        if (!AcceptToMemoryPool(config, mempool, state, tx,
+                                fLimitFree, &fMissingInputs, false,
+                                nMaxRawTxFee)) {
+            if (state.IsInvalid()) {
+                throw JSONRPCError(RPC_TRANSACTION_REJECTED,
+                                   strprintf("%i: %s", state.GetRejectCode(),
+                                             state.GetRejectReason()));
+            } else {
+                if (fMissingInputs) {
+                    throw JSONRPCError(RPC_TRANSACTION_ERROR, "Missing inputs");
+                }
+
+                throw JSONRPCError(RPC_TRANSACTION_ERROR,
+                                   state.GetRejectReason());
+            }
+        }
+    } else if (fHaveChain) {
+        throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN,
+                           "transaction already in block chain");
+    }
+
+    int blockHeight = mastercore::GetHeight();
+    CMPTransaction mp_obj;
+    int pop_ret = ParseTransaction(*tx.get(), blockHeight, 0, mp_obj);
+    if (0 == pop_ret) {
+        if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
+            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Master Protocol transaction");
+        }
+
+        if (mp_obj.getSender().empty() == false) {
+            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "The transaction no have sender");
+        }
+
+        int interp_ret = mp_obj.interpretPacket();
+        if (interp_ret < 0) {
+            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error_str(interp_ret));
+        }
+    } else{
+        mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Master Protocol transaction");
+    }
+    if (!g_connman) {
+        throw JSONRPCError(
+                RPC_CLIENT_P2P_DISABLED,
+                "Error: Peer-to-peer functionality missing or disabled");
+    }
+
+    CInv inv(MSG_TX, txid);
+    g_connman->ForEachNode([&inv](CNode *pnode) { pnode->PushInventory(inv); });
+    return txid.GetHex();
 }
 
 UniValue whc_createrawtx_opreturn(const Config &config,const JSONRPCRequest &request)
@@ -321,6 +441,7 @@ static const CRPCCommand commands[] =
     { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn,  true, {}},
 //    { "omni layer (raw transactions)", "whc_createrawtx_multisig",  &whc_createrawtx_multisig,  true, {}},
+    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change,    true, {}},

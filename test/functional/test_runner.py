@@ -225,7 +225,7 @@ def run_tests(test_list, build_dir, tests_dir, junitouput, exeext, tmpdir, jobs=
     try:
         pidofOutput = subprocess.check_output(["pidof", "wormholed"])
         if pidofOutput is not None and pidofOutput != b'':
-            print("%sWARNING!%s There is already a bitcoind process running on this system. Tests may fail unexpectedly due to resource contention!" % (
+            print("%sWARNING!%s There is already a wormholed process running on this system. Tests may fail unexpectedly due to resource contention!" % (
                 BOLD[1], BOLD[0]))
     except (OSError, subprocess.SubprocessError):
         pass

@@ -83,7 +83,7 @@ CMPSPInfo::CMPSPInfo(const boost::filesystem::path& path, bool fWipe)
 
     // special cases for constant SPs OMNI and TOMNI
     implied_omni.issuer = EncodeCashAddr(ExodusAddress(), params);
-    implied_omni.prop_type = MSC_PROPERTY_TYPE_INDIVISIBLE;
+    implied_omni.prop_type = MSC_PROPERTY_MAX_PRECISION;
     implied_omni.num_tokens = 0;
     implied_omni.category = "N/A";
     implied_omni.subcategory = "N/A";

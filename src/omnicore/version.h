@@ -13,16 +13,16 @@
 //
 
 // Increase with every consensus affecting change
-#define OMNICORE_VERSION_MAJOR       0
+#define WORMHOLE_VERSION_MAJOR       0
 
 // Increase with every non-consensus affecting feature
-#define OMNICORE_VERSION_MINOR       0
+#define WORMHOLE_VERSION_MINOR       0
 
 // Increase with every patch, which is not a feature or consensus affecting
-#define OMNICORE_VERSION_PATCH       6
+#define WORMHOLE_VERSION_PATCH       4
 
 // Non-public build number/revision (usually zero)
-#define OMNICORE_VERSION_BUILD       0
+#define WORMHOLE_VERSION_BUILD       0
 
 
 #if !defined(WINDRES_PREPROC)
@@ -37,10 +37,10 @@
 
 //! Omni Core client version
 static const int OMNICORE_VERSION =
-                    +100000000000 * OMNICORE_VERSION_MAJOR
-                    +    10000000 * OMNICORE_VERSION_MINOR
-                    +        1000 * OMNICORE_VERSION_PATCH
-                    +           1 * OMNICORE_VERSION_BUILD;
+                    +100000000000 * WORMHOLE_VERSION_MAJOR
+                    +    10000000 * WORMHOLE_VERSION_MINOR
+                    +        1000 * WORMHOLE_VERSION_PATCH
+                    +           1 * WORMHOLE_VERSION_BUILD;
 
 //! Returns formatted Omni Core version, e.g. "1.2.0"
 const std::string OmniCoreVersion();
