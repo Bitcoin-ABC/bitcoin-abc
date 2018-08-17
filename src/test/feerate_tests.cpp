@@ -56,6 +56,14 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(8), Amount(-1));
     BOOST_CHECK_EQUAL(feeRate.GetFee(9), Amount(-1));
 
+    // Check ceiling results
+    feeRate = CFeeRate(Amount(18));
+    // Truncates the result, if not integer
+    BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(0), Amount(0));
+    BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(100), Amount(2));
+    BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(200), Amount(4));
+    BOOST_CHECK_EQUAL(feeRate.GetFeeCeiling(1000), Amount(18));
+
     // Check full constructor
     // default value
     BOOST_CHECK(CFeeRate(Amount(-1), 1000) == CFeeRate(Amount(-1)));

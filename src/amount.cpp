@@ -24,11 +24,20 @@ CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
     }
 }
 
-Amount CFeeRate::GetFee(size_t nBytes_) const {
+template <bool ceil>
+static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
     assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
     int64_t nSize = int64_t(nBytes_);
 
-    Amount nFee = nSize * nSatoshisPerK / 1000;
+    // Ensure fee is rounded up when truncated if ceil is true.
+    Amount nFee(0);
+    if (ceil) {
+        nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount(0)
+                          ? nSize * nSatoshisPerK / 1000 + Amount(1)
+                          : nSize * nSatoshisPerK / 1000);
+    } else {
+        nFee = nSize * nSatoshisPerK / 1000;
+    }
 
     if (nFee == Amount(0) && nSize != 0) {
         if (nSatoshisPerK > Amount(0)) {
@@ -40,6 +49,14 @@ Amount CFeeRate::GetFee(size_t nBytes_) const {
     }
 
     return nFee;
+}
+
+Amount CFeeRate::GetFee(size_t nBytes) const {
+    return ::GetFee<false>(nBytes, nSatoshisPerK);
+}
+
+Amount CFeeRate::GetFeeCeiling(size_t nBytes) const {
+    return ::GetFee<true>(nBytes, nSatoshisPerK);
 }
 
 std::string CFeeRate::ToString() const {

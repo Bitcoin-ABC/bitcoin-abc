@@ -2942,13 +2942,13 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             if (coinControl && coinControl->fOverrideFeeRate) {
-                nFeeNeeded = coinControl->nFeeRate.GetFee(nBytes);
+                nFeeNeeded = coinControl->nFeeRate.GetFeeCeiling(nBytes);
             }
 
             // If we made it here and we aren't even able to meet the relay fee
             // on the next pass, give up because we must be at the maximum
             // allowed fee.
-            Amount minFee = GetConfig().GetMinFeePerKB().GetFee(nBytes);
+            Amount minFee = GetConfig().GetMinFeePerKB().GetFeeCeiling(nBytes);
             if (nFeeNeeded < minFee) {
                 strFailReason = _("Transaction too large for fee policy");
                 return false;
