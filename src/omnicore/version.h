@@ -16,10 +16,10 @@
 #define WORMHOLE_VERSION_MAJOR       0
 
 // Increase with every non-consensus affecting feature
-#define WORMHOLE_VERSION_MINOR       0
+#define WORMHOLE_VERSION_MINOR       1
 
 // Increase with every patch, which is not a feature or consensus affecting
-#define WORMHOLE_VERSION_PATCH       4
+#define WORMHOLE_VERSION_PATCH       0
 
 // Non-public build number/revision (usually zero)
 #define WORMHOLE_VERSION_BUILD       0

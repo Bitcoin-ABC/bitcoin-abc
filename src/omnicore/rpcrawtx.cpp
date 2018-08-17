@@ -197,10 +197,10 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
     if (0 == pop_ret) {
         if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
             mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Master Protocol transaction");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
         }
 
-        if (mp_obj.getSender().empty() == false) {
+        if (mp_obj.getSender().empty() == true) {
             mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "The transaction no have sender");
         }
@@ -212,7 +212,7 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
         }
     } else{
         mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Master Protocol transaction");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
     }
     if (!g_connman) {
         throw JSONRPCError(
@@ -441,7 +441,7 @@ static const CRPCCommand commands[] =
     { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn,  true, {}},
 //    { "omni layer (raw transactions)", "whc_createrawtx_multisig",  &whc_createrawtx_multisig,  true, {}},
-    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
+//    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change,    true, {}},
