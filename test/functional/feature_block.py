@@ -714,7 +714,7 @@ class FullBlockTest(BitcoinTestFramework):
         b64a = self.update_block("64a", [tx])
         assert_equal(len(b64a.serialize()), LEGACY_MAX_BLOCK_SIZE + 8)
         self.sync_blocks([b64a], success=False,
-                         reject_reason='non-canonical ReadCompactSize(): iostream error')
+                         reject_reason='non-canonical ReadCompactSize():')
 
         # bitcoind doesn't disconnect us for sending a bloated block, but if we subsequently
         # resend the header message, it won't send us the getdata message again. Just

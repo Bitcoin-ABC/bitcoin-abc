@@ -34,7 +34,7 @@ import multiprocessing
 from queue import Queue, Empty
 
 # Formatting. Default colors to empty strings.
-BOLD, BLUE, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
+BOLD, GREEN, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
 try:
     # Make sure python thinks it can write unicode to its stdout
     "\u2713".encode("utf_8").decode(sys.stdout.encoding)
@@ -46,11 +46,29 @@ except UnicodeDecodeError:
     CROSS = "x "
     CIRCLE = "o "
 
-if os.name == 'posix':
+if os.name != 'nt' or sys.getwindowsversion() >= (10, 0, 14393):
+    if os.name == 'nt':
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
+        STD_OUTPUT_HANDLE = -11
+        STD_ERROR_HANDLE = -12
+        # Enable ascii color control to stdout
+        stdout = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+        stdout_mode = ctypes.c_int32()
+        kernel32.GetConsoleMode(stdout, ctypes.byref(stdout_mode))
+        kernel32.SetConsoleMode(
+            stdout, stdout_mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+        # Enable ascii color control to stderr
+        stderr = kernel32.GetStdHandle(STD_ERROR_HANDLE)
+        stderr_mode = ctypes.c_int32()
+        kernel32.GetConsoleMode(stderr, ctypes.byref(stderr_mode))
+        kernel32.SetConsoleMode(
+            stderr, stderr_mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
     # primitive formatting on supported
     # terminal via ANSI escape sequences:
     BOLD = ('\033[0m', '\033[1m')
-    BLUE = ('\033[0m', '\033[0;34m')
+    GREEN = ('\033[0m', '\033[0;32m')
     RED = ('\033[0m', '\033[0;31m')
     GREY = ('\033[0m', '\033[1;30m')
 
@@ -207,6 +225,13 @@ def main():
     # Create base test directory
     tmpdir = os.path.join("{}", "test_runner_₿_🏃_{:%Y%m%d_%H%M%S}").format(
         args.tmpdirprefix, datetime.datetime.now())
+
+    # If we fixed the command-line and filename encoding issue on Windows,
+    # these two lines could be removed
+    if config["environment"]["EXEEXT"] == ".exe":
+        tmpdir = os.path.join("{}", "test_runner_{:%Y%m%d_%H%M%S}").format(
+            args.tmpdirprefix, datetime.datetime.now())
+
     os.makedirs(tmpdir)
 
     logging.debug("Temporary test directory at {}".format(tmpdir))
@@ -272,7 +297,7 @@ def main():
     # Remove the test cases that the user has explicitly asked to exclude.
     if args.exclude:
         tests_excl = [re.sub(r"\.py$", "", t)
-                      + ".py" for t in args.exclude.split(',')]
+                      + (".py" if ".py" not in t else "") for t in args.exclude.split(',')]
         for exclude_test in tests_excl:
             if exclude_test in test_list:
                 test_list.remove(exclude_test)
@@ -554,8 +579,14 @@ def print_results(test_results, tests_dir, max_len_name,
             print('\n============')
             print('{}Combined log for {}:{}'.format(BOLD[1], testdir, BOLD[0]))
             print('============\n')
-            combined_logs, _ = subprocess.Popen([sys.executable, os.path.join(
-                tests_dir, 'combine_logs.py'), '-c', testdir], universal_newlines=True, stdout=subprocess.PIPE).communicate()
+            combined_logs_args = [
+                sys.executable, os.path.join(
+                    tests_dir, 'combine_logs.py'), testdir]
+
+            if BOLD[0]:
+                combined_logs_args += ['--color']
+                combined_logs, _ = subprocess.Popen(
+                    combined_logs_args, universal_newlines=True, stdout=subprocess.PIPE).communicate()
             print(
                 "\n".join(
                     deque(
@@ -598,7 +629,7 @@ class TestResult():
 
     def __repr__(self):
         if self.status == "Passed":
-            color = BLUE
+            color = GREEN
             glyph = TICK
         elif self.status == "Failed":
             color = RED
