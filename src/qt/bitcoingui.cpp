@@ -148,7 +148,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
     labelWalletEncryptionIcon = new QLabel();
     labelWalletHDStatusIcon = new QLabel();
-    labelProxyIcon = new QLabel();
+    labelProxyIcon = new GUIUtil::ClickableLabel();
     connectionsControl = new GUIUtil::ClickableLabel();
     labelBlocksIcon = new GUIUtil::ClickableLabel();
     if (enableWallet) {
@@ -200,8 +200,10 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     // Subscribe to notifications from core
     subscribeToCoreSignals();
 
-    connect(connectionsControl, SIGNAL(clicked(QPoint)), this,
-            SLOT(toggleNetworkActive()));
+    connect(connectionsControl, &GUIUtil::ClickableLabel::clicked,
+            [this] { m_node.setNetworkActive(!m_node.getNetworkActive()); });
+    connect(labelProxyIcon, &GUIUtil::ClickableLabel::clicked,
+            [this] { openOptionsDialogWithTab(OptionsDialog::TAB_NETWORK); });
 
     modalOverlay = new ModalOverlay(this->centralWidget());
 #ifdef ENABLE_WALLET
@@ -719,11 +721,7 @@ void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason) {
 #endif
 
 void BitcoinGUI::optionsClicked() {
-    if (!clientModel || !clientModel->getOptionsModel()) return;
-
-    OptionsDialog dlg(this, enableWallet);
-    dlg.setModel(clientModel->getOptionsModel());
-    dlg.exec();
+    openOptionsDialogWithTab(OptionsDialog::TAB_MAIN);
 }
 
 void BitcoinGUI::aboutClicked() {
@@ -854,6 +852,17 @@ void BitcoinGUI::updateHeadersSyncProgressLabel() {
                                          headersTipHeight,
                                      'f', 1)));
     }
+}
+
+void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
+    if (!clientModel || !clientModel->getOptionsModel()) {
+        return;
+    }
+
+    OptionsDialog dlg(this, enableWallet);
+    dlg.setCurrentTab(tab);
+    dlg.setModel(clientModel->getOptionsModel());
+    dlg.exec();
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
@@ -1320,10 +1329,6 @@ void BitcoinGUI::unsubscribeFromCoreSignals() {
     // Disconnect signals from client
     m_handler_message_box->disconnect();
     m_handler_question->disconnect();
-}
-
-void BitcoinGUI::toggleNetworkActive() {
-    m_node.setNetworkActive(!m_node.getNetworkActive());
 }
 
 UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(
