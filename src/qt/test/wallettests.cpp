@@ -85,6 +85,20 @@ QModelIndex FindTx(const QAbstractItemModel &model, const uint256 &txid) {
 //     src/qt/test/test_bitcoin-qt -platform windows  # Windows
 //     src/qt/test/test_bitcoin-qt -platform cocoa    # macOS
 void WalletTests::walletTests() {
+#ifdef Q_OS_MAC
+    if (QApplication::platformName() == "minimal") {
+        // Disable for mac on "minimal" platform to avoid crashes inside the Qt
+        // framework when it tries to look up unimplemented cocoa functions,
+        // and fails to handle returned nulls
+        // (https://bugreports.qt.io/browse/QTBUG-49686).
+        QWARN("Skipping WalletTests on mac build with 'minimal' platform set "
+              "due to Qt bugs. To run AppTests, invoke "
+              "with 'test_bitcoin-qt -platform cocoa' on mac, or else use a "
+              "linux or windows build.");
+        return;
+    }
+#endif
+
     // Set up wallet and chain with 101 blocks (1 mature block for spending).
     TestChain100Setup test;
     test.CreateAndProcessBlock(
