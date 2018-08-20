@@ -89,6 +89,57 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     BOOST_CHECK_EQUAL(mempool.size(), 0);
 }
 
+BOOST_FIXTURE_TEST_CASE(tx_block_order, TestChain100Setup) {
+    // Make sure that we correctly validate the order of transctions in a block
+    CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey())
+                                     << OP_CHECKSIG;
+
+    // Create a 2-length chain of spends of mature coinbase txn:
+    std::vector<CMutableTransaction> spends;
+    spends.resize(2);
+    for (int i = 0; i < 2; i++) {
+        spends[i].nVersion = 1;
+        spends[i].vin.resize(1);
+        if (i==0) {
+            spends[i].vin[0].prevout = COutPoint(coinbaseTxns[0].GetId(), 0);
+        } else {
+            spends[i].vin[0].prevout = COutPoint(spends[0].GetId(), 0);
+        }
+        spends[i].vout.resize(1);
+        spends[i].vout[0].nValue = 11 * CENT;
+        spends[i].vout[0].scriptPubKey = scriptPubKey;
+
+        // Sign:
+        std::vector<uint8_t> vchSig;
+        uint256 hash = SignatureHash(scriptPubKey, CTransaction(spends[i]), 0,
+                                     SigHashType().withForkId(),
+                                     i==0 ? coinbaseTxns[0].vout[0].nValue : spends[i-1].vout[0].nValue);
+        BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
+        vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
+        spends[i].vin[0].scriptSig << vchSig;
+    }
+
+    CBlock block;
+    std::vector<CMutableTransaction> reorderedSpends;
+    reorderedSpends.resize(2);
+
+    // Test 1: spending an output from a later transaction in the same block is not okay
+    // unless the system clock is greater than fork date
+    reorderedSpends[0] = spends[1];
+    reorderedSpends[1] = spends[0];
+    block = CreateAndProcessBlock(reorderedSpends, scriptPubKey);
+    GlobalConfig config;
+    if (IsMagneticAnomalyEnabled(config, chainActive.Tip())) {
+        BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
+    } else {
+        BOOST_CHECK(chainActive.Tip()->GetBlockHash() != block.GetHash());
+    }
+
+    // Test 2 : spending an output from an earlier transaction in the same block is okay
+    block = CreateAndProcessBlock(spends, scriptPubKey);
+    BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
+}
+
 // Run CheckInputs (using pcoinsTip) on the given transaction, for all script
 // flags. Test that CheckInputs passes for all flags that don't overlap with the
 // failing_flags argument, but otherwise fails.

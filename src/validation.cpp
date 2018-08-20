@@ -42,6 +42,7 @@
 
 #include <atomic>
 #include <sstream>
+#include <unordered_map>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -2126,6 +2127,8 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
+    std::unordered_map<uint256, uint32_t, SaltedTxidHasher> txpositions;
+    uint32_t curposition = 0;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
 
@@ -2139,12 +2142,23 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             nSigOpsCount += GetSigOpCountWithoutP2SH(tx, flags);
         }
 
-        if (fIsMagneticAnomalyEnabled || tx.IsCoinBase()) {
+        try {
             AddCoins(view, tx, pindex->nHeight);
+        } catch (std::logic_error& e) {
+            // This happens if we try to insert outputs from the same transaction
+            // twice (i.e. pre-BIP30 coinbases).
+            return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
+                             REJECT_INVALID, "bad-txns-inputs-missingorspent");
+        }
+
+        if (!fIsMagneticAnomalyEnabled) {
+            txpositions[tx.GetId()] = curposition++;
         }
     }
 
+    curposition = -1;
     for (const auto &ptx : block.vtx) {
+        curposition++;
         const CTransaction &tx = *ptx;
         if (tx.IsCoinBase()) {
             continue;
@@ -2205,7 +2219,13 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
 
         if (!fIsMagneticAnomalyEnabled) {
-            AddCoins(view, tx, pindex->nHeight);
+            for (size_t j = 0; j < tx.vin.size(); j++) {
+                if (txpositions.count(tx.vin[j].prevout.GetTxId()) &&
+                    txpositions[tx.vin[j].prevout.GetTxId()] >= curposition) {
+                    return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
+                             REJECT_INVALID, "bad-txns-inputs-missingorspent");
+                }
+            }
         }
     }
 
