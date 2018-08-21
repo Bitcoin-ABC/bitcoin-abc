@@ -9,9 +9,10 @@
 #include <serialize.h>
 #include <uint256.h>
 #include <undo.h>
+#include <util/bytevectorhash.h>
 
 #include <cstdint>
-#include <set>
+#include <unordered_set>
 #include <vector>
 
 /**
@@ -21,7 +22,7 @@
 class GCSFilter {
 public:
     typedef std::vector<uint8_t> Element;
-    typedef std::set<Element> ElementSet;
+    typedef std::unordered_set<Element, ByteVectorHash> ElementSet;
 
     struct Params {
         uint64_t m_siphash_k0;

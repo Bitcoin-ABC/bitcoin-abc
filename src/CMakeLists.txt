@@ -146,6 +146,7 @@ add_library(util
 	utilmoneystr.cpp
 	utilstrencodings.cpp
 	utiltime.cpp
+	util/bytevectorhash.cpp
 )
 
 target_compile_definitions(util PUBLIC HAVE_CONFIG_H)
