@@ -565,7 +565,8 @@ HTTPRequest::~HTTPRequest() {
     // evhttpd cleans up the request, as long as a reply was sent.
 }
 
-std::pair<bool, std::string> HTTPRequest::GetHeader(const std::string &hdr) {
+std::pair<bool, std::string>
+HTTPRequest::GetHeader(const std::string &hdr) const {
     const struct evkeyvalq *headers = evhttp_request_get_input_headers(req);
     assert(headers);
     const char *val = evhttp_find_header(headers, hdr.c_str());
@@ -640,7 +641,7 @@ void HTTPRequest::WriteReply(int nStatus, const std::string &strReply) {
     req = nullptr;
 }
 
-CService HTTPRequest::GetPeer() {
+CService HTTPRequest::GetPeer() const {
     evhttp_connection *con = evhttp_request_get_connection(req);
     CService peer;
     if (con) {
@@ -653,11 +654,11 @@ CService HTTPRequest::GetPeer() {
     return peer;
 }
 
-std::string HTTPRequest::GetURI() {
+std::string HTTPRequest::GetURI() const {
     return evhttp_request_get_uri(req);
 }
 
-HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() {
+HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() const {
     switch (evhttp_request_get_command(req)) {
         case EVHTTP_REQ_GET:
             return GET;

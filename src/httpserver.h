@@ -84,19 +84,19 @@ public:
     enum RequestMethod { UNKNOWN, GET, POST, HEAD, PUT, OPTIONS };
 
     /** Get requested URI */
-    std::string GetURI();
+    std::string GetURI() const;
 
     /** Get CService (address:ip) for the origin of the http request */
-    CService GetPeer();
+    CService GetPeer() const;
 
     /** Get request method */
-    RequestMethod GetRequestMethod();
+    RequestMethod GetRequestMethod() const;
 
     /**
      * Get the request header specified by hdr, or an empty string.
      * Return a pair (isPresent,string).
      */
-    std::pair<bool, std::string> GetHeader(const std::string &hdr);
+    std::pair<bool, std::string> GetHeader(const std::string &hdr) const;
 
     /**
      * Read request body.
