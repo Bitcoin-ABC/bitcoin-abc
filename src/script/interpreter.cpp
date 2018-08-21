@@ -941,9 +941,8 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             CSHA256()
                                 .Write(vchMessage.data(), vchMessage.size())
                                 .Finalize(vchHash.data());
-                            uint256 message(vchHash);
-                            CPubKey pubkey(vchPubKey);
-                            fSuccess = pubkey.Verify(message, vchSig);
+                            fSuccess = checker.VerifySignature(
+                                vchSig, CPubKey(vchPubKey), uint256(vchHash));
                         }
 
                         if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL) &&
@@ -1463,9 +1462,9 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
     return ss.GetHash();
 }
 
-bool TransactionSignatureChecker::VerifySignature(
-    const std::vector<uint8_t> &vchSig, const CPubKey &pubkey,
-    const uint256 &sighash) const {
+bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
+                                           const CPubKey &pubkey,
+                                           const uint256 &sighash) const {
     return pubkey.Verify(sighash, vchSig);
 }
 

@@ -29,6 +29,10 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 
 class BaseSignatureChecker {
 public:
+    virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
+                                 const CPubKey &vchPubKey,
+                                 const uint256 &sighash) const;
+
     virtual bool CheckSig(const std::vector<uint8_t> &scriptSig,
                           const std::vector<uint8_t> &vchPubKey,
                           const CScript &scriptCode, uint32_t flags) const {
@@ -53,11 +57,6 @@ private:
     const Amount amount;
     const PrecomputedTransactionData *txdata;
 
-protected:
-    virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
-                                 const CPubKey &vchPubKey,
-                                 const uint256 &sighash) const;
-
 public:
     TransactionSignatureChecker(const CTransaction *txToIn, unsigned int nInIn,
                                 const Amount amountIn)
@@ -66,11 +65,14 @@ public:
                                 const Amount amountIn,
                                 const PrecomputedTransactionData &txdataIn)
         : txTo(txToIn), nIn(nInIn), amount(amountIn), txdata(&txdataIn) {}
+
+    // The overriden functions are now final.
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
                   const std::vector<uint8_t> &vchPubKey,
-                  const CScript &scriptCode, uint32_t flags) const override;
-    bool CheckLockTime(const CScriptNum &nLockTime) const override;
-    bool CheckSequence(const CScriptNum &nSequence) const override;
+                  const CScript &scriptCode,
+                  uint32_t flags) const final override;
+    bool CheckLockTime(const CScriptNum &nLockTime) const final override;
+    bool CheckSequence(const CScriptNum &nSequence) const final override;
 };
 
 class MutableTransactionSignatureChecker : public TransactionSignatureChecker {
