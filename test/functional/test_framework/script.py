@@ -228,8 +228,6 @@ OP_CHECKSIG = CScriptOp(0xac)
 OP_CHECKSIGVERIFY = CScriptOp(0xad)
 OP_CHECKMULTISIG = CScriptOp(0xae)
 OP_CHECKMULTISIGVERIFY = CScriptOp(0xaf)
-OP_CHECKDATASIG = CScriptOp(0xba)
-OP_CHECKDATASIGVERIFY = CScriptOp(0xbb)
 
 # expansion
 OP_NOP1 = CScriptOp(0xb0)
@@ -242,6 +240,14 @@ OP_NOP7 = CScriptOp(0xb6)
 OP_NOP8 = CScriptOp(0xb7)
 OP_NOP9 = CScriptOp(0xb8)
 OP_NOP10 = CScriptOp(0xb9)
+
+# more crypto
+OP_CHECKDATASIG = CScriptOp(0xba)
+OP_CHECKDATASIGVERIFY = CScriptOp(0xbb)
+
+# multi-byte opcodes
+OP_PREFIX_BEGIN = CScriptOp(0xf0)
+OP_PREFIX_END = CScriptOp(0xf7)
 
 # template matching params
 OP_SMALLINTEGER = CScriptOp(0xfa)
