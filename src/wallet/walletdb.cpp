@@ -512,7 +512,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                          "wallet flags found";
                 return false;
             }
-        } else if (strType != "bestblock" && strType != "bestblock_nomerkle") {
+        } else if (strType != "bestblock" && strType != "bestblock_nomerkle" &&
+                   strType != "minversion") {
             wss.m_unknown_records++;
         }
     } catch (...) {
