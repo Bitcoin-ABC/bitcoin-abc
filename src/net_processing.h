@@ -8,7 +8,10 @@
 
 #include <consensus/params.h>
 #include <net.h>
+#include <sync.h>
 #include <validationinterface.h>
+
+extern RecursiveMutex cs_main;
 
 class Config;
 
@@ -106,7 +109,8 @@ public:
      * If we have extra outbound peers, try to disconnect the one with the
      * oldest block announcement.
      */
-    void EvictExtraOutboundPeers(int64_t time_in_seconds);
+    void EvictExtraOutboundPeers(int64_t time_in_seconds)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 private:
     //! Next time to check for stale tip
