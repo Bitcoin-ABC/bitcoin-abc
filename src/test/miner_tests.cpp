@@ -21,6 +21,7 @@
 #include "validation.h"
 
 #include "test/test_bitcoin.h"
+#include "../primitives/block.h"
 
 #include <memory>
 
@@ -231,6 +232,53 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
                 ((CScript() << nHeight << CScriptNum(extraNonce) << vec) +
                  COINBASE_FLAGS));
 }
+
+BOOST_AUTO_TEST_CASE(sort_ascending_order){
+    CBlock block;
+
+    CMutableTransaction txParent;
+    txParent.vin.resize(1);
+    txParent.vin[0].scriptSig = CScript() << OP_11;
+    txParent.vout.resize(3);
+    for (int i = 0; i < 3; i++) {
+        txParent.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txParent.vout[i].nValue = Amount(33000LL);
+    }
+    block.vtx.emplace_back(MakeTransactionRef(std::move(CTransaction(txParent))));
+    printf(" txid : %s\n",txParent.GetId().ToString().c_str() );
+
+    CMutableTransaction txChild[3];
+    for (int i = 0; i < 3; i++) {
+        txChild[i].vin.resize(1);
+        txChild[i].vin[0].scriptSig = CScript() << OP_11;
+        txChild[i].vin[0].prevout = COutPoint(txParent.GetId(), i);
+        txChild[i].vout.resize(1);
+        txChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txChild[i].vout[0].nValue = Amount(11000LL);
+        block.vtx.emplace_back(MakeTransactionRef(std::move(CTransaction(txChild[i]))));
+        printf(" txid : %s\n",txChild[i].GetId().ToString().c_str() );
+    }
+
+    std::sort(std::begin(block.vtx), std::end(block.vtx),
+            [](const std::shared_ptr<const CTransaction> &a,
+                const std::shared_ptr<const CTransaction> &b) -> bool {
+                return a->GetId() > b->GetId();
+            });
+
+
+    const CTransaction *prevTx = nullptr;
+    for (const auto &ptx : block.vtx) {
+        const CTransaction &tx = *ptx;
+        if (prevTx) {
+            BOOST_CHECK(!(tx.GetId() < prevTx->GetId()));
+        }
+        if (prevTx || !tx.IsCoinBase()) {
+            prevTx = &tx;
+        }
+    }
+
+}
+
 
 // Coinbase scriptSig has to contains the correct EB value
 // converted to MB, rounded down to the first decimal
