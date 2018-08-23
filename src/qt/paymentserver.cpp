@@ -116,8 +116,7 @@ static bool ipcCanParseLegacyURI(const QString &arg,
 // Warning: ipcSendCommandLine() is called early in init, so don't use "Q_EMIT
 // message()", but "QMessageBox::"!
 //
-void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
-                                        char *argv[]) {
+void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
     std::array<const std::string *, 3> networks = {
         {&CBaseChainParams::MAIN, &CBaseChainParams::TESTNET,
          &CBaseChainParams::REGTEST}};

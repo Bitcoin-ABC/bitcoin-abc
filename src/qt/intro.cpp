@@ -186,8 +186,7 @@ QString Intro::getDefaultDataDirectory() {
     return GUIUtil::boostPathToQString(GetDefaultDataDir());
 }
 
-bool Intro::showIfNeeded(interfaces::Node &node, bool &did_show_intro,
-                         bool &prune) {
+bool Intro::showIfNeeded(bool &did_show_intro, bool &prune) {
     did_show_intro = false;
 
     QSettings settings;
