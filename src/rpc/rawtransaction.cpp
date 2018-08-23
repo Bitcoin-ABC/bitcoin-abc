@@ -654,7 +654,6 @@ static UniValue decoderawtransaction(const Config &config,
             HelpExampleRpc("decoderawtransaction", "\"hexstring\""));
     }
 
-    LOCK(cs_main);
     RPCTypeCheck(request.params, {UniValue::VSTR});
 
     CMutableTransaction mtx;
