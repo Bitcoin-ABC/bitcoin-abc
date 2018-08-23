@@ -204,7 +204,7 @@ public:
         typedef const T &reference;
         typedef std::bidirectional_iterator_tag iterator_category;
         const_reverse_iterator() : ptr(nullptr) {}
-        const_reverse_iterator(T *ptr_) : ptr(ptr_) {}
+        const_reverse_iterator(const T *ptr_) : ptr(ptr_) {}
         const_reverse_iterator(reverse_iterator x) : ptr(&(*x)) {}
         const T &operator*() const { return *ptr; }
         const T *operator->() const { return ptr; }
@@ -322,11 +322,11 @@ public:
         }
     }
 
-    prevector() : _size(0) {}
+    prevector() : _size(0), _union{{}} {}
 
-    explicit prevector(size_type n) : _size(0) { resize(n); }
+    explicit prevector(size_type n) : prevector() { resize(n); }
 
-    explicit prevector(size_type n, const T &val = T()) : _size(0) {
+    explicit prevector(size_type n, const T &val) : prevector() {
         change_capacity(n);
         while (size() < n) {
             _size++;
@@ -335,7 +335,7 @@ public:
     }
 
     template <typename InputIterator>
-    prevector(InputIterator first, InputIterator last) : _size(0) {
+    prevector(InputIterator first, InputIterator last) : prevector() {
         size_type n = last - first;
         change_capacity(n);
         while (first != last) {
@@ -345,7 +345,7 @@ public:
         }
     }
 
-    prevector(const prevector<N, T, Size, Diff> &other) : _size(0) {
+    prevector(const prevector<N, T, Size, Diff> &other) : prevector() {
         change_capacity(other.size());
         const_iterator it = other.begin();
         while (it != other.end()) {
@@ -355,7 +355,9 @@ public:
         }
     }
 
-    prevector(prevector<N, T, Size, Diff> &&other) : _size(0) { swap(other); }
+    prevector(prevector<N, T, Size, Diff> &&other) : prevector() {
+        swap(other);
+    }
 
     prevector &operator=(const prevector<N, T, Size, Diff> &other) {
         if (&other == this) {
