@@ -116,20 +116,13 @@ bool CSeederNode::ProcessMessage(std::string strCommand, CDataStream &recv) {
         uint64_t nServiceInt;
         recv >> nVersion >> nServiceInt >> nTime >> addrMe;
         you.nServices = ServiceFlags(nServiceInt);
-        if (nVersion == 10300) nVersion = 300;
-        if (nVersion >= 106 && !recv.empty()) recv >> addrFrom >> nNonce;
-        if (nVersion >= 106 && !recv.empty()) recv >> strSubVer;
-        if (nVersion >= 209 && !recv.empty()) recv >> nStartingHeight;
+        recv >> addrFrom >> nNonce;
+        recv >> strSubVer;
+        recv >> nStartingHeight;
 
-        if (nVersion >= 209) {
-            BeginMessage("verack");
-            EndMessage();
-        }
+        BeginMessage("verack");
+        EndMessage();
         vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
-        if (nVersion < 209) {
-            vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
-            GotVersion();
-        }
         return false;
     }
 
