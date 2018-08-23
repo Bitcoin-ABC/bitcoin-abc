@@ -1270,10 +1270,51 @@ static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
 
 void DisconnectedBlockTransactions::addForBlock(
     const std::vector<CTransactionRef> &vtx) {
-    // Save transactions to re-add to mempool at end of reorg
-    for (const auto &tx : boost::adaptors::reverse(vtx)) {
+    for (const auto &tx : vtx | boost::adaptors::sliced(1, vtx.size())) {
+        // If we already added it, just skip.
+        auto it = queuedTx.find(tx->GetId());
+        if (it != queuedTx.end()) {
+            continue;
+        }
+
+        // Insert the transaction into the pool.
         addTransaction(tx);
+
+        // Fill in the set of parents.
+        std::unordered_set<TxId, SaltedTxidHasher> parents;
+        for (const CTxIn &in : tx->vin) {
+            parents.insert(in.prevout.GetTxId());
+        }
+
+        // In order to make sure we keep things in topological order, we check
+        // if we already know of the parent of the current transaction. If so,
+        // we remove them from the set and then add them back.
+        while (parents.size() > 0) {
+            std::unordered_set<TxId, SaltedTxidHasher> worklist =
+                std::move(parents);
+            for (const TxId &txid : worklist) {
+                // If we do not have that txid in the set, nothing needs to be
+                // done.
+                auto it = queuedTx.find(txid);
+                if (it == queuedTx.end()) {
+                    continue;
+                }
+
+                // We have parent in our set, we reinsert them at the right
+                // position.
+                const CTransactionRef ptx = *it;
+                queuedTx.erase(it);
+                queuedTx.insert(ptx);
+
+                // And we make sure ancestors are covered.
+                for (const CTxIn &in : ptx->vin) {
+                    parents.insert(in.prevout.GetTxId());
+                }
+            }
+        }
     }
+
+    // Keep the size under control.
     while (DynamicMemoryUsage() > MAX_DISCONNECTED_TX_POOL_SIZE) {
         // Drop the earliest entry, and remove its children from the
         // mempool.

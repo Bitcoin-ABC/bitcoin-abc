@@ -40,6 +40,7 @@ class TransactionOrderingTest(ComparisonTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
+                            '-relaypriority=0',
                             "-magneticanomalyactivationtime=%d" % MAGNETIC_ANOMALY_START_TIME,
                             "-replayprotectionactivationtime=%d" % (2 * MAGNETIC_ANOMALY_START_TIME)]]
 
@@ -252,6 +253,7 @@ class TransactionOrderingTest(ComparisonTestFramework):
         assert_equal(node.getblockheader(forkblockhash)[
                      'mediantime'], MAGNETIC_ANOMALY_START_TIME)
 
+        assert_equal(len(node.getrawmempool()), 15)
         node.generate(1)
         generatedblockhash = node.getbestblockhash()
         assert(forkblockhash != generatedblockhash)

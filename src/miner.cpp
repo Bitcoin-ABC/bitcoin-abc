@@ -179,7 +179,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         std::sort(std::begin(pblock->vtx) + 1, std::end(pblock->vtx),
                   [](const std::shared_ptr<const CTransaction> &a,
                      const std::shared_ptr<const CTransaction> &b) -> bool {
-                      return a->GetId() > b->GetId();
+                      return a->GetId() < b->GetId();
                   });
     }
 
