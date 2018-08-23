@@ -1108,6 +1108,20 @@ int CTxMemPool::Expire(int64_t time) {
     return stage.size();
 }
 
+void CTxMemPool::LimitSize(size_t limit, unsigned long age) {
+    int expired = Expire(GetTime() - age);
+    if (expired != 0) {
+        LogPrint(BCLog::MEMPOOL,
+                 "Expired %i transactions from the memory pool\n", expired);
+    }
+
+    std::vector<COutPoint> vNoSpendsRemaining;
+    TrimToSize(limit, &vNoSpendsRemaining);
+    for (const COutPoint &removed : vNoSpendsRemaining) {
+        pcoinsTip->Uncache(removed);
+    }
+}
+
 bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
                               bool validFeeEstimate) {
     LOCK(cs);
@@ -1250,3 +1264,65 @@ bool CTxMemPool::TransactionWithinChainLimit(const uint256 &txid,
 SaltedTxidHasher::SaltedTxidHasher()
     : k0(GetRand(std::numeric_limits<uint64_t>::max())),
       k1(GetRand(std::numeric_limits<uint64_t>::max())) {}
+
+/** Maximum bytes for transactions to store for processing during reorg */
+static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
+
+void DisconnectedBlockTransactions::addForBlock(
+    const std::vector<CTransactionRef> &vtx) {
+    // Save transactions to re-add to mempool at end of reorg
+    for (const auto &tx : boost::adaptors::reverse(vtx)) {
+        addTransaction(tx);
+    }
+    while (DynamicMemoryUsage() > MAX_DISCONNECTED_TX_POOL_SIZE) {
+        // Drop the earliest entry, and remove its children from the
+        // mempool.
+        auto it = queuedTx.get<insertion_order>().begin();
+        mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
+        removeEntry(it);
+    }
+}
+
+void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
+                                                          bool fAddToMempool) {
+    AssertLockHeld(cs_main);
+    std::vector<uint256> vHashUpdate;
+    // disconnectpool's insertion_order index sorts the entries from oldest to
+    // newest, but the oldest entry will be the last tx from the latest mined
+    // block that was disconnected.
+    // Iterate disconnectpool in reverse, so that we add transactions back to
+    // the mempool starting with the earliest transaction that had been
+    // previously seen in a block.
+    auto it = queuedTx.get<insertion_order>().rbegin();
+    while (it != queuedTx.get<insertion_order>().rend()) {
+        // ignore validation errors in resurrected transactions
+        CValidationState stateDummy;
+        if (!fAddToMempool || (*it)->IsCoinBase() ||
+            !AcceptToMemoryPool(config, mempool, stateDummy, *it, false,
+                                nullptr, true)) {
+            // If the transaction doesn't make it in to the mempool, remove any
+            // transactions that depend on it (which would now be orphans).
+            mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
+        } else if (mempool.exists((*it)->GetId())) {
+            vHashUpdate.push_back((*it)->GetId());
+        }
+        ++it;
+    }
+
+    queuedTx.clear();
+
+    // AcceptToMemoryPool/addUnchecked all assume that new mempool entries have
+    // no in-mempool children, which is generally not true when adding
+    // previously-confirmed transactions back to the mempool.
+    // UpdateTransactionsFromBlock finds descendants of any transactions in the
+    // disconnectpool that were added back and cleans up the mempool state.
+    mempool.UpdateTransactionsFromBlock(vHashUpdate);
+
+    // We also need to remove any now-immature transactions
+    mempool.removeForReorg(config, pcoinsTip, chainActive.Tip()->nHeight + 1,
+                           STANDARD_LOCKTIME_VERIFY_FLAGS);
+    // Re-limit mempool size, in case we added any transactions
+    mempool.LimitSize(
+        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
+        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+}
