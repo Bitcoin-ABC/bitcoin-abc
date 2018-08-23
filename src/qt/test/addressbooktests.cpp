@@ -112,7 +112,7 @@ void TestAddAddressesToSendBook(interfaces::Node &node) {
     // Initialize relevant QT models.
     std::unique_ptr<const PlatformStyle> platformStyle(
         PlatformStyle::instantiate("other"));
-    OptionsModel optionsModel(node);
+    OptionsModel optionsModel;
     AddWallet(wallet);
     WalletModel walletModel(interfaces::MakeWallet(wallet), node,
                             platformStyle.get(), &optionsModel);

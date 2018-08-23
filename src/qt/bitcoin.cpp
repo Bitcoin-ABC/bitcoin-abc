@@ -185,11 +185,10 @@ void BitcoinABC::shutdown() {
 static int qt_argc = 1;
 static const char *qt_argv = "bitcoin-qt";
 
-BitcoinApplication::BitcoinApplication(interfaces::Node &node)
+BitcoinApplication::BitcoinApplication()
     : QApplication(qt_argc, const_cast<char **>(&qt_argv)), coreThread(nullptr),
-      m_node(node), optionsModel(nullptr), clientModel(nullptr),
-      window(nullptr), pollShutdownTimer(nullptr), returnValue(0),
-      platformStyle(nullptr) {
+      optionsModel(nullptr), clientModel(nullptr), window(nullptr),
+      pollShutdownTimer(nullptr), returnValue(0), platformStyle(nullptr) {
     setQuitOnLastWindowClosed(false);
 }
 
@@ -231,13 +230,14 @@ void BitcoinApplication::createPaymentServer() {
 #endif
 
 void BitcoinApplication::createOptionsModel(bool resetSettings) {
-    optionsModel = new OptionsModel(m_node, nullptr, resetSettings);
+    optionsModel = new OptionsModel(nullptr, resetSettings);
+    optionsModel->setNode(node());
 }
 
 void BitcoinApplication::createWindow(const Config *config,
                                       const NetworkStyle *networkStyle) {
     window =
-        new BitcoinGUI(m_node, config, platformStyle, networkStyle, nullptr);
+        new BitcoinGUI(node(), config, platformStyle, networkStyle, nullptr);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, &QTimer::timeout, window,
@@ -245,19 +245,26 @@ void BitcoinApplication::createWindow(const Config *config,
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
-    SplashScreen *splash = new SplashScreen(m_node, networkStyle);
+    assert(!m_splash);
+    m_splash = new SplashScreen(networkStyle);
+    m_splash->setNode(node());
     // We don't hold a direct pointer to the splash screen after creation, but
     // the splash screen will take care of deleting itself when finish()
     // happens.
-    splash->show();
-    connect(this, &BitcoinApplication::splashFinished, splash,
+    m_splash->show();
+    connect(this, &BitcoinApplication::splashFinished, m_splash,
             &SplashScreen::finish);
-    connect(this, &BitcoinApplication::requestedShutdown, splash,
+    connect(this, &BitcoinApplication::requestedShutdown, m_splash,
             &QWidget::close);
 }
 
+void BitcoinApplication::setNode(interfaces::Node &node) {
+    assert(!m_node);
+    m_node = &node;
+}
+
 bool BitcoinApplication::baseInitialize(Config &config) {
-    return m_node.baseInitialize(config);
+    return node().baseInitialize(config);
 }
 
 void BitcoinApplication::startThread() {
@@ -265,7 +272,7 @@ void BitcoinApplication::startThread() {
         return;
     }
     coreThread = new QThread(this);
-    BitcoinABC *executor = new BitcoinABC(m_node);
+    BitcoinABC *executor = new BitcoinABC(node());
     executor->moveToThread(coreThread);
 
     /*  communication to and from thread */
@@ -338,7 +345,7 @@ void BitcoinApplication::requestShutdown(Config &config) {
     window->unsubscribeFromCoreSignals();
     // Request node shutdown, which can interrupt long operations, like
     // rescanning a wallet.
-    m_node.startShutdown();
+    node().startShutdown();
     // Unsetting the client model can cause the current thread to wait for node
     // to complete an operation, like wait for a RPC execution to complete.
     window->setClientModel(nullptr);
@@ -364,12 +371,12 @@ void BitcoinApplication::initializeResult(bool success) {
     // Log this only after AppInitMain finishes, as then logging setup is
     // guaranteed complete.
     qInfo() << "Platform customization:" << platformStyle->getName();
-    clientModel = new ClientModel(m_node, optionsModel);
+    clientModel = new ClientModel(node(), optionsModel);
     window->setClientModel(clientModel);
 #ifdef ENABLE_WALLET
     if (WalletModel::isWalletEnabled()) {
         m_wallet_controller =
-            new WalletController(m_node, platformStyle, optionsModel, this);
+            new WalletController(node(), platformStyle, optionsModel, this);
         window->setWalletController(m_wallet_controller);
         if (paymentServer) {
             paymentServer->setOptionsModel(optionsModel);
@@ -545,7 +552,8 @@ int GuiMain(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
 
-    BitcoinApplication app(*node);
+    BitcoinApplication app;
+    app.setNode(*node);
 
     // Register meta types used for QMetaObject::invokeMethod and
     // Qt::QueuedConnection
@@ -777,10 +785,12 @@ int GuiMain(int argc, char *argv[]) {
         return app.getReturnValue();
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
-        app.handleRunawayException(QString::fromStdString(node->getWarnings()));
+        app.handleRunawayException(
+            QString::fromStdString(app.node().getWarnings()));
     } catch (...) {
         PrintExceptionContinue(nullptr, "Runaway exception");
-        app.handleRunawayException(QString::fromStdString(node->getWarnings()));
+        app.handleRunawayException(
+            QString::fromStdString(app.node().getWarnings()));
     }
     return EXIT_FAILURE;
 }

@@ -11,6 +11,7 @@
 
 #include <QApplication>
 
+#include <cassert>
 #include <memory>
 
 class BitcoinGUI;
@@ -22,6 +23,7 @@ class OptionsModel;
 class PaymentServer;
 class PlatformStyle;
 class RPCServer;
+class SplashScreen;
 class WalletController;
 class WalletModel;
 
@@ -60,7 +62,7 @@ private:
 class BitcoinApplication : public QApplication {
     Q_OBJECT
 public:
-    explicit BitcoinApplication(interfaces::Node &node);
+    explicit BitcoinApplication();
     ~BitcoinApplication();
 
 #ifdef ENABLE_WALLET
@@ -96,6 +98,12 @@ public:
     /// Setup platform style
     void setupPlatformStyle();
 
+    interfaces::Node &node() const {
+        assert(m_node);
+        return *m_node;
+    }
+    void setNode(interfaces::Node &node);
+
 public Q_SLOTS:
     void initializeResult(bool success);
     void shutdownResult();
@@ -112,7 +120,6 @@ Q_SIGNALS:
 
 private:
     QThread *coreThread;
-    interfaces::Node &m_node;
     OptionsModel *optionsModel;
     ClientModel *clientModel;
     BitcoinGUI *window;
@@ -124,6 +131,8 @@ private:
     int returnValue;
     const PlatformStyle *platformStyle;
     std::unique_ptr<QWidget> shutdownWindow;
+    SplashScreen *m_splash = nullptr;
+    interfaces::Node *m_node = nullptr;
 
     void startThread();
 };

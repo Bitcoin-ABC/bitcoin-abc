@@ -26,9 +26,8 @@ const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
 static const QString GetDefaultProxyAddress();
 
-OptionsModel::OptionsModel(interfaces::Node &node, QObject *parent,
-                           bool resetSettings)
-    : QAbstractListModel(parent), m_node(node) {
+OptionsModel::OptionsModel(QObject *parent, bool resetSettings)
+    : QAbstractListModel(parent) {
     Init(resetSettings);
 }
 
@@ -385,7 +384,7 @@ bool OptionsModel::setData(const QModelIndex &index, const QVariant &value,
                 break;
             case MapPortUPnP: // core option - can be changed on-the-fly
                 settings.setValue("fUseUPnP", value.toBool());
-                m_node.mapPort(value.toBool());
+                node().mapPort(value.toBool());
                 break;
             case MinimizeOnClose:
                 fMinimizeOnClose = value.toBool();
@@ -527,7 +526,7 @@ bool OptionsModel::getProxySettings(QNetworkProxy &proxy) const {
     // Directly query current base proxy, because
     // GUI settings can be overridden with -proxy.
     proxyType curProxy;
-    if (m_node.getProxy(NET_IPV4, curProxy)) {
+    if (node().getProxy(NET_IPV4, curProxy)) {
         proxy.setType(QNetworkProxy::Socks5Proxy);
         proxy.setHostName(QString::fromStdString(curProxy.proxy.ToStringIP()));
         proxy.setPort(curProxy.proxy.GetPort());

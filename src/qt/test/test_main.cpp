@@ -68,11 +68,12 @@ int main(int argc, char *argv[]) {
 
     // Don't remove this, it's needed to access
     // QApplication:: and QCoreApplication:: in the tests
-    BitcoinApplication app(*node);
+    BitcoinApplication app;
+    app.setNode(*node);
     app.setApplicationName("BitcoinABC-Qt-test");
 
     // Make gArgs available in the NodeContext
-    node->context()->args = &gArgs;
+    app.node().context()->args = &gArgs;
 
     AppTests app_tests(app);
     if (QTest::qExec(&app_tests) != 0) {
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]) {
         fInvalid = true;
     }
 #endif
-    RPCNestedTests test3(*node);
+    RPCNestedTests test3(app.node());
     if (QTest::qExec(&test3) != 0) {
         fInvalid = true;
     }
@@ -105,11 +106,11 @@ int main(int argc, char *argv[]) {
         fInvalid = true;
     }
 #ifdef ENABLE_WALLET
-    WalletTests test7(*node);
+    WalletTests test7(app.node());
     if (QTest::qExec(&test7) != 0) {
         fInvalid = true;
     }
-    AddressBookTests test8(*node);
+    AddressBookTests test8(app.node());
     if (QTest::qExec(&test8) != 0) {
         fInvalid = true;
     }

@@ -70,7 +70,8 @@ void PaymentServerTests::paymentServerTests() {
 
     BasicTestingSetup testing_setup(CBaseChainParams::MAIN);
     auto node = interfaces::MakeNode();
-    OptionsModel optionsModel(*node);
+    OptionsModel optionsModel;
+    optionsModel.setNode(*node);
     PaymentServer *server = new PaymentServer(nullptr, false);
     X509_STORE *caStore = X509_STORE_new();
     X509_STORE_add_cert(caStore, parse_b64der_cert(caCert1_BASE64));
