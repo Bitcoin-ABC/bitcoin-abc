@@ -6,6 +6,7 @@
 
 #include <cashaddrenc.h>
 #include <chainparams.h>
+#include <config.h>
 #include <interfaces/node.h>
 #include <key_io.h>
 #include <node/ui_interface.h>
@@ -183,7 +184,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node &node, int argc,
     }
 
     if (chosenNetwork) {
-        node.selectParams(*chosenNetwork);
+        SelectParams(*chosenNetwork);
     }
 }
 
@@ -858,13 +859,15 @@ void PaymentServer::handlePaymentACK(const QString &paymentACKMsg) {
 
 bool PaymentServer::verifyNetwork(
     interfaces::Node &node, const payments::PaymentDetails &requestDetails) {
-    bool fVerified = requestDetails.network() == node.getNetwork();
+    const std::string clientNetwork =
+        GetConfig().GetChainParams().NetworkIDString();
+    bool fVerified = requestDetails.network() == clientNetwork;
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request network "
                               "\"%2\" doesn't match client network \"%3\".")
                           .arg(__func__)
                           .arg(QString::fromStdString(requestDetails.network()))
-                          .arg(QString::fromStdString(node.getNetwork()));
+                          .arg(QString::fromStdString(clientNetwork));
     }
     return fVerified;
 }

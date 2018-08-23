@@ -66,43 +66,9 @@ namespace {
     class NodeImpl : public Node {
     public:
         NodeImpl(NodeContext *context) { setContext(context); }
-        void initError(const bilingual_str &message) override {
-            InitError(message);
-        }
-        bool parseParameters(int argc, const char *const argv[],
-                             std::string &error) override {
-            return gArgs.ParseParameters(argc, argv, error);
-        }
-        bool readConfigFiles(std::string &error) override {
-            return gArgs.ReadConfigFiles(error, true);
-        }
-        void forceSetArg(const std::string &arg,
-                         const std::string &value) override {
-            gArgs.ForceSetArg(arg, value);
-        }
-        bool softSetArg(const std::string &arg,
-                        const std::string &value) override {
-            return gArgs.SoftSetArg(arg, value);
-        }
-        bool softSetBoolArg(const std::string &arg, bool value) override {
-            return gArgs.SoftSetBoolArg(arg, value);
-        }
-        bool initSettings(std::string &error) override {
-            return gArgs.InitSettings(error);
-        }
-        void selectParams(const std::string &network) override {
-            SelectParams(network);
-        }
-        uint64_t getAssumedBlockchainSize() override {
-            return Params().AssumedBlockchainSize();
-        }
-        uint64_t getAssumedChainStateSize() override {
-            return Params().AssumedChainStateSize();
-        }
-        std::string getNetwork() override { return Params().NetworkIDString(); }
-        void initLogging() override { InitLogging(gArgs); }
+        void initLogging() override { InitLogging(*Assert(m_context->args)); }
         void initParameterInteraction() override {
-            InitParameterInteraction(gArgs);
+            InitParameterInteraction(*Assert(m_context->args));
         }
         std::string getWarnings() override { return GetWarnings(true); }
         bool baseInitialize(Config &config) override {
@@ -131,7 +97,6 @@ namespace {
                 StopMapPort();
             }
         }
-        void setupServerArgs() override { return SetupServerArgs(*m_context); }
         bool getProxy(Network net, proxyType &proxy_info) override {
             return GetProxy(net, proxy_info);
         }

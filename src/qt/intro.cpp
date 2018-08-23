@@ -6,6 +6,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <config.h>
 #include <fs.h>
 #include <interfaces/node.h>
 #include <qt/forms/ui_intro.h>
@@ -209,7 +210,7 @@ bool Intro::showIfNeeded(interfaces::Node &node, bool &did_show_intro,
          * interface.
          */
         try {
-            node.selectParams(gArgs.GetChainName());
+            SelectParams(gArgs.GetChainName());
         } catch (const std::exception &) {
             return false;
         }
@@ -218,8 +219,9 @@ bool Intro::showIfNeeded(interfaces::Node &node, bool &did_show_intro,
          * If current default data directory does not exist, let the user choose
          * one.
          */
-        Intro intro(nullptr, node.getAssumedBlockchainSize(),
-                    node.getAssumedChainStateSize());
+        const CChainParams &params = GetConfig().GetChainParams();
+        Intro intro(nullptr, params.AssumedBlockchainSize(),
+                    params.AssumedChainStateSize());
         intro.setDataDirectory(dataDir);
         intro.setWindowIcon(QIcon(":icons/bitcoin"));
         did_show_intro = true;
@@ -261,8 +263,8 @@ bool Intro::showIfNeeded(interfaces::Node &node, bool &did_show_intro,
      */
     if (dataDir != getDefaultDataDirectory()) {
         // use OS locale for path setting
-        node.softSetArg("-datadir",
-                        GUIUtil::qstringToBoostPath(dataDir).string());
+        gArgs.SoftSetArg("-datadir",
+                         GUIUtil::qstringToBoostPath(dataDir).string());
     }
     return true;
 }

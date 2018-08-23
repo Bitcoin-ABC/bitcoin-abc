@@ -7,9 +7,11 @@
 #include <chainparams.h>
 #include <config.h>
 #include <httprpc.h>
+#include <init.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <node/context.h>
+#include <node/ui_interface.h>
 #include <noui.h>
 #include <qt/bitcoingui.h>
 #include <qt/clientmodel.h>
@@ -44,6 +46,8 @@
 #include <QThread>
 #include <QTimer>
 #include <QTranslator>
+
+#include <boost/signals2/connection.hpp>
 
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
@@ -301,8 +305,8 @@ void BitcoinApplication::parameterSetup() {
     // print to the console unnecessarily.
     gArgs.SoftSetBoolArg("-printtoconsole", false);
 
-    m_node.initLogging();
-    m_node.initParameterInteraction();
+    InitLogging(gArgs);
+    InitParameterInteraction(gArgs);
 }
 
 void BitcoinApplication::SetPrune(bool prune, bool force) {
@@ -519,12 +523,12 @@ int GuiMain(int argc, char *argv[]) {
         interfaces::MakeNode(&node_context);
 
     // Subscribe to global signals from core
-    std::unique_ptr<interfaces::Handler> handler_message_box =
-        node->handleMessageBox(noui_ThreadSafeMessageBox);
-    std::unique_ptr<interfaces::Handler> handler_question =
-        node->handleQuestion(noui_ThreadSafeQuestion);
-    std::unique_ptr<interfaces::Handler> handler_init_message =
-        node->handleInitMessage(noui_InitMessage);
+    boost::signals2::scoped_connection handler_message_box =
+        ::uiInterface.ThreadSafeMessageBox_connect(noui_ThreadSafeMessageBox);
+    boost::signals2::scoped_connection handler_question =
+        ::uiInterface.ThreadSafeQuestion_connect(noui_ThreadSafeQuestion);
+    boost::signals2::scoped_connection handler_init_message =
+        ::uiInterface.InitMessage_connect(noui_InitMessage);
 
     // Do not refer to data directory yet, this can be overridden by
     // Intro::pickDataDirectory
@@ -571,11 +575,11 @@ int GuiMain(int argc, char *argv[]) {
     /// 2. Parse command-line options. We do this after qt in order to show an
     /// error if there are problems parsing these
     // Command-line options take precedence:
-    node->setupServerArgs();
+    SetupServerArgs(node_context);
     SetupUIArgs(gArgs);
     std::string error;
-    if (!node->parseParameters(argc, argv, error)) {
-        node->initError(strprintf(
+    if (!gArgs.ParseParameters(argc, argv, error)) {
+        InitError(strprintf(
             Untranslated("Error parsing command line arguments: %s\n"), error));
         // Create a message box, because the gui has neither been created nor
         // has subscribed to core signals
@@ -635,7 +639,7 @@ int GuiMain(int argc, char *argv[]) {
     /// bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes.
     if (!CheckDataDirOption()) {
-        node->initError(strprintf(
+        InitError(strprintf(
             Untranslated("Specified data directory \"%s\" does not exist.\n"),
             gArgs.GetArg("-datadir", "")));
         QMessageBox::critical(
@@ -645,8 +649,8 @@ int GuiMain(int argc, char *argv[]) {
                 .arg(QString::fromStdString(gArgs.GetArg("-datadir", ""))));
         return EXIT_FAILURE;
     }
-    if (!node->readConfigFiles(error)) {
-        node->initError(strprintf(
+    if (!gArgs.ReadConfigFiles(error)) {
+        InitError(strprintf(
             Untranslated("Error reading configuration file: %s\n"), error));
         QMessageBox::critical(
             nullptr, PACKAGE_NAME,
@@ -666,9 +670,9 @@ int GuiMain(int argc, char *argv[]) {
     // Check for -chain, -testnet or -regtest parameter (Params() calls are only
     // valid after this clause)
     try {
-        node->selectParams(gArgs.GetChainName());
+        SelectParams(gArgs.GetChainName());
     } catch (std::exception &e) {
-        node->initError(Untranslated(strprintf("%s\n", e.what())));
+        InitError(Untranslated(strprintf("%s\n", e.what())));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
                               QObject::tr("Error: %1").arg(e.what()));
         return EXIT_FAILURE;
@@ -677,8 +681,8 @@ int GuiMain(int argc, char *argv[]) {
     // Parse URIs on command line -- this can affect Params()
     PaymentServer::ipcParseCommandLine(*node, argc, argv);
 #endif
-    if (!node->initSettings(error)) {
-        node->initError(Untranslated(error));
+    if (!gArgs.InitSettings(error)) {
+        InitError(Untranslated(error));
         QMessageBox::critical(nullptr, PACKAGE_NAME,
                               QObject::tr("Error initializing settings: %1")
                                   .arg(QString::fromStdString(error)));

@@ -109,7 +109,7 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("nDatabaseCache")) {
         settings.setValue("nDatabaseCache", (qint64)DEFAULT_DB_CACHE_MB);
     }
-    if (!m_node.softSetArg(
+    if (!gArgs.SoftSetArg(
             "-dbcache",
             settings.value("nDatabaseCache").toString().toStdString())) {
         addOverriddenOption("-dbcache");
@@ -118,7 +118,7 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("nThreadsScriptVerif")) {
         settings.setValue("nThreadsScriptVerif", DEFAULT_SCRIPTCHECK_THREADS);
     }
-    if (!m_node.softSetArg(
+    if (!gArgs.SoftSetArg(
             "-par",
             settings.value("nThreadsScriptVerif").toString().toStdString())) {
         addOverriddenOption("-par");
@@ -133,7 +133,7 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("bSpendZeroConfChange")) {
         settings.setValue("bSpendZeroConfChange", true);
     }
-    if (!m_node.softSetBoolArg(
+    if (!gArgs.SoftSetBoolArg(
             "-spendzeroconfchange",
             settings.value("bSpendZeroConfChange").toBool())) {
         addOverriddenOption("-spendzeroconfchange");
@@ -144,14 +144,14 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("fUseUPnP")) {
         settings.setValue("fUseUPnP", DEFAULT_UPNP);
     }
-    if (!m_node.softSetBoolArg("-upnp", settings.value("fUseUPnP").toBool())) {
+    if (!gArgs.SoftSetBoolArg("-upnp", settings.value("fUseUPnP").toBool())) {
         addOverriddenOption("-upnp");
     }
 
     if (!settings.contains("fListen")) {
         settings.setValue("fListen", DEFAULT_LISTEN);
     }
-    if (!m_node.softSetBoolArg("-listen", settings.value("fListen").toBool())) {
+    if (!gArgs.SoftSetBoolArg("-listen", settings.value("fListen").toBool())) {
         addOverriddenOption("-listen");
     }
 
@@ -163,7 +163,7 @@ void OptionsModel::Init(bool resetSettings) {
     }
     // Only try to set -proxy, if user has enabled fUseProxy
     if (settings.value("fUseProxy").toBool() &&
-        !m_node.softSetArg(
+        !gArgs.SoftSetArg(
             "-proxy", settings.value("addrProxy").toString().toStdString())) {
         addOverriddenOption("-proxy");
     } else if (!settings.value("fUseProxy").toBool() &&
@@ -179,7 +179,7 @@ void OptionsModel::Init(bool resetSettings) {
     }
     // Only try to set -onion, if user has enabled fUseSeparateProxyTor
     if (settings.value("fUseSeparateProxyTor").toBool() &&
-        !m_node.softSetArg(
+        !gArgs.SoftSetArg(
             "-onion",
             settings.value("addrSeparateProxyTor").toString().toStdString())) {
         addOverriddenOption("-onion");
@@ -192,7 +192,7 @@ void OptionsModel::Init(bool resetSettings) {
     if (!settings.contains("language")) {
         settings.setValue("language", "");
     }
-    if (!m_node.softSetArg(
+    if (!gArgs.SoftSetArg(
             "-lang", settings.value("language").toString().toStdString())) {
         addOverriddenOption("-lang");
     }
@@ -291,10 +291,10 @@ void OptionsModel::SetPrune(bool prune, bool force) {
         (settings.value("nPruneSize").toInt() * GB_BYTES) >> 20;
     std::string prune_val = prune ? std::to_string(nPruneSizeMiB) : "0";
     if (force) {
-        m_node.forceSetArg("-prune", prune_val);
+        gArgs.ForceSetArg("-prune", prune_val);
         return;
     }
-    if (!m_node.softSetArg("-prune", prune_val)) {
+    if (!gArgs.SoftSetArg("-prune", prune_val)) {
         addOverriddenOption("-prune");
     }
 }
