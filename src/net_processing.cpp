@@ -1621,7 +1621,7 @@ static void RelayAddress(const CAddress &addr, bool fReachable,
     assert(nRelayNodes <= best.size());
 
     auto sortfunc = [&best, &hasher, nRelayNodes](CNode *pnode) {
-        if (pnode->nVersion >= CADDR_TIME_VERSION && pnode->IsAddrRelayPeer()) {
+        if (pnode->IsAddrRelayPeer()) {
             uint64_t hashKey =
                 CSipHasher(hasher).Write(pnode->GetId()).Finalize();
             for (unsigned int i = 0; i < nRelayNodes; i++) {
@@ -2648,13 +2648,9 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             }
 
             // Get recent addresses
-            if (pfrom.fOneShot || pfrom.nVersion >= CADDR_TIME_VERSION ||
-                connman.GetAddressCount() < 1000) {
-                connman.PushMessage(
-                    &pfrom,
-                    CNetMsgMaker(nSendVersion).Make(NetMsgType::GETADDR));
-                pfrom.fGetAddr = true;
-            }
+            connman.PushMessage(
+                &pfrom, CNetMsgMaker(nSendVersion).Make(NetMsgType::GETADDR));
+            pfrom.fGetAddr = true;
             connman.MarkAddressGood(pfrom.addr);
         }
 
@@ -2751,11 +2747,6 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         std::vector<CAddress> vAddr;
         vRecv >> vAddr;
 
-        // Don't want addr from older versions unless seeding
-        if (pfrom.nVersion < CADDR_TIME_VERSION &&
-            connman.GetAddressCount() > 1000) {
-            return true;
-        }
         if (!pfrom.IsAddrRelayPeer()) {
             return true;
         }
