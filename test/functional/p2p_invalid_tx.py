@@ -170,8 +170,13 @@ class InvalidTxRequestTest(BitcoinTestFramework):
             'Test a transaction that is rejected, with BIP61 disabled')
         self.restart_node(0, ['-enablebip61=0', '-persistmempool=0'])
         self.reconnect_p2p(num_connections=1)
-        node.p2p.send_txs_and_test(
-            [tx1], node, success=False, expect_disconnect=True)
+        with node.assert_debug_log(expected_msgs=[
+                "{} from peer=0 was not accepted: mandatory-script-verify-flag-failed (Invalid OP_IF construction) (code 16)".format(
+                    tx1.hash),
+                "disconnecting peer=0",
+        ]):
+            node.p2p.send_txs_and_test(
+                [tx1], node, success=False, expect_disconnect=True)
         # send_txs_and_test will have waited for disconnect, so we can safely check that no reject has been received
         assert_equal(node.p2p.reject_code_received, None)
 
