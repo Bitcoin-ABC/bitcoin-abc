@@ -54,6 +54,7 @@ BITCOIN_TESTS =\
   test/DoS_tests.cpp \
   test/dstencode_tests.cpp \
   test/excessiveblock_tests.cpp \
+  test/feerate_tests.cpp \
   test/getarg_tests.cpp \
   test/hash_tests.cpp \
   test/inv_tests.cpp \

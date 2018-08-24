@@ -72,6 +72,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	DoS_tests.cpp
 	dstencode_tests.cpp
 	excessiveblock_tests.cpp
+	feerate_tests.cpp
 	getarg_tests.cpp
 	hash_tests.cpp
 	inv_tests.cpp
