@@ -34,7 +34,6 @@ UniValue whc_createpayload_particrowdsale(const Config &config,const JSONRPCRequ
         );
 	
     int64_t amount = ParseAmount(request.params[0], PRICE_PRECISION);
-
     std::vector<unsigned char> payload = CreatePayload_PartiCrowsale(OMNI_PROPERTY_WHC, amount);
 
     return HexStr(payload.begin(), payload.end());
@@ -62,12 +61,7 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount;
-    if (propertyId == OMNI_PROPERTY_WHC) {
-        amount = ParseAmount(request.params[1], PRICE_PRECISION);
-    } else{
-        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
-    }
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
 
     return HexStr(payload.begin(), payload.end());
@@ -195,12 +189,7 @@ UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &reques
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount;
-    if (propertyId == OMNI_PROPERTY_WHC){
-        amount = ParseAmount(request.params[1], PRICE_PRECISION);
-    } else{
-        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
-    }
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     uint32_t distributionPropertyId = (request.params.size() > 2) ? ParsePropertyId(request.params[2]) : propertyId;
     std::vector<unsigned char> payload = CreatePayload_SendToOwners(propertyId, amount, distributionPropertyId);
 
@@ -242,11 +231,11 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
     std::string name = ParseText(request.params[5]);
     std::string url = ParseText(request.params[6]);
     std::string data = ParseText(request.params[7]);
-    int64_t amount = ParseAmount(request.params[8], type);
 
+    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
-	RequirePropertyType(type);
+    int64_t amount = ParseAmount(request.params[8], type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
 
@@ -298,7 +287,6 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
-    int64_t amount = ParseAmount(request.params[13], type);
 
     RequireTokenPrice(numTokens);
     RequireIssuerPercentage(issuerPercentage);
@@ -308,6 +296,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
 	RequirePropertyType(type);
+    int64_t amount = ParseAmount(request.params[13], type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
