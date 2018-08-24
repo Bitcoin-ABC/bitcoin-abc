@@ -138,9 +138,8 @@ bool CScriptCompressor::Decompress(unsigned int nSize,
 // * if e==9, we only know the resulting number is not zero, so output 1 + 10*(n
 // - 1) + 9
 // (this is decodable, as d is in [1-9] and e is in [0-9])
-
 uint64_t CTxOutCompressor::CompressAmount(Amount amt) {
-    uint64_t n = amt.GetSatoshis();
+    uint64_t n = amt / SATOSHI;
     if (n == 0) {
         return 0;
     }

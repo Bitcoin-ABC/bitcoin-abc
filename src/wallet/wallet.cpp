@@ -2808,7 +2808,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                     age += 1;
                 }
 
-                dPriority += age * nCredit.GetSatoshis();
+                dPriority += (age * nCredit) / SATOSHI;
             }
 
             const Amount nChange = nValueIn - nValueToSelect;

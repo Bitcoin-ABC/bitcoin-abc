@@ -54,9 +54,9 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
 }
 
 double CTxMemPoolEntry::GetPriority(unsigned int currentHeight) const {
-    double deltaPriority = double((currentHeight - entryHeight) *
-                                  inChainInputValue.GetSatoshis()) /
-                           nModSize;
+    double deltaPriority =
+        double((currentHeight - entryHeight) * (inChainInputValue / SATOSHI)) /
+        nModSize;
     double dResult = entryPriority + deltaPriority;
     // This should only happen if it was called with a height below entry height
     if (dResult < 0) {
