@@ -23,6 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import hashlib
+import time
 
 from .printerror import print_error, set_verbosity
 from .util import profiler
@@ -241,6 +242,45 @@ class ASN1Node(bytes):
                 p[oid] = value
         return p
 
+    def decode_time(self, ii):
+        GENERALIZED_TIMESTAMP_FMT = "%Y%m%d%H%M%SZ"
+        UTCTIME_TIMESTAMP_FMT = "%y%m%d%H%M%SZ"
+
+        try:
+            t = time.strptime(
+                self.get_value_of_type(ii, "UTCTime").decode("ascii"),
+                UTCTIME_TIMESTAMP_FMT,
+            )
+            # RFC 5280 §4.1.2.5.1:
+            #   YY >= 50 → 19YY
+            #   YY <  50 → 20YY
+            # This differs from the POSIX standard rules applied by strptime:
+            #   YY <= 68 → 19YY
+            #   YY > 68 → 20YY
+            year = t.tm_year % 100
+            if year >= 50:
+                year += 1900
+            else:
+                year += 2000
+            return time.struct_time(
+                (
+                    year,
+                    t.tm_mon,
+                    t.tm_mday,
+                    t.tm_hour,
+                    t.tm_min,
+                    t.tm_sec,
+                    t.tm_wday,
+                    t.tm_yday,
+                    t.tm_isdst,
+                )
+            )
+        except TypeError:
+            return time.strptime(
+                self.get_value_of_type(ii, "GeneralizedTime").decode("ascii"),
+                GENERALIZED_TIMESTAMP_FMT,
+            )
+
 
 class X509(object):
     def __init__(self, b):
@@ -274,19 +314,9 @@ class X509(object):
         # validity
         validity = der.next_node(issuer)
         ii = der.first_child(validity)
-        try:
-            self.notBefore = der.get_value_of_type(ii, "UTCTime")
-        except TypeError:
-            self.notBefore = der.get_value_of_type(ii, "GeneralizedTime")[
-                2:
-            ]  # strip year
+        self.notBefore = der.decode_time(ii)
         ii = der.next_node(ii)
-        try:
-            self.notAfter = der.get_value_of_type(ii, "UTCTime")
-        except TypeError:
-            self.notAfter = der.get_value_of_type(ii, "GeneralizedTime")[
-                2:
-            ]  # strip year
+        self.notAfter = der.decode_time(ii)
 
         # subject
         subject = der.next_node(validity)
@@ -363,28 +393,19 @@ class X509(object):
         return self.CA
 
     def check_date(self):
-        import time
-
-        now = time.time()
-        TIMESTAMP_FMT = "%y%m%d%H%M%SZ"
-        not_before = time.mktime(
-            time.strptime(self.notBefore.decode("ascii"), TIMESTAMP_FMT)
-        )
-        not_after = time.mktime(
-            time.strptime(self.notAfter.decode("ascii"), TIMESTAMP_FMT)
-        )
-        if not_before > now:
+        now = time.gmtime()
+        if self.notBefore > now:
             raise CertificateError(
                 "Certificate for {} has not yet entered its valid date range. ({})".format(
                     self.get_common_name(),
-                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(not_before)),
+                    time.strftime("%Y-%m-%d %H:%M:%S", self.notBefore),
                 )
             )
-        if not_after <= now:
+        if self.notAfter <= now:
             raise CertificateError(
                 "Certificate for {} has expired at {}".format(
                     self.get_common_name(),
-                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(not_after)),
+                    time.strftime("%Y-%m-%d %H:%M:%S", self.notAfter),
                 )
             )
 
