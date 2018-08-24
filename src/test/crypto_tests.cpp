@@ -4,6 +4,7 @@
 
 #include <crypto/aes.h>
 #include <crypto/chacha20.h>
+#include <crypto/hkdf_sha256_32.h>
 #include <crypto/hmac_sha256.h>
 #include <crypto/hmac_sha512.h>
 #include <crypto/ripemd160.h>
@@ -227,6 +228,28 @@ static void TestChaCha20(const std::string &hexkey, uint64_t nonce,
     outres.resize(out.size());
     rng.Output(outres.data(), outres.size());
     BOOST_CHECK(out == outres);
+}
+
+static void TestHKDF_SHA256_32(const std::string &ikm_hex,
+                               const std::string &salt_hex,
+                               const std::string &info_hex,
+                               const std::string &okm_check_hex) {
+    std::vector<uint8_t> initial_key_material = ParseHex(ikm_hex);
+    std::vector<uint8_t> salt = ParseHex(salt_hex);
+    std::vector<uint8_t> info = ParseHex(info_hex);
+
+    // our implementation only supports strings for the "info" and "salt",
+    // stringify them
+    std::string salt_stringified(reinterpret_cast<char *>(salt.data()),
+                                 salt.size());
+    std::string info_stringified(reinterpret_cast<char *>(info.data()),
+                                 info.size());
+
+    CHKDF_HMAC_SHA256_L32 hkdf32(initial_key_material.data(),
+                                 initial_key_material.size(), salt_stringified);
+    uint8_t out[32];
+    hkdf32.Expand32(info_stringified, out);
+    BOOST_CHECK(HexStr(out, out + 32) == okm_check_hex);
 }
 
 static std::string LongTestString() {
@@ -658,6 +681,31 @@ BOOST_AUTO_TEST_CASE(chacha20_testvector) {
         "6959660996546cc9c4a6eafdc777c040d70eaf46f76dad3979e5c5360c3317166a1c89"
         "4c94a371876a94df7628fe4eaaf2ccb27d5aaae0ad7ad0f9d4b6ad3b54098746d4524d"
         "38407a6deb3ab78fab78c9");
+}
+
+BOOST_AUTO_TEST_CASE(hkdf_hmac_sha256_l32_tests) {
+    // Use rfc5869 test vectors but trucated to 32 bytes (our implementation
+    // only support length 32)
+    TestHKDF_SHA256_32(
+        /* IKM */ "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        /* salt */ "000102030405060708090a0b0c",
+        /* info */ "f0f1f2f3f4f5f6f7f8f9",
+        /* expected OKM */
+        "3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf");
+    TestHKDF_SHA256_32(
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122"
+        "232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445"
+        "464748494a4b4c4d4e4f",
+        "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182"
+        "838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5"
+        "a6a7a8a9aaabacadaeaf",
+        "b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2"
+        "d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5"
+        "f6f7f8f9fafbfcfdfeff",
+        "b11e398dc80327a1c8e7f78c596a49344f012eda2d4efad8a050cc4c19afa97c");
+    TestHKDF_SHA256_32(
+        "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b", "", "",
+        "8da4e775a563c18f715f802a063c5a31b8a11f5c5ee1879ec3454e5f3c738d2d");
 }
 
 BOOST_AUTO_TEST_CASE(countbits_tests) {
