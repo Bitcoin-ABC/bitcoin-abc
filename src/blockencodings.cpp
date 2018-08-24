@@ -8,7 +8,8 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
-#include <hash.h>
+#include <crypto/sha256.h>
+#include <crypto/siphash.h>
 #include <random.h>
 #include <streams.h>
 #include <txmempool.h>

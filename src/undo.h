@@ -11,6 +11,7 @@
 #include <compressor.h>
 #include <consensus/consensus.h>
 #include <serialize.h>
+#include <version.h>
 
 class CBlock;
 class CBlockIndex;

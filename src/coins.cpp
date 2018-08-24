@@ -7,6 +7,7 @@
 #include <consensus/consensus.h>
 #include <memusage.h>
 #include <random.h>
+#include <version.h>
 
 #include <cassert>
 

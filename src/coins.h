@@ -8,7 +8,7 @@
 
 #include <compressor.h>
 #include <core_memusage.h>
-#include <hash.h>
+#include <crypto/siphash.h>
 #include <memusage.h>
 #include <serialize.h>
 #include <uint256.h>
