@@ -889,8 +889,8 @@ bool PaymentServer::verifyAmount(const Amount requestAmount) {
         qWarning() << QString("PaymentServer::%1: Payment request amount out "
                               "of allowed range (%2, allowed 0 - %3).")
                           .arg(__func__)
-                          .arg(requestAmount.GetSatoshis())
-                          .arg(MAX_MONEY.GetSatoshis());
+                          .arg(requestAmount / SATOSHI)
+                          .arg(MAX_MONEY / SATOSHI);
     }
     return fVerified;
 }

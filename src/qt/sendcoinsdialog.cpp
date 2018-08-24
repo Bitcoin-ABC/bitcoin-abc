@@ -125,14 +125,14 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
         settings.setValue("nSmartFeeSliderPosition", 0);
     if (!settings.contains("nTransactionFee"))
         settings.setValue("nTransactionFee",
-                          (qint64)DEFAULT_TRANSACTION_FEE.GetSatoshis());
+                          qint64(DEFAULT_TRANSACTION_FEE / SATOSHI));
     if (!settings.contains("fPayOnlyMinFee"))
         settings.setValue("fPayOnlyMinFee", false);
     ui->groupFee->setId(ui->radioSmartFee, 0);
     ui->groupFee->setId(ui->radioCustomFee, 1);
     ui->groupFee
         ->button(
-            (int)std::max(0, std::min(1, settings.value("nFeeRadio").toInt())))
+            std::max<int>(0, std::min(1, settings.value("nFeeRadio").toInt())))
         ->setChecked(true);
     ui->groupCustomFee->setId(ui->radioCustomPerKilobyte, 0);
     ui->groupCustomFee->setId(ui->radioCustomAtLeast, 1);
@@ -245,7 +245,7 @@ SendCoinsDialog::~SendCoinsDialog() {
     settings.setValue("nCustomFeeRadio", ui->groupCustomFee->checkedId());
     settings.setValue("nSmartFeeSliderPosition", ui->sliderSmartFee->value());
     settings.setValue("nTransactionFee",
-                      (qint64)ui->customFee->value().GetSatoshis());
+                      qint64(ui->customFee->value() / SATOSHI));
     settings.setValue("fPayOnlyMinFee", ui->checkBoxMinimumFee->isChecked());
 
     delete ui;

@@ -91,7 +91,7 @@ QString BitcoinUnits::format(int unit, const Amount nIn, bool fPlus,
         // Refuse to format invalid unit
         return QString();
     }
-    qint64 n = (qint64)nIn.GetSatoshis();
+    qint64 n = qint64(nIn / SATOSHI);
     qint64 coin = factor(unit);
     int num_decimals = decimals(unit);
     qint64 n_abs = (n > 0 ? n : -n);

@@ -640,16 +640,14 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     // how many satoshis the estimated fee can vary per byte we guess wrong
     double dFeeVary;
     if (payTxFee.GetFeePerK() > Amount(0)) {
-        dFeeVary = (double)std::max(CWallet::GetRequiredFee(1000),
-                                    payTxFee.GetFeePerK())
-                       .GetSatoshis() /
-                   1000;
+        dFeeVary =
+            std::max(CWallet::GetRequiredFee(1000), payTxFee.GetFeePerK()) /
+            (1000 * SATOSHI);
     } else {
-        dFeeVary = (double)std::max(
-                       CWallet::GetRequiredFee(1000),
-                       mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK())
-                       .GetSatoshis() /
-                   1000;
+        dFeeVary =
+            std::max(CWallet::GetRequiredFee(1000),
+                     mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK()) /
+            (1000 * SATOSHI);
     }
     QString toolTip4 =
         tr("Can vary +/- %1 satoshi(s) per input.").arg(dFeeVary);
@@ -779,8 +777,7 @@ void CoinControlDialog::updateView() {
             // padding so that sorting works correctly
             itemOutput->setData(
                 COLUMN_AMOUNT, Qt::UserRole,
-                QVariant(
-                    (qlonglong)out.tx->tx->vout[out.i].nValue.GetSatoshis()));
+                QVariant(qlonglong(out.tx->tx->vout[out.i].nValue / SATOSHI)));
 
             // date
             itemOutput->setText(COLUMN_DATE,
@@ -826,7 +823,7 @@ void CoinControlDialog::updateView() {
             itemWalletAddress->setText(
                 COLUMN_AMOUNT, BitcoinUnits::format(nDisplayUnit, nSum));
             itemWalletAddress->setData(COLUMN_AMOUNT, Qt::UserRole,
-                                       QVariant((qlonglong)nSum.GetSatoshis()));
+                                       QVariant(qlonglong(nSum / SATOSHI)));
         }
     }
 
