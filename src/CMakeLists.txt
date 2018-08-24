@@ -137,6 +137,7 @@ add_library(common
 	coins.cpp
 	compressor.cpp
 	dstencode.cpp
+	feerate.cpp
 	globals.cpp
 	core_read.cpp
 	core_write.cpp

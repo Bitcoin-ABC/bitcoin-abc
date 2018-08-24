@@ -6,6 +6,7 @@
 #define BITCOIN_CONFIG_H
 
 #include "amount.h"
+#include "feerate.h"
 
 #include <boost/noncopyable.hpp>
 
