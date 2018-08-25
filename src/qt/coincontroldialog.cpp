@@ -233,12 +233,14 @@ void CoinControlDialog::showMenu(const QPoint &point) {
         // disable some items (like Copy Transaction ID, lock, unlock) for tree
         // roots in context menu
         if (item->text(COLUMN_TXHASH).length() == 64) {
+            TxId txid;
+            txid.SetHex(item->text(COLUMN_TXHASH).toStdString());
+
             // transaction hash is 64 characters (this means its a child node,
             // so its not a parent node in tree mode)
             copyTransactionHashAction->setEnabled(true);
-            if (model->isLockedCoin(
-                    uint256S(item->text(COLUMN_TXHASH).toStdString()),
-                    item->text(COLUMN_VOUT_INDEX).toUInt())) {
+            if (model->isLockedCoin(txid,
+                                    item->text(COLUMN_VOUT_INDEX).toUInt())) {
                 lockAction->setEnabled(false);
                 unlockAction->setEnabled(true);
             } else {
@@ -267,10 +269,11 @@ void CoinControlDialog::copyAmount() {
 void CoinControlDialog::copyLabel() {
     if (ui->radioTreeMode->isChecked() &&
         contextMenuItem->text(COLUMN_LABEL).length() == 0 &&
-        contextMenuItem->parent())
+        contextMenuItem->parent()) {
         GUIUtil::setClipboard(contextMenuItem->parent()->text(COLUMN_LABEL));
-    else
+    } else {
         GUIUtil::setClipboard(contextMenuItem->text(COLUMN_LABEL));
+    }
 }
 
 // context menu action: copy address
@@ -793,17 +796,17 @@ void CoinControlDialog::updateView() {
             itemOutput->setData(COLUMN_CONFIRMATIONS, Qt::UserRole,
                                 QVariant((qlonglong)out.nDepth));
 
-            // transaction hash
-            uint256 txhash = out.tx->GetId();
+            // transaction id
+            const TxId txid = out.tx->GetId();
             itemOutput->setText(COLUMN_TXHASH,
-                                QString::fromStdString(txhash.GetHex()));
+                                QString::fromStdString(txid.GetHex()));
 
             // vout index
             itemOutput->setText(COLUMN_VOUT_INDEX, QString::number(out.i));
 
             // disable locked coins
-            if (model->isLockedCoin(txhash, out.i)) {
-                COutPoint outpt(txhash, out.i);
+            if (model->isLockedCoin(txid, out.i)) {
+                COutPoint outpt(txid, out.i);
                 // just to be sure
                 coinControl->UnSelect(outpt);
                 itemOutput->setDisabled(true);
@@ -813,7 +816,7 @@ void CoinControlDialog::updateView() {
             }
 
             // set checkbox
-            if (coinControl->IsSelected(COutPoint(txhash, out.i))) {
+            if (coinControl->IsSelected(COutPoint(txid, out.i))) {
                 itemOutput->setCheckState(COLUMN_CHECKBOX, Qt::Checked);
             }
         }

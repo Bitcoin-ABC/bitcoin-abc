@@ -3808,10 +3808,10 @@ void CWallet::UnlockAllCoins() {
     setLockedCoins.clear();
 }
 
-bool CWallet::IsLockedCoin(uint256 hash, unsigned int n) const {
+bool CWallet::IsLockedCoin(const TxId &txid, uint32_t n) const {
     // setLockedCoins
     AssertLockHeld(cs_wallet);
-    COutPoint outpt(hash, n);
+    COutPoint outpt(txid, n);
 
     return setLockedCoins.count(outpt) > 0;
 }

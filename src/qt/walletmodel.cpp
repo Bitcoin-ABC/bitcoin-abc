@@ -627,9 +627,9 @@ void WalletModel::listCoins(
     }
 }
 
-bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const {
+bool WalletModel::isLockedCoin(const TxId &txid, uint32_t n) const {
     LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->IsLockedCoin(hash, n);
+    return wallet->IsLockedCoin(txid, n);
 }
 
 void WalletModel::lockCoin(COutPoint &output) {
