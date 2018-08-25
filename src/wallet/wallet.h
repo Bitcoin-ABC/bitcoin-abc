@@ -742,7 +742,7 @@ public:
         fBroadcastTransactions = false;
     }
 
-    std::map<uint256, CWalletTx> mapWallet;
+    std::map<TxId, CWalletTx> mapWallet;
     std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx *, CAccountingEntry *> TxPair;
