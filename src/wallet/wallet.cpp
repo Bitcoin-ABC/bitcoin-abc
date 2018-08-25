@@ -688,10 +688,10 @@ void CWallet::SyncMetaData(
 /**
  * Outpoint is spent if any non-conflicted transaction, spends it:
  */
-bool CWallet::IsSpent(const uint256 &hash, unsigned int n) const {
-    const COutPoint outpoint(hash, n);
-    std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range;
-    range = mapTxSpends.equal_range(outpoint);
+bool CWallet::IsSpent(const TxId &txid, uint32_t n) const {
+    const COutPoint outpoint(txid, n);
+    std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range =
+        mapTxSpends.equal_range(outpoint);
 
     for (TxSpends::const_iterator it = range.first; it != range.second; ++it) {
         const TxId &wtxid = it->second;
@@ -1926,9 +1926,8 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     }
 
     Amount nCredit(0);
-    uint256 hashTx = GetId();
-    for (unsigned int i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(hashTx, i)) {
+    for (uint32_t i = 0; i < tx->vout.size(); i++) {
+        if (!pwallet->IsSpent(GetId(), i)) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit)) {
@@ -1974,7 +1973,7 @@ Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
     }
 
     Amount nCredit(0);
-    for (unsigned int i = 0; i < tx->vout.size(); i++) {
+    for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, ISMINE_WATCH_ONLY);
@@ -2317,7 +2316,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
             continue;
         }
 
-        for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
+        for (uint32_t i = 0; i < pcoin->tx->vout.size(); i++) {
             isminetype mine = IsMine(pcoin->tx->vout[i]);
             if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
                 !IsLockedCoin((*it).first, i) &&
@@ -3549,7 +3548,7 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
     std::map<CTxDestination, Amount> balances;
 
     LOCK(cs_wallet);
-    for (std::pair<uint256, CWalletTx> walletEntry : mapWallet) {
+    for (std::pair<TxId, CWalletTx> walletEntry : mapWallet) {
         CWalletTx *pcoin = &walletEntry.second;
 
         if (!pcoin->IsTrusted()) {
@@ -3565,7 +3564,7 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
             continue;
         }
 
-        for (unsigned int i = 0; i < pcoin->tx->vout.size(); i++) {
+        for (uint32_t i = 0; i < pcoin->tx->vout.size(); i++) {
             CTxDestination addr;
             if (!IsMine(pcoin->tx->vout[i])) {
                 continue;

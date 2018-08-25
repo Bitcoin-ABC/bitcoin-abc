@@ -263,7 +263,7 @@ public:
     bool isAbandoned() const { return (hashBlock == ABANDON_HASH); }
     void setAbandoned() { hashBlock = ABANDON_HASH; }
 
-    const TxId GetId() const { return tx->GetId(); }
+    TxId GetId() const { return tx->GetId(); }
     bool IsCoinBase() const { return tx->IsCoinBase(); }
 };
 
@@ -363,15 +363,18 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        if (ser_action.ForRead()) Init(nullptr);
+        if (ser_action.ForRead()) {
+            Init(nullptr);
+        }
+
         char fSpent = false;
 
         if (!ser_action.ForRead()) {
             mapValue["fromaccount"] = strFromAccount;
-
             WriteOrderPos(nOrderPos, mapValue);
-
-            if (nTimeSmart) mapValue["timesmart"] = strprintf("%u", nTimeSmart);
+            if (nTimeSmart) {
+                mapValue["timesmart"] = strprintf("%u", nTimeSmart);
+            }
         }
 
         READWRITE(*(CMerkleTx *)this);
@@ -387,9 +390,7 @@ public:
 
         if (ser_action.ForRead()) {
             strFromAccount = mapValue["fromaccount"];
-
             ReadOrderPos(nOrderPos, mapValue);
-
             nTimeSmart = mapValue.count("timesmart")
                              ? (unsigned int)atoi64(mapValue["timesmart"])
                              : 0;
@@ -785,7 +786,7 @@ public:
         std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
         Amount &nValueRet) const;
 
-    bool IsSpent(const uint256 &hash, unsigned int n) const;
+    bool IsSpent(const TxId &txid, uint32_t n) const;
 
     bool IsLockedCoin(uint256 hash, unsigned int n) const;
     void LockCoin(const COutPoint &output);
