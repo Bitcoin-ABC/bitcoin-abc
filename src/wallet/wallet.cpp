@@ -535,8 +535,8 @@ bool CWallet::SetMaxVersion(int nVersion) {
     return true;
 }
 
-std::set<uint256> CWallet::GetConflicts(const uint256 &txid) const {
-    std::set<uint256> result;
+std::set<TxId> CWallet::GetConflicts(const TxId &txid) const {
+    std::set<TxId> result;
     AssertLockHeld(cs_wallet);
 
     std::map<uint256, CWalletTx>::const_iterator it = mapWallet.find(txid);
@@ -1825,12 +1825,12 @@ bool CWalletTx::RelayWalletTransaction(CConnman *connman) {
     return false;
 }
 
-std::set<uint256> CWalletTx::GetConflicts() const {
-    std::set<uint256> result;
+std::set<TxId> CWalletTx::GetConflicts() const {
+    std::set<TxId> result;
     if (pwallet != nullptr) {
-        uint256 myHash = GetId();
-        result = pwallet->GetConflicts(myHash);
-        result.erase(myHash);
+        const TxId &txid = GetId();
+        result = pwallet->GetConflicts(txid);
+        result.erase(txid);
     }
 
     return result;

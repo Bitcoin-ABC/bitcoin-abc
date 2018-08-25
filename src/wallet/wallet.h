@@ -450,7 +450,7 @@ public:
     // RelayWalletTransaction may only be called if fBroadcastTransactions!
     bool RelayWalletTransaction(CConnman *connman);
 
-    std::set<uint256> GetConflicts() const;
+    std::set<TxId> GetConflicts() const;
 };
 
 class COutput {
@@ -622,7 +622,7 @@ private:
      * Used to keep track of spent outpoints, and detect and report conflicts
      * (double-spends or mutated transactions where the mutant gets mined).
      */
-    typedef std::multimap<COutPoint, uint256> TxSpends;
+    typedef std::multimap<COutPoint, TxId> TxSpends;
     TxSpends mapTxSpends;
     void AddToSpends(const COutPoint &outpoint, const TxId &wtxid);
     void AddToSpends(const TxId &wtxid);
@@ -1050,7 +1050,7 @@ public:
 
     //! Get wallet transactions that conflict with given transaction (spend same
     //! outputs)
-    std::set<uint256> GetConflicts(const uint256 &txid) const;
+    std::set<TxId> GetConflicts(const TxId &txid) const;
 
     //! Check if a given transaction has any of its outputs spent by another
     //! transaction in the wallet
