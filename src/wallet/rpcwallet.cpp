@@ -2236,8 +2236,8 @@ static UniValue gettransaction(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
 
     isminefilter filter = ISMINE_SPENDABLE;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
@@ -2245,16 +2245,16 @@ static UniValue gettransaction(const Config &config,
     }
 
     UniValue entry(UniValue::VOBJ);
-    if (!pwallet->mapWallet.count(hash)) {
+    if (!pwallet->mapWallet.count(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
 
-    const CWalletTx &wtx = pwallet->mapWallet[hash];
+    const CWalletTx &wtx = pwallet->mapWallet[txid];
 
     Amount nCredit = wtx.GetCredit(filter);
     Amount nDebit = wtx.GetDebit(filter);
-    Amount nNet = (nCredit - nDebit);
+    Amount nNet = nCredit - nDebit;
     Amount nFee =
         (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : Amount(0));
 
@@ -2309,15 +2309,15 @@ static UniValue abandontransaction(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
 
-    if (!pwallet->mapWallet.count(hash)) {
+    if (!pwallet->mapWallet.count(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
 
-    if (!pwallet->AbandonTransaction(hash)) {
+    if (!pwallet->AbandonTransaction(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not eligible for abandonment");
     }
