@@ -1101,7 +1101,7 @@ public:
      * Mark a transaction (and it in-wallet descendants) as abandoned so its
      * inputs may be respent.
      */
-    bool AbandonTransaction(const uint256 &hashTx);
+    bool AbandonTransaction(const TxId &txid);
 
     /* Returns the wallets help message */
     static std::string GetWalletHelpString(bool showDebug);

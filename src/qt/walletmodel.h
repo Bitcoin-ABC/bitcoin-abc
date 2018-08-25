@@ -223,7 +223,7 @@ public:
                             const std::string &sRequest);
 
     bool transactionCanBeAbandoned(const TxId &txid) const;
-    bool abandonTransaction(uint256 hash) const;
+    bool abandonTransaction(const TxId &txid) const;
 
     static bool isWalletEnabled();
 

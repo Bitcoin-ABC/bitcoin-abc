@@ -686,9 +686,9 @@ bool WalletModel::transactionCanBeAbandoned(const TxId &txid) const {
     return true;
 }
 
-bool WalletModel::abandonTransaction(uint256 hash) const {
+bool WalletModel::abandonTransaction(const TxId &txid) const {
     LOCK2(cs_main, wallet->cs_wallet);
-    return wallet->AbandonTransaction(hash);
+    return wallet->AbandonTransaction(txid);
 }
 
 bool WalletModel::isWalletEnabled() {

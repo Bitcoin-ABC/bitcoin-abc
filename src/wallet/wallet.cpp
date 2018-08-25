@@ -1194,25 +1194,25 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
     return false;
 }
 
-bool CWallet::AbandonTransaction(const uint256 &hashTx) {
+bool CWallet::AbandonTransaction(const TxId &txid) {
     LOCK2(cs_main, cs_wallet);
 
     CWalletDB walletdb(*dbw, "r+");
 
-    std::set<uint256> todo;
-    std::set<uint256> done;
+    std::set<TxId> todo;
+    std::set<TxId> done;
 
     // Can't mark abandoned if confirmed or in mempool.
-    assert(mapWallet.count(hashTx));
-    CWalletTx &origtx = mapWallet[hashTx];
+    assert(mapWallet.count(txid));
+    CWalletTx &origtx = mapWallet[txid];
     if (origtx.GetDepthInMainChain() > 0 || origtx.InMempool()) {
         return false;
     }
 
-    todo.insert(hashTx);
+    todo.insert(txid);
 
     while (!todo.empty()) {
-        uint256 now = *todo.begin();
+        const TxId now = *todo.begin();
         todo.erase(now);
         done.insert(now);
         assert(mapWallet.count(now));
@@ -1234,7 +1234,7 @@ bool CWallet::AbandonTransaction(const uint256 &hashTx) {
             // Iterate over all its outputs, and mark transactions in the wallet
             // that spend them abandoned too.
             TxSpends::const_iterator iter =
-                mapTxSpends.lower_bound(COutPoint(hashTx, 0));
+                mapTxSpends.lower_bound(COutPoint(txid, 0));
             while (iter != mapTxSpends.end() && iter->first.GetTxId() == now) {
                 if (!done.count(iter->second)) {
                     todo.insert(iter->second);

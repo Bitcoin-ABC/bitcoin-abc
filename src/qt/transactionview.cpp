@@ -404,18 +404,21 @@ void TransactionView::contextualMenu(const QPoint &point) {
 }
 
 void TransactionView::abandonTx() {
-    if (!transactionView || !transactionView->selectionModel()) return;
+    if (!transactionView || !transactionView->selectionModel()) {
+        return;
+    }
     QModelIndexList selection =
         transactionView->selectionModel()->selectedRows(0);
 
     // get the hash from the TxHashRole (QVariant / QString)
-    uint256 hash;
     QString hashQStr =
         selection.at(0).data(TransactionTableModel::TxHashRole).toString();
-    hash.SetHex(hashQStr.toStdString());
+
+    TxId txid;
+    txid.SetHex(hashQStr.toStdString());
 
     // Abandon the wallet transaction over the walletModel
-    model->abandonTransaction(hash);
+    model->abandonTransaction(txid);
 
     // Update the table
     model->getTransactionTableModel()->updateTransaction(hashQStr, CT_UPDATED,
