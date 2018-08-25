@@ -709,7 +709,7 @@ bool CWallet::IsSpent(const uint256 &hash, unsigned int n) const {
     return false;
 }
 
-void CWallet::AddToSpends(const COutPoint &outpoint, const uint256 &wtxid) {
+void CWallet::AddToSpends(const COutPoint &outpoint, const TxId &wtxid) {
     mapTxSpends.insert(std::make_pair(outpoint, wtxid));
 
     std::pair<TxSpends::iterator, TxSpends::iterator> range;
@@ -717,7 +717,7 @@ void CWallet::AddToSpends(const COutPoint &outpoint, const uint256 &wtxid) {
     SyncMetaData(range);
 }
 
-void CWallet::AddToSpends(const uint256 &wtxid) {
+void CWallet::AddToSpends(const TxId &wtxid) {
     assert(mapWallet.count(wtxid));
     CWalletTx &thisTx = mapWallet[wtxid];
     // Coinbases don't spend anything!
@@ -1016,11 +1016,11 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
 
     CWalletDB walletdb(*dbw, "r+", fFlushOnClose);
 
-    uint256 hash = wtxIn.GetId();
+    const TxId &txid = wtxIn.GetId();
 
     // Inserts only if not already there, returns tx inserted or tx found.
     std::pair<std::map<uint256, CWalletTx>::iterator, bool> ret =
-        mapWallet.insert(std::make_pair(hash, wtxIn));
+        mapWallet.insert(std::make_pair(txid, wtxIn));
     CWalletTx &wtx = (*ret.first).second;
     wtx.BindWallet(this);
     bool fInsertedNew = ret.second;
@@ -1029,7 +1029,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
         wtx.nOrderPos = IncOrderPosNext(&walletdb);
         wtxOrdered.insert(std::make_pair(wtx.nOrderPos, TxPair(&wtx, nullptr)));
         wtx.nTimeSmart = ComputeTimeSmart(wtx);
-        AddToSpends(hash);
+        AddToSpends(txid);
     }
 
     bool fUpdated = false;
@@ -1070,7 +1070,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     wtx.MarkDirty();
 
     // Notify UI of new or updated transaction.
-    NotifyTransactionChanged(this, hash, fInsertedNew ? CT_NEW : CT_UPDATED);
+    NotifyTransactionChanged(this, txid, fInsertedNew ? CT_NEW : CT_UPDATED);
 
     // Notify an external script when a wallet transaction comes in or is
     // updated.
@@ -1086,7 +1086,7 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
 }
 
 bool CWallet::LoadToWallet(const CWalletTx &wtxIn) {
-    uint256 txid = wtxIn.GetId();
+    const TxId &txid = wtxIn.GetId();
 
     mapWallet[txid] = wtxIn;
     CWalletTx &wtx = mapWallet[txid];
