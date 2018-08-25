@@ -30,6 +30,8 @@
 class CBlockIndex;
 class Config;
 
+extern CCriticalSection cs_main;
+
 inline double AllowFreeThreshold() {
     return (144 * COIN) / (250 * SATOSHI);
 }
@@ -595,7 +597,8 @@ public:
         const CTransaction &tx,
         MemPoolRemovalReason reason = MemPoolRemovalReason::UNKNOWN);
     void removeForReorg(const Config &config, const CCoinsViewCache *pcoins,
-                        unsigned int nMemPoolHeight, int flags);
+                        unsigned int nMemPoolHeight, int flags)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void removeConflicts(const CTransaction &tx);
     void removeForBlock(const std::vector<CTransactionRef> &vtx,
                         unsigned int nBlockHeight);
