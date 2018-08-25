@@ -112,9 +112,7 @@ static bool SignStep(const SigningProvider &provider,
     std::vector<uint8_t> sig;
 
     std::vector<valtype> vSolutions;
-    if (!Solver(scriptPubKey, whichTypeRet, vSolutions)) {
-        return false;
-    }
+    whichTypeRet = Solver(scriptPubKey, vSolutions);
 
     switch (whichTypeRet) {
         case TX_NONSTANDARD:
@@ -310,9 +308,8 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
     }
 
     // Get scripts
-    txnouttype script_type;
     std::vector<std::vector<uint8_t>> solutions;
-    Solver(txout.scriptPubKey, script_type, solutions);
+    txnouttype script_type = Solver(txout.scriptPubKey, solutions);
     CScript next_script = txout.scriptPubKey;
 
     if (script_type == TX_SCRIPTHASH && !stack.script.empty() &&
@@ -324,7 +321,7 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx,
         next_script = std::move(redeem_script);
 
         // Get redeemScript type
-        Solver(next_script, script_type, solutions);
+        script_type = Solver(next_script, solutions);
         stack.script.pop_back();
     }
     if (script_type == TX_MULTISIG && !stack.script.empty()) {

@@ -40,11 +40,11 @@ bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
 
 bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
     std::vector<std::vector<uint8_t>> vSolutions;
-    if (!Solver(scriptPubKey, whichType, vSolutions)) {
-        return false;
-    }
+    whichType = Solver(scriptPubKey, vSolutions);
 
-    if (whichType == TX_MULTISIG) {
+    if (whichType == TX_NONSTANDARD) {
+        return false;
+    } else if (whichType == TX_MULTISIG) {
         uint8_t m = vSolutions.front()[0];
         uint8_t n = vSolutions.back()[0];
         // Support up to x-of-3 multisig txns as standard
@@ -66,7 +66,7 @@ bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType) {
         }
     }
 
-    return whichType != TX_NONSTANDARD;
+    return true;
 }
 
 bool IsStandardTx(const CTransaction &tx, std::string &reason) {
@@ -151,14 +151,10 @@ bool AreInputsStandard(const CTransaction &tx,
         const CTxOut &prev = mapInputs.GetOutputFor(in);
 
         std::vector<std::vector<uint8_t>> vSolutions;
-        txnouttype whichType;
-        // get the scriptPubKey corresponding to this input:
-        const CScript &prevScript = prev.scriptPubKey;
-        if (!Solver(prevScript, whichType, vSolutions)) {
+        txnouttype whichType = Solver(prev.scriptPubKey, vSolutions);
+        if (whichType == TX_NONSTANDARD) {
             return false;
-        }
-
-        if (whichType == TX_SCRIPTHASH) {
+        } else if (whichType == TX_SCRIPTHASH) {
             std::vector<std::vector<uint8_t>> stack;
             // convert the scriptSig into a stack, so we can inspect the
             // redeemScript

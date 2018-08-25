@@ -164,10 +164,9 @@ bool CBloomFilter::MatchAndInsertOutputs(const CTransaction &tx) {
                     insert(COutPoint(txid, i));
                 } else if ((nFlags & BLOOM_UPDATE_MASK) ==
                            BLOOM_UPDATE_P2PUBKEY_ONLY) {
-                    txnouttype type;
                     std::vector<std::vector<uint8_t>> vSolutions;
-                    if (Solver(txout.scriptPubKey, type, vSolutions) &&
-                        (type == TX_PUBKEY || type == TX_MULTISIG)) {
+                    txnouttype type = Solver(txout.scriptPubKey, vSolutions);
+                    if (type == TX_PUBKEY || type == TX_MULTISIG) {
                         insert(COutPoint(txid, i));
                     }
                 }

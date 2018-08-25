@@ -98,19 +98,18 @@ static bool MatchMultisig(const CScript &script, unsigned int &required,
     return (it + 1 == script.end());
 }
 
-bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
-            std::vector<std::vector<uint8_t>> &vSolutionsRet) {
+txnouttype Solver(const CScript &scriptPubKey,
+                  std::vector<std::vector<uint8_t>> &vSolutionsRet) {
     vSolutionsRet.clear();
 
     // Shortcut for pay-to-script-hash, which are more constrained than the
     // other types:
     // it is always OP_HASH160 20 [20 byte hash] OP_EQUAL
     if (scriptPubKey.IsPayToScriptHash()) {
-        typeRet = TX_SCRIPTHASH;
         std::vector<uint8_t> hashBytes(scriptPubKey.begin() + 2,
                                        scriptPubKey.begin() + 22);
         vSolutionsRet.push_back(hashBytes);
-        return true;
+        return TX_SCRIPTHASH;
     }
 
     // Provably prunable, data-carrying output
@@ -120,47 +119,39 @@ bool Solver(const CScript &scriptPubKey, txnouttype &typeRet,
     // script.
     if (scriptPubKey.size() >= 1 && scriptPubKey[0] == OP_RETURN &&
         scriptPubKey.IsPushOnly(scriptPubKey.begin() + 1)) {
-        typeRet = TX_NULL_DATA;
-        return true;
+        return TX_NULL_DATA;
     }
 
     std::vector<uint8_t> data;
     if (MatchPayToPubkey(scriptPubKey, data)) {
-        typeRet = TX_PUBKEY;
         vSolutionsRet.push_back(std::move(data));
-        return true;
+        return TX_PUBKEY;
     }
 
     if (MatchPayToPubkeyHash(scriptPubKey, data)) {
-        typeRet = TX_PUBKEYHASH;
         vSolutionsRet.push_back(std::move(data));
-        return true;
+        return TX_PUBKEYHASH;
     }
 
     unsigned int required;
     std::vector<std::vector<uint8_t>> keys;
     if (MatchMultisig(scriptPubKey, required, keys)) {
-        typeRet = TX_MULTISIG;
         // safe as required is in range 1..16
         vSolutionsRet.push_back({static_cast<uint8_t>(required)});
         vSolutionsRet.insert(vSolutionsRet.end(), keys.begin(), keys.end());
         // safe as size is in range 1..16
         vSolutionsRet.push_back({static_cast<uint8_t>(keys.size())});
-        return true;
+        return TX_MULTISIG;
     }
 
     vSolutionsRet.clear();
-    typeRet = TX_NONSTANDARD;
-    return false;
+    return TX_NONSTANDARD;
 }
 
 bool ExtractDestination(const CScript &scriptPubKey,
                         CTxDestination &addressRet) {
     std::vector<valtype> vSolutions;
-    txnouttype whichType;
-    if (!Solver(scriptPubKey, whichType, vSolutions)) {
-        return false;
-    }
+    txnouttype whichType = Solver(scriptPubKey, vSolutions);
 
     if (whichType == TX_PUBKEY) {
         CPubKey pubKey(vSolutions[0]);
@@ -187,12 +178,11 @@ bool ExtractDestinations(const CScript &scriptPubKey, txnouttype &typeRet,
                          std::vector<CTxDestination> &addressRet,
                          int &nRequiredRet) {
     addressRet.clear();
-    typeRet = TX_NONSTANDARD;
     std::vector<valtype> vSolutions;
-    if (!Solver(scriptPubKey, typeRet, vSolutions)) {
+    typeRet = Solver(scriptPubKey, vSolutions);
+    if (typeRet == TX_NONSTANDARD) {
         return false;
-    }
-    if (typeRet == TX_NULL_DATA) {
+    } else if (typeRet == TX_NULL_DATA) {
         // This is data, not addresses
         return false;
     }
