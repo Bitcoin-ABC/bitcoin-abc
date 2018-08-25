@@ -92,8 +92,8 @@ class TransactionOrderingTest(ComparisonTestFramework):
                     spendable_outputs.append(PreviousSpendableOutput(tx, i))
                 # Put some random data into the transaction in order to randomize ids.
                 # This also ensures that transaction are larger than 100 bytes.
-                tx.vout.append(
-                    CTxOut(0, CScript([random.getrandbits(256), OP_RETURN])))
+                rand = random.getrandbits(256)
+                tx.vout.append(CTxOut(0, CScript([rand, OP_RETURN])))
                 return tx
 
             tx = get_base_transaction()

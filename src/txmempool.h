@@ -852,6 +852,11 @@ private:
     indexed_disconnected_transactions queuedTx;
     uint64_t cachedInnerUsage = 0;
 
+    void addTransaction(const CTransactionRef &tx) {
+        queuedTx.insert(tx);
+        cachedInnerUsage += RecursiveDynamicUsage(tx);
+    }
+
 public:
     // It's almost certainly a logic bug if we don't clear out queuedTx before
     // destruction, as we add to it while disconnecting blocks, and then we
@@ -872,14 +877,13 @@ public:
                cachedInnerUsage;
     }
 
+    const indexed_disconnected_transactions &GetQueuedTx() const {
+        return queuedTx;
+    }
+
     // Add entries for a block while reconstructing the topological ordering so
     // they can be added back to the mempool simply.
     void addForBlock(const std::vector<CTransactionRef> &vtx);
-
-    void addTransaction(const CTransactionRef &tx) {
-        queuedTx.insert(tx);
-        cachedInnerUsage += RecursiveDynamicUsage(tx);
-    }
 
     // Remove entries based on txid_index, and update memory usage.
     void removeForBlock(const std::vector<CTransactionRef> &vtx) {
