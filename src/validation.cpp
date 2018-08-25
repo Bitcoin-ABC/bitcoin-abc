@@ -1743,7 +1743,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     // Second, revert created outputs.
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
-        uint256 txid = tx.GetId();
+        const TxId &txid = tx.GetId();
 
         // Check that all outputs are available and match the outputs in the
         // block itself exactly.
