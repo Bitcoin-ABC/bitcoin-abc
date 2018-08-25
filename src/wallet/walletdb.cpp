@@ -263,7 +263,7 @@ public:
     bool fIsEncrypted;
     bool fAnyUnordered;
     int nFileVersion;
-    std::vector<uint256> vWalletUpgrade;
+    std::vector<TxId> vWalletUpgrade;
 
     CWalletScanState() {
         nKeys = nCKeys = nWatchKeys = nKeyMeta = 0;
@@ -296,15 +296,15 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                                strAddress, pwallet->chainParams)]
                            .purpose;
         } else if (strType == "tx") {
-            uint256 hash;
-            ssKey >> hash;
+            TxId txid;
+            ssKey >> txid;
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
             bool isValid = wtx.IsCoinBase()
                                ? CheckCoinbase(wtx, state)
                                : CheckRegularTransaction(wtx, state);
-            if (wtx.GetId() != hash || !isValid) {
+            if (!isValid || wtx.GetId() != txid) {
                 return false;
             }
 
@@ -318,15 +318,15 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                     strErr =
                         strprintf("LoadWallet() upgrading tx ver=%d %d '%s' %s",
                                   wtx.fTimeReceivedIsTxTime, fTmp,
-                                  wtx.strFromAccount, hash.ToString());
+                                  wtx.strFromAccount, txid.ToString());
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 } else {
                     strErr =
                         strprintf("LoadWallet() repairing tx ver=%d %s",
-                                  wtx.fTimeReceivedIsTxTime, hash.ToString());
+                                  wtx.fTimeReceivedIsTxTime, txid.ToString());
                     wtx.fTimeReceivedIsTxTime = 0;
                 }
-                wss.vWalletUpgrade.push_back(hash);
+                wss.vWalletUpgrade.push_back(txid);
             }
 
             if (wtx.nOrderPos == -1) {
@@ -612,8 +612,8 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
         pwallet->UpdateTimeFirstKey(1);
     }
 
-    for (uint256 hash : wss.vWalletUpgrade) {
-        WriteTx(pwallet->mapWallet[hash]);
+    for (const TxId &txid : wss.vWalletUpgrade) {
+        WriteTx(pwallet->mapWallet[txid]);
     }
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
