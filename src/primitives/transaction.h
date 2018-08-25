@@ -19,7 +19,7 @@ static const int SERIALIZE_TRANSACTION = 0x00;
  * differentiated for type safety.
  */
 struct TxId : public uint256 {
-    TxId() {}
+    explicit TxId() : uint256() {}
     explicit TxId(const uint256 &b) : uint256(b) {}
 };
 
