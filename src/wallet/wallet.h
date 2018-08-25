@@ -755,7 +755,7 @@ public:
 
     std::set<COutPoint> setLockedCoins;
 
-    const CWalletTx *GetWalletTx(const uint256 &hash) const;
+    const CWalletTx *GetWalletTx(const TxId &txid) const;
 
     //! check whether we are allowed to upgrade (or already support) to the
     //! named feature

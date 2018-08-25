@@ -671,18 +671,18 @@ bool WalletModel::saveReceiveRequest(const std::string &sAddress,
     std::string key = "rr" + ss.str();
 
     LOCK(wallet->cs_wallet);
-    if (sRequest.empty())
-        return wallet->EraseDestData(dest, key);
-    else
-        return wallet->AddDestData(dest, key, sRequest);
+    return sRequest.empty() ? wallet->EraseDestData(dest, key)
+                            : wallet->AddDestData(dest, key, sRequest);
 }
 
-bool WalletModel::transactionCanBeAbandoned(uint256 hash) const {
+bool WalletModel::transactionCanBeAbandoned(const TxId &txid) const {
     LOCK2(cs_main, wallet->cs_wallet);
-    const CWalletTx *wtx = wallet->GetWalletTx(hash);
+    const CWalletTx *wtx = wallet->GetWalletTx(txid);
     if (!wtx || wtx->isAbandoned() || wtx->GetDepthInMainChain() > 0 ||
-        wtx->InMempool())
+        wtx->InMempool()) {
         return false;
+    }
+
     return true;
 }
 
