@@ -86,16 +86,16 @@ public:
      * the wallet with that of the core.
      * Call with transaction that was added, removed or changed.
      */
-    void updateWallet(const uint256 &hash, int status, bool showTransaction) {
+    void updateWallet(const TxId &txid, int status, bool showTransaction) {
         qDebug() << "TransactionTablePriv::updateWallet: " +
-                        QString::fromStdString(hash.ToString()) + " " +
+                        QString::fromStdString(txid.ToString()) + " " +
                         QString::number(status);
 
         // Find bounds of this transaction in model
         QList<TransactionRecord>::iterator lower = qLowerBound(
-            cachedWallet.begin(), cachedWallet.end(), hash, TxLessThan());
+            cachedWallet.begin(), cachedWallet.end(), txid, TxLessThan());
         QList<TransactionRecord>::iterator upper = qUpperBound(
-            cachedWallet.begin(), cachedWallet.end(), hash, TxLessThan());
+            cachedWallet.begin(), cachedWallet.end(), txid, TxLessThan());
         int lowerIndex = (lower - cachedWallet.begin());
         int upperIndex = (upper - cachedWallet.begin());
         bool inModel = (lower != upper);
@@ -129,7 +129,7 @@ public:
                     LOCK2(cs_main, wallet->cs_wallet);
                     // Find transaction in wallet
                     std::map<uint256, CWalletTx>::iterator mi =
-                        wallet->mapWallet.find(hash);
+                        wallet->mapWallet.find(txid);
                     if (mi == wallet->mapWallet.end()) {
                         qWarning() << "TransactionTablePriv::updateWallet: "
                                       "Warning: Got CT_NEW, but transaction is "
@@ -260,7 +260,7 @@ void TransactionTableModel::updateAmountColumnTitle() {
 
 void TransactionTableModel::updateTransaction(const QString &hash, int status,
                                               bool showTransaction) {
-    uint256 updated;
+    TxId updated;
     updated.SetHex(hash.toStdString());
 
     priv->updateWallet(updated, status, showTransaction);
@@ -713,12 +713,12 @@ void TransactionTableModel::updateDisplayUnit() {
 struct TransactionNotification {
 public:
     TransactionNotification() {}
-    TransactionNotification(uint256 _hash, ChangeType _status,
+    TransactionNotification(TxId _txid, ChangeType _status,
                             bool _showTransaction)
-        : hash(_hash), status(_status), showTransaction(_showTransaction) {}
+        : txid(_txid), status(_status), showTransaction(_showTransaction) {}
 
     void invoke(QObject *ttm) {
-        QString strHash = QString::fromStdString(hash.GetHex());
+        QString strHash = QString::fromStdString(txid.GetHex());
         qDebug() << "NotifyTransactionChanged: " + strHash +
                         " status= " + QString::number(status);
         QMetaObject::invokeMethod(ttm, "updateTransaction",
@@ -728,7 +728,7 @@ public:
     }
 
 private:
-    uint256 hash;
+    TxId txid;
     ChangeType status;
     bool showTransaction;
 };
@@ -737,17 +737,17 @@ static bool fQueueNotifications = false;
 static std::vector<TransactionNotification> vQueueNotifications;
 
 static void NotifyTransactionChanged(TransactionTableModel *ttm,
-                                     CWallet *wallet, const uint256 &hash,
+                                     CWallet *wallet, const TxId &txid,
                                      ChangeType status) {
     // Find transaction in wallet
-    std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
+    std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(txid);
     // Determine whether to show transaction or not (determine this here so that
     // no relocking is needed in GUI thread)
     bool inWallet = mi != wallet->mapWallet.end();
     bool showTransaction =
         (inWallet && TransactionRecord::showTransaction(mi->second));
 
-    TransactionNotification notification(hash, status, showTransaction);
+    TransactionNotification notification(txid, status, showTransaction);
 
     if (fQueueNotifications) {
         vQueueNotifications.push_back(notification);
