@@ -312,6 +312,7 @@ libbitcoin_consensus_a_SOURCES = \
   primitives/block.h \
   primitives/transaction.cpp \
   primitives/transaction.h \
+  primitives/txid.h \
   pubkey.cpp \
   pubkey.h \
   script/bitcoinconsensus.cpp \
