@@ -40,13 +40,13 @@ static int column_alignments[] = {
 struct TxLessThan {
     bool operator()(const TransactionRecord &a,
                     const TransactionRecord &b) const {
-        return a.hash < b.hash;
+        return a.txid < b.txid;
     }
-    bool operator()(const TransactionRecord &a, const uint256 &b) const {
-        return a.hash < b;
+    bool operator()(const TransactionRecord &a, const TxId &b) const {
+        return a.txid < b;
     }
-    bool operator()(const uint256 &a, const TransactionRecord &b) const {
-        return a < b.hash;
+    bool operator()(const TxId &a, const TransactionRecord &b) const {
+        return a < b.txid;
     }
 };
 
@@ -193,7 +193,7 @@ public:
                 TRY_LOCK(wallet->cs_wallet, lockWallet);
                 if (lockWallet && rec->statusUpdateNeeded()) {
                     std::map<uint256, CWalletTx>::iterator mi =
-                        wallet->mapWallet.find(rec->hash);
+                        wallet->mapWallet.find(rec->txid);
 
                     if (mi != wallet->mapWallet.end()) {
                         rec->updateStatus(mi->second);
@@ -208,7 +208,7 @@ public:
     QString describe(TransactionRecord *rec, int unit) {
         LOCK2(cs_main, wallet->cs_wallet);
         std::map<uint256, CWalletTx>::iterator mi =
-            wallet->mapWallet.find(rec->hash);
+            wallet->mapWallet.find(rec->txid);
         if (mi != wallet->mapWallet.end()) {
             return TransactionDesc::toHTML(wallet, mi->second, rec, unit);
         }
@@ -219,7 +219,7 @@ public:
     QString getTxHex(TransactionRecord *rec) {
         LOCK2(cs_main, wallet->cs_wallet);
         std::map<uint256, CWalletTx>::iterator mi =
-            wallet->mapWallet.find(rec->hash);
+            wallet->mapWallet.find(rec->txid);
         if (mi != wallet->mapWallet.end()) {
             std::string strHex =
                 EncodeHexTx(static_cast<CTransaction>(mi->second));
@@ -616,7 +616,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const {
         case TxIDRole:
             return rec->getTxID();
         case TxHashRole:
-            return QString::fromStdString(rec->hash.ToString());
+            return QString::fromStdString(rec->txid.ToString());
         case TxHexRole:
             return priv->getTxHex(rec);
         case TxPlainTextRole: {

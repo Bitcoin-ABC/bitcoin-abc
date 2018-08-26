@@ -33,7 +33,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
     Amount nCredit = wtx.GetCredit(ISMINE_ALL);
     Amount nDebit = wtx.GetDebit(ISMINE_ALL);
     Amount nNet = nCredit - nDebit;
-    uint256 hash = wtx.GetId();
+    const TxId &txid = wtx.GetId();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
     if (nNet > Amount(0) || wtx.IsCoinBase()) {
@@ -44,7 +44,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             const CTxOut &txout = wtx.tx->vout[i];
             isminetype mine = wallet->IsMine(txout);
             if (mine) {
-                TransactionRecord sub(hash, nTime);
+                TransactionRecord sub(txid, nTime);
                 CTxDestination address;
                 sub.idx = i; // vout index
                 sub.credit = txout.nValue;
@@ -97,7 +97,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             Amount nChange = wtx.GetChange();
 
             parts.append(TransactionRecord(
-                hash, nTime, TransactionRecord::SendToSelf, "",
+                txid, nTime, TransactionRecord::SendToSelf, "",
                 -1 * (nDebit - nChange), (nCredit - nChange)));
             // maybe pass to TransactionRecord as constructor argument
             parts.last().involvesWatchAddress = involvesWatchAddress;
@@ -109,7 +109,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
 
             for (size_t nOut = 0; nOut < wtx.tx->vout.size(); nOut++) {
                 const CTxOut &txout = wtx.tx->vout[nOut];
-                TransactionRecord sub(hash, nTime);
+                TransactionRecord sub(txid, nTime);
                 sub.idx = nOut;
                 sub.involvesWatchAddress = involvesWatchAddress;
 
@@ -145,7 +145,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             // Mixed debit transaction, can't break down payees
             //
             parts.append(TransactionRecord(
-                hash, nTime, TransactionRecord::Other, "", nNet, Amount(0)));
+                txid, nTime, TransactionRecord::Other, "", nNet, Amount(0)));
             parts.last().involvesWatchAddress = involvesWatchAddress;
         }
     }
@@ -226,7 +226,7 @@ bool TransactionRecord::statusUpdateNeeded() {
 }
 
 QString TransactionRecord::getTxID() const {
-    return QString::fromStdString(hash.ToString());
+    return QString::fromStdString(txid.ToString());
 }
 
 int TransactionRecord::getOutputIndex() const {
