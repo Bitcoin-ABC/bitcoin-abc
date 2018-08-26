@@ -1345,20 +1345,19 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     // Iterate disconnectpool in reverse, so that we add transactions back to
     // the mempool starting with the earliest transaction that had been
     // previously seen in a block.
-    auto it = queuedTx.get<insertion_order>().rbegin();
-    while (it != queuedTx.get<insertion_order>().rend()) {
+    for (const CTransactionRef &tx :
+         boost::adaptors::reverse(queuedTx.get<insertion_order>())) {
         // ignore validation errors in resurrected transactions
         CValidationState stateDummy;
-        if (!fAddToMempool || (*it)->IsCoinBase() ||
-            !AcceptToMemoryPool(config, mempool, stateDummy, *it, false,
-                                nullptr, true)) {
+        if (!fAddToMempool || tx->IsCoinBase() ||
+            !AcceptToMemoryPool(config, mempool, stateDummy, tx, false, nullptr,
+                                true)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
-            mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
-        } else if (mempool.exists((*it)->GetId())) {
-            vHashUpdate.push_back((*it)->GetId());
+            mempool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
+        } else if (mempool.exists(tx->GetId())) {
+            vHashUpdate.push_back(tx->GetId());
         }
-        ++it;
     }
 
     queuedTx.clear();
