@@ -17,7 +17,8 @@ class WalletModel;
 
 class CWallet;
 
-/** UI model for the transaction table of a wallet.
+/**
+ * UI model for the transaction table of a wallet.
  */
 class TransactionTableModel : public QAbstractTableModel {
     Q_OBJECT
@@ -113,15 +114,21 @@ private:
     QVariant txAddressDecoration(const TransactionRecord *wtx) const;
 
 public Q_SLOTS:
-    /* New transaction, or transaction changed status */
+    /**
+     * New transaction, or transaction changed status.
+     */
     void updateTransaction(const QString &hash, int status,
                            bool showTransaction);
     void updateConfirmations();
     void updateDisplayUnit();
-    /** Updates the column title to "Amount (DisplayUnit)" and emits
-     * headerDataChanged() signal for table headers to react. */
+    /**
+     * Updates the column title to "Amount (DisplayUnit)" and emits
+     * headerDataChanged() signal for table headers to react.
+     */
     void updateAmountColumnTitle();
-    /* Needed to update fProcessingQueuedTransactions through a QueuedConnection
+    /**
+     * Needed to update fProcessingQueuedTransactions through a
+     * QueuedConnection.
      */
     void setProcessingQueuedTransactions(bool value) {
         fProcessingQueuedTransactions = value;
