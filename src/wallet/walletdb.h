@@ -215,11 +215,11 @@ public:
                                 std::list<CAccountingEntry> &acentries);
 
     DBErrors LoadWallet(CWallet *pwallet);
-    DBErrors FindWalletTx(std::vector<uint256> &vTxHash,
+    DBErrors FindWalletTx(std::vector<TxId> &txIds,
                           std::vector<CWalletTx> &vWtx);
     DBErrors ZapWalletTx(std::vector<CWalletTx> &vWtx);
-    DBErrors ZapSelectTx(std::vector<uint256> &vHashIn,
-                         std::vector<uint256> &vHashOut);
+    DBErrors ZapSelectTx(std::vector<TxId> &txIdsIn,
+                         std::vector<TxId> &txIdsOut);
     /* Try to (very carefully!) recover wallet database (with a possible key
      * type filter) */
     static bool Recover(const std::string &filename, void *callbackDataIn,

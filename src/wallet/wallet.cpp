@@ -3197,13 +3197,13 @@ DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
     return DB_LOAD_OK;
 }
 
-DBErrors CWallet::ZapSelectTx(std::vector<uint256> &vHashIn,
-                              std::vector<uint256> &vHashOut) {
+DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
+                              std::vector<TxId> &txIdsOut) {
     AssertLockHeld(cs_wallet); // mapWallet
     DBErrors nZapSelectTxRet =
-        CWalletDB(*dbw, "cr+").ZapSelectTx(vHashIn, vHashOut);
-    for (uint256 hash : vHashOut) {
-        mapWallet.erase(hash);
+        CWalletDB(*dbw, "cr+").ZapSelectTx(txIdsIn, txIdsOut);
+    for (const TxId &txid : txIdsOut) {
+        mapWallet.erase(txid);
     }
 
     if (nZapSelectTxRet == DB_NEED_REWRITE) {

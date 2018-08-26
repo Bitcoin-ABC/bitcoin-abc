@@ -405,18 +405,18 @@ UniValue removeprunedfunds(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
-    std::vector<uint256> vHash;
-    vHash.push_back(hash);
-    std::vector<uint256> vHashOut;
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
+    std::vector<TxId> txIds;
+    txIds.push_back(txid);
+    std::vector<TxId> txIdsOut;
 
-    if (pwallet->ZapSelectTx(vHash, vHashOut) != DB_LOAD_OK) {
+    if (pwallet->ZapSelectTx(txIds, txIdsOut) != DB_LOAD_OK) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Could not properly delete the transaction.");
     }
 
-    if (vHashOut.empty()) {
+    if (txIdsOut.empty()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            "Transaction does not exist in wallet.");
     }
