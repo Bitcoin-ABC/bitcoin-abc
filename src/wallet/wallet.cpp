@@ -1256,7 +1256,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
     return true;
 }
 
-void CWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) {
+void CWallet::MarkConflicted(const uint256 &hashBlock, const TxId &txid) {
     LOCK2(cs_main, cs_wallet);
 
     int conflictconfirms = 0;
@@ -1277,13 +1277,13 @@ void CWallet::MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx) {
     // Do not flush the wallet here for performance reasons.
     CWalletDB walletdb(*dbw, "r+", false);
 
-    std::set<uint256> todo;
-    std::set<uint256> done;
+    std::set<TxId> todo;
+    std::set<TxId> done;
 
-    todo.insert(hashTx);
+    todo.insert(txid);
 
     while (!todo.empty()) {
-        uint256 now = *todo.begin();
+        const TxId now = *todo.begin();
         todo.erase(now);
         done.insert(now);
         assert(mapWallet.count(now));

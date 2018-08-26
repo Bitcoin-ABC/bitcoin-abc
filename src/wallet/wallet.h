@@ -627,9 +627,11 @@ private:
     void AddToSpends(const COutPoint &outpoint, const TxId &wtxid);
     void AddToSpends(const TxId &wtxid);
 
-    /* Mark a transaction (and its in-wallet descendants) as conflicting with a
-     * particular block. */
-    void MarkConflicted(const uint256 &hashBlock, const uint256 &hashTx);
+    /**
+     * Mark a transaction (and its in-wallet descendants) as conflicting with a
+     * particular block.
+     */
+    void MarkConflicted(const uint256 &hashBlock, const TxId &txid);
 
     void SyncMetaData(std::pair<TxSpends::iterator, TxSpends::iterator>);
 
