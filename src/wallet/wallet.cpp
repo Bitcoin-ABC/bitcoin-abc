@@ -564,7 +564,7 @@ std::set<TxId> CWallet::GetConflicts(const TxId &txid) const {
     return result;
 }
 
-bool CWallet::HasWalletSpend(const uint256 &txid) const {
+bool CWallet::HasWalletSpend(const TxId &txid) const {
     AssertLockHeld(cs_wallet);
     auto iter = mapTxSpends.lower_bound(COutPoint(txid, 0));
     return (iter != mapTxSpends.end() && iter->first.GetTxId() == txid);

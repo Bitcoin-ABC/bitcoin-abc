@@ -1056,7 +1056,7 @@ public:
 
     //! Check if a given transaction has any of its outputs spent by another
     //! transaction in the wallet
-    bool HasWalletSpend(const uint256 &txid) const;
+    bool HasWalletSpend(const TxId &txid) const;
 
     //! Flush wallet (bitdb flush)
     void Flush(bool shutdown = false);
