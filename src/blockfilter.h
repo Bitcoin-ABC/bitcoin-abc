@@ -13,6 +13,7 @@
 #include <util/bytevectorhash.h>
 
 #include <cstdint>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -87,6 +88,14 @@ enum class BlockFilterType : uint8_t {
     BASIC = 0,
     INVALID = 255,
 };
+
+/** Get the human-readable name for a filter type. Returns empty string for
+ * unknown types. */
+const std::string &BlockFilterTypeName(BlockFilterType filter_type);
+
+/** Find a filter type by its human-readable name. */
+bool BlockFilterTypeByName(const std::string &name,
+                           BlockFilterType &filter_type);
 
 /**
  * Complete block filter struct as defined in BIP 157. Serialization matches
