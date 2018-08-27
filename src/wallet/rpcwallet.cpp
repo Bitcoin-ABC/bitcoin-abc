@@ -5212,7 +5212,7 @@ static UniValue walletprocesspsbt(const Config &config,
             "       \"ALL|FORKID|ANYONECANPAY\"\n"
             "       \"NONE|FORKID|ANYONECANPAY\"\n"
             "       \"SINGLE|FORKID|ANYONECANPAY\"\n"
-            "4. bip32derivs                    (boolean, optiona, "
+            "4. bip32derivs                    (boolean, optional, "
             "default=false) If true, includes the BIP 32 derivation paths for "
             "public keys if we know them\n"
 
@@ -5352,7 +5352,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
             "the sender pays the fee.\n"
             "                                  [vout_index,...]\n"
             "   }\n"
-            "5. bip32derivs                    (boolean, optiona, "
+            "5. bip32derivs                    (boolean, optional, "
             "default=false) If true, includes the BIP 32 derivation paths for "
             "public keys if we know them\n"
             "\nResult:\n"
