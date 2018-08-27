@@ -51,7 +51,6 @@ if(BUILD_BITCOIN_WALLET)
 		../wallet/test/wallet_test_fixture.cpp
 	)
 	set(BITCOIN_WALLET_TESTS
-		../wallet/test/accounting_tests.cpp
 		../wallet/test/db_tests.cpp
 		../wallet/test/coinselector_tests.cpp
 		../wallet/test/init_tests.cpp
