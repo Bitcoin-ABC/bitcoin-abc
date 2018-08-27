@@ -105,8 +105,11 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
                 # Because several field are of variable size, we grow the push slowly
                 # up to the requested size.
                 while len(tx.serialize()) < tx_size:
-                    tx.vout[2] = CTxOut(0, CScript(
-                        [random.getrandbits(8 * push_size - 1), OP_RETURN]))
+                    # Ensure the padding has a left most bit on, so it's
+                    # exactly the correct number of bits.
+                    padding = random.randrange(
+                        1 << 8 * push_size - 2, 1 << 8 * push_size - 1)
+                    tx.vout[2] = CTxOut(0, CScript([padding, OP_RETURN]))
                     push_size += 1
 
                 assert_equal(len(tx.serialize()), tx_size)
