@@ -36,6 +36,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 {
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
+    int64_t burnaddrTokens = 0;
     OwnerAddrType ownerAddrSet;
 
     {
@@ -55,6 +56,10 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
             // Do not include the sender
             if (address == sender) {
                 senderTokens = tokens;
+                continue;
+            }
+            if (address == burnwhc_address){
+                burnaddrTokens = tokens;
                 continue;
             }
 
@@ -104,7 +109,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
     }
 
     uint64_t numberOfOwners = receiversSet.size();
-    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens));
+    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens + burnaddrTokens));
     PrintToLog("\tExcluding Sender: %s\n", FormatMP(property, totalTokens));
     PrintToLog("\t          Owners: %d\n", numberOfOwners);
 
