@@ -80,6 +80,13 @@
             "spelling.dictionaries": [
                 "test/lint/dictionary/english.json"
             ]
+        },
+        "lint-assert-with-side-effects": {
+            "type": "lint-assert-with-side-effects",
+            "include": "(^src/.*\\.(h|cpp)$)",
+            "exclude": [
+                "(^src/(secp256k1|univalue|leveldb)/)"
+            ]
         }
     }
 }
