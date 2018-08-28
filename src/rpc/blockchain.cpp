@@ -2313,7 +2313,7 @@ static UniValue scantxoutset(const Config &config,
             "In the latter case, a range needs to be specified by below if "
             "different from 1000.\n"
             "For more information on output descriptors, see the documentation "
-            "at TODO\n"
+            "in the doc/descriptors.md file.\n"
             "\nArguments:\n"
             "1. \"action\"                       (string, required) The action "
             "to execute\n"
