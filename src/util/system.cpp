@@ -17,7 +17,6 @@
 #include <util/strencodings.h>
 #include <util/time.h>
 
-#include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
 
 #include <cstdarg>
@@ -97,8 +96,7 @@ ArgsManager gArgs;
  * locking, these will be held here until the global destructor cleans them up
  * and thus automatically unlocks them, or ReleaseDirectoryLocks is called.
  */
-static std::map<std::string, std::unique_ptr<boost::interprocess::file_lock>>
-    dir_locks;
+static std::map<std::string, std::unique_ptr<fsbridge::FileLock>> dir_locks;
 /** Mutex to protect dir_locks. */
 static std::mutex cs_dir_locks;
 
@@ -118,20 +116,14 @@ bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
     if (file) {
         fclose(file);
     }
-
-    try {
-        auto lock = std::make_unique<boost::interprocess::file_lock>(
-            pathLockFile.string().c_str());
-        if (!lock->try_lock()) {
-            return false;
-        }
-        if (!probe_only) {
-            // Lock successful and we're not just probing, put it into the map
-            dir_locks.emplace(pathLockFile.string(), std::move(lock));
-        }
-    } catch (const boost::interprocess::interprocess_exception &e) {
+    auto lock = std::make_unique<fsbridge::FileLock>(pathLockFile);
+    if (!lock->TryLock()) {
         return error("Error while attempting to lock directory %s: %s",
-                     directory.string(), e.what());
+                     directory.string(), lock->GetReason());
+    }
+    if (!probe_only) {
+        // Lock successful and we're not just probing, put it into the map
+        dir_locks.emplace(pathLockFile.string(), std::move(lock));
     }
     return true;
 }

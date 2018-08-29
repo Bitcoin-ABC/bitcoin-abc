@@ -18,7 +18,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/date_time/posix_time/posix_time.hpp
     boost/filesystem.hpp
     boost/filesystem/fstream.hpp
-    boost/interprocess/sync/file_lock.hpp
     boost/lexical_cast.hpp
     boost/multi_index/composite_key.hpp
     boost/multi_index/hashed_index.hpp

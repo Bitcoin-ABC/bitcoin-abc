@@ -52,7 +52,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
 
 #if ENABLE_ZMQ
@@ -62,6 +61,7 @@
 
 #ifndef WIN32
 #include <csignal>
+#include <sys/stat.h>
 #endif
 #include <cstdint>
 #include <cstdio>
