@@ -1374,7 +1374,7 @@ public:
 
     CFeeRate m_pay_tx_fee{DEFAULT_PAY_TX_FEE};
     bool m_spend_zero_conf_change{DEFAULT_SPEND_ZEROCONF_CHANGE};
-    // will be defined via chainparams
+    //! will be defined via chainparams
     bool m_allow_fallback_fee{true};
     // Override with -mintxfee
     CFeeRate m_min_fee{DEFAULT_TRANSACTION_MINFEE_PER_KB};
