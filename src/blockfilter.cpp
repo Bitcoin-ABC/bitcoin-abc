@@ -3,11 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <blockfilter.h>
+
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <streams.h>
+
+#include <mutex>
+#include <sstream>
 
 /// SerType used to serialize parameters in GCS filter encoding.
 static constexpr int GCS_SER_TYPE = SER_NETWORK;
@@ -213,6 +217,38 @@ bool BlockFilterTypeByName(const std::string &name,
         }
     }
     return false;
+}
+
+const std::vector<BlockFilterType> &AllBlockFilterTypes() {
+    static std::vector<BlockFilterType> types;
+
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        types.reserve(g_filter_types.size());
+        for (auto entry : g_filter_types) {
+            types.push_back(entry.first);
+        }
+    });
+
+    return types;
+}
+
+const std::string &ListBlockFilterTypes() {
+    static std::string type_list;
+
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        std::stringstream ret;
+        bool first = true;
+        for (auto entry : g_filter_types) {
+            if (!first) ret << ", ";
+            ret << entry.second;
+            first = false;
+        }
+        type_list = ret.str();
+    });
+
+    return type_list;
 }
 
 static GCSFilter::ElementSet BasicFilterElements(const CBlock &block,

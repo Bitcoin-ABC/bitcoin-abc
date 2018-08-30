@@ -13,6 +13,7 @@
 #include <amount.h>
 #include <avalanche.h>
 #include <banman.h>
+#include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <checkpoints.h>
@@ -23,6 +24,7 @@
 #include <fs.h>
 #include <httprpc.h>
 #include <httpserver.h>
+#include <index/blockfilterindex.h>
 #include <index/txindex.h>
 #include <interfaces/chain.h>
 #include <key.h>
@@ -197,6 +199,7 @@ void Interrupt() {
     if (g_txindex) {
         g_txindex->Interrupt();
     }
+    ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Interrupt(); });
 }
 
 void Shutdown(NodeContext &node) {
@@ -244,6 +247,7 @@ void Shutdown(NodeContext &node) {
     if (g_txindex) {
         g_txindex->Stop();
     }
+    ForEachBlockFilterIndex([](BlockFilterIndex &index) { index.Stop(); });
 
     StopTorControl();
 
@@ -261,6 +265,7 @@ void Shutdown(NodeContext &node) {
     g_connman.reset();
     g_banman.reset();
     g_txindex.reset();
+    DestroyAllBlockFilterIndexes();
 
     if (::g_mempool.IsLoaded() &&
         gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
@@ -557,6 +562,13 @@ void SetupServerArgs() {
                  strprintf("Maintain a full transaction index, used by the "
                            "getrawtransaction rpc call (default: %d)",
                            DEFAULT_TXINDEX),
+                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-blockfilterindex=<type>",
+                 strprintf("Maintain an index of compact filters by block "
+                           "(default: %s, values: %s).",
+                           DEFAULT_BLOCKFILTERINDEX, ListBlockFilterTypes()) +
+                     " If <type> is not supplied or if <type> = 1, indexes for "
+                     "all known types are enabled.",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-usecashaddr",
                  "Use Cash Address for destination encoding instead of base58 "
@@ -1548,6 +1560,7 @@ int nUserMaxConnections;
 int nFD;
 ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK | NODE_NETWORK_LIMITED);
 int64_t peer_connect_timeout;
+std::vector<BlockFilterType> g_enabled_filter_types;
 
 } // namespace
 
@@ -1648,11 +1661,35 @@ bool AppInitParameterInteraction(Config &config) {
             gArgs.GetArg("-blocksdir", "")));
     }
 
+    // parse and validate enabled filter types
+    std::string blockfilterindex_value =
+        gArgs.GetArg("-blockfilterindex", DEFAULT_BLOCKFILTERINDEX);
+    if (blockfilterindex_value == "" || blockfilterindex_value == "1") {
+        g_enabled_filter_types = AllBlockFilterTypes();
+    } else if (blockfilterindex_value != "0") {
+        const std::vector<std::string> names =
+            gArgs.GetArgs("-blockfilterindex");
+        g_enabled_filter_types.reserve(names.size());
+        for (const auto &name : names) {
+            BlockFilterType filter_type;
+            if (!BlockFilterTypeByName(name, filter_type)) {
+                return InitError(strprintf(
+                    _("Unknown -blockfilterindex value %s.").translated, name));
+            }
+            g_enabled_filter_types.push_back(filter_type);
+        }
+    }
+
     // if using block pruning, then disallow txindex
     if (gArgs.GetArg("-prune", 0)) {
         if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(
                 _("Prune mode is incompatible with -txindex.").translated);
+        }
+        if (!g_enabled_filter_types.empty()) {
+            return InitError(
+                _("Prune mode is incompatible with -blockfilterindex.")
+                    .translated);
         }
     }
 
@@ -2304,6 +2341,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                                       ? nMaxTxIndexCache << 20
                                       : 0);
     nTotalCache -= nTxIndexCache;
+    int64_t filter_index_cache = 0;
+    if (!g_enabled_filter_types.empty()) {
+        size_t n_indexes = g_enabled_filter_types.size();
+        int64_t max_cache =
+            std::min(nTotalCache / 8, max_filter_index_cache << 20);
+        filter_index_cache = max_cache / n_indexes;
+        nTotalCache -= filter_index_cache * n_indexes;
+    }
     // use 25%-50% of the remainder for disk cache
     int64_t nCoinDBCache =
         std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
@@ -2320,6 +2365,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         LogPrintf("* Using %.1fMiB for transaction index database\n",
                   nTxIndexCache * (1.0 / 1024 / 1024));
+    }
+    for (BlockFilterType filter_type : g_enabled_filter_types) {
+        LogPrintf("* Using %.1f MiB for %s block filter index database\n",
+                  filter_index_cache * (1.0 / 1024 / 1024),
+                  BlockFilterTypeName(filter_type));
     }
     LogPrintf("* Using %.1fMiB for chain state database\n",
               nCoinDBCache * (1.0 / 1024 / 1024));
@@ -2537,6 +2587,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         g_txindex = std::make_unique<TxIndex>(nTxIndexCache, false, fReindex);
         g_txindex->Start();
+    }
+
+    for (const auto &filter_type : g_enabled_filter_types) {
+        InitBlockFilterIndex(filter_type, filter_index_cache, false, fReindex);
+        GetBlockFilterIndex(filter_type)->Start();
     }
 
     // Step 9: load wallet
