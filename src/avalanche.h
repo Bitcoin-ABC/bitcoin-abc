@@ -315,7 +315,7 @@ private:
     std::atomic<bool> stopRequest;
     bool running GUARDED_BY(cs_running);
 
-    CWaitableCriticalSection cs_running;
+    Mutex cs_running;
     std::condition_variable cond_running;
 
 public:

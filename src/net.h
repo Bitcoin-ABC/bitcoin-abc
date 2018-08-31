@@ -435,7 +435,7 @@ private:
     bool fMsgProcWake;
 
     std::condition_variable condMsgProc;
-    CWaitableCriticalSection mutexMsgProc;
+    Mutex mutexMsgProc;
     std::atomic<bool> flagInterruptMsgProc;
 
     CThreadInterrupt interruptNet;

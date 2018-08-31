@@ -40,8 +40,8 @@ enum RCUTestStep {
                             [&] { return otherstep == step; }))
 
 void synchronize(std::atomic<RCUTestStep> &step,
-                 const std::atomic<RCUTestStep> &otherstep,
-                 CWaitableCriticalSection &cs, std::condition_variable &cond,
+                 const std::atomic<RCUTestStep> &otherstep, Mutex &cs,
+                 std::condition_variable &cond,
                  std::atomic<uint64_t> &syncRev) {
     assert(step == RCUTestStep::Init);
 
@@ -76,8 +76,7 @@ void synchronize(std::atomic<RCUTestStep> &step,
 
 void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
                                const std::atomic<RCUTestStep> &otherstep,
-                               CWaitableCriticalSection &cs,
-                               std::condition_variable &cond,
+                               Mutex &cs, std::condition_variable &cond,
                                std::atomic<uint64_t> &syncRev) {
     assert(step == RCUTestStep::Init);
     WAIT_LOCK(cs, lock);
@@ -111,7 +110,7 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
 static const int COUNT = 128;
 
 BOOST_AUTO_TEST_CASE(synchronize_test) {
-    CWaitableCriticalSection cs;
+    Mutex cs;
     std::condition_variable cond;
     std::atomic<RCUTestStep> parentstep;
     std::atomic<RCUTestStep> childstep;
