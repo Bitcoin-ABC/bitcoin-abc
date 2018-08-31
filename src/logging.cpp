@@ -182,14 +182,14 @@ void BCLog::Logger::LogPrintStr(const std::string &str) {
             if (m_reopen_file) {
                 m_reopen_file = false;
                 fs::path pathDebug = GetDebugLogPath();
-                m_fileout = fsbridge::freopen(pathDebug, "a", m_fileout);
-                if (!m_fileout) {
-                    return;
+                FILE *new_fileout = fsbridge::fopen(pathDebug, "a");
+                if (new_fileout) {
+                    // unbuffered.
+                    setbuf(m_fileout, nullptr);
+                    fclose(m_fileout);
+                    m_fileout = new_fileout;
                 }
-                // unbuffered.
-                setbuf(m_fileout, nullptr);
             }
-
             FileWriteStr(strTimestamped, m_fileout);
         }
     }
