@@ -613,7 +613,7 @@ class P2PDataStore(P2PInterface):
         self.reject_code_received = message.code
         self.reject_reason_received = message.reason
 
-    def send_blocks_and_test(self, blocks, rpc, success=True, request_block=True, reject_code=None, reject_reason=None, timeout=60):
+    def send_blocks_and_test(self, blocks, node, *, success=True, request_block=True, reject_code=None, reject_reason=None, timeout=60):
         """Send blocks to test node and test whether the tip advances.
 
          - add all blocks to our block_store
@@ -640,10 +640,10 @@ class P2PDataStore(P2PInterface):
                 lambda: blocks[-1].sha256 in self.getdata_requests, timeout=timeout, lock=mininode_lock)
 
         if success:
-            wait_until(lambda: rpc.getbestblockhash() ==
+            wait_until(lambda: node.getbestblockhash() ==
                        blocks[-1].hash, timeout=timeout)
         else:
-            assert rpc.getbestblockhash() != blocks[-1].hash
+            assert node.getbestblockhash() != blocks[-1].hash
 
         if reject_code is not None:
             wait_until(lambda: self.reject_code_received ==
@@ -652,7 +652,7 @@ class P2PDataStore(P2PInterface):
             wait_until(lambda: self.reject_reason_received ==
                        reject_reason, lock=mininode_lock)
 
-    def send_txs_and_test(self, txs, rpc, success=True, expect_disconnect=False, reject_code=None, reject_reason=None):
+    def send_txs_and_test(self, txs, node, *, success=True, expect_disconnect=False, reject_code=None, reject_reason=None):
         """Send txs to test node and test whether they're accepted to the mempool.
 
          - add all txs to our tx_store
@@ -676,7 +676,7 @@ class P2PDataStore(P2PInterface):
         else:
             self.sync_with_ping()
 
-        raw_mempool = rpc.getrawmempool()
+        raw_mempool = node.getrawmempool()
         if success:
             # Check that all txs are now in the mempool
             for tx in txs:
