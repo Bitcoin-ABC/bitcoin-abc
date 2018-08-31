@@ -140,6 +140,9 @@ Qt::ConnectionType blockingGUIThreadConnection();
 // Determine whether a widget is hidden behind other windows
 bool isObscured(QWidget *w);
 
+// Activate, show and raise the widget
+void bringToFront(QWidget *w);
+
 // Open debug.log
 void openDebugLogfile();
 
