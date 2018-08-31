@@ -127,7 +127,7 @@ struct COrphanTx {
     int64_t nTimeExpire;
 };
 
-static CCriticalSection g_cs_orphans;
+CCriticalSection g_cs_orphans;
 std::map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
 
 void EraseOrphansFor(NodeId peer);
