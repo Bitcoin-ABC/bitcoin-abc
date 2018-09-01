@@ -2315,12 +2315,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 11: import blocks
-    if (!CheckDiskSpace(/* additional_bytes */ 0, /* blocks_dir */ false)) {
+    if (!CheckDiskSpace(GetDataDir())) {
         InitError(
             strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
         return false;
     }
-    if (!CheckDiskSpace(/* additional_bytes */ 0, /* blocks_dir */ true)) {
+    if (!CheckDiskSpace(GetBlocksDir())) {
         InitError(
             strprintf(_("Error: Disk space is low for %s"), GetBlocksDir()));
         return false;

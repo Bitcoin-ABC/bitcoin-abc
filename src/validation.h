@@ -256,9 +256,6 @@ extern arith_uint256 nMinimumChainWork;
  */
 extern CBlockIndex *pindexBestHeader;
 
-/** Minimum disk space required - used in CheckDiskSpace() */
-static const uint64_t nMinDiskSpace = 52428800;
-
 /** Pruning-related variables and constants */
 /** True if any block files have ever been pruned. */
 extern bool fHavePruned;
@@ -349,11 +346,6 @@ bool ProcessNewBlockHeaders(const Config &config,
                             CValidationState &state,
                             const CBlockIndex **ppindex = nullptr,
                             CBlockHeader *first_invalid = nullptr);
-
-/**
- * Check whether enough disk space is available for an incoming block.
- */
-bool CheckDiskSpace(uint64_t nAdditionalBytes = 0, bool blocks_dir = false);
 
 /**
  * Open a block file (blk?????.dat).

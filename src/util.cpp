@@ -203,6 +203,14 @@ bool DirIsWritable(const fs::path &directory) {
     return true;
 }
 
+bool CheckDiskSpace(const fs::path &dir, uint64_t nAdditionalBytes) {
+    // 50 MiB
+    constexpr uint64_t nMinDiskSpace = 52428800;
+
+    uint64_t nFreeBytesAvailable = fs::space(dir).available;
+    return nFreeBytesAvailable >= nMinDiskSpace + nAdditionalBytes;
+}
+
 /**
  * Interpret a string argument as a boolean.
  *
