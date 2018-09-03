@@ -120,12 +120,10 @@ OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
 
     // use a SingleColorIcon for the "out of sync warning" icon
     QIcon icon = platformStyle->SingleColorIcon(":/icons/warning");
-    icon.addPixmap(
-        icon.pixmap(QSize(64, 64), QIcon::Normal),
-        QIcon::Disabled); // also set the disabled icon because we are using a
-                          // disabled QPushButton to work around missing HiDPI
-                          // support of QLabel
-                          // (https://bugreports.qt.io/browse/QTBUG-42503)
+    // also set the disabled icon because we are using a disabled QPushButton to
+    // work around missing HiDPI support of QLabel
+    // (https://bugreports.qt.io/browse/QTBUG-42503)
+    icon.addPixmap(icon.pixmap(QSize(64, 64), QIcon::Normal), QIcon::Disabled);
     ui->labelTransactionsStatus->setIcon(icon);
     ui->labelWalletStatus->setIcon(icon);
 
@@ -206,19 +204,22 @@ void OverviewPage::setBalance(const Amount balance,
 
 // show/hide watch-only labels
 void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly) {
-    ui->labelSpendable->setVisible(
-        showWatchOnly); // show spendable label (only when watch-only is active)
-    ui->labelWatchonly->setVisible(showWatchOnly); // show watch-only label
-    ui->lineWatchBalance->setVisible(
-        showWatchOnly); // show watch-only balance separator line
-    ui->labelWatchAvailable->setVisible(
-        showWatchOnly); // show watch-only available balance
-    ui->labelWatchPending->setVisible(
-        showWatchOnly); // show watch-only pending balance
-    ui->labelWatchTotal->setVisible(
-        showWatchOnly); // show watch-only total balance
+    // show spendable label (only when watch-only is active)
+    ui->labelSpendable->setVisible(showWatchOnly);
+    // show watch-only label
+    ui->labelWatchonly->setVisible(showWatchOnly);
+    // show watch-only balance separator line
+    ui->lineWatchBalance->setVisible(showWatchOnly);
+    // show watch-only available balance
+    ui->labelWatchAvailable->setVisible(showWatchOnly);
+    // show watch-only pending balance
+    ui->labelWatchPending->setVisible(showWatchOnly);
+    // show watch-only total balance
+    ui->labelWatchTotal->setVisible(showWatchOnly);
 
-    if (!showWatchOnly) ui->labelWatchImmature->hide();
+    if (!showWatchOnly) {
+        ui->labelWatchImmature->hide();
+    }
 }
 
 void OverviewPage::setClientModel(ClientModel *model) {
@@ -270,10 +271,11 @@ void OverviewPage::setWalletModel(WalletModel *model) {
 
 void OverviewPage::updateDisplayUnit() {
     if (walletModel && walletModel->getOptionsModel()) {
-        if (currentBalance != Amount(-1))
+        if (currentBalance != Amount(-1)) {
             setBalance(currentBalance, currentUnconfirmedBalance,
                        currentImmatureBalance, currentWatchOnlyBalance,
                        currentWatchUnconfBalance, currentWatchImmatureBalance);
+        }
 
         // Update txdelegate->unit with the current unit
         txdelegate->unit = walletModel->getOptionsModel()->getDisplayUnit();
