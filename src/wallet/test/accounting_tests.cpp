@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     LOCK(pwalletMain->cs_wallet);
 
     ae.strAccount = "";
-    ae.nCreditDebit = Amount(1);
+    ae.nCreditDebit = SATOSHI;
     ae.nTime = 1333333333;
     ae.strOtherAccount = "b";
     ae.strComment = "";
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     BOOST_CHECK(results.size() == 3);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 6);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
-    BOOST_CHECK(results[Amount(1)].nTime == 1333333333);
+    BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
     BOOST_CHECK(results[Amount(3)].nTime == 1333333336);
     BOOST_CHECK(results[Amount(4)].nTime == 1333333330);
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     BOOST_CHECK(results.size() == 4);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 7);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
-    BOOST_CHECK(results[Amount(1)].nTime == 1333333333);
+    BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
     BOOST_CHECK(results[Amount(3)].nTime == 1333333336);
     BOOST_CHECK(results[Amount(3)].strComment.empty());

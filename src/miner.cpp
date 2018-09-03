@@ -142,7 +142,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // Add dummy coinbase tx as first transaction.
     pblock->vtx.emplace_back();
     // updated at end
-    pblocktemplate->vTxFees.push_back(Amount(-1));
+    pblocktemplate->vTxFees.push_back(-SATOSHI);
     // updated at end
     pblocktemplate->vTxSigOpsCount.push_back(-1);
 

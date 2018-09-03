@@ -1100,7 +1100,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     "P2PK INVALID AMOUNT", SCRIPT_ENABLE_SIGHASH_FORKID, false,
                     TEST_AMOUNT)
             .PushSig(keys.key0, SigHashType().withForkId(), 32, 32,
-                     TEST_AMOUNT + Amount(1))
+                     TEST_AMOUNT + SATOSHI)
             .ScriptError(SCRIPT_ERR_EVAL_FALSE));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,

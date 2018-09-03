@@ -142,7 +142,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
-    Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - Amount(1);
+    Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - SATOSHI;
 
     tx.vin[0].prevout = COutPoint(freeTxId, 0);
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000) - feeToUse;

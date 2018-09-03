@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     feeRate = CFeeRate(Amount(1000));
     // Must always just return the arg
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), Amount(1));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), Amount(121));
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), Amount(999));
     BOOST_CHECK_EQUAL(feeRate.GetFee(1000), Amount(1000));
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     feeRate = CFeeRate(Amount(-1000));
     // Must always just return -1 * arg
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), Amount(-1));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), -SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), Amount(-121));
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), Amount(-999));
     BOOST_CHECK_EQUAL(feeRate.GetFee(1000), Amount(-1000));
@@ -41,8 +41,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     // Truncates the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount(0));
     // Special case: returns 1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), Amount(1));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), Amount(1));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8), SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9), SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), Amount(14));
     BOOST_CHECK_EQUAL(feeRate.GetFee(122), Amount(15));
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), Amount(122));
@@ -53,8 +53,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     // Truncates the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount(0));
     // Special case: returns -1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), Amount(-1));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), Amount(-1));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8), -SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9), -SATOSHI);
 
     // Check ceiling results
     feeRate = CFeeRate(Amount(18));
@@ -66,12 +66,12 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
 
     // Check full constructor
     // default value
-    BOOST_CHECK(CFeeRate(Amount(-1), 1000) == CFeeRate(Amount(-1)));
+    BOOST_CHECK(CFeeRate(-SATOSHI, 1000) == CFeeRate(-SATOSHI));
     BOOST_CHECK(CFeeRate(Amount(0), 1000) == CFeeRate(Amount(0)));
-    BOOST_CHECK(CFeeRate(Amount(1), 1000) == CFeeRate(Amount(1)));
+    BOOST_CHECK(CFeeRate(SATOSHI, 1000) == CFeeRate(SATOSHI));
     // lost precision (can only resolve satoshis per kB)
-    BOOST_CHECK(CFeeRate(Amount(1), 1001) == CFeeRate(Amount(0)));
-    BOOST_CHECK(CFeeRate(Amount(2), 1001) == CFeeRate(Amount(1)));
+    BOOST_CHECK(CFeeRate(SATOSHI, 1001) == CFeeRate(Amount(0)));
+    BOOST_CHECK(CFeeRate(Amount(2), 1001) == CFeeRate(SATOSHI));
     // some more integer checks
     BOOST_CHECK(CFeeRate(Amount(26), 789) == CFeeRate(Amount(32)));
     BOOST_CHECK(CFeeRate(Amount(27), 789) == CFeeRate(Amount(34)));

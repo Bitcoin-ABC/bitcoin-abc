@@ -536,8 +536,7 @@ void CBlockPolicyEstimator::Read(CAutoFile &filein, int nFileVersion) {
 }
 
 FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee) {
-    Amount minFeeLimit =
-        std::max(Amount(1), minIncrementalFee.GetFeePerK() / 2);
+    Amount minFeeLimit = std::max(SATOSHI, minIncrementalFee.GetFeePerK() / 2);
     feeset.insert(Amount(0));
     for (double bucketBoundary = minFeeLimit / SATOSHI;
          bucketBoundary <= double(MAX_FEERATE / SATOSHI);

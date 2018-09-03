@@ -271,7 +271,7 @@ void OverviewPage::setWalletModel(WalletModel *model) {
 
 void OverviewPage::updateDisplayUnit() {
     if (walletModel && walletModel->getOptionsModel()) {
-        if (currentBalance != Amount(-1)) {
+        if (currentBalance != -SATOSHI) {
             setBalance(currentBalance, currentUnconfirmedBalance,
                        currentImmatureBalance, currentWatchOnlyBalance,
                        currentWatchUnconfBalance, currentWatchImmatureBalance);

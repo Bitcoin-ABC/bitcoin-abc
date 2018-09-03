@@ -29,7 +29,7 @@ static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
     Amount nFee(0);
     if (ceil) {
         nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount(0)
-                          ? nSize * nSatoshisPerK / 1000 + Amount(1)
+                          ? nSize * nSatoshisPerK / 1000 + SATOSHI
                           : nSize * nSatoshisPerK / 1000);
     } else {
         nFee = nSize * nSatoshisPerK / 1000;
@@ -37,10 +37,10 @@ static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
 
     if (nFee == Amount(0) && nSize != 0) {
         if (nSatoshisPerK > Amount(0)) {
-            nFee = Amount(1);
+            nFee = SATOSHI;
         }
         if (nSatoshisPerK < Amount(0)) {
-            nFee = Amount(-1);
+            nFee = -SATOSHI;
         }
     }
 

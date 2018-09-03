@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
-        txTo[i].vout[0].nValue = Amount(1);
+        txTo[i].vout[0].nValue = SATOSHI;
     }
 
     std::vector<CKey> keys;
@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE(multisig_Sign) {
         txTo[i].vin.resize(1);
         txTo[i].vout.resize(1);
         txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
-        txTo[i].vout[0].nValue = Amount(1);
+        txTo[i].vout[0].nValue = SATOSHI;
     }
 
     for (int i = 0; i < 3; i++) {

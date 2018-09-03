@@ -329,7 +329,7 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     outputm.vin[0].prevout = COutPoint();
     outputm.vin[0].scriptSig = CScript();
     outputm.vout.resize(1);
-    outputm.vout[0].nValue = Amount(1);
+    outputm.vout[0].nValue = SATOSHI;
     outputm.vout[0].scriptPubKey = outscript;
     CDataStream ssout(SER_NETWORK, PROTOCOL_VERSION);
     ssout << outputm;
@@ -344,7 +344,7 @@ void CreateCreditAndSpend(const CKeyStore &keystore, const CScript &outscript,
     inputm.vin.resize(1);
     inputm.vin[0].prevout = COutPoint(output->GetId(), 0);
     inputm.vout.resize(1);
-    inputm.vout[0].nValue = Amount(1);
+    inputm.vout[0].nValue = SATOSHI;
     inputm.vout[0].scriptPubKey = CScript();
     bool ret =
         SignSignature(keystore, *output, inputm, 0, SigHashType().withForkId());
@@ -628,7 +628,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     Amount nDustThreshold = 3 * 182 * dustRelayFee.GetFeePerK() / 1000;
     BOOST_CHECK_EQUAL(nDustThreshold, Amount(546));
     // dust:
-    t.vout[0].nValue = nDustThreshold - Amount(1);
+    t.vout[0].nValue = nDustThreshold - SATOSHI;
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
     // not dust:
     t.vout[0].nValue = nDustThreshold;

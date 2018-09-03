@@ -155,11 +155,11 @@ public:
     }
 
     void SetNull() {
-        nValue = Amount(-1);
+        nValue = -SATOSHI;
         scriptPubKey.clear();
     }
 
-    bool IsNull() const { return (nValue == Amount(-1)); }
+    bool IsNull() const { return nValue == -SATOSHI; }
 
     Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
         /**

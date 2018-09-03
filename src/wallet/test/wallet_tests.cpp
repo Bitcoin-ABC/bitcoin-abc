@@ -62,7 +62,7 @@ static void add_coin(const CWallet &wallet, const Amount nValue,
         new CWalletTx(&wallet, MakeTransactionRef(std::move(tx))));
     if (fIsFromMe) {
         wtx->fDebitCached = true;
-        wtx->nDebitCached = Amount(1);
+        wtx->nDebitCached = SATOSHI;
     }
     COutput output(wtx.get(), nInput, nAge, true /* spendable */,
                    true /* solvable */, true /* safe */);
