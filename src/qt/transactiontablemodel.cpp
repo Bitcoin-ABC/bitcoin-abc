@@ -588,7 +588,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const {
                 return COLOR_UNCONFIRMED;
             }
             if (index.column() == Amount &&
-                (rec->credit + rec->debit) < ::Amount(0)) {
+                (rec->credit + rec->debit) < ::Amount::zero()) {
                 return COLOR_NEGATIVE;
             }
             if (index.column() == ToAddress) {

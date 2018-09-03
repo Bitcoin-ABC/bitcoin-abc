@@ -130,7 +130,7 @@ void ReceiveRequestDialog::update() {
     html += "<a href=\"" + uri + "\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
     html += "<b>" + tr("Address") +
             "</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
-    if (info.amount != Amount(0))
+    if (info.amount != Amount::zero())
         html += "<b>" + tr("Amount") +
                 "</b>: " + BitcoinUnits::formatHtmlWithUnit(
                                model->getDisplayUnit(), info.amount) +

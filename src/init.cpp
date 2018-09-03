@@ -1600,7 +1600,7 @@ bool AppInitParameterInteraction(Config &config) {
     if (gArgs.IsArgSet("-excessutxocharge")) {
         Amount n(0);
         auto parsed = ParseMoney(gArgs.GetArg("-excessutxocharge", ""), n);
-        if (!parsed || Amount(0) > n) {
+        if (!parsed || Amount::zero() > n) {
             return InitError(AmountErrMsg(
                 "excessutxocharge", gArgs.GetArg("-excessutxocharge", "")));
         }
@@ -1616,7 +1616,7 @@ bool AppInitParameterInteraction(Config &config) {
     if (gArgs.IsArgSet("-minrelaytxfee")) {
         Amount n(0);
         auto parsed = ParseMoney(gArgs.GetArg("-minrelaytxfee", ""), n);
-        if (!parsed || Amount(0) == n) {
+        if (!parsed || Amount::zero() == n) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           gArgs.GetArg("-minrelaytxfee", "")));
         }
@@ -1642,7 +1642,7 @@ bool AppInitParameterInteraction(Config &config) {
     if (gArgs.IsArgSet("-dustrelayfee")) {
         Amount n(0);
         auto parsed = ParseMoney(gArgs.GetArg("-dustrelayfee", ""), n);
-        if (!parsed || Amount(0) == n) {
+        if (!parsed || Amount::zero() == n) {
             return InitError(AmountErrMsg("dustrelayfee",
                                           gArgs.GetArg("-dustrelayfee", "")));
         }

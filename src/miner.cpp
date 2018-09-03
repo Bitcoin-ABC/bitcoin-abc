@@ -112,7 +112,7 @@ void BlockAssembler::resetBlock() {
 
     // These counters do not include coinbase tx.
     nBlockTx = 0;
-    nFees = Amount(0);
+    nFees = Amount::zero();
 
     lastFewTxs = 0;
 }

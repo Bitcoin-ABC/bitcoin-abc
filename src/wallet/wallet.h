@@ -347,15 +347,15 @@ public:
         fImmatureWatchCreditCached = false;
         fAvailableWatchCreditCached = false;
         fChangeCached = false;
-        nDebitCached = Amount(0);
-        nCreditCached = Amount(0);
-        nImmatureCreditCached = Amount(0);
-        nAvailableCreditCached = Amount(0);
-        nWatchDebitCached = Amount(0);
-        nWatchCreditCached = Amount(0);
-        nAvailableWatchCreditCached = Amount(0);
-        nImmatureWatchCreditCached = Amount(0);
-        nChangeCached = Amount(0);
+        nDebitCached = Amount::zero();
+        nCreditCached = Amount::zero();
+        nImmatureCreditCached = Amount::zero();
+        nAvailableCreditCached = Amount::zero();
+        nWatchDebitCached = Amount::zero();
+        nWatchCreditCached = Amount::zero();
+        nAvailableWatchCreditCached = Amount::zero();
+        nImmatureWatchCreditCached = Amount::zero();
+        nChangeCached = Amount::zero();
         nOrderPos = -1;
     }
 
@@ -436,7 +436,7 @@ public:
                     const isminefilter &filter) const;
 
     bool IsFromMe(const isminefilter &filter) const {
-        return (GetDebit(filter) > Amount(0));
+        return (GetDebit(filter) > Amount::zero());
     }
 
     // True if only scriptSigs are different
@@ -530,7 +530,7 @@ public:
     CAccountingEntry() { SetNull(); }
 
     void SetNull() {
-        nCreditDebit = Amount(0);
+        nCreditDebit = Amount::zero();
         nTime = 0;
         strAccount.clear();
         strOtherAccount.clear();

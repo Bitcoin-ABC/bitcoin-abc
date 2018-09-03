@@ -216,7 +216,7 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
     if (rv.address.endsWith("/")) {
         rv.address.truncate(rv.address.length() - 1);
     }
-    rv.amount = Amount(0);
+    rv.amount = Amount::zero();
 
 #if QT_VERSION < 0x050000
     QList<QPair<QString, QString>> items = uri.queryItems();
@@ -280,7 +280,7 @@ QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     }
     int paramCount = 0;
 
-    if (info.amount != Amount(0)) {
+    if (info.amount != Amount::zero()) {
         ret +=
             QString("?amount=%1")
                 .arg(BitcoinUnits::format(BitcoinUnits::BCH, info.amount, false,

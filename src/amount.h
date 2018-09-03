@@ -19,15 +19,17 @@ private:
     int64_t amount;
 
 public:
-    constexpr Amount() : amount(0) {}
-
     template <typename T>
     explicit constexpr Amount(T _camount) : amount(_camount) {
         static_assert(std::is_integral<T>(),
                       "Only integer types can be used as amounts");
     }
 
+    constexpr Amount() : amount(0) {}
     constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
+
+    static constexpr Amount zero() { return Amount(0); }
+    static constexpr Amount satoshi() { return Amount(1); }
 
     /**
      * Implement standard operators
@@ -142,7 +144,7 @@ public:
     }
 };
 
-static const Amount SATOSHI(1);
+static const Amount SATOSHI = Amount::satoshi();
 static const Amount CASH = 100 * SATOSHI;
 static const Amount COIN = 100000000 * SATOSHI;
 static const Amount CENT = COIN / 100;
@@ -161,7 +163,7 @@ extern const std::string CURRENCY_UNIT;
  */
 static const Amount MAX_MONEY = 21000000 * COIN;
 inline bool MoneyRange(const Amount nValue) {
-    return (nValue >= Amount(0) && nValue <= MAX_MONEY);
+    return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }
 
 #endif //  BITCOIN_AMOUNT_H

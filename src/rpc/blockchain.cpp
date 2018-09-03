@@ -861,7 +861,7 @@ struct CCoinsStats {
 
     CCoinsStats()
         : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0),
-          nDiskSize(0), nTotalAmount(0) {}
+          nDiskSize(0), nTotalAmount() {}
 };
 
 static void ApplyStats(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,

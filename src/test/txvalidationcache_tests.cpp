@@ -29,7 +29,7 @@ static bool ToMemPool(CMutableTransaction &tx) {
     CValidationState state;
     return AcceptToMemoryPool(GetConfig(), mempool, state,
                               MakeTransactionRef(tx), false, nullptr, true,
-                              Amount(0));
+                              Amount::zero());
 }
 
 BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {

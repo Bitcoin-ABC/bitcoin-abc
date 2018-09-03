@@ -12,7 +12,7 @@
 std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
     // number formatting.
-    Amount amt_abs = amt > Amount(0) ? amt : -amt;
+    Amount amt_abs = amt > Amount::zero() ? amt : -amt;
     std::string str = strprintf("%d.%08d", amt_abs / COIN, amt_abs % COIN);
 
     // Right-trim excess zeros before the decimal point:
@@ -24,7 +24,7 @@ std::string FormatMoney(const Amount amt) {
         str.erase(str.size() - nTrim, nTrim);
     }
 
-    if (amt < Amount(0)) {
+    if (amt < Amount::zero()) {
         str.insert((unsigned int)0, 1, '-');
     }
     return str;
@@ -45,7 +45,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
         if (*p == '.') {
             p++;
             Amount nMult = 10 * CENT;
-            while (isdigit(*p) && (nMult > Amount(0))) {
+            while (isdigit(*p) && (nMult > Amount::zero())) {
                 nUnits += (*p++ - '0') * nMult;
                 nMult /= 10;
             }
@@ -68,7 +68,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     if (strWhole.size() > 10) {
         return false;
     }
-    if (nUnits < Amount(0) || nUnits > COIN) {
+    if (nUnits < Amount::zero() || nUnits > COIN) {
         return false;
     }
 

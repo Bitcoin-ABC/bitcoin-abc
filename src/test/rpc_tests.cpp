@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
     BOOST_CHECK(ValueFromAmount(Amount(2099999999999999LL)).write() ==
                 "20999999.99999999");
 
-    BOOST_CHECK_EQUAL(ValueFromAmount(Amount(0)).write(), "0.00000000");
+    BOOST_CHECK_EQUAL(ValueFromAmount(Amount::zero()).write(), "0.00000000");
     BOOST_CHECK_EQUAL(ValueFromAmount(123456789 * (COIN / 10000)).write(),
                       "12345.67890000");
     BOOST_CHECK_EQUAL(ValueFromAmount(-1 * COIN).write(), "-1.00000000");

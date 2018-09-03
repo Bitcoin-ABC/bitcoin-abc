@@ -36,7 +36,7 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
     const TxId &txid = wtx.GetId();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
-    if (nNet > Amount(0) || wtx.IsCoinBase()) {
+    if (nNet > Amount::zero() || wtx.IsCoinBase()) {
         //
         // Credit
         //
@@ -132,9 +132,9 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
 
                 Amount nValue = txout.nValue;
                 /* Add fee to first output */
-                if (nTxFee > Amount(0)) {
+                if (nTxFee > Amount::zero()) {
                     nValue += nTxFee;
-                    nTxFee = Amount(0);
+                    nTxFee = Amount::zero();
                 }
                 sub.debit = -1 * nValue;
 
@@ -144,8 +144,9 @@ TransactionRecord::decomposeTransaction(const CWallet *wallet,
             //
             // Mixed debit transaction, can't break down payees
             //
-            parts.append(TransactionRecord(
-                txid, nTime, TransactionRecord::Other, "", nNet, Amount(0)));
+            parts.append(TransactionRecord(txid, nTime,
+                                           TransactionRecord::Other, "", nNet,
+                                           Amount::zero()));
             parts.last().involvesWatchAddress = involvesWatchAddress;
         }
     }

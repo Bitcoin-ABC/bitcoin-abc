@@ -137,7 +137,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // 0 fee.
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     TxId freeTxId = tx.GetId();
-    mempool.addUnchecked(freeTxId, entry.Fee(Amount(0)).FromTx(tx));
+    mempool.addUnchecked(freeTxId, entry.Fee(Amount::zero()).FromTx(tx));
     size_t freeTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
     // Calculate a fee on child transaction that will put the package just
@@ -177,8 +177,8 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // 1BCC output.
     tx.vout[1].nValue = Amount(100000000);
     TxId freeTxId2 = tx.GetId();
-    mempool.addUnchecked(freeTxId2,
-                         entry.Fee(Amount(0)).SpendsCoinbase(true).FromTx(tx));
+    mempool.addUnchecked(
+        freeTxId2, entry.Fee(Amount::zero()).SpendsCoinbase(true).FromTx(tx));
 
     // This tx can't be mined by itself.
     tx.vin[0].prevout = COutPoint(freeTxId2, 0);
@@ -416,7 +416,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin.resize(1);
     tx.vin[0].prevout = COutPoint();
     tx.vin[0].scriptSig = CScript() << OP_0 << OP_1;
-    tx.vout[0].nValue = Amount(0);
+    tx.vout[0].nValue = Amount::zero();
     hash = tx.GetId();
     // Give it a fee so it'll get mined.
     mempool.addUnchecked(

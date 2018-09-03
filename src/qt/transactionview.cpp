@@ -338,7 +338,7 @@ void TransactionView::changedAmount(const QString &amount) {
                             &amount_parsed)) {
         transactionProxyModel->setMinAmount(amount_parsed);
     } else {
-        transactionProxyModel->setMinAmount(Amount(0));
+        transactionProxyModel->setMinAmount(Amount::zero());
     }
 }
 

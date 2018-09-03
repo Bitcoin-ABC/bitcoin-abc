@@ -806,7 +806,7 @@ static UniValue estimatefee(const Config &config,
     }
 
     CFeeRate feeRate = mempool.estimateFee(nBlocks);
-    if (feeRate == CFeeRate(Amount(0))) {
+    if (feeRate == CFeeRate(Amount::zero())) {
         return -1.0;
     }
 

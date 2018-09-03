@@ -161,7 +161,7 @@ uint64_t CTxOutCompressor::CompressAmount(Amount amt) {
 Amount CTxOutCompressor::DecompressAmount(uint64_t x) {
     // x = 0  OR  x = 1+10*(9*n + d - 1) + e  OR  x = 1+10*(n - 1) + 9
     if (x == 0) {
-        return Amount(0);
+        return Amount::zero();
     }
     x--;
     // x = 10*(9*n + d - 1) + e

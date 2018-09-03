@@ -173,7 +173,9 @@ public:
          * spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
          * (in satoshis).
          */
-        if (scriptPubKey.IsUnspendable()) return Amount(0);
+        if (scriptPubKey.IsUnspendable()) {
+            return Amount::zero();
+        }
 
         size_t nSize = GetSerializeSize(*this, SER_DISK, 0);
 

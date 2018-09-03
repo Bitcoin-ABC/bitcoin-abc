@@ -16,7 +16,7 @@ CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
     if (nSize > 0) {
         nSatoshisPerK = 1000 * nFeePaid / nSize;
     } else {
-        nSatoshisPerK = Amount(0);
+        nSatoshisPerK = Amount::zero();
     }
 }
 
@@ -28,18 +28,18 @@ static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
     // Ensure fee is rounded up when truncated if ceil is true.
     Amount nFee(0);
     if (ceil) {
-        nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount(0)
+        nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount::zero()
                           ? nSize * nSatoshisPerK / 1000 + SATOSHI
                           : nSize * nSatoshisPerK / 1000);
     } else {
         nFee = nSize * nSatoshisPerK / 1000;
     }
 
-    if (nFee == Amount(0) && nSize != 0) {
-        if (nSatoshisPerK > Amount(0)) {
+    if (nFee == Amount::zero() && nSize != 0) {
+        if (nSatoshisPerK > Amount::zero()) {
             nFee = SATOSHI;
         }
-        if (nSatoshisPerK < Amount(0)) {
+        if (nSatoshisPerK < Amount::zero()) {
             nFee = -SATOSHI;
         }
     }

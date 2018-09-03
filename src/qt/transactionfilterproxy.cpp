@@ -20,7 +20,7 @@ const QDateTime TransactionFilterProxy::MAX_DATE =
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent)
     : QSortFilterProxyModel(parent), dateFrom(MIN_DATE), dateTo(MAX_DATE),
       addrPrefix(), typeFilter(ALL_TYPES), watchOnlyFilter(WatchOnlyFilter_All),
-      minAmount(0), limitRows(-1), showInactive(true) {}
+      minAmount(), limitRows(-1), showInactive(true) {}
 
 bool TransactionFilterProxy::filterAcceptsRow(
     int sourceRow, const QModelIndex &sourceParent) const {

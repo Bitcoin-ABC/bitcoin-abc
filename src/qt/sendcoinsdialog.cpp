@@ -354,7 +354,7 @@ void SendCoinsDialog::on_sendButton_clicked() {
     QString questionString = tr("Are you sure you want to send?");
     questionString.append("<br /><br />%1");
 
-    if (txFee > Amount(0)) {
+    if (txFee > Amount::zero()) {
         // append fee string if a fee is required
         questionString.append("<hr /><span style='color:#aa0000;'>");
         questionString.append(BitcoinUnits::formatHtmlWithUnit(
@@ -547,8 +547,8 @@ void SendCoinsDialog::setBalance(const Amount balance,
 }
 
 void SendCoinsDialog::updateDisplayUnit() {
-    setBalance(model->getBalance(), Amount(0), Amount(0), Amount(0), Amount(0),
-               Amount(0));
+    setBalance(model->getBalance(), Amount::zero(), Amount::zero(),
+               Amount::zero(), Amount::zero(), Amount::zero());
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
@@ -665,10 +665,10 @@ void SendCoinsDialog::updateGlobalFeeVariables() {
     if (ui->radioSmartFee->isChecked()) {
         int nConfirmTarget =
             ui->sliderSmartFee->maximum() - ui->sliderSmartFee->value() + 2;
-        payTxFee = CFeeRate(Amount(0));
+        payTxFee = CFeeRate(Amount::zero());
 
         // set nMinimumTotalFee to 0 to not accidentally pay a custom fee
-        CoinControlDialog::coinControl->nMinimumTotalFee = Amount(0);
+        CoinControlDialog::coinControl->nMinimumTotalFee = Amount::zero();
 
         // show the estimated required time for confirmation
         ui->confirmationTargetLabel->setText(
@@ -685,7 +685,7 @@ void SendCoinsDialog::updateGlobalFeeVariables() {
         // is per KB
         CoinControlDialog::coinControl->nMinimumTotalFee =
             ui->radioCustomAtLeast->isChecked() ? ui->customFee->value()
-                                                : Amount(0);
+                                                : Amount::zero();
     }
 }
 
@@ -722,7 +722,7 @@ void SendCoinsDialog::updateSmartFeeLabel() {
     CFeeRate feeRate =
         mempool.estimateSmartFee(nBlocksToConfirm, &estimateFoundAtBlocks);
     // not enough data => minfee
-    if (feeRate <= CFeeRate(Amount(0))) {
+    if (feeRate <= CFeeRate(Amount::zero())) {
         ui->labelSmartFee->setText(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(),

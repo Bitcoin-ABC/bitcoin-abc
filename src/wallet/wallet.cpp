@@ -1400,7 +1400,7 @@ Amount CWallet::GetDebit(const CTxIn &txin, const isminefilter &filter) const {
         }
     }
 
-    return Amount(0);
+    return Amount::zero();
 }
 
 isminetype CWallet::IsMine(const CTxOut &txout) const {
@@ -1414,7 +1414,7 @@ Amount CWallet::GetCredit(const CTxOut &txout,
                                  ": value out of range");
     }
 
-    return (IsMine(txout) & filter) ? txout.nValue : Amount(0);
+    return (IsMine(txout) & filter) ? txout.nValue : Amount::zero();
 }
 
 bool CWallet::IsChange(const CTxOut &txout) const {
@@ -1447,7 +1447,7 @@ Amount CWallet::GetChange(const CTxOut &txout) const {
                                  ": value out of range");
     }
 
-    return (IsChange(txout) ? txout.nValue : Amount(0));
+    return (IsChange(txout) ? txout.nValue : Amount::zero());
 }
 
 bool CWallet::IsMine(const CTransaction &tx) const {
@@ -1461,7 +1461,7 @@ bool CWallet::IsMine(const CTransaction &tx) const {
 }
 
 bool CWallet::IsFromMe(const CTransaction &tx) const {
-    return GetDebit(tx, ISMINE_ALL) > Amount(0);
+    return GetDebit(tx, ISMINE_ALL) > Amount::zero();
 }
 
 Amount CWallet::GetDebit(const CTransaction &tx,
@@ -1640,7 +1640,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
                            std::list<COutputEntry> &listSent, Amount &nFee,
                            std::string &strSentAccount,
                            const isminefilter &filter) const {
-    nFee = Amount(0);
+    nFee = Amount::zero();
     listReceived.clear();
     listSent.clear();
     strSentAccount = strFromAccount;
@@ -1648,7 +1648,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
     // Compute fee:
     Amount nDebit = GetDebit(filter);
     // debit>0 means we signed/sent this transaction.
-    if (nDebit > Amount(0)) {
+    if (nDebit > Amount::zero()) {
         Amount nValueOut = tx->GetValueOut();
         nFee = (nDebit - nValueOut);
     }
@@ -1660,7 +1660,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
         // Only need to handle txouts if AT LEAST one of these is true:
         //   1) they debit from us (sent)
         //   2) the output is to us (received)
-        if (nDebit > Amount(0)) {
+        if (nDebit > Amount::zero()) {
             // Don't report 'change' txouts
             if (pwallet->IsChange(txout)) {
                 continue;
@@ -1684,7 +1684,7 @@ void CWalletTx::GetAmounts(std::list<COutputEntry> &listReceived,
 
         // If we are debited by the transaction, add the output as a "sent"
         // entry.
-        if (nDebit > Amount(0)) {
+        if (nDebit > Amount::zero()) {
             listSent.push_back(output);
         }
 
@@ -1837,7 +1837,7 @@ std::set<TxId> CWalletTx::GetConflicts() const {
 
 Amount CWalletTx::GetDebit(const isminefilter &filter) const {
     if (tx->vin.empty()) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     Amount debit(0);
@@ -1868,7 +1868,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (IsCoinBase() && GetBlocksToMaturity() > 0) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     Amount credit(0);
@@ -1907,18 +1907,18 @@ Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
         return nImmatureCreditCached;
     }
 
-    return Amount(0);
+    return Amount::zero();
 }
 
 Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
     if (pwallet == 0) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (IsCoinBase() && GetBlocksToMaturity() > 0) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     if (fUseCache && fAvailableCreditCached) {
@@ -1954,18 +1954,18 @@ Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
         return nImmatureWatchCreditCached;
     }
 
-    return Amount(0);
+    return Amount::zero();
 }
 
 Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
     if (pwallet == 0) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (IsCoinBase() && GetBlocksToMaturity() > 0) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     if (fUseCache && fAvailableWatchCreditCached) {
@@ -2235,7 +2235,7 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter, int minDepth,
         // Loop through tx outputs and add incoming payments. For outgoing txs,
         // treat change outputs specially, as part of the amount debited.
         Amount debit = wtx.GetDebit(filter);
-        const bool outgoing = debit > Amount(0);
+        const bool outgoing = debit > Amount::zero();
         for (const CTxOut &out : wtx.tx->vout) {
             if (outgoing && IsChange(out)) {
                 debit -= out.nValue;
@@ -2320,7 +2320,8 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
             isminetype mine = IsMine(pcoin->tx->vout[i]);
             if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
                 !IsLockedCoin((*it).first, i) &&
-                (pcoin->tx->vout[i].nValue > Amount(0) || fIncludeZeroValue) &&
+                (pcoin->tx->vout[i].nValue > Amount::zero() ||
+                 fIncludeZeroValue) &&
                 (!coinControl || !coinControl->HasSelected() ||
                  coinControl->fAllowOtherInputs ||
                  coinControl->IsSelected(COutPoint((*it).first, i)))) {
@@ -2385,7 +2386,7 @@ bool CWallet::SelectCoinsMinConf(
     std::set<std::pair<const CWalletTx *, unsigned int>> &setCoinsRet,
     Amount &nValueRet) const {
     setCoinsRet.clear();
-    nValueRet = Amount(0);
+    nValueRet = Amount::zero();
 
     // List of values less than target
     std::pair<Amount, std::pair<const CWalletTx *, unsigned int>>
@@ -2671,7 +2672,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
-        if (nValue < Amount(0) || recipient.nAmount < Amount(0)) {
+        if (nValue < Amount::zero() || recipient.nAmount < Amount::zero()) {
             strFailReason = _("Transaction amounts must not be negative");
             return false;
         }
@@ -2732,7 +2733,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
         std::vector<COutput> vAvailableCoins;
         AvailableCoins(vAvailableCoins, true, coinControl);
 
-        nFeeRet = Amount(0);
+        nFeeRet = Amount::zero();
         // Start with no fee and loop until there is enough fee.
         while (true) {
             nChangePosInOut = nChangePosRequest;
@@ -2765,8 +2766,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
                 if (txout.IsDust(dustRelayFee)) {
                     if (recipient.fSubtractFeeFromAmount &&
-                        nFeeRet > Amount(0)) {
-                        if (txout.nValue < Amount(0)) {
+                        nFeeRet > Amount::zero()) {
+                        if (txout.nValue < Amount::zero()) {
                             strFailReason = _("The transaction amount is "
                                               "too small to pay the fee");
                         } else {
@@ -2810,7 +2811,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             const Amount nChange = nValueIn - nValueToSelect;
-            if (nChange > Amount(0)) {
+            if (nChange > Amount::zero()) {
                 // Fill a vout to ourself.
                 // TODO: pass in scriptChange instead of reservekey so change
                 // transaction isn't always pay-to-bitcoin-address.
@@ -2934,7 +2935,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
 
             Amount nFeeNeeded =
                 GetMinimumFee(nBytes, currentConfirmationTarget, mempool);
-            if (coinControl && nFeeNeeded > Amount(0) &&
+            if (coinControl && nFeeNeeded > Amount::zero() &&
                 coinControl->nMinimumTotalFee > nFeeNeeded) {
                 nFeeNeeded = coinControl->nMinimumTotalFee;
             }
@@ -3035,8 +3036,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                          DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
         // Lastly, ensure this tx will pass the mempool's chain limits.
         LockPoints lp;
-        CTxMemPoolEntry entry(wtxNew.tx, Amount(0), 0, 0, 0, Amount(0), false,
-                              0, lp);
+        CTxMemPoolEntry entry(wtxNew.tx, Amount::zero(), 0, 0, 0,
+                              Amount::zero(), false, 0, lp);
         CTxMemPool::setEntries setAncestors;
         size_t nLimitAncestors =
             gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
@@ -3144,13 +3145,13 @@ Amount CWallet::GetMinimumFee(unsigned int nTxBytes,
                               const CTxMemPool &pool, Amount targetFee) {
     Amount nFeeNeeded = targetFee;
     // User didn't set: use -txconfirmtarget to estimate...
-    if (nFeeNeeded == Amount(0)) {
+    if (nFeeNeeded == Amount::zero()) {
         int estimateFoundTarget = nConfirmTarget;
         nFeeNeeded = pool.estimateSmartFee(nConfirmTarget, &estimateFoundTarget)
                          .GetFee(nTxBytes);
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallbackFee.
-        if (nFeeNeeded == Amount(0)) {
+        if (nFeeNeeded == Amount::zero()) {
             nFeeNeeded = fallbackFee.GetFee(nTxBytes);
         }
     }
@@ -3575,11 +3576,11 @@ std::map<CTxDestination, Amount> CWallet::GetAddressBalances() {
             }
 
             Amount n = IsSpent(walletEntry.first, i)
-                           ? Amount(0)
+                           ? Amount::zero()
                            : pcoin->tx->vout[i].nValue;
 
             if (!balances.count(addr)) {
-                balances[addr] = Amount(0);
+                balances[addr] = Amount::zero();
             }
             balances[addr] += n;
         }
@@ -4410,7 +4411,7 @@ bool CWallet::ParameterInteraction() {
     if (gArgs.IsArgSet("-mintxfee")) {
         Amount n(0);
         auto parsed = ParseMoney(gArgs.GetArg("-mintxfee", ""), n);
-        if (!parsed || Amount(0) == n) {
+        if (!parsed || Amount::zero() == n) {
             return InitError(
                 AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
         }

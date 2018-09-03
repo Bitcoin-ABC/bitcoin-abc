@@ -524,7 +524,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss3 >> c3;
     BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c3.GetHeight(), 0);
-    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount(0));
+    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount::zero());
     BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0);
 
     // scriptPubKey that ends beyond the end of the stream

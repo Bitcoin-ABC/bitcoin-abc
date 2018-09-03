@@ -54,8 +54,8 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     BOOST_CHECK(pwalletMain->nOrderPosNext == 3);
     BOOST_CHECK(2 == results.size());
-    BOOST_CHECK(results[Amount(0)].nTime == 1333333333);
-    BOOST_CHECK(results[Amount(0)].strComment.empty());
+    BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
+    BOOST_CHECK(results[Amount::zero()].strComment.empty());
     BOOST_CHECK(1 == vpwtx[0]->nOrderPos);
     BOOST_CHECK(results[Amount(2)].nTime == 1333333336);
     BOOST_CHECK(results[Amount(2)].strOtherAccount == "c");
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     BOOST_CHECK(results.size() == 3);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 4);
-    BOOST_CHECK(results[Amount(0)].nTime == 1333333333);
+    BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
     BOOST_CHECK(1 == vpwtx[0]->nOrderPos);
     BOOST_CHECK(results[Amount(2)].nTime == 1333333336);
     BOOST_CHECK(results[Amount(3)].nTime == 1333333330);

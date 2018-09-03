@@ -173,7 +173,7 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn,
     // Hack to assume either it's completely dependent on other mempool txs or
     // not at all.
     Amount inChainValue =
-        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : Amount(0);
+        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : Amount::zero();
 
     return CTxMemPoolEntry(MakeTransactionRef(txn), nFee, nTime, dPriority,
                            nHeight, inChainValue, spendsCoinbase, sigOpCost,

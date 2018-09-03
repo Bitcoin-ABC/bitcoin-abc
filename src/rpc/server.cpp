@@ -133,7 +133,7 @@ Amount AmountFromValue(const UniValue &value) {
 }
 
 UniValue ValueFromAmount(const Amount amount) {
-    bool sign = amount < Amount(0);
+    bool sign = amount < Amount::zero();
     Amount n_abs(sign ? -amount : amount);
     int64_t quotient = n_abs / COIN;
     int64_t remainder = n_abs % COIN;

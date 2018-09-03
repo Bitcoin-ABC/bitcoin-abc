@@ -77,7 +77,7 @@ public:
             iconWatchonly.paint(painter, watchonlyRect);
         }
 
-        if (amount < Amount(0)) {
+        if (amount < Amount::zero()) {
             foreground = COLOR_NEGATIVE;
         } else if (!confirmed) {
             foreground = COLOR_UNCONFIRMED;
@@ -191,8 +191,8 @@ void OverviewPage::setBalance(const Amount balance,
     // only show immature (newly mined) balance if it's non-zero, so as not to
     // complicate things
     // for the non-mining users
-    bool showImmature = immatureBalance != Amount(0);
-    bool showWatchOnlyImmature = watchImmatureBalance != Amount(0);
+    bool showImmature = immatureBalance != Amount::zero();
+    bool showWatchOnlyImmature = watchImmatureBalance != Amount::zero();
 
     // for symmetry reasons also show immature label when the watch-only one is
     // shown

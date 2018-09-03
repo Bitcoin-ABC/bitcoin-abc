@@ -639,7 +639,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
             CTxOut txout;
             txout.scriptPubKey = scriptPubKey;
-            txout.nValue = Amount(0);
+            txout.nValue = Amount::zero();
             if (prevOut.exists("amount")) {
                 txout.nValue = AmountFromValue(prevOut["amount"]);
             }

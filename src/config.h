@@ -76,10 +76,12 @@ public:
     bool UseCashAddrEncoding() const override { return false; }
 
     void SetExcessUTXOCharge(Amount amt) override {}
-    Amount GetExcessUTXOCharge() const override { return Amount(0); }
+    Amount GetExcessUTXOCharge() const override { return Amount::zero(); }
 
     void SetMinFeePerKB(CFeeRate amt) override{};
-    CFeeRate GetMinFeePerKB() const override { return CFeeRate(Amount(0)); }
+    CFeeRate GetMinFeePerKB() const override {
+        return CFeeRate(Amount::zero());
+    }
 
 private:
     std::unique_ptr<CChainParams> chainParams;

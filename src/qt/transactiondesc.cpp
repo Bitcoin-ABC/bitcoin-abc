@@ -91,7 +91,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                    GUIUtil::HtmlEscape(wtx.mapValue["from"]) + "<br>";
     } else {
         // Offline transaction
-        if (nNet > Amount(0)) {
+        if (nNet > Amount::zero()) {
             // Credit
             CTxDestination address =
                 DecodeDestination(rec->address, wallet->chainParams);
@@ -140,7 +140,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
     //
     // Amount
     //
-    if (wtx.IsCoinBase() && nCredit == Amount(0)) {
+    if (wtx.IsCoinBase() && nCredit == Amount::zero()) {
         //
         // Coinbase
         //
@@ -158,7 +158,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
             strHTML += "(" + tr("not accepted") + ")";
         }
         strHTML += "<br>";
-    } else if (nNet > Amount(0)) {
+    } else if (nNet > Amount::zero()) {
         //
         // Credit
         //
@@ -246,7 +246,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
             }
 
             Amount nTxFee = nDebit - wtx.tx->GetValueOut();
-            if (nTxFee > Amount(0))
+            if (nTxFee > Amount::zero())
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " +
                            BitcoinUnits::formatHtmlWithUnit(unit, -1 * nTxFee) +
                            "<br>";

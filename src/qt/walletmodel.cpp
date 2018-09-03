@@ -213,7 +213,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                                         rcp.fSubtractFeeFromAmount};
                 vecSend.push_back(recipient);
             }
-            if (subtotal <= Amount(0)) {
+            if (subtotal <= Amount::zero()) {
                 return InvalidAmount;
             }
             total += subtotal;
@@ -221,7 +221,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
             if (!validateAddress(rcp.address)) {
                 return InvalidAddress;
             }
-            if (rcp.amount <= Amount(0)) {
+            if (rcp.amount <= Amount::zero()) {
                 return InvalidAmount;
             }
             setAddress.insert(rcp.address);

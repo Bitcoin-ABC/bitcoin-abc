@@ -615,7 +615,7 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
 
     // Call GetImmatureCredit() once before adding the key to the wallet to
     // cache the current immature credit amount, which is 0.
-    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), Amount(0));
+    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), Amount::zero());
 
     // Invalidate the cached value, add the key, and make sure a new immature
     // credit amount is calculated.

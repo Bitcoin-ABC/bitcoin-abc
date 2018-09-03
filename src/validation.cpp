@@ -436,7 +436,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     // Check for negative or overflow output values
     Amount nValueOut(0);
     for (const auto &txout : tx.vout) {
-        if (txout.nValue < Amount(0)) {
+        if (txout.nValue < Amount::zero()) {
             return state.DoS(100, false, REJECT_INVALID,
                              "bad-txns-vout-negative");
         }
@@ -833,7 +833,8 @@ static bool AcceptToMemoryPoolWorker(
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                     1000000)
                 .GetFee(nSize);
-        if (mempoolRejectFee > Amount(0) && nModifiedFees < mempoolRejectFee) {
+        if (mempoolRejectFee > Amount::zero() &&
+            nModifiedFees < mempoolRejectFee) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
                              "mempool min fee not met", false,
                              strprintf("%d < %d", nFees, mempoolRejectFee));
@@ -877,7 +878,7 @@ static bool AcceptToMemoryPoolWorker(
             dFreeCount += nSize;
         }
 
-        if (nAbsurdFee != Amount(0) && nFees > nAbsurdFee) {
+        if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
             return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
                                  strprintf("%d > %d", nFees, nAbsurdFee));
         }
@@ -1007,13 +1008,11 @@ static bool AcceptToMemoryPoolWorker(
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
-                                       CValidationState &state,
-                                       const CTransactionRef &tx,
-                                       bool fLimitFree, bool *pfMissingInputs,
-                                       int64_t nAcceptTime,
-                                       bool fOverrideMempoolLimit = false,
-                                       const Amount nAbsurdFee = Amount(0)) {
+static bool AcceptToMemoryPoolWithTime(
+    const Config &config, CTxMemPool &pool, CValidationState &state,
+    const CTransactionRef &tx, bool fLimitFree, bool *pfMissingInputs,
+    int64_t nAcceptTime, bool fOverrideMempoolLimit = false,
+    const Amount nAbsurdFee = Amount::zero()) {
     std::vector<COutPoint> coins_to_uncache;
     bool res = AcceptToMemoryPoolWorker(
         config, pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime,
@@ -1185,7 +1184,7 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     Amount nSubsidy = 50 * COIN;
@@ -1453,7 +1452,7 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
 
     // Tally transaction fees
     Amount nTxFee = nValueIn - tx.GetValueOut();
-    if (nTxFee < Amount(0)) {
+    if (nTxFee < Amount::zero()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
     }
 
@@ -5375,7 +5374,7 @@ bool LoadMempool(const Config &config) {
             file >> nFeeDelta;
 
             Amount amountdelta(nFeeDelta);
-            if (amountdelta != Amount(0)) {
+            if (amountdelta != Amount::zero()) {
                 mempool.PrioritiseTransaction(tx->GetId(),
                                               tx->GetId().ToString(),
                                               prioritydummy, amountdelta);

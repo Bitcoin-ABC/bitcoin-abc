@@ -282,7 +282,7 @@ const CTxOut &CCoinsViewCache::GetOutputFor(const CTxIn &input) const {
 
 Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
     if (tx.IsCoinBase()) {
-        return Amount(0);
+        return Amount::zero();
     }
 
     Amount nResult(0);
@@ -309,7 +309,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction &tx) const {
 
 double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
                                     Amount &inChainInputValue) const {
-    inChainInputValue = Amount(0);
+    inChainInputValue = Amount::zero();
     if (tx.IsCoinBase()) {
         return 0.0;
     }
