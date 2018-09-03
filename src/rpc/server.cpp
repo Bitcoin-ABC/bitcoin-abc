@@ -136,7 +136,7 @@ UniValue ValueFromAmount(const Amount amount) {
     bool sign = amount < Amount::zero();
     Amount n_abs(sign ? -amount : amount);
     int64_t quotient = n_abs / COIN;
-    int64_t remainder = n_abs % COIN;
+    int64_t remainder = (n_abs % COIN) / SATOSHI;
     return UniValue(UniValue::VNUM, strprintf("%s%d.%08d", sign ? "-" : "",
                                               quotient, remainder));
 }
@@ -154,7 +154,7 @@ uint256 ParseHashV(const UniValue &v, std::string strName) {
                                strHex + "')");
     }
 
-    if (64 != strHex.length()) {
+    if (strHex.length() != 64) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            strprintf("%s must be of length %d (not %d)",
                                      strName, 64, strHex.length()));

@@ -13,7 +13,8 @@ std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
     // number formatting.
     Amount amt_abs = amt > Amount::zero() ? amt : -amt;
-    std::string str = strprintf("%d.%08d", amt_abs / COIN, amt_abs % COIN);
+    std::string str =
+        strprintf("%d.%08d", amt_abs / COIN, (amt_abs % COIN) / SATOSHI);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;

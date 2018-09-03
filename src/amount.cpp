@@ -11,5 +11,6 @@
 const std::string CURRENCY_UNIT = "BCH";
 
 std::string Amount::ToString() const {
-    return strprintf("%d.%08d %s", *this / COIN, *this % COIN, CURRENCY_UNIT);
+    return strprintf("%d.%08d %s", *this / COIN, (*this % COIN) / SATOSHI,
+                     CURRENCY_UNIT);
 }

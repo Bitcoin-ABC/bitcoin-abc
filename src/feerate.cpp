@@ -57,5 +57,5 @@ Amount CFeeRate::GetFeeCeiling(size_t nBytes) const {
 
 std::string CFeeRate::ToString() const {
     return strprintf("%d.%08d %s/kB", nSatoshisPerK / COIN,
-                     nSatoshisPerK % COIN, CURRENCY_UNIT);
+                     (nSatoshisPerK % COIN) / SATOSHI, CURRENCY_UNIT);
 }

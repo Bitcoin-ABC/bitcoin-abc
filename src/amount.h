@@ -112,8 +112,8 @@ public:
     /**
      * Modulus
      */
-    constexpr int64_t operator%(const Amount b) const {
-        return Amount(amount % b.amount) / Amount(1);
+    constexpr Amount operator%(const Amount b) const {
+        return Amount(amount % b.amount);
     }
     constexpr Amount operator%(const int64_t b) const {
         return Amount(amount % b);

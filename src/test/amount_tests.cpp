@@ -62,13 +62,13 @@ static void CheckAmounts(int64_t aval, int64_t bval) {
 
     // Modulus
     if (b != Amount::zero()) {
-        BOOST_CHECK_EQUAL(a % b, aval % bval);
-        BOOST_CHECK_EQUAL(a % bval, Amount(a % b));
+        BOOST_CHECK_EQUAL(a % b, a % bval);
+        BOOST_CHECK_EQUAL(a % b, Amount(aval % bval));
     }
 
     if (a != Amount::zero()) {
-        BOOST_CHECK_EQUAL(b % a, bval % aval);
-        BOOST_CHECK_EQUAL(b % aval, Amount(b % a));
+        BOOST_CHECK_EQUAL(b % a, b % aval);
+        BOOST_CHECK_EQUAL(b % a, Amount(bval % aval));
     }
 
     // OpAssign
