@@ -2978,7 +2978,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     }
 
     else if (strCommand == NetMsgType::FEEFILTER) {
-        Amount newFeeFilter(0);
+        Amount newFeeFilter = Amount::zero();
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
             {
@@ -3536,7 +3536,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
         if (fSendTrickle && pto->fSendMempool) {
             auto vtxinfo = mempool.infoAll();
             pto->fSendMempool = false;
-            Amount filterrate(0);
+            Amount filterrate = Amount::zero();
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;
@@ -3577,7 +3577,7 @@ bool SendMessages(const Config &config, CNode *pto, CConnman &connman,
                  it != pto->setInventoryTxToSend.end(); it++) {
                 vInvTx.push_back(it);
             }
-            Amount filterrate(0);
+            Amount filterrate = Amount::zero();
             {
                 LOCK(pto->cs_feeFilter);
                 filterrate = pto->minFeeFilter;

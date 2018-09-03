@@ -106,7 +106,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     // setAllDescendants now contains all in-mempool descendants of updateIt.
     // Update and add to cached descendant map
     int64_t modifySize = 0;
-    Amount modifyFee(0);
+    Amount modifyFee = Amount::zero();
     int64_t modifyCount = 0;
     for (txiter cit : setAllDescendants) {
         if (!setExclude.count(cit->GetTx().GetId())) {
@@ -281,7 +281,7 @@ void CTxMemPool::UpdateEntryForAncestors(txiter it,
                                          const setEntries &setAncestors) {
     int64_t updateCount = setAncestors.size();
     int64_t updateSize = 0;
-    Amount updateFee(0);
+    Amount updateFee = Amount::zero();
     int64_t updateSigOpsCount = 0;
     for (txiter ancestorIt : setAncestors) {
         updateSize += ancestorIt->GetTxSize();
@@ -1179,7 +1179,7 @@ CTxMemPool::GetMemPoolChildren(txiter entry) const {
 CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
     LOCK(cs);
     if (!blockSinceLastRollingFeeBump || rollingMinimumFeeRate == 0) {
-        return CFeeRate(Amount(int64_t(rollingMinimumFeeRate)));
+        return CFeeRate(int64_t(rollingMinimumFeeRate) * SATOSHI);
     }
 
     int64_t time = GetTime();
@@ -1196,7 +1196,7 @@ CFeeRate CTxMemPool::GetMinFee(size_t sizelimit) const {
             pow(2.0, (time - lastRollingFeeUpdate) / halflife);
         lastRollingFeeUpdate = time;
     }
-    return CFeeRate(Amount(int64_t(rollingMinimumFeeRate)));
+    return CFeeRate(int64_t(rollingMinimumFeeRate) * SATOSHI);
 }
 
 void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {

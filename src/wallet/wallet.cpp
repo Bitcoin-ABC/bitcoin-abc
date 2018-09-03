@@ -1466,7 +1466,7 @@ bool CWallet::IsFromMe(const CTransaction &tx) const {
 
 Amount CWallet::GetDebit(const CTransaction &tx,
                          const isminefilter &filter) const {
-    Amount nDebit(0);
+    Amount nDebit = Amount::zero();
     for (const CTxIn &txin : tx.vin) {
         nDebit += GetDebit(txin, filter);
         if (!MoneyRange(nDebit)) {
@@ -1506,7 +1506,7 @@ bool CWallet::IsAllFromMe(const CTransaction &tx,
 
 Amount CWallet::GetCredit(const CTransaction &tx,
                           const isminefilter &filter) const {
-    Amount nCredit(0);
+    Amount nCredit = Amount::zero();
     for (const CTxOut &txout : tx.vout) {
         nCredit += GetCredit(txout, filter);
         if (!MoneyRange(nCredit)) {
@@ -1519,7 +1519,7 @@ Amount CWallet::GetCredit(const CTransaction &tx,
 }
 
 Amount CWallet::GetChange(const CTransaction &tx) const {
-    Amount nChange(0);
+    Amount nChange = Amount::zero();
     for (const CTxOut &txout : tx.vout) {
         nChange += GetChange(txout);
         if (!MoneyRange(nChange)) {
@@ -1840,7 +1840,7 @@ Amount CWalletTx::GetDebit(const isminefilter &filter) const {
         return Amount::zero();
     }
 
-    Amount debit(0);
+    Amount debit = Amount::zero();
     if (filter & ISMINE_SPENDABLE) {
         if (fDebitCached) {
             debit += nDebitCached;
@@ -1871,7 +1871,7 @@ Amount CWalletTx::GetCredit(const isminefilter &filter) const {
         return Amount::zero();
     }
 
-    Amount credit(0);
+    Amount credit = Amount::zero();
     if (filter & ISMINE_SPENDABLE) {
         // GetBalance can assume transactions in mapWallet won't change.
         if (fCreditCached) {
@@ -1925,7 +1925,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
         return nAvailableCreditCached;
     }
 
-    Amount nCredit(0);
+    Amount nCredit = Amount::zero();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
             const CTxOut &txout = tx->vout[i];
@@ -1972,7 +1972,7 @@ Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
         return nAvailableWatchCreditCached;
     }
 
-    Amount nCredit(0);
+    Amount nCredit = Amount::zero();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(GetId(), i)) {
             const CTxOut &txout = tx->vout[i];
@@ -2134,7 +2134,7 @@ void CWallet::ResendWalletTransactions(int64_t nBestBlockTime,
 Amount CWallet::GetBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (pcoin->IsTrusted()) {
@@ -2148,7 +2148,7 @@ Amount CWallet::GetBalance() const {
 Amount CWallet::GetUnconfirmedBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 &&
@@ -2163,7 +2163,7 @@ Amount CWallet::GetUnconfirmedBalance() const {
 Amount CWallet::GetImmatureBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         nTotal += pcoin->GetImmatureCredit();
@@ -2175,7 +2175,7 @@ Amount CWallet::GetImmatureBalance() const {
 Amount CWallet::GetWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (pcoin->IsTrusted()) {
@@ -2189,7 +2189,7 @@ Amount CWallet::GetWatchOnlyBalance() const {
 Amount CWallet::GetUnconfirmedWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         if (!pcoin->IsTrusted() && pcoin->GetDepthInMainChain() == 0 &&
@@ -2204,7 +2204,7 @@ Amount CWallet::GetUnconfirmedWatchOnlyBalance() const {
 Amount CWallet::GetImmatureWatchOnlyBalance() const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount nTotal(0);
+    Amount nTotal = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &p : mapWallet) {
         const CWalletTx *pcoin = &p.second;
         nTotal += pcoin->GetImmatureWatchOnlyCredit();
@@ -2223,7 +2223,7 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter, int minDepth,
                                  const std::string *account) const {
     LOCK2(cs_main, cs_wallet);
 
-    Amount balance(0);
+    Amount balance = Amount::zero();
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
         const int depth = wtx.GetDepthInMainChain();
@@ -2352,7 +2352,7 @@ static void ApproximateBestSubset(
 
     for (int nRep = 0; nRep < iterations && nBest != nTargetValue; nRep++) {
         vfIncluded.assign(vValue.size(), false);
-        Amount nTotal(0);
+        Amount nTotal = Amount::zero();
         bool fReachedTarget = false;
         for (int nPass = 0; nPass < 2 && !fReachedTarget; nPass++) {
             for (size_t i = 0; i < vValue.size(); i++) {
@@ -2395,7 +2395,7 @@ bool CWallet::SelectCoinsMinConf(
     coinLowestLarger.second.first = nullptr;
     std::vector<std::pair<Amount, std::pair<const CWalletTx *, unsigned int>>>
         vValue;
-    Amount nTotalLower(0);
+    Amount nTotalLower = Amount::zero();
 
     random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
 
@@ -2426,7 +2426,9 @@ bool CWallet::SelectCoinsMinConf(
             setCoinsRet.insert(coin.second);
             nValueRet += coin.first;
             return true;
-        } else if (n < nTargetValue + MIN_CHANGE) {
+        }
+
+        if (n < nTargetValue + MIN_CHANGE) {
             vValue.push_back(coin);
             nTotalLower += n;
         } else if (n < coinLowestLarger.first) {
@@ -2520,7 +2522,7 @@ bool CWallet::SelectCoins(
 
     // Calculate value from preset inputs and store them.
     std::set<std::pair<const CWalletTx *, uint32_t>> setPresetCoins;
-    Amount nValueFromPresetInputs(0);
+    Amount nValueFromPresetInputs = Amount::zero();
 
     std::vector<COutPoint> vPresetInputs;
     if (coinControl) {
@@ -2668,7 +2670,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                                 Amount &nFeeRet, int &nChangePosInOut,
                                 std::string &strFailReason,
                                 const CCoinControl *coinControl, bool sign) {
-    Amount nValue(0);
+    Amount nValue = Amount::zero();
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
@@ -2786,7 +2788,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             // Choose coins to use.
-            Amount nValueIn(0);
+            Amount nValueIn = Amount::zero();
             setCoins.clear();
             if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
                              nValueIn, coinControl)) {
@@ -4409,7 +4411,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (gArgs.IsArgSet("-mintxfee")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-mintxfee", ""), n);
         if (!parsed || Amount::zero() == n) {
             return InitError(
@@ -4426,7 +4428,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (gArgs.IsArgSet("-fallbackfee")) {
-        Amount nFeePerK(0);
+        Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
             return InitError(
                 strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'"),
@@ -4443,7 +4445,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (gArgs.IsArgSet("-paytxfee")) {
-        Amount nFeePerK(0);
+        Amount nFeePerK = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
             return InitError(
                 AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
@@ -4465,7 +4467,7 @@ bool CWallet::ParameterInteraction() {
     }
 
     if (gArgs.IsArgSet("-maxtxfee")) {
-        Amount nMaxFee(0);
+        Amount nMaxFee = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
             return InitError(
                 AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", "")));

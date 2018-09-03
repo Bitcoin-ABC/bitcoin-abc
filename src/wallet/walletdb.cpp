@@ -194,7 +194,7 @@ Amount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
     std::list<CAccountingEntry> entries;
     ListAccountCreditDebit(strAccount, entries);
 
-    Amount nCreditDebit(0);
+    Amount nCreditDebit = Amount::zero();
     for (const CAccountingEntry &entry : entries) {
         nCreditDebit += entry.nCreditDebit;
     }

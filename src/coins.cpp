@@ -285,7 +285,7 @@ Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
         return Amount::zero();
     }
 
-    Amount nResult(0);
+    Amount nResult = Amount::zero();
     for (size_t i = 0; i < tx.vin.size(); i++) {
         nResult += GetOutputFor(tx.vin[i]).nValue;
     }

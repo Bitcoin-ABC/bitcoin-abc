@@ -481,9 +481,9 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     }
 
     Amount nAmount = Amount::zero();
-    Amount nPayFee(0);
-    Amount nAfterFee(0);
-    Amount nChange(0);
+    Amount nPayFee = Amount::zero();
+    Amount nAfterFee = Amount::zero();
+    Amount nChange = Amount::zero();
     unsigned int nBytes = 0;
     unsigned int nBytesInputs = 0;
     unsigned int nQuantity = 0;

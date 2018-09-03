@@ -470,7 +470,7 @@ CFeeRate CBlockPolicyEstimator::estimateFee(int confTarget) {
         return CFeeRate(Amount::zero());
     }
 
-    return CFeeRate(Amount(int64_t(median)));
+    return CFeeRate(int64_t(median) * SATOSHI);
 }
 
 CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
@@ -508,7 +508,8 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
         pool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000)
             .GetFeePerK();
-    if (minPoolFee > Amount::zero() && minPoolFee > Amount(int64_t(median))) {
+    if (minPoolFee > Amount::zero() &&
+        minPoolFee > (int64_t(median) * SATOSHI)) {
         return CFeeRate(minPoolFee);
     }
 
@@ -516,7 +517,7 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
         return CFeeRate(Amount::zero());
     }
 
-    return CFeeRate(Amount(int64_t(median)));
+    return CFeeRate(int64_t(median) * SATOSHI);
 }
 
 void CBlockPolicyEstimator::Write(CAutoFile &fileout) {
@@ -541,7 +542,7 @@ FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee) {
     for (double bucketBoundary = minFeeLimit / SATOSHI;
          bucketBoundary <= double(MAX_FEERATE / SATOSHI);
          bucketBoundary *= FEE_SPACING) {
-        feeset.insert(Amount(int64_t(bucketBoundary)));
+        feeset.insert(int64_t(bucketBoundary) * SATOSHI);
     }
 }
 

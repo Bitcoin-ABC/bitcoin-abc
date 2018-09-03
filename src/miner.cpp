@@ -91,7 +91,7 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
 BlockAssembler::BlockAssembler(const Config &_config) : config(&_config) {
 
     if (gArgs.IsArgSet("-blockmintxfee")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n);
         blockMinFeeRate = CFeeRate(n);
     } else {

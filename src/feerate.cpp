@@ -26,7 +26,7 @@ static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
     int64_t nSize = int64_t(nBytes_);
 
     // Ensure fee is rounded up when truncated if ceil is true.
-    Amount nFee(0);
+    Amount nFee = Amount::zero();
     if (ceil) {
         nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount::zero()
                           ? nSize * nSatoshisPerK / 1000 + SATOSHI

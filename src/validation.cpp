@@ -434,7 +434,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     }
 
     // Check for negative or overflow output values
-    Amount nValueOut(0);
+    Amount nValueOut = Amount::zero();
     for (const auto &txout : tx.vout) {
         if (txout.nValue < Amount::zero()) {
             return state.DoS(100, false, REJECT_INVALID,
@@ -716,7 +716,7 @@ static bool AcceptToMemoryPoolWorker(
         CCoinsView dummy;
         CCoinsViewCache view(&dummy);
 
-        Amount nValueIn(0);
+        Amount nValueIn = Amount::zero();
         LockPoints lp;
         {
             LOCK(pool.cs);
@@ -1190,7 +1190,7 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     Amount nSubsidy = 50 * COIN;
     // Subsidy is cut in half every 210,000 blocks which will occur
     // approximately every 4 years.
-    return Amount((nSubsidy / SATOSHI) >> halvings);
+    return ((nSubsidy / SATOSHI) >> halvings) * SATOSHI;
 }
 
 bool IsInitialBlockDownload() {
@@ -1417,8 +1417,8 @@ bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
         return state.Invalid(false, 0, "", "Inputs unavailable");
     }
 
-    Amount nValueIn(0);
-    Amount nFees(0);
+    Amount nValueIn = Amount::zero();
+    Amount nFees = Amount::zero();
     for (const auto &in : tx.vin) {
         const COutPoint &prevout = in.prevout;
         const Coin &coin = inputs.AccessCoin(prevout);
@@ -2037,7 +2037,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
                                                            : nullptr);
 
     std::vector<int> prevheights;
-    Amount nFees(0);
+    Amount nFees = Amount::zero();
     int nInputs = 0;
 
     // Sigops counting. We need to do it again because of P2SH.
@@ -5373,7 +5373,7 @@ bool LoadMempool(const Config &config) {
             file >> nTime;
             file >> nFeeDelta;
 
-            Amount amountdelta(nFeeDelta);
+            Amount amountdelta = nFeeDelta * SATOSHI;
             if (amountdelta != Amount::zero()) {
                 mempool.PrioritiseTransaction(tx->GetId(),
                                               tx->GetId().ToString(),

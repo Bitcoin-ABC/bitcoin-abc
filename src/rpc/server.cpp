@@ -124,7 +124,7 @@ Amount AmountFromValue(const UniValue &value) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     }
 
-    Amount amt(n);
+    Amount amt = n * SATOSHI;
     if (!MoneyRange(amt)) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Amount out of range");
     }

@@ -399,7 +399,7 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
 
 static void MutateTxAddOutData(CMutableTransaction &tx,
                                const std::string &strInput) {
-    Amount value(0);
+    Amount value = Amount::zero();
 
     // separate [VALUE:]DATA in string
     size_t pos = strInput.find(':');
@@ -546,7 +546,7 @@ static Amount AmountFromValue(const UniValue &value) {
     if (!ParseFixedPoint(value.getValStr(), 8, &n)) {
         throw std::runtime_error("Invalid amount");
     }
-    Amount amount = Amount(n);
+    Amount amount = n * SATOSHI;
 
     if (!MoneyRange(amount)) {
         throw std::runtime_error("Amount out of range");

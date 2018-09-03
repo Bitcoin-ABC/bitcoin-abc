@@ -72,7 +72,7 @@ CTransaction::CTransaction(CMutableTransaction &&tx)
       nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
 Amount CTransaction::GetValueOut() const {
-    Amount nValueOut(0);
+    Amount nValueOut = Amount::zero();
     for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end();
          ++it) {
         nValueOut += it->nValue;

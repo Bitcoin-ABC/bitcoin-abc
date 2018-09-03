@@ -181,5 +181,5 @@ Amount CTxOutCompressor::DecompressAmount(uint64_t x) {
         n *= 10;
         e--;
     }
-    return Amount(int64_t(n));
+    return int64_t(n) * SATOSHI;
 }

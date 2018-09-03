@@ -1598,7 +1598,7 @@ bool AppInitParameterInteraction(Config &config) {
 
     // Obtain the amount to charge excess UTXO
     if (gArgs.IsArgSet("-excessutxocharge")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-excessutxocharge", ""), n);
         if (!parsed || Amount::zero() > n) {
             return InitError(AmountErrMsg(
@@ -1614,7 +1614,7 @@ bool AppInitParameterInteraction(Config &config) {
     // can cheaply fill blocks using 1-satoshi-fee transactions. It should be
     // set above the real cost to you of processing a transaction.
     if (gArgs.IsArgSet("-minrelaytxfee")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-minrelaytxfee", ""), n);
         if (!parsed || Amount::zero() == n) {
             return InitError(AmountErrMsg("minrelaytxfee",
@@ -1630,7 +1630,7 @@ bool AppInitParameterInteraction(Config &config) {
     // TODO: Harmonize which arguments need sanity checking and where that
     // happens.
     if (gArgs.IsArgSet("-blockmintxfee")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         if (!ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n)) {
             return InitError(AmountErrMsg("blockmintxfee",
                                           gArgs.GetArg("-blockmintxfee", "")));
@@ -1640,7 +1640,7 @@ bool AppInitParameterInteraction(Config &config) {
     // Feerate used to define dust.  Shouldn't be changed lightly as old
     // implementations may inadvertently create non-standard transactions.
     if (gArgs.IsArgSet("-dustrelayfee")) {
-        Amount n(0);
+        Amount n = Amount::zero();
         auto parsed = ParseMoney(gArgs.GetArg("-dustrelayfee", ""), n);
         if (!parsed || Amount::zero() == n) {
             return InitError(AmountErrMsg("dustrelayfee",

@@ -1284,7 +1284,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     // Send
     CReserveKey keyChange(pwallet);
-    Amount nFeeRequired(0);
+    Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
     std::string strFailReason;
     bool fCreated = pwallet->CreateTransaction(
