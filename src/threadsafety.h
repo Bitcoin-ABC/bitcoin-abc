@@ -10,9 +10,9 @@
 // TL;DR Add GUARDED_BY(mutex) to member variables. The others are rarely
 // necessary. Ex: int nFoo GUARDED_BY(cs_foo);
 //
-// See http://clang.llvm.org/docs/LanguageExtensions.html#threadsafety for
-// documentation. The clang compiler can do advanced static analysis of locking
-// when given the -Wthread-safety option.
+// See https://clang.llvm.org/docs/ThreadSafetyAnalysis.html for documentation.
+// The clang compiler can do advanced static analysis of locking when given the
+// -Wthread-safety option.
 #define LOCKABLE __attribute__((lockable))
 #define SCOPED_LOCKABLE __attribute__((scoped_lockable))
 #define GUARDED_BY(x) __attribute__((guarded_by(x)))
