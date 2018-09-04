@@ -62,7 +62,9 @@ Amount WalletModel::getBalance(const CCoinControl *coinControl) const {
         std::vector<COutput> vCoins;
         wallet->AvailableCoins(vCoins, true, coinControl);
         for (const COutput &out : vCoins) {
-            if (out.fSpendable) nBalance += out.tx->tx->vout[out.i].nValue;
+            if (out.fSpendable) {
+                nBalance += out.tx->tx->vout[out.i].nValue;
+            }
         }
 
         return nBalance;
@@ -98,8 +100,9 @@ Amount WalletModel::getWatchImmatureBalance() const {
 void WalletModel::updateStatus() {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
 
-    if (cachedEncryptionStatus != newEncryptionStatus)
+    if (cachedEncryptionStatus != newEncryptionStatus) {
         Q_EMIT encryptionStatusChanged(newEncryptionStatus);
+    }
 }
 
 void WalletModel::pollBalanceChanged() {
@@ -107,9 +110,13 @@ void WalletModel::pollBalanceChanged() {
     // periodical polls if the core is holding the locks for a longer time - for
     // example, during a wallet rescan.
     TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) return;
+    if (!lockMain) {
+        return;
+    }
     TRY_LOCK(wallet->cs_wallet, lockWallet);
-    if (!lockWallet) return;
+    if (!lockWallet) {
+        return;
+    }
 
     if (fForceCheckBalanceChanged || chainActive.Height() != cachedNumBlocks) {
         fForceCheckBalanceChanged = false;
@@ -118,7 +125,9 @@ void WalletModel::pollBalanceChanged() {
         cachedNumBlocks = chainActive.Height();
 
         checkBalanceChanged();
-        if (transactionTableModel) transactionTableModel->updateConfirmations();
+        if (transactionTableModel) {
+            transactionTableModel->updateConfirmations();
+        }
     }
 }
 
@@ -203,7 +212,10 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                 rcp.paymentRequest.getDetails();
             for (int i = 0; i < details.outputs_size(); i++) {
                 const payments::Output &out = details.outputs(i);
-                if (out.amount() <= 0) continue;
+                if (out.amount() <= 0) {
+                    continue;
+                }
+
                 subtotal += Amount(out.amount());
                 const uint8_t *scriptStr = (const uint8_t *)out.script().data();
                 CScript scriptPubKey(scriptStr,
@@ -213,11 +225,13 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                                         rcp.fSubtractFeeFromAmount};
                 vecSend.push_back(recipient);
             }
+
             if (subtotal <= Amount::zero()) {
                 return InvalidAmount;
             }
             total += subtotal;
-        } else { // User-entered bitcoin address / amount:
+        } else {
+            // User-entered bitcoin address / amount:
             if (!validateAddress(rcp.address)) {
                 return InvalidAddress;
             }
@@ -261,8 +275,9 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                                                   nFeeRequired, nChangePosRet,
                                                   strFailReason, coinControl);
         transaction.setTransactionFee(nFeeRequired);
-        if (fSubtractFeeFromAmount && fCreated)
+        if (fSubtractFeeFromAmount && fCreated) {
             transaction.reassignAmounts(nChangePosRet);
+        }
 
         if (!fCreated) {
             if (!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance) {
@@ -277,7 +292,9 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         // reject absurdly high fee. (This can never happen because the wallet
         // caps the fee at maxTxFee. This merely serves as a belt-and-suspenders
         // check)
-        if (nFeeRequired > Amount(maxTxFee)) return AbsurdFee;
+        if (nFeeRequired > Amount(maxTxFee)) {
+            return AbsurdFee;
+        }
     }
 
     return SendCoinsReturn(OK);
@@ -316,10 +333,11 @@ WalletModel::sendCoins(WalletModelTransaction &transaction) {
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
         CValidationState state;
         if (!wallet->CommitTransaction(*newTx, *keyChange, g_connman.get(),
-                                       state))
+                                       state)) {
             return SendCoinsReturn(
                 TransactionCommitFailed,
                 QString::fromStdString(state.GetRejectReason()));
+        }
 
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
         ssTx << *newTx->tx;
@@ -409,14 +427,10 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase) {
 
 bool WalletModel::changePassphrase(const SecureString &oldPass,
                                    const SecureString &newPass) {
-    bool retval;
-    {
-        LOCK(wallet->cs_wallet);
-        // Make sure wallet is locked before attempting pass change
-        wallet->Lock();
-        retval = wallet->ChangeWalletPassphrase(oldPass, newPass);
-    }
-    return retval;
+    LOCK(wallet->cs_wallet);
+    // Make sure wallet is locked before attempting pass change
+    wallet->Lock();
+    return wallet->ChangeWalletPassphrase(oldPass, newPass);
 }
 
 bool WalletModel::backupWallet(const QString &filename) {
@@ -653,10 +667,12 @@ void WalletModel::loadReceiveRequests(
     for (const std::pair<CTxDestination, CAddressBookData> &item :
          wallet->mapAddressBook) {
         for (const std::pair<std::string, std::string> &item2 :
-             item.second.destdata)
-            if (item2.first.size() > 2 &&
-                item2.first.substr(0, 2) == "rr") // receive request
+             item.second.destdata) {
+            if (item2.first.size() > 2 && item2.first.substr(0, 2) == "rr") {
+                // receive request
                 vReceiveRequests.push_back(item2.second);
+            }
+        }
     }
 }
 

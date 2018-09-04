@@ -76,8 +76,10 @@ public:
         std::string sLabel = label.toStdString();
         std::string sMessage = message.toStdString();
         std::string sPaymentRequest;
-        if (!ser_action.ForRead() && paymentRequest.IsInitialized())
+        if (!ser_action.ForRead() && paymentRequest.IsInitialized()) {
             paymentRequest.SerializeToString(&sPaymentRequest);
+        }
+
         std::string sAuthenticatedMerchant =
             authenticatedMerchant.toStdString();
 
@@ -93,9 +95,11 @@ public:
             address = QString::fromStdString(sAddress);
             label = QString::fromStdString(sLabel);
             message = QString::fromStdString(sMessage);
-            if (!sPaymentRequest.empty())
+            if (!sPaymentRequest.empty()) {
                 paymentRequest.parse(QByteArray::fromRawData(
                     sPaymentRequest.data(), sPaymentRequest.size()));
+            }
+
             authenticatedMerchant =
                 QString::fromStdString(sAuthenticatedMerchant);
         }
@@ -292,17 +296,19 @@ Q_SIGNALS:
     void notifyWatchonlyChanged(bool fHaveWatchonly);
 
 public Q_SLOTS:
-    /* Wallet status might have changed */
+    /** Wallet status might have changed. */
     void updateStatus();
-    /* New transaction, or transaction changed status */
+    /** New transaction, or transaction changed status. */
     void updateTransaction();
-    /* New, updated or removed address book entry */
+    /** New, updated or removed address book entry. */
     void updateAddressBook(const QString &address, const QString &label,
                            bool isMine, const QString &purpose, int status);
-    /* Watch-only added */
+    /** Watch-only added. */
     void updateWatchOnlyFlag(bool fHaveWatchonly);
-    /* Current, immature or unconfirmed balance might have changed - emit
-     * 'balanceChanged' if so */
+    /**
+     * Current, immature or unconfirmed balance might have changed - emit
+     * 'balanceChanged' if so.
+     */
     void pollBalanceChanged();
 };
 
