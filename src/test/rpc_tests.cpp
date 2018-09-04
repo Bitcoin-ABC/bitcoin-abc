@@ -242,8 +242,8 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
 }
 
 BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
-    BOOST_CHECK(ValueFromAmount(Amount(0LL)).write() == "0.00000000");
-    BOOST_CHECK(ValueFromAmount(Amount(1LL)).write() == "0.00000001");
+    BOOST_CHECK(ValueFromAmount(Amount::zero()).write() == "0.00000000");
+    BOOST_CHECK(ValueFromAmount(SATOSHI).write() == "0.00000001");
     BOOST_CHECK(ValueFromAmount(Amount(17622195LL)).write() == "0.17622195");
     BOOST_CHECK(ValueFromAmount(Amount(50000000LL)).write() == "0.50000000");
     BOOST_CHECK(ValueFromAmount(Amount(89898989LL)).write() == "0.89898989");
@@ -291,11 +291,10 @@ static UniValue ValueFromString(const std::string &str) {
 BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("-0.00000001")),
                       UniValue);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0")), Amount(0LL));
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0")), Amount::zero());
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000000")),
-                      Amount(0LL));
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001")),
-                      Amount(1LL));
+                      Amount::zero());
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001")), SATOSHI);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.17622195")),
                       Amount(17622195LL));
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.5")),
@@ -340,7 +339,7 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
                       UniValue);
     // should pass, cut trailing 0
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001000000")),
-                      Amount(1LL));
+                      SATOSHI);
     // should fail
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("19e-9")), UniValue);
     // should pass, leading 0 is present

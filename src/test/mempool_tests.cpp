@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx3.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx3.vout[0].nValue = 5 * COIN;
     pool.addUnchecked(tx3.GetId(),
-                      entry.Fee(Amount(0LL)).Priority(100.0).FromTx(tx3));
+                      entry.Fee(Amount::zero()).Priority(100.0).FromTx(tx3));
 
     /* 2nd highest fee */
     CMutableTransaction tx4 = CMutableTransaction();
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx6.vout.resize(1);
     tx6.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx6.vout[0].nValue = 20 * COIN;
-    pool.addUnchecked(tx6.GetId(), entry.Fee(Amount(0LL)).FromTx(tx6));
+    pool.addUnchecked(tx6.GetId(), entry.Fee(Amount::zero()).FromTx(tx6));
     BOOST_CHECK_EQUAL(pool.size(), 6UL);
     // Check that at this point, tx6 is sorted low
     sortedOrder.insert(sortedOrder.begin(), tx6.GetId().ToString());
@@ -256,7 +256,8 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx8.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx8.vout[0].nValue = 10 * COIN;
     setAncestors.insert(pool.mapTx.find(tx7.GetId()));
-    pool.addUnchecked(tx8.GetId(), entry.Fee(Amount(0LL)).Time(2).FromTx(tx8),
+    pool.addUnchecked(tx8.GetId(),
+                      entry.Fee(Amount::zero()).Time(2).FromTx(tx8),
                       setAncestors);
 
     // Now tx8 should be sorted low, but tx6/tx both high
@@ -271,7 +272,8 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx9.vout.resize(1);
     tx9.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx9.vout[0].nValue = 1 * COIN;
-    pool.addUnchecked(tx9.GetId(), entry.Fee(Amount(0LL)).Time(3).FromTx(tx9),
+    pool.addUnchecked(tx9.GetId(),
+                      entry.Fee(Amount::zero()).Time(3).FromTx(tx9),
                       setAncestors);
 
     // tx9 should be sorted low
@@ -394,7 +396,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     tx3.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx3.vout[0].nValue = 5 * COIN;
     pool.addUnchecked(tx3.GetId(),
-                      entry.Fee(Amount(0LL)).Priority(100.0).FromTx(tx3));
+                      entry.Fee(Amount::zero()).Priority(100.0).FromTx(tx3));
 
     /* 2nd highest fee */
     CMutableTransaction tx4 = CMutableTransaction();
@@ -439,7 +441,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     tx6.vout[0].nValue = 20 * COIN;
     uint64_t tx6Size = CTransaction(tx6).GetTotalSize();
 
-    pool.addUnchecked(tx6.GetId(), entry.Fee(Amount(0LL)).FromTx(tx6));
+    pool.addUnchecked(tx6.GetId(), entry.Fee(Amount::zero()).FromTx(tx6));
     BOOST_CHECK_EQUAL(pool.size(), 6UL);
     // Ties are broken by hash
     if (tx3.GetId() < tx6.GetId()) {
