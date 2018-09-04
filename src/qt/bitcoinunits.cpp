@@ -174,7 +174,7 @@ bool BitcoinUnits::parse(int unit, const QString &value, Amount *val_out) {
         // Longer numbers will exceed 63 bits
         return false;
     }
-    Amount retvalue(str.toLongLong(&ok));
+    Amount retvalue(int64_t(str.toLongLong(&ok)) * SATOSHI);
     if (val_out) {
         *val_out = retvalue;
     }

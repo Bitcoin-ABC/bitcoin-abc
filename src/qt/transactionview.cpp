@@ -350,7 +350,7 @@ void TransactionView::changedAmount(const QString &amount) {
         return;
     }
 
-    Amount amount_parsed(0);
+    Amount amount_parsed = Amount::zero();
     if (BitcoinUnits::parse(model->getOptionsModel()->getDisplayUnit(), amount,
                             &amount_parsed)) {
         transactionProxyModel->setMinAmount(amount_parsed);

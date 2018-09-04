@@ -33,9 +33,9 @@ WalletModel::WalletModel(const PlatformStyle *platformStyle, CWallet *_wallet,
                          OptionsModel *_optionsModel, QObject *parent)
     : QObject(parent), wallet(_wallet), optionsModel(_optionsModel),
       addressTableModel(0), transactionTableModel(0),
-      recentRequestsTableModel(0), cachedBalance(0),
-      cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
-      cachedEncryptionStatus(Unencrypted), cachedNumBlocks(0) {
+      recentRequestsTableModel(0), cachedBalance(), cachedUnconfirmedBalance(),
+      cachedImmatureBalance(), cachedEncryptionStatus(Unencrypted),
+      cachedNumBlocks(0) {
     fHaveWatchOnly = wallet->HaveWatchOnly();
     fForceCheckBalanceChanged = false;
 
@@ -58,7 +58,7 @@ WalletModel::~WalletModel() {
 
 Amount WalletModel::getBalance(const CCoinControl *coinControl) const {
     if (coinControl) {
-        Amount nBalance(0);
+        Amount nBalance = Amount::zero();
         std::vector<COutput> vCoins;
         wallet->AvailableCoins(vCoins, true, coinControl);
         for (const COutput &out : vCoins) {
@@ -135,9 +135,9 @@ void WalletModel::checkBalanceChanged() {
     Amount newBalance(getBalance());
     Amount newUnconfirmedBalance(getUnconfirmedBalance());
     Amount newImmatureBalance(getImmatureBalance());
-    Amount newWatchOnlyBalance(0);
-    Amount newWatchUnconfBalance(0);
-    Amount newWatchImmatureBalance(0);
+    Amount newWatchOnlyBalance = Amount::zero();
+    Amount newWatchUnconfBalance = Amount::zero();
+    Amount newWatchImmatureBalance = Amount::zero();
     if (haveWatchOnly()) {
         newWatchOnlyBalance = getWatchBalance();
         newWatchUnconfBalance = getWatchUnconfirmedBalance();
@@ -188,7 +188,7 @@ bool WalletModel::validateAddress(const QString &address) {
 WalletModel::SendCoinsReturn
 WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                                 const CCoinControl *coinControl) {
-    Amount total(0);
+    Amount total = Amount::zero();
     bool fSubtractFeeFromAmount = false;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<CRecipient> vecSend;
@@ -207,7 +207,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
         // PaymentRequest...
         if (rcp.paymentRequest.IsInitialized()) {
-            Amount subtotal(0);
+            Amount subtotal = Amount::zero();
             const payments::PaymentDetails &details =
                 rcp.paymentRequest.getDetails();
             for (int i = 0; i < details.outputs_size(); i++) {
@@ -216,12 +216,12 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
                     continue;
                 }
 
-                subtotal += Amount(out.amount());
+                subtotal += int64_t(out.amount()) * SATOSHI;
                 const uint8_t *scriptStr = (const uint8_t *)out.script().data();
                 CScript scriptPubKey(scriptStr,
                                      scriptStr + out.script().size());
-                Amount nAmount = Amount(out.amount());
-                CRecipient recipient = {scriptPubKey, Amount(nAmount),
+                Amount nAmount = int64_t(out.amount()) * SATOSHI;
+                CRecipient recipient = {scriptPubKey, nAmount,
                                         rcp.fSubtractFeeFromAmount};
                 vecSend.push_back(recipient);
             }
@@ -265,7 +265,7 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
 
         transaction.newPossibleKeyChange(wallet);
 
-        Amount nFeeRequired(0);
+        Amount nFeeRequired = Amount::zero();
         int nChangePosRet = -1;
         std::string strFailReason;
 

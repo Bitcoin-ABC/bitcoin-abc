@@ -727,7 +727,7 @@ void CoinControlDialog::updateView() {
             itemWalletAddress->setText(COLUMN_ADDRESS, sWalletAddress);
         }
 
-        Amount nSum(0);
+        Amount nSum = Amount::zero();
         int nChildren = 0;
         for (const COutput &out : coins.second) {
             nSum += out.tx->tx->vout[out.i].nValue;

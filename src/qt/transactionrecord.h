@@ -99,12 +99,12 @@ public:
     static const int RecommendedNumConfirmations = 6;
 
     TransactionRecord()
-        : txid(), time(0), type(Other), address(""), debit(0), credit(0),
-          idx(0) {}
+        : txid(), time(0), type(Other), address(""), debit(), credit(), idx(0) {
+    }
 
     TransactionRecord(TxId _txid, qint64 _time)
-        : txid(_txid), time(_time), type(Other), address(""), debit(0),
-          credit(0), idx(0) {}
+        : txid(_txid), time(_time), type(Other), address(""), debit(), credit(),
+          idx(0) {}
 
     TransactionRecord(TxId _txid, qint64 _time, Type _type,
                       const std::string &_address, const Amount _debit,

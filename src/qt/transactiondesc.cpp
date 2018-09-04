@@ -144,7 +144,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
         //
         // Coinbase
         //
-        Amount nUnmatured(0);
+        Amount nUnmatured = Amount::zero();
         for (const CTxOut &txout : wtx.tx->vout) {
             nUnmatured += wallet->GetCredit(txout, ISMINE_ALL);
         }

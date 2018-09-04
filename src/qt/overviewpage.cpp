@@ -53,7 +53,9 @@ public:
             index.data(TransactionTableModel::DateRole).toDateTime();
         QString address = index.data(Qt::DisplayRole).toString();
         Amount amount(
-            index.data(TransactionTableModel::AmountRole).toLongLong());
+            int64_t(
+                index.data(TransactionTableModel::AmountRole).toLongLong()) *
+            SATOSHI);
         bool confirmed =
             index.data(TransactionTableModel::ConfirmedRole).toBool();
         QVariant value = index.data(Qt::ForegroundRole);
@@ -108,13 +110,15 @@ public:
     int unit;
     const PlatformStyle *platformStyle;
 };
+
 #include "overviewpage.moc"
 
 OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
     : QWidget(parent), ui(new Ui::OverviewPage), clientModel(0), walletModel(0),
-      currentBalance(-1), currentUnconfirmedBalance(-1),
-      currentImmatureBalance(-1), currentWatchOnlyBalance(-1),
-      currentWatchUnconfBalance(-1), currentWatchImmatureBalance(-1),
+      currentBalance(-SATOSHI), currentUnconfirmedBalance(-SATOSHI),
+      currentImmatureBalance(-SATOSHI), currentWatchOnlyBalance(-SATOSHI),
+      currentWatchUnconfBalance(-SATOSHI),
+      currentWatchImmatureBalance(-SATOSHI),
       txdelegate(new TxViewDelegate(platformStyle, this)) {
     ui->setupUi(this);
 
