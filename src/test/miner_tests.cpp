@@ -100,7 +100,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // Save this txid for later use.
     TxId parentTxId = tx.GetId();
     mempool.addUnchecked(parentTxId,
-                         entry.Fee(Amount(1000))
+                         entry.Fee(1000 * SATOSHI)
                              .Time(GetTime())
                              .SpendsCoinbase(true)
                              .FromTx(tx));
@@ -110,7 +110,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vout[0].nValue = Amount(5000000000LL - 10000);
     TxId mediumFeeTxId = tx.GetId();
     mempool.addUnchecked(mediumFeeTxId,
-                         entry.Fee(Amount(10000))
+                         entry.Fee(10000 * SATOSHI)
                              .Time(GetTime())
                              .SpendsCoinbase(true)
                              .FromTx(tx));
@@ -121,7 +121,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
     TxId highFeeTxId = tx.GetId();
     mempool.addUnchecked(highFeeTxId,
-                         entry.Fee(Amount(50000))
+                         entry.Fee(50000 * SATOSHI)
                              .Time(GetTime())
                              .SpendsCoinbase(false)
                              .FromTx(tx));
@@ -160,10 +160,10 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // transaction and replace with a higher fee transaction
     mempool.removeRecursive(CTransaction(tx));
     // Now we should be just over the min relay fee.
-    tx.vout[0].nValue -= Amount(2);
+    tx.vout[0].nValue -= 2 * SATOSHI;
     lowFeeTxId = tx.GetId();
     mempool.addUnchecked(lowFeeTxId,
-                         entry.Fee(feeToUse + Amount(2)).FromTx(tx));
+                         entry.Fee(feeToUse + 2 * SATOSHI).FromTx(tx));
     pblocktemplate = BlockAssembler(config).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[4]->GetId() == freeTxId);
     BOOST_CHECK(pblocktemplate->block.vtx[5]->GetId() == lowFeeTxId);
@@ -175,7 +175,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vout.resize(2);
     tx.vout[0].nValue = Amount(5000000000LL - 100000000);
     // 1BCC output.
-    tx.vout[1].nValue = Amount(100000000);
+    tx.vout[1].nValue = 100000000 * SATOSHI;
     TxId freeTxId2 = tx.GetId();
     mempool.addUnchecked(
         freeTxId2, entry.Fee(Amount::zero()).SpendsCoinbase(true).FromTx(tx));
@@ -184,7 +184,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vin[0].prevout = COutPoint(freeTxId2, 0);
     tx.vout.resize(1);
     feeToUse = blockMinFeeRate.GetFee(freeTxSize);
-    tx.vout[0].nValue = Amount(5000000000LL) - Amount(100000000) - feeToUse;
+    tx.vout[0].nValue = 5000000000 * SATOSHI - 100000000 * SATOSHI - feeToUse;
     TxId lowFeeTxId2 = tx.GetId();
     mempool.addUnchecked(lowFeeTxId2,
                          entry.Fee(feeToUse).SpendsCoinbase(false).FromTx(tx));
@@ -201,7 +201,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vin[0].prevout = COutPoint(freeTxId2, 1);
     // 10k satoshi fee.
     tx.vout[0].nValue = Amount(100000000 - 10000);
-    mempool.addUnchecked(tx.GetId(), entry.Fee(Amount(10000)).FromTx(tx));
+    mempool.addUnchecked(tx.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx));
     pblocktemplate = BlockAssembler(config).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == lowFeeTxId2);
 }
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     CScript script;
     uint256 hash;
     TestMemPoolEntryHelper entry;
-    entry.nFee = Amount(11);
+    entry.nFee = 11 * SATOSHI;
     entry.dPriority = 111.0;
     entry.nHeight = 11;
 

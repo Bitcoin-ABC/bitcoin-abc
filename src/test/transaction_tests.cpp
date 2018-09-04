@@ -428,13 +428,13 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
         mtx.vin[i].prevout = outpoint;
         mtx.vin[i].scriptSig = CScript();
 
-        mtx.vout.emplace_back(Amount(1000), CScript() << OP_1);
+        mtx.vout.emplace_back(1000 * SATOSHI, CScript() << OP_1);
     }
 
     // sign all inputs
     for (size_t i = 0; i < mtx.vin.size(); i++) {
         bool hashSigned =
-            SignSignature(keystore, scriptPubKey, mtx, i, Amount(1000),
+            SignSignature(keystore, scriptPubKey, mtx, i, 1000 * SATOSHI,
                           sigHashes.at(i % sigHashes.size()));
         BOOST_CHECK_MESSAGE(hashSigned, "Failed to sign test transaction");
     }
@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
     std::vector<Coin> coins;
     for (size_t i = 0; i < mtx.vin.size(); i++) {
         CTxOut out;
-        out.nValue = Amount(1000);
+        out.nValue = 1000 * SATOSHI;
         out.scriptPubKey = scriptPubKey;
         coins.emplace_back(std::move(out), 1, false);
     }
@@ -626,7 +626,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
     // Check dust with default relay fee:
     Amount nDustThreshold = 3 * 182 * dustRelayFee.GetFeePerK() / 1000;
-    BOOST_CHECK_EQUAL(nDustThreshold, Amount(546));
+    BOOST_CHECK_EQUAL(nDustThreshold, 546 * SATOSHI);
     // dust:
     t.vout[0].nValue = nDustThreshold - SATOSHI;
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
@@ -636,12 +636,12 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
 
     // Check dust with odd relay fee to verify rounding:
     // nDustThreshold = 182 * 1234 / 1000 * 3
-    dustRelayFee = CFeeRate(Amount(1234));
+    dustRelayFee = CFeeRate(1234 * SATOSHI);
     // dust:
     t.vout[0].nValue = Amount(672 - 1);
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
     // not dust:
-    t.vout[0].nValue = Amount(672);
+    t.vout[0].nValue = 672 * SATOSHI;
     BOOST_CHECK(IsStandardTx(CTransaction(t), reason));
     dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
 

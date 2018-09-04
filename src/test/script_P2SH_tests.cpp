@@ -335,13 +335,13 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
 
     // P2SH (OP_CHECKSIG)
     txFrom.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(pay1));
-    txFrom.vout[0].nValue = Amount(1000);
+    txFrom.vout[0].nValue = 1000 * SATOSHI;
     // ordinary OP_CHECKSIG
     txFrom.vout[1].scriptPubKey = pay1;
-    txFrom.vout[1].nValue = Amount(2000);
+    txFrom.vout[1].nValue = 2000 * SATOSHI;
     // ordinary OP_CHECKMULTISIG
     txFrom.vout[2].scriptPubKey = pay1of3;
-    txFrom.vout[2].nValue = Amount(3000);
+    txFrom.vout[2].nValue = 3000 * SATOSHI;
 
     // vout[3] is complicated 1-of-3 AND 2-of-3
     // ... that is OK if wrapped in P2SH:
@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     oneAndTwo << OP_3 << OP_CHECKMULTISIG;
     keystore.AddCScript(oneAndTwo);
     txFrom.vout[3].scriptPubKey = GetScriptForDestination(CScriptID(oneAndTwo));
-    txFrom.vout[3].nValue = Amount(4000);
+    txFrom.vout[3].nValue = 4000 * SATOSHI;
 
     // vout[4] is max sigops:
     CScript fifteenSigops;
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     keystore.AddCScript(fifteenSigops);
     txFrom.vout[4].scriptPubKey =
         GetScriptForDestination(CScriptID(fifteenSigops));
-    txFrom.vout[4].nValue = Amount(5000);
+    txFrom.vout[4].nValue = 5000 * SATOSHI;
 
     // vout[5/6] are non-standard because they exceed MAX_P2SH_SIGOPS
     CScript sixteenSigops;
@@ -376,13 +376,13 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     keystore.AddCScript(sixteenSigops);
     txFrom.vout[5].scriptPubKey =
         GetScriptForDestination(CScriptID(fifteenSigops));
-    txFrom.vout[5].nValue = Amount(5000);
+    txFrom.vout[5].nValue = 5000 * SATOSHI;
     CScript twentySigops;
     twentySigops << OP_CHECKMULTISIG;
     keystore.AddCScript(twentySigops);
     txFrom.vout[6].scriptPubKey =
         GetScriptForDestination(CScriptID(twentySigops));
-    txFrom.vout[6].nValue = Amount(6000);
+    txFrom.vout[6].nValue = 6000 * SATOSHI;
 
     AddCoins(coins, CTransaction(txFrom), 0);
 
@@ -424,7 +424,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd1.vout.resize(1);
     txToNonStd1.vout[0].scriptPubKey =
         GetScriptForDestination(key[1].GetPubKey().GetID());
-    txToNonStd1.vout[0].nValue = Amount(1000);
+    txToNonStd1.vout[0].nValue = 1000 * SATOSHI;
     txToNonStd1.vin.resize(1);
     txToNonStd1.vin[0].prevout = COutPoint(txFrom.GetId(), 5);
     txToNonStd1.vin[0].scriptSig
@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txToNonStd2.vout.resize(1);
     txToNonStd2.vout[0].scriptPubKey =
         GetScriptForDestination(key[1].GetPubKey().GetID());
-    txToNonStd2.vout[0].nValue = Amount(1000);
+    txToNonStd2.vout[0].nValue = 1000 * SATOSHI;
     txToNonStd2.vin.resize(1);
     txToNonStd2.vin[0].prevout = COutPoint(txFrom.GetId(), 6);
     txToNonStd2.vin[0].scriptSig

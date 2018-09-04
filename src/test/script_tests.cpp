@@ -1478,7 +1478,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12) {
         MutableTransactionSignatureChecker(&txTo12, 0, txFrom12.vout[0].nValue),
         &err));
     BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK, ScriptErrorString(err));
-    txTo12.vout[0].nValue = Amount(2);
+    txTo12.vout[0].nValue = 2 * SATOSHI;
     BOOST_CHECK(!VerifyScript(
         goodsig1, scriptPubKey12, flags,
         MutableTransactionSignatureChecker(&txTo12, 0, txFrom12.vout[0].nValue),

@@ -349,16 +349,16 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
         // test with many inputs
-        for (Amount amt = Amount(1500); amt < COIN; amt = 10 * amt) {
+        for (Amount amt = 1500 * SATOSHI; amt < COIN; amt = 10 * amt) {
             empty_wallet();
             // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
             // bytes per input)
             for (uint16_t j = 0; j < 676; j++) {
                 add_coin(wallet, amt);
             }
-            BOOST_CHECK(wallet.SelectCoinsMinConf(Amount(2000), 1, 1, 0, vCoins,
-                                                  setCoinsRet, nValueRet));
-            if (amt - Amount(2000) < MIN_CHANGE) {
+            BOOST_CHECK(wallet.SelectCoinsMinConf(
+                2000 * SATOSHI, 1, 1, 0, vCoins, setCoinsRet, nValueRet));
+            if (amt - 2000 * SATOSHI < MIN_CHANGE) {
                 // needs more than one input:
                 uint16_t returnSize = std::ceil(
                     double(2000 + (MIN_CHANGE / SATOSHI)) / (amt / SATOSHI));

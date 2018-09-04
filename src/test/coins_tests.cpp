@@ -500,7 +500,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss1 >> c1;
     BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c1.GetHeight(), 203998U);
-    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, Amount(60000000000LL));
+    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, 60000000000 * SATOSHI);
     BOOST_CHECK_EQUAL(HexStr(c1.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "816115944e077fe7c803cfa57f29b36bf87c1d35"))))));
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss2 >> c2;
     BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
     BOOST_CHECK_EQUAL(c2.GetHeight(), 120891);
-    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, Amount(110397LL));
+    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, 110397 * SATOSHI);
     BOOST_CHECK_EQUAL(HexStr(c2.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "8c988f1a4a4de2161e0f50aac7f17e7f9555caa4"))))));
