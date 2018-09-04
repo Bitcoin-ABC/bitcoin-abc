@@ -37,6 +37,8 @@ static void SetupCliArgs() {
         CreateBaseChainParams(CBaseChainParams::MAIN);
     const auto testnetBaseParams =
         CreateBaseChainParams(CBaseChainParams::TESTNET);
+    const auto regtestBaseParams =
+        CreateBaseChainParams(CBaseChainParams::REGTEST);
 
     gArgs.AddArg("-?", "This help message", false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-version", "Print version and exit", false,
@@ -71,11 +73,13 @@ static void SetupCliArgs() {
                  "Location of the auth cookie. Relative paths will be prefixed "
                  "by a net-specific datadir location. (default: data dir)",
                  false, OptionsCategory::OPTIONS);
-    gArgs.AddArg(
-        "-rpcport=<port>",
-        strprintf("Connect to JSON-RPC on <port> (default: %u or testnet: %u)",
-                  defaultBaseParams->RPCPort(), testnetBaseParams->RPCPort()),
-        false, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-rpcport=<port>",
+                 strprintf("Connect to JSON-RPC on <port> (default: %u, "
+                           "testnet: %u, regtest: %u)",
+                           defaultBaseParams->RPCPort(),
+                           testnetBaseParams->RPCPort(),
+                           regtestBaseParams->RPCPort()),
+                 false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-rpcwait", "Wait for RPC server to start", false,
                  OptionsCategory::OPTIONS);
     gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections", false,
