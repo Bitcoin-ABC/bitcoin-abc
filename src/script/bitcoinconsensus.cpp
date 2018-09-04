@@ -21,17 +21,20 @@ public:
           m_remaining(txToLen) {}
 
     void read(char *pch, size_t nSize) {
-        if (nSize > m_remaining)
+        if (nSize > m_remaining) {
             throw std::ios_base::failure(std::string(__func__) +
                                          ": end of data");
+        }
 
-        if (pch == nullptr)
+        if (pch == nullptr) {
             throw std::ios_base::failure(std::string(__func__) +
                                          ": bad destination buffer");
+        }
 
-        if (m_data == nullptr)
+        if (m_data == nullptr) {
             throw std::ios_base::failure(std::string(__func__) +
                                          ": bad source buffer");
+        }
 
         memcpy(pch, m_data, nSize);
         m_remaining -= nSize;
@@ -55,7 +58,10 @@ private:
 
 inline int set_error(bitcoinconsensus_error *ret,
                      bitcoinconsensus_error serror) {
-    if (ret) *ret = serror;
+    if (ret) {
+        *ret = serror;
+    }
+
     return 0;
 }
 
@@ -82,10 +88,13 @@ static int verify_script(const uint8_t *scriptPubKey,
     try {
         TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
         CTransaction tx(deserialize, stream);
-        if (nIn >= tx.vin.size())
+        if (nIn >= tx.vin.size()) {
             return set_error(err, bitcoinconsensus_ERR_TX_INDEX);
-        if (GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) != txToLen)
+        }
+
+        if (GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) != txToLen) {
             return set_error(err, bitcoinconsensus_ERR_TX_SIZE_MISMATCH);
+        }
 
         // Regardless of the verification result, the tx did not error.
         set_error(err, bitcoinconsensus_ERR_OK);
@@ -105,7 +114,7 @@ int bitcoinconsensus_verify_script_with_amount(
     const uint8_t *scriptPubKey, unsigned int scriptPubKeyLen, int64_t amount,
     const uint8_t *txTo, unsigned int txToLen, unsigned int nIn,
     unsigned int flags, bitcoinconsensus_error *err) {
-    Amount am(amount);
+    Amount am(amount * SATOSHI);
     return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
                            nIn, flags, err);
 }
@@ -120,9 +129,8 @@ int bitcoinconsensus_verify_script(const uint8_t *scriptPubKey,
         return set_error(err, bitcoinconsensus_ERR_AMOUNT_REQUIRED);
     }
 
-    Amount am(0);
-    return ::verify_script(scriptPubKey, scriptPubKeyLen, am, txTo, txToLen,
-                           nIn, flags, err);
+    return ::verify_script(scriptPubKey, scriptPubKeyLen, Amount::zero(), txTo,
+                           txToLen, nIn, flags, err);
 }
 
 unsigned int bitcoinconsensus_version() {
