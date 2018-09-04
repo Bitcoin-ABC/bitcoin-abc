@@ -18,13 +18,9 @@ struct Amount {
 private:
     int64_t amount;
 
-public:
-    template <typename T>
-    explicit constexpr Amount(T _camount) : amount(_camount) {
-        static_assert(std::is_integral<T>(),
-                      "Only integer types can be used as amounts");
-    }
+    explicit constexpr Amount(int64_t _amount) : amount(_amount) {}
 
+public:
     constexpr Amount() : amount(0) {}
     constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
 
