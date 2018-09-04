@@ -28,14 +28,14 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(1000), 1000 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(9000), 9000 * SATOSHI);
 
-    feeRate = CFeeRate(Amount(-1000));
+    feeRate = CFeeRate(-1000 * SATOSHI);
     // Must always just return -1 * arg
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount::zero());
     BOOST_CHECK_EQUAL(feeRate.GetFee(1), -SATOSHI);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), Amount(-121));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), Amount(-999));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), Amount(-1000));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9000), Amount(-9000));
+    BOOST_CHECK_EQUAL(feeRate.GetFee(121), -121 * SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(999), -999 * SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1000), -1000 * SATOSHI);
+    BOOST_CHECK_EQUAL(feeRate.GetFee(9000), -9000 * SATOSHI);
 
     feeRate = CFeeRate(123 * SATOSHI);
     // Truncates the result, if not integer
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     BOOST_CHECK_EQUAL(feeRate.GetFee(1000), 123 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(9000), 1107 * SATOSHI);
 
-    feeRate = CFeeRate(Amount(-123));
+    feeRate = CFeeRate(-123 * SATOSHI);
     // Truncates the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount::zero());
     // Special case: returns -1 instead of 0

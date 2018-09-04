@@ -21,7 +21,7 @@ static void GetResults(std::map<Amount, CAccountingEntry> &results) {
     BOOST_CHECK(pwalletMain->ReorderTransactions() == DB_LOAD_OK);
     pwalletMain->ListAccountCreditDebit("", aes);
     for (CAccountingEntry &ae : aes) {
-        results[Amount(ae.nOrderPos)] = ae;
+        results[ae.nOrderPos * SATOSHI] = ae;
     }
 }
 

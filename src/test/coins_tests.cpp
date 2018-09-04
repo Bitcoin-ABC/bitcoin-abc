@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
             if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
-                txout.nValue = Amount(int64_t(insecure_rand()));
+                txout.nValue = int64_t(insecure_rand()) * SATOSHI;
                 if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             tx.vin.resize(1);
             tx.vout.resize(1);
             // Keep txs unique unless intended to duplicate.
-            tx.vout[0].nValue = Amount(i);
+            tx.vout[0].nValue = i * SATOSHI;
             // Random sizes so we can test memory usage accounting
             tx.vout[0].scriptPubKey.assign(insecure_rand() & 0x3F, 0);
             unsigned int height = insecure_rand();
@@ -551,12 +551,12 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
 }
 
 static const COutPoint OUTPOINT;
-static const Amount PRUNED(-1);
-static const Amount ABSENT(-2);
-static const Amount FAIL(-3);
-static const Amount VALUE1(100);
-static const Amount VALUE2(200);
-static const Amount VALUE3(300);
+static const Amount PRUNED(-1 * SATOSHI);
+static const Amount ABSENT(-2 * SATOSHI);
+static const Amount FAIL(-3 * SATOSHI);
+static const Amount VALUE1(100 * SATOSHI);
+static const Amount VALUE2(200 * SATOSHI);
+static const Amount VALUE3(300 * SATOSHI);
 static const char DIRTY = CCoinsCacheEntry::DIRTY;
 static const char FRESH = CCoinsCacheEntry::FRESH;
 static const char NO_ENTRY = -1;

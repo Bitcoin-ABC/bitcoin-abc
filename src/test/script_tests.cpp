@@ -1087,7 +1087,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
             .PushSig(keys.key0)
             .PushRedeem());
 
-    static const Amount TEST_AMOUNT(12345000000000);
+    static const Amount TEST_AMOUNT(12345000000000 * SATOSHI);
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey0) << OP_CHECKSIG,
                     "P2PK FORKID", SCRIPT_ENABLE_SIGHASH_FORKID, false,
@@ -1353,7 +1353,7 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
         std::string strTest = test.write();
-        Amount nValue(0);
+        Amount nValue = Amount::zero();
         unsigned int pos = 0;
         if (test.size() > 0 && test[pos].isArray()) {
             nValue = AmountFromValue(test[pos][0]);
@@ -1619,7 +1619,7 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23) {
 
 BOOST_AUTO_TEST_CASE(script_combineSigs) {
     // Test the CombineSignatures function
-    Amount amount(0);
+    Amount amount = Amount::zero();
     CBasicKeyStore keystore;
     std::vector<CKey> keys;
     std::vector<CPubKey> pubkeys;

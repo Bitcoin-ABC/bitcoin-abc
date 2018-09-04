@@ -81,7 +81,8 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
-                    mapprevOutValues[outpoint] = Amount(vinput[3].get_int64());
+                    mapprevOutValues[outpoint] =
+                        vinput[3].get_int64() * SATOSHI;
                 }
             }
             if (!fValid) {
@@ -108,9 +109,9 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     break;
                 }
 
-                Amount amount(0);
+                Amount amount = Amount::zero();
                 if (mapprevOutValues.count(tx.vin[i].prevout)) {
-                    amount = Amount(mapprevOutValues[tx.vin[i].prevout]);
+                    amount = mapprevOutValues[tx.vin[i].prevout];
                 }
 
                 uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
@@ -172,7 +173,8 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                 mapprevOutScriptPubKeys[outpoint] =
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
-                    mapprevOutValues[outpoint] = Amount(vinput[3].get_int64());
+                    mapprevOutValues[outpoint] =
+                        vinput[3].get_int64() * SATOSHI;
                 }
             }
             if (!fValid) {
@@ -195,7 +197,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     break;
                 }
 
-                Amount amount(0);
+                Amount amount = Amount::zero();
                 if (0 != mapprevOutValues.count(tx.vin[i].prevout)) {
                     amount = mapprevOutValues[tx.vin[i].prevout];
                 }
@@ -638,7 +640,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // nDustThreshold = 182 * 1234 / 1000 * 3
     dustRelayFee = CFeeRate(1234 * SATOSHI);
     // dust:
-    t.vout[0].nValue = Amount(672 - 1);
+    t.vout[0].nValue = (672 - 1) * SATOSHI;
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
     // not dust:
     t.vout[0].nValue = 672 * SATOSHI;

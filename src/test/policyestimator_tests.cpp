@@ -17,8 +17,8 @@ BOOST_FIXTURE_TEST_SUITE(policyestimator_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
     CTxMemPool mpool;
     TestMemPoolEntryHelper entry;
-    Amount basefee(2000);
-    Amount deltaFee(100);
+    Amount basefee = 2000 * SATOSHI;
+    Amount deltaFee = 100 * SATOSHI;
     std::vector<Amount> feeV;
 
     // Populate vectors of increasing fees

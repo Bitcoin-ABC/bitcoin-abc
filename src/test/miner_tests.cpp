@@ -95,7 +95,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vout.resize(1);
-    tx.vout[0].nValue = Amount(5000000000LL - 1000);
+    tx.vout[0].nValue = int64_t(5000000000LL - 1000) * SATOSHI;
     // This tx has a low fee: 1000 satoshis.
     // Save this txid for later use.
     TxId parentTxId = tx.GetId();
@@ -107,7 +107,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
 
     // This tx has a medium fee: 10000 satoshis.
     tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
-    tx.vout[0].nValue = Amount(5000000000LL - 10000);
+    tx.vout[0].nValue = int64_t(5000000000LL - 10000) * SATOSHI;
     TxId mediumFeeTxId = tx.GetId();
     mempool.addUnchecked(mediumFeeTxId,
                          entry.Fee(10000 * SATOSHI)
@@ -118,7 +118,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // This tx has a high fee, but depends on the first transaction.
     tx.vin[0].prevout = COutPoint(parentTxId, 0);
     // 50k satoshi fee.
-    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
+    tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId highFeeTxId = tx.GetId();
     mempool.addUnchecked(highFeeTxId,
                          entry.Fee(50000 * SATOSHI)
@@ -135,7 +135,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // Test that a package below the block min tx fee doesn't get included
     tx.vin[0].prevout = COutPoint(highFeeTxId, 0);
     // 0 fee.
-    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000);
+    tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId freeTxId = tx.GetId();
     mempool.addUnchecked(freeTxId, entry.Fee(Amount::zero()).FromTx(tx));
     size_t freeTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
@@ -145,7 +145,8 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     Amount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - SATOSHI;
 
     tx.vin[0].prevout = COutPoint(freeTxId, 0);
-    tx.vout[0].nValue = Amount(5000000000LL - 1000 - 50000) - feeToUse;
+    tx.vout[0].nValue =
+        int64_t(5000000000LL - 1000 - 50000) * SATOSHI - feeToUse;
     TxId lowFeeTxId = tx.GetId();
     mempool.addUnchecked(lowFeeTxId, entry.Fee(feeToUse).FromTx(tx));
     pblocktemplate = BlockAssembler(config).CreateNewBlock(scriptPubKey);
@@ -173,7 +174,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // 0-fee transaction that has 2 outputs.
     tx.vin[0].prevout = COutPoint(txFirst[2]->GetId(), 0);
     tx.vout.resize(2);
-    tx.vout[0].nValue = Amount(5000000000LL - 100000000);
+    tx.vout[0].nValue = int64_t(5000000000LL - 100000000) * SATOSHI;
     // 1BCC output.
     tx.vout[1].nValue = 100000000 * SATOSHI;
     TxId freeTxId2 = tx.GetId();
@@ -184,7 +185,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vin[0].prevout = COutPoint(freeTxId2, 0);
     tx.vout.resize(1);
     feeToUse = blockMinFeeRate.GetFee(freeTxSize);
-    tx.vout[0].nValue = 5000000000 * SATOSHI - 100000000 * SATOSHI - feeToUse;
+    tx.vout[0].nValue = int64_t(5000000000LL - 100000000) * SATOSHI - feeToUse;
     TxId lowFeeTxId2 = tx.GetId();
     mempool.addUnchecked(lowFeeTxId2,
                          entry.Fee(feeToUse).SpendsCoinbase(false).FromTx(tx));
@@ -200,7 +201,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     // well.
     tx.vin[0].prevout = COutPoint(freeTxId2, 1);
     // 10k satoshi fee.
-    tx.vout[0].nValue = Amount(100000000 - 10000);
+    tx.vout[0].nValue = (100000000 - 10000) * SATOSHI;
     mempool.addUnchecked(tx.GetId(), entry.Fee(10000 * SATOSHI).FromTx(tx));
     pblocktemplate = BlockAssembler(config).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == lowFeeTxId2);

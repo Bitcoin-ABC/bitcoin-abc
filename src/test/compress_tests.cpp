@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(compress_amounts) {
     BOOST_CHECK(TestPair(21000000 * COIN, 0x1406f40));
 
     for (int64_t i = 1; i <= NUM_MULTIPLES_UNIT; i++) {
-        BOOST_CHECK(TestEncode(Amount(i)));
+        BOOST_CHECK(TestEncode(i * SATOSHI));
     }
 
     for (int64_t i = 1; i <= NUM_MULTIPLES_CENT; i++) {

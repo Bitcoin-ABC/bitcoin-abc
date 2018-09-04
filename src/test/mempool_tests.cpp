@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     uint64_t tx7Size = CTransaction(tx7).GetTotalSize();
 
     /* set the fee to just below tx2's feerate when including ancestor */
-    Amount fee((20000 / tx2Size) * (tx7Size + tx6Size) - 1);
+    Amount fee = int64_t((20000 / tx2Size) * (tx7Size + tx6Size) - 1) * SATOSHI;
 
     // CTxMemPoolEntry entry7(tx7, fee, 2, 10.0, 1, true);
     pool.addUnchecked(tx7.GetId(), entry.Fee(Amount(fee)).FromTx(tx7));
@@ -479,10 +479,11 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
 
     sortedOrder.erase(sortedOrder.begin() + 1);
     // Ties are broken by hash
-    if (tx3.GetId() < tx6.GetId())
+    if (tx3.GetId() < tx6.GetId()) {
         sortedOrder.pop_back();
-    else
+    } else {
         sortedOrder.erase(sortedOrder.end() - 2);
+    }
     sortedOrder.insert(sortedOrder.begin(), tx7.GetId().ToString());
     CheckSort<ancestor_score>(pool, sortedOrder,
                               "MempoolAncestorIndexingTest4");
