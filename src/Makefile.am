@@ -93,7 +93,6 @@ BITCOIN_CORE_H = \
   blockencodings.h \
   blockfileinfo.h \
   blockindexworkcomparator.h \
-  blockstatus.h \
   blockvalidity.h \
   cashaddr.h \
   cashaddrenc.h \
