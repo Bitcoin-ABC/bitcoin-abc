@@ -29,7 +29,7 @@ static const uint64_t DEFAULT_BLOCK_PRIORITY_PERCENTAGE = 5;
  * Default for -blockmintxfee, which sets the minimum feerate for a transaction
  * in blocks created by mining code.
  */
-static const Amount DEFAULT_BLOCK_MIN_TX_FEE(1000);
+static const Amount DEFAULT_BLOCK_MIN_TX_FEE(1000 * SATOSHI);
 /**
  * The maximum size for transactions we're willing to relay/mine.
  */
@@ -73,7 +73,7 @@ static const unsigned int DEFAULT_BYTES_PER_SIGOP = 20;
  * only increase the dust limit after prior releases were already not creating
  * outputs below the new threshold.
  */
-static const Amount DUST_RELAY_TX_FEE(1000);
+static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
 
 /**
  * Standard script verification flags that standard transactions will comply

@@ -42,13 +42,13 @@ extern bool bSpendZeroConfChange;
 
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
 //! -paytxfee default
-static const Amount DEFAULT_TRANSACTION_FEE(0);
+static const Amount DEFAULT_TRANSACTION_FEE = Amount::zero();
 //! -fallbackfee default
-static const Amount DEFAULT_FALLBACK_FEE(20000);
+static const Amount DEFAULT_FALLBACK_FEE(20000 * SATOSHI);
 //! -mintxfee default
-static const Amount DEFAULT_TRANSACTION_MINFEE(1000);
+static const Amount DEFAULT_TRANSACTION_MINFEE(1000 * SATOSHI);
 //! minimum recommended increment for BIP 125 replacement txs
-static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000);
+static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000 * SATOSHI);
 //! target minimum change amount
 static const Amount MIN_CHANGE = CENT;
 //! final minimum change amount after paying for fees
@@ -436,7 +436,7 @@ public:
                     const isminefilter &filter) const;
 
     bool IsFromMe(const isminefilter &filter) const {
-        return (GetDebit(filter) > Amount::zero());
+        return GetDebit(filter) > Amount::zero();
     }
 
     // True if only scriptSigs are different

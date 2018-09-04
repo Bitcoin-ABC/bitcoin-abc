@@ -109,7 +109,7 @@ struct TestMemPoolEntryHelper {
     LockPoints lp;
 
     TestMemPoolEntryHelper()
-        : nFee(0), nTime(0), dPriority(0.0), nHeight(1), spendsCoinbase(false),
+        : nFee(), nTime(0), dPriority(0.0), nHeight(1), spendsCoinbase(false),
           sigOpCost(4) {}
 
     CTxMemPoolEntry FromTx(const CMutableTransaction &tx,

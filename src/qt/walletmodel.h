@@ -38,7 +38,7 @@ QT_END_NAMESPACE
 class SendCoinsRecipient {
 public:
     explicit SendCoinsRecipient()
-        : amount(0), fSubtractFeeFromAmount(false),
+        : amount(), fSubtractFeeFromAmount(false),
           nVersion(SendCoinsRecipient::CURRENT_VERSION) {}
     explicit SendCoinsRecipient(const QString &addr, const QString &_label,
                                 const Amount _amount, const QString &_message)

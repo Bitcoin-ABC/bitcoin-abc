@@ -24,20 +24,25 @@ private:
     Amount nSatoshisPerK;
 
 public:
-    /** Fee rate of 0 satoshis per kB */
-    CFeeRate() : nSatoshisPerK(0) {}
+    /**
+     * Fee rate of 0 satoshis per kB.
+     */
+    CFeeRate() : nSatoshisPerK() {}
     explicit CFeeRate(const Amount _nSatoshisPerK)
         : nSatoshisPerK(_nSatoshisPerK) {}
+
     /**
      * Constructor for a fee rate in satoshis per kB. The size in bytes must not
      * exceed (2^63 - 1)
      */
     CFeeRate(const Amount nFeePaid, size_t nBytes);
     CFeeRate(const CFeeRate &other) { nSatoshisPerK = other.nSatoshisPerK; }
+
     /**
      * Return the fee in satoshis for the given size in bytes.
      */
     Amount GetFee(size_t nBytes) const;
+
     /**
      * Return the ceiling of a fee calculation in satoshis for the given size in
      * bytes.

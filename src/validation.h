@@ -59,9 +59,9 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const Amount DEFAULT_MIN_RELAY_TX_FEE(1000);
+static const Amount DEFAULT_MIN_RELAY_TX_FEE(1000 * SATOSHI);
 /** Default for -excessutxocharge for transactions transactions */
-static const Amount DEFAULT_UTXO_FEE(0);
+static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 //! -maxtxfee default
 static const Amount DEFAULT_TRANSACTION_MAXFEE(COIN / 10);
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
@@ -591,7 +591,7 @@ private:
 
 public:
     CScriptCheck()
-        : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
+        : amount(), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
 
     CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
