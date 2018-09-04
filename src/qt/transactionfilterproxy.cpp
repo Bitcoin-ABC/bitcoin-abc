@@ -37,17 +37,28 @@ bool TransactionFilterProxy::filterAcceptsRow(
         llabs(index.data(TransactionTableModel::AmountRole).toLongLong()));
     int status = index.data(TransactionTableModel::StatusRole).toInt();
 
-    if (!showInactive && status == TransactionStatus::Conflicted) return false;
-    if (!(TYPE(type) & typeFilter)) return false;
-    if (involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_No)
+    if (!showInactive && status == TransactionStatus::Conflicted) {
         return false;
-    if (!involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_Yes)
+    }
+    if (!(TYPE(type) & typeFilter)) {
         return false;
-    if (datetime < dateFrom || datetime > dateTo) return false;
+    }
+    if (involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_No) {
+        return false;
+    }
+    if (!involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_Yes) {
+        return false;
+    }
+    if (datetime < dateFrom || datetime > dateTo) {
+        return false;
+    }
     if (!address.contains(addrPrefix, Qt::CaseInsensitive) &&
-        !label.contains(addrPrefix, Qt::CaseInsensitive))
+        !label.contains(addrPrefix, Qt::CaseInsensitive)) {
         return false;
-    if (amount < minAmount) return false;
+    }
+    if (amount < minAmount) {
+        return false;
+    }
 
     return true;
 }
