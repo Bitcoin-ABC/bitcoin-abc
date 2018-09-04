@@ -546,7 +546,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
         Coin c4;
         ss4 >> c4;
         BOOST_CHECK_MESSAGE(false, "We should have thrown");
-    } catch (const std::ios_base::failure &e) {
+    } catch (const std::ios_base::failure &) {
     }
 
     // Very large scriptPubKey (3*10^9 bytes) past the end of the stream
@@ -559,7 +559,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
         Coin c5;
         ss5 >> c5;
         BOOST_CHECK_MESSAGE(false, "We should have thrown");
-    } catch (const std::ios_base::failure &e) {
+    } catch (const std::ios_base::failure &) {
     }
 }
 
@@ -760,7 +760,7 @@ static void CheckAddCoinBase(Amount base_value, Amount cache_value,
                            coinbase);
         test.cache.SelfTest();
         GetCoinMapEntry(test.cache.map(), result_value, result_flags);
-    } catch (std::logic_error &e) {
+    } catch (std::logic_error &) {
         result_value = FAIL;
         result_flags = NO_ENTRY;
     }
@@ -821,7 +821,7 @@ void CheckWriteCoin(Amount parent_value, Amount child_value,
         WriteCoinViewEntry(test.cache, child_value, child_flags);
         test.cache.SelfTest();
         GetCoinMapEntry(test.cache.map(), result_value, result_flags);
-    } catch (std::logic_error &e) {
+    } catch (std::logic_error &) {
         result_value = FAIL;
         result_flags = NO_ENTRY;
     }
