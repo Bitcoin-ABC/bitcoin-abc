@@ -214,7 +214,7 @@ static bool checkCORS(HTTPRequest *req) {
         // set any additional headers and terminate this set of steps.
         // Note: Always matching is acceptable since the list of headers can
         // be unbounded.
-        const std::string& list_of_headers = "authorization,content-type";
+        const std::string &list_of_headers = "authorization,content-type";
 
         // 7. If the resource supports credentials add a single
         // Access-Control-Allow-Origin header, with the value of the Origin
@@ -242,10 +242,9 @@ static bool checkCORS(HTTPRequest *req) {
         // is Content-Type, this step may be skipped.
         // Add one or more Access-Control-Allow-Headers headers consisting
         // of (a subset of) the list of headers.
-        req->WriteHeader(
-            "Access-Control-Allow-Headers",
-            header_field_names.first ? header_field_names.second
-                                        : list_of_headers);
+        req->WriteHeader("Access-Control-Allow-Headers",
+                         header_field_names.first ? header_field_names.second
+                                                  : list_of_headers);
         req->WriteReply(HTTP_OK);
         return true;
     }
