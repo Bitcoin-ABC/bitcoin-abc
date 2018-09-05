@@ -632,13 +632,13 @@ public:
      * new mempool entries may have children in the mempool (which is generally
      * not the case when otherwise adding transactions).
      * UpdateTransactionsFromBlock() will find child transactions and update the
-     * descendant state for each transaction in hashesToUpdate (excluding any
-     * child transactions present in hashesToUpdate, which are already accounted
-     * for).  Note: hashesToUpdate should be the set of transactions from the
+     * descendant state for each transaction in txidsToUpdate (excluding any
+     * child transactions present in txidsToUpdate, which are already accounted
+     * for).
+     * Note: txidsToUpdate should be the set of transactions from the
      * disconnected block that have been accepted back into the mempool.
      */
-    void
-    UpdateTransactionsFromBlock(const std::vector<uint256> &hashesToUpdate);
+    void UpdateTransactionsFromBlock(const std::vector<TxId> &txidsToUpdate);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -661,7 +661,8 @@ public:
     /**
      * Populate setDescendants with all in-mempool descendants of hash.
      * Assumes that setDescendants includes all in-mempool descendants of
-     * anything already in it.  */
+     * anything already in it.
+     */
     void CalculateDescendants(txiter it, setEntries &setDescendants);
 
     /**
@@ -761,7 +762,7 @@ private:
      * transaction again, if encountered in another transaction chain.
      */
     void UpdateForDescendants(txiter updateIt, cacheMap &cachedDescendants,
-                              const std::set<uint256> &setExclude);
+                              const std::set<TxId> &setExclude);
     /**
      * Update ancestors of hash to add/remove it as a descendant transaction.
      */
