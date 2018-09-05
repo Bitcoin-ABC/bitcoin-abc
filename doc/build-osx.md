@@ -61,6 +61,15 @@ Before you start building, please make sure that your compiler supports C++14.
 
         make deploy
 
+Disable-wallet mode
+--------------------
+When the intention is to run only a P2P node without a wallet, Bitcoin ABC may be compiled in
+disable-wallet mode with:
+
+    ./configure --disable-wallet
+
+Mining is also possible in disable-wallet mode using the `getblocktemplate` RPC call.
+
 Running
 -------
 
