@@ -672,10 +672,6 @@ private:
 
     std::unique_ptr<CWalletDBWrapper> dbw;
 
-    // Used to NotifyTransactionChanged of the previous block's coinbase when
-    // the next block comes in
-    uint256 hashPrevBestCoinbase;
-
 public:
     const CChainParams &chainParams;
     /*
