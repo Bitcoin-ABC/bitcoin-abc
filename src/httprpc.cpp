@@ -55,12 +55,8 @@ private:
     struct event_base *base;
 };
 
-/* Pre-base64-encoded authentication token */
-static std::string strRPCUserColonPass;
 /* Stored RPC timer interface (for unregistration) */
 static HTTPRPCTimerInterface *httpRPCTimerInterface = 0;
-/* RPC CORS Domain, allowed Origin */
-static std::string strRPCCORSDomain;
 
 static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
                            const UniValue &id) {
@@ -125,10 +121,10 @@ static bool multiUserAuthorized(std::string strUserPass) {
     return false;
 }
 
-static bool RPCAuthorized(const std::string &strAuth,
+static bool RPCAuthorized(Config &config, const std::string &strAuth,
                           std::string &strAuthUsernameOut) {
     // Belt-and-suspenders measure if InitRPCAuthentication was not called.
-    if (strRPCUserColonPass.empty()) {
+    if (config.GetRPCUserAndPassword().empty()) {
         return false;
     }
 
@@ -145,13 +141,13 @@ static bool RPCAuthorized(const std::string &strAuth,
     }
 
     // Check if authorized under single-user field
-    if (TimingResistantEqual(strUserPass, strRPCUserColonPass)) {
+    if (TimingResistantEqual(strUserPass, config.GetRPCUserAndPassword())) {
         return true;
     }
     return multiUserAuthorized(strUserPass);
 }
 
-static bool checkCORS(HTTPRequest *req) {
+static bool checkCORS(Config &config, HTTPRequest *req) {
     // https://www.w3.org/TR/cors/#resource-requests
 
     // 1. If the Origin header is not present terminate this set of steps.
@@ -166,7 +162,7 @@ static bool checkCORS(HTTPRequest *req) {
     // and terminate this set of steps.
     // Note: Always matching is acceptable since the list of origins can be
     // unbounded.
-    if (origin.second != strRPCCORSDomain) {
+    if (origin.second != config.GetRPCCORSDomain()) {
         return false;
     }
 
@@ -275,7 +271,7 @@ static bool checkCORS(HTTPRequest *req) {
 static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
                             const std::string &) {
     // First, check and/or set CORS headers
-    if (checkCORS(req)) {
+    if (checkCORS(config, req)) {
         return true;
     }
 
@@ -294,7 +290,7 @@ static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
     }
 
     JSONRPCRequest jreq;
-    if (!RPCAuthorized(authHeader.second, jreq.authUser)) {
+    if (!RPCAuthorized(config, authHeader.second, jreq.authUser)) {
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n",
                   req->GetPeer().ToString());
 
@@ -345,10 +341,11 @@ static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
     return true;
 }
 
-static bool InitRPCAuthentication() {
+static bool InitRPCAuthentication(Config &config) {
     if (gArgs.GetArg("-rpcpassword", "") == "") {
         LogPrintf("No rpcpassword set - using random cookie authentication\n");
-        if (!GenerateAuthCookie(&strRPCUserColonPass)) {
+        std::string generatedUserAndPassword;
+        if (!GenerateAuthCookie(&generatedUserAndPassword)) {
             // Same message as AbortNode.
             uiInterface.ThreadSafeMessageBox(
                 _("Error: A fatal internal error occurred, see debug.log for "
@@ -356,22 +353,23 @@ static bool InitRPCAuthentication() {
                 "", CClientUIInterface::MSG_ERROR);
             return false;
         }
+        config.SetRPCUserAndPassword(generatedUserAndPassword);
     } else {
         LogPrintf("Config options rpcuser and rpcpassword will soon be "
                   "deprecated. Locally-run instances may remove rpcuser to use "
                   "cookie-based auth, or may be replaced with rpcauth. Please "
                   "see share/rpcuser for rpcauth auth generation.\n");
-        strRPCUserColonPass = gArgs.GetArg("-rpcuser", "") + ":" +
-                              gArgs.GetArg("-rpcpassword", "");
+        config.SetRPCUserAndPassword(gArgs.GetArg("-rpcuser", "") + ":" +
+                                     gArgs.GetArg("-rpcpassword", ""));
     }
 
-    strRPCCORSDomain = gArgs.GetArg("-rpccorsdomain", "");
+    config.SetRPCCORSDomain(gArgs.GetArg("-rpccorsdomain", ""));
     return true;
 }
 
-bool StartHTTPRPC() {
+bool StartHTTPRPC(Config &config) {
     LogPrint(BCLog::RPC, "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication()) return false;
+    if (!InitRPCAuthentication(config)) return false;
 
     RegisterHTTPHandler("/", true, HTTPReq_JSONRPC);
 #ifdef ENABLE_WALLET

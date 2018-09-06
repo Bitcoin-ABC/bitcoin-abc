@@ -1137,7 +1137,7 @@ static bool AppInitServers(Config &config, boost::thread_group &threadGroup) {
     if (!StartRPC()) {
         return false;
     }
-    if (!StartHTTPRPC()) {
+    if (!StartHTTPRPC(config)) {
         return false;
     }
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) {

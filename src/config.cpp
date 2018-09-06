@@ -79,3 +79,19 @@ void GlobalConfig::SetMinFeePerKB(CFeeRate fee) {
 CFeeRate GlobalConfig::GetMinFeePerKB() const {
     return feePerKB;
 }
+
+void GlobalConfig::SetRPCUserAndPassword(std::string userAndPassword) {
+    rpcUserAndPassword = userAndPassword;
+}
+
+std::string GlobalConfig::GetRPCUserAndPassword() const {
+    return rpcUserAndPassword;
+}
+
+void GlobalConfig::SetRPCCORSDomain(std::string corsDomain) {
+    rpcCORSDomain = corsDomain;
+}
+
+std::string GlobalConfig::GetRPCCORSDomain() const {
+    return rpcCORSDomain;
+}

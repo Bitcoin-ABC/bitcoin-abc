@@ -8,12 +8,13 @@
 #include <map>
 #include <string>
 
+class Config;
 class HTTPRequest;
 
 /** Start HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartHTTPRPC();
+bool StartHTTPRPC(Config &config);
 /** Interrupt HTTP RPC subsystem.
  */
 void InterruptHTTPRPC();
