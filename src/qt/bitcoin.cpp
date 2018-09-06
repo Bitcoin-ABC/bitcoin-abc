@@ -14,6 +14,7 @@
 #include <httprpc.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <noui.h>
 #include <qt/bitcoingui.h>
 #include <qt/clientmodel.h>
 #include <qt/guiconstants.h>
@@ -71,7 +72,7 @@ Q_DECLARE_METATYPE(uint256)
 Q_DECLARE_METATYPE(Config *)
 
 static void InitMessage(const std::string &message) {
-    LogPrintf("init message: %s\n", message);
+    noui_InitMessage(message);
 }
 
 static QString GetLangTerritory() {

@@ -13,6 +13,7 @@
 #include <config.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <noui.h>
 #include <qt/bitcoinunits.h>
 #include <qt/clientmodel.h>
 #include <qt/guiconstants.h>
@@ -1356,6 +1357,9 @@ void BitcoinGUI::showModalOverlay() {
 static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string &message,
                                  const std::string &caption,
                                  unsigned int style) {
+    // Redundantly log and print message in non-gui fashion
+    noui_ThreadSafeMessageBox(message, caption, style);
+
     bool modal = (style & CClientUIInterface::MODAL);
     // The SECURE flag has no effect in the Qt GUI.
     // bool secure = (style & CClientUIInterface::SECURE);
