@@ -714,10 +714,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     fCheckpointsEnabled = true;
 }
 
-void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
-                       uint64_t expected) {
-    GlobalConfig config;
-
+void CheckBlockMaxSize(const Config &config, uint64_t size, uint64_t expected) {
     gArgs.ForceSetArg("-blockmaxsize", std::to_string(size));
 
     BlockAssembler ba(config);
@@ -726,34 +723,33 @@ void CheckBlockMaxSize(const CChainParams &chainparams, uint64_t size,
 
 BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     GlobalConfig config;
-    const CChainParams &chainparams = Params();
 
     // We are working on a fake chain and need to protect ourselves.
     LOCK(cs_main);
 
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);
-    CheckBlockMaxSize(chainparams, 0, 1000);
-    CheckBlockMaxSize(chainparams, 1000, 1000);
-    CheckBlockMaxSize(chainparams, 1001, 1001);
-    CheckBlockMaxSize(chainparams, 12345, 12345);
+    CheckBlockMaxSize(config, 0, 1000);
+    CheckBlockMaxSize(config, 1000, 1000);
+    CheckBlockMaxSize(config, 1001, 1001);
+    CheckBlockMaxSize(config, 12345, 12345);
 
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
-    CheckBlockMaxSize(chainparams, ONE_MEGABYTE, ONE_MEGABYTE - 999);
+    CheckBlockMaxSize(config, ONE_MEGABYTE - 1001, ONE_MEGABYTE - 1001);
+    CheckBlockMaxSize(config, ONE_MEGABYTE - 1000, ONE_MEGABYTE - 1000);
+    CheckBlockMaxSize(config, ONE_MEGABYTE - 999, ONE_MEGABYTE - 999);
+    CheckBlockMaxSize(config, ONE_MEGABYTE, ONE_MEGABYTE - 999);
 
     // Test around default cap
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 
     // Now we can use the default max block size.
-    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1001,
+    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 1001,
                       DEFAULT_MAX_BLOCK_SIZE - 1001);
-    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 1000,
+    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 1000,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE - 999,
+    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE - 999,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(chainparams, DEFAULT_MAX_BLOCK_SIZE,
+    CheckBlockMaxSize(config, DEFAULT_MAX_BLOCK_SIZE,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
 
     // If the parameter is not specified, we use
