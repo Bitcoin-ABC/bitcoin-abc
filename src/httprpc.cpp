@@ -16,6 +16,7 @@
 #include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <walletinitinterface.h>
 
 #include <boost/algorithm/string.hpp> // boost::trim
 
@@ -388,11 +389,9 @@ bool StartHTTPRPC(Config &config,
             std::bind(&HTTPRPCRequestProcessor::DelegateHTTPRequest,
                       &httpRPCRequestProcessor, std::placeholders::_2);
     RegisterHTTPHandler("/", true, rpcFunction);
-#ifdef ENABLE_WALLET
-    // ifdef can be removed once we switch to better endpoint support and API
-    // versioning
-    RegisterHTTPHandler("/wallet/", false, rpcFunction);
-#endif
+    if (g_wallet_init_interface.HasWalletSupport()) {
+        RegisterHTTPHandler("/wallet/", false, rpcFunction);
+    }
     struct event_base *eventBase = EventBase();
     assert(eventBase);
     httpRPCTimerInterface = std::make_unique<HTTPRPCTimerInterface>(eventBase);
@@ -407,9 +406,9 @@ void InterruptHTTPRPC() {
 void StopHTTPRPC() {
     LogPrint(BCLog::RPC, "Stopping HTTP RPC server\n");
     UnregisterHTTPHandler("/", true);
-#ifdef ENABLE_WALLET
-    UnregisterHTTPHandler("/wallet/", false);
-#endif
+    if (g_wallet_init_interface.HasWalletSupport()) {
+        UnregisterHTTPHandler("/wallet/", false);
+    }
     if (httpRPCTimerInterface) {
         RPCUnsetTimerInterface(httpRPCTimerInterface.get());
         httpRPCTimerInterface.reset();

@@ -78,38 +78,6 @@ std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
 std::unique_ptr<BanMan> g_banman;
 
-#if !(ENABLE_WALLET)
-class DummyWalletInit : public WalletInitInterface {
-public:
-    void AddWalletOptions() const override;
-    bool ParameterInteraction() const override { return true; }
-    void RegisterRPC(CRPCTable &) const override {}
-    bool Verify(const CChainParams &chainParams) const override { return true; }
-    bool Open(const CChainParams &chainParams) const override {
-        LogPrintf("No wallet support compiled in!\n");
-        return true;
-    }
-    void Start(CScheduler &scheduler) const override {}
-    void Flush() const override {}
-    void Stop() const override {}
-    void Close() const override {}
-};
-
-void DummyWalletInit::AddWalletOptions() const {
-    std::vector<std::string> opts = {
-        "-avoidpartialspends", "-disablewallet", "-fallbackfee=<amt>",
-        "-keypool=<n>", "-maxtxfee=<amt>", "-mintxfee=<amt>", "-paytxfee=<amt>",
-        "-rescan", "-salvagewallet", "-spendzeroconfchange", "-upgradewallet",
-        "-wallet=<path>", "-walletbroadcast", "-walletdir=<dir>",
-        "-walletnotify=<cmd>", "-zapwallettxes=<mode>",
-        // Wallet debug options
-        "-dblogsize=<n>", "-flushwallet", "-privdb", "-walletrejectlongchains"};
-    gArgs.AddHiddenArgs(opts);
-}
-
-const WalletInitInterface &g_wallet_init_interface = DummyWalletInit();
-#endif
-
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
 // block files don't count towards the fd_set size limit anyway.

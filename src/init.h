@@ -18,9 +18,6 @@ class CWallet;
 class HTTPRPCRequestProcessor;
 class RPCServer;
 
-class WalletInitInterface;
-extern const WalletInitInterface &g_wallet_init_interface;
-
 namespace boost {
 class thread_group;
 } // namespace boost

@@ -499,6 +499,8 @@ add_subdirectory(bench)
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
 	target_link_libraries(server wallet)
+else()
+	target_sources(server PRIVATE dummywallet.cpp)
 endif()
 
 # ZeroMQ
