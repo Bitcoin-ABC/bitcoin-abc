@@ -46,11 +46,15 @@ namespace boost {
 class thread_group;
 } // namespace boost
 
-/** Time between pings automatically sent out for latency probing and keepalive
- * (in seconds). */
+/**
+ * Time between pings automatically sent out for latency probing and keepalive
+ * (in seconds).
+ */
 static const int PING_INTERVAL = 2 * 60;
-/** Time after which to disconnect, after waiting for a ping response (or
- * inactivity). */
+/**
+ * Time after which to disconnect, after waiting for a ping response (or
+ * inactivity).
+ */
 static const int TIMEOUT_INTERVAL = 20 * 60;
 /** Run the feeler connection loop once every 2 minutes or 120 seconds. **/
 static const int FEELER_INTERVAL = 120;
@@ -104,7 +108,6 @@ struct AddedNodeInfo {
     bool fInbound;
 };
 
-class CTransaction;
 class CNodeStats;
 class CClientUIInterface;
 
@@ -512,7 +515,9 @@ public:
     double dPingTime;
     double dPingWait;
     double dMinPing;
+    // Our address, as reported by the peer
     std::string addrLocal;
+    // Address of this peer
     CAddress addr;
 };
 
@@ -731,7 +736,7 @@ public:
 
     int GetMyStartingHeight() const { return nMyStartingHeight; }
 
-    int GetRefCount() {
+    int GetRefCount() const {
         assert(nRefCount >= 0);
         return nRefCount;
     }
@@ -740,7 +745,7 @@ public:
                          bool &complete);
 
     void SetRecvVersion(int nVersionIn) { nRecvVersion = nVersionIn; }
-    int GetRecvVersion() { return nRecvVersion; }
+    int GetRecvVersion() const { return nRecvVersion; }
     void SetSendVersion(int nVersionIn);
     int GetSendVersion() const;
 
