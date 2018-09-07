@@ -478,8 +478,10 @@ void SetupServerArgs() {
                   MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024),
         false, OptionsCategory::OPTIONS);
     gArgs.AddArg("-reindex-chainstate",
-                 "Rebuild chain state from the currently indexed blocks", false,
-                 OptionsCategory::OPTIONS);
+                 "Rebuild chain state from the currently indexed blocks. When "
+                 "in pruning mode or if blocks on disk might be corrupted, use "
+                 "full -reindex instead.",
+                 false, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-reindex",
         "Rebuild chain state and block index from the blk*.dat files on disk",
