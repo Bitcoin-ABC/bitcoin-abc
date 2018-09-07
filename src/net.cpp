@@ -96,20 +96,20 @@ unsigned short GetListenPort() {
 
 // find 'best' local address for a particular peer
 bool GetLocal(CService &addr, const CNetAddr *paddrPeer) {
-    if (!fListen) return false;
+    if (!fListen) {
+        return false;
+    }
 
     int nBestScore = -1;
     int nBestReachability = -1;
     {
         LOCK(cs_mapLocalHost);
-        for (std::map<CNetAddr, LocalServiceInfo>::iterator it =
-                 mapLocalHost.begin();
-             it != mapLocalHost.end(); it++) {
-            int nScore = (*it).second.nScore;
-            int nReachability = (*it).first.GetReachabilityFrom(paddrPeer);
+        for (const auto &entry : mapLocalHost) {
+            int nScore = entry.second.nScore;
+            int nReachability = entry.first.GetReachabilityFrom(paddrPeer);
             if (nReachability > nBestReachability ||
                 (nReachability == nBestReachability && nScore > nBestScore)) {
-                addr = CService((*it).first, (*it).second.nPort);
+                addr = CService(entry.first, entry.second.nPort);
                 nBestReachability = nReachability;
                 nBestScore = nScore;
             }
@@ -452,34 +452,30 @@ void CConnman::ClearBanned() {
 
 bool CConnman::IsBanned(CNetAddr ip) {
     LOCK(cs_setBanned);
-
-    bool fResult = false;
-    for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end();
-         it++) {
-        CSubNet subNet = (*it).first;
-        CBanEntry banEntry = (*it).second;
+    for (const auto &it : setBanned) {
+        CSubNet subNet = it.first;
+        CBanEntry banEntry = it.second;
 
         if (subNet.Match(ip) && GetTime() < banEntry.nBanUntil) {
-            fResult = true;
+            return true;
         }
     }
 
-    return fResult;
+    return false;
 }
 
 bool CConnman::IsBanned(CSubNet subnet) {
     LOCK(cs_setBanned);
 
-    bool fResult = false;
     banmap_t::iterator i = setBanned.find(subnet);
     if (i != setBanned.end()) {
         CBanEntry banEntry = (*i).second;
         if (GetTime() < banEntry.nBanUntil) {
-            fResult = true;
+            return true;
         }
     }
 
-    return fResult;
+    return false;
 }
 
 void CConnman::Ban(const CNetAddr &addr, const BanReason &banReason,
