@@ -45,6 +45,9 @@ AC_SUBST(LIBUNIVALUE_AGE)
 LT_INIT
 LT_LANG([C++])
 
+dnl Require C++17 compiler (no GNU extensions)
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory], [nodefault])
+
 case $host in
   *mingw*)
     LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -all-static"

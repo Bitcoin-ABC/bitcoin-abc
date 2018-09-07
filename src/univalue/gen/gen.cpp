@@ -8,9 +8,11 @@
 // $ ./gen > univalue_escapes.h
 //
 
-#include <stdio.h>
-#include <string.h>
-#include "univalue.h"
+#include <univalue.h>
+
+#include <cstdio>
+#include <cstring>
+#include <string>
 
 static bool initEscapes;
 static std::string escapes[256];
@@ -45,7 +47,7 @@ static void outputEscape()
 
 	for (unsigned int i = 0; i < 256; i++) {
 		if (escapes[i].empty()) {
-			printf("\tNULL,\n");
+			printf("\tnullptr,\n");
 		} else {
 			printf("\t\"");
 

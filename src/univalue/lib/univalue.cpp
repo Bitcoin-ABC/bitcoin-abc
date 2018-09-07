@@ -3,12 +3,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
-#include <stdint.h>
-#include <iomanip>
-#include <sstream>
-#include <stdlib.h>
+#include <univalue.h>
 
-#include "univalue.h"
+#include <iomanip>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 const UniValue NullUniValue;
 
@@ -178,17 +181,19 @@ bool UniValue::findKey(const std::string& key, size_t& retIdx) const
 
 bool UniValue::checkObject(const std::map<std::string,UniValue::VType>& t) const
 {
-    if (typ != VOBJ)
+    if (typ != VOBJ) {
         return false;
+    }
 
-    for (std::map<std::string,UniValue::VType>::const_iterator it = t.begin();
-         it != t.end(); ++it) {
+    for (const auto& object: t) {
         size_t idx = 0;
-        if (!findKey(it->first, idx))
+        if (!findKey(object.first, idx)) {
             return false;
+        }
 
-        if (values.at(idx).getType() != it->second)
+        if (values.at(idx).getType() != object.second) {
             return false;
+        }
     }
 
     return true;
@@ -228,7 +233,7 @@ const char *uvTypeName(UniValue::VType t)
     }
 
     // not reached
-    return NULL;
+    return nullptr;
 }
 
 const UniValue& UniValue::find_value(std::string_view key) const

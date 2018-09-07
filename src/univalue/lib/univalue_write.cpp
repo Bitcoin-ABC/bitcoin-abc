@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
+#include <univalue.h>
+#include <univalue_escapes.h>
+
+#include <cstddef>
 #include <string>
-#include <sstream>
-#include <stdint.h>
-#include <stdio.h>
-#include "univalue.h"
-#include "univalue_escapes.h"
+#include <utility>
 
 namespace {
 struct UniValueStreamWriter {

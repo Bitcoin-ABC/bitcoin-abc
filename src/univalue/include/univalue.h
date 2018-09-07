@@ -6,15 +6,14 @@
 #ifndef __UNIVALUE_H__
 #define __UNIVALUE_H__
 
-#include <stdint.h>
-#include <string.h>
-
-#include <string>
-#include <vector>
+#include <charconv>
+#include <cstdint>
+#include <cstring>
 #include <map>
-#include <cassert>
-
-#include <utility>        // std::pair
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace {
     struct UniValueStreamWriter;
@@ -124,86 +123,32 @@ public:
     // value is of unexpected type
     const std::vector<std::string>& getKeys() const;
     const std::vector<UniValue>& getValues() const;
+    template <typename Int>
+    auto getInt() const
+    {
+        static_assert(std::is_integral<Int>::value);
+        if (typ != VNUM) {
+            throw std::runtime_error("JSON value is not an integer as expected");
+        }
+        Int result;
+        const auto [first_nonmatching, error_condition] = std::from_chars(val.data(), val.data() + val.size(), result);
+        if (first_nonmatching != val.data() + val.size() || error_condition != std::errc{}) {
+            throw std::runtime_error("JSON integer out of range");
+        }
+        return result;
+    }
     bool get_bool() const;
     const std::string& get_str() const;
-    int get_int() const;
-    int64_t get_int64() const;
+    auto get_int() const { return getInt<int>(); };
+    auto get_int64() const { return getInt<int64_t>(); };
     double get_real() const;
     const UniValue& get_obj() const;
     const UniValue& get_array() const;
 
     enum VType type() const { return getType(); }
 
-    bool push_back(std::pair<std::string,UniValue> pear) {
-        return pushKV(pear.first, pear.second);
-    }
-
     const UniValue& find_value(std::string_view key) const;
 };
-
-//
-// The following were added for compatibility with json_spirit.
-// Most duplicate other methods, and should be removed.
-//
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, const char *cVal)
-{
-    std::string key(cKey);
-    UniValue uVal(cVal);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, std::string strVal)
-{
-    std::string key(cKey);
-    UniValue uVal(strVal);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, uint64_t u64Val)
-{
-    std::string key(cKey);
-    UniValue uVal(u64Val);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, int64_t i64Val)
-{
-    std::string key(cKey);
-    UniValue uVal(i64Val);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, bool iVal)
-{
-    std::string key(cKey);
-    UniValue uVal(iVal);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, int iVal)
-{
-    std::string key(cKey);
-    UniValue uVal(iVal);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, double dVal)
-{
-    std::string key(cKey);
-    UniValue uVal(dVal);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(const char *cKey, const UniValue& uVal)
-{
-    std::string key(cKey);
-    return std::make_pair(key, uVal);
-}
-
-static inline std::pair<std::string,UniValue> Pair(std::string key, const UniValue& uVal)
-{
-    return std::make_pair(key, uVal);
-}
 
 enum jtokentype {
     JTOK_ERR        = -1,

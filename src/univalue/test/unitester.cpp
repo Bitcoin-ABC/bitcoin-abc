@@ -2,12 +2,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <univalue.h>
+
 #include <cassert>
+#include <cstdio>
 #include <string>
-#include "univalue.h"
 
 #ifndef JSON_TEST_SRC
 #error JSON_TEST_SRC must point to test source directory
@@ -58,7 +57,7 @@ static void runtest_file(const char *filename_)
         std::string basename(filename_);
         std::string filename = srcdir + "/" + basename;
         FILE *f = fopen(filename.c_str(), "r");
-        assert(f != NULL);
+        assert(f != nullptr);
 
         std::string jdata;
 
