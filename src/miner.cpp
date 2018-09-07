@@ -10,6 +10,7 @@
 #include "chainparams.h"
 #include "coins.h"
 #include "config.h"
+#include "consensus/activation.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"

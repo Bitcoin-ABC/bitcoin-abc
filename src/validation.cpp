@@ -13,6 +13,7 @@
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "config.h"
+#include "consensus/activation.h"
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
@@ -538,47 +539,6 @@ static bool IsCurrentForFeeEstimation() {
     }
 
     return true;
-}
-
-static bool IsUAHFenabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().uahfHeight;
-}
-
-bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsUAHFenabled(config, pindexPrev->nHeight);
-}
-
-static bool IsDAAEnabled(const Config &config, int nHeight) {
-    return nHeight >= config.GetChainParams().GetConsensus().daaHeight;
-}
-
-bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsDAAEnabled(config, pindexPrev->nHeight);
-}
-
-static bool IsMagneticAnomalyEnabled(const Config &config,
-                                     int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetArg("-magneticanomalyactivationtime",
-                                           config.GetChainParams()
-                                               .GetConsensus()
-                                               .magneticAnomalyActivationTime);
-}
-
-bool IsMagneticAnomalyEnabled(const Config &config,
-                              const CBlockIndex *pindexPrev) {
-    if (pindexPrev == nullptr) {
-        return false;
-    }
-
-    return IsMagneticAnomalyEnabled(config, pindexPrev->GetMedianTimePast());
 }
 
 static bool IsMagneticAnomalyEnabledForCurrentBlock(const Config &config) {

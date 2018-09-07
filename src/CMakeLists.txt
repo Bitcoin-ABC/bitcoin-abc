@@ -181,6 +181,7 @@ add_library(server
 	chain.cpp
 	checkpoints.cpp
 	config.cpp
+	consensus/activation.cpp
 	globals.cpp
 	httprpc.cpp
 	httpserver.cpp

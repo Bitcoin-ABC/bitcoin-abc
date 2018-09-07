@@ -111,6 +111,7 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   config.h \
+  consensus/activation.h \
   consensus/consensus.h \
   core_io.h \
   core_memusage.h \
@@ -211,6 +212,7 @@ libbitcoin_server_a_SOURCES = \
   chain.cpp \
   checkpoints.cpp \
   config.cpp \
+  consensus/activation.cpp \
   globals.cpp \
   httprpc.cpp \
   httpserver.cpp \
