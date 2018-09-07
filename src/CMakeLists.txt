@@ -182,6 +182,7 @@ add_library(server
 	checkpoints.cpp
 	config.cpp
 	consensus/activation.cpp
+	consensus/tx_verify.cpp
 	globals.cpp
 	httprpc.cpp
 	httpserver.cpp

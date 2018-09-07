@@ -8,6 +8,7 @@
 #include "chainparams.h" // for GetConsensus.
 #include "clientversion.h"
 #include "consensus/consensus.h"
+#include "consensus/tx_verify.h"
 #include "consensus/validation.h"
 #include "policy/fees.h"
 #include "policy/policy.h"

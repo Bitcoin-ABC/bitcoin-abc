@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "consensus/consensus.h"
+#include "consensus/tx_verify.h"
 #include "consensus/validation.h"
 #include "key.h"
 #include "policy/policy.h" // For STANDARD_CHECKDATASIG_VERIFY_FLAGS.
@@ -12,7 +13,6 @@
 #include "script/standard.h"
 #include "test/test_bitcoin.h"
 #include "uint256.h"
-#include "validation.h"
 
 #include <limits>
 #include <vector>

@@ -11,6 +11,7 @@
 #include "checkqueue.h"
 #include "clientversion.h"
 #include "config.h"
+#include "consensus/tx_verify.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "key.h"
@@ -23,7 +24,7 @@
 #include "test/jsonutil.h"
 #include "test/scriptflags.h"
 #include "utilstrencodings.h"
-#include "validation.h" // For CheckRegularTransaction and ContextualCheckTransaction
+#include "validation.h"
 
 #include <map>
 #include <string>

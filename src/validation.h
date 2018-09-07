@@ -450,37 +450,6 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
 std::string FormatStateMessage(const CValidationState &state);
 
 /**
- * Count ECDSA signature operations the old-fashioned (pre-0.6) way
- * @return number of sigops this transaction's outputs will produce when spent
- * @see CTransaction::FetchInputs
- */
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx, uint32_t flags);
-
-/**
- * Count ECDSA signature operations in pay-to-script-hash inputs.
- *
- * @param[in] mapInputs Map of previous transactions that have outputs we're
- * spending
- * @return maximum number of sigops required to validate this transaction's
- * inputs
- * @see CTransaction::FetchInputs
- */
-uint64_t GetP2SHSigOpCount(const CTransaction &tx,
-                           const CCoinsViewCache &mapInputs, uint32_t flags);
-
-/**
- * Compute total signature operation of a transaction.
- * @param[in] tx     Transaction for which we are computing the cost
- * @param[in] inputs Map of previous transactions that have outputs we're
- * spending
- * @param[in] flags  Script verification flags
- * @return Total signature operation cost of tx
- */
-uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &inputs,
-                                  uint32_t flags);
-
-/**
  * Check whether all inputs of this transaction are valid (no double spends,
  * scripts & sigs, amounts). This does not modify the UTXO set.
  *
@@ -512,42 +481,11 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight);
 void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);
 
-/** Transaction validation functions */
-
-/**
- * Context-independent validity checks for coinbase and non-coinbase
- * transactions.
- */
-bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
-                             bool fCheckDuplicateInputs = true);
-bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
-                   bool fCheckDuplicateInputs = true);
-
-namespace Consensus {
-
-/**
- * Check whether all inputs of this transaction are valid (no double spends and
- * amounts). This does not modify the UTXO set. This does not check scripts and
- * sigs. Preconditions: tx.IsCoinBase() is false.
- */
-bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
-                   const CCoinsViewCache &inputs, int nSpendHeight);
-
-} // namespace Consensus
-
 /**
  * Test whether the LockPoints height and time are still valid on the current
  * chain.
  */
 bool TestLockPointValidity(const LockPoints *lp);
-
-/**
- * Check if transaction is final per BIP 68 sequence numbers and can be included
- * in a block. Consensus critical. Takes as input a list of heights at which
- * tx's inputs (in order) confirmed.
- */
-bool SequenceLocks(const CTransaction &tx, int flags,
-                   std::vector<int> *prevHeights, const CBlockIndex &block);
 
 /**
  * Check if transaction will be BIP 68 final in the next block to be created.
@@ -625,17 +563,6 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 bool CheckBlock(
     const Config &Config, const CBlock &block, CValidationState &state,
     BlockValidationOptions validationOptions = BlockValidationOptions());
-
-/**
- * Context dependent validity checks for non coinbase transactions. This
- * doesn't check the validity of the transaction against the UTXO set, but
- * simply characteristic that are suceptible to change over time such as feature
- * activation/deactivation and CLTV.
- */
-bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
-                                CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff,
-                                int64_t nMedianTimePast);
 
 /**
  * This is a variant of ContextualCheckTransaction which computes the contextual
