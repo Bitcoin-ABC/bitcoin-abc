@@ -70,7 +70,8 @@ class TestNode():
 
     def __getattr__(self, *args, **kwargs):
         """Dispatches any unrecognised messages to the RPC connection."""
-        assert self.rpc_connected and self.rpc is not None, "Error: no RPC connection"
+        assert self.rpc is not None, "Error: RPC not initialized"
+        assert self.rpc_connected, "Error: No RPC connection"
         return self.rpc.__getattr__(*args, **kwargs)
 
     def start(self, extra_args=None, stderr=None):
