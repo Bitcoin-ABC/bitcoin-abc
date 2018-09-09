@@ -69,7 +69,7 @@ public:
     }
 
     MessageMagic pchMessageStart;
-    char pchCommand[COMMAND_SIZE];
+    std::array<char, COMMAND_SIZE> pchCommand;
     uint32_t nMessageSize;
     uint8_t pchChecksum[CHECKSUM_SIZE];
 };

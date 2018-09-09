@@ -755,7 +755,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
             mapMsgCmdSize::iterator i =
-                mapRecvBytesPerMsgCmd.find(msg.hdr.pchCommand);
+                mapRecvBytesPerMsgCmd.find(msg.hdr.pchCommand.data());
             if (i == mapRecvBytesPerMsgCmd.end()) {
                 i = mapRecvBytesPerMsgCmd.find(NET_MESSAGE_COMMAND_OTHER);
             }
