@@ -54,7 +54,7 @@ void URITests::uriTestsBase58() {
                 "label=Wikipedia Example"));
     QVERIFY(GUIUtil::parseBitcoinURI(scheme, uri, &rv));
     QVERIFY(rv.address == QString("175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W"));
-    QVERIFY(rv.amount == 10000000000 * SATOSHI);
+    QVERIFY(rv.amount == int64_t(10000000000) * SATOSHI);
     QVERIFY(rv.label == QString("Wikipedia Example"));
 
     uri.setUrl(QString("bitcoincash:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message="
@@ -136,7 +136,7 @@ void URITests::uriTestsCashAddr() {
     QVERIFY(GUIUtil::parseBitcoinURI(scheme, uri, &rv));
     QVERIFY(rv.address ==
             QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"));
-    QVERIFY(rv.amount == 10000000000 * SATOSHI);
+    QVERIFY(rv.amount == int64_t(10000000000) * SATOSHI);
     QVERIFY(rv.label == QString("Wikipedia Example"));
 
     uri.setUrl(QString(

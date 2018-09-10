@@ -248,9 +248,9 @@ BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
     BOOST_CHECK(ValueFromAmount(50000000 * SATOSHI).write() == "0.50000000");
     BOOST_CHECK(ValueFromAmount(89898989 * SATOSHI).write() == "0.89898989");
     BOOST_CHECK(ValueFromAmount(100000000 * SATOSHI).write() == "1.00000000");
-    BOOST_CHECK(ValueFromAmount(2099999999999990 * SATOSHI).write() ==
+    BOOST_CHECK(ValueFromAmount(int64_t(2099999999999990) * SATOSHI).write() ==
                 "20999999.99999990");
-    BOOST_CHECK(ValueFromAmount(2099999999999999 * SATOSHI).write() ==
+    BOOST_CHECK(ValueFromAmount(int64_t(2099999999999999) * SATOSHI).write() ==
                 "20999999.99999999");
 
     BOOST_CHECK_EQUAL(ValueFromAmount(Amount::zero()).write(), "0.00000000");
@@ -306,9 +306,9 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1.00000000")),
                       100000000 * SATOSHI);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.9999999")),
-                      2099999999999990 * SATOSHI);
+                      int64_t(2099999999999990) * SATOSHI);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.99999999")),
-                      2099999999999999 * SATOSHI);
+                      int64_t(2099999999999999) * SATOSHI);
 
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1e-8")),
                       COIN / 100000000);
