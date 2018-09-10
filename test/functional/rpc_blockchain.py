@@ -49,9 +49,11 @@ class BlockchainTest(BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [['-stopatheight=207', '-prune=1']]
 
     def run_test(self):
+        # Set extra args with pruning after rescan is complete
+        self.restart_node(0, extra_args=['-stopatheight=207', '-prune=1'])
+
         self._test_getblockchaininfo()
         self._test_getchaintxstats()
         self._test_gettxoutsetinfo()
@@ -181,7 +183,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(res['transactions'], 200)
         assert_equal(res['height'], 200)
         assert_equal(res['txouts'], 200)
-        assert_equal(res['bogosize'], 17000),
+        assert_equal(res['bogosize'], 15000),
         assert_equal(res['bestblock'], node.getblockhash(200))
         size = res['disk_size']
         assert size > 6400
@@ -283,7 +285,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(
             getblockinfo['versionHex'], getblockheaderinfo['versionHex'])
         assert_equal(getblockinfo['version'], getblockheaderinfo['version'])
-        assert_equal(getblockinfo['size'], 188)
+        assert_equal(getblockinfo['size'], 181)
         assert_equal(
             getblockinfo['merkleroot'], getblockheaderinfo['merkleroot'])
         # Verify transaction data by check the hex values
