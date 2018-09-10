@@ -724,8 +724,8 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
     while (nBytes > 0) {
         // Get current incomplete message, or create a new one.
         if (vRecvMsg.empty() || vRecvMsg.back().complete()) {
-            vRecvMsg.push_back(CNetMessage(Params().NetMagic(), SER_NETWORK,
-                                           INIT_PROTO_VERSION));
+            vRecvMsg.push_back(CNetMessage(config.GetChainParams().NetMagic(),
+                                           SER_NETWORK, INIT_PROTO_VERSION));
         }
 
         CNetMessage &msg = vRecvMsg.back();
