@@ -3,6 +3,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the importmulti RPC."""
+
+from test_framework import script
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -89,17 +91,21 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['timestamp'], timestamp)
         assert_equal(address_assert['ischange'], True)
 
-        # ScriptPubKey + !internal
-        self.log.info("Should not import a scriptPubKey without internal flag")
+        # Nonstandard scriptPubKey + !internal
+        self.log.info(
+            "Should not import a nonstandard scriptPubKey without internal flag")
+        nonstandardScriptPubKey = address['scriptPubKey'] + \
+            script.CScript([script.OP_NOP]).hex()
         address = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
         result = self.nodes[1].importmulti([{
-            "scriptPubKey": address['scriptPubKey'],
+            "scriptPubKey": nonstandardScriptPubKey,
             "timestamp": "now",
         }])
         assert_equal(result[0]['success'], False)
         assert_equal(result[0]['error']['code'], -8)
-        assert_equal(result[0]['error']['message'],
-                     'Internal must be set for hex scriptPubKey')
+        assert_equal(
+            result[0]['error']['message'],
+            'Internal must be set to true for nonstandard scriptPubKey imports.')
         address_assert = self.nodes[1].getaddressinfo(address['address'])
         assert_equal(address_assert['iswatchonly'], False)
         assert_equal(address_assert['ismine'], False)
@@ -139,20 +145,21 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['ismine'], False)
         assert_equal(address_assert['timestamp'], timestamp)
 
-        # ScriptPubKey + Public key + !internal
+        # Nonstandard scriptPubKey + Public key + !internal
         self.log.info(
-            "Should not import a scriptPubKey without internal and with public key")
+            "Should not import a nonstandard scriptPubKey without internal and with public key")
         address = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
         request = [{
-            "scriptPubKey": address['scriptPubKey'],
+            "scriptPubKey": nonstandardScriptPubKey,
             "timestamp": "now",
             "pubkeys": [address['pubkey']]
         }]
         result = self.nodes[1].importmulti(requests=request)
         assert_equal(result[0]['success'], False)
         assert_equal(result[0]['error']['code'], -8)
-        assert_equal(result[0]['error']['message'],
-                     'Internal must be set for hex scriptPubKey')
+        assert_equal(
+            result[0]['error']['message'],
+            'Internal must be set to true for nonstandard scriptPubKey imports.')
         address_assert = self.nodes[1].getaddressinfo(address['address'])
         assert_equal(address_assert['iswatchonly'], False)
         assert_equal(address_assert['ismine'], False)
@@ -225,19 +232,20 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['ismine'], True)
         assert_equal(address_assert['timestamp'], timestamp)
 
-        # ScriptPubKey + Private key + !internal
+        # Nonstandard scriptPubKey + Private key + !internal
         self.log.info(
-            "Should not import a scriptPubKey without internal and with private key")
+            "Should not import a nonstandard scriptPubKey without internal and with private key")
         address = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
         result = self.nodes[1].importmulti([{
-            "scriptPubKey": address['scriptPubKey'],
+            "scriptPubKey": nonstandardScriptPubKey,
             "timestamp": "now",
             "keys": [self.nodes[0].dumpprivkey(address['address'])]
         }])
         assert_equal(result[0]['success'], False)
         assert_equal(result[0]['error']['code'], -8)
-        assert_equal(result[0]['error']['message'],
-                     'Internal must be set for hex scriptPubKey')
+        assert_equal(
+            result[0]['error']['message'],
+            'Internal must be set to true for nonstandard scriptPubKey imports.')
         address_assert = self.nodes[1].getaddressinfo(address['address'])
         assert_equal(address_assert['iswatchonly'], False)
         assert_equal(address_assert['ismine'], False)
