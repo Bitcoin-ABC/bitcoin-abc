@@ -1478,7 +1478,7 @@ void CConnman::ThreadSocketHandler() {
                     LogPrint(BCLog::NET, "socket no message in first 60 "
                                          "seconds, %d %d from %d\n",
                              pnode->nLastRecv != 0, pnode->nLastSend != 0,
-                             pnode->id);
+                             pnode->GetId());
                     pnode->fDisconnect = true;
                 } else if (nTime - pnode->nLastSend > TIMEOUT_INTERVAL) {
                     LogPrintf("socket sending timeout: %is\n",
@@ -1498,7 +1498,8 @@ void CConnman::ThreadSocketHandler() {
                                   (GetTimeMicros() - pnode->nPingUsecStart));
                     pnode->fDisconnect = true;
                 } else if (!pnode->fSuccessfullyConnected) {
-                    LogPrintf("version handshake timeout from %d\n", pnode->id);
+                    LogPrintf("version handshake timeout from %d\n",
+                              pnode->GetId());
                     pnode->fDisconnect = true;
                 }
             }
@@ -2679,7 +2680,7 @@ bool CConnman::DisconnectNode(const std::string &strNode) {
 bool CConnman::DisconnectNode(NodeId id) {
     LOCK(cs_vNodes);
     for (CNode *pnode : vNodes) {
-        if (id == pnode->id) {
+        if (id == pnode->GetId()) {
             pnode->fDisconnect = true;
             return true;
         }
@@ -2812,8 +2813,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              const std::string &addrNameIn, bool fInboundIn)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      fInbound(fInboundIn), id(idIn), nKeyedNetGroup(nKeyedNetGroupIn),
-      addrKnown(5000, 0.001), filterInventoryKnown(50000, 0.000001),
+      fInbound(fInboundIn), nKeyedNetGroup(nKeyedNetGroupIn),
+      addrKnown(5000, 0.001), filterInventoryKnown(50000, 0.000001), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn), nLocalServices(nLocalServicesIn),
       nMyStartingHeight(nMyStartingHeightIn), nSendVersion(0) {
     nServices = NODE_NONE;
@@ -2936,7 +2937,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     size_t nMessageSize = msg.data.size();
     size_t nTotalSize = nMessageSize + CMessageHeader::HEADER_SIZE;
     LogPrint(BCLog::NET, "sending %s (%d bytes) peer=%d\n",
-             SanitizeString(msg.command.c_str()), nMessageSize, pnode->id);
+             SanitizeString(msg.command.c_str()), nMessageSize, pnode->GetId());
 
     std::vector<uint8_t> serializedHeader;
     serializedHeader.reserve(CMessageHeader::HEADER_SIZE);
@@ -2978,7 +2979,7 @@ bool CConnman::ForNode(NodeId id, std::function<bool(CNode *pnode)> func) {
     CNode *found = nullptr;
     LOCK(cs_vNodes);
     for (auto &&pnode : vNodes) {
-        if (pnode->id == id) {
+        if (pnode->GetId() == id) {
             found = pnode;
             break;
         }
