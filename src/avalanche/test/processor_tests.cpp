@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
     std::vector<BlockUpdate> updates;
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
     CBlockIndex indexA, indexB;
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
 
@@ -661,7 +661,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
 
@@ -724,7 +724,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
 
@@ -790,7 +790,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
     std::vector<BlockUpdate> updates;
@@ -866,7 +866,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerLogicValidation>(
-        connman.get(), nullptr, *m_node.scheduler, false);
+        connman.get(), nullptr, *m_node.scheduler);
 
     Processor p(connman.get());
     CScheduler s;

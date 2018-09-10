@@ -595,10 +595,6 @@ void SetupServerArgs() {
                  "Query for peer addresses via DNS lookup, if low on addresses "
                  "(default: 1 unless -connect used)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-enablebip61",
-                 strprintf("Send reject messages per BIP61 (default: %u)",
-                           DEFAULT_ENABLE_BIP61),
-                 ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     gArgs.AddArg("-externalip=<ip>", "Specify your own public address",
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
@@ -2195,8 +2191,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         GetRand(std::numeric_limits<uint64_t>::max()));
 
     node.peer_logic.reset(new PeerLogicValidation(
-        node.connman.get(), node.banman.get(), *node.scheduler,
-        gArgs.GetBoolArg("-enablebip61", DEFAULT_ENABLE_BIP61)));
+        node.connman.get(), node.banman.get(), *node.scheduler));
     RegisterValidationInterface(node.peer_logic.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size

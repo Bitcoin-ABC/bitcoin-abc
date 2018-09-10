@@ -257,12 +257,6 @@ static std::vector<std::pair<TxHash, CTransactionRef>>
 } // namespace
 
 namespace {
-struct CBlockReject {
-    uint8_t chRejectCode;
-    std::string strRejectReason;
-    uint256 hashBlock;
-};
-
 /**
  * Maintain validation-specific state about nodes, protected by cs_main, instead
  * by CNode's own locks. This simplifies asynchronous operation, where
@@ -281,9 +275,6 @@ struct CNodeState {
     bool m_should_discourage;
     //! String name of this peer (debugging/logging purposes).
     const std::string name;
-    //! List of asynchronously-determined block rejections to notify this peer
-    //! about.
-    std::vector<CBlockReject> rejects;
     //! The best known block we know this peer has announced.
     const CBlockIndex *pindexBestKnownBlock;
     //! The hash of the last unknown block this peer has announced.
@@ -1340,10 +1331,8 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
 }
 
 PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
-                                         CScheduler &scheduler,
-                                         bool enable_bip61)
-    : connman(connmanIn), m_banman(banman), m_stale_tip_check_time(0),
-      m_enable_bip61(enable_bip61) {
+                                         CScheduler &scheduler)
+    : connman(connmanIn), m_banman(banman), m_stale_tip_check_time(0) {
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -1524,11 +1513,6 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
         if (it != mapBlockSource.end() && State(it->second.first) &&
             state.GetRejectCode() > 0 &&
             state.GetRejectCode() < REJECT_INTERNAL) {
-            CBlockReject reject = {
-                uint8_t(state.GetRejectCode()),
-                state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH),
-                hash};
-            State(it->second.first)->rejects.push_back(reject);
             MaybePunishNodeForBlock(/*nodeid=*/it->second.first, state,
                                     /*via_compact_block=*/!it->second.second);
         }
@@ -2250,8 +2234,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                            const std::string &strCommand, CDataStream &vRecv,
                            int64_t nTimeReceived, CConnman *connman,
                            BanMan *banman,
-                           const std::atomic<bool> &interruptMsgProc,
-                           bool enable_bip61) {
+                           const std::atomic<bool> &interruptMsgProc) {
     const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
@@ -2274,44 +2257,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         }
     }
 
-    if (strCommand == NetMsgType::REJECT) {
-        if (LogAcceptCategory(BCLog::NET)) {
-            try {
-                std::string strMsg;
-                uint8_t ccode;
-                std::string strReason;
-                vRecv >> LIMITED_STRING(strMsg, CMessageHeader::COMMAND_SIZE) >>
-                    ccode >>
-                    LIMITED_STRING(strReason, MAX_REJECT_MESSAGE_LENGTH);
-
-                std::ostringstream ss;
-                ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
-
-                if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX) {
-                    uint256 hash;
-                    vRecv >> hash;
-                    ss << ": hash " << hash.ToString();
-                }
-                LogPrint(BCLog::NET, "Reject %s\n", SanitizeString(ss.str()));
-            } catch (const std::ios_base::failure &) {
-                // Avoid feedback loops by preventing reject messages from
-                // triggering a new reject message.
-                LogPrint(BCLog::NET, "Unparseable reject message received\n");
-            }
-        }
-        return true;
-    }
-
     if (strCommand == NetMsgType::VERSION) {
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) {
-            if (enable_bip61) {
-                connman->PushMessage(
-                    pfrom,
-                    CNetMsgMaker(INIT_PROTO_VERSION)
-                        .Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE,
-                              std::string("Duplicate version message")));
-            }
             LOCK(cs_main);
             Misbehaving(pfrom, 1, "multiple-version");
             return false;
@@ -2343,15 +2291,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      "(%08x offered, %08x expected); disconnecting\n",
                      pfrom->GetId(), nServices,
                      GetDesirableServiceFlags(nServices));
-            if (enable_bip61) {
-                connman->PushMessage(
-                    pfrom,
-                    CNetMsgMaker(INIT_PROTO_VERSION)
-                        .Make(NetMsgType::REJECT, strCommand,
-                              REJECT_NONSTANDARD,
-                              strprintf("Expected to offer services %08x",
-                                        GetDesirableServiceFlags(nServices))));
-            }
             pfrom->fDisconnect = true;
             return false;
         }
@@ -2361,14 +2300,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             LogPrint(BCLog::NET,
                      "peer=%d using obsolete version %i; disconnecting\n",
                      pfrom->GetId(), nVersion);
-            if (enable_bip61) {
-                connman->PushMessage(
-                    pfrom,
-                    CNetMsgMaker(INIT_PROTO_VERSION)
-                        .Make(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-                              strprintf("Version must be %d or greater",
-                                        MIN_PEER_PROTO_VERSION)));
-            }
             pfrom->fDisconnect = true;
             return false;
         }
@@ -3123,16 +3054,6 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                      "%s from peer=%d was not accepted: %s\n",
                      tx.GetHash().ToString(), pfrom->GetId(),
                      FormatStateMessage(state));
-            // Never send AcceptToMemoryPool's internal codes over P2P
-            if (enable_bip61 && state.GetRejectCode() > 0 &&
-                state.GetRejectCode() < REJECT_INTERNAL) {
-                connman->PushMessage(
-                    pfrom, msgMaker.Make(NetMsgType::REJECT, strCommand,
-                                         uint8_t(state.GetRejectCode()),
-                                         state.GetRejectReason().substr(
-                                             0, MAX_REJECT_MESSAGE_LENGTH),
-                                         inv.hash));
-            }
             MaybePunishNodeForTx(pfrom->GetId(), state);
         }
         return true;
@@ -3357,7 +3278,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         if (fProcessBLOCKTXN) {
             return ProcessMessage(config, pfrom, NetMsgType::BLOCKTXN,
                                   blockTxnMsg, nTimeReceived, connman, banman,
-                                  interruptMsgProc, enable_bip61);
+                                  interruptMsgProc);
         }
 
         if (fRevertToHeaderProcessing) {
@@ -3967,23 +3888,9 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
     return true;
 }
 
-bool PeerLogicValidation::SendRejectsAndCheckIfBanned(CNode *pnode,
-                                                      bool enable_bip61)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerLogicValidation::CheckIfBanned(CNode *pnode) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode->GetId());
-
-    if (enable_bip61) {
-        for (const CBlockReject &reject : state.rejects) {
-            connman->PushMessage(
-                pnode,
-                CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::REJECT, std::string(NetMsgType::BLOCK),
-                          reject.chRejectCode, reject.strRejectReason,
-                          reject.hashBlock));
-        }
-    }
-    state.rejects.clear();
 
     if (state.m_should_discourage) {
         state.m_should_discourage = false;
@@ -4126,9 +4033,8 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     // Process message
     bool fRet = false;
     try {
-        fRet =
-            ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime, connman,
-                           m_banman, interruptMsgProc, m_enable_bip61);
+        fRet = ProcessMessage(config, pfrom, strCommand, vRecv, msg.nTime,
+                              connman, m_banman, interruptMsgProc);
         if (interruptMsgProc) {
             return false;
         }
@@ -4137,13 +4043,6 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
             fMoreWork = true;
         }
     } catch (const std::ios_base::failure &e) {
-        if (m_enable_bip61) {
-            connman->PushMessage(
-                pfrom,
-                CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::REJECT, strCommand, REJECT_MALFORMED,
-                          std::string("error parsing message")));
-        }
         if (strstr(e.what(), "end of data")) {
             // Allow exceptions from under-length message on vRecv
             LogPrint(BCLog::NET,
@@ -4176,7 +4075,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     }
 
     LOCK(cs_main);
-    SendRejectsAndCheckIfBanned(pfrom, m_enable_bip61);
+    CheckIfBanned(pfrom);
 
     return fMoreWork;
 }
@@ -4441,13 +4340,12 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         }
     }
 
-    // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
     TRY_LOCK(cs_main, lockMain);
     if (!lockMain) {
         return true;
     }
 
-    if (SendRejectsAndCheckIfBanned(pto, m_enable_bip61)) {
+    if (CheckIfBanned(pto)) {
         return true;
     }
     CNodeState &state = *State(pto->GetId());

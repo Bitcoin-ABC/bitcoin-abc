@@ -26,21 +26,17 @@ static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
  */
 static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
 
-/** Default for BIP61 (sending reject messages) */
-static constexpr bool DEFAULT_ENABLE_BIP61{false};
-
 class PeerLogicValidation final : public CValidationInterface,
                                   public NetEventsInterface {
 private:
     CConnman *const connman;
     BanMan *const m_banman;
 
-    bool SendRejectsAndCheckIfBanned(CNode *pnode, bool enable_bip61)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool CheckIfBanned(CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
     PeerLogicValidation(CConnman *connman, BanMan *banman,
-                        CScheduler &scheduler, bool enable_bip61);
+                        CScheduler &scheduler);
 
     /**
      * Overridden from CValidationInterface.
@@ -115,9 +111,6 @@ public:
 private:
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
-
-    /** Enable BIP61 (sending reject messages) */
-    const bool m_enable_bip61;
 };
 
 struct CNodeStateStats {
