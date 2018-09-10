@@ -2282,7 +2282,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
         StartTorControl(threadGroup, scheduler);
     }
 
-    Discover(threadGroup);
+    Discover();
 
     // Map ports with UPnP
     MapPort(gArgs.GetBoolArg("-upnp", DEFAULT_UPNP));
