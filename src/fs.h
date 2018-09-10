@@ -38,6 +38,8 @@ private:
     void *hFile = (void *)-1;
 #endif
 };
+
+std::string get_filesystem_error_message(const fs::filesystem_error &e);
 }; // namespace fsbridge
 
 #endif // BITCOIN_FS_H
