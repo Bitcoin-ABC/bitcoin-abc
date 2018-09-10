@@ -38,7 +38,6 @@ class CBlockTreeDB;
 class CBloomFilter;
 class CChainParams;
 class CConnman;
-class CDiskBlockPos;
 class CInv;
 class Config;
 class CScriptCheck;
@@ -46,8 +45,9 @@ class CTxMemPool;
 class CTxUndo;
 class CValidationInterface;
 class CValidationState;
-struct ChainTxData;
 
+struct CDiskBlockPos;
+struct ChainTxData;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
