@@ -13,7 +13,6 @@
 #include "bloom.h"
 #include "chainparams.h"
 #include "compat.h"
-#include "fs.h"
 #include "hash.h"
 #include "limitedmap.h"
 #include "netaddress.h"
@@ -37,7 +36,6 @@
 
 #include <boost/signals2/signal.hpp>
 
-class CAddrMan;
 class Config;
 class CNode;
 class CScheduler;
