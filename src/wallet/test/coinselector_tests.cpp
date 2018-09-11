@@ -589,18 +589,24 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
             setCoinsRet, nValueRet, coin_selection_params, bnb_used));
         BOOST_CHECK_EQUAL(nValueRet, 101 * MIN_CHANGE);
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
+    }
 
-        // test with many inputs
-        for (Amount amt = 1500 * SATOSHI; amt < COIN; amt = 10 * amt) {
-            empty_wallet();
-            // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
-            // bytes per input)
-            for (uint16_t j = 0; j < 676; j++) {
-                add_coin(testWallet, amt);
-            }
+    // test with many inputs
+    for (Amount amt = 1500 * SATOSHI; amt < COIN; amt = 10 * amt) {
+        empty_wallet();
+        // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
+        // bytes per input)
+        for (uint16_t j = 0; j < 676; j++) {
+            add_coin(testWallet, amt);
+        }
+
+        // We only create the wallet once to save time, but we still run the
+        // coin selection RUN_TESTS times.
+        for (int i = 0; i < RUN_TESTS; i++) {
             BOOST_CHECK(testWallet.SelectCoinsMinConf(
                 2000 * SATOSHI, filter_confirmed, GroupCoins(vCoins),
                 setCoinsRet, nValueRet, coin_selection_params, bnb_used));
+
             if (amt - 2000 * SATOSHI < MIN_CHANGE) {
                 // needs more than one input:
                 uint16_t returnSize = std::ceil(
@@ -614,14 +620,18 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
                 BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
             }
         }
+    }
 
-        // test randomness
-        {
-            empty_wallet();
-            for (int i2 = 0; i2 < 100; i2++) {
-                add_coin(testWallet, COIN);
-            }
+    // test randomness
+    {
+        empty_wallet();
+        for (int i2 = 0; i2 < 100; i2++) {
+            add_coin(testWallet, COIN);
+        }
 
+        // Again, we only create the wallet once to save time, but we still run
+        // the coin selection RUN_TESTS times.
+        for (int i = 0; i < RUN_TESTS; i++) {
             // picking 50 from 100 coins doesn't depend on the shuffle, but does
             // depend on randomness in the stochastic approximation code
             BOOST_CHECK(testWallet.SelectCoinsMinConf(
@@ -648,17 +658,19 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
                 }
             }
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
+        }
 
-            // add 75 cents in small change.  not enough to make 90 cents, then
-            // try making 90 cents.  there are multiple competing "smallest
-            // bigger" coins, one of which should be picked at random
-            add_coin(testWallet, 5 * CENT);
-            add_coin(testWallet, 10 * CENT);
-            add_coin(testWallet, 15 * CENT);
-            add_coin(testWallet, 20 * CENT);
-            add_coin(testWallet, 25 * CENT);
+        // add 75 cents in small change.  not enough to make 90 cents, then
+        // try making 90 cents.  there are multiple competing "smallest
+        // bigger" coins, one of which should be picked at random
+        add_coin(testWallet, 5 * CENT);
+        add_coin(testWallet, 10 * CENT);
+        add_coin(testWallet, 15 * CENT);
+        add_coin(testWallet, 20 * CENT);
+        add_coin(testWallet, 25 * CENT);
 
-            fails = 0;
+        for (int i = 0; i < RUN_TESTS; i++) {
+            int fails = 0;
             for (int j = 0; j < RANDOM_REPEATS; j++) {
                 // selecting 1 from 100 identical coins depends on the shuffle;
                 // this test will fail 1% of the time run the test
@@ -676,6 +688,7 @@ BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
         }
     }
+
     empty_wallet();
 }
 
