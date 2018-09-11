@@ -42,8 +42,8 @@
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 
-[[maybe_unused]] static inline bool GetAvoidReuseFlag(CWallet *const pwallet,
-                                                      const UniValue &param) {
+static inline bool GetAvoidReuseFlag(CWallet *const pwallet,
+                                     const UniValue &param) {
     bool can_avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
     bool avoid_reuse = param.isNull() ? can_avoid_reuse : param.get_bool();
 
@@ -351,7 +351,9 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
                                  bool fSubtractFeeFromAmount,
                                  const CCoinControl &coin_control,
                                  mapValue_t mapValue) {
-    Amount curBalance = pwallet->GetBalance().m_mine_trusted;
+    Amount curBalance =
+        pwallet->GetBalance(0, coin_control.m_avoid_address_reuse)
+            .m_mine_trusted;
 
     // Check amount
     if (nValue <= Amount::zero()) {
@@ -413,7 +415,7 @@ static UniValue sendtoaddress(const Config &config,
     }
 
     if (request.fHelp || request.params.size() < 2 ||
-        request.params.size() > 5) {
+        request.params.size() > 6) {
         throw std::runtime_error(RPCHelpMan{
             "sendtoaddress",
             "\nSend an amount to a given address.\n" +
@@ -440,6 +442,14 @@ static UniValue sendtoaddress(const Config &config,
                  "The fee will be deducted from the amount being sent.\n"
                  "                             The recipient will receive "
                  "less bitcoins than you enter in the amount field."},
+                {"avoid_reuse", RPCArg::Type::BOOL,
+                 /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)
+                     ? "true"
+                     : "unavailable",
+                 "Avoid spending from dirty addresses; addresses are "
+                 "considered\n"
+                 "                             dirty if they have previously "
+                 "been used in a transaction."},
             },
             RPCResult{
                 "\"txid\"                  (string) The transaction id.\n"},
@@ -494,6 +504,8 @@ static UniValue sendtoaddress(const Config &config,
     }
 
     CCoinControl coin_control;
+    coin_control.m_avoid_address_reuse =
+        GetAvoidReuseFlag(pwallet, request.params[5]);
 
     EnsureWalletIsUnlocked(pwallet);
 
@@ -835,7 +847,7 @@ static UniValue getbalance(const Config &config,
         return NullUniValue;
     }
 
-    if (request.fHelp || (request.params.size() > 3)) {
+    if (request.fHelp || (request.params.size() > 4)) {
         throw std::runtime_error(RPCHelpMan{
             "getbalance",
             "\nReturns the total available balance.\n"
@@ -855,6 +867,13 @@ static UniValue getbalance(const Config &config,
                  /* default */ "false",
                  "Also include balance in watch-only addresses (see "
                  "'importaddress')"},
+                {"avoid_reuse", RPCArg::Type::BOOL,
+                 /* default */ pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)
+                     ? "true"
+                     : "unavailable",
+                 "Do not include balance in dirty outputs; addresses are "
+                 "considered dirty if they have previously been used in a "
+                 "transaction."},
             },
             RPCResult{"amount              (numeric) The total amount in " +
                       CURRENCY_UNIT + " received for this wallet.\n"},
@@ -894,7 +913,9 @@ static UniValue getbalance(const Config &config,
         include_watchonly = true;
     }
 
-    const auto bal = pwallet->GetBalance(min_depth);
+    bool avoid_reuse = GetAvoidReuseFlag(pwallet, request.params[3]);
+
+    const auto bal = pwallet->GetBalance(min_depth, avoid_reuse);
 
     return ValueFromAmount(bal.m_mine_trusted + (include_watchonly
                                                      ? bal.m_watchonly_trusted
@@ -3008,6 +3029,8 @@ static UniValue getwalletinfo(const Config &config,
             "  \"private_keys_enabled\": true|false (boolean) false if "
             "privatekeys are disabled for this wallet (enforced watch-only "
             "wallet)\n"
+            "  \"avoid_reuse\": true|false          (boolean) whether this "
+            "wallet tracks clean/dirty coins in terms of reuse\n"
             "}\n"},
         RPCExamples{HelpExampleCli("getwalletinfo", "") +
                     HelpExampleRpc("getwalletinfo", "")},
@@ -3051,6 +3074,8 @@ static UniValue getwalletinfo(const Config &config,
     }
     obj.pushKV("private_keys_enabled",
                !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
+    obj.pushKV("avoid_reuse",
+               pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE));
     return obj;
 }
 
@@ -3276,6 +3301,9 @@ static UniValue createwallet(const Config &config,
              "One can be set using sethdseed."},
             {"passphrase", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
              "Encrypt the wallet with this passphrase."},
+            {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "false",
+             "Keep track of coin reuse, and treat dirty and clean coins "
+             "differently with privacy considerations in mind."},
         },
         RPCResult{"{\n"
                   "  \"name\" :    <wallet_name>,        (string) The wallet "
@@ -3300,6 +3328,7 @@ static UniValue createwallet(const Config &config,
     if (!request.params[2].isNull() && request.params[2].get_bool()) {
         flags |= WALLET_FLAG_BLANK_WALLET;
     }
+
     SecureString passphrase;
     passphrase.reserve(100);
     if (!request.params[3].isNull()) {
@@ -3309,6 +3338,10 @@ static UniValue createwallet(const Config &config,
             throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED,
                                "Cannot encrypt a wallet with a blank password");
         }
+    }
+
+    if (!request.params[4].isNull() && request.params[4].get_bool()) {
+        flags |= WALLET_FLAG_AVOID_REUSE;
     }
 
     std::string error;
@@ -3389,6 +3422,8 @@ static UniValue listunspent(const Config &config,
         return NullUniValue;
     }
 
+    bool avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
+
     if (request.fHelp || request.params.size() > 5) {
         throw std::runtime_error(RPCHelpMan{
             "listunspent",
@@ -3456,7 +3491,11 @@ static UniValue listunspent(const Config &config,
                 "    \"spendable\" : xxx,        (bool) Whether we have the "
                 "private keys to spend this output\n"
                 "    \"solvable\" : xxx,         (bool) Whether we know how to "
-                "spend this output, ignoring the lack of keys\n"
+                "spend this output, ignoring the lack of keys\n" +
+                (avoid_reuse ? "    \"reused\" : xxx,           (bool) Whether "
+                               "this output is reused/dirty (sent to an "
+                               "address that was previously spent from)\n"
+                             : "") +
                 "    \"desc\" : xxx,             (string, only when solvable) "
                 "A descriptor for spending this output\n"
                 "    \"safe\" : xxx              (bool) Whether this output is "
@@ -3562,10 +3601,12 @@ static UniValue listunspent(const Config &config,
     UniValue results(UniValue::VARR);
     std::vector<COutput> vecOutputs;
     {
+        CCoinControl cctl;
+        cctl.m_avoid_address_reuse = false;
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
         pwallet->AvailableCoins(*locked_chain, vecOutputs, !include_unsafe,
-                                nullptr, nMinimumAmount, nMaximumAmount,
+                                &cctl, nMinimumAmount, nMaximumAmount,
                                 nMinimumSumAmount, nMaximumCount, nMinDepth,
                                 nMaxDepth);
     }
@@ -3576,6 +3617,7 @@ static UniValue listunspent(const Config &config,
         CTxDestination address;
         const CScript &scriptPubKey = out.tx->tx->vout[out.i].scriptPubKey;
         bool fValidAddress = ExtractDestination(scriptPubKey, address);
+        bool reused = avoid_reuse && pwallet->IsUsedDestination(address);
 
         if (destinations.size() &&
             (!fValidAddress || !destinations.count(address))) {
@@ -3614,6 +3656,9 @@ static UniValue listunspent(const Config &config,
         if (out.fSolvable) {
             auto descriptor = InferDescriptor(scriptPubKey, *pwallet);
             entry.pushKV("desc", descriptor->ToString());
+        }
+        if (avoid_reuse) {
+            entry.pushKV("reused", reused);
         }
         entry.pushKV("safe", out.fSafe);
         results.push_back(entry);
@@ -4902,11 +4947,11 @@ static const CRPCCommand commands[] = {
     { "wallet",             "abandontransaction",           abandontransaction,           {"txid"} },
     { "wallet",             "addmultisigaddress",           addmultisigaddress,           {"nrequired","keys","label"} },
     { "wallet",             "backupwallet",                 backupwallet,                 {"destination"} },
-    { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys", "blank", "passphrase"} },
+    { "wallet",             "createwallet",                 createwallet,                 {"wallet_name", "disable_private_keys", "blank", "passphrase", "avoid_reuse"} },
     { "wallet",             "encryptwallet",                encryptwallet,                {"passphrase"} },
     { "wallet",             "getaddressesbylabel",          getaddressesbylabel,          {"label"} },
     { "wallet",             "getaddressinfo",               getaddressinfo,               {"address"} },
-    { "wallet",             "getbalance",                   getbalance,                   {"dummy","minconf","include_watchonly"} },
+    { "wallet",             "getbalance",                   getbalance,                   {"dummy","minconf","include_watchonly","avoid_reuse"} },
     { "wallet",             "getnewaddress",                getnewaddress,                {"label", "address_type"} },
     { "wallet",             "getrawchangeaddress",          getrawchangeaddress,          {"address_type"} },
     { "wallet",             "getreceivedbyaddress",         getreceivedbyaddress,         {"address","minconf"} },
@@ -4930,7 +4975,7 @@ static const CRPCCommand commands[] = {
     { "wallet",             "lockunspent",                  lockunspent,                  {"unlock","transactions"} },
     { "wallet",             "rescanblockchain",             rescanblockchain,             {"start_height", "stop_height"} },
     { "wallet",             "sendmany",                     sendmany,                     {"dummy","amounts","minconf","comment","subtractfeefrom"} },
-    { "wallet",             "sendtoaddress",                sendtoaddress,                {"address","amount","comment","comment_to","subtractfeefromamount"} },
+    { "wallet",             "sendtoaddress",                sendtoaddress,                {"address","amount","comment","comment_to","subtractfeefromamount","avoid_reuse"} },
     { "wallet",             "sethdseed",                    sethdseed,                    {"newkeypool","seed"} },
     { "wallet",             "setlabel",                     setlabel,                     {"address","label"} },
     { "wallet",             "settxfee",                     settxfee,                     {"amount"} },
