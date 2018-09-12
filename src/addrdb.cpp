@@ -15,7 +15,7 @@
 #include "tinyformat.h"
 #include "util.h"
 
-CBanDB::CBanDB(const CChainParams &chainParams) : chainParams(chainParams) {
+CBanDB::CBanDB(const CChainParams &chainParamsIn) : chainParams(chainParamsIn) {
     pathBanlist = GetDataDir() / "banlist.dat";
 }
 
@@ -108,7 +108,8 @@ bool CBanDB::Read(banmap_t &banSet) {
     return true;
 }
 
-CAddrDB::CAddrDB(const CChainParams &chainParams) : chainParams(chainParams) {
+CAddrDB::CAddrDB(const CChainParams &chainParamsIn)
+    : chainParams(chainParamsIn) {
     pathAddr = GetDataDir() / "peers.dat";
 }
 

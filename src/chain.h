@@ -277,9 +277,9 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
-        int nVersion = s.GetVersion();
+        int version = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(VARINT(nVersion));
+            READWRITE(VARINT(version));
         }
 
         READWRITE(VARINT(nHeight));

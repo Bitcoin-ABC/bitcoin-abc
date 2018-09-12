@@ -81,8 +81,9 @@ private:
 
 public:
     MutableTransactionSignatureChecker(const CMutableTransaction *txToIn,
-                                       unsigned int nInIn, const Amount amount)
-        : TransactionSignatureChecker(&txTo, nInIn, amount), txTo(*txToIn) {}
+                                       unsigned int nInIn,
+                                       const Amount amountIn)
+        : TransactionSignatureChecker(&txTo, nInIn, amountIn), txTo(*txToIn) {}
 };
 
 bool EvalScript(std::vector<std::vector<uint8_t>> &stack, const CScript &script,

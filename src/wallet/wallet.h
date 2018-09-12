@@ -712,15 +712,15 @@ public:
     unsigned int nMasterKeyMaxID;
 
     // Create wallet with dummy database handle
-    CWallet(const CChainParams &chainParams)
-        : dbw(new CWalletDBWrapper()), chainParams(chainParams) {
+    CWallet(const CChainParams &chainParamsIn)
+        : dbw(new CWalletDBWrapper()), chainParams(chainParamsIn) {
         SetNull();
     }
 
     // Create wallet with passed-in database handle
-    CWallet(const CChainParams &chainParams,
+    CWallet(const CChainParams &chainParamsIn,
             std::unique_ptr<CWalletDBWrapper> dbw_in)
-        : dbw(std::move(dbw_in)), chainParams(chainParams) {
+        : dbw(std::move(dbw_in)), chainParams(chainParamsIn) {
         SetNull();
     }
 

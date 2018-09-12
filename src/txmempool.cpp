@@ -1306,15 +1306,15 @@ void DisconnectedBlockTransactions::addForBlock(
             for (const TxId &txid : worklist) {
                 // If we do not have that txid in the set, nothing needs to be
                 // done.
-                auto it = queuedTx.find(txid);
-                if (it == queuedTx.end()) {
+                auto pit = queuedTx.find(txid);
+                if (pit == queuedTx.end()) {
                     continue;
                 }
 
                 // We have parent in our set, we reinsert them at the right
                 // position.
-                const CTransactionRef ptx = *it;
-                queuedTx.erase(it);
+                const CTransactionRef ptx = *pit;
+                queuedTx.erase(pit);
                 queuedTx.insert(ptx);
 
                 // And we make sure ancestors are covered.

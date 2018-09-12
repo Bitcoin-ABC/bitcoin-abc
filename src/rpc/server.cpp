@@ -223,8 +223,6 @@ std::string CRPCTable::help(Config &config, const std::string &strCommand,
 
         jreq.strMethod = strMethod;
         try {
-            JSONRPCRequest jreq;
-            jreq.fHelp = true;
             if (setDone.insert(pcmd).second) {
                 pcmd->call(config, jreq);
             }
