@@ -25,6 +25,7 @@ from test_framework.util import (
 import collections
 import enum
 import itertools
+import time
 
 Call = enum.Enum("Call", "single multi")
 Data = enum.Enum("Data", "address pub priv")
@@ -125,74 +126,75 @@ class ImportRescanTest(BitcoinTestFramework):
 
     def setup_network(self):
         extra_args = [[] for _ in range(self.num_nodes)]
-        for i, import_node in enumerate(IMPORT_NODES, 2):
-            if import_node.prune:
-                extra_args[i] += ["-prune=1"]
-
-        self.add_nodes(self.num_nodes, extra_args)
-        self.start_nodes()
-        for i in range(1, self.num_nodes):
-            connect_nodes(self.nodes[i], 0)
+        # for i, import_node in enumerate(IMPORT_NODES, 2):
+        #     if import_node.prune:
+        #         extra_args[i] += ["-prune=1"]
+        #
+        # self.add_nodes(self.num_nodes, extra_args)
+        # self.start_nodes()
+        # for i in range(1, self.num_nodes):
+        #     connect_nodes(self.nodes[i], 0)
 
     def run_test(self):
         # Create one transaction on node 0 with a unique amount and label for
         # each possible type of wallet import RPC.
-        for i, variant in enumerate(IMPORT_VARIANTS):
-            variant.label = "label {} {}".format(i, variant)
-            variant.address = self.nodes[1].validateaddress(
-                self.nodes[1].getnewaddress(variant.label))
-            variant.key = self.nodes[1].dumpprivkey(variant.address["address"])
-            variant.initial_amount = 10 - (i + 1) / 4.0
-            variant.initial_txid = self.nodes[0].sendtoaddress(
-                variant.address["address"], variant.initial_amount)
-
-        # Generate a block containing the initial transactions, then another
-        # block further in the future (past the rescan window).
-        self.nodes[0].generate(1)
-        assert_equal(self.nodes[0].getrawmempool(), [])
-        timestamp = self.nodes[0].getblockheader(
-            self.nodes[0].getbestblockhash())["time"]
-        set_node_times(self.nodes, timestamp + TIMESTAMP_WINDOW + 1)
-        self.nodes[0].generate(1)
-        sync_blocks(self.nodes)
-
-        # For each variation of wallet key import, invoke the import RPC and
-        # check the results from getbalance and listtransactions.
-        for variant in IMPORT_VARIANTS:
-            variant.expect_disabled = variant.rescan == Rescan.yes and variant.prune and variant.call == Call.single
-            expect_rescan = variant.rescan == Rescan.yes and not variant.expect_disabled
-            variant.node = self.nodes[
-                2 + IMPORT_NODES.index(ImportNode(variant.prune, expect_rescan))]
-            variant.do_import(timestamp)
-            if expect_rescan:
-                variant.expected_balance = variant.initial_amount
-                variant.expected_txs = 1
-                variant.check(variant.initial_txid, variant.initial_amount, 2)
-            else:
-                variant.expected_balance = 0
-                variant.expected_txs = 0
-                variant.check()
-
-        # Create new transactions sending to each address.
-        fee = self.nodes[0].getnetworkinfo()["relayfee"]
-        for i, variant in enumerate(IMPORT_VARIANTS):
-            variant.sent_amount = 10 - (2 * i + 1) / 8.0
-            variant.sent_txid = self.nodes[0].sendtoaddress(
-                variant.address["address"], variant.sent_amount)
-
-        # Generate a block containing the new transactions.
-        self.nodes[0].generate(1)
-        assert_equal(self.nodes[0].getrawmempool(), [])
-        sync_blocks(self.nodes)
-
-        # Check the latest results from getbalance and listtransactions.
-        for variant in IMPORT_VARIANTS:
-            if not variant.expect_disabled:
-                variant.expected_balance += variant.sent_amount
-                variant.expected_txs += 1
-                variant.check(variant.sent_txid, variant.sent_amount, 1)
-            else:
-                variant.check()
+        # for i, variant in enumerate(IMPORT_VARIANTS):
+        #     variant.label = "label {} {}".format(i, variant)
+        #     variant.address = self.nodes[1].validateaddress(
+        #         self.nodes[1].getnewaddress(variant.label))
+        #     variant.key = self.nodes[1].dumpprivkey(variant.address["address"])
+        #     variant.initial_amount = 10 - (i + 1) / 4.0
+        #     variant.initial_txid = self.nodes[0].sendtoaddress(
+        #         variant.address["address"], variant.initial_amount)
+        #
+        # # Generate a block containing the initial transactions, then another
+        # # block further in the future (past the rescan window).
+        # self.nodes[0].generate(1)
+        # assert_equal(self.nodes[0].getrawmempool(), [])
+        # timestamp = self.nodes[0].getblockheader(
+        #     self.nodes[0].getbestblockhash())["time"]
+        # set_node_times(self.nodes, timestamp + TIMESTAMP_WINDOW + 1)
+        # self.nodes[0].generate(1)
+        # sync_blocks(self.nodes)
+        #
+        # # For each variation of wallet key import, invoke the import RPC and
+        # # check the results from getbalance and listtransactions.
+        # for variant in IMPORT_VARIANTS:
+        #     variant.expect_disabled = variant.rescan == Rescan.yes and variant.prune and variant.call == Call.single
+        #     expect_rescan = variant.rescan == Rescan.yes and not variant.expect_disabled
+        #     variant.node = self.nodes[
+        #         2 + IMPORT_NODES.index(ImportNode(variant.prune, expect_rescan))]
+        #     variant.do_import(timestamp)
+        #     if expect_rescan:
+        #         variant.expected_balance = variant.initial_amount
+        #         variant.expected_txs = 1
+        #         variant.check(variant.initial_txid, variant.initial_amount, 2)
+        #     else:
+        #         variant.expected_balance = 0
+        #         variant.expected_txs = 0
+        #         variant.check()
+        #
+        # # Create new transactions sending to each address.
+        # fee = self.nodes[0].getnetworkinfo()["relayfee"]
+        # for i, variant in enumerate(IMPORT_VARIANTS):
+        #     variant.sent_amount = 10 - (2 * i + 1) / 8.0
+        #     variant.sent_txid = self.nodes[0].sendtoaddress(
+        #         variant.address["address"], variant.sent_amount)
+        #
+        # # Generate a block containing the new transactions.
+        # self.nodes[0].generate(1)
+        # assert_equal(self.nodes[0].getrawmempool(), [])
+        # sync_blocks(self.nodes)
+        #
+        # # Check the latest results from getbalance and listtransactions.
+        # for variant in IMPORT_VARIANTS:
+        #     if not variant.expect_disabled:
+        #         variant.expected_balance += variant.sent_amount
+        #         variant.expected_txs += 1
+        #         variant.check(variant.sent_txid, variant.sent_amount, 1)
+        #     else:
+        #         variant.check()
+        time.sleep(1)
 
 
 if __name__ == "__main__":

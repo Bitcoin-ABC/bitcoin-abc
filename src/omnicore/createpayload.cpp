@@ -5,8 +5,9 @@
 #include "omnicore/convert.h"
 #include "omnicore/omnicore.h"
 #include "omnicore/utils.h"
-
+#include "cashaddrenc.h"
 #include "tinyformat.h"
+#include "config.h"
 
 #include <stdint.h>
 #include <string>
@@ -389,13 +390,15 @@ std::vector<unsigned char> CreatePayload_FreezeTokens(uint32_t propertyId, uint6
     mastercore::swapByteOrder16(messageVer);
     mastercore::swapByteOrder32(propertyId);
     mastercore::swapByteOrder64(amount);
-    std::vector<unsigned char> addressBytes = AddressToBytes(address);
+    //const CChainParams& params = GetConfig().GetChainParams();
+    //CTxDestination dest = DecodeCashAddr(address, params);
 
     PUSH_BACK_BYTES(payload, messageVer);
     PUSH_BACK_BYTES(payload, messageType);
     PUSH_BACK_BYTES(payload, propertyId);
     PUSH_BACK_BYTES(payload, amount);
-    payload.insert(payload.end(), addressBytes.begin(), addressBytes.end());
+    payload.insert(payload.end(), address.begin(), address.end());
+    payload.push_back('\0');
 
     return payload;
 }
@@ -409,13 +412,17 @@ std::vector<unsigned char> CreatePayload_UnfreezeTokens(uint32_t propertyId, uin
     mastercore::swapByteOrder16(messageVer);
     mastercore::swapByteOrder32(propertyId);
     mastercore::swapByteOrder64(amount);
-    std::vector<unsigned char> addressBytes = AddressToBytes(address);
+    //const CChainParams& params = GetConfig().GetChainParams();
+    //CTxDestination dest = DecodeCashAddr(address, params);
+    //std::vector<unsigned char> addressBytes = dest.GetHex();
 
     PUSH_BACK_BYTES(payload, messageVer);
     PUSH_BACK_BYTES(payload, messageType);
     PUSH_BACK_BYTES(payload, propertyId);
     PUSH_BACK_BYTES(payload, amount);
-    payload.insert(payload.end(), addressBytes.begin(), addressBytes.end());
+    //std::string addressBytes;
+    payload.insert(payload.end(), address.begin(), address.end());
+    payload.push_back('\0');
 
     return payload;
 }

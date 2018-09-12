@@ -119,9 +119,11 @@ uint16_t ParsePropertyType(const UniValue& value)
 uint32_t ParsePreviousPropertyId(const UniValue& value)
 {
     int64_t previousId = value.get_int64();
+/*
     if (previousId != 0) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Property appends/replaces are not yet supported");
     }
+*/
     return static_cast<uint32_t>(previousId);
 }
 
