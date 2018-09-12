@@ -108,6 +108,7 @@ check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
+check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
 
 # OpenSSL functionality
 include(BrewHelper)
