@@ -72,6 +72,7 @@ bool AppInit(int argc, char *argv[]) {
     // not possible as the whole application has too many global state. However,
     // this is a first step.
     auto &config = const_cast<Config &>(GetConfig());
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config);
 
     bool fRet = false;
 
@@ -178,7 +179,8 @@ bool AppInit(int argc, char *argv[]) {
 #endif // HAVE_DECL_DAEMON
         }
 
-        fRet = AppInitMain(config, threadGroup, scheduler);
+        fRet = AppInitMain(config, httpRPCRequestProcessor, threadGroup,
+                           scheduler);
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {

@@ -1114,7 +1114,9 @@ bool InitSanityCheck(void) {
     return true;
 }
 
-static bool AppInitServers(Config &config, boost::thread_group &threadGroup) {
+static bool AppInitServers(Config &config,
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                           boost::thread_group &threadGroup) {
     RPCServerSignals::OnStarted(&OnRPCStarted);
     RPCServerSignals::OnStopped(&OnRPCStopped);
     RPCServerSignals::OnPreCommand(&OnRPCPreCommand);
@@ -1124,7 +1126,7 @@ static bool AppInitServers(Config &config, boost::thread_group &threadGroup) {
     if (!StartRPC()) {
         return false;
     }
-    if (!StartHTTPRPC(config)) {
+    if (!StartHTTPRPC(config, httpRPCRequestProcessor)) {
         return false;
     }
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST()) {
@@ -1727,8 +1729,9 @@ bool AppInitSanityChecks() {
     return LockDataDirectory(true);
 }
 
-bool AppInitMain(Config &config, boost::thread_group &threadGroup,
-                 CScheduler &scheduler) {
+bool AppInitMain(Config &config,
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                 boost::thread_group &threadGroup, CScheduler &scheduler) {
     const CChainParams &chainparams = config.GetChainParams();
     // Step 4a: application initialization
 
@@ -1796,7 +1799,7 @@ bool AppInitMain(Config &config, boost::thread_group &threadGroup,
      */
     if (gArgs.GetBoolArg("-server", false)) {
         uiInterface.InitMessage.connect(SetRPCWarmupStatus);
-        if (!AppInitServers(config, threadGroup)) {
+        if (!AppInitServers(config, httpRPCRequestProcessor, threadGroup)) {
             return InitError(
                 _("Unable to start HTTP server. See debug log for details."));
         }

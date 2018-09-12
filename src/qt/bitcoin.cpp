@@ -13,6 +13,7 @@
 #include "config.h"
 #include "guiconstants.h"
 #include "guiutil.h"
+#include "httprpc.h"
 #include "intro.h"
 #include "networkstyle.h"
 #include "optionsmodel.h"
@@ -191,7 +192,8 @@ public:
     explicit BitcoinABC();
 
 public Q_SLOTS:
-    void initialize(Config *config);
+    void initialize(Config *config,
+                    HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void shutdown();
 
 Q_SIGNALS:
@@ -228,7 +230,8 @@ public:
     void createSplashScreen(const NetworkStyle *networkStyle);
 
     /// Request core initialization
-    void requestInitialize(Config &config);
+    void requestInitialize(Config &config,
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor);
     /// Request core shutdown
     void requestShutdown(Config &config);
 
@@ -246,7 +249,8 @@ public Q_SLOTS:
     void handleRunawayException(const QString &message);
 
 Q_SIGNALS:
-    void requestedInitialize(Config *config);
+    void requestedInitialize(Config *config,
+                             HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -277,7 +281,8 @@ void BitcoinABC::handleRunawayException(const std::exception *e) {
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
-void BitcoinABC::initialize(Config *cfg) {
+void BitcoinABC::initialize(Config *cfg,
+                            HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running AppInit2 in thread";
@@ -296,7 +301,8 @@ void BitcoinABC::initialize(Config *cfg) {
             return;
         }
 
-        int rv = AppInitMain(config, threadGroup, scheduler);
+        int rv = AppInitMain(config, *httpRPCRequestProcessor, threadGroup,
+                             scheduler);
         Q_EMIT initializeResult(rv);
     } catch (const std::exception &e) {
         handleRunawayException(&e);
@@ -419,8 +425,9 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this, SIGNAL(requestedInitialize(Config *)), executor,
-            SLOT(initialize(Config *)));
+    connect(this,
+            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
+            executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
     /*  make sure executor object is deleted in its own thread */
@@ -435,13 +442,14 @@ void BitcoinApplication::parameterSetup() {
     InitParameterInteraction();
 }
 
-void BitcoinApplication::requestInitialize(Config &config) {
+void BitcoinApplication::requestInitialize(
+    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     qDebug() << __func__ << ": Requesting initialize";
     startThread();
     // IMPORTANT: config must NOT be a reference to a temporary because below
     // signal may be connected to a slot that will be executed as a queued
     // connection in another thread!
-    Q_EMIT requestedInitialize(&config);
+    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor);
 }
 
 void BitcoinApplication::requestShutdown(Config &config) {
@@ -782,9 +790,11 @@ int main(int argc, char *argv[]) {
         !gArgs.GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
 
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config);
+
     try {
         app.createWindow(&config, networkStyle.data());
-        app.requestInitialize(config);
+        app.requestInitialize(config, httpRPCRequestProcessor);
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")

@@ -266,8 +266,7 @@ static bool checkCORS(Config &config, HTTPRequest *req) {
     return false;
 }
 
-static bool HTTPReq_JSONRPC(Config &config, HTTPRequest *req,
-                            const std::string &) {
+bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
     // First, check and/or set CORS headers
     if (checkCORS(config, req)) {
         return true;
@@ -365,15 +364,20 @@ static bool InitRPCAuthentication(Config &config) {
     return true;
 }
 
-bool StartHTTPRPC(Config &config) {
+bool StartHTTPRPC(Config &config,
+                  HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     LogPrint(BCLog::RPC, "Starting HTTP RPC server\n");
     if (!InitRPCAuthentication(config)) return false;
 
-    RegisterHTTPHandler("/", true, HTTPReq_JSONRPC);
+    const std::function<bool(Config &, HTTPRequest *, const std::string &)>
+        &rpcFunction =
+            std::bind(&HTTPRPCRequestProcessor::DelegateHTTPRequest,
+                      &httpRPCRequestProcessor, std::placeholders::_2);
+    RegisterHTTPHandler("/", true, rpcFunction);
 #ifdef ENABLE_WALLET
     // ifdef can be removed once we switch to better endpoint support and API
     // versioning
-    RegisterHTTPHandler("/wallet/", false, HTTPReq_JSONRPC);
+    RegisterHTTPHandler("/wallet/", false, rpcFunction);
 #endif
     assert(EventBase());
     httpRPCTimerInterface = new HTTPRPCTimerInterface(EventBase());
