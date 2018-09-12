@@ -100,7 +100,7 @@ static int ec_privkey_import_der(const secp256k1_context *ctx, uint8_t *out32,
  */
 static int ec_privkey_export_der(const secp256k1_context *ctx, uint8_t *privkey,
                                  size_t *privkeylen, const uint8_t *key32,
-                                 int compressed) {
+                                 bool compressed) {
     assert(*privkeylen >= CKey::SIZE);
     secp256k1_pubkey pubkey;
     size_t pubkeylen = 0;
@@ -200,9 +200,8 @@ CPrivKey CKey::GetPrivKey() const {
     size_t privkeylen;
     privkey.resize(SIZE);
     privkeylen = SIZE;
-    ret = ec_privkey_export_der(
-        secp256k1_context_sign, privkey.data(), &privkeylen, begin(),
-        fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
+    ret = ec_privkey_export_der(secp256k1_context_sign, privkey.data(),
+                                &privkeylen, begin(), fCompressed);
     assert(ret);
     privkey.resize(privkeylen);
     return privkey;
