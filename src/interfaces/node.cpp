@@ -34,22 +34,19 @@
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
 #endif
-#ifdef ENABLE_WALLET
-#include <wallet/fees.h>
-#include <wallet/wallet.h>
-#define CHECK_WALLET(x) x
-#else
-#define CHECK_WALLET(x)                                                        \
-    throw std::logic_error("Wallet function called in non-wallet build.")
-#endif
 
 #include <univalue.h>
 
 #include <atomic>
 
 class HTTPRPCRequestProcessor;
+class CWallet;
+std::vector<std::shared_ptr<CWallet>> GetWallets();
 
 namespace interfaces {
+
+class Wallet;
+
 namespace {
 
     class NodeImpl : public Node {
@@ -247,16 +244,11 @@ namespace {
             return ::pcoinsTip->GetCoin(output, coin);
         }
         std::vector<std::unique_ptr<Wallet>> getWallets() override {
-#ifdef ENABLE_WALLET
             std::vector<std::unique_ptr<Wallet>> wallets;
             for (const std::shared_ptr<CWallet> &wallet : GetWallets()) {
                 wallets.emplace_back(MakeWallet(wallet));
             }
             return wallets;
-#else
-            throw std::logic_error(
-                "Node::getWallets() called in non-wallet build.");
-#endif
         }
         std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override {
             return MakeHandler(::uiInterface.InitMessage_connect(fn));
@@ -272,10 +264,10 @@ namespace {
             return MakeHandler(::uiInterface.ShowProgress_connect(fn));
         }
         std::unique_ptr<Handler> handleLoadWallet(LoadWalletFn fn) override {
-            CHECK_WALLET(return MakeHandler(::uiInterface.LoadWallet_connect(
+            return MakeHandler(::uiInterface.LoadWallet_connect(
                 [fn](std::shared_ptr<CWallet> wallet) {
                     fn(MakeWallet(wallet));
-                })));
+                }));
         }
         std::unique_ptr<Handler> handleNotifyNumConnectionsChanged(
             NotifyNumConnectionsChangedFn fn) override {
