@@ -1058,6 +1058,12 @@ public:
     bool IsSpent(interfaces::Chain::Lock &locked_chain,
                  const COutPoint &outpoint) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
+    // Whether this or any UTXO with the same CTxDestination has been spent.
+    bool IsUsedDestination(const CTxDestination &dst) const;
+    bool IsUsedDestination(const TxId &txid, unsigned int n) const;
+    void SetUsedDestinationState(const TxId &hash, unsigned int n, bool used);
+
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,
                                           bool single_coin) const;
 
@@ -1220,7 +1226,7 @@ public:
         Amount m_watchonly_untrusted_pending{Amount::zero()};
         Amount m_watchonly_immature{Amount::zero()};
     };
-    Balance GetBalance(int min_depth = 0) const;
+    Balance GetBalance(int min_depth = 0, bool avoid_reuse = true) const;
     Amount GetAvailableBalance(const CCoinControl *coinControl = nullptr) const;
 
     OutputType TransactionChangeType(OutputType change_type,

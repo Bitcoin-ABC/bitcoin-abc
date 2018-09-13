@@ -1105,12 +1105,53 @@ void CWallet::MarkDirty() {
     }
 }
 
+void CWallet::SetUsedDestinationState(const TxId &hash, unsigned int n,
+                                      bool used) {
+    const CWalletTx *srctx = GetWalletTx(hash);
+    if (!srctx) {
+        return;
+    }
+
+    CTxDestination dst;
+    if (ExtractDestination(srctx->tx->vout[n].scriptPubKey, dst)) {
+        if (::IsMine(*this, dst)) {
+            LOCK(cs_wallet);
+            if (used && !GetDestData(dst, "used", nullptr)) {
+                // p for "present", opposite of absent (null)
+                AddDestData(dst, "used", "p");
+            } else if (!used && GetDestData(dst, "used", nullptr)) {
+                EraseDestData(dst, "used");
+            }
+        }
+    }
+}
+
+bool CWallet::IsUsedDestination(const CTxDestination &dst) const {
+    LOCK(cs_wallet);
+    return ::IsMine(*this, dst) && GetDestData(dst, "used", nullptr);
+}
+
+bool CWallet::IsUsedDestination(const TxId &txid, unsigned int n) const {
+    CTxDestination dst;
+    const CWalletTx *srctx = GetWalletTx(txid);
+    return srctx && ExtractDestination(srctx->tx->vout[n].scriptPubKey, dst) &&
+           IsUsedDestination(dst);
+}
+
 bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
     LOCK(cs_wallet);
 
     WalletBatch batch(*database, "r+", fFlushOnClose);
 
     const TxId &txid = wtxIn.GetId();
+
+    if (IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE)) {
+        // Mark used destinations
+        for (const CTxIn &txin : wtxIn.tx->vin) {
+            const COutPoint &op = txin.prevout;
+            SetUsedDestinationState(op.GetTxId(), op.GetN(), true);
+        }
+    }
 
     // Inserts only if not already there, returns tx inserted or tx found.
     std::pair<std::map<TxId, CWalletTx>::iterator, bool> ret =
@@ -2370,7 +2411,7 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
     // Avoid caching ismine for NO or ALL cases (could remove this check and
     // simplify in the future).
     bool allow_cache =
-        filter == ISMINE_SPENDABLE || filter == ISMINE_WATCH_ONLY;
+        (filter & ISMINE_ALL) && (filter & ISMINE_ALL) != ISMINE_ALL;
 
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
@@ -2383,10 +2424,14 @@ Amount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock &locked_chain,
         return m_amounts[AVAILABLE_CREDIT].m_value[filter];
     }
 
+    bool allow_used_addresses =
+        (filter & ISMINE_USED) ||
+        !pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
     Amount nCredit = Amount::zero();
     const TxId &txid = GetId();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
-        if (!pwallet->IsSpent(locked_chain, COutPoint(txid, i))) {
+        if (!pwallet->IsSpent(locked_chain, COutPoint(txid, i)) &&
+            (allow_used_addresses || !pwallet->IsUsedDestination(txid, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, filter);
             if (!MoneyRange(nCredit)) {
@@ -2562,18 +2607,22 @@ void MaybeResendWalletTxs() {
  *
  * @{
  */
-CWallet::Balance CWallet::GetBalance(const int min_depth) const {
+CWallet::Balance CWallet::GetBalance(const int min_depth,
+                                     bool avoid_reuse) const {
     Balance ret;
+    isminefilter reuse_filter = avoid_reuse ? ISMINE_NO : ISMINE_USED;
     auto locked_chain = chain().lock();
     LOCK(cs_wallet);
     for (const auto &entry : mapWallet) {
         const CWalletTx &wtx = entry.second;
         const bool is_trusted{wtx.IsTrusted(*locked_chain)};
         const int tx_depth{wtx.GetDepthInMainChain(*locked_chain)};
-        const Amount tx_credit_mine{wtx.GetAvailableCredit(
-            *locked_chain, /* fUseCache */ true, ISMINE_SPENDABLE)};
-        const Amount tx_credit_watchonly{wtx.GetAvailableCredit(
-            *locked_chain, /* fUseCache */ true, ISMINE_WATCH_ONLY)};
+        const Amount tx_credit_mine{
+            wtx.GetAvailableCredit(*locked_chain, /* fUseCache */ true,
+                                   ISMINE_SPENDABLE | reuse_filter)};
+        const Amount tx_credit_watchonly{
+            wtx.GetAvailableCredit(*locked_chain, /* fUseCache */ true,
+                                   ISMINE_WATCH_ONLY | reuse_filter)};
         if (is_trusted && tx_depth >= min_depth) {
             ret.m_mine_trusted += tx_credit_mine;
             ret.m_watchonly_trusted += tx_credit_watchonly;
@@ -2616,6 +2665,13 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
 
     vCoins.clear();
     Amount nTotal = Amount::zero();
+    // Either the WALLET_FLAG_AVOID_REUSE flag is not set (in which case we
+    // always allow), or we default to avoiding, and only in the case where a
+    // coin control object is provided, and has the avoid address reuse flag set
+    // to false, do we allow already used addresses
+    bool allow_used_addresses =
+        !IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE) ||
+        (coinControl && !coinControl->m_avoid_address_reuse);
 
     const Consensus::Params params = Params().GetConsensus();
 
@@ -2700,6 +2756,10 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
             isminetype mine = IsMine(wtx.tx->vout[i]);
 
             if (mine == ISMINE_NO) {
+                continue;
+            }
+
+            if (!allow_used_addresses && IsUsedDestination(wtxid, i)) {
                 continue;
             }
 
@@ -4750,16 +4810,13 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         // HD with chain split and expects no default key.
         walletInstance->SetMinVersion(FEATURE_LATEST);
 
-        if ((wallet_creation_flags & WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
-            // selective allow to set flags
-            walletInstance->SetWalletFlag(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
-        } else if (wallet_creation_flags & WALLET_FLAG_BLANK_WALLET) {
-            walletInstance->SetWalletFlag(WALLET_FLAG_BLANK_WALLET);
-        } else {
+        walletInstance->SetWalletFlags(wallet_creation_flags, false);
+        if (!(wallet_creation_flags &
+              (WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET))) {
             // generate a new seed
             CPubKey seed = walletInstance->GenerateNewSeed();
             walletInstance->SetHDSeed(seed);
-        } // Otherwise, do not generate a new seed
+        }
 
         // Top up the keypool
         if (walletInstance->CanGenerateKeys() &&
