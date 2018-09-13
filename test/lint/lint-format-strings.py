@@ -24,6 +24,7 @@ FALSE_POSITIVES = [
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
     ("src/wallet/wallet.h",
      "LogPrintf((\"%s \" + fmt).c_str(), GetDisplayName(), parameters...)"),
+    ("src/logging.h", "LogPrintf(const char *fmt, const Args &... args)"),
 ]
 
 FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
