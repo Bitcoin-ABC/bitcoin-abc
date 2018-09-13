@@ -4852,6 +4852,10 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
         const CBlockIndex *pindex = pindexNew->GetAncestor(nHeight);
         LogPrintf("Rolling forward %s (%i)\n",
                   pindex->GetBlockHash().ToString(), nHeight);
+        uiInterface.ShowProgress(_("Replaying blocks...").translated,
+                                 (int)((nHeight - nForkHeight) * 100.0 /
+                                       (pindexNew->nHeight - nForkHeight)),
+                                 false);
         if (!RollforwardBlock(pindex, cache, params)) {
             return false;
         }
