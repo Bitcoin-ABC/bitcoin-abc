@@ -815,8 +815,8 @@ void SetupServerArgs() {
                   "categories except one or more specified categories."),
         false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-help-debug",
-                 "Show all debugging options (usage: --help -help-debug)",
-                 false, OptionsCategory::DEBUG_TEST);
+                 "Print help message with debugging options and exit", false,
+                 OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-logips",
                  strprintf("Include IP addresses in debug output (default: %d)",
                            DEFAULT_LOGIPS),
