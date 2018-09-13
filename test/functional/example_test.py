@@ -72,7 +72,7 @@ def custom_function():
 class ExampleTest(BitcoinTestFramework):
     # Each functional test is a subclass of the BitcoinTestFramework class.
 
-    # Override the set_test_params(), add_options(), setup_chain(), setup_network()
+    # Override the set_test_params(), skip_test_if_missing_module(), add_options(), setup_chain(), setup_network()
     # and setup_nodes() methods to customize the test setup as required.
 
     def set_test_params(self):
@@ -85,6 +85,9 @@ class ExampleTest(BitcoinTestFramework):
         self.extra_args = [[], ["-logips"], []]
 
         # self.log.info("I've finished set_test_params")  # Oops! Can't run self.log before run_test()
+
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
 
     # Use add_options() to add specific command-line options for your test.
     # In practice this is not used very much, since the tests are mostly written

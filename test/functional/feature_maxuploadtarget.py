@@ -46,6 +46,9 @@ class MaxUploadTest(BitcoinTestFramework):
         # test
         self.utxo_cache = []
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         # Before we connect anything, we first set the time on the node
         # to be in the past, otherwise things break because the CNode

@@ -49,6 +49,9 @@ class BIP68Test(BitcoinTestFramework):
         self.extra_args = [["-noparkdeepreorg", "-maxreorgdepth=-1"],
                            ["-acceptnonstdtxn=0", "-maxreorgdepth=-1"]]
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
 

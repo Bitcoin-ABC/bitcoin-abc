@@ -54,6 +54,9 @@ class WalletBackupTest(BitcoinTestFramework):
                            ["-keypool=100"], ["-keypool=100"], []]
         self.rpc_timeout = 120
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def setup_network(self):
         self.setup_nodes()
         connect_nodes(self.nodes[0], self.nodes[3])

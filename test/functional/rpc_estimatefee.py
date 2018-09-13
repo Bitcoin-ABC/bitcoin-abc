@@ -15,6 +15,9 @@ class EstimateFeeTest(BitcoinTestFramework):
         self.num_nodes = 3
         self.extra_args = [[], ["-minrelaytxfee=0.001"], ["-mintxfee=0.00002"]]
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         default_node = self.nodes[0]
         diff_relay_fee_node = self.nodes[1]

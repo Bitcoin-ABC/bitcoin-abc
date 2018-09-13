@@ -31,6 +31,9 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         self.log.info(
             "Warning: this test will take about 70 seconds in the best case. Be patient.")

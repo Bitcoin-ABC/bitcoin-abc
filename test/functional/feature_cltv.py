@@ -88,6 +88,9 @@ class BIP65Test(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.rpc_timeout = 120
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         self.nodes[0].add_p2p_connection(P2PInterface())
 

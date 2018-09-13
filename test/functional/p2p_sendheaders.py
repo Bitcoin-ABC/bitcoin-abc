@@ -209,6 +209,9 @@ class SendHeadersTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"]]
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def mine_blocks(self, count):
         """Mine count blocks and return the new tip."""
 

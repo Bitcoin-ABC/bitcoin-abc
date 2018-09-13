@@ -16,6 +16,9 @@ class ScantxoutsetTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.setup_clean_chain = True
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def run_test(self):
         self.log.info("Mining blocks...")
         self.nodes[0].generate(110)

@@ -111,6 +111,9 @@ class MempoolLimitSigopsTest(BitcoinTestFramework):
         self.extra_args = [["-maxmempool=5"]]
         self.block_heights = {}
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def getbestblock(self, node):
         """Get the best block. Register its height so we can use build_block."""
         block_height = node.getblockcount()

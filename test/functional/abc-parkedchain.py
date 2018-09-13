@@ -14,6 +14,9 @@ class ParkedChainTest(BitcoinTestFramework):
         self.extra_args = [["-noparkdeepreorg",
                             "-noautomaticunparking"], ["-maxreorgdepth=-1"]]
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     # There should only be one chaintip, which is expected_tip
     def only_valid_tip(self, expected_tip, other_tip_status=None):
         node = self.nodes[0]

@@ -13,6 +13,9 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 3
 
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_wallet()
+
     def get_keys(self):
         node0, node1, node2 = self.nodes
         self.add = [node1.getnewaddress() for _ in range(self.nkeys)]
