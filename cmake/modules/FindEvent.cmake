@@ -11,7 +11,25 @@ endif()
 
 find_path(EVENT_INCLUDE_DIR NAMES event.h)
 find_library(EVENT_LIBRARY NAMES event libevent)
-find_library(EVENT_PTHREAD_LIBRARY event_pthreads)
+
+if(NOT TARGET Event)
+	# Create a library to be used
+	add_library(Event STATIC IMPORTED)
+	set_target_properties(Event PROPERTIES
+		IMPORTED_LOCATION ${EVENT_LIBRARY}
+		INTERFACE_INCLUDE_DIRECTORIES ${EVENT_INCLUDE_DIR})
+
+	# On windows, libevent depends on ws2_32
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		find_library(WS2_32_LIBRARY NAMES ws2_32)
+		set_target_properties(Event PROPERTIES
+			IMPORTED_LINK_INTERFACE_LIBRARIES ${WS2_32_LIBRARY})
+	else()
+		find_library(EVENT_PTHREAD_LIBRARY event_pthreads)
+		set_target_properties(Event PROPERTIES
+			IMPORTED_LINK_INTERFACE_LIBRARIES ${EVENT_PTHREAD_LIBRARY})
+	endif()
+endif()
 
 message(STATUS "libevent: " ${EVENT_LIBRARY})
 
