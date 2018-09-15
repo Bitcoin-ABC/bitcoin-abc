@@ -686,11 +686,19 @@ void SetupServerArgs() {
         strprintf("How many blocks to check at startup (default: %u, 0 = all)",
                   DEFAULT_CHECKBLOCKS),
         true, OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg("-checklevel=<n>",
-                 strprintf("How thorough the block verification of "
-                           "-checkblocks is (0-4, default: %u)",
-                           DEFAULT_CHECKLEVEL),
-                 true, OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg(
+        "-checklevel=<n>",
+        strprintf("How thorough the block verification of "
+                  "-checkblocks is: "
+                  "level 0 reads the blocks from disk, "
+                  "level 1 verifies block validity, "
+                  "level 2 verifies undo data, "
+                  "level 3 checks disconnection of tip blocks, "
+                  "and level 4 tries to reconnect the blocks. "
+                  "Each level includes the checks of the previous levels "
+                  "(0-4, default: %u)",
+                  DEFAULT_CHECKLEVEL),
+        true, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-checkblockindex",
                  strprintf("Do a full consistency check for mapBlockIndex, "
                            "setBlockIndexCandidates, chainActive and "
