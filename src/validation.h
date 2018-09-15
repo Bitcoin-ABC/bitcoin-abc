@@ -143,7 +143,7 @@ static const unsigned int INVENTORY_BROADCAST_INTERVAL = 5;
  * Maximum number of inventory items to send per transmission.
  * Limits the impact of low-fee transaction floods.
  */
-static const unsigned int INVENTORY_BROADCAST_MAX =
+static const unsigned int INVENTORY_BROADCAST_MAX_PER_MB =
     7 * INVENTORY_BROADCAST_INTERVAL;
 /** Average delay between feefilter broadcasts in seconds. */
 static const unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;

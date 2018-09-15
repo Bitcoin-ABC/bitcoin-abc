@@ -3476,7 +3476,8 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
     {
         LOCK(pto->cs_inventory);
         vInv.reserve(std::max<size_t>(pto->vInventoryBlockToSend.size(),
-                                      INVENTORY_BROADCAST_MAX));
+                                      INVENTORY_BROADCAST_MAX_PER_MB *
+                                          config.GetMaxBlockSize() / 1000000));
 
         // Add blocks
         for (const uint256 &hash : pto->vInventoryBlockToSend) {
@@ -3568,7 +3569,9 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             unsigned int nRelayedTransactions = 0;
             LOCK(pto->cs_filter);
             while (!vInvTx.empty() &&
-                   nRelayedTransactions < INVENTORY_BROADCAST_MAX) {
+                   nRelayedTransactions < INVENTORY_BROADCAST_MAX_PER_MB *
+                                              config.GetMaxBlockSize() /
+                                              1000000) {
                 // Fetch the top element from the heap
                 std::pop_heap(vInvTx.begin(), vInvTx.end(),
                               compareInvMempoolOrder);
