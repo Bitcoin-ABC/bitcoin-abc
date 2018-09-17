@@ -21,16 +21,14 @@ class GetInvalidBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PInterface())
         chaintip = node.getbestblockhash()
 
         # Mine some blocks and invalidate them
-        blocks = node.generate(nblocks=3)
+        blocks = node.generatetoaddress(
+            3, node.get_deterministic_priv_key().address)
         assert_equal(blocks[-1], node.getbestblockhash())
         node.invalidateblock(blocks[0])
         assert_equal(chaintip, node.getbestblockhash())

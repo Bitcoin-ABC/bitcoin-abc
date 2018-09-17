@@ -71,9 +71,6 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.block_heights = {}
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.
 
@@ -147,7 +144,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
-        node.generate(100)
+        node.generatetoaddress(100, node.get_deterministic_priv_key().address)
 
         tip = self.getbestblock(node)
 

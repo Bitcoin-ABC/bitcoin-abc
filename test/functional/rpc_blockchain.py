@@ -50,9 +50,6 @@ class BlockchainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
         # Set extra args with pruning after rescan is complete
         self.restart_node(0, extra_args=['-stopatheight=207', '-prune=1'])
@@ -64,8 +61,9 @@ class BlockchainTest(BitcoinTestFramework):
         self._test_getdifficulty()
         self._test_getnetworkhashps()
         self._test_stopatheight()
-        self._test_getblock()
         self._test_waitforblockheight()
+        if self.is_wallet_compiled():
+            self._test_getblock()
         assert self.nodes[0].verifychain(4, 0)
 
     def _test_getblockchaininfo(self):
@@ -284,13 +282,15 @@ class BlockchainTest(BitcoinTestFramework):
 
     def _test_stopatheight(self):
         assert_equal(self.nodes[0].getblockcount(), 200)
-        self.nodes[0].generate(6)
+        self.nodes[0].generatetoaddress(
+            6, self.nodes[0].get_deterministic_priv_key().address)
         assert_equal(self.nodes[0].getblockcount(), 206)
         self.log.debug('Node should not stop at this height')
         assert_raises(subprocess.TimeoutExpired,
                       lambda: self.nodes[0].process.wait(timeout=3))
         try:
-            self.nodes[0].generate(1)
+            self.nodes[0].generatetoaddress(
+                1, self.nodes[0].get_deterministic_priv_key().address)
         except (ConnectionError, http.client.BadStatusLine):
             pass  # The node already shut down before response
         self.log.debug('Node should stop at this height...')

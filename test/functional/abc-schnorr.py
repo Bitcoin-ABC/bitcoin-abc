@@ -67,9 +67,6 @@ class SchnorrTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.block_heights = {}
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def bootstrap_p2p(self, *, num_connections=1):
         """Add a P2P connection to the node.
 
@@ -143,7 +140,7 @@ class SchnorrTest(BitcoinTestFramework):
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
-        node.generate(100)
+        node.generatetoaddress(100, node.get_deterministic_priv_key().address)
 
         tip = self.getbestblock(node)
 
@@ -210,7 +207,7 @@ class SchnorrTest(BitcoinTestFramework):
         self.log.info("Typical ECDSA and Schnorr CHECKSIG are valid.")
         node.p2p.send_txs_and_test([schnorrchecksigtx, ecdsachecksigtx], node)
         # They get mined as usual.
-        node.generate(1)
+        node.generatetoaddress(1, node.get_deterministic_priv_key().address)
         tip = self.getbestblock(node)
         # Make sure they are in the block, and mempool is now empty.
         txhashes = set([schnorrchecksigtx.hash, ecdsachecksigtx.hash])
