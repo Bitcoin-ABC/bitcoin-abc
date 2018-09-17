@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(test_max_sigops_per_tx) {
 
     {
         CValidationState state;
-        BOOST_CHECK(CheckRegularTransaction(CTransaction(tx), state, false));
+        BOOST_CHECK(CheckRegularTransaction(CTransaction(tx), state));
     }
 
     // Get just before the limit.
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(test_max_sigops_per_tx) {
 
     {
         CValidationState state;
-        BOOST_CHECK(CheckRegularTransaction(CTransaction(tx), state, false));
+        BOOST_CHECK(CheckRegularTransaction(CTransaction(tx), state));
     }
 
     // And go over.
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(test_max_sigops_per_tx) {
 
     {
         CValidationState state;
-        BOOST_CHECK(!CheckRegularTransaction(CTransaction(tx), state, false));
+        BOOST_CHECK(!CheckRegularTransaction(CTransaction(tx), state));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txn-sigops");
     }
 }

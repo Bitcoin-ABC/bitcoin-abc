@@ -18,10 +18,8 @@ class CValidationState;
  * Context-independent validity checks for coinbase and non-coinbase
  * transactions.
  */
-bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
-                             bool fCheckDuplicateInputs = true);
-bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
-                   bool fCheckDuplicateInputs = true);
+bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state);
+bool CheckCoinbase(const CTransaction &tx, CValidationState &state);
 
 namespace Consensus {
 

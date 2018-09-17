@@ -386,7 +386,7 @@ static bool AcceptToMemoryPoolWorker(
     }
 
     // Coinbase is only valid in a block, not as a loose transaction.
-    if (!CheckRegularTransaction(tx, state, true)) {
+    if (!CheckRegularTransaction(tx, state)) {
         // state filled in by CheckRegularTransaction.
         return false;
     }
@@ -3079,7 +3079,7 @@ bool CheckBlock(const Config &config, const CBlock &block,
     }
 
     // And a valid coinbase.
-    if (!CheckCoinbase(*block.vtx[0], state, false)) {
+    if (!CheckCoinbase(*block.vtx[0], state)) {
         return state.Invalid(false, state.GetRejectCode(),
                              state.GetRejectReason(),
                              strprintf("Coinbase check failed (txid %s) %s",
@@ -3113,11 +3113,11 @@ bool CheckBlock(const Config &config, const CBlock &block,
             break;
         }
 
-        // Check that the transaction is valid. because this check differs for
-        // the coinbase, the loos is arranged such as this only runs after at
+        // Check that the transaction is valid. Because this check differs for
+        // the coinbase, the loop is arranged such as this only runs after at
         // least one increment.
         tx = block.vtx[i].get();
-        if (!CheckRegularTransaction(*tx, state, false)) {
+        if (!CheckRegularTransaction(*tx, state)) {
             return state.Invalid(
                 false, state.GetRejectCode(), state.GetRejectReason(),
                 strprintf("Transaction check failed (txid %s) %s",

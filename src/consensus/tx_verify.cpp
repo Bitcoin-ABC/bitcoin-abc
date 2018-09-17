@@ -186,8 +186,7 @@ uint64_t GetTransactionSigOpCount(const CTransaction &tx,
 }
 
 static bool CheckTransactionCommon(const CTransaction &tx,
-                                   CValidationState &state,
-                                   bool fCheckDuplicateInputs) {
+                                   CValidationState &state) {
     // Basic checks that don't depend on any context
     if (tx.vin.empty()) {
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
@@ -227,29 +226,16 @@ static bool CheckTransactionCommon(const CTransaction &tx,
         return state.DoS(100, false, REJECT_INVALID, "bad-txn-sigops");
     }
 
-    // Check for duplicate inputs - note that this check is slow so we skip it
-    // in CheckBlock
-    if (fCheckDuplicateInputs) {
-        std::set<COutPoint> vInOutPoints;
-        for (const auto &txin : tx.vin) {
-            if (!vInOutPoints.insert(txin.prevout).second) {
-                return state.DoS(100, false, REJECT_INVALID,
-                                 "bad-txns-inputs-duplicate");
-            }
-        }
-    }
-
     return true;
 }
 
-bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
-                   bool fCheckDuplicateInputs) {
+bool CheckCoinbase(const CTransaction &tx, CValidationState &state) {
     if (!tx.IsCoinBase()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
                          "first tx is not coinbase");
     }
 
-    if (!CheckTransactionCommon(tx, state, fCheckDuplicateInputs)) {
+    if (!CheckTransactionCommon(tx, state)) {
         // CheckTransactionCommon fill in the state.
         return false;
     }
@@ -262,21 +248,26 @@ bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
     return true;
 }
 
-bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
-                             bool fCheckDuplicateInputs) {
+bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state) {
     if (tx.IsCoinBase()) {
         return state.DoS(100, false, REJECT_INVALID, "bad-tx-coinbase");
     }
 
-    if (!CheckTransactionCommon(tx, state, fCheckDuplicateInputs)) {
+    if (!CheckTransactionCommon(tx, state)) {
         // CheckTransactionCommon fill in the state.
         return false;
     }
 
+    std::unordered_set<COutPoint, SaltedOutpointHasher> vInOutPoints;
     for (const auto &txin : tx.vin) {
         if (txin.prevout.IsNull()) {
             return state.DoS(10, false, REJECT_INVALID,
                              "bad-txns-prevout-null");
+        }
+
+        if (!vInOutPoints.insert(txin.prevout).second) {
+            return state.DoS(100, false, REJECT_INVALID,
+                             "bad-txns-inputs-duplicate");
         }
     }
 
