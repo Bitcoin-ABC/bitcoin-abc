@@ -105,7 +105,6 @@ Q_SIGNALS:
     void requestedInitialize(Config *config, RPCServer *rpcServer,
                              HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void requestedShutdown();
-    void stopThread();
     void splashFinished();
     void windowShown(BitcoinGUI *window);
 

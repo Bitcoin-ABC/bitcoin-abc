@@ -151,7 +151,7 @@ Intro::Intro(QWidget *parent, uint64_t blockchain_size,
 Intro::~Intro() {
     delete ui;
     /* Ensure thread is finished before it is deleted */
-    Q_EMIT stopThread();
+    thread->quit();
     thread->wait();
 }
 
@@ -313,8 +313,7 @@ void Intro::startThread() {
     connect(executor, &FreespaceChecker::reply, this, &Intro::setStatus);
     connect(this, &Intro::requestCheck, executor, &FreespaceChecker::check);
     /*  make sure executor object is deleted in its own thread */
-    connect(this, &Intro::stopThread, executor, &QObject::deleteLater);
-    connect(this, &Intro::stopThread, thread, &QThread::quit);
+    connect(thread, &QThread::finished, executor, &QObject::deleteLater);
 
     thread->start();
 }
