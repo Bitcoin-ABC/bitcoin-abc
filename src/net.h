@@ -450,20 +450,6 @@ unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string &strError,
                     bool fWhitelisted = false);
 
-struct CombinerAll {
-    typedef bool result_type;
-
-    template <typename I> bool operator()(I first, I last) const {
-        while (first != last) {
-            if (!(*first)) {
-                return false;
-            }
-            ++first;
-        }
-        return true;
-    }
-};
-
 /**
  * Interface for message handling
  */
