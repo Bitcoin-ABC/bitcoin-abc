@@ -104,6 +104,16 @@ class InvalidBlockRequestTest(ComparisonTestFramework):
         yield TestInstance([[block2, RejectResult(16, b'bad-txns-duplicate')], [block2_orig, True]])
         height += 1
 
+        # Check transactions for duplicate inputs
+        self.log.info("Test duplicate input block.")
+
+        block2_orig.vtx[2].vin.append(block2_orig.vtx[2].vin[0])
+        block2_orig.vtx[2].rehash()
+        block2_orig.hashMerkleRoot = block2_orig.calc_merkle_root()
+        block2_orig.rehash()
+        block2_orig.solve()
+        yield TestInstance([[block2_orig, RejectResult(16, b'bad-txns-inputs-duplicate')]])
+
         '''
         Make sure that a totally screwed up block is not valid.
         '''
