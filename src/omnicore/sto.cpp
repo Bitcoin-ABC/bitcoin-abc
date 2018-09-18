@@ -7,6 +7,7 @@
 
 #include "arith_uint256.h"
 #include "sync.h"
+#include "rules.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -32,12 +33,13 @@ bool SendToOwners_compare::operator()(const std::pair<int64_t, std::string>& p1,
  *
  * The sender is excluded from the result set.
  */
-OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount)
+OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount, int blockHeight)
 {
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
     int64_t burnaddrTokens = 0;
     OwnerAddrType ownerAddrSet;
+    const CConsensusParams& params = ConsensusParams();
 
     {
         LOCK(cs_tally);
@@ -58,7 +60,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
                 senderTokens = tokens;
                 continue;
             }
-            if (address == burnwhc_address){
+            if (address == burnwhc_address && blockHeight >= params.MSC_STO_DISABLE_BURNADDR){
                 burnaddrTokens = tokens;
                 continue;
             }
