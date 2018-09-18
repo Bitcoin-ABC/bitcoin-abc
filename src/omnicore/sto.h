@@ -22,7 +22,7 @@ const int64_t TRANSFER_FEE_PER_OWNER_V1 = 1000;
 typedef std::set<std::pair<int64_t, std::string>, SendToOwners_compare> OwnerAddrType;
 
 /** Determines the receivers and amounts to distribute. */
-OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount);
+OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount, int block);
 }
 
 
