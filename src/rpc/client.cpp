@@ -158,6 +158,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"rescanblockchain", 1, "stop_height"},
     {"createwallet", 1, "disable_private_keys"},
     {"createwallet", 2, "blank"},
+    {"getnodeaddresses", 0, "count"},
     {"stop", 0, "wait"},
 };
 
