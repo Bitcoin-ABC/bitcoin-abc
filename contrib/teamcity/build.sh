@@ -32,6 +32,9 @@ fi
 
 ../configure "${CONFIGURE_FLAGS[@]}"
 
+# Run build
+make -j ${THREADS}
+
 # Run unit tests
 make check
 
