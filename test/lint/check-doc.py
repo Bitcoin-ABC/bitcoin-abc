@@ -31,10 +31,7 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-zmqpubhashblock',
                                    '-zmqpubrawtx'])
 
 # list false positive undocumented arguments
-SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-benchmark',
-                                       '-blockminsize',
-                                       '-dbcrashratio',
-                                       '-debugnet',
+SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-dbcrashratio',
                                        '-enableminerfund',
                                        '-forcecompactdb',
                                        '-parkdeepreorg',
@@ -42,10 +39,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-benchmark',
                                        # Remove after May 2020 upgrade
                                        '-phononactivationtime',
                                        '-replayprotectionactivationtime',
-                                       '-rpcssl',
-                                       '-socks',
-                                       '-tor',
-                                       '-whitelistalwaysrelay'])
+                                       ])
 
 
 def main():
