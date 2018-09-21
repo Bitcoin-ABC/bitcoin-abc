@@ -464,6 +464,10 @@ General C++
 
   - *Rationale*: This avoids memory and resource leaks, and ensures exception safety
 
+- Use `std::make_unique()` to construct objects owned by `unique_ptr`s
+
+  - *Rationale*: `std::make_unique` is concise and ensures exception safety in complex expressions.
+
 C++ data structures
 --------------------
 

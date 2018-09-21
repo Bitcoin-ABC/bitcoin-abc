@@ -72,8 +72,8 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
         // fake out IsFromMe()
         tx.vin.resize(1);
     }
-    std::unique_ptr<CWalletTx> wtx(
-        new CWalletTx(&wallet, MakeTransactionRef(std::move(tx))));
+    auto wtx =
+        std::make_unique<CWalletTx>(&wallet, MakeTransactionRef(std::move(tx)));
     if (fIsFromMe) {
         wtx->fDebitCached = true;
         wtx->nDebitCached = SATOSHI;
