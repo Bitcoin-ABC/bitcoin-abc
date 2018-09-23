@@ -69,10 +69,6 @@ class WalletAccountsTest(BitcoinTestFramework):
 
         node.generate(1)
 
-        # we want to reset so that the "" account has what's expected.
-        # otherwise we're off by exactly the fee amount as that's mined
-        # and matures in the next 100 blocks
-        node.sendfrom("", common_address, fee)
         accounts = ["a", "b", "c", "d", "e"]
         amount_to_send = 1.0
         account_addresses = dict()
@@ -104,13 +100,17 @@ class WalletAccountsTest(BitcoinTestFramework):
 
         node.generate(101)
 
-        expected_account_balances = {"": 5200}
+        # the "" account has what's expected, plus exactly the fee amount as
+        # that's been mined and matures in the next 100 blocks.
+        expected_account_balances = {"": 5200 + fee}
         for account in accounts:
             expected_account_balances[account] = 0
 
         assert_equal(node.listaccounts(), expected_account_balances)
 
-        assert_equal(node.getbalance(""), 5200)
+        # the "" account has what's expected, plus exactly the fee amount as
+        # that's been mined and matures in the next 100 blocks.
+        assert_equal(node.getbalance(""), 5200 + fee)
 
         for account in accounts:
             address = node.getaccountaddress("")
