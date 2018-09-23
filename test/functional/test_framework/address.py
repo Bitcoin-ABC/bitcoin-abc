@@ -7,6 +7,8 @@
 from .script import CScript, hash160, hash256
 from .util import hex_str_to_bytes
 
+ADDRESS_BCHREG_UNSPENDABLE = 'bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt'
+
 chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 

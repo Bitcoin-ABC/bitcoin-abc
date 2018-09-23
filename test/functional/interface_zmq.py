@@ -6,6 +6,7 @@
 import struct
 from io import BytesIO
 
+from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.messages import CTransaction
 from test_framework.util import (
@@ -42,7 +43,6 @@ class ZMQTest (BitcoinTestFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_py3_zmq()
         self.skip_if_no_bitcoind_zmq()
-        self.skip_if_no_wallet()
 
     def setup_nodes(self):
         import zmq
@@ -84,7 +84,8 @@ class ZMQTest (BitcoinTestFramework):
         num_blocks = 5
         self.log.info(
             "Generate {0} blocks (and {0} coinbase txes)".format(num_blocks))
-        genhashes = self.nodes[0].generate(num_blocks)
+        genhashes = self.nodes[0].generatetoaddress(
+            num_blocks, ADDRESS_BCHREG_UNSPENDABLE)
         self.sync_all()
 
         for x in range(num_blocks):
@@ -108,18 +109,19 @@ class ZMQTest (BitcoinTestFramework):
             block = self.rawblock.receive()
             assert_equal(genhashes[x], hash256(block[:80]).hex())
 
-        self.log.info("Wait for tx from second node")
-        payment_txid = self.nodes[1].sendtoaddress(
-            self.nodes[0].getnewaddress(), 1.0)
-        self.sync_all()
+        if self.is_wallet_compiled():
+            self.log.info("Wait for tx from second node")
+            payment_txid = self.nodes[1].sendtoaddress(
+                self.nodes[0].getnewaddress(), 1.0)
+            self.sync_all()
 
-        # Should receive the broadcasted txid.
-        txid = self.hashtx.receive()
-        assert_equal(payment_txid, txid.hex())
+            # Should receive the broadcasted txid.
+            txid = self.hashtx.receive()
+            assert_equal(payment_txid, txid.hex())
 
-        # Should receive the broadcasted raw transaction.
-        hex = self.rawtx.receive()
-        assert_equal(payment_txid, hash256(hex).hex())
+            # Should receive the broadcasted raw transaction.
+            hex = self.rawtx.receive()
+            assert_equal(payment_txid, hash256(hex).hex())
 
         self.log.info("Test the getzmqnotifications RPC")
         assert_equal(self.nodes[0].getzmqnotifications(), [
