@@ -833,7 +833,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         "-blockmintxfee=<amt>",
         strprintf(_("Set lowest fee rate (in %s/kB) for transactions to be "
                     "included in block creation. (default: %s)"),
-                  CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE)));
+                  CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)));
     if (showDebug) {
         strUsage +=
             HelpMessageOpt("-blockversion=<n>",

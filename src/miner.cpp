@@ -97,7 +97,7 @@ BlockAssembler::BlockAssembler(const Config &_config) : config(&_config) {
         ParseMoney(gArgs.GetArg("-blockmintxfee", ""), n);
         blockMinFeeRate = CFeeRate(n);
     } else {
-        blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
+        blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB);
     }
 
     LOCK(cs_main);
