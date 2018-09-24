@@ -3461,6 +3461,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                         return false;
                     }
                 }
+            } else {
+                bnb_used = false;
             }
 
             const Amount nChange = nValueIn - nValueToSelect;
