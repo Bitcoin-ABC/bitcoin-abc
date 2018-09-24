@@ -60,6 +60,8 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle,
     connect(ui->deleteButton_is, SIGNAL(clicked()), this,
             SLOT(deleteClicked()));
     connect(ui->deleteButton_s, SIGNAL(clicked()), this, SLOT(deleteClicked()));
+    connect(ui->useAvailableBalanceButton, SIGNAL(clicked()), this,
+            SLOT(useAvailableBalanceClicked()));
 }
 
 SendCoinsEntry::~SendCoinsEntry() {
@@ -118,18 +120,30 @@ void SendCoinsEntry::clear() {
     updateDisplayUnit();
 }
 
+void SendCoinsEntry::checkSubtractFeeFromAmount() {
+    ui->checkboxSubtractFeeFromAmount->setChecked(true);
+}
+
 void SendCoinsEntry::deleteClicked() {
     Q_EMIT removeEntry(this);
 }
 
+void SendCoinsEntry::useAvailableBalanceClicked() {
+    Q_EMIT useAvailableBalance(this);
+}
+
 bool SendCoinsEntry::validate() {
-    if (!model) return false;
+    if (!model) {
+        return false;
+    }
 
     // Check input validity
     bool retval = true;
 
     // Skip checks for payment request
-    if (recipient.paymentRequest.IsInitialized()) return retval;
+    if (recipient.paymentRequest.IsInitialized()) {
+        return retval;
+    }
 
     if (!model->validateAddress(ui->payTo->text())) {
         ui->payTo->setValid(false);
@@ -224,6 +238,10 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value) {
 void SendCoinsEntry::setAddress(const QString &address) {
     ui->payTo->setText(address);
     ui->payAmount->setFocus();
+}
+
+void SendCoinsEntry::setAmount(const Amount amount) {
+    ui->payAmount->setValue(amount);
 }
 
 bool SendCoinsEntry::isClear() {

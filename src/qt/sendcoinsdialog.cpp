@@ -437,6 +437,8 @@ SendCoinsEntry *SendCoinsDialog::addEntry() {
     ui->entries->addWidget(entry);
     connect(entry, SIGNAL(removeEntry(SendCoinsEntry *)), this,
             SLOT(removeEntry(SendCoinsEntry *)));
+    connect(entry, SIGNAL(useAvailableBalance(SendCoinsEntry *)), this,
+            SLOT(useAvailableBalance(SendCoinsEntry *)));
     connect(entry, SIGNAL(payAmountChanged()), this,
             SLOT(coinControlUpdateLabels()));
     connect(entry, SIGNAL(subtractFeeFromAmountChanged()), this,
@@ -632,6 +634,31 @@ void SendCoinsDialog::on_buttonChooseFee_clicked() {
 void SendCoinsDialog::on_buttonMinimizeFee_clicked() {
     updateFeeMinimizedLabel();
     minimizeFeeSection(true);
+}
+
+void SendCoinsDialog::useAvailableBalance(SendCoinsEntry *entry) {
+    // Get CCoinControl instance if CoinControl is enabled or create a new one.
+    CCoinControl coin_control;
+    if (model->getOptionsModel()->getCoinControlFeatures()) {
+        coin_control = *CoinControlDialog::coinControl;
+    }
+
+    // Calculate available amount to send.
+    Amount amount = model->getBalance(&coin_control);
+    for (int i = 0; i < ui->entries->count(); ++i) {
+        SendCoinsEntry *e =
+            qobject_cast<SendCoinsEntry *>(ui->entries->itemAt(i)->widget());
+        if (e && !e->isHidden() && e != entry) {
+            amount -= e->getValue().amount;
+        }
+    }
+
+    if (amount > Amount::zero()) {
+        entry->checkSubtractFeeFromAmount();
+        entry->setAmount(amount);
+    } else {
+        entry->setAmount(Amount::zero());
+    }
 }
 
 void SendCoinsDialog::setMinimumFee() {
