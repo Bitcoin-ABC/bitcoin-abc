@@ -509,8 +509,7 @@ UniValue removeprunedfunds(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    TxId txid;
-    txid.SetHex(request.params[0].get_str());
+    TxId txid(ParseHashV(request.params[0], "txid"));
     std::vector<TxId> txIds;
     txIds.push_back(txid);
     std::vector<TxId> txIdsOut;

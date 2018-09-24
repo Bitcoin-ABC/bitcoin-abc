@@ -425,7 +425,7 @@ class SendHeadersTest(BitcoinTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("{:02x}".format(
+            fork_point = self.nodes[0].getblock("{:064x}".format(
                 new_block_hashes[0]))["previousblockhash"]
             fork_point = int(fork_point, 16)
 

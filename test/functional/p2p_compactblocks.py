@@ -328,7 +328,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # Store the raw block in our internal format.
         block = FromHex(CBlock(), node.getblock(
-            "{:02x}".format(block_hash), False))
+            "{:064x}".format(block_hash), False))
         for tx in block.vtx:
             tx.calc_sha256()
         block.rehash()

@@ -2726,7 +2726,8 @@ static UniValue listsinceblock(const Config &config,
     isminefilter filter = ISMINE_SPENDABLE;
 
     if (!request.params[0].isNull() && !request.params[0].get_str().empty()) {
-        BlockHash blockId(uint256S(request.params[0].get_str()));
+        BlockHash blockId(ParseHashV(request.params[0], "blockhash"));
+
         paltindex = pindex = LookupBlockIndex(blockId);
         if (!pindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -2908,8 +2909,7 @@ static UniValue gettransaction(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    TxId txid;
-    txid.SetHex(request.params[0].get_str());
+    TxId txid(ParseHashV(request.params[0], "txid"));
 
     isminefilter filter = ISMINE_SPENDABLE;
     if (!request.params[1].isNull() && request.params[1].get_bool()) {
@@ -2987,8 +2987,7 @@ static UniValue abandontransaction(const Config &config,
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
-    TxId txid;
-    txid.SetHex(request.params[0].get_str());
+    TxId txid(ParseHashV(request.params[0], "txid"));
 
     if (!pwallet->mapWallet.count(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -3493,19 +3492,13 @@ static UniValue lockunspent(const Config &config,
                                {"vout", UniValueType(UniValue::VNUM)},
                            });
 
-        const std::string &strTxId = find_value(o, "txid").get_str();
-        if (!IsHex(strTxId)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Invalid parameter, expected hex txid");
-        }
-
         const int nOutput = find_value(o, "vout").get_int();
         if (nOutput < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, vout must be positive");
         }
 
-        const TxId txid(uint256S(strTxId));
+        const TxId txid(ParseHashO(o, "txid"));
         const auto it = pwallet->mapWallet.find(txid);
         if (it == pwallet->mapWallet.end()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,

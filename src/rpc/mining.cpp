@@ -293,7 +293,7 @@ static UniValue prioritisetransaction(const Config &config,
 
     LOCK(cs_main);
 
-    TxId txid(ParseHashStr(request.params[0].get_str(), "txid"));
+    TxId txid(ParseHashV(request.params[0], "txid"));
     Amount nAmount = request.params[2].get_int64() * SATOSHI;
 
     if (!(request.params[1].isNull() || request.params[1].get_real() == 0)) {
@@ -533,7 +533,7 @@ static UniValue getblocktemplate(const Config &config,
             // Format: <hashBestChain><nTransactionsUpdatedLast>
             std::string lpstr = lpval.get_str();
 
-            hashWatchedChain.SetHex(lpstr.substr(0, 64));
+            hashWatchedChain = ParseHashV(lpstr.substr(0, 64), "longpollid");
             nTransactionsUpdatedLastLP = atoi64(lpstr.substr(64));
         } else {
             // NOTE: Spec does not specify behaviour for non-string longpollid,

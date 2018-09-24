@@ -284,12 +284,7 @@ static UniValue gettxoutproof(const Config &config,
     UniValue txids = request.params[0].get_array();
     for (unsigned int idx = 0; idx < txids.size(); idx++) {
         const UniValue &utxid = txids[idx];
-        if (utxid.get_str().length() != 64 || !IsHex(utxid.get_str())) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               std::string("Invalid txid ") + utxid.get_str());
-        }
-
-        TxId txid(uint256S(utxid.get_str()));
+        TxId txid(ParseHashV(utxid, "txid"));
         if (setTxIds.count(txid)) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
@@ -306,7 +301,7 @@ static UniValue gettxoutproof(const Config &config,
     BlockHash hashBlock;
     if (!request.params[1].isNull()) {
         LOCK(cs_main);
-        hashBlock = BlockHash::fromHex(request.params[1].get_str());
+        hashBlock = BlockHash(ParseHashV(request.params[1], "blockhash"));
         pblockindex = LookupBlockIndex(hashBlock);
         if (!pblockindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
