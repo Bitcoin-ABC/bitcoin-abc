@@ -9,7 +9,6 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/filesystem/fstream.hpp>
 
 /** Filesystem operations and types */
