@@ -20,10 +20,16 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 static const unsigned int DEFAULT_WALLET_DBLOGSIZE = 100;
 static const bool DEFAULT_WALLET_PRIVDB = true;
+
+struct WalletDatabaseFileId {
+    u_int8_t value[DB_FILE_ID_LEN];
+    bool operator==(const WalletDatabaseFileId &rhs) const;
+};
 
 class BerkeleyEnvironment {
 private:
@@ -38,6 +44,7 @@ public:
     std::unique_ptr<DbEnv> dbenv;
     std::map<std::string, int> mapFileUseCount;
     std::map<std::string, Db *> mapDb;
+    std::unordered_map<std::string, WalletDatabaseFileId> m_fileids;
     std::condition_variable_any m_db_in_use;
 
     BerkeleyEnvironment(const fs::path &env_directory);
