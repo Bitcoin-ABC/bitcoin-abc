@@ -315,13 +315,14 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
         if (valRequest.isObject()) {
             jreq.parse(valRequest);
 
-            UniValue result = tableRPC.execute(config, jreq);
+            UniValue result = rpcServer.ExecuteCommand(config, jreq);
 
             // Send reply
             strReply = JSONRPCReply(result, NullUniValue, jreq.id);
         } else if (valRequest.isArray()) {
             // array of requests
-            strReply = JSONRPCExecBatch(config, jreq, valRequest.get_array());
+            strReply = JSONRPCExecBatch(config, rpcServer, jreq,
+                                        valRequest.get_array());
         } else {
             throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
         }

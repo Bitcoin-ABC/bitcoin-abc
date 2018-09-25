@@ -71,7 +71,8 @@ bool AppInit(int argc, char *argv[]) {
     // not possible as the whole application has too many global state. However,
     // this is a first step.
     auto &config = const_cast<Config &>(GetConfig());
-    HTTPRPCRequestProcessor httpRPCRequestProcessor(config);
+    RPCServer rpcServer;
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     bool fRet = false;
 
@@ -148,7 +149,7 @@ bool AppInit(int argc, char *argv[]) {
             // up on console
             exit(1);
         }
-        if (!AppInitParameterInteraction(config)) {
+        if (!AppInitParameterInteraction(config, rpcServer)) {
             // InitError will have been called with detailed error, which ends
             // up on console
             exit(1);

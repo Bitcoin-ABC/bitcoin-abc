@@ -1347,7 +1347,7 @@ bool AppInitBasicSetup() {
     return true;
 }
 
-bool AppInitParameterInteraction(Config &config) {
+bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
     const CChainParams &chainparams = config.GetChainParams();
     // Step 2: parameter interactions
 
@@ -1575,7 +1575,7 @@ bool AppInitParameterInteraction(Config &config) {
         fPruneMode = true;
     }
 
-    RegisterAllRPCCommands(tableRPC);
+    RegisterAllRPCCommands(config, rpcServer, tableRPC);
 #ifdef ENABLE_WALLET
     RegisterWalletRPCCommands(tableRPC);
     RegisterDumpRPCCommands(tableRPC);

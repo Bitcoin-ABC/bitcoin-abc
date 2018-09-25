@@ -82,7 +82,8 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
     const Config &config = GetConfig();
-    RegisterAllRPCCommands(tableRPC);
+    RPCServer rpcServer;
+    RegisterAllRPCCommands(config, rpcServer, tableRPC);
     ClearDatadirCache();
     pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i",
                                          (unsigned long)GetTime(),

@@ -34,6 +34,23 @@ static RPCTimerInterface *timerInterface = nullptr;
 /* Map of name to timer. */
 static std::map<std::string, std::unique_ptr<RPCTimerBase>> deadlineTimers;
 
+UniValue RPCServer::ExecuteCommand(Config &config,
+                                   const JSONRPCRequest &request) const {
+    // Return immediately if in warmup
+    {
+        LOCK(cs_rpcWarmup);
+        if (fRPCInWarmup) {
+            throw JSONRPCError(RPC_IN_WARMUP, rpcWarmupStatus);
+        }
+    }
+
+    // TODO Only call tableRPC.execute() if no context-sensitive RPC command
+    // exists
+
+    // Check if context-free RPC method is valid and execute it
+    return tableRPC.execute(config, request);
+}
+
 static struct CRPCSignals {
     boost::signals2::signal<void()> Started;
     boost::signals2::signal<void()> Stopped;
@@ -399,14 +416,14 @@ bool RPCIsInWarmup(std::string *outStatus) {
     return fRPCInWarmup;
 }
 
-static UniValue JSONRPCExecOne(Config &config, JSONRPCRequest jreq,
-                               const UniValue &req) {
+static UniValue JSONRPCExecOne(Config &config, RPCServer &rpcServer,
+                               JSONRPCRequest jreq, const UniValue &req) {
     UniValue rpc_result(UniValue::VOBJ);
 
     try {
         jreq.parse(req);
 
-        UniValue result = tableRPC.execute(config, jreq);
+        UniValue result = rpcServer.ExecuteCommand(config, jreq);
         rpc_result = JSONRPCReplyObj(result, NullUniValue, jreq.id);
     } catch (const UniValue &objError) {
         rpc_result = JSONRPCReplyObj(NullUniValue, objError, jreq.id);
@@ -418,11 +435,11 @@ static UniValue JSONRPCExecOne(Config &config, JSONRPCRequest jreq,
     return rpc_result;
 }
 
-std::string JSONRPCExecBatch(Config &config, const JSONRPCRequest &jreq,
-                             const UniValue &vReq) {
+std::string JSONRPCExecBatch(Config &config, RPCServer &rpcServer,
+                             const JSONRPCRequest &jreq, const UniValue &vReq) {
     UniValue ret(UniValue::VARR);
     for (size_t i = 0; i < vReq.size(); i++) {
-        ret.push_back(JSONRPCExecOne(config, jreq, vReq[i]));
+        ret.push_back(JSONRPCExecOne(config, rpcServer, jreq, vReq[i]));
     }
 
     return ret.write() + "\n";
@@ -482,7 +499,8 @@ UniValue CRPCTable::execute(Config &config,
         }
     }
 
-    // Find method
+    // Check if legacy RPC method is valid.
+    // See RPCServer::ExecuteCommand for context-sensitive RPC commands.
     const ContextFreeRPCCommand *pcmd = tableRPC[request.strMethod];
     if (!pcmd) {
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");

@@ -12,6 +12,7 @@ class Config;
 class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
+class RPCServer;
 
 namespace boost {
 class thread_group;
@@ -38,7 +39,7 @@ bool AppInitBasicSetup();
  * @pre Parameters should be parsed and config file should be read,
  * AppInitBasicSetup should have been called.
  */
-bool AppInitParameterInteraction(Config &config);
+bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer);
 /**
  * Initialization sanity checks: ecc init, sanity checks, dir lock.
  * @note This can be done before daemonization.

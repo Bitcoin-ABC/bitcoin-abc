@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 
+#include <boost/noncopyable.hpp>
 #include <univalue.h>
 
 static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
@@ -44,6 +45,21 @@ struct UniValueType {
     UniValueType() : typeAny(true) {}
     bool typeAny;
     UniValue::VType type;
+};
+
+/**
+ * Class for registering and managing all RPC calls.
+ */
+class RPCServer : public boost::noncopyable {
+public:
+    RPCServer() {}
+
+    /**
+     * Attempts to execute an RPC command from the given request.
+     * If no RPC command exists that matches the request, an error is returned.
+     */
+    UniValue ExecuteCommand(Config &config,
+                            const JSONRPCRequest &request) const;
 };
 
 /**
@@ -253,8 +269,8 @@ extern std::string HelpExampleRpc(const std::string &methodname,
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(Config &config, const JSONRPCRequest &req,
-                             const UniValue &vReq);
+std::string JSONRPCExecBatch(Config &config, RPCServer &rpcServer,
+                             const JSONRPCRequest &req, const UniValue &vReq);
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *);
 
 /**

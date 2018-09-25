@@ -171,7 +171,8 @@ public:
 
 public Q_SLOTS:
     void initialize(Config *config,
-                    HTTPRPCRequestProcessor *httpRPCRequestProcessor);
+                    HTTPRPCRequestProcessor *httpRPCRequestProcessor,
+                    RPCServer *rpcServer);
     void shutdown();
 
 Q_SIGNALS:
@@ -209,7 +210,8 @@ public:
 
     /// Request core initialization
     void requestInitialize(Config &config,
-                           HTTPRPCRequestProcessor &httpRPCRequestProcessor);
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                           RPCServer &rpcServer);
     /// Request core shutdown
     void requestShutdown(Config &config);
 
@@ -228,7 +230,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void requestedInitialize(Config *config,
-                             HTTPRPCRequestProcessor *httpRPCRequestProcessor);
+                             HTTPRPCRequestProcessor *httpRPCRequestProcessor,
+                             RPCServer *rpcServer);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -260,8 +263,10 @@ void BitcoinABC::handleRunawayException(const std::exception *e) {
 }
 
 void BitcoinABC::initialize(Config *cfg,
-                            HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
+                            HTTPRPCRequestProcessor *httpRPCRequestProcessor,
+                            RPCServer *rpcSrv) {
     Config &config(*cfg);
+    RPCServer &rpcServer = *rpcSrv;
     try {
         qDebug() << __func__ << ": Running AppInit2 in thread";
         if (!AppInitBasicSetup()) {
@@ -269,7 +274,7 @@ void BitcoinABC::initialize(Config *cfg,
             return;
         }
 
-        if (!AppInitParameterInteraction(config)) {
+        if (!AppInitParameterInteraction(config, rpcServer)) {
             Q_EMIT initializeResult(false);
             return;
         }
@@ -403,9 +408,10 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this,
-            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
-            executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
+    connect(this, SIGNAL(requestedInitialize(
+                      Config *, HTTPRPCRequestProcessor *, RPCServer *)),
+            executor,
+            SLOT(initialize(Config *, HTTPRPCRequestProcessor *, RPCServer *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
     /*  make sure executor object is deleted in its own thread */
@@ -421,13 +427,14 @@ void BitcoinApplication::parameterSetup() {
 }
 
 void BitcoinApplication::requestInitialize(
-    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
+    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+    RPCServer &rpcServer) {
     qDebug() << __func__ << ": Requesting initialize";
     startThread();
     // IMPORTANT: config must NOT be a reference to a temporary because below
     // signal may be connected to a slot that will be executed as a queued
     // connection in another thread!
-    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor);
+    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor, &rpcServer);
 }
 
 void BitcoinApplication::requestShutdown(Config &config) {
@@ -758,11 +765,12 @@ int main(int argc, char *argv[]) {
         !gArgs.GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
 
-    HTTPRPCRequestProcessor httpRPCRequestProcessor(config);
+    RPCServer rpcServer;
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
     try {
         app.createWindow(&config, networkStyle.data());
-        app.requestInitialize(config, httpRPCRequestProcessor);
+        app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
 #if defined(Q_OS_WIN)
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")

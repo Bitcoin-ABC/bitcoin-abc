@@ -17,11 +17,13 @@ class HTTPRequest;
 class HTTPRPCRequestProcessor {
 private:
     Config &config;
+    RPCServer &rpcServer;
 
     bool ProcessHTTPRequest(HTTPRequest *request);
 
 public:
-    HTTPRPCRequestProcessor(Config &configIn) : config(configIn) {}
+    HTTPRPCRequestProcessor(Config &configIn, RPCServer &rpcServerIn)
+        : config(configIn), rpcServer(rpcServerIn) {}
 
     static bool DelegateHTTPRequest(HTTPRPCRequestProcessor *requestProcessor,
                                     HTTPRequest *request) {
