@@ -4176,7 +4176,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         int64_t timeNow = GetTimeMicros();
         if (timeNow > pto->nextSendTimeFeeFilter) {
             static CFeeRate default_feerate =
-                CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
+                CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
             static FeeFilterRounder filterRounder(default_feerate);
             Amount filterToSend = filterRounder.round(currentFilter);
             // If we don't allow free transactions, then we always have a fee

@@ -58,7 +58,7 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const Amount DEFAULT_MIN_RELAY_TX_FEE(1000 * SATOSHI);
+static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 /** Default for -excessutxocharge for transactions transactions */
 static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 //! -maxtxfee default

@@ -762,7 +762,7 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(
             _("Fees (in %s/kB) smaller than this are considered zero fee for "
               "relaying, mining and transaction creation (default: %s)"),
-            CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE)));
+            CURRENCY_UNIT, FormatMoney(DEFAULT_MIN_RELAY_TX_FEE_PER_KB)));
     strUsage += HelpMessageOpt(
         "-maxtxfee=<amt>",
         strprintf(_("Maximum total fees (in %s) to use in a single wallet "
@@ -1611,7 +1611,7 @@ bool AppInitParameterInteraction(Config &config) {
         // High fee check is done afterward in CWallet::ParameterInteraction()
         config.SetMinFeePerKB(CFeeRate(n));
     } else {
-        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE));
+        config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB));
     }
 
     // Sanity check argument for min fee for including tx in block
