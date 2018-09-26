@@ -184,5 +184,5 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
-  rm -rf native/lib/ lib/lib*.la lib/*.prl plugins/*/*.prl
+  rm -rf native/lib/ lib/lib*.la
 endef
