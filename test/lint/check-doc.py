@@ -45,7 +45,6 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set(['-benchmark',
                                        '-rpcssl',
                                        '-socks',
                                        '-tor',
-                                       '-usehd',
                                        '-whitelistalwaysrelay'])
 
 
