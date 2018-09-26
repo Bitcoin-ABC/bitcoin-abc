@@ -132,6 +132,10 @@ endif()
 
 # Wallet
 if(BUILD_BITCOIN_WALLET)
+	# Automoc option.
+	set(AUTOMOC_MOC_OPTIONS -DENABLE_WALLET=1)
+
+	# Add wallet functionality to bitcoin-qt
 	target_sources(bitcoin-qt-base
 		PRIVATE
 			addressbookpage.cpp
