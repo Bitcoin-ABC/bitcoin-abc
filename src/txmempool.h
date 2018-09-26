@@ -372,19 +372,19 @@ struct TxMempoolInfo {
  * notification signal.
  */
 enum class MemPoolRemovalReason {
-    //! Manually removed or unknown reason
+    //!< Manually removed or unknown reason
     UNKNOWN = 0,
-    //! Expired from mempool
+    //!< Expired from mempool
     EXPIRY,
-    //! Removed in size limiting
+    //!< Removed in size limiting
     SIZELIMIT,
-    //! Removed for reorganization
+    //!< Removed for reorganization
     REORG,
-    //! Removed for block
+    //!< Removed for block
     BLOCK,
-    //! Removed for conflict with in-block transaction
+    //!< Removed for conflict with in-block transaction
     CONFLICT,
-    //! Removed for replacement
+    //!< Removed for replacement
     REPLACED
 };
 
