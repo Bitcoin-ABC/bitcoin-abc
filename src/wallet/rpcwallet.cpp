@@ -4609,6 +4609,8 @@ UniValue signrawtransactionwithwallet(const Config &config,
     // Sign the transaction
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
+    EnsureWalletIsUnlocked(pwallet);
+
     return SignTransaction(pwallet->chain(), mtx, request.params[1], pwallet,
                            false, request.params[2]);
 }
