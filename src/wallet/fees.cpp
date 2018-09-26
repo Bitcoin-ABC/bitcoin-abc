@@ -20,11 +20,11 @@ Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
     if (nFeeNeeded == Amount::zero()) {
         int estimateFoundTarget = nConfirmTarget;
         nFeeNeeded = pool.estimateSmartFee(nConfirmTarget, &estimateFoundTarget)
-                         .GetFee(nTxBytes);
+                         .GetFeeCeiling(nTxBytes);
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallbackFee.
         if (nFeeNeeded == Amount::zero()) {
-            nFeeNeeded = CWallet::fallbackFee.GetFee(nTxBytes);
+            nFeeNeeded = CWallet::fallbackFee.GetFeeCeiling(nTxBytes);
         }
     }
 
@@ -44,5 +44,5 @@ Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
                      const CTxMemPool &pool) {
     // payTxFee is the user-set global for desired feerate.
     return GetMinimumFee(nTxBytes, nConfirmTarget, pool,
-                         payTxFee.GetFee(nTxBytes));
+                         payTxFee.GetFeeCeiling(nTxBytes));
 }
