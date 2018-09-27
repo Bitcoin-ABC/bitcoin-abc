@@ -45,7 +45,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     for (; *p; p++) {
         if (*p == '.') {
             p++;
-            Amount nMult = 10 * CENT;
+            Amount nMult = COIN / 10;
             while (isdigit(*p) && (nMult > Amount::zero())) {
                 nUnits += (*p++ - '0') * nMult;
                 nMult /= 10;

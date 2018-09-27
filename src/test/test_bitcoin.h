@@ -57,6 +57,8 @@ static inline bool InsecureRandBool() {
     return g_insecure_rand_ctx.randbool();
 }
 
+static constexpr Amount CENT(COIN / 100);
+
 /**
  * Basic testing setup.
  * This just configures logging and chain parameters.

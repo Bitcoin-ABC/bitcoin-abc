@@ -31,9 +31,9 @@ static void RpcMempool(benchmark::State &state) {
         tx.vin[0].scriptSig = CScript() << OP_1;
         tx.vout.resize(1);
         tx.vout[0].scriptPubKey = CScript() << OP_1 << OP_EQUAL;
-        tx.vout[0].nValue = i * CENT;
+        tx.vout[0].nValue = i * COIN;
         const CTransactionRef tx_r{MakeTransactionRef(tx)};
-        AddTx(tx_r, /* fee */ i * CENT, pool);
+        AddTx(tx_r, /* fee */ i * COIN, pool);
     }
 
     while (state.KeepRunning()) {
