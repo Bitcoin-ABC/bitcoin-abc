@@ -47,7 +47,7 @@ _opcode_instances = []
 
 class CScriptOp(int):
     """A single script opcode"""
-    __slots__ = []
+    __slots__ = ()
 
     @staticmethod
     def encode_op_pushdata(d):
@@ -397,10 +397,11 @@ class CScriptTruncatedPushDataError(CScriptInvalidError):
         self.data = data
         super(CScriptTruncatedPushDataError, self).__init__(msg)
 
+
 # This is used, eg, for blockchain heights in coinbase scripts (bip34)
+class CScriptNum:
+    __slots__ = ("value",)
 
-
-class CScriptNum():
     def __init__(self, d=0):
         self.value = d
 
@@ -431,6 +432,8 @@ class CScript(bytes):
 
     iter(script) however does iterate by opcode.
     """
+    __slots__ = ()
+
     @classmethod
     def __coerce_instance(cls, other):
         # Coerce other into bytes

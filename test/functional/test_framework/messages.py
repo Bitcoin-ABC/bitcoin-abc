@@ -13,7 +13,11 @@ CBlock, CTransaction, CBlockHeader, CTxIn, CTxOut, etc....:
 msg_block, msg_tx, msg_headers, etc.:
     data structures that represent network messages
 
-ser_*, deser_*: functions that handle serialization/deserialization."""
+ser_*, deser_*: functions that handle serialization/deserialization.
+
+Classes use __slots__ to ensure extraneous attributes aren't accidentally added
+by tests, compromising their intended effect.
+"""
 from codecs import encode
 import copy
 import hashlib
@@ -202,7 +206,9 @@ def ToHex(obj):
 # Objects that map to bitcoind objects, which can be serialized/deserialized
 
 
-class CAddress():
+class CAddress:
+    __slots__ = ("ip", "nServices", "pchReserved", "port", "time")
+
     def __init__(self):
         self.time = 0
         self.nServices = 1
@@ -233,7 +239,9 @@ class CAddress():
             self.nServices, self.ip, self.port)
 
 
-class CInv():
+class CInv:
+    __slots__ = ("hash", "type")
+
     typemap = {
         0: "Error",
         1: "TX",
@@ -260,7 +268,9 @@ class CInv():
             self.typemap[self.type], self.hash)
 
 
-class CBlockLocator():
+class CBlockLocator:
+    __slots__ = ("nVersion", "vHave")
+
     def __init__(self):
         self.nVersion = MY_VERSION
         self.vHave = []
@@ -280,7 +290,9 @@ class CBlockLocator():
             self.nVersion, repr(self.vHave))
 
 
-class COutPoint():
+class COutPoint:
+    __slots__ = ("hash", "n")
+
     def __init__(self, hash=0, n=0):
         self.hash = hash
         self.n = n
@@ -299,7 +311,9 @@ class COutPoint():
         return "COutPoint(hash={:064x} n={})".format(self.hash, self.n)
 
 
-class CTxIn():
+class CTxIn:
+    __slots__ = ("nSequence", "prevout", "scriptSig")
+
     def __init__(self, outpoint=None, scriptSig=b"", nSequence=0):
         if outpoint is None:
             self.prevout = COutPoint()
@@ -326,7 +340,9 @@ class CTxIn():
             repr(self.prevout), bytes_to_hex_str(self.scriptSig), self.nSequence)
 
 
-class CTxOut():
+class CTxOut:
+    __slots__ = ("nValue", "scriptPubKey")
+
     def __init__(self, nValue=0, scriptPubKey=b""):
         self.nValue = nValue
         self.scriptPubKey = scriptPubKey
@@ -347,7 +363,9 @@ class CTxOut():
             bytes_to_hex_str(self.scriptPubKey))
 
 
-class CTransaction():
+class CTransaction:
+    __slots__ = ("hash", "nLockTime", "nVersion", "sha256", "vin", "vout")
+
     def __init__(self, tx=None):
         if tx is None:
             self.nVersion = 1
@@ -416,7 +434,10 @@ class CTransaction():
             self.nVersion, repr(self.vin), repr(self.vout), self.nLockTime)
 
 
-class CBlockHeader():
+class CBlockHeader:
+    __slots__ = ("hash", "hashMerkleRoot", "hashPrevBlock", "nBits", "nNonce",
+                 "nTime", "nVersion", "sha256")
+
     def __init__(self, header=None):
         if header is None:
             self.set_null()
@@ -485,6 +506,8 @@ class CBlockHeader():
 
 
 class CBlock(CBlockHeader):
+    __slots__ = ("vtx",)
+
     def __init__(self, header=None):
         super(CBlock, self).__init__(header)
         self.vtx = []
@@ -541,7 +564,9 @@ class CBlock(CBlockHeader):
             time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx))
 
 
-class PrefilledTransaction():
+class PrefilledTransaction:
+    __slots__ = ("index", "tx")
+
     def __init__(self, index=0, tx=None):
         self.index = index
         self.tx = tx
@@ -561,10 +586,12 @@ class PrefilledTransaction():
         return "PrefilledTransaction(index={}, tx={})".format(
             self.index, repr(self.tx))
 
+
 # This is what we send on the wire, in a cmpctblock message.
+class P2PHeaderAndShortIDs:
+    __slots__ = ("header", "nonce", "prefilled_txn", "prefilled_txn_length",
+                 "shortids", "shortids_length")
 
-
-class P2PHeaderAndShortIDs():
     def __init__(self):
         self.header = CBlockHeader()
         self.nonce = 0
@@ -610,11 +637,12 @@ def calculate_shortid(k0, k1, tx_hash):
     expected_shortid &= 0x0000ffffffffffff
     return expected_shortid
 
+
 # This version gets rid of the array lengths, and reinterprets the differential
 # encoding into indices that can be used for lookup.
+class HeaderAndShortIDs:
+    __slots__ = ("header", "nonce", "prefilled_txn", "shortids")
 
-
-class HeaderAndShortIDs():
     def __init__(self, p2pheaders_and_shortids=None):
         self.header = CBlockHeader()
         self.nonce = 0
@@ -673,7 +701,8 @@ class HeaderAndShortIDs():
             repr(self.prefilled_txn))
 
 
-class BlockTransactionsRequest():
+class BlockTransactionsRequest:
+    __slots__ = ("blockhash", "indexes")
 
     def __init__(self, blockhash=0, indexes=None):
         self.blockhash = blockhash
@@ -714,7 +743,8 @@ class BlockTransactionsRequest():
             self.blockhash, repr(self.indexes))
 
 
-class BlockTransactions():
+class BlockTransactions:
+    __slots__ = ("blockhash", "transactions")
 
     def __init__(self, blockhash=0, transactions=None):
         self.blockhash = blockhash
@@ -735,7 +765,9 @@ class BlockTransactions():
             self.blockhash, repr(self.transactions))
 
 
-class CPartialMerkleTree():
+class CPartialMerkleTree:
+    __slots__ = ("fBad", "nTransactions", "vBits", "vHash")
+
     def __init__(self):
         self.nTransactions = 0
         self.vHash = []
@@ -764,7 +796,9 @@ class CPartialMerkleTree():
         return "CPartialMerkleTree(nTransactions={}, vHash={}, vBits={})".format(self.nTransactions, repr(self.vHash), repr(self.vBits))
 
 
-class CMerkleBlock():
+class CMerkleBlock:
+    __slots__ = ("header", "txn")
+
     def __init__(self):
         self.header = CBlockHeader()
         self.txn = CPartialMerkleTree()
@@ -784,7 +818,11 @@ class CMerkleBlock():
 
 
 # Objects that correspond to messages on the wire
-class msg_version():
+
+
+class msg_version:
+    __slots__ = ("addrFrom", "addrTo", "nNonce", "nRelay", "nServices",
+                 "nStartingHeight", "nTime", "nVersion", "strSubVer")
     command = b"version"
 
     def __init__(self):
@@ -852,7 +890,8 @@ class msg_version():
             self.strSubVer, self.nStartingHeight, self.nRelay)
 
 
-class msg_verack():
+class msg_verack:
+    __slots__ = ()
     command = b"verack"
 
     def __init__(self):
@@ -868,7 +907,8 @@ class msg_verack():
         return "msg_verack()"
 
 
-class msg_addr():
+class msg_addr:
+    __slots__ = ("addrs",)
     command = b"addr"
 
     def __init__(self):
@@ -884,7 +924,8 @@ class msg_addr():
         return "msg_addr(addrs={})".format(repr(self.addrs))
 
 
-class msg_inv():
+class msg_inv:
+    __slots__ = ("inv",)
     command = b"inv"
 
     def __init__(self, inv=None):
@@ -903,7 +944,8 @@ class msg_inv():
         return "msg_inv(inv={})".format(repr(self.inv))
 
 
-class msg_getdata():
+class msg_getdata:
+    __slots__ = ("inv",)
     command = b"getdata"
 
     def __init__(self, inv=None):
@@ -919,7 +961,8 @@ class msg_getdata():
         return "msg_getdata(inv={})".format(repr(self.inv))
 
 
-class msg_getblocks():
+class msg_getblocks:
+    __slots__ = ("locator", "hashstop")
     command = b"getblocks"
 
     def __init__(self):
@@ -942,7 +985,8 @@ class msg_getblocks():
             repr(self.locator), self.hashstop)
 
 
-class msg_tx():
+class msg_tx:
+    __slots__ = ("tx",)
     command = b"tx"
 
     def __init__(self, tx=CTransaction()):
@@ -958,7 +1002,8 @@ class msg_tx():
         return "msg_tx(tx={})".format(repr(self.tx))
 
 
-class msg_block():
+class msg_block:
+    __slots__ = ("block",)
     command = b"block"
 
     def __init__(self, block=None):
@@ -976,11 +1021,14 @@ class msg_block():
     def __repr__(self):
         return "msg_block(block={})".format(repr(self.block))
 
+
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the command, and the data
 
 
-class msg_generic():
+class msg_generic:
+    __slots__ = ("command", "data")
+
     def __init__(self, command, data=None):
         self.command = command
         self.data = data
@@ -992,7 +1040,8 @@ class msg_generic():
         return "msg_generic()"
 
 
-class msg_getaddr():
+class msg_getaddr:
+    __slots__ = ()
     command = b"getaddr"
 
     def __init__(self):
@@ -1008,7 +1057,8 @@ class msg_getaddr():
         return "msg_getaddr()"
 
 
-class msg_ping():
+class msg_ping:
+    __slots__ = ("nonce",)
     command = b"ping"
 
     def __init__(self, nonce=0):
@@ -1026,7 +1076,8 @@ class msg_ping():
         return "msg_ping(nonce={:08x})".format(self.nonce)
 
 
-class msg_pong():
+class msg_pong:
+    __slots__ = ("nonce",)
     command = b"pong"
 
     def __init__(self, nonce=0):
@@ -1044,7 +1095,8 @@ class msg_pong():
         return "msg_pong(nonce={:08x})".format(self.nonce)
 
 
-class msg_mempool():
+class msg_mempool:
+    __slots__ = ()
     command = b"mempool"
 
     def __init__(self):
@@ -1060,7 +1112,8 @@ class msg_mempool():
         return "msg_mempool()"
 
 
-class msg_sendheaders():
+class msg_sendheaders:
+    __slots__ = ()
     command = b"sendheaders"
 
     def __init__(self):
@@ -1080,7 +1133,8 @@ class msg_sendheaders():
 # number of entries
 # vector of hashes
 # hash_stop (hash of last desired block header, 0 to get as many as possible)
-class msg_getheaders():
+class msg_getheaders:
+    __slots__ = ("hashstop", "locator",)
     command = b"getheaders"
 
     def __init__(self):
@@ -1105,7 +1159,8 @@ class msg_getheaders():
 
 # headers message has
 # <count> <vector of block headers>
-class msg_headers():
+class msg_headers:
+    __slots__ = ("headers",)
     command = b"headers"
 
     def __init__(self, headers=None):
@@ -1125,7 +1180,8 @@ class msg_headers():
         return "msg_headers(headers={})".format(repr(self.headers))
 
 
-class msg_reject():
+class msg_reject:
+    __slots__ = ("code", "data", "message", "reason")
     command = b"reject"
     REJECT_MALFORMED = 1
 
@@ -1157,7 +1213,8 @@ class msg_reject():
             self.message, self.code, self.reason, self.data)
 
 
-class msg_feefilter():
+class msg_feefilter:
+    __slots__ = ("feerate",)
     command = b"feefilter"
 
     def __init__(self, feerate=0):
@@ -1175,7 +1232,8 @@ class msg_feefilter():
         return "msg_feefilter(feerate={:08x})".format(self.feerate)
 
 
-class msg_sendcmpct():
+class msg_sendcmpct:
+    __slots__ = ("announce", "version")
     command = b"sendcmpct"
 
     def __init__(self):
@@ -1197,7 +1255,8 @@ class msg_sendcmpct():
             self.announce, self.version)
 
 
-class msg_cmpctblock():
+class msg_cmpctblock:
+    __slots__ = ("header_and_shortids",)
     command = b"cmpctblock"
 
     def __init__(self, header_and_shortids=None):
@@ -1217,7 +1276,8 @@ class msg_cmpctblock():
             repr(self.header_and_shortids))
 
 
-class msg_getblocktxn():
+class msg_getblocktxn:
+    __slots__ = ("block_txn_request",)
     command = b"getblocktxn"
 
     def __init__(self):
@@ -1237,7 +1297,8 @@ class msg_getblocktxn():
             repr(self.block_txn_request))
 
 
-class msg_blocktxn():
+class msg_blocktxn:
+    __slots__ = ("block_transactions",)
     command = b"blocktxn"
 
     def __init__(self):
