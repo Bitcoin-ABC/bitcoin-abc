@@ -74,10 +74,11 @@ void TxConfirmStats::UpdateMovingAverages() {
 }
 
 // returns -1 on error conditions
-double TxConfirmStats::EstimateMedianVal(int confTarget, double sufficientTxVal,
-                                         double successBreakPoint,
-                                         bool requireGreater,
-                                         unsigned int nBlockHeight) {
+CFeeRate TxConfirmStats::EstimateMedianFeeRate(int confTarget,
+                                               double sufficientTxVal,
+                                               double successBreakPoint,
+                                               bool requireGreater,
+                                               unsigned int nBlockHeight) {
     // Counters for a bucket (or range of buckets)
     // Number of tx's confirmed within the confTarget
     double nConf = 0;
@@ -186,7 +187,7 @@ double TxConfirmStats::EstimateMedianVal(int confTarget, double sufficientTxVal,
              buckets[maxBucket], 100 * nConf / (totalNum + extraNum), nConf,
              totalNum, extraNum);
 
-    return median;
+    return CFeeRate(int64_t(ceill(median)) * SATOSHI);
 }
 
 void TxConfirmStats::Write(CAutoFile &fileout) {
@@ -464,14 +465,14 @@ CFeeRate CBlockPolicyEstimator::estimateFee(int confTarget) {
         return CFeeRate(Amount::zero());
     }
 
-    double median = feeStats.EstimateMedianVal(
+    CFeeRate median = feeStats.EstimateMedianFeeRate(
         confTarget, SUFFICIENT_FEETXS, MIN_SUCCESS_PCT, true, nBestSeenHeight);
 
-    if (median < 0) {
+    if (median < CFeeRate(Amount::zero())) {
         return CFeeRate(Amount::zero());
     }
 
-    return CFeeRate(int64_t(median) * SATOSHI);
+    return median;
 }
 
 CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
@@ -491,12 +492,12 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
         confTarget = 2;
     }
 
-    double median = -1;
-    while (median < 0 &&
-           (unsigned int)confTarget <= feeStats.GetMaxConfirms()) {
-        median =
-            feeStats.EstimateMedianVal(confTarget++, SUFFICIENT_FEETXS,
-                                       MIN_SUCCESS_PCT, true, nBestSeenHeight);
+    CFeeRate median = CFeeRate(-1 * SATOSHI);
+    while (median < CFeeRate(Amount::zero()) &&
+           uint32_t(confTarget) <= feeStats.GetMaxConfirms()) {
+        median = feeStats.EstimateMedianFeeRate(confTarget++, SUFFICIENT_FEETXS,
+                                                MIN_SUCCESS_PCT, true,
+                                                nBestSeenHeight);
     }
 
     if (answerFoundAtTarget) {
@@ -509,16 +510,15 @@ CFeeRate CBlockPolicyEstimator::estimateSmartFee(int confTarget,
         pool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000)
             .GetFeePerK();
-    if (minPoolFee > Amount::zero() &&
-        minPoolFee > (int64_t(median) * SATOSHI)) {
+    if (minPoolFee > Amount::zero() && minPoolFee > median.GetFeePerK()) {
         return CFeeRate(minPoolFee);
     }
 
-    if (median < 0) {
+    if (median < CFeeRate(Amount::zero())) {
         return CFeeRate(Amount::zero());
     }
 
-    return CFeeRate(int64_t(median) * SATOSHI);
+    return median;
 }
 
 void CBlockPolicyEstimator::Write(CAutoFile &fileout) {

@@ -166,9 +166,9 @@ public:
      * minSuccess
      * @param nBlockHeight the current block height
      */
-    double EstimateMedianVal(int confTarget, double sufficientTxVal,
-                             double minSuccess, bool requireGreater,
-                             unsigned int nBlockHeight);
+    CFeeRate EstimateMedianFeeRate(int confTarget, double sufficientTxVal,
+                                   double minSuccess, bool requireGreater,
+                                   unsigned int nBlockHeight);
 
     /** Return the max number of confirms we're tracking */
     unsigned int GetMaxConfirms() { return confAvg.size(); }
