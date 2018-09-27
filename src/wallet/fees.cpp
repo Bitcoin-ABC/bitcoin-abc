@@ -13,11 +13,6 @@
 #include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 
-Amount GetRequiredFee(unsigned int nTxBytes) {
-    return std::max(CWallet::minTxFee.GetFee(nTxBytes),
-                    GetConfig().GetMinFeePerKB().GetFee(nTxBytes));
-}
-
 Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
                      const CTxMemPool &pool, Amount targetFee) {
     Amount nFeeNeeded = targetFee;
@@ -34,7 +29,8 @@ Amount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget,
     }
 
     // Prevent user from paying a fee below minRelayTxFee or minTxFee.
-    nFeeNeeded = std::max(nFeeNeeded, GetRequiredFee(nTxBytes));
+    nFeeNeeded =
+        std::max(nFeeNeeded, GetConfig().GetMinFeePerKB().GetFee(nTxBytes));
 
     // But always obey the maximum.
     if (nFeeNeeded > maxTxFee) {

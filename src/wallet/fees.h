@@ -16,12 +16,6 @@ class CTxMemPool;
 struct FeeCalculation;
 
 /**
- * Return the minimum required fee taking into account the
- * floating relay fee and user set minimum transaction fee
- */
-Amount GetRequiredFee(unsigned int nTxBytes);
-
-/**
  * Estimate the minimum fee considering user set parameters
  * and the required fee
  */

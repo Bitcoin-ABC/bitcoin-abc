@@ -27,11 +27,6 @@ std::string GetWalletHelpString(bool showDebug) {
                     "estimation has insufficient data (default: %s)"),
                   CURRENCY_UNIT, FormatMoney(DEFAULT_FALLBACK_FEE)));
     strUsage += HelpMessageOpt(
-        "-mintxfee=<amt>",
-        strprintf(_("Fees (in %s/kB) smaller than this are considered zero fee "
-                    "for transaction creation (default: %s)"),
-                  CURRENCY_UNIT, FormatMoney(DEFAULT_TRANSACTION_MINFEE)));
-    strUsage += HelpMessageOpt(
         "-paytxfee=<amt>",
         strprintf(
             _("Fee (in %s/kB) to add to transactions you send (default: %s)"),
@@ -183,23 +178,6 @@ bool WalletParameterInteraction() {
         InitWarning(
             AmountHighWarn("-minrelaytxfee") + " " +
             _("The wallet will avoid paying less than the minimum relay fee."));
-    }
-
-    if (gArgs.IsArgSet("-mintxfee")) {
-        Amount n = Amount::zero();
-        auto parsed = ParseMoney(gArgs.GetArg("-mintxfee", ""), n);
-        if (!parsed || Amount::zero() == n) {
-            return InitError(
-                AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
-        }
-
-        if (n > HIGH_TX_FEE_PER_KB) {
-            InitWarning(AmountHighWarn("-mintxfee") + " " +
-                        _("This is the minimum transaction fee you pay on "
-                          "every transaction."));
-        }
-
-        CWallet::minTxFee = CFeeRate(n);
     }
 
     if (gArgs.IsArgSet("-fallbackfee")) {

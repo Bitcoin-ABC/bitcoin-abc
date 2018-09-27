@@ -638,16 +638,8 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
            "than the current dust threshold.");
 
     // how many satoshis the estimated fee can vary per byte we guess wrong
-    double dFeeVary;
-    if (payTxFee.GetFeePerK() > Amount::zero()) {
-        dFeeVary = std::max(GetRequiredFee(1000), payTxFee.GetFeePerK()) /
-                   (1000 * SATOSHI);
-    } else {
-        dFeeVary =
-            std::max(GetRequiredFee(1000),
-                     mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK()) /
-            (1000 * SATOSHI);
-    }
+    double dFeeVary = GetMinimumFee(1000, 2, mempool) / (1000 * SATOSHI);
+
     QString toolTip4 =
         tr("Can vary +/- %1 satoshi(s) per input.").arg(dFeeVary);
 
