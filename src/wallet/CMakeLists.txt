@@ -12,7 +12,9 @@ find_package(Event REQUIRED)
 add_library(wallet
 	crypter.cpp
 	db.cpp
+	fees.cpp
 	finaltx.cpp
+	init.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
 	wallet.cpp

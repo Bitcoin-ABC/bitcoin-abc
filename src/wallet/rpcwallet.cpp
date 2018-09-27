@@ -10,7 +10,6 @@
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "dstencode.h"
-#include "init.h"
 #include "net.h"
 #include "policy/fees.h"
 #include "policy/policy.h"
@@ -22,7 +21,12 @@
 #include "utilmoneystr.h"
 #include "validation.h"
 #include "wallet.h"
+#include "wallet/coincontrol.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 #include "walletdb.h"
+// Input src/init.h (not wallet/init.h) for StartShutdown
+#include <init.h>
 
 #include <univalue.h>
 

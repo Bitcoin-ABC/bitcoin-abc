@@ -43,6 +43,7 @@
 #include "validation.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
+#include "wallet/init.h"
 #include "wallet/rpcdump.h"
 #include "wallet/wallet.h"
 #endif
@@ -600,7 +601,7 @@ std::string HelpMessage(HelpMessageMode mode) {
                   DEFAULT_MAX_UPLOAD_TARGET));
 
 #ifdef ENABLE_WALLET
-    strUsage += CWallet::GetWalletHelpString(showDebug);
+    strUsage += GetWalletHelpString(showDebug);
 #endif
 
 #if ENABLE_ZMQ
@@ -1610,7 +1611,7 @@ bool AppInitParameterInteraction(Config &config) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           gArgs.GetArg("-minrelaytxfee", "")));
         }
-        // High fee check is done afterward in CWallet::ParameterInteraction()
+        // High fee check is done afterward in WalletParameterInteraction()
         config.SetMinFeePerKB(CFeeRate(n));
     } else {
         config.SetMinFeePerKB(CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB));
@@ -1649,7 +1650,7 @@ bool AppInitParameterInteraction(Config &config) {
     nBytesPerSigOp = gArgs.GetArg("-bytespersigop", nBytesPerSigOp);
 
 #ifdef ENABLE_WALLET
-    if (!CWallet::ParameterInteraction()) {
+    if (!WalletParameterInteraction()) {
         return false;
     }
 #endif
@@ -1807,7 +1808,7 @@ bool AppInitMain(Config &config,
 
 // Step 5: verify wallet database integrity
 #ifdef ENABLE_WALLET
-    if (!CWallet::Verify(chainparams)) {
+    if (!WalletVerify(chainparams)) {
         return false;
     }
 #endif
@@ -2161,7 +2162,7 @@ bool AppInitMain(Config &config,
 
 // Step 8: load wallet
 #ifdef ENABLE_WALLET
-    if (!CWallet::InitLoadWallet(chainparams)) {
+    if (!InitLoadWallet(chainparams)) {
         return false;
     }
 #else

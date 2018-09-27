@@ -17,10 +17,6 @@
 #include "txdb.h"       // for -dbcache defaults
 #include "validation.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
-#ifdef ENABLE_WALLET
-#include "wallet/wallet.h" // for CWallet::GetRequiredFee()
-#endif
-
 #include <boost/thread.hpp>
 
 #include <QDataWidgetMapper>

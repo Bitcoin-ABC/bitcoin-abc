@@ -18,6 +18,7 @@
 #include "policy/policy.h"
 #include "validation.h" // For mempool
 #include "wallet/coincontrol.h"
+#include "wallet/fees.h"
 #include "wallet/wallet.h"
 
 #include <QApplication>
@@ -549,7 +550,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
         }
 
         // Fee
-        nPayFee = CWallet::GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
+        nPayFee = GetMinimumFee(nBytes, nTxConfirmTarget, mempool);
         if (nPayFee > Amount::zero() &&
             coinControl->nMinimumTotalFee > nPayFee) {
             nPayFee = coinControl->nMinimumTotalFee;
@@ -645,12 +646,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     // how many satoshis the estimated fee can vary per byte we guess wrong
     double dFeeVary;
     if (payTxFee.GetFeePerK() > Amount::zero()) {
-        dFeeVary =
-            std::max(CWallet::GetRequiredFee(1000), payTxFee.GetFeePerK()) /
-            (1000 * SATOSHI);
+        dFeeVary = std::max(GetRequiredFee(1000), payTxFee.GetFeePerK()) /
+                   (1000 * SATOSHI);
     } else {
         dFeeVary =
-            std::max(CWallet::GetRequiredFee(1000),
+            std::max(GetRequiredFee(1000),
                      mempool.estimateSmartFee(nTxConfirmTarget).GetFeePerK()) /
             (1000 * SATOSHI);
     }

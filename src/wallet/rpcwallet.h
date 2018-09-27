@@ -7,6 +7,7 @@
 
 class CRPCTable;
 class JSONRPCRequest;
+class CWallet;
 
 void RegisterWalletRPCCommands(CRPCTable &t);
 
