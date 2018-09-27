@@ -114,8 +114,6 @@ target_include_directories(bitcoin-qt-base
 		${CMAKE_CURRENT_BINARY_DIR}
 		${CMAKE_CURRENT_BINARY_DIR}/forms
 		${Protobuf_INCLUDE_DIRS}
-	PRIVATE
-		${OPENSSL_INCLUDE_DIR}
 )
 
 target_link_libraries(bitcoin-qt-base
@@ -123,6 +121,7 @@ target_link_libraries(bitcoin-qt-base
 	rpcclient
 	Qt5::Widgets
 	Qt5::Network
+	OpenSSL
 	${Protobuf_LIBRARIES}
 )
 
@@ -167,11 +166,4 @@ if(BUILD_BITCOIN_WALLET)
 	)
 
 	target_link_libraries(bitcoin-qt-base wallet)
-
-	# Dependencies
-	# Support Brew OpenSSL on MacOS X
-	include(BrewHelper)
-	find_brew_prefix(OPENSSL_ROOT_DIR openssl)
-	find_package(OpenSSL REQUIRED)
-	target_link_libraries(bitcoin-qt-base ${OPENSSL_CRYPTO_LIBRARY})
 endif()
