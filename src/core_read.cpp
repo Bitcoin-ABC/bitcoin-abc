@@ -245,16 +245,13 @@ bool DecodePSBT(PartiallySignedTransaction &psbt, const std::string &base64_tx,
     return true;
 }
 
-uint256 ParseHashStr(const std::string &strHex, const std::string &strName) {
-    if (!IsHex(strHex)) {
-        // Note: IsHex("") is false
-        throw std::runtime_error(
-            strName + " must be hexadecimal string (not '" + strHex + "')");
+bool ParseHashStr(const std::string &strHex, uint256 &result) {
+    if ((strHex.size() != 64) || !IsHex(strHex)) {
+        return false;
     }
 
-    uint256 result;
     result.SetHex(strHex);
-    return result;
+    return true;
 }
 
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName) {

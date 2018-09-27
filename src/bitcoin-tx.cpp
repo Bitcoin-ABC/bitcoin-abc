@@ -258,12 +258,12 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     }
 
     // extract and validate TXID
-    std::string strTxid = vStrInputParts[0];
-    if ((strTxid.size() != 64) || !IsHex(strTxid)) {
+    uint256 hash;
+    if (!ParseHashStr(vStrInputParts[0], hash)) {
         throw std::runtime_error("invalid TX input txid");
     }
 
-    TxId txid(uint256S(strTxid));
+    TxId txid(hash);
 
     static const unsigned int minTxOutSz = 9;
     static const unsigned int maxVout = MAX_TX_SIZE / minTxOutSz;
@@ -631,7 +631,13 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("prevtxs internal object typecheck fail");
         }
 
-        TxId txid(ParseHashStr(prevOut["txid"].get_str(), "txid"));
+        uint256 hash;
+        if (!ParseHashStr(prevOut["txid"].get_str(), hash)) {
+            throw std::runtime_error("txid must be hexadecimal string (not '" +
+                                     prevOut["txid"].get_str() + "')");
+        }
+
+        TxId txid(hash);
 
         const int nOut = prevOut["vout"].get_int();
         if (nOut < 0) {
