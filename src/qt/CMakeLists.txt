@@ -121,7 +121,7 @@ target_link_libraries(bitcoin-qt-base
 	rpcclient
 	Qt5::Widgets
 	Qt5::Network
-	OpenSSL
+	OpenSSL::SSL
 	${Protobuf_LIBRARIES}
 )
 

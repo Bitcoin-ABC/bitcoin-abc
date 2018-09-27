@@ -48,11 +48,6 @@ include(BrewHelper)
 find_brew_prefix(OPENSSL_ROOT_DIR openssl)
 find_package(OpenSSL REQUIRED)
 
-add_library(OpenSSL STATIC IMPORTED)
-set_target_properties(OpenSSL PROPERTIES
-	IMPORTED_LOCATION ${OPENSSL_CRYPTO_LIBRARY}
-	INTERFACE_INCLUDE_DIRECTORIES ${OPENSSL_INCLUDE_DIR})
-
 # libtool style configure
 add_subdirectory(config)
 

@@ -32,4 +32,4 @@ if(CRYPTO_USE_ASM)
 endif()
 
 # Dependencies
-target_link_libraries(crypto OpenSSL)
+target_link_libraries(crypto OpenSSL::Crypto)
