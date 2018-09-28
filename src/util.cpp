@@ -115,8 +115,9 @@ public:
         // Init OpenSSL library multithreading support.
         ppmutexOpenSSL = (CCriticalSection **)OPENSSL_malloc(
             CRYPTO_num_locks() * sizeof(CCriticalSection *));
-        for (int i = 0; i < CRYPTO_num_locks(); i++)
+        for (int i = 0; i < CRYPTO_num_locks(); i++) {
             ppmutexOpenSSL[i] = new CCriticalSection();
+        }
         CRYPTO_set_locking_callback(locking_callback);
 
         // OpenSSL can optionally load a config file which lists optional
@@ -141,15 +142,18 @@ public:
         RAND_cleanup();
         // Shutdown OpenSSL library multithreading support.
         CRYPTO_set_locking_callback(nullptr);
-        for (int i = 0; i < CRYPTO_num_locks(); i++)
+        for (int i = 0; i < CRYPTO_num_locks(); i++) {
             delete ppmutexOpenSSL[i];
+        }
         OPENSSL_free(ppmutexOpenSSL);
     }
 } instance_of_cinit;
 
 /** Interpret string as boolean, for argument parsing */
 static bool InterpretBool(const std::string &strValue) {
-    if (strValue.empty()) return true;
+    if (strValue.empty()) {
+        return true;
+    }
     return (atoi(strValue) != 0);
 }
 
@@ -178,14 +182,20 @@ void ArgsManager::ParseParameters(int argc, const char *const argv[]) {
         }
 #ifdef WIN32
         boost::to_lower(str);
-        if (boost::algorithm::starts_with(str, "/")) str = "-" + str.substr(1);
+        if (boost::algorithm::starts_with(str, "/")) {
+            str = "-" + str.substr(1);
+        }
 #endif
 
-        if (str[0] != '-') break;
+        if (str[0] != '-') {
+            break;
+        }
 
         // Interpret --foo as -foo.
         // If both --foo and -foo are set, the last takes effect.
-        if (str.length() > 1 && str[1] == '-') str = str.substr(1);
+        if (str.length() > 1 && str[1] == '-') {
+            str = str.substr(1);
+        }
         InterpretNegativeSetting(str, strValue);
 
         mapArgs[str] = strValue;
@@ -209,19 +219,25 @@ bool ArgsManager::IsArgSet(const std::string &strArg) {
 std::string ArgsManager::GetArg(const std::string &strArg,
                                 const std::string &strDefault) {
     LOCK(cs_args);
-    if (mapArgs.count(strArg)) return mapArgs[strArg];
+    if (mapArgs.count(strArg)) {
+        return mapArgs[strArg];
+    }
     return strDefault;
 }
 
 int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) {
     LOCK(cs_args);
-    if (mapArgs.count(strArg)) return atoi64(mapArgs[strArg]);
+    if (mapArgs.count(strArg)) {
+        return atoi64(mapArgs[strArg]);
+    }
     return nDefault;
 }
 
 bool ArgsManager::GetBoolArg(const std::string &strArg, bool fDefault) {
     LOCK(cs_args);
-    if (mapArgs.count(strArg)) return InterpretBool(mapArgs[strArg]);
+    if (mapArgs.count(strArg)) {
+        return InterpretBool(mapArgs[strArg]);
+    }
     return fDefault;
 }
 
@@ -236,10 +252,11 @@ bool ArgsManager::SoftSetArg(const std::string &strArg,
 }
 
 bool ArgsManager::SoftSetBoolArg(const std::string &strArg, bool fValue) {
-    if (fValue)
+    if (fValue) {
         return SoftSetArg(strArg, std::string("1"));
-    else
+    } else {
         return SoftSetArg(strArg, std::string("0"));
+    }
 }
 
 void ArgsManager::ForceSetArg(const std::string &strArg,
@@ -292,13 +309,14 @@ static std::string FormatException(const std::exception *pex,
 #else
     const char *pszModule = "bitcoin";
 #endif
-    if (pex)
+    if (pex) {
         return strprintf("EXCEPTION: %s       \n%s       \n%s in %s       \n",
                          typeid(*pex).name(), pex->what(), pszModule,
                          pszThread);
-    else
+    } else {
         return strprintf("UNKNOWN EXCEPTION       \n%s in %s       \n",
                          pszModule, pszThread);
+    }
 }
 
 void PrintExceptionContinue(const std::exception *pex, const char *pszThread) {
@@ -318,10 +336,11 @@ fs::path GetDefaultDataDir() {
 #else
     fs::path pathRet;
     char *pszHome = getenv("HOME");
-    if (pszHome == nullptr || strlen(pszHome) == 0)
+    if (pszHome == nullptr || strlen(pszHome) == 0) {
         pathRet = fs::path("/");
-    else
+    } else {
         pathRet = fs::path(pszHome);
+    }
 #ifdef MAC_OSX
     // Mac
     return pathRet / "Library/Application Support/Bitcoin";
@@ -343,7 +362,9 @@ const fs::path &GetDataDir(bool fNetSpecific) {
 
     // This can be called during exceptions by LogPrintf(), so we cache the
     // value so we don't have to do memory allocations after that.
-    if (!path.empty()) return path;
+    if (!path.empty()) {
+        return path;
+    }
 
     if (gArgs.IsArgSet("-datadir")) {
         path = fs::system_complete(gArgs.GetArg("-datadir", ""));
@@ -354,7 +375,10 @@ const fs::path &GetDataDir(bool fNetSpecific) {
     } else {
         path = GetDefaultDataDir();
     }
-    if (fNetSpecific) path /= BaseParams().DataDir();
+
+    if (fNetSpecific) {
+        path /= BaseParams().DataDir();
+    }
 
     fs::create_directories(path);
 
@@ -370,8 +394,9 @@ void ClearDatadirCache() {
 
 fs::path GetConfigFile(const std::string &confPath) {
     fs::path pathConfigFile(confPath);
-    if (!pathConfigFile.is_complete())
+    if (!pathConfigFile.is_complete()) {
         pathConfigFile = GetDataDir(false) / pathConfigFile;
+    }
 
     return pathConfigFile;
 }
@@ -380,7 +405,9 @@ void ArgsManager::ReadConfigFile(const std::string &confPath) {
     fs::ifstream streamConfig(GetConfigFile(confPath));
 
     // No bitcoin.conf file is OK
-    if (!streamConfig.good()) return;
+    if (!streamConfig.good()) {
+        return;
+    }
 
     {
         LOCK(cs_args);
@@ -409,7 +436,9 @@ void ArgsManager::ReadConfigFile(const std::string &confPath) {
 #ifndef WIN32
 fs::path GetPidFile() {
     fs::path pathPidFile(gArgs.GetArg("-pid", BITCOIN_PID_FILENAME));
-    if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
+    if (!pathPidFile.is_complete()) {
+        pathPidFile = GetDataDir() / pathPidFile;
+    }
     return pathPidFile;
 }
 
@@ -489,8 +518,9 @@ int RaiseFileDescriptorLimit(int nMinFD) {
     if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) {
         if (limitFD.rlim_cur < (rlim_t)nMinFD) {
             limitFD.rlim_cur = nMinFD;
-            if (limitFD.rlim_cur > limitFD.rlim_max)
+            if (limitFD.rlim_cur > limitFD.rlim_max) {
                 limitFD.rlim_cur = limitFD.rlim_max;
+            }
             setrlimit(RLIMIT_NOFILE, &limitFD);
             getrlimit(RLIMIT_NOFILE, &limitFD);
         }
@@ -540,7 +570,9 @@ void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
     fseek(file, offset, SEEK_SET);
     while (length > 0) {
         unsigned int now = 65536;
-        if (length < now) now = length;
+        if (length < now) {
+            now = length;
+        }
         // Allowed to fail; this function is advisory anyway.
         fwrite(buf, 1, now, file);
         length -= now;
@@ -624,8 +656,9 @@ bool SetupNetworking() {
     WSADATA wsadata;
     int ret = WSAStartup(MAKEWORD(2, 2), &wsadata);
     if (ret != NO_ERROR || LOBYTE(wsadata.wVersion) != 2 ||
-        HIBYTE(wsadata.wVersion) != 2)
+        HIBYTE(wsadata.wVersion) != 2) {
         return false;
+    }
 #endif
     return true;
 }
