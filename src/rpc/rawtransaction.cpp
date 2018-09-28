@@ -68,9 +68,9 @@ void TxToJSON(const Config &config, const CTransaction &tx,
     entry.push_back(Pair("txid", tx.GetId().GetHex()));
     entry.push_back(Pair("hash", tx.GetHash().GetHex()));
     entry.push_back(Pair(
-        "size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
+        "size", int(::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION))));
     entry.push_back(Pair("version", tx.nVersion));
-    entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
+    entry.push_back(Pair("locktime", int64_t(tx.nLockTime)));
 
     UniValue vin(UniValue::VARR);
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
@@ -89,7 +89,7 @@ void TxToJSON(const Config &config, const CTransaction &tx,
             in.push_back(Pair("scriptSig", o));
         }
 
-        in.push_back(Pair("sequence", (int64_t)txin.nSequence));
+        in.push_back(Pair("sequence", int64_t(txin.nSequence)));
         vin.push_back(in);
     }
 
@@ -99,7 +99,7 @@ void TxToJSON(const Config &config, const CTransaction &tx,
         const CTxOut &txout = tx.vout[i];
         UniValue out(UniValue::VOBJ);
         out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
-        out.push_back(Pair("n", (int64_t)i));
+        out.push_back(Pair("n", int64_t(i)));
         UniValue o(UniValue::VOBJ);
         ScriptPubKeyToJSON(config, txout.scriptPubKey, o, true);
         out.push_back(Pair("scriptPubKey", o));
@@ -315,8 +315,9 @@ static UniValue gettxoutproof(const Config &config,
     uint256 hashBlock;
     if (request.params.size() > 1) {
         hashBlock = uint256S(request.params[1].get_str());
-        if (!mapBlockIndex.count(hashBlock))
+        if (!mapBlockIndex.count(hashBlock)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
         pblockindex = mapBlockIndex[hashBlock];
     } else {
         // Loop through txids and try to find which block they're in. Exit loop
