@@ -1,7 +1,8 @@
 ---
 name: "bitcoin-win-signer"
+distro: "debian"
 suites:
-- "xenial"
+- "stretch"
 architectures:
 - "amd64"
 packages:

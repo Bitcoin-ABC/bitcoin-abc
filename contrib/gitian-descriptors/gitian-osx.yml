@@ -1,15 +1,16 @@
 ---
 name: "bitcoin-abc-0.18-osx"
 enable_cache: true
+distro: "debian"
 suites:
-- "xenial"
+- "stretch"
 architectures:
 - "amd64"
 packages:
 - "ca-certificates"
 - "curl"
 - "g++"
-- "git-core"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "librsvg2-bin"

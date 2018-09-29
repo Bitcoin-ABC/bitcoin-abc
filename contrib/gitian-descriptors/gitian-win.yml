@@ -1,14 +1,15 @@
 ---
 name: "bitcoin-abc-0.18-win"
 enable_cache: true
+distro: "debian"
 suites:
-- "xenial"
+- "stretch"
 architectures:
 - "amd64"
 packages:
 - "curl"
 - "g++"
-- "git-core"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "libtool"
@@ -21,24 +22,16 @@ packages:
 - "zip"
 - "ca-certificates"
 - "python"
-alternatives:
-- "package" : "i686-w64-mingw32-gcc"
-  "path" : "/usr/bin/i686-w64-mingw32-gcc-posix"
-- "package" : "i686-w64-mingw32-g++"
-  "path" : "/usr/bin/i686-w64-mingw32-g++-posix"
-- "package" : "x86_64-w64-mingw32-gcc"
-  "path" : "/usr/bin/x86_64-w64-mingw32-gcc-posix"
-- "package" : "x86_64-w64-mingw32-g++"
-  "path" : "/usr/bin/x86_64-w64-mingw32-g++-posix"
+- "rename"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
 files: []
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-w64-mingw32 i686-w64-mingw32"
+  HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests --without-seeder"
-  FAKETIME_HOST_PROGS="g++ ar ranlib nm windres strip objcopy"
+  FAKETIME_HOST_PROGS="ar ranlib nm windres strip objcopy"
   FAKETIME_PROGS="date makensis zip"
   HOST_CFLAGS="-O2 -g"
   HOST_CXXFLAGS="-O2 -g"
@@ -93,8 +86,8 @@ script: |
         chmod +x ${WRAP_DIR}/${i}/${prog}
     done
     for prog in gcc g++; do
-        echo '#!/bin/bash' > ${WRAP_DIR}/${i}-${prog}
-        echo "REAL=\`which -a ${i}-${prog} | grep -v ${WRAP_DIR}/${i}-${prog} | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
+        echo '#!/usr/bin/env bash' > ${WRAP_DIR}/${i}-${prog}
+        echo "REAL=\`which -a ${i}-${prog}-posix | grep -v ${WRAP_DIR}/${i}-${prog} | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
         echo 'export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${i}-${prog}
         echo "export FAKETIME=\"$1\"" >> ${WRAP_DIR}/${i}-${prog}
         echo "export COMPILER_PATH=${WRAP_DIR}/${i}" >> ${WRAP_DIR}/${i}-${prog}
