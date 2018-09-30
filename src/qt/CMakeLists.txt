@@ -8,7 +8,7 @@ cmake_policy(SET CMP0071 OLD)
 include(BrewHelper)
 find_brew_prefix(QT5_PREFIX qt5)
 
-set(QT_REQUIRED_COMPONENTS Core Widgets Network)
+set(QT_REQUIRED_COMPONENTS Core Widgets Network Test)
 find_package(Qt5 COMPONENTS ${QT_REQUIRED_COMPONENTS} REQUIRED HINTS "${QT5_PREFIX}")
 
 # Find out more about Qt. This is similar to
@@ -215,3 +215,6 @@ endif()
 # The executable
 add_executable(bitcoin-qt bitcoin.cpp)
 target_link_libraries(bitcoin-qt bitcoin-qt-base)
+
+# Test tests
+add_subdirectory(test)
