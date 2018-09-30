@@ -1675,15 +1675,15 @@ static UniValue converttopsbt(const Config &config,
 
     // parse hex string from parameter
     CMutableTransaction tx;
+    bool permitsigdata =
+        request.params[1].isNull() ? false : request.params[1].get_bool();
     if (!DecodeHexTx(tx, request.params[0].get_str())) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
     }
 
     // Remove all scriptSigs from inputs
     for (CTxIn &input : tx.vin) {
-        if (!input.scriptSig.empty() &&
-            (request.params[1].isNull() ||
-             (!request.params[1].isNull() && request.params[1].get_bool()))) {
+        if (!input.scriptSig.empty() && !permitsigdata) {
             throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                "Inputs must not have scriptSigs");
         }
