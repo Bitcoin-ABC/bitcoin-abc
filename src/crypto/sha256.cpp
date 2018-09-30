@@ -13,7 +13,7 @@
 #if defined(USE_ASM)
 #include <cpuid.h>
 namespace sha256_sse4 {
-void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks);
+void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks);
 }
 #endif
 #endif
@@ -65,7 +65,7 @@ namespace sha256 {
 
     /** Perform a number of SHA-256 transformations, processing 64-byte chunks.
      */
-    void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks) {
+    void Transform(uint32_t *s, const uint8_t *chunk, size_t blocks) {
         while (blocks--) {
             uint32_t a = s[0], b = s[1], c = s[2], d = s[3], e = s[4], f = s[5],
                      g = s[6], h = s[7];
@@ -215,11 +215,11 @@ namespace sha256 {
 
 } // namespace sha256
 
-typedef void (*TransformType)(uint32_t *, const unsigned char *, size_t);
+typedef void (*TransformType)(uint32_t *, const uint8_t *, size_t);
 
 bool SelfTest(TransformType tr) {
-    static const unsigned char in1[65] = {0, 0x80};
-    static const unsigned char in2[129] = {
+    static const uint8_t in1[65] = {0, 0x80};
+    static const uint8_t in2[129] = {
         0,  32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,   32, 32,
         32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,   32, 32,
         32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,   32, 32,
