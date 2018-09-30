@@ -231,12 +231,6 @@ def main():
     tmpdir = os.path.join("{}", "test_runner_₿₵_🏃_{:%Y%m%d_%H%M%S}").format(
         args.tmpdirprefix, datetime.datetime.now())
 
-    # If we fixed the command-line and filename encoding issue on Windows,
-    # these two lines could be removed
-    if config["environment"]["EXEEXT"] == ".exe":
-        tmpdir = os.path.join("{}", "test_runner_{:%Y%m%d_%H%M%S}").format(
-            args.tmpdirprefix, datetime.datetime.now())
-
     os.makedirs(tmpdir)
 
     logging.debug("Temporary test directory at {}".format(tmpdir))
