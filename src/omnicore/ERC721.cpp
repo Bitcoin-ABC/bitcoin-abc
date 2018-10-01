@@ -17,6 +17,7 @@
 #include "../streams.h"
 #include "../clientversion.h"
 #include "../leveldb/include/leveldb/status.h"
+#include "omnicore.h"
 
 #include <stdint.h>
 
@@ -35,7 +36,7 @@ CMPSPERC721Info::CMPSPERC721Info(const boost::filesystem::path& path, bool fWipe
     init();
 }
 
-void CMPSPERC721Info::init(uint256 nextSPID){
+void CMPSPERC721Info::init(const uint256& nextSPID){
     next_erc721spid = nextSPID;
 }
 
@@ -60,7 +61,7 @@ uint256 CMPSPERC721Info::putSP(const PropertyInfo& info){
     return propertyId;
 }
 
-bool CMPSPERC721Info::existSP(uint256 propertyID){
+bool CMPSPERC721Info::existSP(const uint256& propertyID){
     auto iter = cacheMapPropertyInfo.find(propertyID);
     if (iter != cacheMapPropertyInfo.end()){
         return true;
@@ -93,7 +94,7 @@ bool CMPSPERC721Info::existSP(uint256 propertyID){
     return true;
 }
 
-bool CMPSPERC721Info::getAndUpdateSP(uint256 propertyID, std::pair<PropertyInfo, Flags>** info){
+bool CMPSPERC721Info::getAndUpdateSP(const uint256& propertyID, std::pair<PropertyInfo, Flags>** info){
     auto iter = cacheMapPropertyInfo.find(propertyID);
     if (iter == cacheMapPropertyInfo.end()){
         // DB key for property entry
@@ -228,7 +229,7 @@ bool CMPSPERC721Info::popBlock(const uint256& block_hash){
     return true;
 }
 
-bool CMPSPERC721Info::flush(uint256& watermark){
+bool CMPSPERC721Info::flush(const uint256& watermark){
     // atomically write both the the SP and the index to the database
     leveldb::WriteBatch batch;
 
@@ -310,7 +311,7 @@ bool CMPSPERC721Info::flush(uint256& watermark){
     return true;
 }
 
-bool CMPSPERC721Info::findERCSPByTX(const uint256& txhash, uint256& propertyId){
+bool CMPSPERC721Info::findERCSPByTX(const uint256& txhash, const uint256& propertyId){
 
     // DB key for identifier lookup entry
     CDataStream ssTxIndexKey(SER_DISK, CLIENT_VERSION);
@@ -384,7 +385,7 @@ bool ERC721TokenInfos::existToken(const uint256& propertyID, const uint256& toke
     return true;
 }
 
-bool ERC721TokenInfos::putToken(uint256 propertyID, uint256 tokenID, const TokenInfo& info){
+bool ERC721TokenInfos::putToken(const uint256& propertyID, const uint256& tokenID, const TokenInfo& info){
     if (cacheTokens.find(propertyID) == cacheTokens.end()){
         cacheTokens[propertyID] = ERC721Token();
     }
@@ -418,7 +419,7 @@ bool ERC721TokenInfos::putToken(uint256 propertyID, uint256 tokenID, const Token
     return true;
 }
 
-bool ERC721TokenInfos::getAndUpdateToken(uint256 propertyID, uint256 tokenID, std::pair<TokenInfo, Flags>** info){
+bool ERC721TokenInfos::getAndUpdateToken(const uint256& propertyID, const uint256& tokenID, std::pair<TokenInfo, Flags>** info){
     if (cacheTokens.find(propertyID) == cacheTokens.end()){
         cacheTokens[propertyID] = ERC721Token();
     }
@@ -638,7 +639,7 @@ bool ERC721TokenInfos::popBlock(const uint256& block_hash){
     return true;
 }
 
-bool ERC721TokenInfos::findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid){
+bool ERC721TokenInfos::findTokenByTX(const uint256& txhash, const uint256& propertyid, const uint256& tokenid){
 
     // DB key for identifier lookup entry
     CDataStream ssTxIndexKey(SER_DISK, CLIENT_VERSION);
@@ -662,5 +663,23 @@ bool ERC721TokenInfos::findTokenByTX(const uint256& txhash, uint256& propertyid,
         return false;
     }
 
+    return true;
+}
+
+bool mastercore::IsERC721TokenValid(const uint256& propertyid, const uint256& tokenid){
+    std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
+    if(!my_erc721tokens->getAndUpdateToken(propertyid, tokenid, &info)){
+        return false;
+    }
+    if(info->first.owner == burnwhc_address){
+        return false;
+    }
+    return true;
+}
+
+bool mastercore::IsERC721PropertyIdValid(const uint256& propertyid){
+    if(!my_erc721sps->existSP(propertyid)){
+        return false;
+    }
     return true;
 }

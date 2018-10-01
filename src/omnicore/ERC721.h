@@ -69,30 +69,30 @@ public:
     CMPSPERC721Info(const boost::filesystem::path& path, bool fWipe);
     virtual ~CMPSPERC721Info();
 
-    void init(uint256 nextSPID = ONE);
+    void init(const uint256& nextSPID = ONE);
     uint256 peekNextSPID() const;
 
     // When create a valid property, will call this function write property data to cacheMapPropertyInfo
     // return: the new property ID
     uint256 putSP(const PropertyInfo& info);
 
-    bool existSP(uint256 propertyID);
+    bool existSP(const uint256& propertyID);
 
     // Get the special property's info.
-    bool getAndUpdateSP(uint256 propertyID, std::pair<PropertyInfo, Flags>** info);
+    bool getAndUpdateSP(const uint256& propertyID, std::pair<PropertyInfo, Flags>** info);
 
     // get water block hash
     bool getWatermark(uint256& watermark) const;
 
     // Flush flush cacheMapPropertyInfo struct data with DIRTY flag to database.
     // Then clear the cacheMapPropertyInfo struct.
-    bool flush(uint256& watermark);
+    bool flush(const uint256& watermark);
 
     // Delete database data with the param block hash. Then rollback the latest information
     // and historical information of all properties to the previous status.
     bool popBlock(const uint256& block_hash);
 
-    bool findERCSPByTX(const uint256& txhash, uint256& propertyid);
+    bool findERCSPByTX(const uint256& txhash, const uint256& propertyid);
 
 };
 
@@ -149,10 +149,10 @@ public:
     //      tokenID : the created TokenID .
     //      info : the created tokenInfo.
     // return : true, the new created token is placed the property cache.
-    bool putToken(uint256 propertyID, uint256 tokenID, const TokenInfo& info);
+    bool putToken(const uint256& propertyID, const uint256& tokenID, const TokenInfo& info);
 
     // Get the special Token info, and possible will be changed outside.
-    bool getAndUpdateToken(uint256 propertyID, uint256 tokenID, std::pair<TokenInfo, Flags>** info);
+    bool getAndUpdateToken(const uint256& propertyID, const uint256& tokenID, std::pair<TokenInfo, Flags>** info);
 
     // get water block hash.
     bool getWatermark(uint256& watermark) const;
@@ -164,12 +164,15 @@ public:
     // and historical information of all properties's tokens to the previous status.
     bool popBlock(const uint256& block_hash);
 
-    bool findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid);
+    bool findTokenByTX(const uint256& txhash, const uint256& propertyid, const uint256& tokenid);
 };
 
 namespace mastercore{
     extern CMPSPERC721Info *my_erc721sps;
     extern ERC721TokenInfos *my_erc721tokens;
+
+    bool IsERC721TokenValid(const uint256& propertyid, const uint256& tokenid);
+    bool IsERC721PropertyIdValid(const uint256& propertyid);
 }
 
 
