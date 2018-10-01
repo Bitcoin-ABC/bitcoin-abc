@@ -92,7 +92,7 @@ public:
     // and historical information of all properties to the previous status.
     bool popBlock(const uint256& block_hash);
 
-    bool findERCSPByTX(const uint256& txhash, const uint256& propertyid);
+    bool findERCSPByTX(const uint256& txhash, uint256& propertyid);
 
 };
 
@@ -164,7 +164,7 @@ public:
     // and historical information of all properties's tokens to the previous status.
     bool popBlock(const uint256& block_hash);
 
-    bool findTokenByTX(const uint256& txhash, const uint256& propertyid, const uint256& tokenid);
+    bool findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid);
 };
 
 namespace mastercore{

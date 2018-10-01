@@ -7,6 +7,7 @@
 #include "omnicore/utils.h"
 
 #include "tinyformat.h"
+#include "omnicore.h"
 
 #include <stdint.h>
 #include <string>
@@ -119,7 +120,6 @@ std::vector<unsigned char> CreatePayload_DExAccept(uint32_t propertyId, uint64_t
     return payload;
 }
 
-
 std::vector<unsigned char> CreatePayload_BurnBch()
 {
     std::vector<unsigned char> payload;
@@ -130,6 +130,93 @@ std::vector<unsigned char> CreatePayload_BurnBch()
 
     PUSH_BACK_BYTES(payload, messageVer);
     PUSH_BACK_BYTES(payload, messageType);
+
+    return payload;
+}
+
+std::vector<unsigned char> CreatePayload_IssueERC721Property(std::string name, std::string symbol, std::string data,
+                                                             std::string url, uint64_t totalToken){
+    std::vector<unsigned char> payload;
+    uint16_t messageType = WHC_TYPE_ERC721;
+    uint16_t messageVer = 0;
+    uint8_t action = ERC721Action::ISSUE_ERC721_PROPERTY;
+
+    mastercore::swapByteOrder16(messageType);
+    mastercore::swapByteOrder16(messageVer);
+    mastercore::swapByteOrder64(totalToken);
+    if(name.size() > 255)   name = name.substr(0, 100);
+    if(symbol.size() > 255)  symbol = symbol.substr(0, 100);
+    if(data.size() > 255)   data = data.substr(0, 100);
+    if(url.size() > 255)    url = data.substr(0, 100);
+
+    PUSH_BACK_BYTES(payload, messageVer);
+    PUSH_BACK_BYTES(payload, messageType);
+    PUSH_BACK_BYTES(payload, action);
+    payload.insert(payload.end(), name.begin(), name.end());
+    payload.push_back('\0');
+    payload.insert(payload.end(), symbol.begin(), symbol.end());
+    payload.push_back('\0');
+    payload.insert(payload.end(), data.begin(), data.end());
+    payload.push_back('\0');
+    payload.insert(payload.end(), url.begin(), url.end());
+    payload.push_back('\0');
+    PUSH_BACK_BYTES(payload, totalToken);
+
+    return payload;
+}
+
+std::vector<unsigned char> CreatePayload_IssueERC721Token(const uint256& propertyID, const uint256& tokenID,
+                                                          const uint256& tokenAttributes, std::string tokenURL){
+    std::vector<unsigned char> payload;
+    uint16_t messageType = WHC_TYPE_ERC721;
+    uint16_t messageVer = 0;
+    uint8_t action = ERC721Action::ISSUE_ERC721_TOKEN;
+
+    mastercore::swapByteOrder16(messageType);
+    mastercore::swapByteOrder16(messageVer);
+    if(tokenURL.size() > 255)    tokenURL = tokenURL.substr(0, 100);
+    PUSH_BACK_BYTES(payload, messageVer);
+    PUSH_BACK_BYTES(payload, messageType);
+    PUSH_BACK_BYTES(payload, action);
+    payload.insert(payload.end(), propertyID.begin(), propertyID.begin());
+    payload.insert(payload.end(), tokenID.begin(), tokenID.end());
+    payload.insert(payload.end(), tokenAttributes.begin(), tokenAttributes.end());
+    payload.insert(payload.end(), tokenURL.begin(), tokenURL.end());
+    payload.push_back('\0');
+
+    return payload;
+}
+
+std::vector<unsigned char> CreatePayload_TransferERC721Token(const uint256& propertyID, const uint256& tokenID){
+    std::vector<unsigned char> payload;
+    uint16_t messageType = WHC_TYPE_ERC721;
+    uint16_t messageVer = 0;
+    uint8_t action = ERC721Action::TRANSFER_REC721_TOKEN;
+
+    mastercore::swapByteOrder16(messageType);
+    mastercore::swapByteOrder16(messageVer);
+    PUSH_BACK_BYTES(payload, messageVer);
+    PUSH_BACK_BYTES(payload, messageType);
+    PUSH_BACK_BYTES(payload, action);
+    payload.insert(payload.end(), propertyID.begin(), propertyID.end());
+    payload.insert(payload.end(), tokenID.begin(), tokenID.end());
+
+    return payload;
+}
+
+std::vector<unsigned char> CreatePayload_DestroyERC721Token(const uint256& propertyID, const uint256& tokenID){
+    std::vector<unsigned char> payload;
+    uint16_t messageType = WHC_TYPE_ERC721;
+    uint16_t messageVer = 0;
+    uint8_t action = ERC721Action::DESTROY_ERC721_TOKEN;
+
+    mastercore::swapByteOrder16(messageType);
+    mastercore::swapByteOrder16(messageVer);
+    PUSH_BACK_BYTES(payload, messageVer);
+    PUSH_BACK_BYTES(payload, messageType);
+    PUSH_BACK_BYTES(payload, action);
+    payload.insert(payload.end(), propertyID.begin(), propertyID.end());
+    payload.insert(payload.end(), tokenID.begin(), tokenID.end());
 
     return payload;
 }

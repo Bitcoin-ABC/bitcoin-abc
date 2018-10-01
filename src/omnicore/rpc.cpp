@@ -26,10 +26,11 @@
 #include "omnicore/sp.h"
 #include "omnicore/sto.h"
 #include "omnicore/tally.h"
-#include "omnicore/tx.h"
 #include "omnicore/utilsbitcoin.h"
 #include "omnicore/version.h"
 #include "omnicore/wallettxs.h"
+#include "omnicore/ERC721.h"
+#include "omnicore/rpcrequirements.h"
 
 #include "config.h"
 #include "core_io.h"
@@ -44,8 +45,6 @@
 #include "uint256.h"
 #include "utilstrencodings.h"
 #include "chain.h"
-#include "sp.h"
-#include "../rpc/server.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -2336,6 +2335,62 @@ UniValue whc_getbalanceshash(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
+UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_getERC721TokenNews propertyid\n"
+                        "\nReturns details for about the tokens or smart property to lookup.\n"
+                        "\nArguments:\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
+                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                        "  \"creationblock\" : \"hash\",         (string) the hex-encoded creation block hash\n"
+                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_getproperty", "\"0x03\", \"0x01\"")
+                + HelpExampleRpc("whc_getproperty", "\"0x03\", \"0x01\"")
+        );
+    RequireHexNumber(request.params[0].get_str());
+    RequireHexNumber(request.params[1].get_str());
+    uint256 propertyId = uint256S(request.params[0].get_str());
+    uint256 tokenid = uint256S(request.params[1].get_str());
+    RequireExistingERC721Property(propertyId);
+
+    std::pair<ERC721TokenInfos::TokenInfo, Flags > *info = NULL;
+    {
+        LOCK(cs_tally);
+        if (!my_erc721tokens->getAndUpdateToken(propertyId, tokenid, &info)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
+        }
+    }
+
+    UniValue response(UniValue::VOBJ);
+    response.push_back(Pair("propertyid", propertyId.GetHex()));
+    response.push_back(Pair("propertyid", tokenid.GetHex()));
+    response.push_back(Pair("issuer", info->first.owner));
+    response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
+    response.push_back(Pair("creationtxid", info->first.creationBlockHash.GetHex()));
+    response.push_back(Pair("attribute", info->first.attributes.GetHex()));
+    response.push_back(Pair("tokenurl", info->first.url));
+
+    return response;
+}
+
+UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &request){
+
+}
+
+UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCRequest &request){
+
+}
+
 static const CRPCCommand commands[] =
 { //  category                             name                            actor (function)               okSafeMode
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
@@ -2369,6 +2424,7 @@ static const CRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
+    { "omni layer (data retrieval)",  "whc_getERC721TokenNews",           &whc_getERC721TokenNews,             false , {}},
 //    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
 
 #ifdef ENABLE_WALLET

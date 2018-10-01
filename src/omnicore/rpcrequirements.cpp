@@ -4,6 +4,7 @@
 #include "omnicore/omnicore.h"
 #include "omnicore/sp.h"
 #include "omnicore/utilsbitcoin.h"
+#include "omnicore/ERC721.h"
 
 #include "amount.h"
 #include "rpc/protocol.h"
@@ -187,5 +188,32 @@ void RequireHeightInChain(int blockHeight)
 {
     if (blockHeight < 0 || mastercore::GetHeight() < blockHeight) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height is out of range");
+    }
+}
+
+void RequireTokenNumber(uint64_t totalNumber){
+    if (totalNumber == 0 ){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Issue token number should not equal 0");
+    }
+}
+
+void RequireHexNumber(std::string str){
+    if(!IsHexNumber(str)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "param should be hex string ");
+    }
+}
+
+void RequireExistingERC721Token(const uint256& propertyId, const uint256& tokenid)
+{
+    LOCK(cs_tally);
+    if (!mastercore::IsERC721TokenValid(propertyId, tokenid)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 token identifier does not exist");
+    }
+}
+
+void RequireExistingERC721Property(const uint256& propertyId)
+{
+    if (!mastercore::IsERC721PropertyIdValid(propertyId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 property identifier does not exist");
     }
 }

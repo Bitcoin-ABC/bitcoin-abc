@@ -1,6 +1,9 @@
 #ifndef OMNICORE_CREATEPAYLOAD_H
 #define OMNICORE_CREATEPAYLOAD_H
 
+#include "uint256.h"
+#include "../uint256.h"
+
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -34,5 +37,8 @@ std::vector<unsigned char> CreatePayload_OmniCoreAlert(uint16_t alertType, uint3
 std::vector<unsigned char> CreatePayload_DeactivateFeature(uint16_t featureId);
 std::vector<unsigned char> CreatePayload_ActivateFeature(uint16_t featureId, uint32_t activationBlock, uint32_t minClientVersion);
 std::vector<unsigned char> CreatePayload_BurnBch();
-
+std::vector<unsigned char> CreatePayload_IssueERC721Property(std::string name, std::string symbol, std::string data, std::string url, uint64_t totalToken);
+std::vector<unsigned char> CreatePayload_IssueERC721Token(const uint256& propertyID, const uint256& tokenID, const uint256& tokenAttributes, std::string tokenURL);
+std::vector<unsigned char> CreatePayload_TransferERC721Token(const uint256& propertyID, const uint256& tokenID);
+std::vector<unsigned char> CreatePayload_DestroyERC721Token(const uint256& propertyID, const uint256& tokenID);
 #endif // OMNICORE_CREATEPAYLOAD_H

@@ -27,5 +27,9 @@ UniValue whc_sendcancelalltrades(Config const&, JSONRPCRequest const&);
 UniValue whc_sendchangeissuer(Config const&, JSONRPCRequest const&);
 UniValue whc_sendactivation(Config const&, JSONRPCRequest const&);
 UniValue whc_sendalert(Config const&, JSONRPCRequest const&);
+UniValue whc_issuanceERC721property(Config const&, JSONRPCRequest const&);
+UniValue whc_issuanceERC721Token(Config const&, JSONRPCRequest const&);
+UniValue whc_transferERC721Token(Config const&, JSONRPCRequest const&);
+UniValue whc_destroyERC721Token(Config const&, JSONRPCRequest const&);
 
 #endif // whcCORE_RPCTX

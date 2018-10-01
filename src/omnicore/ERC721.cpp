@@ -311,7 +311,7 @@ bool CMPSPERC721Info::flush(const uint256& watermark){
     return true;
 }
 
-bool CMPSPERC721Info::findERCSPByTX(const uint256& txhash, const uint256& propertyId){
+bool CMPSPERC721Info::findERCSPByTX(const uint256& txhash, uint256& propertyId){
 
     // DB key for identifier lookup entry
     CDataStream ssTxIndexKey(SER_DISK, CLIENT_VERSION);
@@ -639,7 +639,7 @@ bool ERC721TokenInfos::popBlock(const uint256& block_hash){
     return true;
 }
 
-bool ERC721TokenInfos::findTokenByTX(const uint256& txhash, const uint256& propertyid, const uint256& tokenid){
+bool ERC721TokenInfos::findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid){
 
     // DB key for identifier lookup entry
     CDataStream ssTxIndexKey(SER_DISK, CLIENT_VERSION);
@@ -678,7 +678,10 @@ bool mastercore::IsERC721TokenValid(const uint256& propertyid, const uint256& to
 }
 
 bool mastercore::IsERC721PropertyIdValid(const uint256& propertyid){
-    if(!my_erc721sps->existSP(propertyid)){
+    uint256 peekid = my_erc721sps->peekNextSPID();
+    arith_uint256 peekIDNum = UintToArith256(peekid);
+    arith_uint256 propertyNum = UintToArith256(propertyid);
+    if(propertyNum >= peekIDNum){
         return false;
     }
     return true;

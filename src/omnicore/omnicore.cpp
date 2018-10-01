@@ -2389,7 +2389,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
         return 0;
     } else {
         // Commit the transaction to the wallet and broadcast)
-	CValidationState state;
+	    CValidationState state;
         PrintToLog("%s: %s; nFeeRet = %d\n", __func__, wtxNew.ToString(), nFeeRet.GetSatoshis());
         if (!pwalletMain->CommitTransaction(wtxNew, reserveKey, g_connman.get(), state)) return MP_ERR_COMMIT_TX;
         txid = wtxNew.GetId();
