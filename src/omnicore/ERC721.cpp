@@ -26,6 +26,8 @@
 #include <vector>
 #include <utility>
 
+uint256 UINT256ONE = ArithToUint256(arith_uint256(1));
+
 CMPSPERC721Info::PropertyInfo::PropertyInfo()
         : maxTokens(0), haveIssuedNumber(0), currentValidIssuedNumer(0),
           autoNextTokenID(1){}

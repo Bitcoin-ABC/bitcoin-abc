@@ -45,6 +45,7 @@
 #include "uint256.h"
 #include "utilstrencodings.h"
 #include "chain.h"
+#include "ERC721.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -2335,6 +2336,57 @@ UniValue whc_getbalanceshash(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
+UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_getERC721TokenNews propertyid\n"
+                        "\nReturns details for about the tokens or smart property to lookup.\n"
+                        "\nArguments:\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
+                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                        "  \"creationblock\" : \"hash\",        (string) the hex-encoded creation block hash\n"
+                        "  \"name\" : \"name\",            (string) the name of the property\n"
+                        "  \"symbol\" : \"symbol\",                (string) the url of the property\n"
+                        "  \"data\" : \"data\",                  (string) the url of the property\n"
+                        "  \"propertyurl\" : \"url\",           (string) the url of the property\n"
+                        "  \"totalTokenNumber\" : n,           (string) the token's number of the property will issued\n"
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_getERC721PropertyNews", "\"0x03\", \"0x01\"")
+                + HelpExampleRpc("whc_getERC721PropertyNews", "\"0x03\", \"0x01\"")
+        );
+
+    RequireHexNumber(request.params[0].get_str());
+    uint256 propertyId = uint256S(request.params[0].get_str());
+
+    RequireExistingERC721Property(propertyId);
+
+    std::pair<CMPSPERC721Info::PropertyInfo, Flags > *info = NULL;
+    {
+        LOCK(cs_tally);
+        if (!my_erc721sps->getAndUpdateSP(propertyId, &info)){
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
+        }
+    }
+
+    UniValue response(UniValue::VOBJ);
+    response.push_back(Pair("propertyid", propertyId.GetHex()));
+    response.push_back(Pair("issuer", info->first.issuer));
+    response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
+    response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
+    response.push_back(Pair("name", info->first.name));
+    response.push_back(Pair("symbol", info->first.symbol));
+    response.push_back(Pair("data", info->first.data));
+    response.push_back(Pair("propertyurl", info->first.url));
+    response.push_back(Pair("totalTokenNumber", info->first.maxTokens));
+
+    return response;
+}
+
 UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
@@ -2354,8 +2406,8 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
                         "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getproperty", "\"0x03\", \"0x01\"")
-                + HelpExampleRpc("whc_getproperty", "\"0x03\", \"0x01\"")
+                + HelpExampleCli("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
+                + HelpExampleRpc("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
         );
     RequireHexNumber(request.params[0].get_str());
     RequireHexNumber(request.params[1].get_str());
@@ -2376,7 +2428,7 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     response.push_back(Pair("propertyid", tokenid.GetHex()));
     response.push_back(Pair("issuer", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
-    response.push_back(Pair("creationtxid", info->first.creationBlockHash.GetHex()));
+    response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
     response.push_back(Pair("attribute", info->first.attributes.GetHex()));
     response.push_back(Pair("tokenurl", info->first.url));
 

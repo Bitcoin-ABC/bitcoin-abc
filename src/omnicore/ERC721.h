@@ -20,7 +20,7 @@ enum Flags{
     DIRTY = (1 << 1),
 };
 
-uint256 ONE = ArithToUint256(arith_uint256(1));
+extern uint256 UINT256ONE;
 
 class CMPSPERC721Info : public CDBBase {
 public:
@@ -69,7 +69,7 @@ public:
     CMPSPERC721Info(const boost::filesystem::path& path, bool fWipe);
     virtual ~CMPSPERC721Info();
 
-    void init(const uint256& nextSPID = ONE);
+    void init(const uint256& nextSPID = UINT256ONE);
     uint256 peekNextSPID() const;
 
     // When create a valid property, will call this function write property data to cacheMapPropertyInfo
