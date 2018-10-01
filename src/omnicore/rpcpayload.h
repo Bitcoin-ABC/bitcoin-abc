@@ -22,5 +22,9 @@ UniValue omni_createpayload_canceltradesbyprice(const Config &config,const JSONR
 UniValue omni_createpayload_canceltradesbypair(const Config &config,const JSONRPCRequest &request);
 UniValue omni_createpayload_cancelalltrades(const Config &config,const JSONRPCRequest &request);
 UniValue whc_createpayload_burnbch(const Config &config,const JSONRPCRequest &request);
+UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPCRequest &request);
+UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRPCRequest &request);
+UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRequest &request);
+UniValue whc_createpayload_issueERC721property(const Config &config,const JSONRPCRequest &request);
 
 #endif // OMNICORE_RPCPAYLOAD_H

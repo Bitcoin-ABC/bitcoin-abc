@@ -953,11 +953,11 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
 UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& request){
     if (request.fHelp || request.params.size() != 4)
         throw runtime_error(
-                "whc_transferERC721Token \"amount\" redeemaddress\n"
+                "whc_transferERC721Token \"ownerAddress\" \"receiveaddress\" \"0x01\" \"0x02\" \n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. issueAddress          	(string, required) The burn bch amount, required minimum amount is 1BCH\n"
-                        "2. receiveaddress          (string, required) The redeem bitcoin address \n"
+                        "1. ownerAddress          	(string, required) The bitcoincash address of the token owner\n"
+                        "2. receiveaddress          (string, required) The redeem bitcoin address of the token receiver\n"
                         "3. propertyID              (string, required) The propertyid within the token that will be transfer \n"
                         "4. tokenID                 (string, optional) The tokenid that will be transfer\n"
                         "\nResult:\n"
@@ -1001,17 +1001,17 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
 UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& request){
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-                "whc_destroyERC721Token \"amount\" redeemaddress\n"
+                "whc_destroyERC721Token \"ownerAddress\" \"0x01\" \"0x02\"\n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. senderAddress          	(string, required) The burn bch amount, required minimum amount is 1BCH\n"
-                        "2. propertyID              (string, required) The   "
-                        "3. tokenID                 (string, optional)"
+                        "1. senderAddress          	(string, required) The bitcoincash address of the token owner\n"
+                        "2. propertyID              (string, required) The propertyid within the token that will be transfer \n"
+                        "3. tokenID                 (string, optional) The tokenid that will be transfer\n"
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_destroyERC721Token", "1, \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\"")
-                + HelpExampleRpc("whc_destroyERC721Token", "1, \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\"")
+                + HelpExampleCli("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
+                + HelpExampleRpc("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
         );
 
     int i = 0;
