@@ -65,7 +65,7 @@ NetworkStyle::NetworkStyle(const QString &_appName, const int iconColorHueShift,
             }
         }
 
-// convert back to QPixmap
+        // convert back to QPixmap
         pixmap.convertFromImage(img);
     }
 

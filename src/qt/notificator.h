@@ -58,8 +58,8 @@ private:
     enum Mode {
         None, /**< Ignore informational notifications, and show a modal pop-up
                  dialog for Critical notifications. */
-        Freedesktop, /**< Use DBus org.freedesktop.Notifications */
-        QSystemTray, /**< Use QSystemTray::showMessage */
+        Freedesktop,           /**< Use DBus org.freedesktop.Notifications */
+        QSystemTray,           /**< Use QSystemTray::showMessage */
         UserNotificationCenter /**< Use the 10.8+ User Notification Center (Mac
                                   only) */
     };
