@@ -24,6 +24,7 @@
 #include "base58.h"
 #include "sync.h"
 #include "utiltime.h"
+#include "tx.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -40,7 +41,7 @@ using boost::algorithm::token_compress_on;
 using namespace mastercore;
 
 /** Returns a label for the given transaction type. */
-std::string mastercore::strTransactionType(uint16_t txType)
+std::string mastercore::strTransactionType(uint16_t txType, uint8_t action)
 {
     switch (txType) {
         case MSC_TYPE_SIMPLE_SEND: return "Simple Send";
@@ -75,7 +76,17 @@ std::string mastercore::strTransactionType(uint16_t txType)
         case OMNICORE_MESSAGE_TYPE_ACTIVATION: return "Feature Activation";
         case WHC_TYPE_GET_BASE_PROPERTY:    return "burn BCH to get WHC";
         case MSC_TYPE_BUY_TOKEN: return "Crowdsale Purchase";
-
+        case WHC_TYPE_ERC721:
+            switch (action){
+                case ERC721Action::ISSUE_ERC721_PROPERTY :
+                    return "Issue ERC721 Property";
+                case ERC721Action::ISSUE_ERC721_TOKEN :
+                    return "Issue ERC721 Token";
+                case ERC721Action::TRANSFER_REC721_TOKEN :
+                    return "Transfer ERc721 Token";
+                case ERC721Action::DESTROY_ERC721_TOKEN :
+                    return "Destroy ERC721 Token";
+            }
         default: return "* unknown type *";
     }
 }
@@ -1191,7 +1202,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
         return (PKT_ERROR_ERC721 - 101);
     }
 
-    if ('\0' == name[0]) {
+    if ('\0' == erc721_propertyname[0]) {
         PrintToLog("%s(): rejected: property name must not be empty\n", __func__);
         return (PKT_ERROR_SP -37);
     }

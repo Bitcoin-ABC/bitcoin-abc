@@ -388,7 +388,7 @@ CMPTally* getTally(const std::string& address);
 int64_t getTotalTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
 int64_t getSaledTokens(uint32_t propertyId, int64_t* n_owners_total = NULL);
 
-std::string strTransactionType(uint16_t txType);
+std::string strTransactionType(uint16_t txType, uint8_t action = 0);
 
 /** Returns the encoding class, used to embed a payload. */
 int GetEncodingClass(const CTransaction& tx, int nBlock);
