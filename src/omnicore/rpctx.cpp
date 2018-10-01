@@ -929,7 +929,7 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
     uint256 tokenAttributes = uint256S(request.params[i++].get_str());
     std::string tokenURL = request.params[i++].get_str();
 
-    RequireExistingERC721Token(propertyid, tokenid);
+    RequireExistingERC721Property(propertyid);
     std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
 
     // request the wallet build the transaction (and if needed commit it)

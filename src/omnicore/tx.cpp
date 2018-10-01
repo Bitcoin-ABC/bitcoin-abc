@@ -1199,7 +1199,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
     if(money < CREATE_TOKEN_FEE) {
         PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %s\n", __func__, FormatDivisibleMP(money, PRICE_PRECISION));
-        return (PKT_ERROR_ERC721 - 101);
+        return (PKT_ERROR_BURN - 3);
     }
 
     if ('\0' == erc721_propertyname[0]) {
@@ -1209,7 +1209,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
 
     if(max_erc721number > UINT64_MAX || max_erc721number == 0){
         PrintToLog("%s(): rejected: property issue token %d exceed max limit %d or equal 0 \n", __func__, max_erc721number, UINT64_MAX);
-        return (PKT_ERROR_ERC721 -102);
+        return (PKT_ERROR_ERC721 - 101);
     }
 
     CMPSPERC721Info::PropertyInfo info;
@@ -1345,7 +1345,7 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
                    erc721_propertyid.GetHex(),
                    erc721_tokenid.GetHex(),
                    block);
-        return (PKT_ERROR_ERC721 - 301);
+        return (PKT_ERROR_ERC721 - 204);
     }
 
     if(info->first.owner != sender){
@@ -1397,7 +1397,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
                    erc721_propertyid.GetHex(),
                    erc721_tokenid.GetHex(),
                    block);
-        return (PKT_ERROR_ERC721 - 301);
+        return (PKT_ERROR_ERC721 - 204);
     }
 
     if(info->first.owner != sender){

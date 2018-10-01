@@ -1424,15 +1424,17 @@ int input_globals_state_string(const string &s)
   unsigned int nextSPID, nextTestSPID;
   std::vector<std::string> vstr;
   boost::split(vstr, s, boost::is_any_of(" ,="), token_compress_on);
-  if (3 != vstr.size()) return -1;
+  if (4 != vstr.size()) return -1;
 
   int i = 0;
   exodusPrev = boost::lexical_cast<uint64_t>(vstr[i++]);
   nextSPID = boost::lexical_cast<unsigned int>(vstr[i++]);
   nextTestSPID = boost::lexical_cast<unsigned int>(vstr[i++]);
+  uint256 propertyID = uint256S(vstr[i++]);
 
   exodus_prev = exodusPrev;
   _my_sps->init(nextSPID, nextTestSPID);
+    my_erc721sps->init(propertyID);
   return 0;
 }
 
@@ -1522,27 +1524,16 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
 
   switch (what)
   {
-    case FILETYPE_BALANCES:
-      mp_tally_map.clear();
-      inputLineFunc = input_msc_balances_string;
-      break;
+
+      case FILETYPE_BALANCES:
+          mp_tally_map.clear();
+          inputLineFunc = input_msc_balances_string;
+          break;
 
       case FILETYPE_BURNBCH:
           pendingCreateWHC.clear();
           inputLineFunc = input_mp_burn_bch;
           break;
-    //change_001
-    /*
-    case FILETYPE_OFFERS:
-      my_offers.clear();
-      inputLineFunc = input_mp_offers_string;
-      break;
-
-    case FILETYPE_ACCEPTS:
-      my_accepts.clear();
-      inputLineFunc = input_mp_accepts_string;
-      break;
-    */
 
     case FILETYPE_GLOBALS:
       inputLineFunc = input_globals_state_string;
@@ -1550,20 +1541,9 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
 
     case FILETYPE_CROWDSALES:
       my_crowds.clear();
+      my_erc721sps->clear();
       inputLineFunc = input_mp_crowdsale_string;
       break;
-
-    /*
-    case FILETYPE_MDEXORDERS:
-      // FIXME
-      // memory leak ... gotta unallocate inner layers first....
-      // TODO
-      // ...
-      metadex.clear();
-
-      inputLineFunc = input_mp_mdexorder_string;
-      break;
-    */
 
     default:
       return -1;
@@ -1826,17 +1806,18 @@ static int write_globals_state(ofstream &file, SHA256_CTX *shaCtx)
 {
   unsigned int nextSPID = _my_sps->peekNextSPID(OMNI_PROPERTY_WHC);
   unsigned int nextTestSPID = _my_sps->peekNextSPID(OMNI_PROPERTY_TWHC);
-  std::string lineOut = strprintf("%d,%d,%d",
+    uint256 propertyID = my_erc721sps->peekNextSPID();
+    std::string lineOut = strprintf("%d,%d,%d,%s",
     exodus_prev,
     nextSPID,
-    nextTestSPID);
+    nextTestSPID,
+    propertyID.GetHex());
 
   // add the line to the hash
   SHA256_Update(shaCtx, lineOut.c_str(), lineOut.length());
 
   // write the line
   file << lineOut << endl;
-
   return 0;
 }
 

@@ -362,7 +362,24 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_TOKENS -50:
           ec_str = "Address is already frozen";
           break;
-
+      case PKT_ERROR_ERC721 - 101:
+          ec_str = "The property will issue token number is exceed or zero";
+          break;
+      case PKT_ERROR_ERC721 -202:
+          ec_str = "Not get special ERC721 property";
+          break;
+      case PKT_ERROR_ERC721 -203:
+          ec_str = "Only property of issuer could issue ERC721 token";
+          break;
+      case PKT_ERROR_ERC721 -204:
+          ec_str = "Not get special ERC721 token";
+          break;
+      case PKT_ERROR_ERC721 -205:
+          ec_str = "Failed put new created ERC721 token to cache";
+          break;
+      case PKT_ERROR_ERC721 -302:
+          ec_str = "Sender is not the owner of ERC721 Token ";
+          break;
       default:
           ec_str = "Unknown error";
   }

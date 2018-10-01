@@ -71,6 +71,10 @@ public:
 
     void init(const uint256& nextSPID = UINT256ONE);
     uint256 peekNextSPID() const;
+    void clear(){
+        next_erc721spid = uint256();
+        cacheMapPropertyInfo.clear();
+    }
 
     // When create a valid property, will call this function write property data to cacheMapPropertyInfo
     // return: the new property ID
@@ -135,6 +139,9 @@ public:
     ERC721TokenInfos(const boost::filesystem::path& path, bool fWipe);
     virtual ~ERC721TokenInfos();
 
+    void clear(){
+        cacheTokens.clear();
+    }
     // Indicates whether the special token exists or not.
     // params:
     //      propertyID : the property ID with the token
