@@ -1324,7 +1324,7 @@ int CMPTransaction::logicMath_SendToOwners()
     // ------------------------------------------
 
     uint32_t distributeTo = distribution_property;
-    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue);
+    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue, block);
     uint64_t numberOfReceivers = receiversSet.size();
 
     // make sure we found some owners

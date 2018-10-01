@@ -191,9 +191,9 @@ void COmniFeeCache::DistributeCache(const uint32_t &propertyId, int block)
 
     OwnerAddrType receiversSet;
     if (isTestEcosystemProperty(propertyId)) {
-        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_TWHC, cachedAmount);
+        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_TWHC, cachedAmount, block);
     } else {
-        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_WHC, cachedAmount);
+        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_WHC, cachedAmount, block);
     }
 
     uint64_t numberOfReceivers = receiversSet.size(); // there will always be addresses holding OMNI, so no need to check size>0
