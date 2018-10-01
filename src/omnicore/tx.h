@@ -99,6 +99,20 @@ private:
 
     int64_t burnBCH;
 
+    //ERC721 property And token
+    uint8_t erc721_action;
+    uint256 erc721_propertyid;
+    char erc721_propertysymbol[SP_STRING_FIELD_LEN];
+    char erc721_propertyname[SP_STRING_FIELD_LEN];
+    char erc721_propertyurl[SP_STRING_FIELD_LEN];
+    char erc721_propertydata[SP_STRING_FIELD_LEN];
+    uint64_t max_erc721number;
+
+    uint256 erc721_tokenid;
+    char erc721token_attribute[ERC721_TOKEN_ATTRIBUTES*2];
+    char erc721_tokenurl[SP_STRING_FIELD_LEN];
+
+
     /** Checks whether a pointer to the payload is past it's last position. */
     bool isOverrun(const char* p);
 
@@ -131,6 +145,11 @@ private:
     bool interpret_Deactivation();
     bool interpret_Alert();
     bool interpret_BurnBCHGetWHC();
+    bool interpret_ERC721();
+    bool interpret_ERC721_issueproperty();
+    bool interpret_ERC721_issuetoken();
+    bool interpret_ERC721_transfertoken();
+    bool interpret_ERC721_destroytoken();
 
     /**
      * Logic and "effects"
@@ -160,6 +179,12 @@ private:
     int logicMath_Deactivation();
     int logicMath_Alert();
     int logicMath_burnBCHGetWHC();
+    int logicMath_ERC721();
+    int logicMath_ERC721_issueproperty();
+    int logicMath_ERC721_issuetoken();
+    int logicMath_ERC721_transfertoken();
+    int logicMath_ERC721_destroytoken();
+
     /**
      * Logic helpers
      */

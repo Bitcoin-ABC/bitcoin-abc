@@ -30,6 +30,7 @@
 #include "omnicore/walletcache.h"
 #include "omnicore/wallettxs.h"
 #include "omnicore/rpcvalues.h"
+#include "omnicore/ERC721.h"
 
 #include "consensus/validation.h"
 #include "net.h"
@@ -72,6 +73,7 @@
 #include "leveldb/db.h"
 #include "sp.h"
 #include "chain.h"
+#include "ERC721.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -289,6 +291,9 @@ AcceptMap mastercore::my_accepts;
 
 CMPSPInfo *mastercore::_my_sps;
 CrowdMap mastercore::my_crowds;
+
+CMPSPERC721Info *mastercore::my_erc721sps = NULL;
+ERC721TokenInfos *mastercore::my_erc721tokens = NULL;
 
 std::multimap<int, std::pair< std::string, std::pair<std::string, int64_t> > > mastercore::pendingCreateWHC;
 
@@ -2073,6 +2078,8 @@ int mastercore_init()
             boost::filesystem::path omniTXDBPath = GetDataDir() / "Omni_TXDB";
             boost::filesystem::path feesPath = GetDataDir() / "OMNI_feecache";
             boost::filesystem::path feeHistoryPath = GetDataDir() / "OMNI_feehistory";
+            boost::filesystem::path erc721propetys = GetDataDir() / "OMNI_ERC721property";
+            boost::filesystem::path erc721tokens = GetDataDir() / "OMNI_ERC721token";
             if (boost::filesystem::exists(persistPath)) boost::filesystem::remove_all(persistPath);
             if (boost::filesystem::exists(txlistPath)) boost::filesystem::remove_all(txlistPath);
             if (boost::filesystem::exists(tradePath)) boost::filesystem::remove_all(tradePath);
@@ -2096,6 +2103,8 @@ int mastercore_init()
     p_OmniTXDB = new COmniTransactionDB(GetDataDir() / "Omni_TXDB", fReindex);
     p_feecache = new COmniFeeCache(GetDataDir() / "OMNI_feecache", fReindex);
     p_feehistory = new COmniFeeHistory(GetDataDir() / "OMNI_feehistory", fReindex);
+    my_erc721sps = new CMPSPERC721Info(GetDataDir() / "OMNI_ERC721property", fReindex);
+    my_erc721tokens = new ERC721TokenInfos(GetDataDir() / "OMNI_ERC721token", fReindex);
 
     MPPersistencePath = GetDataDir() / "MP_persist";
     TryCreateDirectories(MPPersistencePath);

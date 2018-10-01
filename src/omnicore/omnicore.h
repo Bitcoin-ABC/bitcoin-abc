@@ -44,6 +44,7 @@ int const MAX_STATE_HISTORY = 50;
 
 // maximum size of string fields
 #define SP_STRING_FIELD_LEN 256
+#define ERC721_TOKEN_ATTRIBUTES 32
 
 // Omni Layer Transaction Class
 #define NO_MARKER    0
@@ -82,6 +83,7 @@ enum TransactionType {
   MSC_TYPE_RESTRICTED_SEND            =  2,
   MSC_TYPE_SEND_TO_OWNERS             =  3,
   MSC_TYPE_SEND_ALL                   =  4,
+  WHC_TYPE_ERC721                     = 9,
   MSC_TYPE_SAVINGS_MARK               = 10,
   MSC_TYPE_SAVINGS_COMPROMISED        = 11,
   MSC_TYPE_RATELIMITED_MARK           = 12,
@@ -110,6 +112,13 @@ enum TransactionType {
   OMNICORE_MESSAGE_TYPE_DEACTIVATION  = 65533,
   OMNICORE_MESSAGE_TYPE_ACTIVATION    = 65534,
   OMNICORE_MESSAGE_TYPE_ALERT         = 65535
+};
+
+enum ERC721Action{
+    ISSUE_ERC721_PROPERTY = 1,
+    ISSUE_ERC721_TOKEN,
+    TRANSFER_REC721_TOKEN,
+    DESTROY_ERC721_TOKEN
 };
 
 #define MSC_PROPERTY_TYPE_INDIVISIBLE   0
@@ -150,6 +159,7 @@ enum FILETYPES {
 #define PKT_ERROR_SEND_ALL    (-83000)
 // burn BCH to get WHC
 #define PKT_ERROR_BURN      (-90000)
+#define PKT_ERROR_ERC721    (-92000)
 
 
 #define OMNI_PROPERTY_BTC   0

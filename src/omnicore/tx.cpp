@@ -16,6 +16,8 @@
 #include "omnicore/utils.h"
 #include "omnicore/utilsbitcoin.h"
 #include "omnicore/version.h"
+#include "omnicore/ERC721.h"
+#include "omnicore/rpcvalues.h"
 
 #include "validation.h"
 #include "amount.h"
@@ -122,6 +124,9 @@ bool CMPTransaction::interpret_Transaction()
 
         case MSC_TYPE_SEND_ALL:
             return interpret_SendAll();
+
+        case WHC_TYPE_ERC721:
+            return interpret_ERC721();
 
         //change_001
         /*
@@ -302,6 +307,130 @@ bool CMPTransaction::interpret_SendAll()
     if ((!rpcOnly && msc_debug_packets) || msc_debug_packets_readonly) {
         PrintToLog("\t       ecosystem: %d\n", (int)ecosystem);
     }
+
+    return true;
+}
+
+/** Tx 9 */
+bool CMPTransaction::interpret_ERC721(){
+    if(pkt_size < 5){
+        return false;
+    }
+    memcpy(&erc721_action, &pkt[4], 1);
+
+    switch (erc721_action){
+        case ERC721Action::ISSUE_ERC721_PROPERTY :
+            return interpret_ERC721_issueproperty();
+
+        case ERC721Action::ISSUE_ERC721_TOKEN :
+            return interpret_ERC721_issuetoken();
+
+        case ERC721Action::TRANSFER_REC721_TOKEN :
+            return interpret_ERC721_transfertoken();
+
+        case ERC721Action::DESTROY_ERC721_TOKEN :
+            return interpret_ERC721_destroytoken();
+    }
+
+    return false;
+}
+
+
+bool CMPTransaction::interpret_ERC721_issueproperty(){
+    if(pkt_size < 17){
+        return false;
+    }
+
+    const char* p = (char*)&pkt + 5;
+    std::vector<std::string> spstr;
+    for (int i = 0; i < 4; i++) {
+        spstr.push_back(std::string(p));
+        p += spstr.back().size() + 1;
+    }
+    memcpy(erc721_propertyname, spstr[0].data(), sizeof(erc721_propertyname) - 1);
+    memcpy(erc721_propertysymbol, spstr[1].data(), sizeof(erc721_propertysymbol) - 1);
+    memcpy(erc721_propertydata, spstr[2].data(), sizeof(erc721_propertydata) - 1);
+    memcpy(erc721_propertyurl, spstr[3].data(), sizeof(erc721_propertyurl) - 1);
+    memcpy(&max_erc721number, p, 8);
+    swapByteOrder64(max_erc721number);
+
+    return true;
+}
+
+bool CMPTransaction::interpret_ERC721_issuetoken(){
+    if(pkt_size < 198){
+        return false;
+    }
+
+    char* p = (char*)pkt + 5;
+    char tmpid[64] = {0};
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_propertyid.SetHex(tmpid);
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_tokenid.SetHex(tmpid);
+    memcpy(erc721token_attribute, p, sizeof(erc721token_attribute));
+    if (!IsHex(erc721token_attribute)){
+        return false;
+    }
+    p += 64;
+    std::string url = std::string(p);
+    p += url.size() + 1;
+    memcpy(erc721_tokenurl, url.data(), sizeof(erc721_tokenurl) - 1);
+
+
+    return true;
+}
+
+bool CMPTransaction::interpret_ERC721_transfertoken(){
+    if(pkt_size < 133){
+        return false;
+    }
+
+    char* p = (char*)pkt + 5;
+    char tmpid[64] = {0};
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_propertyid.SetHex(tmpid);
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_tokenid.SetHex(tmpid);
+
+    return true;
+}
+
+bool CMPTransaction::interpret_ERC721_destroytoken(){
+    if(pkt_size < 133){
+        return false;
+    }
+
+    char* p = (char*)pkt + 5;
+    char tmpid[64] = {0};
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_propertyid.SetHex(tmpid);
+    memcpy(tmpid, p, 64);
+    p += 64;
+    if (!IsHex(tmpid)){
+        return false;
+    }
+    erc721_tokenid.SetHex(tmpid);
 
     return true;
 }
@@ -981,6 +1110,9 @@ int CMPTransaction::interpretPacket()
         */
         case WHC_TYPE_GET_BASE_PROPERTY:
             return logicMath_burnBCHGetWHC();
+
+        case WHC_TYPE_ERC721:
+            return logicMath_ERC721();
     }
 
     return (PKT_ERROR -100);
@@ -1010,6 +1142,268 @@ int CMPTransaction::logicMath_burnBCHGetWHC()
 	}
 
     return PKT_ERROR_BURN - 2;
+}
+
+int CMPTransaction::logicMath_ERC721(){
+
+    switch (erc721_action){
+        case ERC721Action::ISSUE_ERC721_PROPERTY :
+            return logicMath_ERC721_issueproperty();
+
+        case ERC721Action::ISSUE_ERC721_TOKEN :
+            return logicMath_ERC721_issuetoken();
+
+        case ERC721Action::TRANSFER_REC721_TOKEN :
+            return logicMath_ERC721_transfertoken();
+
+        case ERC721Action::DESTROY_ERC721_TOKEN :
+            return logicMath_ERC721_destroytoken();
+    }
+
+    return PKT_ERROR_ERC721 - 1;
+}
+
+int CMPTransaction::logicMath_ERC721_issueproperty(){
+    uint256 blockHash;
+    {
+        LOCK(cs_main);
+
+        CBlockIndex* pindex = chainActive[block];
+        if (pindex == NULL) {
+            PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
+            return (PKT_ERROR_SP -20);
+        }
+        blockHash = pindex->GetBlockHash();
+    }
+
+    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 property at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   block);
+        return (PKT_ERROR_SP -22);
+    }
+
+    int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
+    if(money < CREATE_TOKEN_FEE) {
+        PrintToLog("%s(): rejected: no enough whc for pay create_token_fee: %s\n", __func__, FormatDivisibleMP(money, PRICE_PRECISION));
+        return (PKT_ERROR_ERC721 - 101);
+    }
+
+    if ('\0' == name[0]) {
+        PrintToLog("%s(): rejected: property name must not be empty\n", __func__);
+        return (PKT_ERROR_SP -37);
+    }
+
+    if(max_erc721number > UINT64_MAX || max_erc721number == 0){
+        PrintToLog("%s(): rejected: property issue token %d exceed max limit %d or equal 0 \n", __func__, max_erc721number, UINT64_MAX);
+        return (PKT_ERROR_ERC721 -102);
+    }
+
+    CMPSPERC721Info::PropertyInfo info;
+    info.updateBlock = blockHash;
+    info.creationBlock = blockHash;
+    info.txid = txid;
+    info.issuer = sender;
+    info.data.assign(erc721_propertydata);
+    info.symbol.assign(erc721_propertysymbol);
+    info.url.assign(erc721_propertyurl);
+    info.name.assign(erc721_propertyname);
+    info.maxTokens = max_erc721number;
+
+    uint256 properyid = my_erc721sps->putSP(info);
+
+    PrintToLog("%s(): sender : %s have succeed ERC721 property, ID : %s \n", __func__, sender, properyid.GetHex());
+
+    return 0;
+}
+
+int CMPTransaction::logicMath_ERC721_issuetoken(){
+
+    uint256 blockHash;
+    {
+        LOCK(cs_main);
+
+        CBlockIndex* pindex = chainActive[block];
+        if (pindex == NULL) {
+            PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
+            return (PKT_ERROR_SP -20);
+        }
+        blockHash = pindex->GetBlockHash();
+    }
+
+    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 property at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   block);
+        return (PKT_ERROR_SP -22);
+    }
+
+    std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
+    if(!my_erc721sps->getAndUpdateSP(erc721_propertyid, &spInfo)){
+        PrintToLog("%s(): rejected: type %d or version %d action %d not permitted, because get special property %s failed at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   erc721_action,
+                   erc721_propertyid.GetHex(),
+                   block);
+        return (PKT_ERROR_ERC721 -202);
+    }
+
+    if(spInfo->first.issuer != sender){
+        PrintToLog("%s(): rejected: the erc721 token's issuer %s is not the special property issuer %s at block %d\n",
+                   __func__,
+                   sender,
+                   spInfo->first.issuer,
+                   block);
+        return (PKT_ERROR_ERC721 - 203);
+    }
+
+    if(!erc721_tokenid.IsNull()){
+        if(my_erc721tokens->existToken(erc721_propertyid, erc721_tokenid)){
+            PrintToLog("%s(): rejected: user special property %s tokenid %s will be created that have exist at block %d\n",
+                       __func__,
+                       erc721_propertyid.GetHex(),
+                       erc721_tokenid.GetHex(),
+                       block);
+            return (PKT_ERROR_ERC721 - 204);
+        }
+    } else{
+        uint256 tokenid;
+        do{
+            arith_uint256 id(spInfo->first.autoNextTokenID);
+            tokenid = uint256(ArithToUint256(id));
+            spInfo->first.autoNextTokenID++;
+        }while(my_erc721tokens->existToken(erc721_propertyid, tokenid));
+
+        spInfo->second = Flags::DIRTY;
+        erc721_tokenid = tokenid;
+    }
+
+    ERC721TokenInfos::TokenInfo info;
+    info.txid = txid;
+    info.owner = receiver;
+    info.updateBlockHash = blockHash;
+    info.creationBlockHash = blockHash;
+    info.attributes.SetHex(erc721token_attribute);
+    info.url.assign(erc721_tokenurl);
+    if (!my_erc721tokens->putToken(erc721_propertyid, erc721_tokenid, info)){
+        PrintToLog("%s(): rejected: put new token %s in property %s failed at block %d \n",
+                   __func__,
+                   erc721_tokenid.GetHex(),
+                   erc721_propertyid.GetHex(),
+                   block);
+        return (PKT_ERROR_ERC721 - 205);
+    }
+
+    PrintToLog("%s(): sender : %s have succeed issued ERC721 property : %s token : %s at block %d \n",
+               __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), block);
+    return 0;
+}
+
+int CMPTransaction::logicMath_ERC721_transfertoken(){
+    uint256 blockHash;
+    {
+        LOCK(cs_main);
+
+        CBlockIndex* pindex = chainActive[block];
+        if (pindex == NULL) {
+            PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
+            return (PKT_ERROR_SP -20);
+        }
+        blockHash = pindex->GetBlockHash();
+    }
+
+    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for transfer ERC721 token at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   block);
+        return (PKT_ERROR_SP -22);
+    }
+
+    std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
+    if(!my_erc721tokens->getAndUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
+        PrintToLog("%s(): rejected: get ERC721 property : %s token : %s at block %d failed\n",
+                   __func__,
+                   erc721_propertyid.GetHex(),
+                   erc721_tokenid.GetHex(),
+                   block);
+        return (PKT_ERROR_ERC721 - 301);
+    }
+
+    if(info->first.owner != sender){
+        PrintToLog("%s(): rejected: Transfer ERC721 property : %s sender : %s is not owned this token : %s, tokens' owner : %s at block %d\n",
+                   __func__,
+                   erc721_propertyid.GetHex(),
+                   sender,
+                   erc721_tokenid.GetHex(),
+                   info->first.owner,
+                   block);
+        return (PKT_ERROR_ERC721 -302);
+    }
+
+    info->first.owner = receiver;
+    info->second = Flags::DIRTY;
+
+    PrintToLog("%s(): sender : %s have succeed transfer ERC721 property : %s token : %s to receiver %s at block %d \n",
+               __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), receiver, block);
+
+    return 0;
+}
+
+int CMPTransaction::logicMath_ERC721_destroytoken(){
+    uint256 blockHash;
+    {
+        LOCK(cs_main);
+
+        CBlockIndex* pindex = chainActive[block];
+        if (pindex == NULL) {
+            PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
+            return (PKT_ERROR_SP -20);
+        }
+        blockHash = pindex->GetBlockHash();
+    }
+
+    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for transfer ERC721 token at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   block);
+        return (PKT_ERROR_SP -22);
+    }
+
+    std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
+    if(!my_erc721tokens->getAndUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
+        PrintToLog("%s(): rejected: get ERC721 property : %s token : %s at block %d failed\n",
+                   __func__,
+                   erc721_propertyid.GetHex(),
+                   erc721_tokenid.GetHex(),
+                   block);
+        return (PKT_ERROR_ERC721 - 301);
+    }
+
+    if(info->first.owner != sender){
+        PrintToLog("%s(): rejected: Transfer ERC721 property : %s sender : %s is not owned this token : %s, tokens' owner : %s at block %d\n",
+                   __func__,
+                   erc721_propertyid.GetHex(),
+                   sender,
+                   erc721_tokenid.GetHex(),
+                   info->first.owner,
+                   block);
+        return (PKT_ERROR_ERC721 -302);
+    }
+
+    info->first.owner = burnwhc_address;
+    info->second = Flags::DIRTY;
+
+    return 0;
 }
 
 /** Passive effect of crowdsale participation. */
