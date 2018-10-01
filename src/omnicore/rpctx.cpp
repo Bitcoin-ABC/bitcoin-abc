@@ -902,17 +902,17 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
                 "whc_issuanceERC721Token \"issueAddress\" \"receiveaddress\" \"propertyID\" \"tokenID\" \"tokenAttributes\" \"tokenURL\" \n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. issueAddress          	(string, required) The burn bch amount, required minimum amount is 1BCH\n"
-                        "2. receiveaddress          (string, required) the redeem bitcoin address \n"
-                        "3. propertyID              (string, required)   "
-                        "4. tokenID                 (string, optional)"
-                        "5. tokenAttributes         (string, required)"
-                        "6. tokenURL                (string, required)"
+                        "1. issueAddress          	(string, required) The BitcoinCash address will issue a token in special property\n"
+                        "2. receiveaddress          (string, required) The address of receiver will be received new created token\n"
+                        "3. propertyID              (string, required) The ID of the special property that will be issued token \n"
+                        "4. tokenID                 (string, optional) The tokenID that will be issued, if you don't want to skip this parament, wormhole system will automatic tokenID \n"
+                        "5. tokenAttributes         (string, required) The Attributes of the new created token\n"
+                        "6. tokenURL                (string, required) The URL of the new created token\n"
                         "\nResult:\n"
                         "\"hash\"                   (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\"")
-                + HelpExampleRpc("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\"")
+                + HelpExampleCli("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
+                + HelpExampleRpc("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
         );
 
     int i = 0;
@@ -956,13 +956,15 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
                 "whc_transferERC721Token \"amount\" redeemaddress\n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. amount          	(numeric or string, required) The burn bch amount, required minimum amount is 1BCH\n"
-                        "2. redeemaddress       (string, optional) the redeem bitcoin address \n"
+                        "1. issueAddress          	(string, required) The burn bch amount, required minimum amount is 1BCH\n"
+                        "2. receiveaddress          (string, required) The redeem bitcoin address \n"
+                        "3. propertyID              (string, required) The propertyid within the token that will be transfer \n"
+                        "4. tokenID                 (string, optional) The tokenid that will be transfer\n"
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_transferERC721Token", "1, \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\"")
-                + HelpExampleRpc("whc_transferERC721Token", "1, \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\"")
+                + HelpExampleCli("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
+                + HelpExampleRpc("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
         );
 
     int i = 0;
@@ -1002,8 +1004,9 @@ UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& requ
                 "whc_destroyERC721Token \"amount\" redeemaddress\n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. amount          	(numeric or string, required) The burn bch amount, required minimum amount is 1BCH\n"
-                        "2. redeemaddress       (string, optional) the redeem bitcoin address \n"
+                        "1. senderAddress          	(string, required) The burn bch amount, required minimum amount is 1BCH\n"
+                        "2. propertyID              (string, required) The   "
+                        "3. tokenID                 (string, optional)"
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"

@@ -2011,7 +2011,6 @@ UniValue whc_getinfo(const Config &config, const JSONRPCRequest &request)
 
     int blockMPTransactions = p_txlistdb->getMPTransactionCountBlock(block);
     int totalMPTransactions = p_txlistdb->getMPTransactionCountTotal();
-    int totalMPTrades = t_tradelistdb->getMPTradeCountTotal();
     infoResponse.push_back(Pair("block", block));
     infoResponse.push_back(Pair("blocktime", blockTime));
     infoResponse.push_back(Pair("blocktransactions", blockMPTransactions));
@@ -2339,7 +2338,7 @@ UniValue whc_getbalanceshash(const Config &config, const JSONRPCRequest &request
 UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-                "whc_getERC721TokenNews propertyid\n"
+                "whc_getERC721PropertyNews propertyid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
                         "1. propertyid           (string, required) the identifier of the ERC721 property\n"
@@ -2477,6 +2476,7 @@ static const CRPCCommand commands[] =
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721TokenNews",           &whc_getERC721TokenNews,             false , {}},
+    { "omni layer (data retrieval)",  "whc_getERC721PropertyNews",           &whc_getERC721PropertyNews,             false , {}},
 //    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
 
 #ifdef ENABLE_WALLET
