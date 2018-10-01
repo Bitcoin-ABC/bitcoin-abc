@@ -96,6 +96,82 @@ public:
 
 };
 
+class ERC721TokenInfos : public CDBBase{
+public:
+    struct TokenInfo{
+        std::string owner;
+        std::string url;
+        uint256  attributes;
+        uint256  txid;
+        uint256  updateBlockHash;
+        uint256  creationBlockHash;
+
+        ADD_SERIALIZE_METHODS;
+        template <typename Stream, typename Operation>
+        inline void SerializationOp(Stream& s, Operation ser_action) {
+            READWRITE(owner);
+            READWRITE(url);
+            READWRITE(attributes);
+            READWRITE(txid);
+            READWRITE(updateBlockHash);
+            READWRITE(creationBlockHash);
+        }
+    };
+
+    struct ERC721Token{
+        // Map from Tokenid to the TokenInfo, and the flags identify whether the
+        // TokenInfo data should write to database.
+        std::map<uint256, std::pair<TokenInfo, Flags> > cacheTokenOwner;
+
+        // The propertyID of these Tokens.
+        // uint256 propertyID;
+    };
+private:
+
+    // Map from the propertyID to its' Tokens.
+    std::map<uint256, ERC721Token> cacheTokens;
+public:
+
+    ERC721TokenInfos(const boost::filesystem::path& path, bool fWipe);
+    virtual ~ERC721TokenInfos();
+
+    // Indicates whether the special token exists or not.
+    // params:
+    //      propertyID : the property ID with the token
+    //      tokenID : the special tokenID
+    // return: true, the special token exist. otherwise..
+    bool existToken(const uint256& propertyID, const uint256& tokenID);
+
+    // When a new token is created, will call this function to put the newToken into
+    // the property cacheMap struct.
+    // Params:
+    //      propertyID : the token inside property.
+    //      tokenID : the created TokenID .
+    //      info : the created tokenInfo.
+    // return : true, the new created token is placed the property cache.
+    bool putToken(uint256 propertyID, uint256 tokenID, const TokenInfo& info);
+
+    // Get the special Token info, and possible will be changed outside.
+    bool getAndUpdateToken(uint256 propertyID, uint256 tokenID, std::pair<TokenInfo, Flags>** info);
+
+    // get water block hash.
+    bool getWatermark(uint256& watermark) const;
+
+    // Flush all tokens info of all property to the database. And write success will clear these cacheMap.
+    bool flush(const uint256& block_hash);
+
+    // // Delete database data with the param block hash. Then rollback the latest information
+    // and historical information of all properties's tokens to the previous status.
+    bool popBlock(const uint256& block_hash);
+
+    bool findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid);
+};
+
+namespace mastercore{
+    extern CMPSPERC721Info *my_erc721sps;
+    extern ERC721TokenInfos *my_erc721tokens;
+}
+
 
 
 #endif //WORMHOLE_ERC721_H
