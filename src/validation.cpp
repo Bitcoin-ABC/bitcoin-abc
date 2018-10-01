@@ -575,6 +575,9 @@ static bool AcceptToMemoryPoolWorker(
             nLastTime = nNow;
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
+
+            // NOTE: Use the actual size here, and not the fee size since this
+            // is counting real size for the rate limiter.
             if (dFreeCount + nSize >=
                 gArgs.GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 *
                     1000) {

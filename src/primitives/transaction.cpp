@@ -114,6 +114,10 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const {
     return nTxSize;
 }
 
+size_t CTransaction::GetBillableSize() const {
+    return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
+}
+
 unsigned int CTransaction::GetTotalSize() const {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }

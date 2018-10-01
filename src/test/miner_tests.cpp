@@ -139,7 +139,7 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
     tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId freeTxId = tx.GetId();
     mempool.addUnchecked(freeTxId, entry.Fee(Amount::zero()).FromTx(tx));
-    size_t freeTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+    size_t freeTxSize = CTransaction(tx).GetBillableSize();
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
