@@ -1,5 +1,6 @@
 #include "omnicore/ERC721.h"
 #include "omnicore/log.h"
+#include "omnicore/omnicore.h"
 
 #include "streams.h"
 #include "config.h"
@@ -13,11 +14,10 @@
 #include "leveldb/db.h"
 #include "leveldb/write_batch.h"
 #include "ERC721.h"
-#include "../leveldb/include/leveldb/slice.h"
-#include "../streams.h"
-#include "../clientversion.h"
-#include "../leveldb/include/leveldb/status.h"
-#include "omnicore.h"
+#include "leveldb/include/leveldb/slice.h"
+#include "streams.h"
+#include "clientversion.h"
+#include "leveldb/include/leveldb/status.h"
 
 #include <stdint.h>
 
@@ -40,6 +40,13 @@ CMPSPERC721Info::CMPSPERC721Info(const boost::filesystem::path& path, bool fWipe
 
 void CMPSPERC721Info::init(const uint256& nextSPID){
     next_erc721spid = nextSPID;
+    cacheMapPropertyInfo.clear();
+}
+
+void CMPSPERC721Info::clear(){
+    init();
+    // wipe database via parent class
+    CDBBase::Clear();
 }
 
 uint256 CMPSPERC721Info::peekNextSPID() const{

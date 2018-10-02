@@ -71,10 +71,7 @@ public:
 
     void init(const uint256& nextSPID = UINT256ONE);
     uint256 peekNextSPID() const;
-    void clear(){
-        next_erc721spid = uint256();
-        cacheMapPropertyInfo.clear();
-    }
+    void clear();
 
     // When create a valid property, will call this function write property data to cacheMapPropertyInfo
     // return: the new property ID
@@ -141,6 +138,8 @@ public:
 
     void clear(){
         cacheTokens.clear();
+        // wipe database via parent class
+        CDBBase::Clear();
     }
     // Indicates whether the special token exists or not.
     // params:

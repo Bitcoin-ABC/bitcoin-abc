@@ -71,9 +71,6 @@
 #include <openssl/sha.h>
 
 #include "leveldb/db.h"
-#include "sp.h"
-#include "chain.h"
-#include "ERC721.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -1541,7 +1538,6 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
 
     case FILETYPE_CROWDSALES:
       my_crowds.clear();
-      my_erc721sps->clear();
       inputLineFunc = input_mp_crowdsale_string;
       break;
 
@@ -1651,9 +1647,14 @@ static int load_most_relevant_state()
     if (remainingSPs < 0) {
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
-    } /*else if (remainingSPs == 0) {
-      // potential optimization here?
-    }*/
+    }
+    if(!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())){
+        return -1;
+    }
+      if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
+          return  -1;
+      }
+
     spBlockIndex = spBlockIndex->pprev;
     if (spBlockIndex != NULL) {
         _my_sps->setWatermark(spBlockIndex->GetBlockHash());
@@ -1972,7 +1973,8 @@ int mastercore_save_state( CBlockIndex const *pBlockIndex )
 
     // clean-up the directory
     prune_state_files(pBlockIndex);
-
+    my_erc721sps->flush(pBlockIndex->GetBlockHash());
+    my_erc721tokens->flush(pBlockIndex->GetBlockHash());
     _my_sps->setWatermark(pBlockIndex->GetBlockHash());
 
     return 0;
@@ -2006,6 +2008,7 @@ void clear_all_state()
     p_OmniTXDB->Clear();
     p_feecache->Clear();
     p_feehistory->Clear();
+    my_erc721sps->clear();
     assert(p_txlistdb->setDBVersion() == DB_VERSION); // new set of databases, set DB version
     exodus_prev = 0;
 }

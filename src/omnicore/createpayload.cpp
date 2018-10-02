@@ -178,7 +178,7 @@ std::vector<unsigned char> CreatePayload_IssueERC721Token(const uint256& propert
     PUSH_BACK_BYTES(payload, messageVer);
     PUSH_BACK_BYTES(payload, messageType);
     PUSH_BACK_BYTES(payload, action);
-    payload.insert(payload.end(), propertyID.begin(), propertyID.begin());
+    payload.insert(payload.end(), propertyID.begin(), propertyID.end());
     payload.insert(payload.end(), tokenID.begin(), tokenID.end());
     payload.insert(payload.end(), tokenAttributes.begin(), tokenAttributes.end());
     payload.insert(payload.end(), tokenURL.begin(), tokenURL.end());
