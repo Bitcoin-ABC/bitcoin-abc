@@ -148,7 +148,7 @@ BuildSpendingTransaction(const CScript &scriptSig,
 }
 
 static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
-                   int flags, const std::string &message, int scriptError,
+                   uint32_t flags, const std::string &message, int scriptError,
                    const Amount nValue) {
     bool expect = (scriptError == SCRIPT_ERR_OK);
     if (flags & SCRIPT_VERIFY_CLEANSTACK) {
@@ -173,7 +173,8 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
 #if defined(HAVE_CONSENSUS_LIB)
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << tx2;
-    int libconsensus_flags = flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
+    uint32_t libconsensus_flags =
+        flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
     if (libconsensus_flags == flags) {
         if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
@@ -243,7 +244,7 @@ private:
     bool havePush;
     std::vector<uint8_t> push;
     std::string comment;
-    int flags;
+    uint32_t flags;
     int scriptError;
     Amount nValue;
 
@@ -282,8 +283,9 @@ private:
     }
 
 public:
-    TestBuilder(const CScript &script_, const std::string &comment_, int flags_,
-                bool P2SH = false, Amount nValue_ = Amount::zero())
+    TestBuilder(const CScript &script_, const std::string &comment_,
+                uint32_t flags_, bool P2SH = false,
+                Amount nValue_ = Amount::zero())
         : script(script_), havePush(false), comment(comment_), flags(flags_),
           scriptError(SCRIPT_ERR_OK), nValue(nValue_) {
         CScript scriptPubKey = script;
@@ -334,9 +336,9 @@ public:
                          SigHashType sigHashType = SigHashType(),
                          unsigned int lenR = 32, unsigned int lenS = 32,
                          Amount amount = Amount::zero(),
-                         uint32_t flags = SCRIPT_ENABLE_SIGHASH_FORKID) {
+                         uint32_t sigFlags = SCRIPT_ENABLE_SIGHASH_FORKID) {
         uint256 hash = SignatureHash(script, CTransaction(spendTx), 0,
-                                     sigHashType, amount, nullptr, flags);
+                                     sigHashType, amount, nullptr, sigFlags);
         std::vector<uint8_t> vchSig = DoSign(key, hash, lenR, lenS);
         vchSig.push_back(static_cast<uint8_t>(sigHashType.getRawSigHashType()));
         DoPush(vchSig);

@@ -209,7 +209,6 @@ void TestPackageSelection(Config &config, CScript scriptPubKey,
 }
 
 void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg) {
-
     GlobalConfig config;
     config.SetMaxBlockSize(eb);
 
@@ -260,10 +259,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     entry.dPriority = 111.0;
     entry.nHeight = 11;
 
-    GlobalConfig config;
-
     LOCK(cs_main);
     fCheckpointsEnabled = false;
+
+    GlobalConfig config;
 
     // Simple block creation, nothing special yet:
     BOOST_CHECK(pblocktemplate =
@@ -522,7 +521,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // non-final txs in mempool
     SetMockTime(chainActive.Tip()->GetMedianTimePast() + 1);
-    int flags = LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
+    uint32_t flags = LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
     // height map
     std::vector<int> prevheights;
 
@@ -547,7 +546,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        GlobalConfig config;
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             config, CTransaction(tx), state, flags));
@@ -574,7 +572,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        GlobalConfig config;
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             config, CTransaction(tx), state, flags));
@@ -608,7 +605,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime fails.
-        GlobalConfig config;
         CValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
             config, CTransaction(tx), state, flags));
@@ -620,7 +616,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes on 2nd block.
-        GlobalConfig config;
         CValidationState state;
         int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast();
         BOOST_CHECK(ContextualCheckTransaction(
@@ -638,7 +633,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime fails.
-        GlobalConfig config;
         CValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
             config, CTransaction(tx), state, flags));
@@ -650,7 +644,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes 1 second later.
-        GlobalConfig config;
         CValidationState state;
         int64_t nMedianTimePast = chainActive.Tip()->GetMedianTimePast() + 1;
         BOOST_CHECK(ContextualCheckTransaction(
@@ -666,7 +659,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     {
         // Locktime passes.
-        GlobalConfig config;
         CValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
             config, CTransaction(tx), state, flags));

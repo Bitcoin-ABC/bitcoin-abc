@@ -41,7 +41,7 @@ public:
     };
 
     explicit ReceiveCoinsDialog(const PlatformStyle *platformStyle,
-                                const Config *cfg, QWidget *parent = 0);
+                                const Config *configIn, QWidget *parent = 0);
     ~ReceiveCoinsDialog();
 
     void setModel(WalletModel *model);
@@ -60,7 +60,7 @@ private:
     WalletModel *model;
     QMenu *contextMenu;
     const PlatformStyle *platformStyle;
-    const Config *cfg;
+    const Config *config;
 
     QModelIndex selectedRow();
     void copyColumnToClipboard(int column);

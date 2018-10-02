@@ -50,7 +50,7 @@ class ReceiveRequestDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ReceiveRequestDialog(const Config *config, QWidget *parent = 0);
+    explicit ReceiveRequestDialog(const Config *configIn, QWidget *parent = 0);
     ~ReceiveRequestDialog();
 
     void setModel(OptionsModel *model);

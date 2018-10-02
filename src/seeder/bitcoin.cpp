@@ -117,7 +117,7 @@ class CSeederNode {
         }
     }
 
-    bool ProcessMessage(std::string strCommand, CDataStream &vRecv) {
+    bool ProcessMessage(std::string strCommand, CDataStream &recv) {
         //    printf("%s: RECV %s\n", ToString(you).c_str(),
         //    strCommand.c_str());
         if (strCommand == "version") {
@@ -126,12 +126,12 @@ class CSeederNode {
             CAddress addrFrom;
             uint64_t nNonce = 1;
             uint64_t nServiceInt;
-            vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+            recv >> nVersion >> nServiceInt >> nTime >> addrMe;
             you.nServices = ServiceFlags(nServiceInt);
             if (nVersion == 10300) nVersion = 300;
-            if (nVersion >= 106 && !vRecv.empty()) vRecv >> addrFrom >> nNonce;
-            if (nVersion >= 106 && !vRecv.empty()) vRecv >> strSubVer;
-            if (nVersion >= 209 && !vRecv.empty()) vRecv >> nStartingHeight;
+            if (nVersion >= 106 && !recv.empty()) recv >> addrFrom >> nNonce;
+            if (nVersion >= 106 && !recv.empty()) recv >> strSubVer;
+            if (nVersion >= 209 && !recv.empty()) recv >> nStartingHeight;
 
             if (nVersion >= 209) {
                 BeginMessage("verack");
@@ -139,21 +139,21 @@ class CSeederNode {
             }
             vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             if (nVersion < 209) {
-                this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
+                vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
                 GotVersion();
             }
             return false;
         }
 
         if (strCommand == "verack") {
-            this->vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
+            vRecv.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
             GotVersion();
             return false;
         }
 
         if (strCommand == "addr" && vAddr) {
             std::vector<CAddress> vAddrNew;
-            vRecv >> vAddrNew;
+            recv >> vAddrNew;
             // printf("%s: got %i addresses\n", ToString(you).c_str(),
             // (int)vAddrNew.size());
             int64_t now = time(nullptr);

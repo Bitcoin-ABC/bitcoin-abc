@@ -16,7 +16,7 @@ class BitcoinAddressEntryValidator : public QValidator {
     Q_OBJECT
 
 public:
-    explicit BitcoinAddressEntryValidator(const std::string &cashaddrprefix,
+    explicit BitcoinAddressEntryValidator(const std::string &cashaddrprefixIn,
                                           QObject *parent);
 
     State validate(QString &input, int &pos) const override;

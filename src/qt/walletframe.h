@@ -31,8 +31,8 @@ class WalletFrame : public QFrame {
     Q_OBJECT
 
 public:
-    explicit WalletFrame(const PlatformStyle *platformStyle, const Config *cfg,
-                         BitcoinGUI *_gui = 0);
+    explicit WalletFrame(const PlatformStyle *platformStyle,
+                         const Config *configIn, BitcoinGUI *_gui = 0);
     ~WalletFrame();
 
     void setClientModel(ClientModel *clientModel);
@@ -60,7 +60,7 @@ private:
     bool bOutOfSync;
 
     const PlatformStyle *platformStyle;
-    const Config *cfg;
+    const Config *config;
 
     WalletView *currentWalletView();
 

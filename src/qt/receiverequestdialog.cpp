@@ -76,10 +76,10 @@ void QRImageWidget::contextMenuEvent(QContextMenuEvent *event) {
     contextMenu->exec(event->globalPos());
 }
 
-ReceiveRequestDialog::ReceiveRequestDialog(const Config *config,
+ReceiveRequestDialog::ReceiveRequestDialog(const Config *configIn,
                                            QWidget *parent)
     : QDialog(parent), ui(new Ui::ReceiveRequestDialog), model(0),
-      config(config) {
+      config(configIn) {
     ui->setupUi(this);
 
 #ifndef USE_QRCODE

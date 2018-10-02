@@ -18,8 +18,8 @@
   - All lower-case letters except for 'l'
 */
 BitcoinAddressEntryValidator::BitcoinAddressEntryValidator(
-    const std::string &cashaddrprefix, QObject *parent)
-    : QValidator(parent), cashaddrprefix(cashaddrprefix) {}
+    const std::string &cashaddrprefixIn, QObject *parent)
+    : QValidator(parent), cashaddrprefix(cashaddrprefixIn) {}
 
 QValidator::State BitcoinAddressEntryValidator::validate(QString &input,
                                                          int &pos) const {

@@ -131,7 +131,7 @@ private:
     int spinnerFrame;
 
     const PlatformStyle *platformStyle;
-    const Config *cfg;
+    const Config *config;
 
     /** Create the main UI actions. */
     void createActions();
