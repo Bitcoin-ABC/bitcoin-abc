@@ -25,6 +25,7 @@
 #include "sync.h"
 #include "utiltime.h"
 #include "tx.h"
+#include "ERC721.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -392,7 +393,7 @@ bool CMPTransaction::interpret_ERC721_issuetoken(){
 }
 
 bool CMPTransaction::interpret_ERC721_transfertoken(){
-    if(pkt_size < 133){
+    if(pkt_size < 69){
         return false;
     }
 
@@ -409,7 +410,7 @@ bool CMPTransaction::interpret_ERC721_transfertoken(){
 }
 
 bool CMPTransaction::interpret_ERC721_destroytoken(){
-    if(pkt_size < 133){
+    if(pkt_size < 69){
         return false;
     }
 
@@ -1253,6 +1254,20 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
         return (PKT_ERROR_ERC721 - 203);
     }
 
+    if(receiver == burnwhc_address){
+        PrintToLog("%s(): rejected: issue token's receiver address or transfer token's receiver is not destory address\n", __func__);
+        return (PKT_ERROR_ERC721 - 206);
+    }
+
+    if(spInfo->first.haveIssuedNumber + 1 > spInfo->first.maxTokens){
+        PrintToLog("%s(): rejected: have issued erc721 token's number exceed property created maxnumber setup \n",
+                   __func__,
+                   sender,
+                   spInfo->first.issuer,
+                   block);
+        return (PKT_ERROR_ERC721 - 207);
+    }
+
     if(!erc721_tokenid.IsNull()){
         if(my_erc721tokens->existToken(erc721_propertyid, erc721_tokenid)){
             PrintToLog("%s(): rejected: user special property %s tokenid %s will be created that have exist at block %d\n",
@@ -1269,8 +1284,6 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
             tokenid = uint256(ArithToUint256(id));
             spInfo->first.autoNextTokenID++;
         }while(my_erc721tokens->existToken(erc721_propertyid, tokenid));
-
-        spInfo->second = Flags::DIRTY;
         erc721_tokenid = tokenid;
     }
 
@@ -1279,7 +1292,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
     info.owner = receiver;
     info.updateBlockHash = blockHash;
     info.creationBlockHash = blockHash;
-    info.attributes.SetHex(erc721token_attribute);
+    info.attributes = uint256(std::vector<uint8_t>(erc721token_attribute, erc721token_attribute + sizeof(erc721token_attribute)));
     info.url.assign(erc721_tokenurl);
     if (!my_erc721tokens->putToken(erc721_propertyid, erc721_tokenid, info)){
         PrintToLog("%s(): rejected: put new token %s in property %s failed at block %d \n",
@@ -1289,6 +1302,9 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
                    block);
         return (PKT_ERROR_ERC721 - 205);
     }
+    spInfo->second = Flags::DIRTY;
+    spInfo->first.haveIssuedNumber++;
+    spInfo->first.currentValidIssuedNumer++;
 
     PrintToLog("%s(): sender : %s have succeed issued ERC721 property : %s token : %s at block %d \n",
                __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), block);
@@ -1338,6 +1354,11 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
         return (PKT_ERROR_ERC721 -302);
     }
 
+    if(receiver == burnwhc_address){
+        PrintToLog("%s(): rejected: issue token's receiver address or transfer token's receiver is not destory address\n", __func__);
+        return (PKT_ERROR_ERC721 - 206);
+    }
+
     info->first.owner = receiver;
     info->second = Flags::DIRTY;
 
@@ -1369,6 +1390,18 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
         return (PKT_ERROR_SP -22);
     }
 
+    std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
+    if(!my_erc721sps->getAndUpdateSP(erc721_propertyid, &spInfo)){
+        PrintToLog("%s(): rejected: type %d or version %d action %d not permitted, because get special property %s failed at block %d\n",
+                   __func__,
+                   type,
+                   version,
+                   erc721_action,
+                   erc721_propertyid.GetHex(),
+                   block);
+        return (PKT_ERROR_ERC721 -202);
+    }
+
     std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
     if(!my_erc721tokens->getAndUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
         PrintToLog("%s(): rejected: get ERC721 property : %s token : %s at block %d failed\n",
@@ -1392,6 +1425,8 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
 
     info->first.owner = burnwhc_address;
     info->second = Flags::DIRTY;
+    spInfo->first.currentValidIssuedNumer --;
+    spInfo->second = Flags::DIRTY;
 
     return 0;
 }

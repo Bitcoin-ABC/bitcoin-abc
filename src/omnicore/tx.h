@@ -109,7 +109,7 @@ private:
     uint64_t max_erc721number;
 
     uint256 erc721_tokenid;
-    char erc721token_attribute[ERC721_TOKEN_ATTRIBUTES*2];
+    uint8_t erc721token_attribute[ERC721_TOKEN_ATTRIBUTES];
     char erc721_tokenurl[SP_STRING_FIELD_LEN];
 
 

@@ -377,6 +377,12 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_ERC721 -205:
           ec_str = "Failed put new created ERC721 token to cache";
           break;
+      case PKT_ERROR_ERC721 -206:
+          ec_str = "Issue token's receiver address or transfer token's receiver is not destory address";
+          break;
+      case PKT_ERROR_ERC721 -207:
+          ec_str = "Have issued erc721 token's number exceed";
+          break;
       case PKT_ERROR_ERC721 -302:
           ec_str = "Sender is not the owner of ERC721 Token ";
           break;

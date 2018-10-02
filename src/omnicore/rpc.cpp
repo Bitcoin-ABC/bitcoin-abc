@@ -2424,7 +2424,7 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
 
     UniValue response(UniValue::VOBJ);
     response.push_back(Pair("propertyid", propertyId.GetHex()));
-    response.push_back(Pair("propertyid", tokenid.GetHex()));
+    response.push_back(Pair("tokenid", tokenid.GetHex()));
     response.push_back(Pair("issuer", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
