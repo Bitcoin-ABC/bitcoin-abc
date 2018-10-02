@@ -2479,7 +2479,7 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
             }
             if(info.owner == address){
                 uint256 tokenid;
-                leveldb::Slice slkey = iter->value();
+                leveldb::Slice slkey = iter->key();
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
@@ -2541,7 +2541,7 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
             }
             if(info.owner == burnwhc_address){
                 uint256 tokenid;
-                leveldb::Slice slkey = iter->value();
+                leveldb::Slice slkey = iter->key();
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
@@ -2593,6 +2593,8 @@ static const CRPCCommand commands[] =
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721TokenNews",           &whc_getERC721TokenNews,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721PropertyNews",           &whc_getERC721PropertyNews,             false , {}},
+    { "omni layer (data retrieval)",  "whc_getERC721AddressTokens",           &whc_getERC721AddressTokens,             false , {}},
+    { "omni layer (data retrieval)",  "whc_getERC721PropertyDestroyTokens",           &whc_getERC721PropertyDestroyTokens,             false , {}},
 //    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
 
 #ifdef ENABLE_WALLET

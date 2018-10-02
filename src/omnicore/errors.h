@@ -372,7 +372,7 @@ inline std::string error_str(int ec) {
           ec_str = "Only property of issuer could issue ERC721 token";
           break;
       case PKT_ERROR_ERC721 -204:
-          ec_str = "Not get special ERC721 token";
+          ec_str = "The ERC721 token have exist";
           break;
       case PKT_ERROR_ERC721 -205:
           ec_str = "Failed put new created ERC721 token to cache";

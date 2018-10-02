@@ -2009,6 +2009,7 @@ void clear_all_state()
     p_feecache->Clear();
     p_feehistory->Clear();
     my_erc721sps->clear();
+    my_erc721tokens->clear();
     assert(p_txlistdb->setDBVersion() == DB_VERSION); // new set of databases, set DB version
     exodus_prev = 0;
 }
