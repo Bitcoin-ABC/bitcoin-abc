@@ -103,6 +103,14 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                                 strTest);
             BOOST_CHECK(state.IsValid());
 
+            // Check that CheckCoinbase reject non-coinbase transactions and
+            // vice versa.
+            BOOST_CHECK_MESSAGE(!(tx.IsCoinBase()
+                                      ? CheckRegularTransaction(tx, state)
+                                      : CheckCoinbase(tx, state)),
+                                strTest);
+            BOOST_CHECK(state.IsInvalid());
+
             PrecomputedTransactionData txdata(tx);
             for (size_t i = 0; i < tx.vin.size(); i++) {
                 if (!mapprevOutScriptPubKeys.count(tx.vin[i].prevout)) {
