@@ -2389,7 +2389,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
 UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-                "whc_getERC721TokenNews propertyid\n"
+                "whc_getERC721TokenNews propertyid tokenid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
                         "1. propertyid           (string, required) the identifier of the ERC721 property\n"
@@ -2418,7 +2418,7 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     {
         LOCK(cs_tally);
         if (!my_erc721tokens->getAndUpdateToken(propertyId, tokenid, &info)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 token identifier does not exist");
         }
     }
 
@@ -2435,7 +2435,30 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
 }
 
 UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &request){
-
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_getERC721AddressTokens \"address\" propertyid\n"
+                        "\nReturns details for about the tokens or smart property to lookup.\n"
+                        "\nArguments:\n"
+                        "1. address            (string, required) the address of the query \n"
+                        "2. propertyid         (string, required) the identifier of the ERC721 property\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "{\n"
+                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
+                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                        "  \"creationblock\" : \"hash\",         (string) the hex-encoded creation block hash\n"
+                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "}\n"
+                        "..."
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_getERC721TokenNews", "\"address\", \"0x01\"")
+                + HelpExampleRpc("whc_getERC721TokenNews", "\"address\", \"0x01\"")
+        );
 }
 
 UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCRequest &request){

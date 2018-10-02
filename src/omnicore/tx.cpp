@@ -369,33 +369,24 @@ bool CMPTransaction::interpret_ERC721_issueproperty(){
 }
 
 bool CMPTransaction::interpret_ERC721_issuetoken(){
-    if(pkt_size < 198){
+    if(pkt_size < 102){
         return false;
     }
 
-    char* p = (char*)pkt + 5;
-    char tmpid[64] = {0};
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_propertyid.SetHex(tmpid);
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_tokenid.SetHex(tmpid);
+    std::vector<uint8_t > tmp(32);
+    uint8_t* p = (uint8_t *)pkt + 5;
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_propertyid = uint256(tmp);
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_tokenid = uint256(tmp);
     memcpy(erc721token_attribute, p, sizeof(erc721token_attribute));
-    if (!IsHex(erc721token_attribute)){
-        return false;
-    }
-    p += 64;
-    std::string url = std::string(p);
+    p += 32;
+    char *ptmp = (char*)p;
+    std::string url = std::string(ptmp);
     p += url.size() + 1;
     memcpy(erc721_tokenurl, url.data(), sizeof(erc721_tokenurl) - 1);
-
 
     return true;
 }
@@ -405,20 +396,14 @@ bool CMPTransaction::interpret_ERC721_transfertoken(){
         return false;
     }
 
+    std::vector<uint8_t > tmp(32);
     char* p = (char*)pkt + 5;
-    char tmpid[64] = {0};
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_propertyid.SetHex(tmpid);
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_tokenid.SetHex(tmpid);
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_propertyid = uint256(tmp);
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_tokenid = uint256(tmp);
 
     return true;
 }
@@ -428,20 +413,14 @@ bool CMPTransaction::interpret_ERC721_destroytoken(){
         return false;
     }
 
+    std::vector<uint8_t > tmp(32);
     char* p = (char*)pkt + 5;
-    char tmpid[64] = {0};
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_propertyid.SetHex(tmpid);
-    memcpy(tmpid, p, 64);
-    p += 64;
-    if (!IsHex(tmpid)){
-        return false;
-    }
-    erc721_tokenid.SetHex(tmpid);
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_propertyid = uint256(tmp);
+    tmp.assign(p, p + 32);
+    p += 32;
+    erc721_tokenid = uint256(tmp);
 
     return true;
 }
