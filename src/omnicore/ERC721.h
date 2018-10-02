@@ -171,6 +171,8 @@ public:
     bool popBlock(const uint256& block_hash);
 
     bool findTokenByTX(const uint256& txhash, uint256& propertyid, uint256& tokenid);
+
+    leveldb::Iterator* getIterator(){ return NewIterator(); }
 };
 
 namespace mastercore{

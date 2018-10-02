@@ -20,6 +20,7 @@
 #include "omnicore/rules.h"
 #include "omnicore/utilsbitcoin.h"
 #include "omnicore/wallettxs.h"
+#include "omnicore/ERC721.h"
 
 #include "chainparams.h"
 #include "config.h"
@@ -222,6 +223,9 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
             break;
         case MSC_TYPE_CHANGE_ISSUER_ADDRESS:
             populateRPCTypeChangeIssuer(mp_obj, txobj);
+            break;
+        case WHC_TYPE_ERC721:
+            populateRPCTypeERC721(mp_obj, txobj, confirmations);
             break;
         /*case OMNICORE_MESSAGE_TYPE_ACTIVATION:
             populateRPCTypeActivation(mp_obj, txobj);
@@ -559,6 +563,37 @@ void populateRPCTypeChangeIssuer(CMPTransaction& omniObj, UniValue& txobj)
     txobj.push_back(Pair("propertyid", (uint64_t)propertyId));
     txobj.push_back(Pair("precision", getprecision(propertyId)));
 }
+
+void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirmations){
+    switch  (omniObj.getAction()){
+        case ERC721Action::ISSUE_ERC721_PROPERTY :
+            if (confirmations > 0) {
+                uint256 property;
+                if(mastercore::my_erc721sps->findERCSPByTX(omniObj.getHash(), property)){
+                    txobj.push_back(Pair("propertyid", property.GetHex()));
+                }
+            }
+            break;
+        case ERC721Action::ISSUE_ERC721_TOKEN :
+            if(confirmations > 0){
+                uint256 propertyid, tokenid;
+                if(mastercore::my_erc721tokens->findTokenByTX(omniObj.getHash(), propertyid, tokenid)){
+                    txobj.push_back(Pair("propertyid", propertyid.GetHex()));
+                    txobj.push_back(Pair("tokenid", tokenid.GetHex()));
+                }
+            }
+            break;
+        case ERC721Action::TRANSFER_REC721_TOKEN:
+        case ERC721Action::DESTROY_ERC721_TOKEN:
+            uint256 propertyid, tokenid;
+            if(mastercore::my_erc721tokens->findTokenByTX(omniObj.getHash(), propertyid, tokenid)){
+                txobj.push_back(Pair("propertyid", propertyid.GetHex()));
+                txobj.push_back(Pair("tokenid", tokenid.GetHex()));
+            }
+            break;
+    }
+}
+
 
 void populateRPCTypeActivation(CMPTransaction& omniObj, UniValue& txobj)
 {

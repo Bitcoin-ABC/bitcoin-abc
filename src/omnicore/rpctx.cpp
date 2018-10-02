@@ -850,7 +850,7 @@ UniValue whc_issuanceERC721property(const Config& config, const JSONRPCRequest& 
     if (request.fHelp || request.params.size() != 6)
         throw runtime_error(
                 "whc_issuanceERC721property \"issueAddress\" \"name\" \"symbol\" \"data\" \"url\" totalNumber  \n"
-                        "\nissue ERC721 property"
+                        "\nIssue ERC721 property"
                         "\nArguments:\n"
                         "1. issueAddress       (string, required) The BitcoinCash address will issue ERC721 property\n"
                         "2. propertyName       (string, required) the name of created property \n"
@@ -900,7 +900,7 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
     if (request.fHelp || request.params.size() < 5 || request.params.size() > 6)
         throw runtime_error(
                 "whc_issuanceERC721Token \"issueAddress\" \"receiveaddress\" \"propertyID\" \"tokenID\" \"tokenAttributes\" \"tokenURL\" \n"
-                        "\nburn BCH to get WHC"
+                        "\nIssue ERC721 Token"
                         "\nArguments:\n"
                         "1. issueAddress          	(string, required) The BitcoinCash address will issue a token in special property\n"
                         "2. receiveaddress          (string, required) The address of receiver will be received new created token\n"
@@ -954,7 +954,7 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
     if (request.fHelp || request.params.size() != 4)
         throw runtime_error(
                 "whc_transferERC721Token \"ownerAddress\" \"receiveaddress\" \"0x01\" \"0x02\" \n"
-                        "\nburn BCH to get WHC"
+                        "\nTransfer ERC721 Token"
                         "\nArguments:\n"
                         "1. ownerAddress          	(string, required) The bitcoincash address of the token owner\n"
                         "2. receiveaddress          (string, required) The redeem bitcoin address of the token receiver\n"
@@ -999,10 +999,10 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
 }
 
 UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& request){
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
+    if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
                 "whc_destroyERC721Token \"ownerAddress\" \"0x01\" \"0x02\"\n"
-                        "\nburn BCH to get WHC"
+                        "\nDestroy ERC721 Token"
                         "\nArguments:\n"
                         "1. senderAddress          	(string, required) The bitcoincash address of the token owner\n"
                         "2. propertyID              (string, required) The propertyid within the token that will be transfer \n"

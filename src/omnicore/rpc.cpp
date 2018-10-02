@@ -44,8 +44,6 @@
 #include "txmempool.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
-#include "chain.h"
-#include "ERC721.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -2374,7 +2372,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
 
     UniValue response(UniValue::VOBJ);
     response.push_back(Pair("propertyid", propertyId.GetHex()));
-    response.push_back(Pair("issuer", info->first.issuer));
+    response.push_back(Pair("owner", info->first.issuer));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
     response.push_back(Pair("name", info->first.name));
@@ -2425,7 +2423,7 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     UniValue response(UniValue::VOBJ);
     response.push_back(Pair("propertyid", propertyId.GetHex()));
     response.push_back(Pair("tokenid", tokenid.GetHex()));
-    response.push_back(Pair("issuer", info->first.owner));
+    response.push_back(Pair("owner", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
     response.push_back(Pair("attribute", info->first.attributes.GetHex()));
@@ -2445,24 +2443,119 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
                         "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
-                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
-                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
-                        "  \"creationblock\" : \"hash\",         (string) the hex-encoded creation block hash\n"
                         "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
                         "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "}\n"
                         "..."
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721TokenNews", "\"address\", \"0x01\"")
-                + HelpExampleRpc("whc_getERC721TokenNews", "\"address\", \"0x01\"")
+                + HelpExampleCli("whc_getERC721AddressTokens", "\"address\", \"0x01\"")
+                + HelpExampleRpc("whc_getERC721AddressTokens", "\"address\", \"0x01\"")
         );
+
+    std::string address = ParseAddress(request.params[0]);
+    RequireHexNumber(request.params[1].get_str());
+    uint256 propertyId = uint256S(request.params[1].get_str());
+
+    CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
+    ssSpKeyPrefix << 's' << propertyId;
+    leveldb::Slice slSpKeyPrefix(&ssSpKeyPrefix[0], ssSpKeyPrefix.size());
+
+    UniValue response(UniValue::VARR);
+    {
+        LOCK(cs_tally);
+        leveldb::Iterator* iter = mastercore::my_erc721tokens->getIterator();
+        for (iter->Seek(slSpKeyPrefix); iter->Valid() && iter->key().starts_with(slSpKeyPrefix); iter->Next()) {
+            leveldb::Slice slValue = iter->value();
+            ERC721TokenInfos::TokenInfo info;
+            try {
+                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ssValue >> info;
+            } catch (const std::exception &e) {
+                PrintToLog("%s(): ERROR: %s\n", __func__, e.what());
+                throw    runtime_error("get erc721 token news from database failed");
+            }
+            if(info.owner == address){
+                uint256 tokenid;
+                leveldb::Slice slkey = iter->value();
+                CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
+                sskey >> tokenid;
+                UniValue item(UniValue::VOBJ);
+                item.push_back(Pair("tokenid", tokenid.GetHex()));
+                item.push_back(Pair("attribute", info.attributes.GetHex()));
+                item.push_back(Pair("tokenurl", info.url));
+                item.push_back(Pair("creationtxid", info.txid.GetHex()));
+                response.push_back(item);
+            }
+        }
+        delete iter;
+    }
+
+    return response;
 }
 
 UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_getERC721PropertyDestroyTokens propertyid\n"
+                        "\nReturns details for about the destroy tokens to lookup.\n"
+                        "\nArguments:\n"
+                        "1. propertyid         (string, required) the identifier of the ERC721 property\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "{\n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
+                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                        "}\n"
+                        "..."
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_getERC721PropertyDestroyTokens", " \"0x01\"")
+                + HelpExampleRpc("whc_getERC721PropertyDestroyTokens", " \"0x01\"")
+        );
 
+    RequireHexNumber(request.params[0].get_str());
+    uint256 propertyId = uint256S(request.params[0].get_str());
+
+    CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
+    ssSpKeyPrefix << 's' << propertyId;
+    leveldb::Slice slSpKeyPrefix(&ssSpKeyPrefix[0], ssSpKeyPrefix.size());
+
+    UniValue response(UniValue::VARR);
+    {
+        LOCK(cs_tally);
+        leveldb::Iterator* iter = mastercore::my_erc721tokens->getIterator();
+        for (iter->Seek(slSpKeyPrefix); iter->Valid() && iter->key().starts_with(slSpKeyPrefix); iter->Next()) {
+            leveldb::Slice slValue = iter->value();
+            ERC721TokenInfos::TokenInfo info;
+            try {
+                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ssValue >> info;
+            } catch (const std::exception &e) {
+                PrintToLog("%s(): ERROR: %s\n", __func__, e.what());
+                throw    runtime_error("get erc721 token news from database failed");
+            }
+            if(info.owner == burnwhc_address){
+                uint256 tokenid;
+                leveldb::Slice slkey = iter->value();
+                CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
+                sskey >> tokenid;
+                UniValue item(UniValue::VOBJ);
+                item.push_back(Pair("tokenid", tokenid.GetHex()));
+                item.push_back(Pair("attribute", info.attributes.GetHex()));
+                item.push_back(Pair("tokenurl", info.url));
+                item.push_back(Pair("creationtxid", info.txid.GetHex()));
+                response.push_back(item);
+            }
+        }
+        delete iter;
+    }
+
+    return response;
 }
 
 static const CRPCCommand commands[] =
