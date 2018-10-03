@@ -649,6 +649,43 @@ BOOST_FIXTURE_TEST_CASE(wallet_disableprivkeys, TestChain100Setup) {
         !wallet->GetNewDestination(OutputType::LEGACY, "", dest, error));
 }
 
+// Explicit calculation which is used to test the wallet constant
+static size_t CalculateP2PKHInputSize(bool use_max_sig) {
+    // Generate ephemeral valid pubkey
+    CKey key;
+    key.MakeNewKey(true);
+    CPubKey pubkey = key.GetPubKey();
+
+    // Generate pubkey hash
+    PKHash key_hash(pubkey);
+
+    // Create script to enter into keystore. Key hash can't be 0...
+    CScript script = GetScriptForDestination(key_hash);
+
+    // Add script to key store and key to watchonly
+    FillableSigningProvider keystore;
+    keystore.AddKeyPubKey(key, pubkey);
+
+    // Fill in dummy signatures for fee calculation.
+    SignatureData sig_data;
+    if (!ProduceSignature(keystore,
+                          use_max_sig ? DUMMY_MAXIMUM_SIGNATURE_CREATOR
+                                      : DUMMY_SIGNATURE_CREATOR,
+                          script, sig_data)) {
+        // We're hand-feeding it correct arguments; shouldn't happen
+        assert(false);
+    }
+
+    CTxIn tx_in;
+    UpdateInput(tx_in, sig_data);
+    return (size_t)GetVirtualTransactionInputSize(tx_in);
+}
+
+BOOST_FIXTURE_TEST_CASE(dummy_input_size_test, TestChain100Setup) {
+    BOOST_CHECK(CalculateP2PKHInputSize(false) <= DUMMY_P2PKH_INPUT_SIZE);
+    BOOST_CHECK_EQUAL(CalculateP2PKHInputSize(true), DUMMY_P2PKH_INPUT_SIZE);
+}
+
 bool malformed_descriptor(std::ios_base::failure e) {
     std::string s(e.what());
     return s.find("Missing checksum") != std::string::npos;

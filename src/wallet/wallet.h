@@ -107,6 +107,8 @@ constexpr Amount HIGH_TX_FEE_PER_KB{COIN / 100};
 //! -maxtxfee will warn if called with a higher fee than this amount (in
 //! satoshis)
 constexpr Amount HIGH_MAX_TX_FEE{100 * HIGH_TX_FEE_PER_KB};
+//! Pre-calculated constants for input size estimation
+static constexpr size_t DUMMY_P2PKH_INPUT_SIZE = 148;
 
 class CChainParams;
 class CCoinControl;
