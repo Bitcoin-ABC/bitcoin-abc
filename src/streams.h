@@ -102,12 +102,6 @@ public:
         return (*this);
     }
     int GetVersion() const { return nVersion; }
-    void seek(size_t nSize) {
-        nPos += nSize;
-        if (nPos > vchData.size()) {
-            vchData.resize(nPos);
-        }
-    }
 
 private:
     const int nVersion;
