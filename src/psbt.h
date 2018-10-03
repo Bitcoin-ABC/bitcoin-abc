@@ -101,6 +101,7 @@ struct PSBTInput {
 
     template <typename Stream> inline void Unserialize(Stream &s) {
         // Read loop
+        bool found_sep = false;
         while (!s.empty()) {
             // Read
             std::vector<uint8_t> key;
@@ -110,7 +111,8 @@ struct PSBTInput {
             // This is a special case for key lengths 0 as those are not allowed
             // (except for separator)
             if (key.empty()) {
-                return;
+                found_sep = true;
+                break;
             }
 
             // First byte of key is the type
@@ -210,6 +212,10 @@ struct PSBTInput {
                     break;
             }
         }
+        if (!found_sep) {
+            throw std::ios_base::failure(
+                "Separator is missing at the end of an input map");
+        }
     }
 
     template <typename Stream> PSBTInput(deserialize_type, Stream &s) {
@@ -251,6 +257,7 @@ struct PSBTOutput {
 
     template <typename Stream> inline void Unserialize(Stream &s) {
         // Read loop
+        bool found_sep = false;
         while (!s.empty()) {
             // Read
             std::vector<uint8_t> key;
@@ -260,7 +267,8 @@ struct PSBTOutput {
             // This is a special case for key lengths 0 as those are not allowed
             // (except for separator)
             if (key.empty()) {
-                return;
+                found_sep = true;
+                break;
             }
 
             // First byte of key is the type
@@ -299,6 +307,11 @@ struct PSBTOutput {
                     break;
                 }
             }
+        }
+
+        if (!found_sep) {
+            throw std::ios_base::failure(
+                "Separator is missing at the end of an output map");
         }
     }
 
@@ -380,6 +393,7 @@ struct PartiallySignedTransaction {
         }
 
         // Read global data
+        bool found_sep = false;
         while (!s.empty()) {
             // Read
             std::vector<uint8_t> key;
@@ -389,6 +403,7 @@ struct PartiallySignedTransaction {
             // This is a special case for key lengths 0 as those are not allowed
             // (except for separator)
             if (key.empty()) {
+                found_sep = true;
                 break;
             }
 
@@ -431,6 +446,11 @@ struct PartiallySignedTransaction {
                     unknown.emplace(std::move(key), std::move(val_bytes));
                 }
             }
+        }
+
+        if (!found_sep) {
+            throw std::ios_base::failure(
+                "Separator is missing at the end of the global map");
         }
 
         // Make sure that we got an unsigned tx
