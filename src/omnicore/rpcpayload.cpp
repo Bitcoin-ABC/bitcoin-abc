@@ -400,7 +400,7 @@ UniValue whc_createpayload_issueERC721property(const Config &config,const JSONRP
         throw runtime_error(
                 "whc_createpayload_issueERC721property  \"name\" \"symbol\" \"data\" \"url\" \"number\" \n"
                         "\nCreates the payload to issue ERC721 property\n"
-                        "Argument:"
+                        "Argument:\n"
                         "1. propertyName       (string, required) the name of created property \n"
                         "2. propertySymbol     (string, required) the symbol of created property \n"
                         "3. propertyData       (string, required) the Data of created property \n"
@@ -434,7 +434,7 @@ UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRe
         throw runtime_error(
                 "whc_createpayload_issueERC721token \"0x01\" \"0x02\" \"0x03\" \"url\" \n"
                         "\nCreates the payload to issue ERC721 property\n"
-                        "Argument:"
+                        "Argument:\n"
                         "1. propertyID              (string, required) The ID of the special property that will be issued token \n"
                         "2. tokenID                 (string, optional) The tokenID that will be issued, if you don't want to skip this parament, wormhole system will automatic tokenID \n"
                         "3. tokenAttributes         (string, required) The Attributes of the new created token\n"

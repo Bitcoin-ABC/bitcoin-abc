@@ -53,6 +53,7 @@ public:
             READWRITE(haveIssuedNumber);
             READWRITE(currentValidIssuedNumer);
             READWRITE(autoNextTokenID);
+            READWRITE(txid);
             READWRITE(creationBlock);
             READWRITE(updateBlock);
         }
