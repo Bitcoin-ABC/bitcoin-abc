@@ -275,10 +275,10 @@ struct CNodeState {
 };
 
 /** Map maintaining per-node state. Requires cs_main. */
-std::map<NodeId, CNodeState> mapNodeState;
+static std::map<NodeId, CNodeState> mapNodeState;
 
 // Requires cs_main.
-CNodeState *State(NodeId pnode) {
+static CNodeState *State(NodeId pnode) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
     if (it == mapNodeState.end()) {
         return nullptr;
@@ -287,7 +287,7 @@ CNodeState *State(NodeId pnode) {
     return &it->second;
 }
 
-void UpdatePreferredDownload(CNode *node, CNodeState *state) {
+static void UpdatePreferredDownload(CNode *node, CNodeState *state) {
     nPreferredDownload -= state->fPreferredDownload;
 
     // Whether this node should be marked as a preferred download node.
@@ -297,8 +297,8 @@ void UpdatePreferredDownload(CNode *node, CNodeState *state) {
     nPreferredDownload += state->fPreferredDownload;
 }
 
-void PushNodeVersion(const Config &config, CNode *pnode, CConnman *connman,
-                     int64_t nTime) {
+static void PushNodeVersion(const Config &config, CNode *pnode,
+                            CConnman *connman, int64_t nTime) {
     ServiceFlags nLocalNodeServices = pnode->GetLocalServices();
     uint64_t nonce = pnode->GetLocalNonce();
     int nNodeStartingHeight = pnode->GetMyStartingHeight();
@@ -334,7 +334,7 @@ void PushNodeVersion(const Config &config, CNode *pnode, CConnman *connman,
 // Returns a bool indicating whether we requested this block.
 // Also used if a block was /not/ received and timed out or started with another
 // peer.
-bool MarkBlockAsReceived(const uint256 &hash) {
+static bool MarkBlockAsReceived(const uint256 &hash) {
     std::map<uint256,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
@@ -381,7 +381,9 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
         itInFlight = mapBlocksInFlight.find(hash);
     if (itInFlight != mapBlocksInFlight.end() &&
         itInFlight->second.first == nodeid) {
-        *pit = &itInFlight->second.second;
+        if (pit) {
+            *pit = &itInFlight->second.second;
+        }
         return false;
     }
 
@@ -416,7 +418,7 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
 }
 
 /** Check whether the last unknown block a peer advertised is not yet known. */
-void ProcessBlockAvailability(NodeId nodeid) {
+static void ProcessBlockAvailability(NodeId nodeid) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -435,7 +437,7 @@ void ProcessBlockAvailability(NodeId nodeid) {
 }
 
 /** Update tracking information about which blocks a peer is assumed to have. */
-void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
+static void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -455,7 +457,8 @@ void UpdateBlockAvailability(NodeId nodeid, const uint256 &hash) {
     }
 }
 
-void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid, CConnman *connman) {
+static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
+                                                 CConnman *connman) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
     if (!nodestate) {
@@ -503,7 +506,7 @@ void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid, CConnman *connman) {
     });
 }
 
-bool TipMayBeStale(const Consensus::Params &consensusParams) {
+static bool TipMayBeStale(const Consensus::Params &consensusParams) {
     AssertLockHeld(cs_main);
     if (g_last_tip_update == 0) {
         g_last_tip_update = GetTime();
@@ -514,13 +517,13 @@ bool TipMayBeStale(const Consensus::Params &consensusParams) {
 }
 
 // Requires cs_main
-bool CanDirectFetch(const Consensus::Params &consensusParams) {
+static bool CanDirectFetch(const Consensus::Params &consensusParams) {
     return chainActive.Tip()->GetBlockTime() >
            GetAdjustedTime() - consensusParams.nPowTargetSpacing * 20;
 }
 
 // Requires cs_main
-bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
+static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
     if (state->pindexBestKnownBlock &&
         pindex == state->pindexBestKnownBlock->GetAncestor(pindex->nHeight)) {
         return true;
@@ -536,10 +539,10 @@ bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex) {
  * Update pindexLastCommonBlock and add not-in-flight missing successors to
  * vBlocks, until it has at most count entries.
  */
-void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
-                              std::vector<const CBlockIndex *> &vBlocks,
-                              NodeId &nodeStaller,
-                              const Consensus::Params &consensusParams) {
+static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
+                                     std::vector<const CBlockIndex *> &vBlocks,
+                                     NodeId &nodeStaller,
+                                     const Consensus::Params &consensusParams) {
     if (count == 0) {
         return;
     }
@@ -651,7 +654,7 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 
 // Returns true for outbound peers, excluding manual connections, feelers, and
 // one-shots.
-bool IsOutboundDisconnectionCandidate(const CNode *node) {
+static bool IsOutboundDisconnectionCandidate(const CNode *node) {
     return !(node->fInbound || node->m_manual_connection || node->fFeeler ||
              node->fOneShot);
 }
@@ -735,7 +738,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
 // mapOrphanTransactions
 //
 
-void AddToCompactExtraTransactions(const CTransactionRef &tx) {
+static void AddToCompactExtraTransactions(const CTransactionRef &tx) {
     size_t max_extra_txn = gArgs.GetArg("-blockreconstructionextratxn",
                                         DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);
     if (max_extra_txn <= 0) {
@@ -2101,9 +2104,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
         std::vector<CInv> vToFetch;
 
-        for (size_t nInv = 0; nInv < vInv.size(); nInv++) {
-            CInv &inv = vInv[nInv];
-
+        for (CInv &inv : vInv) {
             if (interruptMsgProc) {
                 return true;
             }
@@ -2468,7 +2469,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 }
             }
 
-            for (uint256 hash : vEraseQueue) {
+            for (const uint256 &hash : vEraseQueue) {
                 EraseOrphanTx(hash);
             }
         } else if (fMissingInputs) {
@@ -3545,11 +3546,12 @@ void PeerLogicValidation::CheckForStaleTipAndEvictPeers(
     m_stale_tip_check_time = time_in_seconds + STALE_CHECK_INTERVAL;
 }
 
+namespace {
 class CompareInvMempoolOrder {
     CTxMemPool *mp;
 
 public:
-    CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
+    explicit CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
 
     bool operator()(std::set<uint256>::iterator a,
                     std::set<uint256>::iterator b) {
@@ -3558,6 +3560,7 @@ public:
         return mp->CompareDepthAndScore(*b, *a);
     }
 };
+}
 
 bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                                        std::atomic<bool> &interruptMsgProc) {
