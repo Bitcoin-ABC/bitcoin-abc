@@ -3,10 +3,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifdef HAVE_CONFIG_H
-#include "config/bitcoin-config.h"
-#endif
-
 #include "netbase.h"
 
 #include "hash.h"
@@ -23,7 +19,6 @@
 #endif
 
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()
-#include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 
 #if !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
@@ -122,9 +117,10 @@ static bool LookupIntern(const char *pszName, std::vector<CNetAddr> &vIP,
 bool LookupHost(const char *pszName, std::vector<CNetAddr> &vIP,
                 unsigned int nMaxSolutions, bool fAllowLookup) {
     std::string strHost(pszName);
-    if (strHost.empty()) return false;
-    if (boost::algorithm::starts_with(strHost, "[") &&
-        boost::algorithm::ends_with(strHost, "]")) {
+    if (strHost.empty()) {
+        return false;
+    }
+    if (strHost.front() == '[' && strHost.back() == ']') {
         strHost = strHost.substr(1, strHost.size() - 2);
     }
 
@@ -289,8 +285,8 @@ struct ProxyCredentials {
     std::string password;
 };
 
-/** Convert SOCKS5 reply to a an error message */
-std::string Socks5ErrorString(uint8_t err) {
+/** Convert SOCKS5 reply to an error message */
+static std::string Socks5ErrorString(uint8_t err) {
     switch (err) {
         case SOCKS5Reply::GENFAILURE:
             return "general failure";
@@ -603,7 +599,9 @@ bool HaveNameProxy() {
 bool IsProxy(const CNetAddr &addr) {
     LOCK(cs_proxyInfos);
     for (int i = 0; i < NET_MAX; i++) {
-        if (addr == (CNetAddr)proxyInfo[i].proxy) return true;
+        if (addr == static_cast<CNetAddr>(proxyInfo[i].proxy)) {
+            return true;
+        }
     }
     return false;
 }

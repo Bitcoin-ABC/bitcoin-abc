@@ -485,7 +485,7 @@ int main(int argc, char **argv) {
         CService service(LookupNumeric(opts.tor, 9050));
         if (service.IsValid()) {
             printf("Using Tor proxy at %s\n", service.ToStringIPPort().c_str());
-            SetProxy(NET_TOR, service);
+            SetProxy(NET_TOR, proxyType(service));
         }
     }
     if (opts.ipv4_proxy) {
@@ -493,7 +493,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             printf("Using IPv4 proxy at %s\n",
                    service.ToStringIPPort().c_str());
-            SetProxy(NET_IPV4, service);
+            SetProxy(NET_IPV4, proxyType(service));
         }
     }
     if (opts.ipv6_proxy) {
@@ -501,7 +501,7 @@ int main(int argc, char **argv) {
         if (service.IsValid()) {
             printf("Using IPv6 proxy at %s\n",
                    service.ToStringIPPort().c_str());
-            SetProxy(NET_IPV6, service);
+            SetProxy(NET_IPV6, proxyType(service));
         }
     }
     bool fDNS = true;
