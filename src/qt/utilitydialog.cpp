@@ -16,6 +16,7 @@
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>
 #endif
+#include <util/strencodings.h>
 #include <util/system.h>
 
 #include <QCloseEvent>
@@ -40,9 +41,9 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node &node, QWidget *parent,
     if (about) {
         setWindowTitle(tr("About %1").arg(PACKAGE_NAME));
 
+        std::string licenseInfo = LicenseInfo();
         /// HTML-format the license message from the core
-        QString licenseInfo = QString::fromStdString(LicenseInfo());
-        QString licenseInfoHTML = licenseInfo;
+        QString licenseInfoHTML = QString::fromStdString(LicenseInfo());
         // Make URLs clickable
         QRegExp uri("<(.*)>", Qt::CaseSensitive, QRegExp::RegExp2);
         uri.setMinimal(true); // use non-greedy matching
@@ -52,7 +53,8 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node &node, QWidget *parent,
 
         ui->aboutMessage->setTextFormat(Qt::RichText);
         ui->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-        text = version + "\n" + licenseInfo;
+        text = version + "\n" +
+               QString::fromStdString(FormatParagraph(licenseInfo));
         ui->aboutMessage->setText(version + "<br><br>" + licenseInfoHTML);
         ui->aboutMessage->setWordWrap(true);
         ui->helpMessage->setVisible(false);

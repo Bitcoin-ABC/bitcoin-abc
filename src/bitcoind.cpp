@@ -75,7 +75,7 @@ static bool AppInit(int argc, char *argv[]) {
                                " (" + NETWORK_NAME + " network)\n";
 
         if (gArgs.IsArgSet("-version")) {
-            strUsage += FormatParagraph(LicenseInfo());
+            strUsage += FormatParagraph(LicenseInfo()) + "\n";
         } else {
             strUsage += "\nUsage:  bitcoind [options]                     "
                         "Start " PACKAGE_NAME "\n";
