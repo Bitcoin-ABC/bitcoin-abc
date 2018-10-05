@@ -239,6 +239,9 @@ target_link_libraries(server
 # Test suite.
 add_subdirectory(test)
 
+# Benchmark suite.
+add_subdirectory(bench)
+
 # Wallet
 if(BUILD_BITCOIN_WALLET)
 	add_subdirectory(wallet)
