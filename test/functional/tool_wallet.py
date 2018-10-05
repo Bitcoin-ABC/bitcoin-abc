@@ -93,9 +93,9 @@ class ToolWalletTest(BitcoinTestFramework):
             ===========
             Encrypted: no
             HD (hd seed available): yes
-            Keypool Size: 1
+            Keypool Size: 2
             Transactions: 1
-            Address Book: 0
+            Address Book: 1
         ''')
         self.assert_tool_output(out, '-wallet=wallet.dat', 'info')
 
