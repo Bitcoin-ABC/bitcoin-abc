@@ -651,14 +651,18 @@ class RawTransactionsTest(BitcoinTestFramework):
             rawtx)  # uses min_relay_tx_fee (set by settxfee)
         result2 = self.nodes[3].fundrawtransaction(
             rawtx, {"feeRate": 2 * min_relay_tx_fee})
-        result3 = self.nodes[3].fundrawtransaction(
-            rawtx, {"feeRate": 10 * min_relay_tx_fee})
         result_fee_rate = result['fee'] * 1000 / \
             FromHex(CTransaction(), result['hex']).billable_size()
         assert_fee_amount(
             result2['fee'], FromHex(CTransaction(), result2['hex']).billable_size(), 2 * result_fee_rate)
+
+        result3 = self.nodes[3].fundrawtransaction(
+            rawtx, {"feeRate": 10 * min_relay_tx_fee})
+        # allow this transaction to be underfunded by 10 bytes.  This is due
+        # to the first transaction possibly being overfunded by up to .9
+        # satoshi due to  fee ceilings being used.
         assert_fee_amount(
-            result3['fee'], FromHex(CTransaction(), result3['hex']).billable_size(), 10 * result_fee_rate)
+            result3['fee'], FromHex(CTransaction(), result3['hex']).billable_size(), 10 * result_fee_rate, 10)
 
         #
         # Test address reuse option #
