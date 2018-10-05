@@ -301,7 +301,7 @@ private:
 
     void fill(T *dst, ptrdiff_t count) {
         if (IS_TRIVIALLY_CONSTRUCTIBLE<T>::value) {
-            // The most common use of prevector is where T=unsigned char. For
+            // The most common use of prevector is where T=uint8_t. For
             // trivially constructible types, we can use memset() to avoid
             // looping.
             ::memset(dst, 0, count * sizeof(T));
