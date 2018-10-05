@@ -116,7 +116,8 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
                  /* default_val */ "", "The private key (see dumpprivkey)"},
                 {"label", RPCArg::Type::STR, /* opt */ true,
                  /* default_val */
-                 "\"\"", "An optional label"},
+                 "current label if address exists, otherwise \"\"",
+                 "An optional label"},
                 {"rescan", RPCArg::Type::BOOL, /* opt */ true,
                  /* default_val */ "true",
                  "Rescan the wallet for transactions"},
@@ -185,10 +186,15 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         CKeyID vchAddress = pubkey.GetID();
         {
             pwallet->MarkDirty();
-            // We don't know which corresponding address will be used; label
-            // them all
+
+            // We don't know which corresponding address will be used;
+            // label all new addresses, and label existing addresses if a
+            // label was passed.
             for (const auto &dest : GetAllDestinationsForKey(pubkey)) {
-                pwallet->SetAddressBook(dest, strLabel, "receive");
+                if (!request.params[1].isNull() ||
+                    pwallet->mapAddressBook.count(dest) == 0) {
+                    pwallet->SetAddressBook(dest, strLabel, "receive");
+                }
             }
 
             // Don't throw error in case a key is already there
