@@ -78,15 +78,19 @@ static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
 
 static bool CreateSig(const BaseSignatureCreator &creator,
                       SignatureData &sigdata, const SigningProvider &provider,
-                      std::vector<uint8_t> &sig_out, const CKeyID &keyid,
+                      std::vector<uint8_t> &sig_out, const CPubKey &pubkey,
                       const CScript &scriptcode) {
+    CKeyID keyid = pubkey.GetID();
     const auto it = sigdata.signatures.find(keyid);
     if (it != sigdata.signatures.end()) {
         sig_out = it->second.second;
         return true;
     }
-    CPubKey pubkey;
-    GetPubKey(provider, sigdata, keyid, pubkey);
+    KeyOriginInfo info;
+    if (provider.GetKeyOrigin(keyid, info)) {
+        sigdata.misc_pubkeys.emplace(keyid,
+                                     std::make_pair(pubkey, std::move(info)));
+    }
     if (creator.CreateSig(provider, sig_out, keyid, scriptcode)) {
         auto i = sigdata.signatures.emplace(keyid, SigPair(pubkey, sig_out));
         assert(i.second);
@@ -120,20 +124,20 @@ static bool SignStep(const SigningProvider &provider,
             return false;
         case TX_PUBKEY:
             if (!CreateSig(creator, sigdata, provider, sig,
-                           CPubKey(vSolutions[0]).GetID(), scriptPubKey)) {
+                           CPubKey(vSolutions[0]), scriptPubKey)) {
                 return false;
             }
             ret.push_back(std::move(sig));
             return true;
         case TX_PUBKEYHASH: {
             CKeyID keyID = CKeyID(uint160(vSolutions[0]));
-            if (!CreateSig(creator, sigdata, provider, sig, keyID,
+            CPubKey pubkey;
+            provider.GetPubKey(keyID, pubkey);
+            if (!CreateSig(creator, sigdata, provider, sig, pubkey,
                            scriptPubKey)) {
                 return false;
             }
             ret.push_back(std::move(sig));
-            CPubKey pubkey;
-            provider.GetPubKey(keyID, pubkey);
             ret.push_back(ToByteVector(pubkey));
             return true;
         }
@@ -152,7 +156,7 @@ static bool SignStep(const SigningProvider &provider,
             for (size_t i = 1; i < vSolutions.size() - 1; ++i) {
                 CPubKey pubkey = CPubKey(vSolutions[i]);
                 if (ret.size() < required + 1 &&
-                    CreateSig(creator, sigdata, provider, sig, pubkey.GetID(),
+                    CreateSig(creator, sigdata, provider, sig, pubkey,
                               scriptPubKey)) {
                     ret.push_back(std::move(sig));
                 }
