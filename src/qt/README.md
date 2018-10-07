@@ -64,8 +64,9 @@ Represents the view to a single wallet.
 * `callback.h`
 * `guiconstants.h`: UI colors, app name, etc
 * `guiutil.h`: several helper functions
-* `macdockiconhandler.(h/cpp)`
-* `macdockiconhandler.(h/cpp)`: display notifications in macOS
+* `macdockiconhandler.(h/mm)`: macOS dock icon handler
+* `macnotificationhandler.(h/mm)`: display notifications in macOS
+* `macos_appnap.(h/mm)`: disable appnap during sync in macOS
 
 ## Contribute
 
