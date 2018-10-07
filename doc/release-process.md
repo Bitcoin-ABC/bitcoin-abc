@@ -24,6 +24,7 @@ Bitcoin ABC Release Process
     - Regenerate manpages (run `contrib/devtools/gen-manpages.sh`, or for out-of-tree builds run
       `BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh`).
     - Update seeds as per [contrib/seeds/README.md](/contrib/seeds/README.md).
+    - Update [`src/chainparams.cpp`](/src/chainparams.cpp) m_assumed_blockchain_size and m_assumed_chain_state_size with the current size plus some overhead.
 
 4. Add git tag for release
     a. Create the tag: `git tag vM.m.r` (M = major version, m = minor version, r = revision)

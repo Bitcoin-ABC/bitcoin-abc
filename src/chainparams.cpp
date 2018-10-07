@@ -192,6 +192,8 @@ public:
         netMagic[3] = 0xe8;
         nDefaultPort = 8333;
         nPruneAfterHeight = 100000;
+        m_assumed_blockchain_size = 200;
+        m_assumed_chain_state_size = 3;
 
         genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1,
                                      50 * COIN);
@@ -414,6 +416,8 @@ public:
         netMagic[3] = 0xf4;
         nDefaultPort = 18333;
         nPruneAfterHeight = 1000;
+        m_assumed_blockchain_size = 20;
+        m_assumed_chain_state_size = 2;
 
         genesis =
             CreateGenesisBlock(1296688602, 414098458, 0x1d00ffff, 1, 50 * COIN);
@@ -590,6 +594,8 @@ public:
         netMagic[3] = 0xfa;
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
+        m_assumed_blockchain_size = 0;
+        m_assumed_chain_state_size = 0;
 
         genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();

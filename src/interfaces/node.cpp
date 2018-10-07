@@ -71,6 +71,12 @@ namespace {
         void selectParams(const std::string &network) override {
             SelectParams(network);
         }
+        uint64_t getAssumedBlockchainSize() override {
+            return Params().AssumedBlockchainSize();
+        }
+        uint64_t getAssumedChainStateSize() override {
+            return Params().AssumedChainStateSize();
+        }
         std::string getNetwork() override { return Params().NetworkIDString(); }
         void initLogging() override { InitLogging(); }
         void initParameterInteraction() override { InitParameterInteraction(); }
