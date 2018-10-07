@@ -408,10 +408,6 @@
   "time": 2
  },
  {
-  "name": "rpc_zmq.py",
-  "time": 1
- },
- {
   "name": "wallet_abandonconflict.py",
   "time": 19
  },
