@@ -31,19 +31,25 @@ public:
     }
 
     CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr) {
+        LOCK(cs);
         return CAddrMan::Find(addr, pnId);
     }
 
     CAddrInfo *Create(const CAddress &addr, const CNetAddr &addrSource,
                       int *pnId = nullptr) {
+        LOCK(cs);
         return CAddrMan::Create(addr, addrSource, pnId);
     }
 
-    void Delete(int nId) { CAddrMan::Delete(nId); }
+    void Delete(int nId) {
+        LOCK(cs);
+        CAddrMan::Delete(nId);
+    }
 
     // Simulates connection failure so that we can test eviction of offline
     // nodes
     void SimConnFail(CService &addr) {
+        LOCK(cs);
         int64_t nLastSuccess = 1;
         // Set last good connection in the deep past.
         Good_(addr, true, nLastSuccess);
