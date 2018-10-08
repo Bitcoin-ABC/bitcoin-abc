@@ -90,8 +90,8 @@ bool fDiscover = true;
 bool fListen = true;
 bool fRelayTxes = true;
 CCriticalSection cs_mapLocalHost;
-std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
-static bool vfLimited[NET_MAX] = {};
+std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalHost);
+static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
 
 limitedmap<uint256, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 
@@ -728,7 +728,10 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.nRecvBytes = nRecvBytes;
     }
     stats.fWhitelisted = fWhitelisted;
-    stats.minFeeFilter = minFeeFilter;
+    {
+        LOCK(cs_feeFilter);
+        stats.minFeeFilter = minFeeFilter;
+    }
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer. Merely reporting
@@ -905,9 +908,8 @@ const uint256 &CNetMessage::GetMessageHash() const {
     return data_hash;
 }
 
-// requires LOCK(cs_vSend)
-size_t CConnman::SocketSendData(CNode *pnode) const {
-    AssertLockHeld(pnode->cs_vSend);
+size_t CConnman::SocketSendData(CNode *pnode) const
+    EXCLUSIVE_LOCKS_REQUIRED(pnode->cs_vSend) {
     size_t nSentSize = 0;
     size_t nMsgCount = 0;
 
