@@ -565,6 +565,7 @@ void populateRPCTypeChangeIssuer(CMPTransaction& omniObj, UniValue& txobj)
 }
 
 void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirmations){
+    txobj.push_back(Pair("action", omniObj.getAction()));
     switch  (omniObj.getAction()){
         case ERC721Action::ISSUE_ERC721_PROPERTY :
             if (confirmations > 0) {
@@ -585,11 +586,8 @@ void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirm
             break;
         case ERC721Action::TRANSFER_REC721_TOKEN:
         case ERC721Action::DESTROY_ERC721_TOKEN:
-            uint256 propertyid, tokenid;
-            if(mastercore::my_erc721tokens->findTokenByTX(omniObj.getHash(), propertyid, tokenid)){
-                txobj.push_back(Pair("propertyid", propertyid.GetHex()));
-                txobj.push_back(Pair("tokenid", tokenid.GetHex()));
-            }
+            txobj.push_back(Pair("propertyid", omniObj.geterc721propertyid().GetHex()));
+            txobj.push_back(Pair("tokenid", omniObj.geterc721tokenid().GetHex()));
             break;
     }
 }

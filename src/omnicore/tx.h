@@ -211,6 +211,8 @@ public:
     uint256 getHash() const { return txid; }
     unsigned int getType() const { return type; }
     uint8_t getAction() const { return erc721_action;};
+    uint256 geterc721propertyid(){ return erc721_propertyid;}
+    uint256 geterc721tokenid(){ return erc721_tokenid;}
     std::string getTypeString() const { return strTransactionType(getType(), getAction()); }
     unsigned int getProperty() const { return property; }
     unsigned short getVersion() const { return version; }
