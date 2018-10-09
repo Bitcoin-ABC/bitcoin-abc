@@ -808,7 +808,7 @@ UniValue whc_sendfreeze(const Config &config,const JSONRPCRequest &request) {
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_FreezeTokens(propertyId, amount, freezedAddress);
 
-    payload.push_back(0xff);
+    // payload.push_back(0xff);
     // request the wallet build the transaction (and if needed commit it)
     uint256 txid;
     std::string rawHex;
