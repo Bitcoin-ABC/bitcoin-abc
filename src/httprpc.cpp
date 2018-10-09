@@ -24,7 +24,11 @@
 /** WWW-Authenticate to present with 401 Unauthorized response */
 static const char *WWW_AUTH_HEADER_DATA = "Basic realm=\"jsonrpc\"";
 
-/** Simple one-shot callback timer to be used by the RPC mechanism to e.g.
+/** RPC auth failure delay to make brute-forcing expensive */
+static const int64_t RPC_AUTH_BRUTE_FORCE_DELAY = 250;
+
+/**
+ * Simple one-shot callback timer to be used by the RPC mechanism to e.g.
  * re-lock the wallet.
  */
 class HTTPRPCTimer : public RPCTimerBase {
@@ -45,7 +49,9 @@ private:
 class HTTPRPCTimerInterface : public RPCTimerInterface {
 public:
     HTTPRPCTimerInterface(struct event_base *_base) : base(_base) {}
+
     const char *Name() override { return "HTTP"; }
+
     RPCTimerBase *NewTimer(std::function<void(void)> &func,
                            int64_t millis) override {
         return new HTTPRPCTimer(base, func, millis);
@@ -75,8 +81,10 @@ static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
     req->WriteReply(nStatus, strReply);
 }
 
-// This function checks username and password against -rpcauth entries from
-// config file.
+/*
+ * This function checks username and password against -rpcauth entries from
+ * config file.
+ */
 static bool multiUserAuthorized(std::string strUserPass) {
     if (strUserPass.find(":") == std::string::npos) {
         return false;
@@ -291,10 +299,12 @@ bool HTTPRPCRequestProcessor::ProcessHTTPRequest(HTTPRequest *req) {
         LogPrintf("ThreadRPCServer incorrect password attempt from %s\n",
                   req->GetPeer().ToString());
 
-        /* Deter brute-forcing.
+        /**
+         * Deter brute-forcing.
          * If this results in a DoS the user really shouldn't have their RPC
-         * port exposed. */
-        MilliSleep(250);
+         * port exposed.
+         */
+        MilliSleep(RPC_AUTH_BRUTE_FORCE_DELAY);
 
         req->WriteHeader("WWW-Authenticate", WWW_AUTH_HEADER_DATA);
         req->WriteReply(HTTP_UNAUTHORIZED);
@@ -368,7 +378,9 @@ static bool InitRPCAuthentication(Config &config) {
 bool StartHTTPRPC(Config &config,
                   HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     LogPrint(BCLog::RPC, "Starting HTTP RPC server\n");
-    if (!InitRPCAuthentication(config)) return false;
+    if (!InitRPCAuthentication(config)) {
+        return false;
+    }
 
     const std::function<bool(Config &, HTTPRequest *, const std::string &)>
         &rpcFunction =
