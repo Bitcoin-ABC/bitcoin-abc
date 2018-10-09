@@ -185,11 +185,6 @@ private:
     int logicMath_ERC721_transfertoken();
     int logicMath_ERC721_destroytoken();
 
-    /**
-     * Logic helpers
-     */
-    int logicHelper_CrowdsaleParticipation();
-
 public:
     //! DEx and MetaDEx action values
     enum ActionTypes

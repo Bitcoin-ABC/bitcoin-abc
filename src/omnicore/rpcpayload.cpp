@@ -414,11 +414,12 @@ UniValue whc_createpayload_issueERC721property(const Config &config,const JSONRP
                 + HelpExampleRpc("whc_createpayload_issueERC721property", "\"name\" \"symbol\" \"data\" \"url\" \"number\" ")
         );
 
-    std::string propertyName = request.params[1].get_str();
-    std::string propertySymbol = request.params[2].get_str();
-    std::string propertyData = request.params[3].get_str();
-    std::string propertyURL = request.params[4].get_str();
-    uint64_t totalNumber = ParseStrToUInt64(request.params[5].get_str());
+    int i = 0;
+    std::string propertyName = request.params[i++].get_str();
+    std::string propertySymbol = request.params[i++].get_str();
+    std::string propertyData = request.params[i++].get_str();
+    std::string propertyURL = request.params[i++].get_str();
+    uint64_t totalNumber = ParseStrToUInt64(request.params[i++].get_str());
 
     // perform checks
     RequirePropertyName(propertyName);

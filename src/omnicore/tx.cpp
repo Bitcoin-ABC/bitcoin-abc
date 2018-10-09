@@ -1083,10 +1083,10 @@ int CMPTransaction::logicMath_burnBCHGetWHC()
             PrintToLog("Exodus Fundraiser tx detected, tx %s generated %s\n", txid.ToString(), amountGenerated);
             return 0;
         }{
-		PrintToLog("not have enough bch : %d\n", burnBCH);
-	}
+		    PrintToLog("not have enough bch : %d\n", burnBCH);
+	    }
     }else{
-	PrintToLog("tx in %d blockHeight, is not in valid range [%d, %d]\n", block, params.GENESIS_BLOCK, params.LAST_EXODUS_BLOCK);
+	    PrintToLog("tx in %d blockHeight, is not in valid range [%d, %d]\n", block, params.GENESIS_BLOCK, params.LAST_EXODUS_BLOCK);
 	}
 
     return PKT_ERROR_BURN - 2;
@@ -1124,7 +1124,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
         blockHash = pindex->GetBlockHash();
     }
 
-    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+    if (!IsERC721TransactionTypeAllowed(block, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 property at block %d\n",
                    __func__,
                    type,
@@ -1181,7 +1181,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
         blockHash = pindex->GetBlockHash();
     }
 
-    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+    if (!IsERC721TransactionTypeAllowed(block, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 property at block %d\n",
                    __func__,
                    type,
@@ -1281,7 +1281,7 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
         blockHash = pindex->GetBlockHash();
     }
 
-    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+    if (!IsERC721TransactionTypeAllowed(block, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for transfer ERC721 token at block %d\n",
                    __func__,
                    type,
@@ -1338,7 +1338,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
         blockHash = pindex->GetBlockHash();
     }
 
-    if (!IsTransactionTypeAllowed(block, ecosystem, type, version)) {
+    if (!IsERC721TransactionTypeAllowed(block, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for transfer ERC721 token at block %d\n",
                    __func__,
                    type,
@@ -1387,90 +1387,6 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
 
     return 0;
 }
-
-/** Passive effect of crowdsale participation. */
-/*
-int CMPTransaction::logicHelper_CrowdsaleParticipation()
-{
-    CMPCrowd* pcrowdsale = getCrowd(receiver);
-
-    // No active crowdsale
-    if (pcrowdsale == NULL) {
-        return (PKT_ERROR_CROWD -1);
-    }
-    // Active crowdsale, but not for this property
-    if (pcrowdsale->getCurrDes() != property) {
-        return (PKT_ERROR_CROWD -2);
-    }
-
-    CMPSPInfo::Entry sp;
-    assert(_my_sps->getSP(pcrowdsale->getPropertyId(), sp));
-    PrintToLog("INVESTMENT SEND to Crowdsale Issuer: %s\n", receiver);
-	if(sp.issuer == sender){
-		return (PKT_ERROR_CROWD -2);
-	}
-
-    // Holds the tokens to be credited to the sender and issuer
-    std::pair<int64_t, int64_t> tokens;
-
-    // Passed by reference to determine, if max_tokens has been reached
-    bool close_crowdsale = false;
-
-    // Units going into the calculateFundraiser function must match the unit of
-    // the fundraiser's property_type. By default this means satoshis in and
-    // satoshis out. In the condition that the fundraiser is divisible, but
-    // indivisible tokens are accepted, it must account for .0 Div != 1 Indiv,
-    // but actually 1.0 Div == 100000000 Indiv. The unit must be shifted or the
-    // values will be incorrect, which is what is checked below.
-    bool inflateAmount = isPropertyDivisible(property) ? false : true;
-
-    // Calculate the amounts to credit for this fundraiser
-    calculateFundraiser(inflateAmount, nValue, sp.early_bird, sp.deadline, blockTime,
-            sp.num_tokens, sp.percentage, getTotalTokens(pcrowdsale->getPropertyId()),
-            tokens, close_crowdsale);
-
-    if (msc_debug_sp) {
-        PrintToLog("%s(): granting via crowdsale to user: %s %d (%s)\n",
-                __func__, FormatMP(property, tokens.first), property, strMPProperty(property));
-        PrintToLog("%s(): granting via crowdsale to issuer: %s %d (%s)\n",
-                __func__, FormatMP(property, tokens.second), property, strMPProperty(property));
-    }
-
-    // Update the crowdsale object
-    pcrowdsale->incTokensUserCreated(tokens.first);
-    pcrowdsale->incTokensIssuerCreated(tokens.second);
-
-    // Data to pass to txFundraiserData
-    int64_t txdata[] = {(int64_t) nValue, blockTime, tokens.first, tokens.second};
-    std::vector<int64_t> txDataVec(txdata, txdata + sizeof(txdata) / sizeof(txdata[0]));
-
-    // Insert data about crowdsale participation
-    pcrowdsale->insertDatabase(txid, txDataVec);
-
-    // Credit tokens for this fundraiser
-    if (tokens.first > 0) {
-        assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
-    }
-    if (tokens.second > 0) {
-        assert(update_tally_map(receiver, pcrowdsale->getPropertyId(), tokens.second, BALANCE));
-    }
-
-    // Number of tokens has changed, update fee distribution thresholds
-    NotifyTotalTokensChanged(pcrowdsale->getPropertyId(), block);
-
-    // Close crowdsale, if we hit MAX_TOKENS
-    if (close_crowdsale) {
-        eraseMaxedCrowdsale(receiver, blockTime, block);
-    }
-
-    // Indicate, if no tokens were transferred
-    if (!tokens.first && !tokens.second) {
-        return (PKT_ERROR_CROWD -3);
-    }
-
-    return 0;
-}
-*/
 
 /** Tx 0 */
 int CMPTransaction::logicMath_SimpleSend()
@@ -2609,17 +2525,6 @@ int CMPTransaction::logicMath_GrantTokens()
 
     // Move the tokens
     assert(update_tally_map(receiver, property, nValue, BALANCE));
-
-    /**
-     * As long as the feature to disable the side effects of "granting tokens"
-     * is not activated, "granting tokens" can trigger crowdsale participations.
-     */
-    /*
-    if (!IsFeatureActivated(FEATURE_GRANTEFFECTS, block)) {
-        // Is there an active crowdsale running from this recepient?
-        logicHelper_CrowdsaleParticipation();
-    }
-    */
 
     NotifyTotalTokensChanged(property, block);
 

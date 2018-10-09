@@ -527,8 +527,7 @@ bool IsFeatureActivated(uint16_t featureId, int transactionBlock)
  */
 bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType, uint16_t version)
 {
-    //change_002
-
+    /*
     const std::vector<TransactionRestriction>& vTxRestrictions = ConsensusParams().GetRestrictions();
 
     for (std::vector<TransactionRestriction>::const_iterator it = vTxRestrictions.begin(); it != vTxRestrictions.end(); ++it)
@@ -541,13 +540,23 @@ bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType,
         if (OMNI_PROPERTY_BTC == txProperty && !entry.allowWildcard) {
             continue;
         }
-        // transactions are not restricted in the test ecosystem
-        if (isTestEcosystemProperty(txProperty)) {
-            return true;
-        }
+
         if (txBlock >= entry.activationBlock) {
             return true;
         }
+    }
+    */
+    return true;
+}
+
+bool IsERC721TransactionTypeAllowed(int txblock, uint16_t txtype, uint16_t version){
+    const CConsensusParams& param = ConsensusParams();
+    if(txtype != WHC_TYPE_ERC721){
+        return false;
+    }
+
+    if(version == MP_TX_PKT_V0 && txblock > param.ERC721_BLOCK){
+        return true;
     }
 
     return false;
