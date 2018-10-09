@@ -46,8 +46,8 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ ! -z "${DISABLE_WALLET}" ]]; then
 	echo "Skipping rpc testing due to disabled wallet functionality."
 elif [[ "${BRANCH}" == "master" ]]; then
-	./test/functional/test_runner.py --extended --jobs=${THREADS} --tmpdirprefix=output
+	./test/functional/test_runner.py --extended --tmpdirprefix=output
 else
-	./test/functional/test_runner.py --jobs=${THREADS} --tmpdirprefix=output
+	./test/functional/test_runner.py --tmpdirprefix=output
 fi
 
