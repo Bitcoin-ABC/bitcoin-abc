@@ -2038,9 +2038,9 @@ int mastercore_init()
         return 0;
     }
 
-    PrintToConsole("Initializing Omni Core v%s [%s]\n", OmniCoreVersion(), Params().NetworkIDString());
+    PrintToConsole("Initializing Wormhole Core v%s [%s]\n", OmniCoreVersion(), Params().NetworkIDString());
 
-    PrintToLog("\nInitializing Omni Core v%s [%s]\n", OmniCoreVersion(), Params().NetworkIDString());
+    PrintToLog("\nInitializing Wormhole Core v%s [%s]\n", OmniCoreVersion(), Params().NetworkIDString());
     PrintToLog("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
 
     InitDebugLogLevels();
@@ -2157,7 +2157,7 @@ int mastercore_init()
 
     // load the state of any freeable properties and frozen addresses from levelDB
     ////change_001
-    /*
+    
     if (!p_txlistdb->LoadFreezeState(nWaterlineBlock)) {
         std::string strShutdownReason = "Failed to load freeze state from levelDB.  It is unsafe to continue.\n";
         PrintToLog(strShutdownReason);
@@ -2165,7 +2165,7 @@ int mastercore_init()
             AbortNode(strShutdownReason, strShutdownReason);
         }
     }
-    */
+    
     // initial scan
     s_stolistdb->deleteAboveBlock(nWaterlineBlock);
 	PrintToLog("init scan current system from %d ", nWaterlineBlock );
@@ -2492,6 +2492,51 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
             delete it;
             return true;
         }
+        if(txtype == MSC_TYPE_CREATE_PROPERTY_MANUAL)
+        {
+            uint256 txid = uint256S(it->key().ToString());
+            uint256 blockHash;
+            CTransactionRef wtx;
+            CMPTransaction mp_obj;
+            if (!GetTransaction(GetConfig(), TxId(const_cast<const uint256&>(txid)), wtx, blockHash, true)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: tx in levelDB but does not exist.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (blockHash.IsNull() || (NULL == GetBlockIndex(blockHash))) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed to retrieve block hash.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            CBlockIndex* pBlockIndex = GetBlockIndex(blockHash);
+            if (NULL == pBlockIndex) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed to retrieve block index.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            int txBlockHeight = pBlockIndex->nHeight;
+            if (txBlockHeight > blockHeight) {
+                PrintToLog("ERROR: While check for freeze transaction %s: transaction is in the future.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (0 != ParseTransaction(*(wtx.get()), txBlockHeight, 0, mp_obj)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (!mp_obj.interpret_Transaction()) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed interpret_Transaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if(mp_obj.getFreezeflag())
+            {
+                delete it;
+                return true;
+            }
+        }
+
     }
 
     delete it;
@@ -2512,8 +2557,12 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
         boost::split(vstr, itData, boost::is_any_of(":"), token_compress_on);
         if (4 != vstr.size()) continue;
         uint16_t txtype = atoi(vstr[2]);
+        /*
+         * if (txtype != MSC_TYPE_FREEZE_PROPERTY_TOKENS && txtype != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS &&
+                txtype != MSC_TYPE_ENABLE_FREEZING && txtype != MSC_TYPE_DISABLE_FREEZING) continue;
+        */
         if (txtype != MSC_TYPE_FREEZE_PROPERTY_TOKENS && txtype != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS &&
-            txtype != MSC_TYPE_ENABLE_FREEZING && txtype != MSC_TYPE_DISABLE_FREEZING) continue;
+            txtype != MSC_TYPE_CREATE_PROPERTY_MANUAL) continue;
         if (atoi(vstr[0]) != 1) continue; // invalid, ignore
         uint256 txid = uint256S(it->key().ToString());
         int txPosition = p_OmniTXDB->FetchTransactionPosition(txid);
@@ -2556,8 +2605,11 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             PrintToLog("ERROR: While loading freeze transaction %s: failed interpret_Transaction.\n", hash.GetHex());
             return false;
         }
+        if(MSC_TYPE_CREATE_PROPERTY_MANUAL == mp_obj.getType() && !mp_obj.getFreezeflag()) continue;
+
         if (MSC_TYPE_FREEZE_PROPERTY_TOKENS != mp_obj.getType() && MSC_TYPE_UNFREEZE_PROPERTY_TOKENS != mp_obj.getType() &&
-            MSC_TYPE_ENABLE_FREEZING != mp_obj.getType() && MSC_TYPE_DISABLE_FREEZING != mp_obj.getType()) {
+            MSC_TYPE_ENABLE_FREEZING != mp_obj.getType() && MSC_TYPE_DISABLE_FREEZING != mp_obj.getType() &&
+            MSC_TYPE_CREATE_PROPERTY_MANUAL != mp_obj.getType()) {
             PrintToLog("ERROR: While loading freeze transaction %s: levelDB type mismatch, not a freeze transaction.\n", hash.GetHex());
             return false;
         }
@@ -3763,7 +3815,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 
         // Check if any freeze related transactions would be rolled back - if so wipe the state and startclean
         //change_001
-        // bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
+        bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
 
         // NOTE: The blockNum parameter is inclusive, so deleteAboveBlock(1000) will delete records in block 1000 and above.
         p_txlistdb->isMPinBlockRange(pBlockIndex->nHeight, reorgRecoveryMaxHeight, true);
@@ -3776,7 +3828,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
         nWaterlineBlock = ConsensusParams().GENESIS_BLOCK - 1;
 
         //change_001
-        /*
+        
         if (reorgContainsFreeze) {
            PrintToLog("Reorganization containing freeze related transactions detected, forcing a reparse...\n");
            clear_all_state(); // unable to reorg freezes safely, clear state and reparse
@@ -3788,7 +3840,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
             } else {
                 nWaterlineBlock = best_state_block;
             }
-        }*/
+        }
 
         int best_state_block = load_most_relevant_state();
         if (best_state_block < 0) {

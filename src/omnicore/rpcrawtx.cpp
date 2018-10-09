@@ -126,18 +126,10 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
                         "fees\n"
                         "\nResult:\n"
                         "\"hex\"             (string) The transaction hash in hex\n"
-                        "\nExamples:\n"
-                        "\nCreate a transaction\n" +
-                HelpExampleCli("createrawtransaction",
-                               "\"[{\\\"txid\\\" : "
-                                       "\\\"mytxid\\\",\\\"vout\\\":0}]\" "
-                                       "\"{\\\"myaddress\\\":0.01}\"") +
-                "Sign the transaction, and get back the hex\n" +
-                HelpExampleCli("signrawtransaction", "\"myhex\"") +
                 "\nSend the transaction (signed hex)\n" +
-                HelpExampleCli("sendrawtransaction", "\"signedhex\"") +
+                HelpExampleCli("whc_sendrawtransaction", "\"hexstring\"") +
                 "\nAs a json rpc call\n" +
-                HelpExampleRpc("sendrawtransaction", "\"signedhex\""));
+                HelpExampleRpc("whc_sendrawtransaction", "\"hexstring\""));
     }
 
     LOCK(cs_main);
@@ -151,6 +143,28 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
 
     CTransactionRef tx(MakeTransactionRef(std::move(mtx)));
     const uint256 &txid = tx->GetId();
+
+    int blockHeight = mastercore::GetHeight();
+    CMPTransaction mp_obj;
+    int pop_ret = ParseTransaction(*tx.get(), blockHeight, 0, mp_obj);
+    if (0 == pop_ret) {
+		mp_obj.unlockLogic();
+        if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
+        }
+
+        if (mp_obj.getSender().empty() == true) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "The transaction no have sender");
+        }
+
+        int interp_ret = mp_obj.interpretPacket();
+        if (interp_ret < 0) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error_str(interp_ret));
+        }
+    } else{
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
+	}
+
 
     bool fLimitFree = false;
     Amount nMaxRawTxFee = maxTxFee;
@@ -191,29 +205,6 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
                            "transaction already in block chain");
     }
 
-    int blockHeight = mastercore::GetHeight();
-    CMPTransaction mp_obj;
-    int pop_ret = ParseTransaction(*tx.get(), blockHeight, 0, mp_obj);
-    if (0 == pop_ret) {
-        if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
-            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
-        }
-
-        if (mp_obj.getSender().empty() == true) {
-            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "The transaction no have sender");
-        }
-
-        int interp_ret = mp_obj.interpretPacket();
-        if (interp_ret < 0) {
-            mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error_str(interp_ret));
-        }
-    } else{
-        mempool.removeRecursive(*tx.get(), MemPoolRemovalReason::UNKNOWN);
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
-    }
     if (!g_connman) {
         throw JSONRPCError(
                 RPC_CLIENT_P2P_DISABLED,
@@ -441,7 +432,7 @@ static const CRPCCommand commands[] =
     { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn,  true, {}},
 //    { "omni layer (raw transactions)", "whc_createrawtx_multisig",  &whc_createrawtx_multisig,  true, {}},
-//    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
+    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change,    true, {}},

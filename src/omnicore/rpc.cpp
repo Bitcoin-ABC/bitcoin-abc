@@ -140,21 +140,19 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
     nReserved += getMPbalance(address, property, METADEX_RESERVE);
     nReserved += getMPbalance(address, property, SELLOFFER_RESERVE);
 
-    int64_t nFrozen = getUserFrozenMPbalance(address, property);
-
     if (divisible) {
         balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, divisible)));
         balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, divisible)));
-        if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
+        //if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, divisible)));
     } else {
         if(property == OMNI_PROPERTY_WHC){
             balance_obj.push_back(Pair("balance", FormatDivisibleMP(nAvailable, PRICE_PRECISION)));
             balance_obj.push_back(Pair("reserved", FormatDivisibleMP(nReserved, PRICE_PRECISION)));
-            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
+            //if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
         }else  {
             balance_obj.push_back(Pair("balance", FormatIndivisibleMP(nAvailable)));
             balance_obj.push_back(Pair("reserved", FormatIndivisibleMP(nReserved)));
-            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
+            //if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
         }
     }
 
@@ -163,6 +161,23 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
     } else {
         return true;
     }
+}
+
+bool FrozenBalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, int divisible)
+{
+    int64_t nFrozen = getUserFrozenMPbalance(address, property);
+    bool flag = (nFrozen > 0);
+    balance_obj.push_back(Pair("frozen", flag));
+    if (divisible) {
+        balance_obj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, divisible)));
+    } else {
+        if(property == OMNI_PROPERTY_WHC){
+            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
+        }else  {
+            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
+        }
+    }
+    return true;
 }
 
 // Obtains details of a fee distribution
@@ -398,9 +413,10 @@ UniValue whc_getfeeshare(const Config &config, const JSONRPCRequest &request)
 
     OwnerAddrType receiversSet;
     if (ecosystem == 1) {
-        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_WHC, COIN.GetSatoshis());
+        //todo !!! need fix this blockHeight, when this function is used
+        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_WHC, COIN.GetSatoshis(), 0);
     } else {
-        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_TWHC, COIN.GetSatoshis());
+        receiversSet = STO_GetReceivers("FEEDISTRIBUTION", OMNI_PROPERTY_TWHC, COIN.GetSatoshis(), 0);
     }
 
     for (OwnerAddrType::reverse_iterator it = receiversSet.rbegin(); it != receiversSet.rend(); ++it) {
@@ -788,6 +804,165 @@ UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
     BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 
     return balanceObj;
+}
+
+UniValue whc_getfrozenbalance(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_getfrozenbalance \"address\" propertyid\n"
+                "\nReturns the frozen token balance for a given address and property.\n"
+                "\nArguments:\n"
+                "1. address              (string, required) the address\n"
+                "2. propertyid           (number, required) the property identifier\n"
+                "\nResult:\n"
+                "{\n"
+                "  \"frozen\" : true|false,        (boolean) whether the token supply is fixed\n"
+                "  \"balance\" : \"n.nnnnnnnn\",   (string) the frozen balance of the address\n"
+                "}\n"
+                "\nExamples:\n"
+                + HelpExampleCli("whc_getfrozenbalance", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\" 1")
+                + HelpExampleRpc("whc_getfrozenbalance", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\", 1")
+        );
+
+    std::string address = ParseAddress(request.params[0]);
+    uint32_t propertyId = ParsePropertyId(request.params[1]);
+
+    RequireExistingProperty(propertyId);
+    RequireManagedProperty(propertyId);
+
+    UniValue balanceObj(UniValue::VOBJ);
+    FrozenBalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
+
+    return balanceObj;
+}
+
+UniValue whc_getfrozenbalanceforid(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_getfrozenbalanceforid  propertyid\n"
+                "\nReturns the frozen token balance for a given property.\n"
+                "\nArguments:\n"
+                "1. propertyid           (number, required) the property identifier\n"
+                "\nResult:\n"
+                "{\n"
+                "    \"address\" : \"address\",      (string) the address\n"
+                "    \"balance\" : \"n.nnnnnnnn\",   (string) the frozen balance of the address\n"
+                "}\n"
+                "  ...\n"
+                "\nExamples:\n"
+                + HelpExampleCli("whc_getfrozenbalanceforid", "1")
+                + HelpExampleRpc("whc_getfrozenbalanceforid", "3")
+        );
+
+    uint32_t propertyId = ParsePropertyId(request.params[0]);
+
+    RequireExistingProperty(propertyId);
+    RequireManagedProperty(propertyId);
+    /*
+    int currentBlock = GetHeight();
+    LOCK(cs_tally);
+    isFreezingEnabled(propertyId, currentBlock);
+     */
+    UniValue response(UniValue::VARR);
+    int mtype = getPropertyType(propertyId); // we want to check this BEFORE the loop
+    int64_t nFrozen = 0;
+    LOCK(cs_tally);
+
+    for (std::unordered_map<std::string, CMPTally>::iterator it = mp_tally_map.begin(); it != mp_tally_map.end(); ++it) {
+        uint32_t id = 0;
+        bool includeFrozenAddress = false;
+        std::string address = it->first;
+        (it->second).init();
+        while (0 != (id = (it->second).next())) {
+            if (id == propertyId) {
+                nFrozen = getUserFrozenMPbalance(address, propertyId);
+                if(nFrozen > 0){
+                    includeFrozenAddress = true;
+                }
+                break;
+            }
+        }
+        if (!includeFrozenAddress) {
+            continue; // ignore this address, has never transacted in this propertyId
+        }
+        UniValue balanceObj(UniValue::VOBJ);
+        balanceObj.push_back(Pair("address", address));
+
+        if (mtype) {
+            balanceObj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, mtype)));
+        } else {
+            if(propertyId == OMNI_PROPERTY_WHC){
+                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
+            }else  {
+                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
+            }
+        }
+        response.push_back(balanceObj);
+
+    }
+
+    return response;
+}
+UniValue whc_getfrozenbalanceforaddress(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_getfrozenbalanceforaddress \"address\"\n"
+                "\nReturns a list of all frozen token balances for a given address.\n"
+                "\nArguments:\n"
+                "1. address                  (string, required) the address\n"
+                "\nResult:\n"
+                "[                           (array of JSON objects)\n"
+                "  {\n"
+                "    \"propertyid\" : n,             (number) the property identifier\n"
+                "    \"balance\" : \"n.nnnnnnnn\",   (string) the frozen balance of the address\n"
+                "  },\n"
+                "  ...\n"
+                "]\n"
+                "\nExamples:\n"
+                + HelpExampleCli("whc_getfrozenbalanceforaddress", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\"")
+                + HelpExampleRpc("whc_getfrozenbalanceforaddress", "\"qqxyplcfuxnm9z4usma2wmnu4kw9mexeug580mc3lx\"")
+        );
+
+    std::string address = ParseAddress(request.params[0]);
+
+    UniValue response(UniValue::VARR);
+
+    LOCK(cs_tally);
+
+    CMPTally* addressTally = getTally(address);
+
+    if (NULL == addressTally) { // addressTally object does not exist
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Address not found");
+    }
+
+    addressTally->init();
+    int64_t nFrozen = 0;
+    uint32_t propertyId = 0;
+
+    while (0 != (propertyId = addressTally->next())) {
+        nFrozen = getUserFrozenMPbalance(address, propertyId);
+        if(0 == nFrozen) continue;
+        UniValue balanceObj(UniValue::VOBJ);
+        balanceObj.push_back(Pair("propertyid", (uint64_t) propertyId));
+        int mtype = getPropertyType(propertyId);
+
+        if (mtype) {
+            balanceObj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, mtype)));
+        } else {
+            if(propertyId == OMNI_PROPERTY_WHC){
+                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
+            }else  {
+                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
+            }
+        }
+
+        response.push_back(balanceObj);
+    }
+
+    return response;
 }
 
 UniValue whc_getallbalancesforid(const Config &config, const JSONRPCRequest &request)
@@ -2344,6 +2519,9 @@ static const CRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getactivations",            &omni_getactivations,             true  , {}},
     { "omni layer (data retrieval)", "whc_getallbalancesforid",       &whc_getallbalancesforid,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalance",                &whc_getbalance,                 false , {}},
+    { "omni layer (data retrieval)", "whc_getfrozenbalance",                &whc_getfrozenbalance,                 false , {}},
+    { "omni layer (data retrieval)", "whc_getfrozenbalanceforid",                &whc_getfrozenbalanceforid,        false , {}},
+    { "omni layer (data retrieval)", "whc_getfrozenbalanceforaddress", &whc_getfrozenbalanceforaddress,          false , {}},
     { "omni layer (data retrieval)", "whc_gettransaction",            &whc_gettransaction,             false , {}},
     { "omni layer (data retrieval)", "whc_getproperty",               &whc_getproperty,                false , {}},
     { "omni layer (data retrieval)", "whc_listproperties",            &whc_listproperties,             false , {}},

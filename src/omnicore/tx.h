@@ -44,6 +44,7 @@ private:
     unsigned int type;
     unsigned short version; // = MP_TX_PKT_V0;
 
+    enum CashHashType : uint8_t { P2PKH_TYPE = 0, P2SH_TYPE = 1 };
     // SimpleSend, SendToOwners, TradeOffer, MetaDEx, AcceptOfferBTC,
     // CreatePropertyFixed, CreatePropertyVariable, GrantTokens, RevokeTokens
     uint64_t nValue;
@@ -71,6 +72,8 @@ private:
     uint64_t deadline;
     unsigned char early_bird;
     unsigned char percentage;
+    //just for managed token，default 0
+    unsigned char ucFreezingFlag;
 	uint64_t totalCrowsToken;
 
     // MetaDEx
@@ -188,6 +191,7 @@ public:
     std::string getTypeString() const { return strTransactionType(getType()); }
     unsigned int getProperty() const { return property; }
     unsigned short getVersion() const { return version; }
+    unsigned char getFreezeflag() const {return ucFreezingFlag; }
     unsigned short getPropertyType() const { return prop_type; }
     uint64_t getFeePaid() const { return tx_fee_paid; }
     std::string getSender() const { return sender; }

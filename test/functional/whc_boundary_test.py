@@ -118,7 +118,7 @@ class WhcNegtiveTest(BitcoinTestFramework):
         try:
             ret = self.nodes[0].listunspent(1)
             self.nodes[0].whc_createrawtx_input("", ret[0]["txid"], ret[0]["vout"])
-            tx = self.nodes[0].whc_createpayload_issuancefixed(1, 3, 0, "", "", "", "", "", "")
+            tx = self.nodes[0].whc_createpayload_issuancefixed(1, 3, 0, "", "", "2ec", "", "", "")
         except JSONRPCException as e:
             assert str(e) == "Invalid amount (-3)"
 
@@ -152,7 +152,7 @@ class WhcNegtiveTest(BitcoinTestFramework):
             self.nodes[0].whc_createrawtx_input("", ret[0]["txid"], ret[0]["vout"])
             deadline = int(time.mktime(datetime.datetime.now().timetuple())) + 86400
             tx = self.nodes[0].whc_sendissuancecrowdsale(addr0, 1, 3, 0, "",
-                                                         "", "", "",
+                                                         "", "asdqw", "",
                                                          "", 1, "100000000", deadline,
                                                          10, 0, "")
         except JSONRPCException as e:

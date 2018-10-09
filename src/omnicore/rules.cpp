@@ -168,6 +168,7 @@ CMainConsensusParams::CMainConsensusParams()
     MAX_ACTIVATION_BLOCKS = 12288; // ~12 weeks
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 4096; // ~4 weeks
+    WHC_FREEZENACTIVATE_BLOCK = 555000;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 322000;
@@ -180,6 +181,7 @@ CMainConsensusParams::CMainConsensusParams()
     MSC_SP_BLOCK = 297110;
     MSC_MANUALSP_BLOCK = 323230;
     MSC_STO_BLOCK = 342650;
+    MSC_STO_DISABLE_BURNADDR = 548338;
     MSC_METADEX_BLOCK = 400000;
     MSC_SEND_ALL_BLOCK = 395000;
     MSC_BET_BLOCK = 999999;
@@ -209,6 +211,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     MAX_ACTIVATION_BLOCKS = 999999;
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 0;
+    WHC_FREEZENACTIVATE_BLOCK = 0;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 0;
@@ -221,6 +224,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     MSC_SP_BLOCK = 0;
     MSC_MANUALSP_BLOCK = 0;
     MSC_STO_BLOCK = 0;
+    MSC_STO_DISABLE_BURNADDR = 1250000;
     MSC_METADEX_BLOCK = 0;
     MSC_SEND_ALL_BLOCK = 0;
     MSC_BET_BLOCK = 999999;
@@ -250,6 +254,7 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     MAX_ACTIVATION_BLOCKS = 10;
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 10;
+    WHC_FREEZENACTIVATE_BLOCK = 0;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 0;
@@ -262,6 +267,7 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     MSC_SP_BLOCK = 0;
     MSC_MANUALSP_BLOCK = 0;
     MSC_STO_BLOCK = 0;
+    MSC_STO_DISABLE_BURNADDR = 100;
     MSC_METADEX_BLOCK = 0;
     MSC_SEND_ALL_BLOCK = 0;
     MSC_BET_BLOCK = 999999;

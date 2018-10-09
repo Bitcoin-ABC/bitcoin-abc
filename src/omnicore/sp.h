@@ -132,7 +132,6 @@ public:
         int getPrecision() const;
         void print() const;
     };
-
 private:
     // implied version of OMNI and TOMNI so they don't hit the leveldb
     Entry implied_omni;

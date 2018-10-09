@@ -91,6 +91,8 @@ public:
     //! Waiting period after enabling freezing before addresses may be frozen
     int OMNI_FREEZE_WAIT_PERIOD;
 
+    //! Block to activate wormhole ERC20 freezing function for managed token
+    int WHC_FREEZENACTIVATE_BLOCK;
     //! Block to enable pay-to-pubkey-hash support
     int PUBKEYHASH_BLOCK;
     //! Block to enable pay-to-script-hash support
@@ -112,6 +114,8 @@ public:
     int MSC_MANUALSP_BLOCK;
     //! Block to enable send-to-owners transactions
     int MSC_STO_BLOCK;
+    //! Block to disable burnAddr participate send-to-owners transactions
+    int MSC_STO_DISABLE_BURNADDR;
     //! Block to enable MetaDEx transactions
     int MSC_METADEX_BLOCK;
     //! Block to enable "send all" transactions

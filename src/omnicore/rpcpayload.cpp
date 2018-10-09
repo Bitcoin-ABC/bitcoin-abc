@@ -34,7 +34,6 @@ UniValue whc_createpayload_particrowdsale(const Config &config,const JSONRPCRequ
         );
 	
     int64_t amount = ParseAmount(request.params[0], PRICE_PRECISION);
-
     std::vector<unsigned char> payload = CreatePayload_PartiCrowsale(OMNI_PROPERTY_WHC, amount);
 
     return HexStr(payload.begin(), payload.end());
@@ -62,12 +61,7 @@ UniValue whc_createpayload_simplesend(const Config &config,const JSONRPCRequest 
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount;
-    if (propertyId == OMNI_PROPERTY_WHC) {
-        amount = ParseAmount(request.params[1], PRICE_PRECISION);
-    } else{
-        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
-    }
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     std::vector<unsigned char> payload = CreatePayload_SimpleSend(propertyId, amount);
 
     return HexStr(payload.begin(), payload.end());
@@ -195,12 +189,7 @@ UniValue whc_createpayload_sto(const Config &config,const JSONRPCRequest &reques
 
     uint32_t propertyId = ParsePropertyId(request.params[0]);
     RequireExistingProperty(propertyId);
-    int64_t amount;
-    if (propertyId == OMNI_PROPERTY_WHC){
-        amount = ParseAmount(request.params[1], PRICE_PRECISION);
-    } else{
-        amount = ParseAmount(request.params[1], getPropertyType(propertyId));
-    }
+    int64_t amount = ParseAmount(request.params[1], getPropertyType(propertyId));
     uint32_t distributionPropertyId = (request.params.size() > 2) ? ParsePropertyId(request.params[2]) : propertyId;
     std::vector<unsigned char> payload = CreatePayload_SendToOwners(propertyId, amount, distributionPropertyId);
 
@@ -242,11 +231,11 @@ UniValue whc_createpayload_issuancefixed(const Config &config,const JSONRPCReque
     std::string name = ParseText(request.params[5]);
     std::string url = ParseText(request.params[6]);
     std::string data = ParseText(request.params[7]);
-    int64_t amount = ParseAmount(request.params[8], type);
 
+    RequirePropertyType(type);
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
-	RequirePropertyType(type);
+    int64_t amount = ParseAmount(request.params[8], type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
 
@@ -298,7 +287,6 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     int64_t deadline = ParseDeadline(request.params[10]);
     uint8_t earlyBonus = ParseEarlyBirdBonus(request.params[11]);
     uint8_t issuerPercentage = ParseIssuerBonus(request.params[12]);
-    int64_t amount = ParseAmount(request.params[13], type);
 
     RequireTokenPrice(numTokens);
     RequireIssuerPercentage(issuerPercentage);
@@ -308,6 +296,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
     RequireExistingProperty(propertyIdDesired);
     RequireSameEcosystem(ecosystem, propertyIdDesired);
 	RequirePropertyType(type);
+    int64_t amount = ParseAmount(request.params[13], type);
 
     std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
 
@@ -685,28 +674,29 @@ UniValue omni_createpayload_disablefreezing(const Config &config,const JSONRPCRe
     return HexStr(payload.begin(), payload.end());
 }
 
-UniValue omni_createpayload_freeze(const Config &config,const JSONRPCRequest &request)
+UniValue whc_createpayload_freeze(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
-            "omni_createpayload_freeze \"toaddress\" propertyid amount \n"
+            "whc_createpayload_freeze \"toaddress\" propertyid amount \n"
 
             "\nCreates the payload to freeze an address for a centrally managed token.\n"
 
             "\nArguments:\n"
             "1. toaddress            (string, required) the address to freeze tokens for\n"
             "2. propertyid           (number, required) the property to freeze tokens for (must be managed type and have freezing option enabled)\n"
-            "3. amount               (number, required) the amount of tokens to freeze (note: this is unused - once frozen an address cannot send any transactions)\n"
+            "3. amount               (string, required) the amount of tokens to freeze (note: this is unused - once frozen an address cannot send any transactions)\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_createpayload_freeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
-            + HelpExampleRpc("omni_createpayload_freeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
+            + HelpExampleCli("whc_createpayload_freeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
+            + HelpExampleRpc("whc_createpayload_freeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
         );
 
     std::string refAddress = ParseAddress(request.params[0]);
+
     uint32_t propertyId = ParsePropertyId(request.params[1]);
     int64_t amount = ParseAmount(request.params[2], getPropertyType(propertyId));
 
@@ -718,25 +708,25 @@ UniValue omni_createpayload_freeze(const Config &config,const JSONRPCRequest &re
     return HexStr(payload.begin(), payload.end());
 }
 
-UniValue omni_createpayload_unfreeze(const Config &config,const JSONRPCRequest &request)
+UniValue whc_createpayload_unfreeze(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
-            "omni_createpayload_unfreeze \"toaddress\" propertyid amount \n"
+            "whc_createpayload_unfreeze \"toaddress\" propertyid amount \n"
 
             "\nCreates the payload to unfreeze an address for a centrally managed token.\n"
 
             "\nArguments:\n"
             "1. toaddress            (string, required) the address to unfreeze tokens for\n"
             "2. propertyid           (number, required) the property to unfreeze tokens for (must be managed type and have freezing option enabled)\n"
-            "3. amount               (number, required) the amount of tokens to unfreeze (note: this is unused)\n"
+            "3. amount               (string, required) the amount of tokens to unfreeze (note: this is unused)\n"
 
             "\nResult:\n"
             "\"payload\"             (string) the hex-encoded payload\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("omni_createpayload_unfreeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
-            + HelpExampleRpc("omni_createpayload_unfreeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
+            + HelpExampleCli("whc_createpayload_unfreeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
+            + HelpExampleRpc("whc_createpayload_unfreeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
         );
 
     std::string refAddress = ParseAddress(request.params[0]);
@@ -773,10 +763,10 @@ static const CRPCCommand commands[] =
 //    { "omni layer (payload creation)", "omni_createpayload_cancelalltrades",     &omni_createpayload_cancelalltrades,     true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_enablefreezing",      &omni_createpayload_enablefreezing,      true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_disablefreezing",     &omni_createpayload_disablefreezing,     true, {} },
-//    { "omni layer (payload creation)", "omni_createpayload_freeze",              &omni_createpayload_freeze,              true, {} },
-//    { "omni layer (payload creation)", "omni_createpayload_unfreeze",            &omni_createpayload_unfreeze,            true, {} },
     { "omni layer (payload creation)", "whc_createpayload_burnbch",             &whc_createpayload_burnbch,             true, {} },
     { "omni layer (payload creation)", "whc_createpayload_particrowdsale",             &whc_createpayload_particrowdsale,             true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_freeze",              &whc_createpayload_freeze,              true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_unfreeze",            &whc_createpayload_unfreeze,            true, {} },
 };
 
 void RegisterOmniPayloadCreationRPCCommands(CRPCTable &tableRPC)
