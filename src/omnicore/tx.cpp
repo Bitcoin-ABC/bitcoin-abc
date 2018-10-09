@@ -1035,27 +1035,6 @@ int CMPTransaction::interpretPacket()
         case MSC_TYPE_SEND_ALL:
             return logicMath_SendAll();
 
-        //change_001
-        /*
-        case MSC_TYPE_TRADE_OFFER:
-            return logicMath_TradeOffer();
-
-        case MSC_TYPE_ACCEPT_OFFER_BTC:
-            return logicMath_AcceptOffer_BTC();
-
-        case MSC_TYPE_METADEX_TRADE:
-            return logicMath_MetaDExTrade();
-
-        case MSC_TYPE_METADEX_CANCEL_PRICE:
-            return logicMath_MetaDExCancelPrice();
-
-        case MSC_TYPE_METADEX_CANCEL_PAIR:
-            return logicMath_MetaDExCancelPair();
-
-        case MSC_TYPE_METADEX_CANCEL_ECOSYSTEM:
-            return logicMath_MetaDExCancelEcosystem();
-        */
-
         case MSC_TYPE_CREATE_PROPERTY_FIXED:
             return logicMath_CreatePropertyFixed();
 
@@ -1077,28 +1056,6 @@ int CMPTransaction::interpretPacket()
         case MSC_TYPE_CHANGE_ISSUER_ADDRESS:
             return logicMath_ChangeIssuer();
 
-        /*
-        case MSC_TYPE_ENABLE_FREEZING:
-            return logicMath_EnableFreezing();
-
-        case MSC_TYPE_DISABLE_FREEZING:
-            return logicMath_DisableFreezing();
-
-        case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
-            return logicMath_FreezeTokens();
-
-        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:
-            return logicMath_UnfreezeTokens();
-
-        case OMNICORE_MESSAGE_TYPE_DEACTIVATION:
-            return logicMath_Deactivation();
-
-        case OMNICORE_MESSAGE_TYPE_ACTIVATION:
-            return logicMath_Activation();
-
-        case OMNICORE_MESSAGE_TYPE_ALERT:
-            return logicMath_Alert();
-        */
         case WHC_TYPE_GET_BASE_PROPERTY:
             return logicMath_burnBCHGetWHC();
 
