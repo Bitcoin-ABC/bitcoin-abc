@@ -81,7 +81,7 @@ TEST_PARAMS = {
 # Used to limit the number of tests, when list of tests is not provided on command line
 # When --extended is specified, we run all tests, otherwise
 # we only run a test if its execution time in seconds does not exceed EXTENDED_CUTOFF
-EXTENDED_CUTOFF = 40
+EXTENDED_CUTOFF = 600
 
 
 class TestCase():
