@@ -2462,7 +2462,6 @@ int CMPTransaction::logicMath_GrantTokens()
 		return (PKT_ERROR_TOKENS - 25);
 	}	
 
-		printf("%s(): property: %d property type : %d\n", __func__, property, getPropertyType());
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
