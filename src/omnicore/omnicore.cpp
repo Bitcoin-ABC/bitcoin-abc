@@ -2503,24 +2503,8 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
                 delete it;
                 return true;
             }
-            if (blockHash.IsNull() || (NULL == GetBlockIndex(blockHash))) {
-                PrintToLog("ERROR: While check for freeze transaction %s: failed to retrieve block hash.\n", txid.GetHex());
-                delete it;
-                return true;
-            }
-            CBlockIndex* pBlockIndex = GetBlockIndex(blockHash);
-            if (NULL == pBlockIndex) {
-                PrintToLog("ERROR: While check for freeze transaction %s: failed to retrieve block index.\n", txid.GetHex());
-                delete it;
-                return true;
-            }
-            int txBlockHeight = pBlockIndex->nHeight;
-            if (txBlockHeight > blockHeight) {
-                PrintToLog("ERROR: While check for freeze transaction %s: transaction is in the future.\n", txid.GetHex());
-                delete it;
-                return true;
-            }
-            if (0 != ParseTransaction(*(wtx.get()), txBlockHeight, 0, mp_obj)) {
+           
+            if (0 != ParseTransaction(*(wtx.get()), block, 0, mp_obj)) {
                 PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
                 delete it;
                 return true;
