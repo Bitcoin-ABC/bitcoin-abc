@@ -176,7 +176,7 @@ static UniValue getbestblockhash(const Config &config,
             "\nReturns the hash of the best (tip) block in the "
             "longest blockchain.\n"
             "\nResult:\n"
-            "\"hex\"      (string) the block hash hex encoded\n"
+            "\"hex\"      (string) the block hash hex-encoded\n"
             "\nExamples:\n" +
             HelpExampleCli("getbestblockhash", "") +
             HelpExampleRpc("getbestblockhash", ""));
@@ -193,7 +193,7 @@ UniValue getfinalizedblockhash(const Config &config,
             "getfinalizedblockhash\n"
             "\nReturns the hash of the currently finalized block\n"
             "\nResult:\n"
-            "\"hex\"      (string) the block hash hex encoded\n");
+            "\"hex\"      (string) the block hash hex-encoded\n");
     }
 
     LOCK(cs_main);
@@ -572,20 +572,20 @@ static UniValue getmempoolancestors(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            "getmempoolancestors txid (verbose)\n"
+            "getmempoolancestors txid ( verbose )\n"
             "\nIf txid is in the mempool, returns all in-mempool ancestors.\n"
             "\nArguments:\n"
             "1. \"txid\"                 (string, required) The transaction id "
             "(must be in mempool)\n"
             "2. verbose                  (boolean, optional, default=false) "
             "True for a json object, false for array of transaction ids\n"
-            "\nResult (for verbose=false):\n"
+            "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
             "in-mempool ancestor transaction\n"
             "  ,...\n"
             "]\n"
-            "\nResult (for verbose=true):\n"
+            "\nResult (for verbose = true):\n"
             "{                           (json object)\n"
             "  \"transactionid\" : {       (json object)\n" +
             EntryDescriptionString() +
@@ -642,20 +642,20 @@ static UniValue getmempooldescendants(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            "getmempooldescendants txid (verbose)\n"
+            "getmempooldescendants txid ( verbose )\n"
             "\nIf txid is in the mempool, returns all in-mempool descendants.\n"
             "\nArguments:\n"
             "1. \"txid\"                 (string, required) The transaction id "
             "(must be in mempool)\n"
             "2. verbose                  (boolean, optional, default=false) "
             "True for a json object, false for array of transaction ids\n"
-            "\nResult (for verbose=false):\n"
+            "\nResult (for verbose = false):\n"
             "[                       (json array of strings)\n"
             "  \"transactionid\"           (string) The transaction id of an "
             "in-mempool descendant transaction\n"
             "  ,...\n"
             "]\n"
-            "\nResult (for verbose=true):\n"
+            "\nResult (for verbose = true):\n"
             "{                           (json object)\n"
             "  \"transactionid\" : {       (json object)\n" +
             EntryDescriptionString() +
@@ -779,7 +779,7 @@ static UniValue getblockheader(const Config &config,
             "\nArguments:\n"
             "1. \"blockhash\"     (string, required) The block hash\n"
             "2. verbose           (boolean, optional, default=true) true for a "
-            "json object, false for the hex encoded data\n"
+            "json object, false for the hex-encoded data\n"
             "\nResult (for verbose = true):\n"
             "{\n"
             "  \"hash\" : \"hash\",     (string) the block hash (same as "
@@ -1192,7 +1192,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
             "\nGet unspent transactions\n" +
             HelpExampleCli("listunspent", "") + "\nView the details\n" +
             HelpExampleCli("gettxout", "\"txid\" 1") +
-            "\nAs a json rpc call\n" +
+            "\nAs a JSON-RPC call\n" +
             HelpExampleRpc("gettxout", "\"txid\", 1"));
     }
 

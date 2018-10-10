@@ -570,7 +570,7 @@ static UniValue createrawtransaction(const Config &config,
             "      \"address\": x.xxx,    (obj, optional) A key-value pair. The key (string) is the bitcoin address, the value (float or string) is the amount in " + CURRENCY_UNIT + "\n"
             "    },\n"
             "    {\n"
-            "      \"data\": \"hex\"        (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data\n"
+            "      \"data\": \"hex\"        (obj, optional) A key-value pair. The key must be \"data\", the value is hex-encoded data\n"
             "    }\n"
             "    ,...                     More key-value pairs of the above form. For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
             "                             accepted as second parameter.\n"
@@ -682,11 +682,11 @@ static UniValue decodescript(const Config &config,
             "decodescript \"hexstring\"\n"
             "\nDecode a hex-encoded script.\n"
             "\nArguments:\n"
-            "1. \"hexstring\"     (string) the hex encoded script\n"
+            "1. \"hexstring\"     (string) the hex-encoded script\n"
             "\nResult:\n"
             "{\n"
             "  \"asm\":\"asm\",   (string) Script public key\n"
-            "  \"hex\":\"hex\",   (string) hex encoded public key\n"
+            "  \"hex\":\"hex\",   (string) hex-encoded public key\n"
             "  \"type\":\"type\", (string) The output type\n"
             "  \"reqSigs\": n,    (numeric) The required signatures\n"
             "  \"addresses\": [   (json array of string)\n"
@@ -1093,7 +1093,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
             "       ,...\n"
             "    ]\n"
             "4. \"sighashtype\"                    (string, optional, "
-            "default=ALL|FORKID) The signature hash type. Must be one of\n"
+            "default=ALL|FORKID) The signature hash type. Must be one of:\n"
             "       \"ALL|FORKID\"\n"
             "       \"NONE|FORKID\"\n"
             "       \"SINGLE|FORKID\"\n"
@@ -1182,7 +1182,7 @@ static UniValue sendrawtransaction(const Config &config,
             HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
             "\nSend the transaction (signed hex)\n" +
             HelpExampleCli("sendrawtransaction", "\"signedhex\"") +
-            "\nAs a json rpc call\n" +
+            "\nAs a JSON-RPC call\n" +
             HelpExampleRpc("sendrawtransaction", "\"signedhex\""));
     }
 
@@ -1296,7 +1296,7 @@ static UniValue testmempoolaccept(const Config &config,
             + HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
             "\nTest acceptance of the transaction (signed hex)\n"
             + HelpExampleCli("testmempoolaccept", "\"signedhex\"") +
-            "\nAs a json rpc call\n"
+            "\nAs a JSON-RPC call\n"
             + HelpExampleRpc("testmempoolaccept", "[\"signedhex\"]")
             // clang-format on
         );
@@ -1860,7 +1860,7 @@ static UniValue createpsbt(const Config &config,
             "    },\n"
             "    {\n"
             "      \"data\": \"hex\"        (obj, optional) A key-value pair. "
-            "The key must be \"data\", the value is hex encoded data\n"
+            "The key must be \"data\", the value is hex-encoded data\n"
             "    }\n"
             "    ,...                     More key-value pairs of the above "
             "form. For compatibility reasons, a dictionary, which holds the "
