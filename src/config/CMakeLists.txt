@@ -5,6 +5,7 @@
 
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
+include(CheckCXXSourceCompiles)
 
 # Package informations
 set(PACKAGE_NAME "Bitcoin ABC")
@@ -122,6 +123,29 @@ endif()
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
+
+# Check for ways to obtain entropy
+check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)
+check_symbol_exists(getentropy "sys/random.h" HAVE_GETENTROPY_RAND)
+
+check_cxx_source_compiles("
+	#include <unistd.h>  /* for syscall */
+	#include <sys/syscall.h>  /* for SYS_getrandom */
+	int main() {
+		syscall(SYS_getrandom, nullptr, 0, 0);
+		return 0;
+	}
+" HAVE_SYS_GETRANDOM)
+
+check_cxx_source_compiles("
+	#include <sys/types.h>
+	#include <sys/sysctl.h>
+	int main() {
+		static const int name[2] = {CTL_KERN, KERN_ARND};
+		sysctl(name, 2, nullptr, nullptr, nullptr, 0);
+		return 0;
+	}
+" HAVE_SYSCTL_ARND)
 
 # OpenSSL functionality
 set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_CRYPTO_INCLUDES})
