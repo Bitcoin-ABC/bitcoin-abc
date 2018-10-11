@@ -205,7 +205,7 @@ private:
     int value;
 
 public:
-    CSemaphore(int init) : value(init) {}
+    explicit CSemaphore(int init) : value(init) {}
 
     void wait() {
         std::unique_lock<std::mutex> lock(mutex);
@@ -264,7 +264,7 @@ public:
 
     CSemaphoreGrant() : sem(nullptr), fHaveGrant(false) {}
 
-    CSemaphoreGrant(CSemaphore &sema, bool fTry = false)
+    explicit CSemaphoreGrant(CSemaphore &sema, bool fTry = false)
         : sem(&sema), fHaveGrant(false) {
         if (fTry)
             TryAcquire();
@@ -274,7 +274,7 @@ public:
 
     ~CSemaphoreGrant() { Release(); }
 
-    operator bool() { return fHaveGrant; }
+    operator bool() const { return fHaveGrant; }
 };
 
 #endif // BITCOIN_SYNC_H
