@@ -172,8 +172,12 @@ class ParkedChainTest(BitcoinTestFramework):
             # Invalidate the tip on node 0, so it doesn't follow node 1.
             node.invalidateblock(node.getbestblockhash())
             # Mine block to create a fork of proper depth
-            parking_node.generate(depth - 1)
-            node.generate(depth)
+            parking_node.generatetoaddress(
+                nblocks=depth - 1,
+                address=parking_node.getnewaddress(label='coinbase'))
+            node.generatetoaddress(
+                nblocks=depth,
+                address=node.getnewaddress(label='coinbase'))
             # extra block should now find themselves parked
             for i in range(extra_blocks):
                 node.generate(1)
@@ -203,7 +207,9 @@ class ParkedChainTest(BitcoinTestFramework):
         # generate a ton of blocks at once.
         try:
             with parking_node.assert_debug_log(["Park block"]):
-                node.generate(20)
+                node.generatetoaddress(
+                    nblocks=20,
+                    address=node.getnewaddress(label='coinbase'))
                 wait_until(lambda: parking_node.getbestblockhash() ==
                            node.getbestblockhash())
         except AssertionError as exc:
@@ -216,7 +222,9 @@ class ParkedChainTest(BitcoinTestFramework):
         # Set up parking node height = fork + 4, node height = fork + 5
         node.invalidateblock(node.getbestblockhash())
         parking_node.generate(3)
-        node.generate(5)
+        node.generatetoaddress(
+            nblocks=5,
+            address=node.getnewaddress(label='coinbase'))
         wait_for_parked_block(node.getbestblockhash())
         # Restart the parking node without parkdeepreorg.
         self.restart_node(1, ["-parkdeepreorg=0"])
