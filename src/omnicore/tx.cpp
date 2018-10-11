@@ -1843,7 +1843,7 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
     //change_002
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
@@ -1953,7 +1953,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
 
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     if ('\0' == name[0]) {
@@ -2115,7 +2115,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
 
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     if ('\0' == name[0]) {
