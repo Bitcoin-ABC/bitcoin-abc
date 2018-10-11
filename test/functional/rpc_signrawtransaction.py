@@ -228,7 +228,9 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # The multiwallet node can sign the transaction using w1
         w1 = multiwallet_node.get_wallet_rpc('w1')
-        w1.generate(101)
+        multiwallet_node.generatetoaddress(
+            nblocks=101,
+            address=w1.getnewaddress(label='coinbase'))
 
         utxo = w1.listunspent()[0]
         inputs = [{
