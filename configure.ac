@@ -203,26 +203,11 @@ AC_ARG_ENABLE([debug],
     [enable_debug=$enableval],
     [enable_debug=no])
 
-# Enable ASAN
-AC_ARG_ENABLE([asan],
-    [AS_HELP_STRING([--enable-asan],
-                    [enable address sanitizer compiler flags (implies --enable-debug, default is no)])],
-    [enable_asan=$enableval],
-    [enable_asan=no])
-
-# Enable TSAN
-AC_ARG_ENABLE([tsan],
-    [AS_HELP_STRING([--enable-tsan],
-                    [enable thread sanitizer compiler flags; requires 64-bit target architecture (implies --enable-debug, default is no)])],
-    [enable_tsan=$enableval],
-    [enable_tsan=no])
-
-# Enable UBSAN
-AC_ARG_ENABLE([ubsan],
-    [AS_HELP_STRING([--enable-ubsan],
-                    [enable undefined behavior sanitizer compiler flags (implies --enable-debug, default is no)])],
-    [enable_ubsan=$enableval],
-    [enable_ubsan=no])
+# Enable different -fsanitize options
+AC_ARG_WITH([sanitizers],
+    [AS_HELP_STRING([--with-sanitizers],
+                    [comma separated list of extra sanitizers to build with (default is none enabled)])],
+    [use_sanitizers=$withval])
 
 # Turn warnings into errors
 AC_ARG_ENABLE([werror],
@@ -234,62 +219,6 @@ AC_ARG_ENABLE([werror],
 AC_LANG_PUSH([C++])
 AX_CHECK_COMPILE_FLAG([-Werror],[CXXFLAG_WERROR="-Werror"],[CXXFLAG_WERROR=""])
 
-if test "x$enable_asan" = xyes; then
-	enable_debug=yes
-  asan_failed=no
-  AX_CHECK_COMPILE_FLAG([-fsanitize=address],
-    [CXXFLAGS="$CXXFLAGS -fsanitize=address"],
-    [asan_failed=yes])
-  AX_CHECK_LINK_FLAG([-fsanitize=address],
-    [LDFLAGS="$LDFLAGS -fsanitize=address"],
-    [asan_failed=yes])
-  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
-    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
-    [asan_failed=yes])
-
-  if test "x$asan_failed" = xyes; then
-    AC_MSG_ERROR("ASAN is not supported")
-  fi
-  # fix linkage in MacOs
-  [LIBTOOL_APP_LDFLAGS="$LIBTOOL_APP_LDFLAGS -fsanitize=address"],
-fi
-
-if test "x$enable_tsan" = xyes; then
-  enable_debug=yes
-  tsan_failed=no
-  AX_CHECK_COMPILE_FLAG([-fsanitize=thread],
-    [CXXFLAGS="$CXXFLAGS -fsanitize=thread"],
-    [tsan_failed=yes])
-  AX_CHECK_LINK_FLAG([-fsanitize=thread],
-    [LDFLAGS="$LDFLAGS -fsanitize=thread"],
-    [tsan_failed=yes])
-  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
-    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
-    [tsan_failed=yes])
-
-  if test "x$tsan_failed" = xyes; then
-    AC_MSG_ERROR("TSAN is not supported")
-  fi
-fi
-
-if test "x$enable_ubsan" = xyes; then
-  enable_debug=yes
-  ubsan_failed=no
-  AX_CHECK_COMPILE_FLAG([-fsanitize=undefined],
-    [CXXFLAGS="$CXXFLAGS -fsanitize=undefined"],
-    [ubsan_failed=yes])
-  AX_CHECK_LINK_FLAG([-fsanitize=undefined],
-    [LDFLAGS="$LDFLAGS -fsanitize=undefined"],
-    [ubsan_failed=yes])
-  AX_CHECK_COMPILE_FLAG([-fno-omit-frame-pointer],
-    [CXXFLAGS="$CXXFLAGS -fno-omit-frame-pointer"],
-    [ubsan_failed=yes])
-
-  if test "x$ubsan_failed" = xyes; then
-    AC_MSG_ERROR("UBSAN is not supported")
-  fi
-fi
-
 if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
     if test "x$GCC" = xyes; then
@@ -299,6 +228,26 @@ if test "x$enable_debug" = xyes; then
     if test "x$GXX" = xyes; then
         CXXFLAGS="$CXXFLAGS -g3 -O0"
     fi
+fi
+
+if test x$use_sanitizers != x; then
+  # First check if the compiler accepts flags. If an incompatible pair like
+  # -fsanitize=address,thread is used here, this check will fail. This will also
+  # fail if a bad argument is passed, e.g. -fsanitize=undfeined
+  AX_CHECK_COMPILE_FLAG(
+    [[-fsanitize=$use_sanitizers]],
+    [[SANITIZER_CXXFLAGS=-fsanitize=$use_sanitizers]],
+    [AC_MSG_ERROR([compiler did not accept requested flags])])
+
+  # Some compilers (e.g. GCC) require additional libraries like libasan,
+  # libtsan, libubsan, etc. Make sure linking still works with the sanitize
+  # flag. This is a separate check so we can give a better error message when
+  # the sanitize flags are supported by the compiler but the actual sanitizer
+  # libs are missing.
+  AX_CHECK_LINK_FLAG(
+    [[-fsanitize=$use_sanitizers]],
+    [[SANITIZER_LDFLAGS=-fsanitize=$use_sanitizers]],
+    [AC_MSG_ERROR([linker did not accept requested flags, you are missing required libraries])])
 fi
 
 ERROR_CXXFLAGS=
@@ -1344,6 +1293,8 @@ AC_SUBST(HARDENED_CPPFLAGS)
 AC_SUBST(HARDENED_LDFLAGS)
 AC_SUBST(PIC_FLAGS)
 AC_SUBST(PIE_FLAGS)
+AC_SUBST(SANITIZER_CXXFLAGS)
+AC_SUBST(SANITIZER_LDFLAGS)
 AC_SUBST(SSE42_CXXFLAGS)
 AC_SUBST(SSE41_CXXFLAGS)
 AC_SUBST(AVX2_CXXFLAGS)
@@ -1431,13 +1382,9 @@ echo "  with test     = $use_tests"
 echo "  with bench    = $use_bench"
 echo "  with upnp     = $use_upnp"
 echo "  use asm       = $use_asm"
+echo "  sanitizers    = $use_sanitizers"
 echo "  debug enabled = $enable_debug"
 echo "  werror        = $enable_werror"
-echo
-echo "  sanitizers    "
-echo "          asan  = $enable_asan"
-echo "          tsan  = $enable_tsan"
-echo "          ubsan = $enable_ubsan"
 echo
 echo "  target os     = $TARGET_OS"
 echo "  build os      = $BUILD_OS"
