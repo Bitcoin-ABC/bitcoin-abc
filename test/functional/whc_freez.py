@@ -16,8 +16,8 @@ class WHC_TOKEN_FREEZE(BitcoinTestFramework):
         # generate 200whc for node[0]
         address = self.nodes[0].getnewaddress("")
         address_dst = self.nodes[1].getnewaddress("")
-        self.nodes[0].generatetoaddress(12, address)
-        self.nodes[1].generatetoaddress(12, address_dst)
+        self.nodes[0].generatetoaddress(112, address)
+        self.nodes[1].generatetoaddress(112, address_dst)
         time.sleep(3)
         self.nodes[0].generatetoaddress(100, address)
         time.sleep(3)
