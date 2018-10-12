@@ -2596,7 +2596,6 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             return false;
         }
     }
-
     return true;
 }
 
