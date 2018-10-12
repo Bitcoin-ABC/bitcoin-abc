@@ -2595,6 +2595,7 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             PrintToLog("ERROR: While loading freeze transaction %s: non-zero return from interpretFreezeTx\n", hash.GetHex());
             return false;
         }
+                                                   
     }
 
     return true;
