@@ -2115,11 +2115,11 @@ int mastercore_init()
     }
 
     if (nWaterlineBlock > 0) {
-        PrintToConsole("Loading persistent state: OK [block %d]\n", nWaterlineBlock);
+        PrintToConsole("best image from diskbest image from disk state: OK [block %d]\n", nWaterlineBlock);
         if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
         {
             nWaterlineBlock = -1;
-            PrintToConsole("Frreze TXs found below WaterLine\n");
+            PrintToLog("Freeze TXs found below WaterLine\n");
         }
 
     } else {
