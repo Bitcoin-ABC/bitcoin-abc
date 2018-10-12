@@ -996,6 +996,7 @@ int CMPTransaction::interpretPacket()
 
 int CMPTransaction::interpretFreezeTx()
 {
+    int ret = 0;
     if (!interpret_Transaction()) {
         return (PKT_ERROR -2);
     }
@@ -1004,21 +1005,26 @@ int CMPTransaction::interpretFreezeTx()
     switch (type) {
         case MSC_TYPE_CREATE_PROPERTY_MANUAL: {
             uint32_t propertyId = _my_sps->findSPByTX(txid);
+            if(propertyId == 0)
+            {
+                PrintToLog("%s(): ERROR: propertyid is zero!\n", __func__);
+                return (PKT_ERROR_TOKENS - 24);
+            }
             if (ucFreezingFlag) {
                 enableFreezing(propertyId, block);
             }
             break;
         }
         case MSC_TYPE_FREEZE_PROPERTY_TOKENS: {
-            logicMath_FreezeTokens();
+            ret = logicMath_FreezeTokens();
             break;
         }
         case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:{
-            logicMath_UnfreezeTokens();
+            ret = logicMath_UnfreezeTokens();
             break;
         }
     }
-    return 0;
+    return ret;
 }
 
 bool CMPTransaction::isFreezeEnable()
