@@ -51,6 +51,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         addr1 = self.nodes[0].getnewaddress("")
         # step 6 create transfer erc721 token
         transfertx = self.nodes[0].whc_transferERC721Token(addr0, addr1, "0x01", "0x01")
+        getBchTx = self.nodes[0].sendtoaddress(addr1, 1)
         self.nodes[0].generatetoaddress(1, addr0)
 
         # step 7 check transfer erc721 token transaction
@@ -64,37 +65,68 @@ class WHC_erc721_Test(BitcoinTestFramework):
         destroytx = self.nodes[0].whc_destroyERC721Token(addr0, "0x01", "0x02")
         self.nodes[0].generatetoaddress(1, addr0)
 
+        # step 8.1 create property transaction, but sender have not enough whc
+        txProperty = self.nodes[0].whc_issuanceERC721property(addr1, "copernet", "ERC", "wormhole", "www.wormhole.cash", "1000")
+        self.nodes[0].generatetoaddress(1, addr0)
+
         # step 9 check destroy token transaction
         destroyResult = self.nodes[0].whc_gettransaction(destroytx)
         tokenNews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x02")
         assert destroyResult["valid"] is True
         assert (tokenNews["owner"] == self.burn_address) is True
 
+        # step 9.1 check create property transaction
+        ret = self.nodes[0].whc_gettransaction(txProperty)
+        assert ret["valid"] is False
 
     def erc721_error_feature_test(self):
         items = self.getSpent(self.whcAddress)
         item = items[0] if items else None
         if item:
             # step 1 create erc721 property transaction
-            tx = self.nodes[0].whc_createrawtx_input("", item["txid"], item["vout"])
             payload = self.nodes[0].whc_createpayload_issueERC721property("copernet", "WH", "hello world", "www.wormhole.cash", "100898738618")
-            tx = self.nodes[0].whc_createrawtx_opreturn(tx, payload)
-            tx = self.nodes[0].whc_createrawtx_reference(tx, self.whcAddress, round(float(item["amount"]) - 0.01, 8))
-            tx = self.nodes[0].signrawtransaction(tx)
-            txhash = self.nodes[0].sendrawtransaction(tx)
-            self.nodes[0].generatetoaddress(1, self.whcAddress)
+            txhash = self.constructCreatePropertyTx(item, payload)
 
             # step 2 check the erc721 property transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
             assert (txnews["propertyid"] == "0000000000000000000000000000000000000000000000000000000000000002") is True
 
-            # payload = payload[:len(payload) - 16] + "0000000000000000"
+            item2 = items[1] if items else None
+            if item:
+                # step 3 create a error transaction, this totolNumber is 0.
+                payload = payload[:len(payload) - 16] + "0000000000000000"
+                txhash = self.constructCreatePropertyTx(item2, payload)
+
+                # step 2 check the erc721 property transaction
+                txnews = self.nodes[0].whc_gettransaction(txhash)
+                assert txnews["valid"] is False
+            else:
+                assert False
+        else:
+            assert False
+
+        items = self.getSpent(self.whcAddress)
+        item = items[0] if items else None
+        #if item:
+            # Step 4 create erc721 token transaction : property is not exsit in BlockChain
+        #    payload = self.nodes[0].whc_createpayload_issueERC721token("0x03", "0x02", "0x09", "www.wormhole.cash")
+
+
+
+    def constructCreatePropertyTx(self, item, payload):
+        tx = self.nodes[0].whc_createrawtx_input("", item["txid"], item["vout"])
+        tx = self.nodes[0].whc_createrawtx_opreturn(tx, payload)
+        tx = self.nodes[0].whc_createrawtx_reference(tx, self.whcAddress, round(float(item["amount"]) - 0.01, 8))
+        tx = self.nodes[0].signrawtransaction(tx)
+        txhash = self.nodes[0].sendrawtransaction(tx["hex"])
+        self.nodes[0].generatetoaddress(1, self.whcAddress)
+        return txhash
 
 
     def getSpent(self, addr):
-        return [item for item in self.nodes[0].listunspent()
-                if item["address"] == addr and item["amount"] > 1]
+            return [item for item in self.nodes[0].listunspent()
+                    if item["address"] == addr and item["amount"] > 1]
 
     def run_test(self):
         self.erc721_normal_feature_test()

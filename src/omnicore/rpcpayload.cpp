@@ -459,7 +459,6 @@ UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRe
     uint256 tokenAttributes = uint256S(request.params[i++].get_str());
     std::string tokenURL = request.params[i++].get_str();
 
-    RequireExistingERC721Property(propertyid);
     std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
 
     return HexStr(payload.begin(), payload.end());
@@ -486,10 +485,6 @@ UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRP
     RequireHexNumber(request.params[i].get_str());
     uint256 tokenid = uint256S(request.params[i++].get_str());
 
-
-    // perform checks
-    RequireExistingERC721Token(propertyid, tokenid);
-
     std::vector<unsigned char> payload = CreatePayload_TransferERC721Token(propertyid, tokenid);
 
     return HexStr(payload.begin(), payload.end());
@@ -515,10 +510,6 @@ UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPC
     uint256 propertyid = uint256S(request.params[i++].get_str());
     RequireHexNumber(request.params[i].get_str());
     uint256 tokenid = uint256S(request.params[i++].get_str());
-
-
-    // perform checks
-    RequireExistingERC721Token(propertyid, tokenid);
 
     std::vector<unsigned char> payload = CreatePayload_DestroyERC721Token(propertyid, tokenid);
 

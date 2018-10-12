@@ -323,7 +323,7 @@ inline std::string error_str(int ec) {
           ec_str = "Tokens to issue and desired property are not in the same ecosystem";
           break;
       case PKT_ERROR_SP -51:
-          ec_str = "property prev_prop_id value should equal 0";
+          ec_str = "property prev_prop_id value must be zero";
           break;
 
       case PKT_ERROR_TOKENS -22:

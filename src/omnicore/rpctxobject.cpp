@@ -520,7 +520,6 @@ void populateRPCTypeCreatePropertyManual(CMPTransaction& omniObj, UniValue& txob
         uint32_t propertyId = _my_sps->findSPByTX(omniObj.getHash());
         if (propertyId > 0) {
             txobj.push_back(Pair("propertyid", (uint64_t) propertyId));
-            txobj.push_back(Pair("precision", getprecision(propertyId)));
         }
     }
     txobj.push_back(Pair("precision", strPropertyType(omniObj.getPropertyType())));
