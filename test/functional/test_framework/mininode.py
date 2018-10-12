@@ -1491,7 +1491,7 @@ class NodeConnCB():
             self.last_message["inv"].inv[0].hash == expected_inv[0].hash
         wait_until(test_function, timeout=timeout, lock=mininode_lock)
 
-    def wait_for_verack(self, timeout=60):
+    def wait_for_verack(self, timeout=70):
         def test_function(): return self.message_count["verack"]
         wait_until(test_function, timeout=timeout, lock=mininode_lock)
 

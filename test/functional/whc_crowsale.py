@@ -35,6 +35,7 @@ class WHC_TOKEN_CROW(BitcoinTestFramework):
         rpc_response_dst = self.nodes[1].whc_getbalance(address_dst, 1)
         trans = self.nodes[0].whc_gettransaction(trans_id)
         property_id = trans["propertyid"]
+        print(property_id)
         sale = self.nodes[0].whc_getcrowdsale(property_id)
         assert_equal(sale["active"], True)
         assert_equal(float(rpc_response["balance"]), 3999.00000000)
@@ -75,7 +76,8 @@ class WHC_TOKEN_CROW(BitcoinTestFramework):
         ret = self.nodes[1].decoderawtransaction(raw["hex"])
         assert ret["vout"][0]["value"] == 0 and ret["vout"][0]["scriptPubKey"]["asm"][:9] == "OP_RETURN"
         balance = self.nodes[1].whc_getbalance(address_dst, property_id)
-        assert float(balance["balance"]) > 1000.0
+        print(balance)
+        assert float(balance["balance"]) >= 1000.0
 
         # shutdown the crowd
         # exception: Invalid amount
