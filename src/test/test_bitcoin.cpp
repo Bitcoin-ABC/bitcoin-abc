@@ -61,7 +61,7 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
     InitScriptExecutionCache();
 
     // Don't want to write to debug.log file.
-    GetLogger().fPrintToDebugLog = false;
+    GetLogger().m_print_to_file = false;
 
     fCheckBlockIndex = true;
     SelectParams(chainName);

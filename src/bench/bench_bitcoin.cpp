@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     SetupEnvironment();
 
     // don't want to write to debug.log file
-    GetLogger().fPrintToDebugLog = false;
+    GetLogger().m_print_to_file = false;
 
     int64_t evaluations = gArgs.GetArg("-evals", DEFAULT_BENCH_EVALUATIONS);
     std::string regex_filter = gArgs.GetArg("-filter", DEFAULT_BENCH_FILTER);

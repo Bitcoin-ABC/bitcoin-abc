@@ -7,6 +7,9 @@
 #ifndef BITCOIN_LOGGING_H
 #define BITCOIN_LOGGING_H
 
+#include "fs.h"
+#include "tinyformat.h"
+
 #include <atomic>
 #include <cstdint>
 #include <list>
@@ -49,32 +52,32 @@ enum LogFlags : uint32_t {
 
 class Logger {
 private:
-    FILE *fileout = nullptr;
-    std::mutex mutexDebugLog;
-    std::list<std::string> vMsgsBeforeOpenLog;
+    FILE *m_fileout = nullptr;
+    std::mutex m_file_mutex;
+    std::list<std::string> m_msgs_before_open;
 
     /**
-     * fStartedNewLine is a state variable that will suppress printing of the
+     * m_started_new_line is a state variable that will suppress printing of the
      * timestamp when multiple calls are made that don't end in a newline.
      */
-    std::atomic_bool fStartedNewLine{true};
+    std::atomic_bool m_started_new_line{true};
 
     /**
      * Log categories bitfield. Leveldb/libevent need special handling if their
      * flags are changed at runtime.
      */
-    std::atomic<uint32_t> logCategories{0};
+    std::atomic<uint32_t> m_categories{0};
 
     std::string LogTimestampStr(const std::string &str);
 
 public:
-    bool fPrintToConsole = false;
-    bool fPrintToDebugLog = true;
+    bool m_print_to_console = false;
+    bool m_print_to_file = true;
 
-    bool fLogTimestamps = DEFAULT_LOGTIMESTAMPS;
-    bool fLogTimeMicros = DEFAULT_LOGTIMEMICROS;
+    bool m_log_timestamps = DEFAULT_LOGTIMESTAMPS;
+    bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
 
-    std::atomic<bool> fReopenDebugLog{false};
+    std::atomic<bool> m_reopen_file{false};
 
     ~Logger();
 
@@ -85,7 +88,9 @@ public:
     void ShrinkDebugFile();
 
     void EnableCategory(LogFlags category);
+    bool EnableCategory(const std::string &str);
     void DisableCategory(LogFlags category);
+    bool DisableCategory(const std::string &str);
 
     /** Return true if log accepts specified category */
     bool WillLogCategory(LogFlags category) const;

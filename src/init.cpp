@@ -291,7 +291,7 @@ void HandleSIGTERM(int) {
 }
 
 void HandleSIGHUP(int) {
-    GetLogger().fReopenDebugLog = true;
+    GetLogger().m_reopen_file = true;
 }
 
 void OnRPCStarted() {
@@ -1255,10 +1255,10 @@ static std::string ResolveErrMsg(const char *const optname,
 
 void InitLogging() {
     BCLog::Logger &logger = GetLogger();
-    logger.fPrintToConsole = gArgs.GetBoolArg("-printtoconsole", false);
-    logger.fLogTimestamps =
+    logger.m_print_to_console = gArgs.GetBoolArg("-printtoconsole", false);
+    logger.m_log_timestamps =
         gArgs.GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
-    logger.fLogTimeMicros =
+    logger.m_log_time_micros =
         gArgs.GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
 
     fLogIPs = gArgs.GetBoolArg("-logips", DEFAULT_LOGIPS);
@@ -1765,11 +1765,11 @@ bool AppInitMain(Config &config,
         logger.ShrinkDebugFile();
     }
 
-    if (logger.fPrintToDebugLog) {
+    if (logger.m_print_to_file) {
         logger.OpenDebugLog();
     }
 
-    if (!logger.fLogTimestamps) {
+    if (!logger.m_log_timestamps) {
         LogPrintf("Startup time: %s\n",
                   DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
     }
