@@ -311,6 +311,9 @@ public:
     /** Interprets the payload and executes the logic. */
     int interpretPacket();
 
+    int interpretFreezeTx();
+
+    bool isFreezeEnable();
     /** Enables access of interpretPacket. */
     void unlockLogic() { rpcOnly = false; };
 

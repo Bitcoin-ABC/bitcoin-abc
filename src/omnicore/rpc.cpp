@@ -171,11 +171,7 @@ bool FrozenBalanceToJSON(const std::string& address, uint32_t property, UniValue
     if (divisible) {
         balance_obj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, divisible)));
     } else {
-        if(property == OMNI_PROPERTY_WHC){
-            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
-        }else  {
-            if (nFrozen != 0) balance_obj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
-        }
+            if (nFrozen != 0) balance_obj.push_back(Pair("balance", FormatIndivisibleMP(nFrozen)));
     }
     return true;
 }
@@ -893,14 +889,9 @@ UniValue whc_getfrozenbalanceforid(const Config &config, const JSONRPCRequest &r
         if (mtype) {
             balanceObj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, mtype)));
         } else {
-            if(propertyId == OMNI_PROPERTY_WHC){
-                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
-            }else  {
-                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
-            }
+                if (nFrozen != 0) balanceObj.push_back(Pair("balance", FormatIndivisibleMP(nFrozen)));
         }
         response.push_back(balanceObj);
-
     }
 
     return response;
@@ -952,13 +943,8 @@ UniValue whc_getfrozenbalanceforaddress(const Config &config, const JSONRPCReque
         if (mtype) {
             balanceObj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, mtype)));
         } else {
-            if(propertyId == OMNI_PROPERTY_WHC){
-                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatDivisibleMP(nFrozen, PRICE_PRECISION)));
-            }else  {
-                if (nFrozen != 0) balanceObj.push_back(Pair("frozen", FormatIndivisibleMP(nFrozen)));
-            }
+                if (nFrozen != 0) balanceObj.push_back(Pair("balance", FormatIndivisibleMP(nFrozen)));
         }
-
         response.push_back(balanceObj);
     }
 

@@ -2478,6 +2478,7 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
 {
     assert(pdb);
     Iterator* it = NewIterator();
+    const CConsensusParams& params = ConsensusParams();
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         std::string itData = it->value().ToString();
@@ -2486,9 +2487,9 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
         if (4 != vstr.size()) continue;
         int block = atoi(vstr[1]);
         if (block < blockHeight) continue;
+        if(block < params.WHC_FREEZENACTIVATE_BLOCK) continue;
         uint16_t txtype = atoi(vstr[2]);
-        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS ||
-            txtype == MSC_TYPE_ENABLE_FREEZING || txtype == MSC_TYPE_DISABLE_FREEZING) {
+        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS) {
             delete it;
             return true;
         }
@@ -2503,26 +2504,18 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
                 delete it;
                 return true;
             }
-           
             if (0 != ParseTransaction(*(wtx.get()), block, 0, mp_obj)) {
                 PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
                 delete it;
                 return true;
             }
-            if (!mp_obj.interpret_Transaction()) {
+            if (mp_obj.isFreezeEnable()) {
                 PrintToLog("ERROR: While check for freeze transaction %s: failed interpret_Transaction.\n", txid.GetHex());
                 delete it;
                 return true;
             }
-            if(mp_obj.getFreezeflag())
-            {
-                delete it;
-                return true;
-            }
         }
-
     }
-
     delete it;
     return false;
 }
@@ -2531,7 +2524,7 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
 {
     assert(pdb);
     std::vector<std::pair<std::string, uint256> > loadOrder;
-    int txnsLoaded = 0;
+    const CConsensusParams& params = ConsensusParams();
     Iterator* it = NewIterator();
     PrintToLog("Loading freeze state from levelDB\n");
 
@@ -2581,6 +2574,7 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             PrintToLog("ERROR: While loading freeze transaction %s: transaction is in the future.\n", hash.GetHex());
             return false;
         }
+        if(txBlockHeight < params.WHC_FREEZENACTIVATE_BLOCK) continue;
         if (0 != ParseTransaction(*(wtx.get()), txBlockHeight, 0, mp_obj)) {
             PrintToLog("ERROR: While loading freeze transaction %s: failed ParseTransaction.\n", hash.GetHex());
             return false;
@@ -2592,19 +2586,16 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
         if(MSC_TYPE_CREATE_PROPERTY_MANUAL == mp_obj.getType() && !mp_obj.getFreezeflag()) continue;
 
         if (MSC_TYPE_FREEZE_PROPERTY_TOKENS != mp_obj.getType() && MSC_TYPE_UNFREEZE_PROPERTY_TOKENS != mp_obj.getType() &&
-            MSC_TYPE_ENABLE_FREEZING != mp_obj.getType() && MSC_TYPE_DISABLE_FREEZING != mp_obj.getType() &&
             MSC_TYPE_CREATE_PROPERTY_MANUAL != mp_obj.getType()) {
             PrintToLog("ERROR: While loading freeze transaction %s: levelDB type mismatch, not a freeze transaction.\n", hash.GetHex());
             return false;
         }
         mp_obj.unlockLogic();
-        if (0 != mp_obj.interpretPacket()) {
-            PrintToLog("ERROR: While loading freeze transaction %s: non-zero return from interpretPacket\n", hash.GetHex());
+        if (0 != mp_obj.interpretFreezeTx()) {
+            PrintToLog("ERROR: While loading freeze transaction %s: non-zero return from interpretFreezeTx\n", hash.GetHex());
             return false;
         }
-        txnsLoaded++;
     }
-	
     return true;
 }
 
