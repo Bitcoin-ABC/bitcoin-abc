@@ -307,7 +307,7 @@ public:
     void LoadActivations(int blockHeight);
     bool LoadFreezeState(int blockHeight);
     bool CheckForFreezeTxs(int blockHeight);
-
+    bool CheckForFreezeTxsBelowBlock(int blockHeight);
     void printStats();
     void printAll();
 

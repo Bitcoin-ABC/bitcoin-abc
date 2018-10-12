@@ -2116,6 +2116,12 @@ int mastercore_init()
 
     if (nWaterlineBlock > 0) {
         PrintToConsole("Loading persistent state: OK [block %d]\n", nWaterlineBlock);
+        if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
+        {
+            nWaterlineBlock = -1;
+            PrintToConsole("Frreze TXs found below WaterLine\n");
+        }
+
     } else {
         std::string strReason = "unknown";
         if (wrongDBVersion) strReason = "client version changed";
@@ -2487,6 +2493,52 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
         if (4 != vstr.size()) continue;
         int block = atoi(vstr[1]);
         if (block < blockHeight) continue;
+        if(block < params.WHC_FREEZENACTIVATE_BLOCK) continue;
+        uint16_t txtype = atoi(vstr[2]);
+        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS) {
+            delete it;
+            return true;
+        }
+        if(txtype == MSC_TYPE_CREATE_PROPERTY_MANUAL)
+        {
+            uint256 txid = uint256S(it->key().ToString());
+            uint256 blockHash;
+            CTransactionRef wtx;
+            CMPTransaction mp_obj;
+            if (!GetTransaction(GetConfig(), TxId(const_cast<const uint256&>(txid)), wtx, blockHash, true)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: tx in levelDB but does not exist.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (0 != ParseTransaction(*(wtx.get()), block, 0, mp_obj)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (mp_obj.isFreezeEnable()) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed interpret_Transaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+        }
+    }
+    delete it;
+    return false;
+}
+
+bool CMPTxList::CheckForFreezeTxsBelowBlock(int blockHeight)
+{
+    assert(pdb);
+    Iterator* it = NewIterator();
+    const CConsensusParams& params = ConsensusParams();
+
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        std::string itData = it->value().ToString();
+        std::vector<std::string> vstr;
+        boost::split(vstr, itData, boost::is_any_of(":"), token_compress_on);
+        if (4 != vstr.size()) continue;
+        int block = atoi(vstr[1]);
+        if (block > blockHeight) continue;
         if(block < params.WHC_FREEZENACTIVATE_BLOCK) continue;
         uint16_t txtype = atoi(vstr[2]);
         if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS) {
