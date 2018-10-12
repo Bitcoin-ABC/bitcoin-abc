@@ -18,6 +18,7 @@ from collections import deque
 
 # far into the future
 MAGNETIC_ANOMALY_START_TIME = 2000000000
+RPC_VERIFY_REJECTED = -26
 
 
 class PreviousSpendableOutput():
@@ -260,6 +261,11 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Rewind bad block.
         tip(4444)
+
+        # Verfiy that ATMP doesn't accept undersize transactions
+        undersized_tx = transaction(out[1], MIN_TX_SIZE - 1)
+        assert_raises_rpc_error(RPC_VERIFY_REJECTED, "bad-txns-undersize",
+                                node.sendrawtransaction, ToHex(undersized_tx), True)
 
         # But large transactions are still ok.
         large_tx_block = block(3333, transaction(out[1], MIN_TX_SIZE))
