@@ -1197,7 +1197,7 @@ int CMPTransaction::logicMath_SimpleSend()
 
     if (isAddressFrozen(sender, property)) {
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
-        return (PKT_ERROR_SEND -26);
+        return (PKT_ERROR -3);
     }
     // Move the tokens
     assert(update_tally_map(sender, property, -nValue, BALANCE));
@@ -1230,7 +1230,7 @@ int CMPTransaction::logicMath_BuyToken()
     }
     if (isAddressFrozen(sender, property)) {
         PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
-        return (PKT_ERROR_STO -29);
+        return (PKT_ERROR -3);
     }
     int64_t nBalance = getMPbalance(sender, property, BALANCE);
     if (nBalance < (int64_t) nValue) {
@@ -1371,7 +1371,7 @@ int CMPTransaction::logicMath_SendToOwners()
 
     if (isAddressFrozen(sender, property)) {
         PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
-        return (PKT_ERROR_STO -29);
+        return (PKT_ERROR -3);
     }
 
     if (!IsPropertyIdValid(distribution_property)) {
@@ -2462,7 +2462,7 @@ int CMPTransaction::logicMath_ChangeIssuer()
     if(isAddressFrozen(receiver, property))
     {
         PrintToLog("%s(): rejected: receiver is frozen\n", __func__);
-        return (PKT_ERROR_TOKENS -47);
+        return (PKT_ERROR_SP -43);
     }
 
     if (NULL != getCrowd(receiver)) {

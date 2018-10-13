@@ -319,6 +319,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_SP -44:
           ec_str = "Attempt to grant more than the maximum number of tokens";
           break;
+      case PKT_ERROR_SP -45:
+          ec_str = "Attempt to change issuer to a frozen receiver";
+          break;
       case PKT_ERROR_SP -50:
           ec_str = "Tokens to issue and desired property are not in the same ecosystem";
           break;
