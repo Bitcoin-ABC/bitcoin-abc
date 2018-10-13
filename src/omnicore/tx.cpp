@@ -2462,7 +2462,7 @@ int CMPTransaction::logicMath_ChangeIssuer()
     if(isAddressFrozen(receiver, property))
     {
         PrintToLog("%s(): rejected: receiver is frozen\n", __func__);
-        return (PKT_ERROR_SP -43);
+        return (PKT_ERROR_SP -45);
     }
 
     if (NULL != getCrowd(receiver)) {
