@@ -4472,8 +4472,6 @@ bool CChainState::LoadBlockIndex(const Config &config,
         return false;
     }
 
-    boost::this_thread::interruption_point();
-
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
