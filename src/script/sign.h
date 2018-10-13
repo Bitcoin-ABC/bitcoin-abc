@@ -24,6 +24,12 @@ class CTransaction;
 struct KeyOriginInfo {
     uint8_t fingerprint[4];
     std::vector<uint32_t> path;
+
+    friend bool operator==(const KeyOriginInfo &a, const KeyOriginInfo &b) {
+        return std::equal(std::begin(a.fingerprint), std::end(a.fingerprint),
+                          std::begin(b.fingerprint)) &&
+               a.path == b.path;
+    }
 };
 
 /** An interface to be implemented by keystores that support signing. */

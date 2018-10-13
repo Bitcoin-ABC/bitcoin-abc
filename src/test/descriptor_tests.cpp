@@ -121,7 +121,25 @@ void Check(const std::string &prv, const std::string &pub, int flags,
                                       SigHashType().withForkId()),
                         prv);
                 }
+
+                // Infer a descriptor from the generated script, and verify its
+                // solvability and that it roundtrips.
+                auto inferred = InferDescriptor(spks[n], script_provider);
+                BOOST_CHECK_EQUAL(inferred->IsSolvable(),
+                                  !(flags & UNSOLVABLE));
+                std::vector<CScript> spks_inferred;
+                FlatSigningProvider provider_inferred;
+                BOOST_CHECK(inferred->Expand(0, provider_inferred,
+                                             spks_inferred, provider_inferred));
+                BOOST_CHECK_EQUAL(spks_inferred.size(), 1);
+                BOOST_CHECK(spks_inferred[0] == spks[n]);
+                BOOST_CHECK_EQUAL(
+                    IsSolvable(provider_inferred, spks_inferred[0]),
+                    !(flags & UNSOLVABLE));
+                BOOST_CHECK(provider_inferred.origins ==
+                            script_provider.origins);
             }
+
             // Test whether the observed key path is present in the 'paths'
             // variable (which contains expected, unobserved paths), and then
             // remove it from that set.
