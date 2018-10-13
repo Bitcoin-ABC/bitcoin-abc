@@ -787,6 +787,73 @@ std::unique_ptr<Descriptor> ParseScript(Span<const char> &sp,
     return nullptr;
 }
 
+static std::unique_ptr<PubkeyProvider>
+InferPubkey(const CPubKey &pubkey, ParseScriptContext,
+            const SigningProvider &provider) {
+    auto key_provider = std::make_unique<ConstPubkeyProvider>(pubkey);
+    KeyOriginInfo info;
+    if (provider.GetKeyOrigin(pubkey.GetID(), info)) {
+        return std::make_unique<OriginPubkeyProvider>(std::move(info),
+                                                      std::move(key_provider));
+    }
+    return key_provider;
+}
+
+std::unique_ptr<Descriptor> InferScript(const CScript &script,
+                                        ParseScriptContext ctx,
+                                        const SigningProvider &provider) {
+    std::vector<std::vector<uint8_t>> data;
+    txnouttype txntype = Solver(script, data);
+
+    if (txntype == TX_PUBKEY) {
+        CPubKey pubkey(data[0].begin(), data[0].end());
+        if (pubkey.IsValid()) {
+            return std::make_unique<SingleKeyDescriptor>(
+                InferPubkey(pubkey, ctx, provider), P2PKGetScript, "pk");
+        }
+    }
+    if (txntype == TX_PUBKEYHASH) {
+        uint160 hash(data[0]);
+        CKeyID keyid(hash);
+        CPubKey pubkey;
+        if (provider.GetPubKey(keyid, pubkey)) {
+            return std::make_unique<SingleKeyDescriptor>(
+                InferPubkey(pubkey, ctx, provider), P2PKHGetScript, "pkh");
+        }
+    }
+    if (txntype == TX_MULTISIG) {
+        std::vector<std::unique_ptr<PubkeyProvider>> providers;
+        for (size_t i = 1; i + 1 < data.size(); ++i) {
+            CPubKey pubkey(data[i].begin(), data[i].end());
+            providers.push_back(InferPubkey(pubkey, ctx, provider));
+        }
+        return std::make_unique<MultisigDescriptor>((int)data[0][0],
+                                                    std::move(providers));
+    }
+    if (txntype == TX_SCRIPTHASH && ctx == ParseScriptContext::TOP) {
+        uint160 hash(data[0]);
+        CScriptID scriptid(hash);
+        CScript subscript;
+        if (provider.GetCScript(scriptid, subscript)) {
+            auto sub =
+                InferScript(subscript, ParseScriptContext::P2SH, provider);
+            if (sub) {
+                return std::make_unique<ConvertorDescriptor>(std::move(sub),
+                                                             ConvertP2SH, "sh");
+            }
+        }
+    }
+
+    CTxDestination dest;
+    if (ExtractDestination(script, dest)) {
+        if (GetScriptForDestination(dest) == script) {
+            return std::make_unique<AddressDescriptor>(std::move(dest));
+        }
+    }
+
+    return std::make_unique<RawDescriptor>(script);
+}
+
 } // namespace
 
 std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
@@ -797,4 +864,9 @@ std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
         return ret;
     }
     return nullptr;
+}
+
+std::unique_ptr<Descriptor> InferDescriptor(const CScript &script,
+                                            const SigningProvider &provider) {
+    return InferScript(script, ParseScriptContext::TOP, provider);
 }
