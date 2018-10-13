@@ -2639,7 +2639,7 @@ int CMPTransaction::logicMath_FreezeTokens()
     if(sender == receiver)
     {
         PrintToLog("%s(): rejected: freezed address %s cannot be the same with the issuer %s\n", __func__, receiver, sender);
-        return (PKT_ERROR_TOKENS -44);
+        return (PKT_ERROR_TOKENS -51);
     }
     if (!isFreezingEnabled(property, block)) {
         PrintToLog("%s(): rejected: freezing is not enabled for property %d\n", __func__, property);
@@ -2701,7 +2701,7 @@ int CMPTransaction::logicMath_UnfreezeTokens()
     if(sender == receiver)
     {
         PrintToLog("%s(): rejected: unfreezed address %s cannot be the same with the issuer %s\n", __func__, receiver, sender);
-        return (PKT_ERROR_TOKENS -43);
+        return (PKT_ERROR_TOKENS -51);
     }
     if (!isFreezingEnabled(property, block)) {
         PrintToLog("%s(): rejected: freezing is not enabled for property %d\n", __func__, property);
