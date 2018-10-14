@@ -81,7 +81,8 @@ TEST_PARAMS = {
 # Used to limit the number of tests, when list of tests is not provided on command line
 # When --extended is specified, we run all tests, otherwise
 # we only run a test if its execution time in seconds does not exceed EXTENDED_CUTOFF
-EXTENDED_CUTOFF = 600
+DEFAULT_EXTENDED_CUTOFF = 40
+DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
 
 
 class TestCase():
@@ -155,11 +156,13 @@ def main():
         '--exclude', '-x', help='specify a comma-seperated-list of scripts to exclude. Do not include the .py extension in the name.')
     parser.add_argument('--extended', action='store_true',
                         help='run the extended test suite in addition to the basic tests')
+    parser.add_argument('--cutoff', type=int, default=DEFAULT_EXTENDED_CUTOFF,
+                        help='set the cutoff runtime for what tests get run')
     parser.add_argument('--force', '-f', action='store_true',
                         help='run tests even on platforms where they are disabled by default (e.g. windows).')
     parser.add_argument('--help', '-h', '-?',
                         action='store_true', help='print help text and exit')
-    parser.add_argument('--jobs', '-j', type=int, default=(multiprocessing.cpu_count() // 3) + 1,
+    parser.add_argument('--jobs', '-j', type=int, default=DEFAULT_JOBS,
                         help='how many test scripts to run in parallel. Default=4.')
     parser.add_argument('--keepcache', '-k', action='store_true',
                         help='the default behavior is to flush the cache directory on startup. --keepcache retains the cache from the previous testrun.')
@@ -219,9 +222,8 @@ def main():
     else:
         # No individual tests have been specified.
         # Run all tests that do not exceed
-        # EXTENDED_CUTOFF, unless --extended was specified
         test_list = all_scripts
-        cutoff = EXTENDED_CUTOFF
+        cutoff = args.cutoff
         if args.extended:
             cutoff = sys.maxsize
 
