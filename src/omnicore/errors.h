@@ -368,7 +368,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_TOKENS -50:
           ec_str = "Address is already frozen";
           break;
-
+      case PKT_ERROR_TOKENS -51:
+          ec_str = "Freeze or unfreeze corresponding property issuer is not allowed";
+          break;
       default:
           ec_str = "Unknown error";
   }
