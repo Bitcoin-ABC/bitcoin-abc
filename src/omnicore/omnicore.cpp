@@ -3865,14 +3865,6 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
             }
         }
 
-        int best_state_block = load_most_relevant_state();
-        if (best_state_block < 0) {
-            // unable to recover easily, remove stale stale state bits and reparse from the beginning.
-            clear_all_state();
-        } else {
-            nWaterlineBlock = best_state_block;
-        }
-
 
         // clear the global wallet property list, perform a forced wallet update and tell the UI that state is no longer valid, and UI views need to be reinit
         global_wallet_property_list.clear();
