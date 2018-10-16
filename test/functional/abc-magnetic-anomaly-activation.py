@@ -52,7 +52,53 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
-    def next_block(self, number, spend=None, tx_size=0, pushonly=True, cleanstack=True):
+    def new_transaction(self, spend, tx_size=0, pushonly=True, cleanstack=True):
+        tx = CTransaction()
+        # Make sure we have plenty enough to spend going forward.
+        spendable_outputs = deque([spend])
+
+        # Spend from one of the spendable outputs
+        spend = spendable_outputs.popleft()
+        tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
+        extra_ops = []
+        if pushonly == False:
+            extra_ops += [OP_TRUE, OP_DROP]
+        if cleanstack == False:
+            extra_ops += [OP_TRUE]
+        tx.vin[0].scriptSig = CScript(extra_ops)
+
+        # Add spendable outputs
+        for i in range(2):
+            tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
+            spendable_outputs.append(PreviousSpendableOutput(tx, i))
+
+        # Put some random data into the transaction in order to randomize ids.
+        if tx_size == 0:
+            tx.vout.append(
+                CTxOut(0, CScript([random.getrandbits(8), OP_RETURN])))
+        else:
+            # Create an input to pad the transaction.
+            tx.vout.append(CTxOut(0, CScript([OP_RETURN])))
+
+            # Estimate the size of the padding.
+            push_size = tx_size - len(tx.serialize()) - 1
+
+            # Because several field are of variable size, we grow the push slowly
+            # up to the requested size.
+            while len(tx.serialize()) < tx_size:
+                # Ensure the padding has a left most bit on, so it's
+                # exactly the correct number of bits.
+                padding = random.randrange(
+                    1 << 8 * push_size - 2, 1 << 8 * push_size - 1)
+                tx.vout[2] = CTxOut(0, CScript([padding, OP_RETURN]))
+                push_size += 1
+
+            assert_equal(len(tx.serialize()), tx_size)
+
+        tx.rehash()
+        return tx
+
+    def next_block(self, number, spend_tx=None):
         if self.tip == None:
             base_block_hash = self.genesis_hash
             import time
@@ -64,64 +110,20 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
         coinbase.rehash()
-        if spend == None:
+        if spend_tx == None:
             # We need to have something to spend to fill the block.
             block = create_block(base_block_hash, coinbase, block_time)
         else:
-            # all but one satoshi to fees
-            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
+            # All but one satoshi to fees
+            #coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
+            coinbase.vout[0].nValue += spend_tx.vin[0].prevout.n - 1
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
-            # Make sure we have plenty enough to spend going forward.
-            spendable_outputs = deque([spend])
-
-            # Create the new transaction
-            tx = CTransaction()
-            # Spend from one of the spendable outputs
-            spend = spendable_outputs.popleft()
-            tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
-            extra_ops = []
-            if pushonly == False:
-                extra_ops += [OP_TRUE, OP_DROP]
-            if cleanstack == False:
-                extra_ops += [OP_TRUE]
-            tx.vin[0].scriptSig = CScript(extra_ops)
-            # Add spendable outputs
-            for i in range(2):
-                tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
-                spendable_outputs.append(PreviousSpendableOutput(tx, i))
-            # Put some random data into the transaction in order to randomize ids.
-            if tx_size == 0:
-                tx.vout.append(
-                    CTxOut(0, CScript([random.getrandbits(8), OP_RETURN])))
-            else:
-                # Create an input to pad the transaction.
-                tx.vout.append(CTxOut(0, CScript([OP_RETURN])))
-
-                # Estimate the size of the padding.
-                push_size = tx_size - len(tx.serialize()) - 1
-
-                # Because several field are of variable size, we grow the push slowly
-                # up to the requested size.
-                while len(tx.serialize()) < tx_size:
-                    # Ensure the padding has a left most bit on, so it's
-                    # exactly the correct number of bits.
-                    padding = random.randrange(
-                        1 << 8 * push_size - 2, 1 << 8 * push_size - 1)
-                    tx.vout[2] = CTxOut(0, CScript([padding, OP_RETURN]))
-                    push_size += 1
-
-                assert_equal(len(tx.serialize()), tx_size)
-
-            # Make it the same format as transaction added for padding and save the size.
-            # It's missing the padding output, so we add a constant to account for it.
-            tx.rehash()
-
             # Add the transaction to the block
-            self.add_transactions_to_block(block, [tx])
+            self.add_transactions_to_block(block, [spend_tx])
 
-            # Now that we added a bunch of transaction, we need to recompute
+            # Now that we added a bunch of transactions, we need to recompute
             # the merkle root.
             block.hashMerkleRoot = block.calc_merkle_root()
 
@@ -179,6 +181,7 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # shorthand for functions
         block = self.next_block
+        transaction = self.new_transaction
 
         # Create a new block
         block(0)
@@ -222,8 +225,8 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Check that block with small transactions, non push only signatures and
         # non clean stack are still accepted.
-        small_tx_block = block(
-            4444, out[0], MIN_TX_SIZE - 1, pushonly=False, cleanstack=False)
+        small_tx_block = block(4444,
+                               transaction(out[0], MIN_TX_SIZE - 1, pushonly=False, cleanstack=False))
         assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
         yield accepted()
 
@@ -233,7 +236,7 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Now that the for activated, it is not possible to have
         # small transactions anymore.
-        small_tx_block = block(4445, out[1], MIN_TX_SIZE - 1)
+        small_tx_block = block(4445, transaction(out[1], MIN_TX_SIZE - 1))
         assert_equal(len(small_tx_block.vtx[1].serialize()), MIN_TX_SIZE - 1)
         yield rejected(RejectResult(16, b'bad-txns-undersize'))
 
@@ -242,8 +245,8 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Now that the for activated, it is not possible to have
         # non push only transactions.
-        non_pushonly_tx_block = block(
-            4446, out[1], MIN_TX_SIZE, pushonly=False)
+        non_pushonly_tx_block = block(4446,
+                                      transaction(out[1], MIN_TX_SIZE, pushonly=False))
         yield rejected(RejectResult(16, b'blk-bad-inputs'))
 
         # Rewind bad block.
@@ -251,15 +254,15 @@ class MagneticAnomalyActivationTest(ComparisonTestFramework):
 
         # Now that the for activated, it is not possible to have
         # non clean stack transactions.
-        non_cleanstack_tx_block = block(
-            4447, out[1], MIN_TX_SIZE, cleanstack=False)
+        non_cleanstack_tx_block = block(4447,
+                                        transaction(out[1], MIN_TX_SIZE, cleanstack=False))
         yield rejected(RejectResult(16, b'blk-bad-inputs'))
 
         # Rewind bad block.
         tip(4444)
 
         # But large transactions are still ok.
-        large_tx_block = block(3333, out[1], MIN_TX_SIZE)
+        large_tx_block = block(3333, transaction(out[1], MIN_TX_SIZE))
         assert_equal(len(large_tx_block.vtx[1].serialize()), MIN_TX_SIZE)
         yield accepted()
 
