@@ -78,7 +78,7 @@ class ToolWalletTest(BitcoinTestFramework):
             HD (hd seed available): yes
             Keypool Size: 2
             Transactions: 0
-            Address Book: 0
+            Address Book: 1
         ''')
         self.assert_tool_output(out, '-wallet=wallet.dat', 'info')
 
