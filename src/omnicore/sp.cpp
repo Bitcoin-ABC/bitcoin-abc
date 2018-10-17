@@ -649,32 +649,17 @@ int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCr
             == (crowdsale.getIssuerCreated() + crowdsale.getUserCreated()));
 
     arith_uint256 amountMissing = 0;
-    arith_uint256 bonusPercentForIssuer = ConvertTo256(sp.percentage);
-    arith_uint256 amountAlreadyCreditedToIssuer = ConvertTo256(crowdsale.getIssuerCreated());
     arith_uint256 amountCreditedToUsers = ConvertTo256(crowdsale.getUserCreated());
-    arith_uint256 amountTotal = amountCreditedToUsers + amountAlreadyCreditedToIssuer;
+    arith_uint256 totalAmount = ConvertTo256(sp.num_tokens);
 
-    // calculate theoretical bonus for issuer based on the amount of
-    // tokens credited to users
-    arith_uint256 exactBonus = amountCreditedToUsers * bonusPercentForIssuer;
-    exactBonus /= ConvertTo256(100); // 100 %
-
-    // there shall be no negative missing amount
-    if (exactBonus < amountAlreadyCreditedToIssuer) {
-        return 0;
+    if(totalAmount > amountCreditedToUsers)
+    {
+        amountMissing = totalAmount - amountCreditedToUsers;
     }
-
-    // subtract the amount already credited to the issuer
-    if (exactBonus > amountAlreadyCreditedToIssuer) {
-        amountMissing = exactBonus - amountAlreadyCreditedToIssuer;
-    }
-
-    // calculate theoretical total amount of all tokens
-    arith_uint256 newTotal = amountTotal + amountMissing;
-
+    arith_uint256 newTotal = amountMissing + amountCreditedToUsers;
     // reduce to max. possible amount
     if (newTotal > uint256_const::max_int64) {
-        amountMissing = uint256_const::max_int64 - amountTotal;
+        amountMissing = uint256_const::max_int64 - amountCreditedToUsers;
     }
 
     return ConvertTo64(amountMissing);
