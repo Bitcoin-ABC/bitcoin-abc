@@ -72,7 +72,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
         time.sleep(1)
         trans = self.nodes[0].whc_gettransaction(trans_id)
         assert trans["valid"] is False
-        assert trans["invalidreason"] == "Desired property does not exist"
+        assert trans["invalidreason"] == "Invalid desired property id"
 
         # exp4: undefined value not 0
         ret = self.nodes[0].whc_createrawtx_input("", trans_id, 1)
