@@ -27,8 +27,8 @@ public:
     /**
      * Fee rate of 0 satoshis per kB.
      */
-    CFeeRate() : nSatoshisPerK() {}
-    explicit CFeeRate(const Amount _nSatoshisPerK)
+    constexpr CFeeRate() : nSatoshisPerK() {}
+    explicit constexpr CFeeRate(const Amount _nSatoshisPerK)
         : nSatoshisPerK(_nSatoshisPerK) {}
 
     /**
@@ -36,7 +36,8 @@ public:
      * exceed (2^63 - 1)
      */
     CFeeRate(const Amount nFeePaid, size_t nBytes);
-    CFeeRate(const CFeeRate &other) { nSatoshisPerK = other.nSatoshisPerK; }
+    constexpr CFeeRate(const CFeeRate &other)
+        : nSatoshisPerK(other.nSatoshisPerK) {}
 
     /**
      * Return the fee in satoshis for the given size in bytes.
@@ -53,14 +54,25 @@ public:
      * Return the fee in satoshis for a size of 1000 bytes
      */
     Amount GetFeePerK() const { return GetFee(1000); }
+
+    /**
+     * Equality
+     */
+    friend constexpr bool operator==(const CFeeRate a, const CFeeRate b) {
+        return a.nSatoshisPerK == b.nSatoshisPerK;
+    }
+    friend constexpr bool operator!=(const CFeeRate a, const CFeeRate b) {
+        return !(a == b);
+    }
+
+    /**
+     * Comparison
+     */
     friend bool operator<(const CFeeRate &a, const CFeeRate &b) {
         return a.nSatoshisPerK < b.nSatoshisPerK;
     }
     friend bool operator>(const CFeeRate &a, const CFeeRate &b) {
         return a.nSatoshisPerK > b.nSatoshisPerK;
-    }
-    friend bool operator==(const CFeeRate &a, const CFeeRate &b) {
-        return a.nSatoshisPerK == b.nSatoshisPerK;
     }
     friend bool operator<=(const CFeeRate &a, const CFeeRate &b) {
         return a.nSatoshisPerK <= b.nSatoshisPerK;
