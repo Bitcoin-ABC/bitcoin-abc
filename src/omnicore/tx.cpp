@@ -1907,8 +1907,8 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         return (PKT_ERROR_SP -21);
     }
 	if (prop_type > 8){
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
-        return (PKT_ERROR_SP -36);
+        PrintToLog("%s(): rejected: invalid property precision: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -35);
 	}
 
     //if (IsFeatureActivated(FEATURE_SPCROWDCROSSOVER, block)) {
@@ -1950,8 +1950,8 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     }
 
     if (property != OMNI_PROPERTY_WHC) {
-        PrintToLog("%s(): rejected: property %d does not support\n", __func__, property);
-        return (PKT_ERROR_SP -24);
+        PrintToLog("%s(): rejected: Desired property must be 1 now\n", __func__);
+        return (PKT_ERROR_SP -34);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
