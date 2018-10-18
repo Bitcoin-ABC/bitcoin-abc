@@ -1227,6 +1227,41 @@ UniValue whc_listproperties(const Config &config, const JSONRPCRequest &request)
 
     return response;
 }
+extern std::set<std::pair<uint32_t,int> > setFreezingEnabledProperties;
+
+UniValue whc_listfreeze(const Config &config, const JSONRPCRequest &request)
+{
+    if (request.fHelp)
+        throw runtime_error(
+                "whc_listfreeze\n"
+                "\nLists all tokens or smart properties.\n"
+                "\nResult:\n"
+                "[                                (array of JSON objects)\n"
+                "  {\n"
+                "    \"propertyid\" : n,                (number) the identifier of the tokens\n"
+                "    \"name\" : \"name\",                 (string) the name of the tokens\n"
+                "    \"category\" : \"category\",         (string) the category used for the tokens\n"
+                "    \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
+                "    \"data\" : \"information\",          (string) additional information or a description\n"
+                "    \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
+                "    \"property precision\" : [0, 8]      (int)  the property precision \n"
+                "  },\n"
+                "  ...\n"
+                "]\n"
+                "\nExamples:\n"
+                + HelpExampleCli("whc_listproperties", "")
+                + HelpExampleRpc("whc_listproperties", "")
+        );
+
+    UniValue response(UniValue::VOBJ);
+    for(auto it = setFreezingEnabledProperties.begin(); it != setFreezingEnabledProperties.end(); it++)
+    {
+
+        response.push_back(Pair("propertyid", (int64_t) (*it).first));
+    }
+
+    return response;
+}
 
 UniValue whc_getcrowdsale(const Config &config, const JSONRPCRequest &request)
 {
@@ -2511,6 +2546,7 @@ static const CRPCCommand commands[] =
     { "omni layer (data retrieval)", "whc_gettransaction",            &whc_gettransaction,             false , {}},
     { "omni layer (data retrieval)", "whc_getproperty",               &whc_getproperty,                false , {}},
     { "omni layer (data retrieval)", "whc_listproperties",            &whc_listproperties,             false , {}},
+    { "omni layer (data retrieval)", "whc_listfreeze",            &whc_listfreeze,             false , {}},
     { "omni layer (data retrieval)", "whc_getcrowdsale",              &whc_getcrowdsale,               false , {}},
     { "omni layer (data retrieval)", "whc_getgrants",                 &whc_getgrants,                  false , {}},
 //    { "omni layer (data retrieval)", "omni_getactivedexsells",         &omni_getactivedexsells,          false , {}},
