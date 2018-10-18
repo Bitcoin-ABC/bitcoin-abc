@@ -1253,11 +1253,14 @@ UniValue whc_listfreeze(const Config &config, const JSONRPCRequest &request)
                 + HelpExampleRpc("whc_listproperties", "")
         );
 
-    UniValue response(UniValue::VOBJ);
+    UniValue response(UniValue::VARR);
+
     for(auto it = setFreezingEnabledProperties.begin(); it != setFreezingEnabledProperties.end(); it++)
     {
+        UniValue freezingobject(UniValue::VOBJ);
 
-        response.push_back(Pair("propertyid", (int64_t) (*it).first));
+        freezingobject.push_back(Pair("propertyid", (int64_t) (*it).first));
+        response.push_back(freezingobject);
     }
 
     return response;
