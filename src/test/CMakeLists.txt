@@ -45,12 +45,14 @@ add_dependencies(check check-bitcoin)
 
 if(BUILD_BITCOIN_WALLET)
 	set(BITCOIN_WALLET_TEST_FIXTURE
+		../wallet/test/init_test_fixture.cpp
 		../wallet/test/wallet_test_fixture.cpp
 	)
 	set(BITCOIN_WALLET_TESTS
 		../wallet/test/accounting_tests.cpp
 		../wallet/test/db_tests.cpp
 		../wallet/test/coinselector_tests.cpp
+		../wallet/test/init_tests.cpp
 		../wallet/test/psbt_wallet_tests.cpp
 		../wallet/test/wallet_tests.cpp
 		../wallet/test/walletdb_tests.cpp
