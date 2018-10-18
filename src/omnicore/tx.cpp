@@ -1944,8 +1944,8 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     const CConsensusParams& params = ConsensusParams();
     if(block >= params.MSC_CHECK_VARIABLE_TOKEN){
         if (totalCrowsToken <= 0 || MAX_INT_8_BYTES < totalCrowsToken) {
-            PrintToLog("%s(): rejected: value out of range or zero: %d\n", __func__, totalCrowsToken);
-            return (PKT_ERROR_SP -23);
+            PrintToLog("%s(): rejected: totalCrowsToken out of range or zero: %d\n", __func__, totalCrowsToken);
+            return (PKT_ERROR_SP -25);
         }
     }
 
