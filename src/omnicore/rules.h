@@ -114,6 +114,7 @@ public:
     int MSC_STO_BLOCK;
     //! Block to disable burnAddr participate send-to-owners transactions
     int MSC_STO_DISABLE_BURNADDR;
+    int MSC_CHECK_VARIABLE_TOKEN;
     //! Block to enable MetaDEx transactions
     int MSC_METADEX_BLOCK;
     //! Block to enable "send all" transactions
