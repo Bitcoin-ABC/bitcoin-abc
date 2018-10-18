@@ -40,6 +40,9 @@ class MultiWalletTest(BitcoinTestFramework):
                 return wallet_dir(name, "wallet.dat")
             return wallet_dir(name)
 
+        assert_equal(self.nodes[0].listwalletdir(),
+                     {'wallets': [{'name': ''}]})
+
         # check wallet.dat is created
         self.stop_nodes()
         assert_equal(os.path.isfile(wallet_dir('wallet.dat')), True)
@@ -71,6 +74,9 @@ class MultiWalletTest(BitcoinTestFramework):
                         os.path.join(self.options.tmpdir, 'extern/w6'), 'w7_symlink', 'w8', '']
         extra_args = ['-wallet={}'.format(n) for n in wallet_names]
         self.start_node(0, extra_args)
+        assert_equal(set(map(lambda w: w['name'], self.nodes[0].listwalletdir()[
+                     'wallets'])), set(['', 'w3', 'w2', 'sub/w5', 'w7', 'w7', 'w1', 'w8', 'w']))
+
         assert_equal(set(node.listwallets()), set(wallet_names))
 
         # check that all requested wallets were created
@@ -189,6 +195,9 @@ class MultiWalletTest(BitcoinTestFramework):
             ['-walletdir=' + competing_wallet_dir], exp_stderr, match=ErrorMatch.PARTIAL_REGEX)
 
         self.restart_node(0, extra_args)
+
+        assert_equal(set(map(lambda w: w['name'], self.nodes[0].listwalletdir()['wallets'])), set(
+            ['', 'w3', 'w2', 'sub/w5', 'w7', 'w7', 'w8_copy', 'w1', 'w8', 'w']))
 
         wallets = [wallet(w) for w in wallet_names]
         wallet_bad = wallet("bad")
@@ -354,6 +363,9 @@ class MultiWalletTest(BitcoinTestFramework):
         self.nodes[0].loadwallet('w1')
         assert_equal(self.nodes[0].listwallets(), ['w1'])
         assert_equal(w1.getwalletinfo()['walletname'], 'w1')
+
+        assert_equal(set(map(lambda w: w['name'], self.nodes[0].listwalletdir()['wallets'])), set(
+            ['', 'w3', 'w2', 'sub/w5', 'w7', 'w9', 'w7', 'w8_copy', 'w1', 'w8', 'w']))
 
         # Test backing up and restoring wallets
         self.log.info("Test wallet backup")

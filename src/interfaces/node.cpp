@@ -41,6 +41,8 @@
 
 class HTTPRPCRequestProcessor;
 class CWallet;
+fs::path GetWalletDir();
+std::vector<fs::path> ListWalletDir();
 std::vector<std::shared_ptr<CWallet>> GetWallets();
 
 namespace interfaces {
@@ -242,6 +244,14 @@ namespace {
         bool getUnspentOutput(const COutPoint &output, Coin &coin) override {
             LOCK(::cs_main);
             return ::pcoinsTip->GetCoin(output, coin);
+        }
+        std::string getWalletDir() override { return GetWalletDir().string(); }
+        std::vector<std::string> listWalletDir() override {
+            std::vector<std::string> paths;
+            for (auto &path : ListWalletDir()) {
+                paths.push_back(path.string());
+            }
+            return paths;
         }
         std::vector<std::unique_ptr<Wallet>> getWallets() override {
             std::vector<std::unique_ptr<Wallet>> wallets;

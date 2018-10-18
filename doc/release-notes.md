@@ -9,6 +9,11 @@ This release includes the following features and fixes:
    Additionally, Bitcoin ABC does not yet change appearance when macOS
    "dark mode" is activated.
 
+New RPC methods
+------------
+ - `listwalletdir` returns a list of wallets in the wallet directory which is
+   configured with `-walletdir` parameter.
+
 Low-level RPC changes
 ----------------------
  - `-usehd` was removed in version 0.16. From that version onwards, all new
