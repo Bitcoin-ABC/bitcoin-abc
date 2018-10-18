@@ -6,6 +6,7 @@ if USE_JNI
 lib_LTLIBRARIES += libsecp256k1_jni.la
 endif
 include_HEADERS = include/secp256k1.h
+include_HEADERS += include/secp256k1_preallocated.h
 noinst_HEADERS =
 noinst_HEADERS += src/scalar.h
 noinst_HEADERS += src/scalar_4x64.h
