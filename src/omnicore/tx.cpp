@@ -1211,20 +1211,25 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
         return (PKT_ERROR_ERC721 - 203);
     }
 
+    if(receiver.empty()){
+        receiver = sender;
+    }
+
     if(receiver == burnwhc_address){
         PrintToLog("%s(): rejected: issue token's receiver address or transfer token's receiver is not destory address\n", __func__);
         return (PKT_ERROR_ERC721 - 206);
     }
 
     if(spInfo->first.haveIssuedNumber + 1 > spInfo->first.maxTokens){
-        PrintToLog("%s(): rejected: have issued erc721 token's number exceed property created maxnumber setup \n",
+        PrintToLog("%s(): rejected: sender : %s have issued erc721 token's number exceed property created maxnumber setup at block %d\n",
                    __func__,
                    sender,
-                   spInfo->first.issuer,
                    block);
         return (PKT_ERROR_ERC721 - 207);
     }
 
+    bool autoTokenID = false;
+    uint64_t tmpTokenID = 0;
     if(!erc721_tokenid.IsNull()){
         if(my_erc721tokens->existToken(erc721_propertyid, erc721_tokenid)){
             PrintToLog("%s(): rejected: user special property %s tokenid %s will be created that have exist at block %d\n",
@@ -1235,13 +1240,11 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
             return (PKT_ERROR_ERC721 - 204);
         }
     } else{
-        uint256 tokenid;
+        tmpTokenID = spInfo->first.autoNextTokenID;
         do{
-            arith_uint256 id(spInfo->first.autoNextTokenID);
-            tokenid = uint256(ArithToUint256(id));
-            spInfo->first.autoNextTokenID++;
-        }while(my_erc721tokens->existToken(erc721_propertyid, tokenid));
-        erc721_tokenid = tokenid;
+            erc721_tokenid = ArithToUint256(arith_uint256(tmpTokenID++));
+        }while(my_erc721tokens->existToken(erc721_propertyid, erc721_tokenid));
+        autoTokenID = true;
     }
 
     ERC721TokenInfos::TokenInfo info;
@@ -1262,6 +1265,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
     spInfo->second = Flags::DIRTY;
     spInfo->first.haveIssuedNumber++;
     spInfo->first.currentValidIssuedNumer++;
+    if (autoTokenID) spInfo->first.autoNextTokenID = tmpTokenID;
 
     PrintToLog("%s(): sender : %s have succeed issued ERC721 property : %s token : %s at block %d \n",
                __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), block);
@@ -1297,7 +1301,7 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
                    erc721_propertyid.GetHex(),
                    erc721_tokenid.GetHex(),
                    block);
-        return (PKT_ERROR_ERC721 - 204);
+        return (PKT_ERROR_ERC721 - 208);
     }
 
     if(info->first.owner != sender){
@@ -1311,8 +1315,12 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
         return (PKT_ERROR_ERC721 -302);
     }
 
+    if(receiver.empty()){
+        receiver = sender;
+    }
+
     if(receiver == burnwhc_address){
-        PrintToLog("%s(): rejected: issue token's receiver address or transfer token's receiver is not destory address\n", __func__);
+        PrintToLog("%s(): rejected: issue token's receiver address or transfer token's receiver is destory address\n", __func__);
         return (PKT_ERROR_ERC721 - 206);
     }
 
@@ -1366,7 +1374,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
                    erc721_propertyid.GetHex(),
                    erc721_tokenid.GetHex(),
                    block);
-        return (PKT_ERROR_ERC721 - 204);
+        return (PKT_ERROR_ERC721 - 208);
     }
 
     if(info->first.owner != sender){
@@ -1514,7 +1522,7 @@ int CMPTransaction::logicMath_BuyToken()
     tokens.second = 0;
 
     // Calculate the amounts to credit for this fundraiser
-    calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime,sp.rate,
+    calculateFundraiser(precision, nValue, sp.early_bird, sp.deadline, blockTime, sp.rate,
                         getSaledTokens(pcrowdsale->getPropertyId()),sp.num_tokens,
                         tokens.first, close_crowdsale,refund);
 
@@ -2228,7 +2236,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     }
 
     if (nValue <= 0 || MAX_TOKENPRICE < nValue) {
-        PrintToLog("%s(): rejected: value out of range or zero: %d, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
+        PrintToLog("%s(): rejected: value out of range, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
         return (PKT_ERROR_SP -23);
     }
 

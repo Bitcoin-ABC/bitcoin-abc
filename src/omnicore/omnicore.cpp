@@ -323,7 +323,7 @@ int64_t getMPbalance(const std::string& address, uint32_t propertyId, TallyType 
     if (my_it != mp_tally_map.end()) {
         balance = (my_it->second).getMoney(propertyId, ttype);
     }else{
-	PrintToLog("address : %s does not find in tally\n", address );	
+	    PrintToLog("address : %s does not find in tally\n", address );
 	}
 
     return balance;

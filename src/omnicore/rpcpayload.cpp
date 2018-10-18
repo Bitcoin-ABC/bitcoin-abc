@@ -493,16 +493,16 @@ UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRP
 UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-                "whc_createpayload_transferERC721token \"0x01\" \"0x02\" \n"
+                "whc_createpayload_destroyERC721token \"0x01\" \"0x02\" \n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
-                        "1. propertyID              (string, required) The propertyid within the token that will be transfer \n"
-                        "2. tokenID                 (string, optional) The tokenid that will be transfer\n"
+                        "1. propertyID              (string, required) The token within the property that will be destroy \n"
+                        "2. tokenID                 (string, optional) The tokenid that will be destroy\n"
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
-                + HelpExampleRpc("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleCli("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleRpc("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
         );
 
     int i = 0;

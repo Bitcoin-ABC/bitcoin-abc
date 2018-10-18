@@ -71,6 +71,14 @@ void RequirePropertyName(const std::string& name)
     }
 }
 
+void RequireExistingProperty(std::string address, uint32_t propertyId){
+    int64_t availableBalance =  getUserAvailableMPbalance(address, propertyId);
+    if (availableBalance < CREATE_TOKEN_FEE){
+        throw JSONRPCError(RPC_LACK_AMOUNT, )
+    }
+}
+
+
 void RequireExistingProperty(uint32_t propertyId)
 {
     LOCK(cs_tally);

@@ -782,6 +782,8 @@ UniValue whc_getbalance(const Config &config, const JSONRPCRequest &request)
 
     RequireExistingProperty(propertyId);
 
+    LOCK(cs_tally);
+
     UniValue balanceObj(UniValue::VOBJ);
     BalanceToJSON(address, propertyId, balanceObj, getPropertyType(propertyId));
 

@@ -555,7 +555,7 @@ bool IsERC721TransactionTypeAllowed(int txblock, uint16_t txtype, uint16_t versi
         return false;
     }
 
-    if(version == MP_TX_PKT_V0 && txblock > param.ERC721_BLOCK){
+    if(version == MP_TX_PKT_V0 && txblock >= param.ERC721_BLOCK){
         return true;
     }
 

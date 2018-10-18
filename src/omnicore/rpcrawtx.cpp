@@ -101,7 +101,10 @@ UniValue whc_decodetransaction(const Config &config,const JSONRPCRequest &reques
         // temporarily switch global coins view cache for transaction inputs
         std::swap(view, viewTemp);
         // then get the results
-        populateResult = populateRPCTransactionObject(tx, uint256(), txObj, "", false, "", blockHeight);
+        uint256 blockHash;
+        CTransactionRef txref;
+        GetTransaction(GetConfig(), tx.GetId(), txref, blockHash, true);
+        populateResult = populateRPCTransactionObject(tx, blockHash, txObj, "", false, "", blockHeight);
         // and restore the original, unpolluted coins view cache
         std::swap(viewTemp, view);
     }
