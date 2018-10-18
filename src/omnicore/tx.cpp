@@ -1937,7 +1937,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     }
 
     if (nValue <= 0 || MAX_TOKENPRICE < nValue) {
-        PrintToLog("%s(): rejected: value out of range, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
+        PrintToLog("%s(): rejected: value %d out of range, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
         return (PKT_ERROR_SP -23);
     }
 
