@@ -7,7 +7,6 @@
 
 #include "arith_uint256.h"
 #include "sync.h"
-#include "rules.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -38,7 +37,6 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
     OwnerAddrType ownerAddrSet;
-    const CConsensusParams& params = ConsensusParams();
 
     {
         LOCK(cs_tally);
