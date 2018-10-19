@@ -2629,6 +2629,8 @@ static UniValue scantxoutset(const Config &config,
                 "    \"vout\": n,                    (numeric) the vout value\n"
                 "    \"scriptPubKey\" : \"script\",    (string) the script "
                 "key\n"
+                "    \"desc\" : \"descriptor\",        (string) A specialized "
+                "descriptor for the matched scriptPubKey\n"
                 "    \"amount\" : x.xxx,             (numeric) The total "
                 "amount in " +
                 CURRENCY_UNIT +
@@ -2675,6 +2677,7 @@ static UniValue scantxoutset(const Config &config,
                 "Scan already in progress, use action \"abort\" or \"status\"");
         }
         std::set<CScript> needles;
+        std::map<CScript, std::string> descriptors;
         Amount total_in = Amount::zero();
 
         // loop through the scan objects
@@ -2725,7 +2728,12 @@ static UniValue scantxoutset(const Config &config,
                             "Cannot derive script without private keys: '%s'",
                             desc_str));
                 }
-                needles.insert(scripts.begin(), scripts.end());
+                for (const auto &script : scripts) {
+                    std::string inferred =
+                        InferDescriptor(script, provider)->ToString();
+                    needles.emplace(script);
+                    descriptors.emplace(std::move(script), std::move(inferred));
+                }
             }
         }
 
@@ -2760,6 +2768,7 @@ static UniValue scantxoutset(const Config &config,
             unspent.pushKV("vout", int32_t(outpoint.GetN()));
             unspent.pushKV("scriptPubKey", HexStr(txo.scriptPubKey.begin(),
                                                   txo.scriptPubKey.end()));
+            unspent.pushKV("desc", descriptors[txo.scriptPubKey]);
             unspent.pushKV("amount", ValueFromAmount(txo.nValue));
             unspent.pushKV("height", int32_t(coin.GetHeight()));
 
