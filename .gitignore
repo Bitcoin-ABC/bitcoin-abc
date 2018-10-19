@@ -112,3 +112,9 @@ contrib/devtools/split-debug.sh
 
 # vagrant
 .vagrant
+src/wormholed
+src/wormholed-cli
+src/wormholed-seeder
+CMakeLists.txt
+src/wormholed-tx
+src/bench/bench_wormhole

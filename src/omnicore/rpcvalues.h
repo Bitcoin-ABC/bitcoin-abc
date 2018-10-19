@@ -3,7 +3,7 @@
 
 class CPubKey;
 class CTransaction;
-struct CMutableTransaction;
+class CMutableTransaction;
 struct PrevTxsEntry;
 
 #include <univalue.h>

@@ -5,8 +5,8 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define PRODUCTVERSION 0.3.0.0
-!define VERSION 0.3.0.0
+!define PRODUCTVERSION 0.1.0.0
+!define VERSION 0.1.0.0
 !define COMPANY "Omni Foundation"
 !define URL http://www.omnilayer.org/
 

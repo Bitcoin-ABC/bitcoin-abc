@@ -22,6 +22,7 @@
 #include "base58.h"
 #include "sync.h"
 #include "utiltime.h"
+#include "tx.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -1253,8 +1254,8 @@ int CMPTransaction::logicMath_BuyToken()
 
     // Credit tokens for this fundraiser
     if (tokens.first > 0) {
-        assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
         if(money > 0) {
+            assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
             assert(update_tally_map(sender, property, -money, BALANCE));
             assert(update_tally_map(receiver, property, money, BALANCE));
         }
@@ -1324,7 +1325,7 @@ int CMPTransaction::logicMath_SendToOwners()
     // ------------------------------------------
 
     uint32_t distributeTo = distribution_property;
-    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue);
+    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue, block);
     uint64_t numberOfReceivers = receiversSet.size();
 
     // make sure we found some owners
@@ -1843,7 +1844,7 @@ int CMPTransaction::logicMath_CreatePropertyFixed()
     //change_002
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
@@ -1906,8 +1907,8 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
         return (PKT_ERROR_SP -21);
     }
 	if (prop_type > 8){
-        PrintToLog("%s(): rejected: invalid property type: %d\n", __func__, (uint32_t) prop_type);
-        return (PKT_ERROR_SP -36);
+        PrintToLog("%s(): rejected: invalid property precision: %d\n", __func__, (uint32_t) prop_type);
+        return (PKT_ERROR_SP -35);
 	}
 
     //if (IsFeatureActivated(FEATURE_SPCROWDCROSSOVER, block)) {
@@ -1936,13 +1937,21 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     }
 
     if (nValue <= 0 || MAX_TOKENPRICE < nValue) {
-        PrintToLog("%s(): rejected: value out of range or zero: %d, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
+        PrintToLog("%s(): rejected: value %d out of range, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
         return (PKT_ERROR_SP -23);
     }
 
+    const CConsensusParams& params = ConsensusParams();
+    if(block >= params.MSC_CHECK_VARIABLE_TOKEN){
+        if (totalCrowsToken <= 0 || MAX_INT_8_BYTES < totalCrowsToken) {
+            PrintToLog("%s(): rejected: totalCrowsToken out of range or zero: %d\n", __func__, totalCrowsToken);
+            return (PKT_ERROR_SP -25);
+        }
+    }
+
     if (property != OMNI_PROPERTY_WHC) {
-        PrintToLog("%s(): rejected: property %d does not support\n", __func__, property);
-        return (PKT_ERROR_SP -24);
+        PrintToLog("%s(): rejected: Desired property must be 1 now\n", __func__);
+        return (PKT_ERROR_SP -34);
     }
 
     int64_t money = getMPbalance(sender, OMNI_PROPERTY_WHC, BALANCE);
@@ -1953,7 +1962,7 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
 
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     if ('\0' == name[0]) {
@@ -2115,7 +2124,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
 
     if (0 != prev_prop_id) {
         PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return false;
+        return (PKT_ERROR_SP -51);
     }
 
     if ('\0' == name[0]) {
