@@ -60,15 +60,13 @@ static inline int64_t GetPerformanceCounter() {
     return __rdtsc();
 #elif !defined(_MSC_VER) && defined(__i386__)
     uint64_t r = 0;
-    __asm__ volatile(
-        "rdtsc"
-        : "=A"(r)); // Constrain the r variable to the eax:edx pair.
+    // Constrain the r variable to the eax:edx pair.
+    __asm__ volatile("rdtsc" : "=A"(r));
     return r;
 #elif !defined(_MSC_VER) && (defined(__x86_64__) || defined(__amd64__))
     uint64_t r1 = 0, r2 = 0;
-    __asm__ volatile("rdtsc"
-                     : "=a"(r1),
-                       "=d"(r2)); // Constrain r1 to rax and r2 to rdx.
+    // Constrain r1 to rax and r2 to rdx.
+    __asm__ volatile("rdtsc" : "=a"(r1), "=d"(r2));
     return (r2 << 32) | r1;
 #else
     // Fall back to using C++11 clock (usually microsecond or nanosecond
@@ -106,7 +104,9 @@ static bool GetHWRand(uint8_t *ent32) {
                              ".byte 0x0f, 0xc7, 0xf2;" // rdrand %edx
                              "setc %2"
                              : "=a"(r1), "=d"(r2), "=q"(ok)::"cc");
-            if (!ok) return false;
+            if (!ok) {
+                return false;
+            }
             WriteLE32(ent32 + 8 * iter, r1);
             WriteLE32(ent32 + 8 * iter + 4, r2);
         }
@@ -119,7 +119,9 @@ static bool GetHWRand(uint8_t *ent32) {
                          "setc %4"
                          : "=a"(r1), "=b"(r2), "=c"(r3), "=d"(r4),
                            "=q"(ok)::"cc");
-        if (!ok) return false;
+        if (!ok) {
+            return false;
+        }
         WriteLE64(ent32, r1);
         WriteLE64(ent32 + 8, r2);
         WriteLE64(ent32 + 16, r3);
@@ -147,7 +149,9 @@ static void RandAddSeedPerfmon() {
 
     // This can take up to 2 seconds, so only do it every 10 minutes
     static int64_t nLastPerfmon;
-    if (GetTime() < nLastPerfmon + 10 * 60) return;
+    if (GetTime() < nLastPerfmon + 10 * 60) {
+        return;
+    }
     nLastPerfmon = GetTime();
 
     std::vector<uint8_t> vData(250000, 0);
@@ -185,10 +189,10 @@ static void RandAddSeedPerfmon() {
 
 #ifndef WIN32
 /**
- *Fallback: get 32 bytes of system entropy from /dev/urandom. The most
- *compatible way to get cryptographic randomness on UNIX-ish platforms.
+ * Fallback: get 32 bytes of system entropy from /dev/urandom. The most
+ * compatible way to get cryptographic randomness on UNIX-ish platforms.
  */
-void GetDevURandom(uint8_t *ent32) {
+static void GetDevURandom(uint8_t *ent32) {
     int f = open("/dev/urandom", O_RDONLY);
     if (f == -1) {
         RandFailure();
@@ -240,18 +244,19 @@ void GetOSRand(uint8_t *ent32) {
         }
     }
 #elif defined(HAVE_GETENTROPY) && defined(__OpenBSD__)
-    /* On OpenBSD this can return up to 256 bytes of entropy, will return an
+    /**
+     * On OpenBSD this can return up to 256 bytes of entropy, will return an
      * error if more are requested.
      * The call cannot return less than the requested number of bytes.
-       getentropy is explicitly limited to openbsd here, as a similar (but not
-       the same) function may exist on other platforms via glibc.
+     * getentropy is explicitly limited to openbsd here, as a similar (but not
+     * the same) function may exist on other platforms via glibc.
      */
     if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
         RandFailure();
     }
 #elif defined(HAVE_GETENTROPY_RAND) && defined(MAC_OSX)
     // We need a fallback for OSX < 10.12
-    if (&getentropy != NULL) {
+    if (&getentropy != nullptr) {
         if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
             RandFailure();
         }
@@ -259,8 +264,9 @@ void GetOSRand(uint8_t *ent32) {
         GetDevURandom(ent32);
     }
 #elif defined(HAVE_SYSCTL_ARND)
-    /* FreeBSD and similar. It is possible for the call to return less
-     * bytes than requested, so need to read in a loop.
+    /**
+     * FreeBSD and similar. It is possible for the call to return less bytes
+     * than requested, so need to read in a loop.
      */
     static const int name[2] = {CTL_KERN, KERN_ARND};
     int have = 0;
@@ -272,7 +278,8 @@ void GetOSRand(uint8_t *ent32) {
         have += len;
     } while (have < NUM_OS_RANDOM_BYTES);
 #else
-    /* Fall back to /dev/urandom if there is no specific method implemented to
+    /**
+     * Fall back to /dev/urandom if there is no specific method implemented to
      * get system entropy for this OS.
      */
     GetDevURandom(ent32);
@@ -411,7 +418,8 @@ FastRandomContext::FastRandomContext(const uint256 &seed)
 bool Random_SanityCheck() {
     uint64_t start = GetPerformanceCounter();
 
-    /* This does not measure the quality of randomness, but it does test that
+    /**
+     * This does not measure the quality of randomness, but it does test that
      * OSRandom() overwrites all 32 bytes of the output given a maximum number
      * of tries.
      */
@@ -421,8 +429,10 @@ bool Random_SanityCheck() {
     bool overwritten[NUM_OS_RANDOM_BYTES] = {};
     int num_overwritten;
     int tries = 0;
-    /* Loop until all bytes have been overwritten at least once, or max number
-     * tries reached */
+    /**
+     * Loop until all bytes have been overwritten at least once, or max number
+     * tries reached.
+     */
     do {
         memset(data, 0, NUM_OS_RANDOM_BYTES);
         GetOSRand(data);
@@ -448,7 +458,9 @@ bool Random_SanityCheck() {
     // call + 1ms sleep.
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     uint64_t stop = GetPerformanceCounter();
-    if (stop == start) return false;
+    if (stop == start) {
+        return false;
+    }
 
     // We called GetPerformanceCounter. Use it as entropy.
     RAND_add((const uint8_t *)&start, sizeof(start), 1);
