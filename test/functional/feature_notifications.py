@@ -77,12 +77,13 @@ class NotificationsTest(BitcoinTestFramework):
                 sorted(txids_rpc), sorted(
                     os.listdir(
                         self.walletnotify_dir)))
+            self.stop_node(1)
             for tx_file in os.listdir(self.walletnotify_dir):
                 os.remove(os.path.join(self.walletnotify_dir, tx_file))
 
             self.log.info("test -walletnotify after rescan")
             # restart node to rescan to force wallet notifications
-            self.restart_node(1)
+            self.start_node(1)
             connect_nodes(self.nodes[0], self.nodes[1])
 
             wait_until(
