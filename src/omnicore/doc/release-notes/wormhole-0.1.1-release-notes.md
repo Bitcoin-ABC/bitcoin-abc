@@ -55,6 +55,8 @@ Various smaller improvements were added Wormhole Core 0.0.6 such as:
 - Fix the bug that the remaining tokens not sent to the issuer after the crowdfunding close. 
 
 - Add some of the crowdfunding to the Integration testing
+- Fix confirmations informations in  RPC whc_decodetransaction
+- Append the amount field to the return of RPC whc_gettransaction,  identify how many WHCs user input to participate the crowdfunding,  for unconfirmed crowdfunding participate transaction
 
 # Change log
 
