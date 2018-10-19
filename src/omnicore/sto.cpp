@@ -37,7 +37,6 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 {
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
-    int64_t burnaddrTokens = 0;
     OwnerAddrType ownerAddrSet;
     const CConsensusParams& params = ConsensusParams();
 
@@ -60,11 +59,6 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
                 senderTokens = tokens;
                 continue;
             }
-            if (address == burnwhc_address && blockHeight >= params.MSC_STO_DISABLE_BURNADDR){
-                burnaddrTokens = tokens;
-                continue;
-            }
-
             totalTokens += tokens;
 
             // Only holders with balance are relevant
@@ -111,7 +105,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
     }
 
     uint64_t numberOfOwners = receiversSet.size();
-    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens + burnaddrTokens));
+    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens));
     PrintToLog("\tExcluding Sender: %s\n", FormatMP(property, totalTokens));
     PrintToLog("\t          Owners: %d\n", numberOfOwners);
 
