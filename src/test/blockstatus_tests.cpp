@@ -42,9 +42,13 @@ static void CheckAllPermutations(const BlockStatus base, bool hasData,
         CheckBlockStatus(s, validity, hasData, hasUndo, hasFailed,
                          hasFailedParent, isParked, hasParkedParent);
 
-        // Clears failure flags.
+        // Clear various flags.
         CheckBlockStatus(s.withClearedFailureFlags(), validity, hasData,
                          hasUndo, false, false, isParked, hasParkedParent);
+        CheckBlockStatus(s.withClearedParkedFlags(), validity, hasData, hasUndo,
+                         hasFailed, hasFailedParent, false, false);
+        CheckBlockStatus(s.withReconsideredFlags(), validity, hasData, hasUndo,
+                         false, false, false, false);
 
         // Also check all possible alterations.
         CheckBlockStatus(s.withData(true), validity, true, hasUndo, hasFailed,

@@ -105,6 +105,13 @@ public:
     }
 
     bool isOnParkedChain() const { return status & PARKED_MASK; }
+    BlockStatus withClearedParkedFlags() const {
+        return BlockStatus(status & ~PARKED_MASK);
+    }
+
+    BlockStatus withReconsideredFlags() const {
+        return withClearedFailureFlags().withClearedParkedFlags();
+    }
 
     ADD_SERIALIZE_METHODS;
 
