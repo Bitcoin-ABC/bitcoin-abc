@@ -27,7 +27,7 @@ class TestBitcoinCli(BitcoinTestFramework):
         assert "Bitcoin ABC RPC client version" in cli_response
 
         self.log.info(
-            "Compare responses from gewalletinfo RPC and `bitcoin-cli getwalletinfo`")
+            "Compare responses from getwalletinfo RPC and `bitcoin-cli getwalletinfo`")
         if self.is_wallet_compiled():
             cli_response = self.nodes[0].cli.getwalletinfo()
             rpc_response = self.nodes[0].getwalletinfo()
