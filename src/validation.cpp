@@ -2393,8 +2393,9 @@ static CBlockIndex *FindMostWorkChain() {
         // chain and the candidate are valid. Just going until the active chain
         // is an optimization, as we know all blocks in it are valid already.
         CBlockIndex *pindexTest = pindexNew;
-        bool fInvalidAncestor = false;
-        while (pindexTest && !chainActive.Contains(pindexTest)) {
+        bool hasValidAncestor = true;
+        while (hasValidAncestor && pindexTest &&
+               !chainActive.Contains(pindexTest)) {
             assert(pindexTest->nChainTx || pindexTest->nHeight == 0);
 
             // Pruned nodes may have entries in setBlockIndexCandidates for
@@ -2404,40 +2405,45 @@ static CBlockIndex *FindMostWorkChain() {
             bool fInvalidChain = pindexTest->nStatus.isInvalid();
             bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
             bool fMissingData = !pindexTest->nStatus.hasData();
-            if (fInvalidChain || fParkedChain || fMissingData) {
-                // Candidate chain is not usable (either invalid or missing
-                // data)
-                if (fInvalidChain &&
-                    (pindexBestInvalid == nullptr ||
-                     pindexNew->nChainWork > pindexBestInvalid->nChainWork)) {
-                    pindexBestInvalid = pindexNew;
-                }
-                CBlockIndex *pindexFailed = pindexNew;
-                // Remove the entire chain from the set.
-                while (pindexTest != pindexFailed) {
-                    if (fInvalidChain || fParkedChain) {
-                        pindexFailed->nStatus =
-                            pindexFailed->nStatus
-                                .withFailedParent(fInvalidChain)
-                                .withParkedParent(fParkedChain);
-                    } else if (fMissingData) {
-                        // If we're missing data, then add back to
-                        // mapBlocksUnlinked, so that if the block arrives in
-                        // the future we can try adding to
-                        // setBlockIndexCandidates again.
-                        mapBlocksUnlinked.insert(
-                            std::make_pair(pindexFailed->pprev, pindexFailed));
-                    }
-                    setBlockIndexCandidates.erase(pindexFailed);
-                    pindexFailed = pindexFailed->pprev;
-                }
-                setBlockIndexCandidates.erase(pindexTest);
-                fInvalidAncestor = true;
-                break;
+            if (!(fInvalidChain || fParkedChain || fMissingData)) {
+                // The current block is acceptable, move to the parent, up to
+                // the fork point.
+                pindexTest = pindexTest->pprev;
+                continue;
             }
-            pindexTest = pindexTest->pprev;
+
+            // Candidate chain is not usable (either invalid or missing data)
+            hasValidAncestor = false;
+            setBlockIndexCandidates.erase(pindexTest);
+
+            if (fInvalidChain &&
+                (pindexBestInvalid == nullptr ||
+                 pindexNew->nChainWork > pindexBestInvalid->nChainWork)) {
+                pindexBestInvalid = pindexNew;
+            }
+
+            CBlockIndex *pindexFailed = pindexNew;
+            // Remove the entire chain from the set.
+            while (pindexTest != pindexFailed) {
+                if (fInvalidChain || fParkedChain) {
+                    pindexFailed->nStatus =
+                        pindexFailed->nStatus.withFailedParent(fInvalidChain)
+                            .withParkedParent(fParkedChain);
+                } else if (fMissingData) {
+                    // If we're missing data, then add back to
+                    // mapBlocksUnlinked, so that if the block arrives in the
+                    // future we can try adding to setBlockIndexCandidates
+                    // again.
+                    mapBlocksUnlinked.insert(
+                        std::make_pair(pindexFailed->pprev, pindexFailed));
+                }
+                setBlockIndexCandidates.erase(pindexFailed);
+                pindexFailed = pindexFailed->pprev;
+            }
         }
-        if (!fInvalidAncestor) {
+
+        // We found a candidate that has valid ancestors. This is our guy.
+        if (hasValidAncestor) {
             return pindexNew;
         }
     } while (true);
