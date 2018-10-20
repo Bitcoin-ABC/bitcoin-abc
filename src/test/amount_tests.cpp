@@ -103,9 +103,11 @@ BOOST_AUTO_TEST_CASE(AmountTests) {
 }
 
 BOOST_AUTO_TEST_CASE(MoneyRangeTest) {
-    BOOST_CHECK_EQUAL(MoneyRange(Amount(-1 * SATOSHI)), false);
-    BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY + Amount(1 * SATOSHI)), false);
-    BOOST_CHECK_EQUAL(MoneyRange(Amount(1 * SATOSHI)), true);
+    BOOST_CHECK_EQUAL(MoneyRange(-SATOSHI), false);
+    BOOST_CHECK_EQUAL(MoneyRange(Amount::zero()), true);
+    BOOST_CHECK_EQUAL(MoneyRange(SATOSHI), true);
+    BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY), true);
+    BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY + SATOSHI), false);
 }
 
 BOOST_AUTO_TEST_CASE(BinaryOperatorTest) {
