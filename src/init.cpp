@@ -1027,12 +1027,12 @@ void SetupServerArgs() {
                  ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg(
         "-rpcbind=<addr>[:port]",
-        "Bind to given address to listen for JSON-RPC connections. This option "
-        "is ignored unless -rpcallowip is also passed. Port is optional and "
-        "overrides -rpcport. Use [host]:port notation for IPv6. This option "
-        "can be specified multiple times (default: 127.0.0.1 and ::1 i.e., "
-        "localhost, or if -rpcallowip has been specified, 0.0.0.0 and :: i.e., "
-        "all addresses)",
+        "Bind to given address to listen for JSON-RPC connections. Do not "
+        "expose the RPC server to untrusted networks such as the public "
+        "internet! This option is ignored unless -rpcallowip is also passed. "
+        "Port is optional and overrides -rpcport.  Use [host]:port notation "
+        "for IPv6. This option can be specified multiple times (default: "
+        "127.0.0.1 and ::1 i.e., localhost)",
         ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
         OptionsCategory::RPC);
     gArgs.AddArg("-rpccookiefile=<loc>",

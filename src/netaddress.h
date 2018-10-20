@@ -56,6 +56,8 @@ public:
 
     // for Tor addresses
     bool SetSpecial(const std::string &strName);
+    // INADDR_ANY equivalent
+    bool IsBindAny() const;
     // IPv4 mapped address (::FFFF:0:0/96, 0.0.0.0/0)
     bool IsIPv4() const;
     // IPv6 address (not mapped IPv4, not Tor)

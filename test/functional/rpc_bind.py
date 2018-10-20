@@ -58,10 +58,14 @@ class RPCBindTest(BitcoinTestFramework):
         at a non-localhost IP.
         '''
         self.log.info("Allow IP test for {}:{}".format(rpchost, rpcport))
-        base_args = ['-disablewallet', '-nolisten'] + \
-            ['-rpcallowip=' + x for x in allow_ips]
+        node_args = \
+            ['-disablewallet', '-nolisten'] + \
+            ['-rpcallowip=' + x for x in allow_ips] + \
+            ['-rpcbind=' + addr for addr in ['127.0.0.1',
+                                             "{}:{}".format(rpchost,
+                                                            rpcport)]]  # Bind to localhost as well so start_nodes doesn't hang
         self.nodes[0].host = None
-        self.start_nodes([base_args])
+        self.start_nodes([node_args])
         # connect to node through non-loopback interface
         url = rpc_url(self.nodes[0].datadir, rpchost, rpcport)
         node = get_rpc_proxy(url, 0, coveragedir=self.options.coveragedir)
@@ -105,9 +109,9 @@ class RPCBindTest(BitcoinTestFramework):
         # check default without rpcallowip (IPv4 and IPv6 localhost)
         self.run_bind_test(None, '127.0.0.1', [],
                            [('127.0.0.1', defaultport), ('::1', defaultport)])
-        # check default with rpcallowip (IPv6 any)
+        # check default with rpcallowip (IPv4 and IPv6 localhost)
         self.run_bind_test(['127.0.0.1'], '127.0.0.1', [],
-                           [('::0', defaultport)])
+                           [('127.0.0.1', defaultport), ('::1', defaultport)])
         # check only IPv4 localhost (explicit)
         self.run_bind_test(['127.0.0.1'], '127.0.0.1', ['127.0.0.1'],
                            [('127.0.0.1', defaultport)])
