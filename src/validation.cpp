@@ -1058,7 +1058,6 @@ static void InvalidChainFound(CBlockIndex *pindexNew) {
               __func__, tip->GetBlockHash().ToString(), chainActive.Height(),
               log(tip->nChainWork.getdouble()) / log(2.0),
               DateTimeStrFormat("%Y-%m-%d %H:%M:%S", tip->GetBlockTime()));
-    CheckForkWarningConditions();
 }
 
 static void InvalidBlockFound(CBlockIndex *pindex,
@@ -1066,7 +1065,6 @@ static void InvalidBlockFound(CBlockIndex *pindex,
     if (!state.CorruptionPossible()) {
         pindex->nStatus = pindex->nStatus.withFailed();
         setDirtyBlockIndex.insert(pindex);
-        setBlockIndexCandidates.erase(pindex);
         InvalidChainFound(pindex);
     }
 }
@@ -2447,6 +2445,12 @@ static CBlockIndex *FindMostWorkChain() {
                 setBlockIndexCandidates.erase(pindexFailed);
                 pindexFailed = pindexFailed->pprev;
             }
+
+            if (fInvalidChain || fParkedChain) {
+                // We discovered a new chain tip that is either parked or
+                // invalid, we may want to warn.
+                CheckForkWarningConditions();
+            }
         }
 
         // We found a candidate that has valid ancestors. This is our guy.
@@ -2734,14 +2738,12 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
     // Mark the block itself as invalid.
     pindex->nStatus = pindex->nStatus.withFailed();
     setDirtyBlockIndex.insert(pindex);
-    setBlockIndexCandidates.erase(pindex);
 
     DisconnectedBlockTransactions disconnectpool;
     while (chainActive.Contains(pindex)) {
         CBlockIndex *pindexWalk = chainActive.Tip();
         pindexWalk->nStatus = pindexWalk->nStatus.withFailedParent();
         setDirtyBlockIndex.insert(pindexWalk);
-        setBlockIndexCandidates.erase(pindexWalk);
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
         if (!DisconnectTip(config, state, &disconnectpool)) {
