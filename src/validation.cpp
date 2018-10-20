@@ -135,7 +135,7 @@ int32_t nBlockReverseSequenceId = -1;
 arith_uint256 nLastPreciousChainwork = 0;
 
 /** Dirty block index entries. */
-std::set<CBlockIndex *> setDirtyBlockIndex;
+std::set<const CBlockIndex *> setDirtyBlockIndex;
 
 /** Dirty block file entries. */
 std::set<int> setDirtyFileInfo;
@@ -2462,8 +2462,7 @@ static CBlockIndex *FindMostWorkChain() {
 static void PruneBlockIndexCandidates() {
     // Note that we can't delete the current block itself, as we may need to
     // return to it later in case a reorganization to a better block fails.
-    std::set<CBlockIndex *, CBlockIndexWorkComparator>::iterator it =
-        setBlockIndexCandidates.begin();
+    auto it = setBlockIndexCandidates.begin();
     while (it != setBlockIndexCandidates.end() &&
            setBlockIndexCandidates.value_comp()(*it, chainActive.Tip())) {
         setBlockIndexCandidates.erase(it++);
@@ -2726,19 +2725,22 @@ bool PreciousBlock(const Config &config, CValidationState &state,
     return ActivateBestChain(config, state);
 }
 
-bool InvalidateBlock(const Config &config, CValidationState &state,
-                     CBlockIndex *pindex) {
+static bool UnwindBlock(const Config &config, CValidationState &state,
+                        CBlockIndex *pindex, bool invalidate) {
     AssertLockHeld(cs_main);
 
     // Mark the block itself as invalid.
-    pindex->nStatus = pindex->nStatus.withFailed();
+    pindex->nStatus =
+        pindex->nStatus.withFailed(invalidate).withParked(!invalidate);
     setDirtyBlockIndex.insert(pindex);
 
     DisconnectedBlockTransactions disconnectpool;
     while (chainActive.Contains(pindex)) {
         CBlockIndex *pindexWalk = chainActive.Tip();
-        pindexWalk->nStatus = pindexWalk->nStatus.withFailedParent();
+        pindexWalk->nStatus =
+            pindexWalk->nStatus.withFailed(invalidate).withParked(!invalidate);
         setDirtyBlockIndex.insert(pindexWalk);
+
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
         if (!DisconnectTip(config, state, &disconnectpool)) {
@@ -2763,50 +2765,90 @@ bool InvalidateBlock(const Config &config, CValidationState &state,
         }
     }
 
-    InvalidChainFound(pindex);
+    if (invalidate) {
+        InvalidChainFound(pindex);
+    }
     uiInterface.NotifyBlockTip(IsInitialBlockDownload(), pindex->pprev);
     return true;
 }
 
-bool ResetBlockFailureFlags(CBlockIndex *pindex) {
+bool InvalidateBlock(const Config &config, CValidationState &state,
+                     CBlockIndex *pindex) {
+    return UnwindBlock(config, state, pindex, true);
+}
+
+bool ParkBlock(const Config &config, CValidationState &state,
+               CBlockIndex *pindex) {
+    return UnwindBlock(config, state, pindex, false);
+}
+
+template <typename F> bool UpdateFlags(CBlockIndex *pindex, F f) {
     AssertLockHeld(cs_main);
 
     int nHeight = pindex->nHeight;
 
-    // Remove the invalidity flag from this block and all its descendants.
+    // Update the flags from this block and all its descendants.
     BlockMap::iterator it = mapBlockIndex.begin();
     while (it != mapBlockIndex.end()) {
-        if (!it->second->IsValid() &&
+        BlockStatus newStatus = f(it->second->nStatus);
+        if (it->second->nStatus != newStatus &&
             it->second->GetAncestor(nHeight) == pindex) {
-            it->second->nStatus = it->second->nStatus.withClearedFailureFlags();
+            it->second->nStatus = newStatus;
             setDirtyBlockIndex.insert(it->second);
+
             if (it->second->IsValid(BlockValidity::TRANSACTIONS) &&
                 it->second->nChainTx &&
                 setBlockIndexCandidates.value_comp()(chainActive.Tip(),
                                                      it->second)) {
                 setBlockIndexCandidates.insert(it->second);
             }
-
-            if (it->second == pindexBestInvalid) {
-                // Reset invalid block marker if it was pointing to one of
-                // those.
-                pindexBestInvalid = nullptr;
-            }
         }
 
         it++;
     }
 
-    // Remove the invalidity flag from all ancestors too.
+    // Update the flags from all ancestors too.
     while (pindex != nullptr) {
-        if (pindex->nStatus.isInvalid()) {
-            pindex->nStatus = pindex->nStatus.withClearedFailureFlags();
+        BlockStatus newStatus = f(pindex->nStatus);
+        if (pindex->nStatus != newStatus) {
+            pindex->nStatus = newStatus;
             setDirtyBlockIndex.insert(pindex);
         }
         pindex = pindex->pprev;
     }
 
     return true;
+}
+
+bool ResetBlockFailureFlags(CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+
+    if (pindexBestInvalid &&
+        (pindexBestInvalid->GetAncestor(pindex->nHeight) == pindex ||
+         pindex->GetAncestor(pindexBestInvalid->nHeight) ==
+             pindexBestInvalid)) {
+        // Reset the invalid block marker if it is about to be cleared.
+        pindexBestInvalid = nullptr;
+    }
+
+    return UpdateFlags(pindex, [](const BlockStatus status) {
+        return status.withClearedFailureFlags();
+    });
+}
+
+bool UnparkBlock(CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+
+    if (pindexBestParked &&
+        (pindexBestParked->GetAncestor(pindex->nHeight) == pindex ||
+         pindex->GetAncestor(pindexBestParked->nHeight) == pindexBestParked)) {
+        // Reset the parked block marker if it is about to be cleared.
+        pindexBestParked = nullptr;
+    }
+
+    return UpdateFlags(pindex, [](const BlockStatus status) {
+        return status.withClearedParkedFlags();
+    });
 }
 
 static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {

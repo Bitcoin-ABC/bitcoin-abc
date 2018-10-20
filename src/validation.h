@@ -629,8 +629,15 @@ bool PreciousBlock(const Config &config, CValidationState &state,
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex);
 
+/** Park a block. */
+bool ParkBlock(const Config &config, CValidationState &state,
+               CBlockIndex *pindex);
+
 /** Remove invalidity status from a block and its descendants. */
 bool ResetBlockFailureFlags(CBlockIndex *pindex);
+
+/** Remove parked status from a block and its descendants. */
+bool UnparkBlock(CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */
 extern CChain chainActive;

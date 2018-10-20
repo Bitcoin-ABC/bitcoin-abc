@@ -1499,8 +1499,8 @@ UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("invalidateblock", "\"blockhash\""));
     }
 
-    std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    const std::string strHash = request.params[0].get_str();
+    const uint256 hash(uint256S(strHash));
     CValidationState state;
 
     {
@@ -1511,6 +1511,44 @@ UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
 
         CBlockIndex *pblockindex = mapBlockIndex[hash];
         InvalidateBlock(config, state, pblockindex);
+    }
+
+    if (state.IsValid()) {
+        ActivateBestChain(config, state);
+    }
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+    }
+
+    return NullUniValue;
+}
+
+UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error("parkblock \"blockhash\"\n"
+                                 "\nMarks a block as parked.\n"
+                                 "\nArguments:\n"
+                                 "1. \"blockhash\"   (string, required) the "
+                                 "hash of the block to park\n"
+                                 "\nResult:\n"
+                                 "\nExamples:\n" +
+                                 HelpExampleCli("parkblock", "\"blockhash\"") +
+                                 HelpExampleRpc("parkblock", "\"blockhash\""));
+    }
+
+    const std::string strHash = request.params[0].get_str();
+    const uint256 hash(uint256S(strHash));
+    CValidationState state;
+
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+
+        CBlockIndex *pblockindex = mapBlockIndex[hash];
+        ParkBlock(config, state, pblockindex);
     }
 
     if (state.IsValid()) {
@@ -1540,8 +1578,8 @@ UniValue reconsiderblock(const Config &config, const JSONRPCRequest &request) {
             HelpExampleRpc("reconsiderblock", "\"blockhash\""));
     }
 
-    std::string strHash = request.params[0].get_str();
-    uint256 hash(uint256S(strHash));
+    const std::string strHash = request.params[0].get_str();
+    const uint256 hash(uint256S(strHash));
 
     {
         LOCK(cs_main);
@@ -1551,6 +1589,45 @@ UniValue reconsiderblock(const Config &config, const JSONRPCRequest &request) {
 
         CBlockIndex *pblockindex = mapBlockIndex[hash];
         ResetBlockFailureFlags(pblockindex);
+    }
+
+    CValidationState state;
+    ActivateBestChain(config, state);
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+    }
+
+    return NullUniValue;
+}
+
+UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "unparkblock \"blockhash\"\n"
+            "\nRemoves parked status of a block and its descendants, "
+            "reconsider them for activation.\n"
+            "This can be used to undo the effects of parkblock.\n"
+            "\nArguments:\n"
+            "1. \"blockhash\"   (string, required) the hash of the block to "
+            "unpark\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("unparkblock", "\"blockhash\"") +
+            HelpExampleRpc("unparkblock", "\"blockhash\""));
+    }
+
+    const std::string strHash = request.params[0].get_str();
+    const uint256 hash(uint256S(strHash));
+
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+
+        CBlockIndex *pblockindex = mapBlockIndex[hash];
+        UnparkBlock(pblockindex);
     }
 
     CValidationState state;
@@ -1689,7 +1766,9 @@ static const ContextFreeRPCCommand commands[] = {
 
     /* Not shown in help */
     { "hidden",             "invalidateblock",        invalidateblock,        {"blockhash"} },
+    { "hidden",             "parkblock",              parkblock,              {"blockhash"} },
     { "hidden",             "reconsiderblock",        reconsiderblock,        {"blockhash"} },
+    { "hidden",             "unparkblock",            unparkblock,            {"blockhash"} },
     { "hidden",             "waitfornewblock",        waitfornewblock,        {"timeout"} },
     { "hidden",             "waitforblock",           waitforblock,           {"blockhash","timeout"} },
     { "hidden",             "waitforblockheight",     waitforblockheight,     {"height","timeout"} },
