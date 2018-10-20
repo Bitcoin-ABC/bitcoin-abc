@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2014-2016 The Bitcoin Core developers
+# Copyright (c) 2018 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the -alertnotify, -blocknotify and -walletnotify options."""
@@ -7,6 +8,8 @@ import os
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until, connect_nodes_bi
+
+FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block %s\n"
 
 
 class NotificationsTest(BitcoinTestFramework):
@@ -69,7 +72,7 @@ class NotificationsTest(BitcoinTestFramework):
             assert_equal(sorted(txids_rpc), sorted(f.read().splitlines()))
 
         # Mine another 41 up-version blocks. -alertnotify should trigger on the 51st.
-        self.log.info("test -alertnotify")
+        self.log.info("test -alertnotify for bip9")
         self.nodes[1].generate(41)
         self.sync_all()
 
@@ -86,10 +89,29 @@ class NotificationsTest(BitcoinTestFramework):
 
         with open(self.alert_filename, 'r', encoding='utf8') as f:
             alert_text2 = f.read()
+        os.remove(self.alert_filename)
 
         self.log.info(
             "-alertnotify should not continue notifying for more unknown version blocks")
         assert_equal(alert_text, alert_text2)
+
+        # Create an invalid chain and ensure the node warns.
+        self.log.info("test -alertnotify for forked chain")
+        fork_block = self.nodes[0].getbestblockhash()
+        self.nodes[0].generate(1)
+        invalid_block = self.nodes[0].getbestblockhash()
+        self.nodes[0].generate(7)
+
+        # Invalidate a large branch, which should trigger an alert.
+        self.nodes[0].invalidateblock(invalid_block)
+
+        # Give bitcoind 10 seconds to write the alert notification
+        wait_until(lambda: os.path.isfile(self.alert_filename)
+                   and os.path.getsize(self.alert_filename), timeout=10)
+
+        self.log.info(self.alert_filename)
+        with open(self.alert_filename, 'r', encoding='utf8') as f:
+            assert_equal(f.read(), (FORK_WARNING_MESSAGE % fork_block))
 
 
 if __name__ == '__main__':
