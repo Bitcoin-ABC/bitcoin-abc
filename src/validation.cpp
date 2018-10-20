@@ -932,7 +932,8 @@ bool IsInitialBlockDownload() {
     return false;
 }
 
-CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
+CBlockIndex const *pindexBestForkTip = nullptr;
+CBlockIndex const *pindexBestForkBase = nullptr;
 
 static void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
@@ -984,7 +985,7 @@ static void CheckForkWarningConditions() {
         }
 
         if (pindexBestForkTip && pindexBestForkBase) {
-            LogPrintf("%s: Warning: Large valid fork found\n  forking the "
+            LogPrintf("%s: Warning: Large fork found\n  forking the "
                       "chain at height %d (%s)\n  lasting to height %d "
                       "(%s).\nChain state database corruption likely.\n",
                       __func__, pindexBestForkBase->nHeight,
@@ -1005,20 +1006,11 @@ static void CheckForkWarningConditions() {
     }
 }
 
-static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
+static void
+CheckForkWarningConditionsOnNewFork(const CBlockIndex *pindexNewForkTip) {
     AssertLockHeld(cs_main);
-    // If we are on a fork that is sufficiently large, set a warning flag
-    CBlockIndex *pfork = pindexNewForkTip;
-    CBlockIndex *plonger = chainActive.Tip();
-    while (pfork && pfork != plonger) {
-        while (plonger && plonger->nHeight > pfork->nHeight) {
-            plonger = plonger->pprev;
-        }
-        if (pfork == plonger) {
-            break;
-        }
-        pfork = pfork->pprev;
-    }
+    // If we are on a fork that is sufficiently large, set a warning flag.
+    const CBlockIndex *pfork = chainActive.FindFork(pindexNewForkTip);
 
     // We define a condition where we should warn the user about as a fork of at
     // least 7 blocks with a tip within 72 blocks (+/- 12 hours if no one mines
@@ -2449,7 +2441,7 @@ static CBlockIndex *FindMostWorkChain() {
             if (fInvalidChain || fParkedChain) {
                 // We discovered a new chain tip that is either parked or
                 // invalid, we may want to warn.
-                CheckForkWarningConditions();
+                CheckForkWarningConditionsOnNewFork(pindexNew);
             }
         }
 
@@ -2573,7 +2565,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound) {
-        CheckForkWarningConditionsOnNewFork(vpindexToConnect.back());
+        CheckForkWarningConditionsOnNewFork(pindexMostWork);
     } else {
         CheckForkWarningConditions();
     }
