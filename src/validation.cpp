@@ -4815,7 +4815,7 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
         if (!fHavePruned) {
             // If we've never pruned, then HAVE_DATA should be equivalent to nTx
             // > 0
-            assert(!pindex->nStatus.hasData() == (pindex->nTx == 0));
+            assert(pindex->nStatus.hasData() == (pindex->nTx > 0));
             assert(pindexFirstMissing == pindexFirstNeverProcessed);
         } else if (pindex->nStatus.hasData()) {
             // If we have pruned, then we can only say that HAVE_DATA implies
@@ -4875,10 +4875,14 @@ static void CheckBlockIndex(const Consensus::Params &consensusParams) {
             if (pindexFirstInvalid == nullptr) {
                 // If this block sorts at least as good as the current tip and
                 // is valid and we have all data for its parents, it must be in
-                // setBlockIndexCandidates. chainActive.Tip() must also be there
-                // even if some data has been pruned.
-                if (pindexFirstMissing == nullptr ||
-                    pindex == chainActive.Tip()) {
+                // setBlockIndexCandidates or be parked.
+                if (pindexFirstMissing == nullptr) {
+                    assert(pindex->nStatus.isOnParkedChain() ||
+                           setBlockIndexCandidates.count(pindex));
+                }
+                // chainActive.Tip() must also be there even if some data has
+                // been pruned.
+                if (pindex == chainActive.Tip()) {
                     assert(setBlockIndexCandidates.count(pindex));
                 }
                 // If some parent is missing, then it could be that this block
