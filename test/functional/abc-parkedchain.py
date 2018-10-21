@@ -6,12 +6,13 @@
 import os
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, connect_nodes_bi, sync_blocks, wait_until
 
 
 class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 1
+        self.num_nodes = 2
+        self.extra_args = [["-noparkdeepreorg"], []]
 
     # There should only be one chaintip, which is expected_tip
     def only_valid_tip(self, expected_tip, other_tip_status=None):
@@ -36,6 +37,8 @@ class ParkedChainTest(BitcoinTestFramework):
 
         # Let's park the chain.
         assert(parked_tip != tip)
+        assert(block_to_park != tip)
+        assert(block_to_park != parked_tip)
         node.parkblock(block_to_park)
         assert_equal(node.getbestblockhash(), tip)
 
@@ -121,6 +124,49 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
         self.only_valid_tip(good_tip)
+
+        # First, make sure both nodes are in sync.
+        parking_node = self.nodes[1]
+        connect_nodes_bi(self.nodes, 0, 1)
+        sync_blocks(self.nodes[0:2])
+
+        assert_equal(node.getbestblockhash(), parking_node.getbestblockhash())
+
+        # Wait for node 1 to park the chain.
+        def wait_for_parked_block(block):
+            def check_block():
+                for tip in parking_node.getchaintips():
+                    if tip["hash"] == block:
+                        assert(tip["status"] != "active")
+                        return tip["status"] == "parked"
+                return False
+            wait_until(check_block)
+
+        def check_reorg_protection(depth, extra_blocks):
+            self.log.info("Test deep reorg parking, %d block deep" % depth)
+
+            # Invalidate the tip on node 0, so it doesn't follow node 1.
+            node.invalidateblock(node.getbestblockhash())
+            # Mine block to create a fork of proper depth
+            parking_node.generate(depth - 1)
+            node.generate(depth)
+            # extra block should now find themselves parked
+            for i in range(extra_blocks):
+                node.generate(1)
+                wait_for_parked_block(node.getbestblockhash())
+
+            # If we mine one more block, the node reorgs.
+            node.generate(1)
+            wait_until(lambda: parking_node.getbestblockhash()
+                       == node.getbestblockhash())
+
+        check_reorg_protection(1, 0)
+        check_reorg_protection(2, 0)
+        check_reorg_protection(3, 1)
+        check_reorg_protection(4, 4)
+        check_reorg_protection(5, 5)
+        check_reorg_protection(6, 6)
+        check_reorg_protection(100, 100)
 
 
 if __name__ == '__main__':

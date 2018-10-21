@@ -76,7 +76,8 @@ class AcceptBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [[], ["-whitelist=127.0.0.1"],
+        self.extra_args = [["-noparkdeepreorg"],
+                           ["-noparkdeepreorg", "-whitelist=127.0.0.1"],
                            ["-minimumchainwork=0x10"]]
 
     def setup_network(self):

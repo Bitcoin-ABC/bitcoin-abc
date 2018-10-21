@@ -37,16 +37,21 @@ class PruneTest(BitcoinTestFramework):
 
         # Create nodes 0 and 1 to mine.
         # Create node 2 to test pruning.
-        self.full_node_default_args = ["-maxreceivebuffer=20000", "-blockmaxsize=999000", "-checkblocks=5",
-                                       "-limitdescendantcount=100", "-limitdescendantsize=5000", "-limitancestorcount=100", "-limitancestorsize=5000"]
+        self.full_node_default_args = ["-maxreceivebuffer=20000", "-blockmaxsize=999000",
+                                       "-checkblocks=5", "-noparkdeepreorg",
+                                       "-limitdescendantcount=100", "-limitdescendantsize=5000",
+                                       "-limitancestorcount=100", "-limitancestorsize=5000"]
         # Create nodes 3 and 4 to test manual pruning (they will be re-started with manual pruning later)
         # Create nodes 5 to test wallet in prune mode, but do not connect
         self.extra_args = [self.full_node_default_args,
                            self.full_node_default_args,
-                           ["-maxreceivebuffer=20000", "-prune=550"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
-                           ["-maxreceivebuffer=20000", "-blockmaxsize=999000"],
-                           ["-prune=550"]]
+                           ["-maxreceivebuffer=20000",
+                               "-prune=550", "-noparkdeepreorg"],
+                           ["-maxreceivebuffer=20000",
+                               "-blockmaxsize=999000", "-noparkdeepreorg"],
+                           ["-maxreceivebuffer=20000",
+                               "-blockmaxsize=999000", "-noparkdeepreorg"],
+                           ["-prune=550", "-noparkdeepreorg"]]
 
     def setup_network(self):
         self.setup_nodes()
@@ -146,7 +151,8 @@ class PruneTest(BitcoinTestFramework):
         # transactions (from disconnected blocks)
         self.stop_node(1)
         self.start_node(1, extra_args=[
-                        "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"])
+                        "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5",
+                        "-disablesafemode", "-noparkdeepreorg"])
 
         height = self.nodes[1].getblockcount()
         self.log.info("Current block height: %d" % height)
@@ -172,7 +178,8 @@ class PruneTest(BitcoinTestFramework):
         # Reboot node1 to clear those giant tx's from mempool
         self.stop_node(1)
         self.start_node(1, extra_args=[
-                        "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5", "-disablesafemode"])
+                        "-maxreceivebuffer=20000", "-blockmaxsize=5000", "-checkblocks=5",
+                        "-disablesafemode", "-noparkdeepreorg"])
 
         self.log.info("Generating new longer chain of 300 more blocks")
         self.nodes[1].generate(300)
@@ -364,7 +371,7 @@ class PruneTest(BitcoinTestFramework):
         # check that the pruning node's wallet is still in good shape
         self.log.info("Stop and start pruning node to trigger wallet rescan")
         self.stop_node(2)
-        self.start_node(2, extra_args=["-prune=550"])
+        self.start_node(2, extra_args=["-prune=550", "-noparkdeepreorg"])
         self.log.info("Success")
 
         # check that wallet loads loads successfully when restarting a pruned node after IBD.
@@ -374,7 +381,7 @@ class PruneTest(BitcoinTestFramework):
         nds = [self.nodes[0], self.nodes[5]]
         sync_blocks(nds, wait=5, timeout=300)
         self.stop_node(5)  # stop and start to trigger rescan
-        self.start_node(5, extra_args=["-prune=550"])
+        self.start_node(5, extra_args=["-prune=550", "-noparkdeepreorg"])
         self.log.info("Success")
 
     def run_test(self):

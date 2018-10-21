@@ -2397,12 +2397,58 @@ static CBlockIndex *FindMostWorkChain() {
         while (hasValidAncestor && pindexTest && pindexTest != pindexFork) {
             assert(pindexTest->nChainTx || pindexTest->nHeight == 0);
 
+            // If this is a parked chain, but it has enough PoW, clear the park
+            // state.
+            bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
+            if (fParkedChain && gArgs.GetBoolArg("-parkdeepreorg", true)) {
+                const CBlockIndex *pindexTip = chainActive.Tip();
+
+                // During initialization, pindexTip and/or pindexFork may be
+                // null. In this case, we just ignore the fact that the chain is
+                // parked.
+                if (!pindexTip || !pindexFork) {
+                    UnparkBlock(pindexTest);
+                    continue;
+                }
+
+                // A parked chain can be unparked if it has twice as much PoW
+                // accumulated as the main chain has since the fork block.
+                CBlockIndex const *pindexExtraPow = pindexTip;
+                arith_uint256 requiredWork = pindexTip->nChainWork;
+                switch (pindexTip->nHeight - pindexFork->nHeight) {
+                    // Limit the penality for depth 1, 2 and 3 to half a block
+                    // worth of work to ensure we don't fork accidentaly.
+                    case 3:
+                    case 2:
+                        pindexExtraPow = pindexExtraPow->pprev;
+                    // FALLTHROUGH
+                    case 1: {
+                        const arith_uint256 deltaWork =
+                            pindexExtraPow->nChainWork - pindexFork->nChainWork;
+                        requiredWork += (deltaWork >> 1);
+                        break;
+                    }
+                    default:
+                        requiredWork +=
+                            pindexExtraPow->nChainWork - pindexFork->nChainWork;
+                        break;
+                }
+
+                if (pindexNew->nChainWork > requiredWork) {
+                    // We have enough, clear the parked state.
+                    LogPrintf("Unpark block %s as its chain has accumulated "
+                              "enough PoW.\n",
+                              pindexTest->GetBlockHash().ToString());
+                    fParkedChain = false;
+                    UnparkBlock(pindexTest);
+                }
+            }
+
             // Pruned nodes may have entries in setBlockIndexCandidates for
             // which block files have been deleted. Remove those as candidates
             // for the most work chain if we come across them; we can't switch
             // to a chain unless we have all the non-active-chain parent blocks.
             bool fInvalidChain = pindexTest->nStatus.isInvalid();
-            bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
             bool fMissingData = !pindexTest->nStatus.hasData();
             if (!(fInvalidChain || fParkedChain || fMissingData)) {
                 // The current block is acceptable, move to the parent, up to
@@ -2721,6 +2767,10 @@ bool PreciousBlock(const Config &config, CValidationState &state,
             nBlockReverseSequenceId--;
         }
 
+        // In case this was parked, unpark it.
+        UnparkBlock(pindex);
+
+        // Make sure it is added to the candidate list if apropriate.
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx) {
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
@@ -3619,6 +3669,20 @@ static bool AcceptBlock(const Config &config,
 
         return error("%s: %s (block %s)", __func__, FormatStateMessage(state),
                      block.GetHash().ToString());
+    }
+
+    // If this is a deep reorg (a regorg of more than one block), preemptively
+    // mark the chain as parked. If it has enough work, it'll unpark
+    // automatically. We mark the block as parked at the very last minute so we
+    // can make sure everything is ready to be reorged if needed.
+    if (gArgs.GetBoolArg("-parkdeepreorg", true)) {
+        const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
+        if (pindexFork && pindexFork->nHeight + 1 < pindex->nHeight) {
+            LogPrintf("Park block %s as it would cause a deep reorg.\n",
+                      pindex->GetBlockHash().ToString());
+            pindex->nStatus = pindex->nStatus.withParked();
+            setDirtyBlockIndex.insert(pindex);
+        }
     }
 
     // Header is valid/has work and the merkle tree is good.

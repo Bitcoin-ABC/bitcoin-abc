@@ -11,6 +11,7 @@ from test_framework.util import *
 class TxnMallTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 4
+        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], [], []]
 
     def add_options(self, parser):
         parser.add_argument("--mineblock", dest="mine_block", default=False, action="store_true",
