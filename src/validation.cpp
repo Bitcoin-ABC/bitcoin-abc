@@ -126,10 +126,9 @@ bool fCheckForPruning = false;
 /**
  * Every received block is assigned a unique and increasing identifier, so we
  * know which one to give priority in case of a fork.
+ * Blocks loaded from disk are assigned id 0, so start the counter at 1.
  */
-CCriticalSection cs_nBlockSequenceId;
-/** Blocks loaded from disk are assigned id 0, so start the counter at 1. */
-int32_t nBlockSequenceId = 1;
+std::atomic<int32_t> nBlockSequenceId{1};
 /** Decreasing counter (used by subsequent preciousblock calls). */
 int32_t nBlockReverseSequenceId = -1;
 /** chainwork for the last block that preciousblock has been applied to. */
@@ -2877,8 +2876,12 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState &state,
             queue.pop_front();
             pindex->nChainTx =
                 (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
-            {
-                LOCK(cs_nBlockSequenceId);
+            if (pindex->nSequenceId == 0) {
+                // We assign a sequence is when transaction are recieved to
+                // prevent a miner from being able to broadcast a block but not
+                // its content. However, a sequence id may have been set
+                // manually, for instance via PreciousBlock, in which case, we
+                // don't need to assign one.
                 pindex->nSequenceId = nBlockSequenceId++;
             }
 
