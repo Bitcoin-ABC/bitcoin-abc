@@ -14,6 +14,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.txtools import pad_raw_tx
 
 # Create one-input, one-output, no-fee transaction:
 
@@ -48,6 +49,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # won't exists
         outputs = {self.nodes[0].getnewaddress(): 4.998}
         rawtx = self.nodes[2].createrawtransaction(inputs, outputs)
+        rawtx = pad_raw_tx(rawtx)
         rawtx = self.nodes[2].signrawtransaction(rawtx)
 
         # This will raise an exception since there are missing inputs
