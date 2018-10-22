@@ -39,7 +39,7 @@ public:
     virtual bool GetKey(const CKeyID &address, CKey &key) const {
         return false;
     }
-    virtual bool GetKeyOrigin(const CKeyID &id, KeyOriginInfo &info) const {
+    virtual bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const {
         return false;
     }
 };
@@ -66,10 +66,12 @@ public:
 struct FlatSigningProvider final : public SigningProvider {
     std::map<CScriptID, CScript> scripts;
     std::map<CKeyID, CPubKey> pubkeys;
+    std::map<CKeyID, KeyOriginInfo> origins;
     std::map<CKeyID, CKey> keys;
 
     bool GetCScript(const CScriptID &scriptid, CScript &script) const override;
     bool GetPubKey(const CKeyID &keyid, CPubKey &pubkey) const override;
+    bool GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const override;
     bool GetKey(const CKeyID &keyid, CKey &key) const override;
 };
 

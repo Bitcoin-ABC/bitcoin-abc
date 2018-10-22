@@ -49,9 +49,13 @@ std::string MaybeUseHInsteadOfApostrophy(std::string ret) {
     return ret;
 }
 
+const std::set<std::vector<uint32_t>> ONLY_EMPTY{{}};
+
 void Check(const std::string &prv, const std::string &pub, int flags,
-           const std::vector<std::vector<std::string>> &scripts) {
+           const std::vector<std::vector<std::string>> &scripts,
+           const std::set<std::vector<uint32_t>> &paths = ONLY_EMPTY) {
     FlatSigningProvider keys_priv, keys_pub;
+    std::set<std::vector<uint32_t>> left_paths = paths;
 
     // Check that parsing succeeds.
     auto parse_priv = Parse(MaybeUseHInsteadOfApostrophy(prv), keys_priv);
@@ -93,7 +97,7 @@ void Check(const std::string &prv, const std::string &pub, int flags,
     for (size_t i = 0; i < max; ++i) {
         const auto &ref = scripts[(flags & RANGE) ? i : 0];
         for (int t = 0; t < 2; ++t) {
-            FlatSigningProvider key_provider =
+            const FlatSigningProvider &key_provider =
                 (flags & HARDENED) ? keys_priv : keys_pub;
             FlatSigningProvider script_provider;
             std::vector<CScript> spks;
@@ -118,8 +122,19 @@ void Check(const std::string &prv, const std::string &pub, int flags,
                         prv);
                 }
             }
+            // Test whether the observed key path is present in the 'paths'
+            // variable (which contains expected, unobserved paths), and then
+            // remove it from that set.
+            for (const auto &origin : script_provider.origins) {
+                BOOST_CHECK_MESSAGE(paths.count(origin.second.path),
+                                    "Unexpected key path: " + prv);
+                left_paths.erase(origin.second.path);
+            }
         }
     }
+    // Verify no expected paths remain that were not observed.
+    BOOST_CHECK_MESSAGE(left_paths.empty(),
+                        "Not all expected key paths found: " + prv);
 }
 
 } // namespace
@@ -141,10 +156,12 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           SIGNABLE,
           {{"2103a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5"
             "bdac"}});
-    Check("pkh(L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
-          "pkh("
+    Check("pkh([deadbeef/1/2'/3/4']"
+          "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
+          "pkh([deadbeef/1/2'/3/4']"
           "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
-          SIGNABLE, {{"76a9149a1c78a507689f6f54b847ad1cef1e614ee23f1e88ac"}});
+          SIGNABLE, {{"76a9149a1c78a507689f6f54b847ad1cef1e614ee23f1e88ac"}},
+          {{1, 0x80000002UL, 3, 0x80000004UL}});
 
     // Basic single-key uncompressed
     Check(
@@ -183,10 +200,10 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         SIGNABLE, {{"a9141a31ad23bf49c247dd531a623c2ef57da3c400c587"}});
 
     // Versions with BIP32 derivations
-    Check("combo("
+    Check("combo([01234567]"
           "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
           "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc)",
-          "combo("
+          "combo([01234567]"
           "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4"
           "koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL)",
           SIGNABLE,
@@ -201,14 +218,16 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0)",
           DEFAULT,
           {{"210379e45b3cf75f9c5f9befd8e9506fb962f6a9d185ac87001ec44a8d3df8d4a9"
-            "e3ac"}});
+            "e3ac"}},
+          {{0}});
     Check("pkh("
           "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssr"
           "dK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/2147483647'/0)",
           "pkh("
           "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6o"
           "DMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483647'/0)",
-          HARDENED, {{"76a914ebdc90806a9c4356c1c88e42216611e1cb4c1c1788ac"}});
+          HARDENED, {{"76a914ebdc90806a9c4356c1c88e42216611e1cb4c1c1788ac"}},
+          {{0xFFFFFFFFUL, 0}});
     Check("combo("
           "xprvA2JDeKCSNNZky6uBCviVfJSKyQ1mDYahRjijr5idH2WwLsEd4Hsb2Tyh8RfQMuPh"
           "7f7RtyzTtdrbdqqsunu5Mm3wDvUAKRHSC34sJ7in334/*)",
@@ -221,7 +240,8 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "76a914f90e3178ca25f2c808dc76624032d352fdbdfaf288ac"},
            {"21032869a233c9adff9a994e4966e5b821fd5bac066da6c3112488dc52383b4a98"
             "ecac",
-            "76a914a8409d1b6dfb1ed2a3e8aa5e0ef2ff26b15b75b788ac"}});
+            "76a914a8409d1b6dfb1ed2a3e8aa5e0ef2ff26b15b75b788ac"}},
+          {{0}, {1}});
     // BIP 32 path element overflow
     CheckUnparsable(
         "pkh("
@@ -243,17 +263,18 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
             "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
             "a23552ae"}});
-    Check("sh(multi(2,"
+    Check("sh(multi(2,[00000000/111'/222]"
           "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
           "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
           "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7"
           "AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0))",
-          "sh(multi(2,"
+          "sh(multi(2,[00000000/111'/222]"
           "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4"
           "koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL,"
           "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWgqbhhTHB"
           "aohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y/0))",
-          DEFAULT, {{"a91445a9a622a8b0a1269944be477640eedc447bbd8487"}});
+          DEFAULT, {{"a91445a9a622a8b0a1269944be477640eedc447bbd8487"}},
+          {{0x8000006FUL, 222}, {0}});
     // P2SH does not fit 16 compressed pubkeys in a redeemscript
     CheckUnparsable(
         "sh(multi(16,"
