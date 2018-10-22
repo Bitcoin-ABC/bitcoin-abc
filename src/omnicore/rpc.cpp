@@ -165,8 +165,8 @@ bool BalanceToJSON(const std::string& address, uint32_t property, UniValue& bala
 
 bool FrozenBalanceToJSON(const std::string& address, uint32_t property, UniValue& balance_obj, int divisible)
 {
-    int64_t nFrozen = getUserFrozenMPbalance(address, property);
-    bool flag = (nFrozen > 0);
+    int64_t nFrozen = getMPbalance(address, property, BALANCE);
+    bool flag = isAddressFrozen(address, property);
     balance_obj.push_back(Pair("frozen", flag));
     if (divisible) {
         balance_obj.push_back(Pair("balance", FormatDivisibleMP(nFrozen, divisible)));
@@ -873,10 +873,11 @@ UniValue whc_getfrozenbalanceforid(const Config &config, const JSONRPCRequest &r
         (it->second).init();
         while (0 != (id = (it->second).next())) {
             if (id == propertyId) {
-                nFrozen = getUserFrozenMPbalance(address, propertyId);
-                if(nFrozen > 0){
+                if(isAddressFrozen(address, propertyId))
+                {
                     includeFrozenAddress = true;
                 }
+                nFrozen = getMPbalance(address, propertyId, BALANCE);
                 break;
             }
         }
@@ -934,8 +935,11 @@ UniValue whc_getfrozenbalanceforaddress(const Config &config, const JSONRPCReque
     uint32_t propertyId = 0;
 
     while (0 != (propertyId = addressTally->next())) {
-        nFrozen = getUserFrozenMPbalance(address, propertyId);
-        if(0 == nFrozen) continue;
+        if(!(isAddressFrozen(address, propertyId)))
+        {
+            continue;
+        }
+        nFrozen = getMPbalance(address, propertyId, BALANCE);
         UniValue balanceObj(UniValue::VOBJ);
         balanceObj.push_back(Pair("propertyid", (uint64_t) propertyId));
         int mtype = getPropertyType(propertyId);
