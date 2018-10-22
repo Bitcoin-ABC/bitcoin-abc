@@ -22,6 +22,7 @@ private:
     typedef struct {
         //change_101 modify value type to arith_uint256; because current WHC uint is 10 ** 18, int64_t is so s
         int64_t balance[TALLY_TYPE_COUNT];
+        uint32_t property;
     } BalanceRecord;
 
     //! Map of balance records
@@ -43,6 +44,12 @@ public:
 
     /** Updates the number of tokens for the given tally type. */
     bool updateMoney(uint32_t propertyId, int64_t amount, TallyType ttype);
+
+    /** Updates the number of tokens for the given tally type. */
+    bool updateFrozenState(uint32_t propertyId, uint32_t frozenState);
+
+    /** Returns the freeze function enable flag. */
+    uint32_t getTokenFrozenFlag(uint32_t propertyId);
 
     /** Returns the number of tokens for the given tally type. */
     int64_t getMoney(uint32_t propertyId, TallyType ttype) const;

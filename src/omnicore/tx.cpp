@@ -610,16 +610,7 @@ bool CMPTransaction::interpret_CreatePropertyManaged()
     swapByteOrder16(prop_type);
     memcpy(&prev_prop_id, &pkt[7], 4);
     swapByteOrder32(prev_prop_id);
-    const CConsensusParams& params = ConsensusParams();
 
-    if(block >= params.WHC_FREEZENACTIVATE_BLOCK)
-    {
-        ucFreezingFlag = prev_prop_id & 0x00000001;
-        prev_prop_id = prev_prop_id >> 1;
-    }
-    else {
-        ucFreezingFlag = 0;
-    }
     for (int i = 0; i < 5; i++) {
         spstr.push_back(std::string(p));
         p += spstr.back().size() + 1;
@@ -2183,10 +2174,24 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
         return (PKT_ERROR_BURN -3);
     }
 
-    if (0 != prev_prop_id) {
-        PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return (PKT_ERROR_SP -51);
+    const CConsensusParams& params = ConsensusParams();
+
+    if(block >= params.WHC_FREEZENACTIVATE_BLOCK)
+    {
+        if(prev_prop_id != 0 && prev_prop_id != 1)
+        {
+            PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
+            return (PKT_ERROR_SP -52);
+        }
     }
+    else {
+        if(prev_prop_id != 0)
+        {
+            PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
+            return (PKT_ERROR_SP -51);
+        }
+    }
+
 
     if ('\0' == name[0]) {
         PrintToLog("%s(): rejected: property name must not be empty\n", __func__);
@@ -2199,6 +2204,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
     newSP.issuer = sender;
     newSP.txid = txid;
     newSP.prop_type = prop_type;
+    newSP.prev_prop_id = prev_prop_id;
     newSP.category.assign(category);
     newSP.subcategory.assign(subcategory);
     newSP.name.assign(name);
@@ -2208,13 +2214,8 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
     newSP.manual = true;
     newSP.creation_block = blockHash;
     newSP.update_block = newSP.creation_block;
-
     uint32_t propertyId = _my_sps->putSP(ecosystem, newSP);
     assert(propertyId > 0);
-    if(ucFreezingFlag)
-    {
-        enableFreezing(propertyId, block);
-    }
     //change_002
     assert(update_tally_map(sender, OMNI_PROPERTY_WHC, -CREATE_TOKEN_FEE, BALANCE));
     assert(update_tally_map(burnwhc_address, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE, BALANCE));

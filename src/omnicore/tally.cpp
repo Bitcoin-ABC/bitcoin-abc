@@ -95,6 +95,41 @@ bool CMPTally::updateMoney(uint32_t propertyId, int64_t amount, TallyType ttype)
 }
 
 /**
+ * Updates the frozen state of tokens for the given tally type.
+ *
+ * @param propertyId  The identifier of the tally to update
+ * @param frozenState  The token frozen state
+ * @return True, if the update was successful
+ */
+bool CMPTally::updateFrozenState(uint32_t propertyId, uint32_t frozenState)
+{
+    if(frozenState == 0 || frozenState == 1)
+    {
+        mp_token[propertyId].property |= 0xfffffffe;
+        mp_token[propertyId].property += frozenState;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * judge the property id is frozen or not
+ *
+ * @param propertyId  The identifier of the tally to lookup
+ * @return frozen: true; unfrozen: false.
+ */
+uint32_t CMPTally::getTokenFrozenFlag(uint32_t propertyId)
+{
+    TokenMap::const_iterator it = mp_token.find(propertyId);
+    uint32_t frozen = 0;
+    if (it != mp_token.end()) {
+        const BalanceRecord& record = it->second;
+        frozen = (record.property & 0x01UL);
+    }
+    return frozen;
+}
+
+/**
  * Returns the number of tokens for the given tally type.
  *
  * @param propertyId  The identifier of the tally to lookup

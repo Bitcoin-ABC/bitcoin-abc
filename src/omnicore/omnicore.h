@@ -389,7 +389,7 @@ bool UseEncodingClassC(size_t nDataSize);
 bool getValidMPTX(const uint256 &txid, int *block = NULL, unsigned int *type = NULL, uint64_t *nAmended = NULL);
 
 bool update_tally_map(const std::string& who, uint32_t propertyId, int64_t amount, TallyType ttype);
-
+bool update_tally_frozen(const std::string& who, uint32_t propertyId, uint32_t frozen);
 std::string getTokenLabel(uint32_t propertyId);
 
 /**

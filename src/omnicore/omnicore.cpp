@@ -419,36 +419,52 @@ void mastercore::disableFreezing(uint32_t propertyId)
 
 bool mastercore::isFreezingEnabled(uint32_t propertyId, int block)
 {
-    for (std::set<std::pair<uint32_t,int> >::iterator it = setFreezingEnabledProperties.begin(); it != setFreezingEnabledProperties.end(); it++) {
-        uint32_t itemPropertyId = (*it).first;
-        int itemBlock = (*it).second;
-        if (propertyId == itemPropertyId && block >= itemBlock) {
-            return true;
-        }
+    CMPSPInfo::Entry sp;
+
+    LOCK(cs_tally);
+    if (false == _my_sps->getSP(propertyId, sp)) {
+        PrintToLog("Property identifier does not exist.\n");
+        return false;
+    }
+    if (sp.prev_prop_id & 0x01Ul)
+    {
+        return true;
     }
     return false;
 }
 
 void mastercore::freezeAddress(const std::string& address, uint32_t propertyId)
 {
-    setFrozenAddresses.insert(std::make_pair(address, propertyId));
-    assert(isAddressFrozen(address, propertyId));
-    PrintToLog("Address %s has been frozen for property %d.\n", address, propertyId);
+    CMPTally* addressTally = getTally(address);
+    if (NULL == addressTally) {
+        PrintToLog("Address %s not found.\n", address);
+        return;
+    }
+    addressTally->updateFrozenState(propertyId, 1);
+    return;
 }
 
 void mastercore::unfreezeAddress(const std::string& address, uint32_t propertyId)
 {
-    setFrozenAddresses.erase(std::make_pair(address, propertyId));
-    assert(!isAddressFrozen(address, propertyId));
-    PrintToLog("Address %s has been unfrozen for property %d.\n", address, propertyId);
+    CMPTally* addressTally = getTally(address);
+    if (NULL == addressTally) {
+        PrintToLog("Address %s not found.\n", address);
+        return;
+    }
+    addressTally->updateFrozenState(propertyId, 0);
+    return;
 }
 
 bool mastercore::isAddressFrozen(const std::string& address, uint32_t propertyId)
 {
-    if (setFrozenAddresses.find(std::make_pair(address, propertyId)) != setFrozenAddresses.end()) {
-        return true;
+    CMPTally* addressTally = getTally(address);
+    uint32_t  frozen = 0;
+    if (NULL == addressTally) {
+        PrintToLog("Address %s not found.\n", address);
+        return false;
     }
-    return false;
+    frozen = addressTally->getTokenFrozenFlag(propertyId);
+    return frozen == 1;
 }
 
 std::string mastercore::getTokenLabel(uint32_t propertyId)
@@ -594,6 +610,21 @@ bool mastercore::update_tally_map(const std::string& who, uint32_t propertyId, i
     return bRet;
 }
 
+bool mastercore::update_tally_frozen(const std::string& who, uint32_t propertyId, uint32_t frozen)
+{
+    bool bRet;
+    LOCK(cs_tally);
+    std::unordered_map<std::string, CMPTally>::iterator my_it = mp_tally_map.find(who);
+    if (my_it == mp_tally_map.end()) {
+        // insert an empty element
+        my_it = (mp_tally_map.insert(std::make_pair(who, CMPTally()))).first;
+    }
+
+    CMPTally& tally = my_it->second;
+    bRet = tally.updateFrozenState(propertyId, frozen);
+
+    return bRet;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // some old TODOs
@@ -1324,17 +1355,19 @@ int input_msc_balances_string(const std::string& s)
         // "balance,sellreserved,acceptreserved,metadexreserved"
         std::vector<std::string> curBalance;
         boost::split(curBalance, curProperty[1], boost::is_any_of(","), boost::token_compress_on);
-        if (curBalance.size() != 4) return -1;
+        if (curBalance.size() != 5) return -1;
 
         uint32_t propertyId = boost::lexical_cast<uint32_t>(curProperty[0]);
 
         int64_t balance = boost::lexical_cast<int64_t>(curBalance[0]);
+        uint32_t frozen = boost::lexical_cast<uint32_t>(curBalance[4]);
         //change_001
         //int64_t sellReserved = boost::lexical_cast<int64_t>(curBalance[1]);
         //int64_t acceptReserved = boost::lexical_cast<int64_t>(curBalance[2]);
         //int64_t metadexReserved = boost::lexical_cast<int64_t>(curBalance[3]);
 
         if (balance) update_tally_map(strAddress, propertyId, balance, BALANCE);
+        update_tally_frozen(strAddress, propertyId, frozen);
         //change_001
         //if (sellReserved) update_tally_map(strAddress, propertyId, sellReserved, SELLOFFER_RESERVE);
         //if (acceptReserved) update_tally_map(strAddress, propertyId, acceptReserved, ACCEPT_RESERVE);
@@ -1788,21 +1821,22 @@ static int write_msc_balances(std::ofstream& file, SHA256_CTX* shaCtx)
             int64_t sellReserved = (*iter).second.getMoney(propertyId, SELLOFFER_RESERVE);
             int64_t acceptReserved = (*iter).second.getMoney(propertyId, ACCEPT_RESERVE);
             int64_t metadexReserved = (*iter).second.getMoney(propertyId, METADEX_RESERVE);
-
+            uint32_t frozen = (*iter).second.getTokenFrozenFlag(propertyId);
             // we don't allow 0 balances to read in, so if we don't write them
             // it makes things match up better between persisted state and processed state
-            if (0 == balance && 0 == sellReserved && 0 == acceptReserved && 0 == metadexReserved) {
+            if (0 == balance && 0 == sellReserved && 0 == acceptReserved && 0 == metadexReserved && 0 == frozen) {
                 continue;
             }
 
             emptyWallet = false;
 
-            lineOut.append(strprintf("%d:%d,%d,%d,%d;",
+            lineOut.append(strprintf("%d:%d,%d,%d,%d,%d;",
                     propertyId,
                     balance,
                     sellReserved,
                     acceptReserved,
-                    metadexReserved));
+                    metadexReserved,
+                    frozen));
         }
 
         if (false == emptyWallet) {
@@ -2153,7 +2187,7 @@ int mastercore_init()
         PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
-    // load feature activation messages from txlistdb and process them accordingly
+    // load feature activation messages from txlistdb and process them accordinglyx
     //change_001
     //p_txlistdb->LoadActivations(nWaterlineBlock);
 
