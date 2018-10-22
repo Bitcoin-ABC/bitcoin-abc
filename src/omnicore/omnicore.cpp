@@ -2150,11 +2150,11 @@ int mastercore_init()
 
     if (nWaterlineBlock > 0) {
         PrintToConsole("best image from diskbest image from disk state: OK [block %d]\n", nWaterlineBlock);
-        if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
-        {
-            nWaterlineBlock = -1;
-            PrintToLog("Freeze TXs found below WaterLine\n");
-        }
+        //if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
+        //{
+            //nWaterlineBlock = -1;
+            //PrintToLog("Freeze TXs found below WaterLine\n");
+        //}
 
     } else {
         std::string strReason = "unknown";
@@ -3872,7 +3872,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 
         // Check if any freeze related transactions would be rolled back - if so wipe the state and startclean
         //change_001
-        bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
+        //bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
 
         // NOTE: The blockNum parameter is inclusive, so deleteAboveBlock(1000) will delete records in block 1000 and above.
         p_txlistdb->isMPinBlockRange(pBlockIndex->nHeight, reorgRecoveryMaxHeight, true);
