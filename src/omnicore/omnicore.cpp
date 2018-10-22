@@ -3885,18 +3885,13 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
         nWaterlineBlock = ConsensusParams().GENESIS_BLOCK - 1;
 
         //change_001
-        
-        if (reorgContainsFreeze) {
-           PrintToLog("Reorganization containing freeze related transactions detected, forcing a reparse...\n");
-           clear_all_state(); // unable to reorg freezes safely, clear state and reparse
+
+        int best_state_block = load_most_relevant_state();
+        if (best_state_block < 0) {
+            // unable to recover easily, remove stale stale state bits and reparse from the beginning.
+            clear_all_state();
         } else {
-            int best_state_block = load_most_relevant_state();
-            if (best_state_block < 0) {
-                // unable to recover easily, remove stale stale state bits and reparse from the beginning.
-                clear_all_state();
-            } else {
-                nWaterlineBlock = best_state_block;
-            }
+            nWaterlineBlock = best_state_block;
         }
 
 
