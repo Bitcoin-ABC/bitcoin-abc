@@ -2195,7 +2195,7 @@ int mastercore_init()
 
     // load the state of any freeable properties and frozen addresses from levelDB
     ////change_001
-    
+    /*
     if (!p_txlistdb->LoadFreezeState(nWaterlineBlock)) {
         std::string strShutdownReason = "Failed to load freeze state from levelDB.  It is unsafe to continue.\n";
         PrintToLog(strShutdownReason);
@@ -2203,7 +2203,7 @@ int mastercore_init()
             AbortNode(strShutdownReason, strShutdownReason);
         }
     }
-    
+    */
     // initial scan
     s_stolistdb->deleteAboveBlock(nWaterlineBlock);
 	PrintToLog("init scan current system from %d ", nWaterlineBlock );

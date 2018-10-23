@@ -118,7 +118,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
     PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens + burnaddrTokens + frozenTokens));
     PrintToLog("\tExcluding Sender: %s\n", FormatMP(property, totalTokens));
     PrintToLog("\t          Owners: %d\n", numberOfOwners);
-
+va
     return receiversSet;
 }
 
