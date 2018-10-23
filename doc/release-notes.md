@@ -22,6 +22,8 @@ Updated RPCs
 - The `importmulti` RPC will now contain a new per-request `warnings`
   field with strings that explain when fields are being ignored or
   inconsistent, if any.
+- Fixed a bug where `listreceivedaddress` would fail to take an address as a
+  string.
 
 Note: some low-level RPC changes mainly useful for testing are described in the
 Low-level Changes section below.
