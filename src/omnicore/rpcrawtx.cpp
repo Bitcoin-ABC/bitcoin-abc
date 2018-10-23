@@ -19,7 +19,8 @@
 #include "sync.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
-#include "../txmempool.h"
+#include "txmempool.h"
+#include "config.h"
 
 #include <univalue.h>
 
@@ -100,7 +101,6 @@ UniValue whc_decodetransaction(const Config &config,const JSONRPCRequest &reques
         LOCK2(cs_main, cs_tx_cache);
         // temporarily switch global coins view cache for transaction inputs
         std::swap(view, viewTemp);
-        // then get the results
         uint256 blockHash;
         CTransactionRef txref;
         GetTransaction(GetConfig(), tx.GetId(), txref, blockHash, true);

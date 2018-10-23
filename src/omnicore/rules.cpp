@@ -158,6 +158,17 @@ CMainConsensusParams::CMainConsensusParams()
     NULLDATA_BLOCK = 395000;
     // Transaction restrictions:
     ERC721_BLOCK = 1259869;
+    MSC_ALERT_BLOCK = 0;
+    MSC_SEND_BLOCK = 249498;
+    MSC_DEX_BLOCK = 290630;
+    MSC_SP_BLOCK = 297110;
+    MSC_MANUALSP_BLOCK = 323230;
+    MSC_STO_BLOCK = 342650;
+    MSC_CHECK_VARIABLE_TOKEN = 552850;
+    MSC_METADEX_BLOCK = 400000;
+    MSC_SEND_ALL_BLOCK = 395000;
+    MSC_BET_BLOCK = 999999;
+    MSC_STOV1_BLOCK = 999999;
     // Other feature activations:
     GRANTEFFECTS_FEATURE_BLOCK = 394500;
     DEXMATH_FEATURE_BLOCK = 395000;
@@ -165,7 +176,6 @@ CMainConsensusParams::CMainConsensusParams()
     TRADEALLPAIRS_FEATURE_BLOCK = 438500;
     FEES_FEATURE_BLOCK = 999999;
     FREEZENOTICE_FEATURE_BLOCK = 999999;
-    MSC_STO_DISABLE_BURNADDR = 999999;
 }
 
 /**
@@ -191,6 +201,17 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
     ERC721_BLOCK = 1259869;
+    MSC_ALERT_BLOCK = 0;
+    MSC_SEND_BLOCK = 0;
+    MSC_DEX_BLOCK = 0;
+    MSC_SP_BLOCK = 0;
+    MSC_MANUALSP_BLOCK = 0;
+    MSC_STO_BLOCK = 0;
+    MSC_CHECK_VARIABLE_TOKEN = 1263180;
+    MSC_METADEX_BLOCK = 0;
+    MSC_SEND_ALL_BLOCK = 0;
+    MSC_BET_BLOCK = 999999;
+    MSC_STOV1_BLOCK = 0;
     // Other feature activations:
     GRANTEFFECTS_FEATURE_BLOCK = 0;
     DEXMATH_FEATURE_BLOCK = 0;
@@ -198,7 +219,6 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     TRADEALLPAIRS_FEATURE_BLOCK = 0;
     FEES_FEATURE_BLOCK = 0;
     FREEZENOTICE_FEATURE_BLOCK = 0;
-    MSC_STO_DISABLE_BURNADDR = 1269869;
 }
 
 /**
@@ -224,6 +244,17 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
     ERC721_BLOCK = 100;
+    MSC_ALERT_BLOCK = 0;
+    MSC_SEND_BLOCK = 0;
+    MSC_DEX_BLOCK = 0;
+    MSC_SP_BLOCK = 0;
+    MSC_MANUALSP_BLOCK = 0;
+    MSC_STO_BLOCK = 0;
+    MSC_CHECK_VARIABLE_TOKEN = 100;
+    MSC_METADEX_BLOCK = 0;
+    MSC_SEND_ALL_BLOCK = 0;
+    MSC_BET_BLOCK = 999999;
+    MSC_STOV1_BLOCK = 999999;
     // Other feature activations:
     GRANTEFFECTS_FEATURE_BLOCK = 999999;
     DEXMATH_FEATURE_BLOCK = 999999;
@@ -231,7 +262,6 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     TRADEALLPAIRS_FEATURE_BLOCK = 999999;
     FEES_FEATURE_BLOCK = 999999;
     FREEZENOTICE_FEATURE_BLOCK = 999999;
-    MSC_STO_DISABLE_BURNADDR = 100;
 }
 
 //! Consensus parameters for mainnet

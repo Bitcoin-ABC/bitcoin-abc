@@ -102,6 +102,27 @@ public:
 
     //! Block to enabla ERC721
     int ERC721_BLOCK;
+    //! Block to enable alerts and notifications
+    int MSC_ALERT_BLOCK;
+    //! Block to enable simple send transactions
+    int MSC_SEND_BLOCK;
+    //! Block to enable DEx transactions
+    int MSC_DEX_BLOCK;
+    //! Block to enable smart property transactions
+    int MSC_SP_BLOCK;
+    //! Block to enable managed properties
+    int MSC_MANUALSP_BLOCK;
+    //! Block to enable send-to-owners transactions
+    int MSC_STO_BLOCK;
+    int MSC_CHECK_VARIABLE_TOKEN;
+    //! Block to enable MetaDEx transactions
+    int MSC_METADEX_BLOCK;
+    //! Block to enable "send all" transactions
+    int MSC_SEND_ALL_BLOCK;
+    //! Block to enable betting transactions
+    int MSC_BET_BLOCK;
+    //! Block to enable cross property STO (v1)
+    int MSC_STOV1_BLOCK;
 
     //! Block to deactivate crowdsale participations when "granting tokens"
     int GRANTEFFECTS_FEATURE_BLOCK;
@@ -115,9 +136,6 @@ public:
     int FEES_FEATURE_BLOCK;
     //! Block to activate the waiting period for enabling managed property address freezing
     int FREEZENOTICE_FEATURE_BLOCK;
-
-    //! Block to disable burnAddr participate send-to-owners transactions
-    int MSC_STO_DISABLE_BURNADDR;
 
     /** Returns a mapping of transaction types, and the blocks at which they are enabled. */
     virtual std::vector<TransactionRestriction> GetRestrictions() const;

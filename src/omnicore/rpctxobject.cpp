@@ -284,6 +284,8 @@ void populateRPCTypePartiCrowsale(CMPTransaction& omniObj, UniValue& txobj)
         txobj.push_back(Pair("purchasedtokens", FormatMP(crowdPropertyId, crowdTokens)));
         txobj.push_back(Pair("issuertokens", FormatMP(crowdPropertyId, issuerTokens)));
 
+    } else{
+        txobj.push_back(Pair("amount", FormatDivisibleMP(omniObj.getAmount(), PRICE_PRECISION, false)));
     }
 }
 

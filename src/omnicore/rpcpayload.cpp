@@ -251,7 +251,7 @@ UniValue whc_createpayload_issuancecrowdsale(const Config &config,const JSONRPCR
             "\nCreates the payload for a new tokens issuance with crowdsale.\n"
 
             "\nArguments:\n"
-            "1. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "1. ecosystem            (number, required) the ecosystem to create the tokens in, must be 1\n"
             "2. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "3. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "4. category             (string, required) a category for the new tokens (can be \"\")\n"

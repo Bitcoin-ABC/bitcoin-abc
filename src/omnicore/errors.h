@@ -292,6 +292,15 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_SP -24:
           ec_str = "Desired property does not exist";
           break;
+      case PKT_ERROR_SP -25:
+          ec_str = "TotalCrowsToken out of range or zero";
+          break;
+      case PKT_ERROR_SP -34:
+          ec_str = "Invalid desired property id";
+          break;
+      case PKT_ERROR_SP -35:
+          ec_str = "Invalid property precision";
+          break;
       case PKT_ERROR_SP -36:
           ec_str = "Invalid property type";
           break;
@@ -302,7 +311,7 @@ inline std::string error_str(int ec) {
           ec_str = "Deadline is in the past";
           break;
       case PKT_ERROR_SP -39:
-          ec_str = "Sender has an active crowdsale";
+          ec_str = "Sender has an active crowdsale already";
           break;
       case PKT_ERROR_SP -40:
           ec_str = "Sender has no active crowdsale";
@@ -323,7 +332,7 @@ inline std::string error_str(int ec) {
           ec_str = "Tokens to issue and desired property are not in the same ecosystem";
           break;
       case PKT_ERROR_SP -51:
-          ec_str = "property prev_prop_id value must be zero";
+          ec_str = "property prev_prop_id value should equal 0";
           break;
 
       case PKT_ERROR_TOKENS -22:
