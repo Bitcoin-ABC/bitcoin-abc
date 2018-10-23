@@ -105,7 +105,7 @@ bool CMPTally::updateFrozenState(uint32_t propertyId, uint32_t frozenState)
 {
     if(frozenState == 0 || frozenState == 1)
     {
-        mp_token[propertyId].property |= 0xfffffffe;
+        mp_token[propertyId].property &= 0xfffffffe;
         mp_token[propertyId].property += frozenState;
         return true;
     }
