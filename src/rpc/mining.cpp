@@ -206,7 +206,10 @@ static UniValue generatetoaddress(const Config &config,
                 "[ blockhashes ]     (array) hashes of blocks generated\n"},
             RPCExamples{
                 "\nGenerate 11 blocks to myaddress\n" +
-                HelpExampleCli("generatetoaddress", "11 \"myaddress\"")},
+                HelpExampleCli("generatetoaddress", "11 \"myaddress\"") +
+                "If you are running the bitcoin core wallet, you can get a new "
+                "address to send the newly generated bitcoin to with:\n" +
+                HelpExampleCli("getnewaddress", "")},
         }
                                      .ToString());
     }
