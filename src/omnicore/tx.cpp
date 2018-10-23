@@ -898,6 +898,10 @@ int CMPTransaction::interpretPacket()
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
         return (PKT_ERROR -3);
     }
+    if (isAddressFrozen(receiver, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -3);
+    }
     
     switch (type) {
         case MSC_TYPE_SIMPLE_SEND:
@@ -1148,6 +1152,14 @@ int CMPTransaction::logicHelper_CrowdsaleParticipation()
 /** Tx 0 */
 int CMPTransaction::logicMath_SimpleSend()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
+        return (PKT_ERROR -3);
+    }
+    if (isAddressFrozen(receiver, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -3);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -1186,10 +1198,6 @@ int CMPTransaction::logicMath_SimpleSend()
         receiver = sender;
     }
 
-    if (isAddressFrozen(sender, property)) {
-        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
-        return (PKT_ERROR -3);
-    }
     // Move the tokens
     assert(update_tally_map(sender, property, -nValue, BALANCE));
     assert(update_tally_map(receiver, property, nValue, BALANCE));
@@ -1200,6 +1208,10 @@ int CMPTransaction::logicMath_SimpleSend()
 /** Tx 1 */
 int CMPTransaction::logicMath_BuyToken()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
+        return (PKT_ERROR -3);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                    __func__,
@@ -1219,10 +1231,7 @@ int CMPTransaction::logicMath_BuyToken()
         PrintToLog("%s(): rejected: property %d does not exist\n", __func__, property);
         return (PKT_ERROR_SEND -24);
     }
-    if (isAddressFrozen(sender, property)) {
-        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
-        return (PKT_ERROR -3);
-    }
+
     int64_t nBalance = getMPbalance(sender, property, BALANCE);
     if (nBalance < (int64_t) nValue) {
         PrintToLog("%s(): rejected: sender %s has insufficient balance of property %d [%s < %s]\n",
@@ -1336,6 +1345,10 @@ int CMPTransaction::logicMath_BuyToken()
 /** Tx 3 */
 int CMPTransaction::logicMath_SendToOwners()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
+        return (PKT_ERROR -3);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -1358,11 +1371,6 @@ int CMPTransaction::logicMath_SendToOwners()
     if (!IsPropertyIdValid(property)) {
         PrintToLog("%s(): rejected: property %d does not exist\n", __func__, property);
         return (PKT_ERROR_STO -24);
-    }
-
-    if (isAddressFrozen(sender, property)) {
-        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
-        return (PKT_ERROR -3);
     }
 
     if (!IsPropertyIdValid(distribution_property)) {
@@ -1518,7 +1526,10 @@ int CMPTransaction::logicMath_SendAll()
             PrintToLog("%s(): sender %s is frozen for property %d - the property will not be included in processing.\n", __func__, sender, propertyId);
             continue;
         }
-
+        if (isAddressFrozen(receiver, propertyId)) {
+            PrintToLog("%s(): receiver %s is frozen for property %d - the property will not be included in processing.\n", __func__, receiver, propertyId);
+            continue;
+        }
         int64_t moneyAvailable = ptally->getMoney(propertyId, BALANCE);
         if (moneyAvailable > 0) {
             ++numberOfPropertiesSent;
@@ -2231,13 +2242,17 @@ int CMPTransaction::logicMath_GrantTokens()
     uint256 blockHash;
     {
         LOCK(cs_main);
-
         CBlockIndex* pindex = chainActive[block];
         if (pindex == NULL) {
             PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
             return (PKT_ERROR_SP -20);
         }
         blockHash = pindex->GetBlockHash();
+    }
+
+    if (isAddressFrozen(receiver, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -3);
     }
 
 	if (property == OMNI_PROPERTY_TWHC || OMNI_PROPERTY_WHC == property){
