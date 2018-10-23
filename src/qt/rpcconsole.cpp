@@ -24,6 +24,8 @@
 #include <univalue.h>
 
 #ifdef ENABLE_WALLET
+#include "wallet/wallet.h"
+
 #include <db_cxx.h>
 #endif
 
@@ -317,6 +319,23 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                                         stack.back().begin() + 1,
                                         stack.back().end()));
                                 req.strMethod = stack.back()[0];
+
+#ifdef ENABLE_WALLET
+                                // TODO: Move this logic to WalletModel
+                                if (!vpwallets.empty()) {
+                                    // in Qt, use always the wallet with index 0
+                                    // when running with multiple wallets
+                                    QByteArray encodedName =
+                                        QUrl::toPercentEncoding(
+                                            QString::fromStdString(
+                                                vpwallets[0]->GetName()));
+                                    req.URI =
+                                        "/wallet/" +
+                                        std::string(encodedName.constData(),
+                                                    encodedName.length());
+                                }
+#endif
+
                                 GlobalConfig config;
                                 lastResult = tableRPC.execute(config, req);
                             }
