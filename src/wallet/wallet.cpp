@@ -4325,13 +4325,11 @@ bool CWallet::Verify(const CChainParams &chainParams,
     }
 
     // Make sure that the wallet path doesn't clash with an existing wallet path
-    for (auto wallet : GetWallets()) {
-        if (wallet->GetLocation().GetPath() == wallet_path) {
-            error_string = strprintf("Error loading wallet %s. Duplicate "
-                                     "-wallet filename specified.",
-                                     location.GetName());
-            return false;
-        }
+    if (IsWalletLoaded(wallet_path)) {
+        error_string = strprintf(
+            "Error loading wallet %s. Duplicate -wallet filename specified.",
+            location.GetName());
+        return false;
     }
 
     try {
