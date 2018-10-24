@@ -1159,7 +1159,7 @@ int CMPTransaction::logicMath_SimpleSend()
     }
     if (isAddressFrozen(receiver, property)) {
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
-        return (PKT_ERROR -3);
+        return (PKT_ERROR -4);
     }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
@@ -2253,7 +2253,7 @@ int CMPTransaction::logicMath_GrantTokens()
 
     if (isAddressFrozen(receiver, property)) {
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
-        return (PKT_ERROR -3);
+        return (PKT_ERROR -4);
     }
 
 	if (property == OMNI_PROPERTY_TWHC || OMNI_PROPERTY_WHC == property){

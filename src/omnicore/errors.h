@@ -88,6 +88,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR -3:
           ec_str = "Sender is frozen for the property";
           break;
+      case PKT_ERROR -4:
+          ec_str = "Receiver is frozen for the property";
+          break;
       case PKT_ERROR -22:
           ec_str = "Transaction type or version not permitted";
           break;
