@@ -400,7 +400,7 @@ bool LoadBlockIndex(const Config &config);
 /**
  * Update the chain tip based on database information.
  */
-bool LoadChainTip(const Config &config);
+bool LoadChainTip(const Config &config) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Unload database information.
@@ -638,7 +638,8 @@ bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
 
 /** Find the last common block between the parameter chain and a locator. */
 CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
-                                   const CBlockLocator &locator);
+                                   const CBlockLocator &locator)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Mark a block as precious and reorganize.
