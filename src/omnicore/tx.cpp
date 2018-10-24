@@ -898,11 +898,12 @@ int CMPTransaction::interpretPacket()
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
         return (PKT_ERROR -3);
     }
+    /*
     if (isAddressFrozen(receiver, property) && (type != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS)) {
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
         return (PKT_ERROR -3);
     }
-    
+    */
     switch (type) {
         case MSC_TYPE_SIMPLE_SEND:
             return logicMath_SimpleSend();
