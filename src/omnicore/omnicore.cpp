@@ -444,8 +444,8 @@ void mastercore::unfreezeAddress(const std::string& address, uint32_t propertyId
 
 bool mastercore::isAddressFrozen(const std::string& address, uint32_t propertyId)
 {
-    for (auto it = setFrozenAddresses.begin(); it != setFrozenAddresses.end(); ) {
-        if ( (it->first == address) && (it->second == propertyId)) return true;
+    if(setFrozenAddresses.find(std::make_pair(address, propertyId)) != setFrozenAddresses.end()) {
+        return true;
     }
     return false;
 }
