@@ -128,7 +128,7 @@ inline std::string error_str(int ec) {
           ec_str = "exceed get WHC deadline";
           break;
       case PKT_ERROR_BURN -3:
-          ec_str = "no enough WHC to pay to create a New Token";
+          ec_str = "No enough WHC to pay for create a New property";
           break;
       case PKT_ERROR_STO -22:
           ec_str = "Transaction type or version not permitted";
@@ -375,10 +375,10 @@ inline std::string error_str(int ec) {
           ec_str = "Address is already frozen";
           break;
       case PKT_ERROR_ERC721 - 101:
-          ec_str = "The property will issue token number is exceed or zero";
+          ec_str = "Issuer ERC721 tokenNumber out of range or zero";
           break;
       case PKT_ERROR_ERC721 -202:
-          ec_str = "Not get special ERC721 property";
+          ec_str = "Don't get special ERC721 property in BlockChain";
           break;
       case PKT_ERROR_ERC721 -203:
           ec_str = "Only property of issuer could issue ERC721 token";

@@ -28,6 +28,11 @@ class WHC_erc721_Test(BitcoinTestFramework):
         assert tx1result["valid"] is True
         assert (tx1result["propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
 
+        ret = self.nodes[0].whc_getERC721PropertyNews("0x01")
+        assert ret["owner"] == addr0
+        assert ret["creationtxid"] == tx1
+        assert ret["totalTokenNumber"] == 1000
+
         # step 3 create a new erc721 token
         tokentx1 = self.nodes[0].whc_issuanceERC721Token(addr0, addr0, "0x01", "0x023567", "www.wormhole.cash")
         tokentx3 = self.nodes[0].whc_issuanceERC721Token(addr0, addr0, "0x01", "0x02", "0x023567", "www.wormhole.cash")
@@ -42,6 +47,13 @@ class WHC_erc721_Test(BitcoinTestFramework):
         assert tokenResult3["valid"] is True
         assert (tokenResult3["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002") is True
 
+        ret = self.nodes[0].whc_getERC721TokenNews("0x01", "0x01")
+        assert ret["owner"] == addr0
+        assert ret["creationtxid"] == tokentx1
+        ret = self.nodes[0].whc_getERC721TokenNews("0x01", "0x02")
+        assert ret["owner"] == addr0
+        assert ret["creationtxid"] == tokentx3
+
         addr1 = self.nodes[0].getnewaddress("")
         # step 4 create transfer erc721 token
         transfertx = self.nodes[0].whc_transferERC721Token(addr0, addr1, "0x01", "0x01")
@@ -54,6 +66,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         assert transferResult["valid"] is True
         assert (transferResult["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
         assert (tokenNews["owner"] == addr1) is True
+        assert tokenNews["creationtxid"] == tokentx1
 
         # step 5 create new destroy token transaction
         destroytx = self.nodes[0].whc_destroyERC721Token(addr0, "0x01", "0x02")
@@ -63,8 +76,10 @@ class WHC_erc721_Test(BitcoinTestFramework):
         destroyResult = self.nodes[0].whc_gettransaction(destroytx)
         tokenNews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x02")
         assert destroyResult["valid"] is True
+        assert destroyResult["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002"
+        assert destroyResult["propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001"
         assert (tokenNews["owner"] == self.burn_address) is True
-
+        assert tokenNews["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002"
 
     def erc721_payload_feature_test(self):
         receiveAddr = self.nodes[0].getnewaddress("")
@@ -85,6 +100,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             txnews = self.nodes[0].whc_getERC721PropertyNews("0x02")
             assert (txnews["creationtxid"] == txhash) is True
             assert (txnews["owner"] == self.whcAddress) is True
+            assert txnews["totalTokenNumber"] == 100898738618
         else:
             assert False
 
@@ -128,11 +144,11 @@ class WHC_erc721_Test(BitcoinTestFramework):
         items = self.getSpent(receiveAddr)
         item = items[0] if items else None
         if item:
-            # step 4 create erc721 transfer token transaction
+            # step 4 create erc721 destroy token transaction
             payload = self.nodes[0].whc_createpayload_destroyERC721token("0x01", "0x03")
             txhash = self.constructCreatePropertyTx(item, payload)
 
-            # step 4.1 check the erc721 issue token transaction
+            # step 4.1 check the erc721 destroy token transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
             assert (txnews["propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
@@ -159,6 +175,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 1) is True
+            assert txnews["invalidreason"] == "Issuer ERC721 tokenNumber out of range or zero"
 
             # step 2 create a error transaction, this property name is empty.
             item = items[1]
@@ -171,6 +188,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 1) is True
+                assert txnews["invalidreason"] == "Property name is empty"
             else:
                 assert False
 
@@ -185,6 +203,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 1) is True
+                assert txnews["invalidreason"] == "No enough WHC to pay for create a New property"
             else:
                 assert False
         else:
@@ -202,6 +221,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 2) is True
+            assert txnews["invalidreason"] == "Don't get special ERC721 property in BlockChain"
 
             item = items[1]
             if item:
@@ -213,6 +233,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 2) is True
+                assert txnews["invalidreason"] == "The ERC721 token have exist"
             else:
                 assert False
 
@@ -251,6 +272,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 2) is True
+                assert txnews["invalidreason"] == "Have issued erc721 token's number exceed"
             else:
                 assert False
 
@@ -265,6 +287,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 2) is True
+                assert txnews["invalidreason"] == "Only property of issuer could issue ERC721 token"
             else:
                 assert False
         else:
@@ -274,11 +297,11 @@ class WHC_erc721_Test(BitcoinTestFramework):
         items = self.getSpent(self.whcAddress)
         item = items[0] if items else None
         if item:
-            # step 9 create erc721 transfer transaction : the token isn't in BlockChain
+            # step 9 create erc721 transfer transaction : the token doesn't exist in BlockChain
             payload = self.nodes[0].whc_createpayload_transferERC721token("0x03", "0x03")
             txhash = self.constructReceiveTx(item=item, payload=payload, receive=receiveAddr)
 
-            # Step 9.1 check the error transaction with the token isn't in BlockChain.
+            # Step 9.1 check the error transaction with the token doesn't exist in BlockChain.
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 3) is True
@@ -299,11 +322,11 @@ class WHC_erc721_Test(BitcoinTestFramework):
             items = self.getSpent(receiveAddr)
             item = items[0] if items else None
             if item:
-                # step 10 create erc721 transfer transaction : the sender is not the token owner.
+                # step 11 create erc721 transfer transaction : the sender is not the token owner.
                 payload = self.nodes[0].whc_createpayload_transferERC721token("0x03", "0x01")
                 txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
 
-                # Step 10.1 check the error transaction with the sender is not the token owner.
+                # Step 11.1 check the error transaction with the sender is not the token owner.
                 txnews = self.nodes[0].whc_gettransaction(txhash)
                 assert txnews["valid"] is False
                 assert (txnews["action"] == 3) is True
@@ -311,8 +334,34 @@ class WHC_erc721_Test(BitcoinTestFramework):
             else:
                 assert False
 
+        # destroy erc721 token error case check
+        items = self.getSpent(self.whcAddress)
+        item = items[0] if items else None
+        if item:
+            # step 12 create erc721 destroy transaction : the token doesn't exist in BlockChain
+            payload = self.nodes[0].whc_createpayload_destroyERC721token("0x03", "0x03")
+            txhash = self.constructReceiveTx(item=item, payload=payload, receive=receiveAddr)
 
+            # step 12.1  check the error transaction with the token doesn't exist in BlockChain.
+            txnews = self.nodes[0].whc_gettransaction(txhash)
+            assert txnews["valid"] is False
+            assert (txnews["action"] == 4) is True
+            assert (txnews["invalidreason"] == "The special ERC721 token doesn't exist in BlockChain")
 
+            items = self.getSpent(receiveAddr)
+            item = items[0] if items else None
+            if item:
+                # step 13 create erc721 destroy transaction : the sender is not the token owner.
+                payload = self.nodes[0].whc_createpayload_destroyERC721token("0x03", "0x01")
+                txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
+
+                # step 13.1 check the error transaction with the sender is not the token owner.
+                txnews = self.nodes[0].whc_gettransaction(txhash)
+                assert txnews["valid"] is False
+                assert (txnews["action"] == 4) is True
+                assert (txnews["invalidreason"] == "Sender is not the owner of ERC721 Token ")
+            else:
+                assert False
 
     def constructReceiveTx(self, item, payload, receive, amount = 0.00000546):
         tx = self.nodes[0].whc_createrawtx_input("", item["txid"], item["vout"])

@@ -1143,7 +1143,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
     }
 
     if(max_erc721number > UINT64_MAX || max_erc721number == 0){
-        PrintToLog("%s(): rejected: property issue token %d exceed max limit %d or equal 0 \n", __func__, max_erc721number, UINT64_MAX);
+        PrintToLog("%s(): rejected: property issue token number :%d out of range or zero \n", __func__, max_erc721number);
         return (PKT_ERROR_ERC721 - 101);
     }
 
@@ -1218,7 +1218,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
         return (PKT_ERROR_ERC721 - 206);
     }
 
-    if(spInfo->first.haveIssuedNumber + 1 > spInfo->first.maxTokens){
+    if(spInfo->first.haveIssuedNumber == spInfo->first.maxTokens){
         PrintToLog("%s(): rejected: sender : %s have issued erc721 token's number exceed property created maxnumber setup at block %d\n",
                    __func__,
                    sender,
