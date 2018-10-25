@@ -6,8 +6,8 @@ Some notes on how to build Bitcoin ABC in Unix.
 
 Note
 ---------------------
-Always use absolute paths to configure and compile Bitcoin ABC and the dependencies,
-for example, when specifying the path of the dependency:
+Always use absolute paths to configure and compile Bitcoin ABC and the dependencies.
+For example, when specifying the path of the dependency:
 
 	../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX
 
@@ -30,7 +30,7 @@ make
 make install # optional
 ```
 
-This will build bitcoin-qt as well if the dependencies are met.
+This will build bitcoin-qt as well, if the dependencies are met.
 
 Dependencies
 ---------------------
@@ -169,9 +169,7 @@ Hardening Flags:
 
 
 Hardening enables the following features:
-
-* Position Independent Executable
-    Build position independent code to take advantage of Address Space Layout Randomization
+* _Position Independent Executable_: Build position independent code to take advantage of Address Space Layout Randomization
     offered by some kernels. Attackers who can cause execution of code at an arbitrary memory
     location are thwarted if they don't know where anything useful is located.
     The stack and heap are randomly located by default, but this allows the code section to be
@@ -189,8 +187,7 @@ Hardening enables the following features:
      TYPE
     ET_DYN
 
-* Non-executable Stack
-    If the stack is executable then trivial stack-based buffer overflow exploits are possible if
+* _Non-executable Stack_: If the stack is executable then trivial stack-based buffer overflow exploits are possible if
     vulnerable buffers are found. By default, Bitcoin ABC should be built with a non-executable stack,
     but if one of the libraries it uses asks for an executable stack or someone makes a mistake
     and uses a compiler extension which requires an executable stack, it will silently build an
