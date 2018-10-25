@@ -19,3 +19,6 @@ Updated RPCs
   field `desc`, an output descriptor that encapsulates all signing information
   and key paths for the address (only available when `solvable` is true for
   `getaddressinfo` and `listunspent`).
+- The `importmulti` RPC will now contain a new per-request `warnings`
+  field with strings that explain when fields are being ignored or
+  inconsistent, if any.
