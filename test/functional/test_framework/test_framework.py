@@ -67,10 +67,6 @@ class BitcoinTestFramework():
         self.setup_clean_chain = False
         self.nodes = []
         self.mocktime = 0
-        self.set_test_params()
-
-        assert hasattr(
-            self, "num_nodes"), "Test must set self.num_nodes in set_test_params()"
 
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
@@ -100,6 +96,10 @@ class BitcoinTestFramework():
                           help="Attach a python debugger if test fails")
         self.add_options(parser)
         (self.options, self.args) = parser.parse_args()
+
+        self.set_test_params()
+        assert hasattr(
+            self, "num_nodes"), "Test must set self.num_nodes in set_test_params()"
 
         PortSeed.n = self.options.port_seed
 
