@@ -4580,24 +4580,34 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
 }
 
 bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
-              const CTransaction *txConst, SigHashType sighash_type, bool sign,
-              bool bip32derivs) {
+              SigHashType sighash_type, bool sign, bool bip32derivs) {
     LOCK(pwallet->cs_wallet);
     // Get all of the previous transactions
     bool complete = true;
-    for (size_t i = 0; i < txConst->vin.size(); ++i) {
-        const CTxIn &txin = txConst->vin[i];
+    for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
+        const CTxIn &txin = psbtx.tx->vin[i];
         PSBTInput &input = psbtx.inputs.at(i);
 
-        // If we don't know about this input, skip it and let someone else deal
-        // with it
-        const TxId &txid = txin.prevout.GetTxId();
-        const auto it = pwallet->mapWallet.find(txid);
-        if (it != pwallet->mapWallet.end()) {
-            const CWalletTx &wtx = it->second;
-            CTxOut utxo = wtx.tx->vout[txin.prevout.GetN()];
-            // Update UTXOs from the wallet.
-            input.utxo = utxo;
+        if (PSBTInputSigned(input)) {
+            continue;
+        }
+
+        // Verify input looks sane.
+        if (!input.IsSane()) {
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                               "PSBT input is not sane.");
+        }
+
+        // If we have no utxo, grab it from the wallet.
+        if (input.utxo.IsNull()) {
+            const TxId &txid = txin.prevout.GetTxId();
+            const auto it = pwallet->mapWallet.find(txid);
+            if (it != pwallet->mapWallet.end()) {
+                const CWalletTx &wtx = it->second;
+                CTxOut utxo = wtx.tx->vout[txin.prevout.GetN()];
+                // Update UTXOs from the wallet.
+                input.utxo = utxo;
+            }
         }
 
         // Get the Sighash type
@@ -4610,13 +4620,13 @@ bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
 
         complete &=
             SignPSBTInput(HidingSigningProvider(pwallet, !sign, !bip32derivs),
-                          *psbtx.tx, input, i, sighash_type);
+                          psbtx, i, sighash_type);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
     // hardware wallets can identify change
-    for (size_t i = 0; i < txConst->vout.size(); ++i) {
-        const CTxOut &out = txConst->vout.at(i);
+    for (size_t i = 0; i < psbtx.tx->vout.size(); ++i) {
+        const CTxOut &out = psbtx.tx->vout.at(i);
         PSBTOutput &psbt_out = psbtx.outputs.at(i);
 
         // Fill a SignatureData with output info
@@ -4706,22 +4716,17 @@ static UniValue walletprocesspsbt(const Config &config,
                            "Signature must use SIGHASH_FORKID");
     }
 
-    // Use CTransaction for the constant parts of the
-    // transaction to avoid rehashing.
-    const CTransaction txConst(*psbtx.tx);
-
     // Fill transaction with our data and also sign
     bool sign =
         request.params[1].isNull() ? true : request.params[1].get_bool();
     bool bip32derivs =
         request.params[3].isNull() ? false : request.params[3].get_bool();
-    bool complete =
-        FillPSBT(pwallet, psbtx, &txConst, nHashType, sign, bip32derivs);
+    bool complete = FillPSBT(pwallet, psbtx, nHashType, sign, bip32derivs);
 
     UniValue result(UniValue::VOBJ);
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
-    result.pushKV("psbt", EncodeBase64((uint8_t *)ssTx.data(), ssTx.size()));
+    result.pushKV("psbt", EncodeBase64(ssTx.str()));
     result.pushKV("complete", complete);
 
     return result;
@@ -4891,31 +4896,20 @@ static UniValue walletcreatefundedpsbt(const Config &config,
     FundTransaction(pwallet, rawTx, fee, change_position, request.params[3]);
 
     // Make a blank psbt
-    PartiallySignedTransaction psbtx;
-    psbtx.tx = rawTx;
-    for (size_t i = 0; i < rawTx.vin.size(); ++i) {
-        psbtx.inputs.push_back(PSBTInput());
-    }
-    for (size_t i = 0; i < rawTx.vout.size(); ++i) {
-        psbtx.outputs.push_back(PSBTOutput());
-    }
-
-    // Use CTransaction for the constant parts of the
-    // transaction to avoid rehashing.
-    const CTransaction txConst(*psbtx.tx);
+    const CTransaction tx = CTransaction(rawTx);
+    PartiallySignedTransaction psbtx(tx);
 
     // Fill transaction with out data but don't sign
     bool bip32derivs =
         request.params[4].isNull() ? false : request.params[4].get_bool();
-    FillPSBT(pwallet, psbtx, &txConst, SigHashType().withForkId(), false,
-             bip32derivs);
+    FillPSBT(pwallet, psbtx, SigHashType().withForkId(), false, bip32derivs);
 
     // Serialize the PSBT
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("psbt", EncodeBase64((uint8_t *)ssTx.data(), ssTx.size()));
+    result.pushKV("psbt", EncodeBase64(ssTx.str()));
     result.pushKV("fee", ValueFromAmount(fee));
     result.pushKV("changepos", change_position);
     return result;

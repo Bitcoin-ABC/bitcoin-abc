@@ -36,7 +36,6 @@ UniValue signrawtransactionwithwallet(const Config &config,
                                       const JSONRPCRequest &request);
 UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request);
 bool FillPSBT(const CWallet *pwallet, PartiallySignedTransaction &psbtx,
-              const CTransaction *txConst,
               SigHashType sighash_type = SigHashType(), bool sign = true,
               bool bip32derivs = false);
 

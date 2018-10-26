@@ -84,15 +84,11 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
         SER_NETWORK, PROTOCOL_VERSION);
     ssData >> psbtx;
 
-    // Use CTransaction for the constant parts of the
-    // transaction to avoid rehashing.
-    const CTransaction txConst(*psbtx.tx);
-
     // FIXME: input 2 hd path is missing.
     // The path missing comes from the HD masterkey.
 
     // Fill transaction with our data
-    FillPSBT(&m_wallet, psbtx, &txConst, SigHashType(), false, true);
+    FillPSBT(&m_wallet, psbtx, SigHashType(), false, true);
 
     // Get the final tx
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);

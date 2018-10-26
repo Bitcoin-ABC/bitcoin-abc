@@ -220,11 +220,17 @@ bool ProduceSignature(const SigningProvider &provider,
     return sigdata.complete;
 }
 
+bool PSBTInputSigned(PSBTInput &input) {
+    return !input.final_script_sig.empty();
+}
+
 bool SignPSBTInput(const SigningProvider &provider,
-                   const CMutableTransaction &tx, PSBTInput &input, int index,
+                   PartiallySignedTransaction &psbt, int index,
                    SigHashType sighash) {
-    // If this input has a final scriptsig, don't do anything with it.
-    if (!input.final_script_sig.empty()) {
+    PSBTInput &input = psbt.inputs.at(index);
+    const CMutableTransaction &tx = *psbt.tx;
+
+    if (PSBTInputSigned(input)) {
         return true;
     }
 
@@ -234,6 +240,12 @@ bool SignPSBTInput(const SigningProvider &provider,
 
     // Get UTXO
     CTxOut utxo;
+
+    // Verify input sanity
+    if (!input.IsSane()) {
+        return false;
+    }
+
     if (input.utxo.IsNull()) {
         return false;
     }
@@ -450,6 +462,12 @@ const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR =
 const BaseSignatureCreator &DUMMY_MAXIMUM_SIGNATURE_CREATOR =
     DummySignatureCreator(33, 32);
 const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();
+
+PartiallySignedTransaction::PartiallySignedTransaction(const CTransaction &txIn)
+    : tx(txIn) {
+    inputs.resize(txIn.vin.size());
+    outputs.resize(txIn.vout.size());
+}
 
 bool PartiallySignedTransaction::IsNull() const {
     return !tx && inputs.empty() && outputs.empty() && unknown.empty();

@@ -1726,13 +1726,15 @@ static UniValue finalizepsbt(const Config &config,
                            strprintf("TX decode failed %s", error));
     }
 
-    // Get all of the previous transactions
+    // Finalize input signatures -- in case we have partial signatures that add
+    // up to a complete
+    //   signature, but have not combined them yet (e.g. because the combiner
+    //   that created this PartiallySignedTransaction did not understand them),
+    //   this will combine them into a final script.
     bool complete = true;
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
-        PSBTInput &input = psbtx.inputs.at(i);
-
-        complete &= SignPSBTInput(DUMMY_SIGNING_PROVIDER, *psbtx.tx, input, i,
-                                  SigHashType());
+        complete &=
+            SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i, SigHashType());
     }
 
     UniValue result(UniValue::VOBJ);
@@ -1745,11 +1747,10 @@ static UniValue finalizepsbt(const Config &config,
             mtx.vin[i].scriptSig = psbtx.inputs[i].final_script_sig;
         }
         ssTx << mtx;
-        result.pushKV("hex", HexStr(ssTx.begin(), ssTx.end()));
+        result.pushKV("hex", HexStr(ssTx.str()));
     } else {
         ssTx << psbtx;
-        result.pushKV("psbt",
-                      EncodeBase64((uint8_t *)ssTx.data(), ssTx.size()));
+        result.pushKV("psbt", EncodeBase64(ssTx.str()));
     }
     result.pushKV("complete", complete);
 

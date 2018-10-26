@@ -522,6 +522,7 @@ struct PartiallySignedTransaction {
     PartiallySignedTransaction(const PartiallySignedTransaction &psbt_in)
         : tx(psbt_in.tx), inputs(psbt_in.inputs), outputs(psbt_in.outputs),
           unknown(psbt_in.unknown) {}
+    explicit PartiallySignedTransaction(const CTransaction &txIn);
 
     // Only checks if they refer to the same transaction
     friend bool operator==(const PartiallySignedTransaction &a,
@@ -685,12 +686,15 @@ bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom,
                    CMutableTransaction &txTo, unsigned int nIn,
                    SigHashType sigHashType);
 
+/** Checks whether a PSBTInput is already signed. */
+bool PSBTInputSigned(PSBTInput &input);
+
 /**
  * Signs a PSBTInput, verifying that all provided data matches what is being
  * signed.
  */
 bool SignPSBTInput(const SigningProvider &provider,
-                   const CMutableTransaction &tx, PSBTInput &input, int index,
+                   PartiallySignedTransaction &psbt, int index,
                    SigHashType sighash = SigHashType());
 
 /** Extract signature data from a transaction input, and insert it. */
