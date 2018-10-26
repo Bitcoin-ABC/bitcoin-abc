@@ -3104,7 +3104,7 @@ static UniValue listunspent(const Config &config,
                            "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
                            "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
             HelpExampleRpc("listunspent",
-                           "6, 9999999 "
+                           "6, 9999999, "
                            "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
                            "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\""));
     }
