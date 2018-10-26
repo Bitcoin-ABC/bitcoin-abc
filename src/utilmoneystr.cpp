@@ -39,7 +39,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
     std::string strWhole;
     Amount nUnits = Amount::zero();
     const char *p = pszIn;
-    while (isspace(*p)) {
+    while (IsSpace(*p)) {
         p++;
     }
     for (; *p; p++) {
@@ -52,7 +52,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
             }
             break;
         }
-        if (isspace(*p)) {
+        if (IsSpace(*p)) {
             break;
         }
         if (!isdigit(*p)) {
@@ -61,7 +61,7 @@ bool ParseMoney(const char *pszIn, Amount &nRet) {
         strWhole.insert(strWhole.end(), *p);
     }
     for (; *p; p++) {
-        if (!isspace(*p)) {
+        if (!IsSpace(*p)) {
             return false;
         }
     }

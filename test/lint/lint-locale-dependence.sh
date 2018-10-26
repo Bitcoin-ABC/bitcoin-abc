@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 KNOWN_VIOLATIONS=(
-    "src/base58.cpp:.*isspace"
     "src/bitcoin-tx.cpp.*stoul"
     "src/bitcoin-tx.cpp.*trim_right"
     "src/bitcoin-tx.cpp:.*atoi"
@@ -17,14 +16,11 @@ KNOWN_VIOLATIONS=(
     "src/test/dbwrapper_tests.cpp:.*snprintf"
     "src/test/getarg_tests.cpp.*split"
     "src/torcontrol.cpp:.*atoi"
-    "src/uint256.cpp:.*isspace"
     "src/uint256.cpp:.*tolower"
     "src/util.cpp:.*atoi"
     "src/util.cpp:.*tolower"
     "src/utilmoneystr.cpp:.*isdigit"
-    "src/utilmoneystr.cpp:.*isspace"
     "src/utilstrencodings.cpp:.*atoi"
-    "src/utilstrencodings.cpp:.*isspace"
     # Append the opening parenthesis to avoid shadowing strtoll with grep
     "src/utilstrencodings.cpp:.*strtol\("
     "src/utilstrencodings.cpp:.*strtoll"

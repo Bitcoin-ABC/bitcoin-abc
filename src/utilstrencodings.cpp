@@ -84,7 +84,7 @@ std::vector<uint8_t> ParseHex(const char *psz) {
     // convert hex dump to vector
     std::vector<uint8_t> vch;
     while (true) {
-        while (isspace(*psz)) {
+        while (IsSpace(*psz)) {
             psz++;
         }
         signed char c = HexDigit(*psz++);
@@ -471,7 +471,7 @@ static bool ParsePrechecks(const std::string &str) {
         return false;
     }
     // No padding allowed
-    if (str.size() >= 1 && (isspace(str[0]) || isspace(str[str.size() - 1]))) {
+    if (str.size() >= 1 && (IsSpace(str[0]) || IsSpace(str[str.size() - 1]))) {
         return false;
     }
     // No embedded NUL characters allowed
