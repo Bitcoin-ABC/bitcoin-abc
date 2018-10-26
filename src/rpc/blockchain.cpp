@@ -2198,6 +2198,12 @@ static UniValue getblockstats(const Config &config,
         do_mediantxsize || loop_inputs ||
         SetHasKeys(stats, "total_size", "avgtxsize", "mintxsize", "maxtxsize");
 
+    if (loop_inputs && !g_txindex) {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            "One or more of the selected stats requires -txindex enabled");
+    }
+
     const int64_t blockMaxSize = config.GetMaxBlockSize();
     Amount maxfee = Amount::zero();
     Amount maxfeerate = Amount::zero();
@@ -2249,12 +2255,6 @@ static UniValue getblockstats(const Config &config,
         }
 
         if (loop_inputs) {
-            if (!g_txindex) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                   "One or more of the selected stats requires "
-                                   "-txindex enabled");
-            }
-
             Amount tx_total_in = Amount::zero();
             for (const CTxIn &in : tx->vin) {
                 CTransactionRef tx_in;
