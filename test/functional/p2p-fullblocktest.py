@@ -61,6 +61,7 @@ class FullBlockTest(ComparisonTestFramework):
     # Change the "outcome" variable from each TestInstance object to only do the comparison.
     def set_test_params(self):
         self.num_nodes = 1
+        self.extra_args = [['-whitelist=127.0.0.1']]
         self.setup_clean_chain = True
         self.block_heights = {}
         self.coinbase_key = CECKey()
@@ -124,13 +125,13 @@ class FullBlockTest(ComparisonTestFramework):
         if spend == None:
             block = create_block(base_block_hash, coinbase, block_time)
         else:
-            coinbase.vout[0].nValue += spend.tx.vout[
-                spend.n].nValue - 1  # all but one satoshi to fees
+            # all but one satoshi to fees
+            coinbase.vout[0].nValue += spend.tx.vout[spend.n].nValue - 1
             assert(coinbase.vout[0].nValue)
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
-            tx = create_transaction(
-                spend.tx, spend.n, b"", 1, script)  # spend 1 satoshi
+            # spend 1 satoshi
+            tx = create_transaction(spend.tx, spend.n, b"", 1, script)
             self.sign_tx(tx, spend.tx, spend.n)
             self.add_transactions_to_block(block, [tx])
             block.hashMerkleRoot = block.calc_merkle_root()
