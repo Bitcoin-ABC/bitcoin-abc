@@ -110,25 +110,6 @@ add_library(bitcoin-qt-base
 	qrc_bitcoin_locale.cpp
 )
 
-if(ENABLE_BIP70)
-	# Do protobuf codegen
-	find_package(Protobuf REQUIRED)
-	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
-
-	target_sources(bitcoin-qt-base
-		PRIVATE
-			# Protobuf codegen
-			${PROTOBUF_HEADERS}
-			${PROTOBUF_SOURCES}
-	)
-
-	target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
-	target_link_libraries(bitcoin-qt-base
-		OpenSSL::SSL
-		${Protobuf_LIBRARIES}
-	)
-endif()
-
 # Add the minimal integration plugin, and other plugins according to the target
 # platform.
 set(QT_PLUGIN_COMPONENTS QMinimalIntegrationPlugin)
@@ -244,6 +225,25 @@ target_link_libraries(bitcoin-qt-base
 )
 if(ENABLE_NOTIFICATIONS)
 	target_link_libraries(bitcoin-qt-base Qt5::DBus)
+endif()
+
+if(ENABLE_BIP70)
+	# Do protobuf codegen
+	find_package(Protobuf REQUIRED)
+	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
+
+	target_sources(bitcoin-qt-base
+		PRIVATE
+			# Protobuf codegen
+			${PROTOBUF_HEADERS}
+			${PROTOBUF_SOURCES}
+	)
+
+	target_include_directories(bitcoin-qt-base PUBLIC ${Protobuf_INCLUDE_DIRS})
+	target_link_libraries(bitcoin-qt-base
+		OpenSSL::SSL
+		${Protobuf_LIBRARIES}
+	)
 endif()
 
 # Wallet
