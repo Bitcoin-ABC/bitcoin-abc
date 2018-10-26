@@ -16,6 +16,7 @@
 #include <ui_interface.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/translation.h>
 #include <validationinterface.h>
 #include <wallet/coinselection.h>
 #include <wallet/crypter.h>
@@ -76,6 +77,19 @@ constexpr Amount DEFAULT_PAY_TX_FEE = Amount::zero();
 static const Amount DEFAULT_FALLBACK_FEE = Amount::zero();
 //! -mintxfee default
 static const Amount DEFAULT_TRANSACTION_MINFEE_PER_KB = 1000 * SATOSHI;
+/**
+ * maximum fee increase allowed to do partial spend avoidance, even for nodes
+ * with this feature disabled by default
+ *
+ * A value of -1 disables this feature completely.
+ * A value of 0 (current default) means to attempt to do partial spend
+ * avoidance, and use its results if the fees remain *unchanged* A value > 0
+ * means to do partial spend avoidance if the fee difference against a regular
+ * coin selection instance is in the range [0..value].
+ */
+static const Amount DEFAULT_MAX_AVOIDPARTIALSPEND_FEE = Amount::zero();
+//! discourage APS fee higher than this amount
+constexpr Amount HIGH_APS_FEE{COIN / 10000};
 //! minimum recommended increment for BIP 125 replacement txs
 static const Amount WALLET_INCREMENTAL_RELAY_FEE(5000 * SATOSHI);
 //! Default for -spendzeroconfchange
@@ -770,6 +784,12 @@ private:
      */
     int m_last_block_processed_height GUARDED_BY(cs_wallet) = -1;
 
+    bool CreateTransactionInternal(interfaces::Chain::Lock &locked_chain,
+                                   const std::vector<CRecipient> &vecSend,
+                                   CTransactionRef &tx, Amount &nFeeRet,
+                                   int &nChangePosInOut, bilingual_str &error,
+                                   const CCoinControl &coin_control, bool sign);
+
 public:
     const CChainParams &chainParams;
     /*
@@ -1123,6 +1143,8 @@ public:
      * -fallbackfee
      */
     CFeeRate m_fallback_fee{DEFAULT_FALLBACK_FEE};
+    //! note: this is absolute fee, not fee rate
+    Amount m_max_aps_fee{DEFAULT_MAX_AVOIDPARTIALSPEND_FEE};
     OutputType m_default_address_type{DEFAULT_ADDRESS_TYPE};
     OutputType m_default_change_type{DEFAULT_CHANGE_TYPE};
     /**

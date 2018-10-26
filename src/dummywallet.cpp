@@ -31,10 +31,10 @@ public:
 void DummyWalletInit::AddWalletOptions() const {
     std::vector<std::string> opts = {
         "-avoidpartialspends", "-disablewallet", "-fallbackfee=<amt>",
-        "-keypool=<n>", "-maxtxfee=<amt>", "-mintxfee=<amt>", "-paytxfee=<amt>",
-        "-rescan", "-salvagewallet", "-spendzeroconfchange", "-upgradewallet",
-        "-wallet=<path>", "-walletbroadcast", "-walletdir=<dir>",
-        "-walletnotify=<cmd>", "-zapwallettxes=<mode>",
+        "-keypool=<n>", "-maxapsfee=<n>", "-maxtxfee=<amt>", "-mintxfee=<amt>",
+        "-paytxfee=<amt>", "-rescan", "-salvagewallet", "-spendzeroconfchange",
+        "-upgradewallet", "-wallet=<path>", "-walletbroadcast",
+        "-walletdir=<dir>", "-walletnotify=<cmd>", "-zapwallettxes=<mode>",
         // Wallet debug options
         "-dblogsize=<n>", "-flushwallet", "-privdb", "-walletrejectlongchains"};
     gArgs.AddHiddenArgs(opts);

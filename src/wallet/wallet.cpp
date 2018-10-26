@@ -2880,15 +2880,17 @@ CWallet::TransactionChangeType(OutputType change_type,
     return m_default_address_type;
 }
 
-bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
-                                const std::vector<CRecipient> &vecSend,
-                                CTransactionRef &tx, Amount &nFeeRet,
-                                int &nChangePosInOut, bilingual_str &error,
-                                const CCoinControl &coinControl, bool sign) {
+bool CWallet::CreateTransactionInternal(interfaces::Chain::Lock &locked_chainIn,
+                                        const std::vector<CRecipient> &vecSend,
+                                        CTransactionRef &tx, Amount &nFeeRet,
+                                        int &nChangePosInOut,
+                                        bilingual_str &error,
+                                        const CCoinControl &coin_control,
+                                        bool sign) {
     Amount nValue = Amount::zero();
     const OutputType change_type = TransactionChangeType(
-        coinControl.m_change_type ? *coinControl.m_change_type
-                                  : m_default_change_type,
+        coin_control.m_change_type ? *coin_control.m_change_type
+                                   : m_default_change_type,
         vecSend);
     ReserveDestination reservedest(this, change_type);
     int nChangePosRequest = nChangePosInOut;
@@ -2921,7 +2923,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
         LOCK(cs_wallet);
 
         std::vector<COutput> vAvailableCoins;
-        AvailableCoins(*locked_chain, vAvailableCoins, true, &coinControl);
+        AvailableCoins(*locked_chain, vAvailableCoins, true, &coin_control);
         // Parameters for coin selection, init with dummy
         CoinSelectionParams coin_selection_params;
 
@@ -2931,8 +2933,8 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
         CScript scriptChange;
 
         // coin control: send change to custom address
-        if (!boost::get<CNoDestination>(&coinControl.destChange)) {
-            scriptChange = GetScriptForDestination(coinControl.destChange);
+        if (!boost::get<CNoDestination>(&coin_control.destChange)) {
+            scriptChange = GetScriptForDestination(coin_control.destChange);
 
             // no coin control: send change to newly generated address
         } else {
@@ -2965,7 +2967,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             GetSerializeSize(change_prototype_txout);
 
         // Get the fee rate to use effective values in coin selection
-        CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coinControl);
+        CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coin_control);
 
         nFeeRet = Amount::zero();
         bool pick_new_inputs = true;
@@ -3042,7 +3044,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                                                     this);
                 coin_selection_params.effective_fee = nFeeRateNeeded;
                 if (!SelectCoins(vAvailableCoins, nValueToSelect, setCoins,
-                                 nValueIn, coinControl, coin_selection_params,
+                                 nValueIn, coin_control, coin_selection_params,
                                  bnb_used)) {
                     // If BnB was used, it was the first pass. No longer the
                     // first pass and continue loop with knapsack.
@@ -3095,13 +3097,13 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
 
             CTransaction txNewConst(txNew);
             int nBytes = CalculateMaximumSignedTxSize(
-                txNewConst, this, coinControl.fAllowWatchOnly);
+                txNewConst, this, coin_control.fAllowWatchOnly);
             if (nBytes < 0) {
                 error = _("Signing transaction failed");
                 return false;
             }
 
-            Amount nFeeNeeded = GetMinimumFee(*this, nBytes, coinControl);
+            Amount nFeeNeeded = GetMinimumFee(*this, nBytes, coin_control);
 
             if (nFeeRet >= nFeeNeeded) {
                 // Reduce fee to only the needed amount if possible. This
@@ -3121,7 +3123,7 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
                     unsigned int tx_size_with_change =
                         nBytes + coin_selection_params.change_output_size + 2;
                     Amount fee_needed_with_change =
-                        GetMinimumFee(*this, tx_size_with_change, coinControl);
+                        GetMinimumFee(*this, tx_size_with_change, coin_control);
                     Amount minimum_value_for_change = GetDustThreshold(
                         change_prototype_txout, chain().relayDustFee());
                     if (nFeeRet >=
@@ -3251,6 +3253,46 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
     reservedest.KeepDestination();
 
     return true;
+}
+
+bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chain,
+                                const std::vector<CRecipient> &vecSend,
+                                CTransactionRef &tx, Amount &nFeeRet,
+                                int &nChangePosInOut, bilingual_str &error,
+                                const CCoinControl &coin_control, bool sign) {
+    int nChangePosIn = nChangePosInOut;
+    CTransactionRef tx2 = tx;
+    bool res =
+        CreateTransactionInternal(locked_chain, vecSend, tx, nFeeRet,
+                                  nChangePosInOut, error, coin_control, sign);
+    // try with avoidpartialspends unless it's enabled already
+    if (res &&
+        nFeeRet >
+            Amount::zero() /* 0 means non-functional fee rate estimation */
+        && m_max_aps_fee > (-1 * SATOSHI) &&
+        !coin_control.m_avoid_partial_spends) {
+        CCoinControl tmp_cc = coin_control;
+        tmp_cc.m_avoid_partial_spends = true;
+        Amount nFeeRet2;
+        int nChangePosInOut2 = nChangePosIn;
+        // fired and forgotten; if an error occurs, we discard the results
+        bilingual_str error2;
+        if (CreateTransactionInternal(locked_chain, vecSend, tx2, nFeeRet2,
+                                      nChangePosInOut2, error2, tmp_cc, sign)) {
+            // if fee of this alternative one is within the range of the max
+            // fee, we use this one
+            const bool use_aps = nFeeRet2 <= nFeeRet + m_max_aps_fee;
+            WalletLogPrintf(
+                "Fee non-grouped = %lld, grouped = %lld, using %s\n", nFeeRet,
+                nFeeRet2, use_aps ? "grouped" : "non-grouped");
+            if (use_aps) {
+                tx = tx2;
+                nFeeRet = nFeeRet2;
+                nChangePosInOut = nChangePosInOut2;
+            }
+        }
+    }
+    return res;
 }
 
 void CWallet::CommitTransaction(
@@ -4170,6 +4212,23 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                                  "on every transaction."));
         }
         walletInstance->m_min_fee = CFeeRate(n);
+    }
+
+    if (gArgs.IsArgSet("-maxapsfee")) {
+        Amount n = Amount::zero();
+        if (gArgs.GetArg("-maxapsfee", "") == "-1") {
+            n = -1 * SATOSHI;
+        } else if (!ParseMoney(gArgs.GetArg("-maxapsfee", ""), n)) {
+            error = AmountErrMsg("maxapsfee", gArgs.GetArg("-maxapsfee", ""));
+            return nullptr;
+        }
+        if (n > HIGH_APS_FEE) {
+            warnings.push_back(
+                AmountHighWarn("-maxapsfee") + Untranslated(" ") +
+                _("This is the maximum transaction fee you pay to prioritize "
+                  "partial spend avoidance over regular coin selection."));
+        }
+        walletInstance->m_max_aps_fee = n;
     }
 
     if (gArgs.IsArgSet("-fallbackfee")) {

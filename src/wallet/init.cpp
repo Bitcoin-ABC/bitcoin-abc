@@ -62,6 +62,13 @@ void WalletInit::AddWalletOptions() const {
                            DEFAULT_KEYPOOL_SIZE),
                  ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     gArgs.AddArg(
+        "-maxapsfee=<n>",
+        strprintf(
+            "Spend up to this amount in additional (absolute) fees (in %s) if "
+            "it allows the use of partial spend avoidance (default: %s)",
+            CURRENCY_UNIT, FormatMoney(DEFAULT_MAX_AVOIDPARTIALSPEND_FEE)),
+        ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+    gArgs.AddArg(
         "-maxtxfee=<amt>",
         strprintf("Maximum total fees (in %s) to use in a single wallet "
                   "transaction or raw transaction; setting this too low may "
