@@ -1439,6 +1439,7 @@ int input_frozen_state_string (const string &s)
     std::string strAddress = vstr[0];
     uint32_t tokenId = boost::lexical_cast<uint32_t>(vstr[1]);
     setFrozenAddresses.insert(std::make_pair(strAddress, tokenId));
+    return 0;
 }
 
 // addr,propertyId,nValue,property_desired,deadline,early_bird,percentage,txid

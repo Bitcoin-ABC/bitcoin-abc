@@ -33,7 +33,7 @@ bool SendToOwners_compare::operator()(const std::pair<int64_t, std::string>& p1,
  *
  * The sender is excluded from the result set.
  */
-OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount, int blockHeight)
+OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int64_t amount, int blockHeight, uint32_t property_will_be_distribute)
 {
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
@@ -61,14 +61,12 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
                 senderTokens = tokens;
                 continue;
             }
-            if (address == burnwhc_address && blockHeight >= params.MSC_STO_DISABLE_BURNADDR){
-                burnaddrTokens = tokens;
-                continue;
-            }
-            if(isAddressFrozen(address, property)){
+
+            if(isAddressFrozen(address, property_will_be_distribute)){
                 frozenTokens += tokens;
                 continue;
             }
+
             totalTokens += tokens;
 
             // Only holders with balance are relevant
@@ -108,6 +106,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 
         // Stop, once the whole amount is allocated
         if (will_really_receive > 0) {
+            assert(!isAddressFrozen(address, property));
             receiversSet.insert(std::make_pair(will_really_receive, address));
         } else {
             break;
