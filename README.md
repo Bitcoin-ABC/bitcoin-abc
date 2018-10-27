@@ -1,7 +1,7 @@
 Wormhole (beta) integration/staging tree
 ========================================
 
-[![Build Status](https://travis-ci.org/copernet/wormhole.svg?branch=master)](https://travis-ci.org/copernet/wormhole)
+[![Build Status](https://travis-ci.org/copernet/wormhole.svg?branch=master)](https://travis-ci.org/copernet/wormhole) [![Coverage Status](https://coveralls.io/repos/github/copernet/wormhole/badge.svg?branch=master)](https://coveralls.io/github/copernet/wormhole?branch=master)
 
 
 What is Wormhole
