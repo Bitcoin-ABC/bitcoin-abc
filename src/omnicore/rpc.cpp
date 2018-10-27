@@ -839,7 +839,7 @@ UniValue whc_getfrozenbalanceforid(const Config &config, const JSONRPCRequest &r
 
     UniValue response(UniValue::VARR);
     int mtype = getPropertyType(propertyId); // we want to check this BEFORE the loop
-    
+
     for(auto it = setFrozenAddresses.begin(); it != setFrozenAddresses.end(); ++it)
     {
         if(it->second == propertyId)
@@ -852,6 +852,7 @@ UniValue whc_getfrozenbalanceforid(const Config &config, const JSONRPCRequest &r
             } else {
                 balanceObj.push_back(Pair("balance", FormatIndivisibleMP(nFrozen)));
             }
+            response.push_back(balanceObj);
         }
     }
 
