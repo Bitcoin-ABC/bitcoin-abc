@@ -3081,7 +3081,7 @@ static UniValue listunspent(const Config &config,
             "\n"
             "    \"confirmations\" : n,      (numeric) The number of "
             "confirmations\n"
-            "    \"redeemScript\" : n        (string) The redeemScript if "
+            "    \"redeemScript\" : \"hex\",   (string) The redeemScript if "
             "scriptPubKey is P2SH\n"
             "    \"spendable\" : xxx,        (bool) Whether we have the "
             "private keys to spend this output\n"
@@ -3104,7 +3104,7 @@ static UniValue listunspent(const Config &config,
                            "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
                            "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\"") +
             HelpExampleRpc("listunspent",
-                           "6, 9999999 "
+                           "6, 9999999, "
                            "\"[\\\"1PGFqEzfmQch1gKD3ra4k18PNj3tTUUSqg\\\","
                            "\\\"1LtvqCaApEdUGFkpKMM4MstjcaL4dKg8SP\\\"]\""));
     }
