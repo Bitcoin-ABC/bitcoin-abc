@@ -5,7 +5,7 @@
 #include "config/bitcoin-config.h"
 #else
 
-#endif // HAVE_CONFIG_H
+
 //
 // Omni Core version information are also to be defined in configure.ac.
 //
@@ -24,6 +24,7 @@
 // Non-public build number/revision (usually zero)
 #define WORMHOLE_VERSION_BUILD       0
 
+#endif // HAVE_CONFIG_H
 
 #if !defined(WINDRES_PREPROC)
 
