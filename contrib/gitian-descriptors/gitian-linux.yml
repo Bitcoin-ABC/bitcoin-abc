@@ -1,5 +1,5 @@
 ---
-name: "wormhole-0.1.0-linux"
+name: "wormhole-0.1.2-linux"
 enable_cache: true
 suites:
 - "xenial"
@@ -7,7 +7,7 @@ architectures:
 - "amd64"
 multiarch:
 - "i386"
-packages:
+ipackages:
 - "curl"
 - "gperf"
 - "g++-aarch64-linux-gnu"
