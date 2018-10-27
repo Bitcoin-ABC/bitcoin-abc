@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(sender_selection_same_amount_test)
     for (unsigned i = 0; i < nAllRounds; ++i) {
         std::vector<CTxOut> vouts;
         for (unsigned n = 0; n < nOutputs; ++n) {
-            CTxOut output(static_cast<int64_t>(1000),
+            CTxOut output(Amount(1000),
                     GetScriptForDestination(createRandomKeyId()));
             vouts.push_back(output);
         }
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(sender_selection_increasing_amount_test)
     for (unsigned i = 0; i < nAllRounds; ++i) {
         std::vector<CTxOut> vouts;
         for (unsigned n = 0; n < nOutputs; ++n) {
-            CTxOut output(static_cast<int64_t>(1000 + n),
+            CTxOut output(Amount(1000 + n),
                     GetScriptForDestination(createRandomKeyId()));
             vouts.push_back(output);
         }
@@ -320,12 +320,12 @@ BOOST_AUTO_TEST_CASE(sender_selection_mixed_test)
                 scriptPubKey = GetScriptForDestination(createRandomScriptId());
             };
             int64_t nAmount = static_cast<int64_t>(1000 - n * (n % 2 == 0));
-            vouts.push_back(CTxOut(nAmount, scriptPubKey));
+            vouts.push_back(CTxOut(Amount(nAmount), scriptPubKey));
         }
         shuffleAndCheck(vouts, nShuffleRounds);
     }
 }
-
+#if 0
 /** Creates a dummy class B transaction with the given inputs. */
 static CTransaction TxClassB(const std::vector<CTxOut>& txInputs)
 {
@@ -385,7 +385,7 @@ static CTxOut createTxOut(int64_t amount, const std::string& dest)
 {
     return CTxOut(amount, GetScriptForDestination(CBitcoinAddress(dest).Get()));
 }
-
+#endif
 /** Helper to create a CKeyID object with random value.*/
 static CKeyID createRandomKeyId()
 {
@@ -430,4 +430,5 @@ void shuffleAndCheck(std::vector<CTxOut>& vouts, unsigned nRounds)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
 #endif

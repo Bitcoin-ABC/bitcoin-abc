@@ -9,11 +9,11 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-7
-cache:
-  directories:
-  - depends/built
-  - depends/sdk-sources
-  - $HOME/.ccache
+cache: false
+  # directories:
+  # - depends/built
+  # - depends/sdk-sources
+  # - $HOME/.ccache
 env:
   global:
     - MAKEJOBS=-j3
@@ -30,7 +30,7 @@ env:
     - MATRIX_EVAL="CC=gcc && CXX=g++"
   matrix:
 # 32-bit + dash
-    - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS='-fprofile-arcs -ftest-coverage -coverage' LDFLAGS='-fprofile-arcs -lgcov -coverage -static-libstdc++'" USE_SHELL="/bin/dash"
+    - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ CXXFLAGS=-coverage" USE_SHELL="/bin/dash"
 # bitcoind
 #    - HOST=x86_64-unknown-linux-gnu PACKAGES="bc python3-zmq" DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS=-DDEBUG_LOCKORDER -fpermissive"
 # No wallet
@@ -79,13 +79,40 @@ script:
     - ../configure --cache-file=config.cache $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false)
     - make distdir VERSION=$HOST
     - cd wormhole-$HOST
-    - ./configure --cache-file=../config.cache $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false)
-    - make $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make $GOAL V=1 ; false )
+    - ./configure --cache-file=config.cache $BITCOIN_CONFIG_ALL $BITCOIN_CONFIG || ( cat config.log && false)
+    - rm -rf ./src/omnicore/*.o
+    - rm -rf ./src/omnicore/*.gcda
+    - rm -rf ./src/omnicore/*.*.gcda
+    - rm -rf ./src/omnicore/*.gcov
+    - rm -rf ./src/omnicore/*.*.gcov
+    - make $MAKEJOBS $GOAL >makelog.txt || ( echo "Build failure. Verbose build follows." && make $GOAL V=1 ; false )
+    - rm -rf makelog.txt
     - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
     # - if [ "$RUN_TESTS" = "true" ]; then make $MAKEJOBS check VERBOSE=1; fi
     - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then extended="--extended --quiet --exclude pruning"; fi
-    #- if [ "$RUN_TESTS" = "true" ]; then test/functional/test_runner.py --coverage ${extended}; fi
-    - coveralls --exclude tests --gcov-options '\-lp' 	
+    # - if [ "$RUN_TESTS" = "true" ]; then test/functional/test_runner.py --coverage ${extended}; fi
+    - ./src/test/test_bitcoin --run_test=omnicore_create_payload_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_checkpoint_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_create_tx_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_crowdsale_participation_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_dex_purchase_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_encoding_b_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_lock_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_mbstring_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_obfuscation_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_output_restriction_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_params_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_rounduint64_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_rules_txs_tests
+    # - ./src/test/test_bitcoin --run_test=omnicore_script_dust_tests
+    - ./src/test/test_bitcoin --run_test=omnicore_script_extraction_tests
+    # - ./src/test/test_bitcoin --run_test=omnicore_sender_bycontribution_tests
+    # - ./src/test/test_bitcoin --run_test=omnicore_strtoint64_tests
+    # - ./src/test/test_bitcoin --run_test=omnicore_swapbyteorder_tests
+    # - ./src/test/test_bitcoin --run_test=omnicore_tally_tests
+    - coveralls  -b /home/travis/build/helldealer/wormhole/build/wormhole-i686-pc-linux-gnu/src/ --include ./src/omnicore --exclude ./src/bench --exclude ./src/cmake-build-debug --exclude ./src/wallet --exclude ./src/zmq --exclude ./cmake-build-debug --exclude ./undo.h --exclude ./src/omnicore/test/ --exclude ./src/rpc --exclude ./src/qt --exclude ./src/univalue --exclude ./src/primitives --exclude ./src/policy --exclude ./src/obj-test --exclude ./src/obj --exclude ./src/omnicore/res/ --exclude ./src/omnicore/.deps/ --exclude ./src/omnicore/doc --exclude ./src/script --exclude ./src/secp256k1 --exclude ./src/seeder --exclude ./src/support --exclude ./src/test --exclude ./src/leveldb/ --exclude ./src/crypto/ --exclude ./src/consensus --exclude ./src/config --exclude ./src/compat --exclude ./src/omnicore/res --exclude ./src/.deps --gcov-options '\\-lp' >cover.txt
+    - rm -rf cover.txt
+    - if [ "$RUN_TESTS" = "true" ]; then test/functional/test_runner.py --coverage ${extended}; fi
 after_script:
     - echo $TRAVIS_COMMIT_RANGE
     - echo $TRAVIS_COMMIT_LOG

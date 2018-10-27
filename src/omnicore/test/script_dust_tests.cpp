@@ -15,15 +15,14 @@
 
 // Is resetted to a norm value in each test
 extern CFeeRate minRelayTxFee;
-static CFeeRate minRelayTxFeeOriginal = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 
 BOOST_FIXTURE_TEST_SUITE(omnicore_script_dust_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(dust_threshold_pubkey_hash)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected = 546; // satoshi
-    const size_t nScriptSize = 25; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected = 546; // satoshi
+    size_t nScriptSize = 25; // byte
 
     // Pay-to-pubkey-hash
     std::vector<unsigned char> vchScript = ParseHex(
@@ -34,18 +33,17 @@ BOOST_AUTO_TEST_CASE(dust_threshold_pubkey_hash)
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
 
     // Confirm an output with that value and script is no dust
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
     // ... but an output, spending one satoshi less, is indeed
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 BOOST_AUTO_TEST_CASE(dust_threshold_script_hash)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected = 540; // satoshi
-    const size_t nScriptSize = 23; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected = 540; // satoshi
+    size_t nScriptSize = 23; // byte
 
     // Pay-to-script-hash
     std::vector<unsigned char> vchScript = ParseHex(
@@ -54,17 +52,16 @@ BOOST_AUTO_TEST_CASE(dust_threshold_script_hash)
     CScript script(vchScript.begin(), vchScript.end());
     BOOST_CHECK_EQUAL(script.size(), nScriptSize);
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 BOOST_AUTO_TEST_CASE(dust_threshold_multisig_compressed_compressed)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected = 684; // satoshi
-    const size_t nScriptSize = 71; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected = 684; // satoshi
+    size_t nScriptSize = 71; // byte
 
     // Bare multisig, two compressed public keys
     std::vector<unsigned char> vchScript = ParseHex(
@@ -75,17 +72,16 @@ BOOST_AUTO_TEST_CASE(dust_threshold_multisig_compressed_compressed)
     CScript script(vchScript.begin(), vchScript.end());
     BOOST_CHECK_EQUAL(script.size(), nScriptSize);
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 BOOST_AUTO_TEST_CASE(dust_threshold_multisig_uncompressed_compressed)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected  = 780; // satoshi
-    const size_t nScriptSize = 103; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected  = 780; // satoshi
+    size_t nScriptSize = 103; // byte
 
     // Bare multisig, one uncompressed, one compressed public key
     std::vector<unsigned char> vchScript = ParseHex(
@@ -96,17 +92,16 @@ BOOST_AUTO_TEST_CASE(dust_threshold_multisig_uncompressed_compressed)
     CScript script(vchScript.begin(), vchScript.end());
     BOOST_CHECK_EQUAL(script.size(), nScriptSize);
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 BOOST_AUTO_TEST_CASE(dust_threshold_multisig_compressed_compressed_compressed)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected  = 786; // satoshi
-    const size_t nScriptSize = 105; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected  = 786; // satoshi
+    size_t nScriptSize = 105; // byte
 
     // Bare multisig, three uncompressed public keys
     std::vector<unsigned char> vchScript = ParseHex(
@@ -117,17 +112,16 @@ BOOST_AUTO_TEST_CASE(dust_threshold_multisig_compressed_compressed_compressed)
     CScript script(vchScript.begin(), vchScript.end());
     BOOST_CHECK_EQUAL(script.size(), nScriptSize);
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 BOOST_AUTO_TEST_CASE(dust_threshold_multisig_uncompressed_compressed_compressed)
 {
-    minRelayTxFee = CFeeRate(1000);
-    const int64_t nExpected  = 882; // satoshi
-    const size_t nScriptSize = 137; // byte
+    minRelayTxFee = CFeeRate(Amount(1000));
+    int64_t nExpected  = 882; // satoshi
+    size_t nScriptSize = 137; // byte
 
     // Bare multisig, one uncompressed, two compressed public keys
     std::vector<unsigned char> vchScript = ParseHex(
@@ -139,10 +133,9 @@ BOOST_AUTO_TEST_CASE(dust_threshold_multisig_uncompressed_compressed_compressed)
     CScript script(vchScript.begin(), vchScript.end());
     BOOST_CHECK_EQUAL(script.size(), nScriptSize);
     BOOST_CHECK_EQUAL(GetDustThreshold(script), nExpected);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected, script).IsDust(minRelayTxFee), false);
-    BOOST_CHECK_EQUAL(CTxOut(nExpected - 1, script).IsDust(minRelayTxFee), true);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected), script).IsDust(minRelayTxFee), false);
+    BOOST_CHECK_EQUAL(CTxOut(Amount(nExpected - 1), script).IsDust(minRelayTxFee), true);
 
-    minRelayTxFee = minRelayTxFeeOriginal;
 }
 
 
