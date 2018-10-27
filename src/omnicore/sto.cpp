@@ -104,7 +104,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 
         // Stop, once the whole amount is allocated
         if (will_really_receive > 0) {
-            assert(!isAddressFrozen(address, property));
+            assert(!isAddressFrozen(address, property_will_be_distribute));
             receiversSet.insert(std::make_pair(will_really_receive, address));
         } else {
             break;
