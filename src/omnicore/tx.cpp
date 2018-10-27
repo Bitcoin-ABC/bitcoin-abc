@@ -1319,8 +1319,8 @@ int CMPTransaction::logicMath_BuyToken()
 
     // Credit tokens for this fundraiser
     if (tokens.first > 0) {
-        assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
         if(money > 0) {
+            assert(update_tally_map(sender, pcrowdsale->getPropertyId(), tokens.first, BALANCE));
             assert(update_tally_map(sender, property, -money, BALANCE));
             assert(update_tally_map(receiver, property, money, BALANCE));
         }
@@ -2009,8 +2009,16 @@ int CMPTransaction::logicMath_CreatePropertyVariable()
     }
 
     if (nValue <= 0 || MAX_TOKENPRICE < nValue) {
-        PrintToLog("%s(): rejected: value out of range or zero: %d, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
+        PrintToLog("%s(): rejected: value %d out of range, range : [%d, %d]\n", __func__, nValue, MIN_TOKENPRICE, MAX_TOKENPRICE);
         return (PKT_ERROR_SP -23);
+    }
+
+    const CConsensusParams& params = ConsensusParams();
+    if(block >= params.MSC_CHECK_VARIABLE_TOKEN){
+        if (totalCrowsToken <= 0 || MAX_INT_8_BYTES < totalCrowsToken) {
+            PrintToLog("%s(): rejected: totalCrowsToken out of range or zero: %d\n", __func__, totalCrowsToken);
+            return (PKT_ERROR_SP -25);
+        }
     }
 
     if (property != OMNI_PROPERTY_WHC) {

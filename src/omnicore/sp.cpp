@@ -657,10 +657,7 @@ int64_t mastercore::GetMissedIssuerBonus(const CMPSPInfo::Entry& sp, const CMPCr
         amountMissing = totalAmount - amountCreditedToUsers;
     }
     arith_uint256 newTotal = amountMissing + amountCreditedToUsers;
-    // reduce to max. possible amount
-    if (newTotal > uint256_const::max_int64) {
-        amountMissing = uint256_const::max_int64 - amountCreditedToUsers;
-    }
+    assert(newTotal == totalAmount);
 
     return ConvertTo64(amountMissing);
 }

@@ -37,10 +37,8 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
 {
     int64_t totalTokens = 0;
     int64_t senderTokens = 0;
-    int64_t burnaddrTokens = 0;
     int64_t frozenTokens = 0;
     OwnerAddrType ownerAddrSet;
-    const CConsensusParams& params = ConsensusParams();
 
     {
         LOCK(cs_tally);
@@ -114,7 +112,7 @@ OwnerAddrType STO_GetReceivers(const std::string& sender, uint32_t property, int
     }
 
     uint64_t numberOfOwners = receiversSet.size();
-    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens + burnaddrTokens + frozenTokens));
+    PrintToLog("\t    Total Tokens: %s\n", FormatMP(property, totalTokens + senderTokens + frozenTokens));
     PrintToLog("\tExcluding Sender: %s\n", FormatMP(property, totalTokens));
     PrintToLog("\t          Owners: %d\n", numberOfOwners);
 

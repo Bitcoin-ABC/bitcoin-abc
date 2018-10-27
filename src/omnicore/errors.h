@@ -295,6 +295,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_SP -24:
           ec_str = "Desired property does not exist";
           break;
+      case PKT_ERROR_SP -25:
+          ec_str = "TotalCrowsToken out of range or zero";
+          break;
       case PKT_ERROR_SP -34:
           ec_str = "Invalid desired property id";
           break;

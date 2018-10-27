@@ -41,7 +41,7 @@ During the first startup historical Wormhole transactions are reprocessed and Wo
 Downgrading
 -----------
 
-Downgrading to an Wormhole Core version prior 0.0.1 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
+Downgrading to an Wormhole Core version prior 0.1.1 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
 
 Compatibility with Bitcoin ABC
 -------------------------------
@@ -53,11 +53,17 @@ Wormhole Core is based on Bitcoin ABC v0.17.2.0-0d18a09 and can be used as repla
 Add property freeze and unfreeze feature
 ----------------------------------
 
-Managed property freeze and unfreeze features were added Wormhole Core 0.1.1, As shown below:
+Various smaller improvements were added Wormhole Core 0.1.1 such as:
 
-- Managed property can be created with the ***previous token id*** reinterpreted as a switch of property freeze feature
+- Modify the calculation method of property amount for RPCs.
 
-- Managed property issuer can Initiate a transaction to freeze tokens or unfreeze tokens if the freeze feature has been opened for the managed token
+- Set the height to start total amount check,  that the total amount is not allowed to be greater than INT64_MAX, for establishment of crowdfunding.
+
+- Fix the bug that the remaining tokens not sent to the issuer after the crowdfunding close. 
+
+- Add some of the crowdfunding to the Integration testing
+- Fix confirmations informations in  RPC whc_decodetransaction
+- Append the amount field to the return of RPC whc_gettransaction,  identify how many WHCs user input to participate the crowdfunding,  for unconfirmed crowdfunding participate transaction
 
 Change log
 ==========

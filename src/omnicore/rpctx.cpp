@@ -266,7 +266,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. ecosystem            (number, required) the ecosystem to create the tokens in, must be 1\n"
             "3. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (0 for new crowdsales)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
@@ -346,7 +346,7 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
 
             "\nArguments:\n"
             "1. fromaddress          (string, required) the address to send from\n"
-            "2. ecosystem            (string, required) the ecosystem to create the tokens in, must be 1\n"
+            "2. ecosystem            (number, required) the ecosystem to create the tokens in, must be 1\n"
             "3. property precision   (number, required) the precision of the tokens to create:[0, 8]\n"
             "4. previousid           (number, required) an identifier of a predecessor token (use 0 for new tokens)\n"
             "5. category             (string, required) a category for the new tokens (can be \"\")\n"
