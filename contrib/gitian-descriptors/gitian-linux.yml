@@ -7,7 +7,7 @@ architectures:
 - "amd64"
 multiarch:
 - "i386"
-ipackages:
+packages:
 - "curl"
 - "gperf"
 - "g++-aarch64-linux-gnu"
