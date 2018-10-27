@@ -126,6 +126,7 @@ enum FILETYPES {
 
   FILETYPE_GLOBALS,
   FILETYPE_CROWDSALES,
+  FILETYPE_FROZENSTATE,
   //FILETYPE_MDEXORDERS,
 
   NUM_FILETYPES
@@ -307,7 +308,7 @@ public:
     void LoadActivations(int blockHeight);
     bool LoadFreezeState(int blockHeight);
     bool CheckForFreezeTxs(int blockHeight);
-
+    bool CheckForFreezeTxsBelowBlock(int blockHeight);
     void printStats();
     void printAll();
 

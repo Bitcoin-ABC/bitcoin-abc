@@ -19,7 +19,7 @@ enum TallyType {
 class CMPTally
 {
 private:
-    typedef struct {
+    typedef struct balance_t{
         //change_101 modify value type to arith_uint256; because current WHC uint is 10 ** 18, int64_t is so s
         int64_t balance[TALLY_TYPE_COUNT];
     } BalanceRecord;

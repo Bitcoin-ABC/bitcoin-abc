@@ -10,6 +10,6 @@ UniValue whc_createrawtx_multisig(const Config &config, const JSONRPCRequest &re
 UniValue whc_createrawtx_input(const Config &config, const JSONRPCRequest &request);
 UniValue whc_createrawtx_reference(const Config &config, const JSONRPCRequest &request);
 UniValue whc_createrawtx_change(const Config &config, const JSONRPCRequest &request);
-//UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &request);
+UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &request);
 
 #endif // OMNICORE_RPCRAWTX_H

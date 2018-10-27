@@ -91,6 +91,8 @@ public:
     //! Waiting period after enabling freezing before addresses may be frozen
     int OMNI_FREEZE_WAIT_PERIOD;
 
+    //! Block to activate wormhole ERC20 freezing function for managed token
+    int WHC_FREEZENACTIVATE_BLOCK;
     //! Block to enable pay-to-pubkey-hash support
     int PUBKEYHASH_BLOCK;
     //! Block to enable pay-to-script-hash support

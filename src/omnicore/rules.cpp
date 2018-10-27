@@ -168,6 +168,7 @@ CMainConsensusParams::CMainConsensusParams()
     MAX_ACTIVATION_BLOCKS = 12288; // ~12 weeks
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 4096; // ~4 weeks
+    WHC_FREEZENACTIVATE_BLOCK = 551750;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 322000;
@@ -210,6 +211,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     MAX_ACTIVATION_BLOCKS = 999999;
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 0;
+    WHC_FREEZENACTIVATE_BLOCK = 1261950;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 0;
@@ -252,6 +254,7 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     MAX_ACTIVATION_BLOCKS = 10;
     // Waiting period for enabling freezing
     OMNI_FREEZE_WAIT_PERIOD = 10;
+    WHC_FREEZENACTIVATE_BLOCK = 101;
     // Script related:
     PUBKEYHASH_BLOCK = 0;
     SCRIPTHASH_BLOCK = 0;

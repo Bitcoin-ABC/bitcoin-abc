@@ -99,8 +99,10 @@ std::string EncodeCashAddr(const std::string &prefix,
 
 CTxDestination DecodeCashAddr(const std::string &addr,
                               const CChainParams &params) {
+    //throw std::runtime_error("DecodeCashAddr:  1");
     CashAddrContent content =
         DecodeCashAddrContent(addr, params.CashAddrPrefix());
+    //throw std::runtime_error("DecodeCashAddr:  2");
     if (content.hash.size() == 0) {
         return CNoDestination{};
     }
@@ -113,7 +115,7 @@ CashAddrContent DecodeCashAddrContent(const std::string &addr,
     std::string prefix;
     std::vector<uint8_t> payload;
     std::tie(prefix, payload) = cashaddr::Decode(addr, expectedPrefix);
-
+    //throw std::runtime_error("DecodeCashAddrContent:  1");
     if (prefix != expectedPrefix) {
         return {};
     }

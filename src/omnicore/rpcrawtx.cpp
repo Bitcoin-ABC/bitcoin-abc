@@ -152,7 +152,7 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
     CMPTransaction mp_obj;
     int pop_ret = ParseTransaction(*tx.get(), blockHeight, 0, mp_obj);
     if (0 == pop_ret) {
-        mp_obj.unlockLogic();
+		mp_obj.unlockLogic();
         if (mp_obj.getEncodingClass() != OMNI_CLASS_C) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
         }
@@ -166,8 +166,9 @@ UniValue whc_sendrawtransaction(const Config &config, const JSONRPCRequest &requ
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error_str(interp_ret));
         }
     } else{
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
-    }
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a Wormhole Protocol transaction");
+	}
+
 
     bool fLimitFree = false;
     Amount nMaxRawTxFee = maxTxFee;
@@ -435,7 +436,7 @@ static const CRPCCommand commands[] =
     { "omni layer (raw transactions)", "whc_decodetransaction",     &whc_decodetransaction,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_opreturn",  &whc_createrawtx_opreturn,  true, {}},
 //    { "omni layer (raw transactions)", "whc_createrawtx_multisig",  &whc_createrawtx_multisig,  true, {}},
-//    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
+    { "omni layer (raw transactions)", "whc_sendrawtransaction",    &whc_sendrawtransaction,    true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_input",     &whc_createrawtx_input,     true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_reference", &whc_createrawtx_reference, true, {}},
     { "omni layer (raw transactions)", "whc_createrawtx_change",    &whc_createrawtx_change,    true, {}},

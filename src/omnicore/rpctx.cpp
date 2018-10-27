@@ -169,6 +169,11 @@ UniValue whc_send(const Config &config,const JSONRPCRequest &request)
 
     // perform checks
     RequireBalance(fromAddress, propertyId, amount);
+    /*
+    if (isAddressFrozen(fromAddress, propertyId))
+    {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Sender has been frozen");
+    }*/
     RequireSaneReferenceAmount(referenceAmount);
 
     // create a payload for the transaction
@@ -225,7 +230,11 @@ UniValue whc_sendall(const Config &config,const JSONRPCRequest &request)
     // perform checks
     RequirePropertyEcosystem(ecosystem);
     RequireSaneReferenceAmount(referenceAmount);
-
+    /*
+    if (isAddressFrozen(fromAddress, propertyId))
+    {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Sender has been frozen");
+    }*/
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_SendAll(ecosystem);
 
@@ -759,6 +768,121 @@ UniValue whc_burnbchgetwhc(const Config &config,const JSONRPCRequest &request)
     }
 }
 
+UniValue whc_sendfreeze(const Config &config,const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 4 )
+        throw runtime_error(
+                "whc_sendfreeze \"fromaddress\" propertyid \"amount\"  \"frozenaddress\" \n"
+
+                "\nRevoke units of managed tokens.\n"
+
+                "\nArguments:\n"
+                "1. fromaddress          (string, required) the address to send from\n"
+                "2. propertyid           (number, required) the identifier of the tokens to freeze\n"
+                "3. amount               (string, required) the amount of tokens to freeze (not used for now)\n"
+                "4. frozenaddress        (string, required) the address to be frozen\n"
+
+                "\nResult:\n"
+                "\"hash\"                  (string) the hex-encoded transaction hash\n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("whc_sendfreeze", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 51 \"100\", \"kq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\"")
+                + HelpExampleRpc("whc_sendfreeze", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 52, \"100\", \"kq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\"")
+        );
+
+    // obtain parameters & info
+    std::string fromAddress = ParseAddress(request.params[0]);
+    uint32_t propertyId = ParsePropertyId(request.params[1]);
+    RequireExistingProperty(propertyId);
+    int64_t amount = ParseAmount(request.params[2], getPropertyType(propertyId));
+    std::string freezedAddress = ParseAddress(request.params[3]);
+
+    // perform checks
+
+    RequireManagedProperty(propertyId);
+    RequireTokenIssuer(fromAddress, propertyId);
+
+    if (fromAddress == freezedAddress) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Sender cannot be same with the address will be freezed");
+    }
+
+    // create a payload for the transaction
+    std::vector<unsigned char> payload = CreatePayload_FreezeTokens(propertyId, amount, freezedAddress);
+
+    // payload.push_back(0xff);
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(fromAddress, "", "", 0,payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+
+        }
+    }
+}
+
+UniValue whc_sendunfreeze(const Config &config,const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 4 )
+        throw runtime_error(
+                "whc_sendunfreeze \"fromaddress\" propertyid \"amount\" \"frozenaddress\" \n"
+
+                "\nRevoke units of managed tokens.\n"
+
+                "\nArguments:\n"
+                "1. fromaddress          (string, required) the address to send from\n"
+                "2. propertyid           (number, required) the identifier of the tokens to unfreeze\n"
+                "3. amount               (string, required) the amount of tokens to unfreeze\n"
+                "4. frozenaddress        (string, required) the address has been frozen\n"
+
+                "\nResult:\n"
+                "\"hash\"                  (string) the hex-encoded transaction hash\n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("whc_sendunfreeze", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 51 \"100\", \"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\"")
+                + HelpExampleRpc("whc_sendunfreeze", "\"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\", 52, \"100\", \"qq6tftuhukdagy5tthhnnx7xk9awhyc49us2h08xj4\"")
+        );
+
+    // obtain parameters & info
+    std::string fromAddress = ParseAddress(request.params[0]);
+    uint32_t propertyId = ParsePropertyId(request.params[1]);
+    RequireExistingProperty(propertyId);
+    int64_t amount = ParseAmount(request.params[2], getPropertyType(propertyId));
+    std::string unfreezedAddress = ParseAddress(request.params[3]);
+
+    // perform checks
+    RequireExistingProperty(propertyId);
+    RequireManagedProperty(propertyId);
+    RequireTokenIssuer(fromAddress, propertyId);
+    if (fromAddress == unfreezedAddress) {
+        throw JSONRPCError(RPC_TYPE_ERROR, "Sender cannot be same with the address will be unfreezed");
+    }
+
+    // create a payload for the transaction
+    std::vector<unsigned char> payload = CreatePayload_UnfreezeTokens(propertyId, amount, unfreezedAddress);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(fromAddress, "", "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+}
+
 bool createNewtransaction(CWallet *const pwallet, const std::string &address,
                           Amount nValue, CWalletTx &wtxNew){
     // Check amount
@@ -862,7 +986,10 @@ static const CRPCCommand commands[] =
     { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
     { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
     { "omni layer (transaction creation)", "whc_particrowsale",           &whc_particrowsale,           false, {} },
-	/* depreciated: */
+    { "omni layer (transaction creation)", "whc_sendfreeze",              &whc_sendfreeze,              false, {} },
+    { "omni layer (transaction creation)", "whc_sendunfreeze",            &whc_sendunfreeze,            false, {} },
+
+    /* depreciated: */
     { "hidden",                            "sendrawtx_MP",                 &whc_sendrawtx,               false, {} },
     { "hidden",                            "send_MP",                      &whc_send,                    false, {} },
     { "hidden",                            "sendtoowners_MP",              &whc_sendsto,                 false, {} },
