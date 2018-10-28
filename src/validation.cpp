@@ -3582,6 +3582,14 @@ static bool AcceptBlock(const Config &config,
         if (fTooFarAhead) {
             return true;
         }
+
+        // Protect against DoS attacks from low-work chains.
+        // If our tip is behind, a peer could try to send us
+        // low-work blocks on a fake chain that we would never
+        // request; don't process these.
+        if (pindex->nChainWork < nMinimumChainWork) {
+            return true;
+        }
     }
 
     if (fNewBlock) {
