@@ -12,3 +12,4 @@ This release includes the following features and fixes:
  - Deprecated estimatefee RPC command
  - Improved help message for backup wallet RPC
  - Various bug fixes that improve node stability and performance
+ - Backport getblock RPC's new verbosity mode from bitcoin core for retrieving all transactions of a given block in full.
