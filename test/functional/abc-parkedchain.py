@@ -16,7 +16,7 @@ class ParckedChainTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        self.log.info("test chain parking")
+        self.log.info("Test chain parking...")
         node.generate(10)
         tip = node.getbestblockhash()
         node.generate(1)
@@ -32,6 +32,69 @@ class ParckedChainTest(BitcoinTestFramework):
         # When the chain is unparked, the node reorg into its original chain.
         node.unparkblock(parked_tip)
         assert_equal(node.getbestblockhash(), parked_tip)
+
+        # Parking and then unparking a block should not change its validity,
+        # and invaliding and reconsidering a block should not change its
+        # parked state.  See the following test cases:
+        self.log.info("Test invalidate, park, unpark, reconsider...")
+        node.generate(1)
+        tip = node.getbestblockhash()
+        node.generate(1)
+        bad_tip = node.getbestblockhash()
+
+        node.invalidateblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.parkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.unparkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.reconsiderblock(bad_tip)
+        assert_equal(node.getbestblockhash(), bad_tip)
+
+        self.log.info("Test park, invalidate, reconsider, unpark")
+        node.generate(1)
+        tip = node.getbestblockhash()
+        node.generate(1)
+        bad_tip = node.getbestblockhash()
+
+        node.parkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.invalidateblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.reconsiderblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.unparkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), bad_tip)
+
+        self.log.info("Test invalidate, park, reconsider, unpark...")
+        node.generate(1)
+        tip = node.getbestblockhash()
+        node.generate(1)
+        bad_tip = node.getbestblockhash()
+
+        node.invalidateblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.parkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.reconsiderblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.unparkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), bad_tip)
+
+        self.log.info("Test park, invalidate, unpark, reconsider")
+        node.generate(1)
+        tip = node.getbestblockhash()
+        node.generate(1)
+        bad_tip = node.getbestblockhash()
+
+        node.parkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.invalidateblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.unparkblock(bad_tip)
+        assert_equal(node.getbestblockhash(), tip)
+        node.reconsiderblock(bad_tip)
+        assert_equal(node.getbestblockhash(), bad_tip)
 
 
 if __name__ == '__main__':
