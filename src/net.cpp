@@ -78,6 +78,10 @@ enum BindFlags {
     BF_REPORT_ERROR = (1U << 1),
 };
 
+// The set of sockets cannot be modified while waiting
+// The sleep time needs to be small to avoid new sockets stalling
+static const uint64_t SELECT_TIMEOUT_MILLISECONDS = 50;
+
 const std::string NET_MESSAGE_COMMAND_OTHER = "*other*";
 
 // SHA256("netgroup")[0:8]
@@ -1221,7 +1225,7 @@ void CConnman::SocketHandler() {
     struct timeval timeout;
     timeout.tv_sec = 0;
     // Frequency to poll pnode->vSend
-    timeout.tv_usec = 50000;
+    timeout.tv_usec = SELECT_TIMEOUT_MILLISECONDS * 1000;
 
     fd_set fdsetRecv;
     fd_set fdsetSend;
@@ -1296,7 +1300,7 @@ void CConnman::SocketHandler() {
         FD_ZERO(&fdsetSend);
         FD_ZERO(&fdsetError);
         if (!interruptNet.sleep_for(
-                std::chrono::milliseconds(timeout.tv_usec / 1000))) {
+                std::chrono::milliseconds(SELECT_TIMEOUT_MILLISECONDS))) {
             return;
         }
     }
