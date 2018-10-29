@@ -11,9 +11,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     "src/bitcoin-tx.cpp" => [
       "stoul",
       "trim_right",
-      "atoi",
     ],
-    "src/core_read.cpp" => ["is_digit"],
     "src/dbwrapper.cpp" => [
         "stoul",
         "vsnprintf"
@@ -23,7 +21,6 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     "src/netbase.cpp" => ["to_lower"],
     "src/qt/rpcconsole.cpp" => [
       "atoi",
-      "isdigit",
     ],
     "src/rest.cpp" => ["strtol"],
     "src/rpc/server.cpp" => ["to_upper"],
@@ -42,9 +39,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "atoi",
       "strtol",
     ],
-    "src/uint256.cpp" => ["tolower"],
-    "src/util/system.cpp" => ["atoi", "tolower"],
-    "src/util/moneystr.cpp" => ["isdigit"],
+    "src/util/system.cpp" => ["atoi"],
     "src/util/strencodings.cpp" => [
       "atoi",
       "strtol",

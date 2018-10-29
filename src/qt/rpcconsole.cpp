@@ -20,6 +20,7 @@
 #include <qt/walletmodel.h>
 #include <rpc/client.h>
 #include <rpc/server.h>
+#include <util/strencodings.h>
 #include <util/system.h>
 
 #ifdef ENABLE_WALLET
@@ -229,7 +230,7 @@ bool RPCConsole::RPCParseCommandLine(interfaces::Node *node,
                                 UniValue subelement;
                                 if (lastResult.isArray()) {
                                     for (char argch : curarg) {
-                                        if (!std::isdigit(argch)) {
+                                        if (!IsDigit(argch)) {
                                             throw std::runtime_error(
                                                 "Invalid result query");
                                         }
