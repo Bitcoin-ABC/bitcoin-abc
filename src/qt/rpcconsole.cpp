@@ -219,15 +219,17 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                                 // index and objects with a string key
                                 UniValue subelement;
                                 if (lastResult.isArray()) {
-                                    for (char argch : curarg)
-                                        if (!std::isdigit(argch))
+                                    for (char argch : curarg) {
+                                        if (!std::isdigit(argch)) {
                                             throw std::runtime_error(
                                                 "Invalid result query");
+                                        }
+                                    }
                                     subelement =
                                         lastResult[atoi(curarg.c_str())];
-                                } else if (lastResult.isObject())
+                                } else if (lastResult.isObject()) {
                                     subelement = find_value(lastResult, curarg);
-                                else {
+                                } else {
                                     // no array or object: abort
                                     throw std::runtime_error(
                                         "Invalid result query");
@@ -248,18 +250,20 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
 
                         // don't stringify the json in case of a string to avoid
                         // doublequotes
-                        if (lastResult.isStr())
+                        if (lastResult.isStr()) {
                             curarg = lastResult.get_str();
-                        else
+                        } else {
                             curarg = lastResult.write(2);
+                        }
 
                         // if we have a non empty result, use it as stack
                         // argument otherwise as general result
                         if (curarg.size()) {
-                            if (stack.size())
+                            if (stack.size()) {
                                 add_to_current_stack(curarg);
-                            else
+                            } else {
                                 strResult = curarg;
+                            }
                         }
                         curarg.clear();
                         // assume eating space state
@@ -288,8 +292,9 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                     case '(':
                     case ')':
                     case '\n':
-                        if (state == STATE_EATING_SPACES_IN_ARG)
+                        if (state == STATE_EATING_SPACES_IN_ARG) {
                             throw std::runtime_error("Invalid Syntax");
+                        }
                         if (state == STATE_ARGUMENT) {
                             if (ch == '(' && stack.size() &&
                                 stack.back().size() > 0) {
@@ -301,8 +306,9 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
 
                             // don't allow commands after executed commands on
                             // baselevel
-                            if (!stack.size())
+                            if (!stack.size()) {
                                 throw std::runtime_error("Invalid Syntax");
+                            }
 
                             add_to_current_stack(curarg);
                             curarg.clear();
@@ -349,11 +355,10 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                     case ',':
                     case '\t':
                         if (state == STATE_EATING_SPACES_IN_ARG &&
-                            curarg.empty() && ch == ',')
+                            curarg.empty() && ch == ',') {
                             throw std::runtime_error("Invalid Syntax");
-
-                        else if (state == STATE_ARGUMENT) // Space ends argument
-                        {
+                        } else if (state == STATE_ARGUMENT) {
+                            // Space ends argument
                             add_to_current_stack(curarg);
                             curarg.clear();
                         }
@@ -396,9 +401,10 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
                 state = STATE_ARGUMENT;
                 break;
             case STATE_ESCAPE_DOUBLEQUOTED: // '\' in double-quoted text
-                if (ch != '"' && ch != '\\')
-                    curarg += '\\'; // keep '\' for everything but the quote and
-                                    // '\' itself
+                if (ch != '"' && ch != '\\') {
+                    // keep '\' for everything but the quote and '\' itself
+                    curarg += '\\';
+                }
                 curarg += ch;
                 state = STATE_DOUBLEQUOTED;
                 break;
@@ -414,13 +420,15 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult,
             pstrFilteredOut->replace(i->first, i->second - i->first, "(…)");
         }
     }
-    switch (state) // final state
-    {
+
+    // final state
+    switch (state) {
         case STATE_COMMAND_EXECUTED:
-            if (lastResult.isStr())
+            if (lastResult.isStr()) {
                 strResult = lastResult.get_str();
-            else
+            } else {
                 strResult = lastResult.write(2);
+            }
         // FALLTHROUGH
         case STATE_ARGUMENT:
         case STATE_EATING_SPACES:
@@ -476,8 +484,8 @@ void RPCExecutor::request(const QString &command) {
 
         Q_EMIT reply(RPCConsole::CMD_REPLY, QString::fromStdString(result));
     } catch (UniValue &objError) {
-        try // Nice formatting for standard-format error
-        {
+        // Nice formatting for standard-format error
+        try {
             int code = find_value(objError, "code").get_int();
             std::string message = find_value(objError, "message").get_str();
             Q_EMIT reply(RPCConsole::CMD_ERROR,
@@ -565,8 +573,8 @@ RPCConsole::~RPCConsole() {
 }
 
 bool RPCConsole::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::KeyPress) // Special key handling
-    {
+    // Special key handling
+    if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyevt = static_cast<QKeyEvent *>(event);
         int key = keyevt->key();
         Qt::KeyboardModifiers mod = keyevt->modifiers();
@@ -914,10 +922,11 @@ void RPCConsole::message(int category, const QString &message, bool html) {
            categoryClass(category) + "\"></td>";
     out += "<td class=\"message " + categoryClass(category) +
            "\" valign=\"middle\">";
-    if (html)
+    if (html) {
         out += message;
-    else
+    } else {
         out += GUIUtil::HtmlEscape(message, false);
+    }
     out += "</td></tr></table>";
     ui->messagesWidget->append(out);
 }
@@ -940,7 +949,9 @@ void RPCConsole::updateNetworkState() {
 }
 
 void RPCConsole::setNumConnections(int count) {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     updateNetworkState();
 }
@@ -960,12 +971,13 @@ void RPCConsole::setNumBlocks(int count, const QDateTime &blockDate,
 void RPCConsole::setMempoolSize(long numberOfTxs, size_t dynUsage) {
     ui->mempoolNumberTxs->setText(QString::number(numberOfTxs));
 
-    if (dynUsage < 1000000)
+    if (dynUsage < 1000000) {
         ui->mempoolSize->setText(QString::number(dynUsage / 1000.0, 'f', 2) +
                                  " KB");
-    else
+    } else {
         ui->mempoolSize->setText(QString::number(dynUsage / 1000000.0, 'f', 2) +
                                  " MB");
+    }
 }
 
 void RPCConsole::on_lineEdit_returnPressed() {
@@ -1019,12 +1031,16 @@ void RPCConsole::browseHistory(int offset) {
     }
 
     historyPtr += offset;
-    if (historyPtr < 0) historyPtr = 0;
-    if (historyPtr > history.size()) historyPtr = history.size();
+    if (historyPtr < 0) {
+        historyPtr = 0;
+    }
+    if (historyPtr > history.size()) {
+        historyPtr = history.size();
+    }
     QString cmd;
-    if (historyPtr < history.size())
+    if (historyPtr < history.size()) {
         cmd = history.at(historyPtr);
-    else if (!cmdBeforeBrowsing.isNull()) {
+    } else if (!cmdBeforeBrowsing.isNull()) {
         cmd = cmdBeforeBrowsing;
     }
     ui->lineEdit->setText(cmd);
@@ -1054,10 +1070,11 @@ void RPCConsole::startExecutor() {
 }
 
 void RPCConsole::on_tabWidget_currentChanged(int index) {
-    if (ui->tabWidget->widget(index) == ui->tab_console)
+    if (ui->tabWidget->widget(index) == ui->tab_console) {
         ui->lineEdit->setFocus();
-    else if (ui->tabWidget->widget(index) != ui->tab_peers)
+    } else if (ui->tabWidget->widget(index) != ui->tab_peers) {
         clearSelectedNode();
+    }
 }
 
 void RPCConsole::on_openDebugLogfileButton_clicked() {
@@ -1076,10 +1093,15 @@ void RPCConsole::on_sldGraphRange_valueChanged(int value) {
 }
 
 QString RPCConsole::FormatBytes(quint64 bytes) {
-    if (bytes < 1024) return QString(tr("%1 B")).arg(bytes);
-    if (bytes < 1024 * 1024) return QString(tr("%1 KB")).arg(bytes / 1024);
-    if (bytes < 1024 * 1024 * 1024)
+    if (bytes < 1024) {
+        return QString(tr("%1 B")).arg(bytes);
+    }
+    if (bytes < 1024 * 1024) {
+        return QString(tr("%1 KB")).arg(bytes / 1024);
+    }
+    if (bytes < 1024 * 1024 * 1024) {
         return QString(tr("%1 MB")).arg(bytes / 1024 / 1024);
+    }
 
     return QString(tr("%1 GB")).arg(bytes / 1024 / 1024 / 1024);
 }
@@ -1122,7 +1144,9 @@ void RPCConsole::peerLayoutAboutToChange() {
 }
 
 void RPCConsole::peerLayoutChanged() {
-    if (!clientModel || !clientModel->getPeerTableModel()) return;
+    if (!clientModel || !clientModel->getPeerTableModel()) {
+        return;
+    }
 
     const CNodeCombinedStats *stats = nullptr;
     bool fUnselect = false;
@@ -1179,10 +1203,11 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
                             " ");
     peerAddrDetails +=
         tr("(node id: %1)").arg(QString::number(stats->nodeStats.nodeid));
-    if (!stats->nodeStats.addrLocal.empty())
+    if (!stats->nodeStats.addrLocal.empty()) {
         peerAddrDetails += "<br />" +
                            tr("via %1").arg(QString::fromStdString(
                                stats->nodeStats.addrLocal));
+    }
     ui->peerHeading->setText(peerAddrDetails);
     ui->peerServices->setText(
         GUIUtil::formatServicesStr(stats->nodeStats.nServices));
@@ -1227,18 +1252,20 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
             QString("%1").arg(stats->nodeStateStats.nMisbehavior));
 
         // Sync height is init to -1
-        if (stats->nodeStateStats.nSyncHeight > -1)
+        if (stats->nodeStateStats.nSyncHeight > -1) {
             ui->peerSyncHeight->setText(
                 QString("%1").arg(stats->nodeStateStats.nSyncHeight));
-        else
+        } else {
             ui->peerSyncHeight->setText(tr("Unknown"));
+        }
 
         // Common height is init to -1
-        if (stats->nodeStateStats.nCommonHeight > -1)
+        if (stats->nodeStateStats.nCommonHeight > -1) {
             ui->peerCommonHeight->setText(
                 QString("%1").arg(stats->nodeStateStats.nCommonHeight));
-        else
+        } else {
             ui->peerCommonHeight->setText(tr("Unknown"));
+        }
     }
 
     ui->detailWidget->show();
@@ -1251,7 +1278,9 @@ void RPCConsole::resizeEvent(QResizeEvent *event) {
 void RPCConsole::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
 
-    if (!clientModel || !clientModel->getPeerTableModel()) return;
+    if (!clientModel || !clientModel->getPeerTableModel()) {
+        return;
+    }
 
     // start PeerTableModel auto refresh
     clientModel->getPeerTableModel()->startAutoRefresh();
@@ -1260,7 +1289,9 @@ void RPCConsole::showEvent(QShowEvent *event) {
 void RPCConsole::hideEvent(QHideEvent *event) {
     QWidget::hideEvent(event);
 
-    if (!clientModel || !clientModel->getPeerTableModel()) return;
+    if (!clientModel || !clientModel->getPeerTableModel()) {
+        return;
+    }
 
     // stop PeerTableModel auto refresh
     clientModel->getPeerTableModel()->stopAutoRefresh();
@@ -1277,7 +1308,9 @@ void RPCConsole::showBanTableContextMenu(const QPoint &point) {
 }
 
 void RPCConsole::disconnectSelectedNode() {
-    if (!g_connman) return;
+    if (!g_connman) {
+        return;
+    }
 
     // Get selected peer addresses
     QList<QModelIndex> nodes =
@@ -1291,7 +1324,9 @@ void RPCConsole::disconnectSelectedNode() {
 }
 
 void RPCConsole::banSelectedNode(int bantime) {
-    if (!clientModel || !g_connman) return;
+    if (!clientModel || !g_connman) {
+        return;
+    }
 
     // Get selected peer addresses
     QList<QModelIndex> nodes =
@@ -1303,7 +1338,9 @@ void RPCConsole::banSelectedNode(int bantime) {
         // Get currently selected peer address
         int detailNodeRow =
             clientModel->getPeerTableModel()->getRowByNodeId(id);
-        if (detailNodeRow < 0) return;
+        if (detailNodeRow < 0) {
+            return;
+        }
 
         // Find possible nodes, ban it and clear the selected node
         const CNodeCombinedStats *stats =
@@ -1318,7 +1355,9 @@ void RPCConsole::banSelectedNode(int bantime) {
 }
 
 void RPCConsole::unbanSelectedNode() {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     // Get selected ban addresses
     QList<QModelIndex> nodes =
@@ -1344,7 +1383,9 @@ void RPCConsole::clearSelectedNode() {
 }
 
 void RPCConsole::showOrHideBanTableIfRequired() {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     bool visible = clientModel->getBanTableModel()->shouldShow();
     ui->banlistWidget->setVisible(visible);
