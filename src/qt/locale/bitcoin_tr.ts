@@ -3618,10 +3618,6 @@
         <translation>Uyarı</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Uyarı: bilinmeyen yeni kurallar etkinleştirilmiştir (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Sadece blok kipinde çalışılıp çalışılmayacağı (varsayılan: %u)</translation>
     </message>

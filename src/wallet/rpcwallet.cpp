@@ -436,7 +436,7 @@ static void SendMoney(CWallet *const pwallet, const CTxDestination &address,
     Amount curBalance = pwallet->GetBalance();
 
     // Check amount
-    if (nValue <= Amount(0)) {
+    if (nValue <= Amount::zero()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
     }
 
@@ -542,7 +542,7 @@ static UniValue sendtoaddress(const Config &config,
 
     // Amount
     Amount nAmount = AmountFromValue(request.params[1]);
-    if (nAmount <= Amount(0)) {
+    if (nAmount <= Amount::zero()) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
 
@@ -749,7 +749,7 @@ static UniValue getreceivedbyaddress(const Config &config,
     }
     CScript scriptPubKey = GetScriptForDestination(dest);
     if (!IsMine(*pwallet, scriptPubKey)) {
-        return ValueFromAmount(Amount(0));
+        return ValueFromAmount(Amount::zero());
     }
 
     // Minimum confirmations
@@ -759,7 +759,7 @@ static UniValue getreceivedbyaddress(const Config &config,
     }
 
     // Tally
-    Amount nAmount(0);
+    Amount nAmount = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
@@ -830,7 +830,7 @@ static UniValue getreceivedbyaccount(const Config &config,
         pwallet->GetAccountAddresses(strAccount);
 
     // Tally
-    Amount nAmount(0);
+    Amount nAmount = Amount::zero();
     for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
@@ -999,7 +999,7 @@ static UniValue movecmd(const Config &config, const JSONRPCRequest &request) {
     std::string strFrom = AccountFromValue(request.params[0]);
     std::string strTo = AccountFromValue(request.params[1]);
     Amount nAmount = AmountFromValue(request.params[2]);
-    if (nAmount <= Amount(0)) {
+    if (nAmount <= Amount::zero()) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
     if (request.params.size() > 3) {
@@ -1091,7 +1091,7 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
                            "Invalid Bitcoin address");
     }
     Amount nAmount = AmountFromValue(request.params[2]);
-    if (nAmount <= Amount(0)) {
+    if (nAmount <= Amount::zero()) {
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
     }
 
@@ -1236,7 +1236,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     std::set<CTxDestination> destinations;
     std::vector<CRecipient> vecSend;
 
-    Amount totalAmount(0);
+    Amount totalAmount = Amount::zero();
     std::vector<std::string> keys = sendTo.getKeys();
     for (const std::string &name_ : keys) {
         CTxDestination dest = DecodeDestination(name_, config.GetChainParams());
@@ -1255,7 +1255,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
         CScript scriptPubKey = GetScriptForDestination(dest);
         Amount nAmount = AmountFromValue(sendTo[name_]);
-        if (nAmount <= Amount(0)) {
+        if (nAmount <= Amount::zero()) {
             throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
         }
         totalAmount += nAmount;
@@ -1284,7 +1284,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
 
     // Send
     CReserveKey keyChange(pwallet);
-    Amount nFeeRequired(0);
+    Amount nFeeRequired = Amount::zero();
     int nChangePosRet = -1;
     std::string strFailReason;
     bool fCreated = pwallet->CreateTransaction(
@@ -1371,7 +1371,7 @@ struct tallyitem {
     std::vector<uint256> txids;
     bool fIsWatchonly;
     tallyitem() {
-        nAmount = Amount(0);
+        nAmount = Amount::zero();
         nConf = std::numeric_limits<int>::max();
         fIsWatchonly = false;
     }
@@ -1446,7 +1446,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
             continue;
         }
 
-        Amount nAmount(0);
+        Amount nAmount = Amount::zero();
         int nConf = std::numeric_limits<int>::max();
         bool fIsWatchonly = false;
         if (it != mapTally.end()) {
@@ -1629,7 +1629,7 @@ void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
     bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
 
     // Sent
-    if ((!listSent.empty() || nFee != Amount(0)) &&
+    if ((!listSent.empty() || nFee != Amount::zero()) &&
         (fAllAccounts || strAccount == strSentAccount)) {
         for (const COutputEntry &s : listSent) {
             UniValue entry(UniValue::VOBJ);
@@ -1952,7 +1952,7 @@ static UniValue listaccounts(const Config &config,
          pwallet->mapAddressBook) {
         // This address belongs to me
         if (IsMine(*pwallet, entry.first) & includeWatchonly) {
-            mapAccountBalances[entry.second.name] = Amount(0);
+            mapAccountBalances[entry.second.name] = Amount::zero();
         }
     }
 
@@ -2236,8 +2236,8 @@ static UniValue gettransaction(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
 
     isminefilter filter = ISMINE_SPENDABLE;
     if (request.params.size() > 1 && request.params[1].get_bool()) {
@@ -2245,18 +2245,18 @@ static UniValue gettransaction(const Config &config,
     }
 
     UniValue entry(UniValue::VOBJ);
-    if (!pwallet->mapWallet.count(hash)) {
+    if (!pwallet->mapWallet.count(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
 
-    const CWalletTx &wtx = pwallet->mapWallet[hash];
+    const CWalletTx &wtx = pwallet->mapWallet[txid];
 
     Amount nCredit = wtx.GetCredit(filter);
     Amount nDebit = wtx.GetDebit(filter);
-    Amount nNet = (nCredit - nDebit);
-    Amount nFee =
-        (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : Amount(0));
+    Amount nNet = nCredit - nDebit;
+    Amount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit
+                                        : Amount::zero());
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe(filter)) {
@@ -2309,15 +2309,15 @@ static UniValue abandontransaction(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
 
-    if (!pwallet->mapWallet.count(hash)) {
+    if (!pwallet->mapWallet.count(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid or non-wallet transaction id");
     }
 
-    if (!pwallet->AbandonTransaction(hash)) {
+    if (!pwallet->AbandonTransaction(txid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not eligible for abandonment");
     }
@@ -3298,7 +3298,7 @@ static UniValue fundrawtransaction(const Config &config,
     bool includeWatching = false;
     bool lockUnspents = false;
     bool reserveChangeKey = true;
-    CFeeRate feeRate = CFeeRate(Amount(0));
+    CFeeRate feeRate = CFeeRate(Amount::zero());
     bool overrideEstimatedFeerate = false;
     UniValue subtractFeeFromOutputs;
     std::set<int> setSubtractFeeFromOutputs;
@@ -3473,8 +3473,91 @@ static UniValue generate(const Config &config, const JSONRPCRequest &request) {
                           true);
 }
 
+UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() > 2) {
+        throw std::runtime_error(
+            "rescanblockchain (\"start_height\") (\"stop_height\")\n"
+            "\nRescan the local blockchain for wallet related transactions.\n"
+            "\nArguments:\n"
+            "1. \"start_height\"    (numeric, optional) block height where the "
+            "rescan should start\n"
+            "2. \"stop_height\"     (numeric, optional) the last block height "
+            "that should be scanned\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"start_height\"     (numeric) The block height where the "
+            "rescan has started. If omitted, rescan started from the genesis "
+            "block.\n"
+            "  \"stop_height\"      (numeric) The height of the last rescanned "
+            "block. If omitted, rescan stopped at the chain tip.\n"
+            "}\n"
+            "\nExamples:\n" +
+            HelpExampleCli("rescanblockchain", "100000 120000") +
+            HelpExampleRpc("rescanblockchain", "100000 120000"));
+    }
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    CBlockIndex *pindexStart = chainActive.Genesis();
+    CBlockIndex *pindexStop = nullptr;
+    if (!request.params[0].isNull()) {
+        pindexStart = chainActive[request.params[0].get_int()];
+        if (!pindexStart) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid start_height");
+        }
+    }
+
+    if (!request.params[1].isNull()) {
+        pindexStop = chainActive[request.params[1].get_int()];
+        if (!pindexStop) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid stop_height");
+        } else if (pindexStop->nHeight < pindexStart->nHeight) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "stop_height must be greater then start_height");
+        }
+    }
+
+    // We can't rescan beyond non-pruned blocks, stop and throw an error
+    if (fPruneMode) {
+        CBlockIndex *block = pindexStop ? pindexStop : chainActive.Tip();
+        while (block && block->nHeight >= pindexStart->nHeight) {
+            if (!block->nStatus.hasData()) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                                   "Can't rescan beyond pruned data. Use RPC "
+                                   "call getblockchaininfo to determine your "
+                                   "pruned height.");
+            }
+            block = block->pprev;
+        }
+    }
+
+    CBlockIndex *stopBlock =
+        pwallet->ScanForWalletTransactions(pindexStart, pindexStop, true);
+    if (!stopBlock) {
+        if (pwallet->IsAbortingRescan()) {
+            throw JSONRPCError(RPC_MISC_ERROR, "Rescan aborted.");
+        }
+        // if we got a nullptr returned, ScanForWalletTransactions did rescan up
+        // to the requested stopindex
+        stopBlock = pindexStop ? pindexStop : chainActive.Tip();
+    } else {
+        throw JSONRPCError(RPC_MISC_ERROR,
+                           "Rescan failed. Potentially corrupted data files.");
+    }
+
+    UniValue response(UniValue::VOBJ);
+    response.pushKV("start_height", pindexStart->nHeight);
+    response.pushKV("stop_height", stopBlock->nHeight);
+    return response;
+}
+
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                        actor (function)          okSafeMode
     //  ------------------- ------------------------    ----------------------    ----------
     { "rawtransactions",    "fundrawtransaction",       fundrawtransaction,       false,  {"hexstring","options"} },
@@ -3506,6 +3589,7 @@ static const CRPCCommand commands[] = {
     { "wallet",             "listwallets",              listwallets,              true,   {} },
     { "wallet",             "lockunspent",              lockunspent,              true,   {"unlock","transactions"} },
     { "wallet",             "move",                     movecmd,                  false,  {"fromaccount","toaccount","amount","minconf","comment"} },
+    { "wallet",             "rescanblockchain",         rescanblockchain,         false,  {"start_height", "stop_height"} },
     { "wallet",             "sendfrom",                 sendfrom,                 false,  {"fromaccount","toaddress","amount","minconf","comment","comment_to"} },
     { "wallet",             "sendmany",                 sendmany,                 false,  {"fromaccount","amounts","minconf","comment","subtractfeefrom"} },
     { "wallet",             "sendtoaddress",            sendtoaddress,            false,  {"address","amount","comment","comment_to","subtractfeefromamount"} },

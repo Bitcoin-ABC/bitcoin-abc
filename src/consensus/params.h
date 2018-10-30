@@ -15,8 +15,6 @@ namespace Consensus {
 
 enum DeploymentPos {
     DEPLOYMENT_TESTDUMMY,
-    // Deployment of BIP68, BIP112, and BIP113.
-    DEPLOYMENT_CSV,
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
     // versionbits.cpp
     MAX_VERSION_BITS_DEPLOYMENTS
@@ -28,8 +26,10 @@ enum DeploymentPos {
 struct BIP9Deployment {
     /** Bit position to select the particular bit in nVersion. */
     int bit;
-    /** Start MedianTime for version bits miner confirmation. Can be a date in
-     * the past */
+    /**
+     * Start MedianTime for version bits miner confirmation. Can be a date in
+     * the past.
+     */
     int64_t nStartTime;
     /** Timeout/expiry MedianTime for the deployment attempt. */
     int64_t nTimeout;
@@ -48,14 +48,16 @@ struct Params {
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
     int BIP66Height;
+    /** Block height at which CSV (BIP68, BIP112 and BIP113) becomes active */
+    int CSVHeight;
     /** Block height at which UAHF kicks in */
     int uahfHeight;
     /** Block height at which the new DAA becomes active */
     int daaHeight;
-    /** Unix time used for MTP activation of May 15 2018, hardfork */
-    int monolithActivationTime;
     /** Unix time used for MTP activation of Nov 15 2018, hardfork */
     int magneticAnomalyActivationTime;
+    /** Unix time used for MTP activation of 15 May 2019 12:00:00 UTC upgrade */
+    int greatWallActivationTime;
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks
      * in a retargeting period, (nPowTargetTimespan / nPowTargetSpacing) which

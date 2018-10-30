@@ -3618,10 +3618,6 @@
         <translation>Avertissement</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Avertissement : nouvelles règles inconnues activées (bit de version %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Faut-il fonctionner en mode blocs seulement (par défaut : %u)</translation>
     </message>

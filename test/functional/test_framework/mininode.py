@@ -402,6 +402,12 @@ class CTransaction():
         self.sha256 = None
         self.hash = None
 
+    def billable_size(self):
+        """
+        Returns the size used for billing the against the transaction
+        """
+        return len(self.serialize())
+
     def serialize(self):
         r = b""
         r += struct.pack("<i", self.nVersion)
@@ -421,6 +427,11 @@ class CTransaction():
             self.sha256 = uint256_from_str(hash256(self.serialize()))
         self.hash = encode(
             hash256(self.serialize())[::-1], 'hex_codec').decode('ascii')
+
+    def get_id(self):
+        # For now, just forward the hash.
+        self.calc_sha256()
+        return self.hash
 
     def is_valid(self):
         self.calc_sha256()

@@ -43,6 +43,7 @@
 #cmakedefine HAVE_DECL___BUILTIN_CLZLL 1
 
 #cmakedefine HAVE_DECL_STRNLEN 1
+#cmakedefine HAVE_DECL_DAEMON 1
 
 #cmakedefine HAVE_DECL_EVP_MD_CTX_NEW 1
 

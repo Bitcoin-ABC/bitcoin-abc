@@ -15,11 +15,11 @@
 #include <vector>
 
 struct CDNSSeedData {
-    std::string name, host;
+    std::string host;
     bool supportsServiceBitsFiltering;
-    CDNSSeedData(const std::string &strName, const std::string &strHost,
-                 bool supportsServiceBitsFilteringIn = false)
-        : name(strName), host(strHost),
+    CDNSSeedData(const std::string &strHost,
+                 bool supportsServiceBitsFilteringIn)
+        : host(strHost),
           supportsServiceBitsFiltering(supportsServiceBitsFilteringIn) {}
 };
 
@@ -87,8 +87,6 @@ public:
     const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData &Checkpoints() const { return checkpointData; }
     const ChainTxData &TxData() const { return chainTxData; }
-    void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
-                              int64_t nTimeout);
 
 protected:
     CChainParams() {}
@@ -130,11 +128,5 @@ const CChainParams &Params();
  * @throws std::runtime_error when the chain is not supported.
  */
 void SelectParams(const std::string &chain);
-
-/**
- * Allows modifying the BIP9 regtest parameters.
- */
-void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
-                          int64_t nTimeout);
 
 #endif // BITCOIN_CHAINPARAMS_H

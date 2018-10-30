@@ -9,7 +9,7 @@
 
 WalletModelTransaction::WalletModelTransaction(
     const QList<SendCoinsRecipient> &_recipients)
-    : recipients(_recipients), walletTransaction(0), keyChange(0), fee(0) {
+    : recipients(_recipients), walletTransaction(0), keyChange(0), fee() {
     walletTransaction = new CWalletTx();
 }
 
@@ -27,9 +27,8 @@ CWalletTx *WalletModelTransaction::getTransaction() {
 }
 
 unsigned int WalletModelTransaction::getTransactionSize() {
-    return (!walletTransaction
-                ? 0
-                : CTransaction(*walletTransaction).GetTotalSize());
+    return !walletTransaction ? 0
+                              : CTransaction(*walletTransaction).GetTotalSize();
 }
 
 Amount WalletModelTransaction::getTransactionFee() {
@@ -44,20 +43,29 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
     int i = 0;
     for (SendCoinsRecipient &rcp : recipients) {
         if (rcp.paymentRequest.IsInitialized()) {
-            Amount subtotal(0);
+            Amount subtotal = Amount::zero();
             const payments::PaymentDetails &details =
                 rcp.paymentRequest.getDetails();
             for (int j = 0; j < details.outputs_size(); j++) {
                 const payments::Output &out = details.outputs(j);
-                if (out.amount() <= 0) continue;
-                if (i == nChangePosRet) i++;
+                if (out.amount() <= 0) {
+                    continue;
+                }
+
+                if (i == nChangePosRet) {
+                    i++;
+                }
+
                 subtotal += walletTransaction->tx->vout[i].nValue;
                 i++;
             }
             rcp.amount = subtotal;
         } else {
             // normal recipient (no payment request)
-            if (i == nChangePosRet) i++;
+            if (i == nChangePosRet) {
+                i++;
+            }
+
             rcp.amount = walletTransaction->tx->vout[i].nValue;
             i++;
         }
@@ -65,7 +73,7 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet) {
 }
 
 Amount WalletModelTransaction::getTotalTransactionAmount() {
-    Amount totalTransactionAmount(0);
+    Amount totalTransactionAmount = Amount::zero();
     for (const SendCoinsRecipient &rcp : recipients) {
         totalTransactionAmount += rcp.amount;
     }

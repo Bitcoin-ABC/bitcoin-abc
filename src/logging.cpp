@@ -208,6 +208,14 @@ void BCLog::Logger::DisableCategory(LogFlags category) {
 }
 
 bool BCLog::Logger::WillLogCategory(LogFlags category) const {
+    // ALL is not meant to be used as a logging category, but only as a mask
+    // representing all categories.
+    if (category == BCLog::NONE || category == BCLog::ALL) {
+        LogPrintf("Error trying to log using a category mask instead of an "
+                  "explicit category.\n");
+        return true;
+    }
+
     return (logCategories.load(std::memory_order_relaxed) & category) != 0;
 }
 

@@ -108,13 +108,13 @@ static void MempoolEviction(benchmark::State &state) {
     CTransaction t7(tx1);
 
     while (state.KeepRunning()) {
-        AddTx(t1, Amount(10000LL), pool);
-        AddTx(t2, Amount(5000LL), pool);
-        AddTx(t3, Amount(20000LL), pool);
-        AddTx(t4, Amount(7000LL), pool);
-        AddTx(t5, Amount(1000LL), pool);
-        AddTx(t6, Amount(1100LL), pool);
-        AddTx(t7, Amount(9000LL), pool);
+        AddTx(t1, 10000 * SATOSHI, pool);
+        AddTx(t2, 5000 * SATOSHI, pool);
+        AddTx(t3, 20000 * SATOSHI, pool);
+        AddTx(t4, 7000 * SATOSHI, pool);
+        AddTx(t5, 1000 * SATOSHI, pool);
+        AddTx(t6, 1100 * SATOSHI, pool);
+        AddTx(t7, 9000 * SATOSHI, pool);
         pool.TrimToSize(pool.DynamicMemoryUsage() * 3 / 4);
         pool.TrimToSize(t1.GetTotalSize());
     }

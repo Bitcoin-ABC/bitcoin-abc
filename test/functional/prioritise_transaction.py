@@ -9,9 +9,10 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
-# FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.mininode import COIN
+# FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
+from test_framework.blocktools import send_big_transactions, create_confirmed_utxos
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
@@ -21,12 +22,10 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         self.extra_args = [["-printpriority=1"]]
 
     def run_test(self):
-        self.txouts = gen_return_txouts()
         self.relayfee = self.nodes[0].getnetworkinfo()['relayfee']
 
         utxo_count = 90
-        utxos = create_confirmed_utxos(
-            self.relayfee, self.nodes[0], utxo_count)
+        utxos = create_confirmed_utxos(self.nodes[0], utxo_count)
         # our transactions are smaller than 100kb
         base_fee = self.relayfee * 100
         txids = []
@@ -37,8 +36,8 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             txids.append([])
             start_range = i * range_size
             end_range = start_range + range_size
-            txids[i] = create_lots_of_big_transactions(self.nodes[0], self.txouts, utxos[
-                                                       start_range:end_range], end_range - start_range, (i + 1) * base_fee)
+            txids[i] = send_big_transactions(self.nodes[0], utxos[start_range:end_range],
+                                             end_range - start_range, 10 * (i + 1))
 
         # Make sure that the size of each group of transactions exceeds
         # LEGACY_MAX_BLOCK_SIZE -- otherwise the test needs to be revised to create
@@ -56,7 +55,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         # also check that a different entry in the cheapest bucket is NOT mined (lower
         # the priority to ensure its not mined due to priority)
         self.nodes[0].prioritisetransaction(
-            txids[0][0], 0, int(3 * base_fee * COIN))
+            txids[0][0], 0, 100 * self.nodes[0].calculate_fee_from_txid(txids[0][0]))
         self.nodes[0].prioritisetransaction(txids[0][1], -1e15, 0)
 
         self.nodes[0].generate(1)
@@ -66,18 +65,26 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         assert(txids[0][0] not in mempool)
         assert(txids[0][1] in mempool)
 
-        high_fee_tx = None
-        for x in txids[2]:
-            if x not in mempool:
-                high_fee_tx = x
+        confirmed_transactions = self.nodes[0].getblock(
+            self.nodes[0].getbestblockhash())['tx']
+
+        # Pull the highest fee-rate transaction from a block
+        high_fee_tx = confirmed_transactions[1]
 
         # Something high-fee should have been mined!
         assert(high_fee_tx != None)
 
         # Add a prioritisation before a tx is in the mempool (de-prioritising a
         # high-fee transaction so that it's now low fee).
+        #
+        # NOTE WELL: gettransaction returns the fee as a negative number and
+        # as fractional coins. However, the prioritisetransaction expects a
+        # number of satoshi to add or subtract from the actual fee.
+        # Thus the conversation here is simply int(tx_fee*COIN) to remove all fees, and then
+        # we add the minimum fee back.
+        tx_fee = self.nodes[0].gettransaction(high_fee_tx)['fee']
         self.nodes[0].prioritisetransaction(
-            high_fee_tx, -1e15, -int(2 * base_fee * COIN))
+            high_fee_tx, -1e15, int(tx_fee*COIN) + self.nodes[0].calculate_fee_from_txid(high_fee_tx))
 
         # Add everything back to mempool
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())

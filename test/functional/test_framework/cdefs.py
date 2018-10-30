@@ -11,7 +11,40 @@ framework.
 import os
 import re
 
-from test_framework.util import get_srcdir
+
+def get_srcdir():
+    """
+    Try to find out the base folder containing the 'src' folder.
+    If SRCDIR is set it does a sanity check and returns that.
+    Otherwise it goes on a search and rescue mission.
+
+    Returns None if it cannot find a suitable folder.
+    """
+    def contains_src(path_to_check):
+        if not path_to_check:
+            return False
+        else:
+            cand_path = os.path.join(path_to_check, 'src')
+            return os.path.exists(cand_path) and os.path.isdir(cand_path)
+
+    srcdir = os.environ.get('SRCDIR', '')
+    if contains_src(srcdir):
+        return srcdir
+
+    # Try to work it based out on main module
+    import sys
+    mainmod = sys.modules['__main__']
+    mainmod_path = getattr(mainmod, '__file__', '')
+    if mainmod_path and mainmod_path.endswith('.py'):
+        maybe_top = mainmod_path
+        while maybe_top != '/':
+            maybe_top = os.path.abspath(os.path.dirname(maybe_top))
+            if contains_src(maybe_top):
+                return maybe_top
+
+    # No luck, give up.
+    return None
+
 
 # Slurp in consensus.h contents
 _consensus_h_fh = open(os.path.join(get_srcdir(), 'src', 'consensus',
@@ -52,8 +85,8 @@ MAX_STANDARD_TX_SIGOPS = MAX_TX_SIGOPS_COUNT // 5
 # blocks (network rule)
 COINBASE_MATURITY = 100
 
-# Anti replay OP_RETURN commitment.
-ANTI_REPLAY_COMMITMENT = b"Bitcoin: A Peer-to-Peer Electronic Cash System"
+# Minimum size a transaction can have.
+MIN_TX_SIZE = 100
 
 if __name__ == "__main__":
     # Output values if run standalone to verify

@@ -38,7 +38,7 @@ QT_END_NAMESPACE
 class SendCoinsRecipient {
 public:
     explicit SendCoinsRecipient()
-        : amount(0), fSubtractFeeFromAmount(false),
+        : amount(), fSubtractFeeFromAmount(false),
           nVersion(SendCoinsRecipient::CURRENT_VERSION) {}
     explicit SendCoinsRecipient(const QString &addr, const QString &_label,
                                 const Amount _amount, const QString &_message)
@@ -76,8 +76,10 @@ public:
         std::string sLabel = label.toStdString();
         std::string sMessage = message.toStdString();
         std::string sPaymentRequest;
-        if (!ser_action.ForRead() && paymentRequest.IsInitialized())
+        if (!ser_action.ForRead() && paymentRequest.IsInitialized()) {
             paymentRequest.SerializeToString(&sPaymentRequest);
+        }
+
         std::string sAuthenticatedMerchant =
             authenticatedMerchant.toStdString();
 
@@ -93,9 +95,11 @@ public:
             address = QString::fromStdString(sAddress);
             label = QString::fromStdString(sLabel);
             message = QString::fromStdString(sMessage);
-            if (!sPaymentRequest.empty())
+            if (!sPaymentRequest.empty()) {
                 paymentRequest.parse(QByteArray::fromRawData(
                     sPaymentRequest.data(), sPaymentRequest.size()));
+            }
+
             authenticatedMerchant =
                 QString::fromStdString(sAuthenticatedMerchant);
         }
@@ -108,7 +112,7 @@ class WalletModel : public QObject {
 
 public:
     explicit WalletModel(const PlatformStyle *platformStyle, CWallet *wallet,
-                         OptionsModel *optionsModel, QObject *parent = 0);
+                         OptionsModel *optionsModel, QObject *parent = nullptr);
     ~WalletModel();
 
     // Returned by sendCoins
@@ -213,7 +217,7 @@ public:
     bool isSpent(const COutPoint &outpoint) const;
     void listCoins(std::map<QString, std::vector<COutput>> &mapCoins) const;
 
-    bool isLockedCoin(uint256 hash, unsigned int n) const;
+    bool isLockedCoin(const TxId &txid, uint32_t n) const;
     void lockCoin(COutPoint &output);
     void unlockCoin(COutPoint &output);
     void listLockedCoins(std::vector<COutPoint> &vOutpts);
@@ -222,8 +226,8 @@ public:
     bool saveReceiveRequest(const std::string &sAddress, const int64_t nId,
                             const std::string &sRequest);
 
-    bool transactionCanBeAbandoned(uint256 hash) const;
-    bool abandonTransaction(uint256 hash) const;
+    bool transactionCanBeAbandoned(const TxId &txid) const;
+    bool abandonTransaction(const TxId &txid) const;
 
     static bool isWalletEnabled();
 
@@ -292,17 +296,19 @@ Q_SIGNALS:
     void notifyWatchonlyChanged(bool fHaveWatchonly);
 
 public Q_SLOTS:
-    /* Wallet status might have changed */
+    /** Wallet status might have changed. */
     void updateStatus();
-    /* New transaction, or transaction changed status */
+    /** New transaction, or transaction changed status. */
     void updateTransaction();
-    /* New, updated or removed address book entry */
+    /** New, updated or removed address book entry. */
     void updateAddressBook(const QString &address, const QString &label,
                            bool isMine, const QString &purpose, int status);
-    /* Watch-only added */
+    /** Watch-only added. */
     void updateWatchOnlyFlag(bool fHaveWatchonly);
-    /* Current, immature or unconfirmed balance might have changed - emit
-     * 'balanceChanged' if so */
+    /**
+     * Current, immature or unconfirmed balance might have changed - emit
+     * 'balanceChanged' if so.
+     */
     void pollBalanceChanged();
 };
 

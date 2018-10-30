@@ -48,7 +48,8 @@ static void add_coin(const CWallet &wallet, const Amount nValue,
                      int nInput = 0) {
     static int nextLockTime = 0;
     CMutableTransaction tx;
-    tx.nLockTime = nextLockTime++; // so all transactions get different hashes
+    // So all transactions get different hashes.
+    tx.nLockTime = nextLockTime++;
     tx.vout.resize(nInput + 1);
     tx.vout[nInput].nValue = nValue;
     if (fIsFromMe) {
@@ -61,7 +62,7 @@ static void add_coin(const CWallet &wallet, const Amount nValue,
         new CWalletTx(&wallet, MakeTransactionRef(std::move(tx))));
     if (fIsFromMe) {
         wtx->fDebitCached = true;
-        wtx->nDebitCached = Amount(1);
+        wtx->nDebitCached = SATOSHI;
     }
     COutput output(wtx.get(), nInput, nAge, true /* spendable */,
                    true /* solvable */, true /* safe */);
@@ -348,19 +349,19 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
         BOOST_CHECK_EQUAL(setCoinsRet.size(), 2U);
 
         // test with many inputs
-        for (Amount amt = Amount(1500); amt < COIN; amt = 10 * amt) {
+        for (Amount amt = 1500 * SATOSHI; amt < COIN; amt = 10 * amt) {
             empty_wallet();
             // Create 676 inputs (=  (old MAX_STANDARD_TX_SIZE == 100000)  / 148
             // bytes per input)
             for (uint16_t j = 0; j < 676; j++) {
                 add_coin(wallet, amt);
             }
-            BOOST_CHECK(wallet.SelectCoinsMinConf(Amount(2000), 1, 1, 0, vCoins,
-                                                  setCoinsRet, nValueRet));
-            if (amt - Amount(2000) < MIN_CHANGE) {
+            BOOST_CHECK(wallet.SelectCoinsMinConf(
+                2000 * SATOSHI, 1, 1, 0, vCoins, setCoinsRet, nValueRet));
+            if (amt - 2000 * SATOSHI < MIN_CHANGE) {
                 // needs more than one input:
                 uint16_t returnSize = std::ceil(
-                    (2000.0 + MIN_CHANGE.GetSatoshis()) / amt.GetSatoshis());
+                    double(2000 + (MIN_CHANGE / SATOSHI)) / (amt / SATOSHI));
                 Amount returnValue = returnSize * amt;
                 BOOST_CHECK_EQUAL(nValueRet, returnValue);
                 BOOST_CHECK_EQUAL(setCoinsRet.size(), returnSize);
@@ -395,7 +396,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
                                                       setCoinsRet, nValueRet));
                 BOOST_CHECK(wallet.SelectCoinsMinConf(COIN, 1, 6, 0, vCoins,
                                                       setCoinsRet2, nValueRet));
-                if (equal_sets(setCoinsRet, setCoinsRet2)) fails++;
+                if (equal_sets(setCoinsRet, setCoinsRet2)) {
+                    fails++;
+                }
             }
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
 
@@ -417,7 +420,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests) {
                     90 * CENT, 1, 6, 0, vCoins, setCoinsRet, nValueRet));
                 BOOST_CHECK(wallet.SelectCoinsMinConf(
                     90 * CENT, 1, 6, 0, vCoins, setCoinsRet2, nValueRet));
-                if (equal_sets(setCoinsRet, setCoinsRet2)) fails++;
+                if (equal_sets(setCoinsRet, setCoinsRet2)) {
+                    fails++;
+                }
             }
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
         }
@@ -452,6 +457,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     LOCK(cs_main);
 
     // Cap last block file size, and mine new block in a new block file.
+    CBlockIndex *const nullBlock = nullptr;
     CBlockIndex *oldTip = chainActive.Tip();
     GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
@@ -463,7 +469,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         CWallet wallet(Params());
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-        BOOST_CHECK_EQUAL(oldTip, wallet.ScanForWalletTransactions(oldTip));
+        BOOST_CHECK_EQUAL(nullBlock,
+                          wallet.ScanForWalletTransactions(oldTip, nullptr));
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
     }
 
@@ -477,7 +484,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         CWallet wallet(Params());
         LOCK(wallet.cs_wallet);
         wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-        BOOST_CHECK_EQUAL(newTip, wallet.ScanForWalletTransactions(oldTip));
+        BOOST_CHECK_EQUAL(oldTip,
+                          wallet.ScanForWalletTransactions(oldTip, nullptr));
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
     }
 
@@ -502,7 +510,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         futureKey.MakeNewKey(true);
         key.pushKV("scriptPubKey",
                    HexStr(GetScriptForRawPubKey(futureKey.GetPubKey())));
-        key.pushKV("timestamp", newTip->GetBlockTimeMax() + TIMESTAMP_WINDOW);
+        key.pushKV("timestamp",
+                   newTip->GetBlockTimeMax() + TIMESTAMP_WINDOW + 1);
         key.pushKV("internal", UniValue(true));
         keys.push_back(key);
         JSONRPCRequest request;
@@ -513,21 +522,18 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
         BOOST_CHECK_EQUAL(
             response.write(),
             strprintf("[{\"success\":false,\"error\":{\"code\":-1,\"message\":"
-                      "\"Failed to rescan before time %d, transactions may be "
-                      "missing.\"}},{\"success\":true}]",
-                      newTip->GetBlockTimeMax()));
+                      "\"Rescan failed for key with creation timestamp %d. "
+                      "There was an error reading a block from time %d, which "
+                      "is after or within %d seconds of key creation, and "
+                      "could contain transactions pertaining to the key. As a "
+                      "result, transactions and coins using this key may not "
+                      "appear in the wallet. This error could be caused by "
+                      "pruning or data corruption (see bitcoind log for "
+                      "details) and could be dealt with by downloading and "
+                      "rescanning the relevant blocks (see -reindex and "
+                      "-rescan options).\"}},{\"success\":true}]",
+                      0, oldTip->GetBlockTimeMax(), TIMESTAMP_WINDOW));
         vpwallets.erase(vpwallets.begin());
-    }
-
-    // Verify ScanForWalletTransactions does not return null when the scan is
-    // elided due to the nTimeFirstKey optimization.
-    {
-        CWallet wallet(Params());
-        {
-            LOCK(wallet.cs_wallet);
-            wallet.UpdateTimeFirstKey(newTip->GetBlockTime() + 7200 + 1);
-        }
-        BOOST_CHECK_EQUAL(newTip, wallet.ScanForWalletTransactions(newTip));
     }
 }
 
@@ -589,7 +595,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         BOOST_CHECK_EQUAL(wallet.mapWallet.size(), 3);
         BOOST_CHECK_EQUAL(coinbaseTxns.size(), 103);
         for (size_t i = 0; i < coinbaseTxns.size(); ++i) {
-            bool found = wallet.GetWalletTx(coinbaseTxns[i].GetHash());
+            bool found = wallet.GetWalletTx(coinbaseTxns[i].GetId());
             bool expected = i >= 100;
             BOOST_CHECK_EQUAL(found, expected);
         }
@@ -614,7 +620,7 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
 
     // Call GetImmatureCredit() once before adding the key to the wallet to
     // cache the current immature credit amount, which is 0.
-    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), Amount(0));
+    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(), Amount::zero());
 
     // Invalidate the cached value, add the key, and make sure a new immature
     // credit amount is calculated.

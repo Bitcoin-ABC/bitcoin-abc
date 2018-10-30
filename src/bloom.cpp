@@ -30,26 +30,26 @@
  * See https://en.wikipedia.org/wiki/Bloom_filter for an explanation of these
  * formulas.
  */
-CBloomFilter::CBloomFilter(unsigned int nElements, double nFPRate,
-                           unsigned int nTweakIn, uint8_t nFlagsIn)
-    : vData(std::min((unsigned int)(-1 / LN2SQUARED * nElements * log(nFPRate)),
-                     MAX_BLOOM_FILTER_SIZE * 8) /
+CBloomFilter::CBloomFilter(uint32_t nElements, double nFPRate,
+                           uint32_t nTweakIn, uint8_t nFlagsIn)
+    : vData(std::min<uint32_t>(-1 / LN2SQUARED * nElements * log(nFPRate),
+                               MAX_BLOOM_FILTER_SIZE * 8) /
             8),
       isFull(false), isEmpty(true),
-      nHashFuncs(std::min((unsigned int)(vData.size() * 8 / nElements * LN2),
-                          MAX_HASH_FUNCS)),
+      nHashFuncs(std::min<uint32_t>(vData.size() * 8 / nElements * LN2,
+                                    MAX_HASH_FUNCS)),
       nTweak(nTweakIn), nFlags(nFlagsIn) {}
 
 // Private constructor used by CRollingBloomFilter
-CBloomFilter::CBloomFilter(unsigned int nElements, double nFPRate,
-                           unsigned int nTweakIn)
-    : vData((unsigned int)(-1 / LN2SQUARED * nElements * log(nFPRate)) / 8),
+CBloomFilter::CBloomFilter(uint32_t nElements, double nFPRate,
+                           uint32_t nTweakIn)
+    : vData(uint32_t(-1 / LN2SQUARED * nElements * log(nFPRate)) / 8),
       isFull(false), isEmpty(true),
-      nHashFuncs((unsigned int)(vData.size() * 8 / nElements * LN2)),
+      nHashFuncs(uint32_t(vData.size() * 8 / nElements * LN2)),
       nTweak(nTweakIn), nFlags(BLOOM_UPDATE_NONE) {}
 
-inline unsigned int
-CBloomFilter::Hash(unsigned int nHashNum,
+inline uint32_t
+CBloomFilter::Hash(uint32_t nHashNum,
                    const std::vector<uint8_t> &vDataToHash) const {
     // 0xFBA4C795 chosen as it guarantees a reasonable bit difference between
     // nHashNum values.
@@ -58,9 +58,12 @@ CBloomFilter::Hash(unsigned int nHashNum,
 }
 
 void CBloomFilter::insert(const std::vector<uint8_t> &vKey) {
-    if (isFull) return;
-    for (unsigned int i = 0; i < nHashFuncs; i++) {
-        unsigned int nIndex = Hash(i, vKey);
+    if (isFull) {
+        return;
+    }
+
+    for (uint32_t i = 0; i < nHashFuncs; i++) {
+        uint32_t nIndex = Hash(i, vKey);
         // Sets bit nIndex of vData
         vData[nIndex >> 3] |= (1 << (7 & nIndex));
     }
@@ -86,8 +89,8 @@ bool CBloomFilter::contains(const std::vector<uint8_t> &vKey) const {
     if (isEmpty) {
         return false;
     }
-    for (unsigned int i = 0; i < nHashFuncs; i++) {
-        unsigned int nIndex = Hash(i, vKey);
+    for (uint32_t i = 0; i < nHashFuncs; i++) {
+        uint32_t nIndex = Hash(i, vKey);
         // Checks bit nIndex of vData
         if (!(vData[nIndex >> 3] & (1 << (7 & nIndex)))) {
             return false;
@@ -114,7 +117,7 @@ void CBloomFilter::clear() {
     isEmpty = true;
 }
 
-void CBloomFilter::reset(unsigned int nNewTweak) {
+void CBloomFilter::reset(uint32_t nNewTweak) {
     clear();
     nTweak = nNewTweak;
 }
@@ -134,7 +137,8 @@ bool CBloomFilter::IsRelevantAndUpdate(const CTransaction &tx) {
     if (isEmpty) {
         return false;
     }
-    const uint256 &txid = tx.GetId();
+
+    const TxId &txid = tx.GetId();
     if (contains(txid)) {
         fFound = true;
     }
@@ -211,12 +215,11 @@ void CBloomFilter::UpdateEmptyFull() {
     isEmpty = empty;
 }
 
-CRollingBloomFilter::CRollingBloomFilter(unsigned int nElements,
-                                         double fpRate) {
+CRollingBloomFilter::CRollingBloomFilter(uint32_t nElements, double fpRate) {
     double logFpRate = log(fpRate);
     /* The optimal number of hash functions is log(fpRate) / log(0.5), but
      * restrict it to the range 1-50. */
-    nHashFuncs = std::max(1, std::min((int)round(logFpRate / log(0.5)), 50));
+    nHashFuncs = std::max(1, std::min<int>(round(logFpRate / log(0.5)), 50));
     /* In this rolling bloom filter, we'll store between 2 and 3 generations of
      * nElements / 2 entries. */
     nEntriesPerGeneration = (nElements + 1) / 2;
@@ -235,8 +238,8 @@ CRollingBloomFilter::CRollingBloomFilter(unsigned int nElements,
      * exp(logFpRate / nHashFuncs))
      */
     uint32_t nFilterBits =
-        (uint32_t)ceil(-1.0 * nHashFuncs * nMaxElements /
-                       log(1.0 - exp(logFpRate / nHashFuncs)));
+        uint32_t(ceil(-1.0 * nHashFuncs * nMaxElements /
+                      log(1.0 - exp(logFpRate / nHashFuncs))));
     data.clear();
     /* For each data element we need to store 2 bits. If both bits are 0, the
      * bit is treated as unset. If the bits are (01), (10), or (11), the bit is
@@ -249,7 +252,7 @@ CRollingBloomFilter::CRollingBloomFilter(unsigned int nElements,
 
 /* Similar to CBloomFilter::Hash */
 static inline uint32_t
-RollingBloomHash(unsigned int nHashNum, uint32_t nTweak,
+RollingBloomHash(uint32_t nHashNum, uint32_t nTweak,
                  const std::vector<uint8_t> &vDataToHash) {
     return MurmurHash3(nHashNum * 0xFBA4C795 + nTweak, vDataToHash);
 }

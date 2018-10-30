@@ -1,15 +1,16 @@
-// Copyright (c) 2012-2015 The Bitcoin Core developers
+// Copyright (c) 2012-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_CHECKQUEUE_H
 #define BITCOIN_CHECKQUEUE_H
 
+#include <sync.h>
+
 #include <algorithm>
 #include <vector>
 
 #include <boost/thread/condition_variable.hpp>
-#include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
 template <typename T> class CCheckQueueControl;
@@ -55,9 +56,6 @@ private:
      */
     unsigned int nTodo;
 
-    //! Whether we're shutting down.
-    bool fQuit;
-
     //! The maximum number of elements to be processed in one batch
     unsigned int nBatchSize;
 
@@ -76,21 +74,24 @@ private:
                 if (nNow) {
                     fAllOk &= fOk;
                     nTodo -= nNow;
-                    if (nTodo == 0 && !fMaster)
+                    if (nTodo == 0 && !fMaster) {
                         // We processed the last element; inform the master it
                         // can exit and return the result
                         condMaster.notify_one();
+                    }
                 } else {
                     // first iteration
                     nTotal++;
                 }
                 // logically, the do loop starts here
                 while (queue.empty()) {
-                    if ((fMaster || fQuit) && nTodo == 0) {
+                    if (fMaster && nTodo == 0) {
                         nTotal--;
                         bool fRet = fAllOk;
                         // reset the status for new work later
-                        if (fMaster) fAllOk = true;
+                        if (fMaster) {
+                            fAllOk = true;
+                        }
                         // return the current status
                         return fRet;
                     }
@@ -122,16 +123,21 @@ private:
             }
             // execute work
             for (T &check : vChecks) {
-                if (fOk) fOk = check();
+                if (fOk) {
+                    fOk = check();
+                }
             }
             vChecks.clear();
         } while (true);
     }
 
 public:
+    //! Mutex to ensure only one concurrent CCheckQueueControl
+    boost::mutex ControlMutex;
+
     //! Create a new check queue
-    CCheckQueue(unsigned int nBatchSizeIn)
-        : nIdle(0), nTotal(0), fAllOk(true), nTodo(0), fQuit(false),
+    explicit CCheckQueue(unsigned int nBatchSizeIn)
+        : nIdle(0), nTotal(0), fAllOk(true), nTodo(0),
           nBatchSize(nBatchSizeIn) {}
 
     //! Worker thread
@@ -145,7 +151,8 @@ public:
     void Add(std::vector<T> &vChecks) {
         boost::unique_lock<boost::mutex> lock(mutex);
         for (T &check : vChecks) {
-            queue.push_back(std::move(check));
+            queue.push_back(T());
+            check.swap(queue.back());
         }
         nTodo += vChecks.size();
         if (vChecks.size() == 1) {
@@ -156,11 +163,6 @@ public:
     }
 
     ~CCheckQueue() {}
-
-    bool IsIdle() {
-        boost::unique_lock<boost::mutex> lock(mutex);
-        return (nTotal == nIdle && nTodo == 0 && fAllOk == true);
-    }
 };
 
 /**
@@ -169,32 +171,43 @@ public:
  */
 template <typename T> class CCheckQueueControl {
 private:
-    CCheckQueue<T> *pqueue;
+    CCheckQueue<T> *const pqueue;
     bool fDone;
 
 public:
-    CCheckQueueControl(CCheckQueue<T> *pqueueIn)
+    CCheckQueueControl() = delete;
+    CCheckQueueControl(const CCheckQueueControl &) = delete;
+    CCheckQueueControl &operator=(const CCheckQueueControl &) = delete;
+    explicit CCheckQueueControl(CCheckQueue<T> *const pqueueIn)
         : pqueue(pqueueIn), fDone(false) {
         // passed queue is supposed to be unused, or nullptr
         if (pqueue != nullptr) {
-            bool isIdle = pqueue->IsIdle();
-            assert(isIdle);
+            ENTER_CRITICAL_SECTION(pqueue->ControlMutex);
         }
     }
 
     bool Wait() {
-        if (pqueue == nullptr) return true;
+        if (pqueue == nullptr) {
+            return true;
+        }
         bool fRet = pqueue->Wait();
         fDone = true;
         return fRet;
     }
 
     void Add(std::vector<T> &vChecks) {
-        if (pqueue != nullptr) pqueue->Add(vChecks);
+        if (pqueue != nullptr) {
+            pqueue->Add(vChecks);
+        }
     }
 
     ~CCheckQueueControl() {
-        if (!fDone) Wait();
+        if (!fDone) {
+            Wait();
+        }
+        if (pqueue != nullptr) {
+            LEAVE_CRITICAL_SECTION(pqueue->ControlMutex);
+        }
     }
 };
 

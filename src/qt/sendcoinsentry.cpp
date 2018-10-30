@@ -141,7 +141,7 @@ bool SendCoinsEntry::validate() {
     }
 
     // Sending a zero amount is invalid
-    if (ui->payAmount->value(0) <= Amount(0)) {
+    if (ui->payAmount->value(0) <= Amount::zero()) {
         ui->payAmount->setValid(false);
         retval = false;
     }

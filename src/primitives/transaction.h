@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,27 +8,12 @@
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
 #include "amount.h"
+#include "feerate.h"
+#include "primitives/txid.h"
 #include "script/script.h"
 #include "serialize.h"
-#include "uint256.h"
 
 static const int SERIALIZE_TRANSACTION = 0x00;
-
-/**
- * A TxId is the identifier of a transaction. Currently identical to TxHash but
- * differentiated for type safety.
- */
-struct TxId : public uint256 {
-    TxId() {}
-    explicit TxId(const uint256 &b) : uint256(b) {}
-};
-
-/**
- * A TxHash is the double sha256 hash of the full transaction data.
- */
-struct TxHash : public uint256 {
-    explicit TxHash(const uint256 &b) : uint256(b) {}
-};
 
 /**
  * An outpoint - a combination of a transaction hash and an index n into its
@@ -169,11 +155,11 @@ public:
     }
 
     void SetNull() {
-        nValue = Amount(-1);
+        nValue = -SATOSHI;
         scriptPubKey.clear();
     }
 
-    bool IsNull() const { return (nValue == Amount(-1)); }
+    bool IsNull() const { return nValue == -SATOSHI; }
 
     Amount GetDustThreshold(const CFeeRate &minRelayTxFee) const {
         /**
@@ -187,7 +173,9 @@ public:
          * spend: so dust is a spendable txout less than 294*minRelayTxFee/1000
          * (in satoshis).
          */
-        if (scriptPubKey.IsUnspendable()) return Amount(0);
+        if (scriptPubKey.IsUnspendable()) {
+            return Amount::zero();
+        }
 
         size_t nSize = GetSerializeSize(*this, SER_DISK, 0);
 

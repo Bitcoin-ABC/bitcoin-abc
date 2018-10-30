@@ -15,6 +15,10 @@
 static const uint8_t pchIPv4[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
 static const uint8_t pchOnionCat[] = {0xFD, 0x87, 0xD8, 0x7E, 0xEB, 0x43};
 
+// 0xFD + sha256("bitcoin")[0:5]
+static const unsigned char g_internal_prefix[] = {0xFD, 0x6B, 0x88,
+                                                  0xC0, 0x87, 0x24};
+
 void CNetAddr::Init() {
     memset(ip, 0, sizeof(ip));
     scopeId = 0;
@@ -38,15 +42,30 @@ void CNetAddr::SetRaw(Network network, const uint8_t *ip_in) {
     }
 }
 
+bool CNetAddr::SetInternal(const std::string &name) {
+    if (name.empty()) {
+        return false;
+    }
+    uint8_t hash[32] = {};
+    CSHA256().Write((const uint8_t *)name.data(), name.size()).Finalize(hash);
+    memcpy(ip, g_internal_prefix, sizeof(g_internal_prefix));
+    memcpy(ip + sizeof(g_internal_prefix), hash,
+           sizeof(ip) - sizeof(g_internal_prefix));
+    return true;
+}
+
 bool CNetAddr::SetSpecial(const std::string &strName) {
     if (strName.size() > 6 &&
         strName.substr(strName.size() - 6, 6) == ".onion") {
         std::vector<uint8_t> vchAddr =
             DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
-        if (vchAddr.size() != 16 - sizeof(pchOnionCat)) return false;
+        if (vchAddr.size() != 16 - sizeof(pchOnionCat)) {
+            return false;
+        }
         memcpy(ip, pchOnionCat, sizeof(pchOnionCat));
-        for (unsigned int i = 0; i < 16 - sizeof(pchOnionCat); i++)
+        for (unsigned int i = 0; i < 16 - sizeof(pchOnionCat); i++) {
             ip[i + sizeof(pchOnionCat)] = vchAddr[i];
+        }
         return true;
     }
     return false;
@@ -74,7 +93,7 @@ bool CNetAddr::IsIPv4() const {
 }
 
 bool CNetAddr::IsIPv6() const {
-    return (!IsIPv4() && !IsTor());
+    return !IsIPv4() && !IsTor() && !IsInternal();
 }
 
 bool CNetAddr::IsRFC1918() const {
@@ -176,6 +195,10 @@ bool CNetAddr::IsValid() const {
     // documentation IPv6 address
     if (IsRFC3849()) return false;
 
+    if (IsInternal()) {
+        return false;
+    }
+
     if (IsIPv4()) {
         // INADDR_NONE
         uint32_t ipNone = INADDR_NONE;
@@ -193,40 +216,63 @@ bool CNetAddr::IsRoutable() const {
     return IsValid() &&
            !(IsRFC1918() || IsRFC2544() || IsRFC3927() || IsRFC4862() ||
              IsRFC6598() || IsRFC5737() || (IsRFC4193() && !IsTor()) ||
-             IsRFC4843() || IsLocal());
+             IsRFC4843() || IsLocal() || IsInternal());
+}
+
+bool CNetAddr::IsInternal() const {
+    return memcmp(ip, g_internal_prefix, sizeof(g_internal_prefix)) == 0;
 }
 
 enum Network CNetAddr::GetNetwork() const {
-    if (!IsRoutable()) return NET_UNROUTABLE;
+    if (IsInternal()) {
+        return NET_INTERNAL;
+    }
 
-    if (IsIPv4()) return NET_IPV4;
+    if (!IsRoutable()) {
+        return NET_UNROUTABLE;
+    }
 
-    if (IsTor()) return NET_TOR;
+    if (IsIPv4()) {
+        return NET_IPV4;
+    }
+
+    if (IsTor()) {
+        return NET_TOR;
+    }
 
     return NET_IPV6;
 }
 
 std::string CNetAddr::ToStringIP() const {
-    if (IsTor()) return EncodeBase32(&ip[6], 10) + ".onion";
+    if (IsTor()) {
+        return EncodeBase32(&ip[6], 10) + ".onion";
+    }
+    if (IsInternal()) {
+        return EncodeBase32(ip + sizeof(g_internal_prefix),
+                            sizeof(ip) - sizeof(g_internal_prefix)) +
+               ".internal";
+    }
     CService serv(*this, 0);
     struct sockaddr_storage sockaddr;
     socklen_t socklen = sizeof(sockaddr);
     if (serv.GetSockAddr((struct sockaddr *)&sockaddr, &socklen)) {
         char name[1025] = "";
         if (!getnameinfo((const struct sockaddr *)&sockaddr, socklen, name,
-                         sizeof(name), nullptr, 0, NI_NUMERICHOST))
+                         sizeof(name), nullptr, 0, NI_NUMERICHOST)) {
             return std::string(name);
+        }
     }
-    if (IsIPv4())
+    if (IsIPv4()) {
         return strprintf("%u.%u.%u.%u", GetByte(3), GetByte(2), GetByte(1),
                          GetByte(0));
-    else
-        return strprintf(
-            "%x:%x:%x:%x:%x:%x:%x:%x", GetByte(15) << 8 | GetByte(14),
-            GetByte(13) << 8 | GetByte(12), GetByte(11) << 8 | GetByte(10),
-            GetByte(9) << 8 | GetByte(8), GetByte(7) << 8 | GetByte(6),
-            GetByte(5) << 8 | GetByte(4), GetByte(3) << 8 | GetByte(2),
-            GetByte(1) << 8 | GetByte(0));
+    }
+
+    return strprintf("%x:%x:%x:%x:%x:%x:%x:%x", GetByte(15) << 8 | GetByte(14),
+                     GetByte(13) << 8 | GetByte(12),
+                     GetByte(11) << 8 | GetByte(10),
+                     GetByte(9) << 8 | GetByte(8), GetByte(7) << 8 | GetByte(6),
+                     GetByte(5) << 8 | GetByte(4), GetByte(3) << 8 | GetByte(2),
+                     GetByte(1) << 8 | GetByte(0));
 }
 
 std::string CNetAddr::ToString() const {
@@ -270,8 +316,13 @@ std::vector<uint8_t> CNetAddr::GetGroup() const {
         nBits = 0;
     }
 
-    if (!IsRoutable()) {
-        // all unroutable addresses belong to the same group
+    if (IsInternal()) {
+        // all internal-usage addresses get their own group
+        nClass = NET_INTERNAL;
+        nStartByte = sizeof(g_internal_prefix);
+        nBits = (sizeof(ip) - sizeof(g_internal_prefix)) * 8;
+    } else if (!IsRoutable()) {
+        // all other unroutable addresses belong to the same group
         nClass = NET_UNROUTABLE;
         nBits = 0;
     } else if (IsIPv4() || IsRFC6145() || IsRFC6052()) {
@@ -309,8 +360,9 @@ std::vector<uint8_t> CNetAddr::GetGroup() const {
         nStartByte++;
         nBits -= 8;
     }
-    if (nBits > 0)
+    if (nBits > 0) {
         vchRet.push_back(GetByte(15 - nStartByte) | ((1 << (8 - nBits)) - 1));
+    }
 
     return vchRet;
 }
@@ -344,7 +396,9 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const {
         REACH_PRIVATE
     };
 
-    if (!IsRoutable()) return REACH_UNREACHABLE;
+    if (!IsRoutable() || IsInternal()) {
+        return REACH_UNREACHABLE;
+    }
 
     int ourNet = GetExtNetwork(this);
     int theirNet = GetExtNetwork(paddrPartner);
@@ -507,7 +561,7 @@ std::string CService::ToStringPort() const {
 }
 
 std::string CService::ToStringIPPort() const {
-    if (IsIPv4() || IsTor()) {
+    if (IsIPv4() || IsTor() || IsInternal()) {
         return ToStringIP() + ":" + ToStringPort();
     } else {
         return "[" + ToStringIP() + "]:" + ToStringPort();

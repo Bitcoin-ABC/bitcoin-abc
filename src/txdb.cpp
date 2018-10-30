@@ -6,7 +6,6 @@
 #include "txdb.h"
 
 #include "chainparams.h"
-#include "config.h"
 #include "hash.h"
 #include "init.h"
 #include "pow.h"
@@ -275,8 +274,8 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 }
 
 bool CBlockTreeDB::LoadBlockIndexGuts(
+    const Config &config,
     std::function<CBlockIndex *(const uint256 &)> insertBlockIndex) {
-    const Config &config = GetConfig();
 
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
 

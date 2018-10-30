@@ -7,6 +7,7 @@
 #include "wallet/walletdb.h"
 
 #include "base58.h"
+#include "consensus/tx_verify.h"
 #include "consensus/validation.h"
 #include "dstencode.h"
 #include "fs.h"
@@ -15,7 +16,6 @@
 #include "sync.h"
 #include "util.h"
 #include "utiltime.h"
-#include "validation.h" // For CheckRegularTransaction
 #include "wallet/wallet.h"
 
 #include <boost/thread.hpp>
@@ -194,7 +194,7 @@ Amount CWalletDB::GetAccountCreditDebit(const std::string &strAccount) {
     std::list<CAccountingEntry> entries;
     ListAccountCreditDebit(strAccount, entries);
 
-    Amount nCreditDebit(0);
+    Amount nCreditDebit = Amount::zero();
     for (const CAccountingEntry &entry : entries) {
         nCreditDebit += entry.nCreditDebit;
     }
@@ -263,7 +263,7 @@ public:
     bool fIsEncrypted;
     bool fAnyUnordered;
     int nFileVersion;
-    std::vector<uint256> vWalletUpgrade;
+    std::vector<TxId> vWalletUpgrade;
 
     CWalletScanState() {
         nKeys = nCKeys = nWatchKeys = nKeyMeta = 0;
@@ -296,15 +296,15 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                                strAddress, pwallet->chainParams)]
                            .purpose;
         } else if (strType == "tx") {
-            uint256 hash;
-            ssKey >> hash;
+            TxId txid;
+            ssKey >> txid;
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
             bool isValid = wtx.IsCoinBase()
                                ? CheckCoinbase(wtx, state)
                                : CheckRegularTransaction(wtx, state);
-            if (wtx.GetId() != hash || !isValid) {
+            if (!isValid || wtx.GetId() != txid) {
                 return false;
             }
 
@@ -318,15 +318,15 @@ bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey, CDataStream &ssValue,
                     strErr =
                         strprintf("LoadWallet() upgrading tx ver=%d %d '%s' %s",
                                   wtx.fTimeReceivedIsTxTime, fTmp,
-                                  wtx.strFromAccount, hash.ToString());
+                                  wtx.strFromAccount, txid.ToString());
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 } else {
                     strErr =
                         strprintf("LoadWallet() repairing tx ver=%d %s",
-                                  wtx.fTimeReceivedIsTxTime, hash.ToString());
+                                  wtx.fTimeReceivedIsTxTime, txid.ToString());
                     wtx.fTimeReceivedIsTxTime = 0;
                 }
-                wss.vWalletUpgrade.push_back(hash);
+                wss.vWalletUpgrade.push_back(txid);
             }
 
             if (wtx.nOrderPos == -1) {
@@ -612,8 +612,8 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
         pwallet->UpdateTimeFirstKey(1);
     }
 
-    for (uint256 hash : wss.vWalletUpgrade) {
-        WriteTx(pwallet->mapWallet[hash]);
+    for (const TxId &txid : wss.vWalletUpgrade) {
+        WriteTx(pwallet->mapWallet[txid]);
     }
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
@@ -641,7 +641,7 @@ DBErrors CWalletDB::LoadWallet(CWallet *pwallet) {
     return result;
 }
 
-DBErrors CWalletDB::FindWalletTx(std::vector<uint256> &vTxHash,
+DBErrors CWalletDB::FindWalletTx(std::vector<TxId> &txIds,
                                  std::vector<CWalletTx> &vWtx) {
     bool fNoncriticalErrors = false;
     DBErrors result = DB_LOAD_OK;
@@ -678,13 +678,13 @@ DBErrors CWalletDB::FindWalletTx(std::vector<uint256> &vTxHash,
             std::string strType;
             ssKey >> strType;
             if (strType == "tx") {
-                uint256 hash;
-                ssKey >> hash;
+                TxId txid;
+                ssKey >> txid;
 
                 CWalletTx wtx;
                 ssValue >> wtx;
 
-                vTxHash.push_back(hash);
+                txIds.push_back(txid);
                 vWtx.push_back(wtx);
             }
         }
@@ -702,38 +702,38 @@ DBErrors CWalletDB::FindWalletTx(std::vector<uint256> &vTxHash,
     return result;
 }
 
-DBErrors CWalletDB::ZapSelectTx(std::vector<uint256> &vTxHashIn,
-                                std::vector<uint256> &vTxHashOut) {
+DBErrors CWalletDB::ZapSelectTx(std::vector<TxId> &txIdsIn,
+                                std::vector<TxId> &txIdsOut) {
     // Build list of wallet TXs and hashes.
-    std::vector<uint256> vTxHash;
+    std::vector<TxId> txIds;
     std::vector<CWalletTx> vWtx;
-    DBErrors err = FindWalletTx(vTxHash, vWtx);
+    DBErrors err = FindWalletTx(txIds, vWtx);
     if (err != DB_LOAD_OK) {
         return err;
     }
 
-    std::sort(vTxHash.begin(), vTxHash.end());
-    std::sort(vTxHashIn.begin(), vTxHashIn.end());
+    std::sort(txIds.begin(), txIds.end());
+    std::sort(txIdsIn.begin(), txIdsIn.end());
 
     // Erase each matching wallet TX.
     bool delerror = false;
-    std::vector<uint256>::iterator it = vTxHashIn.begin();
-    for (uint256 hash : vTxHash) {
-        while (it < vTxHashIn.end() && (*it) < hash) {
+    std::vector<TxId>::iterator it = txIdsIn.begin();
+    for (const TxId &txid : txIds) {
+        while (it < txIdsIn.end() && (*it) < txid) {
             it++;
         }
-        if (it == vTxHashIn.end()) {
+        if (it == txIdsIn.end()) {
             break;
         }
 
-        if ((*it) == hash) {
-            if (!EraseTx(hash)) {
+        if ((*it) == txid) {
+            if (!EraseTx(txid)) {
                 LogPrint(BCLog::DB, "Transaction was found for deletion but "
                                     "returned database error: %s\n",
-                         hash.GetHex());
+                         txid.GetHex());
                 delerror = true;
             }
-            vTxHashOut.push_back(hash);
+            txIdsOut.push_back(txid);
         }
     }
 
@@ -745,15 +745,15 @@ DBErrors CWalletDB::ZapSelectTx(std::vector<uint256> &vTxHashIn,
 
 DBErrors CWalletDB::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
     // Build list of wallet TXs.
-    std::vector<uint256> vTxHash;
-    DBErrors err = FindWalletTx(vTxHash, vWtx);
+    std::vector<TxId> txIds;
+    DBErrors err = FindWalletTx(txIds, vWtx);
     if (err != DB_LOAD_OK) {
         return err;
     }
 
     // Erase each wallet TX.
-    for (uint256 &hash : vTxHash) {
-        if (!EraseTx(hash)) {
+    for (const TxId &txid : txIds) {
+        if (!EraseTx(txid)) {
             return DB_CORRUPT;
         }
     }

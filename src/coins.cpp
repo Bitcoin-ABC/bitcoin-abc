@@ -282,10 +282,10 @@ const CTxOut &CCoinsViewCache::GetOutputFor(const CTxIn &input) const {
 
 Amount CCoinsViewCache::GetValueIn(const CTransaction &tx) const {
     if (tx.IsCoinBase()) {
-        return Amount(0);
+        return Amount::zero();
     }
 
-    Amount nResult(0);
+    Amount nResult = Amount::zero();
     for (size_t i = 0; i < tx.vin.size(); i++) {
         nResult += GetOutputFor(tx.vin[i]).nValue;
     }
@@ -309,7 +309,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction &tx) const {
 
 double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
                                     Amount &inChainInputValue) const {
-    inChainInputValue = Amount(0);
+    inChainInputValue = Amount::zero();
     if (tx.IsCoinBase()) {
         return 0.0;
     }
@@ -320,7 +320,7 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight,
             continue;
         }
         if (int64_t(coin.GetHeight()) <= nHeight) {
-            dResult += double(coin.GetTxOut().nValue.GetSatoshis()) *
+            dResult += double(coin.GetTxOut().nValue / SATOSHI) *
                        (nHeight - coin.GetHeight());
             inChainInputValue += coin.GetTxOut().nValue;
         }

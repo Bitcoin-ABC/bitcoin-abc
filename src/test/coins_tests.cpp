@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
 
             if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
-                txout.nValue = Amount(int64_t(insecure_rand()));
+                txout.nValue = int64_t(insecure_rand()) * SATOSHI;
                 if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             tx.vin.resize(1);
             tx.vout.resize(1);
             // Keep txs unique unless intended to duplicate.
-            tx.vout[0].nValue = Amount(i);
+            tx.vout[0].nValue = i * SATOSHI;
             // Random sizes so we can test memory usage accounting
             tx.vout[0].scriptPubKey.assign(insecure_rand() & 0x3F, 0);
             unsigned int height = insecure_rand();
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
 
             // Call UpdateCoins on the top cache
             CTxUndo undo;
-            UpdateCoins(CTransaction(tx), *(stack.back()), undo, height);
+            UpdateCoins(*(stack.back()), CTransaction(tx), undo, height);
 
             // Update the utxo set for future spends
             utxoset.insert(outpoint);
@@ -500,7 +500,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss1 >> c1;
     BOOST_CHECK_EQUAL(c1.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c1.GetHeight(), 203998U);
-    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, Amount(60000000000LL));
+    BOOST_CHECK_EQUAL(c1.GetTxOut().nValue, int64_t(60000000000) * SATOSHI);
     BOOST_CHECK_EQUAL(HexStr(c1.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "816115944e077fe7c803cfa57f29b36bf87c1d35"))))));
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss2 >> c2;
     BOOST_CHECK_EQUAL(c2.IsCoinBase(), true);
     BOOST_CHECK_EQUAL(c2.GetHeight(), 120891);
-    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, Amount(110397LL));
+    BOOST_CHECK_EQUAL(c2.GetTxOut().nValue, 110397 * SATOSHI);
     BOOST_CHECK_EQUAL(HexStr(c2.GetTxOut().scriptPubKey),
                       HexStr(GetScriptForDestination(CKeyID(uint160(ParseHex(
                           "8c988f1a4a4de2161e0f50aac7f17e7f9555caa4"))))));
@@ -524,7 +524,7 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
     ss3 >> c3;
     BOOST_CHECK_EQUAL(c3.IsCoinBase(), false);
     BOOST_CHECK_EQUAL(c3.GetHeight(), 0);
-    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount(0));
+    BOOST_CHECK_EQUAL(c3.GetTxOut().nValue, Amount::zero());
     BOOST_CHECK_EQUAL(c3.GetTxOut().scriptPubKey.size(), 0);
 
     // scriptPubKey that ends beyond the end of the stream
@@ -551,12 +551,12 @@ BOOST_AUTO_TEST_CASE(coin_serialization) {
 }
 
 static const COutPoint OUTPOINT;
-static const Amount PRUNED(-1);
-static const Amount ABSENT(-2);
-static const Amount FAIL(-3);
-static const Amount VALUE1(100);
-static const Amount VALUE2(200);
-static const Amount VALUE3(300);
+static const Amount PRUNED(-1 * SATOSHI);
+static const Amount ABSENT(-2 * SATOSHI);
+static const Amount FAIL(-3 * SATOSHI);
+static const Amount VALUE1(100 * SATOSHI);
+static const Amount VALUE2(200 * SATOSHI);
+static const Amount VALUE3(300 * SATOSHI);
 static const char DIRTY = CCoinsCacheEntry::DIRTY;
 static const char FRESH = CCoinsCacheEntry::FRESH;
 static const char NO_ENTRY = -1;

@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(util_GetArg) {
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatMoney) {
-    BOOST_CHECK_EQUAL(FormatMoney(Amount(0)), "0.00");
+    BOOST_CHECK_EQUAL(FormatMoney(Amount::zero()), "0.00");
     BOOST_CHECK_EQUAL(FormatMoney(123456789 * (COIN / 10000)), "12345.6789");
     BOOST_CHECK_EQUAL(FormatMoney(-1 * COIN), "-1.00");
 
@@ -190,9 +190,9 @@ BOOST_AUTO_TEST_CASE(util_FormatMoney) {
 }
 
 BOOST_AUTO_TEST_CASE(util_ParseMoney) {
-    Amount ret(0);
+    Amount ret = Amount::zero();
     BOOST_CHECK(ParseMoney("0.0", ret));
-    BOOST_CHECK_EQUAL(ret, Amount(0));
+    BOOST_CHECK_EQUAL(ret, Amount::zero());
 
     BOOST_CHECK(ParseMoney("12345.6789", ret));
     BOOST_CHECK_EQUAL(ret, 123456789 * (COIN / 10000));

@@ -477,7 +477,8 @@ bool PaymentServer::handleURI(const QString &scheme, const QString &s) {
     // normal URI
     SendCoinsRecipient recipient;
     if (GUIUtil::parseBitcoinURI(scheme, s, &recipient)) {
-        if (!IsValidDestinationString(recipient.address.toStdString())) {
+        if (!IsValidDestinationString(recipient.address.toStdString(),
+                                      GetConfig().GetChainParams())) {
             Q_EMIT message(
                 tr("URI handling"),
                 tr("Invalid payment address %1").arg(recipient.address),
@@ -888,8 +889,8 @@ bool PaymentServer::verifyAmount(const Amount requestAmount) {
         qWarning() << QString("PaymentServer::%1: Payment request amount out "
                               "of allowed range (%2, allowed 0 - %3).")
                           .arg(__func__)
-                          .arg(requestAmount.GetSatoshis())
-                          .arg(MAX_MONEY.GetSatoshis());
+                          .arg(requestAmount / SATOSHI)
+                          .arg(MAX_MONEY / SATOSHI);
     }
     return fVerified;
 }

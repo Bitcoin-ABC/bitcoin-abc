@@ -1714,10 +1714,6 @@
         <translation>هشدار</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>هشدار: قوانین جدید ناشناخته‌ای فعال شده‌اند (نسخه‌بیت %i)</translation>
-    </message>
-    <message>
         <source>Password for JSON-RPC connections</source>
         <translation>JSON-RPC عبارت عبور برای ارتباطات</translation>
     </message>

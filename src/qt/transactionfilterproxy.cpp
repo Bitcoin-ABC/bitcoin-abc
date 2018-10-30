@@ -20,7 +20,7 @@ const QDateTime TransactionFilterProxy::MAX_DATE =
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent)
     : QSortFilterProxyModel(parent), dateFrom(MIN_DATE), dateTo(MAX_DATE),
       addrPrefix(), typeFilter(ALL_TYPES), watchOnlyFilter(WatchOnlyFilter_All),
-      minAmount(0), limitRows(-1), showInactive(true) {}
+      minAmount(), limitRows(-1), showInactive(true) {}
 
 bool TransactionFilterProxy::filterAcceptsRow(
     int sourceRow, const QModelIndex &sourceParent) const {
@@ -34,20 +34,33 @@ bool TransactionFilterProxy::filterAcceptsRow(
     QString address = index.data(TransactionTableModel::AddressRole).toString();
     QString label = index.data(TransactionTableModel::LabelRole).toString();
     Amount amount(
-        llabs(index.data(TransactionTableModel::AmountRole).toLongLong()));
+        int64_t(
+            llabs(index.data(TransactionTableModel::AmountRole).toLongLong())) *
+        SATOSHI);
     int status = index.data(TransactionTableModel::StatusRole).toInt();
 
-    if (!showInactive && status == TransactionStatus::Conflicted) return false;
-    if (!(TYPE(type) & typeFilter)) return false;
-    if (involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_No)
+    if (!showInactive && status == TransactionStatus::Conflicted) {
         return false;
-    if (!involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_Yes)
+    }
+    if (!(TYPE(type) & typeFilter)) {
         return false;
-    if (datetime < dateFrom || datetime > dateTo) return false;
+    }
+    if (involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_No) {
+        return false;
+    }
+    if (!involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_Yes) {
+        return false;
+    }
+    if (datetime < dateFrom || datetime > dateTo) {
+        return false;
+    }
     if (!address.contains(addrPrefix, Qt::CaseInsensitive) &&
-        !label.contains(addrPrefix, Qt::CaseInsensitive))
+        !label.contains(addrPrefix, Qt::CaseInsensitive)) {
         return false;
-    if (amount < minAmount) return false;
+    }
+    if (amount < minAmount) {
+        return false;
+    }
 
     return true;
 }

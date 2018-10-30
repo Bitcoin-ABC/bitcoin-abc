@@ -1,4 +1,5 @@
 // Copyright (c) 2015-2016 The Bitcoin Core developers
+// Copyright (c) 2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,17 +21,22 @@ class Config;
 class CService;
 class HTTPRequest;
 
-/** Initialize HTTP server.
+/**
+ * Initialize HTTP server.
  * Call this before RegisterHTTPHandler or EventBase().
  */
 bool InitHTTPServer(Config &config);
-/** Start HTTP server.
+
+/**
+ * Start HTTP server.
  * This is separate from InitHTTPServer to give users race-condition-free time
  * to register their handlers between InitHTTPServer and StartHTTPServer.
  */
 bool StartHTTPServer();
+
 /** Interrupt HTTP server threads */
 void InterruptHTTPServer();
+
 /** Stop HTTP server */
 void StopHTTPServer();
 
@@ -38,21 +44,26 @@ void StopHTTPServer();
 typedef std::function<bool(Config &config, HTTPRequest *req,
                            const std::string &)>
     HTTPRequestHandler;
-/** Register handler for prefix.
+
+/**
+ * Register handler for prefix.
  * If multiple handlers match a prefix, the first-registered one will
  * be invoked.
  */
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch,
                          const HTTPRequestHandler &handler);
+
 /** Unregister handler for prefix */
 void UnregisterHTTPHandler(const std::string &prefix, bool exactMatch);
 
-/** Return evhttp event base. This can be used by submodules to
+/**
+ * Return evhttp event base. This can be used by submodules to
  * queue timers or custom events.
  */
 struct event_base *EventBase();
 
-/** In-flight HTTP request.
+/**
+ * In-flight HTTP request.
  * Thin C++ wrapper around evhttp_request.
  */
 class HTTPRequest {
@@ -66,16 +77,13 @@ public:
 
     enum RequestMethod { UNKNOWN, GET, POST, HEAD, PUT, OPTIONS };
 
-    /** Get requested URI.
-     */
+    /** Get requested URI */
     std::string GetURI();
 
-    /** Get CService (address:ip) for the origin of the http request.
-     */
+    /** Get CService (address:ip) for the origin of the http request */
     CService GetPeer();
 
-    /** Get request method.
-     */
+    /** Get request method */
     RequestMethod GetRequestMethod();
 
     /**
@@ -112,20 +120,21 @@ public:
     void WriteReply(int nStatus, const std::string &strReply = "");
 };
 
-/** Event handler closure.
- */
+/** Event handler closure */
 class HTTPClosure {
 public:
     virtual void operator()() = 0;
     virtual ~HTTPClosure() {}
 };
 
-/** Event class. This can be used either as an cross-thread trigger or as a
+/**
+ * Event class. This can be used either as an cross-thread trigger or as a
  * timer.
  */
 class HTTPEvent {
 public:
-    /** Create a new event.
+    /**
+     * Create a new event.
      * deleteWhenTriggered deletes this event object after the event is
      * triggered (and the handler called)
      * handler is the handler to call when the event is triggered.
@@ -134,9 +143,9 @@ public:
               const std::function<void(void)> &handler);
     ~HTTPEvent();
 
-    /** Trigger the event. If tv is 0, trigger it immediately. Otherwise trigger
-     * it after
-     * the given time has elapsed.
+    /**
+     * Trigger the event. If tv is 0, trigger it immediately. Otherwise trigger
+     * it after the given time has elapsed.
      */
     void trigger(struct timeval *tv);
 

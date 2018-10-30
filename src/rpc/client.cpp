@@ -266,6 +266,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     { "trade_MP", 3, "" }, // depreciated
     { "trade_MP", 5, "" }, // depreciated
 
+    {"rescanblockchain", 0, "start_height"},
+    {"rescanblockchain", 1, "stop_height"},
 };
 
 class CRPCConvertTable {

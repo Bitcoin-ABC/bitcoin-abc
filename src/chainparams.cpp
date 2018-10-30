@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -69,12 +70,6 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce,
                               nBits, nVersion, genesisReward);
 }
 
-void CChainParams::UpdateBIP9Parameters(Consensus::DeploymentPos d,
-                                        int64_t nStartTime, int64_t nTimeout) {
-    consensus.vDeployments[d].nStartTime = nStartTime;
-    consensus.vDeployments[d].nTimeout = nTimeout;
-}
-
 /**
  * Main network
  */
@@ -97,6 +92,8 @@ public:
         consensus.BIP65Height = 388381;
         // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
         consensus.BIP66Height = 363725;
+        // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
+        consensus.CSVHeight = 419328;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -116,22 +113,14 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             1230767999;
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        // May 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime =
-            1462060800;
-        // May 1st, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
-
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "000000000000000000000000000000000000000000a0f3064330647e2f6c4828");
+            "000000000000000000000000000000000000000000b8702680bcb0fec8548e05");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "000000000000000000e45ad2fbcc5ff3e85f0868dd8f00ad4e92dffabe28f8d2");
+            "0000000000000000007e11995a8969e2d8838e72da271cdd1903ae4c6753064a");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 478558;
@@ -139,11 +128,11 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 504031;
 
-        // May 15, 2018 hard fork
-        consensus.monolithActivationTime = 1526400000;
-
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
+
+        // Wed, 15 May 2019 12:00:00 UTC hard fork
+        consensus.greatWallActivationTime = 1557921600;
 
         /**
          * The message start string is designed to be unlikely to occur in
@@ -174,23 +163,17 @@ public:
         // Note that of those with the service bits flag, most only support a
         // subset of possible options.
         // Bitcoin ABC seeder
-        vSeeds.push_back(
-            CDNSSeedData("bitcoinabc.org", "seed.bitcoinabc.org", true));
+        vSeeds.emplace_back("seed.bitcoinabc.org", true);
         // bitcoinforks seeders
-        vSeeds.push_back(CDNSSeedData("bitcoinforks.org",
-                                      "seed-abc.bitcoinforks.org", true));
+        vSeeds.emplace_back("seed-abc.bitcoinforks.org", true);
         // BU backed seeder
-        vSeeds.push_back(CDNSSeedData("bitcoinunlimited.info",
-                                      "btccash-seeder.bitcoinunlimited.info",
-                                      true));
+        vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info", true);
         // Bitprim
-        vSeeds.push_back(CDNSSeedData("bitprim.org", "seed.bitprim.org", true));
+        vSeeds.emplace_back("seed.bitprim.org", true);
         // Amaury SÉCHET
-        vSeeds.push_back(
-            CDNSSeedData("deadalnix.me", "seed.deadalnix.me", true));
+        vSeeds.emplace_back("seed.deadalnix.me", true);
         // criptolayer.net
-        vSeeds.push_back(
-            CDNSSeedData("criptolayer.net", "seeder.criptolayer.net", true));
+        vSeeds.emplace_back("seeder.criptolayer.net", true);
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
@@ -275,6 +258,8 @@ public:
         consensus.BIP65Height = 581885;
         // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
         consensus.BIP66Height = 330776;
+        // 00000000025e930139bac5c6c31a403776da130831ab85be56578f3fa75369bb
+        consensus.CSVHeight = 770112;
         consensus.powLimit = uint256S(
             "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -294,22 +279,14 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             1230767999;
 
-        // Deployment of BIP68, BIP112, and BIP113.
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        // March 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime =
-            1456790400;
-        // May 1st, 2017
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800;
-
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S(
-            "00000000000000000000000000000000000000000000002a650f6ff7649485da");
+            "000000000000000000000000000000000000000000000030015a07e503af3227");
 
         // By default assume that the signatures in ancestors of this block are
         // valid.
         consensus.defaultAssumeValid = uint256S(
-            "0000000000327972b8470c11755adf8f4319796bafae01f5a6650490b98a17db");
+            "00000000000000ba5624709777f8df34b911c16a33a474562aec7360580218cc");
 
         // August 1, 2017 hard fork
         consensus.uahfHeight = 1155875;
@@ -317,11 +294,11 @@ public:
         // November 13, 2017 hard fork
         consensus.daaHeight = 1188697;
 
-        // May 15, 2018 hard fork
-        consensus.monolithActivationTime = 1526400000;
-
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
+
+        // Wed, 15 May 2019 12:00:00 UTC hard fork
+        consensus.greatWallActivationTime = 1557921600;
 
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
@@ -348,20 +325,15 @@ public:
         vSeeds.clear();
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
-        vSeeds.push_back(CDNSSeedData("bitcoinabc.org",
-                                      "testnet-seed.bitcoinabc.org", true));
+        vSeeds.emplace_back("testnet-seed.bitcoinabc.org", true);
         // bitcoinforks seeders
-        vSeeds.push_back(CDNSSeedData(
-            "bitcoinforks.org", "testnet-seed-abc.bitcoinforks.org", true));
+        vSeeds.emplace_back("testnet-seed-abc.bitcoinforks.org", true);
         // Bitprim
-        vSeeds.push_back(
-            CDNSSeedData("bitprim.org", "testnet-seed.bitprim.org", true));
+        vSeeds.emplace_back("testnet-seed.bitprim.org", true);
         // Amaury SÉCHET
-        vSeeds.push_back(
-            CDNSSeedData("deadalnix.me", "testnet-seed.deadalnix.me", true));
+        vSeeds.emplace_back("testnet-seed.deadalnix.me", true);
         // criptolayer.net
-        vSeeds.push_back(CDNSSeedData("criptolayer.net",
-                                      "testnet-seeder.criptolayer.net", true));
+        vSeeds.emplace_back("testnet-seeder.criptolayer.net", true);
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
@@ -412,6 +384,8 @@ public:
         consensus.BIP65Height = 1351;
         // BIP66 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 1251;
+        // CSV activated on regtest (Used in rpc activation tests)
+        consensus.CSVHeight = 576;
         consensus.powLimit = uint256S(
             "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         // two weeks
@@ -427,10 +401,6 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout =
             999999999999ULL;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout =
-            999999999999ULL;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
@@ -445,11 +415,11 @@ public:
         // November 13, 2017 hard fork is always on on regtest.
         consensus.daaHeight = 0;
 
-        // May 15, 2018 hard fork.
-        consensus.monolithActivationTime = 1526400000;
-
         // Nov 15, 2018 hard fork
         consensus.magneticAnomalyActivationTime = 1542300000;
+
+        // Wed, 15 May 2019 12:00:00 UTC hard fork
+        consensus.greatWallActivationTime = 1557921600;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;
@@ -524,9 +494,4 @@ std::unique_ptr<CChainParams> CreateChainParams(const std::string &chain) {
 void SelectParams(const std::string &network) {
     SelectBaseParams(network);
     globalChainParams = CreateChainParams(network);
-}
-
-void UpdateBIP9Parameters(Consensus::DeploymentPos d, int64_t nStartTime,
-                          int64_t nTimeout) {
-    globalChainParams->UpdateBIP9Parameters(d, nStartTime, nTimeout);
 }
