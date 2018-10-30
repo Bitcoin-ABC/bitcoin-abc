@@ -429,7 +429,7 @@ UniValue whc_createrawtx_change(const Config &config,const JSONRPCRequest &reque
     return EncodeHexTx(CTransaction(tx));
 }
 
-static const CRPCCommand commands[] =
+static const ContextFreeRPCCommand commands[] =
 { //  category                         name                          actor (function)             okSafeMode
   //  -------------------------------- ----------------------------- ---------------------------- ----------
     //change_003

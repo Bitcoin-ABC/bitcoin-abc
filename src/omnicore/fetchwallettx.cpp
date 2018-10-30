@@ -126,7 +126,7 @@ std::map<std::string, uint256> FetchWalletOmniTransactions(unsigned int count, i
         int blockPosition = 0;
         {
             LOCK(pwalletMain->cs_wallet);
-            std::map<uint256, CWalletTx>::const_iterator walletIt = pwalletMain->mapWallet.find(txHash);
+            std::map<TxId, CWalletTx>::const_iterator walletIt = pwalletMain->mapWallet.find(TxId(txHash));
             if (walletIt != pwalletMain->mapWallet.end()) {
                 const CWalletTx& wtx = walletIt->second;
                 blockPosition = wtx.nOrderPos;

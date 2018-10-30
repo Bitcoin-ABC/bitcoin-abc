@@ -18,11 +18,14 @@ struct Amount {
 private:
     int64_t amount;
 
-    explicit constexpr Amount(int64_t _amount) : amount(_amount) {}
-
 public:
     constexpr Amount() : amount(0) {}
     constexpr Amount(const Amount &_camount) : amount(_camount.amount) {}
+    template <typename T>
+    explicit constexpr Amount(T _camount) : amount(_camount) {
+        static_assert(std::is_integral<T>(),
+                      "Only integer types can be used as amounts");
+    }
 
     static constexpr Amount zero() { return Amount(0); }
     static constexpr Amount satoshi() { return Amount(1); }
@@ -38,6 +41,9 @@ public:
         amount -= a.amount;
         return *this;
     }
+
+    // Allow access to underlying value for non-monetary operations
+    int64_t GetSatoshis() const { return *this / Amount(1); }
 
     /**
      * Equality

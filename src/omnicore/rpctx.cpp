@@ -968,7 +968,7 @@ bool createNewtransaction(CWallet *const pwallet, const std::string &address,
     return true;
 }
 
-static const CRPCCommand commands[] =
+static const ContextFreeRPCCommand commands[] =
 { //  category                             name                            actor (function)               okSafeMode
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
 #ifdef ENABLE_WALLET

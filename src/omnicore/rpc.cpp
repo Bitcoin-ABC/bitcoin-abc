@@ -2443,7 +2443,7 @@ UniValue whc_getbalanceshash(const Config &config, const JSONRPCRequest &request
     return response;
 }
 
-static const CRPCCommand commands[] =
+static const ContextFreeRPCCommand commands[] =
         { //  category                             name                            actor (function)               okSafeMode
                 //  ------------------------------------ ------------------------------- ------------------------------ ----------
                 //change_003
