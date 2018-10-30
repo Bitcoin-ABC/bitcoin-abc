@@ -13,7 +13,6 @@
 
 #include "leveldb/db.h"
 #include "leveldb/write_batch.h"
-#include "ERC721.h"
 #include "leveldb/include/leveldb/slice.h"
 #include "streams.h"
 #include "clientversion.h"
@@ -137,6 +136,28 @@ bool CMPSPERC721Info::getAndUpdateSP(const uint256& propertyID, std::pair<Proper
 
     *info = &(iter->second);
     return true;
+}
+
+void CMPSPERC721Info::setWatermark(const uint256& watermark)
+{
+    leveldb::WriteBatch batch;
+
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey << 'B';
+    leveldb::Slice slKey(&ssKey[0], ssKey.size());
+
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue.reserve(GetSerializeSize(watermark, ssValue.GetType(), ssValue.GetVersion()));
+    ssValue << watermark;
+    leveldb::Slice slValue(&ssValue[0], ssValue.size());
+
+    batch.Delete(slKey);
+    batch.Put(slKey, slValue);
+
+    leveldb::Status status = pdb->Write(syncoptions, &batch);
+    if (!status.ok()) {
+        PrintToLog("%s(): ERROR: failed to write watermark: %s\n", __func__, status.ToString());
+    }
 }
 
 bool CMPSPERC721Info::getWatermark(uint256& watermark) const{
@@ -463,6 +484,28 @@ bool ERC721TokenInfos::getAndUpdateToken(const uint256& propertyID, const uint25
     }
 
     return false;
+}
+
+void ERC721TokenInfos::setWatermark(const uint256& watermark)
+{
+    leveldb::WriteBatch batch;
+
+    CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+    ssKey << 'B';
+    leveldb::Slice slKey(&ssKey[0], ssKey.size());
+
+    CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+    ssValue.reserve(GetSerializeSize(watermark, ssValue.GetType(), ssValue.GetVersion()));
+    ssValue << watermark;
+    leveldb::Slice slValue(&ssValue[0], ssValue.size());
+
+    batch.Delete(slKey);
+    batch.Put(slKey, slValue);
+
+    leveldb::Status status = pdb->Write(syncoptions, &batch);
+    if (!status.ok()) {
+        PrintToLog("%s(): ERROR: failed to write watermark: %s\n", __func__, status.ToString());
+    }
 }
 
 bool ERC721TokenInfos::getWatermark(uint256& watermark) const{

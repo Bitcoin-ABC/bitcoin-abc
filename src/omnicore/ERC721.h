@@ -85,6 +85,7 @@ public:
 
     // get water block hash
     bool getWatermark(uint256& watermark) const;
+    void setWatermark(const uint256& watermark);
 
     // Flush flush cacheMapPropertyInfo struct data with DIRTY flag to database.
     // Then clear the cacheMapPropertyInfo struct.
@@ -163,6 +164,7 @@ public:
 
     // get water block hash.
     bool getWatermark(uint256& watermark) const;
+    void setWatermark(const uint256& watermark);
 
     // Flush all tokens info of all property to the database. And write success will clear these cacheMap.
     bool flush(const uint256& block_hash);

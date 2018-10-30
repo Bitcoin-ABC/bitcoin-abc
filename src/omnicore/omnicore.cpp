@@ -71,6 +71,9 @@
 #include <openssl/sha.h>
 
 #include "leveldb/db.h"
+#include "../chain.h"
+#include "rules.h"
+#include "ERC721.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -1628,6 +1631,8 @@ static char const * const statePrefix[NUM_FILETYPES] = {
 static int load_most_relevant_state()
 {
   int res = -1;
+  const CConsensusParams& param = ConsensusParams();
+
   // check the SP database and roll it back to its latest valid state
   // according to the active chain
   uint256 spWatermark;
@@ -1635,6 +1640,19 @@ static int load_most_relevant_state()
     //trigger a full reparse, if the SP database has no watermark
     return -1;
   }
+
+  uint256 erc721tokenswatermark;
+  if(!my_erc721tokens->getWatermark(erc721tokenswatermark)){
+      return  -1;
+  }
+    uint256 erc721SPwatermark;
+    if(!my_erc721sps->getWatermark(erc721SPwatermark)){
+        return  -1;
+    }
+
+    if (spWatermark != erc721tokenswatermark || spWatermark != erc721SPwatermark){
+        return -1;
+    }
 
   CBlockIndex const *spBlockIndex = GetBlockIndex(spWatermark);
   if (NULL == spBlockIndex) {
@@ -1651,13 +1669,15 @@ static int load_most_relevant_state()
     if(!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())){
         return -1;
     }
-      if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
-          return  -1;
-      }
+    if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
+        return  -1;
+    }
 
     spBlockIndex = spBlockIndex->pprev;
     if (spBlockIndex != NULL) {
         _my_sps->setWatermark(spBlockIndex->GetBlockHash());
+        my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
+        my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
     }
   }
 
@@ -1722,10 +1742,19 @@ static int load_most_relevant_state()
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
     }
-    curTip = curTip->pprev;
+  if(!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())){
+      return -1;
+  }
+  if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
+      return  -1;
+  }
+
+      curTip = curTip->pprev;
     spBlockIndex = curTip;
     if (curTip != NULL) {
         _my_sps->setWatermark(curTip->GetBlockHash());
+        my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
+        my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
     }
   }
 
