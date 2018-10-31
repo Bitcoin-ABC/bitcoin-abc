@@ -57,7 +57,7 @@ pushd
 cd /tmp/
 git clone https://github.com/boxcutter/ubuntu.git
 cd ubuntu
-git checkout 1e1f4804315b27eba398de93b8024230d190443a
+git checkout 7d1820c186d76122445c092bc2b872a8a94166ce
 packer build -var-file=ubuntu1604.json -only=virtualbox-iso ubuntu.json
 vagrant box add --name abc-xenial box/virtualbox/ubuntu1604-0.1.0.box
 popd
