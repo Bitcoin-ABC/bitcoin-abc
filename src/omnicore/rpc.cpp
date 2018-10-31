@@ -2489,6 +2489,8 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     response.push_back(Pair("data", info->first.data));
     response.push_back(Pair("propertyurl", info->first.url));
     response.push_back(Pair("totalTokenNumber", info->first.maxTokens));
+    response.push_back(Pair("haveIssuedNumber", info->first.haveIssuedNumber));
+    response.push_back(Pair("currentValidIssuedNumer", info->first.currentValidIssuedNumer));
 
     return response;
 }

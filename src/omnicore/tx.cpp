@@ -1238,7 +1238,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
     }
 
     if (!IsERC721TransactionTypeAllowed(block, type, version)) {
-        PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 property at block %d\n",
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for create ERC721 Token at block %d\n",
                    __func__,
                    type,
                    version,
@@ -1323,7 +1323,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
     spInfo->first.currentValidIssuedNumer++;
     if (autoTokenID) spInfo->first.autoNextTokenID = tmpTokenID;
 
-    PrintToLog("%s(): sender : %s have succeed issued ERC721 property : %s token : %s at block %d \n",
+    PrintToLog("%s(): sender : %s have succeed issued ERC721 Token, propertyid : %s tokenid : %s at block %d \n",
                __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), block);
     return 0;
 }
@@ -1383,7 +1383,7 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
     info->first.owner = receiver;
     info->second = Flags::DIRTY;
 
-    PrintToLog("%s(): sender : %s have succeed transfer ERC721 property : %s token : %s to receiver %s at block %d \n",
+    PrintToLog("%s(): sender : %s have succeed transfer ERC721 Token, propertyid : %s tokenid : %s to receiver %s at block %d \n",
                __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), receiver, block);
 
     return 0;
@@ -1403,7 +1403,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
     }
 
     if (!IsERC721TransactionTypeAllowed(block, type, version)) {
-        PrintToLog("%s(): rejected: type %d or version %d not permitted for transfer ERC721 token at block %d\n",
+        PrintToLog("%s(): rejected: type %d or version %d not permitted for destroy ERC721 token at block %d\n",
                    __func__,
                    type,
                    version,
@@ -1448,6 +1448,9 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
     info->second = Flags::DIRTY;
     spInfo->first.currentValidIssuedNumer --;
     spInfo->second = Flags::DIRTY;
+
+    PrintToLog("%s(): sender : %s have succeed destroy ERC721 Token, propertyid : %s tokenid : %s to receiver %s at block %d \n",
+               __func__, sender, erc721_propertyid.GetHex(), erc721_tokenid.GetHex(), burnwhc_address, block);
 
     return 0;
 }

@@ -14,10 +14,9 @@ class WHC_erc721_Test(BitcoinTestFramework):
         receiveAddr = self.nodes[0].getnewaddress("")
 
         # step 1 get whc
-        addr0 = self.whcAddress
-        self.nodes[0].generatetoaddress(101, addr0)
+        self.nodes[0].generatetoaddress(101, self.whcAddress)
         self.nodes[0].whc_burnbchgetwhc(6)
-        self.nodes[0].generatetoaddress(1, addr0)
+        self.nodes[0].generatetoaddress(1, self.whcAddress)
 
         item = self.getSpent(self.whcAddress)
         if item:
@@ -187,7 +186,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_transferERC721token("0x01", "0x03")
             txhash = self.constructReceiveTx(item, payload, receiveAddr)
 
-            # step 3.1 check the erc721 issue token transaction
+            # step 3.1 check the erc721 transfer token transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
             assert (txnews["propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
@@ -211,6 +210,9 @@ class WHC_erc721_Test(BitcoinTestFramework):
             assert (txnews["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000003") is True
             assert (txnews["action"] == 4) is True
             assert (txnews["txid"] == txhash) is True
+
+            txnews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x03")
+            assert txnews["owner"] == self.burn_address
         else:
             assert False
 
@@ -303,6 +305,9 @@ class WHC_erc721_Test(BitcoinTestFramework):
             assert (txnews["referenceaddress"] == item["address"]) is True
             assert txnews["valid"] is True
             assert (txnews["action"] == 2) is True
+
+            txnews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x04")
+            assert txnews["owner"] == self.whcAddress
         else:
             assert False
 
@@ -314,7 +319,6 @@ class WHC_erc721_Test(BitcoinTestFramework):
         assert txnews["valid"] is True
         assert (txnews["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
         assert (txnews["referenceaddress"] == self.whcAddress) is True
-
 
         item = self.getSpent(self.whcAddress)
         if item:
@@ -370,6 +374,9 @@ class WHC_erc721_Test(BitcoinTestFramework):
             assert txnews["valid"] is True
             assert (txnews["action"] == 3) is True
             assert (txnews["referenceaddress"] == item["address"]) is True
+
+            txnews = self.nodes[0].whc_getERC721TokenNews("0x03", "0x01")
+            assert txnews["owner"] == self.whcAddress
         else:
             assert False
 
