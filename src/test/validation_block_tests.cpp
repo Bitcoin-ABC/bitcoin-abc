@@ -110,8 +110,8 @@ void BuildChain(const Config &config, const uint256 &root, int height,
         return;
     }
 
-    bool gen_invalid = GetRand(100) < invalid_rate;
-    bool gen_fork = GetRand(100) < branch_rate;
+    bool gen_invalid = InsecureRandRange(100) < invalid_rate;
+    bool gen_fork = InsecureRandRange(100) < branch_rate;
 
     const std::shared_ptr<const CBlock> pblock =
         gen_invalid ? BadBlock(config, root) : GoodBlock(config, root);
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
         threads.create_thread([&config, &blocks]() {
             bool tlignored;
             for (int j = 0; j < 1000; j++) {
-                auto block = blocks[GetRand(blocks.size() - 1)];
+                auto block = blocks[InsecureRandRange(blocks.size() - 1)];
                 ProcessNewBlock(config, block, true, &tlignored);
             }
 
