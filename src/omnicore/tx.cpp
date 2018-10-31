@@ -24,6 +24,8 @@
 #include "base58.h"
 #include "sync.h"
 #include "utiltime.h"
+#include "config.h"
+#include "cashaddrenc.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -180,18 +182,19 @@ bool CMPTransaction::interpret_Transaction()
         case MSC_TYPE_CHANGE_ISSUER_ADDRESS:
             return interpret_ChangeIssuer();
 
-        /*
+        case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
+            return interpret_FreezeTokens();
+
+        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:
+            return interpret_UnfreezeTokens();
+		/*
         case MSC_TYPE_ENABLE_FREEZING:
             return interpret_EnableFreezing();
 
         case MSC_TYPE_DISABLE_FREEZING:
             return interpret_DisableFreezing();
 
-//        case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
-//            return interpret_FreezeTokens();
 
-//        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:
-//            return interpret_UnfreezeTokens();
 
         case OMNICORE_MESSAGE_TYPE_DEACTIVATION:
             return interpret_Deactivation();
@@ -725,10 +728,12 @@ bool CMPTransaction::interpret_CreatePropertyManaged()
     swapByteOrder16(prop_type);
     memcpy(&prev_prop_id, &pkt[7], 4);
     swapByteOrder32(prev_prop_id);
+
     for (int i = 0; i < 5; i++) {
         spstr.push_back(std::string(p));
         p += spstr.back().size() + 1;
     }
+
     int i = 0;
     memcpy(category, spstr[i].c_str(), std::min(spstr[i].length(), sizeof(category)-1)); i++;
     memcpy(subcategory, spstr[i].c_str(), std::min(spstr[i].length(), sizeof(subcategory)-1)); i++;
@@ -844,10 +849,10 @@ bool CMPTransaction::interpret_DisableFreezing()
 }
 
 /** Tx 185 */
-#if 0
+//#if 0
 bool CMPTransaction::interpret_FreezeTokens()
 {
-    if (pkt_size < 37) {
+    if (pkt_size < 17) {
         return false;
     }
     memcpy(&property, &pkt[4], 4);
@@ -856,21 +861,18 @@ bool CMPTransaction::interpret_FreezeTokens()
     swapByteOrder64(nValue);
     nNewValue = nValue;
 
-    /**
-        Note, TX185 is a virtual reference transaction type.
-              With virtual reference transactions a hash160 in the payload sets the receiver.
-              Reference outputs are ignored.
-    **/
-    unsigned char address_version;
-    uint160 address_hash160;
-    memcpy(&address_version, &pkt[16], 1);
-    memcpy(&address_hash160, &pkt[17], 20);
-    receiver = HashToAddress(address_version, address_hash160);
-    if (receiver.empty()) {
+    const CChainParams &param = GetConfig().GetChainParams();
+    const char* destaddr = (char*)&pkt[16];
+    UniValue unfreezaddr(destaddr);
+
+    CTxDestination addr = DecodeCashAddr(unfreezaddr.get_str(), param);
+    CTxDestination comAddr = CNoDestination{};
+    if (addr == comAddr){
         return false;
     }
-    CBitcoinAddress recAddress(receiver);
-    if (!recAddress.IsValid()) {
+    receiver = EncodeCashAddr(addr, param);
+
+    if (receiver.empty()) {
         return false;
     }
 
@@ -894,22 +896,18 @@ bool CMPTransaction::interpret_UnfreezeTokens()
     memcpy(&nValue, &pkt[8], 8);
     swapByteOrder64(nValue);
     nNewValue = nValue;
+    const CChainParams &param = GetConfig().GetChainParams();
+    const char* destaddr = (char*)&pkt[16];
+    UniValue unfreezaddr(destaddr);
 
-    /**
-        Note, TX186 virtual reference transaction type.
-              With virtual reference transactions a hash160 in the payload sets the receiver.
-              Reference outputs are ignored.
-    **/
-    unsigned char address_version;
-    uint160 address_hash160;
-    memcpy(&address_version, &pkt[16], 1);
-    memcpy(&address_hash160, &pkt[17], 20);
-    receiver = HashToAddress(address_version, address_hash160);
-    if (receiver.empty()) {
+    CTxDestination addr = DecodeCashAddr(unfreezaddr.get_str(), param);
+    CTxDestination comAddr = CNoDestination{};
+    if (addr == comAddr){
         return false;
     }
-    CBitcoinAddress recAddress(receiver);
-    if (!recAddress.IsValid()) {
+    receiver = EncodeCashAddr(addr, param);
+
+    if (receiver.empty()) {
         return false;
     }
 
@@ -921,7 +919,7 @@ bool CMPTransaction::interpret_UnfreezeTokens()
 
     return true;
 }
-#endif
+//#endif
 
 /** Tx 65533 */
 bool CMPTransaction::interpret_Deactivation()
@@ -1013,13 +1011,17 @@ int CMPTransaction::interpretPacket()
     LOCK(cs_tally);
 
     //change_001
-    /*
+    
     if (isAddressFrozen(sender, property)) {
         PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
         return (PKT_ERROR -3);
     }
+    /*
+    if (isAddressFrozen(receiver, property) && (type != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -3);
+    }
     */
-
     switch (type) {
         case MSC_TYPE_SIMPLE_SEND:
             return logicMath_SimpleSend();
@@ -1053,6 +1055,9 @@ int CMPTransaction::interpretPacket()
 
         case MSC_TYPE_CHANGE_ISSUER_ADDRESS:
             return logicMath_ChangeIssuer();
+			
+		case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
+            return logicMath_FreezeTokens();
 
         case WHC_TYPE_GET_BASE_PROPERTY:
             return logicMath_burnBCHGetWHC();
@@ -1062,6 +1067,56 @@ int CMPTransaction::interpretPacket()
     }
 
     return (PKT_ERROR -100);
+}
+
+int CMPTransaction::interpretFreezeTx()
+{
+    int ret = 0;
+    if (!interpret_Transaction()) {
+        return (PKT_ERROR -2);
+    }
+    LOCK(cs_tally);
+
+    switch (type) {
+        case MSC_TYPE_CREATE_PROPERTY_MANUAL: {
+            uint32_t propertyId = _my_sps->findSPByTX(txid);
+            if(propertyId == 0)
+            {
+                PrintToLog("%s(): ERROR: propertyid is zero!\n", __func__);
+                return (PKT_ERROR_TOKENS - 24);
+            }
+            if (ucFreezingFlag) {
+                enableFreezing(propertyId, block);
+            }
+            break;
+        }
+        case MSC_TYPE_FREEZE_PROPERTY_TOKENS: {
+            ret = logicMath_FreezeTokens();
+            break;
+        }
+        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:{
+            ret = logicMath_UnfreezeTokens();
+            break;
+        }
+    }
+    return ret;
+}
+
+bool CMPTransaction::isFreezeEnable()
+{
+    memcpy(&prev_prop_id, &pkt[7], 4);
+    swapByteOrder32(prev_prop_id);
+    const CConsensusParams& params = ConsensusParams();
+
+    if(block >= params.WHC_FREEZENACTIVATE_BLOCK)
+    {
+        ucFreezingFlag = prev_prop_id & 0x00000001;
+        prev_prop_id = prev_prop_id >> 1;
+    }
+    else {
+        ucFreezingFlag = 0;
+    }
+    return ucFreezingFlag;
 }
 
 // change_101 insert a entry to global state, when one address burn BCH to get WHC.
@@ -1397,6 +1452,14 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
 /** Tx 0 */
 int CMPTransaction::logicMath_SimpleSend()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, sender, property);
+        return (PKT_ERROR -3);
+    }
+    if (isAddressFrozen(receiver, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -4);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -1445,6 +1508,10 @@ int CMPTransaction::logicMath_SimpleSend()
 /** Tx 1 */
 int CMPTransaction::logicMath_BuyToken()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
+        return (PKT_ERROR -3);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                    __func__,
@@ -1578,6 +1645,10 @@ int CMPTransaction::logicMath_BuyToken()
 /** Tx 3 */
 int CMPTransaction::logicMath_SendToOwners()
 {
+    if (isAddressFrozen(sender, property)) {
+        PrintToLog("%s(): rejected: property %d is frozen\n", __func__, property);
+        return (PKT_ERROR -3);
+    }
     if (!IsTransactionTypeAllowed(block, property, type, version)) {
         PrintToLog("%s(): rejected: type %d or version %d not permitted for property %d at block %d\n",
                 __func__,
@@ -1622,7 +1693,7 @@ int CMPTransaction::logicMath_SendToOwners()
     // ------------------------------------------
 
     uint32_t distributeTo = distribution_property;
-    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue, block);
+    OwnerAddrType receiversSet = STO_GetReceivers(sender, distributeTo, nValue, block, property);
     uint64_t numberOfReceivers = receiversSet.size();
 
     // make sure we found some owners
@@ -1755,7 +1826,10 @@ int CMPTransaction::logicMath_SendAll()
             PrintToLog("%s(): sender %s is frozen for property %d - the property will not be included in processing.\n", __func__, sender, propertyId);
             continue;
         }
-
+        if (isAddressFrozen(receiver, propertyId)) {
+            PrintToLog("%s(): receiver %s is frozen for property %d - the property will not be included in processing.\n", __func__, receiver, propertyId);
+            continue;
+        }
         int64_t moneyAvailable = ptally->getMoney(propertyId, BALANCE);
         if (moneyAvailable > 0) {
             ++numberOfPropertiesSent;
@@ -2419,10 +2493,24 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
         return (PKT_ERROR_BURN -3);
     }
 
-    if (0 != prev_prop_id) {
-        PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
-        return (PKT_ERROR_SP -51);
+    const CConsensusParams& params = ConsensusParams();
+
+    if(block >= params.WHC_FREEZENACTIVATE_BLOCK)
+    {
+        if(prev_prop_id != 0 && prev_prop_id != 1)
+        {
+            PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
+            return (PKT_ERROR_SP -52);
+        }
     }
+    else {
+        if(prev_prop_id != 0)
+        {
+            PrintToLog("%s(): rejected: do not support prev_prop_id parameters %d\n", __func__, prev_prop_id);
+            return (PKT_ERROR_SP -51);
+        }
+    }
+
 
     if ('\0' == name[0]) {
         PrintToLog("%s(): rejected: property name must not be empty\n", __func__);
@@ -2435,6 +2523,7 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
     newSP.issuer = sender;
     newSP.txid = txid;
     newSP.prop_type = prop_type;
+    newSP.prev_prop_id = prev_prop_id;
     newSP.category.assign(category);
     newSP.subcategory.assign(subcategory);
     newSP.name.assign(name);
@@ -2444,7 +2533,6 @@ int CMPTransaction::logicMath_CreatePropertyManaged()
     newSP.manual = true;
     newSP.creation_block = blockHash;
     newSP.update_block = newSP.creation_block;
-
     uint32_t propertyId = _my_sps->putSP(ecosystem, newSP);
     assert(propertyId > 0);
     //change_002
@@ -2462,13 +2550,17 @@ int CMPTransaction::logicMath_GrantTokens()
     uint256 blockHash;
     {
         LOCK(cs_main);
-
         CBlockIndex* pindex = chainActive[block];
         if (pindex == NULL) {
             PrintToLog("%s(): ERROR: block %d not in the active chain\n", __func__, block);
             return (PKT_ERROR_SP -20);
         }
         blockHash = pindex->GetBlockHash();
+    }
+
+    if (isAddressFrozen(receiver, property)) {
+        PrintToLog("%s(): REJECTED: address %s is frozen for property %d\n", __func__, receiver, property);
+        return (PKT_ERROR -4);
     }
 
 	if (property == OMNI_PROPERTY_TWHC || OMNI_PROPERTY_WHC == property){
@@ -2679,6 +2771,11 @@ int CMPTransaction::logicMath_ChangeIssuer()
         return (PKT_ERROR_TOKENS -45);
     }
 
+    if(isAddressFrozen(receiver, property))
+    {
+        PrintToLog("%s(): rejected: receiver is frozen\n", __func__);
+        return (PKT_ERROR_SP -45);
+    }
 
     if (NULL != getCrowd(receiver)) {
         PrintToLog("%s(): rejected: receiver %s has an active crowdsale\n", __func__, receiver);
@@ -2851,17 +2948,21 @@ int CMPTransaction::logicMath_FreezeTokens()
         PrintToLog("%s(): rejected: sender %s is not issuer of property %d [issuer=%s]\n", __func__, sender, property, sp.issuer);
         return (PKT_ERROR_TOKENS -43);
     }
-
+    if(sender == receiver)
+    {
+        PrintToLog("%s(): rejected: freezed address %s cannot be the same with the issuer %s\n", __func__, receiver, sender);
+        return (PKT_ERROR_TOKENS -51);
+    }
     if (!isFreezingEnabled(property, block)) {
         PrintToLog("%s(): rejected: freezing is not enabled for property %d\n", __func__, property);
         return (PKT_ERROR_TOKENS -47);
     }
-
+/*
     if (isAddressFrozen(receiver, property)) {
         PrintToLog("%s(): rejected: address %s is already frozen for property %d\n", __func__, receiver, property);
         return (PKT_ERROR_TOKENS -50);
     }
-
+*/
     freezeAddress(receiver, property);
 
     return 0;
@@ -2909,17 +3010,21 @@ int CMPTransaction::logicMath_UnfreezeTokens()
         PrintToLog("%s(): rejected: sender %s is not issuer of property %d [issuer=%s]\n", __func__, sender, property, sp.issuer);
         return (PKT_ERROR_TOKENS -43);
     }
-
+    if(sender == receiver)
+    {
+        PrintToLog("%s(): rejected: unfreezed address %s cannot be the same with the issuer %s\n", __func__, receiver, sender);
+        return (PKT_ERROR_TOKENS -51);
+    }
     if (!isFreezingEnabled(property, block)) {
         PrintToLog("%s(): rejected: freezing is not enabled for property %d\n", __func__, property);
         return (PKT_ERROR_TOKENS -47);
     }
-
+/*
     if (!isAddressFrozen(receiver, property)) {
         PrintToLog("%s(): rejected: address %s is not frozen for property %d\n", __func__, receiver, property);
         return (PKT_ERROR_TOKENS -48);
     }
-
+*/
     unfreezeAddress(receiver, property);
 
     return 0;

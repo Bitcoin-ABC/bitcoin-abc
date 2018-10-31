@@ -88,6 +88,9 @@ inline std::string error_str(int ec) {
       case PKT_ERROR -3:
           ec_str = "Sender is frozen for the property";
           break;
+      case PKT_ERROR -4:
+          ec_str = "Receiver is frozen for the property";
+          break;
       case PKT_ERROR -22:
           ec_str = "Transaction type or version not permitted";
           break;
@@ -328,11 +331,17 @@ inline std::string error_str(int ec) {
       case PKT_ERROR_SP -44:
           ec_str = "Attempt to grant more than the maximum number of tokens";
           break;
+      case PKT_ERROR_SP -45:
+          ec_str = "Attempt to change issuer to a frozen receiver";
+          break;
       case PKT_ERROR_SP -50:
           ec_str = "Tokens to issue and desired property are not in the same ecosystem";
           break;
       case PKT_ERROR_SP -51:
           ec_str = "property prev_prop_id value should equal 0";
+          break;
+      case PKT_ERROR_SP -52:
+          ec_str = "property prev_prop_id value should equal 0 or 1 after activated property freezing function";
           break;
 
       case PKT_ERROR_TOKENS -22:
@@ -400,6 +409,8 @@ inline std::string error_str(int ec) {
           break;
       case PKT_ERROR_ERC721 -302:
           ec_str = "Sender is not the owner of ERC721 Token ";
+      case PKT_ERROR_TOKENS -51:
+          ec_str = "Freeze or unfreeze corresponding property issuer is not allowed";
           break;
       default:
           ec_str = "Unknown error";

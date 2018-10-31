@@ -421,33 +421,32 @@ void mastercore::disableFreezing(uint32_t propertyId)
 
 bool mastercore::isFreezingEnabled(uint32_t propertyId, int block)
 {
-    for (std::set<std::pair<uint32_t,int> >::iterator it = setFreezingEnabledProperties.begin(); it != setFreezingEnabledProperties.end(); it++) {
-        uint32_t itemPropertyId = (*it).first;
-        int itemBlock = (*it).second;
-        if (propertyId == itemPropertyId && block >= itemBlock) {
-            return true;
-        }
+    CMPSPInfo::Entry sp;
+
+    LOCK(cs_tally);
+    if (false == _my_sps->getSP(propertyId, sp)) {
+        PrintToLog("Property identifier does not exist.\n");
+        return false;
     }
+    if (sp.prev_prop_id & 0x01Ul) return true;
     return false;
 }
 
 void mastercore::freezeAddress(const std::string& address, uint32_t propertyId)
 {
     setFrozenAddresses.insert(std::make_pair(address, propertyId));
-    assert(isAddressFrozen(address, propertyId));
-    PrintToLog("Address %s has been frozen for property %d.\n", address, propertyId);
+    return;
 }
 
 void mastercore::unfreezeAddress(const std::string& address, uint32_t propertyId)
 {
     setFrozenAddresses.erase(std::make_pair(address, propertyId));
-    assert(!isAddressFrozen(address, propertyId));
-    PrintToLog("Address %s has been unfrozen for property %d.\n", address, propertyId);
+    return;
 }
 
 bool mastercore::isAddressFrozen(const std::string& address, uint32_t propertyId)
 {
-    if (setFrozenAddresses.find(std::make_pair(address, propertyId)) != setFrozenAddresses.end()) {
+    if(setFrozenAddresses.find(std::make_pair(address, propertyId)) != setFrozenAddresses.end()) {
         return true;
     }
     return false;
@@ -1331,6 +1330,7 @@ int input_msc_balances_string(const std::string& s)
         uint32_t propertyId = boost::lexical_cast<uint32_t>(curProperty[0]);
 
         int64_t balance = boost::lexical_cast<int64_t>(curBalance[0]);
+
         //change_001
         //int64_t sellReserved = boost::lexical_cast<int64_t>(curBalance[1]);
         //int64_t acceptReserved = boost::lexical_cast<int64_t>(curBalance[2]);
@@ -1433,6 +1433,17 @@ int input_globals_state_string(const string &s)
   _my_sps->init(nextSPID, nextTestSPID);
     my_erc721sps->init(propertyID);
   return 0;
+}
+
+int input_frozen_state_string (const string &s)
+{
+    std::vector<std::string> vstr;
+    boost::split(vstr, s, boost::is_any_of(","), token_compress_on);
+    if(2 != vstr.size()) return -1;
+    std::string strAddress = vstr[0];
+    uint32_t tokenId = boost::lexical_cast<uint32_t>(vstr[1]);
+    setFrozenAddresses.insert(std::make_pair(strAddress, tokenId));
+    return 0;
 }
 
 // addr,propertyId,nValue,property_desired,deadline,early_bird,percentage,txid
@@ -1541,6 +1552,10 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
       inputLineFunc = input_mp_crowdsale_string;
       break;
 
+    case FILETYPE_FROZENSTATE:
+        setFrozenAddresses.clear();
+        inputLineFunc = input_frozen_state_string;
+
     default:
       return -1;
   }
@@ -1621,6 +1636,7 @@ static char const * const statePrefix[NUM_FILETYPES] = {
     //"accepts",
     "globals",
     "crowdsales",
+    "frozen",
     //"mdexorders",
 };
 
@@ -1800,7 +1816,6 @@ static int write_msc_balances(std::ofstream& file, SHA256_CTX* shaCtx)
             int64_t sellReserved = (*iter).second.getMoney(propertyId, SELLOFFER_RESERVE);
             int64_t acceptReserved = (*iter).second.getMoney(propertyId, ACCEPT_RESERVE);
             int64_t metadexReserved = (*iter).second.getMoney(propertyId, METADEX_RESERVE);
-
             // we don't allow 0 balances to read in, so if we don't write them
             // it makes things match up better between persisted state and processed state
             if (0 == balance && 0 == sellReserved && 0 == acceptReserved && 0 == metadexReserved) {
@@ -1858,6 +1873,21 @@ static int write_mp_crowdsales(std::ofstream& file, SHA256_CTX* shaCtx)
 
     return 0;
 }
+static int write_mp_frozenstate(std::ofstream& file, SHA256_CTX* shaCtx)
+{
+    for (auto it = setFrozenAddresses.begin(); it != setFrozenAddresses.end(); ++it) {
+        // decompose the key for address
+        std::string lineOut = strprintf("%s,%d",
+                                        it->first,
+                                        it->second);
+        // add the line to the hash
+        SHA256_Update(shaCtx, lineOut.c_str(), lineOut.length());
+
+        // write the line
+        file << lineOut << std::endl;
+    }
+    return 0;
+}
 
 static int write_state_file( CBlockIndex const *pBlockIndex, int what )
 {
@@ -1896,6 +1926,10 @@ static int write_state_file( CBlockIndex const *pBlockIndex, int what )
 
   case FILETYPE_CROWDSALES:
       result = write_mp_crowdsales(file, &shaCtx);
+      break;
+
+  case FILETYPE_FROZENSTATE:
+      result = write_mp_frozenstate(file, &shaCtx);
       break;
 #if 0
   case FILETYPE_MDEXORDERS:
@@ -1995,6 +2029,7 @@ int mastercore_save_state( CBlockIndex const *pBlockIndex )
     */
     write_state_file(pBlockIndex, FILETYPE_GLOBALS);
     write_state_file(pBlockIndex, FILETYPE_CROWDSALES);
+    write_state_file(pBlockIndex, FILETYPE_FROZENSTATE);
     //write_state_file(pBlockIndex, FILETYPE_MDEXORDERS);
 
     // clean-up the directory
@@ -2135,7 +2170,13 @@ int mastercore_init()
     }
 
     if (nWaterlineBlock > 0) {
-        PrintToConsole("Loading persistent state: OK [block %d]\n", nWaterlineBlock);
+        PrintToConsole("best image from diskbest image from disk state: OK [block %d]\n", nWaterlineBlock);
+        //if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
+        //{
+            //nWaterlineBlock = -1;
+            //PrintToLog("Freeze TXs found below WaterLine\n");
+        //}
+
     } else {
         std::string strReason = "unknown";
         if (wrongDBVersion) strReason = "client version changed";
@@ -2167,7 +2208,7 @@ int mastercore_init()
         PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
-    // load feature activation messages from txlistdb and process them accordingly
+    // load feature activation messages from txlistdb and process them accordinglyx
     //change_001
     //p_txlistdb->LoadActivations(nWaterlineBlock);
 
@@ -2498,6 +2539,7 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
 {
     assert(pdb);
     Iterator* it = NewIterator();
+    const CConsensusParams& params = ConsensusParams();
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         std::string itData = it->value().ToString();
@@ -2506,14 +2548,81 @@ bool CMPTxList::CheckForFreezeTxs(int blockHeight)
         if (4 != vstr.size()) continue;
         int block = atoi(vstr[1]);
         if (block < blockHeight) continue;
+        if(block < params.WHC_FREEZENACTIVATE_BLOCK) continue;
         uint16_t txtype = atoi(vstr[2]);
-        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS ||
-            txtype == MSC_TYPE_ENABLE_FREEZING || txtype == MSC_TYPE_DISABLE_FREEZING) {
+        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS) {
             delete it;
             return true;
         }
+        if(txtype == MSC_TYPE_CREATE_PROPERTY_MANUAL)
+        {
+            uint256 txid = uint256S(it->key().ToString());
+            uint256 blockHash;
+            CTransactionRef wtx;
+            CMPTransaction mp_obj;
+            if (!GetTransaction(GetConfig(), TxId(const_cast<const uint256&>(txid)), wtx, blockHash, true)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: tx in levelDB but does not exist.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (0 != ParseTransaction(*(wtx.get()), block, 0, mp_obj)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (mp_obj.isFreezeEnable()) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed interpret_Transaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+        }
     }
+    delete it;
+    return false;
+}
 
+bool CMPTxList::CheckForFreezeTxsBelowBlock(int blockHeight)
+{
+    assert(pdb);
+    Iterator* it = NewIterator();
+    const CConsensusParams& params = ConsensusParams();
+
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        std::string itData = it->value().ToString();
+        std::vector<std::string> vstr;
+        boost::split(vstr, itData, boost::is_any_of(":"), token_compress_on);
+        if (4 != vstr.size()) continue;
+        int block = atoi(vstr[1]);
+        if (block > blockHeight) continue;
+        if(block < params.WHC_FREEZENACTIVATE_BLOCK) continue;
+        uint16_t txtype = atoi(vstr[2]);
+        if (txtype == MSC_TYPE_FREEZE_PROPERTY_TOKENS || txtype == MSC_TYPE_UNFREEZE_PROPERTY_TOKENS) {
+            delete it;
+            return true;
+        }
+        if(txtype == MSC_TYPE_CREATE_PROPERTY_MANUAL)
+        {
+            uint256 txid = uint256S(it->key().ToString());
+            uint256 blockHash;
+            CTransactionRef wtx;
+            CMPTransaction mp_obj;
+            if (!GetTransaction(GetConfig(), TxId(const_cast<const uint256&>(txid)), wtx, blockHash, true)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: tx in levelDB but does not exist.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (0 != ParseTransaction(*(wtx.get()), block, 0, mp_obj)) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed ParseTransaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+            if (mp_obj.isFreezeEnable()) {
+                PrintToLog("ERROR: While check for freeze transaction %s: failed interpret_Transaction.\n", txid.GetHex());
+                delete it;
+                return true;
+            }
+        }
+    }
     delete it;
     return false;
 }
@@ -2522,7 +2631,7 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
 {
     assert(pdb);
     std::vector<std::pair<std::string, uint256> > loadOrder;
-    int txnsLoaded = 0;
+    const CConsensusParams& params = ConsensusParams();
     Iterator* it = NewIterator();
     PrintToLog("Loading freeze state from levelDB\n");
 
@@ -2532,8 +2641,12 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
         boost::split(vstr, itData, boost::is_any_of(":"), token_compress_on);
         if (4 != vstr.size()) continue;
         uint16_t txtype = atoi(vstr[2]);
+        /*
+         * if (txtype != MSC_TYPE_FREEZE_PROPERTY_TOKENS && txtype != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS &&
+                txtype != MSC_TYPE_ENABLE_FREEZING && txtype != MSC_TYPE_DISABLE_FREEZING) continue;
+        */
         if (txtype != MSC_TYPE_FREEZE_PROPERTY_TOKENS && txtype != MSC_TYPE_UNFREEZE_PROPERTY_TOKENS &&
-            txtype != MSC_TYPE_ENABLE_FREEZING && txtype != MSC_TYPE_DISABLE_FREEZING) continue;
+            txtype != MSC_TYPE_CREATE_PROPERTY_MANUAL) continue;
         if (atoi(vstr[0]) != 1) continue; // invalid, ignore
         uint256 txid = uint256S(it->key().ToString());
         int txPosition = p_OmniTXDB->FetchTransactionPosition(txid);
@@ -2568,6 +2681,7 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             PrintToLog("ERROR: While loading freeze transaction %s: transaction is in the future.\n", hash.GetHex());
             return false;
         }
+        if(txBlockHeight < params.WHC_FREEZENACTIVATE_BLOCK) continue;
         if (0 != ParseTransaction(*(wtx.get()), txBlockHeight, 0, mp_obj)) {
             PrintToLog("ERROR: While loading freeze transaction %s: failed ParseTransaction.\n", hash.GetHex());
             return false;
@@ -2576,23 +2690,19 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
             PrintToLog("ERROR: While loading freeze transaction %s: failed interpret_Transaction.\n", hash.GetHex());
             return false;
         }
+        if(MSC_TYPE_CREATE_PROPERTY_MANUAL == mp_obj.getType() && !mp_obj.getFreezeflag()) continue;
+
         if (MSC_TYPE_FREEZE_PROPERTY_TOKENS != mp_obj.getType() && MSC_TYPE_UNFREEZE_PROPERTY_TOKENS != mp_obj.getType() &&
-            MSC_TYPE_ENABLE_FREEZING != mp_obj.getType() && MSC_TYPE_DISABLE_FREEZING != mp_obj.getType()) {
+            MSC_TYPE_CREATE_PROPERTY_MANUAL != mp_obj.getType()) {
             PrintToLog("ERROR: While loading freeze transaction %s: levelDB type mismatch, not a freeze transaction.\n", hash.GetHex());
             return false;
         }
         mp_obj.unlockLogic();
-        if (0 != mp_obj.interpretPacket()) {
-            PrintToLog("ERROR: While loading freeze transaction %s: non-zero return from interpretPacket\n", hash.GetHex());
+        if (0 != mp_obj.interpretFreezeTx()) {
+            PrintToLog("ERROR: While loading freeze transaction %s: non-zero return from interpretFreezeTx\n", hash.GetHex());
             return false;
         }
-        txnsLoaded++;
     }
-
-    if (blockHeight > 497000 && !isNonMainNet()) {
-        assert(txnsLoaded >= 2); // sanity check against a failure to properly load the freeze state
-    }
-
     return true;
 }
 
@@ -3783,7 +3893,7 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
 
         // Check if any freeze related transactions would be rolled back - if so wipe the state and startclean
         //change_001
-        // bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
+        //bool reorgContainsFreeze = p_txlistdb->CheckForFreezeTxs(pBlockIndex->nHeight);
 
         // NOTE: The blockNum parameter is inclusive, so deleteAboveBlock(1000) will delete records in block 1000 and above.
         p_txlistdb->isMPinBlockRange(pBlockIndex->nHeight, reorgRecoveryMaxHeight, true);
@@ -3796,19 +3906,6 @@ int mastercore_handler_block_begin(int nBlockPrev, CBlockIndex const * pBlockInd
         nWaterlineBlock = ConsensusParams().GENESIS_BLOCK - 1;
 
         //change_001
-        /*
-        if (reorgContainsFreeze) {
-           PrintToLog("Reorganization containing freeze related transactions detected, forcing a reparse...\n");
-           clear_all_state(); // unable to reorg freezes safely, clear state and reparse
-        } else {
-            int best_state_block = load_most_relevant_state();
-            if (best_state_block < 0) {
-                // unable to recover easily, remove stale stale state bits and reparse from the beginning.
-                clear_all_state();
-            } else {
-                nWaterlineBlock = best_state_block;
-            }
-        }*/
 
         int best_state_block = load_most_relevant_state();
         if (best_state_block < 0) {

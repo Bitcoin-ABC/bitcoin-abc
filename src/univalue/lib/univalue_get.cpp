@@ -13,6 +13,8 @@
 #include <string>
 
 #include "univalue.h"
+#include <cstdio>
+#include <execinfo.h>
 
 namespace
 {
@@ -96,8 +98,9 @@ bool UniValue::get_bool() const
 
 const std::string& UniValue::get_str() const
 {
-    if (typ != VSTR)
+    if (typ != VSTR){
         throw std::runtime_error("JSON value is not a string as expected");
+    }
     return getValStr();
 }
 
