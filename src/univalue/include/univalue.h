@@ -1,7 +1,7 @@
 // Copyright 2014 BitPay Inc.
 // Copyright 2015 Bitcoin Core Developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://opensource.org/licenses/mit-license.php.
 
 #ifndef __UNIVALUE_H__
 #define __UNIVALUE_H__
@@ -128,6 +128,10 @@ public:
     }
     bool pushKV(const std::string& key, uint64_t val_) {
         UniValue tmpVal(val_);
+        return pushKV(key, tmpVal);
+    }
+    bool pushKV(const std::string& key, bool val_) {
+        UniValue tmpVal((bool)val_);
         return pushKV(key, tmpVal);
     }
     bool pushKV(const std::string& key, int val_) {
