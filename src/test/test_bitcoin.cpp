@@ -45,8 +45,7 @@ void CConnmanTest::ClearNodes() {
     g_connman->vNodes.clear();
 }
 
-uint256 insecure_rand_seed = GetRandHash();
-FastRandomContext insecure_rand_ctx(insecure_rand_seed);
+FastRandomContext insecure_rand_ctx;
 
 extern void noui_connect();
 
