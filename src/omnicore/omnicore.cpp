@@ -2159,7 +2159,7 @@ int mastercore_init()
 
     nWaterlineBlock = load_most_relevant_state();
     bool noPreviousState = (nWaterlineBlock <= 0);
-	PrintToLog("load block height %d best image from disk ", nWaterlineBlock );
+	PrintToLog("load block height %d best image from disk \n", nWaterlineBlock );
 
     if (startClean) {
         assert(p_txlistdb->setDBVersion() == DB_VERSION); // new set of databases, set DB version
@@ -2168,19 +2168,13 @@ int mastercore_init()
     }
 
     if (nWaterlineBlock > 0) {
-        PrintToConsole("best image from diskbest image from disk state: OK [block %d]\n", nWaterlineBlock);
-        //if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
-        //{
-            //nWaterlineBlock = -1;
-            //PrintToLog("Freeze TXs found below WaterLine\n");
-        //}
-
+        PrintToLog("best image from disk: OK [block %d]\n", nWaterlineBlock);
     } else {
         std::string strReason = "unknown";
         if (wrongDBVersion) strReason = "client version changed";
         if (noPreviousState) strReason = "no usable previous state found";
         if (startClean) strReason = "-startclean parameter used";
-        PrintToConsole("Loading persistent state: NONE (%s)\n", strReason);
+        PrintToLog("Loading persistent state: NONE (%s)\n", strReason);
     }
 
     if (nWaterlineBlock < 0) {
