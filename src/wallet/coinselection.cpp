@@ -256,7 +256,7 @@ bool KnapsackSolver(const Amount nTargetValue, std::vector<OutputGroup> &groups,
     std::vector<OutputGroup> applicable_groups;
     Amount nTotalLower = Amount::zero();
 
-    random_shuffle(groups.begin(), groups.end(), GetRandInt);
+    Shuffle(groups.begin(), groups.end(), FastRandomContext());
 
     for (const OutputGroup &group : groups) {
         if (group.m_value == nTargetValue) {
