@@ -88,7 +88,7 @@ Execute the following as user `vagrant`:
 
 ```bash
 cd gitian-builder
-bin/make-base-vm --lxc --arch amd64 --suite xenial
+./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64
 ```
 
 There will be a lot of warnings printed during the build of the image. These

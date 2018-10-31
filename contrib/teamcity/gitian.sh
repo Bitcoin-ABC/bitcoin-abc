@@ -28,7 +28,7 @@ if [[ "${OS_NAME}" == "osx" ]]; then
   mv MacOSX10.11.sdk.tar.gz inputs
 fi
 
-./bin/make-base-vm --lxc --suite xenial --arch amd64
+./bin/make-base-vm --lxc --distro debian --suite stretch --arch amd64
 ./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} ../contrib/gitian-descriptors/gitian-${OS_NAME}.yml
 
 cd ..
