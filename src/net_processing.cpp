@@ -882,9 +882,10 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
                      nErased);
         }
     }
+    FastRandomContext rng;
     while (mapOrphanTransactions.size() > nMaxOrphans) {
         // Evict a random orphan:
-        uint256 randomhash = GetRandHash();
+        uint256 randomhash = rng.rand256();
         std::map<uint256, COrphanTx>::iterator it =
             mapOrphanTransactions.lower_bound(randomhash);
         if (it == mapOrphanTransactions.end()) {
