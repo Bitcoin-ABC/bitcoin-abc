@@ -71,9 +71,6 @@
 #include <openssl/sha.h>
 
 #include "leveldb/db.h"
-#include "../chain.h"
-#include "rules.h"
-#include "ERC721.h"
 
 #include <assert.h>
 #include <stdint.h>
