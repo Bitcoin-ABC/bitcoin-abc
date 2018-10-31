@@ -30,13 +30,13 @@ env:
     - MATRIX_EVAL="CC=gcc && CXX=g++"
   matrix:
 # 32-bit + dash
-    - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++" USE_SHELL="/bin/dash"
+    - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS='-fprofile-arcs -ftest-coverage -coverage' LDFLAGS='-fprofile-arcs -lgcov -coverage -static-libstdc++'" USE_SHELL="/bin/dash"
 # bitcoind
 #    - HOST=x86_64-unknown-linux-gnu PACKAGES="bc python3-zmq" DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS=-DDEBUG_LOCKORDER -fpermissive"
 # No wallet
 #   - HOST=x86_64-unknown-linux-gnu PACKAGES="python3 xvfb" DEP_OPTS="NO_WALLET=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-glibc-back-compat --enable-reduce-exports"
 # Cross-Mac
-    - HOST=x86_64-apple-darwin11 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev" BITCOIN_CONFIG="--enable-gui --enable-reduce-exports" OSX_SDK=10.11 GOAL="deploy"
+# - HOST=x86_64-apple-darwin11 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev" BITCOIN_CONFIG="--enable-gui --enable-reduce-exports" OSX_SDK=10.11 GOAL="deploy"
 
 before_install:
     - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
@@ -49,6 +49,7 @@ install:
     - if [ -n "$PACKAGES" ]; then travis_retry sudo apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES; fi
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 50
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 50
+    - pip install --user cpp-coveralls
 before_script:
     - unset CC; unset CXX
     - eval "${MATRIX_EVAL}"
@@ -83,7 +84,8 @@ script:
     - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
     # - if [ "$RUN_TESTS" = "true" ]; then make $MAKEJOBS check VERBOSE=1; fi
     - if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then extended="--extended --quiet --exclude pruning"; fi
-    - if [ "$RUN_TESTS" = "true" ]; then test/functional/test_runner.py --coverage ${extended}; fi
+    #- if [ "$RUN_TESTS" = "true" ]; then test/functional/test_runner.py --coverage ${extended}; fi
+    - coveralls --exclude tests --gcov-options '\-lp' 	
 after_script:
     - echo $TRAVIS_COMMIT_RANGE
     - echo $TRAVIS_COMMIT_LOG
