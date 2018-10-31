@@ -246,7 +246,7 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
-    ERC721_BLOCK = 100;
+    ERC721_BLOCK = 110;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 0;
     MSC_DEX_BLOCK = 0;

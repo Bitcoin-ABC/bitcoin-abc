@@ -24,7 +24,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_issueERC721property("c", "WH", "hello world", "www.wormhole.cash", "100898738618")
             txhash = self.constructCreatePropertyTx(item, payload)
 
-            # step 1.1 check the erc721 property transaction with totalNumnber is 0.
+            # step 1 the create erc721 property feature is not start.
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 1) is True
@@ -37,7 +37,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_issueERC721token("0x01", "0x02", "0x09", "www.wormhole.cash")
             txhash = self.constructReceiveTx(item, payload, receiveAddr)
 
-            # Step 5.1 check the error transaction with tokenid exist in BlockChain.
+            # Step 2 the create erc721 token feature is not start.
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 2) is True
@@ -50,7 +50,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_transferERC721token("0x03", "0x01")
             txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
 
-            # Step 11.1 check the error transaction with the sender is not the token owner.
+            # Step 3 the transfer erc721 token feature is not start.
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 3) is True
@@ -63,7 +63,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             payload = self.nodes[0].whc_createpayload_destroyERC721token("0x03", "0x01")
             txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
 
-            # step 13.1 check the error transaction with the sender is not the token owner.
+            # step 4 the destroy erc721 token feature is not start.
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is False
             assert (txnews["action"] == 4) is True
@@ -413,6 +413,20 @@ class WHC_erc721_Test(BitcoinTestFramework):
             assert txnews["valid"] is False
             assert (txnews["action"] == 4) is True
             assert (txnews["invalidreason"] == "Sender is not the owner of ERC721 Token ")
+        else:
+            assert False
+
+        item = self.getSpent(receiveAddr)
+        if item:
+            # step 13 create erc721 destroy transaction : the property doesn't exist in BlockChain.
+            payload = self.nodes[0].whc_createpayload_destroyERC721token("0x08", "0x01")
+            txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
+
+            # step 13.1 check the error transaction with the property doesn't exist in BlockChain.
+            txnews = self.nodes[0].whc_gettransaction(txhash)
+            assert txnews["valid"] is False
+            assert (txnews["action"] == 4) is True
+            assert (txnews["invalidreason"] == "Don't get special ERC721 property in BlockChain")
         else:
             assert False
 

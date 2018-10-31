@@ -409,6 +409,7 @@ inline std::string error_str(int ec) {
           break;
       case PKT_ERROR_ERC721 -302:
           ec_str = "Sender is not the owner of ERC721 Token ";
+          break;
       case PKT_ERROR_TOKENS -51:
           ec_str = "Freeze or unfreeze corresponding property issuer is not allowed";
           break;

@@ -1059,6 +1059,9 @@ int CMPTransaction::interpretPacket()
 		case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
             return logicMath_FreezeTokens();
 
+        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:
+            return logicMath_UnfreezeTokens();
+
         case WHC_TYPE_GET_BASE_PROPERTY:
             return logicMath_burnBCHGetWHC();
 

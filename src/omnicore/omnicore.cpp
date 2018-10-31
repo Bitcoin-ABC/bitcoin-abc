@@ -1532,7 +1532,6 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
 
   switch (what)
   {
-
       case FILETYPE_BALANCES:
           mp_tally_map.clear();
           inputLineFunc = input_msc_balances_string;
@@ -1555,6 +1554,7 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
     case FILETYPE_FROZENSTATE:
         setFrozenAddresses.clear();
         inputLineFunc = input_frozen_state_string;
+          break;
 
     default:
       return -1;
@@ -1644,7 +1644,6 @@ static char const * const statePrefix[NUM_FILETYPES] = {
 static int load_most_relevant_state()
 {
   int res = -1;
-  const CConsensusParams& param = ConsensusParams();
 
   // check the SP database and roll it back to its latest valid state
   // according to the active chain
@@ -1730,7 +1729,7 @@ static int load_most_relevant_state()
   int abortRollBackBlock;
   if (curTip != NULL) abortRollBackBlock = curTip->nHeight - (MAX_STATE_HISTORY+1);
   while (NULL != curTip && persistedBlocks.size() > 0 && curTip->nHeight > abortRollBackBlock) {
-    if (persistedBlocks.find(spBlockIndex->GetBlockHash()) != persistedBlocks.end()) {
+    if (persistedBlocks.find(curTip->GetBlockHash()) != persistedBlocks.end()) {
       int success = -1;
       for (int i = 0; i < NUM_FILETYPES; ++i) {
         boost::filesystem::path path = MPPersistencePath / strprintf("%s-%s.dat", statePrefix[i], curTip->GetBlockHash().ToString());
@@ -1747,7 +1746,7 @@ static int load_most_relevant_state()
       }
 
       // remove this from the persistedBlock Set
-      persistedBlocks.erase(spBlockIndex->GetBlockHash());
+      persistedBlocks.erase(curTip->GetBlockHash());
     }
 
     // go to the previous block
@@ -1755,19 +1754,18 @@ static int load_most_relevant_state()
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
     }
-  if(!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())){
+  if(!my_erc721tokens->popBlock(curTip->GetBlockHash())){
       return -1;
   }
-  if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
+  if (!my_erc721sps->popBlock(curTip->GetBlockHash())){
       return  -1;
   }
 
       curTip = curTip->pprev;
-    spBlockIndex = curTip;
     if (curTip != NULL) {
         _my_sps->setWatermark(curTip->GetBlockHash());
-        my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
-        my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
+        my_erc721tokens->setWatermark(curTip->GetBlockHash());
+        my_erc721sps->setWatermark(curTip->GetBlockHash());
     }
   }
 
@@ -2208,25 +2206,6 @@ int mastercore_init()
         PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
-    // load feature activation messages from txlistdb and process them accordinglyx
-    //change_001
-    //p_txlistdb->LoadActivations(nWaterlineBlock);
-
-    // load all alerts from levelDB (and immediately expire old ones)
-    //change_001
-    //p_txlistdb->LoadAlerts(nWaterlineBlock);
-
-    // load the state of any freeable properties and frozen addresses from levelDB
-    ////change_001
-    /*
-    if (!p_txlistdb->LoadFreezeState(nWaterlineBlock)) {
-        std::string strShutdownReason = "Failed to load freeze state from levelDB.  It is unsafe to continue.\n";
-        PrintToLog(strShutdownReason);
-        if (!gArgs.GetBoolArg("-overrideforcedshutdown", false)) {
-            AbortNode(strShutdownReason, strShutdownReason);
-        }
-    }
-    */
     // initial scan
     s_stolistdb->deleteAboveBlock(nWaterlineBlock);
 	PrintToLog("init scan current system from %d ", nWaterlineBlock );
