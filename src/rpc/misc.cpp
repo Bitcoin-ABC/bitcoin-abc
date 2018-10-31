@@ -98,16 +98,16 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     GetProxy(NET_IPV4, proxy);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version", CLIENT_VERSION));
-    obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
+    obj.pushKV("version", CLIENT_VERSION);
+    obj.pushKV("protocolversion", PROTOCOL_VERSION);
 #ifdef ENABLE_WALLET
     if (pwallet) {
-        obj.push_back(Pair("walletversion", pwallet->GetVersion()));
-        obj.push_back(Pair("balance", ValueFromAmount(pwallet->GetBalance())));
+        obj.pushKV("walletversion", pwallet->GetVersion());
+        obj.pushKV("balance", ValueFromAmount(pwallet->GetBalance()));
     }
 #endif
-    obj.push_back(Pair("blocks", (int)chainActive.Height()));
-    obj.push_back(Pair("timeoffset", GetTimeOffset()));
+    obj.pushKV("blocks", (int)chainActive.Height());
+    obj.pushKV("timeoffset", GetTimeOffset());
     if (g_connman) {
         obj.push_back(
             Pair("connections",
@@ -115,23 +115,23 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     }
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                                  : std::string())));
-    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
+    obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
     obj.push_back(Pair("testnet",
                        config.GetChainParams().NetworkIDString() ==
                            CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
     if (pwallet) {
-        obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
-        obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
+        obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
+        obj.pushKV("keypoolsize", (int)pwallet->GetKeyPoolSize());
     }
     if (pwallet && pwallet->IsCrypted()) {
-        obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
+        obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
-    obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
+    obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
 #endif
     obj.push_back(Pair("relayfee",
                        ValueFromAmount(config.GetMinFeePerKB().GetFeePerK())));
-    obj.push_back(Pair("errors", GetWarnings("statusbar")));
+    obj.pushKV("errors", GetWarnings("statusbar"));
     return obj;
 }
 
@@ -149,10 +149,10 @@ public:
     UniValue operator()(const CKeyID &keyID) const {
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
-        obj.push_back(Pair("isscript", false));
+        obj.pushKV("isscript", false);
         if (pwallet && pwallet->GetPubKey(keyID, vchPubKey)) {
-            obj.push_back(Pair("pubkey", HexStr(vchPubKey)));
-            obj.push_back(Pair("iscompressed", vchPubKey.IsCompressed()));
+            obj.pushKV("pubkey", HexStr(vchPubKey));
+            obj.pushKV("iscompressed", vchPubKey.IsCompressed());
         }
         return obj;
     }
@@ -160,22 +160,22 @@ public:
     UniValue operator()(const CScriptID &scriptID) const {
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        obj.push_back(Pair("isscript", true));
+        obj.pushKV("isscript", true);
         if (pwallet && pwallet->GetCScript(scriptID, subscript)) {
             std::vector<CTxDestination> addresses;
             txnouttype whichType;
             int nRequired;
             ExtractDestinations(subscript, whichType, addresses, nRequired);
-            obj.push_back(Pair("script", GetTxnOutputType(whichType)));
+            obj.pushKV("script", GetTxnOutputType(whichType));
             obj.push_back(
                 Pair("hex", HexStr(subscript.begin(), subscript.end())));
             UniValue a(UniValue::VARR);
             for (const CTxDestination &addr : addresses) {
                 a.push_back(EncodeDestination(addr));
             }
-            obj.push_back(Pair("addresses", a));
+            obj.pushKV("addresses", a);
             if (whichType == TX_MULTISIG) {
-                obj.push_back(Pair("sigsrequired", nRequired));
+                obj.pushKV("sigsrequired", nRequired);
             }
         }
         return obj;
@@ -240,10 +240,10 @@ static UniValue validateaddress(const Config &config,
     bool isValid = IsValidDestination(dest);
 
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("isvalid", isValid));
+    ret.pushKV("isvalid", isValid);
     if (isValid) {
         std::string currentAddress = EncodeDestination(dest);
-        ret.push_back(Pair("address", currentAddress));
+        ret.pushKV("address", currentAddress);
 
         CScript scriptPubKey = GetScriptForDestination(dest);
         ret.push_back(Pair("scriptPubKey",
@@ -251,14 +251,14 @@ static UniValue validateaddress(const Config &config,
 
 #ifdef ENABLE_WALLET
         isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
-        ret.push_back(Pair("ismine", (mine & ISMINE_SPENDABLE) ? true : false));
+        ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
         ret.push_back(
             Pair("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false));
         UniValue detail =
             boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
         ret.pushKVs(detail);
         if (pwallet && pwallet->mapAddressBook.count(dest)) {
-            ret.push_back(Pair("account", pwallet->mapAddressBook[dest].name));
+            ret.pushKV("account", pwallet->mapAddressBook[dest].name);
         }
         if (pwallet) {
             const auto &meta = pwallet->mapKeyMetadata;
@@ -268,9 +268,9 @@ static UniValue validateaddress(const Config &config,
                 it = meta.find(CScriptID(scriptPubKey));
             }
             if (it != meta.end()) {
-                ret.push_back(Pair("timestamp", it->second.nCreateTime));
+                ret.pushKV("timestamp", it->second.nCreateTime);
                 if (!it->second.hdKeypath.empty()) {
-                    ret.push_back(Pair("hdkeypath", it->second.hdKeypath));
+                    ret.pushKV("hdkeypath", it->second.hdKeypath);
                     ret.push_back(Pair("hdmasterkeyid",
                                        it->second.hdMasterKeyID.GetHex()));
                 }
@@ -412,8 +412,8 @@ static UniValue createmultisig(const Config &config,
     CScriptID innerID(inner);
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("address", EncodeDestination(innerID)));
-    result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
+    result.pushKV("address", EncodeDestination(innerID));
+    result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
 
     return result;
 }
@@ -572,12 +572,12 @@ static UniValue setmocktime(const Config &config,
 static UniValue RPCLockedMemoryInfo() {
     LockedPool::Stats stats = LockedPoolManager::Instance().stats();
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("used", uint64_t(stats.used)));
-    obj.push_back(Pair("free", uint64_t(stats.free)));
-    obj.push_back(Pair("total", uint64_t(stats.total)));
-    obj.push_back(Pair("locked", uint64_t(stats.locked)));
-    obj.push_back(Pair("chunks_used", uint64_t(stats.chunks_used)));
-    obj.push_back(Pair("chunks_free", uint64_t(stats.chunks_free)));
+    obj.pushKV("used", uint64_t(stats.used));
+    obj.pushKV("free", uint64_t(stats.free));
+    obj.pushKV("total", uint64_t(stats.total));
+    obj.pushKV("locked", uint64_t(stats.locked));
+    obj.pushKV("chunks_used", uint64_t(stats.chunks_used));
+    obj.pushKV("chunks_free", uint64_t(stats.chunks_free));
     return obj;
 }
 
@@ -644,7 +644,7 @@ static UniValue getmemoryinfo(const Config &config,
                            : request.params[0].get_str();
     if (mode == "stats") {
         UniValue obj(UniValue::VOBJ);
-        obj.push_back(Pair("locked", RPCLockedMemoryInfo()));
+        obj.pushKV("locked", RPCLockedMemoryInfo());
         return obj;
     } else if (mode == "mallocinfo") {
 #ifdef HAVE_MALLOC_INFO

@@ -638,16 +638,16 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             UniValue utxos(UniValue::VARR);
             for (const CCoin &coin : outs) {
                 UniValue utxo(UniValue::VOBJ);
-                utxo.push_back(Pair("height", int32_t(coin.nHeight)));
-                utxo.push_back(Pair("value", ValueFromAmount(coin.out.nValue)));
+                utxo.pushKV("height", int32_t(coin.nHeight));
+                utxo.pushKV("value", ValueFromAmount(coin.out.nValue));
 
                 // include the script in a json output
                 UniValue o(UniValue::VOBJ);
                 ScriptPubKeyToJSON(config, coin.out.scriptPubKey, o, true);
-                utxo.push_back(Pair("scriptPubKey", o));
+                utxo.pushKV("scriptPubKey", o);
                 utxos.push_back(utxo);
             }
-            objGetUTXOResponse.push_back(Pair("utxos", utxos));
+            objGetUTXOResponse.pushKV("utxos", utxos);
 
             // return json string
             std::string strJSON = objGetUTXOResponse.write() + "\n";

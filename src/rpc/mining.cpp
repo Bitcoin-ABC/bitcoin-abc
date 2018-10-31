@@ -248,18 +248,18 @@ static UniValue getmininginfo(const Config &config,
     LOCK(cs_main);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("blocks", int(chainActive.Height())));
-    obj.push_back(Pair("currentblocksize", uint64_t(nLastBlockSize)));
-    obj.push_back(Pair("currentblocktx", uint64_t(nLastBlockTx)));
-    obj.push_back(Pair("difficulty", double(GetDifficulty(chainActive.Tip()))));
+    obj.pushKV("blocks", int(chainActive.Height()));
+    obj.pushKV("currentblocksize", uint64_t(nLastBlockSize));
+    obj.pushKV("currentblocktx", uint64_t(nLastBlockTx));
+    obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
     obj.push_back(
         Pair("blockprioritypercentage",
              uint8_t(gArgs.GetArg("-blockprioritypercentage",
                                   DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));
-    obj.push_back(Pair("errors", GetWarnings("statusbar")));
-    obj.push_back(Pair("networkhashps", getnetworkhashps(config, request)));
-    obj.push_back(Pair("pooledtx", uint64_t(mempool.size())));
-    obj.push_back(Pair("chain", config.GetChainParams().NetworkIDString()));
+    obj.pushKV("errors", GetWarnings("statusbar"));
+    obj.pushKV("networkhashps", getnetworkhashps(config, request));
+    obj.pushKV("pooledtx", uint64_t(mempool.size()));
+    obj.pushKV("chain", config.GetChainParams().NetworkIDString());
     return obj;
 }
 
@@ -619,9 +619,9 @@ static UniValue getblocktemplate(const Config &config,
 
         UniValue entry(UniValue::VOBJ);
 
-        entry.push_back(Pair("data", EncodeHexTx(tx)));
-        entry.push_back(Pair("txid", txId.GetHex()));
-        entry.push_back(Pair("hash", tx.GetHash().GetHex()));
+        entry.pushKV("data", EncodeHexTx(tx));
+        entry.pushKV("txid", txId.GetHex());
+        entry.pushKV("hash", tx.GetHash().GetHex());
 
         UniValue deps(UniValue::VARR);
         for (const CTxIn &in : tx.vin) {
@@ -629,13 +629,13 @@ static UniValue getblocktemplate(const Config &config,
                 deps.push_back(setTxIndex[in.prevout.GetTxId()]);
             }
         }
-        entry.push_back(Pair("depends", deps));
+        entry.pushKV("depends", deps);
 
         int index_in_template = i - 1;
         entry.push_back(
             Pair("fee", pblocktemplate->vTxFees[index_in_template] / SATOSHI));
         int64_t nTxSigOps = pblocktemplate->vTxSigOpsCount[index_in_template];
-        entry.push_back(Pair("sigops", nTxSigOps));
+        entry.pushKV("sigops", nTxSigOps);
 
         transactions.push_back(entry);
     }
@@ -652,30 +652,30 @@ static UniValue getblocktemplate(const Config &config,
     aMutable.push_back("prevblock");
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("capabilities", aCaps));
+    result.pushKV("capabilities", aCaps);
 
-    result.push_back(Pair("version", pblock->nVersion));
+    result.pushKV("version", pblock->nVersion);
 
-    result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
-    result.push_back(Pair("transactions", transactions));
-    result.push_back(Pair("coinbaseaux", aux));
+    result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
+    result.pushKV("transactions", transactions);
+    result.pushKV("coinbaseaux", aux);
     result.push_back(Pair("coinbasevalue",
                           int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI)));
     result.push_back(Pair("longpollid",
                           chainActive.Tip()->GetBlockHash().GetHex() +
                               i64tostr(nTransactionsUpdatedLast)));
-    result.push_back(Pair("target", hashTarget.GetHex()));
+    result.pushKV("target", hashTarget.GetHex());
     result.push_back(
         Pair("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1));
-    result.push_back(Pair("mutable", aMutable));
-    result.push_back(Pair("noncerange", "00000000ffffffff"));
+    result.pushKV("mutable", aMutable);
+    result.pushKV("noncerange", "00000000ffffffff");
     // FIXME: Allow for mining block greater than 1M.
     result.push_back(
         Pair("sigoplimit", GetMaxBlockSigOpsCount(DEFAULT_MAX_BLOCK_SIZE)));
-    result.push_back(Pair("sizelimit", DEFAULT_MAX_BLOCK_SIZE));
-    result.push_back(Pair("curtime", pblock->GetBlockTime()));
-    result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
-    result.push_back(Pair("height", int64_t(pindexPrev->nHeight) + 1));
+    result.pushKV("sizelimit", DEFAULT_MAX_BLOCK_SIZE);
+    result.pushKV("curtime", pblock->GetBlockTime());
+    result.pushKV("bits", strprintf("%08x", pblock->nBits));
+    result.pushKV("height", int64_t(pindexPrev->nHeight) + 1);
 
     return result;
 }

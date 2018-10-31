@@ -108,30 +108,30 @@ void EnsureWalletIsUnlocked(CWallet *const pwallet) {
 
 void WalletTxToJSON(const CWalletTx &wtx, UniValue &entry) {
     int confirms = wtx.GetDepthInMainChain();
-    entry.push_back(Pair("confirmations", confirms));
+    entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
-        entry.push_back(Pair("generated", true));
+        entry.pushKV("generated", true);
     }
     if (confirms > 0) {
-        entry.push_back(Pair("blockhash", wtx.hashBlock.GetHex()));
-        entry.push_back(Pair("blockindex", wtx.nIndex));
+        entry.pushKV("blockhash", wtx.hashBlock.GetHex());
+        entry.pushKV("blockindex", wtx.nIndex);
         entry.push_back(
             Pair("blocktime", mapBlockIndex[wtx.hashBlock]->GetBlockTime()));
     } else {
-        entry.push_back(Pair("trusted", wtx.IsTrusted()));
+        entry.pushKV("trusted", wtx.IsTrusted());
     }
     uint256 hash = wtx.GetId();
-    entry.push_back(Pair("txid", hash.GetHex()));
+    entry.pushKV("txid", hash.GetHex());
     UniValue conflicts(UniValue::VARR);
     for (const uint256 &conflict : wtx.GetConflicts()) {
         conflicts.push_back(conflict.GetHex());
     }
-    entry.push_back(Pair("walletconflicts", conflicts));
-    entry.push_back(Pair("time", wtx.GetTxTime()));
-    entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived));
+    entry.pushKV("walletconflicts", conflicts);
+    entry.pushKV("time", wtx.GetTxTime());
+    entry.pushKV("timereceived", (int64_t)wtx.nTimeReceived);
 
     for (const std::pair<std::string, std::string> &item : wtx.mapValue) {
-        entry.push_back(Pair(item.first, item.second));
+        entry.pushKV(item.first, item.second);
     }
 }
 
@@ -1508,16 +1508,16 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
         } else {
             UniValue obj(UniValue::VOBJ);
             if (fIsWatchonly) {
-                obj.push_back(Pair("involvesWatchonly", true));
+                obj.pushKV("involvesWatchonly", true);
             }
-            obj.push_back(Pair("address", EncodeDestination(address)));
-            obj.push_back(Pair("account", strAccount));
-            obj.push_back(Pair("amount", ValueFromAmount(nAmount)));
+            obj.pushKV("address", EncodeDestination(address));
+            obj.pushKV("account", strAccount);
+            obj.pushKV("amount", ValueFromAmount(nAmount));
             obj.push_back(
                 Pair("confirmations",
                      (nConf == std::numeric_limits<int>::max() ? 0 : nConf)));
             if (!fByAccounts) {
-                obj.push_back(Pair("label", strAccount));
+                obj.pushKV("label", strAccount);
             }
             UniValue transactions(UniValue::VARR);
             if (it != mapTally.end()) {
@@ -1525,7 +1525,7 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
                     transactions.push_back(_item.GetHex());
                 }
             }
-            obj.push_back(Pair("txids", transactions));
+            obj.pushKV("txids", transactions);
             ret.push_back(obj);
         }
     }
@@ -1538,10 +1538,10 @@ static UniValue ListReceived(const Config &config, CWallet *const pwallet,
             int nConf = (*it).second.nConf;
             UniValue obj(UniValue::VOBJ);
             if ((*it).second.fIsWatchonly) {
-                obj.push_back(Pair("involvesWatchonly", true));
+                obj.pushKV("involvesWatchonly", true);
             }
-            obj.push_back(Pair("account", (*it).first));
-            obj.push_back(Pair("amount", ValueFromAmount(nAmount)));
+            obj.pushKV("account", (*it).first);
+            obj.pushKV("amount", ValueFromAmount(nAmount));
             obj.push_back(
                 Pair("confirmations",
                      (nConf == std::numeric_limits<int>::max() ? 0 : nConf)));
@@ -1663,7 +1663,7 @@ static UniValue listreceivedbyaccount(const Config &config,
 
 static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
     if (IsValidDestination(dest)) {
-        entry.push_back(Pair("address", EncodeDestination(dest)));
+        entry.pushKV("address", EncodeDestination(dest));
     }
 }
 
@@ -1687,22 +1687,22 @@ void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly ||
                 (::IsMine(*pwallet, s.destination) & ISMINE_WATCH_ONLY)) {
-                entry.push_back(Pair("involvesWatchonly", true));
+                entry.pushKV("involvesWatchonly", true);
             }
-            entry.push_back(Pair("account", strSentAccount));
+            entry.pushKV("account", strSentAccount);
             MaybePushAddress(entry, s.destination);
-            entry.push_back(Pair("category", "send"));
-            entry.push_back(Pair("amount", ValueFromAmount(-s.amount)));
+            entry.pushKV("category", "send");
+            entry.pushKV("amount", ValueFromAmount(-s.amount));
             if (pwallet->mapAddressBook.count(s.destination)) {
                 entry.push_back(
                     Pair("label", pwallet->mapAddressBook[s.destination].name));
             }
-            entry.push_back(Pair("vout", s.vout));
-            entry.push_back(Pair("fee", ValueFromAmount(-1 * nFee)));
+            entry.pushKV("vout", s.vout);
+            entry.pushKV("fee", ValueFromAmount(-1 * nFee));
             if (fLong) {
                 WalletTxToJSON(wtx, entry);
             }
-            entry.push_back(Pair("abandoned", wtx.isAbandoned()));
+            entry.pushKV("abandoned", wtx.isAbandoned());
             ret.push_back(entry);
         }
     }
@@ -1718,26 +1718,26 @@ void ListTransactions(CWallet *const pwallet, const CWalletTx &wtx,
                 UniValue entry(UniValue::VOBJ);
                 if (involvesWatchonly ||
                     (::IsMine(*pwallet, r.destination) & ISMINE_WATCH_ONLY)) {
-                    entry.push_back(Pair("involvesWatchonly", true));
+                    entry.pushKV("involvesWatchonly", true);
                 }
-                entry.push_back(Pair("account", account));
+                entry.pushKV("account", account);
                 MaybePushAddress(entry, r.destination);
                 if (wtx.IsCoinBase()) {
                     if (wtx.GetDepthInMainChain() < 1) {
-                        entry.push_back(Pair("category", "orphan"));
+                        entry.pushKV("category", "orphan");
                     } else if (wtx.IsImmatureCoinBase()) {
-                        entry.push_back(Pair("category", "immature"));
+                        entry.pushKV("category", "immature");
                     } else {
-                        entry.push_back(Pair("category", "generate"));
+                        entry.pushKV("category", "generate");
                     }
                 } else {
-                    entry.push_back(Pair("category", "receive"));
+                    entry.pushKV("category", "receive");
                 }
-                entry.push_back(Pair("amount", ValueFromAmount(r.amount)));
+                entry.pushKV("amount", ValueFromAmount(r.amount));
                 if (pwallet->mapAddressBook.count(r.destination)) {
-                    entry.push_back(Pair("label", account));
+                    entry.pushKV("label", account);
                 }
-                entry.push_back(Pair("vout", r.vout));
+                entry.pushKV("vout", r.vout);
                 if (fLong) {
                     WalletTxToJSON(wtx, entry);
                 }
@@ -1753,12 +1753,12 @@ void AcentryToJSON(const CAccountingEntry &acentry,
 
     if (fAllAccounts || acentry.strAccount == strAccount) {
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("account", acentry.strAccount));
-        entry.push_back(Pair("category", "move"));
-        entry.push_back(Pair("time", acentry.nTime));
-        entry.push_back(Pair("amount", ValueFromAmount(acentry.nCreditDebit)));
-        entry.push_back(Pair("otheraccount", acentry.strOtherAccount));
-        entry.push_back(Pair("comment", acentry.strComment));
+        entry.pushKV("account", acentry.strAccount);
+        entry.pushKV("category", "move");
+        entry.pushKV("time", acentry.nTime);
+        entry.pushKV("amount", ValueFromAmount(acentry.nCreditDebit));
+        entry.pushKV("otheraccount", acentry.strOtherAccount);
+        entry.pushKV("comment", acentry.strComment);
         ret.push_back(entry);
     }
 }
@@ -2192,8 +2192,8 @@ static UniValue listsinceblock(const Config &config,
     uint256 lastblock = pblockLast ? pblockLast->GetBlockHash() : uint256();
 
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("transactions", transactions));
-    ret.push_back(Pair("lastblock", lastblock.GetHex()));
+    ret.pushKV("transactions", transactions);
+    ret.pushKV("lastblock", lastblock.GetHex());
 
     return ret;
 }
@@ -2314,20 +2314,20 @@ static UniValue gettransaction(const Config &config,
     Amount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit
                                         : Amount::zero());
 
-    entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
+    entry.pushKV("amount", ValueFromAmount(nNet - nFee));
     if (wtx.IsFromMe(filter)) {
-        entry.push_back(Pair("fee", ValueFromAmount(nFee)));
+        entry.pushKV("fee", ValueFromAmount(nFee));
     }
 
     WalletTxToJSON(wtx, entry);
 
     UniValue details(UniValue::VARR);
     ListTransactions(pwallet, wtx, "*", 0, false, details, filter);
-    entry.push_back(Pair("details", details));
+    entry.pushKV("details", details);
 
     std::string strHex =
         EncodeHexTx(static_cast<CTransaction>(wtx), RPCSerializationFlags());
-    entry.push_back(Pair("hex", strHex));
+    entry.pushKV("hex", strHex);
 
     return entry;
 }
@@ -2894,8 +2894,8 @@ static UniValue listlockunspent(const Config &config,
     for (COutPoint &output : vOutpts) {
         UniValue o(UniValue::VOBJ);
 
-        o.push_back(Pair("txid", output.GetTxId().GetHex()));
-        o.push_back(Pair("vout", int(output.GetN())));
+        o.pushKV("txid", output.GetTxId().GetHex());
+        o.pushKV("vout", int(output.GetN()));
         ret.push_back(o);
     }
 
@@ -2992,16 +2992,16 @@ static UniValue getwalletinfo(const Config &config,
     UniValue obj(UniValue::VOBJ);
 
     size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
-    obj.push_back(Pair("walletname", pwallet->GetName()));
-    obj.push_back(Pair("walletversion", pwallet->GetVersion()));
-    obj.push_back(Pair("balance", ValueFromAmount(pwallet->GetBalance())));
+    obj.pushKV("walletname", pwallet->GetName());
+    obj.pushKV("walletversion", pwallet->GetVersion());
+    obj.pushKV("balance", ValueFromAmount(pwallet->GetBalance()));
     obj.push_back(Pair("unconfirmed_balance",
                        ValueFromAmount(pwallet->GetUnconfirmedBalance())));
     obj.push_back(Pair("immature_balance",
                        ValueFromAmount(pwallet->GetImmatureBalance())));
-    obj.push_back(Pair("txcount", (int)pwallet->mapWallet.size()));
-    obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
-    obj.push_back(Pair("keypoolsize", (int64_t)kpExternalSize));
+    obj.pushKV("txcount", (int)pwallet->mapWallet.size());
+    obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
+    obj.pushKV("keypoolsize", (int64_t)kpExternalSize);
     CKeyID masterKeyID = pwallet->GetHDChain().masterKeyID;
     if (!masterKeyID.IsNull() && pwallet->CanSupportFeature(FEATURE_HD_SPLIT)) {
         obj.push_back(
@@ -3009,11 +3009,11 @@ static UniValue getwalletinfo(const Config &config,
                  int64_t(pwallet->GetKeyPoolSize() - kpExternalSize)));
     }
     if (pwallet->IsCrypted()) {
-        obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
+        obj.pushKV("unlocked_until", pwallet->nRelockTime);
     }
-    obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
+    obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
     if (!masterKeyID.IsNull()) {
-        obj.push_back(Pair("hdmasterkeyid", masterKeyID.GetHex()));
+        obj.pushKV("hdmasterkeyid", masterKeyID.GetHex());
     }
     return obj;
 }
@@ -3273,11 +3273,11 @@ static UniValue listunspent(const Config &config,
         }
 
         UniValue entry(UniValue::VOBJ);
-        entry.push_back(Pair("txid", out.tx->GetId().GetHex()));
-        entry.push_back(Pair("vout", out.i));
+        entry.pushKV("txid", out.tx->GetId().GetHex());
+        entry.pushKV("vout", out.i);
 
         if (fValidAddress) {
-            entry.push_back(Pair("address", EncodeDestination(address)));
+            entry.pushKV("address", EncodeDestination(address));
 
             if (pwallet->mapAddressBook.count(address)) {
                 entry.push_back(
@@ -3299,10 +3299,10 @@ static UniValue listunspent(const Config &config,
                              HexStr(scriptPubKey.begin(), scriptPubKey.end())));
         entry.push_back(
             Pair("amount", ValueFromAmount(out.tx->tx->vout[out.i].nValue)));
-        entry.push_back(Pair("confirmations", out.nDepth));
-        entry.push_back(Pair("spendable", out.fSpendable));
-        entry.push_back(Pair("solvable", out.fSolvable));
-        entry.push_back(Pair("safe", out.fSafe));
+        entry.pushKV("confirmations", out.nDepth);
+        entry.pushKV("spendable", out.fSpendable);
+        entry.pushKV("solvable", out.fSolvable);
+        entry.pushKV("safe", out.fSafe);
         results.push_back(entry);
     }
 
@@ -3521,9 +3521,9 @@ static UniValue fundrawtransaction(const Config &config,
     }
 
     UniValue result(UniValue::VOBJ);
-    result.push_back(Pair("hex", EncodeHexTx(CTransaction(tx))));
-    result.push_back(Pair("changepos", changePosition));
-    result.push_back(Pair("fee", ValueFromAmount(nFeeOut)));
+    result.pushKV("hex", EncodeHexTx(CTransaction(tx)));
+    result.pushKV("changepos", changePosition);
+    result.pushKV("fee", ValueFromAmount(nFeeOut));
 
     return result;
 }
