@@ -2737,10 +2737,12 @@ static bool UnwindBlock(const Config &config, CValidationState &state,
     DisconnectedBlockTransactions disconnectpool;
     while (chainActive.Contains(pindex)) {
         CBlockIndex *pindexWalk = chainActive.Tip();
-        pindexWalk->nStatus = invalidate
-                                  ? pindexWalk->nStatus.withFailedParent()
-                                  : pindexWalk->nStatus.withParkedParent();
-        setDirtyBlockIndex.insert(pindexWalk);
+        if (pindexWalk != pindex) {
+            pindexWalk->nStatus = invalidate
+                                      ? pindexWalk->nStatus.withFailedParent()
+                                      : pindexWalk->nStatus.withParkedParent();
+            setDirtyBlockIndex.insert(pindexWalk);
+        }
 
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
