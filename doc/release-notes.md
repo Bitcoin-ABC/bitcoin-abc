@@ -7,6 +7,7 @@ This release includes the following features and fixes:
  - Upgrade reproducible build to use Qt 5.9.6
  - Improve SHA256 performance using SSE4.1, AVX2 and/or SHA if available.
  - Add a mode argument to the `getmemoryinfo` RPC call to query `malloc_info` from the system if available.
+ - Updated univalue library to version 1.0.4
  - Disable safe mode by default
  - Added autocomplete to 'help' in RPC console
  - Deprecated estimatefee RPC command
@@ -14,3 +15,4 @@ This release includes the following features and fixes:
  - Various bug fixes that improve node stability and performance
  - Backport getblock RPC's new verbosity mode from bitcoin core for retrieving all transactions of a given block in full.
  - Added 'parked' state to getchaintips RPC
+ - RPC `listreceivedbyaddress` now accepts an address filter
