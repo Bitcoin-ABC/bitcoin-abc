@@ -9,9 +9,19 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 
-class ParckedChainTest(BitcoinTestFramework):
+class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+
+    # There should only be one chaintip, which is expected_tip
+    def only_valid_tip(self, expected_tip, other_tip_status=None):
+        node = self.nodes[0]
+        assert_equal(node.getbestblockhash(), expected_tip)
+        for tip in node.getchaintips():
+            if tip["hash"] == expected_tip:
+                assert_equal(tip["status"], "active")
+            else:
+                assert_equal(tip["status"], other_tip_status)
 
     def run_test(self):
         node = self.nodes[0]
@@ -41,61 +51,77 @@ class ParckedChainTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         node.generate(1)
         bad_tip = node.getbestblockhash()
+        # Generate an extra block to check that children are invalidated as
+        # expected and do not produce dangling chaintips
+        node.generate(1)
+        good_tip = node.getbestblockhash()
 
         node.invalidateblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.parkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.unparkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
-        assert_equal(node.getbestblockhash(), bad_tip)
+        self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, reconsider, unpark")
         node.generate(1)
         tip = node.getbestblockhash()
         node.generate(1)
         bad_tip = node.getbestblockhash()
+        node.generate(1)
+        good_tip = node.getbestblockhash()
 
         node.parkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.invalidateblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        # NOTE: Intuitively, other_tip_status would be "invalid", but because
+        # only valid (unparked) chains are walked, child blocks' statuses are
+        # not updated, so the "valid-fork" state remains.
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.reconsiderblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.unparkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), bad_tip)
+        self.only_valid_tip(good_tip)
 
         self.log.info("Test invalidate, park, reconsider, unpark...")
         node.generate(1)
         tip = node.getbestblockhash()
         node.generate(1)
         bad_tip = node.getbestblockhash()
+        node.generate(1)
+        good_tip = node.getbestblockhash()
 
         node.invalidateblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.parkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.unparkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), bad_tip)
+        self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, unpark, reconsider")
         node.generate(1)
         tip = node.getbestblockhash()
         node.generate(1)
         bad_tip = node.getbestblockhash()
+        node.generate(1)
+        good_tip = node.getbestblockhash()
 
         node.parkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.invalidateblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        # NOTE: Intuitively, other_tip_status would be "invalid", but because
+        # only valid (unparked) chains are walked, child blocks' statuses are
+        # not updated, so the "valid-fork" state remains.
+        self.only_valid_tip(tip, other_tip_status="valid-fork")
         node.unparkblock(bad_tip)
-        assert_equal(node.getbestblockhash(), tip)
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
-        assert_equal(node.getbestblockhash(), bad_tip)
+        self.only_valid_tip(good_tip)
 
 
 if __name__ == '__main__':
-    ParckedChainTest().main()
+    ParkedChainTest().main()
