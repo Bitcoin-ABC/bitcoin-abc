@@ -17,9 +17,13 @@ the usage of the absolute path.
 To Build
 ---------------------
 
+It is recommended to create a build directory to build out-of-tree.
+
 ```bash
 ./autogen.sh
-./configure
+mkdir build
+cd build
+../configure
 make
 make install # optional
 ```

@@ -43,8 +43,12 @@ Build Bitcoin ABC
 
     You can disable the GUI build by passing `--without-gui` to configure.
 
+    It is recommended to create a build directory to build out-of-tree. 
+
         ./autogen.sh
-        ./configure
+        mkdir build
+        cd build
+        ../configure
         make
 
 3.  It is recommended to build and run the unit tests:
