@@ -208,6 +208,10 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
                 &BitcoinGUI::showModalOverlay);
     }
 #endif
+
+#ifdef Q_OS_MAC
+    m_app_nap_inhibitor = new CAppNapInhibitor;
+#endif
 }
 
 BitcoinGUI::~BitcoinGUI() {
@@ -221,6 +225,7 @@ BitcoinGUI::~BitcoinGUI() {
         trayIcon->hide();
     }
 #ifdef Q_OS_MAC
+    delete m_app_nap_inhibitor;
     delete appMenuBar;
     MacDockIconHandler::cleanup();
 #endif
@@ -1068,6 +1073,14 @@ void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
                               double nVerificationProgress, bool header) {
+// Disabling macOS App Nap on initial sync, disk and reindex operations.
+#ifdef Q_OS_MAC
+    (m_node.isInitialBlockDownload() || m_node.getReindex() ||
+     m_node.getImporting())
+        ? m_app_nap_inhibitor->disableAppNap()
+        : m_app_nap_inhibitor->enableAppNap();
+#endif
+
     if (modalOverlay) {
         if (header) {
             modalOverlay->setKnownBestHeight(count, blockDate);

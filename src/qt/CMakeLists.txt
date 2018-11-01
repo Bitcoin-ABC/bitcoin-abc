@@ -140,6 +140,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	target_sources(bitcoin-qt-base PRIVATE
 		macdockiconhandler.mm
 		macnotificationhandler.mm
+		macos_appnap.mm
 	)
 
 	set_property(TARGET bitcoin-qt-base PROPERTY AUTOMOC_MOC_OPTIONS "-DQ_OS_MAC")
