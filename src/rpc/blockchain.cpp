@@ -1332,13 +1332,15 @@ UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
             "Possible values for status:\n"
             "1.  \"invalid\"               This branch contains at least one "
             "invalid block\n"
-            "2.  \"headers-only\"          Not all blocks for this branch are "
+            "2.  \"parked\"                This branch contains at least one "
+            "parked block\n"
+            "3.  \"headers-only\"          Not all blocks for this branch are "
             "available, but the headers are valid\n"
-            "3.  \"valid-headers\"         All blocks are available for this "
+            "4.  \"valid-headers\"         All blocks are available for this "
             "branch, but they were never fully validated\n"
-            "4.  \"valid-fork\"            This branch is not part of the "
+            "5.  \"valid-fork\"            This branch is not part of the "
             "active chain, but is fully validated\n"
-            "5.  \"active\"                This is the tip of the active main "
+            "6.  \"active\"                This is the tip of the active main "
             "chain, which is certainly valid\n"
             "\nExamples:\n" +
             HelpExampleCli("getchaintips", "") +
@@ -1396,6 +1398,9 @@ UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
         } else if (block->nStatus.isInvalid()) {
             // This block or one of its ancestors is invalid.
             status = "invalid";
+        } else if (block->nStatus.isOnParkedChain()) {
+            // This block or one of its ancestors is parked.
+            status = "parked";
         } else if (block->nChainTx == 0) {
             // This block cannot be connected because full block data for it or
             // one of its parents is missing.

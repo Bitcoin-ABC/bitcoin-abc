@@ -74,14 +74,14 @@ class ParkedChainTest(BitcoinTestFramework):
         good_tip = node.getbestblockhash()
 
         node.parkblock(bad_tip)
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.invalidateblock(bad_tip)
         # NOTE: Intuitively, other_tip_status would be "invalid", but because
         # only valid (unparked) chains are walked, child blocks' statuses are
-        # not updated, so the "valid-fork" state remains.
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        # not updated, so the "parked" state remains.
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.reconsiderblock(bad_tip)
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.unparkblock(bad_tip)
         self.only_valid_tip(good_tip)
 
@@ -98,7 +98,7 @@ class ParkedChainTest(BitcoinTestFramework):
         node.parkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.unparkblock(bad_tip)
         self.only_valid_tip(good_tip)
 
@@ -111,12 +111,12 @@ class ParkedChainTest(BitcoinTestFramework):
         good_tip = node.getbestblockhash()
 
         node.parkblock(bad_tip)
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.invalidateblock(bad_tip)
         # NOTE: Intuitively, other_tip_status would be "invalid", but because
         # only valid (unparked) chains are walked, child blocks' statuses are
-        # not updated, so the "valid-fork" state remains.
-        self.only_valid_tip(tip, other_tip_status="valid-fork")
+        # not updated, so the "parked" state remains.
+        self.only_valid_tip(tip, other_tip_status="parked")
         node.unparkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
