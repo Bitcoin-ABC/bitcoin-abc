@@ -2459,11 +2459,13 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
                         "  \"symbol\" : \"symbol\",                (string) the url of the property\n"
                         "  \"data\" : \"data\",                  (string) the url of the property\n"
                         "  \"propertyurl\" : \"url\",           (string) the url of the property\n"
-                        "  \"totalTokenNumber\" : n,           (string) the token's number of the property will issued\n"
+                        "  \"totalTokenNumber\" : n,           (Number) the amount of tokens that will be issued\n"
+                        "  \"haveIssuedNumber\" : n,           (Number) the amount of tokens that have issued\n"
+                        "  \"currentValidIssuedNumer\" : n,    (Number) the amount of tokens that still available\n"
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721PropertyNews", "\"0x03\", \"0x01\"")
-                + HelpExampleRpc("whc_getERC721PropertyNews", "\"0x03\", \"0x01\"")
+                + HelpExampleCli("whc_getERC721PropertyNews", "\"0x03\" ")
+                + HelpExampleRpc("whc_getERC721PropertyNews", "\"0x03\"")
         );
 
     RequireHexNumber(request.params[0].get_str());
