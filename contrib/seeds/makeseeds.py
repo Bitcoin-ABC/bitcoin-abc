@@ -6,6 +6,10 @@
 # Generate seeds.txt from Pieter's DNS seeder
 #
 
+import collections
+import dns.resolver
+import sys
+import re
 NSEEDS = 512
 
 MAX_SEEDS_PER_ASN = 2
@@ -22,10 +26,6 @@ SUSPICIOUS_HOSTS = {
     "54.94.195.96", "54.94.200.247"
 }
 
-import re
-import sys
-import dns.resolver
-import collections
 
 PATTERN_IPV4 = re.compile(
     r"^((\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})):(\d+)$")
@@ -36,7 +36,7 @@ PATTERN_ONION = re.compile(
 # Used to only select nodes with a user agent string compatible with the
 # BCH/UAHF specification.
 PATTERN_AGENT = re.compile(
-    r"^(/Bitcoin ABC:0.(17|18).(\d+)\(.+\)/|/bitprim:\"0.(13|14).(\d+)\"/|/Bitcoin XT:0.11.(\d+)[J-Z]\(.+\)/|/BUCash:1.(4|5).(\d+)\(.+\)/|/bcash:v1.(\d+).(\d+)-(\S+)/)")
+    r"^(/Bitcoin ABC:0.(18).(\d+)\(.+\)/|/bitprim:\"0.(14).(\d+)\"/|/Bitcoin XT:0.11.(\d+)[K-Z]\(.+\)/|/BUCash:1.(5).(\d+)\(.+\)/|/bcash:v1.(\d+).(\d+)-(\S+)/)")
 
 
 def parseline(line):
