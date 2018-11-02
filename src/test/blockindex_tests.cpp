@@ -199,15 +199,16 @@ BOOST_AUTO_TEST_CASE(to_string) {
     std::string indexString = "";
 
     /* CASE 1 : pprev is null */
-    expectedString =
-        "CBlockIndex(pprev=0, nHeight=123, "
+    expectedString = strprintf(
+        "CBlockIndex(pprev=%p, nHeight=123, "
         "merkle="
         "0000000000000000000000000000000000000000000000000000000000000000, "
         "hashBlock="
-        "0000000000000000000000000000000000000000000000000000000000000000)";
+        "0000000000000000000000000000000000000000000000000000000000000000)",
+        (void *)(nullptr));
     index.pprev = nullptr;
     indexString = index.ToString();
-    BOOST_CHECK(indexString == expectedString);
+    BOOST_CHECK_EQUAL(indexString, expectedString);
 
     /* CASE 2 : pprev is indexPrev */
     expectedString = strprintf(
@@ -219,7 +220,7 @@ BOOST_AUTO_TEST_CASE(to_string) {
         &indexPrev);
     index.pprev = &indexPrev;
     indexString = index.ToString();
-    BOOST_CHECK(indexString == expectedString);
+    BOOST_CHECK_EQUAL(indexString, expectedString);
 
     /* CASE 3 : height is max(int) */
     expectedString = strprintf(
@@ -231,7 +232,7 @@ BOOST_AUTO_TEST_CASE(to_string) {
         &indexPrev);
     index.nHeight = INT32_MAX;
     indexString = index.ToString();
-    BOOST_CHECK(indexString == expectedString);
+    BOOST_CHECK_EQUAL(indexString, expectedString);
 
     /* CASE 4 : set some Merkle root hash */
     expectedString = strprintf(
@@ -243,7 +244,7 @@ BOOST_AUTO_TEST_CASE(to_string) {
         &indexPrev);
     index.hashMerkleRoot = uint256S("0123456789ABCDEF");
     indexString = index.ToString();
-    BOOST_CHECK(indexString == expectedString);
+    BOOST_CHECK_EQUAL(indexString, expectedString);
 
     /* CASE 5 : set some block hash */
     expectedString = strprintf(
@@ -256,7 +257,7 @@ BOOST_AUTO_TEST_CASE(to_string) {
     const uint256 emptyHashBlock = uint256S("FEDCBA9876543210");
     index.phashBlock = &emptyHashBlock;
     indexString = index.ToString();
-    BOOST_CHECK(indexString == expectedString);
+    BOOST_CHECK_EQUAL(indexString, expectedString);
 }
 
 BOOST_AUTO_TEST_CASE(index_validity_tests) {
