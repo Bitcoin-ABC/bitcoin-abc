@@ -705,7 +705,8 @@ void BitcoinGUI::createTrayIconMenu() {
     MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
     connect(dockIconHandler, &MacDockIconHandler::dockIconClicked, this,
             &BitcoinGUI::macosDockIconActivated);
-    trayIconMenu = dockIconHandler->dockMenu();
+    trayIconMenu = new QMenu(this);
+    trayIconMenu->setAsDockMenu();
 #endif
 
     // Configuration of the tray icon (or Dock icon) menu
