@@ -253,7 +253,7 @@ class DescriptorImpl : public Descriptor {
     //! of Multisig).
     const std::vector<std::unique_ptr<PubkeyProvider>> m_pubkey_args;
     //! The sub-descriptor argument (nullptr for everything but SH).
-    const std::unique_ptr<Descriptor> m_script_arg;
+    const std::unique_ptr<DescriptorImpl> m_script_arg;
     //! The string name of the descriptor function.
     const std::string m_name;
 
@@ -283,7 +283,8 @@ protected:
 
 public:
     DescriptorImpl(std::vector<std::unique_ptr<PubkeyProvider>> pubkeys,
-                   std::unique_ptr<Descriptor> script, const std::string &name)
+                   std::unique_ptr<DescriptorImpl> script,
+                   const std::string &name)
         : m_pubkey_args(std::move(pubkeys)), m_script_arg(std::move(script)),
           m_name(name) {}
 
@@ -532,7 +533,7 @@ protected:
     }
 
 public:
-    SHDescriptor(std::unique_ptr<Descriptor> desc)
+    SHDescriptor(std::unique_ptr<DescriptorImpl> desc)
         : DescriptorImpl({}, std::move(desc), "sh") {}
 };
 
@@ -716,9 +717,9 @@ std::unique_ptr<PubkeyProvider> ParsePubkey(const Span<const char> &sp,
 }
 
 /** Parse a script in a particular context. */
-std::unique_ptr<Descriptor> ParseScript(Span<const char> &sp,
-                                        ParseScriptContext ctx,
-                                        FlatSigningProvider &out) {
+std::unique_ptr<DescriptorImpl> ParseScript(Span<const char> &sp,
+                                            ParseScriptContext ctx,
+                                            FlatSigningProvider &out) {
     auto expr = Expr(sp);
     if (Func("pk", expr)) {
         auto pubkey = ParsePubkey(expr, out);
@@ -820,9 +821,9 @@ InferPubkey(const CPubKey &pubkey, ParseScriptContext,
     return key_provider;
 }
 
-std::unique_ptr<Descriptor> InferScript(const CScript &script,
-                                        ParseScriptContext ctx,
-                                        const SigningProvider &provider) {
+std::unique_ptr<DescriptorImpl> InferScript(const CScript &script,
+                                            ParseScriptContext ctx,
+                                            const SigningProvider &provider) {
     std::vector<std::vector<uint8_t>> data;
     txnouttype txntype = Solver(script, data);
 
@@ -881,7 +882,7 @@ std::unique_ptr<Descriptor> Parse(const std::string &descriptor,
     Span<const char> sp(descriptor.data(), descriptor.size());
     auto ret = ParseScript(sp, ParseScriptContext::TOP, out);
     if (sp.size() == 0 && ret) {
-        return ret;
+        return std::unique_ptr<Descriptor>(std::move(ret));
     }
     return nullptr;
 }
