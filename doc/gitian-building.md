@@ -105,8 +105,17 @@ COMMIT=v0.16.0 # or whatever release tag you wish
 
 # Note the path to descriptors assumes vagrant was used.  These files are within the ABC repository normally.
 ./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} /vagrant/contrib/gitian-descriptors/gitian-linux.yml
+# Note: If you plan on signing the binaries generated during this process, be
+# sure to copy them from ./build/out/ to /vagrant/gitian/<platform-name>
+# otherwise they will be overwritten by the next gbuild call.
 ./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} /vagrant/contrib/gitian-descriptors/gitian-win.yml
 ./bin/gbuild --commit bitcoin=${COMMIT} --url bitcoin=${URL} /vagrant/contrib/gitian-descriptors/gitian-osx.yml
+```
+
+Note on the OSX build: If you encounter an error about a missing MacOSX10.11.sdk.tar.gz, then follow these steps:
+```
+cd ./inputs
+curl -LO https://storage.googleapis.com/f4936e83b2dcbca742be51fb9692b153/MacOSX10.11.sdk.tar.gz
 ```
 
 Note: For executing gitian builds on local changes, change URL and COMMIT:

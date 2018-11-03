@@ -72,10 +72,8 @@ struct modifiedentry_iter {
 struct CompareModifiedEntry {
     bool operator()(const CTxMemPoolModifiedEntry &a,
                     const CTxMemPoolModifiedEntry &b) const {
-        double f1 = double(b.nSizeWithAncestors *
-                           a.nModFeesWithAncestors.GetSatoshis());
-        double f2 = double(a.nSizeWithAncestors *
-                           b.nModFeesWithAncestors.GetSatoshis());
+        double f1 = b.nSizeWithAncestors * (a.nModFeesWithAncestors / SATOSHI);
+        double f2 = a.nSizeWithAncestors * (b.nModFeesWithAncestors / SATOSHI);
         if (f1 == f2) {
             return CTxMemPool::CompareIteratorByHash()(a.iter, b.iter);
         }
@@ -89,8 +87,9 @@ struct CompareModifiedEntry {
 struct CompareTxIterByAncestorCount {
     bool operator()(const CTxMemPool::txiter &a,
                     const CTxMemPool::txiter &b) const {
-        if (a->GetCountWithAncestors() != b->GetCountWithAncestors())
+        if (a->GetCountWithAncestors() != b->GetCountWithAncestors()) {
             return a->GetCountWithAncestors() < b->GetCountWithAncestors();
+        }
         return CTxMemPool::CompareIteratorByHash()(a, b);
     }
 };
@@ -147,12 +146,12 @@ private:
     // Chain context for the block
     int nHeight;
     int64_t nLockTimeCutoff;
+    int64_t nMedianTimePast;
 
     const Config *config;
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
-    bool blockFinished;
 
 public:
     BlockAssembler(const Config &_config);
@@ -177,9 +176,16 @@ private:
      * statistics from the package selection (for logging statistics). */
     void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated);
 
+    /** Enum for the results from TestForBlock */
+    enum class TestForBlockResult : uint8_t {
+        TXFits = 0,
+        TXCantFit = 1,
+        BlockFinished = 3,
+    };
+
     // helper function for addPriorityTxs
     /** Test if tx will still "fit" in the block */
-    bool TestForBlock(CTxMemPool::txiter iter);
+    TestForBlockResult TestForBlock(CTxMemPool::txiter iter);
     /** Test if tx still has unconfirmed parents not yet in block */
     bool isStillDependent(CTxMemPool::txiter iter);
 

@@ -36,10 +36,11 @@ UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
 UniValue JSONRPCReplyObj(const UniValue &result, const UniValue &error,
                          const UniValue &id) {
     UniValue reply(UniValue::VOBJ);
-    if (!error.isNull())
+    if (!error.isNull()) {
         reply.push_back(Pair("result", NullUniValue));
-    else
+    } else {
         reply.push_back(Pair("result", result));
+    }
     reply.push_back(Pair("error", error));
     reply.push_back(Pair("id", id));
     return reply;
@@ -67,7 +68,9 @@ static const std::string COOKIEAUTH_FILE = ".cookie";
 
 fs::path GetAuthCookieFile() {
     fs::path path(gArgs.GetArg("-rpccookiefile", COOKIEAUTH_FILE));
-    if (!path.is_complete()) path = GetDataDir() / path;
+    if (!path.is_complete()) {
+        path = GetDataDir() / path;
+    }
     return path;
 }
 
@@ -93,7 +96,9 @@ bool GenerateAuthCookie(std::string *cookie_out) {
     file.close();
     LogPrintf("Generated RPC authentication cookie %s\n", filepath.string());
 
-    if (cookie_out) *cookie_out = cookie;
+    if (cookie_out) {
+        *cookie_out = cookie;
+    }
     return true;
 }
 
@@ -102,11 +107,15 @@ bool GetAuthCookie(std::string *cookie_out) {
     std::string cookie;
     fs::path filepath = GetAuthCookieFile();
     file.open(filepath.string().c_str());
-    if (!file.is_open()) return false;
+    if (!file.is_open()) {
+        return false;
+    }
     std::getline(file, cookie);
     file.close();
 
-    if (cookie_out) *cookie_out = cookie;
+    if (cookie_out) {
+        *cookie_out = cookie;
+    }
     return true;
 }
 

@@ -2802,10 +2802,6 @@
         <translation>경고</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>경고: 알려지지 않은 새로운 규칙이 활성화되었습니다. (버전비트 %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>블록 전용 모드로 동작할지 여부 (기본값: %u)</translation>
     </message>

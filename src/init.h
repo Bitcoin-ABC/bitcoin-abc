@@ -11,6 +11,7 @@
 class Config;
 class CScheduler;
 class CWallet;
+class HTTPRPCRequestProcessor;
 
 namespace boost {
 class thread_group;
@@ -51,8 +52,9 @@ bool AppInitSanityChecks();
  * @pre Parameters should be parsed and config file should be read,
  * AppInitSanityChecks should have been called.
  */
-bool AppInitMain(Config &config, boost::thread_group &threadGroup,
-                 CScheduler &scheduler);
+bool AppInitMain(Config &config,
+                 HTTPRPCRequestProcessor &httpRPCRequestProcessor,
+                 boost::thread_group &threadGroup, CScheduler &scheduler);
 
 /** The help message mode determines what help message to show */
 enum HelpMessageMode { HMM_BITCOIND, HMM_BITCOIN_QT };

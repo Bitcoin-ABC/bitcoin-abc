@@ -12,9 +12,10 @@
 #endif
 
 #include "amount.h"
-#include "chain.h"
+#include "blockfileinfo.h"
 #include "coins.h"
 #include "consensus/consensus.h"
+#include "diskblockpos.h"
 #include "fs.h"
 #include "protocol.h" // For CMessageHeader::MessageMagic
 #include "script/script_error.h"
@@ -43,8 +44,9 @@ class CTxMemPool;
 class CTxUndo;
 class CValidationInterface;
 class CValidationState;
-struct ChainTxData;
 
+struct CDiskBlockPos;
+struct ChainTxData;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
@@ -56,9 +58,9 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const Amount DEFAULT_MIN_RELAY_TX_FEE(1000);
+static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 /** Default for -excessutxocharge for transactions transactions */
-static const Amount DEFAULT_UTXO_FEE(0);
+static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 //! -maxtxfee default
 static const Amount DEFAULT_TRANSACTION_MAXFEE(COIN / 10);
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
@@ -79,9 +81,6 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 /** Default for -mempoolexpiry, expiration time for mempool transactions in
  * hours */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
-/** Maximum bytes for transactions to store for processing during reorg */
-static const unsigned int MAX_DISCONNECTED_TX_POOL_SIZE =
-    20 * DEFAULT_MAX_BLOCK_SIZE;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
@@ -144,7 +143,7 @@ static const unsigned int INVENTORY_BROADCAST_INTERVAL = 5;
  * Maximum number of inventory items to send per transmission.
  * Limits the impact of low-fee transaction floods.
  */
-static const unsigned int INVENTORY_BROADCAST_MAX =
+static const unsigned int INVENTORY_BROADCAST_MAX_PER_MB =
     7 * INVENTORY_BROADCAST_INTERVAL;
 /** Average delay between feefilter broadcasts in seconds. */
 static const unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
@@ -314,18 +313,20 @@ bool ProcessNewBlock(const Config &config,
  *
  * Call without cs_main held.
  *
- * @param[in]  config  The global config.
- * @param[in]  block   The block headers themselves.
- * @param[out] state   This may be set to an Error state if any error occurred
- *                     processing them.
- * @param[out] ppindex If set, the pointer will be set to point to the last new
- *                     block index object for the given headers.
+ * @param[in]  config        The config.
+ * @param[in]  block         The block headers themselves.
+ * @param[out] state         This may be set to an Error state if any error
+ *                           occurred processing them.
+ * @param[out] ppindex       If set, the pointer will be set to point to the
+ *                           last new block index object for the given headers.
+ * @param[out] first_invalid First header that fails validation, if one exists.
  * @return True if block headers were accepted as valid.
  */
 bool ProcessNewBlockHeaders(const Config &config,
                             const std::vector<CBlockHeader> &block,
                             CValidationState &state,
-                            const CBlockIndex **ppindex = nullptr);
+                            const CBlockIndex **ppindex = nullptr,
+                            CBlockHeader *first_invalid = nullptr);
 
 /**
  * Check whether enough disk space is available for an incoming block.
@@ -356,7 +357,7 @@ bool InitBlockIndex(const Config &config);
 /**
  * Load the block tree and coins database from disk.
  */
-bool LoadBlockIndex(const CChainParams &chainparams);
+bool LoadBlockIndex(const Config &config);
 
 /**
  * Update the chain tip based on database information.
@@ -437,15 +438,6 @@ void PruneAndFlush();
 /** Prune block files up to a given height */
 void PruneBlockFilesManual(int nPruneUpToHeight);
 
-/** Check if UAHF has activated. */
-bool IsUAHFenabled(const Config &config, const CBlockIndex *pindexPrev);
-
-/** Check if DAA HF has activated. */
-bool IsDAAEnabled(const Config &config, const CBlockIndex *pindexPrev);
-
-/** Check if May 15, 2018 HF has activated. */
-bool IsMonolithEnabled(const Config &config, const CBlockIndex *pindexPrev);
-
 /**
  * (try to) add transaction to memory pool
  */
@@ -453,49 +445,10 @@ bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         CValidationState &state, const CTransactionRef &tx,
                         bool fLimitFree, bool *pfMissingInputs,
                         bool fOverrideMempoolLimit = false,
-                        const Amount nAbsurdFee = Amount(0));
+                        const Amount nAbsurdFee = Amount::zero());
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);
-
-/** Get the BIP9 state for a given deployment at the current tip. */
-ThresholdState VersionBitsTipState(const Consensus::Params &params,
-                                   Consensus::DeploymentPos pos);
-
-/** Get the block height at which the BIP9 deployment switched into the state
- * for the block building on the current tip. */
-int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
-                                   Consensus::DeploymentPos pos);
-
-/**
- * Count ECDSA signature operations the old-fashioned (pre-0.6) way
- * @return number of sigops this transaction's outputs will produce when spent
- * @see CTransaction::FetchInputs
- */
-uint64_t GetSigOpCountWithoutP2SH(const CTransaction &tx);
-
-/**
- * Count ECDSA signature operations in pay-to-script-hash inputs.
- *
- * @param[in] mapInputs Map of previous transactions that have outputs we're
- * spending
- * @return maximum number of sigops required to validate this transaction's
- * inputs
- * @see CTransaction::FetchInputs
- */
-uint64_t GetP2SHSigOpCount(const CTransaction &tx,
-                           const CCoinsViewCache &mapInputs);
-
-/**
- * Compute total signature operation of a transaction.
- * @param[in] tx     Transaction for which we are computing the cost
- * @param[in] inputs Map of previous transactions that have outputs we're
- * spending
- * @param[out] flags Script verification flags
- * @return Total signature operation cost of tx
- */
-uint64_t GetTransactionSigOpCount(const CTransaction &tx,
-                                  const CCoinsViewCache &inputs, int flags);
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends,
@@ -516,45 +469,24 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                  const PrecomputedTransactionData &txdata,
                  std::vector<CScriptCheck> *pvChecks = nullptr);
 
-/** Apply the effects of this transaction on the UTXO set represented by view */
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs,
-                 CTxUndo &txundo, int nHeight);
-
-/** Transaction validation functions */
-
-/** Context-independent validity checks for coinbase and non-coinbase
- * transactions */
-bool CheckRegularTransaction(const CTransaction &tx, CValidationState &state,
-                             bool fCheckDuplicateInputs = true);
-bool CheckCoinbase(const CTransaction &tx, CValidationState &state,
-                   bool fCheckDuplicateInputs = true);
-
-namespace Consensus {
+/**
+ * Mark all the coins corresponding to a given transaction inputs as spent.
+ */
+void SpendCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
+                int nHeight);
 
 /**
- * Check whether all inputs of this transaction are valid (no double spends and
- * amounts). This does not modify the UTXO set. This does not check scripts and
- * sigs. Preconditions: tx.IsCoinBase() is false.
+ * Apply the effects of this transaction on the UTXO set represented by view.
  */
-bool CheckTxInputs(const CTransaction &tx, CValidationState &state,
-                   const CCoinsViewCache &inputs, int nSpendHeight);
-
-} // namespace Consensus
+void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight);
+void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
+                 int nHeight);
 
 /**
  * Test whether the LockPoints height and time are still valid on the current
  * chain.
  */
 bool TestLockPointValidity(const LockPoints *lp);
-
-/**
- * Check if transaction is final per BIP 68 sequence numbers and can be included
- * in a block. Consensus critical. Takes as input a list of heights at which
- * tx's inputs (in order) confirmed.
- */
-bool SequenceLocks(const CTransaction &tx, int flags,
-                   std::vector<int> *prevHeights, const CBlockIndex &block);
 
 /**
  * Check if transaction will be BIP 68 final in the next block to be created.
@@ -588,7 +520,7 @@ private:
 
 public:
     CScriptCheck()
-        : amount(0), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
+        : amount(), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
 
     CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,
@@ -632,16 +564,6 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
 bool CheckBlock(
     const Config &Config, const CBlock &block, CValidationState &state,
     BlockValidationOptions validationOptions = BlockValidationOptions());
-
-/**
- * Context dependent validity checks for non coinbase transactions. This
- * doesn't check the validity of the transaction against the UTXO set, but
- * simply characteristic that are suceptible to change over time such as feature
- * activation/deactivation and CLTV.
- */
-bool ContextualCheckTransaction(const Config &config, const CTransaction &tx,
-                                CValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff);
 
 /**
  * This is a variant of ContextualCheckTransaction which computes the contextual

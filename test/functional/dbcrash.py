@@ -35,6 +35,7 @@ from test_framework.mininode import *
 from test_framework.script import *
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.blocktools import create_confirmed_utxos
 
 HTTP_DISCONNECT_ERRORS = [http.client.CannotSendRequest]
 try:
@@ -231,8 +232,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
 
         # Start by creating a lot of utxos on node3
         initial_height = self.nodes[3].getblockcount()
-        utxo_list = create_confirmed_utxos(self.nodes[3].getnetworkinfo()[
-                                           'relayfee'], self.nodes[3], 5000)
+        utxo_list = create_confirmed_utxos(self.nodes[3], 5000)
         self.log.info("Prepped %d utxo entries", len(utxo_list))
 
         # Sync these blocks with the other nodes

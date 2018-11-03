@@ -3378,10 +3378,6 @@
         <translation>Waarschuwing</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Waarschuwing: onbekende nieuwe regels geactiveerd (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Om in alleen een blokmodus te opereren (standaard: %u)</translation>
     </message>

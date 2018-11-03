@@ -10,7 +10,7 @@ NSEEDS = 512
 
 MAX_SEEDS_PER_ASN = 2
 
-MIN_BLOCKS = 337600
+MIN_BLOCKS = 540000
 
 # These are hosts that have been observed to be behaving strangely (e.g.
 # aggressively connecting to every node).
@@ -36,18 +36,21 @@ PATTERN_ONION = re.compile(
 # Used to only select nodes with a user agent string compatible with the
 # BCH/UAHF specification.
 PATTERN_AGENT = re.compile(
-    r"^(/BitcoinABC:0.17.(\d+)\(\S+\)/|/BitcoinXT:0.11\(\S+\)/|/BUCash:1.3.(\d+)\(\S+\)/)")
+    r"^(/Bitcoin ABC:0.(17|18).(\d+)\(.+\)/|/bitprim:\"0.(13|14).(\d+)\"/|/Bitcoin XT:0.11.(\d+)[J-Z]\(.+\)/|/BUCash:1.(4|5).(\d+)\(.+\)/|/bcash:v1.(\d+).(\d+)-(\S+)/)")
 
 
 def parseline(line):
     sline = line.split()
     if len(sline) < 11:
         return None
-    # All BCH clients apart BU and Classic has a space in the useragent string
-    if len(sline) == 13:
-        sline[11] = sline[11] + sline[12]
-    if len(sline) == 14:
-        sline[11] = sline[11] + sline[12] + sline[13]
+
+    # The user agent is at the end of the line. It may contain space, so we concatenate.
+    for i in range(12, len(sline)):
+        sline[11] += ' ' + sline[i]
+
+    # Remove leftovers
+    del sline[12:]
+
     m = PATTERN_IPV4.match(sline[0])
     sortkey = None
     ip = None
@@ -63,10 +66,12 @@ def parseline(line):
                 port = int(m.group(2))
         else:
             net = 'ipv6'
-            if m.group(1) in ['::']:  # Not interested in localhost
+            # Not interested in localhost
+            if m.group(1) in ['::']:
                 return None
             ipstr = m.group(1)
-            sortkey = ipstr  # XXX parse IPv6 into number, could use name_to_ipv6 from generate-seeds
+            # XXX parse IPv6 into number, could use name_to_ipv6 from generate-seeds
+            sortkey = ipstr
             port = int(m.group(2))
     else:
         # Do IPv4 sanity check
@@ -168,20 +173,17 @@ def main():
     # Require service bit 1.
     ips = [ip for ip in ips if (ip['service'] & 1) == 1]
     # Require at least 50% 30-day uptime.
-    # TODO set it back to 50% once nodes will have enough uptime.
-    ips = [ip for ip in ips if ip['uptime'] > 0]
+    ips = [ip for ip in ips if ip['uptime'] > 50]
     # Require a known and recent user agent.
     ips = [ip for ip in ips if PATTERN_AGENT.match(ip['agent'])]
+
     # Sort by availability (and use last success as tie breaker)
     ips.sort(key=lambda x:
              (x['uptime'], x['lastsuccess'], x['ip']), reverse=True)
     # Filter out hosts with multiple bitcoin ports, these are likely abusive
     ips = filtermultiport(ips)
     # Look up ASNs and limit results, both per ASN and globally.
-    # TODO during this bootstrap phase we need any BCH full nodes
-    # active on the network, uncomment the following line once the
-    # BCH chain will be consolidated.
-    # ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
+    ips = filterbyasn(ips, MAX_SEEDS_PER_ASN, NSEEDS)
     # Sort the results by IP address (for deterministic output).
     ips.sort(key=lambda x: (x['net'], x['sortkey']))
 

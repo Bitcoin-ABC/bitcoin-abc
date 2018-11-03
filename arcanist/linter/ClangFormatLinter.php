@@ -36,6 +36,18 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
     return 'clang-format';
   }
 
+  public function getVersion() {
+    list($stdout) = execx('%C -version', $this->getExecutableCommand());
+
+    $matches = array();
+    $regex = '/^clang-format version (?P<version>\d+\.\d+)\./';
+    if (preg_match($regex, $stdout, $matches)) {
+      return $matches['version'];
+    } else {
+      return false;
+    }
+  }
+
   public function getInstallInstructions() {
     return pht('Make sure clang-format is in directory specified by $PATH');
   }

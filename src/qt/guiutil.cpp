@@ -61,12 +61,7 @@
 #include <QSettings>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#else
 #include <QUrlQuery>
-#endif
 
 #if QT_VERSION >= 0x50200
 #include <QFontDatabase>
@@ -106,25 +101,22 @@ QFont fixedPitchFont() {
     return QFontDatabase::systemFont(QFontDatabase::FixedFont);
 #else
     QFont font("Monospace");
-#if QT_VERSION >= 0x040800
     font.setStyleHint(QFont::Monospace);
-#else
-    font.setStyleHint(QFont::TypeWriter);
-#endif
     return font;
 #endif
 }
 
-static std::string MakeAddrInvalid(std::string addr) {
+static std::string MakeAddrInvalid(std::string addr, const Config &config) {
     if (addr.size() < 2) {
         return "";
     }
 
     // Checksum is at the end of the address. Swapping chars to make it invalid.
     std::swap(addr[addr.size() - 1], addr[addr.size() - 2]);
-    if (!IsValidDestinationString(addr)) {
+    if (!IsValidDestinationString(addr, config.GetChainParams())) {
         return addr;
     }
+
     return "";
 }
 
@@ -136,7 +128,7 @@ std::string DummyAddress(const Config &config) {
         0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
 
     const CTxDestination dstKey = CKeyID(uint160(dummydata));
-    return MakeAddrInvalid(EncodeDestination(dstKey, config));
+    return MakeAddrInvalid(EncodeDestination(dstKey, config), config);
 }
 
 // Addresses are stored in the database with the encoding that the client was
@@ -159,13 +151,11 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent) {
     parent->setFocusProxy(widget);
 
     widget->setFont(fixedPitchFont());
-#if QT_VERSION >= 0x040700
     // We don't want translators to use own addresses in translations
     // and this is the only place, where this address is supplied.
     widget->setPlaceholderText(
         QObject::tr("Enter a Bitcoin address (e.g. %1)")
             .arg(QString::fromStdString(DummyAddress(GetConfig()))));
-#endif
     widget->setValidator(
         new BitcoinAddressEntryValidator(Params().CashAddrPrefix(), parent));
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
@@ -215,14 +205,10 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
     if (rv.address.endsWith("/")) {
         rv.address.truncate(rv.address.length() - 1);
     }
-    rv.amount = Amount(0);
+    rv.amount = Amount::zero();
 
-#if QT_VERSION < 0x050000
-    QList<QPair<QString, QString>> items = uri.queryItems();
-#else
     QUrlQuery uriQuery(uri);
     QList<QPair<QString, QString>> items = uriQuery.queryItems();
-#endif
     for (QList<QPair<QString, QString>>::iterator i = items.begin();
          i != items.end(); i++) {
         bool fShouldReturnFalse = false;
@@ -279,7 +265,7 @@ QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     }
     int paramCount = 0;
 
-    if (info.amount != Amount(0)) {
+    if (info.amount != Amount::zero()) {
         ret +=
             QString("?amount=%1")
                 .arg(BitcoinUnits::format(BitcoinUnits::BCH, info.amount, false,
@@ -312,11 +298,7 @@ bool isDust(const QString &address, const Amount amount,
 }
 
 QString HtmlEscape(const QString &str, bool fMultiLine) {
-#if QT_VERSION < 0x050000
-    QString escaped = Qt::escape(str);
-#else
     QString escaped = str.toHtmlEscaped();
-#endif
     if (fMultiLine) {
         escaped = escaped.replace("\n", "<br>\n");
     }
@@ -349,13 +331,8 @@ QString getSaveFileName(QWidget *parent, const QString &caption,
     QString myDir;
     // Default to user documents location
     if (dir.isEmpty()) {
-#if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(
-            QDesktopServices::DocumentsLocation);
-#else
         myDir =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#endif
     } else {
         myDir = dir;
     }
@@ -395,13 +372,8 @@ QString getOpenFileName(QWidget *parent, const QString &caption,
     QString myDir;
     if (dir.isEmpty()) // Default to user documents location
     {
-#if QT_VERSION < 0x050000
-        myDir = QDesktopServices::storageLocation(
-            QDesktopServices::DocumentsLocation);
-#else
         myDir =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-#endif
     } else {
         myDir = dir;
     }
@@ -535,12 +507,8 @@ void TableViewLastColumnResizingFixer::disconnectViewHeadersSignals() {
 // Refactored here for readability.
 void TableViewLastColumnResizingFixer::setViewHeaderResizeMode(
     int logicalIndex, QHeaderView::ResizeMode resizeMode) {
-#if QT_VERSION < 0x050000
-    tableView->horizontalHeader()->setResizeMode(logicalIndex, resizeMode);
-#else
     tableView->horizontalHeader()->setSectionResizeMode(logicalIndex,
                                                         resizeMode);
-#endif
 }
 
 void TableViewLastColumnResizingFixer::resizeColumn(int nColumnIndex,

@@ -36,12 +36,15 @@ BITCOIN_TESTS =\
   test/bip32_tests.cpp \
   test/blockcheck_tests.cpp \
   test/blockencodings_tests.cpp \
+  test/blockindex_tests.cpp \
   test/blockstatus_tests.cpp \
   test/bloom_tests.cpp \
   test/bswap_tests.cpp \
   test/cashaddr_tests.cpp \
   test/cashaddrenc_tests.cpp \
+  test/checkdatasig_tests.cpp \
   test/checkpoints_tests.cpp \
+  test/checkqueue_tests.cpp \
   test/coins_tests.cpp \
   test/compress_tests.cpp \
   test/config_tests.cpp \
@@ -52,6 +55,7 @@ BITCOIN_TESTS =\
   test/DoS_tests.cpp \
   test/dstencode_tests.cpp \
   test/excessiveblock_tests.cpp \
+  test/feerate_tests.cpp \
   test/getarg_tests.cpp \
   test/hash_tests.cpp \
   test/inv_tests.cpp \
@@ -84,6 +88,7 @@ BITCOIN_TESTS =\
   test/scriptflags.h \
   test/scriptnum_tests.cpp \
   test/serialize_tests.cpp \
+  test/sigencoding_tests.cpp \
   test/sighash_tests.cpp \
   test/sighashtype_tests.cpp \
   test/sigopcount_tests.cpp \
@@ -104,7 +109,8 @@ BITCOIN_TESTS =\
   test/undo_tests.cpp \
   test/univalue_tests.cpp \
   test/util_tests.cpp \
-  test/validation_tests.cpp
+  test/validation_tests.cpp \
+  test/work_comparator_tests.cpp
 
 if ENABLE_WALLET
 BITCOIN_TESTS += \

@@ -13,6 +13,7 @@
 #include "config.h"
 #include "guiconstants.h"
 #include "guiutil.h"
+#include "httprpc.h"
 #include "intro.h"
 #include "networkstyle.h"
 #include "optionsmodel.h"
@@ -56,13 +57,6 @@
 
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
-#if QT_VERSION < 0x050000
-Q_IMPORT_PLUGIN(qcncodecs)
-Q_IMPORT_PLUGIN(qjpcodecs)
-Q_IMPORT_PLUGIN(qtwcodecs)
-Q_IMPORT_PLUGIN(qkrcodecs)
-Q_IMPORT_PLUGIN(qtaccessiblewidgets)
-#else
 #if QT_VERSION < 0x050400
 Q_IMPORT_PLUGIN(AccessibleFactory)
 #endif
@@ -73,11 +67,6 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #elif defined(QT_QPA_PLATFORM_COCOA)
 Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
-#endif
-#endif
-
-#if QT_VERSION < 0x050000
-#include <QTextCodec>
 #endif
 
 // Declare meta types used for QMetaObject::invokeMethod
@@ -161,15 +150,6 @@ static void initTranslations(QTranslator &qtTranslatorBase,
 }
 
 /* qDebug() message handler --> debug.log */
-#if QT_VERSION < 0x050000
-void DebugMessageHandler(QtMsgType type, const char *msg) {
-    if (type == QtDebugMsg) {
-        LogPrint(BCLog::QT, "GUI: %s\n", msg);
-    } else {
-        LogPrintf("GUI: %s\n", msg);
-    }
-}
-#else
 void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
                          const QString &msg) {
     Q_UNUSED(context);
@@ -179,7 +159,6 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
         LogPrintf("GUI: %s\n", msg.toStdString());
     }
 }
-#endif
 
 /**
  * Class encapsulating Bitcoin ABC startup and shutdown.
@@ -191,7 +170,8 @@ public:
     explicit BitcoinABC();
 
 public Q_SLOTS:
-    void initialize(Config *config);
+    void initialize(Config *config,
+                    HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void shutdown();
 
 Q_SIGNALS:
@@ -228,7 +208,8 @@ public:
     void createSplashScreen(const NetworkStyle *networkStyle);
 
     /// Request core initialization
-    void requestInitialize(Config &config);
+    void requestInitialize(Config &config,
+                           HTTPRPCRequestProcessor &httpRPCRequestProcessor);
     /// Request core shutdown
     void requestShutdown(Config &config);
 
@@ -246,7 +227,8 @@ public Q_SLOTS:
     void handleRunawayException(const QString &message);
 
 Q_SIGNALS:
-    void requestedInitialize(Config *config);
+    void requestedInitialize(Config *config,
+                             HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -277,7 +259,8 @@ void BitcoinABC::handleRunawayException(const std::exception *e) {
     Q_EMIT runawayException(QString::fromStdString(GetWarnings("gui")));
 }
 
-void BitcoinABC::initialize(Config *cfg) {
+void BitcoinABC::initialize(Config *cfg,
+                            HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     Config &config(*cfg);
     try {
         qDebug() << __func__ << ": Running AppInit2 in thread";
@@ -296,7 +279,8 @@ void BitcoinABC::initialize(Config *cfg) {
             return;
         }
 
-        int rv = AppInitMain(config, threadGroup, scheduler);
+        int rv = AppInitMain(config, *httpRPCRequestProcessor, threadGroup,
+                             scheduler);
         Q_EMIT initializeResult(rv);
     } catch (const std::exception &e) {
         handleRunawayException(&e);
@@ -419,8 +403,9 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this, SIGNAL(requestedInitialize(Config *)), executor,
-            SLOT(initialize(Config *)));
+    connect(this,
+            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
+            executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
     /*  make sure executor object is deleted in its own thread */
@@ -435,13 +420,14 @@ void BitcoinApplication::parameterSetup() {
     InitParameterInteraction();
 }
 
-void BitcoinApplication::requestInitialize(Config &config) {
+void BitcoinApplication::requestInitialize(
+    Config &config, HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     qDebug() << __func__ << ": Requesting initialize";
     startThread();
     // IMPORTANT: config must NOT be a reference to a temporary because below
     // signal may be connected to a slot that will be executed as a queued
     // connection in another thread!
-    Q_EMIT requestedInitialize(&config);
+    Q_EMIT requestedInitialize(&config, &httpRPCRequestProcessor);
 }
 
 void BitcoinApplication::requestShutdown(Config &config) {
@@ -596,16 +582,11 @@ int main(int argc, char *argv[]) {
     // Command-line options take precedence:
     gArgs.ParseParameters(argc, argv);
 
-// Do not refer to data directory yet, this can be overridden by
-// Intro::pickDataDirectory
+    // Do not refer to data directory yet, this can be overridden by
+    // Intro::pickDataDirectory
 
-/// 2. Basic Qt initialization (not dependent on parameters or configuration)
-#if QT_VERSION < 0x050000
-    // Internal string conversion is all UTF-8
-    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
-#endif
-
+    /// 2. Basic Qt initialization (not dependent on parameters or
+    /// configuration)
     Q_INIT_RESOURCE(bitcoin);
     Q_INIT_RESOURCE(bitcoin_locale);
 
@@ -755,10 +736,6 @@ int main(int argc, char *argv[]) {
     // word-wrapped.
     app.installEventFilter(
         new GUIUtil::ToolTipToRichTextFilter(TOOLTIP_WRAP_THRESHOLD, &app));
-#if QT_VERSION < 0x050000
-    // Install qDebug() message handler to route to debug.log
-    qInstallMsgHandler(DebugMessageHandler);
-#else
 #if defined(Q_OS_WIN)
     // Install global event filter for processing Windows session related
     // Windows messages (WM_QUERYENDSESSION and WM_ENDSESSION)
@@ -766,7 +743,6 @@ int main(int argc, char *argv[]) {
 #endif
     // Install qDebug() message handler to route to debug.log
     qInstallMessageHandler(DebugMessageHandler);
-#endif
     // Allow parameter interaction before we create the options model
     app.parameterSetup();
     // Load GUI settings from QSettings
@@ -782,10 +758,12 @@ int main(int argc, char *argv[]) {
         !gArgs.GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
 
+    HTTPRPCRequestProcessor httpRPCRequestProcessor(config);
+
     try {
         app.createWindow(&config, networkStyle.data());
-        app.requestInitialize(config);
-#if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
+        app.requestInitialize(config, httpRPCRequestProcessor);
+#if defined(Q_OS_WIN)
         WinShutdownMonitor::registerShutdownBlockReason(
             QObject::tr("%1 didn't yet exit safely...")
                 .arg(QObject::tr(PACKAGE_NAME)),

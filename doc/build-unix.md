@@ -81,8 +81,7 @@ install necessary parts of boost:
 
 BerkeleyDB 5.3 or later is required for the wallet. This can be installed with:
 
-        sudo apt-get install libdb-dev
-        sudo apt-get install libdb++-dev
+        sudo apt-get install libdb-dev libdb++-dev
 
 See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
 
@@ -98,17 +97,12 @@ Dependencies for the GUI: Ubuntu & Debian
 -----------------------------------------
 
 If you want to build Bitcoin-Qt, make sure that the required packages for Qt development
-are installed. Either Qt 5 or Qt 4 are necessary to build the GUI.
-If both Qt 4 and Qt 5 are installed, Qt 5 will be used. Pass `--with-gui=qt4` to configure to choose Qt4.
+are installed. Qt 5 is necessary to build the GUI.
 To build without GUI pass `--without-gui`.
 
-To build with Qt 5 (recommended) you need the following:
+To build with Qt 5 you need the following:
 
     sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
-
-Alternatively, to build with Qt 4 you need the following:
-
-    sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler
 
 libqrencode (optional) can be installed with:
 
@@ -127,7 +121,7 @@ Optional:
 
     sudo dnf install miniupnpc-devel
 
-To build with Qt 5 (recommended) you need the following:
+To build with Qt 5 you need the following:
 
     sudo dnf install qt5-qttools-devel qt5-qtbase-devel protobuf-devel
 
@@ -227,7 +221,7 @@ Setup and Build Example: Arch Linux
 This example lists the steps necessary to setup and build a command line only, non-wallet distribution of the latest changes on Arch Linux:
 
     pacman -S git base-devel boost libevent python
-    git clone https://github.com/Bitcoin-ABC/bitcoin-abc
+    git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
     cd bitcoin-abc/
     ./autogen.sh
     ./configure --disable-wallet --without-gui --without-miniupnpc

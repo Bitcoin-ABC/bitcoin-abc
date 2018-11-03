@@ -1,4 +1,5 @@
 // Copyright (c) 2015-2016 The Bitcoin Core developers
+// Copyright (c) 2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -95,10 +96,9 @@ private:
 public:
     WorkQueue(size_t _maxDepth)
         : running(true), maxDepth(_maxDepth), numThreads(0) {}
-    /** Precondition: worker threads have all stopped
-     * (call WaitExit)
-     */
+    /** Precondition: worker threads have all stopped (call WaitExit) */
     ~WorkQueue() {}
+
     /** Enqueue a work item */
     bool Enqueue(WorkItem *item) {
         std::unique_lock<std::mutex> lock(cs);
@@ -109,6 +109,7 @@ public:
         cond.notify_one();
         return true;
     }
+
     /** Thread function */
     void Run() {
         ThreadCounter count(*this);
@@ -125,12 +126,14 @@ public:
             (*i)();
         }
     }
+
     /** Interrupt and exit loops */
     void Interrupt() {
         std::unique_lock<std::mutex> lock(cs);
         running = false;
         cond.notify_all();
     }
+
     /** Wait for worker threads to exit */
     void WaitExit() {
         std::unique_lock<std::mutex> lock(cs);
@@ -189,26 +192,25 @@ static bool InitHTTPAllowList() {
     rpc_allow_subnets.push_back(CSubNet(localv4, 8));
     // always allow IPv6 localhost.
     rpc_allow_subnets.push_back(CSubNet(localv6));
-    if (gArgs.IsArgSet("-rpcallowip")) {
-        for (const std::string &strAllow : gArgs.GetArgs("-rpcallowip")) {
-            CSubNet subnet;
-            LookupSubNet(strAllow.c_str(), subnet);
-            if (!subnet.IsValid()) {
-                uiInterface.ThreadSafeMessageBox(
-                    strprintf("Invalid -rpcallowip subnet specification: %s. "
-                              "Valid are a single IP (e.g. 1.2.3.4), a "
-                              "network/netmask (e.g. 1.2.3.4/255.255.255.0) or "
-                              "a network/CIDR (e.g. 1.2.3.4/24).",
-                              strAllow),
-                    "", CClientUIInterface::MSG_ERROR);
-                return false;
-            }
-            rpc_allow_subnets.push_back(subnet);
+    for (const std::string &strAllow : gArgs.GetArgs("-rpcallowip")) {
+        CSubNet subnet;
+        LookupSubNet(strAllow.c_str(), subnet);
+        if (!subnet.IsValid()) {
+            uiInterface.ThreadSafeMessageBox(
+                strprintf("Invalid -rpcallowip subnet specification: %s. "
+                          "Valid are a single IP (e.g. 1.2.3.4), a "
+                          "network/netmask (e.g. 1.2.3.4/255.255.255.0) or a "
+                          "network/CIDR (e.g. 1.2.3.4/24).",
+                          strAllow),
+                "", CClientUIInterface::MSG_ERROR);
+            return false;
         }
+        rpc_allow_subnets.push_back(subnet);
     }
     std::string strAllowed;
-    for (const CSubNet &subnet : rpc_allow_subnets)
+    for (const CSubNet &subnet : rpc_allow_subnets) {
         strAllowed += subnet.ToString() + " ";
+    }
     LogPrint(BCLog::HTTP, "Allowing HTTP connections from: %s\n", strAllowed);
     return true;
 }
@@ -403,15 +405,14 @@ bool InitHTTPServer(Config &config) {
     evthread_use_pthreads();
 #endif
 
-    // XXX RAII
+    // XXX RAII: Create a new event_base for Libevent use
     base = event_base_new();
     if (!base) {
         LogPrintf("Couldn't create an event_base: exiting\n");
         return false;
     }
 
-    /* Create a new evhttp object to handle requests. */
-    // XXX RAII
+    // XXX RAII: Create a new evhttp object to handle requests
     http = evhttp_new(base);
     if (!http) {
         LogPrintf("couldn't create evhttp. Exiting.\n");
@@ -573,13 +574,15 @@ std::string HTTPRequest::ReadBody() {
     struct evbuffer *buf = evhttp_request_get_input_buffer(req);
     if (!buf) return "";
     size_t size = evbuffer_get_length(buf);
-    /** Trivial implementation: if this is ever a performance bottleneck,
+    /**
+     * Trivial implementation: if this is ever a performance bottleneck,
      * internal copying can be avoided in multi-segment buffers by using
      * evbuffer_peek and an awkward loop. Though in that case, it'd be even
      * better to not copy into an intermediate string but use a stream
      * abstraction to consume the evbuffer on the fly in the parsing algorithm.
      */
     const char *data = (const char *)evbuffer_pullup(buf, size);
+
     // returns nullptr in case of empty buffer.
     if (!data) {
         return "";
@@ -596,7 +599,8 @@ void HTTPRequest::WriteHeader(const std::string &hdr,
     evhttp_add_header(headers, hdr.c_str(), value.c_str());
 }
 
-/** Closure sent to main thread to request a reply to be sent to a HTTP request.
+/**
+ * Closure sent to main thread to request a reply to be sent to a HTTP request.
  * Replies must be sent in the main loop in the main http thread, this cannot be
  * done from worker threads.
  */

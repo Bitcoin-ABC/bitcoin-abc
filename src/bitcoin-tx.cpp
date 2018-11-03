@@ -399,7 +399,7 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
 
 static void MutateTxAddOutData(CMutableTransaction &tx,
                                const std::string &strInput) {
-    Amount value(0);
+    Amount value = Amount::zero();
 
     // separate [VALUE:]DATA in string
     size_t pos = strInput.find(':');
@@ -546,7 +546,7 @@ static Amount AmountFromValue(const UniValue &value) {
     if (!ParseFixedPoint(value.getValStr(), 8, &n)) {
         throw std::runtime_error("Invalid amount");
     }
-    Amount amount = Amount(n);
+    Amount amount = n * SATOSHI;
 
     if (!MoneyRange(amount)) {
         throw std::runtime_error("Amount out of range");
@@ -615,7 +615,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("prevtxs internal object typecheck fail");
         }
 
-        uint256 txid = ParseHashUV(prevOut["txid"], "txid");
+        TxId txid(ParseHashUV(prevOut["txid"], "txid"));
 
         int nOut = atoi(prevOut["vout"].getValStr());
         if (nOut < 0) {
@@ -639,7 +639,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
             CTxOut txout;
             txout.scriptPubKey = scriptPubKey;
-            txout.nValue = Amount(0);
+            txout.nValue = Amount::zero();
             if (prevOut.exists("amount")) {
                 txout.nValue = AmountFromValue(prevOut["amount"]);
             }

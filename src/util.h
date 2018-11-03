@@ -26,10 +26,10 @@
 #include <exception>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <boost/signals2/signal.hpp>
-#include <boost/thread/exceptions.hpp>
 
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();
@@ -94,14 +94,22 @@ inline bool IsSwitchChar(char c) {
 
 class ArgsManager {
 protected:
-    CCriticalSection cs_args;
+    mutable CCriticalSection cs_args;
     std::map<std::string, std::string> mapArgs;
     std::map<std::string, std::vector<std::string>> mapMultiArgs;
+    std::unordered_set<std::string> m_negated_args;
 
 public:
     void ParseParameters(int argc, const char *const argv[]);
     void ReadConfigFile(const std::string &confPath);
-    std::vector<std::string> GetArgs(const std::string &strArg);
+
+    /**
+     * Return a vector of strings of the given argument
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return command-line arguments
+     */
+    std::vector<std::string> GetArgs(const std::string &strArg) const;
 
     /**
      * Return true if the given argument has been manually set.
@@ -109,7 +117,16 @@ public:
      * @param strArg Argument to get (e.g. "-foo")
      * @return true if the argument has been set
      */
-    bool IsArgSet(const std::string &strArg);
+    bool IsArgSet(const std::string &strArg) const;
+
+    /**
+     * Return true if the argument was originally passed as a negated option,
+     * i.e. -nofoo.
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return true if the argument was passed negated
+     */
+    bool IsArgNegated(const std::string &strArg) const;
 
     /**
      * Return string argument or default value.
@@ -119,7 +136,7 @@ public:
      * @return command-line argument or default value
      */
     std::string GetArg(const std::string &strArg,
-                       const std::string &strDefault);
+                       const std::string &strDefault) const;
 
     /**
      * Return integer argument or default value.
@@ -128,7 +145,7 @@ public:
      * @param default (e.g. 1)
      * @return command-line argument (0 if invalid number) or default value
      */
-    int64_t GetArg(const std::string &strArg, int64_t nDefault);
+    int64_t GetArg(const std::string &strArg, int64_t nDefault) const;
 
     /**
      * Return boolean argument or default value.
@@ -137,7 +154,7 @@ public:
      * @param default (true or false)
      * @return command-line argument or default value
      */
-    bool GetBoolArg(const std::string &strArg, bool fDefault);
+    bool GetBoolArg(const std::string &strArg, bool fDefault) const;
 
     /**
      * Set an argument if it doesn't already have a value.
@@ -166,6 +183,10 @@ public:
 
     // Remove an arg setting, used only in testing
     void ClearArg(const std::string &strArg);
+
+private:
+    // Munge -nofoo into -foo=0 and track the value as negated.
+    void InterpretNegatedOption(std::string &key, std::string &val);
 };
 
 extern ArgsManager gArgs;

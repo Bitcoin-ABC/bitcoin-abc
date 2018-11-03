@@ -1,7 +1,7 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR, 0)
-define(_CLIENT_VERSION_MINOR, 17)
+define(_CLIENT_VERSION_MINOR, 18)
 define(_CLIENT_VERSION_REVISION, 3)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
@@ -464,7 +464,7 @@ case $host in
          dnl the user (--without-wallet or --without-gui for example).
 
          openssl_prefix=`$BREW --prefix openssl 2>/dev/null`
-         bdb_prefix=`$BREW --prefix berkeley-db4 2>/dev/null`
+         bdb_prefix=`$BREW --prefix berkeley-db 2>/dev/null`
          qt5_prefix=`$BREW --prefix qt5 2>/dev/null`
          if test x$openssl_prefix != x; then
            PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -768,7 +768,7 @@ fi
 BITCOIN_QT_INIT
 
 dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
-BITCOIN_QT_CONFIGURE([$use_pkgconfig], [qt5])
+BITCOIN_QT_CONFIGURE([$use_pkgconfig])
 
 if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$build_bitcoin_seeder$use_tests$use_bench = xnononononono; then
     use_boost=no
@@ -1340,7 +1340,6 @@ echo "Options used to compile and link:"
 echo "  with wallet   = $enable_wallet"
 echo "  with gui / qt = $bitcoin_enable_qt"
 if test x$bitcoin_enable_qt != xno; then
-    echo "    qt version  = $bitcoin_qt_got_major_vers"
     echo "    with qr     = $use_qr"
 fi
 echo "  with zmq      = $use_zmq"

@@ -99,14 +99,12 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                        << qCert;
             return false;
         }
-#if QT_VERSION >= 0x050000
         if (qCert.isBlacklisted()) {
             qWarning() << "PaymentRequestPlus::getMerchant: Payment request: "
                           "certificate blacklisted: "
                        << qCert;
             return false;
         }
-#endif
         const uint8_t *data = (const uint8_t *)certChain.certificate(i).data();
         X509 *cert = d2i_X509(nullptr, &data, certChain.certificate(i).size());
         if (cert) certs.push_back(cert);
@@ -211,10 +209,14 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                    << err.what();
     }
 
-    if (website) delete[] website;
+    if (website) {
+        delete[] website;
+    }
+
     X509_STORE_CTX_free(store_ctx);
-    for (unsigned int i = 0; i < certs.size(); i++)
+    for (size_t i = 0; i < certs.size(); i++) {
         X509_free(certs[i]);
+    }
 
     return fResult;
 }
@@ -226,7 +228,8 @@ QList<std::pair<CScript, Amount>> PaymentRequestPlus::getPayTo() const {
             (const uint8_t *)details.outputs(i).script().data();
         CScript s(scriptStr, scriptStr + details.outputs(i).script().size());
 
-        result.append(std::make_pair(s, Amount(details.outputs(i).amount())));
+        result.append(
+            std::make_pair(s, int64_t(details.outputs(i).amount()) * SATOSHI));
     }
     return result;
 }

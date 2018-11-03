@@ -36,6 +36,16 @@
 #include <memory>
 #include <thread>
 
+void CConnmanTest::AddNode(CNode &node) {
+    LOCK(g_connman->cs_vNodes);
+    g_connman->vNodes.push_back(&node);
+}
+
+void CConnmanTest::ClearNodes() {
+    LOCK(g_connman->cs_vNodes);
+    g_connman->vNodes.clear();
+}
+
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 
@@ -64,7 +74,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName) {
 
 BasicTestingSetup::~BasicTestingSetup() {
     ECC_Stop();
-    g_connman.reset();
 }
 
 TestingSetup::TestingSetup(const std::string &chainName)
@@ -101,13 +110,14 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // Deterministic randomness for tests.
     g_connman = std::unique_ptr<CConnman>(new CConnman(config, 0x1337, 0x1337));
     connman = g_connman.get();
-    RegisterNodeSignals(GetNodeSignals());
+    peerLogic.reset(new PeerLogicValidation(connman, scheduler));
 }
 
 TestingSetup::~TestingSetup() {
-    UnregisterNodeSignals(GetNodeSignals());
     threadGroup.interrupt_all();
     threadGroup.join_all();
+    g_connman.reset();
+    peerLogic.reset();
     UnloadBlockIndex();
     delete pcoinsTip;
     delete pcoinsdbview;
@@ -173,7 +183,7 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn,
     // Hack to assume either it's completely dependent on other mempool txs or
     // not at all.
     Amount inChainValue =
-        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : Amount(0);
+        pool && pool->HasNoInputsOf(txn) ? txn.GetValueOut() : Amount::zero();
 
     return CTxMemPoolEntry(MakeTransactionRef(txn), nFee, nTime, dPriority,
                            nHeight, inChainValue, spendsCoinbase, sigOpCost,

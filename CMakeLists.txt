@@ -9,6 +9,9 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
 )
 
+# Make contrib script accessible.
+set(CONTRIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/contrib)
+
 # If ccache is available, then use it.
 find_program(CCACHE ccache)
 if(CCACHE)

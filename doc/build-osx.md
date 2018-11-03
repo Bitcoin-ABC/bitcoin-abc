@@ -34,7 +34,7 @@ Build Bitcoin ABC
 
 1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
 
-        git clone github.com/Bitcoin-ABC/bitcoin-abc
+        git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git
         cd bitcoin-abc
 
 2.  Build bitcoin-abc:

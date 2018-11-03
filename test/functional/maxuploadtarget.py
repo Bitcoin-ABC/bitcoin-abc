@@ -19,6 +19,7 @@ from test_framework.mininode import *
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
+from test_framework.blocktools import mine_big_block
 
 
 class TestNode(NodeConnCB):
@@ -75,7 +76,7 @@ class MaxUploadTest(BitcoinTestFramework):
         # Test logic begins here
 
         # Now mine a big block
-        mine_large_block(self.nodes[0], self.utxo_cache)
+        mine_big_block(self.nodes[0], self.utxo_cache)
 
         # Store the hash; we'll request this later
         big_old_block = self.nodes[0].getbestblockhash()
@@ -86,7 +87,7 @@ class MaxUploadTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(int(time.time()) - 2 * 60 * 60 * 24)
 
         # Mine one more block, so that the prior block looks old
-        mine_large_block(self.nodes[0], self.utxo_cache)
+        mine_big_block(self.nodes[0], self.utxo_cache)
 
         # We'll be requesting this new block too
         big_new_block = self.nodes[0].getbestblockhash()

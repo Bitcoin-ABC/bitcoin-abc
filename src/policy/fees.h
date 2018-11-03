@@ -166,9 +166,9 @@ public:
      * minSuccess
      * @param nBlockHeight the current block height
      */
-    double EstimateMedianVal(int confTarget, double sufficientTxVal,
-                             double minSuccess, bool requireGreater,
-                             unsigned int nBlockHeight);
+    CFeeRate EstimateMedianFeeRate(int confTarget, double sufficientTxVal,
+                                   double minSuccess, bool requireGreater,
+                                   unsigned int nBlockHeight);
 
     /** Return the max number of confirms we're tracking */
     unsigned int GetMaxConfirms() { return confAvg.size(); }
@@ -198,8 +198,8 @@ static const double MIN_SUCCESS_PCT = .95;
 static const double SUFFICIENT_FEETXS = 1;
 
 // Minimum and Maximum values for tracking feerates
-static constexpr Amount MIN_FEERATE(10);
-static const Amount MAX_FEERATE(int64_t(1e7));
+static constexpr Amount MIN_FEERATE(10 * SATOSHI);
+static const Amount MAX_FEERATE(int64_t(1e7) * SATOSHI);
 static const Amount INF_FEERATE(MAX_MONEY);
 static const Amount INF_PRIORITY(int64_t(1e9) * MAX_MONEY);
 

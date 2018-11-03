@@ -10,11 +10,11 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "config.h"
+#include "consensus/activation.h"
 #include "consensus/params.h"
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
-#include "validation.h"
 
 /**
  * Compute the next required proof of work using the legacy Bitcoin difficulty

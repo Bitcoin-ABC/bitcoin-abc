@@ -167,13 +167,16 @@ void WalletView::setWalletModel(WalletModel *_walletModel) {
 }
 
 void WalletView::processNewTransaction(const QModelIndex &parent, int start,
-                                       int /*end*/) {
+                                       int end) {
     // Prevent balloon-spam when initial block download is in progress
-    if (!walletModel || !clientModel || clientModel->inInitialBlockDownload())
+    if (!walletModel || !clientModel || clientModel->inInitialBlockDownload()) {
         return;
+    }
 
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();
-    if (!ttm || ttm->processingQueuedTransactions()) return;
+    if (!ttm || ttm->processingQueuedTransactions()) {
+        return;
+    }
 
     QString date = ttm->index(start, TransactionTableModel::Date, parent)
                        .data()
@@ -192,7 +195,7 @@ void WalletView::processNewTransaction(const QModelIndex &parent, int start,
 
     Q_EMIT incomingTransaction(date,
                                walletModel->getOptionsModel()->getDisplayUnit(),
-                               Amount(amount), type, address, label);
+                               int64_t(amount) * SATOSHI, type, address, label);
 }
 
 void WalletView::gotoOverviewPage() {
@@ -210,7 +213,9 @@ void WalletView::gotoReceiveCoinsPage() {
 void WalletView::gotoSendCoinsPage(QString addr) {
     setCurrentWidget(sendCoinsPage);
 
-    if (!addr.isEmpty()) sendCoinsPage->setAddress(addr);
+    if (!addr.isEmpty()) {
+        sendCoinsPage->setAddress(addr);
+    }
 }
 
 void WalletView::gotoSignMessageTab(QString addr) {
@@ -221,7 +226,9 @@ void WalletView::gotoSignMessageTab(QString addr) {
     signVerifyMessageDialog->setModel(walletModel);
     signVerifyMessageDialog->showTab_SM(true);
 
-    if (!addr.isEmpty()) signVerifyMessageDialog->setAddress_SM(addr);
+    if (!addr.isEmpty()) {
+        signVerifyMessageDialog->setAddress_SM(addr);
+    }
 }
 
 void WalletView::gotoVerifyMessageTab(QString addr) {
@@ -232,7 +239,9 @@ void WalletView::gotoVerifyMessageTab(QString addr) {
     signVerifyMessageDialog->setModel(walletModel);
     signVerifyMessageDialog->showTab_VM(true);
 
-    if (!addr.isEmpty()) signVerifyMessageDialog->setAddress_VM(addr);
+    if (!addr.isEmpty()) {
+        signVerifyMessageDialog->setAddress_VM(addr);
+    }
 }
 
 bool WalletView::handlePaymentRequest(const SendCoinsRecipient &recipient) {
@@ -248,7 +257,10 @@ void WalletView::updateEncryptionStatus() {
 }
 
 void WalletView::encryptWallet(bool status) {
-    if (!walletModel) return;
+    if (!walletModel) {
+        return;
+    }
+
     AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt
                                    : AskPassphraseDialog::Decrypt,
                             this);
@@ -263,7 +275,9 @@ void WalletView::backupWallet() {
         GUIUtil::getSaveFileName(this, tr("Backup Wallet"), QString(),
                                  tr("Wallet Data (*.dat)"), nullptr);
 
-    if (filename.isEmpty()) return;
+    if (filename.isEmpty()) {
+        return;
+    }
 
     if (!walletModel->backupWallet(filename)) {
         Q_EMIT message(
@@ -286,7 +300,10 @@ void WalletView::changePassphrase() {
 }
 
 void WalletView::unlockWallet() {
-    if (!walletModel) return;
+    if (!walletModel) {
+        return;
+    }
+
     // Unlock wallet when requested by wallet model
     if (walletModel->getEncryptionStatus() == WalletModel::Locked) {
         AskPassphraseDialog dlg(AskPassphraseDialog::Unlock, this);
@@ -296,7 +313,9 @@ void WalletView::unlockWallet() {
 }
 
 void WalletView::usedSendingAddresses() {
-    if (!walletModel) return;
+    if (!walletModel) {
+        return;
+    }
 
     usedSendingAddressesPage->show();
     usedSendingAddressesPage->raise();
@@ -304,7 +323,9 @@ void WalletView::usedSendingAddresses() {
 }
 
 void WalletView::usedReceivingAddresses() {
-    if (!walletModel) return;
+    if (!walletModel) {
+        return;
+    }
 
     usedReceivingAddressesPage->show();
     usedReceivingAddressesPage->raise();
@@ -324,8 +345,9 @@ void WalletView::showProgress(const QString &title, int nProgress) {
             progressDialog->close();
             progressDialog->deleteLater();
         }
-    } else if (progressDialog)
+    } else if (progressDialog) {
         progressDialog->setValue(nProgress);
+    }
 }
 
 void WalletView::requestedSyncWarningInfo() {

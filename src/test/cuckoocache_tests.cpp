@@ -10,7 +10,6 @@
 #include <thread>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/thread.hpp>
 
 /** Test Suite for CuckooCache
  *
@@ -33,8 +32,9 @@ BOOST_AUTO_TEST_SUITE(cuckoocache_tests);
  */
 void insecure_GetRandHash(uint256 &t) {
     uint32_t *ptr = (uint32_t *)t.begin();
-    for (uint8_t j = 0; j < 8; ++j)
+    for (uint8_t j = 0; j < 8; ++j) {
         *(ptr++) = local_rand_ctx.rand32();
+    }
 }
 
 /**
@@ -71,8 +71,9 @@ template <typename Cache> double test_cache(size_t megabytes, double load) {
     hashes.resize(n_insert);
     for (uint32_t i = 0; i < n_insert; ++i) {
         uint32_t *ptr = (uint32_t *)hashes[i].begin();
-        for (uint8_t j = 0; j < 8; ++j)
+        for (uint8_t j = 0; j < 8; ++j) {
             *(ptr++) = local_rand_ctx.rand32();
+        }
     }
     /**
      * We make a copy of the hashes because future optimizations of the
@@ -81,13 +82,15 @@ template <typename Cache> double test_cache(size_t megabytes, double load) {
      */
     std::vector<uint256> hashes_insert_copy = hashes;
     /** Do the insert */
-    for (uint256 &h : hashes_insert_copy)
+    for (uint256 &h : hashes_insert_copy) {
         set.insert(h);
+    }
     /** Count the hits */
     uint32_t count = 0;
-    for (uint256 &h : hashes)
+    for (uint256 &h : hashes) {
         count += set.contains(h, false);
-    double hit_rate = ((double)count) / ((double)n_insert);
+    }
+    double hit_rate = double(count) / double(n_insert);
     return hit_rate;
 }
 
@@ -141,8 +144,9 @@ template <typename Cache> void test_cache_erase(size_t megabytes) {
     hashes.resize(n_insert);
     for (uint32_t i = 0; i < n_insert; ++i) {
         uint32_t *ptr = (uint32_t *)hashes[i].begin();
-        for (uint8_t j = 0; j < 8; ++j)
+        for (uint8_t j = 0; j < 8; ++j) {
             *(ptr++) = local_rand_ctx.rand32();
+        }
     }
     /** We make a copy of the hashes because future optimizations of the
      * cuckoocache may overwrite the inserted element, so the test is
@@ -151,14 +155,17 @@ template <typename Cache> void test_cache_erase(size_t megabytes) {
     std::vector<uint256> hashes_insert_copy = hashes;
 
     /** Insert the first half */
-    for (uint32_t i = 0; i < (n_insert / 2); ++i)
+    for (uint32_t i = 0; i < (n_insert / 2); ++i) {
         set.insert(hashes_insert_copy[i]);
+    }
     /** Erase the first quarter */
-    for (uint32_t i = 0; i < (n_insert / 4); ++i)
+    for (uint32_t i = 0; i < (n_insert / 4); ++i) {
         set.contains(hashes[i], true);
+    }
     /** Insert the second half */
-    for (uint32_t i = (n_insert / 2); i < n_insert; ++i)
+    for (uint32_t i = (n_insert / 2); i < n_insert; ++i) {
         set.insert(hashes_insert_copy[i]);
+    }
 
     /** elements that we marked erased but that are still there */
     size_t count_erased_but_contained = 0;
@@ -167,12 +174,15 @@ template <typename Cache> void test_cache_erase(size_t megabytes) {
     /** elements that were most recently inserted */
     size_t count_fresh = 0;
 
-    for (uint32_t i = 0; i < (n_insert / 4); ++i)
+    for (uint32_t i = 0; i < (n_insert / 4); ++i) {
         count_erased_but_contained += set.contains(hashes[i], false);
-    for (uint32_t i = (n_insert / 4); i < (n_insert / 2); ++i)
+    }
+    for (uint32_t i = (n_insert / 4); i < (n_insert / 2); ++i) {
         count_stale += set.contains(hashes[i], false);
-    for (uint32_t i = (n_insert / 2); i < n_insert; ++i)
+    }
+    for (uint32_t i = (n_insert / 2); i < n_insert; ++i) {
         count_fresh += set.contains(hashes[i], false);
+    }
 
     double hit_rate_erased_but_contained =
         double(count_erased_but_contained) / (double(n_insert) / 4.0);
@@ -203,8 +213,9 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
     hashes.resize(n_insert);
     for (uint32_t i = 0; i < n_insert; ++i) {
         uint32_t *ptr = (uint32_t *)hashes[i].begin();
-        for (uint8_t j = 0; j < 8; ++j)
+        for (uint8_t j = 0; j < 8; ++j) {
             *(ptr++) = local_rand_ctx.rand32();
+        }
     }
     /** We make a copy of the hashes because future optimizations of the
      * cuckoocache may overwrite the inserted element, so the test is
@@ -217,8 +228,9 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
         /** Grab lock to make sure we release inserts */
         boost::unique_lock<boost::shared_mutex> l(mtx);
         /** Insert the first half */
-        for (uint32_t i = 0; i < (n_insert / 2); ++i)
+        for (uint32_t i = 0; i < (n_insert / 2); ++i) {
             set.insert(hashes_insert_copy[i]);
+        }
     }
 
     /** Spin up 3 threads to run contains with erase.
@@ -232,18 +244,21 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
             size_t ntodo = (n_insert / 4) / 3;
             size_t start = ntodo * x;
             size_t end = ntodo * (x + 1);
-            for (uint32_t i = start; i < end; ++i)
+            for (uint32_t i = start; i < end; ++i) {
                 set.contains(hashes[i], true);
+            }
         });
 
     /** Wait for all threads to finish */
-    for (std::thread &t : threads)
+    for (std::thread &t : threads) {
         t.join();
+    }
     /** Grab lock to make sure we observe erases */
     boost::unique_lock<boost::shared_mutex> l(mtx);
     /** Insert the second half */
-    for (uint32_t i = (n_insert / 2); i < n_insert; ++i)
+    for (uint32_t i = (n_insert / 2); i < n_insert; ++i) {
         set.insert(hashes_insert_copy[i]);
+    }
 
     /** elements that we marked erased but that are still there */
     size_t count_erased_but_contained = 0;
@@ -252,12 +267,15 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
     /** elements that were most recently inserted */
     size_t count_fresh = 0;
 
-    for (uint32_t i = 0; i < (n_insert / 4); ++i)
+    for (uint32_t i = 0; i < (n_insert / 4); ++i) {
         count_erased_but_contained += set.contains(hashes[i], false);
-    for (uint32_t i = (n_insert / 4); i < (n_insert / 2); ++i)
+    }
+    for (uint32_t i = (n_insert / 4); i < (n_insert / 2); ++i) {
         count_stale += set.contains(hashes[i], false);
-    for (uint32_t i = (n_insert / 2); i < n_insert; ++i)
+    }
+    for (uint32_t i = (n_insert / 2); i < n_insert; ++i) {
         count_fresh += set.contains(hashes[i], false);
+    }
 
     double hit_rate_erased_but_contained =
         double(count_erased_but_contained) / (double(n_insert) / 4.0);
@@ -270,6 +288,7 @@ template <typename Cache> void test_cache_erase_parallel(size_t megabytes) {
     // erased elements.
     BOOST_CHECK(hit_rate_stale > 2 * hit_rate_erased_but_contained);
 }
+
 BOOST_AUTO_TEST_CASE(cuckoocache_erase_parallel_ok) {
     size_t megabytes = 32;
     test_cache_erase_parallel<
@@ -309,15 +328,19 @@ template <typename Cache> void test_cache_generations() {
             reads.reserve(n_insert / 2);
             for (uint32_t i = 0; i < n_insert; ++i) {
                 uint32_t *ptr = (uint32_t *)inserts[i].begin();
-                for (uint8_t j = 0; j < 8; ++j)
+                for (uint8_t j = 0; j < 8; ++j) {
                     *(ptr++) = local_rand_ctx.rand32();
+                }
             }
-            for (uint32_t i = 0; i < n_insert / 4; ++i)
+            for (uint32_t i = 0; i < n_insert / 4; ++i) {
                 reads.push_back(inserts[i]);
-            for (uint32_t i = n_insert - (n_insert / 4); i < n_insert; ++i)
+            }
+            for (uint32_t i = n_insert - (n_insert / 4); i < n_insert; ++i) {
                 reads.push_back(inserts[i]);
-            for (auto h : inserts)
+            }
+            for (auto h : inserts) {
                 c.insert(h);
+            }
         }
     };
 
@@ -346,15 +369,16 @@ template <typename Cache> void test_cache_generations() {
         if (last_few.size() == WINDOW_SIZE) last_few.pop_front();
         last_few.emplace_back(BLOCK_SIZE, set);
         uint32_t count = 0;
-        for (auto &act : last_few)
+        for (auto &act : last_few) {
             for (uint32_t k = 0; k < POP_AMOUNT; ++k) {
                 count += set.contains(act.reads.back(), true);
                 act.reads.pop_back();
             }
+        }
         // We use last_few.size() rather than WINDOW_SIZE for the correct
         // behavior on the first WINDOW_SIZE iterations where the deque is not
         // full yet.
-        double hit = (double(count)) / (last_few.size() * POP_AMOUNT);
+        double hit = double(count) / (last_few.size() * POP_AMOUNT);
         // Loose Check that hit rate is above min_hit_rate
         BOOST_CHECK(hit > min_hit_rate);
         // Tighter check, count number of times we are less than tight_hit_rate

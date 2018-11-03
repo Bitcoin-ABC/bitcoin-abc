@@ -3618,10 +3618,6 @@
         <translation>Внимание</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Внимание: неизвестные правила вступили в силу(versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Будет работать в режиме только блоков (по умолчанию: %u)</translation>
     </message>

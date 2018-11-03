@@ -180,29 +180,11 @@ on all categories (and give you a very large debug.log file).
 The Qt code routes qDebug() output to debug.log under category "qt": run with -debug=qt
 to see it.
 
-**running and debugging tests**
+**writing tests**
 
-Unit tests are run via `make check`
-For running functional tests, see `/test/README.md`
+For details on unit tests, see `unit-tests.md`
 
-Simple example of debugging unit tests with GDB on Linux:
-```
-cd /build/src/test
-gdb test_bitcoin
-break interpreter.cpp:295  # No path is necessary, just the file name and line number
-run
-# GDB hits the breakpoint
-p/x opcode  # print the value of the variable (in this case, opcode) in hex
-c           # continue
-```
-
-Simple example of debugging unit tests with LLDB (OSX or Linux):
-```
-cd /build/src/test
-lldb -- test_bitcoin
-break set --file interpreter.cpp --line 295
-run
-```
+For details on functional tests, see `functional-tests.md`
 
 **writing script integration tests**
 
