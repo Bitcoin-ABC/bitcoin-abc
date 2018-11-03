@@ -311,8 +311,8 @@ public:
         return false;
     }
 
-    bool ToPrivateString(const SigningProvider &arg,
-                         std::string &out) const final {
+    bool ToStringHelper(const SigningProvider *arg, std::string &out,
+                        bool priv) const {
         std::string extra = ToStringExtra();
         size_t pos = extra.size() > 0 ? 1 : 0;
         std::string ret = m_name + "(" + extra;
@@ -321,8 +321,12 @@ public:
                 ret += ",";
             }
             std::string tmp;
-            if (!pubkey->ToPrivateString(arg, tmp)) {
-                return false;
+            if (priv) {
+                if (!pubkey->ToPrivateString(*arg, tmp)) {
+                    return false;
+                }
+            } else {
+                tmp = pubkey->ToString();
             }
             ret += std::move(tmp);
         }
@@ -331,7 +335,7 @@ public:
                 ret += ",";
             }
             std::string tmp;
-            if (!m_script_arg->ToPrivateString(arg, tmp)) {
+            if (!m_script_arg->ToStringHelper(arg, tmp, priv)) {
                 return false;
             }
             ret += std::move(tmp);
@@ -341,22 +345,14 @@ public:
     }
 
     std::string ToString() const final {
-        std::string extra = ToStringExtra();
-        size_t pos = extra.size() > 0 ? 1 : 0;
-        std::string ret = m_name + "(" + extra;
-        for (const auto &pubkey : m_pubkey_args) {
-            if (pos++) {
-                ret += ",";
-            }
-            ret += pubkey->ToString();
-        }
-        if (m_script_arg) {
-            if (pos++) {
-                ret += ",";
-            }
-            ret += m_script_arg->ToString();
-        }
-        return std::move(ret) + ")";
+        std::string ret;
+        ToStringHelper(nullptr, ret, false);
+        return ret;
+    }
+
+    bool ToPrivateString(const SigningProvider &arg,
+                         std::string &out) const override final {
+        return ToStringHelper(&arg, out, true);
     }
 
     bool Expand(int pos, const SigningProvider &arg,
