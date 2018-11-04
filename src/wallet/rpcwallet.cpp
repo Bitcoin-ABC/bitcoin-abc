@@ -4902,6 +4902,8 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "watchonly\n"
             "  \"isscript\" : true|false,      (boolean) If the key is a "
             "script\n"
+            "  \"ischange\" : true|false,      (boolean) If the address was "
+            "used for change output\n"
             "  \"script\" : \"type\"             (string, optional) The output "
             "script type. Only if \"isscript\" is true and the redeemscript is "
             "known. Possible types: nonstandard, pubkey, pubkeyhash, "
@@ -4992,6 +4994,7 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             ret.pushKV("account", pwallet->mapAddressBook[dest].name);
         }
     }
+    ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
     const CKeyMetadata *meta = nullptr;
     CKeyID key_id = GetKeyForDestination(*pwallet, dest);
     if (!key_id.IsNull()) {

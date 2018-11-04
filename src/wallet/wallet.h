@@ -1294,6 +1294,7 @@ public:
     isminetype IsMine(const CTxOut &txout) const;
     Amount GetCredit(const CTxOut &txout, const isminefilter &filter) const;
     bool IsChange(const CTxOut &txout) const;
+    bool IsChange(const CScript &script) const;
     Amount GetChange(const CTxOut &txout) const;
     bool IsMine(const CTransaction &tx) const;
     /** should probably be renamed to IsRelevantToMe */

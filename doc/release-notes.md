@@ -6,6 +6,8 @@ This release includes the following features and fixes:
 
 - The RPC `getrpcinfo` returns runtime details of the RPC server. At the moment
   it returns the active commands and the corresponding execution time.
+- `ischange` field of boolean type that shows if an address was used for change
+output was added to `getaddressinfo` method response.
 
 
 New RPC methods

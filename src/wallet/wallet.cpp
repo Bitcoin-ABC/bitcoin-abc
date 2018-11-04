@@ -1487,6 +1487,10 @@ Amount CWallet::GetCredit(const CTxOut &txout,
 }
 
 bool CWallet::IsChange(const CTxOut &txout) const {
+    return IsChange(txout.scriptPubKey);
+}
+
+bool CWallet::IsChange(const CScript &script) const {
     // TODO: fix handling of 'change' outputs. The assumption is that any
     // payment to a script that is ours, but is not in the address book is
     // change. That assumption is likely to break when we implement
@@ -1495,9 +1499,9 @@ bool CWallet::IsChange(const CTxOut &txout) const {
     // outputs are 'the send' and which are 'the change' will need to be
     // implemented (maybe extend CWalletTx to remember which output, if any, was
     // change).
-    if (::IsMine(*this, txout.scriptPubKey)) {
+    if (::IsMine(*this, script)) {
         CTxDestination address;
-        if (!ExtractDestination(txout.scriptPubKey, address)) {
+        if (!ExtractDestination(script, address)) {
             return true;
         }
 
