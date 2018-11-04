@@ -96,6 +96,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	random_tests.cpp
 	reverselock_tests.cpp
 	rpc_tests.cpp
+	rwcollection_tests.cpp
 	sanity_tests.cpp
 	scheduler_tests.cpp
 	script_commitment_tests.cpp

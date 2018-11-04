@@ -12,7 +12,7 @@
 #include "uint256.h"
 #include "util.h"
 
-#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace {
 

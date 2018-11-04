@@ -7,7 +7,7 @@
 #include "script/sigcache.h"
 #include "test/test_bitcoin.h"
 
-#include <thread>
+#include <boost/thread/shared_mutex.hpp>
 
 #include <boost/test/unit_test.hpp>
 
