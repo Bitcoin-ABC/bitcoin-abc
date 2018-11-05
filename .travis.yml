@@ -8,7 +8,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-7
+      - g++-5
 cache:
   directories:
   - depends/built
@@ -30,7 +30,7 @@ env:
     - MATRIX_EVAL="CC=gcc && CXX=g++"
   matrix:
 # 32-bit + dash
-    - HOST=i686-pc-linux-gnu PACKAGES="g++-7-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++" USE_SHELL="/bin/dash"
+    - HOST=i686-pc-linux-gnu PACKAGES="g++-5-multilib bc python3-zmq" DEP_OPTS="NO_QT=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++" USE_SHELL="/bin/dash"
 # bitcoind
 #    - HOST=x86_64-unknown-linux-gnu PACKAGES="bc python3-zmq" DEP_OPTS="NO_QT=1 NO_UPNP=1 DEBUG=1" RUN_TESTS=true GOAL="install" BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports CPPFLAGS=-DDEBUG_LOCKORDER -fpermissive"
 # No wallet
@@ -47,8 +47,8 @@ install:
     - if [ -n "$DPKG_ADD_ARCH" ]; then sudo dpkg --add-architecture "$DPKG_ADD_ARCH" ; fi
     - if [ -n "$PACKAGES" ]; then travis_retry sudo apt-get update; fi
     - if [ -n "$PACKAGES" ]; then travis_retry sudo apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES; fi
-    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 50
-    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 50
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 50
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
 before_script:
     - unset CC; unset CXX
     - eval "${MATRIX_EVAL}"
