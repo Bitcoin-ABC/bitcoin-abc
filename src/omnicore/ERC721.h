@@ -124,7 +124,7 @@ public:
     struct ERC721Property{
         // Map from Tokenid to the TokenInfo, and the flags identify whether the
         // TokenInfo data should write to database.
-        std::map<uint256, std::pair<TokenInfo, Flags> > cacheTokensOwner;
+        std::map<uint256, std::pair<TokenInfo, Flags> > cacheTokens;
 
         // The propertyID of these Tokens.
         // uint256 propertyID;

@@ -385,8 +385,8 @@ bool ERC721TokenInfos::existToken(const uint256& propertyID, const uint256& toke
         cacheProperty[propertyID] = ERC721Property();
     }
 
-    auto iter = cacheProperty[propertyID].cacheTokensOwner.find(tokenID);
-    if (iter == cacheProperty[propertyID].cacheTokensOwner.end()){
+    auto iter = cacheProperty[propertyID].cacheTokens.find(tokenID);
+    if (iter == cacheProperty[propertyID].cacheTokens.end()){
         // DB key for token entry
         CDataStream ssSpKey(SER_DISK, CLIENT_VERSION);
         ssSpKey << std::make_pair('s', std::make_pair(propertyID, tokenID));
@@ -405,7 +405,7 @@ bool ERC721TokenInfos::existToken(const uint256& propertyID, const uint256& toke
         try {
             CDataStream ssSpValue(strSpValue.data(), strSpValue.data() + strSpValue.size(), SER_DISK, CLIENT_VERSION);
             ssSpValue >> tmpInfo;
-            cacheProperty[propertyID].cacheTokensOwner[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
+            cacheProperty[propertyID].cacheTokens[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
         } catch (const std::exception& e) {
             PrintToLog("%s(): ERROR for SP %s: %s\n", __func__, propertyID.GetHex(), e.what());
             return false;
@@ -420,8 +420,8 @@ bool ERC721TokenInfos::putToken(const uint256& propertyID, const uint256& tokenI
         cacheProperty[propertyID] = ERC721Property();
     }
 
-    auto iter = cacheProperty[propertyID].cacheTokensOwner.find(tokenID);
-    if (iter != cacheProperty[propertyID].cacheTokensOwner.end()){
+    auto iter = cacheProperty[propertyID].cacheTokens.find(tokenID);
+    if (iter != cacheProperty[propertyID].cacheTokens.end()){
         return false;
     }
 
@@ -438,14 +438,14 @@ bool ERC721TokenInfos::putToken(const uint256& propertyID, const uint256& tokenI
         try {
             CDataStream ssSpValue(strSpValue.data(), strSpValue.data() + strSpValue.size(), SER_DISK, CLIENT_VERSION);
             ssSpValue >> tmpInfo;
-            cacheProperty[propertyID].cacheTokensOwner[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
+            cacheProperty[propertyID].cacheTokens[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
         } catch (const std::exception& e) {
             PrintToLog("%s(): ERROR for SP %s, Token %s : %s\n", __func__, propertyID.GetHex(), tokenID.GetHex(), e.what());
         }
         return false;
     }
 
-    cacheProperty[propertyID].cacheTokensOwner[tokenID] = std::make_pair(info, Flags::DIRTY);
+    cacheProperty[propertyID].cacheTokens[tokenID] = std::make_pair(info, Flags::DIRTY);
     return true;
 }
 
@@ -454,8 +454,8 @@ bool ERC721TokenInfos::getForUpdateToken(const uint256& propertyID, const uint25
         cacheProperty[propertyID] = ERC721Property();
     }
 
-    auto iter = cacheProperty[propertyID].cacheTokensOwner.find(tokenID);
-    if (iter != cacheProperty[propertyID].cacheTokensOwner.end()){
+    auto iter = cacheProperty[propertyID].cacheTokens.find(tokenID);
+    if (iter != cacheProperty[propertyID].cacheTokens.end()){
         *info = &(iter->second);
         return true;
     }
@@ -473,13 +473,13 @@ bool ERC721TokenInfos::getForUpdateToken(const uint256& propertyID, const uint25
         try {
             CDataStream ssSpValue(strSpValue.data(), strSpValue.data() + strSpValue.size(), SER_DISK, CLIENT_VERSION);
             ssSpValue >> tmpInfo;
-            cacheProperty[propertyID].cacheTokensOwner[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
+            cacheProperty[propertyID].cacheTokens[tokenID] = std::make_pair(tmpInfo, Flags::FRESH);
         } catch (const std::exception& e) {
             PrintToLog("%s(): ERROR for SP %s, Token %s : %s\n", __func__, propertyID.GetHex(), tokenID.GetHex(), e.what());
             return false;
         }
 
-        *info = &(cacheProperty[propertyID].cacheTokensOwner[tokenID]);
+        *info = &(cacheProperty[propertyID].cacheTokens[tokenID]);
         return true;
     }
 
@@ -537,7 +537,7 @@ bool ERC721TokenInfos::flush(const uint256& block_hash){
     leveldb::WriteBatch batch;
 
     for(auto propertyIter : cacheProperty){
-        for(auto tokenIter : propertyIter.second.cacheTokensOwner){
+        for(auto tokenIter : propertyIter.second.cacheTokens){
             if(tokenIter.second.second & Flags::DIRTY){
                 // DB key for token entry
                 CDataStream ssSpKey(SER_DISK, CLIENT_VERSION);
@@ -594,7 +594,7 @@ bool ERC721TokenInfos::flush(const uint256& block_hash){
                 batch.Put(slSpKey, slSpValue);
             }
         }
-        propertyIter.second.cacheTokensOwner.clear();
+        propertyIter.second.cacheTokens.clear();
     }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);

@@ -55,6 +55,7 @@
 #include "utiltime.h"
 #include "chain.h"
 #include "amount.h"
+#include "validation.h"
 #ifdef ENABLE_WALLET
 #include "script/ismine.h"
 #include "wallet/wallet.h"
@@ -4030,8 +4031,12 @@ int mastercore_handler_block_end(int nBlockNow, CBlockIndex const * pBlockIndex,
         if (writePersistence(nBlockNow)) {
             mastercore_save_state(pBlockIndex);
         }
-        my_erc721sps->flush(pBlockIndex->GetBlockHash());
-        my_erc721tokens->flush(pBlockIndex->GetBlockHash());
+        if(!my_erc721sps->flush(pBlockIndex->GetBlockHash())){
+            return AbortNode("Failed to store data to database !", "Error: Failed to store ERC721 property Data !");
+        }
+        if(!my_erc721tokens->flush(pBlockIndex->GetBlockHash())){
+            return AbortNode("Failed to store data to database !", "Error: Failed to store ERC721 Token Data !");
+        }
     }
 
     return 0;

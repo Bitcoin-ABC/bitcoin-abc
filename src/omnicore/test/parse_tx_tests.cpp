@@ -62,8 +62,6 @@ BOOST_AUTO_TEST_CASE(parse_erc721)
     mp_obj.Set("", "", 0, uint256(), 0, 0, wormhole_content, sizeof(wormhole_content), 3, 1);
     BOOST_CHECK(mp_obj.interpret_Transaction());
 
-
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()
