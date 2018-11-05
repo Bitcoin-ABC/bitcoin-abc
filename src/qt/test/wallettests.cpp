@@ -110,7 +110,7 @@ void TestGUI() {
             {}, GetScriptForRawPubKey(test.coinbaseKey.GetPubKey()));
     }
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), "mock", WalletDatabase::CreateMock());
+        Params(), WalletLocation(), WalletDatabase::CreateMock());
     bool firstRun;
     wallet->LoadWallet(firstRun);
     {

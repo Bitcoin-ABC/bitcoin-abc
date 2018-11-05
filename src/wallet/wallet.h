@@ -22,6 +22,7 @@
 #include <wallet/crypter.h>
 #include <wallet/rpcwallet.h>
 #include <wallet/walletdb.h>
+#include <wallet/walletutil.h>
 
 #include <algorithm>
 #include <atomic>
@@ -813,11 +814,9 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     /**
-     * Wallet filename from wallet=<path> command line or config option.
-     * Used in debug logs and to send RPCs to the right wallet instance when
-     * more than one wallet is loaded.
+     * Wallet location which includes wallet name (see WalletLocation).
      */
-    std::string m_name;
+    WalletLocation m_location;
 
     /** Internal database handle. */
     std::unique_ptr<WalletDatabase> database;
@@ -860,10 +859,12 @@ public:
                      CoinSelectionParams &coin_selection_params,
                      bool &bnb_used) const;
 
+    const WalletLocation &GetLocation() const { return m_location; }
+
     /**
      * Get a name for this wallet for logging/debugging purposes.
      */
-    std::string GetName() const { return m_name; }
+    const std::string &GetName() const { return m_location.GetName(); }
 
     void LoadKeyPool(int64_t nIndex, const CKeyPool &keypool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
@@ -880,9 +881,9 @@ public:
     unsigned int nMasterKeyMaxID = 0;
 
     /** Construct wallet with specified name and database implementation. */
-    CWallet(const CChainParams &chainParamsIn, std::string name,
+    CWallet(const CChainParams &chainParamsIn, const WalletLocation &location,
             std::unique_ptr<WalletDatabase> databaseIn)
-        : m_name(std::move(name)), database(std::move(databaseIn)),
+        : m_location(location), database(std::move(databaseIn)),
           chainParams(chainParamsIn) {}
 
     ~CWallet() {
@@ -1322,9 +1323,9 @@ public:
     bool AbandonTransaction(const TxId &txid);
 
     //! Verify wallet naming and perform salvage on the wallet if required
-    static bool Verify(const CChainParams &chainParams, std::string wallet_file,
-                       bool salvage_wallet, std::string &error_string,
-                       std::string &warning_string);
+    static bool Verify(const CChainParams &chainParams,
+                       const WalletLocation &location, bool salvage_wallet,
+                       std::string &error_string, std::string &warning_string);
 
     /**
      * Initializes the wallet, returns a new CWallet instance or a null pointer
@@ -1332,7 +1333,7 @@ public:
      */
     static std::shared_ptr<CWallet>
     CreateWalletFromFile(const CChainParams &chainParams,
-                         const std::string &name, const fs::path &path,
+                         const WalletLocation &location,
                          uint64_t wallet_creation_flags = 0);
 
     /**

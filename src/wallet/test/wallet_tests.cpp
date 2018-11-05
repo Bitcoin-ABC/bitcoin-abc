@@ -45,7 +45,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // Verify ScanForWalletTransactions picks up transactions in both the old
     // and new block files.
     {
-        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
+        CWallet wallet(Params(), WalletLocation(),
+                       WalletDatabase::CreateDummy());
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -61,7 +62,8 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // Verify ScanForWalletTransactions only picks transactions in the new block
     // file.
     {
-        CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
+        CWallet wallet(Params(), WalletLocation(),
+                       WalletDatabase::CreateDummy());
         AddKey(wallet, coinbaseKey);
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
@@ -75,7 +77,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup) {
     // after.
     {
         std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-            Params(), "dummy", WalletDatabase::CreateDummy());
+            Params(), WalletLocation(), WalletDatabase::CreateDummy());
         AddWallet(wallet);
         UniValue keys;
         keys.setArray();
@@ -154,7 +156,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     // Import key into wallet and call dumpwallet to create backup file.
     {
         std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-            Params(), "dummy", WalletDatabase::CreateDummy());
+            Params(), WalletLocation(), WalletDatabase::CreateDummy());
         LOCK(wallet->cs_wallet);
         wallet->mapKeyMetadata[coinbaseKey.GetPubKey().GetID()].nCreateTime =
             KEY_TIME;
@@ -172,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     // were scanned, and no prior blocks were scanned.
     {
         std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-            Params(), "dummy", WalletDatabase::CreateDummy());
+            Params(), WalletLocation(), WalletDatabase::CreateDummy());
 
         JSONRPCRequest request;
         request.params.setArray();
@@ -201,7 +203,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // function. Similar tests probably should be written for the other credit and
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
-    CWallet wallet(Params(), "dummy", WalletDatabase::CreateDummy());
+    CWallet wallet(Params(), WalletLocation(), WalletDatabase::CreateDummy());
     CWalletTx wtx(&wallet, m_coinbase_txns.back());
     LOCK2(cs_main, wallet.cs_wallet);
     wtx.hashBlock = chainActive.Tip()->GetBlockHash();
@@ -292,7 +294,7 @@ public:
     ListCoinsTestingSetup() {
         CreateAndProcessBlock({},
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
-        wallet = std::make_unique<CWallet>(Params(), "mock",
+        wallet = std::make_unique<CWallet>(Params(), WalletLocation(),
                                            WalletDatabase::CreateMock());
         bool firstRun;
         wallet->LoadWallet(firstRun);
@@ -401,7 +403,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup) {
 
 BOOST_FIXTURE_TEST_CASE(wallet_disableprivkeys, TestChain100Setup) {
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
-        Params(), "dummy", WalletDatabase::CreateDummy());
+        Params(), WalletLocation(), WalletDatabase::CreateDummy());
     wallet->SetWalletFlag(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
     BOOST_CHECK(!wallet->TopUpKeyPool(1000));
     CPubKey pubkey;

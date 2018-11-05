@@ -33,7 +33,6 @@
 #include <wallet/coinselection.h>
 #include <wallet/fees.h>
 #include <wallet/finaltx.h>
-#include <wallet/walletutil.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -4288,9 +4287,9 @@ CWallet::GetDestValues(const std::string &prefix) const {
     return values;
 }
 
-bool CWallet::Verify(const CChainParams &chainParams, std::string wallet_file,
-                     bool salvage_wallet, std::string &error_string,
-                     std::string &warning_string) {
+bool CWallet::Verify(const CChainParams &chainParams,
+                     const WalletLocation &location, bool salvage_wallet,
+                     std::string &error_string, std::string &warning_string) {
     // Do some checking on wallet path. It should be either a:
     //
     // 1. Path where a directory can be created.
@@ -4298,12 +4297,12 @@ bool CWallet::Verify(const CChainParams &chainParams, std::string wallet_file,
     // 3. Path to a symlink to a directory.
     // 4. For backwards compatibility, the name of a data file in -walletdir.
     LOCK(cs_wallets);
-    fs::path wallet_path = fs::absolute(wallet_file, GetWalletDir());
+    const fs::path &wallet_path = location.GetPath();
     fs::file_type path_type = fs::symlink_status(wallet_path).type();
     if (!(path_type == fs::file_not_found || path_type == fs::directory_file ||
           (path_type == fs::symlink_file && fs::is_directory(wallet_path)) ||
           (path_type == fs::regular_file &&
-           fs::path(wallet_file).filename() == wallet_file))) {
+           fs::path(location.GetName()).filename() == location.GetName()))) {
         error_string =
             strprintf("Invalid -wallet path '%s'. -wallet path should point to "
                       "a directory where wallet.dat and "
@@ -4311,16 +4310,16 @@ bool CWallet::Verify(const CChainParams &chainParams, std::string wallet_file,
                       "where such a directory could be created, "
                       "or (for backwards compatibility) the name of an "
                       "existing data file in -walletdir (%s)",
-                      wallet_file, GetWalletDir());
+                      location.GetName(), GetWalletDir());
         return false;
     }
 
     // Make sure that the wallet path doesn't clash with an existing wallet path
     for (auto wallet : GetWallets()) {
-        if (fs::absolute(wallet->GetName(), GetWalletDir()) == wallet_path) {
+        if (wallet->GetLocation().GetPath() == wallet_path) {
             error_string = strprintf("Error loading wallet %s. Duplicate "
                                      "-wallet filename specified.",
-                                     wallet_file);
+                                     location.GetName());
             return false;
         }
     }
@@ -4330,14 +4329,14 @@ bool CWallet::Verify(const CChainParams &chainParams, std::string wallet_file,
             return false;
         }
     } catch (const fs::filesystem_error &e) {
-        error_string =
-            strprintf("Error loading wallet %s. %s", wallet_file, e.what());
+        error_string = strprintf("Error loading wallet %s. %s",
+                                 location.GetName(), e.what());
         return false;
     }
 
     if (salvage_wallet) {
         // Recover readable keypairs:
-        CWallet dummyWallet(chainParams, "dummy",
+        CWallet dummyWallet(chainParams, WalletLocation(),
                             WalletDatabase::CreateDummy());
         std::string backup_filename;
         if (!WalletBatch::Recover(
@@ -4373,9 +4372,9 @@ void CWallet::MarkPreSplitKeys() {
 
 std::shared_ptr<CWallet>
 CWallet::CreateWalletFromFile(const CChainParams &chainParams,
-                              const std::string &name, const fs::path &path,
+                              const WalletLocation &location,
                               uint64_t wallet_creation_flags) {
-    const std::string &walletFile = name;
+    const std::string &walletFile = location.GetName();
 
     // Needed to restore wallet transaction meta data after -zapwallettxes
     std::vector<CWalletTx> vWtx;
@@ -4384,7 +4383,7 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
         uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
 
         std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
-            chainParams, name, WalletDatabase::Create(path));
+            chainParams, location, WalletDatabase::Create(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             InitError(
@@ -4400,7 +4399,8 @@ CWallet::CreateWalletFromFile(const CChainParams &chainParams,
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(chainParams, name, WalletDatabase::Create(path)),
+        new CWallet(chainParams, location,
+                    WalletDatabase::Create(location.GetPath())),
         ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DBErrors::LOAD_OK) {

@@ -8,11 +8,12 @@
 #include <rpc/server.h>
 #include <wallet/db.h>
 #include <wallet/rpcdump.h>
+#include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     : TestingSetup(chainName),
-      m_wallet(Params(), "mock", WalletDatabase::CreateMock()) {
+      m_wallet(Params(), WalletLocation(), WalletDatabase::CreateMock()) {
     bool fFirstRun;
     m_wallet.LoadWallet(fFirstRun);
     RegisterValidationInterface(&m_wallet);

@@ -16,8 +16,8 @@
 
 namespace {
 static std::unique_ptr<CWallet> LoadWallet(WalletBatch &batch) {
-    std::unique_ptr<CWallet> wallet(
-        new CWallet(Params(), "dummy", WalletDatabase::CreateDummy()));
+    std::unique_ptr<CWallet> wallet = std::make_unique<CWallet>(
+        Params(), WalletLocation(), WalletDatabase::CreateDummy());
     DBErrors res = batch.LoadWallet(wallet.get());
     BOOST_CHECK(res == DBErrors::LOAD_OK);
     return wallet;

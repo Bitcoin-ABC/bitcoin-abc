@@ -314,9 +314,9 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
     std::set<fs::path> wallet_paths;
 
     for (const auto &wallet_file : wallet_files) {
-        fs::path wallet_path = fs::absolute(wallet_file, GetWalletDir());
+        WalletLocation location(wallet_file);
 
-        if (!wallet_paths.insert(wallet_path).second) {
+        if (!wallet_paths.insert(location.GetPath()).second) {
             return InitError(strprintf(_("Error loading wallet %s. Duplicate "
                                          "-wallet filename specified."),
                                        wallet_file));
@@ -325,8 +325,8 @@ bool WalletInit::Verify(const CChainParams &chainParams) const {
         std::string error_string;
         std::string warning_string;
         bool verify_success =
-            CWallet::Verify(chainParams, wallet_file, salvage_wallet,
-                            error_string, warning_string);
+            CWallet::Verify(chainParams, location, salvage_wallet, error_string,
+                            warning_string);
         if (!error_string.empty()) {
             InitError(error_string);
         }
@@ -349,7 +349,7 @@ bool WalletInit::Open(const CChainParams &chainParams) const {
 
     for (const std::string &walletFile : gArgs.GetArgs("-wallet")) {
         std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-            chainParams, walletFile, fs::absolute(walletFile, GetWalletDir()));
+            chainParams, WalletLocation(walletFile));
         if (!pwallet) {
             return false;
         }
