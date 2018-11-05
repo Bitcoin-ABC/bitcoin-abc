@@ -278,6 +278,12 @@ public:
         memset(&name, 0, sizeof(name));
         memset(&url, 0, sizeof(url));
         memset(&data, 0, sizeof(data));
+        memset(&erc721_propertysymbol, 0, sizeof(erc721_propertysymbol));
+        memset(erc721_propertyname, 0, sizeof(erc721_propertyname));
+        memset(erc721_propertyurl, 0, sizeof(erc721_propertyurl));
+        memset(erc721_propertydata, 0, sizeof(erc721_propertydata));
+        memset(erc721token_attribute, 0, sizeof(erc721token_attribute));
+        memset(erc721_tokenurl, 0, sizeof(erc721_tokenurl));
         deadline = 0;
         early_bird = 0;
         percentage = 0;

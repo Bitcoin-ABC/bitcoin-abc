@@ -2476,7 +2476,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     std::pair<CMPSPERC721Info::PropertyInfo, Flags > *info = NULL;
     {
         LOCK(cs_tally);
-        if (!my_erc721sps->getAndUpdateSP(propertyId, &info)){
+        if (!my_erc721sps->getForUpdateSP(propertyId, &info)){
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Property identifier does not exist");
         }
     }
@@ -2528,7 +2528,7 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     std::pair<ERC721TokenInfos::TokenInfo, Flags > *info = NULL;
     {
         LOCK(cs_tally);
-        if (!my_erc721tokens->getAndUpdateToken(propertyId, tokenid, &info)) {
+        if (!my_erc721tokens->getForUpdateToken(propertyId, tokenid, &info)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 token identifier does not exist");
         }
     }

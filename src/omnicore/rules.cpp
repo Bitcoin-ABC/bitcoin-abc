@@ -582,13 +582,10 @@ bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType,
     return true;
 }
 
+//    modify
 bool IsERC721TransactionTypeAllowed(int txblock, uint16_t txtype, uint16_t version){
     const CConsensusParams& param = ConsensusParams();
-    if(txtype != WHC_TYPE_ERC721){
-        return false;
-    }
-
-    if(version == MP_TX_PKT_V0 && txblock >= param.ERC721_BLOCK){
+    if(txtype == WHC_TYPE_ERC721 && version == MP_TX_PKT_V0 && txblock >= param.ERC721_BLOCK){
         return true;
     }
 

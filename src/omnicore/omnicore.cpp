@@ -1644,7 +1644,7 @@ static char const * const statePrefix[NUM_FILETYPES] = {
 static int load_most_relevant_state()
 {
   int res = -1;
-
+    const CConsensusParams& param = ConsensusParams();
   // check the SP database and roll it back to its latest valid state
   // according to the active chain
   uint256 spWatermark;
@@ -1653,23 +1653,24 @@ static int load_most_relevant_state()
     return -1;
   }
 
-  uint256 erc721tokenswatermark;
-  if(!my_erc721tokens->getWatermark(erc721tokenswatermark)){
-      return  -1;
-  }
-    uint256 erc721SPwatermark;
-    if(!my_erc721sps->getWatermark(erc721SPwatermark)){
-        return  -1;
-    }
-
-    if (spWatermark != erc721tokenswatermark || spWatermark != erc721SPwatermark){
-        return -1;
-    }
-
   CBlockIndex const *spBlockIndex = GetBlockIndex(spWatermark);
   if (NULL == spBlockIndex) {
-    //trigger a full reparse, if the watermark isn't a real block
-    return -1;
+      //trigger a full reparse, if the watermark isn't a real block
+      return -1;
+  }
+  if(spBlockIndex->nHeight >= param.ERC721_BLOCK){
+      uint256 erc721tokenswatermark;
+      if(!my_erc721tokens->getWatermark(erc721tokenswatermark)){
+          return  -1;
+      }
+      uint256 erc721SPwatermark;
+      if(!my_erc721sps->getWatermark(erc721SPwatermark)){
+          return  -1;
+      }
+
+      if (spWatermark != erc721tokenswatermark || spWatermark != erc721SPwatermark){
+          return -1;
+      }
   }
 
   while (NULL != spBlockIndex && false == chainActive.Contains(spBlockIndex)) {
@@ -1678,18 +1679,22 @@ static int load_most_relevant_state()
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
     }
-    if(!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())){
-        return -1;
-    }
-    if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())){
-        return  -1;
-    }
 
+    if(spBlockIndex->nHeight >= param.ERC721_BLOCK) {
+      if (!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())) {
+          return -1;
+      }
+      if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())) {
+          return -1;
+      }
+    }
     spBlockIndex = spBlockIndex->pprev;
     if (spBlockIndex != NULL) {
         _my_sps->setWatermark(spBlockIndex->GetBlockHash());
-        my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
-        my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
+        if(spBlockIndex->nHeight >= param.ERC721_BLOCK) {
+            my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
+            my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
+        }
     }
   }
 
@@ -2032,8 +2037,6 @@ int mastercore_save_state( CBlockIndex const *pBlockIndex )
 
     // clean-up the directory
     prune_state_files(pBlockIndex);
-    my_erc721sps->flush(pBlockIndex->GetBlockHash());
-    my_erc721tokens->flush(pBlockIndex->GetBlockHash());
     _my_sps->setWatermark(pBlockIndex->GetBlockHash());
 
     return 0;
@@ -4027,6 +4030,8 @@ int mastercore_handler_block_end(int nBlockNow, CBlockIndex const * pBlockIndex,
         if (writePersistence(nBlockNow)) {
             mastercore_save_state(pBlockIndex);
         }
+        my_erc721sps->flush(pBlockIndex->GetBlockHash());
+        my_erc721tokens->flush(pBlockIndex->GetBlockHash());
     }
 
     return 0;

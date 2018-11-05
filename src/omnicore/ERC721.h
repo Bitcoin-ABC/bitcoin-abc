@@ -81,7 +81,7 @@ public:
     bool existSP(const uint256& propertyID);
 
     // Get the special property's info.
-    bool getAndUpdateSP(const uint256& propertyID, std::pair<PropertyInfo, Flags>** info);
+    bool getForUpdateSP(const uint256& propertyID, std::pair<PropertyInfo, Flags>** info);
 
     // get water block hash
     bool getWatermark(uint256& watermark) const;
@@ -121,10 +121,10 @@ public:
         }
     };
 
-    struct ERC721Token{
+    struct ERC721Property{
         // Map from Tokenid to the TokenInfo, and the flags identify whether the
         // TokenInfo data should write to database.
-        std::map<uint256, std::pair<TokenInfo, Flags> > cacheTokenOwner;
+        std::map<uint256, std::pair<TokenInfo, Flags> > cacheTokensOwner;
 
         // The propertyID of these Tokens.
         // uint256 propertyID;
@@ -132,14 +132,14 @@ public:
 private:
 
     // Map from the propertyID to its' Tokens.
-    std::map<uint256, ERC721Token> cacheTokens;
+    std::map<uint256, ERC721Property> cacheProperty;
 public:
 
     ERC721TokenInfos(const boost::filesystem::path& path, bool fWipe);
     virtual ~ERC721TokenInfos();
 
     void clear(){
-        cacheTokens.clear();
+        cacheProperty.clear();
         // wipe database via parent class
         CDBBase::Clear();
     }
@@ -160,7 +160,7 @@ public:
     bool putToken(const uint256& propertyID, const uint256& tokenID, const TokenInfo& info);
 
     // Get the special Token info, and possible will be changed outside.
-    bool getAndUpdateToken(const uint256& propertyID, const uint256& tokenID, std::pair<TokenInfo, Flags>** info);
+    bool getForUpdateToken(const uint256& propertyID, const uint256& tokenID, std::pair<TokenInfo, Flags>** info);
 
     // get water block hash.
     bool getWatermark(uint256& watermark) const;

@@ -348,7 +348,6 @@ bool CMPTransaction::interpret_ERC721(){
     return false;
 }
 
-
 bool CMPTransaction::interpret_ERC721_issueproperty(){
     if(pkt_size < 17){
         return false;
@@ -359,13 +358,26 @@ bool CMPTransaction::interpret_ERC721_issueproperty(){
     for (int i = 0; i < 4; i++) {
         spstr.push_back(std::string(p));
         p += spstr.back().size() + 1;
+        if(sizeof(pkt) -1 - (p - (char*)&pkt) <= 0){
+            PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
+            return false;
+        }
     }
     memcpy(erc721_propertyname, spstr[0].data(), sizeof(erc721_propertyname) - 1);
     memcpy(erc721_propertysymbol, spstr[1].data(), sizeof(erc721_propertysymbol) - 1);
     memcpy(erc721_propertydata, spstr[2].data(), sizeof(erc721_propertydata) - 1);
     memcpy(erc721_propertyurl, spstr[3].data(), sizeof(erc721_propertyurl) - 1);
+    if(sizeof(pkt) -1 - (p - (char*)&pkt) <= 8){
+        PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
+        return false;
+    }
     memcpy(&max_erc721number, p, 8);
     swapByteOrder64(max_erc721number);
+
+    if (isOverrun(p)) {
+        PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
+        return false;
+    }
 
     return true;
 }
@@ -389,6 +401,11 @@ bool CMPTransaction::interpret_ERC721_issuetoken(){
     std::string url = std::string(ptmp);
     p += url.size() + 1;
     memcpy(erc721_tokenurl, url.data(), sizeof(erc721_tokenurl) - 1);
+
+    if (isOverrun((char*)p)) {
+        PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
+        return false;
+    }
 
     return true;
 }
@@ -1200,7 +1217,7 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
         return (PKT_ERROR_SP -37);
     }
 
-    if(max_erc721number > UINT64_MAX || max_erc721number == 0){
+    if(max_erc721number == 0){
         PrintToLog("%s(): rejected: property issue token number :%d out of range or zero \n", __func__, max_erc721number);
         return (PKT_ERROR_ERC721 - 101);
     }
@@ -1247,7 +1264,7 @@ int CMPTransaction::logicMath_ERC721_issuetoken(){
     }
 
     std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
-    if(!my_erc721sps->getAndUpdateSP(erc721_propertyid, &spInfo)){
+    if(!my_erc721sps->getForUpdateSP(erc721_propertyid, &spInfo)){
         PrintToLog("%s(): rejected: type %d or version %d action %d not permitted, because get special property %s failed at block %d\n",
                    __func__,
                    type,
@@ -1351,7 +1368,7 @@ int CMPTransaction::logicMath_ERC721_transfertoken(){
     }
 
     std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
-    if(!my_erc721tokens->getAndUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
+    if(!my_erc721tokens->getForUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
         PrintToLog("%s(): rejected: get ERC721 property : %s token : %s at block %d failed\n",
                    __func__,
                    erc721_propertyid.GetHex(),
@@ -1412,7 +1429,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
     }
 
     std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
-    if(!my_erc721sps->getAndUpdateSP(erc721_propertyid, &spInfo)){
+    if(!my_erc721sps->getForUpdateSP(erc721_propertyid, &spInfo)){
         PrintToLog("%s(): rejected: type %d or version %d action %d not permitted, because get special property %s failed at block %d\n",
                    __func__,
                    type,
@@ -1424,7 +1441,7 @@ int CMPTransaction::logicMath_ERC721_destroytoken(){
     }
 
     std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
-    if(!my_erc721tokens->getAndUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
+    if(!my_erc721tokens->getForUpdateToken(erc721_propertyid, erc721_tokenid, &info)){
         PrintToLog("%s(): rejected: get ERC721 property : %s token : %s at block %d failed\n",
                    __func__,
                    erc721_propertyid.GetHex(),
