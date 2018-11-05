@@ -184,11 +184,9 @@ public:
             // simply re-use the cached status.
             interfaces::WalletTxStatus wtx;
             int numBlocks;
-            int64_t adjustedTime;
-            if (wallet.tryGetTxStatus(rec->txid, wtx, numBlocks,
-                                      adjustedTime) &&
+            if (wallet.tryGetTxStatus(rec->txid, wtx, numBlocks) &&
                 rec->statusUpdateNeeded(numBlocks)) {
-                rec->updateStatus(wtx, numBlocks, adjustedTime);
+                rec->updateStatus(wtx, numBlocks);
             }
             return rec;
         }

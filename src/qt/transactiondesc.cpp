@@ -23,9 +23,10 @@
 #include <cstdint>
 #include <string>
 
-QString TransactionDesc::FormatTxStatus(
-    const interfaces::WalletTx &wtx, const interfaces::WalletTxStatus &status,
-    bool inMempool, int numBlocks, int64_t adjustedTime) {
+QString
+TransactionDesc::FormatTxStatus(const interfaces::WalletTx &wtx,
+                                const interfaces::WalletTxStatus &status,
+                                bool inMempool, int numBlocks) {
     if (!status.is_final) {
         if (wtx.tx->nLockTime < LOCKTIME_THRESHOLD) {
             return tr("Open for %n more block(s)", "",
@@ -56,12 +57,11 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
                                 interfaces::Wallet &wallet,
                                 TransactionRecord *rec, int unit) {
     int numBlocks;
-    int64_t adjustedTime;
     interfaces::WalletTxStatus status;
     interfaces::WalletOrderForm orderForm;
     bool inMempool;
     interfaces::WalletTx wtx = wallet.getWalletTxDetails(
-        rec->txid, status, orderForm, inMempool, numBlocks, adjustedTime);
+        rec->txid, status, orderForm, inMempool, numBlocks);
 
     QString strHTML;
 
@@ -74,7 +74,7 @@ QString TransactionDesc::toHTML(interfaces::Node &node,
     Amount nNet = nCredit - nDebit;
 
     strHTML += "<b>" + tr("Status") + ":</b> " +
-               FormatTxStatus(wtx, status, inMempool, numBlocks, adjustedTime);
+               FormatTxStatus(wtx, status, inMempool, numBlocks);
     strHTML += "<br>";
 
     strHTML += "<b>" + tr("Date") + ":</b> " +

@@ -151,7 +151,7 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
 }
 
 void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
-                                     int numBlocks, int64_t adjustedTime) {
+                                     int numBlocks) {
     // Determine transaction status
 
     // Sort order, unrecorded transactions sort to the top
