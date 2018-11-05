@@ -36,6 +36,6 @@ CPubKey ParsePubKeyOrAddress(const UniValue& value);
 uint32_t ParseOutputIndex(const UniValue& value);
 /** Parses previous transaction outputs. */
 std::vector<PrevTxsEntry> ParsePrevTxs(const UniValue& value);
-
+uint64_t ParseStrToUInt64(const std::string& str);
 
 #endif // OMNICORE_RPCVALUES_H

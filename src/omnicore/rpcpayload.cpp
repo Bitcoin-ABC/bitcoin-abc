@@ -395,6 +395,126 @@ UniValue whc_createpayload_burnbch(const Config &config,const JSONRPCRequest &re
     return HexStr(payload.begin(), payload.end());
 }
 
+UniValue whc_createpayload_issueERC721property(const Config &config,const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 5)
+        throw runtime_error(
+                "whc_createpayload_issueERC721property  \"name\" \"symbol\" \"data\" \"url\" \"number\" \n"
+                        "\nCreates the payload to issue ERC721 property\n"
+                        "Argument:\n"
+                        "1. propertyName       (string, required) the name of created property \n"
+                        "2. propertySymbol     (string, required) the symbol of created property \n"
+                        "3. propertyData       (string, required) the Data of created property \n"
+                        "4. propertyURL        (string, required) the URL of created property \n"
+                        "5. totalNumber        (string, required) the number of token that created property will issued in the future\n"
+                        "\nResult:\n"
+                        "\"payload\"             (string) the hex-encoded payload\n"
+
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_createpayload_issueERC721property", "\"name\" \"symbol\" \"data\" \"url\" \"number\" ")
+                + HelpExampleRpc("whc_createpayload_issueERC721property", "\"name\" \"symbol\" \"data\" \"url\" \"number\" ")
+        );
+
+    int i = 0;
+    std::string propertyName = request.params[i++].get_str();
+    std::string propertySymbol = request.params[i++].get_str();
+    std::string propertyData = request.params[i++].get_str();
+    std::string propertyURL = request.params[i++].get_str();
+    uint64_t totalNumber = ParseStrToUInt64(request.params[i++].get_str());
+
+    // perform checks
+    RequirePropertyName(propertyName);
+    RequireTokenNumber(totalNumber);
+
+    std::vector<unsigned char> payload = CreatePayload_IssueERC721Property(propertyName, propertySymbol, propertyData, propertyURL, totalNumber);
+
+    return HexStr(payload.begin(), payload.end());
+}
+
+UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() > 4 || request.params.size() < 3)
+        throw runtime_error(
+                "whc_createpayload_issueERC721token \"0x01\" \"0x02\" \"0x03\" \"url\" \n"
+                        "\nCreates the payload to issue ERC721 property\n"
+                        "Argument:\n"
+                        "1. propertyID              (string, required) The ID of the special property that will be issued token \n"
+                        "2. tokenID                 (string, optional) The tokenID that will be issued, if you don't want to skip this parament, wormhole system will automatic tokenID \n"
+                        "3. tokenAttributes         (string, required) The Attributes of the new created token\n"
+                        "4. tokenURL                (string, required) The URL of the new created token\n"
+                        "\nResult:\n"
+                        "\"payload\"             (string) the hex-encoded payload\n"
+
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_createpayload_issueERC721token", "\"0x01\" \"0x02\" \"0x03\" \"url\"  ")
+                + HelpExampleRpc("whc_createpayload_issueERC721token", "\"0x01\" \"0x02\" \"0x03\" \"url\" ")
+        );
+
+    int i = 0;
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    uint256 tokenid;
+    if(request.params.size() == 4){
+        RequireHexNumber(request.params[i].get_str());
+        tokenid = uint256S(request.params[i++].get_str());
+    }
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenAttributes = uint256S(request.params[i++].get_str());
+    std::string tokenURL = request.params[i++].get_str();
+
+    std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
+
+    return HexStr(payload.begin(), payload.end());
+}
+
+UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_createpayload_transferERC721token \"0x01\" \"0x02\" \n"
+                        "\nburn BCH to get WHC"
+                        "\nArguments:\n"
+                        "1. propertyID              (string, required) The propertyid within the token that will be transfer \n"
+                        "2. tokenID                 (string, optional) The tokenid that will be transfer\n"
+                        "\nResult:\n"
+                        "\"hash\"                  (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleRpc("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
+        );
+
+    int i = 0;
+    RequireHexNumber(request.params[i].get_str());
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenid = uint256S(request.params[i++].get_str());
+
+    std::vector<unsigned char> payload = CreatePayload_TransferERC721Token(propertyid, tokenid);
+
+    return HexStr(payload.begin(), payload.end());
+}
+
+UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_createpayload_destroyERC721token \"0x01\" \"0x02\" \n"
+                        "\nburn BCH to get WHC"
+                        "\nArguments:\n"
+                        "1. propertyID              (string, required) The token within the property that will be destroy \n"
+                        "2. tokenID                 (string, optional) The tokenid that will be destroy\n"
+                        "\nResult:\n"
+                        "\"hash\"                  (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleRpc("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
+        );
+
+    int i = 0;
+    RequireHexNumber(request.params[i].get_str());
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenid = uint256S(request.params[i++].get_str());
+
+    std::vector<unsigned char> payload = CreatePayload_DestroyERC721Token(propertyid, tokenid);
+
+    return HexStr(payload.begin(), payload.end());
+}
 UniValue whc_createpayload_grant(const Config &config,const JSONRPCRequest &request)
 {
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 3)
@@ -758,6 +878,10 @@ static const ContextFreeRPCCommand commands[] =
     { "omni layer (payload creation)", "whc_createpayload_issuancecrowdsale",   &whc_createpayload_issuancecrowdsale,   true, {} },
     { "omni layer (payload creation)", "whc_createpayload_issuancemanaged",     &whc_createpayload_issuancemanaged,     true, {} },
     { "omni layer (payload creation)", "whc_createpayload_closecrowdsale",      &whc_createpayload_closecrowdsale,      true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_destroyERC721token",      &whc_createpayload_destroyERC721token,      true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_issueERC721property",      &whc_createpayload_issueERC721property,      true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_transferERC721token",      &whc_createpayload_transferERC721token,      true, {} },
+    { "omni layer (payload creation)", "whc_createpayload_issueERC721token",      &whc_createpayload_issueERC721token,      true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_canceltradesbyprice", &omni_createpayload_canceltradesbyprice, true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_canceltradesbypair",  &omni_createpayload_canceltradesbypair,  true, {} },
 //    { "omni layer (payload creation)", "omni_createpayload_cancelalltrades",     &omni_createpayload_cancelalltrades,     true, {} },

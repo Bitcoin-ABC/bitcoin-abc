@@ -201,6 +201,7 @@ class WHC_TOKEN_MANAGE(BitcoinTestFramework):
         for it in ret:
             if it["address"] == addr and it["amount"] > 1:
                 item = it
+                break
         return item
 
     def constructCreatePropertyTx(self, item, payload):

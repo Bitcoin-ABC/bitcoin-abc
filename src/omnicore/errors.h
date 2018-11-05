@@ -131,7 +131,7 @@ inline std::string error_str(int ec) {
           ec_str = "exceed get WHC deadline";
           break;
       case PKT_ERROR_BURN -3:
-          ec_str = "no enough WHC to pay to create a New Token";
+          ec_str = "No enough WHC to pay for create a New property";
           break;
       case PKT_ERROR_STO -22:
           ec_str = "Transaction type or version not permitted";
@@ -382,6 +382,33 @@ inline std::string error_str(int ec) {
           break;
       case PKT_ERROR_TOKENS -50:
           ec_str = "Address is already frozen";
+          break;
+      case PKT_ERROR_ERC721 - 101:
+          ec_str = "Issuer ERC721 tokenNumber out of range or zero";
+          break;
+      case PKT_ERROR_ERC721 -202:
+          ec_str = "Don't get special ERC721 property in BlockChain";
+          break;
+      case PKT_ERROR_ERC721 -203:
+          ec_str = "Only property of issuer could issue ERC721 token";
+          break;
+      case PKT_ERROR_ERC721 -204:
+          ec_str = "The ERC721 token have exist";
+          break;
+      case PKT_ERROR_ERC721 -205:
+          ec_str = "Failed put new created ERC721 token to cache";
+          break;
+      case PKT_ERROR_ERC721 -206:
+          ec_str = "Issue token's receiver address or transfer token's receiver is destory address";
+          break;
+      case PKT_ERROR_ERC721 -207:
+          ec_str = "Have issued erc721 token's number exceed";
+          break;
+      case PKT_ERROR_ERC721 -208:
+          ec_str = "The special ERC721 token doesn't exist in BlockChain";
+          break;
+      case PKT_ERROR_ERC721 -302:
+          ec_str = "Sender is not the owner of ERC721 Token ";
           break;
       case PKT_ERROR_TOKENS -51:
           ec_str = "Freeze or unfreeze corresponding property issuer is not allowed";

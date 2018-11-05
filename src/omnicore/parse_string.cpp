@@ -63,5 +63,4 @@ int64_t StrToInt64(const std::string& str, int decimal)
 
     return nAmount;
 }
-
 } // namespace mastercore

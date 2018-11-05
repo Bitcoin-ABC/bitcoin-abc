@@ -26,6 +26,8 @@
 #include "rpc/server.h"
 #include "sync.h"
 #include "utilmoneystr.h"
+#include "../rpc/server.h"
+
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #endif
@@ -968,6 +970,203 @@ bool createNewtransaction(CWallet *const pwallet, const std::string &address,
     return true;
 }
 
+UniValue whc_issuanceERC721property(const Config& config, const JSONRPCRequest& request){
+    if (request.fHelp || request.params.size() != 6)
+        throw runtime_error(
+                "whc_issuanceERC721property \"issueAddress\" \"name\" \"symbol\" \"data\" \"url\" totalNumber  \n"
+                        "\nIssue ERC721 property"
+                        "\nArguments:\n"
+                        "1. issueAddress       (string, required) The BitcoinCash address will issue ERC721 property\n"
+                        "2. propertyName       (string, required) the name of created property \n"
+                        "3. propertySymbol     (string, required) the symbol of created property \n"
+                        "4. propertyData       (string, required) the Data of created property \n"
+                        "5. propertyURL        (string, required) the URL of created property \n"
+                        "6. totalNumber        (string, required) the number of token that created property will issued in the future\n"
+                        "\nResult:\n"
+                        "\"hash\"                  (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_issuanceERC721property", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\", \"name\", \"symbol\", \"data\", \"url\", 87997")
+                + HelpExampleRpc("whc_issuanceERC721property", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\", \"name\", \"symbol\", \"data\", \"url\", 87997")
+        );
+
+    std::string issuer = ParseAddress(request.params[0]);
+    std::string propertyName = request.params[1].get_str();
+    std::string propertySymbol = request.params[2].get_str();
+    std::string propertyData = request.params[3].get_str();
+    std::string propertyURL = request.params[4].get_str();
+    uint64_t totalNumber = ParseStrToUInt64(request.params[5].get_str());
+
+    // perform checks
+    RequirePropertyName(propertyName);
+    RequireTokenNumber(totalNumber);
+
+    // create a payload for the transaction
+    std::vector<unsigned char> payload = CreatePayload_IssueERC721Property(propertyName, propertySymbol, propertyData, propertyURL, totalNumber );
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(issuer, "", "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+}
+
+UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& request){
+    if (request.fHelp || request.params.size() < 5 || request.params.size() > 6)
+        throw runtime_error(
+                "whc_issuanceERC721Token \"issueAddress\" \"receiveaddress\" \"propertyID\" \"tokenID\" \"tokenAttributes\" \"tokenURL\" \n"
+                        "\nIssue ERC721 Token"
+                        "\nArguments:\n"
+                        "1. issueAddress          	(string, required) The BitcoinCash address will issue a token in special property\n"
+                        "2. receiveaddress          (string, required) The address of receiver will be received new created token\n"
+                        "3. propertyID              (string, required) The ID of the special property that will be issued token \n"
+                        "4. tokenID                 (string, optional) The tokenID that will be issued, if you don't want to skip this parament, wormhole system will automatic tokenID \n"
+                        "5. tokenAttributes         (string, required) The Attributes of the new created token\n"
+                        "6. tokenURL                (string, required) The URL of the new created token\n"
+                        "\nResult:\n"
+                        "\"hash\"                   (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
+                + HelpExampleRpc("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
+        );
+
+    int i = 0;
+    std::string sender = ParseAddress(request.params[i++]);
+    std::string receiver = ParseAddress(request.params[i++]);
+    RequireHexNumber(request.params[i].get_str());
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    uint256 tokenid;
+    if(request.params.size() == 6){
+        RequireHexNumber(request.params[i].get_str());
+        tokenid = uint256S(request.params[i++].get_str());
+    }
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenAttributes = uint256S(request.params[i++].get_str());
+    std::string tokenURL = request.params[i++].get_str();
+
+    RequireExistingERC721Property(propertyid);
+    std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(sender, receiver, "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+
+}
+
+UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& request){
+    if (request.fHelp || request.params.size() != 4)
+        throw runtime_error(
+                "whc_transferERC721Token \"ownerAddress\" \"receiveaddress\" \"0x01\" \"0x02\" \n"
+                        "\nTransfer ERC721 Token"
+                        "\nArguments:\n"
+                        "1. ownerAddress          	(string, required) The bitcoincash address of the token owner\n"
+                        "2. receiveaddress          (string, required) The redeem bitcoin address of the token receiver\n"
+                        "3. propertyID              (string, required) The propertyid within the token that will be transfer \n"
+                        "4. tokenID                 (string, optional) The tokenid that will be transfer\n"
+                        "\nResult:\n"
+                        "\"hash\"                  (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
+                + HelpExampleRpc("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
+        );
+
+    int i = 0;
+    std::string sender = ParseAddress(request.params[i++]);
+    std::string receiver = ParseAddress(request.params[i++]);
+    RequireHexNumber(request.params[i].get_str());
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenid = uint256S(request.params[i++].get_str());
+
+
+    // perform checks
+    RequireExistingERC721Token(propertyid, tokenid);
+
+    std::vector<unsigned char> payload = CreatePayload_TransferERC721Token(propertyid, tokenid);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(sender, receiver, "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+}
+
+UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& request){
+    if (request.fHelp || request.params.size() != 3)
+        throw runtime_error(
+                "whc_destroyERC721Token \"ownerAddress\" \"0x01\" \"0x02\"\n"
+                        "\nDestroy ERC721 Token"
+                        "\nArguments:\n"
+                        "1. senderAddress          	(string, required) The bitcoincash address of the token owner\n"
+                        "2. propertyID              (string, required) The propertyid within the token that will be transfer \n"
+                        "3. tokenID                 (string, optional) The tokenid that will be transfer\n"
+                        "\nResult:\n"
+                        "\"hash\"                  (string) the hex-encoded transaction hash\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
+                + HelpExampleRpc("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
+        );
+
+    int i = 0;
+    std::string sender = ParseAddress(request.params[i++]);
+    RequireHexNumber(request.params[i].get_str());
+    uint256 propertyid = uint256S(request.params[i++].get_str());
+    RequireHexNumber(request.params[i].get_str());
+    uint256 tokenid = uint256S(request.params[i++].get_str());
+
+    // perform checks
+    RequireExistingERC721Token(propertyid, tokenid);
+
+    std::vector<unsigned char> payload = CreatePayload_DestroyERC721Token(propertyid, tokenid);
+
+    // request the wallet build the transaction (and if needed commit it)
+    uint256 txid;
+    std::string rawHex;
+    int result = WalletTxBuilder(sender, "", "", 0, payload, txid, rawHex, autoCommit);
+
+    // check error and return the txid (or raw hex depending on autocommit)
+    if (result != 0) {
+        throw JSONRPCError(result, error_str(result));
+    } else {
+        if (!autoCommit) {
+            return rawHex;
+        } else {
+            return txid.GetHex();
+        }
+    }
+}
+
 static const ContextFreeRPCCommand commands[] =
 { //  category                             name                            actor (function)               okSafeMode
   //  ------------------------------------ ------------------------------- ------------------------------ ----------
@@ -986,6 +1185,11 @@ static const ContextFreeRPCCommand commands[] =
     { "omni layer (transaction creation)", "whc_sendchangeissuer",        &whc_sendchangeissuer,        false, {} },
     { "omni layer (transaction creation)", "whc_sendall",                 &whc_sendall,                 false, {} },
     { "omni layer (transaction creation)", "whc_particrowsale",           &whc_particrowsale,           false, {} },
+    { "omni layer (transaction creation)", "whc_issuanceERC721property",        &whc_issuanceERC721property,           false, {} },
+    { "omni layer (transaction creation)", "whc_issuanceERC721Token",           &whc_issuanceERC721Token,           false, {} },
+    { "omni layer (transaction creation)", "whc_transferERC721Token",           &whc_transferERC721Token,           false, {} },
+    { "omni layer (transaction creation)", "whc_destroyERC721Token",           &whc_destroyERC721Token,           false, {} },
+	/* depreciated: */
     { "omni layer (transaction creation)", "whc_sendfreeze",              &whc_sendfreeze,              false, {} },
     { "omni layer (transaction creation)", "whc_sendunfreeze",            &whc_sendunfreeze,            false, {} },
 

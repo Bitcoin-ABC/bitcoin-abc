@@ -102,6 +102,20 @@ private:
 
     int64_t burnBCH;
 
+    //ERC721 property And token
+    uint8_t erc721_action;
+    uint256 erc721_propertyid;
+    char erc721_propertysymbol[SP_STRING_FIELD_LEN];
+    char erc721_propertyname[SP_STRING_FIELD_LEN];
+    char erc721_propertyurl[SP_STRING_FIELD_LEN];
+    char erc721_propertydata[SP_STRING_FIELD_LEN];
+    uint64_t max_erc721number;
+
+    uint256 erc721_tokenid;
+    uint8_t erc721token_attribute[ERC721_TOKEN_ATTRIBUTES];
+    char erc721_tokenurl[SP_STRING_FIELD_LEN];
+
+
     /** Checks whether a pointer to the payload is past it's last position. */
     bool isOverrun(const char* p);
 
@@ -134,6 +148,11 @@ private:
     bool interpret_Deactivation();
     bool interpret_Alert();
     bool interpret_BurnBCHGetWHC();
+    bool interpret_ERC721();
+    bool interpret_ERC721_issueproperty();
+    bool interpret_ERC721_issuetoken();
+    bool interpret_ERC721_transfertoken();
+    bool interpret_ERC721_destroytoken();
 
     /**
      * Logic and "effects"
@@ -163,10 +182,11 @@ private:
     int logicMath_Deactivation();
     int logicMath_Alert();
     int logicMath_burnBCHGetWHC();
-    /**
-     * Logic helpers
-     */
-    int logicHelper_CrowdsaleParticipation();
+    int logicMath_ERC721();
+    int logicMath_ERC721_issueproperty();
+    int logicMath_ERC721_issuetoken();
+    int logicMath_ERC721_transfertoken();
+    int logicMath_ERC721_destroytoken();
 
 public:
     //! DEx and MetaDEx action values
@@ -188,7 +208,10 @@ public:
 
     uint256 getHash() const { return txid; }
     unsigned int getType() const { return type; }
-    std::string getTypeString() const { return strTransactionType(getType()); }
+    uint8_t getAction() const { return erc721_action;};
+    uint256 geterc721propertyid(){ return erc721_propertyid;}
+    uint256 geterc721tokenid(){ return erc721_tokenid;}
+    std::string getTypeString() const { return strTransactionType(getType(), getAction()); }
     unsigned int getProperty() const { return property; }
     unsigned short getVersion() const { return version; }
     unsigned char getFreezeflag() const {return ucFreezingFlag; }
@@ -255,6 +278,12 @@ public:
         memset(&name, 0, sizeof(name));
         memset(&url, 0, sizeof(url));
         memset(&data, 0, sizeof(data));
+        memset(&erc721_propertysymbol, 0, sizeof(erc721_propertysymbol));
+        memset(erc721_propertyname, 0, sizeof(erc721_propertyname));
+        memset(erc721_propertyurl, 0, sizeof(erc721_propertyurl));
+        memset(erc721_propertydata, 0, sizeof(erc721_propertydata));
+        memset(erc721token_attribute, 0, sizeof(erc721token_attribute));
+        memset(erc721_tokenurl, 0, sizeof(erc721_tokenurl));
         deadline = 0;
         early_bird = 0;
         percentage = 0;

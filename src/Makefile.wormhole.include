@@ -5,6 +5,7 @@ WORMHOLE_H = \
   omnicore/createpayload.h \
   omnicore/createtx.h \
   omnicore/dex.h \
+  omnicore/ERC721.h \
   omnicore/encoding.h \
   omnicore/errors.h \
   omnicore/fees.h \
@@ -45,6 +46,7 @@ WORMHOLE_CPP = \
   omnicore/createpayload.cpp \
   omnicore/createtx.cpp \
   omnicore/dex.cpp \
+  omnicore/ERC721.cpp \
   omnicore/encoding.cpp \
   omnicore/fees.cpp \
   omnicore/fetchwallettx.cpp \
