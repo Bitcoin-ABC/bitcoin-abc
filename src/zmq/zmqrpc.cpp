@@ -27,6 +27,8 @@ UniValue getzmqnotifications(const Config &config,
                 "    \"type\": \"pubhashtx\",   (string) Type of notification\n"
                 "    \"address\": \"...\"       (string) Address of the "
                 "publisher\n"
+                "    \"hwm\": n               (numeric) Outbound message high "
+                "water mark\n"
                 "  },\n"
                 "  ...\n"
                 "]\n"},
@@ -43,6 +45,7 @@ UniValue getzmqnotifications(const Config &config,
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("type", n->GetType());
             obj.pushKV("address", n->GetAddress());
+            obj.pushKV("hwm", n->GetOutboundMessageHighWaterMark());
             result.push_back(obj);
         }
     }

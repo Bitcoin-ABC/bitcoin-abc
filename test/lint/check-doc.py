@@ -33,6 +33,11 @@ SET_FALSE_POSITIVE_UNKNOWNS = set([
     '-zmqpubhashtx',
     '-zmqpubrawblock',
     '-zmqpubrawtx',
+    '-zmqpubhashblockhwm',
+    '-zmqpubhashtxhwm',
+    '-zmqpubrawblockhwm',
+    '-zmqpubrawtxhwm',
+
 ])
 
 # list false positive undocumented arguments
