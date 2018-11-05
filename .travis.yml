@@ -85,7 +85,7 @@ script:
     - rm -rf ./src/omnicore/*.*.gcda
     - rm -rf ./src/omnicore/*.gcov
     - rm -rf ./src/omnicore/*.*.gcov
-    - make $MAKEJOBS $GOAL >makelog.txt || ( echo "Build failure. Verbose build follows." && make $GOAL V=1 ; false )
+    - make  $MAKEJOBS $GOAL >makelog.txt || ( echo "Build failure. Verbose build follows." && make $GOAL V=1 ; false )
     - rm -rf makelog.txt
     - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
     # - if [ "$RUN_TESTS" = "true" ]; then make $MAKEJOBS check VERBOSE=1; fi
