@@ -358,7 +358,7 @@ bool CMPTransaction::interpret_ERC721_issueproperty(){
     for (int i = 0; i < 4; i++) {
         spstr.push_back(std::string(p));
         p += spstr.back().size() + 1;
-        if(sizeof(pkt) -1 - (p - (char*)&pkt) <= 0){
+        if( (ptrdiff_t)sizeof(pkt) -1 - (p - (char*)&pkt) <= 0){
             PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
             return false;
         }
@@ -367,8 +367,8 @@ bool CMPTransaction::interpret_ERC721_issueproperty(){
     memcpy(erc721_propertysymbol, spstr[1].data(), sizeof(erc721_propertysymbol) - 1);
     memcpy(erc721_propertydata, spstr[2].data(), sizeof(erc721_propertydata) - 1);
     memcpy(erc721_propertyurl, spstr[3].data(), sizeof(erc721_propertyurl) - 1);
-    if(sizeof(pkt) -1 - (p - (char*)&pkt) <= 8){
-        PrintToLog("%s(): rejected: malformed string value(s)\n", __func__);
+    if((ptrdiff_t)sizeof(pkt) -1 - (p - (char*)&pkt) <= 8){
+        PrintToLog("%s(): rejected: malformed string value(s). \n", __func__);
         return false;
     }
     memcpy(&max_erc721number, p, 8);
