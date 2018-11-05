@@ -317,6 +317,7 @@ UniValue whc_sendissuancecrowdsale(const Config &config,const JSONRPCRequest &re
     RequireSameEcosystem(ecosystem, propertyIdDesired);
     RequirePropertyEcosystem(ecosystem);
     int64_t amount = ParseAmount(request.params[14], type);
+    RequireBalance(fromAddress, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceVariable(ecosystem, type, previousId, category, subcategory, name, url, data, propertyIdDesired, numTokens, deadline, earlyBonus, issuerPercentage, amount);
@@ -382,6 +383,7 @@ UniValue whc_sendissuancefixed(const Config &config,const JSONRPCRequest &reques
     RequirePropertyEcosystem(ecosystem);
     RequirePropertyType(type);
     int64_t amount = ParseAmount(request.params[9], type);
+    RequireBalance(fromAddress, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceFixed(ecosystem, type, previousId, category, subcategory, name, url, data, amount);
@@ -445,6 +447,7 @@ UniValue whc_sendissuancemanaged(const Config &config,const JSONRPCRequest &requ
     RequirePropertyName(name);
     RequirePropertyEcosystem(ecosystem);
 	RequirePropertyType(type);
+    RequireBalance(fromAddress, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE);
 
     // create a payload for the transaction
     std::vector<unsigned char> payload = CreatePayload_IssuanceManaged(ecosystem, type, previousId, category, subcategory, name, url, data);
@@ -997,6 +1000,7 @@ UniValue whc_issuanceERC721property(const Config& config, const JSONRPCRequest& 
     uint64_t totalNumber = ParseStrToUInt64(request.params[5].get_str());
 
     // perform checks
+    RequireBalance(issuer, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE);
     RequirePropertyName(propertyName);
     RequireTokenNumber(totalNumber);
 
@@ -1054,6 +1058,7 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
     std::string tokenURL = request.params[i++].get_str();
 
     RequireExistingERC721Property(propertyid);
+    RequireRemainERC721Token(propertyid);
     std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
 
     // request the wallet build the transaction (and if needed commit it)

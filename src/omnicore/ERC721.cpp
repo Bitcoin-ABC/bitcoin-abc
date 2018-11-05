@@ -738,3 +738,15 @@ bool mastercore::IsERC721PropertyIdValid(const uint256& propertyid){
     }
     return true;
 }
+
+bool mastercore::HaveAllIssued(const uint256& propertyid){
+    std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
+    if(my_erc721sps->getForUpdateSP(propertyid, &spInfo)){
+        if (spInfo->first.haveIssuedNumber >= spInfo->first.maxTokens)
+            return true;
+        else
+            return false;
+    }
+
+    return true;
+}

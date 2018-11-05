@@ -217,3 +217,9 @@ void RequireExistingERC721Property(const uint256& propertyId)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 property identifier does not exist");
     }
 }
+
+void RequireRemainERC721Token(const uint256& propertyId){
+    if(mastercore::HaveAllIssued(propertyId)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "All ERC721Token have been issued");
+    }
+}
