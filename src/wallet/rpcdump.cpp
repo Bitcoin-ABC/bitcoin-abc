@@ -1142,13 +1142,11 @@ static std::string RecurseImportData(const CScript &script,
     }
 }
 
-static UniValue ProcessImportLegacy(CWallet *const pwallet,
-                                    ImportData &import_data,
-                                    std::map<CKeyID, CPubKey> &pubkey_map,
-                                    std::map<CKeyID, CKey> &privkey_map,
-                                    std::set<CScript> &script_pub_keys,
-                                    bool &have_solving_data,
-                                    const UniValue &data) {
+static UniValue ProcessImportLegacy(
+    CWallet *const pwallet, ImportData &import_data,
+    std::map<CKeyID, CPubKey> &pubkey_map, std::map<CKeyID, CKey> &privkey_map,
+    std::set<CScript> &script_pub_keys, bool &have_solving_data,
+    const UniValue &data, std::vector<CKeyID> &ordered_pubkeys) {
     UniValue warnings(UniValue::VARR);
 
     // First ensure scriptPubKey has either a script or JSON with "address"
@@ -1232,6 +1230,7 @@ static UniValue ProcessImportLegacy(CWallet *const pwallet,
                                    "\" is not a valid public key");
         }
         pubkey_map.emplace(pubkey.GetID(), pubkey);
+        ordered_pubkeys.push_back(pubkey.GetID());
     }
     for (size_t i = 0; i < keys.size(); ++i) {
         const auto &str = keys[i].get_str();
@@ -1334,7 +1333,8 @@ static UniValue ProcessImportDescriptor(ImportData &import_data,
                                         std::map<CKeyID, CKey> &privkey_map,
                                         std::set<CScript> &script_pub_keys,
                                         bool &have_solving_data,
-                                        const UniValue &data) {
+                                        const UniValue &data,
+                                        std::vector<CKeyID> &ordered_pubkeys) {
     UniValue warnings(UniValue::VARR);
 
     const std::string &descriptor = data["desc"].get_str();
@@ -1375,25 +1375,28 @@ static UniValue ProcessImportDescriptor(ImportData &import_data,
     const UniValue &priv_keys =
         data.exists("keys") ? data["keys"].get_array() : UniValue();
 
-    FlatSigningProvider out_keys;
-
     // Expand all descriptors to get public keys and scripts.
     // TODO: get private keys from descriptors too
     for (int i = range_start; i <= range_end; ++i) {
+        FlatSigningProvider out_keys;
         std::vector<CScript> scripts_temp;
         parsed_desc->Expand(i, keys, scripts_temp, out_keys);
         std::copy(scripts_temp.begin(), scripts_temp.end(),
                   std::inserter(script_pub_keys, script_pub_keys.end()));
+        for (const auto &key_pair : out_keys.pubkeys) {
+            ordered_pubkeys.push_back(key_pair.first);
+        }
+
+        for (const auto &x : out_keys.scripts) {
+            import_data.import_scripts.emplace(x.second);
+        }
+
+        std::copy(out_keys.pubkeys.begin(), out_keys.pubkeys.end(),
+                  std::inserter(pubkey_map, pubkey_map.end()));
+        import_data.key_origins.insert(out_keys.origins.begin(),
+                                       out_keys.origins.end());
     }
 
-    for (const auto &x : out_keys.scripts) {
-        import_data.import_scripts.emplace(x.second);
-    }
-
-    std::copy(out_keys.pubkeys.begin(), out_keys.pubkeys.end(),
-              std::inserter(pubkey_map, pubkey_map.end()));
-    import_data.key_origins.insert(out_keys.origins.begin(),
-                                   out_keys.origins.end());
     for (size_t i = 0; i < priv_keys.size(); ++i) {
         const auto &str = priv_keys[i].get_str();
         CKey key = DecodeSecret(str);
@@ -1454,11 +1457,22 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
         }
         const std::string &label =
             data.exists("label") ? data["label"].get_str() : "";
+        const bool add_keypool =
+            data.exists("keypool") ? data["keypool"].get_bool() : false;
+
+        // Add to keypool only works with privkeys disabled
+        if (add_keypool &&
+            !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Keys can only be imported to the keypool when "
+                               "private keys are disabled");
+        }
 
         ImportData import_data;
         std::map<CKeyID, CPubKey> pubkey_map;
         std::map<CKeyID, CKey> privkey_map;
         std::set<CScript> script_pub_keys;
+        std::vector<CKeyID> ordered_pubkeys;
         bool have_solving_data;
 
         if (data.exists("scriptPubKey") && data.exists("desc")) {
@@ -1466,13 +1480,13 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                 RPC_INVALID_PARAMETER,
                 "Both a descriptor and a scriptPubKey should not be provided.");
         } else if (data.exists("scriptPubKey")) {
-            warnings = ProcessImportLegacy(pwallet, import_data, pubkey_map,
-                                           privkey_map, script_pub_keys,
-                                           have_solving_data, data);
+            warnings = ProcessImportLegacy(
+                pwallet, import_data, pubkey_map, privkey_map, script_pub_keys,
+                have_solving_data, data, ordered_pubkeys);
         } else if (data.exists("desc")) {
-            warnings = ProcessImportDescriptor(import_data, pubkey_map,
-                                               privkey_map, script_pub_keys,
-                                               have_solving_data, data);
+            warnings = ProcessImportDescriptor(
+                import_data, pubkey_map, privkey_map, script_pub_keys,
+                have_solving_data, data, ordered_pubkeys);
         } else {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
@@ -1501,7 +1515,6 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
 
         // All good, time to import
         pwallet->MarkDirty();
-
         for (const auto &entry : import_data.import_scripts) {
             if (!pwallet->HaveCScript(CScriptID(entry)) &&
                 !pwallet->AddCScript(entry)) {
@@ -1522,9 +1535,12 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
             }
             pwallet->UpdateTimeFirstKey(timestamp);
         }
-        for (const auto &entry : pubkey_map) {
-            const CPubKey &pubkey = entry.second;
-            const CKeyID &id = entry.first;
+        for (const CKeyID &id : ordered_pubkeys) {
+            auto entry = pubkey_map.find(id);
+            if (entry == pubkey_map.end()) {
+                continue;
+            }
+            const CPubKey &pubkey = entry->second;
             CPubKey temp;
             if (!pwallet->GetPubKey(id, temp) &&
                 !pwallet->AddWatchOnly(GetScriptForRawPubKey(pubkey),
@@ -1537,6 +1553,11 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                 pwallet->AddKeyOrigin(pubkey, key_orig_it->second);
             }
             pwallet->mapKeyMetadata[id].nCreateTime = timestamp;
+
+            // Add to keypool only works with pubkeys
+            if (add_keypool) {
+                pwallet->AddKeypoolPubkey(pubkey, internal);
+            }
         }
 
         for (const CScript &script : script_pub_keys) {

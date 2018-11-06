@@ -3059,10 +3059,10 @@ bool CWallet::CreateTransaction(interfaces::Chain::Lock &locked_chainIn,
             //  with keys of ours to recover post-backup change.
 
             // Reserve a new key pair from key pool
-            if (IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
+            if (!CanGetAddresses(true)) {
                 strFailReason =
-                    _("Can't generate a change-address key. Private keys "
-                      "are disabled for this wallet.")
+                    _("Can't generate a change-address key. No keys in the "
+                      "internal keypool and can't generate any keys.")
                         .translated;
                 return false;
             }
@@ -3687,22 +3687,8 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
                 internal = true;
             }
 
-            // How in the hell did you use so many keys?
-            assert(m_max_keypool_index < std::numeric_limits<int64_t>::max());
-            int64_t index = ++m_max_keypool_index;
-
             CPubKey pubkey(GenerateNewKey(batch, internal));
-            if (!batch.WritePool(index, CKeyPool(pubkey, internal))) {
-                throw std::runtime_error(std::string(__func__) +
-                                         ": writing generated key failed");
-            }
-
-            if (internal) {
-                setInternalKeyPool.insert(index);
-            } else {
-                setExternalKeyPool.insert(index);
-            }
-            m_pool_key_to_index[pubkey.GetID()] = index;
+            AddKeypoolPubkeyWithDB(pubkey, internal, batch);
         }
         if (missingInternal + missingExternal > 0) {
             WalletLogPrintf(
@@ -3717,6 +3703,30 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
     return true;
 }
 
+void CWallet::AddKeypoolPubkey(const CPubKey &pubkey, const bool internal) {
+    WalletBatch batch(*database);
+    AddKeypoolPubkeyWithDB(pubkey, internal, batch);
+    NotifyCanGetAddressesChanged();
+}
+
+void CWallet::AddKeypoolPubkeyWithDB(const CPubKey &pubkey, const bool internal,
+                                     WalletBatch &batch) {
+    LOCK(cs_wallet);
+    // How in the hell did you use so many keys?
+    assert(m_max_keypool_index < std::numeric_limits<int64_t>::max());
+    int64_t index = ++m_max_keypool_index;
+    if (!batch.WritePool(index, CKeyPool(pubkey, internal))) {
+        throw std::runtime_error(std::string(__func__) +
+                                 ": writing imported pubkey failed");
+    }
+    if (internal) {
+        setInternalKeyPool.insert(index);
+    } else {
+        setExternalKeyPool.insert(index);
+    }
+    m_pool_key_to_index[pubkey.GetID()] = index;
+}
+
 bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
                                     bool fRequestedInternal) {
     nIndex = -1;
@@ -3728,9 +3738,10 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
             TopUpKeyPool();
         }
 
-        bool fReturningInternal = IsHDEnabled() &&
-                                  CanSupportFeature(FEATURE_HD_SPLIT) &&
-                                  fRequestedInternal;
+        bool fReturningInternal = fRequestedInternal;
+        fReturningInternal &=
+            (IsHDEnabled() && CanSupportFeature(FEATURE_HD_SPLIT)) ||
+            IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS);
         bool use_split_keypool = set_pre_split_keypool.empty();
         std::set<int64_t> &setKeyPool =
             use_split_keypool
@@ -3750,7 +3761,8 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
         if (!batch.ReadPool(nIndex, keypool)) {
             throw std::runtime_error(std::string(__func__) + ": read failed");
         }
-        if (!HaveKey(keypool.vchPubKey.GetID())) {
+        CPubKey pk;
+        if (!GetPubKey(keypool.vchPubKey.GetID(), pk)) {
             throw std::runtime_error(std::string(__func__) +
                                      ": unknown key in key pool");
         }
@@ -3804,7 +3816,8 @@ bool CWallet::GetKeyFromPool(CPubKey &result, bool internal) {
     CKeyPool keypool;
     LOCK(cs_wallet);
     int64_t nIndex;
-    if (!ReserveKeyFromKeyPool(nIndex, keypool, internal)) {
+    if (!ReserveKeyFromKeyPool(nIndex, keypool, internal) &&
+        !IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         if (IsLocked()) {
             return false;
         }
