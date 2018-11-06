@@ -185,24 +185,6 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
         case MSC_TYPE_BUY_TOKEN:
             populateRPCTypePartiCrowsale(mp_obj, txobj);
             break;
-        /*case MSC_TYPE_TRADE_OFFER:
-            populateRPCTypeTradeOffer(mp_obj, txobj);
-            break;
-        case MSC_TYPE_METADEX_TRADE:
-            populateRPCTypeMetaDExTrade(mp_obj, txobj, extendedDetails);
-            break;
-        case MSC_TYPE_METADEX_CANCEL_PRICE:
-            populateRPCTypeMetaDExCancelPrice(mp_obj, txobj, extendedDetails);
-            break;
-        case MSC_TYPE_METADEX_CANCEL_PAIR:
-            populateRPCTypeMetaDExCancelPair(mp_obj, txobj, extendedDetails);
-            break;
-        case MSC_TYPE_METADEX_CANCEL_ECOSYSTEM:
-            populateRPCTypeMetaDExCancelEcosystem(mp_obj, txobj, extendedDetails);
-            break;
-        case MSC_TYPE_ACCEPT_OFFER_BTC:
-            populateRPCTypeAcceptOffer(mp_obj, txobj);
-            break;*/
         case MSC_TYPE_CREATE_PROPERTY_FIXED:
             populateRPCTypeCreatePropertyFixed(mp_obj, txobj, confirmations);
             break;
@@ -227,9 +209,12 @@ void populateRPCTypeInfo(CMPTransaction& mp_obj, UniValue& txobj, uint32_t txTyp
         case WHC_TYPE_ERC721:
             populateRPCTypeERC721(mp_obj, txobj, confirmations);
             break;
-        /*case OMNICORE_MESSAGE_TYPE_ACTIVATION:
-            populateRPCTypeActivation(mp_obj, txobj);
-            break;*/
+        case MSC_TYPE_FREEZE_PROPERTY_TOKENS:
+            populateRPCTypeFreezeTokens(mp_obj, txobj);
+            break;
+        case MSC_TYPE_UNFREEZE_PROPERTY_TOKENS:
+            populateRPCTypeUnfreezeTokens(mp_obj, txobj);
+            break;
     }
 }
 
@@ -593,6 +578,15 @@ void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirm
     }
 }
 
+void populateRPCTypeFreezeTokens(CMPTransaction& omniObj, UniValue& txobj)
+{
+    txobj.push_back(Pair("propertyid", (uint64_t) omniObj.getProperty()));
+}
+
+void populateRPCTypeUnfreezeTokens(CMPTransaction& omniObj, UniValue& txobj)
+{
+    txobj.push_back(Pair("propertyid", (uint64_t) omniObj.getProperty()));
+}
 
 void populateRPCTypeActivation(CMPTransaction& omniObj, UniValue& txobj)
 {
