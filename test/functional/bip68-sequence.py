@@ -12,6 +12,7 @@ from test_framework.util import *
 from test_framework.script import *
 from test_framework.mininode import *
 from test_framework.blocktools import *
+from test_framework.txtools import pad_tx, pad_raw_tx
 
 SEQUENCE_LOCKTIME_DISABLE_FLAG = (1 << 31)
 SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22)  # this means use time (0 means height)
@@ -23,10 +24,20 @@ NOT_FINAL_ERROR = "64: non-BIP68-final"
 
 
 class BIP68Test(BitcoinTestFramework):
+    def add_options(self, parser):
+        parser.add_argument("--magnetic-anomaly-time", dest="magnetic_anomaly_time", type=long, default=0,
+                            help="Test Magnetic Anomaly activation at a particular time (0 for never, 1 for startup)")
+
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [["-blockprioritypercentage=0"],
                            ["-blockprioritypercentage=0", "-acceptnonstdtxn=0"]]
+
+        activation_time = self.options.magnetic_anomaly_time
+        if activation_time != 0:
+            for args in self.extra_args:
+                args.append(
+                    "-magneticanomalyactivationtime={}".format(activation_time))
 
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
@@ -80,6 +91,7 @@ class BIP68Test(BitcoinTestFramework):
         tx1.vin = [
             CTxIn(COutPoint(int(utxo["txid"], 16), utxo["vout"]), nSequence=sequence_value)]
         tx1.vout = [CTxOut(value, CScript([b'a']))]
+        pad_tx(tx1)
 
         tx1_signed = self.nodes[0].signrawtransaction(ToHex(tx1))["hex"]
         tx1_id = self.nodes[0].sendrawtransaction(tx1_signed)
@@ -92,6 +104,7 @@ class BIP68Test(BitcoinTestFramework):
         sequence_value = sequence_value & 0x7fffffff
         tx2.vin = [CTxIn(COutPoint(tx1_id, 0), nSequence=sequence_value)]
         tx2.vout = [CTxOut(int(value - self.relayfee * COIN), CScript([b'a']))]
+        pad_tx(tx2)
         tx2.rehash()
 
         assert_raises_rpc_error(-26, NOT_FINAL_ERROR,
@@ -259,6 +272,7 @@ class BIP68Test(BitcoinTestFramework):
                 CTxIn(COutPoint(orig_tx.sha256, 0), nSequence=sequence_value)]
             tx.vout = [
                 CTxOut(int(orig_tx.vout[0].nValue - fee_multiplier * node.calculate_fee(tx)), CScript([b'a']))]
+            pad_tx(tx)
             tx.rehash()
 
             if (orig_tx.hash in node.getrawmempool()):
@@ -398,6 +412,7 @@ class BIP68Test(BitcoinTestFramework):
         # sign tx2
         tx2_raw = self.nodes[0].signrawtransaction(ToHex(tx2))["hex"]
         tx2 = FromHex(tx2, tx2_raw)
+        pad_tx(tx2)
         tx2.rehash()
 
         self.nodes[0].sendrawtransaction(ToHex(tx2))
@@ -410,6 +425,7 @@ class BIP68Test(BitcoinTestFramework):
         tx3.vin = [CTxIn(COutPoint(tx2.sha256, 0), nSequence=sequence_value)]
         tx3.vout = [
             CTxOut(int(tx2.vout[0].nValue - self.relayfee * COIN), CScript([b'a']))]
+        pad_tx(tx3)
         tx3.rehash()
 
         assert_raises_rpc_error(-26, NOT_FINAL_ERROR,
@@ -420,7 +436,11 @@ class BIP68Test(BitcoinTestFramework):
         block = create_block(
             tip, create_coinbase(self.nodes[0].getblockcount() + 1))
         block.nVersion = 3
-        block.vtx.extend([tx1, tx2, tx3])
+        if self.options.magnetic_anomaly_time == 0:
+            block.vtx.extend([tx1, tx2, tx3])
+        else:
+            block.vtx.extend(
+                sorted([tx1, tx2, tx3], key=lambda tx: tx.get_id()))
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
