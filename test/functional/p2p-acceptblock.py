@@ -69,9 +69,9 @@ work on its chain).
 class AcceptBlockTest(BitcoinTestFramework):
 
     def add_options(self, parser):
-        parser.add_option("--testbinary", dest="testbinary",
-                          default=os.getenv("BITCOIND", "bitcoind"),
-                          help="bitcoind binary to test")
+        parser.add_argument("--testbinary", dest="testbinary",
+                            default=os.getenv("BITCOIND", "bitcoind"),
+                            help="bitcoind binary to test")
 
     def set_test_params(self):
         self.setup_clean_chain = True
