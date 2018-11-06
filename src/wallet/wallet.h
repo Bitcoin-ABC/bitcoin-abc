@@ -118,6 +118,10 @@ enum WalletFlags : uint64_t {
     // the wallet if flag is unknown.
     // Unknown wallet flags in the lower section <= (1 << 31) will be tolerated.
 
+    // Indicates that the metadata has already been upgraded to contain key
+    // origins
+    WALLET_FLAG_KEY_ORIGIN_METADATA = (1ULL << 1),
+
     // Will enforce the rule that the wallet can't contain any private keys
     // (only watch-only/pubkeys).
     WALLET_FLAG_DISABLE_PRIVATE_KEYS = (1ULL << 32),
@@ -136,7 +140,8 @@ enum WalletFlags : uint64_t {
 };
 
 static constexpr uint64_t g_known_wallet_flags =
-    WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET;
+    WALLET_FLAG_DISABLE_PRIVATE_KEYS | WALLET_FLAG_BLANK_WALLET |
+    WALLET_FLAG_KEY_ORIGIN_METADATA;
 
 /** A key pool entry */
 class CKeyPool {
@@ -971,6 +976,9 @@ public:
     void LoadScriptMetadata(const CScriptID &script_id,
                             const CKeyMetadata &metadata)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    //! Upgrade stored CKeyMetadata objects to store key origin info as
+    //! KeyOriginInfo
+    void UpgradeKeyMetadata() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     bool LoadMinVersion(int nVersion) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet) {
         AssertLockHeld(cs_wallet);

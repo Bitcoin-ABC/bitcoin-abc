@@ -541,6 +541,15 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
         result = pwallet->ReorderTransactions();
     }
 
+    // Upgrade all of the wallet keymetadata to have the hd master key id
+    // This operation is not atomic, but if it fails, updated entries are still
+    // backwards compatible with older software
+    try {
+        pwallet->UpgradeKeyMetadata();
+    } catch (...) {
+        result = DBErrors::CORRUPT;
+    }
+
     return result;
 }
 

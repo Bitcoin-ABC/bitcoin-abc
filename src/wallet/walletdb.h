@@ -10,6 +10,7 @@
 #include <amount.h>
 #include <key.h>
 #include <primitives/transaction.h>
+#include <script/sign.h>
 #include <script/standard.h> // for CTxDestination
 #include <wallet/db.h>
 
@@ -93,14 +94,20 @@ class CKeyMetadata {
 public:
     static const int VERSION_BASIC = 1;
     static const int VERSION_WITH_HDDATA = 10;
-    static const int CURRENT_VERSION = VERSION_WITH_HDDATA;
+    static const int VERSION_WITH_KEY_ORIGIN = 12;
+    static const int CURRENT_VERSION = VERSION_WITH_KEY_ORIGIN;
     int nVersion;
     // 0 means unknown.
     int64_t nCreateTime;
-    // optional HD/bip32 keypath.
+    // optional HD/bip32 keypath. Still used to determine whether a key is a
+    // seed. Also kept for backwards compatibility
     std::string hdKeypath;
     // Id of the HD seed used to derive this key.
     CKeyID hd_seed_id;
+    // Key origin info with path and fingerprint
+    KeyOriginInfo key_origin;
+    //< Whether the key_origin is useful
+    bool has_key_origin = false;
 
     CKeyMetadata() { SetNull(); }
     explicit CKeyMetadata(int64_t nCreateTime_) {
@@ -118,6 +125,10 @@ public:
             READWRITE(hdKeypath);
             READWRITE(hd_seed_id);
         }
+        if (this->nVersion >= VERSION_WITH_KEY_ORIGIN) {
+            READWRITE(key_origin);
+            READWRITE(has_key_origin);
+        }
     }
 
     void SetNull() {
@@ -125,6 +136,8 @@ public:
         nCreateTime = 0;
         hdKeypath.clear();
         hd_seed_id.SetNull();
+        key_origin.clear();
+        has_key_origin = false;
     }
 };
 

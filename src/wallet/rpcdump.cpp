@@ -14,6 +14,7 @@
 #include <script/script.h>
 #include <script/standard.h>
 #include <sync.h>
+#include <util/bip32.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>
@@ -1022,8 +1023,10 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             }
             file << strprintf(
                 " # addr=%s%s\n", strAddr,
-                (pwallet->mapKeyMetadata[keyid].hdKeypath.size() > 0
-                     ? " hdkeypath=" + pwallet->mapKeyMetadata[keyid].hdKeypath
+                (pwallet->mapKeyMetadata[keyid].has_key_origin
+                     ? " hdkeypath=" +
+                           WriteHDKeypath(
+                               pwallet->mapKeyMetadata[keyid].key_origin.path)
                      : ""));
         }
     }

@@ -317,6 +317,10 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
             metadata.hdKeypath = "m/0'/1'/" +
                                  std::to_string(hdChain.nInternalChainCounter) +
                                  "'";
+            metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
+            metadata.key_origin.path.push_back(1 | BIP32_HARDENED_KEY_LIMIT);
+            metadata.key_origin.path.push_back(hdChain.nInternalChainCounter |
+                                               BIP32_HARDENED_KEY_LIMIT);
             hdChain.nInternalChainCounter++;
         } else {
             chainChildKey.Derive(childKey, hdChain.nExternalChainCounter |
@@ -324,11 +328,19 @@ void CWallet::DeriveNewChildKey(WalletBatch &batch, CKeyMetadata &metadata,
             metadata.hdKeypath = "m/0'/0'/" +
                                  std::to_string(hdChain.nExternalChainCounter) +
                                  "'";
+            metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
+            metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
+            metadata.key_origin.path.push_back(hdChain.nExternalChainCounter |
+                                               BIP32_HARDENED_KEY_LIMIT);
             hdChain.nExternalChainCounter++;
         }
     } while (HaveKey(childKey.key.GetPubKey().GetID()));
     secret = childKey.key;
     metadata.hd_seed_id = hdChain.seed_id;
+    CKeyID master_id = masterKey.key.GetPubKey().GetID();
+    std::copy(master_id.begin(), master_id.begin() + 4,
+              metadata.key_origin.fingerprint);
+    metadata.has_key_origin = true;
     // update the chain model in the database
     if (!batch.WriteHDChain(hdChain)) {
         throw std::runtime_error(std::string(__func__) +
@@ -424,6 +436,45 @@ void CWallet::LoadScriptMetadata(const CScriptID &script_id,
 bool CWallet::WriteKeyMetadata(const CKeyMetadata &meta, const CPubKey &pubkey,
                                const bool overwrite) {
     return WalletBatch(*database).WriteKeyMetadata(meta, pubkey, overwrite);
+}
+
+void CWallet::UpgradeKeyMetadata() {
+    // mapKeyMetadata
+    AssertLockHeld(cs_wallet);
+    if (IsLocked() || IsWalletFlagSet(WALLET_FLAG_KEY_ORIGIN_METADATA)) {
+        return;
+    }
+
+    for (auto &meta_pair : mapKeyMetadata) {
+        CKeyMetadata &meta = meta_pair.second;
+        // If the hdKeypath is "s", that's the seed and it doesn't have a key
+        // origin
+        if (!meta.hd_seed_id.IsNull() && !meta.has_key_origin &&
+            meta.hdKeypath != "s") {
+            CKey key;
+            GetKey(meta.hd_seed_id, key);
+            CExtKey masterKey;
+            masterKey.SetSeed(key.begin(), key.size());
+            // Add to map
+            CKeyID master_id = masterKey.key.GetPubKey().GetID();
+            std::copy(master_id.begin(), master_id.begin() + 4,
+                      meta.key_origin.fingerprint);
+            if (!ParseHDKeypath(meta.hdKeypath, meta.key_origin.path)) {
+                throw std::runtime_error("Invalid stored hdKeypath");
+            }
+            meta.has_key_origin = true;
+            if (meta.nVersion < CKeyMetadata::VERSION_WITH_KEY_ORIGIN) {
+                meta.nVersion = CKeyMetadata::VERSION_WITH_KEY_ORIGIN;
+            }
+
+            // Write meta to wallet
+            CPubKey pubkey;
+            if (GetPubKey(meta_pair.first, pubkey)) {
+                WriteKeyMetadata(meta, pubkey, true);
+            }
+        }
+    }
+    SetWalletFlag(WALLET_FLAG_KEY_ORIGIN_METADATA);
 }
 
 bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey,
@@ -535,6 +586,8 @@ bool CWallet::Unlock(const SecureString &strWalletPassphrase,
                 continue;
             }
             if (CCryptoKeyStore::Unlock(_vMasterKey, accept_no_keys)) {
+                // Now that we've unlocked, upgrade the key metadata
+                UpgradeKeyMetadata();
                 return true;
             }
         }
@@ -1566,6 +1619,7 @@ CPubKey CWallet::DeriveNewSeed(const CKey &key) {
 
     // Set the hd keypath to "s" -> Seed, refers the seed to itself
     metadata.hdKeypath = "s";
+    metadata.has_key_origin = false;
     metadata.hd_seed_id = seed.GetID();
 
     LOCK(cs_wallet);
@@ -4912,18 +4966,10 @@ bool CWallet::GetKeyOrigin(const CKeyID &keyID, KeyOriginInfo &info) const {
             meta = it->second;
         }
     }
-    if (!meta.hdKeypath.empty()) {
-        if (!ParseHDKeypath(meta.hdKeypath, info.path)) {
-            return false;
-        }
-        // Get the proper master key id
-        CKey key;
-        GetKey(meta.hd_seed_id, key);
-        CExtKey masterKey;
-        masterKey.SetSeed(key.begin(), key.size());
-        // Compute identifier
-        CKeyID masterid = masterKey.key.GetPubKey().GetID();
-        std::copy(masterid.begin(), masterid.begin() + 4, info.fingerprint);
+    if (meta.has_key_origin) {
+        std::copy(meta.key_origin.fingerprint, meta.key_origin.fingerprint + 4,
+                  info.fingerprint);
+        info.path = meta.key_origin.path;
     } else {
         // Single pubkeys get the master fingerprint of themselves
         std::copy(keyID.begin(), keyID.begin() + 4, info.fingerprint);
