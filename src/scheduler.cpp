@@ -71,7 +71,9 @@ void CScheduler::serviceQueue() {
 #endif
             // If there are multiple threads, the queue can empty while we're
             // waiting (another thread may service the task we were waiting on).
-            if (shouldStop() || taskQueue.empty()) continue;
+            if (shouldStop() || taskQueue.empty()) {
+                continue;
+            }
 
             Function f = taskQueue.begin()->second;
             taskQueue.erase(taskQueue.begin());
@@ -94,10 +96,11 @@ void CScheduler::serviceQueue() {
 void CScheduler::stop(bool drain) {
     {
         boost::unique_lock<boost::mutex> lock(newTaskMutex);
-        if (drain)
+        if (drain) {
             stopWhenEmpty = true;
-        else
+        } else {
             stopRequested = true;
+        }
     }
     newTaskScheduled.notify_all();
 }
@@ -118,16 +121,17 @@ void CScheduler::scheduleFromNow(CScheduler::Function f,
                  boost::chrono::milliseconds(deltaMilliSeconds));
 }
 
-static void Repeat(CScheduler *s, CScheduler::Function f,
+static void Repeat(CScheduler *s, CScheduler::Predicate p,
                    int64_t deltaMilliSeconds) {
-    f();
-    s->scheduleFromNow(boost::bind(&Repeat, s, f, deltaMilliSeconds),
-                       deltaMilliSeconds);
+    if (p()) {
+        s->scheduleFromNow(boost::bind(&Repeat, s, p, deltaMilliSeconds),
+                           deltaMilliSeconds);
+    }
 }
 
-void CScheduler::scheduleEvery(CScheduler::Function f,
+void CScheduler::scheduleEvery(CScheduler::Predicate p,
                                int64_t deltaMilliSeconds) {
-    scheduleFromNow(boost::bind(&Repeat, this, f, deltaMilliSeconds),
+    scheduleFromNow(boost::bind(&Repeat, this, p, deltaMilliSeconds),
                     deltaMilliSeconds);
 }
 

@@ -938,8 +938,10 @@ PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn,
         EXTRA_PEER_CHECK_INTERVAL < STALE_CHECK_INTERVAL,
         "peer eviction timer should be less than stale tip check timer");
     scheduler.scheduleEvery(
-        std::bind(&PeerLogicValidation::CheckForStaleTipAndEvictPeers, this,
-                  consensusParams),
+        [this, &consensusParams]() {
+            this->CheckForStaleTipAndEvictPeers(consensusParams);
+            return true;
+        },
         EXTRA_PEER_CHECK_INTERVAL * 1000);
 }
 

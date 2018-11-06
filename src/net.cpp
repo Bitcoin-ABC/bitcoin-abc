@@ -2526,8 +2526,12 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
                         std::bind(&CConnman::ThreadMessageHandler, this)));
 
     // Dump network addresses
-    scheduler.scheduleEvery(std::bind(&CConnman::DumpData, this),
-                            DUMP_ADDRESSES_INTERVAL * 1000);
+    scheduler.scheduleEvery(
+        [this]() {
+            this->DumpData();
+            return true;
+        },
+        DUMP_ADDRESSES_INTERVAL * 1000);
 
     return true;
 }

@@ -4191,7 +4191,12 @@ void CWallet::postInitProcess(CScheduler &scheduler) {
 
     // Run a thread to flush wallet periodically.
     if (!CWallet::fFlushScheduled.exchange(true)) {
-        scheduler.scheduleEvery(MaybeCompactWalletDB, 500);
+        scheduler.scheduleEvery(
+            []() {
+                MaybeCompactWalletDB();
+                return true;
+            },
+            500);
     }
 }
 

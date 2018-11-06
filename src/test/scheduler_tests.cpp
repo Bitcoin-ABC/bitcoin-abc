@@ -13,6 +13,9 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 
+#include <atomic>
+#include <thread>
+
 BOOST_AUTO_TEST_SUITE(scheduler_tests)
 
 static void microTask(CScheduler &s, boost::mutex &mutex, int &counter,
@@ -83,17 +86,20 @@ BOOST_AUTO_TEST_CASE(manythreads) {
     // As soon as these are created they will start running and servicing the
     // queue
     boost::thread_group microThreads;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++) {
         microThreads.create_thread(
             boost::bind(&CScheduler::serviceQueue, &microTasks));
+    }
 
     MicroSleep(600);
     now = boost::chrono::system_clock::now();
 
     // More threads and more tasks:
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++) {
         microThreads.create_thread(
             boost::bind(&CScheduler::serviceQueue, &microTasks));
+    }
+
     for (int i = 0; i < 100; i++) {
         boost::chrono::system_clock::time_point t =
             now + boost::chrono::microseconds(randomMsec(rng));
@@ -109,7 +115,8 @@ BOOST_AUTO_TEST_CASE(manythreads) {
 
     // Drain the task queue then exit threads
     microTasks.stop(true);
-    microThreads.join_all(); // ... wait until all the threads are done
+    // ... wait until all the threads are done
+    microThreads.join_all();
 
     int counterSum = 0;
     for (int i = 0; i < 10; i++) {
@@ -117,6 +124,54 @@ BOOST_AUTO_TEST_CASE(manythreads) {
         counterSum += counter[i];
     }
     BOOST_CHECK_EQUAL(counterSum, 200);
+}
+
+BOOST_AUTO_TEST_CASE(schedule_every) {
+    CScheduler scheduler;
+
+    boost::condition_variable cvar;
+    std::atomic<int> counter{15};
+    std::atomic<bool> keepRunning{true};
+
+    scheduler.scheduleEvery(
+        [&keepRunning, &cvar, &counter, &scheduler]() {
+            BOOST_CHECK(counter > 0);
+            cvar.notify_all();
+            if (--counter > 0) {
+                return true;
+            }
+
+            // We reached the end of our test, make sure nothing run again for
+            // 100ms.
+            scheduler.scheduleFromNow(
+                [&keepRunning, &cvar]() {
+                    keepRunning = false;
+                    cvar.notify_all();
+                },
+                100);
+
+            // We set the counter to some magic value to check the scheduler
+            // empty its queue properly after 120ms.
+            scheduler.scheduleFromNow([&counter]() { counter = 42; }, 120);
+            return false;
+        },
+        5);
+
+    // Start the scheduler thread.
+    std::thread schedulerThread(
+        std::bind(&CScheduler::serviceQueue, &scheduler));
+
+    boost::mutex mutex;
+    boost::unique_lock<boost::mutex> lock(mutex);
+    while (keepRunning) {
+        cvar.wait(lock);
+        BOOST_CHECK(counter >= 0);
+    }
+
+    BOOST_CHECK_EQUAL(counter, 0);
+    scheduler.stop(true);
+    schedulerThread.join();
+    BOOST_CHECK_EQUAL(counter, 42);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

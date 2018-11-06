@@ -42,6 +42,7 @@ public:
     ~CScheduler();
 
     typedef std::function<void(void)> Function;
+    typedef std::function<bool(void)> Predicate;
 
     // Call func at/after time t
     void schedule(Function f,
@@ -55,7 +56,7 @@ public:
     // forever, starting deltaMilliSeconds from now. To be more precise: every
     // time f is finished, it is rescheduled to run deltaMilliSeconds later. If
     // you need more accurate scheduling, don't use this method.
-    void scheduleEvery(Function f, int64_t deltaMilliSeconds);
+    void scheduleEvery(Predicate p, int64_t deltaMilliSeconds);
 
     // To keep things as simple as possible, there is no unschedule.
 
