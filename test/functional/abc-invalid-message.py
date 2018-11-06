@@ -22,7 +22,7 @@ from test_framework.util import wait_until
 
 
 def msg_bad_checksum(connection, original_message):
-    message_data = bytearray(connection._build_message(original_message))
+    message_data = bytearray(connection.build_message(original_message))
 
     data = original_message.serialize()
     i = 0
