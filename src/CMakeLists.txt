@@ -327,6 +327,7 @@ add_library(util
 	sync.cpp
 	threadinterrupt.cpp
 	uint256.cpp
+	util/bip32.cpp
 	util/bytevectorhash.cpp
 	util/error.cpp
 	util/moneystr.cpp

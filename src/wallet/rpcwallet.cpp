@@ -24,6 +24,7 @@
 #include <script/descriptor.h>
 #include <shutdown.h>
 #include <timedata.h>
+#include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>

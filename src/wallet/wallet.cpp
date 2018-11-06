@@ -29,6 +29,7 @@
 #include <timedata.h>
 #include <txmempool.h>
 #include <ui_interface.h>
+#include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/system.h>

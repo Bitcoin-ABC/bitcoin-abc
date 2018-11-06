@@ -11,6 +11,7 @@
 #include <script/script.h>
 #include <script/standard.h>
 #include <span.h>
+#include <util/bip32.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 
@@ -25,17 +26,6 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////
 
 typedef std::vector<uint32_t> KeyPath;
-
-std::string FormatKeyPath(const KeyPath &path) {
-    std::string ret;
-    for (auto i : path) {
-        ret += strprintf("/%i", (i << 1) >> 1);
-        if (i >> 31) {
-            ret += '\'';
-        }
-    }
-    return ret;
-}
 
 /** Interface for public key objects in descriptors. */
 struct PubkeyProvider {
@@ -69,7 +59,7 @@ class OriginPubkeyProvider final : public PubkeyProvider {
     std::string OriginString() const {
         return HexStr(std::begin(m_origin.fingerprint),
                       std::end(m_origin.fingerprint)) +
-               FormatKeyPath(m_origin.path);
+               FormatHDKeypath(m_origin.path);
     }
 
 public:
@@ -225,7 +215,7 @@ public:
         return true;
     }
     std::string ToString() const override {
-        std::string ret = EncodeExtPubKey(m_extkey) + FormatKeyPath(m_path);
+        std::string ret = EncodeExtPubKey(m_extkey) + FormatHDKeypath(m_path);
         if (IsRange()) {
             ret += "/*";
             if (m_derive == DeriveType::HARDENED) {
@@ -240,7 +230,7 @@ public:
         if (!GetExtKey(arg, key)) {
             return false;
         }
-        out = EncodeExtKey(key) + FormatKeyPath(m_path);
+        out = EncodeExtKey(key) + FormatHDKeypath(m_path);
         if (IsRange()) {
             out += "/*";
             if (m_derive == DeriveType::HARDENED) {
