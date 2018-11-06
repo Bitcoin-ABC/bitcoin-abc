@@ -798,7 +798,7 @@ static UniValue estimatefee(const Config &config,
             HelpExampleCli("estimatefee", "6"));
     }
 
-    if (!IsDeprecatedRPCEnabled("estimatefee")) {
+    if (!IsDeprecatedRPCEnabled(gArgs, "estimatefee")) {
         throw JSONRPCError(
             RPC_METHOD_DEPRECATED,
             "estimatefee is deprecated and will be fully removed in v0.17. "

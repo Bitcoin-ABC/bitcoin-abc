@@ -11,6 +11,7 @@
 #include "rpc/jsonrpcrequest.h"
 #include "rpc/protocol.h"
 #include "uint256.h"
+#include "util.h"
 
 #include <cstdint>
 #include <functional>
@@ -243,7 +244,7 @@ public:
                        const ContextFreeRPCCommand *pcmd);
 };
 
-bool IsDeprecatedRPCEnabled(const std::string &method);
+bool IsDeprecatedRPCEnabled(ArgsManager &args, const std::string &method);
 
 extern CRPCTable tableRPC;
 
