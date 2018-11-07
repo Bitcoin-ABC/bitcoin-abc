@@ -4,10 +4,13 @@
 
 #include "config.h"
 #include "chainparams.h"
-#include "consensus/consensus.h"
+#include "consensus/consensus.h" // DEFAULT_MAX_BLOCK_SIZE
 #include "globals.h"
+#include "policy/policy.h" // DEFAULT_BLOCK_PRIORITY_PERCENTAGE
 
-GlobalConfig::GlobalConfig() : useCashAddr(false) {}
+GlobalConfig::GlobalConfig()
+    : useCashAddr(false), nMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE),
+      nBlockPriorityPercentage(DEFAULT_BLOCK_PRIORITY_PERCENTAGE) {}
 
 bool GlobalConfig::SetMaxBlockSize(uint64_t maxBlockSize) {
     // Do not allow maxBlockSize to be set below historic 1MB limit

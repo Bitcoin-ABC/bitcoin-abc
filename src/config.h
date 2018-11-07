@@ -73,6 +73,10 @@ private:
     std::string rpcUserAndPassword;
     // CORS domain, the allowed Origin
     std::string rpcCORSDomain;
+
+    /** The largest block size this node will accept. */
+    uint64_t nMaxBlockSize;
+    uint64_t nBlockPriorityPercentage;
 };
 
 // Dummy for subclassing in unittests
