@@ -1,7 +1,7 @@
-Wormhole v0.1.3
+Wormhole v0.2.0
 ===================
 
-v0.1.3 is a pre-release
+v0.2.0 is a pre-release
 
 Please report bugs using the issue tracker on GitHub:
 
@@ -10,7 +10,7 @@ Please report bugs using the issue tracker on GitHub:
 Table of contents
 =================
 
-- [wormhole v0.1.3](#wormhole-core-v013)
+- [wormhole v0.2.0](#wormhole-core-v020)
 - [Upgrading and downgrading](#upgrading-and-downgrading)
   - [How to upgrade](#how-to-upgrade)
   - [Downgrading](#downgrading)
@@ -41,23 +41,25 @@ During the first startup historical Wormhole transactions are reprocessed and Wo
 Downgrading
 -----------
 
-Downgrading to an Wormhole Core version prior 0.1.1 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
+Downgrading to an Wormhole Core version prior 0.2.0 is generally not supported as older versions will not provide accurate information due to the changes in consensus rules.
 
 Compatibility with Bitcoin ABC
 -------------------------------
 
-Wormhole Core is based on Bitcoin ABC v0.17.2.0-0d18a09 and can be used as replacement for Bitcoin ABC. Switching between Wormhole Core and Bitcoin ABC is fully supported at any time.
+Wormhole Core is based on Bitcoin ABC v0.18.2.0-6a51d4f and can be used as replacement for Bitcoin ABC. Switching between Wormhole Core and Bitcoin ABC is fully supported at any time.
 
 ===============
 
 Add new function to issue ERC721 Property
 ----------------------------------
 
-Add new function to issue ERC721 property were added Wormhole Core 0.1.3, As shown below:
+Add new function to issue ERC721 property were added Wormhole Core 0.2.0, As shown below:
 
 - A new txtype(`WHC_TYPE_ERC721`) and a enumeration type(`ERC721Action`) has been added ro support the new function.
 
 - Add a series of RPC method to Issue ERC721 property and token.
+
+The `Wormhole 0.2.0` node is compatible with the `Bitcoin-Abc 0.18.2` version.
 
 Change log
 ==========
@@ -76,5 +78,5 @@ The following is the detailed wormhole document link:
 2. YellowPaper : https://github.com/copernet/spec/blob/master/wormhole-yellowpaper-en.md
 3. Wormhole-Spec : https://github.com/copernet/spec/blob/master/wormhole-spec-en.md
 4. RPC : https://github.com/copernet/spec/blob/master/wormhole-rpc-en.md
-5. Test-Manual : https://github.com/copernet/spec/blob/master/wormhole-testmanual-0.1.3-en.md
+5. Test-Manual : https://github.com/copernet/spec/blob/master/wormhole-testmanual-0.2.0-en.md
 
