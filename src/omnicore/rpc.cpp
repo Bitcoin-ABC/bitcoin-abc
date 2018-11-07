@@ -2498,7 +2498,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
 }
 
 UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &request){
-    if (request.fHelp || request.params.size() != 2)
+    if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
                 "whc_ownerOfERC721Token propertyid tokenid address\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
@@ -2531,9 +2531,9 @@ UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &requ
 
     UniValue response(UniValue::VOBJ);
     if(info->first.owner == queryAddress){
-        response.push_back(Pair("owner", true));
+        response.push_back(Pair("own", true));
     } else{
-        response.push_back(Pair("owner", false));
+        response.push_back(Pair("own", false));
     }
 
     return response;
