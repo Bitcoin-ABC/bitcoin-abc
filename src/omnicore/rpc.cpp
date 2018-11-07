@@ -2501,7 +2501,7 @@ UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &requ
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
                 "whc_ownerOfERC721Token propertyid tokenid address\n"
-                        "\nReturns details for about the tokens or smart property to lookup.\n"
+                        "\nQuery whether the Token's owner is the specified address.\n"
                         "\nArguments:\n"
                         "1. propertyid           (string, required) the identifier of the ERC721 property\n"
                         "2. tokenid              (string, required) the identifier of the ERC721 token\n"
