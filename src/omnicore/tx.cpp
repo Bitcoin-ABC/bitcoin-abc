@@ -1234,6 +1234,8 @@ int CMPTransaction::logicMath_ERC721_issueproperty(){
     info.maxTokens = max_erc721number;
 
     uint256 properyid = my_erc721sps->putSP(info);
+    assert(update_tally_map(sender, OMNI_PROPERTY_WHC, -CREATE_TOKEN_FEE, BALANCE));
+    assert(update_tally_map(burnwhc_address, OMNI_PROPERTY_WHC, CREATE_TOKEN_FEE, BALANCE));
 
     PrintToLog("%s(): sender : %s have succeed ERC721 property, ID : %s \n", __func__, sender, properyid.GetHex());
 

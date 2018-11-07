@@ -2497,6 +2497,48 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     return response;
 }
 
+UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 2)
+        throw runtime_error(
+                "whc_ownerOfERC721Token propertyid tokenid address\n"
+                        "\nReturns details for about the tokens or smart property to lookup.\n"
+                        "\nArguments:\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
+                        "3. address              (string, required) query address for the specified ERC721 Token \n"
+                        "\nResult:\n"
+                        "{\n"
+                        "  \"own\" : true|false,             (boolean) whether the query address owner the specified ERC721 Token\n"
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
+                + HelpExampleRpc("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
+        );
+    RequireHexNumber(request.params[0].get_str());
+    RequireHexNumber(request.params[1].get_str());
+    uint256 propertyId = uint256S(request.params[0].get_str());
+    uint256 tokenid = uint256S(request.params[1].get_str());
+    std::string queryAddress = ParseAddress(request.params[2]);
+    RequireExistingERC721Property(propertyId);
+
+    std::pair<ERC721TokenInfos::TokenInfo, Flags > *info = NULL;
+    {
+        LOCK(cs_tally);
+        if (!my_erc721tokens->getForUpdateToken(propertyId, tokenid, &info)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 token identifier does not exist");
+        }
+    }
+
+    UniValue response(UniValue::VOBJ);
+    if(info->first.owner == queryAddress){
+        response.push_back(Pair("owner", true));
+    } else{
+        response.push_back(Pair("owner", false));
+    }
+
+    return response;
+}
+
 UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
@@ -2709,6 +2751,7 @@ static const ContextFreeRPCCommand commands[] =
 //    { "omni layer (data retrieval)", "omni_getfeedistributions",       &omni_getfeedistributions,        false , {}},
     { "omni layer (data retrieval)", "whc_getbalanceshash",           &whc_getbalanceshash,            false , {}},
     { "omni layer (data retrieval)",  "whc_getactivecrowd",           &whc_getactivecrowd,             false , {}},
+    { "omni layer (data retrieval)",  "whc_ownerOfERC721Token",           &whc_ownerOfERC721Token,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721TokenNews",           &whc_getERC721TokenNews,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721PropertyNews",           &whc_getERC721PropertyNews,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721AddressTokens",           &whc_getERC721AddressTokens,             false , {}},
