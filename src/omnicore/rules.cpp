@@ -158,7 +158,7 @@ CMainConsensusParams::CMainConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 395000;
     // Transaction restrictions:
-    ERC721_BLOCK = 1259869;
+    ERC721_BLOCK = 555655;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 249498;
     MSC_DEX_BLOCK = 290630;
@@ -202,7 +202,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
-    ERC721_BLOCK = 1259869;
+    ERC721_BLOCK = 1267112;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 0;
     MSC_DEX_BLOCK = 0;
