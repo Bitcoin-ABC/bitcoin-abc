@@ -14,6 +14,6 @@ This release includes the following features and fixes:
  - Improved help message for backup wallet RPC
  - Various bug fixes that improve node stability and performance
  - Backport getblock RPC's new verbosity mode from bitcoin core for retrieving all transactions of a given block in full.
- - Added 'parked' state to getchaintips RPC
+ - Added parkblock/unparkblock RPC commands and 'parked' state to getchaintips RPC
  - RPC `listreceivedbyaddress` now accepts an address filter
  - Backport combinerawtransaction RPC from bitcoin core to combine multiple partially signed transactions into one transaction.
