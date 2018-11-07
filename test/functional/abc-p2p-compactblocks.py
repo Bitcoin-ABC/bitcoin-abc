@@ -84,7 +84,7 @@ class FullBlockTest(ComparisonTestFramework):
 
     def add_options(self, parser):
         super().add_options(parser)
-        parser.add_option(
+        parser.add_argument(
             "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
 
     def run_test(self):
