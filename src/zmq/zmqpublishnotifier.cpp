@@ -98,6 +98,15 @@ bool CZMQAbstractPublishNotifier::Initialize(void *pcontext) {
             return false;
         }
 
+        const int so_keepalive_option{1};
+        rc = zmq_setsockopt(psocket, ZMQ_TCP_KEEPALIVE, &so_keepalive_option,
+                            sizeof(so_keepalive_option));
+        if (rc != 0) {
+            zmqError("Failed to set SO_KEEPALIVE");
+            zmq_close(psocket);
+            return false;
+        }
+
         rc = zmq_bind(psocket, address.c_str());
         if (rc != 0) {
             zmqError("Failed to bind address");
