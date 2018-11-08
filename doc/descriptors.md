@@ -65,17 +65,18 @@ Descriptors consist of several types of expressions. The top level expression is
   - Followed by zero or more `/NUM` or `/NUM'` path elements to indicate unhardened or hardened derivation steps between the fingerprint and the key or xpub/xprv root that follows
   - A closing bracket `]`
 - Followed by the actual key, which is either:
-  - Hex encoded public keys (66 characters starting with `02` or `03`, or 130 characters starting with `04`).
+  - Hex encoded public keys (either 66 characters starting with `02` or `03` for a compressed pubkey, or 130 characters starting with `04` for an uncompressed pubkey).
   - [WIF](https://en.bitcoin.it/wiki/Wallet_import_format) encoded private keys may be specified instead of the corresponding public key, with the same meaning.
-  -`xpub` encoded extended public key or `xprv` encoded private key (as defined in [BIP 32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)).
+  - `xpub` encoded extended public key or `xprv` encoded extended private key (as defined in [BIP 32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)).
     - Followed by zero or more `/NUM` unhardened and `/NUM'` hardened BIP32 derivation steps.
     - Optionally followed by a single `/*` or `/*'` final step to denote all (direct) unhardened or hardened children.
     - The usage of hardened derivation steps requires providing the private key.
-- Anywhere a `'` suffix is permitted to denote hardened derivation, the suffix `h` can be used instead.
+
+(Anywhere a `'` suffix is permitted to denote hardened derivation, the suffix `h` can be used instead.)
 
 `ADDR` expressions are any type of supported address:
-- P2PKH addresses (base58, of the form `1...`). Note that P2PKH addresses in descriptors cannot be used for P2PK outputs (use the `pk` function instead).
-- P2SH addresses (base58, of the form `3...`, defined in [BIP 13](https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki)).
+- P2PKH addresses (base58, of the form `1...` for mainnet or `[nm]...` for testnet). Note that P2PKH addresses in descriptors cannot be used for P2PK outputs (use the `pk` function instead).
+- P2SH addresses (base58, of the form `3...` for mainnet or `2...` for testnet, defined in [BIP 13](https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki)).
 
 ## Explanation
 
@@ -86,9 +87,8 @@ P2PK, and P2PKH. Many more combinations are imaginable, though they may
 not be optimal: P2SH-P2PK, P2SH-P2PKH.
 
 To describe these, we model these as functions. The functions `pk` (P2PK) and
-`pkh` (P2PKH) take as input a public key in hexadecimal notation (which will
-be extended later), and return the corresponding *scriptPubKey*. The functions
-`sh` (P2SH) take as input a script, and return the script describing P2SH
+`pkh` (P2PKH) take as input a `KEY` expression, and return the corresponding *scriptPubKey*. The function
+`sh` (P2SH) takes as input a `SCRIPT` expression, and return the script describing P2SH
 outputs with the input as embedded script. The names of the functions do
 not contain "p2" for brevity.
 
@@ -98,7 +98,7 @@ Several pieces of software use multi-signature (multisig) scripts based
 on Bitcoin's OP_CHECKMULTISIG opcode. To support these, we introduce the
 `multi(k,key_1,key_2,...,key_n)` and `sortedmulti(k,key_1,key_2,...,key_n)`
 functions. They represent a *k-of-n*
-multisig policy, where any *k* out of the *n* provided public keys must
+multisig policy, where any *k* out of the *n* provided `KEY` expressions must
 sign.
 
 Key order is significant for `multi()`. A `multi()` expression describes a multisig script
@@ -145,7 +145,7 @@ Instead, it should be written as `xpub.../1/*`, where xpub corresponds to
 `m/44'/0'/0'`.
 
 When interacting with a hardware device, it may be necessary to include
-the entire path from the master down. BIP174 standardizes this by
+the entire path from the master down. [BIP174](https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki) standardizes this by
 providing the master key *fingerprint* (first 32 bit of the Hash160 of
 the master pubkey), plus all derivation steps. To support constructing
 these, we permit providing this key origin information inside the
@@ -156,6 +156,10 @@ Every public key can be prefixed by an 8-character hexadecimal
 fingerprint plus optional derivation steps (hardened and unhardened)
 surrounded by brackets, identifying the master and derivation path the key or xpub
 that follows was derived with.
+
+Note that the fingerprint of the parent only serves as a fast way to detect
+parent and child nodes in software, and software must be willing to deal with
+collisions.
 
 ### Including private keys
 
