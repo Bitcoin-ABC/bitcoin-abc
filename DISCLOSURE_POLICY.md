@@ -10,11 +10,11 @@ Do not execute on or exploit any vulnerability.  This includes testnet, as both 
 ## Reporting a Bug or Vulnerability
 
 When reporting a bug or vulnerability, please provide the following to security@bitcoinabc.org:
-A short summary of the potential impact of the issue (if known).
-Details explaining how to reproduce the issue or how an exploit may be formed.
-Your name (optional).  If provided, we will provide credit for disclosure.  Otherwise, you will be treated anonymously and your privacy will be respected.
-Your email or other means of contacting you.
-A PGP key/fingerprint for us to provided encrypted responses to your disclosure.  If this is not provided, we cannot guarantee that you will receive a response prior to a fix being made and deployed.
+* A short summary of the potential impact of the issue (if known).
+* Details explaining how to reproduce the issue or how an exploit may be formed.
+* Your name (optional).  If provided, we will provide credit for disclosure.  Otherwise, you will be treated anonymously and your privacy will be respected.
+* Your email or other means of contacting you.
+* A PGP key/fingerprint for us to provide encrypted responses to your disclosure.  If this is not provided, we cannot guarantee that you will receive a response prior to a fix being made and deployed.
 
 ## Encrypting the Disclosure
 
