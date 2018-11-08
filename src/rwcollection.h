@@ -7,6 +7,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/range/iterator.hpp>
+#include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 
 #include <iterator>
