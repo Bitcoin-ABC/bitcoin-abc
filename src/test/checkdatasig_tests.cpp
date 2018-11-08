@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(checkdatasig_test) {
 
     // If we add many more flags, this loop can get too expensive, but we can
     // rewrite in the future to randomly pick a set of flags to evaluate.
-    for (uint32_t flags = 0; flags < (1U << 17); flags++) {
+    for (uint32_t flags = 0; flags < (1U << 18); flags++) {
         // Make sure we activate the opcodes.
         flags |= SCRIPT_ENABLE_CHECKDATASIG;
 
