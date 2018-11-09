@@ -1110,8 +1110,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     if (fMempool) {
         LOCK(mempool.cs);
         CCoinsViewMemPool view(pcoinsTip.get(), mempool);
-        if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
-            // TODO: this should be done by the CCoinsViewMemPool
+        if (!view.HasUnspentCoin(out, coin)) {
             return NullUniValue;
         }
     } else {

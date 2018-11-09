@@ -1099,6 +1099,10 @@ bool CCoinsViewMemPool::HaveCoin(const COutPoint &outpoint) const {
     return mempool.exists(outpoint) || base->HaveCoin(outpoint);
 }
 
+bool CCoinsViewMemPool::HasUnspentCoin(const COutPoint &outpoint, Coin &coin) const {
+    return GetCoin(outpoint, coin) && !mempool.isSpent(outpoint);
+}
+
 size_t CTxMemPool::DynamicMemoryUsage() const {
     LOCK(cs);
     // Estimate the overhead of mapTx to be 15 pointers + an allocation, as no

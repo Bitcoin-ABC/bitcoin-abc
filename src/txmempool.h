@@ -823,6 +823,7 @@ public:
     CCoinsViewMemPool(CCoinsView *baseIn, const CTxMemPool &mempoolIn);
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
+    bool HasUnspentCoin(const COutPoint &outpoint, Coin &coin) const;
 };
 
 // We want to sort transactions by coin age priority
