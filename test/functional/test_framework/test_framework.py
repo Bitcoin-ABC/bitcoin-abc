@@ -77,7 +77,7 @@ class BitcoinTestFramework():
         parser.add_argument("--noshutdown", dest="noshutdown", default=False, action="store_true",
                             help="Don't stop bitcoinds after the test execution")
         parser.add_argument("--srcdir", dest="srcdir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../../src"),
-                            help="Source directory containing bitcoind/bitcoin-cli (default: %default)")
+                            help="Source directory containing bitcoind/bitcoin-cli (default: %(default)s)")
         parser.add_argument("--cachedir", dest="cachedir", default=os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
                             help="Directory for caching pregenerated datadirs")
         parser.add_argument("--tmpdir", dest="tmpdir",
