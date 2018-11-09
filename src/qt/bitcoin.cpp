@@ -411,8 +411,8 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this,
-            SIGNAL(requestedInitialize(Config *, HTTPRPCRequestProcessor *)),
+    connect(this, SIGNAL(requestedInitialize(
+                      Config *, HTTPRPCRequestProcessor *, RPCServer *)),
             executor, SLOT(initialize(Config *, HTTPRPCRequestProcessor *)));
 
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
