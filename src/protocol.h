@@ -22,10 +22,10 @@
 class Config;
 
 /**
- * Maximum length of incoming protocol messages (Currently 1MB).
+ * Maximum length of incoming protocol messages (Currently 2MB).
  * NB: Messages propagating block content are not subject to this limit.
  */
-static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 1 * 1024 * 1024;
+static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 2 * 1024 * 1024;
 
 /**
  * Message header.
