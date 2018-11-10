@@ -29,7 +29,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
                              "bad-txns-oversize");
     }
 
-    // Check for negative or overflow output values
+    // Check for negative or overflow output values (see CVE-2010-5139)
     Amount nValueOut = Amount::zero();
     for (const auto &txout : tx.vout) {
         if (txout.nValue < Amount::zero()) {

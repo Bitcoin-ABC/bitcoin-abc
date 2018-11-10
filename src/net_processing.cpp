@@ -2988,7 +2988,7 @@ bool ProcessMessage(const Config &config, CNode *pfrom,
                 AddOrphanTx(ptx, pfrom->GetId());
 
                 // DoS prevention: do not allow mapOrphanTransactions to grow
-                // unbounded
+                // unbounded (see CVE-2012-3789)
                 unsigned int nMaxOrphanTx = (unsigned int)std::max(
                     int64_t(0), gArgs.GetArg("-maxorphantx",
                                              DEFAULT_MAX_ORPHAN_TRANSACTIONS));

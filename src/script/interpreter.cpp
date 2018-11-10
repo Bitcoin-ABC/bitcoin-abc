@@ -139,7 +139,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 return set_error(serror, ScriptError::OP_COUNT);
             }
 
-            // Some opcodes are disabled.
+            // Some opcodes are disabled (CVE-2010-5137).
             if (IsOpcodeDisabled(opcode, flags)) {
                 return set_error(serror, ScriptError::DISABLED_OPCODE);
             }
@@ -1712,6 +1712,8 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
 
     ScriptExecutionMetrics metrics = {};
 
+    // scriptSig and scriptPubKey must be evaluated sequentially on the same
+    // stack rather than being simply concatenated (see CVE-2010-5141)
     std::vector<valtype> stack, stackCopy;
     if (!EvalScript(stack, scriptSig, flags, checker, metrics, serror)) {
         // serror is set
