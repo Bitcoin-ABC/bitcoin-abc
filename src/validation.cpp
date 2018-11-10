@@ -3525,6 +3525,12 @@ static bool AcceptBlock(const Config &config,
     // advance our tip, and isn't too many blocks ahead.
     bool fAlreadyHave = pindex->nStatus.hasData();
 
+    // TODO: deal better with return value and error conditions for duplicate
+    // and unrequested blocks.
+    if (fAlreadyHave) {
+        return true;
+    }
+
     // Compare block header timestamps and received times of the block and the
     // chaintip.  If they have the same chain height, use these diffs as a
     // tie-breaker, attempting to pick the more honestly-mined block.
@@ -3562,12 +3568,6 @@ static bool AcceptBlock(const Config &config,
     // This requires some new chain datastructure to efficiently look up if a
     // block is in a chain leading to a candidate for best tip, despite not
     // being such a candidate itself.
-
-    // TODO: deal better with return value and error conditions for duplicate
-    // and unrequested blocks.
-    if (fAlreadyHave) {
-        return true;
-    }
 
     // If we didn't ask for it:
     if (!fRequested) {
