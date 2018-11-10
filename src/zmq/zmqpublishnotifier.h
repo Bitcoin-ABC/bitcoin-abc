@@ -21,7 +21,7 @@ public:
           * data
           * message sequence number
     */
-    bool SendMessage(const char *command, const void *data, size_t size);
+    bool SendZmqMessage(const char *command, const void *data, size_t size);
 
     bool Initialize(void *pcontext) override;
     void Shutdown() override;

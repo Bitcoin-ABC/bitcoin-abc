@@ -153,8 +153,9 @@ void CZMQAbstractPublishNotifier::Shutdown() {
     psocket = nullptr;
 }
 
-bool CZMQAbstractPublishNotifier::SendMessage(const char *command,
-                                              const void *data, size_t size) {
+bool CZMQAbstractPublishNotifier::SendZmqMessage(const char *command,
+                                                 const void *data,
+                                                 size_t size) {
     assert(psocket);
 
     /* send three parts, command & data & a LE 4byte sequence number */
@@ -179,7 +180,7 @@ bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
     for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = hash.begin()[i];
     }
-    return SendMessage(MSG_HASHBLOCK, data, 32);
+    return SendZmqMessage(MSG_HASHBLOCK, data, 32);
 }
 
 bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
@@ -190,7 +191,7 @@ bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
     for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = txid.begin()[i];
     }
-    return SendMessage(MSG_HASHTX, data, 32);
+    return SendZmqMessage(MSG_HASHTX, data, 32);
 }
 
 bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
@@ -211,7 +212,7 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
         ss << block;
     }
 
-    return SendMessage(MSG_RAWBLOCK, &(*ss.begin()), ss.size());
+    return SendZmqMessage(MSG_RAWBLOCK, &(*ss.begin()), ss.size());
 }
 
 bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
@@ -220,5 +221,5 @@ bool CZMQPublishRawTransactionNotifier::NotifyTransaction(
     LogPrint(BCLog::ZMQ, "zmq: Publish rawtx %s\n", txid.GetHex());
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     ss << transaction;
-    return SendMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
+    return SendZmqMessage(MSG_RAWTX, &(*ss.begin()), ss.size());
 }
