@@ -31,24 +31,18 @@ GetRecord(const RWCollection<BlockVoteMap> &vote_records,
 
 bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
     if (auto vr = GetRecord(vote_records, pindex)) {
-        return vr->isValid();
+        return vr->isAccepted();
     }
 
     return false;
 }
 
-bool AvalancheProcessor::hasFinalized(const CBlockIndex *pindex) const {
-    if (auto vr = GetRecord(vote_records, pindex)) {
-        return vr->hasFinalized();
-    }
-
-    return false;
-}
-
-bool AvalancheProcessor::registerVotes(const AvalancheResponse &response) {
+bool AvalancheProcessor::registerVotes(
+    const AvalancheResponse &response,
+    std::vector<AvalancheBlockUpdate> &updates) {
     const std::vector<AvalancheVote> &votes = response.GetVotes();
 
-    std::map<const CBlockIndex *, AvalancheVote> responseIndex;
+    std::map<CBlockIndex *, AvalancheVote> responseIndex;
 
     {
         LOCK(cs_main);
@@ -67,7 +61,7 @@ bool AvalancheProcessor::registerVotes(const AvalancheResponse &response) {
         // Register votes.
         auto w = vote_records.getWriteView();
         for (auto &p : responseIndex) {
-            const CBlockIndex *pindex = p.first;
+            CBlockIndex *pindex = p.first;
             const AvalancheVote &v = p.second;
 
             auto it = w->find(pindex);
@@ -76,7 +70,29 @@ bool AvalancheProcessor::registerVotes(const AvalancheResponse &response) {
                 continue;
             }
 
-            it->second.registerVote(v.IsValid());
+            auto &vr = it->second;
+            if (!vr.registerVote(v.IsValid())) {
+                // This vote did not provide any extra information, move on.
+                continue;
+            }
+
+            if (!vr.hasFinalized()) {
+                // This item has note been finalized, so we have nothing more to
+                // do.
+                updates.emplace_back(
+                    pindex,
+                    vr.isAccepted() ? AvalancheBlockUpdate::Status::Accepted
+                                    : AvalancheBlockUpdate::Status::Rejected);
+                continue;
+            }
+
+            // We just finalized a vote. If it is valid, then let the caller
+            // know. Either way, remove the item from the map.
+            updates.emplace_back(pindex,
+                                 vr.isAccepted()
+                                     ? AvalancheBlockUpdate::Status::Finalized
+                                     : AvalancheBlockUpdate::Status::Invalid);
+            w->erase(it);
         }
     }
 
