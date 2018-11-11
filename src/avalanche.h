@@ -5,7 +5,8 @@
 #ifndef BITCOIN_AVALANCHE_H
 #define BITCOIN_AVALANCHE_H
 
-#include "net.h"      // for NodeId
+#include "blockindexworkcomparator.h"
+#include "net.h"
 #include "protocol.h" // for CInv
 #include "rwcollection.h"
 #include "serialize.h"
@@ -134,12 +135,15 @@ public:
     }
 };
 
+typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
+    BlockVoteMap;
+
 class AvalancheProcessor {
 private:
     /**
      * Blocks to run avalanche on.
      */
-    RWCollection<std::map<const CBlockIndex *, VoteRecord>> vote_records;
+    RWCollection<BlockVoteMap> vote_records;
 
     /**
      * Start stop machinery.
@@ -162,6 +166,11 @@ public:
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
+
+private:
+    std::vector<CInv> getInvsForNextPoll() const;
+
+    friend struct AvalancheTest;
 };
 
 #endif // BITCOIN_AVALANCHE_H

@@ -15,9 +15,9 @@ bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-static const VoteRecord *GetRecord(
-    const RWCollection<std::map<const CBlockIndex *, VoteRecord>> &vote_records,
-    const CBlockIndex *pindex) {
+static const VoteRecord *
+GetRecord(const RWCollection<BlockVoteMap> &vote_records,
+          const CBlockIndex *pindex) {
     auto r = vote_records.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
@@ -80,6 +80,10 @@ namespace {
  * Run the avalanche event loop every 10ms.
  */
 static int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
+/**
+ * Maximum item that can be polled at once.
+ */
+static size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
 }
 
 bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
@@ -125,4 +129,27 @@ bool AvalancheProcessor::stopEventLoop() {
 
     stopRequest = false;
     return true;
+}
+
+std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
+    std::vector<CInv> invs;
+
+    auto r = vote_records.getReadView();
+    for (const std::pair<const CBlockIndex *, VoteRecord> &p :r) {
+        const VoteRecord &v = p.second;
+        if (v.hasFinalized()) {
+            // If this has finalized, we can just skip.
+            continue;
+        }
+
+        // We don't have a decision, we need more votes.
+        invs.push_back(CInv(MSG_BLOCK, p.first->GetBlockHash()));
+        if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
+            // Make sure we do not produce more invs than specified by the
+            // protocol.
+            return invs;
+        }
+    }
+
+    return invs;
 }

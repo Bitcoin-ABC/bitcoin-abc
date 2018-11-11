@@ -8,6 +8,12 @@
 
 #include <boost/test/unit_test.hpp>
 
+struct AvalancheTest {
+    static std::vector<CInv> getInvsForNextPoll(const AvalancheProcessor &p) {
+        return p.getInvsForNextPoll();
+    }
+};
+
 BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
@@ -70,20 +76,26 @@ BOOST_AUTO_TEST_CASE(block_register) {
     AvalancheProcessor p;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
-    const uint256 hash = block.GetHash();
-    const CBlockIndex *pindex = mapBlockIndex[hash];
+    const uint256 blockHash = block.GetHash();
+    const CBlockIndex *pindex = mapBlockIndex[blockHash];
 
     // Querying for random block returns false.
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK(!p.hasFinalized(pindex));
 
-    // Newly added blocks are also considered rejected.
+    // Add a new block. Check it is added to the polls.
     BOOST_CHECK(p.addBlockToReconcile(pindex));
+    auto invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHash);
+
+    // Newly added blocks are also considered rejected.
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK(!p.hasFinalized(pindex));
 
     // Let's vote for this block a few times.
-    AvalancheResponse resp{0, {AvalancheVote(0, hash)}};
+    AvalancheResponse resp{0, {AvalancheVote(0, blockHash)}};
     for (int i = 0; i < 5; i++) {
         p.registerVotes(resp);
         BOOST_CHECK(!p.isAccepted(pindex));
@@ -97,11 +109,21 @@ BOOST_AUTO_TEST_CASE(block_register) {
         BOOST_CHECK(!p.hasFinalized(pindex));
     }
 
+    // As long as it is not finalized, we poll.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHash);
+
     // Now finalize the decision.
-    resp = {0, {AvalancheVote(1, hash)}};
+    resp = {0, {AvalancheVote(1, blockHash)}};
     p.registerVotes(resp);
     BOOST_CHECK(p.isAccepted(pindex));
     BOOST_CHECK(p.hasFinalized(pindex));
+
+    // Once the decision is finalized, there is no poll for it.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 0);
 
     // Now let's undo this and finalize rejection.
     for (int i = 0; i < 5; i++) {
@@ -117,10 +139,20 @@ BOOST_AUTO_TEST_CASE(block_register) {
         BOOST_CHECK(!p.hasFinalized(pindex));
     }
 
+    // As long as it is not finalized, we poll.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHash);
+
     // Now finalize the decision.
     p.registerVotes(resp);
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK(p.hasFinalized(pindex));
+
+    // Once the decision is finalized, there is no poll for it.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 0);
 
     // Adding the block twice does nothing.
     BOOST_CHECK(!p.addBlockToReconcile(pindex));
