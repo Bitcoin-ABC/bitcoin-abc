@@ -2,16 +2,28 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_AVALANCHE_IMPL_H
-#define BITCOIN_AVALANCHE_IMPL_H
+#ifndef BITCOIN_AVALANCHE_H
+#define BITCOIN_AVALANCHE_H
+
+#include "net.h"      // for NodeId
+#include "protocol.h" // for CInv
+#include "rwcollection.h"
+#include "serialize.h"
+#include "uint256.h"
 
 #include <cstdint>
+#include <vector>
+
+class Config;
+class CBlockIndex;
+class CScheduler;
 
 namespace {
 /**
  * Finalization score.
  */
 static int AVALANCHE_FINALIZATION_SCORE = 128;
+}
 
 /**
  * Vote history.
@@ -77,6 +89,64 @@ public:
         return true;
     }
 };
-}
 
-#endif // BITCOIN_AVALANCHE_IMPL_H
+class AvalancheVote {
+    uint32_t error;
+    uint256 hash;
+
+public:
+    AvalancheVote() : error(-1), hash() {}
+    AvalancheVote(uint32_t errorIn, uint256 hashIn)
+        : error(errorIn), hash(hashIn) {}
+
+    const uint256 &GetHash() const { return hash; }
+    bool IsValid() const { return error == 0; }
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(error);
+        READWRITE(hash);
+    }
+};
+
+class AvalancheResponse {
+    uint32_t cooldown;
+    std::vector<AvalancheVote> votes;
+
+public:
+    AvalancheResponse(uint32_t cooldownIn, std::vector<AvalancheVote> votesIn)
+        : cooldown(cooldownIn), votes(votesIn) {}
+
+    const std::vector<AvalancheVote> &GetVotes() const { return votes; }
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(cooldown);
+        READWRITE(votes);
+    }
+};
+
+class AvalancheProcessor {
+private:
+    /**
+     * Blocks to run avalanche on.
+     */
+    RWCollection<std::map<const CBlockIndex *, VoteRecord>> vote_records;
+
+public:
+    AvalancheProcessor() {}
+
+    bool addBlockToReconcile(const CBlockIndex *pindex);
+    bool isAccepted(const CBlockIndex *pindex) const;
+    bool hasFinalized(const CBlockIndex *pindex) const;
+
+    bool registerVotes(const AvalancheResponse &response);
+};
+
+#endif // BITCOIN_AVALANCHE_H

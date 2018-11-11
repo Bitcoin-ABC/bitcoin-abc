@@ -181,6 +181,7 @@ target_link_libraries(bitcoinconsensus common)
 add_library(server
 	addrman.cpp
 	addrdb.cpp
+	avalanche.cpp
 	bloom.cpp
 	blockencodings.cpp
 	chain.cpp
