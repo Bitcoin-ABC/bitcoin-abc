@@ -139,6 +139,26 @@ public:
     }
 };
 
+class AvalanchePoll {
+    uint32_t round;
+    std::vector<CInv> invs;
+
+public:
+    AvalanchePoll(uint32_t roundIn, std::vector<CInv> invsIn)
+        : round(roundIn), invs(invsIn) {}
+
+    const std::vector<CInv> &GetInvs() const { return invs; }
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(round);
+        READWRITE(invs);
+    }
+};
+
 class AvalancheBlockUpdate {
     union {
         CBlockIndex *pindex;
@@ -174,10 +194,33 @@ typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
 
 class AvalancheProcessor {
 private:
+    CConnman *connman;
+
     /**
      * Blocks to run avalanche on.
      */
     RWCollection<BlockVoteMap> vote_records;
+
+    /**
+     * Keep track of peers and queries sent.
+     */
+    struct RequestRecord {
+    private:
+        int64_t timestamp;
+        std::vector<CInv> invs;
+
+    public:
+        RequestRecord() : timestamp(0), invs() {}
+        RequestRecord(int64_t timestampIn, std::vector<CInv> invIn)
+            : timestamp(timestampIn), invs(std::move(invIn)) {}
+
+        int64_t GetTimestamp() const { return timestamp; }
+        const std::vector<CInv> &GetInvs() const { return invs; }
+    };
+
+    std::atomic<uint32_t> round;
+    RWCollection<std::set<NodeId>> nodeids;
+    RWCollection<std::map<NodeId, RequestRecord>> queries;
 
     /**
      * Start stop machinery.
@@ -189,20 +232,23 @@ private:
     std::condition_variable cond_running;
 
 public:
-    AvalancheProcessor() : stopRequest(false), running(false) {}
+    AvalancheProcessor(CConnman *connmanIn)
+        : connman(connmanIn), stopRequest(false), running(false) {}
     ~AvalancheProcessor() { stopEventLoop(); }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;
 
-    bool registerVotes(const AvalancheResponse &response,
+    bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
 private:
+    void runEventLoop();
     std::vector<CInv> getInvsForNextPoll() const;
+    NodeId getSuitableNodeToQuery();
 
     friend struct AvalancheTest;
 };
