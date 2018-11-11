@@ -128,4 +128,56 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(p.hasFinalized(pindex));
 }
 
+BOOST_AUTO_TEST_CASE(event_loop) {
+    AvalancheProcessor p;
+    CScheduler s;
+
+    // Starting the event loop.
+    BOOST_CHECK(p.startEventLoop(s));
+
+    // There is one task planned in the next hour (our event loop).
+    boost::chrono::system_clock::time_point start, stop;
+    BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
+
+    // Starting twice doesn't start it twice.
+    BOOST_CHECK(!p.startEventLoop(s));
+
+    // Start the scheduler thread.
+    std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
+
+    // Stop event loop.
+    BOOST_CHECK(p.stopEventLoop());
+
+    // We don't have any task scheduled anymore.
+    BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 0);
+
+    // Can't stop the event loop twice.
+    BOOST_CHECK(!p.stopEventLoop());
+
+    // Wait for the scheduler to stop.
+    s.stop(true);
+    schedulerThread.join();
+}
+
+BOOST_AUTO_TEST_CASE(destructor) {
+    CScheduler s;
+    boost::chrono::system_clock::time_point start, stop;
+
+    // Start the scheduler thread.
+    std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
+
+    {
+        AvalancheProcessor p;
+        BOOST_CHECK(p.startEventLoop(s));
+        BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
+    }
+
+    // Now that avalanche is destroyed, there is no more scheduled tasks.
+    BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 0);
+
+    // Wait for the scheduler to stop.
+    s.stop(true);
+    schedulerThread.join();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

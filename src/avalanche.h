@@ -11,6 +11,8 @@
 #include "serialize.h"
 #include "uint256.h"
 
+#include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <vector>
 
@@ -139,14 +141,27 @@ private:
      */
     RWCollection<std::map<const CBlockIndex *, VoteRecord>> vote_records;
 
+    /**
+     * Start stop machinery.
+     */
+    std::atomic<bool> stopRequest;
+    bool running GUARDED_BY(cs_running);
+
+    CWaitableCriticalSection cs_running;
+    std::condition_variable cond_running;
+
 public:
-    AvalancheProcessor() {}
+    AvalancheProcessor() : stopRequest(false), running(false) {}
+    ~AvalancheProcessor() { stopEventLoop(); }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;
     bool hasFinalized(const CBlockIndex *pindex) const;
 
     bool registerVotes(const AvalancheResponse &response);
+
+    bool startEventLoop(CScheduler &scheduler);
+    bool stopEventLoop();
 };
 
 #endif // BITCOIN_AVALANCHE_H
