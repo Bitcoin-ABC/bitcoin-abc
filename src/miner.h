@@ -161,12 +161,13 @@ private:
     int64_t nMedianTimePast;
 
     const Config *config;
+    const CTxMemPool *mempool;
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
 
 public:
-    BlockAssembler(const Config &_config);
+    BlockAssembler(const Config &_config, const CTxMemPool &mempool);
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
     CreateNewBlock(const CScript &scriptPubKeyIn);
