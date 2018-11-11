@@ -131,8 +131,8 @@ UniValue generateBlocks(const Config &config,
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(config).CreateNewBlock(
-                coinbaseScript->reserveScript));
+            BlockAssembler(config, g_mempool)
+                .CreateNewBlock(coinbaseScript->reserveScript));
 
         if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -585,7 +585,8 @@ static UniValue getblocktemplate(const Config &config,
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
-        pblocktemplate = BlockAssembler(config).CreateNewBlock(scriptDummy);
+        pblocktemplate =
+            BlockAssembler(config, g_mempool).CreateNewBlock(scriptDummy);
         if (!pblocktemplate) {
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
         }
