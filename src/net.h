@@ -184,14 +184,18 @@ public:
     template <typename Callable> void ForEachNode(Callable &&func) {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) func(node);
+            if (NodeFullyConnected(node)) {
+                func(node);
+            }
         }
     };
 
     template <typename Callable> void ForEachNode(Callable &&func) const {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) func(node);
+            if (NodeFullyConnected(node)) {
+                func(node);
+            }
         }
     };
 
@@ -199,7 +203,9 @@ public:
     void ForEachNodeThen(Callable &&pre, CallableAfter &&post) {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) pre(node);
+            if (NodeFullyConnected(node)) {
+                pre(node);
+            }
         }
         post();
     };
@@ -208,7 +214,9 @@ public:
     void ForEachNodeThen(Callable &&pre, CallableAfter &&post) const {
         LOCK(cs_vNodes);
         for (auto &&node : vNodes) {
-            if (NodeFullyConnected(node)) pre(node);
+            if (NodeFullyConnected(node)) {
+                pre(node);
+            }
         }
         post();
     };
