@@ -74,3 +74,55 @@ bool AvalancheProcessor::registerVotes(const AvalancheResponse &response) {
 
     return true;
 }
+
+namespace {
+/**
+ * Run the avalanche event loop every 10ms.
+ */
+static int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
+}
+
+bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
+    LOCK(cs_running);
+    if (running) {
+        // Do not start the event loop twice.
+        return false;
+    }
+
+    running = true;
+
+    // Start the event loop.
+    scheduler.scheduleEvery(
+        [this]() -> bool {
+            if (!stopRequest) {
+                return true;
+            }
+
+            LOCK(cs_running);
+            running = false;
+
+            cond_running.notify_all();
+
+            // A stop request was made.
+            return false;
+        },
+        AVALANCHE_TIME_STEP_MILLISECONDS);
+
+    return true;
+}
+
+bool AvalancheProcessor::stopEventLoop() {
+    WAIT_LOCK(cs_running, lock);
+    if (!running) {
+        return false;
+    }
+
+    // Request avalanche to stop.
+    stopRequest = true;
+
+    // Wait for avalanche to stop.
+    cond_running.wait(lock, [this] { return !running; });
+
+    stopRequest = false;
+    return true;
+}
