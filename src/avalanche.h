@@ -61,13 +61,17 @@ private:
 public:
     VoteRecord() : votes(0xaaaa), confidence(0) {}
 
-    bool isValid() const { return confidence & 0x01; }
+    bool isAccepted() const { return confidence & 0x01; }
 
     uint16_t getConfidence() const { return confidence >> 1; }
     bool hasFinalized() const {
         return getConfidence() >= AVALANCHE_FINALIZATION_SCORE;
     }
 
+    /**
+     * Register a new vote for an item and update confidence accordingly.
+     * Returns true if the acceptance or finalization state changed.
+     */
     bool registerVote(bool vote) {
         votes = (votes << 1) | vote;
 
@@ -79,16 +83,16 @@ public:
             return false;
         }
 
-        if (isValid() == yes) {
+        if (isAccepted() == yes) {
             // If the vote is in agreement with our internal status, increase
             // confidence.
             confidence += 2;
-        } else {
-            // The vote did not agree with our internal state, in that case,
-            // reset confidence.
-            confidence = yes;
+            return getConfidence() == AVALANCHE_FINALIZATION_SCORE;
         }
 
+        // The vote did not agree with our internal state, in that case, reset
+        // confidence.
+        confidence = yes;
         return true;
     }
 };
@@ -135,6 +139,36 @@ public:
     }
 };
 
+class AvalancheBlockUpdate {
+    union {
+        CBlockIndex *pindex;
+        size_t raw;
+    };
+
+public:
+    enum Status : uint8_t {
+        Invalid,
+        Rejected,
+        Accepted,
+        Finalized,
+    };
+
+    AvalancheBlockUpdate(CBlockIndex *pindexIn, Status statusIn)
+        : pindex(pindexIn) {
+        raw |= statusIn;
+    }
+
+    Status getStatus() const { return Status(raw & 0x03); }
+
+    CBlockIndex *getBlockIndex() {
+        return reinterpret_cast<CBlockIndex *>(raw & -size_t(0x04));
+    }
+
+    const CBlockIndex *getBlockIndex() const {
+        return const_cast<AvalancheBlockUpdate *>(this)->getBlockIndex();
+    }
+};
+
 typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
     BlockVoteMap;
 
@@ -160,9 +194,9 @@ public:
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;
-    bool hasFinalized(const CBlockIndex *pindex) const;
 
-    bool registerVotes(const AvalancheResponse &response);
+    bool registerVotes(const AvalancheResponse &response,
+                       std::vector<AvalancheBlockUpdate> &updates);
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
