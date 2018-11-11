@@ -3,10 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "arith_uint256.h"
-#include "test/test_bitcoin.h"
 #include "uint256.h"
 #include "version.h"
+
+#include "test/test_bitcoin.h"
+
 #include <boost/test/unit_test.hpp>
+
 #include <cmath>
 #include <cstdint>
 #include <iomanip>
@@ -26,8 +29,8 @@ const uint8_t R1Array[] =
     "\x22\x81\xaa\xb5\x33\xf0\x08\x32\xd5\x56\xb1\xf9\xea\xe5\x1d\x7d";
 const char R1ArrayHex[] =
     "7D1DE5EAF9B156D53208F033B5AA8122D2d2355d5e12292b121156cfdb4a529c";
-const double R1Ldouble =
-    0.4887374590559308955; // R1L equals roughly R1Ldouble * 2^256
+// R1L equals roughly R1Ldouble * 2^256
+const double R1Ldouble = 0.4887374590559308955;
 const arith_uint256 R1L =
     arith_uint256V(std::vector<uint8_t>(R1Array, R1Array + 32));
 const uint64_t R1LLow64 = 0x121156cfdb4a529cULL;
@@ -70,8 +73,8 @@ std::string ArrayToString(const uint8_t A[], unsigned int width) {
     return Stream.str();
 }
 
-BOOST_AUTO_TEST_CASE(basics) // constructors, equality, inequality
-{
+// constructors, equality, inequality
+BOOST_AUTO_TEST_CASE(basics) {
     BOOST_CHECK(1 == 0 + 1);
     // constructor arith_uint256(vector<char>):
     BOOST_CHECK(R1L.ToString() == ArrayToString(R1Array, 32));
@@ -138,12 +141,14 @@ void shiftArrayRight(uint8_t *to, const uint8_t *from, unsigned int arrayLength,
                      unsigned int bitsToShift) {
     for (unsigned int T = 0; T < arrayLength; ++T) {
         unsigned int F = (T + bitsToShift / 8);
-        if (F < arrayLength)
+        if (F < arrayLength) {
             to[T] = from[F] >> (bitsToShift % 8);
-        else
+        } else {
             to[T] = 0;
-        if (F + 1 < arrayLength)
+        }
+        if (F + 1 < arrayLength) {
             to[T] |= from[(F + 1)] << (8 - bitsToShift % 8);
+        }
     }
 }
 
@@ -153,15 +158,17 @@ void shiftArrayLeft(uint8_t *to, const uint8_t *from, unsigned int arrayLength,
         if (T >= bitsToShift / 8) {
             unsigned int F = T - bitsToShift / 8;
             to[T] = from[F] << (bitsToShift % 8);
-            if (T >= bitsToShift / 8 + 1)
+            if (T >= bitsToShift / 8 + 1) {
                 to[T] |= from[F - 1] >> (8 - bitsToShift % 8);
+            }
         } else {
             to[T] = 0;
         }
     }
 }
 
-BOOST_AUTO_TEST_CASE(shifts) { // "<<"  ">>"  "<<="  ">>="
+// "<<"  ">>"  "<<="  ">>="
+BOOST_AUTO_TEST_CASE(shifts) {
     uint8_t TmpArray[32];
     arith_uint256 TmpL;
     for (unsigned int i = 0; i < 256; ++i) {
@@ -214,8 +221,8 @@ BOOST_AUTO_TEST_CASE(shifts) { // "<<"  ">>"  "<<="  ">>="
     }
 }
 
-BOOST_AUTO_TEST_CASE(unaryOperators) // !    ~    -
-{
+// !    ~    -
+BOOST_AUTO_TEST_CASE(unaryOperators) {
     BOOST_CHECK(!ZeroL);
     BOOST_CHECK(!(!OneL));
     for (unsigned int i = 0; i < 256; ++i)
@@ -302,8 +309,8 @@ BOOST_AUTO_TEST_CASE(bitwiseOperators) {
     BOOST_CHECK(TmpL == (R1L ^ arith_uint256(Tmp64)));
 }
 
-BOOST_AUTO_TEST_CASE(comparison) // <= >= < >
-{
+// <= >= < >
+BOOST_AUTO_TEST_CASE(comparison) {
     arith_uint256 TmpL;
     for (unsigned int i = 0; i < 256; ++i) {
         TmpL = OneL << i;
@@ -431,9 +438,8 @@ bool almostEqual(double d1, double d2) {
            4 * fabs(d1) * std::numeric_limits<double>::epsilon();
 }
 
-BOOST_AUTO_TEST_CASE(methods) // GetHex SetHex size() GetLow64 GetSerializeSize,
-                              // Serialize, Unserialize
-{
+// GetHex SetHex size() GetLow64 GetSerializeSize, Serialize, Unserialize
+BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK(R1L.GetHex() == R1L.ToString());
     BOOST_CHECK(R2L.GetHex() == R2L.ToString());
     BOOST_CHECK(OneL.GetHex() == OneL.ToString());
@@ -637,9 +643,8 @@ BOOST_AUTO_TEST_CASE(bignum_SetCompact) {
     BOOST_CHECK_EQUAL(fOverflow, true);
 }
 
-BOOST_AUTO_TEST_CASE(
-    getmaxcoverage) // some more tests just to get 100% coverage
-{
+// some more tests just to get 100% coverage
+BOOST_AUTO_TEST_CASE(getmaxcoverage) {
     // ~R1L give a base_uint<256>
     BOOST_CHECK((~~R1L >> 10) == (R1L >> 10));
     BOOST_CHECK((~~R1L << 10) == (R1L << 10));
