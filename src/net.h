@@ -444,6 +444,7 @@ private:
 
     friend struct CConnmanTest;
 };
+
 extern std::unique_ptr<CConnman> g_connman;
 void Discover();
 void StartMapPort();

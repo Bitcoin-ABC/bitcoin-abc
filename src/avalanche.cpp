@@ -38,9 +38,40 @@ bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
 }
 
 bool AvalancheProcessor::registerVotes(
-    const AvalancheResponse &response,
+    NodeId nodeid, const AvalancheResponse &response,
     std::vector<AvalancheBlockUpdate> &updates) {
+    RequestRecord r;
+
+    {
+        // Check that the query exists.
+        auto w = queries.getWriteView();
+        auto it = w->find(nodeid);
+        if (it == w.end()) {
+            // NB: The request may be old, so we don't increase banscore.
+            return false;
+        }
+
+        r = std::move(it->second);
+        w->erase(it);
+    }
+
+    // Verify that the request and the vote are consistent.
+    const std::vector<CInv> &invs = r.GetInvs();
     const std::vector<AvalancheVote> &votes = response.GetVotes();
+    size_t size = invs.size();
+    if (votes.size() != size) {
+        // TODO: increase banscore for inconsistent response.
+        // NB: This isn't timeout but actually node misbehaving.
+        return false;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        if (invs[i].hash != votes[i].GetHash()) {
+            // TODO: increase banscore for inconsistent response.
+            // NB: This isn't timeout but actually node misbehaving.
+            return false;
+        }
+    }
 
     std::map<CBlockIndex *, AvalancheVote> responseIndex;
 
@@ -96,6 +127,9 @@ bool AvalancheProcessor::registerVotes(
         }
     }
 
+    // Put the node back in the list of queriable nodes.
+    auto w = nodeids.getWriteView();
+    w->insert(nodeid);
     return true;
 }
 
@@ -122,6 +156,7 @@ bool AvalancheProcessor::startEventLoop(CScheduler &scheduler) {
     // Start the event loop.
     scheduler.scheduleEvery(
         [this]() -> bool {
+            runEventLoop();
             if (!stopRequest) {
                 return true;
             }
@@ -177,4 +212,68 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
     }
 
     return invs;
+}
+
+NodeId AvalancheProcessor::getSuitableNodeToQuery() {
+    auto w = nodeids.getWriteView();
+    if (w->empty()) {
+        auto r = queries.getReadView();
+
+        // We don't have any candidate node, so let's try to find some.
+        connman->ForEachNode([&w, &r](CNode *pnode) {
+            // If this node doesn't support avalanche, we remove.
+            if (!(pnode->nServices & NODE_AVALANCHE)) {
+                return;
+            }
+
+            // if we have a request in flight for that node.
+            if (r->find(pnode->GetId()) != r.end()) {
+                return;
+            }
+
+            w->insert(pnode->GetId());
+        });
+    }
+
+    // We don't have any suitable candidate.
+    if (w->empty()) {
+        return -1;
+    }
+
+    auto it = w.begin();
+    NodeId nodeid = *it;
+    w->erase(it);
+
+    return nodeid;
+}
+
+void AvalancheProcessor::runEventLoop() {
+    std::vector<CInv> invs = getInvsForNextPoll();
+    if (invs.empty()) {
+        // If there are no invs to poll, we are done.
+        return;
+    }
+
+    NodeId nodeid = getSuitableNodeToQuery();
+
+    /**
+     * If we lost contact to that node, then we remove it from nodeids, but
+     * never add the request to queries, which ensures bad nodes get cleaned up
+     * over time.
+     */
+    connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
+        {
+            // Register the query.
+            queries.getWriteView()->emplace(
+                pnode->GetId(), RequestRecord(GetAdjustedTime(), invs));
+        }
+
+        // Send the query to the node.
+        connman->PushMessage(
+            pnode,
+            CNetMsgMaker(pnode->GetSendVersion())
+                .Make(NetMsgType::AVAPOLL,
+                      AvalanchePoll(round++, std::move(invs))));
+        return true;
+    });
 }
