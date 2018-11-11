@@ -102,7 +102,7 @@ endif
 BITCOIN_CORE_H = \
   addrdb.h \
   addrman.h \
-  avalanche_impl.h \
+  avalanche.h \
   base58.h \
   bloom.h \
   blockencodings.h \
@@ -227,6 +227,7 @@ libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   addrdb.cpp \
+  avalanche.cpp \
   bloom.cpp \
   blockencodings.cpp \
   chain.cpp \

@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "avalanche_impl.h"
+#include "avalanche.h"
 
 #include "test/test_bitcoin.h"
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_FIXTURE_TEST_SUITE(avalanche_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
     vr.registerVote(vote);                                                     \
@@ -64,6 +64,68 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     // The next vote will finalize the decision.
     REGISTER_VOTE_AND_CHECK(vr, true, false, true,
                             AVALANCHE_FINALIZATION_SCORE);
+}
+
+BOOST_AUTO_TEST_CASE(block_register) {
+    AvalancheProcessor p;
+
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const uint256 hash = block.GetHash();
+    const CBlockIndex *pindex = mapBlockIndex[hash];
+
+    // Querying for random block returns false.
+    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK(!p.hasFinalized(pindex));
+
+    // Newly added blocks are also considered rejected.
+    BOOST_CHECK(p.addBlockToReconcile(pindex));
+    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK(!p.hasFinalized(pindex));
+
+    // Let's vote for this block a few times.
+    AvalancheResponse resp{0, {AvalancheVote(0, hash)}};
+    for (int i = 0; i < 5; i++) {
+        p.registerVotes(resp);
+        BOOST_CHECK(!p.isAccepted(pindex));
+        BOOST_CHECK(!p.hasFinalized(pindex));
+    }
+
+    // Now it is accepted, but we can vote for it numerous times.
+    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+        p.registerVotes(resp);
+        BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK(!p.hasFinalized(pindex));
+    }
+
+    // Now finalize the decision.
+    resp = {0, {AvalancheVote(1, hash)}};
+    p.registerVotes(resp);
+    BOOST_CHECK(p.isAccepted(pindex));
+    BOOST_CHECK(p.hasFinalized(pindex));
+
+    // Now let's undo this and finalize rejection.
+    for (int i = 0; i < 5; i++) {
+        p.registerVotes(resp);
+        BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK(p.hasFinalized(pindex));
+    }
+
+    // Now it is rejected, but we can vote for it numerous times.
+    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+        p.registerVotes(resp);
+        BOOST_CHECK(!p.isAccepted(pindex));
+        BOOST_CHECK(!p.hasFinalized(pindex));
+    }
+
+    // Now finalize the decision.
+    p.registerVotes(resp);
+    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK(p.hasFinalized(pindex));
+
+    // Adding the block twice does nothing.
+    BOOST_CHECK(!p.addBlockToReconcile(pindex));
+    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK(p.hasFinalized(pindex));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
