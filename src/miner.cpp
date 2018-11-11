@@ -32,9 +32,6 @@
 #include <queue>
 #include <utility>
 
-#include <boost/thread.hpp>
-#include <boost/tuple/tuple.hpp>
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // BitcoinMiner
@@ -141,12 +138,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // Pointer for convenience.
     pblock = &pblocktemplate->block;
 
-    // Add dummy coinbase tx as first transaction.
-    pblock->vtx.emplace_back();
-    // updated at end
-    pblocktemplate->vTxFees.push_back(-SATOSHI);
-    // updated at end
-    pblocktemplate->vTxSigOpsCount.push_back(-1);
+    // Add dummy coinbase tx as first transaction.  It is updated at the end.
+    pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
     LOCK2(cs_main, mempool.cs);
     CBlockIndex *pindexPrev = chainActive.Tip();
@@ -178,11 +171,11 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     if (IsMagneticAnomalyEnabled(*config, pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
         // canonically ordered.
-        std::sort(std::begin(pblock->vtx) + 1, std::end(pblock->vtx),
-                  [](const std::shared_ptr<const CTransaction> &a,
-                     const std::shared_ptr<const CTransaction> &b) -> bool {
-                      return a->GetId() < b->GetId();
-                  });
+        // FIXME: Use a zipped list. See T479
+        std::sort(std::begin(pblocktemplate->entries) + 1,
+                  std::end(pblocktemplate->entries),
+                  [](const CBlockTemplateEntry &a, const CBlockTemplateEntry &b)
+                      -> bool { return a.tx->GetId() < b.tx->GetId(); });
     }
 
     int64_t nTime1 = GetTimeMicros();
@@ -208,8 +201,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
             << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
     }
 
-    pblock->vtx[0] = MakeTransactionRef(coinbaseTx);
-    pblocktemplate->vTxFees[0] = -1 * nFees;
+    pblocktemplate->entries[0].tx = MakeTransactionRef(coinbaseTx);
+    pblocktemplate->entries[0].fees = -1 * nFees;
 
     uint64_t nSerializeSize =
         GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION);
@@ -222,8 +215,15 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     UpdateTime(pblock, *config, pindexPrev);
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, *config);
     pblock->nNonce = 0;
-    pblocktemplate->vTxSigOpsCount[0] = GetSigOpCountWithoutP2SH(
-        *pblock->vtx[0], STANDARD_CHECKDATASIG_VERIFY_FLAGS);
+    pblocktemplate->entries[0].sigOpCount = GetSigOpCountWithoutP2SH(
+        *pblocktemplate->entries[0].tx, STANDARD_CHECKDATASIG_VERIFY_FLAGS);
+
+    // Copy all the transactions into the block
+    // FIXME: This should be removed as it is significant overhead.
+    // See T479
+    for (const CBlockTemplateEntry &tx : pblocktemplate->entries) {
+        pblock->vtx.push_back(tx.tx);
+    }
 
     CValidationState state;
     BlockValidationOptions validationOptions(false, false);
@@ -350,9 +350,8 @@ BlockAssembler::TestForBlock(CTxMemPool::txiter it) {
 }
 
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
-    pblock->vtx.emplace_back(iter->GetSharedTx());
-    pblocktemplate->vTxFees.push_back(iter->GetFee());
-    pblocktemplate->vTxSigOpsCount.push_back(iter->GetSigOpCount());
+    pblocktemplate->entries.emplace_back(iter->GetSharedTx(), iter->GetFee(),
+                                         iter->GetSigOpCount());
     nBlockSize += iter->GetTxSize();
     ++nBlockTx;
     nBlockSigOps += iter->GetSigOpCount();

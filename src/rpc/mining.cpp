@@ -632,9 +632,10 @@ static UniValue getblocktemplate(const Config &config,
         entry.pushKV("depends", deps);
 
         int index_in_template = i - 1;
-        entry.push_back(
-            Pair("fee", pblocktemplate->vTxFees[index_in_template] / SATOSHI));
-        int64_t nTxSigOps = pblocktemplate->vTxSigOpsCount[index_in_template];
+        entry.pushKV("fee",
+                     pblocktemplate->entries[index_in_template].fees / SATOSHI);
+        int64_t nTxSigOps =
+            pblocktemplate->entries[index_in_template].sigOpCount;
         entry.pushKV("sigops", nTxSigOps);
 
         transactions.push_back(entry);
