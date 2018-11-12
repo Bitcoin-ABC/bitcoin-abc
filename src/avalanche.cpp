@@ -18,11 +18,6 @@
  */
 static const int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
 
-/**
- * Maximum item count that can be polled at once.
- */
-static const size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
-
 // Unfortunately, the bitcoind codebase is full of global and we are kinda
 // forced into it here.
 std::unique_ptr<AvalancheProcessor> g_avalanche;
@@ -133,6 +128,16 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
     return true;
 }
 
+AvalancheProcessor::AvalancheProcessor(CConnman *connmanIn)
+    : connman(connmanIn),
+      queryTimeoutDuration(
+          AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
+      round(0), stopRequest(false), running(false) {}
+
+AvalancheProcessor::~AvalancheProcessor() {
+    stopEventLoop();
+}
+
 bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
     bool isAccepted;
 
@@ -169,6 +174,13 @@ int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
     }
 
     return it->second.getConfidence();
+}
+
+void AvalancheProcessor::sendResponse(CNode *pfrom,
+                                      AvalancheResponse response) const {
+    connman->PushMessage(
+        pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+                   .Make(NetMsgType::AVARESPONSE, std::move(response)));
 }
 
 bool AvalancheProcessor::registerVotes(

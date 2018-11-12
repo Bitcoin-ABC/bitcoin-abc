@@ -25,6 +25,8 @@ from test_framework.messages import (
     CBlockHeader,
     MIN_VERSION_SUPPORTED,
     msg_addr,
+    msg_avapoll,
+    msg_avaresponse,
     msg_block,
     MSG_BLOCK,
     msg_blocktxn,
@@ -58,6 +60,8 @@ logger = logging.getLogger("TestFramework.mininode")
 
 MESSAGEMAP = {
     b"addr": msg_addr,
+    b"avapoll": msg_avapoll,
+    b"avaresponse": msg_avaresponse,
     b"block": msg_block,
     b"blocktxn": msg_blocktxn,
     b"cmpctblock": msg_cmpctblock,
@@ -348,6 +352,10 @@ class P2PInterface(P2PConnection):
         pass
 
     def on_addr(self, message): pass
+
+    def on_avapoll(self, message): pass
+
+    def on_avaresponse(self, message): pass
 
     def on_block(self, message): pass
 

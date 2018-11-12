@@ -1027,6 +1027,17 @@ void SetupServerArgs() {
     hidden_args.emplace_back("-daemon");
 #endif
 
+    // Avalanche options.
+    gArgs.AddArg(
+        "-enableavalanche",
+        strprintf("Enable avalanche (default: %u)", AVALANCHE_DEFAULT_ENABLED),
+        false, OptionsCategory::AVALANCHE);
+    gArgs.AddArg(
+        "-avacooldown",
+        strprintf("Mandatory cooldown between two avapoll (default: %u)",
+                  AVALANCHE_DEFAULT_COOLDOWN),
+        false, OptionsCategory::AVALANCHE);
+
     // Add the hidden options
     gArgs.AddHiddenArgs(hidden_args);
 }

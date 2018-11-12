@@ -52,6 +52,7 @@ NODE_BLOOM = (1 << 2)
 NODE_XTHIN = (1 << 4)
 NODE_BITCOIN_CASH = (1 << 5)
 NODE_NETWORK_LIMITED = (1 << 10)
+NODE_AVALANCHE = (1 << 24)
 
 MSG_TX = 1
 MSG_BLOCK = 2
@@ -764,6 +765,75 @@ class BlockTransactions:
             self.blockhash, repr(self.transactions))
 
 
+class AvalanchePoll():
+    __slots__ = ("round", "invs")
+
+    def __init__(self, round=0, invs=None):
+        self.round = round
+        self.invs = invs if invs is not None else []
+
+    def deserialize(self, f):
+        self.round = struct.unpack("<q", f.read(8))[0]
+        self.invs = deser_vector(f, CInv)
+
+    def serialize(self):
+        r = b""
+        r += struct.pack("<q", self.round)
+        r += ser_vector(self.invs)
+        return r
+
+    def __repr__(self):
+        return "AvalanchePoll(round={}, invs={})".format(
+            self.round, repr(self.invs))
+
+
+class AvalancheVote():
+    __slots__ = ("error", "hash")
+
+    def __init__(self, e=0, h=0):
+        self.error = e
+        self.hash = h
+
+    def deserialize(self, f):
+        self.error = struct.unpack("<i", f.read(4))[0]
+        self.hash = deser_uint256(f)
+
+    def serialize(self):
+        r = b""
+        r += struct.pack("<i", self.error)
+        r += ser_uint256(self.hash)
+        return r
+
+    def __repr__(self):
+        return "AvalancheVote(error={}, hash={:064x})".format(
+            self.error, self.hash)
+
+
+class AvalancheResponse():
+    __slots__ = ("round", "cooldown", "votes")
+
+    def __init__(self, round=0, cooldown=0, votes=None):
+        self.round = round
+        self.cooldown = cooldown
+        self.votes = votes if votes is not None else []
+
+    def deserialize(self, f):
+        self.round = struct.unpack("<q", f.read(8))[0]
+        self.cooldown = struct.unpack("<i", f.read(4))[0]
+        self.votes = deser_vector(f, AvalancheVote)
+
+    def serialize(self):
+        r = b""
+        r += struct.pack("<q", self.round)
+        r += struct.pack("<i", self.cooldown)
+        r += ser_vector(self.votes)
+        return r
+
+    def __repr__(self):
+        return "AvalancheResponse(round={}, cooldown={}, votes={})".format(
+            self.round, self.cooldown, repr(self.votes))
+
+
 class CPartialMerkleTree:
     __slots__ = ("fBad", "nTransactions", "vBits", "vHash")
 
@@ -1322,3 +1392,41 @@ class msg_blocktxn:
     def __repr__(self):
         return "msg_blocktxn(block_transactions={})".format(
             repr(self.block_transactions))
+
+
+class msg_avapoll():
+    __slots__ = ("poll",)
+    command = b"avapoll"
+
+    def __init__(self):
+        self.poll = AvalanchePoll()
+
+    def deserialize(self, f):
+        self.poll.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += self.poll.serialize()
+        return r
+
+    def __repr__(self):
+        return "msg_avapoll(poll={})".format(repr(self.poll))
+
+
+class msg_avaresponse():
+    __slots__ = ("response",)
+    command = b"avaresponse"
+
+    def __init__(self):
+        self.response = AvalancheResponse()
+
+    def deserialize(self, f):
+        self.response.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += self.response.serialize()
+        return r
+
+    def __repr__(self):
+        return "msg_avaresponse(response={})".format(repr(self.response))

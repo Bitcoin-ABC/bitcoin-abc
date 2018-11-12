@@ -7,6 +7,7 @@
 
 #include <addrman.h>
 #include <arith_uint256.h>
+#include <avalanche.h>
 #include <banman.h>
 #include <blockencodings.h>
 #include <blockvalidity.h>
@@ -421,6 +422,12 @@ struct CNodeState {
     };
 
     TxDownloadState m_tx_download;
+
+    struct AvalancheState {
+        std::chrono::time_point<std::chrono::steady_clock> last_poll;
+    };
+
+    AvalancheState m_avalanche_state;
 
     CNodeState(CAddress addrIn, std::string addrNameIn)
         : address(addrIn), name(addrNameIn) {
@@ -3415,6 +3422,68 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             LOCK(cs_main);
             mapBlockSource.erase(pblock->GetHash());
         }
+        return true;
+    }
+
+    // Ignore avalanche requests while importing
+    if (strCommand == NetMsgType::AVAPOLL && !fImporting && !fReindex &&
+        g_avalanche &&
+        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        auto now = std::chrono::steady_clock::now();
+        int64_t cooldown =
+            gArgs.GetArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
+
+        {
+            LOCK(cs_main);
+            auto &node_state = State(pfrom->GetId())->m_avalanche_state;
+
+            if (now <
+                node_state.last_poll + std::chrono::milliseconds(cooldown)) {
+                Misbehaving(pfrom, 20, "avapool-cooldown");
+            }
+
+            node_state.last_poll = now;
+        }
+
+        uint64_t round;
+        Unserialize(vRecv, round);
+
+        unsigned int nCount = ReadCompactSize(vRecv);
+        if (nCount > AVALANCHE_MAX_ELEMENT_POLL) {
+            LOCK(cs_main);
+            Misbehaving(pfrom, 20, "too-many-poll");
+            return error("poll message size = %u", nCount);
+        }
+
+        std::vector<AvalancheVote> votes;
+        votes.reserve(nCount);
+
+        LogPrint(BCLog::NET, "received avalanche poll from peer=%d\n",
+                 pfrom->GetId());
+
+        {
+            LOCK(cs_main);
+
+            for (unsigned int n = 0; n < nCount; n++) {
+                CInv inv;
+                vRecv >> inv;
+
+                uint32_t error = -1;
+                if (inv.type == MSG_BLOCK) {
+                    BlockMap::iterator mi =
+                        mapBlockIndex.find(BlockHash(inv.hash));
+                    if (mi != mapBlockIndex.end()) {
+                        error = ::ChainActive().Contains(mi->second) ? 0 : 1;
+                    }
+                }
+
+                votes.emplace_back(error, inv.hash);
+            }
+        }
+
+        // Send the query to the node.
+        g_avalanche->sendResponse(
+            pfrom, AvalancheResponse(round, cooldown, std::move(votes)));
         return true;
     }
 

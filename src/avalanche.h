@@ -30,10 +30,23 @@ class CScheduler;
 
 namespace {
 /**
+ * Is avalanche enabled by default.
+ */
+static const bool AVALANCHE_DEFAULT_ENABLED = false;
+
+/**
  * Finalization score.
  */
 static const int AVALANCHE_FINALIZATION_SCORE = 128;
 
+/**
+ * Maximum item that can be polled at once.
+ */
+static const size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
+/**
+ * Avalanche default cooldown in milliseconds.
+ */
+static const size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
 /**
  * How long before we consider that a query timed out.
  */
@@ -319,12 +332,8 @@ private:
     std::condition_variable cond_running;
 
 public:
-    AvalancheProcessor(CConnman *connmanIn)
-        : connman(connmanIn),
-          queryTimeoutDuration(
-              AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
-          round(0), stopRequest(false), running(false) {}
-    ~AvalancheProcessor() { stopEventLoop(); }
+    AvalancheProcessor(CConnman *connmanIn);
+    ~AvalancheProcessor();
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
         queryTimeoutDuration = d;
@@ -333,6 +342,8 @@ public:
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;
     int getConfidence(const CBlockIndex *pindex) const;
+
+    void sendResponse(CNode *pfrom, AvalancheResponse response) const;
 
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);
