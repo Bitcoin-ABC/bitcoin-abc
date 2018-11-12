@@ -12,6 +12,7 @@
 #include "coins.h"
 #include "config.h"
 #include "consensus/validation.h"
+#include "core_io.h"
 #include "hash.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"
@@ -120,6 +121,7 @@ UniValue blockToJSON(const Config &config, const CBlock &block,
     for (const auto &tx : block.vtx) {
         if (txDetails) {
             UniValue objTx(UniValue::VOBJ);
+            objTx.pushKV("hex", EncodeHexTx(*tx, RPCSerializationFlags()));
             TxToJSON(config, *tx, uint256(), objTx);
             txs.push_back(objTx);
         } else {
