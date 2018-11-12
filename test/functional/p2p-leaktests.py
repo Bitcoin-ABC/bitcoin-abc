@@ -41,8 +41,6 @@ class CLazyNode(NodeConnCB):
 
     def on_addr(self, conn, message): self.bad_message(message)
 
-    def on_alert(self, conn, message): self.bad_message(message)
-
     def on_getdata(self, conn, message): self.bad_message(message)
 
     def on_getblocks(self, conn, message): self.bad_message(message)
