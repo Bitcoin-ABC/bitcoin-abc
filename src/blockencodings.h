@@ -56,14 +56,14 @@ public:
                 }
             }
 
-            uint32_t offset = 0;
+            uint64_t offset = 0;
             for (auto &index : indices) {
-                if (uint64_t(index) + uint64_t(offset) >
+                if (uint64_t(index) + offset >
                     std::numeric_limits<uint32_t>::max()) {
                     throw std::ios_base::failure("indices overflowed 32 bits");
                 }
                 index = index + offset;
-                offset = index + 1;
+                offset = uint64_t(index) + 1;
             }
         } else {
             for (size_t i = 0; i < indices.size(); i++) {
@@ -205,6 +205,10 @@ public:
         }
 
         READWRITE(prefilledtxn);
+
+        if (BlockTxCount() > std::numeric_limits<uint32_t>::max()) {
+            throw std::ios_base::failure("indices overflowed 32 bits");
+        }
 
         if (ser_action.ForRead()) {
             FillShortTxIDSelector();
