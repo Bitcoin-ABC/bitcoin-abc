@@ -184,7 +184,7 @@ void Shutdown() {
     /// locked. Be sure that anything that writes files or flushes caches only
     /// does this if the respective module was initialized.
     RenameThread("bitcoin-shutoff");
-    mempool.AddTransactionsUpdated(1);
+    g_mempool.AddTransactionsUpdated(1);
 
     StopHTTPRPC();
     StopREST();
@@ -215,7 +215,7 @@ void Shutdown() {
         CAutoFile est_fileout(fsbridge::fopen(est_path, "wb"), SER_DISK,
                               CLIENT_VERSION);
         if (!est_fileout.IsNull()) {
-            mempool.WriteFeeEstimates(est_fileout);
+            g_mempool.WriteFeeEstimates(est_fileout);
         } else {
             LogPrintf("%s: Failed to write fee estimates to %s\n", __func__,
                       est_path.string());
@@ -1474,7 +1474,7 @@ bool AppInitParameterInteraction(Config &config, RPCServer &rpcServer) {
             0),
         1000000);
     if (ratio != 0) {
-        mempool.setSanityCheck(1.0 / ratio);
+        g_mempool.setSanityCheck(1.0 / ratio);
     }
     fCheckBlockIndex = gArgs.GetBoolArg("-checkblockindex",
                                         chainparams.DefaultConsistencyChecks());
@@ -2194,7 +2194,7 @@ bool AppInitMain(Config &config,
                          CLIENT_VERSION);
     // Allowed to fail as this file IS missing on first startup.
     if (!est_filein.IsNull()) {
-        mempool.ReadFeeEstimates(est_filein);
+        g_mempool.ReadFeeEstimates(est_filein);
     }
     fFeeEstimatesInitialized = true;
 

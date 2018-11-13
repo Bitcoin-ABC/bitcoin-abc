@@ -563,13 +563,13 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
     std::vector<bool> hits;
     bitmap.resize((vOutPoints.size() + 7) / 8);
     {
-        LOCK2(cs_main, mempool.cs);
+        LOCK2(cs_main, g_mempool.cs);
 
         CCoinsView viewDummy;
         CCoinsViewCache view(&viewDummy);
 
         CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, mempool);
+        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
 
         if (fCheckMemPool) {
             // switch cache backend to db+mempool in case user likes to query
@@ -581,7 +581,7 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
             Coin coin;
             bool hit = false;
             if (view.GetCoin(vOutPoints[i], coin) &&
-                !mempool.isSpent(vOutPoints[i])) {
+                !g_mempool.isSpent(vOutPoints[i])) {
                 hit = true;
                 outs.emplace_back(std::move(coin));
             }

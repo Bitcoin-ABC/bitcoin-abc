@@ -86,7 +86,7 @@ arith_uint256 nMinimumChainWork;
 
 Amount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
-CTxMemPool mempool;
+CTxMemPool g_mempool;
 
 static void CheckBlockIndex(const Consensus::Params &consensusParams);
 
@@ -210,7 +210,7 @@ bool TestLockPointValidity(const LockPoints *lp) {
 bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
                         bool useExistingLockPoints) {
     AssertLockHeld(cs_main);
-    AssertLockHeld(mempool.cs);
+    AssertLockHeld(g_mempool.cs);
 
     CBlockIndex *tip = chainActive.Tip();
     CBlockIndex index;
@@ -229,7 +229,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints *lp,
         lockPair.second = lp->time;
     } else {
         // pcoinsTip contains the UTXO set for chainActive.Tip()
-        CCoinsViewMemPool viewMemPool(pcoinsTip.get(), mempool);
+        CCoinsViewMemPool viewMemPool(pcoinsTip.get(), g_mempool);
         std::vector<int> prevheights;
         prevheights.resize(tx.vin.size());
         for (size_t txinIndex = 0; txinIndex < tx.vin.size(); txinIndex++) {
@@ -768,7 +768,7 @@ bool GetTransaction(const Config &config, const TxId &txid,
 
     LOCK(cs_main);
 
-    CTransactionRef ptx = mempool.get(txid);
+    CTransactionRef ptx = g_mempool.get(txid);
     if (ptx) {
         txOut = ptx;
         return true;
@@ -1884,7 +1884,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     // the mempool.
     if (IsReplayProtectionEnabled(config, pindex) &&
         !IsReplayProtectionEnabled(config, pindex->pprev)) {
-        mempool.clear();
+        g_mempool.clear();
     }
 
     return true;
@@ -1899,7 +1899,7 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 static bool FlushStateToDisk(const CChainParams &chainparams,
                              CValidationState &state, FlushStateMode mode,
                              int nManualPruneHeight) {
-    int64_t nMempoolUsage = mempool.DynamicMemoryUsage();
+    int64_t nMempoolUsage = g_mempool.DynamicMemoryUsage();
     LOCK(cs_main);
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
@@ -2070,7 +2070,7 @@ static void UpdateTip(const Config &config, CBlockIndex *pindexNew) {
     chainActive.SetTip(pindexNew);
 
     // New best block
-    mempool.AddTransactionsUpdated(1);
+    g_mempool.AddTransactionsUpdated(1);
 
     {
         LOCK(g_best_block_mutex);
@@ -2191,7 +2191,7 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
          !IsMagneticAnomalyEnabled(config, pindexDelete->pprev))) {
         LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
 
-        mempool.clear();
+        g_mempool.clear();
         // While not strictly necessary, clearing the disconnect pool is also
         // beneficial so we don't try to reuse its content at the end of the
         // reorg, which we know will fail.
@@ -2408,7 +2408,7 @@ static bool ConnectTip(const Config &config, CValidationState &state,
              (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
 
     // Remove conflicting transactions from the mempool.;
-    mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
+    g_mempool.removeForBlock(blockConnecting.vtx, pindexNew->nHeight);
     disconnectpool.removeForBlock(blockConnecting.vtx);
     // Update chainActive & related variables.
     UpdateTip(config, pindexNew);
@@ -2682,7 +2682,7 @@ static bool ActivateBestChainStep(const Config &config, CValidationState &state,
         disconnectpool.updateMempoolForReorg(config, true);
     }
 
-    mempool.check(pcoinsTip.get());
+    g_mempool.check(pcoinsTip.get());
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound) {
@@ -2737,7 +2737,7 @@ bool ActivateBestChain(const Config &config, CValidationState &state,
             LOCK(cs_main);
 
             // Destructed before cs_main is unlocked.
-            ConnectTrace connectTrace(mempool);
+            ConnectTrace connectTrace(g_mempool);
 
             CBlockIndex *pindexOldTip = chainActive.Tip();
             if (pindexMostWork == nullptr) {
@@ -4723,7 +4723,7 @@ void UnloadBlockIndex() {
     pindexBestInvalid = nullptr;
     pindexBestParked = nullptr;
     pindexBestHeader = nullptr;
-    mempool.clear();
+    g_mempool.clear();
     mapBlocksUnlinked.clear();
     vinfoBlockFile.clear();
     nLastBlockFile = 0;
@@ -5335,14 +5335,14 @@ bool LoadMempool(const Config &config) {
 
             Amount amountdelta = nFeeDelta * SATOSHI;
             if (amountdelta != Amount::zero()) {
-                mempool.PrioritiseTransaction(tx->GetId(),
-                                              tx->GetId().ToString(),
-                                              prioritydummy, amountdelta);
+                g_mempool.PrioritiseTransaction(tx->GetId(),
+                                                tx->GetId().ToString(),
+                                                prioritydummy, amountdelta);
             }
             CValidationState state;
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(config, mempool, state, tx, true,
+                AcceptToMemoryPoolWithTime(config, g_mempool, state, tx, true,
                                            nullptr, nTime);
                 if (state.IsValid()) {
                     ++count;
@@ -5361,8 +5361,8 @@ bool LoadMempool(const Config &config) {
         file >> mapDeltas;
 
         for (const auto &i : mapDeltas) {
-            mempool.PrioritiseTransaction(i.first, i.first.ToString(),
-                                          prioritydummy, i.second);
+            g_mempool.PrioritiseTransaction(i.first, i.first.ToString(),
+                                            prioritydummy, i.second);
         }
     } catch (const std::exception &e) {
         LogPrintf("Failed to deserialize mempool data on disk: %s. Continuing "
@@ -5384,12 +5384,12 @@ void DumpMempool(void) {
     std::vector<TxMempoolInfo> vinfo;
 
     {
-        LOCK(mempool.cs);
-        for (const auto &i : mempool.mapDeltas) {
+        LOCK(g_mempool.cs);
+        for (const auto &i : g_mempool.mapDeltas) {
             mapDeltas[i.first] = i.second.second;
         }
 
-        vinfo = mempool.infoAll();
+        vinfo = g_mempool.infoAll();
     }
 
     int64_t mid = GetTimeMicros();

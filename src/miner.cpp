@@ -141,7 +141,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // Add dummy coinbase tx as first transaction.  It is updated at the end.
     pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
-    LOCK2(cs_main, mempool.cs);
+    LOCK2(cs_main, g_mempool.cs);
     CBlockIndex *pindexPrev = chainActive.Tip();
     nHeight = pindexPrev->nHeight + 1;
 
@@ -245,7 +245,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 }
 
 bool BlockAssembler::isStillDependent(CTxMemPool::txiter iter) {
-    for (CTxMemPool::txiter parent : mempool.GetMemPoolParents(iter)) {
+    for (CTxMemPool::txiter parent : g_mempool.GetMemPoolParents(iter)) {
         if (!inBlock.count(parent)) {
             return true;
         }
@@ -363,7 +363,7 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     if (fPrintPriority) {
         double dPriority = iter->GetPriority(nHeight);
         Amount dummy;
-        mempool.ApplyDeltas(iter->GetTx().GetId(), dPriority, dummy);
+        g_mempool.ApplyDeltas(iter->GetTx().GetId(), dPriority, dummy);
         LogPrintf(
             "priority %.1f fee %s txid %s\n", dPriority,
             CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
@@ -377,7 +377,7 @@ int BlockAssembler::UpdatePackagesForAdded(
     int nDescendantsUpdated = 0;
     for (const CTxMemPool::txiter it : alreadyAdded) {
         CTxMemPool::setEntries descendants;
-        mempool.CalculateDescendants(it, descendants);
+        g_mempool.CalculateDescendants(it, descendants);
         // Insert all descendants (not yet in block) into the modified set.
         for (CTxMemPool::txiter desc : descendants) {
             if (alreadyAdded.count(desc)) {
@@ -413,7 +413,7 @@ int BlockAssembler::UpdatePackagesForAdded(
 bool BlockAssembler::SkipMapTxEntry(
     CTxMemPool::txiter it, indexed_modified_transaction_set &mapModifiedTx,
     CTxMemPool::setEntries &failedTx) {
-    assert(it != mempool.mapTx.end());
+    assert(it != g_mempool.mapTx.end());
     return mapModifiedTx.count(it) || inBlock.count(it) || failedTx.count(it);
 }
 
@@ -461,7 +461,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
     UpdatePackagesForAdded(inBlock, mapModifiedTx);
 
     CTxMemPool::indexed_transaction_set::index<ancestor_score>::type::iterator
-        mi = mempool.mapTx.get<ancestor_score>().begin();
+        mi = g_mempool.mapTx.get<ancestor_score>().begin();
     CTxMemPool::txiter iter;
 
     // Limit the number of attempts to add transactions to the block when it is
@@ -470,11 +470,11 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
     const int64_t MAX_CONSECUTIVE_FAILURES = 1000;
     int64_t nConsecutiveFailed = 0;
 
-    while (mi != mempool.mapTx.get<ancestor_score>().end() ||
+    while (mi != g_mempool.mapTx.get<ancestor_score>().end() ||
            !mapModifiedTx.empty()) {
         // First try to find a new transaction in mapTx to evaluate.
-        if (mi != mempool.mapTx.get<ancestor_score>().end() &&
-            SkipMapTxEntry(mempool.mapTx.project<0>(mi), mapModifiedTx,
+        if (mi != g_mempool.mapTx.get<ancestor_score>().end() &&
+            SkipMapTxEntry(g_mempool.mapTx.project<0>(mi), mapModifiedTx,
                            failedTx)) {
             ++mi;
             continue;
@@ -485,13 +485,13 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
         bool fUsingModified = false;
 
         modtxscoreiter modit = mapModifiedTx.get<ancestor_score>().begin();
-        if (mi == mempool.mapTx.get<ancestor_score>().end()) {
+        if (mi == g_mempool.mapTx.get<ancestor_score>().end()) {
             // We're out of entries in mapTx; use the entry from mapModifiedTx
             iter = modit->iter;
             fUsingModified = true;
         } else {
             // Try to compare the mapTx entry to the mapModifiedTx entry.
-            iter = mempool.mapTx.project<0>(mi);
+            iter = g_mempool.mapTx.project<0>(mi);
             if (modit != mapModifiedTx.get<ancestor_score>().end() &&
                 CompareModifiedEntry()(*modit, CTxMemPoolModifiedEntry(iter))) {
                 // The best entry in mapModifiedTx has higher score than the one
@@ -547,8 +547,9 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
         CTxMemPool::setEntries ancestors;
         uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
         std::string dummy;
-        mempool.CalculateMemPoolAncestors(*iter, ancestors, nNoLimit, nNoLimit,
-                                          nNoLimit, nNoLimit, dummy, false);
+        g_mempool.CalculateMemPoolAncestors(*iter, ancestors, nNoLimit,
+                                            nNoLimit, nNoLimit, nNoLimit, dummy,
+                                            false);
 
         onlyUnconfirmed(ancestors);
         ancestors.insert(iter);
@@ -601,13 +602,13 @@ void BlockAssembler::addPriorityTxs() {
                      CTxMemPool::CompareIteratorByHash>::iterator waitPriIter;
     double actualPriority = -1;
 
-    vecPriority.reserve(mempool.mapTx.size());
+    vecPriority.reserve(g_mempool.mapTx.size());
     for (CTxMemPool::indexed_transaction_set::iterator mi =
-             mempool.mapTx.begin();
-         mi != mempool.mapTx.end(); ++mi) {
+             g_mempool.mapTx.begin();
+         mi != g_mempool.mapTx.end(); ++mi) {
         double dPriority = mi->GetPriority(nHeight);
         Amount dummy;
-        mempool.ApplyDeltas(mi->GetTx().GetId(), dPriority, dummy);
+        g_mempool.ApplyDeltas(mi->GetTx().GetId(), dPriority, dummy);
         vecPriority.push_back(TxCoinAgePriority(dPriority, mi));
     }
     std::make_heap(vecPriority.begin(), vecPriority.end(), pricomparer);
@@ -663,7 +664,7 @@ void BlockAssembler::addPriorityTxs() {
 
         // This tx was successfully added, so add transactions that depend
         // on this one to the priority queue to try again.
-        for (CTxMemPool::txiter child : mempool.GetMemPoolChildren(iter)) {
+        for (CTxMemPool::txiter child : g_mempool.GetMemPoolChildren(iter)) {
             waitPriIter wpiter = waitPriMap.find(child);
             if (wpiter == waitPriMap.end()) {
                 continue;

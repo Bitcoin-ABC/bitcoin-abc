@@ -97,7 +97,7 @@ TestingSetup::TestingSetup(const std::string &chainName)
     // our unit tests aren't testing multiple parts of the code at once.
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
 
-    mempool.setSanityCheck(1.0);
+    g_mempool.setSanityCheck(1.0);
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
     pcoinsdbview.reset(new CCoinsViewDB(1 << 23, true));
     pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));

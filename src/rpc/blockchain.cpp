@@ -414,7 +414,7 @@ std::string EntryDescriptionString() {
 }
 
 void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
-    AssertLockHeld(mempool.cs);
+    AssertLockHeld(g_mempool.cs);
 
     info.pushKV("size", (int)e.GetTxSize());
     info.pushKV("fee", ValueFromAmount(e.GetFee()));
@@ -432,7 +432,7 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
-        if (mempool.exists(txin.prevout.GetTxId())) {
+        if (g_mempool.exists(txin.prevout.GetTxId())) {
             setDepends.insert(txin.prevout.GetTxId().ToString());
         }
     }
@@ -447,9 +447,9 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
 
 UniValue mempoolToJSON(bool fVerbose = false) {
     if (fVerbose) {
-        LOCK(mempool.cs);
+        LOCK(g_mempool.cs);
         UniValue o(UniValue::VOBJ);
-        for (const CTxMemPoolEntry &e : mempool.mapTx) {
+        for (const CTxMemPoolEntry &e : g_mempool.mapTx) {
             const uint256 &txid = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
@@ -458,7 +458,7 @@ UniValue mempoolToJSON(bool fVerbose = false) {
         return o;
     } else {
         std::vector<uint256> vtxids;
-        mempool.queryHashes(vtxids);
+        g_mempool.queryHashes(vtxids);
 
         UniValue a(UniValue::VARR);
         for (const uint256 &txid : vtxids) {
@@ -536,10 +536,10 @@ UniValue getmempoolancestors(const Config &config,
 
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
 
-    LOCK(mempool.cs);
+    LOCK(g_mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
-    if (it == mempool.mapTx.end()) {
+    CTxMemPool::txiter it = g_mempool.mapTx.find(hash);
+    if (it == g_mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
     }
@@ -547,8 +547,8 @@ UniValue getmempoolancestors(const Config &config,
     CTxMemPool::setEntries setAncestors;
     uint64_t noLimit = std::numeric_limits<uint64_t>::max();
     std::string dummy;
-    mempool.CalculateMemPoolAncestors(*it, setAncestors, noLimit, noLimit,
-                                      noLimit, noLimit, dummy, false);
+    g_mempool.CalculateMemPoolAncestors(*it, setAncestors, noLimit, noLimit,
+                                        noLimit, noLimit, dummy, false);
 
     if (!fVerbose) {
         UniValue o(UniValue::VARR);
@@ -603,16 +603,16 @@ UniValue getmempooldescendants(const Config &config,
 
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
 
-    LOCK(mempool.cs);
+    LOCK(g_mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
-    if (it == mempool.mapTx.end()) {
+    CTxMemPool::txiter it = g_mempool.mapTx.find(hash);
+    if (it == g_mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
     }
 
     CTxMemPool::setEntries setDescendants;
-    mempool.CalculateDescendants(it, setDescendants);
+    g_mempool.CalculateDescendants(it, setDescendants);
     // CTxMemPool::CalculateDescendants will include the given tx
     setDescendants.erase(it);
 
@@ -654,10 +654,10 @@ UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
 
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
 
-    LOCK(mempool.cs);
+    LOCK(g_mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
-    if (it == mempool.mapTx.end()) {
+    CTxMemPool::txiter it = g_mempool.mapTx.find(hash);
+    if (it == g_mempool.mapTx.end()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Transaction not in mempool");
     }
@@ -1120,9 +1120,9 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
 
     Coin coin;
     if (fMempool) {
-        LOCK(mempool.cs);
-        CCoinsViewMemPool view(pcoinsTip.get(), mempool);
-        if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
+        LOCK(g_mempool.cs);
+        CCoinsViewMemPool view(pcoinsTip.get(), g_mempool);
+        if (!view.GetCoin(out, coin) || g_mempool.isSpent(out)) {
             // TODO: this should be done by the CCoinsViewMemPool
             return NullUniValue;
         }
@@ -1435,14 +1435,14 @@ UniValue getchaintips(const Config &config, const JSONRPCRequest &request) {
 
 UniValue mempoolInfoToJSON() {
     UniValue ret(UniValue::VOBJ);
-    ret.pushKV("size", (int64_t)mempool.size());
-    ret.pushKV("bytes", (int64_t)mempool.GetTotalTxSize());
-    ret.pushKV("usage", (int64_t)mempool.DynamicMemoryUsage());
+    ret.pushKV("size", (int64_t)g_mempool.size());
+    ret.pushKV("bytes", (int64_t)g_mempool.GetTotalTxSize());
+    ret.pushKV("usage", (int64_t)g_mempool.DynamicMemoryUsage());
     size_t maxmempool =
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
     ret.pushKV("mempoolminfee",
-               ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK()));
+               ValueFromAmount(g_mempool.GetMinFee(maxmempool).GetFeePerK()));
 
     return ret;
 }

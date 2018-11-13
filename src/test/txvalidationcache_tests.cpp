@@ -27,7 +27,7 @@ static bool ToMemPool(const CMutableTransaction &tx) {
     LOCK(cs_main);
 
     CValidationState state;
-    return AcceptToMemoryPool(GetConfig(), mempool, state,
+    return AcceptToMemoryPool(GetConfig(), g_mempool, state,
                               MakeTransactionRef(tx), false, nullptr, true,
                               Amount::zero());
 }
@@ -70,13 +70,13 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     BOOST_CHECK(ToMemPool(spends[0]));
     block = CreateAndProcessBlock(spends, scriptPubKey);
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() != block.GetHash());
-    mempool.clear();
+    g_mempool.clear();
 
     // Test 3: ... and should be rejected if spend2 is in the memory pool
     BOOST_CHECK(ToMemPool(spends[1]));
     block = CreateAndProcessBlock(spends, scriptPubKey);
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() != block.GetHash());
-    mempool.clear();
+    g_mempool.clear();
 
     // Final sanity test: first spend in mempool, second in block, that's OK:
     std::vector<CMutableTransaction> oneSpend;
@@ -86,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
     // spends[1] should have been removed from the mempool when the block with
     // spends[0] is accepted:
-    BOOST_CHECK_EQUAL(mempool.size(), 0);
+    BOOST_CHECK_EQUAL(g_mempool.size(), 0);
 }
 
 // Run CheckInputs (using pcoinsTip) on the given transaction, for all script

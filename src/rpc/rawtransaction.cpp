@@ -774,9 +774,9 @@ UniValue combinerawtransaction(const Config &config,
     CCoinsViewCache view(&viewDummy);
     {
         LOCK(cs_main);
-        LOCK(mempool.cs);
+        LOCK(g_mempool.cs);
         CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, mempool);
+        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
         // temporarily switch cache backend to db+mempool view
         view.SetBackend(viewMempool);
 
@@ -939,9 +939,9 @@ static UniValue signrawtransaction(const Config &config,
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
-        LOCK(mempool.cs);
+        LOCK(g_mempool.cs);
         CCoinsViewCache &viewChain = *pcoinsTip;
-        CCoinsViewMemPool viewMempool(&viewChain, mempool);
+        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
         // Temporarily switch cache backend to db+mempool view.
         view.SetBackend(viewMempool);
 
@@ -1219,12 +1219,12 @@ static UniValue sendrawtransaction(const Config &config,
         fHaveChain = !existingCoin.IsSpent();
     }
 
-    bool fHaveMempool = mempool.exists(txid);
+    bool fHaveMempool = g_mempool.exists(txid);
     if (!fHaveMempool && !fHaveChain) {
         // Push to local node and sync with wallets.
         CValidationState state;
         bool fMissingInputs;
-        if (!AcceptToMemoryPool(config, mempool, state, std::move(tx),
+        if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
                                 fLimitFree, &fMissingInputs, false,
                                 nMaxRawTxFee)) {
             if (state.IsInvalid()) {

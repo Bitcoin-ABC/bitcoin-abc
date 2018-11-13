@@ -1761,7 +1761,7 @@ void CWallet::ReacceptWalletTransactions() {
     for (std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
 
-        LOCK(mempool.cs);
+        LOCK(g_mempool.cs);
         CValidationState state;
         wtx.AcceptToMemoryPool(maxTxFee, state);
     }
@@ -1964,8 +1964,8 @@ Amount CWalletTx::GetChange() const {
 }
 
 bool CWalletTx::InMempool() const {
-    LOCK(mempool.cs);
-    if (mempool.exists(GetId())) {
+    LOCK(g_mempool.cs);
+    if (g_mempool.exists(GetId())) {
         return true;
     }
 
@@ -2415,8 +2415,8 @@ bool CWallet::SelectCoinsMinConf(
             continue;
         }
 
-        if (!mempool.TransactionWithinChainLimit(pcoin->GetId(),
-                                                 nMaxAncestors)) {
+        if (!g_mempool.TransactionWithinChainLimit(pcoin->GetId(),
+                                                   nMaxAncestors)) {
             continue;
         }
 
@@ -2941,7 +2941,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
             }
 
             Amount nFeeNeeded =
-                GetMinimumFee(nBytes, currentConfirmationTarget, mempool);
+                GetMinimumFee(nBytes, currentConfirmationTarget, g_mempool);
             if (coinControl && nFeeNeeded > Amount::zero() &&
                 coinControl->nMinimumTotalFee > nFeeNeeded) {
                 nFeeNeeded = coinControl->nMinimumTotalFee;
@@ -3058,7 +3058,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient> &vecSend,
                          DEFAULT_DESCENDANT_SIZE_LIMIT) *
             1000;
         std::string errString;
-        if (!mempool.CalculateMemPoolAncestors(
+        if (!g_mempool.CalculateMemPoolAncestors(
                 entry, setAncestors, nLimitAncestors, nLimitAncestorSize,
                 nLimitDescendants, nLimitDescendantSize, errString)) {
             strFailReason = _("Transaction has too long of a mempool chain");
@@ -4266,6 +4266,6 @@ bool CMerkleTx::IsImmatureCoinBase() const {
 
 bool CMerkleTx::AcceptToMemoryPool(const Amount nAbsurdFee,
                                    CValidationState &state) {
-    return ::AcceptToMemoryPool(GetConfig(), mempool, state, tx, true, nullptr,
-                                false, nAbsurdFee);
+    return ::AcceptToMemoryPool(GetConfig(), g_mempool, state, tx, true,
+                                nullptr, false, nAbsurdFee);
 }
