@@ -1068,6 +1068,7 @@ public:
                                          const CBlockIndex *const pindexStop,
                                          const WalletRescanReserver &reserver,
                                          const CBlockIndex *&failed_block,
+                                         const CBlockIndex *&stop_block,
                                          bool fUpdate = false);
     void TransactionRemovedFromMempool(const CTransactionRef &ptx) override;
     void ReacceptWalletTransactions();

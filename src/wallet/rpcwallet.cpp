@@ -4092,12 +4092,12 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
         }
     }
 
-    const CBlockIndex *stopBlock;
+    const CBlockIndex *failed_block, *stopBlock;
     CWallet::ScanResult result = pwallet->ScanForWalletTransactions(
-        pindexStart, pindexStop, reserver, stopBlock, true);
+        pindexStart, pindexStop, reserver, failed_block, stopBlock, true);
     switch (result) {
         case CWallet::ScanResult::SUCCESS:
-            stopBlock = pindexStop ? pindexStop : pChainTip;
+            // stopBlock set by ScanForWalletTransactions
             break;
         case CWallet::ScanResult::FAILURE:
             throw JSONRPCError(
