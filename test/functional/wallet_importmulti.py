@@ -45,7 +45,7 @@ class ImportMultiTest (BitcoinTestFramework):
 
         # RPC importmulti -----------------------------------------------
 
-        # Bitcoin Address
+        # Bitcoin Address (implicit non-internal)
         self.log.info("Should import an address")
         address = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
         result = self.nodes[1].importmulti([{
@@ -59,6 +59,7 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['iswatchonly'], True)
         assert_equal(address_assert['ismine'], False)
         assert_equal(address_assert['timestamp'], timestamp)
+        assert_equal(address_assert['ischange'], False)
         watchonly_address = address['address']
         watchonly_timestamp = timestamp
 
@@ -86,6 +87,7 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['iswatchonly'], True)
         assert_equal(address_assert['ismine'], False)
         assert_equal(address_assert['timestamp'], timestamp)
+        assert_equal(address_assert['ischange'], True)
 
         # ScriptPubKey + !internal
         self.log.info("Should not import a scriptPubKey without internal flag")
@@ -103,7 +105,7 @@ class ImportMultiTest (BitcoinTestFramework):
         assert_equal(address_assert['ismine'], False)
         assert_equal('timestamp' in address_assert, False)
 
-        # Address + Public key + !Internal
+        # Address + Public key + !Internal(explicit)
         self.log.info("Should import an address with public key")
         address = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
         result = self.nodes[1].importmulti([{
@@ -111,7 +113,8 @@ class ImportMultiTest (BitcoinTestFramework):
                 "address": address['address']
             },
             "timestamp": "now",
-            "pubkeys": [address['pubkey']]
+            "pubkeys": [address['pubkey']],
+            "internal": False
         }])
         assert_equal(result[0]['success'], True)
         address_assert = self.nodes[1].getaddressinfo(address['address'])
