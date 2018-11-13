@@ -1099,7 +1099,7 @@ static UniValue getbalance(const Config &config,
                        "                     The default is 1 if an account is "
                        "provided or 0 if no account is provided\n")
                  : std::string(
-                       "getbalance ( \"(dummy)\" minconf include_watchonly )\n"
+                       "getbalance ( \"dummy\" minconf include_watchonly )\n"
                        "\nReturns the total available balance.\n"
                        "The available balance is what the wallet considers "
                        "currently spendable, and is\n"
@@ -2206,7 +2206,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     std::string help_text{};
     if (!IsDeprecatedRPCEnabled(gArgs, "accounts")) {
         help_text =
-            "listtransactions (dummy count skip include_watchonly)\n"
+            "listtransactions ( \"dummy\" count skip include_watchonly)\n"
             "\nReturns up to 'count' most recent transactions skipping the "
             "first 'from' transactions for account 'account'.\n"
             "Note that the \"account\" argument and \"otheraccount\" return "

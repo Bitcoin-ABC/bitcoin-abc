@@ -248,7 +248,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
         (strCommand != "onetry" && strCommand != "add" &&
          strCommand != "remove")) {
         throw std::runtime_error(
-            "addnode \"node\" \"add|remove|onetry\"\n"
+            "addnode \"node\" \"command\"\n"
             "\nAttempts to add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
             "Nodes added using addnode (or -connect) are protected from DoS "
@@ -298,7 +298,7 @@ static UniValue disconnectnode(const Config &config,
     if (request.fHelp || request.params.size() == 0 ||
         request.params.size() >= 3) {
         throw std::runtime_error(
-            "disconnectnode \"[address]\" [nodeid]\n"
+            "disconnectnode ( \"address\" nodeid )\n"
             "\nImmediately disconnects from the specified peer node.\n"
             "\nStrictly one out of 'address' and 'nodeid' can be provided to "
             "identify the node.\n"
@@ -623,7 +623,7 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() < 2 ||
         (strCommand != "add" && strCommand != "remove")) {
         throw std::runtime_error(
-            "setban \"subnet\" \"add|remove\" (bantime) (absolute)\n"
+            "setban \"subnet\" \"command\" ( bantime absolute )\n"
             "\nAttempts to add or remove a IP/Subnet from the banned list.\n"
             "\nArguments:\n"
             "1. \"subnet\"       (string, required) The IP/Subnet (see "
@@ -767,7 +767,7 @@ static UniValue setnetworkactive(const Config &config,
                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "setnetworkactive true|false\n"
+            "setnetworkactive state\n"
             "\nDisable/enable all p2p network activity.\n"
             "\nArguments:\n"
             "1. \"state\"        (boolean, required) true to "

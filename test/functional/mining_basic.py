@@ -30,7 +30,9 @@ def assert_template(node, block, expect, rehash=True):
     if rehash:
         block.hashMerkleRoot = block.calc_merkle_root()
     rsp = node.getblocktemplate(
-        {'data': block.serialize().hex(), 'mode': 'proposal'})
+        template_request={
+            'data': block.serialize().hex(),
+            'mode': 'proposal'})
     assert_equal(rsp, expect)
 
 
