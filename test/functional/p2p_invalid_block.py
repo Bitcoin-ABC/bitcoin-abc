@@ -90,7 +90,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         assert block2_orig.vtx != block2.vtx
 
         node.p2p.send_blocks_and_test(
-            [block2], node, success=False, request_block=False, reject_reason='bad-txns-duplicate')
+            [block2], node, success=False, reject_reason='bad-txns-duplicate')
 
         # Check transactions for duplicate inputs
         self.log.info("Test duplicate input block.")
@@ -103,7 +103,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block2_orig.rehash()
         block2_orig.solve()
         node.p2p.send_blocks_and_test(
-            [block2_orig], node, success=False, request_block=False, reject_reason='bad-txns-inputs-duplicate')
+            [block2_orig], node, success=False, reject_reason='bad-txns-inputs-duplicate')
 
         self.log.info("Test very broken block.")
 
@@ -117,7 +117,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block3.solve()
 
         node.p2p.send_blocks_and_test(
-            [block3], node, success=False, request_block=False, reject_reason='bad-cb-amount')
+            [block3], node, success=False, reject_reason='bad-cb-amount')
 
 
 if __name__ == '__main__':
