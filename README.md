@@ -46,4 +46,4 @@ If you would like to contribute, please read [CONTRIBUTING](CONTRIBUTING.md).
 Disclosure Policy
 -----------------
 
-See [DISCLOSURE_POLICY](DISCLOSURE_POLICY).
+See [DISCLOSURE_POLICY](DISCLOSURE_POLICY.md)
