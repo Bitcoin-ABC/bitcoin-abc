@@ -47,6 +47,7 @@
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
+#include <QFontDatabase>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMouseEvent>
@@ -54,10 +55,6 @@
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
 #include <QUrlQuery>
-
-#if QT_VERSION >= 0x50200
-#include <QFontDatabase>
-#endif
 
 #if defined(Q_OS_MAC)
 #pragma GCC diagnostic push
@@ -80,13 +77,7 @@ QString dateTimeStr(qint64 nTime) {
 }
 
 QFont fixedPitchFont() {
-#if QT_VERSION >= 0x50200
     return QFontDatabase::systemFont(QFontDatabase::FixedFont);
-#else
-    QFont font("Monospace");
-    font.setStyleHint(QFont::Monospace);
-    return font;
-#endif
 }
 
 static std::string MakeAddrInvalid(std::string addr,
