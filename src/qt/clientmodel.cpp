@@ -97,11 +97,11 @@ QDateTime ClientModel::getLastBlockDate() const {
 }
 
 long ClientModel::getMempoolSize() const {
-    return mempool.size();
+    return g_mempool.size();
 }
 
 size_t ClientModel::getMempoolDynamicUsage() const {
-    return mempool.DynamicMemoryUsage();
+    return g_mempool.DynamicMemoryUsage();
 }
 
 double ClientModel::getVerificationProgress(const CBlockIndex *tipIn) const {

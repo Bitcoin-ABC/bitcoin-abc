@@ -395,7 +395,8 @@ MarkBlockAsInFlight(const Config &config, NodeId nodeid, const uint256 &hash,
         state->vBlocksInFlight.end(),
         {hash, pindex, pindex != nullptr,
          std::unique_ptr<PartiallyDownloadedBlock>(
-             pit ? new PartiallyDownloadedBlock(config, &mempool) : nullptr)});
+             pit ? new PartiallyDownloadedBlock(config, &g_mempool)
+                 : nullptr)});
     state->nBlocksInFlight++;
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
@@ -1144,7 +1145,7 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
             // output 0 and 1. This works well enough in practice and we get
             // diminishing returns with 2 onward.
             return recentRejects->contains(inv.hash) ||
-                   mempool.exists(inv.hash) ||
+                   g_mempool.exists(inv.hash) ||
                    mapOrphanTransactions.count(inv.hash) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 0)) ||
                    pcoinsTip->HaveCoinInCache(COutPoint(inv.hash, 1));
@@ -1395,7 +1396,7 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                     push = true;
                 } else if (pfrom->timeLastMempoolReq) {
-                    auto txinfo = mempool.info(inv.hash);
+                    auto txinfo = g_mempool.info(inv.hash);
                     // To protect privacy, do not answer getdata using the
                     // mempool when that TX couldn't have been INVed in reply to
                     // a MEMPOOL request.
@@ -2412,9 +2413,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
         pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
-        if (!AlreadyHave(inv) && AcceptToMemoryPool(config, mempool, state, ptx,
-                                                    true, &fMissingInputs)) {
-            mempool.check(pcoinsTip.get());
+        if (!AlreadyHave(inv) &&
+            AcceptToMemoryPool(config, g_mempool, state, ptx, true,
+                               &fMissingInputs)) {
+            g_mempool.check(pcoinsTip.get());
             RelayTransaction(tx, connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
@@ -2424,8 +2426,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
 
             LogPrint(BCLog::MEMPOOL, "AcceptToMemoryPool: peer=%d: accepted %s "
                                      "(poolsz %u txn, %u kB)\n",
-                     pfrom->GetId(), tx.GetId().ToString(), mempool.size(),
-                     mempool.DynamicMemoryUsage() / 1000);
+                     pfrom->GetId(), tx.GetId().ToString(), g_mempool.size(),
+                     g_mempool.DynamicMemoryUsage() / 1000);
 
             // Recursively process any orphan transactions that depended on this
             // one
@@ -2453,7 +2455,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     if (setMisbehaving.count(fromPeer)) {
                         continue;
                     }
-                    if (AcceptToMemoryPool(config, mempool, stateDummy,
+                    if (AcceptToMemoryPool(config, g_mempool, stateDummy,
                                            porphanTx, true, &fMissingInputs2)) {
                         LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                                  orphanId.ToString());
@@ -2487,7 +2489,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                             recentRejects->insert(orphanId);
                         }
                     }
-                    mempool.check(pcoinsTip.get());
+                    g_mempool.check(pcoinsTip.get());
                 }
             }
 
@@ -2724,7 +2726,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
                                     new PartiallyDownloadedBlock(config,
-                                                                 &mempool));
+                                                                 &g_mempool));
                         } else {
                             // The block was already in flight using compact
                             // blocks from the same peer.
@@ -2778,7 +2780,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                     // peer, or this peer has too many blocks outstanding to
                     // download from. Optimistically try to reconstruct anyway
                     // since we might be able to without any round trips.
-                    PartiallyDownloadedBlock tempBlock(config, &mempool);
+                    PartiallyDownloadedBlock tempBlock(config, &g_mempool);
                     ReadStatus status =
                         tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                     if (status != READ_STATUS_OK) {
@@ -3948,7 +3950,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
 
         // Respond to BIP35 mempool requests
         if (fSendTrickle && pto->fSendMempool) {
-            auto vtxinfo = mempool.infoAll();
+            auto vtxinfo = g_mempool.infoAll();
             pto->fSendMempool = false;
             Amount filterrate = Amount::zero();
             {
@@ -3999,7 +4001,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             // Topologically and fee-rate sort the inventory we send for privacy
             // and priority reasons. A heap is used so that not all items need
             // sorting if only a few are being sent.
-            CompareInvMempoolOrder compareInvMempoolOrder(&mempool);
+            CompareInvMempoolOrder compareInvMempoolOrder(&g_mempool);
             std::make_heap(vInvTx.begin(), vInvTx.end(),
                            compareInvMempoolOrder);
             // No reason to drain out at many times the network's capacity,
@@ -4024,7 +4026,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     continue;
                 }
                 // Not in the mempool anymore? don't bother sending it.
-                auto txinfo = mempool.info(hash);
+                auto txinfo = g_mempool.info(hash);
                 if (!txinfo.tx) {
                     continue;
                 }
@@ -4211,7 +4213,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
           gArgs.GetBoolArg("-whitelistforcerelay",
                            DEFAULT_WHITELISTFORCERELAY))) {
         Amount currentFilter =
-            mempool
+            g_mempool
                 .GetMinFee(
                     gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                     1000000)

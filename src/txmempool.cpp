@@ -1352,7 +1352,7 @@ void DisconnectedBlockTransactions::addForBlock(
         // Drop the earliest entry, and remove its children from the
         // mempool.
         auto it = queuedTx.get<insertion_order>().begin();
-        mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
+        g_mempool.removeRecursive(**it, MemPoolRemovalReason::REORG);
         removeEntry(it);
     }
 }
@@ -1373,12 +1373,12 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
         // ignore validation errors in resurrected transactions
         CValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
-            !AcceptToMemoryPool(config, mempool, stateDummy, tx, false, nullptr,
-                                true)) {
+            !AcceptToMemoryPool(config, g_mempool, stateDummy, tx, false,
+                                nullptr, true)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
-            mempool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
-        } else if (mempool.exists(tx->GetId())) {
+            g_mempool.removeRecursive(*tx, MemPoolRemovalReason::REORG);
+        } else if (g_mempool.exists(tx->GetId())) {
             txidsUpdate.push_back(tx->GetId());
         }
     }
@@ -1390,15 +1390,15 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
     // previously-confirmed transactions back to the mempool.
     // UpdateTransactionsFromBlock finds descendants of any transactions in the
     // disconnectpool that were added back and cleans up the mempool state.
-    mempool.UpdateTransactionsFromBlock(txidsUpdate);
+    g_mempool.UpdateTransactionsFromBlock(txidsUpdate);
 
     // We also need to remove any now-immature transactions
-    mempool.removeForReorg(config, pcoinsTip.get(),
-                           chainActive.Tip()->nHeight + 1,
-                           STANDARD_LOCKTIME_VERIFY_FLAGS);
+    g_mempool.removeForReorg(config, pcoinsTip.get(),
+                             chainActive.Tip()->nHeight + 1,
+                             STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions
-    mempool.LimitSize(
+    g_mempool.LimitSize(
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
         gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
 }

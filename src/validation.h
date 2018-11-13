@@ -198,7 +198,7 @@ static const int DEFAULT_MAX_REORG_DEPTH = 10;
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
-extern CTxMemPool mempool;
+extern CTxMemPool g_mempool;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic;

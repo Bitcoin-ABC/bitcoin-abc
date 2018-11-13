@@ -257,7 +257,7 @@ static UniValue getmininginfo(const Config &config,
                                     DEFAULT_BLOCK_PRIORITY_PERCENTAGE)));
     obj.pushKV("errors", GetWarnings("statusbar"));
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
-    obj.pushKV("pooledtx", uint64_t(mempool.size()));
+    obj.pushKV("pooledtx", uint64_t(g_mempool.size()));
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
     return obj;
 }
@@ -297,8 +297,8 @@ static UniValue prioritisetransaction(const Config &config,
     uint256 hash = ParseHashStr(request.params[0].get_str(), "txid");
     Amount nAmount = request.params[2].get_int64() * SATOSHI;
 
-    mempool.PrioritiseTransaction(hash, request.params[0].get_str(),
-                                  request.params[1].get_real(), nAmount);
+    g_mempool.PrioritiseTransaction(hash, request.params[0].get_str(),
+                                    request.params[1].get_real(), nAmount);
     return true;
 }
 
@@ -550,7 +550,7 @@ static UniValue getblocktemplate(const Config &config,
                 if (g_best_block_cv.wait_until(lock, checktxtime) ==
                     std::cv_status::timeout) {
                     // Timeout: Check transactions for update
-                    if (mempool.GetTransactionsUpdated() !=
+                    if (g_mempool.GetTransactionsUpdated() !=
                         nTransactionsUpdatedLastLP) {
                         break;
                     }
@@ -572,14 +572,14 @@ static UniValue getblocktemplate(const Config &config,
     static int64_t nStart;
     static std::unique_ptr<CBlockTemplate> pblocktemplate;
     if (pindexPrev != chainActive.Tip() ||
-        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast &&
+        (g_mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast &&
          GetTime() - nStart > 5)) {
         // Clear pindexPrev so future calls make a new block, despite any
         // failures from here on
         pindexPrev = nullptr;
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
-        nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+        nTransactionsUpdatedLast = g_mempool.GetTransactionsUpdated();
         CBlockIndex *pindexPrevNew = chainActive.Tip();
         nStart = GetTime();
 
@@ -802,7 +802,7 @@ static UniValue estimatefee(const Config &config,
         nBlocks = 1;
     }
 
-    CFeeRate feeRate = mempool.estimateFee(nBlocks);
+    CFeeRate feeRate = g_mempool.estimateFee(nBlocks);
     if (feeRate == CFeeRate(Amount::zero())) {
         return -1.0;
     }
