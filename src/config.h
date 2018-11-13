@@ -65,6 +65,14 @@ private:
     bool useCashAddr;
     Amount excessUTXOCharge;
     CFeeRate feePerKB;
+
+    /** RPC authentication configs */
+
+    // Pre-base64-encoded authentication token, with user and password separated
+    // by a colon.
+    std::string rpcUserAndPassword;
+    // CORS domain, the allowed Origin
+    std::string rpcCORSDomain;
 };
 
 // Dummy for subclassing in unittests
