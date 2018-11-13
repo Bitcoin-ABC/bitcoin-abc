@@ -14,6 +14,7 @@
 #include <netbase.h>
 #include <policy/policy.h>
 #include <rpc/protocol.h>
+#include <rpc/util.h>
 #include <sync.h>
 #include <timedata.h>
 #include <ui_interface.h>

@@ -9,6 +9,7 @@
 #include <key_io.h>
 #include <merkleblock.h>
 #include <rpc/server.h>
+#include <rpc/util.h>
 #include <script/script.h>
 #include <script/standard.h>
 #include <sync.h>
