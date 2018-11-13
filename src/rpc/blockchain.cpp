@@ -1649,7 +1649,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
         }
 
         CBlockIndex *pblockindex = mapBlockIndex[hash];
-        UnparkBlock(pblockindex);
+        UnparkBlockAndChildren(pblockindex);
     }
 
     CValidationState state;

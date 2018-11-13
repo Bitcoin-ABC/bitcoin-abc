@@ -637,6 +637,9 @@ bool ParkBlock(const Config &config, CValidationState &state,
 bool ResetBlockFailureFlags(CBlockIndex *pindex);
 
 /** Remove parked status from a block and its descendants. */
+bool UnparkBlockAndChildren(CBlockIndex *pindex);
+
+/** Remove parked status from a block. */
 bool UnparkBlock(CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */

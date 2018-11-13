@@ -2840,28 +2840,32 @@ bool ParkBlock(const Config &config, CValidationState &state,
     return UnwindBlock(config, state, pindex, false);
 }
 
-template <typename F> bool UpdateFlags(CBlockIndex *pindex, F f) {
+template <typename F>
+void UpdateFlagsForBlock(CBlockIndex *pindexBase, CBlockIndex *pindex, F f) {
+    BlockStatus newStatus = f(pindex->nStatus);
+    if (pindex->nStatus != newStatus &&
+        pindex->GetAncestor(pindexBase->nHeight) == pindexBase) {
+        pindex->nStatus = newStatus;
+        setDirtyBlockIndex.insert(pindex);
+
+        if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx &&
+            setBlockIndexCandidates.value_comp()(chainActive.Tip(), pindex)) {
+            setBlockIndexCandidates.insert(pindex);
+        }
+    }
+}
+
+template <typename F, typename C>
+void UpdateFlags(CBlockIndex *pindex, F f, C fchild) {
     AssertLockHeld(cs_main);
 
-    int nHeight = pindex->nHeight;
+    // Update the current block.
+    UpdateFlagsForBlock(pindex, pindex, f);
 
     // Update the flags from this block and all its descendants.
     BlockMap::iterator it = mapBlockIndex.begin();
     while (it != mapBlockIndex.end()) {
-        BlockStatus newStatus = f(it->second->nStatus);
-        if (it->second->nStatus != newStatus &&
-            it->second->GetAncestor(nHeight) == pindex) {
-            it->second->nStatus = newStatus;
-            setDirtyBlockIndex.insert(it->second);
-
-            if (it->second->IsValid(BlockValidity::TRANSACTIONS) &&
-                it->second->nChainTx &&
-                setBlockIndexCandidates.value_comp()(chainActive.Tip(),
-                                                     it->second)) {
-                setBlockIndexCandidates.insert(it->second);
-            }
-        }
-
+        UpdateFlagsForBlock(pindex, it->second, fchild);
         it++;
     }
 
@@ -2874,8 +2878,11 @@ template <typename F> bool UpdateFlags(CBlockIndex *pindex, F f) {
         }
         pindex = pindex->pprev;
     }
+}
 
-    return true;
+template <typename F> void UpdateFlags(CBlockIndex *pindex, F f) {
+    // Handy shorthand.
+    UpdateFlags(pindex, f, f);
 }
 
 bool ResetBlockFailureFlags(CBlockIndex *pindex) {
@@ -2889,12 +2896,14 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
         pindexBestInvalid = nullptr;
     }
 
-    return UpdateFlags(pindex, [](const BlockStatus status) {
+    UpdateFlags(pindex, [](const BlockStatus status) {
         return status.withClearedFailureFlags();
     });
+
+    return true;
 }
 
-bool UnparkBlock(CBlockIndex *pindex) {
+static bool UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
     AssertLockHeld(cs_main);
 
     if (pindexBestParked &&
@@ -2904,9 +2913,24 @@ bool UnparkBlock(CBlockIndex *pindex) {
         pindexBestParked = nullptr;
     }
 
-    return UpdateFlags(pindex, [](const BlockStatus status) {
-        return status.withClearedParkedFlags();
-    });
+    UpdateFlags(pindex,
+                [](const BlockStatus status) {
+                    return status.withClearedParkedFlags();
+                },
+                [fClearChildren](const BlockStatus status) {
+                    return fClearChildren ? status.withClearedParkedFlags()
+                                          : status.withParkedParent(false);
+                });
+
+    return true;
+}
+
+bool UnparkBlockAndChildren(CBlockIndex *pindex) {
+    return UnparkBlockImpl(pindex, true);
+}
+
+bool UnparkBlock(CBlockIndex *pindex) {
+    return UnparkBlockImpl(pindex, false);
 }
 
 static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {
