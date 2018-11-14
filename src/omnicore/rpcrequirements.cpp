@@ -226,9 +226,9 @@ void RequireRemainERC721Token(const uint256& propertyId){
     }
 }
 
-void RequireOwnerOfERC721Property(const uint256& propertyId, std::string owner){
+void RequireOwnerOfERC721Property(const uint256& propertyId, std::string& owner){
     LOCK(cs_tally);
-    if(!mastercore::OwnerofERC721Property()){
+    if(!mastercore::OwnerofERC721Property(propertyId, owner)){
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The sender does not own the specified ERC721 property .");
     }
 }

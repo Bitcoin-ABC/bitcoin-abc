@@ -32,7 +32,7 @@ void RequireExistingERC721Token(const uint256& propertyId, const uint256& tokeni
 void RequireExistingERC721Property(const uint256& propertyId);
 void RequireRemainERC721Token(const uint256& propertyId);
 void RequireOwnerOfERC721Token(const uint256& propertyId, const uint256& tokenId, const std::string& owner);
-void RequireOwnerOfERC721Property(const uint256& propertyId, std::string owner);
+void RequireOwnerOfERC721Property(const uint256& propertyId, std::string& owner);
 
 // TODO:
 // Checks for MetaDEx orders for cancel operations
