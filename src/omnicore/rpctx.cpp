@@ -1034,13 +1034,13 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
                         "2. receiveaddress          (string, required) The address of receiver will be received new created token\n"
                         "3. propertyID              (string, required) The ID of the special property that will be issued token \n"
                         "4. tokenID                 (string, optional) The tokenID that will be issued, if you don't want to skip this parament, wormhole system will automatic tokenID \n"
-                        "5. tokenAttributes         (string, required) The Attributes of the new created token\n"
+                        "5. tokenAttributes         (hexstring, required) The Attributes of the new created token\n"
                         "6. tokenURL                (string, required) The URL of the new created token\n"
                         "\nResult:\n"
                         "\"hash\"                   (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
-                + HelpExampleRpc("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\" \"0x01\" \"www.wormhole.com\"")
+                + HelpExampleCli("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"1\" \"0x01\" \"www.wormhole.com\"")
+                + HelpExampleRpc("whc_issuanceERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"1\" \"0x01\" \"www.wormhole.com\"")
         );
 
     int i = 0;
@@ -1081,7 +1081,7 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
 UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& request){
     if (request.fHelp || request.params.size() != 4)
         throw runtime_error(
-                "whc_transferERC721Token \"ownerAddress\" \"receiveaddress\" \"0x01\" \"0x02\" \n"
+                "whc_transferERC721Token \"ownerAddress\" \"receiveaddress\" \"1\" \"2\" \n"
                         "\nTransfer ERC721 Token"
                         "\nArguments:\n"
                         "1. ownerAddress          	(string, required) The bitcoincash address of the token owner\n"
@@ -1091,8 +1091,8 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
-                + HelpExampleRpc("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x01\"")
+                + HelpExampleCli("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"1\"")
+                + HelpExampleRpc("whc_transferERC721Token", " \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"1\"")
         );
 
     int i = 0;
@@ -1127,7 +1127,7 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
 UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& request){
     if (request.fHelp || request.params.size() != 3)
         throw runtime_error(
-                "whc_destroyERC721Token \"ownerAddress\" \"0x01\" \"0x02\"\n"
+                "whc_destroyERC721Token \"ownerAddress\" \"1\" \"2\"\n"
                         "\nDestroy ERC721 Token"
                         "\nArguments:\n"
                         "1. senderAddress          	(string, required) The bitcoincash address of the token owner\n"
@@ -1136,8 +1136,8 @@ UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& requ
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
-                + HelpExampleRpc("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"0x01\" \"0x02\"")
+                + HelpExampleCli("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"2\"")
+                + HelpExampleRpc("whc_destroyERC721Token", "\"qqzy3s0ueaxkf8hcffhtgkgew8c7f7g85um9a2g74r\" \"1\" \"2\"")
         );
 
     int i = 0;

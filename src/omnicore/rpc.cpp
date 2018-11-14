@@ -2449,10 +2449,10 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
                 "whc_getERC721PropertyNews propertyid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
-                        "  \"propertyid\" : \"n\",              (hexstring) the identifier of the property\n"
+                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
                         "  \"owner\" : \"address\",            (string) the owner address of the ERC721 Property\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "  \"creationblock\" : \"hash\",        (string) the hex-encoded creation block hash\n"
@@ -2465,8 +2465,8 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
                         "  \"currentValidIssuedNumer\" : n,    (Number) the amount of tokens that still available\n"
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721PropertyNews", "\"0x03\" ")
-                + HelpExampleRpc("whc_getERC721PropertyNews", "\"0x03\"")
+                + HelpExampleCli("whc_getERC721PropertyNews", "\"3\" ")
+                + HelpExampleRpc("whc_getERC721PropertyNews", "\"3\"")
         );
 
     uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
@@ -2482,7 +2482,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", convertHexToDec(propertyId.GetHex())));
+    response.push_back(Pair("propertyid", convertHexToDec("0x" + propertyId.GetHex())));
     response.push_back(Pair("owner", info->first.issuer));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
@@ -2503,16 +2503,16 @@ UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &requ
                 "whc_ownerOfERC721Token propertyid tokenid address\n"
                         "\nQuery whether the Token's owner is the specified address.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
-                        "2. tokenid              (hexstring, required) the identifier of the ERC721 token\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
                         "3. address              (string, required) query address for the specified ERC721 Token \n"
                         "\nResult:\n"
                         "{\n"
                         "  \"own\" : true|false,             (boolean) whether the query address owner the specified ERC721 Token\n"
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
-                + HelpExampleRpc("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
+                + HelpExampleCli("whc_ownerOfERC721Token", "\"3\", \"1\" \"address\"")
+                + HelpExampleRpc("whc_ownerOfERC721Token", "\"3\", \"1\" \"address\"")
         );
 
     uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
@@ -2544,12 +2544,12 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
                 "whc_getERC721TokenNews propertyid tokenid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
-                        "2. tokenid              (hexstring, required) the identifier of the ERC721 token\n"
+                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
                         "\nResult:\n"
                         "{\n"
-                        "  \"propertyid\" : \"n\",              (hexstring) the identifier of the property\n"
-                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
                         "  \"owner\" : \"address\",             (string) the owner address of token \n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "  \"creationblock\" : \"hash\",        (string) the hex-encoded creation block hash\n"
@@ -2557,8 +2557,8 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
                         "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
-                + HelpExampleRpc("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
+                + HelpExampleCli("whc_getERC721TokenNews", "\"3\", \"1\"")
+                + HelpExampleRpc("whc_getERC721TokenNews", "\"3\", \"1\"")
         );
 
     uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
@@ -2574,8 +2574,8 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", convertHexToDec(propertyId.GetHex())));
-    response.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+    response.push_back(Pair("propertyid", convertHexToDec("0x" + propertyId.GetHex())));
+    response.push_back(Pair("tokenid", convertHexToDec("0x" + tokenid.GetHex())));
     response.push_back(Pair("owner", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
@@ -2592,11 +2592,11 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
                         "1. address            (string, required) the address of the query \n"
-                        "2. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
+                        "2. propertyid         (string, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
                         "  \"attribute\" : \"attribute\",       (hexstring) the name of the tokens\n"
                         "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
@@ -2604,8 +2604,8 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                         "..."
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721AddressTokens", "\"address\", \"0x01\"")
-                + HelpExampleRpc("whc_getERC721AddressTokens", "\"address\", \"0x01\"")
+                + HelpExampleCli("whc_getERC721AddressTokens", "\"address\", \"1\"")
+                + HelpExampleRpc("whc_getERC721AddressTokens", "\"address\", \"1\"")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -2635,7 +2635,7 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+                item.push_back(Pair("tokenid", convertHexToDec("0x" + tokenid.GetHex())));
                 item.push_back(Pair("attribute", info.attributes.GetHex()));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
@@ -2654,11 +2654,11 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 "whc_getERC721PropertyDestroyTokens propertyid\n"
                         "\nReturns details for about the destroy tokens to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
+                        "1. propertyid         (string, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
                         "  \"attribute\" : \"attribute\",       (hexstring) the name of the tokens\n"
                         "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
@@ -2666,8 +2666,8 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                         "..."
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_getERC721PropertyDestroyTokens", " \"0x01\"")
-                + HelpExampleRpc("whc_getERC721PropertyDestroyTokens", " \"0x01\"")
+                + HelpExampleCli("whc_getERC721PropertyDestroyTokens", " \"1\"")
+                + HelpExampleRpc("whc_getERC721PropertyDestroyTokens", " \"1\"")
         );
 
     uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
@@ -2696,7 +2696,7 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+                item.push_back(Pair("tokenid", convertHexToDec("0x" + tokenid.GetHex())));
                 item.push_back(Pair("attribute", info.attributes.GetHex()));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
@@ -2715,18 +2715,18 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
                 "whc_listERC721PropertyTokens propertyid\n"
                         "\nList all tokens information for the specified ERC721Property.\n"
                         "\nArguments:\n"
-                        "1. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
+                        "1. propertyid         (string, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
                         "  \"owner\" : \"address\",             (string) the owner address of the token \n"
                         "}\n"
                         "..."
                         "}\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_listERC721PropertyTokens", " \"0x01\"")
-                + HelpExampleRpc("whc_listERC721PropertyTokens", " \"0x01\"")
+                + HelpExampleCli("whc_listERC721PropertyTokens", " \"1\"")
+                + HelpExampleRpc("whc_listERC721PropertyTokens", " \"1\"")
         );
 
     uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
@@ -2755,7 +2755,7 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
             CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
             sskey >> tokenid;
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+            item.push_back(Pair("tokenid", convertHexToDec("0x" + tokenid.GetHex())));
             item.push_back(Pair("owner", info.owner));
             response.push_back(item);
         }
