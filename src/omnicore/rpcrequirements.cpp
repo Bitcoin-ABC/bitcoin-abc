@@ -213,13 +213,29 @@ void RequireExistingERC721Token(const uint256& propertyId, const uint256& tokeni
 
 void RequireExistingERC721Property(const uint256& propertyId)
 {
+    LOCK(cs_tally);
     if (!mastercore::IsERC721PropertyIdValid(propertyId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "ERC721 property identifier does not exist");
     }
 }
 
 void RequireRemainERC721Token(const uint256& propertyId){
+    LOCK(cs_tally);
     if(mastercore::HaveAllIssued(propertyId)){
         throw JSONRPCError(RPC_INVALID_PARAMETER, "All ERC721Token have been issued");
+    }
+}
+
+void RequireOwnerOfERC721Property(const uint256& propertyId, std::string owner){
+    LOCK(cs_tally);
+    if(!mastercore::OwnerofERC721Property()){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The sender does not own the specified ERC721 property .");
+    }
+}
+
+void RequireOwnerOfERC721Token(const uint256& propertyId, const uint256& tokenId, const std::string& owner){
+    LOCK(cs_tally);
+    if(!mastercore::IsERC721TokenOwner(propertyId, tokenId, owner)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The sender does not own the specified ERC721 Token .");
     }
 }

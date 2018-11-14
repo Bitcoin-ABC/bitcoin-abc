@@ -1058,6 +1058,7 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
     std::string tokenURL = request.params[i++].get_str();
 
     RequireExistingERC721Property(propertyid);
+    RequireOwnerOfERC721Property(propertyid, sender);
     RequireRemainERC721Token(propertyid);
     std::vector<unsigned char> payload = CreatePayload_IssueERC721Token(propertyid, tokenid, tokenAttributes, tokenURL);
 
@@ -1107,6 +1108,7 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
 
     // perform checks
     RequireExistingERC721Token(propertyid, tokenid);
+    RequireOwnerOfERC721Token(propertyid, tokenid, sender);
 
     std::vector<unsigned char> payload = CreatePayload_TransferERC721Token(propertyid, tokenid);
 
@@ -1152,6 +1154,7 @@ UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& requ
 
     // perform checks
     RequireExistingERC721Token(propertyid, tokenid);
+    RequireOwnerOfERC721Token(propertyid, tokenid, sender);
 
     std::vector<unsigned char> payload = CreatePayload_DestroyERC721Token(propertyid, tokenid);
 

@@ -96,6 +96,19 @@ std::vector<uint8_t> ParseHex(const std::string &str) {
     return ParseHex(str.c_str());
 }
 
+std::string RemoveHexStrPrefixZero(std::string hexString){
+    int  i = 0;
+    for (auto c : hexString) {
+        if(c == '0' || c == 'x' || c == 'X'){
+            i++;
+        } else{
+            break;
+        }
+    }
+
+    return  hexString.substr(i);
+}
+
 void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
     size_t colon = in.find_last_of(':');
     // if a : is found, and it either follows a [...], or no other : is in the

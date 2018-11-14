@@ -44,6 +44,7 @@
 #include "txmempool.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
+#include "ERC721.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -2448,11 +2449,11 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
                 "whc_getERC721PropertyNews propertyid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
+                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
-                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
-                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"propertyid\" : \"n\",              (hexstring) the identifier of the property\n"
+                        "  \"owner\" : \"address\",            (string) the owner address of the ERC721 Property\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "  \"creationblock\" : \"hash\",        (string) the hex-encoded creation block hash\n"
                         "  \"name\" : \"name\",            (string) the name of the property\n"
@@ -2482,7 +2483,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", propertyId.GetHex()));
+    response.push_back(Pair("propertyid", RemoveHexStrPrefixZero("0x" + propertyId.GetHex())));
     response.push_back(Pair("owner", info->first.issuer));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
@@ -2503,8 +2504,8 @@ UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &requ
                 "whc_ownerOfERC721Token propertyid tokenid address\n"
                         "\nQuery whether the Token's owner is the specified address.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
-                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
+                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (hexstring, required) the identifier of the ERC721 token\n"
                         "3. address              (string, required) query address for the specified ERC721 Token \n"
                         "\nResult:\n"
                         "{\n"
@@ -2545,17 +2546,17 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
                 "whc_getERC721TokenNews propertyid tokenid\n"
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid           (string, required) the identifier of the ERC721 property\n"
-                        "2. tokenid              (string, required) the identifier of the ERC721 token\n"
+                        "1. propertyid           (hexstring, required) the identifier of the ERC721 property\n"
+                        "2. tokenid              (hexstring, required) the identifier of the ERC721 token\n"
                         "\nResult:\n"
                         "{\n"
-                        "  \"propertyid\" : \"n\",              (string) the identifier of the property\n"
-                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
-                        "  \"issuer\" : \"address\",            (string) the Bitcoin address of the issuer on record\n"
+                        "  \"propertyid\" : \"n\",              (hexstring) the identifier of the property\n"
+                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"owner\" : \"address\",             (string) the owner address of token \n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
-                        "  \"creationblock\" : \"hash\",         (string) the hex-encoded creation block hash\n"
-                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
-                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "  \"creationblock\" : \"hash\",        (string) the hex-encoded creation block hash\n"
+                        "  \"attribute\" : \"attribute\",       (hexstring) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "}\n"
                         "\nExamples:\n"
                 + HelpExampleCli("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
@@ -2576,12 +2577,12 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", propertyId.GetHex()));
-    response.push_back(Pair("tokenid", tokenid.GetHex()));
+    response.push_back(Pair("propertyid", RemoveHexStrPrefixZero("0x" + propertyId.GetHex())));
+    response.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
     response.push_back(Pair("owner", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
-    response.push_back(Pair("attribute", info->first.attributes.GetHex()));
+    response.push_back(Pair("attribute", RemoveHexStrPrefixZero(info->first.attributes.GetHex())));
     response.push_back(Pair("tokenurl", info->first.url));
 
     return response;
@@ -2594,13 +2595,13 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                         "\nReturns details for about the tokens or smart property to lookup.\n"
                         "\nArguments:\n"
                         "1. address            (string, required) the address of the query \n"
-                        "2. propertyid         (string, required) the identifier of the ERC721 property\n"
+                        "2. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
-                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
-                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"attribute\" : \"attribute\",       (hexstring) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "}\n"
                         "..."
@@ -2638,8 +2639,8 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", tokenid.GetHex()));
-                item.push_back(Pair("attribute", info.attributes.GetHex()));
+                item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+                item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
                 response.push_back(item);
@@ -2657,13 +2658,13 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 "whc_getERC721PropertyDestroyTokens propertyid\n"
                         "\nReturns details for about the destroy tokens to lookup.\n"
                         "\nArguments:\n"
-                        "1. propertyid         (string, required) the identifier of the ERC721 property\n"
+                        "1. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
                         "\nResult:\n"
                         "{\n"
                         "{\n"
-                        "  \"tokenid\" : \"n\",                 (string) the identifier of the token \n"
-                        "  \"attribute\" : \"attribute\",                 (string) the name of the tokens\n"
-                        "  \"tokenurl\" : \"url\",                 (string) the url of the tokens\n"
+                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"attribute\" : \"attribute\",       (hexstring) the name of the tokens\n"
+                        "  \"tokenurl\" : \"url\",              (string) the url of the tokens\n"
                         "  \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
                         "}\n"
                         "..."
@@ -2700,12 +2701,69 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", tokenid.GetHex()));
-                item.push_back(Pair("attribute", info.attributes.GetHex()));
+                item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+                item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
                 response.push_back(item);
             }
+        }
+        delete iter;
+    }
+
+    return response;
+}
+
+UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest &request){
+    if (request.fHelp || request.params.size() != 1)
+        throw runtime_error(
+                "whc_listERC721PropertyTokens propertyid\n"
+                        "\nList all tokens information for the specified ERC721Property.\n"
+                        "\nArguments:\n"
+                        "1. propertyid         (hexstring, required) the identifier of the ERC721 property\n"
+                        "\nResult:\n"
+                        "{\n"
+                        "{\n"
+                        "  \"tokenid\" : \"n\",                 (hexstring) the identifier of the token \n"
+                        "  \"owner\" : \"address\",             (string) the owner address of the token \n"
+                        "}\n"
+                        "..."
+                        "}\n"
+                        "\nExamples:\n"
+                + HelpExampleCli("whc_listERC721PropertyTokens", " \"0x01\"")
+                + HelpExampleRpc("whc_listERC721PropertyTokens", " \"0x01\"")
+        );
+
+    RequireHexNumber(request.params[0].get_str());
+    uint256 propertyId = uint256S(request.params[0].get_str());
+
+    CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
+    ssSpKeyPrefix << 's' << propertyId;
+    leveldb::Slice slSpKeyPrefix(&ssSpKeyPrefix[0], ssSpKeyPrefix.size());
+
+    UniValue response(UniValue::VARR);
+    {
+        LOCK(cs_tally);
+        leveldb::Iterator* iter = mastercore::my_erc721tokens->getIterator();
+        for (iter->Seek(slSpKeyPrefix); iter->Valid() && iter->key().starts_with(slSpKeyPrefix); iter->Next()) {
+            leveldb::Slice slValue = iter->value();
+            ERC721TokenInfos::TokenInfo info;
+            try {
+                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ssValue >> info;
+            } catch (const std::exception &e) {
+                PrintToLog("%s(): ERROR: %s\n", __func__, e.what());
+                throw    runtime_error("get erc721 token news from database failed");
+            }
+
+            uint256 tokenid;
+            leveldb::Slice slkey = iter->key();
+            CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
+            sskey >> tokenid;
+            UniValue item(UniValue::VOBJ);
+            item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+            item.push_back(Pair("owner", info.owner));
+            response.push_back(item);
         }
         delete iter;
     }
@@ -2756,6 +2814,7 @@ static const ContextFreeRPCCommand commands[] =
     { "omni layer (data retrieval)",  "whc_getERC721PropertyNews",           &whc_getERC721PropertyNews,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721AddressTokens",           &whc_getERC721AddressTokens,             false , {}},
     { "omni layer (data retrieval)",  "whc_getERC721PropertyDestroyTokens",           &whc_getERC721PropertyDestroyTokens,        false , {}},
+    { "omni layer (data retrieval)",  "whc_listERC721PropertyTokens",           &whc_listERC721PropertyTokens,        false , {}},
 
 //    { "omni layer (data retrieval)",  "whc_verifyrawtransaction",     &whc_verifyrawtransaction,       false , {}},
 

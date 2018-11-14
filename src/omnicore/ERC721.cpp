@@ -750,3 +750,26 @@ bool mastercore::HaveAllIssued(const uint256& propertyid){
 
     return true;
 }
+
+bool mastercore::OwnerofERC721Property(const uint256& propertyid, const std::string sender){
+    std::pair<CMPSPERC721Info::PropertyInfo, Flags> *spInfo = NULL;
+    if(my_erc721sps->getForUpdateSP(propertyid, &spInfo)){
+        if (spInfo->first.issuer == sender)
+            return true;
+        else
+            return false;
+    }
+
+    return false;
+}
+
+bool mastercore::IsERC721TokenOwner(const uint256& propertyid, const uint256& tokenid, std::string& owner){
+    std::pair<ERC721TokenInfos::TokenInfo, Flags>* info = NULL;
+    if(my_erc721tokens->getForUpdateToken(propertyid, tokenid, &info)){
+        if(info->first.owner == owner){
+            return true;
+        }
+    }
+
+    return false;
+}

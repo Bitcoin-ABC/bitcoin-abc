@@ -185,6 +185,8 @@ namespace mastercore{
     bool IsERC721TokenValid(const uint256& propertyid, const uint256& tokenid);
     bool IsERC721PropertyIdValid(const uint256& propertyid);
     bool HaveAllIssued(const uint256& propertyid);
+    bool OwnerofERC721Property(const uint256& propertyid, const std::string sender);
+    bool mastercore::IsERC721TokenOwner(const uint256& propertyid, const uint256& tokenid, std::string& owner);
 }
 
 
