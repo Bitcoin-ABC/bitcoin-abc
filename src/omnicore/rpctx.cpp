@@ -1046,12 +1046,10 @@ UniValue whc_issuanceERC721Token(const Config& config, const JSONRPCRequest& req
     int i = 0;
     std::string sender = ParseAddress(request.params[i++]);
     std::string receiver = ParseAddress(request.params[i++]);
-    RequireHexNumber(request.params[i].get_str());
-    uint256 propertyid = uint256S(request.params[i++].get_str());
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
     uint256 tokenid;
     if(request.params.size() == 6){
-        RequireHexNumber(request.params[i].get_str());
-        tokenid = uint256S(request.params[i++].get_str());
+        tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
     }
     RequireHexNumber(request.params[i].get_str());
     uint256 tokenAttributes = uint256S(request.params[i++].get_str());
@@ -1100,11 +1098,8 @@ UniValue whc_transferERC721Token(const Config& config, const JSONRPCRequest& req
     int i = 0;
     std::string sender = ParseAddress(request.params[i++]);
     std::string receiver = ParseAddress(request.params[i++]);
-    RequireHexNumber(request.params[i].get_str());
-    uint256 propertyid = uint256S(request.params[i++].get_str());
-    RequireHexNumber(request.params[i].get_str());
-    uint256 tokenid = uint256S(request.params[i++].get_str());
-
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
 
     // perform checks
     RequireExistingERC721Token(propertyid, tokenid);
@@ -1147,10 +1142,8 @@ UniValue whc_destroyERC721Token(const Config& config, const JSONRPCRequest& requ
 
     int i = 0;
     std::string sender = ParseAddress(request.params[i++]);
-    RequireHexNumber(request.params[i].get_str());
-    uint256 propertyid = uint256S(request.params[i++].get_str());
-    RequireHexNumber(request.params[i].get_str());
-    uint256 tokenid = uint256S(request.params[i++].get_str());
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
 
     // perform checks
     RequireExistingERC721Token(propertyid, tokenid);

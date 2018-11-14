@@ -52,6 +52,9 @@ bool IsHex(const std::string &str);
  */
 bool IsHexNumber(const std::string &str);
 std::string RemoveHexStrPrefixZero(std::string hexString);
+std::string convertDecToHex(const std::string decStr);
+std::string convertHexToDec(const std::string hexStr);
+
 std::vector<uint8_t> DecodeBase64(const char *p, bool *pfInvalid = nullptr);
 std::string DecodeBase64(const std::string &str);
 std::string EncodeBase64(const uint8_t *pch, size_t len);

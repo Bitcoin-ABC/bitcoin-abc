@@ -2469,8 +2469,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
                 + HelpExampleRpc("whc_getERC721PropertyNews", "\"0x03\"")
         );
 
-    RequireHexNumber(request.params[0].get_str());
-    uint256 propertyId = uint256S(request.params[0].get_str());
+    uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
 
     RequireExistingERC721Property(propertyId);
 
@@ -2483,7 +2482,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", "0x" + RemoveHexStrPrefixZero(propertyId.GetHex())));
+    response.push_back(Pair("propertyid", convertHexToDec(propertyId.GetHex())));
     response.push_back(Pair("owner", info->first.issuer));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
@@ -2515,10 +2514,9 @@ UniValue whc_ownerOfERC721Token(const Config &config, const JSONRPCRequest &requ
                 + HelpExampleCli("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
                 + HelpExampleRpc("whc_ownerOfERC721Token", "\"0x03\", \"0x01\" \"address\"")
         );
-    RequireHexNumber(request.params[0].get_str());
-    RequireHexNumber(request.params[1].get_str());
-    uint256 propertyId = uint256S(request.params[0].get_str());
-    uint256 tokenid = uint256S(request.params[1].get_str());
+
+    uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[1].get_str()));
     std::string queryAddress = ParseAddress(request.params[2]);
     RequireExistingERC721Property(propertyId);
 
@@ -2562,10 +2560,9 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
                 + HelpExampleCli("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
                 + HelpExampleRpc("whc_getERC721TokenNews", "\"0x03\", \"0x01\"")
         );
-    RequireHexNumber(request.params[0].get_str());
-    RequireHexNumber(request.params[1].get_str());
-    uint256 propertyId = uint256S(request.params[0].get_str());
-    uint256 tokenid = uint256S(request.params[1].get_str());
+
+    uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[1].get_str()));
     RequireExistingERC721Property(propertyId);
 
     std::pair<ERC721TokenInfos::TokenInfo, Flags > *info = NULL;
@@ -2577,12 +2574,12 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", "0x" + RemoveHexStrPrefixZero(propertyId.GetHex())));
-    response.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
+    response.push_back(Pair("propertyid", convertHexToDec(propertyId.GetHex())));
+    response.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
     response.push_back(Pair("owner", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
-    response.push_back(Pair("attribute", RemoveHexStrPrefixZero(info->first.attributes.GetHex())));
+    response.push_back(Pair("attribute", info->first.attributes.GetHex()));
     response.push_back(Pair("tokenurl", info->first.url));
 
     return response;
@@ -2612,8 +2609,7 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
         );
 
     std::string address = ParseAddress(request.params[0]);
-    RequireHexNumber(request.params[1].get_str());
-    uint256 propertyId = uint256S(request.params[1].get_str());
+    uint256 propertyId = uint256S(convertDecToHex(request.params[1].get_str()));
 
     CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
     ssSpKeyPrefix << 's' << propertyId;
@@ -2639,8 +2635,8 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
-                item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
+                item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+                item.push_back(Pair("attribute", info.attributes.GetHex()));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
                 response.push_back(item);
@@ -2674,8 +2670,7 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 + HelpExampleRpc("whc_getERC721PropertyDestroyTokens", " \"0x01\"")
         );
 
-    RequireHexNumber(request.params[0].get_str());
-    uint256 propertyId = uint256S(request.params[0].get_str());
+    uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
 
     CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
     ssSpKeyPrefix << 's' << propertyId;
@@ -2701,8 +2696,8 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
-                item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
+                item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
+                item.push_back(Pair("attribute", info.attributes.GetHex()));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
                 response.push_back(item);
@@ -2734,8 +2729,7 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
                 + HelpExampleRpc("whc_listERC721PropertyTokens", " \"0x01\"")
         );
 
-    RequireHexNumber(request.params[0].get_str());
-    uint256 propertyId = uint256S(request.params[0].get_str());
+    uint256 propertyId = uint256S(convertDecToHex(request.params[0].get_str()));
 
     CDataStream ssSpKeyPrefix(SER_DISK, CLIENT_VERSION);
     ssSpKeyPrefix << 's' << propertyId;
@@ -2761,7 +2755,7 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
             CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
             sskey >> tokenid;
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
+            item.push_back(Pair("tokenid", convertHexToDec(tokenid.GetHex())));
             item.push_back(Pair("owner", info.owner));
             response.push_back(item);
         }

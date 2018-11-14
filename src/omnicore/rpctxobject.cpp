@@ -557,7 +557,7 @@ void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirm
             if (confirmations > 0) {
                 uint256 property;
                 if(mastercore::my_erc721sps->findERCSPByTX(omniObj.getHash(), property)){
-                    txobj.push_back(Pair("erc721propertyid", "0x" + RemoveHexStrPrefixZero(property.GetHex())));
+                    txobj.push_back(Pair("erc721propertyid", convertHexToDec(property.GetHex())));
                 }
             }
             break;
@@ -565,15 +565,15 @@ void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirm
             if(confirmations > 0){
                 uint256 propertyid, tokenid;
                 if(mastercore::my_erc721tokens->findTokenByTX(omniObj.getHash(), propertyid, tokenid)){
-                    txobj.push_back(Pair("erc721propertyid", "0x" + RemoveHexStrPrefixZero(propertyid.GetHex())));
-                    txobj.push_back(Pair("erc721tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
+                    txobj.push_back(Pair("erc721propertyid", convertHexToDec(propertyid.GetHex())));
+                    txobj.push_back(Pair("erc721tokenid", convertHexToDec(tokenid.GetHex())));
                 }
             }
             break;
         case ERC721Action::TRANSFER_REC721_TOKEN:
         case ERC721Action::DESTROY_ERC721_TOKEN:
-            txobj.push_back(Pair("erc721propertyid", "0x" + RemoveHexStrPrefixZero(omniObj.geterc721propertyid().GetHex())));
-            txobj.push_back(Pair("erc721tokenid", "0x" + RemoveHexStrPrefixZero(omniObj.geterc721tokenid().GetHex())));
+            txobj.push_back(Pair("erc721propertyid", convertHexToDec(omniObj.geterc721propertyid().GetHex())));
+            txobj.push_back(Pair("erc721tokenid", convertHexToDec(omniObj.geterc721tokenid().GetHex())));
             break;
     }
 }

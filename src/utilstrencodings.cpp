@@ -7,6 +7,8 @@
 
 #include "tinyformat.h"
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -94,6 +96,16 @@ std::vector<uint8_t> ParseHex(const char *psz) {
 
 std::vector<uint8_t> ParseHex(const std::string &str) {
     return ParseHex(str.c_str());
+}
+
+std::string convertHexToDec(const std::string hexStr){
+    boost::multiprecision::cpp_int number(hexStr);
+    return number.str();
+}
+
+std::string convertDecToHex(const std::string decStr){
+    boost::multiprecision::cpp_int number(decStr);
+    return number.str(std::ios_base::hex, std::ios_base::hex);
 }
 
 std::string RemoveHexStrPrefixZero(std::string hexString){
