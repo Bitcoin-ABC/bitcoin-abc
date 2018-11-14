@@ -2483,7 +2483,7 @@ UniValue whc_getERC721PropertyNews(const Config &config, const JSONRPCRequest &r
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", RemoveHexStrPrefixZero("0x" + propertyId.GetHex())));
+    response.push_back(Pair("propertyid", "0x" + RemoveHexStrPrefixZero(propertyId.GetHex())));
     response.push_back(Pair("owner", info->first.issuer));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlock.GetHex()));
@@ -2577,8 +2577,8 @@ UniValue whc_getERC721TokenNews(const Config &config, const JSONRPCRequest &requ
     }
 
     UniValue response(UniValue::VOBJ);
-    response.push_back(Pair("propertyid", RemoveHexStrPrefixZero("0x" + propertyId.GetHex())));
-    response.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+    response.push_back(Pair("propertyid", "0x" + RemoveHexStrPrefixZero(propertyId.GetHex())));
+    response.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
     response.push_back(Pair("owner", info->first.owner));
     response.push_back(Pair("creationtxid", info->first.txid.GetHex()));
     response.push_back(Pair("creationblock", info->first.creationBlockHash.GetHex()));
@@ -2639,7 +2639,7 @@ UniValue whc_getERC721AddressTokens(const Config &config, const JSONRPCRequest &
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+                item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
                 item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
@@ -2701,7 +2701,7 @@ UniValue whc_getERC721PropertyDestroyTokens(const Config &config, const JSONRPCR
                 CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
                 sskey >> tokenid;
                 UniValue item(UniValue::VOBJ);
-                item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+                item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
                 item.push_back(Pair("attribute", RemoveHexStrPrefixZero(info.attributes.GetHex())));
                 item.push_back(Pair("tokenurl", info.url));
                 item.push_back(Pair("creationtxid", info.txid.GetHex()));
@@ -2761,7 +2761,7 @@ UniValue whc_listERC721PropertyTokens(const Config &config, const JSONRPCRequest
             CDataStream sskey(33 + slkey.data(), 33 + slkey.data() + slkey.size(), SER_DISK, CLIENT_VERSION);
             sskey >> tokenid;
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("tokenid", RemoveHexStrPrefixZero("0x" + tokenid.GetHex())));
+            item.push_back(Pair("tokenid", "0x" + RemoveHexStrPrefixZero(tokenid.GetHex())));
             item.push_back(Pair("owner", info.owner));
             response.push_back(item);
         }

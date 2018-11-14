@@ -40,7 +40,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         item = self.getSpent(self.whcAddress)
         if item:
             preBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
-            payload = self.nodes[0].whc_createpayload_issueERC721token("0x01", "0x02", "0x09", "www.wormhole.cash")
+            payload = self.nodes[0].whc_createpayload_issueERC721token("0x1", "0x2", "0x9", "www.wormhole.cash")
             txhash = self.constructReceiveTx(item, payload, receiveAddr)
             endBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
 
@@ -56,7 +56,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         item = self.getSpent(self.whcAddress)
         if item:
             preBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
-            payload = self.nodes[0].whc_createpayload_transferERC721token("0x03", "0x01")
+            payload = self.nodes[0].whc_createpayload_transferERC721token("0x3", "0x1")
             txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
             endBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
 
@@ -72,7 +72,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         item = self.getSpent(self.whcAddress)
         if item:
             preBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
-            payload = self.nodes[0].whc_createpayload_destroyERC721token("0x03", "0x01")
+            payload = self.nodes[0].whc_createpayload_destroyERC721token("0x3", "0x1")
             txhash = self.constructReceiveTx(item=item, payload=payload, receive=self.whcAddress)
             endBalance = round(float(self.nodes[0].whc_getbalance(item["address"], self.whc)["balance"]), 8)
 
@@ -102,7 +102,8 @@ class WHC_erc721_Test(BitcoinTestFramework):
         # step 2.1 check transaction of result
         tx1result = self.nodes[0].whc_gettransaction(tx1)
         assert tx1result["valid"] is True
-        assert (tx1result["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
+        print ("tx1result.erc721propertyid : %s"%tx1result["erc721propertyid"])
+        assert (tx1result["erc721propertyid"] == "0x1") is True
         assert preBalance - self.CREATE_TOKEN_FEE == endBalance
 
         ret = self.nodes[0].whc_getERC721PropertyNews("0x01")
@@ -125,19 +126,19 @@ class WHC_erc721_Test(BitcoinTestFramework):
 
         assert preBalance  == endBalance
         assert tokenResult1["valid"] is True
-        assert (tokenResult1["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
+        assert (tokenResult1["erc721tokenid"] == "0x1") is True
         assert tokenResult3["valid"] is True
-        assert (tokenResult3["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002") is True
+        assert (tokenResult3["erc721tokenid"] == "0x2") is True
 
         ret = self.nodes[0].whc_getERC721TokenNews("0x01", "0x01")
         assert ret["owner"] == addr0
         assert ret["creationtxid"] == tokentx1
-        assert ret["attribute"] == "0000000000000000000000000000000000000000000000000000000000023567"
+        assert ret["attribute"] == "23567"
         assert ret["tokenurl"]  == "www.wormhole.cash"
         ret = self.nodes[0].whc_getERC721TokenNews("0x01", "0x02")
         assert ret["owner"] == addr0
         assert ret["creationtxid"] == tokentx3
-        assert ret["attribute"] == "0000000000000000000000000000000000000000000000000000000000023567"
+        assert ret["attribute"] == "23567"
         assert ret["tokenurl"]  == "www.wormhole.cash"
 
         ret = self.nodes[0].whc_getERC721PropertyNews("0x01")
@@ -149,7 +150,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         addr1 = self.nodes[0].getnewaddress("")
         # step 4 create transfer erc721 token
         preBalance = round(float(self.nodes[0].whc_getbalance(addr0, self.whc)["balance"]), 8)
-        transfertx = self.nodes[0].whc_transferERC721Token(addr0, addr1, "0x01", "0x01")
+        transfertx = self.nodes[0].whc_transferERC721Token(addr0, addr1, "0x1", "0x1")
         self.nodes[0].sendtoaddress(addr1, 1)
         self.nodes[0].generatetoaddress(1, addr0)
         endBalance = round(float(self.nodes[0].whc_getbalance(addr0, self.whc)["balance"]), 8)
@@ -158,7 +159,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
         transferResult = self.nodes[0].whc_gettransaction(transfertx)
         tokenNews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x01")
         assert transferResult["valid"] is True
-        assert (transferResult["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
+        assert (transferResult["erc721tokenid"] == "0x1") is True
         assert (tokenNews["owner"] == addr1) is True
         assert tokenNews["creationtxid"] == tokentx1
         assert preBalance  == endBalance
@@ -179,10 +180,10 @@ class WHC_erc721_Test(BitcoinTestFramework):
         destroyResult = self.nodes[0].whc_gettransaction(destroytx)
         tokenNews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x02")
         assert destroyResult["valid"] is True
-        assert destroyResult["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002"
-        assert destroyResult["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001"
+        assert destroyResult["erc721tokenid"] == "0x2"
+        assert destroyResult["erc721propertyid"] == "0x1"
         assert (tokenNews["owner"] == self.burn_address) is True
-        assert tokenNews["tokenid"] == "0000000000000000000000000000000000000000000000000000000000000002"
+        assert tokenNews["tokenid"] == "0x2"
         assert preBalance  == endBalance
 
         ret = self.nodes[0].whc_getERC721PropertyNews("0x01")
@@ -206,7 +207,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             # step 1.1 check the erc721 property transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
-            assert (txnews["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000002") is True
+            assert (txnews["erc721propertyid"] == "0x2") is True
             assert (txnews["action"] == 1) is True
             assert (txnews["txid"] == txhash) is True
             assert preBalance - self.CREATE_TOKEN_FEE == endBalance
@@ -231,8 +232,8 @@ class WHC_erc721_Test(BitcoinTestFramework):
             # step 2.1 check the erc721 issue token transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
-            assert (txnews["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000003") is True
-            assert (txnews["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
+            assert (txnews["erc721tokenid"] == "0x3") is True
+            assert (txnews["erc721propertyid"] == "0x1") is True
             assert (txnews["action"] == 2) is True
             assert (txnews["txid"] == txhash) is True
             assert preBalance == endBalance
@@ -240,7 +241,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
             txnews = self.nodes[0].whc_getERC721TokenNews("0x01", "0x03")
             assert (txnews["creationtxid"] == txhash) is True
             assert (txnews["owner"] == self.whcAddress) is True
-            assert txnews["attribute"] == "0000000000000000000000000000000000000000000000000000000000000323"
+            assert txnews["attribute"] == "323"
             assert txnews["tokenurl"] == "www.copernet.com"
 
             txnews = self.nodes[0].whc_getERC721PropertyNews("0x01")
@@ -262,8 +263,8 @@ class WHC_erc721_Test(BitcoinTestFramework):
             # step 3.1 check the erc721 transfer token transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
-            assert (txnews["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
-            assert (txnews["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000003") is True
+            assert (txnews["erc721propertyid"] == "0x1") is True
+            assert (txnews["erc721tokenid"] == "0x3") is True
             assert (txnews["action"] == 3) is True
             assert (txnews["txid"] == txhash) is True
             assert preBalance == endBalance
@@ -290,8 +291,8 @@ class WHC_erc721_Test(BitcoinTestFramework):
             # step 4.1 check the erc721 destroy token transaction
             txnews = self.nodes[0].whc_gettransaction(txhash)
             assert txnews["valid"] is True
-            assert (txnews["erc721propertyid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
-            assert (txnews["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000003") is True
+            assert (txnews["erc721propertyid"] == "0x1") is True
+            assert (txnews["erc721tokenid"] == "0x3") is True
             assert (txnews["action"] == 4) is True
             assert (txnews["txid"] == txhash) is True
             assert preBalance == endBalance
@@ -486,7 +487,7 @@ class WHC_erc721_Test(BitcoinTestFramework):
 
         txnews = self.nodes[0].whc_gettransaction(tokentx)
         assert txnews["valid"] is True
-        assert (txnews["erc721tokenid"] == "0000000000000000000000000000000000000000000000000000000000000001") is True
+        assert (txnews["erc721tokenid"] == "0x1") is True
         assert (txnews["referenceaddress"] == self.whcAddress) is True
         assert preBalance == endBalance
 
