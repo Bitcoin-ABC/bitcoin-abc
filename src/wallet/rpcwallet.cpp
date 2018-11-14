@@ -1470,27 +1470,30 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
 /**
  * List transactions based on the given criteria.
  *
- * @param  pwallet    The wallet.
- * @param  wtx        The wallet transaction.
- * @param  nMinDepth  The minimum confirmation depth.
- * @param  fLong      Whether to include the JSON version of the transaction.
- * @param  ret        The UniValue into which the result is stored.
- * @param  filter     The "is mine" filter bool.
+ * @param  pwallet        The wallet.
+ * @param  wtx            The wallet transaction.
+ * @param  nMinDepth      The minimum confirmation depth.
+ * @param  fLong          Whether to include the JSON version of the
+ * transaction.
+ * @param  ret            The UniValue into which the result is stored.
+ * @param  filter_ismine  The "is mine" filter flags.
+ * @param  filter_label   Optional label string to filter incoming transactions.
  */
 static void ListTransactions(interfaces::Chain::Lock &locked_chain,
                              CWallet *const pwallet, const CWalletTx &wtx,
                              int nMinDepth, bool fLong, UniValue &ret,
-                             const isminefilter &filter) {
+                             const isminefilter &filter_ismine,
+                             const std::string *filter_label) {
     Amount nFee;
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;
 
-    wtx.GetAmounts(listReceived, listSent, nFee, filter);
+    wtx.GetAmounts(listReceived, listSent, nFee, filter_ismine);
 
     bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
 
     // Sent
-    if (!listSent.empty() || nFee != Amount::zero()) {
+    if (!filter_label) {
         for (const COutputEntry &s : listSent) {
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly ||
@@ -1521,6 +1524,9 @@ static void ListTransactions(interfaces::Chain::Lock &locked_chain,
             std::string label;
             if (pwallet->mapAddressBook.count(r.destination)) {
                 label = pwallet->mapAddressBook[r.destination].name;
+            }
+            if (filter_label && label != *filter_label) {
+                continue;
             }
             UniValue entry(UniValue::VOBJ);
             if (involvesWatchonly ||
@@ -1562,12 +1568,16 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
 
     if (request.fHelp || request.params.size() > 4) {
         throw std::runtime_error(
-            "listtransactions ( \"dummy\" count skip include_watchonly)\n"
+            "listtransactions ( \"label\" count skip include_watchonly )\n"
+            "\nIf a label name is provided, this will return only incoming "
+            "transactions paying to addresses with the specified label.\n"
             "\nReturns up to 'count' most recent transactions skipping the "
             "first 'from' transactions.\n"
             "\nArguments:\n"
-            "1. \"dummy\"    (string, optional) If set, should be \"*\" for "
-            "backwards compatibility.\n"
+            "1. \"label\"    (string, optional) If set, should be a valid "
+            "label name to return only incoming transactions with the "
+            "specified label, or \"*\" to disable filtering and return all "
+            "transactions.\n"
             "2. count          (numeric, optional, default=10) The number of "
             "transactions to return\n"
             "3. skip           (numeric, optional, default=0) The number of "
@@ -1639,9 +1649,14 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
 
+    const std::string *filter_label = nullptr;
     if (!request.params[0].isNull() && request.params[0].get_str() != "*") {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "Dummy value must be set to \"*\"");
+        filter_label = &request.params[0].get_str();
+        if (filter_label->empty()) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                "Label argument must be a valid label name or \"*\".");
+        }
     }
     int nCount = 10;
     if (!request.params[1].isNull()) {
@@ -1672,7 +1687,8 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
     for (CWallet::TxItems::const_reverse_iterator it = txOrdered.rbegin();
          it != txOrdered.rend(); ++it) {
         CWalletTx *const pwtx = (*it).second;
-        ListTransactions(*locked_chain, pwallet, *pwtx, 0, true, ret, filter);
+        ListTransactions(*locked_chain, pwallet, *pwtx, 0, true, ret, filter,
+                         filter_label);
         if ((int)ret.size() >= (nCount + nFrom)) {
             break;
         }
@@ -1877,7 +1893,7 @@ static UniValue listsinceblock(const Config &config,
 
         if (depth == -1 || tx.GetDepthInMainChain(*locked_chain) < depth) {
             ListTransactions(*locked_chain, pwallet, tx, 0, true, transactions,
-                             filter);
+                             filter, nullptr /* filter_label */);
         }
     }
 
@@ -1899,7 +1915,8 @@ static UniValue listsinceblock(const Config &config,
                 // appear here, even negative confirmation ones, hence the big
                 // negative.
                 ListTransactions(*locked_chain, pwallet, it->second, -100000000,
-                                 true, removed, filter);
+                                 true, removed, filter,
+                                 nullptr /* filter_label */);
             }
         }
         paltindex = paltindex->pprev;
@@ -2046,7 +2063,8 @@ static UniValue gettransaction(const Config &config,
     WalletTxToJSON(pwallet->chain(), *locked_chain, wtx, entry);
 
     UniValue details(UniValue::VARR);
-    ListTransactions(*locked_chain, pwallet, wtx, 0, false, details, filter);
+    ListTransactions(*locked_chain, pwallet, wtx, 0, false, details, filter,
+                     nullptr /* filter_label */);
     entry.pushKV("details", details);
 
     std::string strHex = EncodeHexTx(*wtx.tx, RPCSerializationFlags());
@@ -4686,7 +4704,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "wallet",             "listreceivedbyaddress",        listreceivedbyaddress,        {"minconf","include_empty","include_watchonly","address_filter"} },
     { "wallet",             "listreceivedbylabel",          listreceivedbylabel,          {"minconf","include_empty","include_watchonly"} },
     { "wallet",             "listsinceblock",               listsinceblock,               {"blockhash","target_confirmations","include_watchonly","include_removed"} },
-    { "wallet",             "listtransactions",             listtransactions,             {"dummy","count","skip","include_watchonly"} },
+    { "wallet",             "listtransactions",             listtransactions,             {"label|dummy","count","skip","include_watchonly"} },
     { "wallet",             "listunspent",                  listunspent,                  {"minconf","maxconf","addresses","include_unsafe","query_options"} },
     { "wallet",             "listwallets",                  listwallets,                  {} },
     { "wallet",             "loadwallet",                   loadwallet,                   {"filename"} },
