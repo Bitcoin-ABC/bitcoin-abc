@@ -29,8 +29,8 @@ struct CBlockTemplateEntry {
     Amount fees;
     int64_t sigOpCount;
 
-    CBlockTemplateEntry(CTransactionRef tx, Amount fees, int64_t sigOpCount)
-        : tx(tx), fees(fees), sigOpCount(sigOpCount){};
+    CBlockTemplateEntry(CTransactionRef _tx, Amount _fees, int64_t _sigOpCount)
+        : tx(_tx), fees(_fees), sigOpCount(_sigOpCount){};
 };
 
 struct CBlockTemplate {
