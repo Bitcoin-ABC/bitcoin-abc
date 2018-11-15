@@ -433,7 +433,7 @@ UniValue whc_createpayload_issueERC721property(const Config &config,const JSONRP
 UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() > 4 || request.params.size() < 3)
         throw runtime_error(
-                "whc_createpayload_issueERC721token \"0x01\" \"0x02\" \"0x03\" \"url\" \n"
+                "whc_createpayload_issueERC721token \"1\" \"2\" \"0x03\" \"url\" \n"
                         "\nCreates the payload to issue ERC721 property\n"
                         "Argument:\n"
                         "1. propertyID              (string, required) The ID of the special property that will be issued token \n"
@@ -444,16 +444,15 @@ UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRe
                         "\"payload\"             (string) the hex-encoded payload\n"
 
                         "\nExamples:\n"
-                + HelpExampleCli("whc_createpayload_issueERC721token", "\"0x01\" \"0x02\" \"0x03\" \"url\"  ")
-                + HelpExampleRpc("whc_createpayload_issueERC721token", "\"0x01\" \"0x02\" \"0x03\" \"url\" ")
+                + HelpExampleCli("whc_createpayload_issueERC721token", "\"1\" \"2\" \"0x03\" \"url\"  ")
+                + HelpExampleRpc("whc_createpayload_issueERC721token", "\"1\" \"2\" \"0x03\" \"url\" ")
         );
 
     int i = 0;
-    uint256 propertyid = uint256S(request.params[i++].get_str());
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
     uint256 tokenid;
     if(request.params.size() == 4){
-        RequireHexNumber(request.params[i].get_str());
-        tokenid = uint256S(request.params[i++].get_str());
+        tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
     }
     RequireHexNumber(request.params[i].get_str());
     uint256 tokenAttributes = uint256S(request.params[i++].get_str());
@@ -467,7 +466,7 @@ UniValue whc_createpayload_issueERC721token(const Config &config,const JSONRPCRe
 UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-                "whc_createpayload_transferERC721token \"0x01\" \"0x02\" \n"
+                "whc_createpayload_transferERC721token \"1\" \"2\" \n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
                         "1. propertyID              (string, required) The propertyid within the token that will be transfer \n"
@@ -475,15 +474,13 @@ UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRP
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
-                + HelpExampleRpc("whc_createpayload_transferERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleCli("whc_createpayload_transferERC721token", " \"1\" \"2\" ")
+                + HelpExampleRpc("whc_createpayload_transferERC721token", " \"1\" \"2\" ")
         );
 
     int i = 0;
-    RequireHexNumber(request.params[i].get_str());
-    uint256 propertyid = uint256S(request.params[i++].get_str());
-    RequireHexNumber(request.params[i].get_str());
-    uint256 tokenid = uint256S(request.params[i++].get_str());
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
 
     std::vector<unsigned char> payload = CreatePayload_TransferERC721Token(propertyid, tokenid);
 
@@ -493,7 +490,7 @@ UniValue whc_createpayload_transferERC721token(const Config &config,const JSONRP
 UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPCRequest &request){
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-                "whc_createpayload_destroyERC721token \"0x01\" \"0x02\" \n"
+                "whc_createpayload_destroyERC721token \"1\" \"2\" \n"
                         "\nburn BCH to get WHC"
                         "\nArguments:\n"
                         "1. propertyID              (string, required) The token within the property that will be destroy \n"
@@ -501,15 +498,13 @@ UniValue whc_createpayload_destroyERC721token(const Config &config,const JSONRPC
                         "\nResult:\n"
                         "\"hash\"                  (string) the hex-encoded transaction hash\n"
                         "\nExamples:\n"
-                + HelpExampleCli("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
-                + HelpExampleRpc("whc_createpayload_destroyERC721token", " \"0x01\" \"0x02\" ")
+                + HelpExampleCli("whc_createpayload_destroyERC721token", " \"1\" \"2\" ")
+                + HelpExampleRpc("whc_createpayload_destroyERC721token", " \"1\" \"2\" ")
         );
 
     int i = 0;
-    RequireHexNumber(request.params[i].get_str());
-    uint256 propertyid = uint256S(request.params[i++].get_str());
-    RequireHexNumber(request.params[i].get_str());
-    uint256 tokenid = uint256S(request.params[i++].get_str());
+    uint256 propertyid = uint256S(convertDecToHex(request.params[i++].get_str()));
+    uint256 tokenid = uint256S(convertDecToHex(request.params[i++].get_str()));
 
     std::vector<unsigned char> payload = CreatePayload_DestroyERC721Token(propertyid, tokenid);
 
