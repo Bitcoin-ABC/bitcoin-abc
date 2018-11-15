@@ -19,7 +19,7 @@
 #define WORMHOLE_VERSION_MINOR       2
 
 // Increase with every patch, which is not a feature or consensus affecting
-#define WORMHOLE_VERSION_PATCH       1
+#define WORMHOLE_VERSION_PATCH       2
 
 // Non-public build number/revision (usually zero)
 #define WORMHOLE_VERSION_BUILD       0
