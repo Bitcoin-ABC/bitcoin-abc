@@ -694,7 +694,18 @@ void IncrementExtraNonce(const Config &config, CBlock *pblock,
         (CScript() << nHeight << CScriptNum(nExtraNonce)
                    << getExcessiveBlockSizeSig(config)) +
         COINBASE_FLAGS;
+
+    // Make sure the coinbase is big enough.
+    uint64_t coinbaseSize =
+        ::GetSerializeSize(txCoinbase, SER_NETWORK, PROTOCOL_VERSION);
+    if (coinbaseSize < MIN_TX_SIZE) {
+        txCoinbase.vin[0].scriptSig
+            << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
+    }
+
     assert(txCoinbase.vin[0].scriptSig.size() <= MAX_COINBASE_SCRIPTSIG_SIZE);
+    assert(::GetSerializeSize(txCoinbase, SER_NETWORK, PROTOCOL_VERSION) >=
+           MIN_TX_SIZE);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
