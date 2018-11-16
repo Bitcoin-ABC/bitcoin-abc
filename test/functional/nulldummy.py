@@ -102,6 +102,8 @@ class NULLDUMMYTest(BitcoinTestFramework):
         for tx in txs:
             tx.rehash()
             block.vtx.append(tx)
+        block.vtx = [block.vtx[0]] + \
+            sorted(block.vtx[1:], key=lambda tx: tx.get_id())
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
