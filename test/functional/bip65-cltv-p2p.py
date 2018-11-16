@@ -36,6 +36,7 @@ def cltv_invalidate(tx):
     '''
     tx.vin[0].scriptSig = CScript([OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP] +
                                   list(CScript(tx.vin[0].scriptSig)))
+    tx.rehash()
 
 
 def cltv_validate(node, tx, height):
@@ -95,7 +96,6 @@ class BIP65Test(BitcoinTestFramework):
         spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[0],
                                      self.nodeaddress, 1.0)
         cltv_invalidate(spendtx)
-        spendtx.rehash()
 
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)['mediantime'] + 1
@@ -134,7 +134,6 @@ class BIP65Test(BitcoinTestFramework):
         spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[1],
                                      self.nodeaddress, 1.0)
         cltv_invalidate(spendtx)
-        spendtx.rehash()
 
         # First we show that this tx is valid except for CLTV by getting it
         # accepted to the mempool (which we can achieve with
