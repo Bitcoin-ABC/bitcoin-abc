@@ -94,8 +94,11 @@ class BIP65Test(BitcoinTestFramework):
             "Test that an invalid-according-to-CLTV transaction can still appear in a block")
 
         spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[0],
-                                     self.nodeaddress, 1.0)
+                                     self.nodeaddress, 50.0)
         cltv_invalidate(spendtx)
+
+        # Make sure the tx is valid
+        self.nodes[0].sendrawtransaction(bytes_to_hex_str(spendtx.serialize()))
 
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)['mediantime'] + 1
