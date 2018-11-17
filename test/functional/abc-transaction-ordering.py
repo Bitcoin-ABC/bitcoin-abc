@@ -258,6 +258,39 @@ class TransactionOrderingTest(ComparisonTestFramework):
         generatedblockhash = node.getbestblockhash()
         assert(forkblockhash != generatedblockhash)
 
+        # Reconstruct tip.
+        tip_hash = node.getbestblockhash()
+        self.tip = CBlock()
+        self.tip.sha256 = int(tip_hash, 16)
+        self.tip.nTime = timestamp = node.getblock(tip_hash)['time']
+        self.block_heights[self.tip.sha256] = node.getblock(tip_hash)['height']
+
+        ordered_block(4446, out[18])
+        yield accepted()
+
+        # Generate a block with a duplicated transaction.
+        double_tx_block = ordered_block(4447, out[19])
+        assert_equal(len(double_tx_block.vtx), 16)
+        double_tx_block.vtx = double_tx_block.vtx[:8] + \
+            [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
+        update_block(4447)
+        yield rejected(RejectResult(16, b'bad-txns-duplicate'))
+
+        # Rewind bad block.
+        tip(4446)
+
+        # Check over two blocks.
+        proper_block = ordered_block(4448, out[20])
+        yield accepted()
+
+        replay_tx_block = ordered_block(4449, out[21])
+        assert_equal(len(replay_tx_block.vtx), 16)
+        replay_tx_block.vtx.append(proper_block.vtx[5])
+        replay_tx_block.vtx = [replay_tx_block.vtx[0]] + \
+            sorted(replay_tx_block.vtx[1:], key=lambda tx: tx.get_id())
+        update_block(4449)
+        yield rejected(RejectResult(16, b'bad-txns-BIP30'))
+
 
 if __name__ == '__main__':
     TransactionOrderingTest().main()

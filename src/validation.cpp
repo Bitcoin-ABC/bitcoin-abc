@@ -1715,7 +1715,12 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         }
 
         if (fIsMagneticAnomalyEnabled || tx.IsCoinBase()) {
-            AddCoins(view, tx, pindex->nHeight);
+            // We do not need to throw when a transaction is duplicated. If they
+            // are in the same block, CheckBlock will catch it, and if they are
+            // in a different block, it'll register as a double spend or BIP30
+            // violation. In both cases, we get a more meaningful feedback out
+            // of it.
+            AddCoins(view, tx, pindex->nHeight, true);
         }
     }
 
@@ -3344,7 +3349,14 @@ static bool ContextualCheckBlock(const Config &config, const CBlock &block,
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
         if (fIsMagneticAnomalyEnabled) {
-            if (prevTx && (tx.GetId() < prevTx->GetId())) {
+            if (prevTx && (tx.GetId() <= prevTx->GetId())) {
+                if (tx.GetId() == prevTx->GetId()) {
+                    return state.DoS(100, false, REJECT_INVALID, "tx-duplicate",
+                                     false,
+                                     strprintf("Duplicated transaction %s",
+                                               tx.GetId().ToString()));
+                }
+
                 return state.DoS(
                     100, false, REJECT_INVALID, "tx-ordering", false,
                     strprintf("Transaction order is invalid (%s < %s)",

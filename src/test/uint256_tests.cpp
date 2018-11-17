@@ -113,12 +113,16 @@ BOOST_AUTO_TEST_CASE(basics) {
 
 static void CheckComparison(const uint256 &a, const uint256 &b) {
     BOOST_CHECK(a < b);
+    BOOST_CHECK(a <= b);
     BOOST_CHECK(b > a);
+    BOOST_CHECK(b >= a);
 }
 
 static void CheckComparison(const uint160 &a, const uint160 &b) {
     BOOST_CHECK(a < b);
+    BOOST_CHECK(a <= b);
     BOOST_CHECK(b > a);
+    BOOST_CHECK(b >= a);
 }
 
 // <= >= < >
@@ -129,6 +133,8 @@ BOOST_AUTO_TEST_CASE(comparison) {
         *(TmpL.begin() + (i >> 3)) |= 1 << (i & 7);
         CheckComparison(LastL, TmpL);
         LastL = TmpL;
+        BOOST_CHECK(LastL <= LastL);
+        BOOST_CHECK(LastL >= LastL);
     }
 
     CheckComparison(ZeroL, R1L);
@@ -144,6 +150,8 @@ BOOST_AUTO_TEST_CASE(comparison) {
         *(TmpS.begin() + (i >> 3)) |= 1 << (i & 7);
         CheckComparison(LastS, TmpS);
         LastS = TmpS;
+        BOOST_CHECK(LastS <= LastS);
+        BOOST_CHECK(LastS >= LastS);
     }
 
     CheckComparison(ZeroS, R1S);
