@@ -625,6 +625,13 @@ CBlockIndex *FindForkInGlobalIndex(const CChain &chain,
 bool PreciousBlock(const Config &config, CValidationState &state,
                    CBlockIndex *pindex);
 
+/**
+ * Mark a block as finalized.
+ * A finalized block can not be reorged in any way.
+ */
+bool FinalizeBlock(const Config &config, CValidationState &state,
+                   CBlockIndex *pindex);
+
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex);
@@ -677,9 +684,9 @@ int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params);
 
 /**
- * Reject codes greater or equal to this can be returned by AcceptToMemPool for
- * transactions, to signal internal conditions. They cannot and should not be
- * sent over the P2P network.
+ * Reject codes greater or equal to this can be returned by AcceptToMemPool or
+ * AcceptBlock for blocks/transactions, to signal internal conditions. They
+ * cannot and should not be sent over the P2P network.
  */
 static const unsigned int REJECT_INTERNAL = 0x100;
 /** Too high fee. Can not be triggered by P2P transactions */
@@ -688,6 +695,8 @@ static const unsigned int REJECT_HIGHFEE = 0x100;
 static const unsigned int REJECT_ALREADY_KNOWN = 0x101;
 /** Transaction conflicts with a transaction already known */
 static const unsigned int REJECT_CONFLICT = 0x102;
+/** Block conflicts with a transaction already known */
+static const unsigned int REJECT_AGAINST_FINALIZED = 0x103;
 
 /** Get block file info entry for one block file */
 CBlockFileInfo *GetBlockFileInfo(size_t n);

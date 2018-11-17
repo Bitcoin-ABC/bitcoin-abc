@@ -102,6 +102,12 @@ CBlockIndex *pindexBestInvalid;
 CBlockIndex *pindexBestParked;
 
 /**
+ * The best finalized block.
+ * This block cannot be reorged in any way, shape or form.
+ */
+CBlockIndex const *pindexFinalized;
+
+/**
  * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for itself
  * and all ancestors) and as good as our current tip or better. Entries may be
  * failed, though, and pruning nodes may be missing the data for the block.
@@ -2192,6 +2198,11 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
         disconnectpool->addForBlock(block.vtx);
     }
 
+    // If the tip is finalized, then undo it.
+    if (pindexFinalized == pindexDelete) {
+        pindexFinalized = pindexDelete->pprev;
+    }
+
     // Update chainActive and related variables.
     UpdateTip(config, pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
@@ -2374,6 +2385,7 @@ static bool ConnectTip(const Config &config, CValidationState &state,
  * invalid (it's however far from certain to be valid).
  */
 static CBlockIndex *FindMostWorkChain() {
+    AssertLockHeld(cs_main);
     do {
         CBlockIndex *pindexNew = nullptr;
 
@@ -2385,6 +2397,16 @@ static CBlockIndex *FindMostWorkChain() {
                 return nullptr;
             }
             pindexNew = *it;
+        }
+
+        // If this block will cause a finalized block to be reorged, then we
+        // mark it as invalid.
+        if (pindexFinalized && !AreOnTheSameFork(pindexNew, pindexFinalized)) {
+            LogPrintf("Mark block %s invalid because it forks prior to the "
+                      "finalization point %d.\n",
+                      pindexNew->GetBlockHash().ToString(),
+                      pindexFinalized->nHeight);
+            pindexNew->nStatus = pindexNew->nStatus.withFailed();
         }
 
         const CBlockIndex *pindexFork = chainActive.FindFork(pindexNew);
@@ -2827,6 +2849,43 @@ static bool UnwindBlock(const Config &config, CValidationState &state,
         InvalidChainFound(pindex);
     }
     uiInterface.NotifyBlockTip(IsInitialBlockDownload(), pindex->pprev);
+    return true;
+}
+
+bool FinalizeBlock(const Config &config, CValidationState &state,
+                   CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+    if (pindex->nStatus.isInvalid()) {
+        // We try to finalize an invalid block.
+        return state.DoS(100,
+                         error("%s: Trying to finalize invalid block %s",
+                               __func__, pindex->GetBlockHash().ToString()),
+                         REJECT_INVALID, "finalize-invalid-block");
+    }
+
+    // Check that the request is consistent with current finalization.
+    if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
+        return state.DoS(
+            20, error("%s: Trying to finalize block %s which conflicts "
+                      "with already finalized block",
+                      __func__, pindex->GetBlockHash().ToString()),
+            REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
+    }
+
+    // We have a valid candidate, make sure it is not parked.
+    pindexFinalized = pindex;
+    if (pindex->nStatus.isOnParkedChain()) {
+        UnparkBlock(pindex);
+    }
+
+    // If the finalized block is not on the active chain, we need to rewind.
+    if (!AreOnTheSameFork(pindex, chainActive.Tip())) {
+        const CBlockIndex *pindexFork = chainActive.FindFork(pindex);
+        CBlockIndex *pindexToInvalidate =
+            chainActive.Tip()->GetAncestor(pindexFork->nHeight + 1);
+        return InvalidateBlock(config, state, pindexToInvalidate);
+    }
+
     return true;
 }
 
@@ -3537,7 +3596,6 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
     }
 
     CheckBlockIndex(chainparams.GetConsensus());
-
     return true;
 }
 

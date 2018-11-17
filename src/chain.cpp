@@ -184,3 +184,10 @@ const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
     assert(pa == pb);
     return pa;
 }
+
+bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb) {
+    // The common ancestor needs to be either pa (pb is a child of pa) or pb (pa
+    // is a child of pb).
+    const CBlockIndex *pindexCommon = LastCommonAncestor(pa, pb);
+    return pindexCommon == pa || pindexCommon == pb;
+}

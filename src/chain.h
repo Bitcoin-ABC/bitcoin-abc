@@ -262,6 +262,11 @@ int64_t GetBlockProofEquivalentTime(const CBlockIndex &to,
 const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa,
                                       const CBlockIndex *pb);
 
+/**
+ * Check if two block index are on the same fork.
+ */
+bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb);
+
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
 public:

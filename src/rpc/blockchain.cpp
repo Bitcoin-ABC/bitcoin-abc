@@ -1506,6 +1506,46 @@ UniValue preciousblock(const Config &config, const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
+UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "finalizeblock \"blockhash\"\n"
+
+            "\nTreats a block as final. It cannot be reorged. Any chain\n"
+            "that does not contain this block is invalid. Used on a less\n"
+            "work chain, it can effectively PUTS YOU OUT OF CONSENSUS.\n"
+            "USE WITH CAUTION!\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("finalizeblock", "\"blockhash\"") +
+            HelpExampleRpc("finalizeblock", "\"blockhash\""));
+    }
+
+    std::string strHash = request.params[0].get_str();
+    uint256 hash(uint256S(strHash));
+    CValidationState state;
+
+    {
+        LOCK(cs_main);
+        if (mapBlockIndex.count(hash) == 0) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+
+        CBlockIndex *pblockindex = mapBlockIndex[hash];
+        FinalizeBlock(config, state, pblockindex);
+    }
+
+    if (state.IsValid()) {
+        ActivateBestChain(config, state);
+    }
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
+    }
+
+    return NullUniValue;
+}
+
 UniValue invalidateblock(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
@@ -1787,6 +1827,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "blockchain",         "preciousblock",          preciousblock,          {"blockhash"} },
 
     /* Not shown in help */
+    { "hidden",             "finalizeblock",          finalizeblock,          {"blockhash"} },
     { "hidden",             "invalidateblock",        invalidateblock,        {"blockhash"} },
     { "hidden",             "parkblock",              parkblock,              {"blockhash"} },
     { "hidden",             "reconsiderblock",        reconsiderblock,        {"blockhash"} },
