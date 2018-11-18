@@ -3427,20 +3427,19 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
         }
 
         // Get prev block index
-        CBlockIndex *pindexPrev = nullptr;
         BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
         if (mi == mapBlockIndex.end()) {
             return state.DoS(10, error("%s: prev block not found", __func__), 0,
                              "prev-blk-not-found");
         }
 
-        pindexPrev = (*mi).second;
+        CBlockIndex *pindexPrev = (*mi).second;
+        assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
             return state.DoS(100, error("%s: prev block invalid", __func__),
                              REJECT_INVALID, "bad-prevblk");
         }
 
-        assert(pindexPrev);
         if (fCheckpointsEnabled &&
             !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
                                          hash)) {
