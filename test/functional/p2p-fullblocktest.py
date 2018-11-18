@@ -173,18 +173,18 @@ class FullBlockTest(ComparisonTestFramework):
             self.tip = self.blocks[number]
 
         # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions):
+        def update_block(block_number, new_transactions, reorder=True):
             block = self.blocks[block_number]
             self.add_transactions_to_block(block, new_transactions)
             old_sha256 = block.sha256
-            make_conform_to_ctor(block)
+            if reorder:
+                make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
             # Update the internal state just like in next_block
             self.tip = block
             if block.sha256 != old_sha256:
-                self.block_heights[
-                    block.sha256] = self.block_heights[old_sha256]
+                self.block_heights[block.sha256] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block
@@ -717,13 +717,10 @@ class FullBlockTest(ComparisonTestFramework):
         yield rejected(RejectResult(16, b'bad-tx-coinbase'))
 
         # A block w/ duplicate txns
-        # Note: txns have to be in the right position in the merkle tree to
-        # trigger this error
         tip(44)
         b52 = block(52, spend=out[15])
-        tx = create_tx(b52.vtx[1], 0, 1)
-        b52 = update_block(52, [tx, tx])
-        yield rejected(RejectResult(16, b'bad-txns-duplicate'))
+        b52 = update_block(52, [b52.vtx[1]])
+        yield rejected(RejectResult(16, b'tx-duplicate'))
 
         # Test block timestamps
         #  -> b31 (8) -> b33 (9) -> b35 (10) -> b39 (11) -> b42 (12) -> b43 (13) -> b53 (14) -> b55 (15)
@@ -806,9 +803,9 @@ class FullBlockTest(ComparisonTestFramework):
         tip(55)
         b56p2 = copy.deepcopy(b57p2)
         self.blocks["b56p2"] = b56p2
-        assert_equal(b56p2.hash, b57p2.hash)
         assert_equal(len(b56p2.vtx), 6)
-        b56p2 = update_block("b56p2", [tx3, tx4])
+        b56p2 = update_block("b56p2", b56p2.vtx[4:6], reorder=False)
+        assert_equal(b56p2.hash, b57p2.hash)
         yield rejected(RejectResult(16, b'bad-txns-duplicate'))
 
         tip("57p2")
