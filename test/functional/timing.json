@@ -68,10 +68,6 @@
   "time": 18
  },
  {
-  "name": "bip68-sequence.py --magnetic-anomaly-time=1",
-  "time": 26
- },
- {
   "name": "bipdersig-p2p.py",
   "time": 7
  },

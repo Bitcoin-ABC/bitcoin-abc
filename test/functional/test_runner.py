@@ -74,7 +74,6 @@ TEST_PARAMS = {
     #    testName
     #    testName --param1 --param2
     #    testname --param3
-    "bip68-sequence.py": [["--magnetic-anomaly-time=1"]],
     "txn_doublespend.py": [["--mineblock"]],
     "txn_clone.py": [["--mineblock"]]
 }

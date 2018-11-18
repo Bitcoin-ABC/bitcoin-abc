@@ -24,20 +24,10 @@ NOT_FINAL_ERROR = "64: non-BIP68-final"
 
 
 class BIP68Test(BitcoinTestFramework):
-    def add_options(self, parser):
-        parser.add_argument("--magnetic-anomaly-time", dest="magnetic_anomaly_time", type=long, default=0,
-                            help="Test Magnetic Anomaly activation at a particular time (0 for never, 1 for startup)")
-
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [["-blockprioritypercentage=0"],
                            ["-blockprioritypercentage=0", "-acceptnonstdtxn=0"]]
-
-        activation_time = self.options.magnetic_anomaly_time
-        if activation_time != 0:
-            for args in self.extra_args:
-                args.append(
-                    "-magneticanomalyactivationtime={}".format(activation_time))
 
     def run_test(self):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
@@ -436,11 +426,8 @@ class BIP68Test(BitcoinTestFramework):
         block = create_block(
             tip, create_coinbase(self.nodes[0].getblockcount() + 1))
         block.nVersion = 3
-        if self.options.magnetic_anomaly_time == 0:
-            block.vtx.extend([tx1, tx2, tx3])
-        else:
-            block.vtx.extend(
-                sorted([tx1, tx2, tx3], key=lambda tx: tx.get_id()))
+        block.vtx.extend(
+            sorted([tx1, tx2, tx3], key=lambda tx: tx.get_id()))
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
