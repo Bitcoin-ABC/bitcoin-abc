@@ -164,6 +164,14 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     for (const CMutableTransaction &tx : txns) {
         block.vtx.push_back(MakeTransactionRef(tx));
     }
+
+    // Order transactions by canonical order
+    std::sort(std::begin(block.vtx) + 1, std::end(block.vtx),
+              [](const std::shared_ptr<const CTransaction> &txa,
+                 const std::shared_ptr<const CTransaction> &txb) -> bool {
+                  return txa->GetId() < txb->GetId();
+              });
+
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
     unsigned int extraNonce = 0;
     IncrementExtraNonce(config, &block, chainActive.Tip(), extraNonce);
