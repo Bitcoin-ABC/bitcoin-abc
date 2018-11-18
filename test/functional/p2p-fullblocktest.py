@@ -134,6 +134,7 @@ class FullBlockTest(ComparisonTestFramework):
             tx = create_transaction(spend.tx, spend.n, b"", 1, script)
             self.sign_tx(tx, spend.tx, spend.n)
             self.add_transactions_to_block(block, [tx])
+            make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
         if solve:
             block.solve()
@@ -176,6 +177,7 @@ class FullBlockTest(ComparisonTestFramework):
             block = self.blocks[block_number]
             self.add_transactions_to_block(block, new_transactions)
             old_sha256 = block.sha256
+            make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
             # Update the internal state just like in next_block
@@ -558,13 +560,13 @@ class FullBlockTest(ComparisonTestFramework):
         tip(39)
         b40 = block(40, spend=out[12])
         sigops = get_legacy_sigopcount_block(b40)
-        numTxes = (MAX_BLOCK_SIGOPS_PER_MB - sigops) // b39_sigops_per_output
-        assert_equal(numTxes <= b39_outputs, True)
+        numTxs = (MAX_BLOCK_SIGOPS_PER_MB - sigops) // b39_sigops_per_output
+        assert_equal(numTxs <= b39_outputs, True)
 
         lastOutpoint = COutPoint(b40.vtx[1].sha256, 0)
         lastAmount = b40.vtx[1].vout[0].nValue
         new_txs = []
-        for i in range(1, numTxes + 1):
+        for i in range(1, numTxs + 1):
             tx = CTransaction()
             tx.vout.append(CTxOut(1, CScript([OP_TRUE])))
             tx.vin.append(CTxIn(lastOutpoint, b''))
@@ -587,7 +589,7 @@ class FullBlockTest(ComparisonTestFramework):
             lastAmount = tx.vout[0].nValue
 
         b40_sigops_to_fill = MAX_BLOCK_SIGOPS_PER_MB - \
-            (numTxes * b39_sigops_per_output + sigops) + 1
+            (numTxs * b39_sigops_per_output + sigops) + 1
         tx = CTransaction()
         tx.vin.append(CTxIn(lastOutpoint, b''))
         tx.vout.append(CTxOut(1, CScript([OP_CHECKSIG] * b40_sigops_to_fill)))
@@ -600,13 +602,12 @@ class FullBlockTest(ComparisonTestFramework):
         # same as b40, but one less sigop
         tip(39)
         b41 = block(41, spend=None)
-        update_block(41, b40.vtx[1:-1])
+        update_block(41, [b40tx for b40tx in b40.vtx[1:] if b40tx != tx])
         b41_sigops_to_fill = b40_sigops_to_fill - 1
         tx = CTransaction()
         tx.vin.append(CTxIn(lastOutpoint, b''))
         tx.vout.append(CTxOut(1, CScript([OP_CHECKSIG] * b41_sigops_to_fill)))
         pad_tx(tx)
-        tx.rehash()
         update_block(41, [tx])
         yield accepted()
 
@@ -787,7 +788,7 @@ class FullBlockTest(ComparisonTestFramework):
         b56 = copy.deepcopy(b57)
         self.blocks[56] = b56
         assert_equal(len(b56.vtx), 3)
-        b56 = update_block(56, [tx1])
+        b56 = update_block(56, [b57.vtx[2]])
         assert_equal(b56.hash, b57.hash)
         yield rejected(RejectResult(16, b'bad-txns-duplicate'))
 
@@ -959,18 +960,6 @@ class FullBlockTest(ComparisonTestFramework):
         yield accepted()
         save_spendable_output()
 
-        # Attempt to spend an output created later in the same block
-        #
-        # -> b43 (13) -> b53 (14) -> b55 (15) -> b57 (16) -> b60 (17) -> b64 (18) -> b65 (19)
-        #                                                                                    \-> b66 (20)
-        tip(65)
-        b66 = block(66)
-        tx1 = create_and_sign_tx(
-            out[20].tx, out[20].n, out[20].tx.vout[0].nValue)
-        tx2 = create_and_sign_tx(tx1, 0, 1)
-        update_block(66, [tx2, tx1])
-        yield rejected(RejectResult(16, b'bad-txns-inputs-missingorspent'))
-
         # Attempt to double-spend a transaction created in a block
         #
         # -> b43 (13) -> b53 (14) -> b55 (15) -> b57 (16) -> b60 (17) -> b64 (18) -> b65 (19)
@@ -1045,9 +1034,10 @@ class FullBlockTest(ComparisonTestFramework):
         tx2 = create_and_sign_tx(tx1, 0, 1)
         b72 = update_block(72, [tx1, tx2])  # now tip is 72
         b71 = copy.deepcopy(b72)
-        b71.vtx.append(tx2)   # add duplicate tx2
-        self.block_heights[b71.sha256] = self.block_heights[
-            b69.sha256] + 1  # b71 builds off b69
+        # add duplicate last transaction
+        b71.vtx.append(b72.vtx[-1])
+        # b71 builds off b69
+        self.block_heights[b71.sha256] = self.block_heights[b69.sha256] + 1
         self.blocks[71] = b71
 
         assert_equal(len(b71.vtx), 4)
