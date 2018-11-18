@@ -28,6 +28,14 @@ def create_block(hashprev, coinbase, nTime=None):
     return block
 
 
+def make_conform_to_ctor(block):
+    for tx in block.vtx:
+        pad_tx(tx)
+        tx.rehash()
+    block.vtx = [block.vtx[0]] + \
+        sorted(block.vtx[1:], key=lambda tx: tx.get_id())
+
+
 def serialize_script_num(value):
     r = bytearray(0)
     if value == 0:
