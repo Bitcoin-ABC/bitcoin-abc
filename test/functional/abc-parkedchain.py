@@ -12,7 +12,7 @@ from test_framework.util import assert_equal, connect_nodes_bi, sync_blocks, wai
 class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-noparkdeepreorg"], []]
+        self.extra_args = [["-noparkdeepreorg"], ["-maxreorgdepth=-1"]]
 
     # There should only be one chaintip, which is expected_tip
     def only_valid_tip(self, expected_tip, other_tip_status=None):

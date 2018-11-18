@@ -66,8 +66,9 @@ static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 static const Amount DEFAULT_TRANSACTION_MAXFEE(COIN / 10);
 //! Discourage users to set fees higher than this amount (in satoshis) per kB
 static const Amount HIGH_TX_FEE_PER_KB(COIN / 100);
-/** -maxtxfee will warn if called with a higher fee than this amount (in
- * satoshis */
+/**
+ * -maxtxfee will warn if called with a higher fee than this amount (in satoshis
+ */
 static const Amount HIGH_MAX_TX_FEE(100 * HIGH_TX_FEE_PER_KB);
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
 static const unsigned int DEFAULT_ANCESTOR_LIMIT = 25;
@@ -93,7 +94,8 @@ static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 static const int MAX_SCRIPTCHECK_THREADS = 16;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
-/** Number of blocks that can be requested at any given time from a single peer.
+/**
+ * Number of blocks that can be requested at any given time from a single peer.
  */
 static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
 /**
@@ -191,6 +193,8 @@ static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** Default for -stopatheight */
 static const int DEFAULT_STOPATHEIGHT = 0;
+/** Default for -maxreorgdepth */
+static const int DEFAULT_MAX_REORG_DEPTH = 10;
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -629,8 +633,8 @@ bool PreciousBlock(const Config &config, CValidationState &state,
  * Mark a block as finalized.
  * A finalized block can not be reorged in any way.
  */
-bool FinalizeBlock(const Config &config, CValidationState &state,
-                   CBlockIndex *pindex);
+bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
+                                CBlockIndex *pindex);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,

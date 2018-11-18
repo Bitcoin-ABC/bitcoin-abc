@@ -2289,6 +2289,31 @@ public:
     }
 };
 
+static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
+                                  CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+    if (pindex->nStatus.isInvalid()) {
+        // We try to finalize an invalid block.
+        return state.DoS(100,
+                         error("%s: Trying to finalize invalid block %s",
+                               __func__, pindex->GetBlockHash().ToString()),
+                         REJECT_INVALID, "finalize-invalid-block");
+    }
+
+    // Check that the request is consistent with current finalization.
+    if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
+        return state.DoS(
+            20, error("%s: Trying to finalize block %s which conflicts "
+                      "with already finalized block",
+                      __func__, pindex->GetBlockHash().ToString()),
+            REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
+    }
+
+    // Our candidate is valid, finalize it.
+    pindexFinalized = pindex;
+    return true;
+}
+
 /**
  * Connect a new block to chainActive. pblock is either nullptr or a pointer to
  * a CBlock corresponding to pindexNew, to bypass loading it again from disk.
@@ -2334,6 +2359,20 @@ static bool ConnectTip(const Config &config, CValidationState &state,
             }
 
             return error("ConnectTip(): ConnectBlock %s failed (%s)",
+                         pindexNew->GetBlockHash().ToString(),
+                         FormatStateMessage(state));
+        }
+
+        // Update the finalized block.
+        int32_t nHeightToFinalize =
+            pindexNew->nHeight -
+            gArgs.GetArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
+        CBlockIndex *pindexToFinalize =
+            pindexNew->GetAncestor(nHeightToFinalize);
+        if (pindexToFinalize &&
+            !FinalizeBlockInternal(config, state, pindexToFinalize)) {
+            state.SetCorruptionPossible();
+            return error("ConnectTip(): FinalizeBlock %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          FormatStateMessage(state));
         }
@@ -2852,28 +2891,15 @@ static bool UnwindBlock(const Config &config, CValidationState &state,
     return true;
 }
 
-bool FinalizeBlock(const Config &config, CValidationState &state,
-                   CBlockIndex *pindex) {
+bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
+                                CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
-    if (pindex->nStatus.isInvalid()) {
-        // We try to finalize an invalid block.
-        return state.DoS(100,
-                         error("%s: Trying to finalize invalid block %s",
-                               __func__, pindex->GetBlockHash().ToString()),
-                         REJECT_INVALID, "finalize-invalid-block");
-    }
-
-    // Check that the request is consistent with current finalization.
-    if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
-        return state.DoS(
-            20, error("%s: Trying to finalize block %s which conflicts "
-                      "with already finalized block",
-                      __func__, pindex->GetBlockHash().ToString()),
-            REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
+    if (!FinalizeBlockInternal(config, state, pindex)) {
+        // state is set by FinalizeBlockInternal.
+        return false;
     }
 
     // We have a valid candidate, make sure it is not parked.
-    pindexFinalized = pindex;
     if (pindex->nStatus.isOnParkedChain()) {
         UnparkBlock(pindex);
     }
@@ -4669,6 +4695,7 @@ void UnloadBlockIndex() {
     LOCK(cs_main);
     setBlockIndexCandidates.clear();
     chainActive.SetTip(nullptr);
+    pindexFinalized = nullptr;
     pindexBestInvalid = nullptr;
     pindexBestParked = nullptr;
     pindexBestHeader = nullptr;

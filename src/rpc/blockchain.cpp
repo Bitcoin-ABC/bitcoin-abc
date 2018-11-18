@@ -1532,7 +1532,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
         }
 
         CBlockIndex *pblockindex = mapBlockIndex[hash];
-        FinalizeBlock(config, state, pblockindex);
+        FinalizeBlockAndInvalidate(config, state, pblockindex);
     }
 
     if (state.IsValid()) {
