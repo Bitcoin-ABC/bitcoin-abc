@@ -106,6 +106,7 @@ class FullBlockTest(ComparisonTestFramework):
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
+        assert number not in self.blocks
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -206,7 +207,6 @@ class FullBlockTest(ComparisonTestFramework):
         block.solve()
         self.tip = block
         self.block_heights[block.sha256] = height
-        assert number not in self.blocks
         self.blocks[number] = block
         return block
 
