@@ -32,7 +32,6 @@
 #include <versionbitsinfo.h> // For VersionBitsDeploymentInfo
 #include <warnings.h>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
 #include <cassert>

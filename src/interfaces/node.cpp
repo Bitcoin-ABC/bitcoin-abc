@@ -43,7 +43,6 @@
     throw std::logic_error("Wallet function called in non-wallet build.")
 #endif
 
-#include <boost/thread/thread.hpp>
 #include <univalue.h>
 
 #include <atomic>
