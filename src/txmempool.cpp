@@ -1302,7 +1302,7 @@ static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
 
 void DisconnectedBlockTransactions::addForBlock(
     const std::vector<CTransactionRef> &vtx) {
-    for (const auto &tx : vtx) {
+    for (const auto &tx : boost::adaptors::reverse(vtx)) {
         // If we already added it, just skip.
         auto it = queuedTx.find(tx->GetId());
         if (it != queuedTx.end()) {
