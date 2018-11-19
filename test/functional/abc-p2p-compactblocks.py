@@ -126,7 +126,7 @@ class FullBlockTest(ComparisonTestFramework):
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
-            # Make sure we have plenty engough to spend going forward.
+            # Make sure we have plenty enough to spend going forward.
             spendable_outputs = deque([spend])
 
             def get_base_transaction():
@@ -139,6 +139,7 @@ class FullBlockTest(ComparisonTestFramework):
                 for i in range(4):
                     tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                     spendable_outputs.append(PreviousSpendableOutput(tx, i))
+                pad_tx(tx)
                 return tx
 
             tx = get_base_transaction()
@@ -166,6 +167,7 @@ class FullBlockTest(ComparisonTestFramework):
             # If we have a block size requirement, just fill
             # the block until we get there
             current_block_size = len(block.serialize())
+            overage_bytes = 0
             while current_block_size < block_size:
                 # We will add a new transaction. That means the size of
                 # the field enumerating how many transaction go in the block
@@ -173,20 +175,22 @@ class FullBlockTest(ComparisonTestFramework):
                 current_block_size -= len(ser_compact_size(len(block.vtx)))
                 current_block_size += len(ser_compact_size(len(block.vtx) + 1))
 
+                # Add padding to fill the block.
+                left_to_fill = block_size - current_block_size
+
+                # Don't go over the 1 mb limit for a txn
+                if left_to_fill > 500000:
+                    # Make sure we eat up non-divisible by 100 amounts quickly
+                    # Also keep transaction less than 1 MB
+                    left_to_fill = 500000 + left_to_fill % 100
+
                 # Create the new transaction
                 tx = get_base_transaction()
-
-                # Add padding to fill the block.
-                script_length = block_size - current_block_size - base_tx_size
-                if script_length > 510000:
-                    if script_length < 1000000:
-                        # Make sure we don't find ourselves in a position where we
-                        # need to generate a transaction smaller than what we expected.
-                        script_length = script_length // 2
-                    else:
-                        script_length = 500000
-                script_output = CScript([b'\x00' * script_length])
-                tx.vout.append(CTxOut(0, script_output))
+                pad_tx(tx, left_to_fill - overage_bytes)
+                if len(tx.serialize()) + current_block_size > block_size:
+                    # Our padding was too big try again
+                    overage_bytes += 1
+                    continue
 
                 # Add the tx to the list of transactions to be included
                 # in the block.
