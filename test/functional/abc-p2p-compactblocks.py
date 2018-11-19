@@ -96,10 +96,6 @@ class FullBlockTest(ComparisonTestFramework):
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
         self.test.run()
 
-    def add_transactions_to_block(self, block, tx_list):
-        [tx.rehash() for tx in tx_list]
-        block.vtx.extend(tx_list)
-
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = create_transaction(spend_tx, n, b"", value, script)
@@ -158,11 +154,11 @@ class FullBlockTest(ComparisonTestFramework):
                 CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
             # Add the transaction to the block
-            self.add_transactions_to_block(block, [tx])
+            block.vtx.append(tx)
 
             # Add transaction until we reach the expected transaction count
-            for _ in range(extra_txns):
-                self.add_transactions_to_block(block, [get_base_transaction()])
+            block.vtx.extend([get_base_transaction()
+                              for _ in range(extra_txns)])
 
             # If we have a block size requirement, just fill
             # the block until we get there
@@ -191,7 +187,7 @@ class FullBlockTest(ComparisonTestFramework):
 
                 # Add the tx to the list of transactions to be included
                 # in the block.
-                self.add_transactions_to_block(block, [tx])
+                block.vtx.append(tx)
                 current_block_size += len(tx.serialize())
 
             # Now that we added a bunch of transaction, we need to recompute
