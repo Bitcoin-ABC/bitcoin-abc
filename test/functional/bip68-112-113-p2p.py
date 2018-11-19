@@ -49,6 +49,9 @@ from test_framework.script import *
 from io import BytesIO
 import time
 
+# far in the future
+MAGNETIC_ANOMALY_START_TIME = 2000000000
+
 base_relative_locktime = 10
 seq_disable_flag = 1 << 31
 seq_random_high_bit = 1 << 25
@@ -102,7 +105,8 @@ class BIP68_112_113Test(ComparisonTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [['-whitelist=127.0.0.1', '-blockversion=4']]
+        self.extra_args = [['-whitelist=127.0.0.1', '-blockversion=4',
+                            '-magneticanomalyactivationtime=%d' % MAGNETIC_ANOMALY_START_TIME]]
 
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
