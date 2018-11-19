@@ -96,13 +96,16 @@ class FullBlockTest(ComparisonTestFramework):
         self.nodes[0].setexcessiveblock(self.excessive_block_size)
         self.test.run()
 
+    def add_transactions_to_block(self, block, tx_list):
+        [tx.rehash() for tx in tx_list]
+        block.vtx.extend(tx_list)
+
     # this is a little handier to use than the version in blocktools.py
     def create_tx(self, spend_tx, n, value, script=CScript([OP_TRUE])):
         tx = create_transaction(spend_tx, n, b"", value, script)
         return tx
 
     def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0):
-        assert number not in self.blocks
         if self.tip == None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -123,7 +126,7 @@ class FullBlockTest(ComparisonTestFramework):
             coinbase.rehash()
             block = create_block(base_block_hash, coinbase, block_time)
 
-            # Make sure we have plenty enough to spend going forward.
+            # Make sure we have plenty engough to spend going forward.
             spendable_outputs = deque([spend])
 
             def get_base_transaction():
@@ -131,13 +134,11 @@ class FullBlockTest(ComparisonTestFramework):
                 tx = CTransaction()
                 # Spend from one of the spendable outputs
                 spend = spendable_outputs.popleft()
-                spend.tx.rehash()
                 tx.vin.append(CTxIn(COutPoint(spend.tx.sha256, spend.n)))
                 # Add spendable outputs
                 for i in range(4):
                     tx.vout.append(CTxOut(0, CScript([OP_TRUE])))
                     spendable_outputs.append(PreviousSpendableOutput(tx, i))
-                pad_tx(tx)
                 return tx
 
             tx = get_base_transaction()
@@ -156,16 +157,15 @@ class FullBlockTest(ComparisonTestFramework):
                 CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
             # Add the transaction to the block
-            block.vtx.append(tx)
+            self.add_transactions_to_block(block, [tx])
 
             # Add transaction until we reach the expected transaction count
-            block.vtx.extend([get_base_transaction()
-                              for _ in range(extra_txns)])
+            for _ in range(extra_txns):
+                self.add_transactions_to_block(block, [get_base_transaction()])
 
             # If we have a block size requirement, just fill
             # the block until we get there
             current_block_size = len(block.serialize())
-            overage_bytes = 0
             while current_block_size < block_size:
                 # We will add a new transaction. That means the size of
                 # the field enumerating how many transaction go in the block
@@ -173,42 +173,40 @@ class FullBlockTest(ComparisonTestFramework):
                 current_block_size -= len(ser_compact_size(len(block.vtx)))
                 current_block_size += len(ser_compact_size(len(block.vtx) + 1))
 
-                # Add padding to fill the block.
-                left_to_fill = block_size - current_block_size
-
-                # Don't go over the 1 mb limit for a txn
-                if left_to_fill > 500000:
-                    # Make sure we eat up non-divisible by 100 amounts quickly
-                    # Also keep transaction less than 1 MB
-                    left_to_fill = 500000 + left_to_fill % 100
-
                 # Create the new transaction
                 tx = get_base_transaction()
-                pad_tx(tx, left_to_fill - overage_bytes)
-                if len(tx.serialize()) + current_block_size > block_size:
-                    # Our padding was too big try again
-                    overage_bytes += 1
-                    continue
+
+                # Add padding to fill the block.
+                script_length = block_size - current_block_size - base_tx_size
+                if script_length > 510000:
+                    if script_length < 1000000:
+                        # Make sure we don't find ourselves in a position where we
+                        # need to generate a transaction smaller than what we expected.
+                        script_length = script_length // 2
+                    else:
+                        script_length = 500000
+                script_output = CScript([b'\x00' * script_length])
+                tx.vout.append(CTxOut(0, script_output))
 
                 # Add the tx to the list of transactions to be included
                 # in the block.
-                block.vtx.append(tx)
+                self.add_transactions_to_block(block, [tx])
                 current_block_size += len(tx.serialize())
 
             # Now that we added a bunch of transaction, we need to recompute
             # the merkle root.
             make_conform_to_ctor(block)
+            block.hashMerkleRoot = block.calc_merkle_root()
 
-            # Check that the block size is what's expected
-            if block_size > 0:
-                assert len(block.serialize()) == block_size, "Block size wrong {} != {}".format(
-                    len(block.serialize()), block_size)
+        # Check that the block size is what's expected
+        if block_size > 0:
+            assert_equal(len(block.serialize()), block_size)
 
-        block.hashMerkleRoot = block.calc_merkle_root()
         # Do PoW, which is cheap on regnet
         block.solve()
         self.tip = block
         self.block_heights[block.sha256] = height
+        assert number not in self.blocks
         self.blocks[number] = block
         return block
 
