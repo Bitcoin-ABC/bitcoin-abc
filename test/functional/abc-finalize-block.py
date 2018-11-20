@@ -42,7 +42,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
         alt_node.generate(10)
 
         # Wait for node 0 to invalidate the chain.
-        def wait_for_invalid_block(block):
+        def wait_for_invalid_block(node, block):
             def check_block():
                 for tip in node.getchaintips():
                     if tip["hash"] == block:
@@ -51,7 +51,13 @@ class FinalizeBlockTest(BitcoinTestFramework):
                 return False
             wait_until(check_block)
 
-        wait_for_invalid_block(alt_node.getbestblockhash())
+        # node do not accept alt_node's chain due to tip being finalized,
+        # even though it is longer.
+        wait_for_invalid_block(node, alt_node.getbestblockhash())
+        assert_equal(node.getbestblockhash(), tip)
+
+        # alt_node has mined 10 block, so tip must be invalid due to finalization.
+        wait_for_invalid_block(alt_node, tip)
 
         self.log.info("Test that an invalid block cannot be finalized...")
         assert_raises_rpc_error(-20, RPC_FINALIZE_INVALID_BLOCK_ERROR,
