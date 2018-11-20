@@ -44,11 +44,9 @@ Bitcoin ABC Release Process
     The Github release name should be the same as the tag (without the prepended 'v'), and
     the contents of the release notes should be copied from release-notes.md.
 
-9. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases) 
-
 ## After Release
 
-10. Increment version number in:
+9. Increment version number in:
     - doc/Doxyfile
     - doc/release-notes.md
     - configure.ac
@@ -57,12 +55,13 @@ Bitcoin ABC Release Process
     - src/clientversion.h
     - contrib/gitian-descriptors/*.yml (before a new major release)
 
-11. Update version number on www.bitcoinabc.org
+10. Update version number on www.bitcoinabc.org
 
-12. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+11. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
 
-13. Announce Release:
+12. Announce Release:
     - [Reddit](https://www.reddit.com/r/BitcoinABC/)
     - Twitter @Bitcoin_ABC
     - Public slack channels friendly to Bitcoin ABC announcements 
       (eg. #abc-announce on BTCforks,  #hardfork on BTCchat)
+
