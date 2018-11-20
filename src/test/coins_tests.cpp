@@ -4,6 +4,7 @@
 
 #include <coins.h>
 
+#include <attributes.h>
 #include <clientversion.h>
 #include <script/standard.h>
 #include <streams.h>
@@ -38,7 +39,8 @@ class CCoinsViewTest : public CCoinsView {
     std::map<COutPoint, Coin> map_;
 
 public:
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override {
+    NODISCARD bool GetCoin(const COutPoint &outpoint,
+                           Coin &coin) const override {
         std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
         if (it == map_.end()) {
             return false;

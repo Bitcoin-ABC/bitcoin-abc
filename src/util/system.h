@@ -206,7 +206,8 @@ public:
 
     NODISCARD bool ParseParameters(int argc, const char *const argv[],
                                    std::string &error);
-    bool ReadConfigFiles(std::string &error, bool ignore_invalid_keys = false);
+    NODISCARD bool ReadConfigFiles(std::string &error,
+                                   bool ignore_invalid_keys = false);
 
     /**
      * Log warnings for options in m_section_only_args when they are specified
