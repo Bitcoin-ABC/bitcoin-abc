@@ -2,6 +2,7 @@
 #include "clientversion.h"
 #include "db.h"
 #include "dns.h"
+#include "logging.h"
 #include "protocol.h"
 #include "streams.h"
 
@@ -431,7 +432,7 @@ extern "C" void *ThreadStats(void *) {
             queries += dnsThread[i]->dbQueries;
         }
         printf("%s %i/%i available (%i tried in %is, %i new, %i active), %i "
-               "banned; %llu DNS requests, %llu db queries",
+               "banned; %llu DNS requests, %llu db queries\n",
                c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge,
                stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
                stats.nBanned, (unsigned long long)requests,
@@ -468,6 +469,9 @@ extern "C" void *ThreadSeeder(void *) {
 }
 
 int main(int argc, char **argv) {
+    // The logger dump everything on the console by default.
+    GetLogger().m_print_to_console = true;
+
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);
     CDnsSeedOpts opts;
