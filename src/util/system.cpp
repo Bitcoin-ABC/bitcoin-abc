@@ -348,17 +348,19 @@ ArgsManager::ArgsManager()
     // nothing to do
 }
 
-void ArgsManager::WarnForSectionOnlyArgs() {
+const std::set<std::string> ArgsManager::GetUnsuitableSectionOnlyArgs() const {
+    std::set<std::string> unsuitables;
+
     LOCK(cs_args);
 
     // if there's no section selected, don't worry
     if (m_network.empty()) {
-        return;
+        return std::set<std::string>{};
     }
 
     // if it's okay to use the default section for this network, don't worry
     if (m_network == CBaseChainParams::MAIN) {
-        return;
+        return std::set<std::string>{};
     }
 
     for (const auto &arg : m_network_only_args) {
@@ -384,10 +386,23 @@ void ArgsManager::WarnForSectionOnlyArgs() {
         }
 
         // otherwise, issue a warning
-        LogPrintf("Warning: Config setting for %s only applied on %s network "
-                  "when in [%s] section.\n",
-                  arg, m_network, m_network);
+        unsuitables.insert(arg);
     }
+    return unsuitables;
+}
+
+const std::set<std::string> ArgsManager::GetUnrecognizedSections() const {
+    // Section names to be recognized in the config file.
+    static const std::set<std::string> available_sections{
+        CBaseChainParams::REGTEST, CBaseChainParams::TESTNET,
+        CBaseChainParams::MAIN};
+    std::set<std::string> diff;
+
+    LOCK(cs_args);
+    std::set_difference(m_config_sections.begin(), m_config_sections.end(),
+                        available_sections.begin(), available_sections.end(),
+                        std::inserter(diff, diff.end()));
+    return diff;
 }
 
 void ArgsManager::SelectConfigNetwork(const std::string &network) {
@@ -876,7 +891,8 @@ static std::string TrimString(const std::string &str,
 
 static bool
 GetConfigOptions(std::istream &stream, std::string &error,
-                 std::vector<std::pair<std::string, std::string>> &options) {
+                 std::vector<std::pair<std::string, std::string>> &options,
+                 std::set<std::string> &sections) {
     std::string str, prefix;
     std::string::size_type pos;
     int linenr = 1;
@@ -890,7 +906,9 @@ GetConfigOptions(std::istream &stream, std::string &error,
         str = TrimString(str, pattern);
         if (!str.empty()) {
             if (*str.begin() == '[' && *str.rbegin() == ']') {
-                prefix = str.substr(1, str.size() - 2) + '.';
+                const std::string section = str.substr(1, str.size() - 2);
+                sections.insert(section);
+                prefix = section + '.';
             } else if (*str.begin() == '-') {
                 error = strprintf(
                     "parse error on line %i: %s, options in configuration file "
@@ -909,6 +927,9 @@ GetConfigOptions(std::istream &stream, std::string &error,
                     return false;
                 }
                 options.emplace_back(name, value);
+                if ((pos = name.rfind('.')) != std::string::npos) {
+                    sections.insert(name.substr(0, pos));
+                }
             } else {
                 error = strprintf("parse error on line %i: %s", linenr, str);
                 if (str.size() >= 2 && str.substr(0, 2) == "no") {
@@ -928,7 +949,8 @@ bool ArgsManager::ReadConfigStream(std::istream &stream, std::string &error,
                                    bool ignore_invalid_keys) {
     LOCK(cs_args);
     std::vector<std::pair<std::string, std::string>> options;
-    if (!GetConfigOptions(stream, error, options)) {
+    m_config_sections.clear();
+    if (!GetConfigOptions(stream, error, options, m_config_sections)) {
         return false;
     }
     for (const std::pair<std::string, std::string> &option : options) {
