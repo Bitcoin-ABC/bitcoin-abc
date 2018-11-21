@@ -50,7 +50,6 @@ Bitcoin ABC Release Process
     - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
     - configure.ac
     - src/config/CMakeLists.txt
-    - src/clientversion.h
     - contrib/gitian-descriptors/*.yml (before a new major release)
 
 10. Update version number on www.bitcoinabc.org
