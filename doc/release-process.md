@@ -15,9 +15,8 @@ Bitcoin ABC Release Process
     - Verify IBD without checkpoints and without assumevalid.
  
 3. Update the documents / code which needs to be updated every release
-    - Fill in doc/release-notes.md (copy existing one to versioned doc/release-notes/*.md document 
-      and update doc/release-notes.md)
-    - Update [bips.md](bips.md) to account for changes since the last release
+    - Check that doc/release-notes.md is complete, and fill in any missing items.
+    - Update [bips.md](bips.md) to account for changes since the last release.
     - (major releases) Update [`BLOCK_CHAIN_SIZE`](/src/qt/intro.cpp) to the current size plus
       some overhead.
     - Update `src/chainparams.cpp` defaultAssumeValid and nMinimumChainWork with information from
@@ -48,7 +47,7 @@ Bitcoin ABC Release Process
 
 9. Increment version number in:
     - doc/Doxyfile
-    - doc/release-notes.md
+    - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
     - configure.ac
     - src/config/CMakeLists.txt
     - src/test/net_tests.cpp
