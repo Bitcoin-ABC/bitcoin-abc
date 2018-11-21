@@ -80,11 +80,11 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Mining on top of blocks 1 or 2 is rejected
         tip(1)
         node.p2p.send_blocks_and_test(
-            [block(11)], node, success=False, reject_reason='bad-prevblk', request_block=False)
+            [block(11)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         tip(2)
         node.p2p.send_blocks_and_test(
-            [block(21)], node, success=False, reject_reason='bad-prevblk', request_block=False)
+            [block(21)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         # Reconsider block 2 to remove invalid status from *both* 1 and 2
         # The goal is to test that block 1 is not retaining any internal state
@@ -118,7 +118,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Mining on the block 2 chain should be rejected
         tip(24)
         node.p2p.send_blocks_and_test(
-            [block(25)], node, success=False, reject_reason='bad-prevblk', request_block=False)
+            [block(25)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         # Continued mining on the block 1 chain is still ok
         tip(13)
@@ -128,7 +128,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         # which is now invalid, should also be rejected.
         tip(221)
         node.p2p.send_blocks_and_test(
-            [block(222)], node, success=False, reject_reason='bad-prevblk', request_block=False)
+            [block(222)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         self.log.info(
             "Make sure that reconsidering a block behaves correctly when cousin chains (neither ancestors nor descendants) become available as a result")
