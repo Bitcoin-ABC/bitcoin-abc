@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "addrman.h"
 #include "chainparams.h"
+#include "clientversion.h"
 #include "config.h"
 #include "hash.h"
 #include "net.h"
@@ -12,6 +13,7 @@
 #include "streams.h"
 #include "test/test_bitcoin.h"
 
+#include <sstream>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
@@ -196,13 +198,17 @@ BOOST_AUTO_TEST_CASE(test_userAgentLength) {
                                  "very very very very very very long comment";
     gArgs.ForceSetMultiArg("-uacomment", long_uacomment);
 
+    std::ostringstream versionMessage;
+    versionMessage << "/Bitcoin ABC:" << CLIENT_VERSION_MAJOR << "."
+                   << CLIENT_VERSION_MINOR << "." << CLIENT_VERSION_REVISION
+                   << "(EB8.0; very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very very very very very "
+                      "very very very very very very very ve)/";
+
     BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
-    BOOST_CHECK_EQUAL(userAgent(config),
-                      "/Bitcoin ABC:0.18.6(EB8.0; very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very ve)/");
+    BOOST_CHECK_EQUAL(userAgent(config), versionMessage.str());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
