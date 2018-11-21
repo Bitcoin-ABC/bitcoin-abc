@@ -13,11 +13,9 @@ from test_framework.util import *
 from test_framework.mininode import *
 from test_framework.blocktools import create_coinbase, create_block
 from test_framework.script import CScript, CScriptNum, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP, OP_TRUE
+from test_framework.txtools import pad_tx
 
 CLTV_HEIGHT = 1351
-
-# far in the future
-MAGNETIC_ANOMALY_START_TIME = 2000000000
 
 # Reject codes that we might receive in this test
 REJECT_INVALID = 16
@@ -49,6 +47,7 @@ def cltv_lock_to_height(node, tx, height=-1):
     signed_result = node.signrawtransaction(ToHex(tx))
 
     new_tx = FromHex(CTransaction(), signed_result['hex'])
+    pad_tx(new_tx)
     new_tx.rehash()
 
     return new_tx
@@ -68,7 +67,7 @@ class BIP65Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [
-            ['-promiscuousmempoolflags=1', '-whitelist=127.0.0.1', '-magneticanomalyactivationtime=%d' % MAGNETIC_ANOMALY_START_TIME]]
+            ['-promiscuousmempoolflags=1', '-whitelist=127.0.0.1']]
         self.setup_clean_chain = True
 
     def run_test(self):
@@ -166,6 +165,7 @@ class BIP65Test(BitcoinTestFramework):
         assert(rejectedtx_signed['errors'][0]['error'] == 'Negative locktime')
 
         rejectedtx = FromHex(CTransaction(), rejectedtx_signed['hex'])
+        pad_tx(rejectedtx)
         rejectedtx.rehash()
 
         tip = block.hash
@@ -228,6 +228,7 @@ class BIP65Test(BitcoinTestFramework):
         # Signrawtransaction won't sign a non standard tx.
         # But the prevout being anyone can spend, scriptsig can be left empty
         validtx.vin[0].scriptSig = CScript()
+        pad_tx(validtx)
         validtx.rehash()
 
         tip = block.sha256
