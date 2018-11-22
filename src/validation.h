@@ -636,8 +636,6 @@ bool PreciousBlock(const Config &config, CValidationState &state,
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
                                 CBlockIndex *pindex);
 
-const CBlockIndex *GetFinalizedBlock();
-
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex);
@@ -654,6 +652,16 @@ bool UnparkBlockAndChildren(CBlockIndex *pindex);
 
 /** Remove parked status from a block. */
 bool UnparkBlock(CBlockIndex *pindex);
+
+/**
+ * Retrieve the topmost finalized block.
+ */
+const CBlockIndex *GetFinalizedBlock();
+
+/**
+ * Checks if a block is finalized.
+ */
+bool IsBlockFinalized(const CBlockIndex *pindex);
 
 /** The currently-connected chain of blocks (protected by cs_main). */
 extern CChain chainActive;
