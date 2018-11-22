@@ -12,7 +12,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 from test_framework.mininode import *
 from test_framework.blocktools import create_coinbase, create_block
-from test_framework.script import CScript, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP, CScriptNum
+from test_framework.script import CScript, CScriptNum, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP, OP_TRUE
 
 CLTV_HEIGHT = 1351
 
@@ -25,33 +25,32 @@ REJECT_OBSOLETE = 17
 REJECT_NONSTANDARD = 64
 
 
-def cltv_invalidate(tx):
-    '''Modify the signature in vin 0 of the tx to fail CLTV
+def cltv_lock_to_height(node, tx, height=-1):
+    '''Modify the scriptPubKey to add an OP_CHECKLOCKTIMEVERIFY
 
-    Prepends -1 CLTV DROP in the scriptSig itself.
+    This transforms the script to anyone can spend (OP_TRUE) if the lock time
+    condition is valid.
+
+    Default height is -1 which leads CLTV to fail
 
     TODO: test more ways that transactions using CLTV could be invalid (eg
     locktime requirements fail, sequence time requirements fail, etc).
     '''
-    tx.vin[0].scriptSig = CScript([OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP] +
-                                  list(CScript(tx.vin[0].scriptSig)))
+    height_op = OP_1NEGATE
+    if(height > 0):
+        tx.vin[0].nSequence = 0
+        tx.nLockTime = height
+        height_op = CScriptNum(height)
+
+    tx.vout[0].scriptPubKey = CScript(
+        [height_op, OP_CHECKLOCKTIMEVERIFY, OP_DROP, OP_TRUE])
     tx.rehash()
 
-
-def cltv_validate(node, tx, height):
-    '''Modify the signature in vin 0 of the tx to pass CLTV
-    Prepends <height> CLTV DROP in the scriptSig, and sets
-    the locktime to height'''
-    tx.vin[0].nSequence = 0
-    tx.nLockTime = height
-
-    # Need to re-sign, since nSequence and nLockTime changed
     signed_result = node.signrawtransaction(ToHex(tx))
-    new_tx = CTransaction()
-    new_tx.deserialize(BytesIO(hex_str_to_bytes(signed_result['hex'])))
 
-    new_tx.vin[0].scriptSig = CScript([CScriptNum(height), OP_CHECKLOCKTIMEVERIFY, OP_DROP] +
-                                      list(CScript(new_tx.vin[0].scriptSig)))
+    new_tx = FromHex(CTransaction(), signed_result['hex'])
+    new_tx.rehash()
+
     return new_tx
 
 
@@ -94,7 +93,7 @@ class BIP65Test(BitcoinTestFramework):
 
         spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[0],
                                      self.nodeaddress, 50.0)
-        cltv_invalidate(spendtx)
+        spendtx = cltv_lock_to_height(self.nodes[0], spendtx)
 
         # Make sure the tx is valid
         self.nodes[0].sendrawtransaction(ToHex(spendtx))
@@ -134,8 +133,8 @@ class BIP65Test(BitcoinTestFramework):
         block.nVersion = 4
 
         spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[1],
-                                     self.nodeaddress, 1.0)
-        cltv_invalidate(spendtx)
+                                     self.nodeaddress, 49.99)
+        spendtx = cltv_lock_to_height(self.nodes[0], spendtx)
 
         # First we show that this tx is valid except for CLTV by getting it
         # accepted to the mempool (which we can achieve with
@@ -143,13 +142,44 @@ class BIP65Test(BitcoinTestFramework):
         node0.send_and_ping(msg_tx(spendtx))
         assert spendtx.hash in self.nodes[0].getrawmempool()
 
-        # Now we verify that a block with this transaction is invalid.
+        # Mine a block containing the funding transaction
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
         node0.send_and_ping(msg_block(block))
-        assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
+        # This block is valid
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+
+        # But a block containing a transaction spending this utxo is not
+        rawspendtx = self.nodes[0].decoderawtransaction(ToHex(spendtx))
+        inputs = [{
+            "txid": rawspendtx['txid'],
+            "vout": rawspendtx['vout'][0]['n']
+        }]
+        output = {self.nodeaddress: 49.98}
+
+        rejectedtx_raw = self.nodes[0].createrawtransaction(inputs, output)
+        rejectedtx_signed = self.nodes[0].signrawtransaction(rejectedtx_raw)
+
+        # Couldn't complete signature due to CLTV
+        assert(rejectedtx_signed['errors'][0]['error'] == 'Negative locktime')
+
+        rejectedtx = FromHex(CTransaction(), rejectedtx_signed['hex'])
+        rejectedtx.rehash()
+
+        tip = block.hash
+        block_time += 1
+        block = create_block(
+            block.sha256, create_coinbase(CLTV_HEIGHT+1), block_time)
+        block.nVersion = 4
+        block.vtx.append(rejectedtx)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+
+        node0.send_and_ping(msg_block(block))
+        # This block is invalid
+        assert_equal(self.nodes[0].getbestblockhash(), tip)
 
         wait_until(lambda: "reject" in node0.last_message.keys(),
                    lock=mininode_lock)
@@ -166,16 +196,51 @@ class BIP65Test(BitcoinTestFramework):
 
         self.log.info(
             "Test that a version 4 block with a valid-according-to-CLTV transaction is accepted")
-        spendtx = cltv_validate(self.nodes[0], spendtx, CLTV_HEIGHT - 1)
-        spendtx.rehash()
+        spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[2],
+                                     self.nodeaddress, 49.99)
+        spendtx = cltv_lock_to_height(self.nodes[0], spendtx, CLTV_HEIGHT - 1)
 
+        # Modify the transaction in the block to be valid against CLTV
         block.vtx.pop(1)
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
         node0.send_and_ping(msg_block(block))
-        assert_equal(int(self.nodes[0].getbestblockhash(), 16), block.sha256)
+        # This block is now valid
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
+
+        # A block containing a transaction spending this utxo is also valid
+        # Build this transaction
+        rawspendtx = self.nodes[0].decoderawtransaction(ToHex(spendtx))
+        inputs = [{
+            "txid": rawspendtx['txid'],
+            "vout": rawspendtx['vout'][0]['n'],
+            "sequence": 0
+        }]
+        output = {self.nodeaddress: 49.98}
+
+        validtx_raw = self.nodes[0].createrawtransaction(
+            inputs, output, CLTV_HEIGHT)
+
+        validtx = FromHex(CTransaction(), validtx_raw)
+
+        # Signrawtransaction won't sign a non standard tx.
+        # But the prevout being anyone can spend, scriptsig can be left empty
+        validtx.vin[0].scriptSig = CScript()
+        validtx.rehash()
+
+        tip = block.sha256
+        block_time += 1
+        block = create_block(tip, create_coinbase(CLTV_HEIGHT+3), block_time)
+        block.nVersion = 4
+        block.vtx.append(validtx)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+
+        node0.send_and_ping(msg_block(block))
+        # This block is valid
+        assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
 
 if __name__ == '__main__':
