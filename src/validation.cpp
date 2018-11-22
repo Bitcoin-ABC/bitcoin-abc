@@ -1047,6 +1047,12 @@ static void InvalidChainFound(CBlockIndex *pindexNew) {
         pindexBestInvalid = pindexNew;
     }
 
+    // If the invalid chain found is supposed to be finalized, we need to move
+    // back the finalization point.
+    if (IsBlockFinalized(pindexNew)) {
+        pindexFinalized = pindexNew->pprev;
+    }
+
     LogPrintf(
         "%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n", __func__,
         pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
@@ -2446,6 +2452,7 @@ static CBlockIndex *FindMostWorkChain() {
                       pindexNew->GetBlockHash().ToString(),
                       pindexFinalized->nHeight);
             pindexNew->nStatus = pindexNew->nStatus.withFailed();
+            InvalidChainFound(pindexNew);
         }
 
         const CBlockIndex *pindexFork = chainActive.FindFork(pindexNew);
@@ -2915,11 +2922,6 @@ bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
     return true;
 }
 
-const CBlockIndex *GetFinalizedBlock() {
-    AssertLockHeld(cs_main);
-    return pindexFinalized;
-}
-
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex) {
     return UnwindBlock(config, state, pindex, true);
@@ -2986,6 +2988,12 @@ bool ResetBlockFailureFlags(CBlockIndex *pindex) {
         pindexBestInvalid = nullptr;
     }
 
+    // In case we are reconsidering something before the finalization point,
+    // move the finalization point to the last common ancestor.
+    if (pindexFinalized) {
+        pindexFinalized = LastCommonAncestor(pindex, pindexFinalized);
+    }
+
     UpdateFlags(pindex, [](const BlockStatus status) {
         return status.withClearedFailureFlags();
     });
@@ -3021,6 +3029,17 @@ bool UnparkBlockAndChildren(CBlockIndex *pindex) {
 
 bool UnparkBlock(CBlockIndex *pindex) {
     return UnparkBlockImpl(pindex, false);
+}
+
+const CBlockIndex *GetFinalizedBlock() {
+    AssertLockHeld(cs_main);
+    return pindexFinalized;
+}
+
+bool IsBlockFinalized(const CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+    return pindexFinalized &&
+           pindexFinalized->GetAncestor(pindex->nHeight) == pindex;
 }
 
 static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {

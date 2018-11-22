@@ -96,6 +96,11 @@ class FinalizeBlockTest(BitcoinTestFramework):
             "Finalize block is alt_node's tip!"
         assert_equal(node.getfinalizedblockhash(), finalized_block)
 
+        self.log.info(
+            "Make sure reconsidering block move the finalization point...")
+        node.reconsiderblock(alt_node.getbestblockhash())
+        assert_equal(node.getbestblockhash(), alt_node.getbestblockhash())
+
 
 if __name__ == '__main__':
     FinalizeBlockTest().main()
