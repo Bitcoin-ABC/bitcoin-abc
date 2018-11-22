@@ -9,6 +9,8 @@
 #include "scheduler.h"
 #include "validation.h"
 
+#include <boost/range/adaptor/reversed.hpp>
+
 bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
     return vote_records.getWriteView()
         ->insert(std::make_pair(pindex, VoteRecord()))
@@ -68,7 +70,13 @@ bool AvalancheProcessor::registerVotes(const AvalancheResponse &response) {
             const CBlockIndex *pindex = p.first;
             const AvalancheVote &v = p.second;
 
-            w[pindex].registerVote(v.IsValid());
+            auto it = w->find(pindex);
+            if (it == w.end()) {
+                // We are not voting on that item anymore.
+                continue;
+            }
+
+            it->second.registerVote(v.IsValid());
         }
     }
 
@@ -135,7 +143,8 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
     std::vector<CInv> invs;
 
     auto r = vote_records.getReadView();
-    for (const std::pair<const CBlockIndex *, VoteRecord> &p :r) {
+    for (const std::pair<const CBlockIndex *, VoteRecord> &p :
+         boost::adaptors::reverse(r)) {
         const VoteRecord &v = p.second;
         if (v.hasFinalized()) {
             // If this has finalized, we can just skip.
@@ -143,7 +152,7 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
         }
 
         // We don't have a decision, we need more votes.
-        invs.push_back(CInv(MSG_BLOCK, p.first->GetBlockHash()));
+        invs.emplace_back(MSG_BLOCK, p.first->GetBlockHash());
         if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
             // Make sure we do not produce more invs than specified by the
             // protocol.

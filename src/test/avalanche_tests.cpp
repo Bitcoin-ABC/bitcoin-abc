@@ -160,6 +160,67 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(p.hasFinalized(pindex));
 }
 
+BOOST_AUTO_TEST_CASE(multi_block_register) {
+    AvalancheProcessor p;
+    CBlockIndex indexA, indexB;
+
+    // Make sure the block has a hash.
+    CBlock blockA = CreateAndProcessBlock({}, CScript());
+    const uint256 blockHashA = blockA.GetHash();
+    const CBlockIndex *pindexA = mapBlockIndex[blockHashA];
+
+    CBlock blockB = CreateAndProcessBlock({}, CScript());
+    const uint256 blockHashB = blockB.GetHash();
+    const CBlockIndex *pindexB = mapBlockIndex[blockHashB];
+
+    // Querying for random block returns false.
+    BOOST_CHECK(!p.isAccepted(pindexA));
+    BOOST_CHECK(!p.isAccepted(pindexB));
+
+    // Start voting on block A.
+    BOOST_CHECK(p.addBlockToReconcile(pindexA));
+    auto invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHashA);
+
+    AvalancheResponse resp{
+        0, {AvalancheVote(0, blockHashA), AvalancheVote(0, blockHashB)}};
+    p.registerVotes(resp);
+
+    // Start voting on block B after one vote.
+    BOOST_CHECK(p.addBlockToReconcile(pindexB));
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 2);
+
+    // Ensure B comes before A because it has accumulated more PoW.
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHashB);
+    BOOST_CHECK_EQUAL(invs[1].type, MSG_BLOCK);
+    BOOST_CHECK(invs[1].hash == blockHashA);
+
+    // Now it is rejected, but we can vote for it numerous times.
+    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE + 4; i++) {
+        p.registerVotes(resp);
+    }
+
+    // Next vote will finalize block A.
+    p.registerVotes(resp);
+
+    // We do not vote on A anymore.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHashB);
+
+    // Next vote will finalize block B.
+    p.registerVotes(resp);
+
+    // There is nothing left to vote on.
+    invs = AvalancheTest::getInvsForNextPoll(p);
+    BOOST_CHECK_EQUAL(invs.size(), 0);
+}
+
 BOOST_AUTO_TEST_CASE(event_loop) {
     AvalancheProcessor p;
     CScheduler s;
