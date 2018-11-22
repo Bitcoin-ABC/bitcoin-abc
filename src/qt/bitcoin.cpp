@@ -72,10 +72,6 @@ Q_DECLARE_METATYPE(uint256)
 // Config is non-copyable so we can only register pointers to it
 Q_DECLARE_METATYPE(Config *)
 
-static void InitMessage(const std::string &message) {
-    noui_InitMessage(message);
-}
-
 static QString GetLangTerritory() {
     QSettings settings;
     // Get desired locale (e.g. "de_DE")
@@ -524,6 +520,14 @@ int GuiMain(int argc, char *argv[]) {
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 
+    // Subscribe to global signals from core
+    std::unique_ptr<interfaces::Handler> handler_message_box =
+        node->handleMessageBox(noui_ThreadSafeMessageBox);
+    std::unique_ptr<interfaces::Handler> handler_question =
+        node->handleQuestion(noui_ThreadSafeQuestion);
+    std::unique_ptr<interfaces::Handler> handler_init_message =
+        node->handleInitMessage(noui_InitMessage);
+
     // Do not refer to data directory yet, this can be overridden by
     // Intro::pickDataDirectory
 
@@ -700,10 +704,6 @@ int GuiMain(int argc, char *argv[]) {
     app.parameterSetup();
     // Load GUI settings from QSettings
     app.createOptionsModel(gArgs.GetBoolArg("-resetguisettings", false));
-
-    // Subscribe to global signals from core
-    std::unique_ptr<interfaces::Handler> handler =
-        node->handleInitMessage(InitMessage);
 
     // Get global config
     Config &config = const_cast<Config &>(GetConfig());
