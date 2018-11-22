@@ -31,7 +31,14 @@ BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
     BOOST_CHECK_EQUAL(vr.getConfidence(), confidence);
 
 BOOST_AUTO_TEST_CASE(vote_record) {
-    VoteRecord vr;
+    VoteRecord vraccepted(true);
+
+    // Check initial state.
+    BOOST_CHECK_EQUAL(vraccepted.isAccepted(), true);
+    BOOST_CHECK_EQUAL(vraccepted.hasFinalized(), false);
+    BOOST_CHECK_EQUAL(vraccepted.getConfidence(), 0);
+
+    VoteRecord vr(false);
 
     // Check initial state.
     BOOST_CHECK_EQUAL(vr.isAccepted(), false);
@@ -148,30 +155,20 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK(invs[0].hash == blockHash);
 
-    // Newly added blocks are also considered rejected.
-    BOOST_CHECK(!p.isAccepted(pindex));
+    // Newly added blocks' state reflect the blockchain.
+    BOOST_CHECK(p.isAccepted(pindex));
 
     // Let's vote for this block a few times.
     AvalancheResponse resp{0, {AvalancheVote(0, blockHash)}};
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
-        BOOST_CHECK(!p.isAccepted(pindex));
+        BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
-    // Now the state will flip.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
-    BOOST_CHECK(p.isAccepted(pindex));
-    BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Accepted);
-    updates = {};
-
-    // Now it is accepted, but we can vote for it numerous times.
-    for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+    // We vote for it numerous times to finalize it.
+    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
         BOOST_CHECK(p.isAccepted(pindex));
@@ -204,17 +201,26 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK(invs[0].hash == blockHash);
 
-    // Only 3 here as we don't need to flip state.
     resp = {0, {AvalancheVote(1, blockHash)}};
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
-        BOOST_CHECK(!p.isAccepted(pindex));
+        BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
+    // Now the state will flip.
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK_EQUAL(updates.size(), 1);
+    BOOST_CHECK(updates[0].getBlockIndex() == pindex);
+    BOOST_CHECK_EQUAL(updates[0].getStatus(),
+                      AvalancheBlockUpdate::Status::Rejected);
+    updates = {};
+
     // Now it is rejected, but we can vote for it numerous times.
-    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+    for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
         BOOST_CHECK(!p.isAccepted(pindex));
@@ -244,7 +250,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // Adding the block twice does nothing.
     BOOST_CHECK(p.addBlockToReconcile(pindex));
     BOOST_CHECK(!p.addBlockToReconcile(pindex));
-    BOOST_CHECK(!p.isAccepted(pindex));
+    BOOST_CHECK(p.isAccepted(pindex));
 
     CConnmanTest::ClearNodes();
 }
@@ -300,32 +306,14 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(invs[1].hash == blockHashA);
 
     // Let's vote for these blocks a few times.
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
-    // Now the state will flip for A.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getBlockIndex() == pindexA);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Accepted);
-    updates = {};
-
-    // And then for B.
-    AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getBlockIndex() == pindexB);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(),
-                      AvalancheBlockUpdate::Status::Accepted);
-    updates = {};
-
-    // Now it is rejected, but we can vote for it numerous times.
-    for (int i = 2; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+    // Now it is accepted, but we can vote for it numerous times.
+    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -453,12 +441,20 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     // Out of order response are rejected.
     CBlock block2 = CreateAndProcessBlock({}, CScript());
     const uint256 blockHash2 = block2.GetHash();
-    const CBlockIndex *pindex2 = mapBlockIndex[blockHash2];
+    CBlockIndex *pindex2 = mapBlockIndex[blockHash2];
     BOOST_CHECK(p.addBlockToReconcile(pindex2));
 
     resp = {0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash2)}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
+
+    // When a block is marked invalid, stop polling.
+    pindex2->nStatus = pindex2->nStatus.withFailed();
+    resp = {0, {AvalancheVote(0, blockHash)}};
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
