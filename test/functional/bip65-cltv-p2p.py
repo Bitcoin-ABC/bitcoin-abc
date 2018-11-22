@@ -13,7 +13,6 @@ from test_framework.util import *
 from test_framework.mininode import *
 from test_framework.blocktools import create_coinbase, create_block
 from test_framework.script import CScript, OP_1NEGATE, OP_CHECKLOCKTIMEVERIFY, OP_DROP, CScriptNum
-from io import BytesIO
 
 CLTV_HEIGHT = 1351
 
@@ -62,8 +61,7 @@ def create_transaction(node, coinbase, to_address, amount):
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
     signresult = node.signrawtransaction(rawtx)
-    tx = CTransaction()
-    tx.deserialize(BytesIO(hex_str_to_bytes(signresult['hex'])))
+    tx = FromHex(CTransaction(), signresult['hex'])
     return tx
 
 
@@ -81,7 +79,8 @@ class BIP65Test(BitcoinTestFramework):
             NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], node0))
         node0.add_connection(connections[0])
 
-        NetworkThread().start()  # Start up network handling in another thread
+        # Start up network handling in another thread
+        NetworkThread().start()
 
         # wait_for_verack ensures that the P2P connection is fully up.
         node0.wait_for_verack()
@@ -98,7 +97,7 @@ class BIP65Test(BitcoinTestFramework):
         cltv_invalidate(spendtx)
 
         # Make sure the tx is valid
-        self.nodes[0].sendrawtransaction(bytes_to_hex_str(spendtx.serialize()))
+        self.nodes[0].sendrawtransaction(ToHex(spendtx))
 
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)['mediantime'] + 1
