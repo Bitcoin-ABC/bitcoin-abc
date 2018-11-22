@@ -176,6 +176,24 @@ UniValue getbestblockhash(const Config &config, const JSONRPCRequest &request) {
     return chainActive.Tip()->GetBlockHash().GetHex();
 }
 
+UniValue getfinalizedblockhash(const Config &config,
+                               const JSONRPCRequest &request) {
+    if (request.fHelp || request.params.size() != 0) {
+        throw std::runtime_error(
+            "getfinalizedblockhash\n"
+            "\nReturns the hash of the currently finalized block\n"
+            "\nResult:\n"
+            "\"hex\"      (string) the block hash hex encoded\n");
+    }
+
+    LOCK(cs_main);
+    const CBlockIndex *blockIndexFinalized = GetFinalizedBlock();
+    if (blockIndexFinalized) {
+        return blockIndexFinalized->GetBlockHash().GetHex();
+    }
+    return UniValue(UniValue::VSTR);
+}
+
 void RPCNotifyBlockChange(bool ibd, const CBlockIndex *pindex) {
     if (pindex) {
         std::lock_guard<std::mutex> lock(cs_blockchange);
@@ -1815,6 +1833,7 @@ static const ContextFreeRPCCommand commands[] = {
     { "blockchain",         "preciousblock",          preciousblock,          {"blockhash"} },
 
     /* Not shown in help */
+    { "hidden",             "getfinalizedblockhash",  getfinalizedblockhash,  {} },
     { "hidden",             "finalizeblock",          finalizeblock,          {"blockhash"} },
     { "hidden",             "invalidateblock",        invalidateblock,        {"blockhash"} },
     { "hidden",             "parkblock",              parkblock,              {"blockhash"} },

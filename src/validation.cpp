@@ -2915,6 +2915,11 @@ bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
     return true;
 }
 
+const CBlockIndex *GetFinalizedBlock() {
+    AssertLockHeld(cs_main);
+    return pindexFinalized;
+}
+
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex) {
     return UnwindBlock(config, state, pindex, true);
