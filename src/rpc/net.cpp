@@ -409,8 +409,7 @@ static UniValue getaddednodeinfo(const Config &config,
         if (info.fConnected) {
             UniValue address(UniValue::VOBJ);
             address.pushKV("address", info.resolvedAddress.ToString());
-            address.push_back(
-                Pair("connected", info.fInbound ? "inbound" : "outbound"));
+            address.pushKV("connected", info.fInbound ? "inbound" : "outbound");
             addresses.push_back(address);
         }
         obj.pushKV("addresses", addresses);
@@ -467,17 +466,16 @@ static UniValue getnettotals(const Config &config,
     obj.pushKV("timemillis", GetTimeMillis());
 
     UniValue outboundLimit(UniValue::VOBJ);
-    outboundLimit.push_back(
-        Pair("timeframe", g_connman->GetMaxOutboundTimeframe()));
+    outboundLimit.pushKV("timeframe", g_connman->GetMaxOutboundTimeframe());
     outboundLimit.pushKV("target", g_connman->GetMaxOutboundTarget());
-    outboundLimit.push_back(
-        Pair("target_reached", g_connman->OutboundTargetReached(false)));
-    outboundLimit.push_back(Pair("serve_historical_blocks",
-                                 !g_connman->OutboundTargetReached(true)));
-    outboundLimit.push_back(
-        Pair("bytes_left_in_cycle", g_connman->GetOutboundTargetBytesLeft()));
-    outboundLimit.push_back(
-        Pair("time_left_in_cycle", g_connman->GetMaxOutboundTimeLeftInCycle()));
+    outboundLimit.pushKV("target_reached",
+                         g_connman->OutboundTargetReached(false));
+    outboundLimit.pushKV("serve_historical_blocks",
+                         !g_connman->OutboundTargetReached(true));
+    outboundLimit.pushKV("bytes_left_in_cycle",
+                         g_connman->GetOutboundTargetBytesLeft());
+    outboundLimit.pushKV("time_left_in_cycle",
+                         g_connman->GetMaxOutboundTimeLeftInCycle());
     obj.pushKV("uploadtarget", outboundLimit);
     return obj;
 }
@@ -495,11 +493,10 @@ static UniValue GetNetworksInfo() {
         obj.pushKV("name", GetNetworkName(network));
         obj.pushKV("limited", IsLimited(network));
         obj.pushKV("reachable", IsReachable(network));
-        obj.push_back(Pair("proxy",
-                           proxy.IsValid() ? proxy.proxy.ToStringIPPort()
-                                           : std::string()));
-        obj.push_back(
-            Pair("proxy_randomize_credentials", proxy.randomize_credentials));
+        obj.pushKV("proxy",
+                   proxy.IsValid() ? proxy.proxy.ToStringIPPort()
+                                   : std::string());
+        obj.pushKV("proxy_randomize_credentials", proxy.randomize_credentials);
         networks.push_back(obj);
     }
     return networks;
@@ -579,21 +576,21 @@ static UniValue getnetworkinfo(const Config &config,
     obj.pushKV("subversion", userAgent(config));
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
     if (g_connman) {
-        obj.push_back(Pair("localservices",
-                           strprintf("%016x", g_connman->GetLocalServices())));
+        obj.pushKV("localservices",
+                   strprintf("%016x", g_connman->GetLocalServices()));
     }
     obj.pushKV("localrelay", fRelayTxes);
     obj.pushKV("timeoffset", GetTimeOffset());
     if (g_connman) {
         obj.pushKV("networkactive", g_connman->GetNetworkActive());
-        obj.push_back(Pair("connections", int(g_connman->GetNodeCount(
-                                              CConnman::CONNECTIONS_ALL))));
+        obj.pushKV("connections",
+                   int(g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     }
     obj.pushKV("networks", GetNetworksInfo());
-    obj.push_back(Pair("relayfee",
-                       ValueFromAmount(config.GetMinFeePerKB().GetFeePerK())));
-    obj.push_back(Pair("excessutxocharge",
-                       ValueFromAmount(config.GetExcessUTXOCharge())));
+    obj.pushKV("relayfee",
+               ValueFromAmount(config.GetMinFeePerKB().GetFeePerK()));
+    obj.pushKV("excessutxocharge",
+               ValueFromAmount(config.GetExcessUTXOCharge()));
     UniValue localAddresses(UniValue::VARR);
     {
         LOCK(cs_mapLocalHost);

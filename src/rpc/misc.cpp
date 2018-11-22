@@ -109,16 +109,15 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.pushKV("blocks", (int)chainActive.Height());
     obj.pushKV("timeoffset", GetTimeOffset());
     if (g_connman) {
-        obj.push_back(
-            Pair("connections",
-                 (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
+        obj.pushKV("connections",
+                   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
     }
-    obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
-                                                 : std::string())));
+    obj.pushKV("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
+                                         : std::string()));
     obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.push_back(Pair("testnet",
-                       config.GetChainParams().NetworkIDString() ==
-                           CBaseChainParams::TESTNET));
+    obj.pushKV("testnet",
+               config.GetChainParams().NetworkIDString() ==
+                   CBaseChainParams::TESTNET);
 #ifdef ENABLE_WALLET
     if (pwallet) {
         obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
@@ -129,8 +128,8 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     }
     obj.pushKV("paytxfee", ValueFromAmount(payTxFee.GetFeePerK()));
 #endif
-    obj.push_back(Pair("relayfee",
-                       ValueFromAmount(config.GetMinFeePerKB().GetFeePerK())));
+    obj.pushKV("relayfee",
+               ValueFromAmount(config.GetMinFeePerKB().GetFeePerK()));
     obj.pushKV("errors", GetWarnings("statusbar"));
     return obj;
 }
@@ -167,8 +166,7 @@ public:
             int nRequired;
             ExtractDestinations(subscript, whichType, addresses, nRequired);
             obj.pushKV("script", GetTxnOutputType(whichType));
-            obj.push_back(
-                Pair("hex", HexStr(subscript.begin(), subscript.end())));
+            obj.pushKV("hex", HexStr(subscript.begin(), subscript.end()));
             UniValue a(UniValue::VARR);
             for (const CTxDestination &addr : addresses) {
                 a.push_back(EncodeDestination(addr));
@@ -246,14 +244,13 @@ static UniValue validateaddress(const Config &config,
         ret.pushKV("address", currentAddress);
 
         CScript scriptPubKey = GetScriptForDestination(dest);
-        ret.push_back(Pair("scriptPubKey",
-                           HexStr(scriptPubKey.begin(), scriptPubKey.end())));
+        ret.pushKV("scriptPubKey",
+                   HexStr(scriptPubKey.begin(), scriptPubKey.end()));
 
 #ifdef ENABLE_WALLET
         isminetype mine = pwallet ? IsMine(*pwallet, dest) : ISMINE_NO;
         ret.pushKV("ismine", (mine & ISMINE_SPENDABLE) ? true : false);
-        ret.push_back(
-            Pair("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false));
+        ret.pushKV("iswatchonly", (mine & ISMINE_WATCH_ONLY) ? true : false);
         UniValue detail =
             boost::apply_visitor(DescribeAddressVisitor(pwallet), dest);
         ret.pushKVs(detail);
@@ -271,8 +268,8 @@ static UniValue validateaddress(const Config &config,
                 ret.pushKV("timestamp", it->second.nCreateTime);
                 if (!it->second.hdKeypath.empty()) {
                     ret.pushKV("hdkeypath", it->second.hdKeypath);
-                    ret.push_back(Pair("hdmasterkeyid",
-                                       it->second.hdMasterKeyID.GetHex()));
+                    ret.pushKV("hdmasterkeyid",
+                               it->second.hdMasterKeyID.GetHex());
                 }
             }
         }
