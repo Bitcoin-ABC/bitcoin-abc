@@ -636,6 +636,8 @@ bool PreciousBlock(const Config &config, CValidationState &state,
 bool FinalizeBlockAndInvalidate(const Config &config, CValidationState &state,
                                 CBlockIndex *pindex);
 
+const CBlockIndex *GetFinalizedBlock();
+
 /** Mark a block as invalid. */
 bool InvalidateBlock(const Config &config, CValidationState &state,
                      CBlockIndex *pindex);

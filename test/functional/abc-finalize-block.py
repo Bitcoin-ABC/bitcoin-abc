@@ -9,11 +9,14 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, connect_nodes_bi, sync_blocks, wait_until
 
 RPC_FINALIZE_INVALID_BLOCK_ERROR = 'finalize-invalid-block'
+AUTO_FINALIZATION_DEPTH = 10
 
 
 class FinalizeBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.extra_flags = [["-maxreorgdepth={}".format(AUTO_FINALIZATION_DEPTH)], [
+            "-maxreorgdepth={}".format(AUTO_FINALIZATION_DEPTH)]]
 
     # There should only be one chaintip, which is expected_tip
     def only_valid_tip(self, expected_tip, other_tip_status=None):
@@ -39,6 +42,8 @@ class FinalizeBlockTest(BitcoinTestFramework):
         sync_blocks(self.nodes[0:2])
 
         alt_node.invalidateblock(tip)
+        # We will use this later to check auto-finalization during a reorg
+        auto_finalized_tip = alt_node.getbestblockhash()
         alt_node.generate(10)
 
         # Wait for node 0 to invalidate the chain.
@@ -67,19 +72,29 @@ class FinalizeBlockTest(BitcoinTestFramework):
             "Test that invalidating a finalized block moves the finalization backward...")
         node.invalidateblock(tip)
         node.reconsiderblock(tip)
+        finalized_block = node.getblockhash(
+            int(node.getblockheader(tip)['height']) - AUTO_FINALIZATION_DEPTH)
         assert_equal(node.getbestblockhash(), tip)
+        assert_equal(
+            node.getfinalizedblockhash(),
+            finalized_block)
 
         # The node will now accept that chain as the finalized block moved back.
         node.reconsiderblock(alt_node.getbestblockhash())
         assert_equal(node.getbestblockhash(), alt_node.getbestblockhash())
+        assert_equal(node.getfinalizedblockhash(), auto_finalized_tip)
 
         self.log.info("Trigger reorg via block finalization...")
         node.finalizeblock(tip)
-        assert_equal(node.getbestblockhash(), tip)
+        assert_equal(node.getfinalizedblockhash(),
+                     finalized_block)
 
         self.log.info("Try to finalized a block on a competiting fork...")
         assert_raises_rpc_error(-20, RPC_FINALIZE_INVALID_BLOCK_ERROR,
                                 node.finalizeblock, alt_node.getbestblockhash())
+        assert node.getfinalizedblockhash() != alt_node.getbestblockhash(), \
+            "Finalize block is alt_node's tip!"
+        assert_equal(node.getfinalizedblockhash(), finalized_block)
 
 
 if __name__ == '__main__':
