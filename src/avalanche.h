@@ -59,7 +59,7 @@ private:
     }
 
 public:
-    VoteRecord() : votes(0xaaaa), confidence(0) {}
+    VoteRecord(bool accepted) : votes(0xaaaa), confidence(accepted) {}
 
     bool isAccepted() const { return confidence & 0x01; }
 

@@ -11,9 +11,37 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
+static bool IsWorthPolling(const CBlockIndex *pindex) {
+    AssertLockHeld(cs_main);
+
+    if (pindex->nStatus.isInvalid()) {
+        // No point polling invalid blocks.
+        return false;
+    }
+
+    if (IsBlockFinalized(pindex)) {
+        // There is no point polling finalized block.
+        return false;
+    }
+
+    return true;
+}
+
 bool AvalancheProcessor::addBlockToReconcile(const CBlockIndex *pindex) {
+    bool isAccepted;
+
+    {
+        LOCK(cs_main);
+        if (!IsWorthPolling(pindex)) {
+            // There is no point polling this block.
+            return false;
+        }
+
+        isAccepted = chainActive.Contains(pindex);
+    }
+
     return vote_records.getWriteView()
-        ->insert(std::make_pair(pindex, VoteRecord()))
+        ->insert(std::make_pair(pindex, VoteRecord(isAccepted)))
         .second;
 }
 
@@ -84,7 +112,13 @@ bool AvalancheProcessor::registerVotes(
                 continue;
             }
 
-            responseIndex.insert(std::make_pair(mi->second, v));
+            CBlockIndex *pindex = mi->second;
+            if (!IsWorthPolling(pindex)) {
+                // There is no point polling this block.
+                continue;
+            }
+
+            responseIndex.insert(std::make_pair(pindex, v));
         }
     }
 
@@ -196,9 +230,9 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
     auto r = vote_records.getReadView();
     for (const std::pair<const CBlockIndex *, VoteRecord> &p :
          boost::adaptors::reverse(r)) {
-        const VoteRecord &v = p.second;
-        if (v.hasFinalized()) {
-            // If this has finalized, we can just skip.
+        const CBlockIndex *pindex = p.first;
+        if (!IsWorthPolling(pindex)) {
+            // Obviously do not poll if the block is not worth polling.
             continue;
         }
 
