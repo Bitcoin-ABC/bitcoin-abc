@@ -78,20 +78,18 @@ UniValue blockheaderToJSON(const CBlockIndex *blockindex) {
     result.pushKV("confirmations", confirmations);
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", blockindex->nVersion);
-    result.push_back(
-        Pair("versionHex", strprintf("%08x", blockindex->nVersion)));
+    result.pushKV("versionHex", strprintf("%08x", blockindex->nVersion));
     result.pushKV("merkleroot", blockindex->hashMerkleRoot.GetHex());
     result.pushKV("time", int64_t(blockindex->nTime));
-    result.push_back(
-        Pair("mediantime", int64_t(blockindex->GetMedianTimePast())));
+    result.pushKV("mediantime", int64_t(blockindex->GetMedianTimePast()));
     result.pushKV("nonce", uint64_t(blockindex->nNonce));
     result.pushKV("bits", strprintf("%08x", blockindex->nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));
     result.pushKV("chainwork", blockindex->nChainWork.GetHex());
 
     if (blockindex->pprev) {
-        result.push_back(Pair("previousblockhash",
-                              blockindex->pprev->GetBlockHash().GetHex()));
+        result.pushKV("previousblockhash",
+                      blockindex->pprev->GetBlockHash().GetHex());
     }
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext) {
@@ -110,8 +108,8 @@ UniValue blockToJSON(const Config &config, const CBlock &block,
         confirmations = chainActive.Height() - blockindex->nHeight + 1;
     }
     result.pushKV("confirmations", confirmations);
-    result.push_back(Pair(
-        "size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
+    result.pushKV(
+        "size", (int)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION));
     result.pushKV("height", blockindex->nHeight);
     result.pushKV("version", block.nVersion);
     result.pushKV("versionHex", strprintf("%08x", block.nVersion));
@@ -128,16 +126,15 @@ UniValue blockToJSON(const Config &config, const CBlock &block,
     }
     result.pushKV("tx", txs);
     result.pushKV("time", block.GetBlockTime());
-    result.push_back(
-        Pair("mediantime", int64_t(blockindex->GetMedianTimePast())));
+    result.pushKV("mediantime", int64_t(blockindex->GetMedianTimePast()));
     result.pushKV("nonce", uint64_t(block.nNonce));
     result.pushKV("bits", strprintf("%08x", block.nBits));
     result.pushKV("difficulty", GetDifficulty(blockindex));
     result.pushKV("chainwork", blockindex->nChainWork.GetHex());
 
     if (blockindex->pprev) {
-        result.push_back(Pair("previousblockhash",
-                              blockindex->pprev->GetBlockHash().GetHex()));
+        result.pushKV("previousblockhash",
+                      blockindex->pprev->GetBlockHash().GetHex());
     }
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext) {
@@ -407,12 +404,10 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) {
     info.pushKV("time", e.GetTime());
     info.pushKV("height", (int)e.GetHeight());
     info.pushKV("startingpriority", e.GetPriority(e.GetHeight()));
-    info.push_back(
-        Pair("currentpriority", e.GetPriority(chainActive.Height())));
+    info.pushKV("currentpriority", e.GetPriority(chainActive.Height()));
     info.pushKV("descendantcount", e.GetCountWithDescendants());
     info.pushKV("descendantsize", e.GetSizeWithDescendants());
-    info.push_back(
-        Pair("descendantfees", e.GetModFeesWithDescendants() / SATOSHI));
+    info.pushKV("descendantfees", e.GetModFeesWithDescendants() / SATOSHI);
     info.pushKV("ancestorcount", e.GetCountWithAncestors());
     info.pushKV("ancestorsize", e.GetSizeWithAncestors());
     info.pushKV("ancestorfees", e.GetModFeesWithAncestors() / SATOSHI);
@@ -1040,8 +1035,7 @@ UniValue gettxoutsetinfo(const Config &config, const JSONRPCRequest &request) {
         ret.pushKV("bogosize", int64_t(stats.nBogoSize));
         ret.pushKV("hash_serialized", stats.hashSerialized.GetHex());
         ret.pushKV("disk_size", stats.nDiskSize);
-        ret.push_back(
-            Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
+        ret.pushKV("total_amount", ValueFromAmount(stats.nTotalAmount));
     } else {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
     }
@@ -1126,8 +1120,8 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
     if (coin.GetHeight() == MEMPOOL_HEIGHT) {
         ret.pushKV("confirmations", 0);
     } else {
-        ret.push_back(Pair("confirmations",
-                           int64_t(pindex->nHeight - coin.GetHeight() + 1)));
+        ret.pushKV("confirmations",
+                   int64_t(pindex->nHeight - coin.GetHeight() + 1));
     }
     ret.pushKV("value", ValueFromAmount(coin.GetTxOut().nValue));
     UniValue o(UniValue::VOBJ);
@@ -1201,8 +1195,7 @@ static UniValue SoftForkDesc(const std::string &name, int version,
     UniValue rv(UniValue::VOBJ);
     rv.pushKV("id", name);
     rv.pushKV("version", version);
-    rv.push_back(
-        Pair("reject", SoftForkMajorityDesc(version, pindex, consensusParams)));
+    rv.pushKV("reject", SoftForkMajorityDesc(version, pindex, consensusParams));
     return rv;
 }
 
@@ -1257,17 +1250,13 @@ UniValue getblockchaininfo(const Config &config,
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
     obj.pushKV("blocks", int(chainActive.Height()));
-    obj.push_back(
-        Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
-    obj.push_back(
-        Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
+    obj.pushKV("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1);
+    obj.pushKV("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex());
     obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.push_back(
-        Pair("mediantime", int64_t(chainActive.Tip()->GetMedianTimePast())));
-    obj.push_back(
-        Pair("verificationprogress",
-             GuessVerificationProgress(config.GetChainParams().TxData(),
-                                       chainActive.Tip())));
+    obj.pushKV("mediantime", int64_t(chainActive.Tip()->GetMedianTimePast()));
+    obj.pushKV("verificationprogress",
+               GuessVerificationProgress(config.GetChainParams().TxData(),
+                                         chainActive.Tip()));
     obj.pushKV("chainwork", chainActive.Tip()->nChainWork.GetHex());
     obj.pushKV("pruned", fPruneMode);
 
@@ -1434,9 +1423,8 @@ UniValue mempoolInfoToJSON() {
     size_t maxmempool =
         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
-    ret.push_back(
-        Pair("mempoolminfee",
-             ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK())));
+    ret.pushKV("mempoolminfee",
+               ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK()));
 
     return ret;
 }

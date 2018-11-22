@@ -628,12 +628,10 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
 
             // pack in some essentials
             // use more or less the same output as mentioned in Bip64
-            objGetUTXOResponse.push_back(
-                Pair("chainHeight", chainActive.Height()));
-            objGetUTXOResponse.push_back(Pair(
-                "chaintipHash", chainActive.Tip()->GetBlockHash().GetHex()));
-            objGetUTXOResponse.push_back(
-                Pair("bitmap", bitmapStringRepresentation));
+            objGetUTXOResponse.pushKV("chainHeight", chainActive.Height());
+            objGetUTXOResponse.pushKV(
+                "chaintipHash", chainActive.Tip()->GetBlockHash().GetHex());
+            objGetUTXOResponse.pushKV("bitmap", bitmapStringRepresentation);
 
             UniValue utxos(UniValue::VARR);
             for (const CCoin &coin : outs) {

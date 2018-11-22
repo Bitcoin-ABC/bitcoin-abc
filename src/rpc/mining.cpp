@@ -252,10 +252,9 @@ static UniValue getmininginfo(const Config &config,
     obj.pushKV("currentblocksize", uint64_t(nLastBlockSize));
     obj.pushKV("currentblocktx", uint64_t(nLastBlockTx));
     obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.push_back(
-        Pair("blockprioritypercentage",
-             uint8_t(gArgs.GetArg("-blockprioritypercentage",
-                                  DEFAULT_BLOCK_PRIORITY_PERCENTAGE))));
+    obj.pushKV("blockprioritypercentage",
+               uint8_t(gArgs.GetArg("-blockprioritypercentage",
+                                    DEFAULT_BLOCK_PRIORITY_PERCENTAGE)));
     obj.pushKV("errors", GetWarnings("statusbar"));
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
     obj.pushKV("pooledtx", uint64_t(mempool.size()));
@@ -642,8 +641,7 @@ static UniValue getblocktemplate(const Config &config,
     }
 
     UniValue aux(UniValue::VOBJ);
-    aux.push_back(
-        Pair("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
+    aux.pushKV("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end()));
 
     arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 
@@ -660,19 +658,17 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
     result.pushKV("transactions", transactions);
     result.pushKV("coinbaseaux", aux);
-    result.push_back(Pair("coinbasevalue",
-                          int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI)));
-    result.push_back(Pair("longpollid",
-                          chainActive.Tip()->GetBlockHash().GetHex() +
-                              i64tostr(nTransactionsUpdatedLast)));
+    result.pushKV("coinbasevalue",
+                  int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI));
+    result.pushKV("longpollid",
+                  chainActive.Tip()->GetBlockHash().GetHex() +
+                      i64tostr(nTransactionsUpdatedLast));
     result.pushKV("target", hashTarget.GetHex());
-    result.push_back(
-        Pair("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1));
+    result.pushKV("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1);
     result.pushKV("mutable", aMutable);
     result.pushKV("noncerange", "00000000ffffffff");
     // FIXME: Allow for mining block greater than 1M.
-    result.push_back(
-        Pair("sigoplimit", GetMaxBlockSigOpsCount(DEFAULT_MAX_BLOCK_SIZE)));
+    result.pushKV("sigoplimit", GetMaxBlockSigOpsCount(DEFAULT_MAX_BLOCK_SIZE));
     result.pushKV("sizelimit", DEFAULT_MAX_BLOCK_SIZE);
     result.pushKV("curtime", pblock->GetBlockTime());
     result.pushKV("bits", strprintf("%08x", pblock->nBits));

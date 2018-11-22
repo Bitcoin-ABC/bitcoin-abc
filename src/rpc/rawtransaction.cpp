@@ -44,8 +44,7 @@ void ScriptPubKeyToJSON(const Config &config, const CScript &scriptPubKey,
 
     out.pushKV("asm", ScriptToAsmStr(scriptPubKey));
     if (fIncludeHex) {
-        out.push_back(
-            Pair("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end())));
+        out.pushKV("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
     }
 
     if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
@@ -68,8 +67,8 @@ void TxToJSON(const Config &config, const CTransaction &tx,
               const uint256 hashBlock, UniValue &entry) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
-    entry.push_back(Pair(
-        "size", int(::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION))));
+    entry.pushKV("size",
+                 int(::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
     entry.pushKV("version", tx.nVersion);
     entry.pushKV("locktime", int64_t(tx.nLockTime));
 
@@ -78,15 +77,15 @@ void TxToJSON(const Config &config, const CTransaction &tx,
         const CTxIn &txin = tx.vin[i];
         UniValue in(UniValue::VOBJ);
         if (tx.IsCoinBase()) {
-            in.push_back(Pair("coinbase", HexStr(txin.scriptSig.begin(),
-                                                 txin.scriptSig.end())));
+            in.pushKV("coinbase",
+                      HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
         } else {
             in.pushKV("txid", txin.prevout.GetTxId().GetHex());
             in.pushKV("vout", int64_t(txin.prevout.GetN()));
             UniValue o(UniValue::VOBJ);
             o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
-            o.push_back(Pair(
-                "hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+            o.pushKV("hex",
+                     HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
             in.pushKV("scriptSig", o);
         }
 
@@ -115,9 +114,8 @@ void TxToJSON(const Config &config, const CTransaction &tx,
         if (mi != mapBlockIndex.end() && (*mi).second) {
             CBlockIndex *pindex = (*mi).second;
             if (chainActive.Contains(pindex)) {
-                entry.push_back(
-                    Pair("confirmations",
-                         1 + chainActive.Height() - pindex->nHeight));
+                entry.pushKV("confirmations",
+                             1 + chainActive.Height() - pindex->nHeight);
                 entry.pushKV("time", pindex->GetBlockTime());
                 entry.pushKV("blocktime", pindex->GetBlockTime());
             } else {
@@ -717,8 +715,8 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     UniValue entry(UniValue::VOBJ);
     entry.pushKV("txid", txin.prevout.GetTxId().ToString());
     entry.pushKV("vout", uint64_t(txin.prevout.GetN()));
-    entry.push_back(Pair("scriptSig",
-                         HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
+    entry.pushKV("scriptSig",
+                 HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));
     entry.pushKV("sequence", uint64_t(txin.nSequence));
     entry.pushKV("error", strMessage);
     vErrorsRet.push_back(entry);
