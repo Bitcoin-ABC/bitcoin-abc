@@ -17,8 +17,11 @@ UniValue getzmqnotifications(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
-            "getzmqnotifications\n"
-            "\nReturns information about the active ZeroMQ notifications.\n"
+            RPCHelpMan{"getzmqnotifications",
+                       "\nReturns information about the active ZeroMQ "
+                       "notifications.\n",
+                       {}}
+                .ToString() +
             "\nResult:\n"
             "[\n"
             "  {                        (json object)\n"

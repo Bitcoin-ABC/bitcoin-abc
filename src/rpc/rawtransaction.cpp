@@ -67,18 +67,23 @@ static UniValue getrawtransaction(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 3) {
         throw std::runtime_error(
-            "getrawtransaction \"txid\" ( verbose \"blockhash\" )\n"
-
-            "\nNOTE: By default this function only works for mempool "
-            "transactions. If the -txindex option is\n"
-            "enabled, it also works for blockchain transactions. If the block "
-            "which contains the transaction\n"
-            "is known, its hash can be provided even for nodes without "
-            "-txindex. Note that if a blockhash is\n"
-            "provided, only that block will be searched and if the transaction "
-            "is in the mempool or other\n"
-            "blocks, or if this node does not have the given block available, "
-            "the transaction will not be found.\n"
+            RPCHelpMan{"getrawtransaction",
+                       "\nNOTE: By default this function only works for "
+                       "mempool transactions. If the -txindex option is\n"
+                       "enabled, it also works for blockchain transactions. If "
+                       "the block which contains the transaction\n"
+                       "is known, its hash can be provided even for nodes "
+                       "without -txindex. Note that if a blockhash is\n"
+                       "provided, only that block will be searched and if the "
+                       "transaction is in the mempool or other\n"
+                       "blocks, or if this node does not have the given block "
+                       "available, the transaction will not be found.\n",
+                       {
+                           {"txid", RPCArg::Type::STR_HEX, false},
+                           {"verbose", RPCArg::Type::BOOL, true},
+                           {"blockhash", RPCArg::Type::STR_HEX, true},
+                       }}
+                .ToString() +
             "DEPRECATED: for now, it also works for transactions with unspent "
             "outputs.\n"
 
@@ -243,6 +248,16 @@ static UniValue gettxoutproof(const Config &config,
         (request.params.size() != 1 && request.params.size() != 2)) {
         throw std::runtime_error(
             RPCHelpMan{"gettxoutproof",
+                       "\nReturns a hex-encoded proof that \"txid\" was "
+                       "included in a block.\n"
+                       "\nNOTE: By default this function only works sometimes. "
+                       "This is when there is an\n"
+                       "unspent output in the utxo for this transaction. To "
+                       "make it always work,\n"
+                       "you need to maintain a transaction index, using the "
+                       "-txindex command line option or\n"
+                       "specify the block in which the transaction is included "
+                       "manually (by blockhash).\n",
                        {
                            {"txids",
                             RPCArg::Type::ARR,
@@ -253,16 +268,6 @@ static UniValue gettxoutproof(const Config &config,
                            {"blockhash", RPCArg::Type::STR_HEX, true},
                        }}
                 .ToString() +
-            "\nReturns a hex-encoded proof that \"txid\" was included in a "
-            "block.\n"
-            "\nNOTE: By default this function only works sometimes. This is "
-            "when there is an\n"
-            "unspent output in the utxo for this transaction. To make it "
-            "always work,\n"
-            "you need to maintain a transaction index, using the -txindex "
-            "command line option or\n"
-            "specify the block in which the transaction is included manually "
-            "(by blockhash).\n"
             "\nArguments:\n"
             "1. \"txids\"       (string) A json array of txids to filter\n"
             "    [\n"
@@ -369,10 +374,15 @@ static UniValue verifytxoutproof(const Config &config,
                                  const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "verifytxoutproof \"proof\"\n"
-            "\nVerifies that a proof points to a transaction in a block, "
-            "returning the transaction it commits to\n"
-            "and throwing an RPC error if the block is not in our best chain\n"
+            RPCHelpMan{"verifytxoutproof",
+                       "\nVerifies that a proof points to a transaction in a "
+                       "block, returning the transaction it commits to\n"
+                       "and throwing an RPC error if the block is not in our "
+                       "best chain\n",
+                       {
+                           {"proof", RPCArg::Type::STR_HEX, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"proof\"    (string, required) The hex-encoded proof "
             "generated by gettxoutproof\n"
@@ -602,10 +612,13 @@ static UniValue decoderawtransaction(const Config &config,
                                      const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "decoderawtransaction \"hexstring\"\n"
-            "\nReturn a JSON object representing the serialized, hex-encoded "
-            "transaction.\n"
-
+            RPCHelpMan{"decoderawtransaction",
+                       "\nReturn a JSON object representing the serialized, "
+                       "hex-encoded transaction.\n",
+                       {
+                           {"hexstring", RPCArg::Type::STR_HEX, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"      (string, required) The transaction hex "
             "string\n"
@@ -676,8 +689,12 @@ static UniValue decodescript(const Config &config,
                              const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "decodescript \"hexstring\"\n"
-            "\nDecode a hex-encoded script.\n"
+            RPCHelpMan{"decodescript",
+                       "\nDecode a hex-encoded script.\n",
+                       {
+                           {"hexstring", RPCArg::Type::STR_HEX, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"     (string) the hex-encoded script\n"
             "\nResult:\n"
@@ -745,6 +762,11 @@ static UniValue combinerawtransaction(const Config &config,
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             RPCHelpMan{"combinerawtransaction",
+                       "\nCombine multiple partially signed transactions into "
+                       "one transaction.\n"
+                       "The combined transaction may be another partially "
+                       "signed transaction or a \n"
+                       "fully signed transaction.",
                        {
                            {"txs",
                             RPCArg::Type::ARR,
@@ -754,11 +776,6 @@ static UniValue combinerawtransaction(const Config &config,
                             false},
                        }}
                 .ToString() +
-            "\nCombine multiple partially signed transactions into one "
-            "transaction.\n"
-            "The combined transaction may be another partially signed "
-            "transaction or a \n"
-            "fully signed transaction."
 
             "\nArguments:\n"
             "1. \"txs\"         (string) A json array of hex strings of "
@@ -1026,6 +1043,14 @@ static UniValue signrawtransactionwithkey(const Config &config,
         throw std::runtime_error(
             RPCHelpMan{
                 "signrawtransactionwithkey",
+                "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
+                "The second argument is an array of base58-encoded private\n"
+                "keys that will be the only keys used to sign the "
+                "transaction.\n"
+                "The third optional argument (may be null) is an array of "
+                "previous transaction outputs that\n"
+                "this transaction depends on but may not yet be in the block "
+                "chain.\n",
                 {
                     {"hexstring", RPCArg::Type::STR_HEX, false},
                     {"privkyes",
@@ -1052,13 +1077,6 @@ static UniValue signrawtransactionwithkey(const Config &config,
                     {"sighashtype", RPCArg::Type::STR, true},
                 }}
                 .ToString() +
-            "\nSign inputs for raw transaction (serialized, hex-encoded).\n"
-            "The second argument is an array of base58-encoded private\n"
-            "keys that will be the only keys used to sign the transaction.\n"
-            "The third optional argument (may be null) is an array of previous "
-            "transaction outputs that\n"
-            "this transaction depends on but may not yet be in the block "
-            "chain.\n"
 
             "\nArguments:\n"
             "1. \"hexstring\"                      (string, required) The "
@@ -1156,11 +1174,16 @@ static UniValue sendrawtransaction(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            "sendrawtransaction \"hexstring\" ( allowhighfees )\n"
-            "\nSubmits raw transaction (serialized, hex-encoded) to local node "
-            "and network.\n"
-            "\nAlso see createrawtransaction and signrawtransactionwithkey "
-            "calls.\n"
+            RPCHelpMan{"sendrawtransaction",
+                       "\nSubmits raw transaction (serialized, hex-encoded) to "
+                       "local node and network.\n"
+                       "\nAlso see createrawtransaction and "
+                       "signrawtransactionwithkey calls.\n",
+                       {
+                           {"hexstring", RPCArg::Type::STR_HEX, false},
+                           {"allowhighfees", RPCArg::Type::BOOL, true},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"    (string, required) The hex string of the raw "
             "transaction)\n"
@@ -1369,10 +1392,13 @@ static UniValue decodepsbt(const Config &config,
                            const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "decodepsbt \"psbt\"\n"
-            "\nReturn a JSON object representing the serialized, "
-            "base64-encoded partially signed Bitcoin transaction.\n"
-
+            RPCHelpMan{"decodepsbt",
+                       "\nReturn a JSON object representing the serialized, "
+                       "base64-encoded partially signed Bitcoin transaction.\n",
+                       {
+                           {"psbt", RPCArg::Type::STR, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"psbt\"            (string, required) The PSBT base64 string\n"
 
@@ -1647,18 +1673,18 @@ static UniValue combinepsbt(const Config &config,
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
             RPCHelpMan{"combinepsbt",
+                       "\nCombine multiple partially signed Bitcoin "
+                       "transactions into one transaction.\n"
+                       "Implements the Combiner role.\n",
                        {
                            {"txs",
                             RPCArg::Type::ARR,
                             {
-                                {"psbt", RPCArg::Type::STR_HEX, false},
+                                {"psbt", RPCArg::Type::STR, false},
                             },
                             false},
                        }}
                 .ToString() +
-            "\nCombine multiple partially signed Bitcoin transactions into one "
-            "transaction.\n"
-            "Implements the Combiner role.\n"
             "\nArguments:\n"
             "1. \"txs\"                   (string) A json array of base64 "
             "strings of partially signed transactions\n"
@@ -1717,14 +1743,19 @@ static UniValue finalizepsbt(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            "finalizepsbt \"psbt\" ( extract )\n"
-            "Finalize the inputs of a PSBT. If the transaction is fully "
-            "signed, it will produce a\n"
-            "network serialized transaction which can be broadcast with "
-            "sendrawtransaction. Otherwise a PSBT will be\n"
-            "created which has the final_scriptSigfields filled for inputs "
-            "that are complete.\n"
-            "Implements the Finalizer and Extractor roles.\n"
+            RPCHelpMan{"finalizepsbt",
+                       "Finalize the inputs of a PSBT. If the transaction is "
+                       "fully signed, it will produce a\n"
+                       "network serialized transaction which can be broadcast "
+                       "with sendrawtransaction. Otherwise a PSBT will be\n"
+                       "created which has the final_scriptSigfields filled for "
+                       "inputs that are complete.\n"
+                       "Implements the Finalizer and Extractor roles.\n",
+                       {
+                           {"psbt", RPCArg::Type::STR, false},
+                           {"extract", RPCArg::Type::BOOL, true},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"psbt\"                 (string) A base64 string of a PSBT\n"
             "2. \"extract\"              (boolean, optional, default=true) If "
@@ -1793,6 +1824,9 @@ static UniValue createpsbt(const Config &config,
         request.params.size() > 3) {
         throw std::runtime_error(
             RPCHelpMan{"createpsbt",
+                       "\nCreates a transaction in the Partially Signed "
+                       "Transaction format.\n"
+                       "Implements the Creator role.\n",
                        {
                            {"inputs",
                             RPCArg::Type::ARR,
@@ -1827,9 +1861,6 @@ static UniValue createpsbt(const Config &config,
                            {"locktime", RPCArg::Type::NUM, true},
                        }}
                 .ToString() +
-            "\nCreates a transaction in the Partially Signed Transaction "
-            "format.\n"
-            "Implements the Creator role.\n"
             "\nArguments:\n"
             "1. \"inputs\"                (array, required) A json array of "
             "json objects\n"
@@ -1908,12 +1939,17 @@ static UniValue converttopsbt(const Config &config,
     if (request.fHelp || request.params.size() < 1 ||
         request.params.size() > 2) {
         throw std::runtime_error(
-            "converttopsbt \"hexstring\" ( permitsigdata )\n"
-            "\nConverts a network serialized transaction to a PSBT. This "
-            "should be used only with createrawtransaction and "
-            "fundrawtransaction\n"
-            "createpsbt and walletcreatefundedpsbt should be used for new "
-            "applications.\n"
+            RPCHelpMan{"converttopsbt",
+                       "\nConverts a network serialized transaction to a PSBT. "
+                       "This should be used only with createrawtransaction and "
+                       "fundrawtransaction\n"
+                       "createpsbt and walletcreatefundedpsbt should be used "
+                       "for new applications.\n",
+                       {
+                           {"hexstring", RPCArg::Type::STR_HEX, false},
+                           {"permitsigdata", RPCArg::Type::BOOL, true},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"hexstring\"              (string, required) The hex string "
             "of a raw transaction\n"

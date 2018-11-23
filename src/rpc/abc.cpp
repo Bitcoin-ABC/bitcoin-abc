@@ -5,6 +5,7 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <rpc/server.h>
+#include <rpc/util.h>
 #include <util/strencodings.h>
 #include <validation.h>
 
@@ -14,8 +15,9 @@ static UniValue getexcessiveblock(const Config &config,
                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 0) {
         throw std::runtime_error(
-            "getexcessiveblock\n"
-            "\nReturn the excessive block size."
+            RPCHelpMan{
+                "getexcessiveblock", "\nReturn the excessive block size.", {}}
+                .ToString() +
             "\nResult\n"
             "  excessiveBlockSize (integer) block size in bytes\n"
             "\nExamples:\n" +
@@ -32,10 +34,15 @@ static UniValue setexcessiveblock(Config &config,
                                   const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "setexcessiveblock blockSize\n"
-            "\nSet the excessive block size. Excessive blocks will not be used "
-            "in the active chain or relayed. This discourages the propagation "
-            "of blocks that you consider excessively large."
+            RPCHelpMan{
+                "setexcessiveblock",
+                "\nSet the excessive block size. Excessive blocks will not be "
+                "used in the active chain or relayed. This discourages the "
+                "propagation of blocks that you consider excessively large.",
+                {
+                    {"blockSize", RPCArg::Type::NUM, false},
+                }}
+                .ToString() +
             "\nArguments\n"
             "1. blockSize  (integer, required) Excessive block size in bytes.  "
             "Must be greater than " +

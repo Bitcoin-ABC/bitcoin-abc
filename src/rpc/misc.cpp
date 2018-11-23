@@ -33,8 +33,13 @@ static UniValue validateaddress(const Config &config,
                                 const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "validateaddress \"address\"\n"
-            "\nReturn information about the given bitcoin address.\n"
+            RPCHelpMan{
+                "validateaddress",
+                "\nReturn information about the given bitcoin address.\n",
+                {
+                    {"address", RPCArg::Type::STR, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"address\"                    (string, required) The bitcoin "
             "address to validate\n"
@@ -162,8 +167,14 @@ static UniValue verifymessage(const Config &config,
                               const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 3) {
         throw std::runtime_error(
-            "verifymessage \"address\" \"signature\" \"message\"\n"
-            "\nVerify a signed message\n"
+            RPCHelpMan{"verifymessage",
+                       "\nVerify a signed message\n",
+                       {
+                           {"address", RPCArg::Type::STR, false},
+                           {"signature", RPCArg::Type::STR, false},
+                           {"message", RPCArg::Type::STR, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"address\"         (string, required) The bitcoin address to "
             "use for the signature.\n"
@@ -231,8 +242,13 @@ static UniValue signmessagewithprivkey(const Config &config,
                                        const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 2) {
         throw std::runtime_error(
-            "signmessagewithprivkey \"privkey\" \"message\"\n"
-            "\nSign a message with the private key of an address\n"
+            RPCHelpMan{"signmessagewithprivkey",
+                       "\nSign a message with the private key of an address\n",
+                       {
+                           {"privkey", RPCArg::Type::STR, false},
+                           {"message", RPCArg::Type::STR, false},
+                       }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"privkey\"         (string, required) The private key to sign "
             "the message with.\n"
@@ -278,8 +294,13 @@ static UniValue setmocktime(const Config &config,
                             const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() != 1) {
         throw std::runtime_error(
-            "setmocktime timestamp\n"
-            "\nSet the local time to given timestamp (-regtest only)\n"
+            RPCHelpMan{
+                "setmocktime",
+                "\nSet the local time to given timestamp (-regtest only)\n",
+                {
+                    {"timestamp", RPCArg::Type::NUM, false},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. timestamp  (integer, required) Unix seconds-since-epoch "
             "timestamp\n"
@@ -341,8 +362,13 @@ static UniValue getmemoryinfo(const Config &config,
      */
     if (request.fHelp || request.params.size() > 1) {
         throw std::runtime_error(
-            "getmemoryinfo (\"mode\")\n"
-            "Returns an object containing information about memory usage.\n"
+            RPCHelpMan{"getmemoryinfo",
+                       "Returns an object containing information about memory "
+                       "usage.\n",
+                       {
+                           {"mode", RPCArg::Type::STR, true},
+                       }}
+                .ToString() +
             "Arguments:\n"
             "1. \"mode\" determines what kind of information is returned. This "
             "argument is optional, the default mode is \"stats\".\n"
@@ -415,23 +441,31 @@ static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
 static UniValue logging(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp || request.params.size() > 2) {
         throw std::runtime_error(
-            "logging ( <include> <exclude> )\n"
-            "Gets and sets the logging configuration.\n"
-            "When called without an argument, returns the list of categories "
-            "with status that are currently being debug logged or not.\n"
-            "When called with arguments, adds or removes categories from debug "
-            "logging and return the lists above.\n"
-            "The arguments are evaluated in order \"include\", \"exclude\".\n"
-            "If an item is both included and excluded, it will thus end up "
-            "being excluded.\n"
-            "The valid logging categories are: " +
-            ListLogCategories() +
-            "\n"
-            "In addition, the following are available as category names with "
-            "special meanings:\n"
-            "  - \"all\",  \"1\" : represent all logging categories.\n"
-            "  - \"none\", \"0\" : even if other logging categories are "
-            "specified, ignore all of them.\n"
+            RPCHelpMan{
+                "logging",
+                "Gets and sets the logging configuration.\n"
+                "When called without an argument, returns the list of "
+                "categories with status that are currently being debug logged "
+                "or not.\n"
+                "When called with arguments, adds or removes categories from "
+                "debug logging and return the lists above.\n"
+                "The arguments are evaluated in order \"include\", "
+                "\"exclude\".\n"
+                "If an item is both included and excluded, it will thus end up "
+                "being excluded.\n"
+                "The valid logging categories are: " +
+                    ListLogCategories() +
+                    "\n"
+                    "In addition, the following are available as category "
+                    "names with special meanings:\n"
+                    "  - \"all\",  \"1\" : represent all logging categories.\n"
+                    "  - \"none\", \"0\" : even if other logging categories "
+                    "are specified, ignore all of them.\n",
+                {
+                    {"include", RPCArg::Type::STR, true},
+                    {"exclude", RPCArg::Type::STR, true},
+                }}
+                .ToString() +
             "\nArguments:\n"
             "1. \"include\"        (array of strings, optional) A json array "
             "of categories to add debug logging\n"
@@ -501,12 +535,16 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
 static UniValue echo(const Config &config, const JSONRPCRequest &request) {
     if (request.fHelp) {
         throw std::runtime_error(
-            "echo|echojson \"message\" ...\n"
-            "\nSimply echo back the input arguments. This command is for "
-            "testing.\n"
-            "\nThe difference between echo and echojson is that echojson has "
-            "argument conversion enabled in the client-side table in"
-            "bitcoin-cli and the GUI. There is no server-side difference.");
+            RPCHelpMan{
+                "echo|echojson ...",
+                "\nSimply echo back the input arguments. This command is for "
+                "testing.\n"
+                "\nThe difference between echo and echojson is that echojson "
+                "has argument conversion enabled in the client-side table in "
+                "bitcoin-cli and the GUI. There is no server-side difference.",
+                {}}
+                .ToString() +
+            "");
     }
 
     return request.params;

@@ -53,15 +53,22 @@ struct RPCArg {
     //! Only used for arrays or dicts
     const std::vector<RPCArg> m_inner;
     const bool m_optional;
+    //! Should be empty unless it is supposed to override the auto-generated
+    //! summary line
+    const std::string m_oneline_description;
 
-    RPCArg(const std::string &name, const Type &type, const bool optional)
-        : m_name{name}, m_type{type}, m_optional{optional} {
+    RPCArg(const std::string &name, const Type &type, const bool optional,
+           const std::string &oneline_description = "")
+        : m_name{name}, m_type{type}, m_optional{optional},
+          m_oneline_description{oneline_description} {
         assert(type != Type::ARR && type != Type::OBJ);
     }
 
     RPCArg(const std::string &name, const Type &type,
-           const std::vector<RPCArg> &inner, const bool optional)
-        : m_name{name}, m_type{type}, m_inner{inner}, m_optional{optional} {
+           const std::vector<RPCArg> &inner, const bool optional,
+           const std::string &oneline_description = "")
+        : m_name{name}, m_type{type}, m_inner{inner}, m_optional{optional},
+          m_oneline_description{oneline_description} {
         assert(type == Type::ARR || type == Type::OBJ);
     }
 
@@ -73,13 +80,15 @@ private:
 
 class RPCHelpMan {
 public:
-    RPCHelpMan(const std::string &name, const std::vector<RPCArg> &args)
-        : m_name{name}, m_args{args} {}
+    RPCHelpMan(const std::string &name, const std::string &description,
+               const std::vector<RPCArg> &args)
+        : m_name{name}, m_description{description}, m_args{args} {}
 
     std::string ToString() const;
 
 private:
     const std::string m_name;
+    const std::string m_description;
     const std::vector<RPCArg> m_args;
 };
 
