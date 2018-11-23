@@ -50,8 +50,9 @@ static bool GetCScript(const SigningProvider &provider,
     return false;
 }
 
-static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
-                      const CKeyID &address, CPubKey &pubkey) {
+static bool GetPubKey(const SigningProvider &provider,
+                      const SignatureData &sigdata, const CKeyID &address,
+                      CPubKey &pubkey) {
     // Look for pubkey in all partial sigs
     const auto it = sigdata.signatures.find(address);
     if (it != sigdata.signatures.end()) {
@@ -65,15 +66,7 @@ static bool GetPubKey(const SigningProvider &provider, SignatureData &sigdata,
         return true;
     }
     // Query the underlying provider
-    if (provider.GetPubKey(address, pubkey)) {
-        KeyOriginInfo info;
-        if (provider.GetKeyOrigin(address, info)) {
-            sigdata.misc_pubkeys.emplace(
-                address, std::make_pair(pubkey, std::move(info)));
-        }
-        return true;
-    }
-    return false;
+    return provider.GetPubKey(address, pubkey);
 }
 
 static bool CreateSig(const BaseSignatureCreator &creator,
