@@ -68,6 +68,10 @@ bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
 bool AvalancheProcessor::registerVotes(
     NodeId nodeid, const AvalancheResponse &response,
     std::vector<AvalancheBlockUpdate> &updates) {
+    // Save the time at which we can query again.
+    auto cooldown_end = std::chrono::steady_clock::now() +
+                        std::chrono::milliseconds(response.getCooldown());
+
     RequestRecord r;
 
     {
@@ -162,8 +166,8 @@ bool AvalancheProcessor::registerVotes(
     }
 
     // Put the node back in the list of queriable nodes.
-    auto w = nodeids.getWriteView();
-    w->insert(nodeid);
+    auto w = nodecooldown.getWriteView();
+    w->insert(std::make_pair(cooldown_end, nodeid));
     return true;
 }
 
@@ -250,7 +254,26 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
 
 NodeId AvalancheProcessor::getSuitableNodeToQuery() {
     auto w = nodeids.getWriteView();
-    if (w->empty()) {
+    bool isCooldownMapEmpty;
+
+    {
+        // Recover nodes for which cooldown is over.
+        auto now = std::chrono::steady_clock::now();
+        auto wcooldown = nodecooldown.getWriteView();
+        for (auto it = wcooldown.begin();
+             it != wcooldown.end() && it->first < now;) {
+            w->insert(it->second);
+            wcooldown->erase(it++);
+        }
+
+        isCooldownMapEmpty = wcooldown->empty();
+    }
+
+    // If the cooldown map is empty and we don't have any nodes, it's time to
+    // fish for new ones.
+    // FIXME: Clearly, we need a better way to fish for new nodes, but this is
+    // out of scope for now.
+    if (isCooldownMapEmpty && w->empty()) {
         auto r = queries.getReadView();
 
         // We don't have any candidate node, so let's try to find some.

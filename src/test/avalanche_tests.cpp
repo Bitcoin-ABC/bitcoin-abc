@@ -20,6 +20,8 @@ struct AvalancheTest {
     static NodeId getSuitableNodeToQuery(AvalancheProcessor &p) {
         return p.getSuitableNodeToQuery();
     }
+
+    static uint32_t getRound(const AvalancheProcessor &p) { return p.round; }
 };
 
 BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
@@ -495,18 +497,37 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     // Add a new block. Check it is added to the polls.
     BOOST_CHECK(p.addBlockToReconcile(pindex));
 
-    bool hasQueried = false;
+    uint32_t round = AvalancheTest::getRound(p);
     for (int i = 0; i < 1000; i++) {
         // Technically, this is a race condition, but this should do just fine
         // as we wait up to 1s for an event that should take 10ms.
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
-        if (AvalancheTest::getSuitableNodeToQuery(p) == -1) {
-            hasQueried = true;
+        if (AvalancheTest::getRound(p) != round) {
             break;
         }
     }
 
-    BOOST_CHECK(hasQueried);
+    // Check that we effectively got a request and not timed out.
+    BOOST_CHECK(AvalancheTest::getRound(p) > round);
+
+    // Respond and check the cooldown time is respected.
+    round = AvalancheTest::getRound(p);
+    auto queryTime =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
+
+    std::vector<AvalancheBlockUpdate> updates;
+    p.registerVotes(nodeid, {100, {AvalancheVote(0, blockHash)}}, updates);
+    for (int i = 0; i < 1000; i++) {
+        // We make sure that we do not get a request before queryTime.
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+        if (AvalancheTest::getRound(p) != round) {
+            BOOST_CHECK(std::chrono::steady_clock::now() > queryTime);
+            break;
+        }
+    }
+
+    // But we eventually get one.
+    BOOST_CHECK(AvalancheTest::getRound(p) > round);
 
     // Stop event loop.
     BOOST_CHECK(p.stopEventLoop());
