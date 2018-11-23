@@ -87,8 +87,8 @@ static uint64_t ComputeMaxGeneratedBlockSize(const Config &config,
     return nMaxGeneratedBlockSize;
 }
 
-BlockAssembler::BlockAssembler(const Config &_config, const CTxMemPool &mempool)
-    : config(&_config), mempool(&mempool) {
+BlockAssembler::BlockAssembler(const Config &_config, const CTxMemPool &mpool)
+    : config(&_config), mempool(&mpool) {
 
     if (gArgs.IsArgSet("-blockmintxfee")) {
         Amount n = Amount::zero();
