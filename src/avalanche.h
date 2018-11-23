@@ -13,6 +13,7 @@
 #include "uint256.h"
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <vector>
@@ -127,6 +128,7 @@ public:
     AvalancheResponse(uint32_t cooldownIn, std::vector<AvalancheVote> votesIn)
         : cooldown(cooldownIn), votes(votesIn) {}
 
+    uint32_t getCooldown() const { return cooldown; }
     const std::vector<AvalancheVote> &GetVotes() const { return votes; }
 
     // serialization support
@@ -191,6 +193,8 @@ public:
 
 typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
     BlockVoteMap;
+typedef std::map<std::chrono::time_point<std::chrono::steady_clock>, NodeId>
+    NodeCooldownMap;
 
 class AvalancheProcessor {
 private:
@@ -221,6 +225,7 @@ private:
     std::atomic<uint32_t> round;
     RWCollection<std::set<NodeId>> nodeids;
     RWCollection<std::map<NodeId, RequestRecord>> queries;
+    RWCollection<NodeCooldownMap> nodecooldown;
 
     /**
      * Start stop machinery.
