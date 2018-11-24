@@ -15,3 +15,6 @@ This release includes the following features and fixes:
  - Wallet `listreceivedbylabel`, `listreceivedbyaccount` and `listunspent` RPCs
    add `label` fields to returned JSON objects that previously only had
    `account` fields.
+ - Add the `-finalizationdelay` to configure the minimum amount of time to wait
+   between a block header reception and the block finalization. Unit is seconds,
+   default is 7200 (2h).

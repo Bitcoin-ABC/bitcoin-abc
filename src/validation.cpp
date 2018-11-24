@@ -2319,7 +2319,7 @@ public:
 };
 
 static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
-                                  CBlockIndex *pindex) {
+                                  const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
     if (pindex->nStatus.isInvalid()) {
         // We try to finalize an invalid block.
@@ -2346,6 +2346,53 @@ static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
     // We have a new block to finalize.
     pindexFinalized = pindex;
     return true;
+}
+
+static const CBlockIndex *FindBlockToFinalize(const Config &config,
+                                              CBlockIndex *pindexNew) {
+    AssertLockHeld(cs_main);
+
+    const int32_t maxreorgdepth =
+        gArgs.GetArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
+
+    const int64_t finalizationdelay =
+        gArgs.GetArg("-finalizationdelay", DEFAULT_MIN_FINALIZATION_DELAY);
+
+    // Find our candidate.
+    // If maxreorgdepth is < 0 pindex will be null and auto finalization
+    // disabled
+    const CBlockIndex *pindex =
+        pindexNew->GetAncestor(pindexNew->nHeight - maxreorgdepth);
+
+    int64_t now = GetTime();
+
+    // If the finalization delay is not expired since the startup time,
+    // finalization should be avoided. Header receive time is not saved to disk
+    // and so cannot be anterior to startup time.
+    if (now < (GetStartupTime() + finalizationdelay)) {
+        return nullptr;
+    }
+
+    // While our candidate is not eligible (finalization delay not expired), try
+    // the previous one.
+    while (pindex && (pindex != pindexFinalized)) {
+        // Check that the block to finalize is known for a long enough time.
+        // This test will ensure that an attacker could not cause a block to
+        // finalize by forking the chain with a depth > maxreorgdepth.
+        // If the block is loaded from disk, header receive time is 0 and the
+        // block will be finalized. This is safe because the delay since the
+        // node startup is already expired.
+        auto headerReceivedTime = pindex->GetHeaderReceivedTime();
+
+        // If finalization delay is <= 0, finalization always occurs immediately
+        if (now >= (headerReceivedTime + finalizationdelay)) {
+            return pindex;
+        }
+
+        pindex = pindex->pprev;
+    }
+
+    return nullptr;
 }
 
 /**
@@ -2398,11 +2445,8 @@ static bool ConnectTip(const Config &config, CValidationState &state,
         }
 
         // Update the finalized block.
-        int32_t nHeightToFinalize =
-            pindexNew->nHeight -
-            gArgs.GetArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
-        CBlockIndex *pindexToFinalize =
-            pindexNew->GetAncestor(nHeightToFinalize);
+        const CBlockIndex *pindexToFinalize =
+            FindBlockToFinalize(config, pindexNew);
         if (pindexToFinalize &&
             !FinalizeBlockInternal(config, state, pindexToFinalize)) {
             state.SetCorruptionPossible();
