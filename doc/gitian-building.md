@@ -43,7 +43,7 @@ Requirements:
  - A machine with at least 64b of disk space
  - 16GB of RAM
  - Several installed tools:
-   - [Vagrant](http://vagrantup.com)
+   - [Vagrant](https://www.vagrantup.com)
    - [Packer](https://www.packer.io)
    - [Virtualbox](https://www.virtualbox.org)
 
