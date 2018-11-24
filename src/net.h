@@ -98,7 +98,7 @@ struct AddedNodeInfo {
     bool fInbound;
 };
 
-class CNodeStats;
+struct CNodeStats;
 class CClientUIInterface;
 
 struct CSerializedNetMsg {
@@ -524,8 +524,12 @@ extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
 // Command, total bytes
 typedef std::map<std::string, uint64_t> mapMsgCmdSize;
 
-class CNodeStats {
-public:
+/**
+ * POD that contains various stats about a node.
+ * Usually constructed from CConman::GetNodeStats. Stats are filled from the
+ * node using CNode::copyStats.
+ */
+struct CNodeStats {
     NodeId nodeid;
     ServiceFlags nServices;
     bool fRelayTxes;
