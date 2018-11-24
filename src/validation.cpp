@@ -3686,8 +3686,6 @@ bool ProcessNewBlockHeaders(const Config &config,
  *
  * @param[in]     config     The global config.
  * @param[in-out] pblock     The block we want to accept.
- * @param[out]    ppindex    The last new block index, only set if the block
- *                           was accepted.
  * @param[in]     fRequested A boolean to indicate if this block was requested
  *                           from our peers.
  * @param[in]     dbp        If non-null, the disk position of the block.
@@ -3696,9 +3694,8 @@ bool ProcessNewBlockHeaders(const Config &config,
  */
 static bool AcceptBlock(const Config &config,
                         const std::shared_ptr<const CBlock> &pblock,
-                        CValidationState &state, CBlockIndex **ppindex,
-                        bool fRequested, const CDiskBlockPos *dbp,
-                        bool *fNewBlock) {
+                        CValidationState &state, bool fRequested,
+                        const CDiskBlockPos *dbp, bool *fNewBlock) {
     AssertLockHeld(cs_main);
 
     const CBlock &block = *pblock;
@@ -3706,9 +3703,7 @@ static bool AcceptBlock(const Config &config,
         *fNewBlock = false;
     }
 
-    CBlockIndex *pindexDummy = nullptr;
-    CBlockIndex *&pindex = ppindex ? *ppindex : pindexDummy;
-
+    CBlockIndex *pindex = nullptr;
     if (!AcceptBlockHeader(config, block, state, &pindex)) {
         return false;
     }
@@ -3866,7 +3861,6 @@ bool ProcessNewBlock(const Config &config,
                      const std::shared_ptr<const CBlock> pblock,
                      bool fForceProcessing, bool *fNewBlock) {
     {
-        CBlockIndex *pindex = nullptr;
         if (fNewBlock) {
             *fNewBlock = false;
         }
@@ -3882,8 +3876,8 @@ bool ProcessNewBlock(const Config &config,
 
         if (ret) {
             // Store to disk
-            ret = AcceptBlock(config, pblock, state, &pindex, fForceProcessing,
-                              nullptr, fNewBlock);
+            ret = AcceptBlock(config, pblock, state, fForceProcessing, nullptr,
+                              fNewBlock);
         }
 
         CheckBlockIndex(chainparams.GetConsensus());
@@ -4887,7 +4881,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     !mapBlockIndex[hash]->nStatus.hasData()) {
                     LOCK(cs_main);
                     CValidationState state;
-                    if (AcceptBlock(config, pblock, state, nullptr, true, dbp,
+                    if (AcceptBlock(config, pblock, state, true, dbp,
                                     nullptr)) {
                         nLoaded++;
                     }
@@ -4940,8 +4934,7 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                             LOCK(cs_main);
                             CValidationState dummy;
                             if (AcceptBlock(config, pblockrecursive, dummy,
-                                            nullptr, true, &it->second,
-                                            nullptr)) {
+                                            true, &it->second, nullptr)) {
                                 nLoaded++;
                                 queue.push_back(pblockrecursive->GetHash());
                             }
