@@ -117,8 +117,8 @@ BOOST_AUTO_TEST_CASE(received_time) {
 
     CBlockIndex index = CBlockIndex(header);
 
-    // nTimeReceived defaults to block time
-    BOOST_CHECK(index.nTimeReceived == expectedBlockTime);
+    // nTimeReceived defaults to 0
+    BOOST_CHECK_EQUAL(index.nTimeReceived, 0);
 
     // nTimeReceived can be updated to the actual received time, which may
     // be before or after the miner's time.
@@ -126,10 +126,10 @@ BOOST_AUTO_TEST_CASE(received_time) {
          // Make sure that receivedTime is tested beyond 32-bit values.
          receivedTime <= expectedBlockTime + 10; receivedTime++) {
         index.nTimeReceived = receivedTime;
-        BOOST_CHECK(index.GetBlockTime() == expectedBlockTime);
-        BOOST_CHECK(index.GetHeaderReceivedTime() == receivedTime);
-        BOOST_CHECK(index.GetReceivedTimeDiff() ==
-                    receivedTime - expectedBlockTime);
+        BOOST_CHECK_EQUAL(index.GetBlockTime(), expectedBlockTime);
+        BOOST_CHECK_EQUAL(index.GetHeaderReceivedTime(), receivedTime);
+        BOOST_CHECK_EQUAL(index.GetReceivedTimeDiff(),
+                          receivedTime - expectedBlockTime);
     }
 }
 
