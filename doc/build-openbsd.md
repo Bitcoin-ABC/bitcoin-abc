@@ -48,7 +48,7 @@ BOOST_PREFIX="${BITCOIN_ROOT}/boost"
 mkdir -p $BOOST_PREFIX
 
 # Fetch the source and verify that it is not tampered with
-curl -o boost_1_61_0.tar.bz2 http://heanet.dl.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
+curl -o boost_1_61_0.tar.bz2 https://kent.dl.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
 echo 'a547bd06c2fd9a71ba1d169d9cf0339da7ebf4753849a8f7d6fdb8feee99b640  boost_1_61_0.tar.bz2' | sha256 -c
 # MUST output: (SHA256) boost_1_61_0.tar.bz2: OK
 tar -xjf boost_1_61_0.tar.bz2
@@ -79,7 +79,7 @@ BDB_PREFIX="${BITCOIN_ROOT}/db6"
 mkdir -p $BDB_PREFIX
 
 # Fetch the source and verify that it is not tampered with
-curl -o db-6.2.32.NC.tar.gz 'http://download.oracle.com/berkeley-db/db-6.2.32.NC.tar.gz'
+curl -o db-6.2.32.NC.tar.gz 'https://download.oracle.com/berkeley-db/db-6.2.32.NC.tar.gz'
 echo 'd86cf1283c519d42dd112b4501ecb2db11ae765b37a1bdad8f8cb06b0ffc69b8  db-6.2.32.NC.tar.gz' | sha256sum -c
 # MUST output: (SHA256) db-6.2.32.NC.tar.gz: OK
 tar -xzf db-6.2.32.NC.tar.gz
