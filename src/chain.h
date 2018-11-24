@@ -130,11 +130,7 @@ public:
         nVersion = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
         nTime = block.nTime;
-        // Default to block time if nTimeReceived is never set, which
-        // in effect assumes that this block is honestly mined.
-        // Note that nTimeReceived isn't written to disk, so blocks read from
-        // disk will be assumed to be honestly mined.
-        nTimeReceived = block.nTime;
+        nTimeReceived = 0;
         nBits = block.nBits;
         nNonce = block.nNonce;
     }
