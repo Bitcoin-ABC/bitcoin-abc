@@ -357,7 +357,7 @@ bool checkPoint(const QPoint &p, const QWidget *w) {
     if (!atW) {
         return false;
     }
-    return atW->topLevelWidget() == w;
+    return atW->window() == w;
 }
 
 bool isObscured(QWidget *w) {
