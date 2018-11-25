@@ -324,8 +324,8 @@ BerkeleyEnvironment::Verify(const std::string &strFile,
     return (fRecovered ? VerifyResult::RECOVER_OK : VerifyResult::RECOVER_FAIL);
 }
 
-BerkeleyBatch::SafeDbt::SafeDbt(u_int32_t flags) {
-    m_dbt.set_flags(flags);
+BerkeleyBatch::SafeDbt::SafeDbt() {
+    m_dbt.set_flags(DB_DBT_MALLOC);
 }
 
 BerkeleyBatch::SafeDbt::SafeDbt(void *data, size_t size) : m_dbt(data, size) {}
