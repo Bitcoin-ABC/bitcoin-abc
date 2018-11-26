@@ -971,8 +971,9 @@ static UniValue testmempoolaccept(const Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "testmempoolaccept",
-        "Returns if raw transaction (serialized, hex-encoded) would be "
-        "accepted by mempool.\n"
+        "Returns result of mempool acceptance tests indicating if raw"
+        " transaction (serialized, hex-encoded) would be accepted"
+        " by mempool.\n"
         "\nThis checks if the transaction violates the consensus or policy "
         "rules.\n"
         "\nSee sendrawtransaction call.\n",
