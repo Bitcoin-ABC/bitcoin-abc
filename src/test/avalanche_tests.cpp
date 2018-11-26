@@ -152,6 +152,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
     NodeId nodeid = avanode->GetId();
+    BOOST_CHECK(p.addPeer(nodeid, 0));
 
     // Querying for random block returns false.
     BOOST_CHECK(!p.isAccepted(pindex));
@@ -273,7 +274,9 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     // Create a node that supports avalanche.
     auto node0 = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
+    BOOST_CHECK(p.addPeer(node0->GetId(), 0));
     auto node1 = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
+    BOOST_CHECK(p.addPeer(node1->GetId(), 0));
 
     // Make sure the block has a hash.
     CBlock blockA = CreateAndProcessBlock({}, CScript());
@@ -318,28 +321,28 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     // Let's vote for these blocks a few times.
     for (int i = 0; i < 3; i++) {
+        NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(node0->GetId(), next(resp), updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Now it is accepted, but we can vote for it numerous times.
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+        NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(node0->GetId(), next(resp), updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Running two iterration of the event loop so that vote gets triggerd on A
     // and B.
+    NodeId firstNodeid = AvalancheTest::getSuitableNodeToQuery(p);
+    AvalancheTest::runEventLoop(p);
     NodeId secondNodeid = AvalancheTest::getSuitableNodeToQuery(p);
-    // NB: getSuitableNodeToQuery remove the node from the candidate list, so it
-    // has returned the node that will be queried second. The other one is the
-    // first.
-    NodeId firstNodeid =
-        (node0->GetId() == secondNodeid) ? node1->GetId() : node0->GetId();
     AvalancheTest::runEventLoop(p);
-    AvalancheTest::runEventLoop(p);
+
+    BOOST_CHECK(firstNodeid != secondNodeid);
 
     // Next vote will finalize block A.
     BOOST_CHECK(p.registerVotes(firstNodeid, next(resp), updates));
@@ -382,12 +385,13 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     const Config &config = GetConfig();
 
     // There is no node to query.
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), NO_NODE);
 
     // Create a node that supports avalanche and one that doesn't.
     auto oldnode = ConnectNode(config, NODE_NONE, *peerLogic);
     auto avanode = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
     NodeId avanodeid = avanode->GetId();
+    BOOST_CHECK(p.addPeer(avanodeid, 0));
 
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
@@ -404,7 +408,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     AvalancheTest::runEventLoop(p);
 
     // There is no more suitable peer available, so return nothing.
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), NO_NODE);
 
     // Respond to the request.
     AvalancheResponse resp = {round, 0, {AvalancheVote(0, blockHash)}};
@@ -422,7 +426,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     // Trigger a poll on avanode.
     round = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), NO_NODE);
 
     // Sending responses that do not match the request also fails.
     // 1. Too many results.
@@ -447,26 +451,23 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
-    // 4. Invalid round count. Node is not returned to the pool.
+    // 4. Invalid round count. Request is not discarded.
     uint64_t queryRound = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
 
     resp = {queryRound + 1, 0, {AvalancheVote()}};
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
 
     resp = {queryRound - 1, 0, {AvalancheVote()}};
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
 
-    // 5. Making request for invalid nodes do not work. Node is not returned to
-    // the pool.
+    // 5. Making request for invalid nodes do not work. Request is not
+    // discarded.
     resp = {queryRound, 0, {AvalancheVote(0, blockHash)}};
     BOOST_CHECK(!p.registerVotes(avanodeid + 1234, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
-    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
 
     // Proper response gets processed and avanode is available again.
     resp = {queryRound, 0, {AvalancheVote(0, blockHash)}};
@@ -493,7 +494,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
             0,
             {AvalancheVote(0, blockHash2), AvalancheVote(0, blockHash)}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
@@ -535,6 +536,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(config, NODE_AVALANCHE, *peerLogic);
     NodeId nodeid = avanode->GetId();
+    BOOST_CHECK(p.addPeer(nodeid, 0));
 
     // There is no query in flight at the moment.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), nodeid);

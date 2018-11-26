@@ -70,9 +70,21 @@ bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
 bool AvalancheProcessor::registerVotes(
     NodeId nodeid, const AvalancheResponse &response,
     std::vector<AvalancheBlockUpdate> &updates) {
-    // Save the time at which we can query again.
-    auto cooldown_end = std::chrono::steady_clock::now() +
-                        std::chrono::milliseconds(response.getCooldown());
+    {
+        // Save the time at which we can query again.
+        auto w = peerSet.getWriteView();
+        auto it = w->find(nodeid);
+        if (it != w->end()) {
+            w->modify(it, [&response](Peer &p) {
+                // FIXME: This will override the time even when we received an
+                // old stale message. This should check that the message is
+                // indeed the most up to date one before updating the time.
+                p.nextRequestTime =
+                    std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(response.getCooldown());
+            });
+        }
+    }
 
     std::vector<CInv> invs;
 
@@ -166,10 +178,13 @@ bool AvalancheProcessor::registerVotes(
         }
     }
 
-    // Put the node back in the list of queriable nodes.
-    auto w = nodecooldown.getWriteView();
-    w->insert(std::make_pair(cooldown_end, nodeid));
     return true;
+}
+
+bool AvalancheProcessor::addPeer(NodeId nodeid, uint32_t score) {
+    return peerSet.getWriteView()
+        ->insert({nodeid, score, std::chrono::steady_clock::now()})
+        .second;
 }
 
 namespace {
@@ -254,55 +269,17 @@ std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
 }
 
 NodeId AvalancheProcessor::getSuitableNodeToQuery() {
-    auto w = nodeids.getWriteView();
-    bool isCooldownMapEmpty;
-
-    {
-        // Recover nodes for which cooldown is over.
-        auto now = std::chrono::steady_clock::now();
-        auto wcooldown = nodecooldown.getWriteView();
-        for (auto it = wcooldown.begin();
-             it != wcooldown.end() && it->first < now;) {
-            w->insert(it->second);
-            wcooldown->erase(it++);
-        }
-
-        isCooldownMapEmpty = wcooldown->empty();
+    auto r = peerSet.getReadView();
+    auto it = r->get<next_request_time>().begin();
+    if (it == r->get<next_request_time>().end()) {
+        return NO_NODE;
     }
 
-    // If the cooldown map is empty and we don't have any nodes, it's time to
-    // fish for new ones.
-    // FIXME: Clearly, we need a better way to fish for new nodes, but this is
-    // out of scope for now.
-    if (isCooldownMapEmpty && w->empty()) {
-        auto r = queries.getReadView();
-
-        // We don't have any candidate node, so let's try to find some.
-        connman->ForEachNode([&w, &r](CNode *pnode) {
-            // If this node doesn't support avalanche, we remove.
-            if (!(pnode->nServices & NODE_AVALANCHE)) {
-                return;
-            }
-
-            // if we have a request in flight for that node.
-            if (r->find(pnode->GetId()) != r.end()) {
-                return;
-            }
-
-            w->insert(pnode->GetId());
-        });
+    if (it->nextRequestTime <= std::chrono::steady_clock::now()) {
+        return it->nodeid;
     }
 
-    // We don't have any suitable candidate.
-    if (w->empty()) {
-        return -1;
-    }
-
-    auto it = w.begin();
-    NodeId nodeid = *it;
-    w->erase(it);
-
-    return nodeid;
+    return NO_NODE;
 }
 
 void AvalancheProcessor::runEventLoop() {
@@ -312,29 +289,52 @@ void AvalancheProcessor::runEventLoop() {
         return;
     }
 
-    NodeId nodeid = getSuitableNodeToQuery();
-
-    /**
-     * If we lost contact to that node, then we remove it from nodeids, but
-     * never add the request to queries, which ensures bad nodes get cleaned up
-     * over time.
-     */
-    connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
-        {
-            // Compute the time at which this requests times out.
-            auto timeout =
-                std::chrono::steady_clock::now() + std::chrono::seconds(10);
-            // Register the query.
-            queries.getWriteView()->insert(
-                {pnode->GetId(), round, timeout, invs});
+    while (true) {
+        NodeId nodeid = getSuitableNodeToQuery();
+        if (nodeid == NO_NODE) {
+            return;
         }
 
-        // Send the query to the node.
-        connman->PushMessage(
-            pnode,
-            CNetMsgMaker(pnode->GetSendVersion())
-                .Make(NetMsgType::AVAPOLL,
-                      AvalanchePoll(round++, std::move(invs))));
-        return true;
-    });
+        /**
+         * If we lost contact to that node, then we remove it from nodeids, but
+         * never add the request to queries, which ensures bad nodes get cleaned
+         * up over time.
+         */
+        bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
+            uint64_t current_round = round++;
+
+            {
+                // Compute the time at which this requests times out.
+                auto timeout =
+                    std::chrono::steady_clock::now() + std::chrono::seconds(10);
+                // Register the query.
+                queries.getWriteView()->insert(
+                    {pnode->GetId(), current_round, timeout, invs});
+                // Set the timeout.
+                auto w = peerSet.getWriteView();
+                auto it = w->find(pnode->GetId());
+                if (it != w->end()) {
+                    w->modify(it, [&timeout](Peer &p) {
+                        p.nextRequestTime = timeout;
+                    });
+                }
+            }
+
+            // Send the query to the node.
+            connman->PushMessage(
+                pnode,
+                CNetMsgMaker(pnode->GetSendVersion())
+                    .Make(NetMsgType::AVAPOLL,
+                          AvalanchePoll(current_round, std::move(invs))));
+            return true;
+        });
+
+        // Success !
+        if (hasSent) {
+            return;
+        }
+
+        // This node is obsolete, delete it.
+        peerSet.getWriteView()->erase(nodeid);
+    }
 }

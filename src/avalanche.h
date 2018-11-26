@@ -33,6 +33,10 @@ namespace {
  * Finalization score.
  */
 static int AVALANCHE_FINALIZATION_SCORE = 128;
+/**
+ * Special NodeId that represent no node.
+ */
+static const NodeId NO_NODE = -1;
 }
 
 /**
@@ -203,9 +207,8 @@ public:
 
 typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
     BlockVoteMap;
-typedef std::map<std::chrono::time_point<std::chrono::steady_clock>, NodeId>
-    NodeCooldownMap;
 
+struct next_request_time {};
 struct query_timeout {};
 
 class AvalancheProcessor {
@@ -220,11 +223,30 @@ private:
     /**
      * Keep track of peers and queries sent.
      */
+    std::atomic<uint64_t> round;
+
     typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
 
-    std::atomic<uint64_t> round;
-    RWCollection<std::set<NodeId>> nodeids;
-    RWCollection<NodeCooldownMap> nodecooldown;
+    struct Peer {
+        NodeId nodeid;
+        int64_t score;
+
+        TimePoint nextRequestTime;
+    };
+
+    typedef boost::multi_index_container<
+        Peer, boost::multi_index::indexed_by<
+                  // index by nodeid
+                  boost::multi_index::hashed_unique<
+                      boost::multi_index::member<Peer, NodeId, &Peer::nodeid>>,
+                  // sorted by nextRequestTime
+                  boost::multi_index::ordered_non_unique<
+                      boost::multi_index::tag<next_request_time>,
+                      boost::multi_index::member<Peer, TimePoint,
+                                                 &Peer::nextRequestTime>>>>
+        PeerSet;
+
+    RWCollection<PeerSet> peerSet;
 
     struct Query {
         NodeId nodeid;
@@ -277,6 +299,8 @@ public:
 
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);
+
+    bool addPeer(NodeId nodeid, uint32_t score);
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
