@@ -133,6 +133,12 @@ std::unique_ptr<CNode> ConnectNode(const Config &config, ServiceFlags nServices,
     return nodeptr;
 }
 
+static AvalancheResponse next(AvalancheResponse &r) {
+    auto copy = r;
+    r = {r.getRound() + 1, r.getCooldown(), r.GetVotes()};
+    return copy;
+}
+
 BOOST_AUTO_TEST_CASE(block_register) {
     AvalancheProcessor p(g_connman.get());
     std::vector<AvalancheBlockUpdate> updates;
@@ -161,10 +167,10 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(p.isAccepted(pindex));
 
     // Let's vote for this block a few times.
-    AvalancheResponse resp{0, {AvalancheVote(0, blockHash)}};
+    AvalancheResponse resp{0, 0, {AvalancheVote(0, blockHash)}};
     for (int i = 0; i < 4; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
@@ -172,7 +178,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // We vote for it numerous times to finalize it.
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
@@ -185,7 +191,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // Now finalize the decision.
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
     BOOST_CHECK_EQUAL(updates[0].getStatus(),
@@ -203,17 +209,17 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK(invs[0].hash == blockHash);
 
-    resp = {0, {AvalancheVote(1, blockHash)}};
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(1, blockHash)}};
     for (int i = 0; i < 4; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Now the state will flip.
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
@@ -224,7 +230,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // Now it is rejected, but we can vote for it numerous times.
     for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(!p.isAccepted(pindex));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
@@ -237,7 +243,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // Now finalize the decision.
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(nodeid, resp, updates));
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
     BOOST_CHECK(!p.isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
@@ -289,14 +295,17 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK(invs[0].hash == blockHashA);
 
+    uint64_t round = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(node0->GetId(),
-                                {0, {AvalancheVote(0, blockHashA)}}, updates));
+    BOOST_CHECK(p.registerVotes(
+        node0->GetId(), {round, 0, {AvalancheVote(0, blockHashA)}}, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Start voting on block B after one vote.
     AvalancheResponse resp{
-        0, {AvalancheVote(0, blockHashB), AvalancheVote(0, blockHashA)}};
+        round + 1,
+        0,
+        {AvalancheVote(0, blockHashB), AvalancheVote(0, blockHashA)}};
     BOOST_CHECK(p.addBlockToReconcile(pindexB));
     invs = AvalancheTest::getInvsForNextPoll(p);
     BOOST_CHECK_EQUAL(invs.size(), 2);
@@ -310,24 +319,30 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     // Let's vote for these blocks a few times.
     for (int i = 0; i < 3; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
+        BOOST_CHECK(p.registerVotes(node0->GetId(), next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Now it is accepted, but we can vote for it numerous times.
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
-        BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
+        BOOST_CHECK(p.registerVotes(node0->GetId(), next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Running two iterration of the event loop so that vote gets triggerd on A
     // and B.
+    NodeId secondNodeid = AvalancheTest::getSuitableNodeToQuery(p);
+    // NB: getSuitableNodeToQuery remove the node from the candidate list, so it
+    // has returned the node that will be queried second. The other one is the
+    // first.
+    NodeId firstNodeid =
+        (node0->GetId() == secondNodeid) ? node1->GetId() : node0->GetId();
     AvalancheTest::runEventLoop(p);
     AvalancheTest::runEventLoop(p);
 
     // Next vote will finalize block A.
-    BOOST_CHECK(p.registerVotes(node1->GetId(), resp, updates));
+    BOOST_CHECK(p.registerVotes(firstNodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexA);
     BOOST_CHECK_EQUAL(updates[0].getStatus(),
@@ -341,7 +356,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(invs[0].hash == blockHashB);
 
     // Next vote will finalize block B.
-    BOOST_CHECK(p.registerVotes(node0->GetId(), resp, updates));
+    BOOST_CHECK(p.registerVotes(secondNodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexB);
     BOOST_CHECK_EQUAL(updates[0].getStatus(),
@@ -385,13 +400,14 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK(invs[0].hash == blockHash);
 
     // Trigger a poll on avanode.
+    uint64_t round = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
 
     // There is no more suitable peer available, so return nothing.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
 
     // Respond to the request.
-    AvalancheResponse resp = {0, {AvalancheVote(0, blockHash)}};
+    AvalancheResponse resp = {round, 0, {AvalancheVote(0, blockHash)}};
     BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
@@ -400,45 +416,63 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // Sending a response when not polled fails.
-    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Trigger a poll on avanode.
+    round = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
 
     // Sending responses that do not match the request also fails.
     // 1. Too many results.
-    resp = {0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash)}};
+    resp = {
+        round, 0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash)}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // 2. Not enough results.
-    resp = {0, {}};
+    resp = {AvalancheTest::getRound(p), 0, {}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // 3. Do not match the poll.
-    resp = {0, {AvalancheVote()}};
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote()}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
-    // Proper response gets processed and avanode is available again.
-    resp = {0, {AvalancheVote(0, blockHash)}};
+    // 4. Invalid round count. Node is not returned to the pool.
+    uint64_t queryRound = AvalancheTest::getRound(p);
     AvalancheTest::runEventLoop(p);
+
+    resp = {queryRound + 1, 0, {AvalancheVote()}};
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+
+    resp = {queryRound - 1, 0, {AvalancheVote()}};
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+
+    // 5. Making request for invalid nodes do not work. Node is not returned to
+    // the pool.
+    resp = {queryRound, 0, {AvalancheVote(0, blockHash)}};
+    BOOST_CHECK(!p.registerVotes(avanodeid + 1234, resp, updates));
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), -1);
+
+    // Proper response gets processed and avanode is available again.
+    resp = {queryRound, 0, {AvalancheVote(0, blockHash)}};
     BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
-
-    // Making request for invalid nodes do not work.
-    BOOST_CHECK(!p.registerVotes(avanodeid + 1234, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Out of order response are rejected.
     CBlock block2 = CreateAndProcessBlock({}, CScript());
@@ -446,15 +480,26 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     CBlockIndex *pindex2 = mapBlockIndex[blockHash2];
     BOOST_CHECK(p.addBlockToReconcile(pindex2));
 
-    resp = {0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash2)}};
+    resp = {AvalancheTest::getRound(p),
+            0,
+            {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash2)}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
+    // But they are accepted in order.
+    resp = {AvalancheTest::getRound(p),
+            0,
+            {AvalancheVote(0, blockHash2), AvalancheVote(0, blockHash)}};
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
+
     // When a block is marked invalid, stop polling.
     pindex2->nStatus = pindex2->nStatus.withFailed();
-    resp = {0, {AvalancheVote(0, blockHash)}};
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
     AvalancheTest::runEventLoop(p);
     BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
@@ -495,39 +540,40 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), nodeid);
 
     // Add a new block. Check it is added to the polls.
+    uint64_t queryRound = AvalancheTest::getRound(p);
     BOOST_CHECK(p.addBlockToReconcile(pindex));
 
-    uint32_t round = AvalancheTest::getRound(p);
     for (int i = 0; i < 1000; i++) {
         // Technically, this is a race condition, but this should do just fine
         // as we wait up to 1s for an event that should take 10ms.
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
-        if (AvalancheTest::getRound(p) != round) {
+        if (AvalancheTest::getRound(p) != queryRound) {
             break;
         }
     }
 
     // Check that we effectively got a request and not timed out.
-    BOOST_CHECK(AvalancheTest::getRound(p) > round);
+    BOOST_CHECK(AvalancheTest::getRound(p) > queryRound);
 
     // Respond and check the cooldown time is respected.
-    round = AvalancheTest::getRound(p);
+    uint64_t responseRound = AvalancheTest::getRound(p);
     auto queryTime =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
 
     std::vector<AvalancheBlockUpdate> updates;
-    p.registerVotes(nodeid, {100, {AvalancheVote(0, blockHash)}}, updates);
+    p.registerVotes(nodeid, {queryRound, 100, {AvalancheVote(0, blockHash)}},
+                    updates);
     for (int i = 0; i < 1000; i++) {
         // We make sure that we do not get a request before queryTime.
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
-        if (AvalancheTest::getRound(p) != round) {
+        if (AvalancheTest::getRound(p) != responseRound) {
             BOOST_CHECK(std::chrono::steady_clock::now() > queryTime);
             break;
         }
     }
 
     // But we eventually get one.
-    BOOST_CHECK(AvalancheTest::getRound(p) > round);
+    BOOST_CHECK(AvalancheTest::getRound(p) > responseRound);
 
     // Stop event loop.
     BOOST_CHECK(p.stopEventLoop());

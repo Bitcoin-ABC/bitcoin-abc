@@ -11,6 +11,8 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
+#include <tuple>
+
 static bool IsWorthPolling(const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
@@ -72,23 +74,22 @@ bool AvalancheProcessor::registerVotes(
     auto cooldown_end = std::chrono::steady_clock::now() +
                         std::chrono::milliseconds(response.getCooldown());
 
-    RequestRecord r;
+    std::vector<CInv> invs;
 
     {
         // Check that the query exists.
         auto w = queries.getWriteView();
-        auto it = w->find(nodeid);
+        auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
             // NB: The request may be old, so we don't increase banscore.
             return false;
         }
 
-        r = std::move(it->second);
+        invs = std::move(it->invs);
         w->erase(it);
     }
 
     // Verify that the request and the vote are consistent.
-    const std::vector<CInv> &invs = r.GetInvs();
     const std::vector<AvalancheVote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
@@ -320,9 +321,12 @@ void AvalancheProcessor::runEventLoop() {
      */
     connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
         {
+            // Compute the time at which this requests times out.
+            auto timeout =
+                std::chrono::steady_clock::now() + std::chrono::seconds(10);
             // Register the query.
-            queries.getWriteView()->emplace(
-                pnode->GetId(), RequestRecord(GetAdjustedTime(), invs));
+            queries.getWriteView()->insert(
+                {pnode->GetId(), round, timeout, invs});
         }
 
         // Send the query to the node.
