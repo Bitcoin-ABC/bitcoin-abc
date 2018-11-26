@@ -53,7 +53,7 @@ def cltv_lock_to_height(node, tx, height=-1):
     return new_tx
 
 
-def create_transaction(node, coinbase, to_address, amount):
+def spend_from_coinbase(node, coinbase, to_address, amount):
     from_txid = node.getblock(coinbase)['tx'][0]
     inputs = [{"txid": from_txid, "vout": 0}]
     outputs = {to_address: amount}
@@ -90,8 +90,8 @@ class BIP65Test(BitcoinTestFramework):
         self.log.info(
             "Test that an invalid-according-to-CLTV transaction can still appear in a block")
 
-        spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[0],
-                                     self.nodeaddress, 50.0)
+        spendtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[0],
+                                      self.nodeaddress, 50.0)
         spendtx = cltv_lock_to_height(self.nodes[0], spendtx)
 
         # Make sure the tx is valid
@@ -131,8 +131,8 @@ class BIP65Test(BitcoinTestFramework):
             "Test that invalid-according-to-cltv transactions cannot appear in a block")
         block.nVersion = 4
 
-        spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[1],
-                                     self.nodeaddress, 49.99)
+        spendtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[1],
+                                      self.nodeaddress, 49.99)
         spendtx = cltv_lock_to_height(self.nodes[0], spendtx)
 
         # First we show that this tx is valid except for CLTV by getting it
@@ -196,8 +196,8 @@ class BIP65Test(BitcoinTestFramework):
 
         self.log.info(
             "Test that a version 4 block with a valid-according-to-CLTV transaction is accepted")
-        spendtx = create_transaction(self.nodes[0], self.coinbase_blocks[2],
-                                     self.nodeaddress, 49.99)
+        spendtx = spend_from_coinbase(self.nodes[0], self.coinbase_blocks[2],
+                                      self.nodeaddress, 49.99)
         spendtx = cltv_lock_to_height(self.nodes[0], spendtx, CLTV_HEIGHT - 1)
 
         # Modify the transaction in the block to be valid against CLTV
