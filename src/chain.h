@@ -93,8 +93,11 @@ public:
     //! blocks are received.
     int32_t nSequenceId;
 
+    //! (memory only) block metadata
+    uint64_t nTimeBlockReceived;
+
     //! (memory only) block header metadata
-    uint64_t nTimeReceived;
+    uint64_t nTimeHeaderReceived;
 
     //! (memory only) Maximum nTime in the chain upto and including this block.
     unsigned int nTimeMax;
@@ -117,7 +120,8 @@ public:
         nVersion = 0;
         hashMerkleRoot = uint256();
         nTime = 0;
-        nTimeReceived = 0;
+        nTimeBlockReceived = 0;
+        nTimeHeaderReceived = 0;
         nBits = 0;
         nNonce = 0;
     }
@@ -130,11 +134,13 @@ public:
         nVersion = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
         nTime = block.nTime;
-        // Default to block time if nTimeReceived is never set, which
+        // Default to block time if nTime(Block/Header)Received is never set,
+        // which
         // in effect assumes that this block is honestly mined.
         // Note that nTimeReceived isn't written to disk, so blocks read from
         // disk will be assumed to be honestly mined.
-        nTimeReceived = block.nTime;
+        nTimeBlockReceived = block.nTime;
+        nTimeHeaderReceived = block.nTime;
         nBits = block.nBits;
         nNonce = block.nNonce;
     }
@@ -176,7 +182,9 @@ public:
 
     int64_t GetBlockTimeMax() const { return int64_t(nTimeMax); }
 
-    int64_t GetHeaderReceivedTime() const { return nTimeReceived; }
+    int64_t GetBlockReceivedTime() const { return nTimeBlockReceived; }
+
+    int64_t GetHeaderReceivedTime() const { return nTimeHeaderReceived; }
 
     int64_t GetReceivedTimeDiff() const {
         return GetHeaderReceivedTime() - GetBlockTime();
