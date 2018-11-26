@@ -12,6 +12,12 @@
 #include "serialize.h"
 #include "uint256.h"
 
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -121,13 +127,16 @@ public:
 };
 
 class AvalancheResponse {
+    uint64_t round;
     uint32_t cooldown;
     std::vector<AvalancheVote> votes;
 
 public:
-    AvalancheResponse(uint32_t cooldownIn, std::vector<AvalancheVote> votesIn)
-        : cooldown(cooldownIn), votes(votesIn) {}
+    AvalancheResponse(uint64_t roundIn, uint32_t cooldownIn,
+                      std::vector<AvalancheVote> votesIn)
+        : round(roundIn), cooldown(cooldownIn), votes(votesIn) {}
 
+    uint64_t getRound() const { return round; }
     uint32_t getCooldown() const { return cooldown; }
     const std::vector<AvalancheVote> &GetVotes() const { return votes; }
 
@@ -136,13 +145,14 @@ public:
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(round);
         READWRITE(cooldown);
         READWRITE(votes);
     }
 };
 
 class AvalanchePoll {
-    uint32_t round;
+    uint64_t round;
     std::vector<CInv> invs;
 
 public:
@@ -196,6 +206,8 @@ typedef std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>
 typedef std::map<std::chrono::time_point<std::chrono::steady_clock>, NodeId>
     NodeCooldownMap;
 
+struct query_timeout {};
+
 class AvalancheProcessor {
 private:
     CConnman *connman;
@@ -208,24 +220,43 @@ private:
     /**
      * Keep track of peers and queries sent.
      */
-    struct RequestRecord {
-    private:
-        int64_t timestamp;
-        std::vector<CInv> invs;
+    typedef std::chrono::time_point<std::chrono::steady_clock> TimePoint;
 
-    public:
-        RequestRecord() : timestamp(0), invs() {}
-        RequestRecord(int64_t timestampIn, std::vector<CInv> invIn)
-            : timestamp(timestampIn), invs(std::move(invIn)) {}
+    std::atomic<uint64_t> round;
+    RWCollection<std::set<NodeId>> nodeids;
+    RWCollection<NodeCooldownMap> nodecooldown;
 
-        int64_t GetTimestamp() const { return timestamp; }
-        const std::vector<CInv> &GetInvs() const { return invs; }
+    struct Query {
+        NodeId nodeid;
+        uint64_t round;
+        TimePoint timeout;
+
+        /**
+         * We declare this as mutable so it can be modified in the multi_index.
+         * This is ok because we do not use this field to index in anyway.
+         *
+         * /!\ Do not use any mutable field as index.
+         */
+        mutable std::vector<CInv> invs;
     };
 
-    std::atomic<uint32_t> round;
-    RWCollection<std::set<NodeId>> nodeids;
-    RWCollection<std::map<NodeId, RequestRecord>> queries;
-    RWCollection<NodeCooldownMap> nodecooldown;
+    typedef boost::multi_index_container<
+        Query,
+        boost::multi_index::indexed_by<
+            // index by nodeid/round
+            boost::multi_index::ordered_unique<
+                boost::multi_index::composite_key<
+                    Query,
+                    boost::multi_index::member<Query, NodeId, &Query::nodeid>,
+                    boost::multi_index::member<Query, uint64_t,
+                                               &Query::round>>>,
+            // sorted by timeout
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<query_timeout>,
+                boost::multi_index::member<Query, TimePoint, &Query::timeout>>>>
+        QuerySet;
+
+    RWCollection<QuerySet> queries;
 
     /**
      * Start stop machinery.
