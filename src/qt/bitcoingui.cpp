@@ -790,24 +790,28 @@ void BitcoinGUI::updateHeadersSyncProgressLabel() {
     int headersTipHeight = clientModel->getHeaderTipHeight();
     int estHeadersLeft = (GetTime() - headersTipTime) /
                          Params().GetConsensus().nPowTargetSpacing;
-    if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC)
+    if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC) {
         progressBarLabel->setText(
             tr("Syncing Headers (%1%)...")
                 .arg(QString::number(100.0 /
                                          (headersTipHeight + estHeadersLeft) *
                                          headersTipHeight,
                                      'f', 1)));
+    }
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
                               double nVerificationProgress, bool header) {
     if (modalOverlay) {
-        if (header)
+        if (header) {
             modalOverlay->setKnownBestHeight(count, blockDate);
-        else
+        } else {
             modalOverlay->tipUpdate(count, blockDate, nVerificationProgress);
+        }
     }
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     // Prevent orphan statusbar messages (e.g. hover Quit in main menu, wait
     // until chain-sync starts -> garbled text)
@@ -936,7 +940,9 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         }
     }
     // Append title to "Bitcoin - "
-    if (!msgType.isEmpty()) strTitle += " - " + msgType;
+    if (!msgType.isEmpty()) {
+        strTitle += " - " + msgType;
+    }
 
     // Check for error/warning icon
     if (style & CClientUIInterface::ICON_ERROR) {
@@ -959,7 +965,9 @@ void BitcoinGUI::message(const QString &title, const QString &message,
         QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message,
                          buttons, this);
         int r = mBox.exec();
-        if (ret != nullptr) *ret = r == QMessageBox::Ok;
+        if (ret != nullptr) {
+            *ret = r == QMessageBox::Ok;
+        }
     } else
         notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
 }
@@ -1017,10 +1025,11 @@ void BitcoinGUI::incomingTransaction(const QString &date, int unit,
                   tr("Amount: %1\n")
                       .arg(BitcoinUnits::formatWithUnit(unit, amount, true)) +
                   tr("Type: %1\n").arg(type);
-    if (!label.isEmpty())
+    if (!label.isEmpty()) {
         msg += tr("Label: %1\n").arg(label);
-    else if (!address.isEmpty())
+    } else if (!address.isEmpty()) {
         msg += tr("Address: %1\n").arg(address);
+    }
     message(amount < Amount::zero() ? tr("Sent transaction")
                                     : tr("Incoming transaction"),
             msg, CClientUIInterface::MSG_INFORMATION);
@@ -1029,7 +1038,9 @@ void BitcoinGUI::incomingTransaction(const QString &date, int unit,
 
 void BitcoinGUI::dragEnterEvent(QDragEnterEvent *event) {
     // Accept only URIs
-    if (event->mimeData()->hasUrls()) event->acceptProposedAction();
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
 }
 
 void BitcoinGUI::dropEvent(QDropEvent *event) {
@@ -1046,8 +1057,9 @@ bool BitcoinGUI::eventFilter(QObject *object, QEvent *event) {
     if (event->type() == QEvent::StatusTip) {
         // Prevent adding text from setStatusTip(), if we currently use the
         // status bar for displaying other stuff
-        if (progressBarLabel->isVisible() || progressBar->isVisible())
+        if (progressBarLabel->isVisible() || progressBar->isVisible()) {
             return true;
+        }
     }
     return QMainWindow::eventFilter(object, event);
 }
@@ -1114,7 +1126,9 @@ void BitcoinGUI::setEncryptionStatus(int status) {
 #endif // ENABLE_WALLET
 
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden) {
-    if (!clientModel) return;
+    if (!clientModel) {
+        return;
+    }
 
     // activateWindow() (sometimes) helps with keyboard focus on Windows
     if (isHidden()) {
@@ -1126,8 +1140,9 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden) {
     } else if (GUIUtil::isObscured(this)) {
         raise();
         activateWindow();
-    } else if (fToggleHidden)
+    } else if (fToggleHidden) {
         hide();
+    }
 }
 
 void BitcoinGUI::toggleHidden() {
@@ -1136,7 +1151,9 @@ void BitcoinGUI::toggleHidden() {
 
 void BitcoinGUI::detectShutdown() {
     if (ShutdownRequested()) {
-        if (rpcConsole) rpcConsole->hide();
+        if (rpcConsole) {
+            rpcConsole->hide();
+        }
         qApp->quit();
     }
 }
@@ -1149,13 +1166,14 @@ void BitcoinGUI::showProgress(const QString &title, int nProgress) {
         progressDialog->setCancelButton(0);
         progressDialog->setAutoClose(false);
         progressDialog->setValue(0);
-    } else if (nProgress == 100) {
-        if (progressDialog) {
+    } else if (progressDialog) {
+        if (nProgress == 100) {
             progressDialog->close();
             progressDialog->deleteLater();
+        } else {
+            progressDialog->setValue(nProgress);
         }
-    } else if (progressDialog)
-        progressDialog->setValue(nProgress);
+    }
 }
 
 void BitcoinGUI::setTrayIconVisible(bool fHideTrayIcon) {
@@ -1166,8 +1184,9 @@ void BitcoinGUI::setTrayIconVisible(bool fHideTrayIcon) {
 
 void BitcoinGUI::showModalOverlay() {
     if (modalOverlay &&
-        (progressBar->isVisible() || modalOverlay->isLayerVisible()))
+        (progressBar->isVisible() || modalOverlay->isLayerVisible())) {
         modalOverlay->toggleVisibility();
+    }
 }
 
 static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string &message,
