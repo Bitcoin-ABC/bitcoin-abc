@@ -17,7 +17,7 @@ osx=true
 SIGNER=
 VERSION=
 commit=false
-url=https://github.com/bitcoin/bitcoin
+url=https://github.com/Bitcoin-ABC/bitcoin-abc
 proc=2
 mem=2000
 lxc=true
@@ -233,8 +233,9 @@ echo ${COMMIT}
 if [[ $setup = true ]]
 then
     sudo apt-get install ruby apache2 git apt-cacher-ng python-vm-builder qemu-kvm qemu-utils
-    git clone https://github.com/bitcoin-core/gitian.sigs.git
-    git clone https://github.com/bitcoin-core/bitcoin-detached-sigs.git
+    # FIXME: Replace with ABC-equivalent repos
+    #git clone https://github.com/bitcoin-core/gitian.sigs.git
+    #git clone https://github.com/bitcoin-core/bitcoin-detached-sigs.git
     git clone https://github.com/devrandom/gitian-builder.git
     pushd ./gitian-builder
     if [[ -n "$USE_LXC" ]]
@@ -265,8 +266,9 @@ then
     echo ""
     pushd ./gitian-builder    
     mkdir -p inputs
-    wget -N -P inputs $osslPatchUrl
-    wget -N -P inputs $osslTarUrl
+    # FIXME: Pull patches from a trusted source
+    #wget -N -P inputs $osslPatchUrl
+    #wget -N -P inputs $osslTarUrl
     make -C ../bitcoin/depends download SOURCES_PATH=`pwd`/cache/common
 
     # Linux
