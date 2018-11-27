@@ -6,7 +6,6 @@
 #include "chain.h"
 #include "diskblockpos.h"
 #include "uint256.h"
-#include "validation.h"
 
 #include "test/test_bitcoin.h"
 
@@ -109,7 +108,7 @@ BOOST_AUTO_TEST_CASE(get_block_hash) {
     BOOST_CHECK(hash == randomHash);
 }
 
-BOOST_AUTO_TEST_CASE(header_received_time) {
+BOOST_AUTO_TEST_CASE(received_time) {
     // Set to UINT32_MAX because that's the maximum value header.nTime can hold
     const int64_t expectedBlockTime = std::numeric_limits<uint32_t>::max();
 
@@ -119,37 +118,19 @@ BOOST_AUTO_TEST_CASE(header_received_time) {
     CBlockIndex index = CBlockIndex(header);
 
     // nTimeReceived defaults to block time
-    BOOST_CHECK(index.nTimeHeaderReceived == expectedBlockTime);
+    BOOST_CHECK(index.nTimeReceived == expectedBlockTime);
 
     // nTimeReceived can be updated to the actual received time, which may
     // be before or after the miner's time.
     for (int64_t receivedTime = expectedBlockTime - 10;
          // Make sure that receivedTime is tested beyond 32-bit values.
          receivedTime <= expectedBlockTime + 10; receivedTime++) {
-        index.nTimeHeaderReceived = receivedTime;
+        index.nTimeReceived = receivedTime;
         BOOST_CHECK(index.GetBlockTime() == expectedBlockTime);
         BOOST_CHECK(index.GetHeaderReceivedTime() == receivedTime);
         BOOST_CHECK(index.GetReceivedTimeDiff() ==
                     receivedTime - expectedBlockTime);
     }
-}
-
-BOOST_FIXTURE_TEST_CASE(block_received_time, TestChain100Setup) {
-    // The time in the BlockHeader is the max of the MTP-11 and GetTime().
-    // So we rewind the time, and check the received time before the blocktime.s
-    time_t mockedTime = GetTime() - 600;
-    SetMockTime(mockedTime);
-
-    CBlock block = CreateAndProcessBlock({}, CScript() << OP_TRUE);
-    BOOST_CHECK(chainActive.Tip()->GetBlockHash() == block.GetHash());
-    CBlockIndex *pindex = nullptr;
-    BOOST_CHECK(mapBlockIndex.count(block.GetHash()) == 1);
-    pindex = mapBlockIndex[block.GetHash()];
-
-    BOOST_CHECK(pindex->GetBlockReceivedTime() == mockedTime);
-    // We don't know the exact MTP-11, but it should be AT LEAST 590 seconds
-    // ahead.
-    BOOST_CHECK(pindex->GetBlockTime() > mockedTime + 590);
 }
 
 BOOST_AUTO_TEST_CASE(median_time_past) {

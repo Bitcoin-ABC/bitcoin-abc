@@ -3066,7 +3066,7 @@ static CBlockIndex *AddToBlockIndex(const CBlockHeader &block) {
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
         pindexNew->BuildSkip();
     }
-    pindexNew->nTimeHeaderReceived = GetTime();
+    pindexNew->nTimeReceived = GetTime();
     pindexNew->nTimeMax =
         (pindexNew->pprev
              ? std::max(pindexNew->pprev->nTimeMax, pindexNew->nTime)
@@ -3718,10 +3718,6 @@ static bool AcceptBlock(const Config &config,
     if (fAlreadyHave) {
         return true;
     }
-
-    // This function is ran once all block data is found. If we don't already
-    // have the block, record when we first saw all the data.
-    pindex->nTimeBlockReceived = GetTime();
 
     // Compare block header timestamps and received times of the block and the
     // chaintip.  If they have the same chain height, use these diffs as a
