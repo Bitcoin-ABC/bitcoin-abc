@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     // Respond to the request.
     AvalancheResponse resp = {0, {AvalancheVote(0, blockHash)}};
-    BOOST_CHECK(p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Now that avanode fullfilled his request, it is added back to the list of
@@ -410,7 +410,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // Sending a response when not polled fails.
-    BOOST_CHECK(!p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Trigger a poll on avanode.
@@ -421,33 +421,33 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     // 1. Too many results.
     resp = {0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash)}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(!p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // 2. Not enough results.
     resp = {0, {}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(!p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // 3. Do not match the poll.
     resp = {0, {AvalancheVote()}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(!p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // Proper response gets processed and avanode is available again.
     resp = {0, {AvalancheVote(0, blockHash)}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
     // Making request for invalid nodes do not work.
-    BOOST_CHECK(!p.registerVotes(avanode->GetId() + 1234, resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid + 1234, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Out of order response are rejected.
@@ -458,7 +458,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     resp = {0, {AvalancheVote(0, blockHash), AvalancheVote(0, blockHash2)}};
     AvalancheTest::runEventLoop(p);
-    BOOST_CHECK(!p.registerVotes(avanode->GetId(), resp, updates));
+    BOOST_CHECK(!p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
 
