@@ -21,7 +21,7 @@ struct AvalancheTest {
         return p.getSuitableNodeToQuery();
     }
 
-    static uint32_t getRound(const AvalancheProcessor &p) { return p.round; }
+    static uint64_t getRound(const AvalancheProcessor &p) { return p.round; }
 };
 
 BOOST_FIXTURE_TEST_SUITE(avalanche_tests, TestChain100Setup)
@@ -505,6 +505,26 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK(p.registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
+
+    // Expire requests after some time.
+    p.setQueryTimeoutDuration(std::chrono::milliseconds(10));
+    for (int i = 0; i < 10; i++) {
+        resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
+        AvalancheTest::runEventLoop(p);
+        // NB: This could wait longer than 1ms in some cases and make the
+        // test flacky. We'll have to come up with a better solution to test
+        // this if that were to be the case. I never was able to trigger this
+        // myself, so it's probably good enough.
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+        AvalancheTest::runEventLoop(p);
+        BOOST_CHECK(p.registerVotes(avanodeid, next(resp), updates));
+
+        // Now try again but wait.
+        AvalancheTest::runEventLoop(p);
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+        AvalancheTest::runEventLoop(p);
+        BOOST_CHECK(!p.registerVotes(avanodeid, next(resp), updates));
+    }
 
     CConnmanTest::ClearNodes();
 }

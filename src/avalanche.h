@@ -34,6 +34,10 @@ namespace {
  */
 static int AVALANCHE_FINALIZATION_SCORE = 128;
 /**
+ * How long before we consider that a query timed out.
+ */
+static int AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS = 10000;
+/**
  * Special NodeId that represent no node.
  */
 static const NodeId NO_NODE = -1;
@@ -214,6 +218,7 @@ struct query_timeout {};
 class AvalancheProcessor {
 private:
     CConnman *connman;
+    std::chrono::milliseconds queryTimeoutDuration;
 
     /**
      * Blocks to run avalanche on.
@@ -291,8 +296,15 @@ private:
 
 public:
     AvalancheProcessor(CConnman *connmanIn)
-        : connman(connmanIn), round(0), stopRequest(false), running(false) {}
+        : connman(connmanIn),
+          queryTimeoutDuration(
+              AVALANCHE_DEFAULT_QUERY_TIMEOUT_DURATION_MILLISECONDS),
+          round(0), stopRequest(false), running(false) {}
     ~AvalancheProcessor() { stopEventLoop(); }
+
+    void setQueryTimeoutDuration(std::chrono::milliseconds d) {
+        queryTimeoutDuration = d;
+    }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;

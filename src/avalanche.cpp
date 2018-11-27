@@ -283,6 +283,17 @@ NodeId AvalancheProcessor::getSuitableNodeToQuery() {
 }
 
 void AvalancheProcessor::runEventLoop() {
+    auto now = std::chrono::steady_clock::now();
+
+    {
+        // Clear expired requests.
+        auto w = queries.getWriteView();
+        auto it = w->get<query_timeout>().begin();
+        while (it != w->get<query_timeout>().end() && it->timeout < now) {
+            w->get<query_timeout>().erase(it++);
+        }
+    }
+
     std::vector<CInv> invs = getInvsForNextPoll();
     if (invs.empty()) {
         // If there are no invs to poll, we are done.
@@ -306,7 +317,7 @@ void AvalancheProcessor::runEventLoop() {
             {
                 // Compute the time at which this requests times out.
                 auto timeout =
-                    std::chrono::steady_clock::now() + std::chrono::seconds(10);
+                    std::chrono::steady_clock::now() + queryTimeoutDuration;
                 // Register the query.
                 queries.getWriteView()->insert(
                     {pnode->GetId(), current_round, timeout, invs});
