@@ -80,9 +80,10 @@ private:
         COLUMN_ADDRESS,
         COLUMN_DATE,
         COLUMN_CONFIRMATIONS,
-        COLUMN_TXID,
-        COLUMN_VOUT_INDEX,
     };
+
+    enum { TxIdRole = Qt::UserRole, VOutRole };
+
     friend class CCoinControlWidgetItem;
 
     static COutPoint buildOutPoint(const QTreeWidgetItem *item);

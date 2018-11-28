@@ -149,10 +149,6 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
     ui->treeWidget->setColumnWidth(COLUMN_ADDRESS, 320);
     ui->treeWidget->setColumnWidth(COLUMN_DATE, 130);
     ui->treeWidget->setColumnWidth(COLUMN_CONFIRMATIONS, 110);
-    // store transaction hash in this column, but don't show it
-    ui->treeWidget->setColumnHidden(COLUMN_TXID, true);
-    // store vout index in this column, but don't show it
-    ui->treeWidget->setColumnHidden(COLUMN_VOUT_INDEX, true);
 
     // default view is sorted by amount desc
     sortView(COLUMN_AMOUNT, Qt::DescendingOrder);
@@ -232,7 +228,7 @@ void CoinControlDialog::showMenu(const QPoint &point) {
 
         // disable some items (like Copy Transaction ID, lock, unlock) for tree
         // roots in context menu
-        if (item->text(COLUMN_TXID).length() == 64) {
+        if (item->data(COLUMN_ADDRESS, TxIdRole).toString().length() == 64) {
             COutPoint outpoint = buildOutPoint(item);
 
             // transaction hash is 64 characters (this means it is a child node,
@@ -287,7 +283,8 @@ void CoinControlDialog::copyAddress() {
 
 // context menu action: copy transaction id
 void CoinControlDialog::copyTransactionHash() {
-    GUIUtil::setClipboard(contextMenuItem->text(COLUMN_TXID));
+    GUIUtil::setClipboard(
+        contextMenuItem->data(COLUMN_ADDRESS, TxIdRole).toString());
 }
 
 // context menu action: lock coin
@@ -408,7 +405,8 @@ void CoinControlDialog::radioListMode(bool checked) {
 void CoinControlDialog::viewItemChanged(QTreeWidgetItem *item, int column) {
     // transaction hash is 64 characters (this means it is a child node, so it
     // is not a parent node in tree mode)
-    if (column == COLUMN_CHECKBOX && item->text(COLUMN_TXID).length() == 64) {
+    if (column == COLUMN_CHECKBOX &&
+        item->data(COLUMN_ADDRESS, TxIdRole).toString().length() == 64) {
         COutPoint outpoint = buildOutPoint(item);
 
         if (item->checkState(COLUMN_CHECKBOX) == Qt::Unchecked) {
@@ -664,8 +662,8 @@ CCoinControl *CoinControlDialog::coinControl() {
 
 COutPoint CoinControlDialog::buildOutPoint(const QTreeWidgetItem *item) {
     TxId txid;
-    txid.SetHex(item->text(COLUMN_TXID).toStdString());
-    return COutPoint(txid, item->text(COLUMN_VOUT_INDEX).toUInt());
+    txid.SetHex(item->data(COLUMN_ADDRESS, TxIdRole).toString().toStdString());
+    return COutPoint(txid, item->data(COLUMN_ADDRESS, VOutRole).toUInt());
 }
 
 void CoinControlDialog::updateView() {
@@ -782,12 +780,12 @@ void CoinControlDialog::updateView() {
                                 QVariant((qlonglong)out.depth_in_main_chain));
 
             // transaction id
-            itemOutput->setText(
-                COLUMN_TXID, QString::fromStdString(output.GetTxId().GetHex()));
+            itemOutput->setData(
+                COLUMN_ADDRESS, TxIdRole,
+                QString::fromStdString(output.GetTxId().GetHex()));
 
             // vout index
-            itemOutput->setText(COLUMN_VOUT_INDEX,
-                                QString::number(output.GetN()));
+            itemOutput->setData(COLUMN_ADDRESS, VOutRole, output.GetN());
 
             // disable locked coins
             if (model->wallet().isLockedCoin(output)) {
