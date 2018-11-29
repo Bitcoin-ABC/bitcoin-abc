@@ -49,14 +49,16 @@ static const NodeId NO_NODE = -1;
 struct VoteRecord {
 private:
     // Historical record of votes.
-    uint16_t votes;
+    uint8_t votes;
+    // Each bit indicate if the vote is to be considered.
+    uint8_t consider;
 
     // confidence's LSB bit is the result. Higher bits are actual confidence
     // score.
     uint16_t confidence;
 
 public:
-    VoteRecord(bool accepted) : votes(0xaaaa), confidence(accepted) {}
+    VoteRecord(bool accepted) : votes(0), consider(0), confidence(accepted) {}
 
     bool isAccepted() const { return confidence & 0x01; }
 
@@ -69,7 +71,7 @@ public:
      * Register a new vote for an item and update confidence accordingly.
      * Returns true if the acceptance or finalization state changed.
      */
-    bool registerVote(bool vote);
+    bool registerVote(uint32_t error);
 };
 
 class AvalancheVote {
@@ -82,7 +84,7 @@ public:
         : error(errorIn), hash(hashIn) {}
 
     const uint256 &GetHash() const { return hash; }
-    bool IsValid() const { return error == 0; }
+    uint32_t GetError() const { return error; }
 
     // serialization support
     ADD_SERIALIZE_METHODS;
@@ -268,6 +270,7 @@ public:
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool isAccepted(const CBlockIndex *pindex) const;
+    int getConfidence(const CBlockIndex *pindex) const;
 
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);

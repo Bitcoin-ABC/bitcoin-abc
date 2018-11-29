@@ -47,46 +47,66 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     BOOST_CHECK_EQUAL(vr.hasFinalized(), false);
     BOOST_CHECK_EQUAL(vr.getConfidence(), 0);
 
-    // We register one vote for, which keep things at 4/4.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, false, 0);
-
-    // One more and we are at 5/3.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, false, 0);
-
-    // One more and we are at 5/3.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, false, 0);
-
-    // One more and we are at 6/2.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, false, 0);
-
-    // One more and we are at 6/2.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, false, 0);
+    // We need to register 6 positive votes before we start counting.
+    for (int i = 0; i < 6; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 0, false, false, 0);
+    }
 
     // Next vote will flip state, and confidence will increase as long as we
     // vote yes.
-    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
-        REGISTER_VOTE_AND_CHECK(vr, true, true, false, i);
+    REGISTER_VOTE_AND_CHECK(vr, 0, true, false, 0);
+
+    // A single neutral vote do not change anything.
+    REGISTER_VOTE_AND_CHECK(vr, -1, true, false, 1);
+    for (int i = 2; i < 8; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 0, true, false, i);
+    }
+
+    // Two neutral votes will stall progress.
+    REGISTER_VOTE_AND_CHECK(vr, -1, true, false, 7);
+    REGISTER_VOTE_AND_CHECK(vr, -1, true, false, 7);
+    for (int i = 2; i < 8; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 0, true, false, 7);
+    }
+
+    // Now confidence will increase as long as we vote yes.
+    for (int i = 8; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 0, true, false, i);
     }
 
     // The next vote will finalize the decision.
-    REGISTER_VOTE_AND_CHECK(vr, false, true, true,
-                            AVALANCHE_FINALIZATION_SCORE);
+    REGISTER_VOTE_AND_CHECK(vr, 1, true, true, AVALANCHE_FINALIZATION_SCORE);
 
     // Now that we have two no votes, confidence stop increasing.
     for (int i = 0; i < 5; i++) {
-        REGISTER_VOTE_AND_CHECK(vr, false, true, true,
+        REGISTER_VOTE_AND_CHECK(vr, 1, true, true,
                                 AVALANCHE_FINALIZATION_SCORE);
     }
 
     // Next vote will flip state, and confidence will increase as long as we
     // vote no.
-    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
-        REGISTER_VOTE_AND_CHECK(vr, false, false, false, i);
+    REGISTER_VOTE_AND_CHECK(vr, 1, false, false, 0);
+
+    // A single neutral vote do not change anything.
+    REGISTER_VOTE_AND_CHECK(vr, -1, false, false, 1);
+    for (int i = 2; i < 8; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 1, false, false, i);
+    }
+
+    // Two neutral votes will stall progress.
+    REGISTER_VOTE_AND_CHECK(vr, -1, false, false, 7);
+    REGISTER_VOTE_AND_CHECK(vr, -1, false, false, 7);
+    for (int i = 2; i < 8; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 1, false, false, 7);
+    }
+
+    // Now confidence will increase as long as we vote no.
+    for (int i = 8; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+        REGISTER_VOTE_AND_CHECK(vr, 1, false, false, i);
     }
 
     // The next vote will finalize the decision.
-    REGISTER_VOTE_AND_CHECK(vr, true, false, true,
-                            AVALANCHE_FINALIZATION_SCORE);
+    REGISTER_VOTE_AND_CHECK(vr, 0, false, true, AVALANCHE_FINALIZATION_SCORE);
 }
 
 BOOST_AUTO_TEST_CASE(block_update) {
@@ -169,18 +189,59 @@ BOOST_AUTO_TEST_CASE(block_register) {
 
     // Let's vote for this block a few times.
     AvalancheResponse resp{0, 0, {AvalancheVote(0, blockHash)}};
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK_EQUAL(p.getConfidence(pindex), 0);
+        BOOST_CHECK_EQUAL(updates.size(), 0);
+    }
+
+    // A single neutral vote do not change anything.
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(-1, blockHash)}};
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    BOOST_CHECK(p.isAccepted(pindex));
+    BOOST_CHECK_EQUAL(p.getConfidence(pindex), 0);
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
+    for (int i = 1; i < 7; i++) {
+        AvalancheTest::runEventLoop(p);
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK_EQUAL(p.getConfidence(pindex), i);
+        BOOST_CHECK_EQUAL(updates.size(), 0);
+    }
+
+    // Two neutral votes will stall progress.
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(-1, blockHash)}};
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    BOOST_CHECK(p.isAccepted(pindex));
+    BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+    AvalancheTest::runEventLoop(p);
+    BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+    BOOST_CHECK(p.isAccepted(pindex));
+    BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
+    BOOST_CHECK_EQUAL(updates.size(), 0);
+
+    resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(0, blockHash)}};
+    for (int i = 2; i < 8; i++) {
+        AvalancheTest::runEventLoop(p);
+        BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK_EQUAL(p.getConfidence(pindex), 6);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // We vote for it numerous times to finalize it.
-    for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
+    for (int i = 7; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
+        BOOST_CHECK_EQUAL(p.getConfidence(pindex), i);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -211,7 +272,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(invs[0].hash == blockHash);
 
     resp = {AvalancheTest::getRound(p), 0, {AvalancheVote(1, blockHash)}};
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK(p.isAccepted(pindex));
@@ -320,7 +381,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(invs[1].hash == blockHashA);
 
     // Let's vote for these blocks a few times.
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         NodeId nodeid = AvalancheTest::getSuitableNodeToQuery(p);
         AvalancheTest::runEventLoop(p);
         BOOST_CHECK(p.registerVotes(nodeid, next(resp), updates));

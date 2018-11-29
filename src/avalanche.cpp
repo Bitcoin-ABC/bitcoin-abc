@@ -31,26 +31,42 @@ static uint32_t countBits(uint32_t v) {
 #endif
 }
 
-bool VoteRecord::registerVote(bool vote) {
-    votes = (votes << 1) | vote;
+bool VoteRecord::registerVote(uint32_t error) {
+    /**
+     * The result of the vote is determined from the error code. If the error
+     * code is 0, there is no error and therefore the vote is yes. If there is
+     * an error, we check the most signficant bit to decide if the vote is a no
+     * (for instance, the block is invalid) or is the vote inconclusive (for
+     * instance, the queried node do not have the block yet).
+     */
+    votes = (votes << 1) | (error == 0);
+    consider = (consider << 1) | (int32_t(error) >= 0);
 
-    auto bits = countBits(votes & 0xff);
-    bool yes = bits > 6;
-    bool no = bits < 2;
-    if (!yes && !no) {
-        // The vote is inconclusive.
-        return false;
+    /**
+     * We compute the number of yes and/or no votes as follow:
+     *
+     * votes:     1010
+     * consider:  1100
+     *
+     * yes votes: 1000 using votes & consider
+     * no votes:  0100 using ~votes & consider
+     */
+    bool yes = countBits(votes & consider & 0xff) > 6;
+    if (!yes) {
+        bool no = countBits(~votes & consider & 0xff) > 6;
+        if (!no) {
+            // The round is inconclusive.
+            return false;
+        }
     }
 
+    // If the round is in agreement with previous rounds, increase confidence.
     if (isAccepted() == yes) {
-        // If the vote is in agreement with our internal status, increase
-        // confidence.
         confidence += 2;
         return getConfidence() == AVALANCHE_FINALIZATION_SCORE;
     }
 
-    // The vote did not agree with our internal state, in that case, reset
-    // confidence.
+    // The round changed our state. We reset the confidence.
     confidence = yes;
     return true;
 }
@@ -107,6 +123,14 @@ bool AvalancheProcessor::isAccepted(const CBlockIndex *pindex) const {
     }
 
     return false;
+}
+
+int AvalancheProcessor::getConfidence(const CBlockIndex *pindex) const {
+    if (auto vr = GetRecord(vote_records, pindex)) {
+        return vr->getConfidence();
+    }
+
+    return -1;
 }
 
 bool AvalancheProcessor::registerVotes(
@@ -195,7 +219,7 @@ bool AvalancheProcessor::registerVotes(
             }
 
             auto &vr = it->second;
-            if (!vr.registerVote(v.IsValid())) {
+            if (!vr.registerVote(v.GetError())) {
                 // This vote did not provide any extra information, move on.
                 continue;
             }
