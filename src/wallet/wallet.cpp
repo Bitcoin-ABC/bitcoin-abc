@@ -887,12 +887,12 @@ bool CWallet::AccountMove(std::string strFrom, std::string strTo,
     return walletdb.TxnCommit();
 }
 
-bool CWallet::GetAccountPubkey(CPubKey &pubKey, std::string strAccount,
-                               bool bForceNew) {
+bool CWallet::GetLabelAddress(CPubKey &pubKey, const std::string &label,
+                              bool bForceNew) {
     CWalletDB walletdb(*dbw);
 
     CAccount account;
-    walletdb.ReadAccount(strAccount, account);
+    walletdb.ReadAccount(label, account);
 
     if (!bForceNew) {
         if (!account.vchPubKey.IsValid()) {
@@ -919,8 +919,8 @@ bool CWallet::GetAccountPubkey(CPubKey &pubKey, std::string strAccount,
             return false;
         }
 
-        SetAddressBook(account.vchPubKey.GetID(), strAccount, "receive");
-        walletdb.WriteAccount(strAccount, account);
+        SetAddressBook(account.vchPubKey.GetID(), label, "receive");
+        walletdb.WriteAccount(label, account);
     }
 
     pubKey = account.vchPubKey;
@@ -2205,7 +2205,7 @@ Amount CWallet::GetLegacyBalance(const isminefilter &filter, int minDepth,
                 debit -= out.nValue;
             } else if (IsMine(out) & filter && depth >= minDepth &&
                        (!account ||
-                        *account == GetAccountName(out.scriptPubKey))) {
+                        *account == GetLabelName(out.scriptPubKey))) {
                 balance += out.nValue;
             }
         }
@@ -3264,7 +3264,7 @@ bool CWallet::DelAddressBook(const CTxDestination &address) {
     return CWalletDB(*dbw).EraseName(address);
 }
 
-const std::string &CWallet::GetAccountName(const CScript &scriptPubKey) const {
+const std::string &CWallet::GetLabelName(const CScript &scriptPubKey) const {
     CTxDestination address;
     if (ExtractDestination(scriptPubKey, address) &&
         !scriptPubKey.IsUnspendable()) {
@@ -3274,9 +3274,9 @@ const std::string &CWallet::GetAccountName(const CScript &scriptPubKey) const {
         }
     }
     // A scriptPubKey that doesn't have an entry in the address book is
-    // associated with the default account ("").
-    const static std::string DEFAULT_ACCOUNT_NAME;
-    return DEFAULT_ACCOUNT_NAME;
+    // associated with the default label ("").
+    const static std::string DEFAULT_LABEL_NAME;
+    return DEFAULT_LABEL_NAME;
 }
 
 /**
@@ -3662,14 +3662,14 @@ std::set<std::set<CTxDestination>> CWallet::GetAddressGroupings() {
 }
 
 std::set<CTxDestination>
-CWallet::GetAccountAddresses(const std::string &strAccount) const {
+CWallet::GetLabelAddresses(const std::string &label) const {
     LOCK(cs_wallet);
     std::set<CTxDestination> result;
     for (const std::pair<CTxDestination, CAddressBookData> &item :
          mapAddressBook) {
         const CTxDestination &address = item.first;
         const std::string &strName = item.second.name;
-        if (strName == strAccount) {
+        if (strName == label) {
             result.insert(address);
         }
     }

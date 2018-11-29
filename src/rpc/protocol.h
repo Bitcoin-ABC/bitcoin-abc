@@ -96,8 +96,8 @@ enum RPCErrorCode {
     RPC_WALLET_ERROR = -4,
     //!< Not enough funds in wallet or account
     RPC_WALLET_INSUFFICIENT_FUNDS = -6,
-    //!< Invalid account name
-    RPC_WALLET_INVALID_ACCOUNT_NAME = -11,
+    //!< Invalid label name
+    RPC_WALLET_INVALID_LABEL_NAME = -11,
     //!< Keypool ran out, call keypoolrefill first
     RPC_WALLET_KEYPOOL_RAN_OUT = -12,
     //!< Enter the wallet passphrase with walletpassphrase first
@@ -114,7 +114,9 @@ enum RPCErrorCode {
     //!< Invalid wallet specified
     RPC_WALLET_NOT_FOUND = -18,
     //!< No wallet specified (error when there are multiple wallets loaded)
-    RPC_WALLET_NOT_SPECIFIED = -19
+    RPC_WALLET_NOT_SPECIFIED = -19,
+    //!< Backwards compatible aliases
+    RPC_WALLET_INVALID_ACCOUNT_NAME = RPC_WALLET_INVALID_LABEL_NAME,
 };
 
 UniValue JSONRPCRequestObj(const std::string &strMethod, const UniValue &params,
