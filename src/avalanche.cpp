@@ -5,6 +5,7 @@
 #include "avalanche.h"
 
 #include "chain.h"
+#include "config/bitcoin-config.h"
 #include "netmessagemaker.h"
 #include "scheduler.h"
 #include "validation.h"
@@ -12,6 +13,47 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include <tuple>
+
+static uint32_t countBits(uint32_t v) {
+#if HAVE_DECL___BUILTIN_POPCOUNT
+    return __builtin_popcount(v);
+#else
+    /**
+     * This computes the number of bits set in each group of 8bits then uses a
+     * multiplication to sum all of them in the 8 most significant bits and
+     * return these.
+     * More detailed explaination can be found at
+     * https://www.playingwithpointers.com/blog/swar.html
+     */
+    v = v - ((v >> 1) & 0x55555555);
+    v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+    return (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+#endif
+}
+
+bool VoteRecord::registerVote(bool vote) {
+    votes = (votes << 1) | vote;
+
+    auto bits = countBits(votes & 0xff);
+    bool yes = bits > 6;
+    bool no = bits < 2;
+    if (!yes && !no) {
+        // The vote is inconclusive.
+        return false;
+    }
+
+    if (isAccepted() == yes) {
+        // If the vote is in agreement with our internal status, increase
+        // confidence.
+        confidence += 2;
+        return getConfidence() == AVALANCHE_FINALIZATION_SCORE;
+    }
+
+    // The vote did not agree with our internal state, in that case, reset
+    // confidence.
+    confidence = yes;
+    return true;
+}
 
 static bool IsWorthPolling(const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
