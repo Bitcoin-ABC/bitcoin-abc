@@ -1456,6 +1456,52 @@ static void FlushBlockFile(bool fFinalize = false) {
 static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos,
                         unsigned int nAddSize);
 
+static bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
+                                  CValidationState &state, CBlockIndex *pindex,
+                                  const CChainParams &chainparams) {
+    // Write undo information to disk
+    if (pindex->GetUndoPos().IsNull()) {
+        CDiskBlockPos _pos;
+        if (!FindUndoPos(
+                state, pindex->nFile, _pos,
+                ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40)) {
+            return error("ConnectBlock(): FindUndoPos failed");
+        }
+        if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
+                             chainparams.DiskMagic())) {
+            return AbortNode(state, "Failed to write undo data");
+        }
+
+        // update nUndoPos in block index
+        pindex->nUndoPos = _pos.nPos;
+        pindex->nStatus = pindex->nStatus.withUndo();
+        setDirtyBlockIndex.insert(pindex);
+    }
+
+    return true;
+}
+
+static bool WriteTxIndexDataForBlock(const CBlock &block,
+                                     CValidationState &state,
+                                     CBlockIndex *pindex) {
+    CDiskTxPos pos(pindex->GetBlockPos(),
+                   GetSizeOfCompactSize(block.vtx.size()));
+    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
+    vPos.reserve(block.vtx.size());
+    for (const CTransactionRef &tx : block.vtx) {
+        vPos.push_back(std::make_pair(tx->GetHash(), pos));
+        pos.nTxOffset += ::GetSerializeSize(*tx, SER_DISK, CLIENT_VERSION);
+    }
+
+    if (fTxIndex) {
+        if (!pblocktree->WriteTxIndex(vPos)) {
+            return AbortNode(state, "Failed to write transaction index");
+        }
+    }
+
+    return true;
+}
+
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
@@ -1707,19 +1753,12 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION);
     const uint64_t nMaxSigOpsCount = GetMaxBlockSigOpsCount(currentBlockSize);
 
-    CDiskTxPos pos(pindex->GetBlockPos(),
-                   GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos>> vPos;
-    vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
 
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
 
         nInputs += tx.vin.size();
-
-        vPos.push_back(std::make_pair(tx.GetId(), pos));
-        pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
 
         if (tx.IsCoinBase()) {
             // We've already checked for sigops count before P2SH in CheckBlock.
@@ -1837,33 +1876,18 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
         return true;
     }
 
-    // Write undo information to disk
-    if (pindex->GetUndoPos().IsNull() ||
-        !pindex->IsValid(BlockValidity::SCRIPTS)) {
-        if (pindex->GetUndoPos().IsNull()) {
-            CDiskBlockPos _pos;
-            if (!FindUndoPos(
-                    state, pindex->nFile, _pos,
-                    ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) +
-                        40)) {
-                return error("ConnectBlock(): FindUndoPos failed");
-            }
-            if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
-                                 config.GetChainParams().DiskMagic())) {
-                return AbortNode(state, "Failed to write undo data");
-            }
+    if (!WriteUndoDataForBlock(blockundo, state, pindex,
+                               config.GetChainParams())) {
+        return false;
+    }
 
-            // update nUndoPos in block index
-            pindex->nUndoPos = _pos.nPos;
-            pindex->nStatus = pindex->nStatus.withUndo();
-        }
-
+    if (!pindex->IsValid(BlockValidity::SCRIPTS)) {
         pindex->RaiseValidity(BlockValidity::SCRIPTS);
         setDirtyBlockIndex.insert(pindex);
     }
 
-    if (fTxIndex && !pblocktree->WriteTxIndex(vPos)) {
-        return AbortNode(state, "Failed to write transaction index");
+    if (!WriteTxIndexDataForBlock(block, state, pindex)) {
+        return false;
     }
 
     // add this block to the view's block chain
