@@ -25,7 +25,9 @@ private:
     uint32_t n;
 
 public:
-    COutPoint() : txid(), n(-1) {}
+    static constexpr uint32_t NULL_INDEX = std::numeric_limits<uint32_t>::max();
+
+    COutPoint() : txid(), n(NULL_INDEX) {}
     COutPoint(TxId txidIn, uint32_t nIn) : txid(txidIn), n(nIn) {}
 
     ADD_SERIALIZE_METHODS;
@@ -36,7 +38,7 @@ public:
         READWRITE(n);
     }
 
-    bool IsNull() const { return txid.IsNull() && n == uint32_t(-1); }
+    bool IsNull() const { return txid.IsNull() && n == NULL_INDEX; }
 
     const TxId &GetTxId() const { return txid; }
     uint32_t GetN() const { return n; }

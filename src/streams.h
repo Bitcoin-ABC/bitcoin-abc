@@ -746,7 +746,8 @@ public:
     CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn,
                   int nTypeIn, int nVersionIn)
         : nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), nReadPos(0),
-          nReadLimit((uint64_t)(-1)), nRewind(nRewindIn), vchBuf(nBufSize, 0) {
+          nReadLimit(std::numeric_limits<uint64_t>::max()), nRewind(nRewindIn),
+          vchBuf(nBufSize, 0) {
         src = fileIn;
     }
 
@@ -828,7 +829,7 @@ public:
     }
 
     // Prevent reading beyond a certain position. No argument removes the limit.
-    bool SetLimit(uint64_t nPos = (uint64_t)(-1)) {
+    bool SetLimit(uint64_t nPos = std::numeric_limits<uint64_t>::max()) {
         if (nPos < nReadPos) {
             return false;
         }
