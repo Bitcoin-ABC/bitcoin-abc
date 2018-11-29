@@ -269,7 +269,7 @@ private:
 
 public:
     AvalancheProcessor(CConnman *connmanIn)
-        : connman(connmanIn), stopRequest(false), running(false) {}
+        : connman(connmanIn), round(0), stopRequest(false), running(false) {}
     ~AvalancheProcessor() { stopEventLoop(); }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
