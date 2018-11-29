@@ -4072,12 +4072,16 @@ bool ProcessNewBlock(const Config &config,
         }
 
         CValidationState state;
+
+        // CheckBlock() does not support multi-threaded block validation
+        // because CBlock::fChecked can cause data race.
+        // Therefore, the following critical section must include the
+        // CheckBlock() call as well.
+        LOCK(cs_main);
+
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
         // belt-and-suspenders.
         bool ret = CheckBlock(config, *pblock, state);
-
-        LOCK(cs_main);
-
         if (ret) {
             // Store to disk
             ret = g_chainstate.AcceptBlock(
