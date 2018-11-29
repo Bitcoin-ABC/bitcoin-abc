@@ -5,7 +5,7 @@
  },
  {
   "name": "abc-checkdatasig-activation.py",
-  "time": 4
+  "time": 3
  },
  {
   "name": "abc-cmdline.py",
@@ -17,15 +17,11 @@
  },
  {
   "name": "abc-high_priority_transaction.py",
-  "time": 37
+  "time": 6
  },
  {
   "name": "abc-magnetic-anomaly-activation.py",
-  "time": 14
- },
- {
-  "name": "abc-magnetic-anomaly-mining.py",
-  "time": 13
+  "time": 6
  },
  {
   "name": "abc-mempool-accept-txn.py",
@@ -49,7 +45,7 @@
  },
  {
   "name": "abc-rpc.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "abc-transaction-ordering.py",
@@ -92,12 +88,16 @@
   "time": 2
  },
  {
+  "name": "deprecated_rpc.py",
+  "time": 2
+ },
+ {
   "name": "disablewallet.py",
   "time": 2
  },
  {
   "name": "disconnect_ban.py",
-  "time": 9
+  "time": 6
  },
  {
   "name": "example_test.py",
@@ -113,7 +113,7 @@
  },
  {
   "name": "getchaintips.py",
-  "time": 5
+  "time": 4
  },
  {
   "name": "httpbasics.py",
@@ -149,7 +149,7 @@
  },
  {
   "name": "keypool.py",
-  "time": 9
+  "time": 7
  },
  {
   "name": "listsinceblock.py",
@@ -181,7 +181,7 @@
  },
  {
   "name": "mempool_resurrect_test.py",
-  "time": 18
+  "time": 2
  },
  {
   "name": "mempool_spendcoinbase.py",
@@ -242,6 +242,7 @@
  {
   "name": "p2p-mempool.py",
   "time": 3
+
  },
  {
   "name": "p2p-timeouts.py",
@@ -249,7 +250,7 @@
  },
  {
   "name": "preciousblock.py",
-  "time": 5
+  "time": 3
  },
  {
   "name": "prioritise_transaction.py",
@@ -257,7 +258,7 @@
  },
  {
   "name": "proxy_test.py",
-  "time": 5
+  "time": 3
  },
  {
   "name": "pruning.py",
@@ -289,7 +290,7 @@
  },
  {
   "name": "rpcnamedargs.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "sendheaders.py",
@@ -321,35 +322,39 @@
  },
  {
   "name": "uptime.py",
-  "time": 3
- },
- {
-  "name": "wallet-accounts.py",
-  "time": 26
- },
- {
-  "name": "wallet-dump.py",
-  "time": 35
- },
- {
-  "name": "wallet-encryption.py",
-  "time": 18
- },
- {
-  "name": "wallet-hd.py",
-  "time": 36
+  "time": 2
  },
  {
   "name": "wallet.py",
-  "time": 46
+  "time": 34
+ },
+ {
+  "name": "wallet_accounts.py",
+  "time": 5
+ },
+ {
+  "name": "wallet_dump.py",
+  "time": 6
+ },
+ {
+  "name": "wallet_encryption.py",
+  "time": 8
+ },
+ {
+  "name": "wallet_hd.py",
+  "time": 54
+ },
+ {
+  "name": "wallet_receivedby.py",
+  "time": 9
  },
  {
   "name": "walletbackup.py",
-  "time": 119
+  "time": 116
  },
  {
   "name": "zapwallettxes.py",
-  "time": 14
+  "time": 10
  },
  {
   "name": "zmq_test.py",
