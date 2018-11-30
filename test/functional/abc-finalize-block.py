@@ -44,7 +44,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
 
         alt_node.invalidateblock(tip)
         # We will use this later to check auto-finalization during a reorg
-        auto_finalized_tip = alt_node.getbestblockhash()
+        fork_block = alt_node.getbestblockhash()
 
         # Node 0 should not accept the whole alt_node's chain due to tip being finalized,
         # even though it is longer.
@@ -112,15 +112,15 @@ class FinalizeBlockTest(BitcoinTestFramework):
         # On node:
         #                                     >(210 valid-headers)->(211 invalid)->(212 to 218 dropped)
         #                                    /
-        # (200 finalized)->(201)-> // ->(209)->(210 tip)
+        # (200)->(201)-> // ->(209 finalized)->(210 tip)
         node.invalidateblock(tip)
         node.reconsiderblock(tip)
-        finalized_block = node.getblockhash(
-            int(node.getblockheader(tip)['height']) - AUTO_FINALIZATION_DEPTH)
+
         assert_equal(node.getbestblockhash(), tip)
-        assert_equal(
-            node.getfinalizedblockhash(),
-            finalized_block)
+        assert_equal(node.getfinalizedblockhash(), fork_block)
+
+        assert_equal(alt_node.getfinalizedblockhash(), node.getblockheader(
+            node.getfinalizedblockhash())['previousblockhash'])
 
         # The node will now accept that chain as the finalized block moved back.
         # Generate a new block on alt_node to trigger getheader from node
@@ -143,7 +143,8 @@ class FinalizeBlockTest(BitcoinTestFramework):
         sync_blocks(self.nodes[0:2])
 
         assert_equal(node.getbestblockhash(), alt_node.getbestblockhash())
-        assert_equal(node.getfinalizedblockhash(), auto_finalized_tip)
+        assert_equal(node.getfinalizedblockhash(), fork_block)
+        assert_equal(alt_node.getfinalizedblockhash(), fork_block)
 
         self.log.info("Trigger reorg via block finalization...")
         # Finalize node tip to reorg
@@ -156,19 +157,18 @@ class FinalizeBlockTest(BitcoinTestFramework):
         # (200)->(201)-> // ->(209 auto-finalized)->(210 invalid)
         #
         # On node:
-        #                                     >(210 invalid)-> // ->(219 invalid)
-        #                                    /
-        # (200 finalized)->(201)-> // ->(209)->(210 tip)
+        #                           >(210 invalid)-> // ->(219 invalid)
+        #                          /
+        # (200)->(201)-> // ->(209)->(210 finalized, tip)
         node.finalizeblock(tip)
-        assert_equal(node.getfinalizedblockhash(),
-                     finalized_block)
+        assert_equal(node.getfinalizedblockhash(), tip)
 
         self.log.info("Try to finalize a block on a competiting fork...")
         assert_raises_rpc_error(-20, RPC_FINALIZE_INVALID_BLOCK_ERROR,
                                 node.finalizeblock, alt_node.getbestblockhash())
         assert node.getfinalizedblockhash() != alt_node.getbestblockhash(), \
             "Finalized block should not be alt_node's tip!"
-        assert_equal(node.getfinalizedblockhash(), finalized_block)
+        assert_equal(node.getfinalizedblockhash(), tip)
 
         self.log.info(
             "Make sure reconsidering block move the finalization point...")
@@ -182,12 +182,13 @@ class FinalizeBlockTest(BitcoinTestFramework):
         # (200)->(201)-> // ->(209 auto-finalized)->(210 invalid)
         #
         # On node:
-        #                                          >(210)-> // ->(219 tip)
-        #                                         /
-        # (200)->(201)-> // ->(209 auto-finalized)->(210)
+        #                                     >(210)-> // ->(219 tip)
+        #                                    /
+        # (200)->(201)-> // ->(209 finalized)->(210)
         node.reconsiderblock(alt_node.getbestblockhash())
 
         assert_equal(node.getbestblockhash(), alt_node.getbestblockhash())
+        assert_equal(node.getfinalizedblockhash(), fork_block)
 
 
 if __name__ == '__main__':
