@@ -10,6 +10,7 @@
 #include <blockstatus.h>
 #include <blockvalidity.h>
 #include <consensus/params.h>
+#include <crypto/common.h> // for ReadLE64
 #include <flatfile.h>
 #include <primitives/block.h>
 #include <sync.h>
@@ -243,7 +244,12 @@ public:
  * Maintain a map of CBlockIndex for all known headers.
  */
 struct BlockHasher {
-    size_t operator()(const uint256 &hash) const { return hash.GetCheapHash(); }
+    // this used to call `GetCheapHash()` in uint256, which was later moved; the
+    // cheap hash function simply calls ReadLE64() however, so the end result is
+    // identical
+    size_t operator()(const uint256 &hash) const {
+        return ReadLE64(hash.begin());
+    }
 };
 
 typedef std::unordered_map<uint256, CBlockIndex *, BlockHasher> BlockMap;
