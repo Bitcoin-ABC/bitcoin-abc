@@ -2339,7 +2339,12 @@ static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
             REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
     }
 
-    // Our candidate is valid, finalize it.
+    if (IsBlockFinalized(pindex)) {
+        // The block is already finalized.
+        return true;
+    }
+
+    // We have a new block to finalize.
     pindexFinalized = pindex;
     return true;
 }
