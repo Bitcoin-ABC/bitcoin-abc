@@ -19,6 +19,7 @@ from test_framework.script import *
 
 # far into the future
 REPLAY_PROTECTION_START_TIME = 2000000000
+MAGNETIC_ANOMALY_START_TIME = 4000000000
 
 # Error due to invalid signature
 INVALID_SIGNATURE_ERROR = b'mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)'
@@ -42,6 +43,7 @@ class ReplayProtectionTest(ComparisonTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=127.0.0.1',
+                            "-magneticanomalyactivationtime=%d" % MAGNETIC_ANOMALY_START_TIME,
                             "-replayprotectionactivationtime=%d" % REPLAY_PROTECTION_START_TIME]]
 
     def run_test(self):

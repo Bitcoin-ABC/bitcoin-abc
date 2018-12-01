@@ -5,6 +5,7 @@
 
 #include "rpc/mining.h"
 #include "amount.h"
+#include "blockvalidity.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "config.h"
@@ -295,7 +296,7 @@ static UniValue prioritisetransaction(const Config &config,
     LOCK(cs_main);
 
     uint256 hash = ParseHashStr(request.params[0].get_str(), "txid");
-    Amount nAmount(request.params[2].get_int64());
+    Amount nAmount = request.params[2].get_int64() * SATOSHI;
 
     mempool.PrioritiseTransaction(hash, request.params[0].get_str(),
                                   request.params[1].get_real(), nAmount);
@@ -324,15 +325,6 @@ static UniValue BIP22ValidationResult(const Config &config,
 
     // Should be impossible.
     return "valid?";
-}
-
-std::string gbt_vb_name(const Consensus::DeploymentPos pos) {
-    const struct BIP9DeploymentInfo &vbinfo = VersionBitsDeploymentInfo[pos];
-    std::string s = vbinfo.name;
-    if (!vbinfo.gbt_force) {
-        s.insert(s.begin(), '!');
-    }
-    return s;
 }
 
 static UniValue getblocktemplate(const Config &config,
@@ -367,12 +359,6 @@ static UniValue getblocktemplate(const Config &config,
             "feature, 'longpoll', 'coinbasetxn', 'coinbasevalue', 'proposal', "
             "'serverlist', 'workid'\n"
             "           ,...\n"
-            "       ],\n"
-            "       \"rules\":[            (array, optional) A list of "
-            "strings\n"
-            "           \"support\"          (string) client side supported "
-            "softfork deployment\n"
-            "           ,...\n"
             "       ]\n"
             "     }\n"
             "\n"
@@ -381,17 +367,6 @@ static UniValue getblocktemplate(const Config &config,
             "{\n"
             "  \"version\" : n,                    (numeric) The preferred "
             "block version\n"
-            "  \"rules\" : [ \"rulename\", ... ],    (array of strings) "
-            "specific block rules that are to be enforced\n"
-            "  \"vbavailable\" : {                 (json object) set of "
-            "pending, supported versionbit (BIP 9) softfork deployments\n"
-            "      \"rulename\" : bitnumber          (numeric) identifies the "
-            "bit number as indicating acceptance and readiness for the named "
-            "softfork rule\n"
-            "      ,...\n"
-            "  },\n"
-            "  \"vbrequired\" : n,                 (numeric) bit mask of "
-            "versionbits the server requires set in submissions\n"
             "  \"previousblockhash\" : \"xxxx\",     (string) The hash of "
             "current highest block\n"
             "  \"transactions\" : [                (array) contents of "
@@ -471,7 +446,6 @@ static UniValue getblocktemplate(const Config &config,
     std::string strMode = "template";
     UniValue lpval = NullUniValue;
     std::set<std::string> setClientRules;
-    int64_t nMaxVersionPreVB = -1;
     if (request.params.size() > 0) {
         const UniValue &oparam = request.params[0].get_obj();
         const UniValue &modeval = find_value(oparam, "mode");
@@ -521,21 +495,6 @@ static UniValue getblocktemplate(const Config &config,
             TestBlockValidity(config, state, block, pindexPrev,
                               validationOptions);
             return BIP22ValidationResult(config, state);
-        }
-
-        const UniValue &aClientRules = find_value(oparam, "rules");
-        if (aClientRules.isArray()) {
-            for (size_t i = 0; i < aClientRules.size(); ++i) {
-                const UniValue &v = aClientRules[i];
-                setClientRules.insert(v.get_str());
-            }
-        } else {
-            // NOTE: It is important that this NOT be read if versionbits is
-            // supported
-            const UniValue &uvMaxVersion = find_value(oparam, "maxversion");
-            if (uvMaxVersion.isNum()) {
-                nMaxVersionPreVB = uvMaxVersion.get_int64();
-            }
         }
     }
 
@@ -638,8 +597,6 @@ static UniValue getblocktemplate(const Config &config,
 
     // pointer for convenience
     CBlock *pblock = &pblocktemplate->block;
-    const Consensus::Params &consensusParams =
-        config.GetChainParams().GetConsensus();
 
     // Update nTime
     UpdateTime(pblock, config, pindexPrev);
@@ -675,8 +632,8 @@ static UniValue getblocktemplate(const Config &config,
         entry.push_back(Pair("depends", deps));
 
         int index_in_template = i - 1;
-        entry.push_back(Pair(
-            "fee", pblocktemplate->vTxFees[index_in_template].GetSatoshis()));
+        entry.push_back(
+            Pair("fee", pblocktemplate->vTxFees[index_in_template] / SATOSHI));
         int64_t nTxSigOps = pblocktemplate->vTxSigOpsCount[index_in_template];
         entry.push_back(Pair("sigops", nTxSigOps));
 
@@ -697,88 +654,19 @@ static UniValue getblocktemplate(const Config &config,
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("capabilities", aCaps));
 
-    UniValue aRules(UniValue::VARR);
-    UniValue vbavailable(UniValue::VOBJ);
-    for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
-        Consensus::DeploymentPos pos = Consensus::DeploymentPos(j);
-        ThresholdState state = VersionBitsState(pindexPrev, consensusParams,
-                                                pos, versionbitscache);
-        switch (state) {
-            case THRESHOLD_DEFINED:
-            case THRESHOLD_FAILED:
-                // Not exposed to GBT at all
-                break;
-            case THRESHOLD_LOCKED_IN: {
-                // Ensure bit is set in block version, then fallthrough to get
-                // vbavailable set.
-                pblock->nVersion |= VersionBitsMask(consensusParams, pos);
-            }
-            // FALLTHROUGH
-            case THRESHOLD_STARTED: {
-                const struct BIP9DeploymentInfo &vbinfo =
-                    VersionBitsDeploymentInfo[pos];
-                vbavailable.push_back(Pair(
-                    gbt_vb_name(pos), consensusParams.vDeployments[pos].bit));
-                if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
-                    if (!vbinfo.gbt_force) {
-                        // If the client doesn't support this, don't indicate it
-                        // in the [default] version
-                        pblock->nVersion &=
-                            ~VersionBitsMask(consensusParams, pos);
-                    }
-                }
-                break;
-            }
-            case THRESHOLD_ACTIVE: {
-                // Add to rules only
-                const struct BIP9DeploymentInfo &vbinfo =
-                    VersionBitsDeploymentInfo[pos];
-                aRules.push_back(gbt_vb_name(pos));
-                if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
-                    // Not supported by the client; make sure it's safe to
-                    // proceed
-                    if (!vbinfo.gbt_force) {
-                        // If we do anything other than throw an exception here,
-                        // be sure version/force isn't sent to old clients
-                        throw JSONRPCError(
-                            RPC_INVALID_PARAMETER,
-                            strprintf("Support for '%s' rule requires explicit "
-                                      "client support",
-                                      vbinfo.name));
-                    }
-                }
-                break;
-            }
-        }
-    }
     result.push_back(Pair("version", pblock->nVersion));
-    result.push_back(Pair("rules", aRules));
-    result.push_back(Pair("vbavailable", vbavailable));
-    result.push_back(Pair("vbrequired", int(0)));
-
-    if (nMaxVersionPreVB >= 2) {
-        // If VB is supported by the client, nMaxVersionPreVB is -1, so we won't
-        // get here. Because BIP 34 changed how the generation transaction is
-        // serialized, we can only use version/force back to v2 blocks. This is
-        // safe to do [otherwise-]unconditionally only because we are throwing
-        // an exception above if a non-force deployment gets activated. Note
-        // that this can probably also be removed entirely after the first BIP9
-        // non-force deployment (ie, probably segwit) gets activated.
-        aMutable.push_back("version/force");
-    }
 
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(
-        Pair("coinbasevalue",
-             (int64_t)pblock->vtx[0]->vout[0].nValue.GetSatoshis()));
+    result.push_back(Pair("coinbasevalue",
+                          int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI)));
     result.push_back(Pair("longpollid",
                           chainActive.Tip()->GetBlockHash().GetHex() +
                               i64tostr(nTransactionsUpdatedLast)));
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(
-        Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast() + 1));
+        Pair("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1));
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
     // FIXME: Allow for mining block greater than 1M.
@@ -787,7 +675,7 @@ static UniValue getblocktemplate(const Config &config,
     result.push_back(Pair("sizelimit", DEFAULT_MAX_BLOCK_SIZE));
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
-    result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight + 1)));
+    result.push_back(Pair("height", int64_t(pindexPrev->nHeight) + 1));
 
     return result;
 }
@@ -918,7 +806,7 @@ static UniValue estimatefee(const Config &config,
     }
 
     CFeeRate feeRate = mempool.estimateFee(nBlocks);
-    if (feeRate == CFeeRate(Amount(0))) {
+    if (feeRate == CFeeRate(Amount::zero())) {
         return -1.0;
     }
 
@@ -926,7 +814,7 @@ static UniValue estimatefee(const Config &config,
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category   name                     actor (function)       okSafeMode
     //  ---------- ------------------------ ---------------------- ----------
     {"mining",     "getnetworkhashps",      getnetworkhashps,      true, {"nblocks", "height"}},

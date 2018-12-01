@@ -211,10 +211,14 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                    << err.what();
     }
 
-    if (website) delete[] website;
+    if (website) {
+        delete[] website;
+    }
+
     X509_STORE_CTX_free(store_ctx);
-    for (unsigned int i = 0; i < certs.size(); i++)
+    for (size_t i = 0; i < certs.size(); i++) {
         X509_free(certs[i]);
+    }
 
     return fResult;
 }
@@ -226,7 +230,8 @@ QList<std::pair<CScript, Amount>> PaymentRequestPlus::getPayTo() const {
             (const uint8_t *)details.outputs(i).script().data();
         CScript s(scriptStr, scriptStr + details.outputs(i).script().size());
 
-        result.append(std::make_pair(s, Amount(details.outputs(i).amount())));
+        result.append(
+            std::make_pair(s, int64_t(details.outputs(i).amount()) * SATOSHI));
     }
     return result;
 }

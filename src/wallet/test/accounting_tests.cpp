@@ -21,7 +21,7 @@ static void GetResults(std::map<Amount, CAccountingEntry> &results) {
     BOOST_CHECK(pwalletMain->ReorderTransactions() == DB_LOAD_OK);
     pwalletMain->ListAccountCreditDebit("", aes);
     for (CAccountingEntry &ae : aes) {
-        results[Amount(ae.nOrderPos)] = ae;
+        results[ae.nOrderPos * SATOSHI] = ae;
     }
 }
 
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     LOCK(pwalletMain->cs_wallet);
 
     ae.strAccount = "";
-    ae.nCreditDebit = Amount(1);
+    ae.nCreditDebit = SATOSHI;
     ae.nTime = 1333333333;
     ae.strOtherAccount = "b";
     ae.strComment = "";
@@ -54,11 +54,11 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     BOOST_CHECK(pwalletMain->nOrderPosNext == 3);
     BOOST_CHECK(2 == results.size());
-    BOOST_CHECK(results[Amount(0)].nTime == 1333333333);
-    BOOST_CHECK(results[Amount(0)].strComment.empty());
+    BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
+    BOOST_CHECK(results[Amount::zero()].strComment.empty());
     BOOST_CHECK(1 == vpwtx[0]->nOrderPos);
-    BOOST_CHECK(results[Amount(2)].nTime == 1333333336);
-    BOOST_CHECK(results[Amount(2)].strOtherAccount == "c");
+    BOOST_CHECK(results[2 * SATOSHI].nTime == 1333333336);
+    BOOST_CHECK(results[2 * SATOSHI].strOtherAccount == "c");
 
     ae.nTime = 1333333330;
     ae.strOtherAccount = "d";
@@ -69,11 +69,11 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
 
     BOOST_CHECK(results.size() == 3);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 4);
-    BOOST_CHECK(results[Amount(0)].nTime == 1333333333);
+    BOOST_CHECK(results[Amount::zero()].nTime == 1333333333);
     BOOST_CHECK(1 == vpwtx[0]->nOrderPos);
-    BOOST_CHECK(results[Amount(2)].nTime == 1333333336);
-    BOOST_CHECK(results[Amount(3)].nTime == 1333333330);
-    BOOST_CHECK(results[Amount(3)].strComment.empty());
+    BOOST_CHECK(results[2 * SATOSHI].nTime == 1333333336);
+    BOOST_CHECK(results[3 * SATOSHI].nTime == 1333333330);
+    BOOST_CHECK(results[3 * SATOSHI].strComment.empty());
 
     wtx.mapValue["comment"] = "y";
     {
@@ -103,11 +103,11 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     BOOST_CHECK(results.size() == 3);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 6);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
-    BOOST_CHECK(results[Amount(1)].nTime == 1333333333);
+    BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
-    BOOST_CHECK(results[Amount(3)].nTime == 1333333336);
-    BOOST_CHECK(results[Amount(4)].nTime == 1333333330);
-    BOOST_CHECK(results[Amount(4)].strComment.empty());
+    BOOST_CHECK(results[3 * SATOSHI].nTime == 1333333336);
+    BOOST_CHECK(results[4 * SATOSHI].nTime == 1333333330);
+    BOOST_CHECK(results[4 * SATOSHI].strComment.empty());
     BOOST_CHECK(5 == vpwtx[1]->nOrderPos);
 
     ae.nTime = 1333333334;
@@ -120,13 +120,13 @@ BOOST_AUTO_TEST_CASE(acc_orderupgrade) {
     BOOST_CHECK(results.size() == 4);
     BOOST_CHECK(pwalletMain->nOrderPosNext == 7);
     BOOST_CHECK(0 == vpwtx[2]->nOrderPos);
-    BOOST_CHECK(results[Amount(1)].nTime == 1333333333);
+    BOOST_CHECK(results[SATOSHI].nTime == 1333333333);
     BOOST_CHECK(2 == vpwtx[0]->nOrderPos);
-    BOOST_CHECK(results[Amount(3)].nTime == 1333333336);
-    BOOST_CHECK(results[Amount(3)].strComment.empty());
-    BOOST_CHECK(results[Amount(4)].nTime == 1333333330);
-    BOOST_CHECK(results[Amount(4)].strComment.empty());
-    BOOST_CHECK(results[Amount(5)].nTime == 1333333334);
+    BOOST_CHECK(results[3 * SATOSHI].nTime == 1333333336);
+    BOOST_CHECK(results[3 * SATOSHI].strComment.empty());
+    BOOST_CHECK(results[4 * SATOSHI].nTime == 1333333330);
+    BOOST_CHECK(results[4 * SATOSHI].strComment.empty());
+    BOOST_CHECK(results[5 * SATOSHI].nTime == 1333333334);
     BOOST_CHECK(6 == vpwtx[1]->nOrderPos);
 }
 

@@ -30,6 +30,7 @@
 #include "omnicore/walletcache.h"
 #include "omnicore/wallettxs.h"
 #include "omnicore/rpcvalues.h"
+#include "omnicore/ERC721.h"
 
 #include "consensus/validation.h"
 #include "net.h"
@@ -54,6 +55,7 @@
 #include "utiltime.h"
 #include "chain.h"
 #include "amount.h"
+#include "validation.h"
 #ifdef ENABLE_WALLET
 #include "script/ismine.h"
 #include "wallet/wallet.h"
@@ -70,8 +72,6 @@
 #include <openssl/sha.h>
 
 #include "leveldb/db.h"
-#include "sp.h"
-#include "chain.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -290,6 +290,9 @@ AcceptMap mastercore::my_accepts;
 CMPSPInfo *mastercore::_my_sps;
 CrowdMap mastercore::my_crowds;
 
+CMPSPERC721Info *mastercore::my_erc721sps = NULL;
+ERC721TokenInfos *mastercore::my_erc721tokens = NULL;
+
 std::multimap<int, std::pair< std::string, std::pair<std::string, int64_t> > > mastercore::pendingCreateWHC;
 
 // this is the master list of all amounts for all addresses for all properties, map is unsorted
@@ -321,7 +324,7 @@ int64_t getMPbalance(const std::string& address, uint32_t propertyId, TallyType 
     if (my_it != mp_tally_map.end()) {
         balance = (my_it->second).getMoney(propertyId, ttype);
     }else{
-	PrintToLog("address : %s does not find in tally\n", address );	
+	    PrintToLog("address : %s does not find in tally\n", address );
 	}
 
     return balance;
@@ -1419,15 +1422,17 @@ int input_globals_state_string(const string &s)
   unsigned int nextSPID, nextTestSPID;
   std::vector<std::string> vstr;
   boost::split(vstr, s, boost::is_any_of(" ,="), token_compress_on);
-  if (3 != vstr.size()) return -1;
+  if (4 != vstr.size()) return -1;
 
   int i = 0;
   exodusPrev = boost::lexical_cast<uint64_t>(vstr[i++]);
   nextSPID = boost::lexical_cast<unsigned int>(vstr[i++]);
   nextTestSPID = boost::lexical_cast<unsigned int>(vstr[i++]);
+  uint256 propertyID = uint256S(vstr[i++]);
 
   exodus_prev = exodusPrev;
   _my_sps->init(nextSPID, nextTestSPID);
+    my_erc721sps->init(propertyID);
   return 0;
 }
 
@@ -1528,27 +1533,15 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
 
   switch (what)
   {
-    case FILETYPE_BALANCES:
-      mp_tally_map.clear();
-      inputLineFunc = input_msc_balances_string;
-      break;
+      case FILETYPE_BALANCES:
+          mp_tally_map.clear();
+          inputLineFunc = input_msc_balances_string;
+          break;
 
       case FILETYPE_BURNBCH:
           pendingCreateWHC.clear();
           inputLineFunc = input_mp_burn_bch;
           break;
-    //change_001
-    /*
-    case FILETYPE_OFFERS:
-      my_offers.clear();
-      inputLineFunc = input_mp_offers_string;
-      break;
-
-    case FILETYPE_ACCEPTS:
-      my_accepts.clear();
-      inputLineFunc = input_mp_accepts_string;
-      break;
-    */
 
     case FILETYPE_GLOBALS:
       inputLineFunc = input_globals_state_string;
@@ -1558,20 +1551,11 @@ static int msc_file_load(const string &filename, int what, bool verifyHash = fal
       my_crowds.clear();
       inputLineFunc = input_mp_crowdsale_string;
       break;
+
     case FILETYPE_FROZENSTATE:
         setFrozenAddresses.clear();
         inputLineFunc = input_frozen_state_string;
-    /*
-    case FILETYPE_MDEXORDERS:
-      // FIXME
-      // memory leak ... gotta unallocate inner layers first....
-      // TODO
-      // ...
-      metadex.clear();
-
-      inputLineFunc = input_mp_mdexorder_string;
-      break;
-    */
+          break;
 
     default:
       return -1;
@@ -1661,6 +1645,7 @@ static char const * const statePrefix[NUM_FILETYPES] = {
 static int load_most_relevant_state()
 {
   int res = -1;
+    const CConsensusParams& param = ConsensusParams();
   // check the SP database and roll it back to its latest valid state
   // according to the active chain
   uint256 spWatermark;
@@ -1671,8 +1656,22 @@ static int load_most_relevant_state()
 
   CBlockIndex const *spBlockIndex = GetBlockIndex(spWatermark);
   if (NULL == spBlockIndex) {
-    //trigger a full reparse, if the watermark isn't a real block
-    return -1;
+      //trigger a full reparse, if the watermark isn't a real block
+      return -1;
+  }
+  if(spBlockIndex->nHeight >= param.ERC721_BLOCK){
+      uint256 erc721tokenswatermark;
+      if(!my_erc721tokens->getWatermark(erc721tokenswatermark)){
+          return  -1;
+      }
+      uint256 erc721SPwatermark;
+      if(!my_erc721sps->getWatermark(erc721SPwatermark)){
+          return  -1;
+      }
+
+      if (spWatermark != erc721tokenswatermark || spWatermark != erc721SPwatermark){
+          return -1;
+      }
   }
 
   while (NULL != spBlockIndex && false == chainActive.Contains(spBlockIndex)) {
@@ -1680,12 +1679,23 @@ static int load_most_relevant_state()
     if (remainingSPs < 0) {
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
-    } /*else if (remainingSPs == 0) {
-      // potential optimization here?
-    }*/
+    }
+
+    if(spBlockIndex->nHeight >= param.ERC721_BLOCK) {
+      if (!my_erc721tokens->popBlock(spBlockIndex->GetBlockHash())) {
+          return -1;
+      }
+      if (!my_erc721sps->popBlock(spBlockIndex->GetBlockHash())) {
+          return -1;
+      }
+    }
     spBlockIndex = spBlockIndex->pprev;
     if (spBlockIndex != NULL) {
         _my_sps->setWatermark(spBlockIndex->GetBlockHash());
+        if(spBlockIndex->nHeight >= param.ERC721_BLOCK) {
+            my_erc721tokens->setWatermark(spBlockIndex->GetBlockHash());
+            my_erc721sps->setWatermark(spBlockIndex->GetBlockHash());
+        }
     }
   }
 
@@ -1725,7 +1735,7 @@ static int load_most_relevant_state()
   int abortRollBackBlock;
   if (curTip != NULL) abortRollBackBlock = curTip->nHeight - (MAX_STATE_HISTORY+1);
   while (NULL != curTip && persistedBlocks.size() > 0 && curTip->nHeight > abortRollBackBlock) {
-    if (persistedBlocks.find(spBlockIndex->GetBlockHash()) != persistedBlocks.end()) {
+    if (persistedBlocks.find(curTip->GetBlockHash()) != persistedBlocks.end()) {
       int success = -1;
       for (int i = 0; i < NUM_FILETYPES; ++i) {
         boost::filesystem::path path = MPPersistencePath / strprintf("%s-%s.dat", statePrefix[i], curTip->GetBlockHash().ToString());
@@ -1742,7 +1752,7 @@ static int load_most_relevant_state()
       }
 
       // remove this from the persistedBlock Set
-      persistedBlocks.erase(spBlockIndex->GetBlockHash());
+      persistedBlocks.erase(curTip->GetBlockHash());
     }
 
     // go to the previous block
@@ -1750,10 +1760,18 @@ static int load_most_relevant_state()
       // trigger a full reparse, if the levelDB cannot roll back
       return -1;
     }
-    curTip = curTip->pprev;
-    spBlockIndex = curTip;
+  if(!my_erc721tokens->popBlock(curTip->GetBlockHash())){
+      return -1;
+  }
+  if (!my_erc721sps->popBlock(curTip->GetBlockHash())){
+      return  -1;
+  }
+
+      curTip = curTip->pprev;
     if (curTip != NULL) {
         _my_sps->setWatermark(curTip->GetBlockHash());
+        my_erc721tokens->setWatermark(curTip->GetBlockHash());
+        my_erc721sps->setWatermark(curTip->GetBlockHash());
     }
   }
 
@@ -1834,17 +1852,18 @@ static int write_globals_state(ofstream &file, SHA256_CTX *shaCtx)
 {
   unsigned int nextSPID = _my_sps->peekNextSPID(OMNI_PROPERTY_WHC);
   unsigned int nextTestSPID = _my_sps->peekNextSPID(OMNI_PROPERTY_TWHC);
-  std::string lineOut = strprintf("%d,%d,%d",
+    uint256 propertyID = my_erc721sps->peekNextSPID();
+    std::string lineOut = strprintf("%d,%d,%d,%s",
     exodus_prev,
     nextSPID,
-    nextTestSPID);
+    nextTestSPID,
+    propertyID.GetHex());
 
   // add the line to the hash
   SHA256_Update(shaCtx, lineOut.c_str(), lineOut.length());
 
   // write the line
   file << lineOut << endl;
-
   return 0;
 }
 
@@ -2019,7 +2038,6 @@ int mastercore_save_state( CBlockIndex const *pBlockIndex )
 
     // clean-up the directory
     prune_state_files(pBlockIndex);
-
     _my_sps->setWatermark(pBlockIndex->GetBlockHash());
 
     return 0;
@@ -2053,6 +2071,8 @@ void clear_all_state()
     p_OmniTXDB->Clear();
     p_feecache->Clear();
     p_feehistory->Clear();
+    my_erc721sps->clear();
+    my_erc721tokens->clear();
     assert(p_txlistdb->setDBVersion() == DB_VERSION); // new set of databases, set DB version
     exodus_prev = 0;
 }
@@ -2106,6 +2126,8 @@ int mastercore_init()
             boost::filesystem::path omniTXDBPath = GetDataDir() / "Omni_TXDB";
             boost::filesystem::path feesPath = GetDataDir() / "OMNI_feecache";
             boost::filesystem::path feeHistoryPath = GetDataDir() / "OMNI_feehistory";
+            boost::filesystem::path erc721propetys = GetDataDir() / "OMNI_ERC721property";
+            boost::filesystem::path erc721tokens = GetDataDir() / "OMNI_ERC721token";
             if (boost::filesystem::exists(persistPath)) boost::filesystem::remove_all(persistPath);
             if (boost::filesystem::exists(txlistPath)) boost::filesystem::remove_all(txlistPath);
             if (boost::filesystem::exists(tradePath)) boost::filesystem::remove_all(tradePath);
@@ -2129,6 +2151,8 @@ int mastercore_init()
     p_OmniTXDB = new COmniTransactionDB(GetDataDir() / "Omni_TXDB", fReindex);
     p_feecache = new COmniFeeCache(GetDataDir() / "OMNI_feecache", fReindex);
     p_feehistory = new COmniFeeHistory(GetDataDir() / "OMNI_feehistory", fReindex);
+    my_erc721sps = new CMPSPERC721Info(GetDataDir() / "OMNI_ERC721property", fReindex);
+    my_erc721tokens = new ERC721TokenInfos(GetDataDir() / "OMNI_ERC721token", fReindex);
 
     MPPersistencePath = GetDataDir() / "MP_persist";
     TryCreateDirectories(MPPersistencePath);
@@ -2139,7 +2163,7 @@ int mastercore_init()
 
     nWaterlineBlock = load_most_relevant_state();
     bool noPreviousState = (nWaterlineBlock <= 0);
-	PrintToLog("load block height %d best image from disk ", nWaterlineBlock );
+	PrintToLog("load block height %d best image from disk \n", nWaterlineBlock );
 
     if (startClean) {
         assert(p_txlistdb->setDBVersion() == DB_VERSION); // new set of databases, set DB version
@@ -2148,19 +2172,13 @@ int mastercore_init()
     }
 
     if (nWaterlineBlock > 0) {
-        PrintToConsole("best image from diskbest image from disk state: OK [block %d]\n", nWaterlineBlock);
-        //if(p_txlistdb->CheckForFreezeTxsBelowBlock(nWaterlineBlock))
-        //{
-            //nWaterlineBlock = -1;
-            //PrintToLog("Freeze TXs found below WaterLine\n");
-        //}
-
+        PrintToLog("best image from disk: OK [block %d]\n", nWaterlineBlock);
     } else {
         std::string strReason = "unknown";
         if (wrongDBVersion) strReason = "client version changed";
         if (noPreviousState) strReason = "no usable previous state found";
         if (startClean) strReason = "-startclean parameter used";
-        PrintToConsole("Loading persistent state: NONE (%s)\n", strReason);
+        PrintToLog("Loading persistent state: NONE (%s)\n", strReason);
     }
 
     if (nWaterlineBlock < 0) {
@@ -2186,25 +2204,6 @@ int mastercore_init()
         PrintToLog("Exodus balance at start: %s\n", FormatIndivisibleMP(exodus_balance ));
     }
 
-    // load feature activation messages from txlistdb and process them accordinglyx
-    //change_001
-    //p_txlistdb->LoadActivations(nWaterlineBlock);
-
-    // load all alerts from levelDB (and immediately expire old ones)
-    //change_001
-    //p_txlistdb->LoadAlerts(nWaterlineBlock);
-
-    // load the state of any freeable properties and frozen addresses from levelDB
-    ////change_001
-    /*
-    if (!p_txlistdb->LoadFreezeState(nWaterlineBlock)) {
-        std::string strShutdownReason = "Failed to load freeze state from levelDB.  It is unsafe to continue.\n";
-        PrintToLog(strShutdownReason);
-        if (!gArgs.GetBoolArg("-overrideforcedshutdown", false)) {
-            AbortNode(strShutdownReason, strShutdownReason);
-        }
-    }
-    */
     // initial scan
     s_stolistdb->deleteAboveBlock(nWaterlineBlock);
 	PrintToLog("init scan current system from %d ", nWaterlineBlock );
@@ -2419,7 +2418,7 @@ int mastercore::WalletTxBuilder(const std::string& senderAddress, const std::str
         return 0;
     } else {
         // Commit the transaction to the wallet and broadcast)
-	CValidationState state;
+	    CValidationState state;
         PrintToLog("%s: %s; nFeeRet = %d\n", __func__, wtxNew.ToString(), nFeeRet.GetSatoshis());
         if (!pwalletMain->CommitTransaction(wtxNew, reserveKey, g_connman.get(), state)) return MP_ERR_COMMIT_TX;
         txid = wtxNew.GetId();
@@ -4031,6 +4030,12 @@ int mastercore_handler_block_end(int nBlockNow, CBlockIndex const * pBlockIndex,
         // save out the state after this block
         if (writePersistence(nBlockNow)) {
             mastercore_save_state(pBlockIndex);
+        }
+        if(!my_erc721sps->flush(pBlockIndex->GetBlockHash())){
+            return AbortNode("Failed to store data to database !", "Error: Failed to store ERC721 property Data !");
+        }
+        if(!my_erc721tokens->flush(pBlockIndex->GetBlockHash())){
+            return AbortNode("Failed to store data to database !", "Error: Failed to store ERC721 Token Data !");
         }
     }
 

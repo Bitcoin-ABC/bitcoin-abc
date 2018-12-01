@@ -246,8 +246,8 @@ int64_t SelectCoins(const std::string& fromAddress, CCoinControl& coinControl, i
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     // iterate over the wallet
-    for (std::map<uint256, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
-        const uint256& txid = it->first;
+    for (std::map<TxId, CWalletTx>::const_iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it) {
+        const TxId& txid = it->first;
         const CWalletTx& wtx = it->second;
 
         if (!wtx.IsTrusted()) {

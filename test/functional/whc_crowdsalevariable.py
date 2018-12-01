@@ -25,6 +25,7 @@ class  WHC_crowdsalevaruable_Test(BitcoinTestFramework):
 
         # send whc to receive
         self.nodes[0].whc_send(self.whcAddress, receive, 1, "10")
+        self.nodes[0].generatetoaddress(1, self.whcAddress)
 
         # step 2 create a crowdsale property
         propertyid = self.createCrowdsale(receive, 3)

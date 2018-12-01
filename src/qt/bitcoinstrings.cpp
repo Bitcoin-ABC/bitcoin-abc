@@ -639,8 +639,6 @@ static const char UNUSED *bitcoin_strings[] = {
     QT_TRANSLATE_NOOP("bitcoin-abc", "Wallet options:"),
     QT_TRANSLATE_NOOP("bitcoin-abc", "Warning"),
     QT_TRANSLATE_NOOP("bitcoin-abc",
-                      "Warning: unknown new rules activated (versionbit %i)"),
-    QT_TRANSLATE_NOOP("bitcoin-abc",
                       "Whether to operate in a blocks only mode (default: %u)"),
     QT_TRANSLATE_NOOP("bitcoin-abc", "Zapping all transactions from wallet..."),
     QT_TRANSLATE_NOOP("bitcoin-abc", "ZeroMQ notification options:"),

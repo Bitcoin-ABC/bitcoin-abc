@@ -1,5 +1,5 @@
 ---
-name: "wormhole-0.1.2-linux"
+name: "wormhole-0.2.2-linux"
 enable_cache: true
 suites:
 - "xenial"

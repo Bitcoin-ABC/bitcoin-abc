@@ -3,6 +3,7 @@
 #include "amount.h"
 #include "script/script.h"
 #include "script/standard.h"
+#include "primitives/transaction.h"
 #include "serialize.h"
 #include "utilstrencodings.h"
 #include "config.h"

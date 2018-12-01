@@ -6,7 +6,9 @@
 #ifndef BITCOIN_SCRIPT_STANDARD_H
 #define BITCOIN_SCRIPT_STANDARD_H
 
-#include "script/interpreter.h"
+#include "amount.h"
+#include "pubkey.h"
+#include "script/script_flags.h"
 #include "uint256.h"
 
 #include <boost/variant.hpp>

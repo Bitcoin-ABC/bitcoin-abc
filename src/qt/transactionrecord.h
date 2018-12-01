@@ -6,7 +6,7 @@
 #define BITCOIN_QT_TRANSACTIONRECORD_H
 
 #include "amount.h"
-#include "uint256.h"
+#include "primitives/txid.h"
 
 #include <QList>
 #include <QString>
@@ -99,17 +99,17 @@ public:
     static const int RecommendedNumConfirmations = 6;
 
     TransactionRecord()
-        : hash(), time(0), type(Other), address(""), debit(0), credit(0),
+        : txid(), time(0), type(Other), address(""), debit(), credit(), idx(0) {
+    }
+
+    TransactionRecord(TxId _txid, qint64 _time)
+        : txid(_txid), time(_time), type(Other), address(""), debit(), credit(),
           idx(0) {}
 
-    TransactionRecord(uint256 _hash, qint64 _time)
-        : hash(_hash), time(_time), type(Other), address(""), debit(0),
-          credit(0), idx(0) {}
-
-    TransactionRecord(uint256 _hash, qint64 _time, Type _type,
+    TransactionRecord(TxId _txid, qint64 _time, Type _type,
                       const std::string &_address, const Amount _debit,
                       const Amount _credit)
-        : hash(_hash), time(_time), type(_type), address(_address),
+        : txid(_txid), time(_time), type(_type), address(_address),
           debit(_debit), credit(_credit), idx(0) {}
 
     /** Decompose CWallet transaction to model transaction records.
@@ -120,7 +120,7 @@ public:
 
     /** @name Immutable transaction attributes
       @{*/
-    uint256 hash;
+    TxId txid;
     qint64 time;
     Type type;
     std::string address;

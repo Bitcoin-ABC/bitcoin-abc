@@ -7,6 +7,7 @@
 #include "dstencode.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
+#include "script/sigencoding.h"
 #include "script/standard.h"
 #include "serialize.h"
 #include "streams.h"
@@ -34,7 +35,7 @@ std::string FormatScript(const CScript &script) {
                 continue;
             }
 
-            if (op >= OP_NOP && op <= OP_NOP10) {
+            if (op >= OP_NOP && op < FIRST_UNDEFINED_OP_VALUE) {
                 std::string str(GetOpName(op));
                 if (str.substr(0, 3) == std::string("OP_")) {
                     ret += str.substr(3, std::string::npos) + " ";
@@ -115,7 +116,8 @@ std::string ScriptToAsmStr(const CScript &script,
                     // won't decode correctly formatted public keys in Pubkey or
                     // Multisig scripts due to the restrictions on the pubkey
                     // formats (see IsCompressedOrUncompressedPubKey) being
-                    // incongruous with the checks in CheckSignatureEncoding.
+                    // incongruous with the checks in
+                    // CheckTransactionSignatureEncoding.
                     uint32_t flags = SCRIPT_VERIFY_STRICTENC;
                     if (vch.back() & SIGHASH_FORKID) {
                         // If the transaction is using SIGHASH_FORKID, we need
@@ -123,7 +125,8 @@ std::string ScriptToAsmStr(const CScript &script,
                         // TODO: Remove after the Hard Fork.
                         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
                     }
-                    if (CheckSignatureEncoding(vch, flags, nullptr)) {
+                    if (CheckTransactionSignatureEncoding(vch, flags,
+                                                          nullptr)) {
                         const uint8_t chSigHashType = vch.back();
                         if (mapSigHashTypes.count(chSigHashType)) {
                             strSigHashDecode =
@@ -219,7 +222,7 @@ void TxToUniv(const CTransaction &tx, const uint256 &hashBlock,
 
         UniValue outValue(UniValue::VNUM, FormatMoney(txout.nValue));
         out.pushKV("value", outValue);
-        out.pushKV("n", (int64_t)i);
+        out.pushKV("n", int64_t(i));
 
         UniValue o(UniValue::VOBJ);
         ScriptPubKeyToUniv(txout.scriptPubKey, o, true);

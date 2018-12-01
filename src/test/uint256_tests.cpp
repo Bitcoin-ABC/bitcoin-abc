@@ -111,36 +111,47 @@ BOOST_AUTO_TEST_CASE(basics) {
     BOOST_CHECK(uint160(OneS) == OneS);
 }
 
+static void CheckComparison(const uint256 &a, const uint256 &b) {
+    BOOST_CHECK(a < b);
+    BOOST_CHECK(b > a);
+}
+
+static void CheckComparison(const uint160 &a, const uint160 &b) {
+    BOOST_CHECK(a < b);
+    BOOST_CHECK(b > a);
+}
+
 // <= >= < >
 BOOST_AUTO_TEST_CASE(comparison) {
     uint256 LastL;
-    for (int i = 255; i >= 0; --i) {
+    for (int i = 0; i < 256; i++) {
         uint256 TmpL;
-        *(TmpL.begin() + (i >> 3)) |= 1 << (7 - (i & 7));
-        BOOST_CHECK(LastL < TmpL);
+        *(TmpL.begin() + (i >> 3)) |= 1 << (i & 7);
+        CheckComparison(LastL, TmpL);
         LastL = TmpL;
     }
 
-    BOOST_CHECK(ZeroL < R1L);
-    BOOST_CHECK(R2L < R1L);
-    BOOST_CHECK(ZeroL < OneL);
-    BOOST_CHECK(OneL < MaxL);
-    BOOST_CHECK(R1L < MaxL);
-    BOOST_CHECK(R2L < MaxL);
+    CheckComparison(ZeroL, R1L);
+    CheckComparison(R1L, R2L);
+    CheckComparison(ZeroL, OneL);
+    CheckComparison(OneL, MaxL);
+    CheckComparison(R1L, MaxL);
+    CheckComparison(R2L, MaxL);
 
     uint160 LastS;
-    for (int i = 159; i >= 0; --i) {
+    for (int i = 0; i < 160; i++) {
         uint160 TmpS;
-        *(TmpS.begin() + (i >> 3)) |= 1 << (7 - (i & 7));
-        BOOST_CHECK(LastS < TmpS);
+        *(TmpS.begin() + (i >> 3)) |= 1 << (i & 7);
+        CheckComparison(LastS, TmpS);
         LastS = TmpS;
     }
-    BOOST_CHECK(ZeroS < R1S);
-    BOOST_CHECK(R2S < R1S);
-    BOOST_CHECK(ZeroS < OneS);
-    BOOST_CHECK(OneS < MaxS);
-    BOOST_CHECK(R1S < MaxS);
-    BOOST_CHECK(R2S < MaxS);
+
+    CheckComparison(ZeroS, R1S);
+    CheckComparison(R2S, R1S);
+    CheckComparison(ZeroS, OneS);
+    CheckComparison(OneS, MaxS);
+    CheckComparison(R1S, MaxS);
+    CheckComparison(R2S, MaxS);
 }
 
 // GetHex SetHex begin() end() size() GetLow64 GetSerializeSize, Serialize,

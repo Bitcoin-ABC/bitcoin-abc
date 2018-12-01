@@ -102,6 +102,8 @@ public:
     //! Block to enable OP_RETURN based encoding
     int NULLDATA_BLOCK;
 
+    //! Block to enabla ERC721
+    int ERC721_BLOCK;
     //! Block to enable alerts and notifications
     int MSC_ALERT_BLOCK;
     //! Block to enable simple send transactions
@@ -211,6 +213,8 @@ bool IsAllowedInputType(int whichType, int nBlock);
 bool IsAllowedOutputType(int whichType, int nBlock);
 /** Checks, if the transaction type and version is supported and enabled. */
 bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType, uint16_t version);
+/** Checks, if the transaction type and version is suuported and enabled. */
+bool IsERC721TransactionTypeAllowed(int txblock, uint16_t txtype, uint16_t version);
 
 /** Compares a supplied block, block hash and consensus hash against a hardcoded list of checkpoints. */
 bool VerifyCheckpoint(int block, const uint256& blockHash);

@@ -32,6 +32,9 @@ void populateRPCTypeGrant(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeRevoke(CMPTransaction& omniOobj, UniValue& txobj);
 void populateRPCTypeChangeIssuer(CMPTransaction& omniObj, UniValue& txobj);
 void populateRPCTypeActivation(CMPTransaction& omniObj, UniValue& txobj);
+void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirmations);
+void populateRPCTypeFreezeTokens(CMPTransaction& omniObj, UniValue& txobj);
+void populateRPCTypeUnfreezeTokens(CMPTransaction& omniObj, UniValue& txobj);
 
 void populateRPCExtendedTypeSendToOwners(const uint256 txid, std::string extendedDetailsFilter, UniValue& txobj, uint16_t version);
 void populateRPCExtendedTypeMetaDExTrade(const uint256& txid, uint32_t propertyIdForSale, int64_t amountForSale, UniValue& txobj);

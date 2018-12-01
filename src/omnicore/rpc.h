@@ -17,7 +17,5 @@
 /** Throws a JSONRPCError, depending on error code. */
 void PopulateFailure(int error);
 
-
-
 #endif /* RPC_H */
 

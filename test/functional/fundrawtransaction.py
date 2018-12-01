@@ -5,6 +5,7 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
+from test_framework.mininode import CTransaction, FromHex, COIN
 
 
 def get_unspent(listunspent, amount):
@@ -654,9 +655,9 @@ class RawTransactionsTest(BitcoinTestFramework):
             rawtx, {"feeRate": 10 * min_relay_tx_fee})
         result_fee_rate = result['fee'] * 1000 / count_bytes(result['hex'])
         assert_fee_amount(
-            result2['fee'], count_bytes(result2['hex']), 2 * result_fee_rate)
+            result2['fee'], FromHex(CTransaction(), result2['hex']).billable_size(), 2 * result_fee_rate)
         assert_fee_amount(
-            result3['fee'], count_bytes(result3['hex']), 10 * result_fee_rate)
+            result3['fee'], FromHex(CTransaction(), result3['hex']).billable_size(), 10 * result_fee_rate)
 
         #
         # Test address reuse option #

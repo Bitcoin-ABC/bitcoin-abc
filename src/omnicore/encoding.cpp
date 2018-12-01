@@ -105,7 +105,7 @@ bool OmniCore_Encode_ClassC(const std::vector<unsigned char>& vchPayload, CRecip
     CScript script;
     script << OP_RETURN << vchData;
     vecOutputs.scriptPubKey = script;
-    vecOutputs.nAmount = Amount(0);
+    vecOutputs.nAmount = Amount::zero();
     vecOutputs.fSubtractFeeFromAmount = false;
     return true;
 }

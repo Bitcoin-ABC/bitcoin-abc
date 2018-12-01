@@ -118,3 +118,4 @@ src/wormholed-seeder
 CMakeLists.txt
 src/wormholed-tx
 src/bench/bench_wormhole
+src/omnicore/res/omnicore-setup-win.nsi

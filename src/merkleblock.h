@@ -141,8 +141,13 @@ public:
 };
 
 /**
- * Used to relay blocks as header + vector<merkle branch>
- * to filtered nodes.
+ * Used to create a Merkle proof (usually from a subset of transactions),
+ * which consists of a block header and partial Merkle Tree.
+ * SPV clients typically use this Merkle proof to limit bandwidth and
+ * computation requirements to process incoming transactions.
+ * From the peer-node's perspective, the SPV client is a "filtered node".
+ * See BIP37 for details:
+ * https://github.com/bitcoin/bips/blob/master/bip-0037.mediawiki
  */
 class CMerkleBlock {
 public:
@@ -150,18 +155,19 @@ public:
     CBlockHeader header;
     CPartialMerkleTree txn;
 
-public:
     /** Public only for unit testing and relay testing (not relayed) */
     std::vector<std::pair<unsigned int, uint256>> vMatchedTxn;
 
     /**
-     * Create from a CBlock, filtering transactions according to filter. Note
+     * Create a Merkle proof according to a bloom filter. Note
      * that this will call IsRelevantAndUpdate on the filter for each
      * transaction, thus the filter will likely be modified.
      */
     CMerkleBlock(const CBlock &block, CBloomFilter &filter);
 
-    // Create from a CBlock, matching the txids in the set.
+    /**
+     * Create a Merkle proof for a set of transactions.
+     */
     CMerkleBlock(const CBlock &block, const std::set<TxId> &txids);
 
     CMerkleBlock() {}

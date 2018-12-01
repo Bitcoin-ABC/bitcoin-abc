@@ -5,6 +5,7 @@
 
 #include "script.h"
 
+#include "script/script_flags.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
@@ -227,6 +228,10 @@ const char *GetOpName(opcodetype opcode) {
             return "OP_CHECKMULTISIG";
         case OP_CHECKMULTISIGVERIFY:
             return "OP_CHECKMULTISIGVERIFY";
+        case OP_CHECKDATASIG:
+            return "OP_CHECKDATASIG";
+        case OP_CHECKDATASIGVERIFY:
+            return "OP_CHECKDATASIGVERIFY";
 
         // expansion
         case OP_NOP1:
@@ -338,29 +343,52 @@ bool CScriptNum::MinimallyEncode(std::vector<uint8_t> &data) {
     return true;
 }
 
-unsigned int CScript::GetSigOpCount(bool fAccurate) const {
-    unsigned int n = 0;
+uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
+    uint32_t n = 0;
     const_iterator pc = begin();
     opcodetype lastOpcode = OP_INVALIDOPCODE;
     while (pc < end()) {
         opcodetype opcode;
-        if (!GetOp(pc, opcode)) break;
-        if (opcode == OP_CHECKSIG || opcode == OP_CHECKSIGVERIFY)
-            n++;
-        else if (opcode == OP_CHECKMULTISIG ||
-                 opcode == OP_CHECKMULTISIGVERIFY) {
-            if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16)
-                n += DecodeOP_N(lastOpcode);
-            else
-                n += MAX_PUBKEYS_PER_MULTISIG;
+        if (!GetOp(pc, opcode)) {
+            break;
         }
+
+        switch (opcode) {
+            case OP_CHECKSIG:
+            case OP_CHECKSIGVERIFY:
+                n++;
+                break;
+
+            case OP_CHECKDATASIG:
+            case OP_CHECKDATASIGVERIFY:
+                if (flags & SCRIPT_ENABLE_CHECKDATASIG) {
+                    n++;
+                }
+                break;
+
+            case OP_CHECKMULTISIG:
+            case OP_CHECKMULTISIGVERIFY:
+                if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16) {
+                    n += DecodeOP_N(lastOpcode);
+                } else {
+                    n += MAX_PUBKEYS_PER_MULTISIG;
+                }
+                break;
+            default:
+                break;
+        }
+
         lastOpcode = opcode;
     }
+
     return n;
 }
 
-unsigned int CScript::GetSigOpCount(const CScript &scriptSig) const {
-    if (!IsPayToScriptHash()) return GetSigOpCount(true);
+uint32_t CScript::GetSigOpCount(uint32_t flags,
+                                const CScript &scriptSig) const {
+    if ((flags & SCRIPT_VERIFY_P2SH) == 0 || !IsPayToScriptHash()) {
+        return GetSigOpCount(flags, true);
+    }
 
     // This is a pay-to-script-hash scriptPubKey;
     // get the last item that the scriptSig
@@ -369,13 +397,17 @@ unsigned int CScript::GetSigOpCount(const CScript &scriptSig) const {
     std::vector<uint8_t> data;
     while (pc < scriptSig.end()) {
         opcodetype opcode;
-        if (!scriptSig.GetOp(pc, opcode, data)) return 0;
-        if (opcode > OP_16) return 0;
+        if (!scriptSig.GetOp(pc, opcode, data)) {
+            return 0;
+        }
+        if (opcode > OP_16) {
+            return 0;
+        }
     }
 
     /// ... and return its opcount:
     CScript subscript(data.begin(), data.end());
-    return subscript.GetSigOpCount(true);
+    return subscript.GetSigOpCount(flags, true);
 }
 
 bool CScript::IsPayToScriptHash() const {
@@ -415,7 +447,7 @@ bool CScript::IsWitnessProgram(int &version,
     if ((*this)[0] != OP_0 && ((*this)[0] < OP_1 || (*this)[0] > OP_16)) {
         return false;
     }
-    if ((size_t)((*this)[1] + 2) == this->size()) {
+    if (size_t((*this)[1] + 2) == this->size()) {
         version = DecodeOP_N((opcodetype)(*this)[0]);
         program = std::vector<uint8_t>(this->begin() + 2, this->end());
         return true;
@@ -426,27 +458,21 @@ bool CScript::IsWitnessProgram(int &version,
 bool CScript::IsPushOnly(const_iterator pc) const {
     while (pc < end()) {
         opcodetype opcode;
-        if (!GetOp(pc, opcode)) return false;
+        if (!GetOp(pc, opcode)) {
+            return false;
+        }
+
         // Note that IsPushOnly() *does* consider OP_RESERVED to be a push-type
         // opcode, however execution of OP_RESERVED fails, so it's not relevant
         // to P2SH/BIP62 as the scriptSig would fail prior to the P2SH special
         // validation code being executed.
-        if (opcode > OP_16) return false;
+        if (opcode > OP_16) {
+            return false;
+        }
     }
     return true;
 }
 
 bool CScript::IsPushOnly() const {
     return this->IsPushOnly(begin());
-}
-
-std::string CScriptWitness::ToString() const {
-    std::string ret = "CScriptWitness(";
-    for (unsigned int i = 0; i < stack.size(); i++) {
-        if (i) {
-            ret += ", ";
-        }
-        ret += HexStr(stack[i]);
-    }
-    return ret + ")";
 }

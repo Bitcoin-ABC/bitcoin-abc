@@ -32,7 +32,7 @@ class CBlockIndex;
 class Config;
 
 inline double AllowFreeThreshold() {
-    return COIN.GetSatoshis() * 144 / 250;
+    return (144 * COIN) / (250 * SATOSHI);
 }
 
 inline bool AllowFree(double dPriority) {
@@ -256,14 +256,14 @@ public:
         bool fUseBDescendants = UseDescendantScore(b);
 
         double aModFee = (fUseADescendants ? a.GetModFeesWithDescendants()
-                                           : a.GetModifiedFee())
-                             .GetSatoshis();
+                                           : a.GetModifiedFee()) /
+                         SATOSHI;
         double aSize =
             fUseADescendants ? a.GetSizeWithDescendants() : a.GetTxSize();
 
         double bModFee = (fUseBDescendants ? b.GetModFeesWithDescendants()
-                                           : b.GetModifiedFee())
-                             .GetSatoshis();
+                                           : b.GetModifiedFee()) /
+                         SATOSHI;
         double bSize =
             fUseBDescendants ? b.GetSizeWithDescendants() : b.GetTxSize();
 
@@ -279,10 +279,8 @@ public:
 
     // Calculate which score to use for an entry (avoiding division).
     bool UseDescendantScore(const CTxMemPoolEntry &a) const {
-        double f1 = double(a.GetSizeWithDescendants() *
-                           a.GetModifiedFee().GetSatoshis());
-        double f2 =
-            double(a.GetTxSize() * a.GetModFeesWithDescendants().GetSatoshis());
+        double f1 = a.GetSizeWithDescendants() * (a.GetModifiedFee() / SATOSHI);
+        double f2 = a.GetTxSize() * (a.GetModFeesWithDescendants() / SATOSHI);
         return f2 > f1;
     }
 };
@@ -294,8 +292,8 @@ public:
 class CompareTxMemPoolEntryByScore {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        double f1 = double(b.GetTxSize() * a.GetModifiedFee().GetSatoshis());
-        double f2 = double(a.GetTxSize() * b.GetModifiedFee().GetSatoshis());
+        double f1 = b.GetTxSize() * (a.GetModifiedFee() / SATOSHI);
+        double f2 = a.GetTxSize() * (b.GetModifiedFee() / SATOSHI);
         if (f1 == f2) {
             return b.GetTx().GetId() < a.GetTx().GetId();
         }
@@ -313,10 +311,10 @@ public:
 class CompareTxMemPoolEntryByAncestorFee {
 public:
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        double aFees = double(a.GetModFeesWithAncestors().GetSatoshis());
+        double aFees = a.GetModFeesWithAncestors() / SATOSHI;
         double aSize = a.GetSizeWithAncestors();
 
-        double bFees = double(b.GetModFeesWithAncestors().GetSatoshis());
+        double bFees = b.GetModFeesWithAncestors() / SATOSHI;
         double bSize = b.GetSizeWithAncestors();
 
         // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).
@@ -389,6 +387,8 @@ public:
         return SipHashUint256(k0, k1, txid);
     }
 };
+
+typedef std::pair<double, Amount> TXModifier;
 
 /**
  * CTxMemPool stores valid-according-to-the-current-best-chain transactions that
@@ -557,7 +557,7 @@ private:
 
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx;
-    std::map<uint256, std::pair<double, Amount>> mapDeltas;
+    std::map<uint256, TXModifier> mapDeltas;
 
     /** Create a new CTxMemPool.
      */
@@ -632,13 +632,13 @@ public:
      * new mempool entries may have children in the mempool (which is generally
      * not the case when otherwise adding transactions).
      * UpdateTransactionsFromBlock() will find child transactions and update the
-     * descendant state for each transaction in hashesToUpdate (excluding any
-     * child transactions present in hashesToUpdate, which are already accounted
-     * for).  Note: hashesToUpdate should be the set of transactions from the
+     * descendant state for each transaction in txidsToUpdate (excluding any
+     * child transactions present in txidsToUpdate, which are already accounted
+     * for).
+     * Note: txidsToUpdate should be the set of transactions from the
      * disconnected block that have been accepted back into the mempool.
      */
-    void
-    UpdateTransactionsFromBlock(const std::vector<uint256> &hashesToUpdate);
+    void UpdateTransactionsFromBlock(const std::vector<TxId> &txidsToUpdate);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -661,7 +661,8 @@ public:
     /**
      * Populate setDescendants with all in-mempool descendants of hash.
      * Assumes that setDescendants includes all in-mempool descendants of
-     * anything already in it.  */
+     * anything already in it.
+     */
     void CalculateDescendants(txiter it, setEntries &setDescendants);
 
     /**
@@ -682,12 +683,21 @@ public:
     void TrimToSize(size_t sizelimit,
                     std::vector<COutPoint> *pvNoSpendsRemaining = nullptr);
 
-    /** Expire all transaction (and their dependencies) in the mempool older
-     * than time. Return the number of removed transactions. */
+    /**
+     * Expire all transaction (and their dependencies) in the mempool older than
+     * time. Return the number of removed transactions.
+     */
     int Expire(int64_t time);
 
-    /** Returns false if the transaction is in the mempool and not within the
-     * chain limit specified. */
+    /**
+     * Reduce the size of the mempool by expiring and then trimming the mempool.
+     */
+    void LimitSize(size_t limit, unsigned long age);
+
+    /**
+     * Returns false if the transaction is in the mempool and not within the
+     * chain limit specified.
+     */
     bool TransactionWithinChainLimit(const uint256 &txid,
                                      size_t chainLimit) const;
 
@@ -752,8 +762,9 @@ private:
      * transaction again, if encountered in another transaction chain.
      */
     void UpdateForDescendants(txiter updateIt, cacheMap &cachedDescendants,
-                              const std::set<uint256> &setExclude);
-    /** Update ancestors of hash to add/remove it as a descendant transaction.
+                              const std::set<TxId> &setExclude);
+    /**
+     * Update ancestors of hash to add/remove it as a descendant transaction.
      */
     void UpdateAncestorsOf(bool add, txiter hash, setEntries &setAncestors);
     /** Set ancestor state for an entry */
@@ -810,7 +821,7 @@ struct TxCoinAgePriorityCompare {
 
 /**
  * DisconnectedBlockTransactions
-
+ *
  * During the reorg, it's desirable to re-add previously confirmed transactions
  * to the mempool, so that anything not re-confirmed in the new chain is
  * available to be mined. However, it's more efficient to wait until the reorg
@@ -822,12 +833,12 @@ struct TxCoinAgePriorityCompare {
  * that are included in blocks in the new chain, and then process the remaining
  * still-unconfirmed transactions at the end.
  */
-
 // multi_index tag names
 struct txid_index {};
 struct insertion_order {};
 
-struct DisconnectedBlockTransactions {
+class DisconnectedBlockTransactions {
+private:
     typedef boost::multi_index_container<
         CTransactionRef, boost::multi_index::indexed_by<
                              // sorted by txid
@@ -839,6 +850,15 @@ struct DisconnectedBlockTransactions {
                                  boost::multi_index::tag<insertion_order>>>>
         indexed_disconnected_transactions;
 
+    indexed_disconnected_transactions queuedTx;
+    uint64_t cachedInnerUsage = 0;
+
+    void addTransaction(const CTransactionRef &tx) {
+        queuedTx.insert(tx);
+        cachedInnerUsage += RecursiveDynamicUsage(tx);
+    }
+
+public:
     // It's almost certainly a logic bug if we don't clear out queuedTx before
     // destruction, as we add to it while disconnecting blocks, and then we
     // need to re-process remaining transactions to ensure mempool consistency.
@@ -849,9 +869,6 @@ struct DisconnectedBlockTransactions {
     // reorg, besides draining this object).
     ~DisconnectedBlockTransactions() { assert(queuedTx.empty()); }
 
-    indexed_disconnected_transactions queuedTx;
-    uint64_t cachedInnerUsage = 0;
-
     // Estimate the overhead of queuedTx to be 6 pointers + an allocation, as
     // no exact formula for boost::multi_index_contained is implemented.
     size_t DynamicMemoryUsage() const {
@@ -861,10 +878,13 @@ struct DisconnectedBlockTransactions {
                cachedInnerUsage;
     }
 
-    void addTransaction(const CTransactionRef &tx) {
-        queuedTx.insert(tx);
-        cachedInnerUsage += RecursiveDynamicUsage(tx);
+    const indexed_disconnected_transactions &GetQueuedTx() const {
+        return queuedTx;
     }
+
+    // Add entries for a block while reconstructing the topological ordering so
+    // they can be added back to the mempool simply.
+    void addForBlock(const std::vector<CTransactionRef> &vtx);
 
     // Remove entries based on txid_index, and update memory usage.
     void removeForBlock(const std::vector<CTransactionRef> &vtx) {
@@ -873,7 +893,7 @@ struct DisconnectedBlockTransactions {
             return;
         }
         for (auto const &tx : vtx) {
-            auto it = queuedTx.find(tx->GetHash());
+            auto it = queuedTx.find(tx->GetId());
             if (it != queuedTx.end()) {
                 cachedInnerUsage -= RecursiveDynamicUsage(*it);
                 queuedTx.erase(it);
@@ -892,6 +912,21 @@ struct DisconnectedBlockTransactions {
         cachedInnerUsage = 0;
         queuedTx.clear();
     }
+
+    /**
+     * Make mempool consistent after a reorg, by re-adding or recursively
+     * erasing disconnected block transactions from the mempool, and also
+     * removing any other transactions from the mempool that are no longer valid
+     * given the new tip/height.
+     *
+     * Note: we assume that disconnectpool only contains transactions that are
+     * NOT confirmed in the current chain nor already in the mempool (otherwise,
+     * in-mempool descendants of such transactions would be removed).
+     *
+     * Passing fAddToMempool=false will skip trying to add the transactions
+     * back, and instead just erase from the mempool as needed.
+     */
+    void updateMempoolForReorg(const Config &config, bool fAddToMempool);
 };
 
 #endif // BITCOIN_TXMEMPOOL_H

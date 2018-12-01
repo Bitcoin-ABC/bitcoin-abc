@@ -8,12 +8,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-7
-cache: false
-  # directories:
-  # - depends/built
-  # - depends/sdk-sources
-  # - $HOME/.ccache
+      - g++-5
+cache:
+  directories:
+  - depends/built
+  - depends/sdk-sources
+  - $HOME/.ccache
 env:
   global:
     - MAKEJOBS=-j3
@@ -47,8 +47,8 @@ install:
     - if [ -n "$DPKG_ADD_ARCH" ]; then sudo dpkg --add-architecture "$DPKG_ADD_ARCH" ; fi
     - if [ -n "$PACKAGES" ]; then travis_retry sudo apt-get update; fi
     - if [ -n "$PACKAGES" ]; then travis_retry sudo apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES; fi
-    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 50
-    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 50
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 50
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
     - pip install --user cpp-coveralls
 before_script:
     - unset CC; unset CXX

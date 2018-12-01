@@ -3446,10 +3446,6 @@
         <translation>Aviso</translation>
     </message>
     <message>
-        <source>Warning: unknown new rules activated (versionbit %i)</source>
-        <translation>Advertencia: nuevas reglas desconocidas activadas (versionbit %i)</translation>
-    </message>
-    <message>
         <source>Whether to operate in a blocks only mode (default: %u)</source>
         <translation>Si se debe o no operar en un modo de solo bloques (predeterminado: %u)</translation>
     </message>

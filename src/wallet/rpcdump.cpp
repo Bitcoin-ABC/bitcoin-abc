@@ -161,11 +161,38 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
         pwallet->UpdateTimeFirstKey(1);
 
         if (fRescan) {
-            pwallet->ScanForWalletTransactions(chainActive.Genesis(), true);
+            pwallet->RescanFromTime(TIMESTAMP_MIN, true /* update */);
         }
     }
 
     return NullUniValue;
+}
+
+UniValue abortrescan(const Config &config, const JSONRPCRequest &request) {
+    CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() > 0) {
+        throw std::runtime_error("abortrescan\n"
+                                 "\nStops current wallet rescan triggered e.g. "
+                                 "by an importprivkey call.\n"
+                                 "\nExamples:\n"
+                                 "\nImport a private key\n" +
+                                 HelpExampleCli("importprivkey", "\"mykey\"") +
+                                 "\nAbort the running wallet rescan\n" +
+                                 HelpExampleCli("abortrescan", "") +
+                                 "\nAs a JSON-RPC call\n" +
+                                 HelpExampleRpc("abortrescan", ""));
+    }
+
+    if (!pwallet->IsScanning() || pwallet->IsAbortingRescan()) {
+        return false;
+    }
+
+    pwallet->AbortRescan();
+    return true;
 }
 
 void ImportAddress(CWallet *, const CTxDestination &dest,
@@ -290,7 +317,7 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
     }
 
     if (fRescan) {
-        pwallet->ScanForWalletTransactions(chainActive.Genesis(), true);
+        pwallet->RescanFromTime(TIMESTAMP_MIN, true /* update */);
         pwallet->ReacceptWalletTransactions();
     }
 
@@ -405,18 +432,18 @@ UniValue removeprunedfunds(const Config &config,
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
-    uint256 hash;
-    hash.SetHex(request.params[0].get_str());
-    std::vector<uint256> vHash;
-    vHash.push_back(hash);
-    std::vector<uint256> vHashOut;
+    TxId txid;
+    txid.SetHex(request.params[0].get_str());
+    std::vector<TxId> txIds;
+    txIds.push_back(txid);
+    std::vector<TxId> txIdsOut;
 
-    if (pwallet->ZapSelectTx(vHash, vHashOut) != DB_LOAD_OK) {
+    if (pwallet->ZapSelectTx(txIds, txIdsOut) != DB_LOAD_OK) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            "Could not properly delete the transaction.");
     }
 
-    if (vHashOut.empty()) {
+    if (txIdsOut.empty()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            "Transaction does not exist in wallet.");
     }
@@ -488,7 +515,7 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
     ImportScript(pwallet, GetScriptForRawPubKey(pubKey), strLabel, false);
 
     if (fRescan) {
-        pwallet->ScanForWalletTransactions(chainActive.Genesis(), true);
+        pwallet->RescanFromTime(TIMESTAMP_MIN, true /* update */);
         pwallet->ReacceptWalletTransactions();
     }
 
@@ -605,12 +632,7 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
     pwallet->ShowProgress("", 100);
     pwallet->UpdateTimeFirstKey(nTimeBegin);
 
-    CBlockIndex *pindex =
-        chainActive.FindEarliestAtLeast(nTimeBegin - TIMESTAMP_WINDOW);
-
-    LogPrintf("Rescanning last %i blocks\n",
-              chainActive.Height() - pindex->nHeight + 1);
-    pwallet->ScanForWalletTransactions(pindex);
+    pwallet->RescanFromTime(nTimeBegin, false /* update */);
     pwallet->MarkDirty();
 
     if (!fGood) {
@@ -1289,18 +1311,11 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     }
 
     if (fRescan && fRunScan && requests.size()) {
-        CBlockIndex *pindex =
-            nLowestTimestamp > minimumTimestamp
-                ? chainActive.FindEarliestAtLeast(
-                      std::max<int64_t>(nLowestTimestamp - TIMESTAMP_WINDOW, 0))
-                : chainActive.Genesis();
-        CBlockIndex *scannedRange = nullptr;
-        if (pindex) {
-            scannedRange = pwallet->ScanForWalletTransactions(pindex, true);
-            pwallet->ReacceptWalletTransactions();
-        }
+        int64_t scannedTime =
+            pwallet->RescanFromTime(nLowestTimestamp, true /* update */);
+        pwallet->ReacceptWalletTransactions();
 
-        if (!scannedRange || scannedRange->nHeight > pindex->nHeight) {
+        if (scannedTime > nLowestTimestamp) {
             std::vector<UniValue> results = response.getValues();
             response.clear();
             response.setArray();
@@ -1310,8 +1325,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                 // range, or if the import result already has an error set, let
                 // the result stand unmodified. Otherwise replace the result
                 // with an error message.
-                if (GetImportTimestamp(request, now) - TIMESTAMP_WINDOW >=
-                        scannedRange->GetBlockTimeMax() ||
+                if (scannedTime <= GetImportTimestamp(request, now) ||
                     results.at(i).exists("error")) {
                     response.push_back(results.at(i));
                 } else {
@@ -1321,9 +1335,22 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                         "error",
                         JSONRPCError(
                             RPC_MISC_ERROR,
-                            strprintf("Failed to rescan before time %d, "
-                                      "transactions may be missing.",
-                                      scannedRange->GetBlockTimeMax())));
+                            strprintf(
+                                "Rescan failed for key with creation timestamp "
+                                "%d. There was an error reading a block from "
+                                "time %d, which is after or within %d seconds "
+                                "of key creation, and could contain "
+                                "transactions pertaining to the key. As a "
+                                "result, transactions and coins using this key "
+                                "may not appear in the wallet. This error "
+                                "could be caused by pruning or data corruption "
+                                "(see bitcoind log for details) and could be "
+                                "dealt with by downloading and rescanning the "
+                                "relevant blocks (see -reindex and -rescan "
+                                "options).",
+                                GetImportTimestamp(request, now),
+                                scannedTime - TIMESTAMP_WINDOW - 1,
+                                TIMESTAMP_WINDOW)));
                     response.push_back(std::move(result));
                 }
                 ++i;
@@ -1335,9 +1362,10 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                        actor (function)          okSafeMode
     //  ------------------- ------------------------    ----------------------    ----------
+    { "wallet",             "abortrescan",              abortrescan,              false,  {} },
     { "wallet",             "dumpprivkey",              dumpprivkey,              true,   {"address"}  },
     { "wallet",             "dumpwallet",               dumpwallet,               true,   {"filename"} },
     { "wallet",             "importmulti",              importmulti,              true,   {"requests","options"} },

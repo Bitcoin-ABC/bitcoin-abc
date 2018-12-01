@@ -93,8 +93,7 @@ install necessary parts of boost:
 
 BerkeleyDB 5.3 or later is required for the wallet. This can be installed with:
 
-        sudo apt-get install libdb-dev
-        sudo apt-get install libdb++-dev
+        sudo apt-get install libdb-dev libdb++-dev
 
 See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
 

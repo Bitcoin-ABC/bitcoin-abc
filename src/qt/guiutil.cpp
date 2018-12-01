@@ -115,16 +115,17 @@ QFont fixedPitchFont() {
 #endif
 }
 
-static std::string MakeAddrInvalid(std::string addr) {
+static std::string MakeAddrInvalid(std::string addr, const Config &config) {
     if (addr.size() < 2) {
         return "";
     }
 
     // Checksum is at the end of the address. Swapping chars to make it invalid.
     std::swap(addr[addr.size() - 1], addr[addr.size() - 2]);
-    if (!IsValidDestinationString(addr)) {
+    if (!IsValidDestinationString(addr, config.GetChainParams())) {
         return addr;
     }
+
     return "";
 }
 
@@ -136,7 +137,7 @@ std::string DummyAddress(const Config &config) {
         0xb6, 0x7d, 0x06, 0x52, 0x99, 0x92, 0x59, 0x15, 0xae, 0xb1};
 
     const CTxDestination dstKey = CKeyID(uint160(dummydata));
-    return MakeAddrInvalid(EncodeDestination(dstKey, config));
+    return MakeAddrInvalid(EncodeDestination(dstKey, config), config);
 }
 
 // Addresses are stored in the database with the encoding that the client was
@@ -215,7 +216,7 @@ bool parseBitcoinURI(const QString &scheme, const QUrl &uri,
     if (rv.address.endsWith("/")) {
         rv.address.truncate(rv.address.length() - 1);
     }
-    rv.amount = Amount(0);
+    rv.amount = Amount::zero();
 
 #if QT_VERSION < 0x050000
     QList<QPair<QString, QString>> items = uri.queryItems();
@@ -279,7 +280,7 @@ QString formatBitcoinURI(const Config &config, const SendCoinsRecipient &info) {
     }
     int paramCount = 0;
 
-    if (info.amount != Amount(0)) {
+    if (info.amount != Amount::zero()) {
         ret +=
             QString("?amount=%1")
                 .arg(BitcoinUnits::format(BitcoinUnits::BCH, info.amount, false,

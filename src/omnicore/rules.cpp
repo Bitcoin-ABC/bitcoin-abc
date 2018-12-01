@@ -40,41 +40,24 @@ std::vector<TransactionRestriction> CConsensusParams::GetRestrictions() const
     const TransactionRestriction vTxRestrictions[] =
     { //  transaction type                    version        allow 0  activation block
       //  ----------------------------------  -------------  -------  ------------------
-        { OMNICORE_MESSAGE_TYPE_ALERT,        0xFFFF,        true,    MSC_ALERT_BLOCK    },
-        { OMNICORE_MESSAGE_TYPE_ACTIVATION,   0xFFFF,        true,    MSC_ALERT_BLOCK    },
-        { OMNICORE_MESSAGE_TYPE_DEACTIVATION, 0xFFFF,        true,    MSC_ALERT_BLOCK    },
 
-        { MSC_TYPE_SIMPLE_SEND,               MP_TX_PKT_V0,  false,   MSC_SEND_BLOCK     },
+        { MSC_TYPE_SIMPLE_SEND,               MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_BUY_TOKEN,                  MP_TX_PKT_V0,  false,  GENESIS_BLOCK     },
+        { WHC_TYPE_GET_BASE_PROPERTY,          MP_TX_PKT_V0,  false,  GENESIS_BLOCK     },
 
-        { MSC_TYPE_TRADE_OFFER,               MP_TX_PKT_V0,  false,   MSC_DEX_BLOCK      },
-        { MSC_TYPE_TRADE_OFFER,               MP_TX_PKT_V1,  false,   MSC_DEX_BLOCK      },
-        { MSC_TYPE_ACCEPT_OFFER_BTC,          MP_TX_PKT_V0,  false,   MSC_DEX_BLOCK      },
+        { MSC_TYPE_CREATE_PROPERTY_FIXED,     MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_CREATE_PROPERTY_VARIABLE,  MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_CLOSE_CROWDSALE,           MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
 
-        { MSC_TYPE_CREATE_PROPERTY_FIXED,     MP_TX_PKT_V0,  false,   MSC_SP_BLOCK       },
-        { MSC_TYPE_CREATE_PROPERTY_VARIABLE,  MP_TX_PKT_V0,  false,   MSC_SP_BLOCK       },
-        { MSC_TYPE_CREATE_PROPERTY_VARIABLE,  MP_TX_PKT_V1,  false,   MSC_SP_BLOCK       },
-        { MSC_TYPE_CLOSE_CROWDSALE,           MP_TX_PKT_V0,  false,   MSC_SP_BLOCK       },
+        { MSC_TYPE_CREATE_PROPERTY_MANUAL,    MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_GRANT_PROPERTY_TOKENS,     MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_REVOKE_PROPERTY_TOKENS,    MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_CHANGE_ISSUER_ADDRESS,     MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
 
-        { MSC_TYPE_CREATE_PROPERTY_MANUAL,    MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_GRANT_PROPERTY_TOKENS,     MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_REVOKE_PROPERTY_TOKENS,    MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_CHANGE_ISSUER_ADDRESS,     MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_ENABLE_FREEZING,           MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_DISABLE_FREEZING,          MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_FREEZE_PROPERTY_TOKENS,    MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
-        { MSC_TYPE_UNFREEZE_PROPERTY_TOKENS,  MP_TX_PKT_V0,  false,   MSC_MANUALSP_BLOCK },
+        { MSC_TYPE_SEND_TO_OWNERS,            MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { MSC_TYPE_SEND_ALL,                  MP_TX_PKT_V0,  false,   GENESIS_BLOCK     },
+        { WHC_TYPE_ERC721,                    MP_TX_PKT_V0,  false,   ERC721_BLOCK      },
 
-        { MSC_TYPE_SEND_TO_OWNERS,            MP_TX_PKT_V0,  false,   MSC_STO_BLOCK      },
-        { MSC_TYPE_SEND_TO_OWNERS,            MP_TX_PKT_V1,  false,   MSC_STOV1_BLOCK    },
-
-        { MSC_TYPE_METADEX_TRADE,             MP_TX_PKT_V0,  false,   MSC_METADEX_BLOCK  },
-        { MSC_TYPE_METADEX_CANCEL_PRICE,      MP_TX_PKT_V0,  false,   MSC_METADEX_BLOCK  },
-        { MSC_TYPE_METADEX_CANCEL_PAIR,       MP_TX_PKT_V0,  false,   MSC_METADEX_BLOCK  },
-        { MSC_TYPE_METADEX_CANCEL_ECOSYSTEM,  MP_TX_PKT_V0,  false,   MSC_METADEX_BLOCK  },
-
-        { MSC_TYPE_SEND_ALL,                  MP_TX_PKT_V0,  false,   MSC_SEND_ALL_BLOCK },
-
-        { MSC_TYPE_OFFER_ACCEPT_A_BET,        MP_TX_PKT_V0,  false,   MSC_BET_BLOCK      },
     };
 
     const size_t nSize = sizeof(vTxRestrictions) / sizeof(vTxRestrictions[0]);
@@ -175,6 +158,7 @@ CMainConsensusParams::CMainConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 395000;
     // Transaction restrictions:
+    ERC721_BLOCK = 555655;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 249498;
     MSC_DEX_BLOCK = 290630;
@@ -218,6 +202,7 @@ CTestNetConsensusParams::CTestNetConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
+    ERC721_BLOCK = 1267112;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 0;
     MSC_DEX_BLOCK = 0;
@@ -261,6 +246,7 @@ CRegTestConsensusParams::CRegTestConsensusParams()
     MULTISIG_BLOCK = 0;
     NULLDATA_BLOCK = 0;
     // Transaction restrictions:
+    ERC721_BLOCK = 110;
     MSC_ALERT_BLOCK = 0;
     MSC_SEND_BLOCK = 0;
     MSC_DEX_BLOCK = 0;
@@ -414,20 +400,11 @@ bool ActivateFeature(uint16_t featureId, int activationBlock, uint32_t minClient
         case FEATURE_CLASS_C:
             MutableConsensusParams().NULLDATA_BLOCK = activationBlock;
         break;
-        case FEATURE_METADEX:
-            MutableConsensusParams().MSC_METADEX_BLOCK = activationBlock;
-        break;
-        case FEATURE_BETTING:
-            MutableConsensusParams().MSC_BET_BLOCK = activationBlock;
-        break;
         case FEATURE_GRANTEFFECTS:
             MutableConsensusParams().GRANTEFFECTS_FEATURE_BLOCK = activationBlock;
         break;
         case FEATURE_DEXMATH:
             MutableConsensusParams().DEXMATH_FEATURE_BLOCK = activationBlock;
-        break;
-        case FEATURE_SENDALL:
-            MutableConsensusParams().MSC_SEND_ALL_BLOCK = activationBlock;
         break;
         case FEATURE_SPCROWDCROSSOVER:
             MutableConsensusParams().SPCROWDCROSSOVER_FEATURE_BLOCK = activationBlock;
@@ -437,9 +414,6 @@ bool ActivateFeature(uint16_t featureId, int activationBlock, uint32_t minClient
         break;
         case FEATURE_FEES:
             MutableConsensusParams().FEES_FEATURE_BLOCK = activationBlock;
-        break;
-        case FEATURE_STOV1:
-            MutableConsensusParams().MSC_STOV1_BLOCK = activationBlock;
         break;
         case FEATURE_FREEZENOTICE:
             MutableConsensusParams().FREEZENOTICE_FEATURE_BLOCK = activationBlock;
@@ -485,20 +459,11 @@ bool DeactivateFeature(uint16_t featureId, int transactionBlock)
         case FEATURE_CLASS_C:
             MutableConsensusParams().NULLDATA_BLOCK = 999999;
         break;
-        case FEATURE_METADEX:
-            MutableConsensusParams().MSC_METADEX_BLOCK = 999999;
-        break;
-        case FEATURE_BETTING:
-            MutableConsensusParams().MSC_BET_BLOCK = 999999;
-        break;
         case FEATURE_GRANTEFFECTS:
             MutableConsensusParams().GRANTEFFECTS_FEATURE_BLOCK = 999999;
         break;
         case FEATURE_DEXMATH:
             MutableConsensusParams().DEXMATH_FEATURE_BLOCK = 999999;
-        break;
-        case FEATURE_SENDALL:
-            MutableConsensusParams().MSC_SEND_ALL_BLOCK = 999999;
         break;
         case FEATURE_SPCROWDCROSSOVER:
             MutableConsensusParams().SPCROWDCROSSOVER_FEATURE_BLOCK = 999999;
@@ -509,15 +474,11 @@ bool DeactivateFeature(uint16_t featureId, int transactionBlock)
         case FEATURE_FEES:
             MutableConsensusParams().FEES_FEATURE_BLOCK = 999999;
         break;
-        case FEATURE_STOV1:
-            MutableConsensusParams().MSC_STOV1_BLOCK = 999999;
-        break;
         case FEATURE_FREEZENOTICE:
             MutableConsensusParams().FREEZENOTICE_FEATURE_BLOCK = 999999;
         break;
         default:
             return false;
-        break;
     }
 
     PrintToLog("Feature deactivation of ID %d processed. %s has been disabled.\n", featureId, featureName);
@@ -563,20 +524,11 @@ bool IsFeatureActivated(uint16_t featureId, int transactionBlock)
         case FEATURE_CLASS_C:
             activationBlock = params.NULLDATA_BLOCK;
             break;
-        case FEATURE_METADEX:
-            activationBlock = params.MSC_METADEX_BLOCK;
-            break;
-        case FEATURE_BETTING:
-            activationBlock = params.MSC_BET_BLOCK;
-            break;
         case FEATURE_GRANTEFFECTS:
             activationBlock = params.GRANTEFFECTS_FEATURE_BLOCK;
             break;
         case FEATURE_DEXMATH:
             activationBlock = params.DEXMATH_FEATURE_BLOCK;
-            break;
-        case FEATURE_SENDALL:
-            activationBlock = params.MSC_SEND_ALL_BLOCK;
             break;
         case FEATURE_SPCROWDCROSSOVER:
             activationBlock = params.SPCROWDCROSSOVER_FEATURE_BLOCK;
@@ -586,9 +538,6 @@ bool IsFeatureActivated(uint16_t featureId, int transactionBlock)
             break;
         case FEATURE_FEES:
             activationBlock = params.FEES_FEATURE_BLOCK;
-            break;
-        case FEATURE_STOV1:
-            activationBlock = params.MSC_STOV1_BLOCK;
             break;
         case FEATURE_FREEZENOTICE:
             activationBlock = params.FREEZENOTICE_FEATURE_BLOCK;
@@ -611,7 +560,6 @@ bool IsFeatureActivated(uint16_t featureId, int transactionBlock)
  */
 bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType, uint16_t version)
 {
-    //change_002
     /*
     const std::vector<TransactionRestriction>& vTxRestrictions = ConsensusParams().GetRestrictions();
 
@@ -625,19 +573,23 @@ bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType,
         if (OMNI_PROPERTY_BTC == txProperty && !entry.allowWildcard) {
             continue;
         }
-        // transactions are not restricted in the test ecosystem
-        if (isTestEcosystemProperty(txProperty)) {
-            return true;
-        }
+
         if (txBlock >= entry.activationBlock) {
             return true;
         }
     }
+    */
+    return true;
+}
+
+//    modify
+bool IsERC721TransactionTypeAllowed(int txblock, uint16_t txtype, uint16_t version){
+    const CConsensusParams& param = ConsensusParams();
+    if(txtype == WHC_TYPE_ERC721 && version == MP_TX_PKT_V0 && txblock >= param.ERC721_BLOCK){
+        return true;
+    }
 
     return false;
-    */
-
-    return true;
 }
 
 /**

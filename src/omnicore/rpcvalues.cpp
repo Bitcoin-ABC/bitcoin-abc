@@ -18,6 +18,7 @@
 #include <univalue.h>
 
 #include <boost/assign/list_of.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 
 #include <string>
@@ -69,6 +70,15 @@ int64_t ParseAmount(const UniValue& value, int propertyType)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     }
     return amount;
+}
+
+uint64_t ParseStrToUInt64(const std::string& str){
+    uint64_t  number = 0;
+    try{
+        number = boost::lexical_cast<uint64_t >(str);
+    }catch (const boost::bad_lexical_cast &e){}
+
+    return number;
 }
 
 uint8_t ParseDExPaymentWindow(const UniValue& value)

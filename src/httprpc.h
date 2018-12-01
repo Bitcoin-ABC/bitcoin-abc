@@ -8,28 +8,35 @@
 #include <map>
 #include <string>
 
+class Config;
 class HTTPRequest;
 
-/** Start HTTP RPC subsystem.
+/**
+ * Start HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-bool StartHTTPRPC();
-/** Interrupt HTTP RPC subsystem.
- */
+bool StartHTTPRPC(Config &config);
+
+/** Interrupt HTTP RPC subsystem */
 void InterruptHTTPRPC();
-/** Stop HTTP RPC subsystem.
+
+/**
+ * Stop HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been stopped.
  */
 void StopHTTPRPC();
 
-/** Start HTTP REST subsystem.
+/**
+ * Start HTTP REST subsystem.
  * Precondition; HTTP and RPC has been started.
  */
 bool StartREST();
-/** Interrupt RPC REST subsystem.
- */
+
+/** Interrupt RPC REST subsystem */
 void InterruptREST();
-/** Stop HTTP REST subsystem.
+
+/**
+ * Stop HTTP REST subsystem.
  * Precondition; HTTP and RPC has been stopped.
  */
 void StopREST();

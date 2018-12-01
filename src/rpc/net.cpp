@@ -78,7 +78,10 @@ static UniValue getpeerinfo(const Config &config,
             "    \"id\": n,                   (numeric) Peer index\n"
             "    \"addr\":\"host:port\",      (string) The ip address and port "
             "of the peer\n"
-            "    \"addrlocal\":\"ip:port\",   (string) local address\n"
+            "    \"addrbind\":\"ip:port\",    (string) Bind address of the "
+            "connection to the peer\n"
+            "    \"addrlocal\":\"ip:port\",   (string) Local address as "
+            "reported by the peer\n"
             "    \"services\":\"xxxxxxxxxxxxxxxx\",   (string) The services "
             "offered\n"
             "    \"relaytxes\":true|false,    (boolean) Whether peer has asked "
@@ -107,7 +110,8 @@ static UniValue getpeerinfo(const Config &config,
             "    \"inbound\": true|false,     (boolean) Inbound (true) or "
             "Outbound (false)\n"
             "    \"addnode\": true|false,     (boolean) Whether connection was "
-            "due to addnode and is using an addnode slot\n"
+            "due to addnode/-connect or if it was an automatic/inbound "
+            "connection\n"
             "    \"startingheight\": n,       (numeric) The starting height "
             "(block) of the peer\n"
             "    \"banscore\": n,             (numeric) The ban score\n"
@@ -160,6 +164,9 @@ static UniValue getpeerinfo(const Config &config,
         if (!(stats.addrLocal.empty())) {
             obj.push_back(Pair("addrlocal", stats.addrLocal));
         }
+        if (stats.addrBind.IsValid()) {
+            obj.push_back(Pair("addrbind", stats.addrBind.ToString()));
+        }
         obj.push_back(Pair("services", strprintf("%016x", stats.nServices)));
         obj.push_back(Pair("relaytxes", stats.fRelayTxes));
         obj.push_back(Pair("lastsend", stats.nLastSend));
@@ -183,7 +190,7 @@ static UniValue getpeerinfo(const Config &config,
         // characters in their ver message.
         obj.push_back(Pair("subver", stats.cleanSubVer));
         obj.push_back(Pair("inbound", stats.fInbound));
-        obj.push_back(Pair("addnode", stats.fAddnode));
+        obj.push_back(Pair("addnode", stats.m_manual_connection));
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         if (fStateStats) {
             obj.push_back(Pair("banscore", statestats.nMisbehavior));
@@ -229,6 +236,10 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
             "addnode \"node\" \"add|remove|onetry\"\n"
             "\nAttempts add or remove a node from the addnode list.\n"
             "Or try a connection to a node once.\n"
+            "Nodes added using addnode (or -connect) are protected from DoS "
+            "disconnection and are not required to be\n"
+            "full nodes/support SegWit as other outbound peers are (though "
+            "such peers will not be synced from).\n"
             "\nArguments:\n"
             "1. \"node\"     (string, required) The node (see getpeerinfo for "
             "nodes)\n"
@@ -248,7 +259,8 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
 
     if (strCommand == "onetry") {
         CAddress addr;
-        g_connman->OpenNetworkConnection(addr, false, nullptr, strNode.c_str());
+        g_connman->OpenNetworkConnection(addr, false, nullptr, strNode.c_str(),
+                                         false, false, true);
         return NullUniValue;
     }
 
@@ -462,7 +474,9 @@ static UniValue GetNetworksInfo() {
     UniValue networks(UniValue::VARR);
     for (int n = 0; n < NET_MAX; ++n) {
         enum Network network = static_cast<enum Network>(n);
-        if (network == NET_UNROUTABLE) continue;
+        if (network == NET_UNROUTABLE || network == NET_INTERNAL) {
+            continue;
+        }
         proxyType proxy;
         UniValue obj(UniValue::VOBJ);
         GetProxy(network, proxy);
@@ -745,7 +759,7 @@ static UniValue setnetworkactive(const Config &config,
 }
 
 // clang-format off
-static const CRPCCommand commands[] = {
+static const ContextFreeRPCCommand commands[] = {
     //  category            name                      actor (function)        okSafeMode
     //  ------------------- ------------------------  ----------------------  ----------
     { "network",            "getconnectioncount",     getconnectioncount,     true,  {} },
