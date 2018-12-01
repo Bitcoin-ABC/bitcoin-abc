@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/parse_string.h"
 
 #include "test/test_bitcoin.h"
@@ -44,24 +44,24 @@ BOOST_AUTO_TEST_CASE(strtoint64_divisible)
 {
     // range 0 to max int64
     BOOST_CHECK(StrToInt64("0.000", true) == 0);    
-    BOOST_CHECK(StrToInt64("92233720368.54775807", true) == static_cast<int64_t>(9223372036854775807LL));
+    BOOST_CHECK(StrToInt64("92233720368.54775807", 8) == static_cast<int64_t>(9223372036854775807LL));
     // check padding
-    BOOST_CHECK(StrToInt64("0.00000004", true) == 4);
-    BOOST_CHECK(StrToInt64("0.0000004", true) == 40);
-    BOOST_CHECK(StrToInt64("0.0004", true) == 40000);
-    BOOST_CHECK(StrToInt64("0.4", true) == 40000000);
-    BOOST_CHECK(StrToInt64("4.0", true) == 400000000);    
+    BOOST_CHECK(StrToInt64("0.00000004", 8) == 4);
+    BOOST_CHECK(StrToInt64("0.0000004", 8) == 40);
+    BOOST_CHECK(StrToInt64("0.0004", 8) == 40000);
+    BOOST_CHECK(StrToInt64("0.4", 8) == 40000000);
+    BOOST_CHECK(StrToInt64("4.0", 8) == 400000000);
     // truncate after 8 digits
-    BOOST_CHECK(StrToInt64("40.00000000000099", true) == static_cast<int64_t>(4000000000LL));
-    BOOST_CHECK(StrToInt64("92233720368.54775807000", true) == static_cast<int64_t>(9223372036854775807LL));
+    BOOST_CHECK(StrToInt64("40.00000000000099", 8) == 0);
+    BOOST_CHECK(StrToInt64("92233720368.54775807000", 8) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(strtoint64_divisible_truncate)
 {
     // truncate after 8 digits
-    BOOST_CHECK(StrToInt64("40.00000000000099", true) == static_cast<int64_t>(4000000000LL));
-    BOOST_CHECK(StrToInt64("92233720368.54775807000", true) == static_cast<int64_t>(9223372036854775807LL));
-    BOOST_CHECK(StrToInt64("92233720368.54775807000", true) == static_cast<int64_t>(9223372036854775807LL));
+    BOOST_CHECK(StrToInt64("40.00000000000099", 8) == 0);
+    BOOST_CHECK(StrToInt64("92233720368.54775807000", 8) == 0);
+    BOOST_CHECK(StrToInt64("92233720368.54775807000", 8) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(strtoint64_divisible_invalid)
@@ -80,4 +80,3 @@ BOOST_AUTO_TEST_CASE(strtoint64_divisible_invalid)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif

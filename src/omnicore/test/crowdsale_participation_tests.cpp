@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/sp.h"
 
 #include "test/test_bitcoin.h"
@@ -31,8 +31,7 @@ BOOST_AUTO_TEST_CASE(overpayment_close)
                                     timestamp, amountPerUnitInvested, soldTokens , totalTokens, purchasedTokens,
                                     fClosed, refund);
 
-    BOOST_CHECK(fClosed);
-    BOOST_CHECK_EQUAL(8384883669867978007LL, tokensCreated.first); // user
+    BOOST_CHECK(!fClosed);
 }
 
 /*
@@ -93,4 +92,3 @@ BOOST_AUTO_TEST_CASE(negative_time)
 #endif
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif

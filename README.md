@@ -1,13 +1,10 @@
 Wormhole (beta) integration/staging tree
-========================================
 
 [![Build Status](https://travis-ci.org/copernet/wormhole.svg?branch=master)](https://travis-ci.org/copernet/wormhole) [![Coverage Status](https://coveralls.io/repos/github/copernet/wormhole/badge.svg?branch=master)](https://coveralls.io/github/copernet/wormhole?branch=master)
 
-
 What is Wormhole
 -----------------
-
-Wormhole is a fast, portable Omni Layer implementation that is based off the Bitcoin ABC codebase (currently 0.17.2). This implementation requires no external dependencies extraneous to Bitcoin ABC, and is native to the Bitcoin Cash network just like other Bitcoin Cash nodes. It currently supports a wallet mode and is seamlessly available on three platforms: Windows, Linux and Mac OS. Wormhole Cash Layer extensions are exposed via the JSON-RPC interface. Development has been consolidated on the Wormhole product, and it is the reference client for the Wormhole Cash Layer.
+Wormhole is a fast, portable Omni Layer implementation that is based off the Bitcoin ABC codebase (currently 0.17.2). This implementation requires no external dependencies extraneous to Bitcoin ABC, and is native to the Bitcoin Cash network just like other Bitcoin Cash nodes. It currently supports a wallet mode and is seamlessly available on three platforms: Windows, Linux and Mac OS. Wormhole Cash Layer extensions are expohttps://travis-ci.org/copernet/wormhole.svg?branch=mastersed via the JSON-RPC interface. Development has been consolidated on the Wormhole product, and it is the reference client for the Wormhole Cash Layer.
 
 
 What is Bitcoin Cash

@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/mbstring.h"
 
 #include "test/test_bitcoin.h"
@@ -590,4 +590,4 @@ BOOST_AUTO_TEST_CASE(various_valid_strings)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif
+

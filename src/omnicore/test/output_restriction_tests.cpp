@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/omnicore.h"
 #include "omnicore/rules.h"
 
@@ -125,4 +125,3 @@ BOOST_AUTO_TEST_CASE(output_nulldata_testnet)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif

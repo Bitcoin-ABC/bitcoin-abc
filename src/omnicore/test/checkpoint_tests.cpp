@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/consensushash.h"
 #include "omnicore/dex.h"
 #include "omnicore/mdex.h"
@@ -109,4 +109,3 @@ BOOST_AUTO_TEST_CASE(get_checkpoints)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif

@@ -48,6 +48,7 @@ std::vector<unsigned char> CreatePayload_PartiCrowsale(uint32_t propertyId, uint
 
 std::vector<unsigned char> CreatePayload_SimpleSend(uint32_t propertyId, uint64_t amount)
 {
+	
     std::vector<unsigned char> payload;
     uint16_t messageType = 0;
     uint16_t messageVer = 0;
@@ -66,6 +67,7 @@ std::vector<unsigned char> CreatePayload_SimpleSend(uint32_t propertyId, uint64_
 
 std::vector<unsigned char> CreatePayload_SendAll(uint8_t ecosystem)
 {
+	
     std::vector<unsigned char> payload;
     uint16_t messageVer = 0;
     uint16_t messageType = 4;
@@ -284,6 +286,7 @@ std::vector<unsigned char> CreatePayload_IssuanceVariable(uint8_t ecosystem, uin
                                                           std::string subcategory, std::string name, std::string url, std::string data, uint32_t propertyIdDesired,
                                                           uint64_t amountPerUnit, uint64_t deadline, uint8_t earlyBonus, uint8_t issuerPercentage, uint64_t amount)
 {
+	
     std::vector<unsigned char> payload;
     uint16_t messageType = 51;
     uint16_t messageVer = 0;

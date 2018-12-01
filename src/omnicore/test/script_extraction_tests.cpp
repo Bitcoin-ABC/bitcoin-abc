@@ -1,4 +1,4 @@
-#if 0
+
 #include "omnicore/script.h"
 
 #include "base58.h"
@@ -289,4 +289,3 @@ BOOST_AUTO_TEST_CASE(extract_anypush_test)
 
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif
