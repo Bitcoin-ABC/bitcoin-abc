@@ -5,8 +5,7 @@
 #ifndef BITCOIN_QT_SPLASHSCREEN_H
 #define BITCOIN_QT_SPLASHSCREEN_H
 
-#include <QSplashScreen>
-#include <functional>
+#include <QWidget>
 
 #include <memory>
 
@@ -37,8 +36,9 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 public Q_SLOTS:
-    /** Slot to call finish() method as it's not defined as slot */
-    void slotFinish(QWidget *mainWin);
+    /** Hide the splash screen window and schedule the splash screen object for
+     * deletion */
+    void finish();
 
     /** Show message and progress */
     void showMessage(const QString &message, int alignment,

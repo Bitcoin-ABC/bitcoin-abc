@@ -106,7 +106,7 @@ Q_SIGNALS:
                              HTTPRPCRequestProcessor *httpRPCRequestProcessor);
     void requestedShutdown();
     void stopThread();
-    void splashFinished(QWidget *window);
+    void splashFinished();
     void windowShown(BitcoinGUI *window);
 
 private:

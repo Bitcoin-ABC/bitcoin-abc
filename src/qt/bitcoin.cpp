@@ -244,11 +244,11 @@ void BitcoinApplication::createWindow(const Config *config,
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
     SplashScreen *splash = new SplashScreen(m_node, networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but
-    // the splash screen will take care of deleting itself when slotFinish
+    // the splash screen will take care of deleting itself when finish()
     // happens.
     splash->show();
     connect(this, &BitcoinApplication::splashFinished, splash,
-            &SplashScreen::slotFinish);
+            &SplashScreen::finish);
     connect(this, &BitcoinApplication::requestedShutdown, splash,
             &QWidget::close);
 }
@@ -351,7 +351,7 @@ void BitcoinApplication::initializeResult(bool success) {
     returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
     if (!success) {
         // Make sure splash screen doesn't stick around during shutdown.
-        Q_EMIT splashFinished(window);
+        Q_EMIT splashFinished();
         // Exit first main loop invocation.
         quit();
         return;
@@ -386,7 +386,7 @@ void BitcoinApplication::initializeResult(bool success) {
     } else {
         window->show();
     }
-    Q_EMIT splashFinished(window);
+    Q_EMIT splashFinished();
     Q_EMIT windowShown(window);
 
 #ifdef ENABLE_WALLET
