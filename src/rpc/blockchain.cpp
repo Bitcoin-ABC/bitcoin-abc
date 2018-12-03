@@ -1463,7 +1463,7 @@ static UniValue getchaintips(const Config &config,
         } else if (block->nStatus.isOnParkedChain()) {
             // This block or one of its ancestors is parked.
             status = "parked";
-        } else if (block->nChainTx == 0) {
+        } else if (!block->HaveTxsDownloaded()) {
             // This block cannot be connected because full block data for it or
             // one of its parents is missing.
             status = "headers-only";

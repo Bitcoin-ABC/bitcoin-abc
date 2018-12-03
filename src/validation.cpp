@@ -2624,7 +2624,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
         CBlockIndex *pindexTest = pindexNew;
         bool hasValidAncestor = true;
         while (hasValidAncestor && pindexTest && pindexTest != pindexFork) {
-            assert(pindexTest->nChainTx || pindexTest->nHeight == 0);
+            assert(pindexTest->HaveTxsDownloaded() || pindexTest->nHeight == 0);
 
             // If this is a parked chain, but it has enough PoW, clear the park
             // state.
@@ -3054,7 +3054,8 @@ bool CChainState::PreciousBlock(const Config &config, CValidationState &state,
         UnparkBlock(pindex);
 
         // Make sure it is added to the candidate list if appropriate.
-        if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx) {
+        if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
+            pindex->HaveTxsDownloaded()) {
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
         }
@@ -3120,7 +3121,7 @@ bool CChainState::UnwindBlock(const Config &config, CValidationState &state,
     // so add it again.
     for (const std::pair<const BlockHash, CBlockIndex *> &it : mapBlockIndex) {
         CBlockIndex *i = it.second;
-        if (i->IsValid(BlockValidity::TRANSACTIONS) && i->nChainTx &&
+        if (i->IsValid(BlockValidity::TRANSACTIONS) && i->HaveTxsDownloaded() &&
             !setBlockIndexCandidates.value_comp()(i, chainActive.Tip())) {
             setBlockIndexCandidates.insert(i);
         }
@@ -3183,7 +3184,8 @@ void CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
             m_failed_blocks.erase(pindex);
         }
 
-        if (pindex->IsValid(BlockValidity::TRANSACTIONS) && pindex->nChainTx &&
+        if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
+            pindex->HaveTxsDownloaded() &&
             setBlockIndexCandidates.value_comp()(chainActive.Tip(), pindex)) {
             setBlockIndexCandidates.insert(pindex);
         }
@@ -3349,7 +3351,7 @@ bool CChainState::ReceivedBlockTransactions(const CBlock &block,
     pindexNew->RaiseValidity(BlockValidity::TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
 
-    if (pindexNew->pprev == nullptr || pindexNew->pprev->nChainTx) {
+    if (pindexNew->pprev == nullptr || pindexNew->pprev->HaveTxsDownloaded()) {
         // If pindexNew is the genesis block or all parents are
         // BLOCK_VALID_TRANSACTIONS.
         std::deque<CBlockIndex *> queue;
@@ -4493,7 +4495,7 @@ bool CChainState::LoadBlockIndex(const Config &config,
         // at some point. Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
             if (pindex->pprev) {
-                if (pindex->pprev->nChainTx) {
+                if (pindex->pprev->HaveTxsDownloaded()) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
                 } else {
                     pindex->nChainTx = 0;
@@ -4511,7 +4513,7 @@ bool CChainState::LoadBlockIndex(const Config &config,
             setDirtyBlockIndex.insert(pindex);
         }
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
-            (pindex->nChainTx || pindex->pprev == nullptr)) {
+            (pindex->HaveTxsDownloaded() || pindex->pprev == nullptr)) {
             setBlockIndexCandidates.insert(pindex);
         }
 
@@ -4980,7 +4982,7 @@ bool CChainState::RewindBlockIndex(const Config &config) {
     for (const auto &entry : mapBlockIndex) {
         CBlockIndex *pindexIter = entry.second;
         if (pindexIter->IsValid(BlockValidity::TRANSACTIONS) &&
-            pindexIter->nChainTx) {
+            pindexIter->HaveTxsDownloaded()) {
             setBlockIndexCandidates.insert(pindexIter);
         }
     }
@@ -5373,7 +5375,7 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
             // The current active chain's genesis block must be this block.
             assert(pindex == chainActive.Genesis());
         }
-        if (pindex->nChainTx == 0) {
+        if (!pindex->HaveTxsDownloaded()) {
             // nSequenceId can't be set positive for blocks that aren't linked
             // (negative is used for preciousblock)
             assert(pindex->nSequenceId <= 0);
@@ -5398,14 +5400,14 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
         assert((pindex->nStatus.getValidity() >= BlockValidity::TRANSACTIONS) ==
                (pindex->nTx > 0));
         // All parents having had data (at some point) is equivalent to all
-        // parents being VALID_TRANSACTIONS, which is equivalent to nChainTx
-        // being set.
-        // nChainTx != 0 is used to signal that all parent blocks have been
-        // processed (but may have been pruned).
-        assert((pindexFirstNeverProcessed != nullptr) ==
-               (pindex->nChainTx == 0));
-        assert((pindexFirstNotTransactionsValid != nullptr) ==
-               (pindex->nChainTx == 0));
+        // parents being VALID_TRANSACTIONS, which is equivalent to
+        // HaveTxsDownloaded(). All parents having had data (at some point) is
+        // equivalent to all parents being VALID_TRANSACTIONS, which is
+        // equivalent to HaveTxsDownloaded().
+        assert((pindexFirstNeverProcessed == nullptr) ==
+               (pindex->HaveTxsDownloaded()));
+        assert((pindexFirstNotTransactionsValid == nullptr) ==
+               (pindex->HaveTxsDownloaded()));
         // nHeight must be consistent.
         assert(pindex->nHeight == nHeight);
         // For every block except the genesis block, the chainwork must be

@@ -772,7 +772,7 @@ static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
                 return;
             }
             if (pindex->nStatus.hasData() || chainActive.Contains(pindex)) {
-                if (pindex->nChainTx) {
+                if (pindex->HaveTxsDownloaded()) {
                     state->pindexLastCommonBlock = pindex;
                 }
             } else if (mapBlocksInFlight.count(pindex->GetBlockHash()) == 0) {
@@ -1490,7 +1490,8 @@ static void ProcessGetBlockData(const Config &config, CNode *pfrom,
         LOCK(cs_main);
         const CBlockIndex *pindex = LookupBlockIndex(hash);
         if (pindex) {
-            if (pindex->nChainTx && !pindex->IsValid(BlockValidity::SCRIPTS) &&
+            if (pindex->HaveTxsDownloaded() &&
+                !pindex->IsValid(BlockValidity::SCRIPTS) &&
                 pindex->IsValid(BlockValidity::TREE)) {
                 // If we have the block and all of its parents, but have not yet
                 // validated it, we might be in the middle of connecting it (ie
