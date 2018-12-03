@@ -126,7 +126,7 @@ class AvalanchePoll {
     std::vector<CInv> invs;
 
 public:
-    AvalanchePoll(uint32_t roundIn, std::vector<CInv> invsIn)
+    AvalanchePoll(uint64_t roundIn, std::vector<CInv> invsIn)
         : round(roundIn), invs(invsIn) {}
 
     const std::vector<CInv> &GetInvs() const { return invs; }
@@ -275,7 +275,7 @@ public:
     bool registerVotes(NodeId nodeid, const AvalancheResponse &response,
                        std::vector<AvalancheBlockUpdate> &updates);
 
-    bool addPeer(NodeId nodeid, uint32_t score);
+    bool addPeer(NodeId nodeid, int64_t score);
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
