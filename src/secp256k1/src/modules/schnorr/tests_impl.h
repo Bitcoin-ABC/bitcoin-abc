@@ -40,9 +40,10 @@ void test_schnorr_end_to_end(void) {
 void test_schnorr_sign_verify(void) {
     unsigned char msg32[32];
     unsigned char sig64[SIG_COUNT][64];
+    unsigned char ndata[SIG_COUNT][32];
     secp256k1_gej pubkeyj[SIG_COUNT];
     secp256k1_ge pubkey[SIG_COUNT];
-    secp256k1_scalar nonce[SIG_COUNT], key[SIG_COUNT];
+    secp256k1_scalar key[SIG_COUNT];
     int i, j;
 
     secp256k1_rand256_test(msg32);
@@ -55,8 +56,8 @@ void test_schnorr_sign_verify(void) {
         secp256k1_fe_normalize(&pubkey[i].y);
 
         do {
-            random_scalar_order_test(&nonce[i]);
-            if (secp256k1_schnorr_sig_sign(&ctx->ecmult_gen_ctx, sig64[i], &key[i], &pubkey[i], &nonce[i], msg32)) {
+            secp256k1_rand256_test(ndata[i]);
+            if (secp256k1_schnorr_sig_sign(&ctx->ecmult_gen_ctx, sig64[i], msg32, &key[i], &pubkey[i], NULL, &ndata[i])) {
                 break;
             }
         } while(1);

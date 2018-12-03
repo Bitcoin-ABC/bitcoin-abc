@@ -35,7 +35,7 @@ int secp256k1_schnorr_sign(
     secp256k1_nonce_function noncefp,
     const void *ndata
 ) {
-    secp256k1_scalar sec, non;
+    secp256k1_scalar sec;
     secp256k1_pubkey pubkey;
     secp256k1_ge p;
     int ret = 0;
@@ -49,19 +49,13 @@ int secp256k1_schnorr_sign(
         return 0;
     }
 
-    if (!secp256k1_schnorr_sig_generate_k(&non, msg32, seckey, noncefp, ndata)) {
-        secp256k1_scalar_clear(&non);
-        return 0;
-    }
-
     secp256k1_pubkey_load(ctx, &p, &pubkey);
     secp256k1_scalar_set_b32(&sec, seckey, NULL);
-    ret = secp256k1_schnorr_sig_sign(&ctx->ecmult_gen_ctx, sig64, &sec, &p, &non, msg32);
+    ret = secp256k1_schnorr_sig_sign(&ctx->ecmult_gen_ctx, sig64, msg32, &sec, &p, noncefp, ndata);
     if (!ret) {
         memset(sig64, 0, 64);
     }
 
-    secp256k1_scalar_clear(&non);
     secp256k1_scalar_clear(&sec);
     return ret;
 }
