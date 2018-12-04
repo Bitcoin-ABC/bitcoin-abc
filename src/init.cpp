@@ -685,6 +685,13 @@ void SetupServerArgs() {
                            DEFAULT_CONNECT_TIMEOUT),
                  ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg(
+        "-peertimeout=<n>",
+        strprintf("Specify p2p connection timeout in seconds. This option "
+                  "determines the amount of time a peer may be inactive before "
+                  "the connection to it is dropped. (minimum: 1, default: %d)",
+                  DEFAULT_PEER_CONNECT_TIMEOUT),
+        true, OptionsCategory::CONNECTION);
+    gArgs.AddArg(
         "-torcontrol=<ip>:<port>",
         strprintf(
             "Tor control port to use if onion listening enabled (default: %s)",
@@ -1510,6 +1517,8 @@ int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
 ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK | NODE_NETWORK_LIMITED);
+int64_t peer_connect_timeout;
+
 } // namespace
 
 [[noreturn]] static void new_handler_terminate() {
@@ -1795,6 +1804,13 @@ bool AppInitParameterInteraction(Config &config) {
     nConnectTimeout = gArgs.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+    }
+
+    peer_connect_timeout =
+        gArgs.GetArg("-peertimeout", DEFAULT_PEER_CONNECT_TIMEOUT);
+    if (peer_connect_timeout <= 0) {
+        return InitError(
+            "peertimeout cannot be configured with a negative value.");
     }
 
     // Obtain the amount to charge excess UTXO
@@ -2560,6 +2576,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     connOptions.nMaxOutboundTimeframe = nMaxOutboundTimeframe;
     connOptions.nMaxOutboundLimit = nMaxOutboundLimit;
+    connOptions.m_peer_connect_timeout = peer_connect_timeout;
 
     for (const std::string &strBind : gArgs.GetArgs("-bind")) {
         CService addrBind;
