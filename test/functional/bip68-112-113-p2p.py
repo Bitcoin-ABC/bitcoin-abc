@@ -43,13 +43,10 @@ bip112tx_special - test negative argument to OP_CSV
 from test_framework.test_framework import ComparisonTestFramework
 from test_framework.util import *
 from test_framework.mininode import ToHex, FromHex, CTransaction, NetworkThread, COIN
-from test_framework.blocktools import create_coinbase, create_block
+from test_framework.blocktools import create_coinbase, create_block, make_conform_to_ctor
 from test_framework.comptool import TestInstance, TestManager
 from test_framework.script import *
 import time
-
-# far in the future
-MAGNETIC_ANOMALY_START_TIME = 2000000000
 
 base_relative_locktime = 10
 seq_disable_flag = 1 << 31
@@ -104,8 +101,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [['-whitelist=127.0.0.1', '-blockversion=4',
-                            '-magneticanomalyactivationtime=%d' % MAGNETIC_ANOMALY_START_TIME]]
+        self.extra_args = [['-whitelist=127.0.0.1', '-blockversion=4']]
 
     def run_test(self):
         test = TestManager(self, self.options.tmpdir)
@@ -153,6 +149,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
             self.tipheight + 1), self.last_block_time + 600)
         block.nVersion = version
         block.vtx.extend(txs)
+        make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
@@ -165,6 +162,7 @@ class BIP68_112_113Test(ComparisonTestFramework):
     def create_test_block_spend_utxos(self, node, txs, version=536870912):
         block = self.create_test_block(txs, version)
         block.vtx.extend([self.spend_tx(node, tx) for tx in txs])
+        make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
