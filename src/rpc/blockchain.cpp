@@ -231,8 +231,8 @@ static UniValue waitfornewblock(const Config &config,
             {
                 {"timeout", RPCArg::Type::NUM, /* opt */ true,
                  /* default_val */ "0",
-                 "Time in milliseconds to wait for a response. 0 "
-                 "indicates no timeout."},
+                 "Time in milliseconds to wait for a response. 0 indicates no "
+                 "timeout."},
             },
             RPCResult{"{                           (json object)\n"
                       "  \"hash\" : {       (string) The blockhash\n"
@@ -1954,7 +1954,7 @@ static UniValue getchaintxstats(const Config &config,
                  /* default_val */ "one month",
                  "Size of the window in number of blocks"},
                 {"blockhash", RPCArg::Type::STR_HEX, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "chain tip",
                  "The hash of the block that ends the window."},
             },
             RPCResult{
@@ -2094,8 +2094,8 @@ static UniValue getblockstats(const Config &config,
                 {"stats",
                  RPCArg::Type::ARR,
                  /* opt */ true,
-                 /* default_val */ "",
-                 "Values to plot, by default all values (see result below)",
+                 /* default_val */ "all values",
+                 "Values to plot (see result below)",
                  {
                      {"height", RPCArg::Type::STR, /* opt */ true,
                       /* default_val */ "", "Selected statistic"},

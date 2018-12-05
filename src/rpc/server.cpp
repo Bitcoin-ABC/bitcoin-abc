@@ -183,7 +183,8 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
             "\nList all commands, or get help for a specified command.\n",
             {
                 {"command", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "", "The command to get help on"},
+                 /* default_val */ "all commands",
+                 "The command to get help on"},
             },
             RPCResult{"\"text\"     (string) The help text\n"},
             RPCExamples{""},

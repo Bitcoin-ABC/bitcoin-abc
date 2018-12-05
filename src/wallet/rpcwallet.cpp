@@ -169,12 +169,12 @@ static UniValue getnewaddress(const Config &config,
             "'label'.\n",
             {
                 {"label", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "The label name for the address to be linked to. If not "
-                 "provided, the default label \"\" is used. It can also be "
-                 "set to the empty string \"\" to represent the default "
-                 "label. The label does not need to exist, it will be "
-                 "created if there is no label by the given name."},
+                 "provided, the default label \"\" is used. It can also be set "
+                 "to the empty string \"\" to represent the default label. The "
+                 "label does not need to exist, it will be created if there is "
+                 "no label by the given name."},
             },
             RPCResult{"\"address\"    (string) The new bitcoin address\n"},
             RPCExamples{HelpExampleCli("getnewaddress", "") +
@@ -427,14 +427,13 @@ static UniValue sendtoaddress(const Config &config,
                  /* default_val */ "",
                  "The amount in " + CURRENCY_UNIT + " to send. eg 0.1"},
                 {"comment", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "A comment used to store what the transaction is for.\n"
                  "                             This is not part of the "
                  "transaction, just kept in your wallet."},
                 {"comment_to", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "A comment to store the name of the person or "
-                 "organization\n"
+                 /* default_val */ "null",
+                 "A comment to store the name of the person or organization\n"
                  "                             to which you're sending the "
                  "transaction. This is not part of the \n"
                  "                             transaction, just kept in "
@@ -849,9 +848,9 @@ static UniValue getbalance(const Config &config,
             "as -spendzeroconfchange.\n",
             {
                 {"dummy", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "Remains for backward compatibility. Must be "
-                 "excluded or set to \"*\"."},
+                 /* default_val */ "null",
+                 "Remains for backward compatibility. Must be excluded or set "
+                 "to \"*\"."},
                 {"minconf", RPCArg::Type::NUM, /* opt */ true,
                  /* default_val */ "0",
                  "Only include transactions confirmed at least this "
@@ -970,12 +969,12 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                  "Only use the balance confirmed at least this many "
                  "times."},
                 {"comment", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "", "A comment"},
+                 /* default_val */ "null", "A comment"},
                 {
                     "subtractfeefrom",
                     RPCArg::Type::ARR,
                     /* opt */ true,
-                    /* default_val */ "",
+                    /* default_val */ "null",
                     "A json array with addresses.\n"
                     "                           The fee will be equally "
                     "deducted from the amount of each selected address.\n"
@@ -1179,7 +1178,7 @@ static UniValue addmultisigaddress(const Config &config,
                         },
                     },
                     {"label", RPCArg::Type::STR, /* opt */ true,
-                     /* default_val */ "",
+                     /* default_val */ "null",
                      "A label to assign the addresses to."},
                 },
                 RPCResult{"{\n"
@@ -1434,7 +1433,7 @@ static UniValue listreceivedbyaddress(const Config &config,
                  "Whether to include watch-only addresses (see "
                  "'importaddress')."},
                 {"address_filter", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "If present, only return information on this address."},
             },
             RPCResult{
@@ -1653,7 +1652,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
             "first 'from' transactions.\n",
             {
                 {"label", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "If set, should be a valid label name to return only incoming "
                  "transactions with the specified label, or \"*\" to disable "
                  "filtering and return all transactions."},
@@ -1833,8 +1832,9 @@ static UniValue listsinceblock(const Config &config,
             "array.\n",
             {
                 {"blockhash", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "The block hash to list transactions since"},
+                 /* default_val */ "null",
+                 "If set, the block hash to list transactions since, otherwise "
+                 "list all transactions."},
                 {"target_confirmations", RPCArg::Type::NUM, /* opt */ true,
                  /* default_val */ "1",
                  "Return the nth block hash from the main chain. e.g. 1 "
@@ -2661,9 +2661,9 @@ static UniValue lockunspent(const Config &config,
                     "transactions",
                     RPCArg::Type::ARR,
                     /* opt */ true,
-                    /* default_val */ "",
-                    "A json array of objects. Each object the txid "
-                    "(string) vout (numeric)",
+                    /* default_val */ "empty array",
+                    "A json array of objects. Each object the txid (string) "
+                    "vout (numeric).",
                     {
                         {
                             "",
@@ -3235,7 +3235,8 @@ static UniValue unloadwallet(const Config &config,
             "Specifying the wallet name on a wallet endpoint is invalid.",
             {
                 {"wallet_name", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "", "The name of the wallet to unload."},
+                 /* default_val */ "the wallet name from the RPC request",
+                 "The name of the wallet to unload."},
             },
             RPCResults{},
             RPCExamples{HelpExampleCli("unloadwallet", "wallet_name") +
@@ -3298,7 +3299,7 @@ static UniValue listunspent(const Config &config,
                     "addresses",
                     RPCArg::Type::ARR,
                     /* opt */ true,
-                    /* default_val */ "",
+                    /* default_val */ "empty array",
                     "A json array of bitcoin addresses to filter",
                     {
                         {"address", RPCArg::Type::STR, /* opt */ true,
@@ -3313,7 +3314,7 @@ static UniValue listunspent(const Config &config,
                 {"query_options",
                  RPCArg::Type::OBJ,
                  /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "JSON with query options",
                  {
                      {"minimumAmount", RPCArg::Type::AMOUNT, /* opt */ true,
@@ -3669,9 +3670,9 @@ static UniValue fundrawtransaction(const Config &config,
                 {"options",
                  RPCArg::Type::OBJ,
                  /* opt */ true,
-                 /* default_val */ "",
-                 "for backward compatibility: passing in a true instead of "
-                 "an object will result in {\"includeWatching\":true}",
+                 /* default_val */ "null",
+                 "for backward compatibility: passing in a true instead of an "
+                 "object will result in {\"includeWatching\":true}",
                  {
                      {"changeAddress", RPCArg::Type::STR, /* opt */ true,
                       /* default_val */ "pool address",
@@ -3692,14 +3693,11 @@ static UniValue fundrawtransaction(const Config &config,
                          "subtractFeeFromOutputs",
                          RPCArg::Type::ARR,
                          /* opt */ true,
-                         /* default_val */ "",
+                         /* default_val */ "empty array",
                          "A json array of integers.\n"
                          "                              The fee will be "
                          "equally deducted from the amount of each "
                          "specified output.\n"
-                         "                              The outputs are "
-                         "specified by their zero-based index, before any "
-                         "change output is added.\n"
                          "                              Those recipients "
                          "will receive less bitcoins than you enter in "
                          "their corresponding amount field.\n"
@@ -3786,9 +3784,8 @@ UniValue signrawtransactionwithwallet(const Config &config,
                     "prevtxs",
                     RPCArg::Type::ARR,
                     /* opt */ true,
-                    /* default_val */ "",
-                    "A json array of previous dependent transaction "
-                    "outputs",
+                    /* default_val */ "null",
+                    "A json array of previous dependent transaction outputs",
                     {
                         {
                             "",
@@ -3806,7 +3803,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
                                  /* opt */ false, /* default_val */ "",
                                  "script key"},
                                 {"redeemScript", RPCArg::Type::STR_HEX,
-                                 /* opt */ true, /* default_val */ "",
+                                 /* opt */ true, /* default_val */ "omitted",
                                  "(required for P2SH)"},
                                 {"amount", RPCArg::Type::AMOUNT,
                                  /* opt */ false, /* default_val */ "",
@@ -3890,8 +3887,7 @@ UniValue generate(const Config &config, const JSONRPCRequest &request) {
                  /* default_val */ "",
                  "How many blocks are generated immediately."},
                 {"maxtries", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "",
-                 "How many iterations to try (default = 1000000)."},
+                 /* default_val */ "1000000", "How many iterations to try."},
             },
             RPCResult{
                 "[ blockhashes ]     (array) hashes of blocks generated\n"},
@@ -3949,13 +3945,11 @@ UniValue rescanblockchain(const Config &config, const JSONRPCRequest &request) {
             "\nRescan the local blockchain for wallet related transactions.\n",
             {
                 {"start_height", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "0",
                  "block height where the rescan should start"},
                 {"stop_height", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "",
-                 "the last block height that should be scanned. If none is "
-                 "provided it will rescan up to the tip at return time of this "
-                 "call."},
+                 /* default_val */ "tip height",
+                 "the last block height that should be scanned"},
             },
             RPCResult{"{\n"
                       "  \"start_height\"     (numeric) The block height where "
@@ -4399,10 +4393,9 @@ UniValue listlabels(const Config &config, const JSONRPCRequest &request) {
             "assigned to addresses with a specific purpose.\n",
             {
                 {"purpose", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "Address purpose to list labels for "
-                 "('send','receive'). An empty string is the same as not "
-                 "providing this argument."},
+                 /* default_val */ "null",
+                 "Address purpose to list labels for ('send','receive'). An "
+                 "empty string is the same as not providing this argument."},
             },
             RPCResult{"[               (json array of string)\n"
                       "  \"label\",      (string) Label name\n"
@@ -4476,9 +4469,8 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
                  "                             keypool will be used until it "
                  "has been depleted."},
                 {"seed", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "The WIF private key to use as the new HD seed; if not "
-                 "provided a random seed will be used.\n"
+                 /* default_val */ "random seed",
+                 "The WIF private key to use as the new HD seed.\n"
                  "                             The seed value can be retrieved "
                  "using the dumpwallet command. It is the private key marked "
                  "hdseed=1"},
@@ -4700,7 +4692,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                             "",
                             {
                                 {"address", RPCArg::Type::AMOUNT,
-                                 /* opt */ true, /* default_val */ "",
+                                 /* opt */ false, /* default_val */ "",
                                  "A key-value pair. The key (string) is the "
                                  "bitcoin address, the value (float or string) "
                                  "is the amount in " +
@@ -4714,10 +4706,10 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                             /* default_val */ "",
                             "",
                             {
-                                {"data", RPCArg::Type::STR_HEX,
-                                 /* opt */ true, /* default_val */ "",
-                                 "A key-value pair. The key must be "
-                                 "\"data\", the value is hex-encoded data"},
+                                {"data", RPCArg::Type::STR_HEX, /* opt */ false,
+                                 /* default_val */ "",
+                                 "A key-value pair. The key must be \"data\", "
+                                 "the value is hex-encoded data"},
                             },
                         },
                     },
@@ -4732,7 +4724,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                 {"options",
                  RPCArg::Type::OBJ,
                  /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "",
                  {
                      {"changeAddress", RPCArg::Type::STR_HEX,
@@ -4755,22 +4747,21 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                          "subtractFeeFromOutputs",
                          RPCArg::Type::ARR,
                          /* opt */ true,
-                         /* default_val */ "",
+                         /* default_val */ "empty array",
                          "A json array of integers.\n"
                          "                              The fee will be "
                          "equally deducted from the amount of each specified "
                          "output.\n"
-                         "                              The outputs are "
-                         "specified by their zero-based index, before any "
-                         "change output is added.\n"
                          "                              Those recipients will "
                          "receive less bitcoins than you enter in their "
                          "corresponding amount field.\n"
                          "                              If no outputs are "
                          "specified here, the sender pays the fee.",
                          {
-                             {"vout_index", RPCArg::Type::NUM,
-                              /* opt */ true, /* default_val */ "", ""},
+                             {"vout_index", RPCArg::Type::NUM, /* opt */ true,
+                              /* default_val */ "",
+                              "The zero-based output index, before a change "
+                              "output is added."},
                          },
                      },
                  },

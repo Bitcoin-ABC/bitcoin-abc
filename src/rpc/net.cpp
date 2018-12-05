@@ -328,9 +328,10 @@ static UniValue disconnectnode(const Config &config,
             "string, or call using the named 'nodeid' argument only.\n",
             {
                 {"address", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "", "The IP address/port of the node"},
+                 /* default_val */ "fallback to nodeid",
+                 "The IP address/port of the node"},
                 {"nodeid", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "fallback to address",
                  "The node ID (see getpeerinfo for node IDs)"},
             },
             RPCResults{},
@@ -386,9 +387,9 @@ static UniValue getaddednodeinfo(const Config &config,
             "(note that onetry addnodes are not listed here)\n",
             {
                 {"node", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "If provided, return information about this "
-                 "specific node, otherwise all nodes are returned."},
+                 /* default_val */ "all nodes",
+                 "If provided, return information about this specific node, "
+                 "otherwise all nodes are returned."},
             },
             RPCResult{
                 "[\n"
@@ -672,15 +673,15 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
                  "'add' to add an IP/Subnet to the list, 'remove' to "
                  "remove an IP/Subnet from the list"},
                 {"bantime", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "0",
                  "time in seconds how long (or until when if [absolute] is "
-                 "set) the IP is banned (0 or empty means using the "
-                 "default time of 24h which can also be overwritten by the "
-                 "-bantime startup argument)"},
+                 "set) the IP is banned (0 or empty means using the default "
+                 "time of 24h which can also be overwritten by the -bantime "
+                 "startup argument)"},
                 {"absolute", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "",
-                 "If set, the bantime must be an absolute timestamp in "
-                 "seconds since epoch (Jan 1 1970 GMT)"},
+                 /* default_val */ "false",
+                 "If set, the bantime must be an absolute timestamp in seconds "
+                 "since epoch (Jan 1 1970 GMT)"},
             },
             RPCResults{},
             RPCExamples{

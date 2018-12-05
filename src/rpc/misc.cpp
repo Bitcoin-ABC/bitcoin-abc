@@ -496,9 +496,8 @@ static UniValue getmemoryinfo(const Config &config,
             "Returns an object containing information about memory usage.\n",
             {
                 {"mode", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "determines what kind of information is returned. This "
-                 "argument is optional, the default mode is \"stats\".\n"
+                 /* default_val */ "\"stats\"",
+                 "determines what kind of information is returned.\n"
                  "  - \"stats\" returns general statistics about memory usage "
                  "in the daemon.\n"
                  "  - \"mallocinfo\" returns an XML string describing "
@@ -597,7 +596,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
                 {"include",
                  RPCArg::Type::ARR,
                  /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "A json array of categories to add debug logging",
                  {
                      {"include_category", RPCArg::Type::STR,
@@ -607,7 +606,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
                 {"exclude",
                  RPCArg::Type::ARR,
                  /* opt */ true,
-                 /* default_val */ "",
+                 /* default_val */ "null",
                  "A json array of categories to remove debug logging",
                  {
                      {"exclude_category", RPCArg::Type::STR,

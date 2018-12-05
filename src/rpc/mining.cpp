@@ -756,9 +756,9 @@ static UniValue submitblock(const Config &config,
                 {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
                  /* default_val */ "", "the hex-encoded block data to submit"},
                 {"dummy", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "",
-                 "dummy value, for compatibility with BIP22. This "
-                 "value is ignored."},
+                 /* default_val */ "ignored",
+                 "dummy value, for compatibility with BIP22. This value is "
+                 "ignored."},
             },
             RPCResults{},
             RPCExamples{HelpExampleCli("submitblock", "\"mydata\"") +

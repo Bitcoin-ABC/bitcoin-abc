@@ -1652,8 +1652,8 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                               "be scanned.",
                               /* oneline_description */ "",
                               {"timestamp | \"now\"", "integer / string"}},
-                             {"redeemscript", RPCArg::Type::STR,
-                              /* opt */ true, /* default_val */ "omitted",
+                             {"redeemscript", RPCArg::Type::STR, /* opt */ true,
+                              /* default_val */ "omitted",
                               "Allowed only if the scriptPubKey is a P2SH "
                               "address/scriptPubKey"},
                              {"pubkeys",
