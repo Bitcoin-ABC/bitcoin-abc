@@ -2,16 +2,28 @@
 # Copyright (c) 2014-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the importmulti RPC."""
+"""Test the importmulti RPC.
+
+Test importmulti by generating keys on node0, importing the scriptPubKeys and
+addresses on node1 and then testing the address info for the different address
+variants.
+
+- `get_key()` and `get_multisig()` are called to generate keys on node0 and
+  return the privkeys, pubkeys and all variants of scriptPubKey and address."""
 from collections import namedtuple
 
 from test_framework.address import (
     key_to_p2pkh,
+    script_to_p2sh,
 )
 from test_framework.script import (
     CScript,
+    OP_2,
+    OP_3,
+    OP_CHECKMULTISIG,
     OP_CHECKSIG,
     OP_DUP,
+    OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH160,
     OP_NOP,
@@ -29,6 +41,12 @@ Key = namedtuple('Key', ['privkey',
                          'pubkey',
                          'p2pkh_script',
                          'p2pkh_addr'])
+
+Multisig = namedtuple('Multisig', ['privkeys',
+                                   'pubkeys',
+                                   'p2sh_script',
+                                   'p2sh_addr',
+                                   'redeem_script'])
 
 
 class ImportMultiTest(BitcoinTestFramework):
@@ -56,6 +74,28 @@ class ImportMultiTest(BitcoinTestFramework):
                             OP_EQUALVERIFY, OP_CHECKSIG]).hex(),
                    # p2pkh addr
                    key_to_p2pkh(pubkey))
+
+    def get_multisig(self):
+        """Generate a fresh multisig on node0
+
+        Returns a named tuple of privkeys, pubkeys and all address and scripts."""
+        addrs = []
+        pubkeys = []
+        for _ in range(3):
+            addr = self.nodes[0].getaddressinfo(self.nodes[0].getnewaddress())
+            addrs.append(addr['address'])
+            pubkeys.append(addr['pubkey'])
+        script_code = CScript([OP_2] + [hex_str_to_bytes(pubkey)
+                                        for pubkey in pubkeys] + [OP_3, OP_CHECKMULTISIG])
+        return Multisig([self.nodes[0].dumpprivkey(addr) for addr in addrs],
+                        pubkeys,
+                        # p2sh
+                        CScript([OP_HASH160, hash160(
+                            script_code), OP_EQUAL]).hex(),
+                        # p2sh addr
+                        script_to_p2sh(script_code),
+                        # redeem script
+                        script_code.hex())
 
     def run_test(self):
         self.log.info("Mining blocks...")
@@ -309,16 +349,9 @@ class ImportMultiTest(BitcoinTestFramework):
         assert_equal('timestamp' in address_assert, False)
 
         # P2SH address
-        sig_address_1 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_2 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_3 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        multi_sig_script = self.nodes[0].createmultisig(
-            2, [sig_address_1['pubkey'], sig_address_2['pubkey'], sig_address_3['pubkey']])
+        multisig = self.get_multisig()
         self.nodes[1].generate(100)
-        self.nodes[1].sendtoaddress(multi_sig_script['address'], 10.00)
+        self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.nodes[1].generate(1)
         timestamp = self.nodes[1].getblock(
             self.nodes[1].getbestblockhash())['mediantime']
@@ -326,32 +359,24 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info("Should import a p2sh")
         result = self.nodes[1].importmulti([{
             "scriptPubKey": {
-                "address": multi_sig_script['address']
+                "address": multisig.p2sh_addr
             },
             "timestamp": "now",
         }])
         assert_equal(result[0]['success'], True)
-        address_assert = self.nodes[1].getaddressinfo(
-            multi_sig_script['address'])
+        address_assert = self.nodes[1].getaddressinfo(multisig.p2sh_addr)
         assert_equal(address_assert['isscript'], True)
         assert_equal(address_assert['iswatchonly'], True)
         assert_equal(address_assert['timestamp'], timestamp)
         p2shunspent = self.nodes[1].listunspent(
-            0, 999999, [multi_sig_script['address']])[0]
+            0, 999999, [multisig.p2sh_addr])[0]
         assert_equal(p2shunspent['spendable'], False)
         assert_equal(p2shunspent['solvable'], False)
 
         # P2SH + Redeem script
-        sig_address_1 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_2 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_3 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        multi_sig_script = self.nodes[0].createmultisig(
-            2, [sig_address_1['pubkey'], sig_address_2['pubkey'], sig_address_3['pubkey']])
+        multisig = self.get_multisig()
         self.nodes[1].generate(100)
-        self.nodes[1].sendtoaddress(multi_sig_script['address'], 10.00)
+        self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.nodes[1].generate(1)
         timestamp = self.nodes[1].getblock(
             self.nodes[1].getbestblockhash())['mediantime']
@@ -359,32 +384,24 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info("Should import a p2sh with respective redeem script")
         result = self.nodes[1].importmulti([{
             "scriptPubKey": {
-                "address": multi_sig_script['address']
+                "address": multisig.p2sh_addr
             },
             "timestamp": "now",
-            "redeemscript": multi_sig_script['redeemScript']
+            "redeemscript": multisig.redeem_script
         }])
         assert_equal(result[0]['success'], True)
-        address_assert = self.nodes[1].getaddressinfo(
-            multi_sig_script['address'])
+        address_assert = self.nodes[1].getaddressinfo(multisig.p2sh_addr)
         assert_equal(address_assert['timestamp'], timestamp)
 
         p2shunspent = self.nodes[1].listunspent(
-            0, 999999, [multi_sig_script['address']])[0]
+            0, 999999, [multisig.p2sh_addr])[0]
         assert_equal(p2shunspent['spendable'], False)
         assert_equal(p2shunspent['solvable'], True)
 
         # P2SH + Redeem script + Private Keys + !Watchonly
-        sig_address_1 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_2 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_3 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        multi_sig_script = self.nodes[0].createmultisig(
-            2, [sig_address_1['pubkey'], sig_address_2['pubkey'], sig_address_3['pubkey']])
+        multisig = self.get_multisig()
         self.nodes[1].generate(100)
-        self.nodes[1].sendtoaddress(multi_sig_script['address'], 10.00)
+        self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.nodes[1].generate(1)
         timestamp = self.nodes[1].getblock(
             self.nodes[1].getbestblockhash())['mediantime']
@@ -393,33 +410,25 @@ class ImportMultiTest(BitcoinTestFramework):
             "Should import a p2sh with respective redeem script and private keys")
         result = self.nodes[1].importmulti([{
             "scriptPubKey": {
-                "address": multi_sig_script['address']
+                "address": multisig.p2sh_addr
             },
             "timestamp": "now",
-            "redeemscript": multi_sig_script['redeemScript'],
-            "keys": [self.nodes[0].dumpprivkey(sig_address_1['address']), self.nodes[0].dumpprivkey(sig_address_2['address'])]
+            "redeemscript": multisig.redeem_script,
+            "keys": multisig.privkeys[0:2]
         }])
         assert_equal(result[0]['success'], True)
-        address_assert = self.nodes[1].getaddressinfo(
-            multi_sig_script['address'])
+        address_assert = self.nodes[1].getaddressinfo(multisig.p2sh_addr)
         assert_equal(address_assert['timestamp'], timestamp)
 
         p2shunspent = self.nodes[1].listunspent(
-            0, 999999, [multi_sig_script['address']])[0]
+            0, 999999, [multisig.p2sh_addr])[0]
         assert_equal(p2shunspent['spendable'], False)
         assert_equal(p2shunspent['solvable'], True)
 
         # P2SH + Redeem script + Private Keys + Watchonly
-        sig_address_1 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_2 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        sig_address_3 = self.nodes[0].getaddressinfo(
-            self.nodes[0].getnewaddress())
-        multi_sig_script = self.nodes[0].createmultisig(
-            2, [sig_address_1['pubkey'], sig_address_2['pubkey'], sig_address_3['pubkey']])
+        multisig = self.get_multisig()
         self.nodes[1].generate(100)
-        self.nodes[1].sendtoaddress(multi_sig_script['address'], 10.00)
+        self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.nodes[1].generate(1)
         timestamp = self.nodes[1].getblock(
             self.nodes[1].getbestblockhash())['mediantime']
@@ -428,11 +437,11 @@ class ImportMultiTest(BitcoinTestFramework):
             "Should import a p2sh with respective redeem script and private keys")
         result = self.nodes[1].importmulti([{
             "scriptPubKey": {
-                "address": multi_sig_script['address']
+                "address": multisig.p2sh_addr
             },
             "timestamp": "now",
-            "redeemscript": multi_sig_script['redeemScript'],
-            "keys": [self.nodes[0].dumpprivkey(sig_address_1['address']), self.nodes[0].dumpprivkey(sig_address_2['address'])],
+            "redeemscript": multisig.redeem_script,
+            "keys": multisig.privkeys[0:2],
             "watchonly": True
         }])
         assert_equal(result[0]['success'], False)
