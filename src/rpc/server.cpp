@@ -286,6 +286,9 @@ static UniValue help(Config &config, const JSONRPCRequest &jsonRequest) {
 
 static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     // Accept the deprecated and ignored 'detach' boolean argument
+    // Also accept the hidden 'wait' integer argument (milliseconds)
+    // For instance, 'stop 1000' makes the call wait 1 second before returning
+    // to the client (intended for testing)
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1) {
         throw std::runtime_error("stop\n"
                                  "\nStop Bitcoin server.");
@@ -294,6 +297,9 @@ static UniValue stop(const Config &config, const JSONRPCRequest &jsonRequest) {
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
+    if (jsonRequest.params[0].isNum()) {
+        MilliSleep(jsonRequest.params[0].get_int());
+    }
     return "Bitcoin server stopping";
 }
 
@@ -322,7 +328,7 @@ static const ContextFreeRPCCommand vRPCCommands[] = {
     //  ------------------- ------------------------  ----------------------  ----------
     /* Overall control/query calls */
     { "control",            "help",                   help,                   {"command"}  },
-    { "control",            "stop",                   stop,                   {}  },
+    { "control",            "stop",                   stop,                   {"wait"}  },
     { "control",            "uptime",                 uptime,                 {}  },
 };
 // clang-format on
