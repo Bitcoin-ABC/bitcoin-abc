@@ -888,7 +888,8 @@ Current third party libraries include:
     Core contributors.
 
 - src/univalue
-  - Upstream at https://github.com/jgarzik/univalue ; maintained by Jeff Garzik.
+  - Upstream at https://github.com/bitcoin-core/univalue ; actively maintained by
+    Bitcoin Core contributors, deviates from upstream https://github.com/jgarzik/univalue
 
 Upgrading LevelDB
 ---------------------
