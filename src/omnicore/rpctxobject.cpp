@@ -580,12 +580,22 @@ void populateRPCTypeERC721(CMPTransaction& omniObj, UniValue& txobj, int confirm
 
 void populateRPCTypeFreezeTokens(CMPTransaction& omniObj, UniValue& txobj)
 {
-    txobj.push_back(Pair("propertyid", (uint64_t) omniObj.getProperty()));
+    uint64_t propertyid = omniObj.getProperty();
+    txobj.push_back(Pair("propertyid", propertyid));
+    std::string receiver = omniObj.getReceiver();
+    LOCK(cs_tally);
+    int64_t balance = getMPbalance(receiver, propertyid, BALANCE);
+    txobj.push_back(Pair("amount", FormatMP(omniObj.getProperty(), balance)));
 }
 
 void populateRPCTypeUnfreezeTokens(CMPTransaction& omniObj, UniValue& txobj)
 {
-    txobj.push_back(Pair("propertyid", (uint64_t) omniObj.getProperty()));
+    uint64_t propertyid = omniObj.getProperty();
+    txobj.push_back(Pair("propertyid", propertyid));
+    std::string receiver = omniObj.getReceiver();
+    LOCK(cs_tally);
+    int64_t balance = getMPbalance(receiver, propertyid, BALANCE);
+    txobj.push_back(Pair("amount", FormatMP(omniObj.getProperty(), balance)));
 }
 
 void populateRPCTypeActivation(CMPTransaction& omniObj, UniValue& txobj)
