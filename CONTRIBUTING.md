@@ -78,16 +78,16 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 Getting set up with the Bitcoin ABC Repository
 ----------------------------------------------
 
-1. Create an account at `https://reviews.bitcoinabc.org/`
+1. Create an account at https://reviews.bitcoinabc.org/
 
 2. Install Git and Arcanist on your machine
 
-Git documentation can be found at: `https://git-scm.com/`
+Git documentation can be found at: https://git-scm.com/
 
 Arcanist documentation can be found at:
-`https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/`
+https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/
 
-And: `https://secure.phabricator.com/book/phabricator/article/arcanist/`
+And: https://secure.phabricator.com/book/phabricator/article/arcanist/
 
 To install these packages on Debian or Ubuntu, type: `sudo apt-get install git arcanist`
 
@@ -184,9 +184,9 @@ What to work on
 ---------------
 
 If you are looking for a useful task to contribute to the project, a good place
-to start is the list of tasks at `https://reviews.bitcoinabc.org/maniphest/`.
+to start is the list of tasks at https://reviews.bitcoinabc.org/maniphest/
 You can also get in touch with some of the developers in the open BTCForks Slack
-channel at `https://btcforks.slack.com/`
+channel at https://btcforks.slack.com/
 
 
 Copyright
