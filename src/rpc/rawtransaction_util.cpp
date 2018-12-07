@@ -89,7 +89,6 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
         rawTx.vin.push_back(in);
     }
 
-    std::set<CTxDestination> destinations;
     if (!outputs_is_obj) {
         // Translate array of key-value pairs into dict
         UniValue outputs_dict = UniValue(UniValue::VOBJ);
@@ -109,8 +108,18 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
         }
         outputs = std::move(outputs_dict);
     }
+
+    // Duplicate checking
+    std::set<CTxDestination> destinations;
+    bool has_data{false};
+
     for (const std::string &name_ : outputs.getKeys()) {
         if (name_ == "data") {
+            if (has_data) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "Invalid parameter, duplicate key: data");
+            }
+            has_data = true;
             std::vector<uint8_t> data =
                 ParseHexV(outputs[name_].getValStr(), "Data");
 

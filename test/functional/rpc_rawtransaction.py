@@ -147,6 +147,20 @@ class RawTransactionsTest(BitcoinTestFramework):
             address), self.nodes[0].createrawtransaction, [], multidict([(address, 1), (address, 1)]))
         assert_raises_rpc_error(-8, "Invalid parameter, duplicated address: {}".format(
             address), self.nodes[0].createrawtransaction, [], [{address: 1}, {address: 1}])
+        assert_raises_rpc_error(-8,
+                                "Invalid parameter, duplicate key: data",
+                                self.nodes[0].createrawtransaction,
+                                [],
+                                [{"data": 'aa'},
+                                    {"data": "bb"}])
+        assert_raises_rpc_error(-8,
+                                "Invalid parameter, duplicate key: data",
+                                self.nodes[0].createrawtransaction,
+                                [],
+                                multidict([("data",
+                                            'aa'),
+                                           ("data",
+                                            "bb")]))
         assert_raises_rpc_error(-8, "Invalid parameter, key-value pair must contain exactly one key",
                                 self.nodes[0].createrawtransaction, [], [{'a': 1, 'b': 2}])
         assert_raises_rpc_error(-8, "Invalid parameter, key-value pair not an object as expected",
@@ -181,23 +195,14 @@ class RawTransactionsTest(BitcoinTestFramework):
             self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
                                                {address: 99}, {address2: 99}]),
         )
-        # Two data outputs
-        tx.deserialize(BytesIO(hex_str_to_bytes(self.nodes[2].createrawtransaction(inputs=[
-                       {'txid': txid, 'vout': 9}], outputs=multidict([('data', '99'), ('data', '99')])))))
-        assert_equal(len(tx.vout), 2)
-        assert_equal(
-            tx.serialize().hex(),
-            self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
-                                               {'data': '99'}, {'data': '99'}]),
-        )
         # Multiple mixed outputs
         tx.deserialize(BytesIO(hex_str_to_bytes(self.nodes[2].createrawtransaction(inputs=[
-                       {'txid': txid, 'vout': 9}], outputs=multidict([(address, 99), ('data', '99'), ('data', '99')])))))
+                       {'txid': txid, 'vout': 9}], outputs=multidict([(address, 99), (address2, 99), ('data', '99')])))))
         assert_equal(len(tx.vout), 3)
         assert_equal(
             tx.serialize().hex(),
             self.nodes[2].createrawtransaction(inputs=[{'txid': txid, 'vout': 9}], outputs=[
-                                               {address: 99}, {'data': '99'}, {'data': '99'}]),
+                                               {address: 99}, {address2: 99}, {'data': '99'}]),
         )
 
         self.log.info('sendrawtransaction with missing input')
