@@ -186,6 +186,7 @@ What to work on
 If you are looking for a useful task to contribute to the project, a good place
 to start is the list of tasks at https://reviews.bitcoinabc.org/maniphest/
 
+You could also try [backporting](doc/backporting.md) some code from Bitcoin Core.
 
 Copyright
 ---------
