@@ -1,9 +1,10 @@
-
 BACKPORTING
 ===========
 
-The official Bitcoin-ABC guide to keeping @deadalnix happy while backporting 
-code from Bitcoin Core.
+The official Bitcoin-ABC guide to backporting code from Bitcoin Core. When searching
+for items to backport, especially be on the lookout for bug fixes, code cleanup, and
+important refactors, as these help improve Bitcoin ABC despite consensus-level differences
+between Bitcoin Cash and Bitcoin Core.
 
 Identifying commits
 -------------------
