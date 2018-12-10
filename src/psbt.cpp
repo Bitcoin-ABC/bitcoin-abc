@@ -5,7 +5,8 @@
 #include <psbt.h>
 #include <util/strencodings.h>
 
-PartiallySignedTransaction::PartiallySignedTransaction(const CTransaction &txIn)
+PartiallySignedTransaction::PartiallySignedTransaction(
+    const CMutableTransaction &txIn)
     : tx(txIn) {
     inputs.resize(txIn.vin.size());
     outputs.resize(txIn.vout.size());
