@@ -11,6 +11,8 @@
 #include <univalue.h>
 #include <util/check.h>
 
+#include <boost/variant.hpp>
+
 #include <string>
 #include <vector>
 
@@ -102,13 +104,33 @@ struct RPCArg {
         //! Special type that is a STR with only hex chars
         STR_HEX,
     };
+
+    enum class Optional {
+        /** Required arg */
+        NO,
+        /**
+         * Optinal arg that is a named argument and has a default value of
+         * `null`. When possible, the default value should be specified.
+         */
+        OMITTED_NAMED_ARG,
+        /**
+         * Optional argument with default value omitted because they are
+         * implicitly clear. That is, elements in an array or object may not
+         * exist by default.
+         * When possible, the default value should be specified.
+         */
+        OMITTED,
+    };
+    using Fallback =
+        boost::variant<Optional,
+                       /* default value for optional args */ std::string>;
+
     //! The name of the arg (can be empty for inner args)
     const std::string m_name;
     const Type m_type;
     //! Only used for arrays or dicts
     const std::vector<RPCArg> m_inner;
-    const bool m_optional;
-    const std::string m_default_value; //!< Only used for optional args
+    const Fallback m_fallback;
     const std::string m_description;
     //! Should be empty unless it is supposed to override the auto-generated
     //! summary line
@@ -121,23 +143,22 @@ struct RPCArg {
     //! override the type in the argument description.
     const std::vector<std::string> m_type_str;
 
-    RPCArg(const std::string &name, const Type &type, const bool opt,
-           const std::string &default_val, const std::string &description,
+    RPCArg(const std::string &name, const Type &type, const Fallback &fallback,
+           const std::string &description,
            const std::string &oneline_description = "",
            const std::vector<std::string> &type_str = {})
-        : m_name{name}, m_type{type}, m_optional{opt},
-          m_default_value{default_val}, m_description{description},
+        : m_name{name}, m_type{type}, m_fallback{fallback},
+          m_description{description},
           m_oneline_description{oneline_description}, m_type_str{type_str} {
         CHECK_NONFATAL(type != Type::ARR && type != Type::OBJ);
     }
 
-    RPCArg(const std::string &name, const Type &type, const bool opt,
-           const std::string &default_val, const std::string &description,
-           const std::vector<RPCArg> &inner,
+    RPCArg(const std::string &name, const Type &type, const Fallback &fallback,
+           const std::string &description, const std::vector<RPCArg> &inner,
            const std::string &oneline_description = "",
            const std::vector<std::string> &type_str = {})
-        : m_name{name}, m_type{type}, m_inner{inner}, m_optional{opt},
-          m_default_value{default_val}, m_description{description},
+        : m_name{name}, m_type{type}, m_inner{inner}, m_fallback{fallback},
+          m_description{description},
           m_oneline_description{oneline_description}, m_type_str{type_str} {
         CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ);
     }
@@ -156,10 +177,8 @@ struct RPCArg {
     /**
      * Return the description string, including the argument type and whether
      * the argument is required.
-     * implicitly_required is set for arguments in an array, which are neither
-     * optional nor required.
      */
-    std::string ToDescriptionString(bool implicitly_required = false) const;
+    std::string ToDescriptionString() const;
 };
 
 struct RPCResult {

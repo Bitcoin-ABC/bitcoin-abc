@@ -97,12 +97,10 @@ static UniValue getnetworkhashps(const Config &config,
             "Pass in [height] to estimate the network speed at the "
             "time when a certain block was found.\n",
             {
-                {"nblocks", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "120",
+                {"nblocks", RPCArg::Type::NUM, /* default */ "120",
                  "The number of blocks, or -1 for blocks since last "
                  "difficulty change."},
-                {"height", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "-1",
+                {"height", RPCArg::Type::NUM, /* default */ "-1",
                  "To estimate at the time of the given height."},
             },
             RPCResult{"x             (numeric) Hashes per second estimated\n"},
@@ -196,14 +194,12 @@ static UniValue generatetoaddress(const Config &config,
             "\nMine blocks immediately to a specified address before the "
             "RPC call returns)\n",
             {
-                {"nblocks", RPCArg::Type::NUM, /* opt */ false,
-                 /* default_val */ "",
+                {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO,
                  "How many blocks are generated immediately."},
-                {"address", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The address to send the newly generated bitcoin to."},
-                {"maxtries", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "1000000", "How many iterations to try."},
+                {"maxtries", RPCArg::Type::NUM, /* default */ "1000000",
+                 "How many iterations to try."},
             },
             RPCResult{
                 "[ blockhashes ]     (array) hashes of blocks generated\n"},
@@ -300,16 +296,15 @@ static UniValue prioritisetransaction(const Config &config,
             "Accepts the transaction into mined blocks at a higher "
             "(or lower) priority\n",
             {
-                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "", "The transaction id."},
-                {"dummy", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "null",
+                {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                 "The transaction id."},
+                {"dummy", RPCArg::Type::NUM,
+                 RPCArg::Optional::OMITTED_NAMED_ARG,
                  "API-Compatibility for previous API. Must be zero or "
                  "null.\n"
                  "                  DEPRECATED. For forward compatibility "
                  "use named arguments and omit this parameter."},
-                {"fee_delta", RPCArg::Type::NUM, /* opt */ false,
-                 /* default_val */ "",
+                {"fee_delta", RPCArg::Type::NUM, RPCArg::Optional::NO,
                  "The fee value (in satoshis) to add (or subtract, if "
                  "negative).\n"
                  "                        The fee is not actually paid, "
@@ -389,23 +384,22 @@ static UniValue getblocktemplate(const Config &config,
             {
                 {"template_request",
                  RPCArg::Type::OBJ,
-                 /* opt */ true,
-                 /* default_val */ "",
+                 "{}",
                  "A json object in the following spec",
                  {
-                     {"mode", RPCArg::Type::STR, /* opt */ true,
-                      /* default_val */ "",
+                     {"mode", RPCArg::Type::STR, /* treat as named arg */
+                      RPCArg::Optional::OMITTED_NAMED_ARG,
                       "This must be set to \"template\", \"proposal\" (see "
                       "BIP 23), or omitted"},
                      {
                          "capabilities",
                          RPCArg::Type::ARR,
-                         /* opt */ true,
-                         /* default_val */ "",
+                         /* treat as named arg */
+                         RPCArg::Optional::OMITTED_NAMED_ARG,
                          "A list of strings",
                          {
-                             {"support", RPCArg::Type::STR, /* opt */ true,
-                              /* default_val */ "",
+                             {"support", RPCArg::Type::STR,
+                              RPCArg::Optional::OMITTED,
                               "client side supported feature, 'longpoll', "
                               "'coinbasetxn', 'coinbasevalue', 'proposal', "
                               "'serverlist', 'workid'"},
@@ -753,10 +747,9 @@ static UniValue submitblock(const Config &config,
             "See https://en.bitcoin.it/wiki/BIP_0022 for full "
             "specification.\n",
             {
-                {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "", "the hex-encoded block data to submit"},
-                {"dummy", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "ignored",
+                {"hexdata", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                 "the hex-encoded block data to submit"},
+                {"dummy", RPCArg::Type::STR, /* default */ "ignored",
                  "dummy value, for compatibility with BIP22. This value is "
                  "ignored."},
             },
@@ -824,8 +817,8 @@ static UniValue submitheader(const Config &config,
             "candidate chain tip if valid."
             "\nThrows when the header is invalid.\n",
             {
-                {"hexdata", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "", "the hex-encoded block header data"},
+                {"hexdata", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                 "the hex-encoded block header data"},
             },
             RPCResult{"None"},
             RPCExamples{HelpExampleCli("submitheader", "\"aabbcc\"") +

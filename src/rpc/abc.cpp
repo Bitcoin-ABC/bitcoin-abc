@@ -39,8 +39,7 @@ static UniValue setexcessiveblock(Config &config,
             "in the active chain or relayed. This discourages the propagation "
             "of blocks that you consider excessively large.",
             {
-                {"blockSize", RPCArg::Type::NUM, /* opt */ false,
-                 /* default_value */ "",
+                {"blockSize", RPCArg::Type::NUM, RPCArg::Optional::NO,
                  "Excessive block size in bytes.  Must be greater than " +
                      std::to_string(LEGACY_MAX_BLOCK_SIZE) + "."},
             },

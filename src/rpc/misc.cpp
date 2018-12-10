@@ -39,8 +39,8 @@ static UniValue validateaddress(const Config &config,
             "validateaddress",
             "\nReturn information about the given bitcoin address.\n",
             {
-                {"address", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The bitcoin address to validate"},
+                {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The bitcoin address to validate"},
             },
             RPCResult{
                 "{\n"
@@ -96,17 +96,16 @@ static UniValue createmultisig(const Config &config,
                 "keys required.\n"
                 "It returns a json object with the address and redeemScript.\n",
                 {
-                    {"nrequired", RPCArg::Type::NUM, /* opt */ false,
-                     /* default_val */ "",
+                    {"nrequired", RPCArg::Type::NUM, RPCArg::Optional::NO,
                      "The number of required signatures out of the n keys."},
                     {"keys",
                      RPCArg::Type::ARR,
-                     /* opt */ false,
-                     /* default_val */ "",
+                     RPCArg::Optional::NO,
                      "A json array of hex-encoded public keys.",
                      {
-                         {"key", RPCArg::Type::STR_HEX, /* opt */ false,
-                          /* default_val */ "", "The hex-encoded public key"},
+                         {"key", RPCArg::Type::STR_HEX,
+                          RPCArg::Optional::OMITTED,
+                          "The hex-encoded public key"},
                      }},
                 },
                 RPCResult{"{\n"
@@ -193,14 +192,17 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
              "a hardened child key.\n"
              "For more information on output descriptors, see the "
              "documentation in the doc/descriptors.md file.\n"},
-            {{"descriptor", RPCArg::Type::STR, /* opt */ false,
-              /* default_val */ "", "The descriptor."},
-             {"begin", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "",
-              "If a ranged descriptor is used, this specifies the beginning of "
-              "the range to import."},
-             {"end", RPCArg::Type::NUM, /* opt */ true, /* default_val */ "",
-              "If a ranged descriptor is used, this specifies the end of the "
-              "range to import."}},
+            {
+                {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The descriptor."},
+                {"begin", RPCArg::Type::NUM,
+                 RPCArg::Optional::OMITTED_NAMED_ARG,
+                 "If a ranged descriptor is used, this specifies the beginning "
+                 "of the range to import."},
+                {"end", RPCArg::Type::NUM, RPCArg::Optional::OMITTED_NAMED_ARG,
+                 "If a ranged descriptor is used, this specifies the end of "
+                 "the range to import."},
+            },
             RPCResult{"[ address ] (array) the derived addresses\n"},
             RPCExamples{
                 "First three native segwit receive addresses\n" +
@@ -294,15 +296,13 @@ static UniValue verifymessage(const Config &config,
             "verifymessage",
             "\nVerify a signed message\n",
             {
-                {"address", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The bitcoin address to use for the signature."},
-                {"signature", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"signature", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The signature provided by the signer in base 64 encoding "
                  "(see signmessage)."},
-                {"message", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The message that was signed."},
+                {"message", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The message that was signed."},
             },
             RPCResult{"true|false   (boolean) If the signature is verified or "
                       "not.\n"},
@@ -371,11 +371,10 @@ static UniValue signmessagewithprivkey(const Config &config,
             "signmessagewithprivkey",
             "\nSign a message with the private key of an address\n",
             {
-                {"privkey", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The private key to sign the message with."},
-                {"message", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The message to create a signature of."},
+                {"message", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The message to create a signature of."},
             },
             RPCResult{"\"signature\"          (string) The signature of the "
                       "message encoded in base 64\n"},
@@ -421,8 +420,7 @@ static UniValue setmocktime(const Config &config,
             "setmocktime",
             "\nSet the local time to given timestamp (-regtest only)\n",
             {
-                {"timestamp", RPCArg::Type::NUM, /* opt */ false,
-                 /* default_val */ "",
+                {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO,
                  "Unix seconds-since-epoch timestamp\n"
                  "   Pass 0 to go back to using the system time."},
             },
@@ -495,8 +493,7 @@ static UniValue getmemoryinfo(const Config &config,
             "getmemoryinfo",
             "Returns an object containing information about memory usage.\n",
             {
-                {"mode", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "\"stats\"",
+                {"mode", RPCArg::Type::STR, /* default */ "\"stats\"",
                  "determines what kind of information is returned.\n"
                  "  - \"stats\" returns general statistics about memory usage "
                  "in the daemon.\n"
@@ -595,23 +592,19 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
             {
                 {"include",
                  RPCArg::Type::ARR,
-                 /* opt */ true,
-                 /* default_val */ "null",
+                 RPCArg::Optional::OMITTED_NAMED_ARG,
                  "A json array of categories to add debug logging",
                  {
                      {"include_category", RPCArg::Type::STR,
-                      /* opt */ false, /* default_val */ "",
-                      "the valid logging category"},
+                      RPCArg::Optional::OMITTED, "the valid logging category"},
                  }},
                 {"exclude",
                  RPCArg::Type::ARR,
-                 /* opt */ true,
-                 /* default_val */ "null",
+                 RPCArg::Optional::OMITTED_NAMED_ARG,
                  "A json array of categories to remove debug logging",
                  {
                      {"exclude_category", RPCArg::Type::STR,
-                      /* opt */ false, /* default_val */ "",
-                      "the valid logging category"},
+                      RPCArg::Optional::OMITTED, "the valid logging category"},
                  }},
             },
             RPCResult{"{                   (json object where keys are the "

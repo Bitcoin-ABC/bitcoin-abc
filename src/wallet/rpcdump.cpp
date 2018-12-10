@@ -113,14 +113,12 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
             "are still missing, leading to temporarily incorrect/bogus "
             "balances and unspent outputs until rescan completes.\n",
             {
-                {"privkey", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The private key (see dumpprivkey)"},
-                {"label", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */
+                {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The private key (see dumpprivkey)"},
+                {"label", RPCArg::Type::STR, /* default */
                  "current label if address exists, otherwise \"\"",
                  "An optional label"},
-                {"rescan", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "true",
+                {"rescan", RPCArg::Type::BOOL, /* default */ "true",
                  "Rescan the wallet for transactions"},
             },
             RPCResults{},
@@ -323,16 +321,13 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
             "outputs sending to it will be treated\n"
             "as change, and not show up in many RPCs.\n",
             {
-                {"address", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The Bitcoin address (or hex-encoded script)"},
-                {"label", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "\"\"", "An optional label"},
-                {"rescan", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "true",
+                {"label", RPCArg::Type::STR, /* default */ "\"\"",
+                 "An optional label"},
+                {"rescan", RPCArg::Type::BOOL, /* default */ "true",
                  "Rescan the wallet for transactions"},
-                {"p2sh", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "false",
+                {"p2sh", RPCArg::Type::BOOL, /* default */ "false",
                  "Add the P2SH version of the script as well"},
             },
             RPCResults{},
@@ -425,12 +420,10 @@ UniValue importprunedfunds(const Config &config,
             "rescan after the point in the blockchain the transaction is "
             "included.\n",
             {
-                {"rawtransaction", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "",
+                {"rawtransaction", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
                  "A raw transaction in hex funding an already-existing "
                  "address in wallet"},
-                {"txoutproof", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "",
+                {"txoutproof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
                  "The hex output from gettxoutproof that contains the "
                  "transaction"},
             },
@@ -510,8 +503,7 @@ UniValue removeprunedfunds(const Config &config,
             "for use with pruned wallets and as a companion to "
             "importprunedfunds. This will affect wallet balances.\n",
             {
-                {"txid", RPCArg::Type::STR_HEX, /* opt */ false,
-                 /* default_val */ "",
+                {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
                  "The hex-encoded id of the transaction you are deleting"},
             },
             RPCResults{},
@@ -571,12 +563,11 @@ UniValue importpubkey(const Config &config, const JSONRPCRequest &request) {
             "incorrect/bogus balances and unspent outputs until rescan "
             "completes.\n",
             {
-                {"pubkey", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The hex-encoded public key"},
-                {"label", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "\"\"", "An optional label"},
-                {"rescan", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "true",
+                {"pubkey", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The hex-encoded public key"},
+                {"label", RPCArg::Type::STR, /* default */ "\"\"",
+                 "An optional label"},
+                {"rescan", RPCArg::Type::BOOL, /* default */ "true",
                  "Rescan the wallet for transactions"},
             },
             RPCResults{},
@@ -657,8 +648,8 @@ UniValue importwallet(const Config &config, const JSONRPCRequest &request) {
             "\nImports keys from a wallet dump file (see dumpwallet). "
             "Requires a new wallet backup to include imported keys.\n",
             {
-                {"filename", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The wallet file"},
+                {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The wallet file"},
             },
             RPCResults{},
             RPCExamples{"\nDump the wallet\n" +
@@ -862,8 +853,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
             "\nReveals the private key corresponding to 'address'.\n"
             "Then the importprivkey can be used with this output\n",
             {
-                {"address", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The bitcoin address for the private key"},
             },
             RPCResult{"\"key\"                (string) The private key\n"},
@@ -920,8 +910,7 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
             "only backing up the seed itself, and must be backed up "
             "too (e.g. ensure you back up the whole dumpfile).\n",
             {
-                {"filename", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The filename with path (either absolute or relative to "
                  "bitcoind)"},
             },
@@ -1598,26 +1587,23 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
             {
                 {"requests",
                  RPCArg::Type::ARR,
-                 /* opt */ false,
-                 /* default_val */ "",
+                 RPCArg::Optional::NO,
                  "Data to be imported",
                  {
                      {
                          "",
                          RPCArg::Type::OBJ,
-                         /* opt */ false,
-                         /* default_val */ "",
+                         RPCArg::Optional::OMITTED,
                          "",
                          {
-                             {"desc", RPCArg::Type::STR, /* opt */ true,
-                              /* default_val */ "",
+                             {"desc", RPCArg::Type::STR,
+                              RPCArg::Optional::OMITTED,
                               "Descriptor to import. If using descriptor, do "
                               "not also provide address/scriptPubKey, scripts, "
                               "or pubkeys"},
                              {"scriptPubKey",
                               RPCArg::Type::STR,
-                              /* opt */ false,
-                              /* default_val */ "",
+                              RPCArg::Optional::NO,
                               "Type of scriptPubKey (string for script, json "
                               "for address). Should not be provided if using a "
                               "descriptor",
@@ -1626,8 +1612,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                                "string / json"}},
                              {"timestamp",
                               RPCArg::Type::NUM,
-                              /* opt */ false,
-                              /* default_val */ "",
+                              RPCArg::Optional::NO,
                               "Creation time of the key in seconds since "
                               "epoch (Jan 1 1970 GMT),\n"
                               "                                            "
@@ -1652,59 +1637,55 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                               "be scanned.",
                               /* oneline_description */ "",
                               {"timestamp | \"now\"", "integer / string"}},
-                             {"redeemscript", RPCArg::Type::STR, /* opt */ true,
-                              /* default_val */ "omitted",
+                             {"redeemscript", RPCArg::Type::STR,
+                              RPCArg::Optional::OMITTED,
                               "Allowed only if the scriptPubKey is a P2SH "
                               "address/scriptPubKey"},
                              {"pubkeys",
                               RPCArg::Type::ARR,
-                              /* opt */ true,
-                              /* default_val */ "empty array",
+                              /* default */ "empty array",
                               "Array of strings giving pubkeys to import. They "
                               "must occur in P2PKH scripts. They are not "
                               "required when the private key is also provided "
                               "(see the \"keys\" argument).",
                               {
-                                  {"pubKey", RPCArg::Type::STR, /* opt */ false,
-                                   /* default_val */ "", ""},
+                                  {"pubKey", RPCArg::Type::STR,
+                                   RPCArg::Optional::OMITTED, ""},
                               }},
                              {"keys",
                               RPCArg::Type::ARR,
-                              /* opt */ true,
-                              /* default_val */ "empty array",
+                              /* default */ "empty array",
                               "Array of strings giving private keys to import. "
                               "The corresponding public keys must occur in the "
                               "output or redeemscript.",
                               {
                                   {"key", RPCArg::Type::STR,
-                                   /* opt */ false, /* default_val */ "", ""},
+                                   RPCArg::Optional::OMITTED, ""},
                               }},
                              {"range",
                               RPCArg::Type::OBJ,
-                              /* opt */ true,
-                              /* default_val */ "",
+                              RPCArg::Optional::OMITTED,
                               "If a ranged descriptor is used, this specifies "
                               "the start and end of the range to import",
                               {
-                                  {"start", RPCArg::Type::NUM, /* opt */ true,
-                                   /* default_val */ "0",
+                                  {"start", RPCArg::Type::NUM,
+                                   /* default */ "0",
                                    "Start of the range to import"},
-                                  {"end", RPCArg::Type::NUM, /* opt */ false,
-                                   /* default_val */ "",
+                                  {"end", RPCArg::Type::NUM,
+                                   RPCArg::Optional::NO,
                                    "End of the range to import (inclusive)"},
                               }},
                              {"internal", RPCArg::Type::BOOL,
-                              /* opt */ true, /* default_val */ "false",
+                              /* default */ "false",
                               "Stating whether matching outputs should be "
                               "treated as not incoming payments (also known as "
                               "change)"},
                              {"watchonly", RPCArg::Type::BOOL,
-                              /* opt */ true, /* default_val */ "false",
+                              /* default */ "false",
                               "Stating whether matching outputs should be "
                               "considered watched even when not all private "
                               "keys are provided."},
-                             {"label", RPCArg::Type::STR, /* opt */ true,
-                              /* default_val */ "''",
+                             {"label", RPCArg::Type::STR, /* default */ "''",
                               "Label to assign to the address, only "
                               "allowed with internal=false"},
                          },
@@ -1713,12 +1694,10 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                  "\"requests\""},
                 {"options",
                  RPCArg::Type::OBJ,
-                 /* opt */ true,
-                 /* default_val */ "null",
+                 RPCArg::Optional::OMITTED_NAMED_ARG,
                  "",
                  {
-                     {"rescan", RPCArg::Type::BOOL, /* opt */ true,
-                      /* default_val */ "true",
+                     {"rescan", RPCArg::Type::BOOL, /* default */ "true",
                       "Stating if should rescan the blockchain after all "
                       "imports"},
                  },

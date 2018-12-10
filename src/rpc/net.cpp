@@ -272,10 +272,9 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
             "full nodes as other outbound peers are (though such peers "
             "will not be synced from).\n",
             {
-                {"node", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "", "The node (see getpeerinfo for nodes)"},
-                {"command", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"node", RPCArg::Type::STR, RPCArg::Optional::NO,
+                 "The node (see getpeerinfo for nodes)"},
+                {"command", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "'add' to add a node to the list, 'remove' to remove a "
                  "node from the list, 'onetry' to try a connection to the "
                  "node once"},
@@ -327,11 +326,11 @@ static UniValue disconnectnode(const Config &config,
             "\nTo disconnect by nodeid, either set 'address' to the empty "
             "string, or call using the named 'nodeid' argument only.\n",
             {
-                {"address", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "fallback to nodeid",
+                {"address", RPCArg::Type::STR,
+                 /* default */ "fallback to nodeid",
                  "The IP address/port of the node"},
-                {"nodeid", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "fallback to address",
+                {"nodeid", RPCArg::Type::NUM,
+                 /* default */ "fallback to address",
                  "The node ID (see getpeerinfo for node IDs)"},
             },
             RPCResults{},
@@ -386,8 +385,7 @@ static UniValue getaddednodeinfo(const Config &config,
             "all added nodes\n"
             "(note that onetry addnodes are not listed here)\n",
             {
-                {"node", RPCArg::Type::STR, /* opt */ true,
-                 /* default_val */ "all nodes",
+                {"node", RPCArg::Type::STR, /* default */ "all nodes",
                  "If provided, return information about this specific node, "
                  "otherwise all nodes are returned."},
             },
@@ -664,22 +662,18 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
             "\nAttempts to add or remove an IP/Subnet from the "
             "banned list.\n",
             {
-                {"subnet", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"subnet", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "The IP/Subnet (see getpeerinfo for nodes IP) with an "
                  "optional netmask (default is /32 = single IP)"},
-                {"command", RPCArg::Type::STR, /* opt */ false,
-                 /* default_val */ "",
+                {"command", RPCArg::Type::STR, RPCArg::Optional::NO,
                  "'add' to add an IP/Subnet to the list, 'remove' to "
                  "remove an IP/Subnet from the list"},
-                {"bantime", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "0",
+                {"bantime", RPCArg::Type::NUM, /* default */ "0",
                  "time in seconds how long (or until when if [absolute] is "
                  "set) the IP is banned (0 or empty means using the default "
                  "time of 24h which can also be overwritten by the -bantime "
                  "startup argument)"},
-                {"absolute", RPCArg::Type::BOOL, /* opt */ true,
-                 /* default_val */ "false",
+                {"absolute", RPCArg::Type::BOOL, /* default */ "false",
                  "If set, the bantime must be an absolute timestamp in seconds "
                  "since epoch (Jan 1 1970 GMT)"},
             },
@@ -824,8 +818,7 @@ static UniValue setnetworkactive(const Config &config,
             "setnetworkactive",
             "\nDisable/enable all p2p network activity.\n",
             {
-                {"state", RPCArg::Type::BOOL, /* opt */ false,
-                 /* default_val */ "",
+                {"state", RPCArg::Type::BOOL, RPCArg::Optional::NO,
                  "true to enable networking, false to disable"},
             },
             RPCResults{},
@@ -853,8 +846,7 @@ static UniValue getnodeaddresses(const Config &config,
             "\nReturn known addresses which can potentially be used "
             "to find new nodes in the network\n",
             {
-                {"count", RPCArg::Type::NUM, /* opt */ true,
-                 /* default_val */ "1",
+                {"count", RPCArg::Type::NUM, /* default */ "1",
                  "How many addresses to return. Limited to the "
                  "smaller of " +
                      std::to_string(ADDRMAN_GETADDR_MAX) + " or " +
