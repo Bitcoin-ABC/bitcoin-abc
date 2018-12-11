@@ -19,10 +19,10 @@ static uint32_t countBits(uint32_t v) {
     return __builtin_popcount(v);
 #else
     /**
-     * This computes the number of bits set in each group of 8bits then uses a
+     * Computes the number of bits set in each group of 8bits then uses a
      * multiplication to sum all of them in the 8 most significant bits and
      * return these.
-     * More detailed explaination can be found at
+     * More detailed explanation can be found at
      * https://www.playingwithpointers.com/blog/swar.html
      */
     v = v - ((v >> 1) & 0x55555555);
@@ -35,9 +35,9 @@ bool VoteRecord::registerVote(uint32_t error) {
     /**
      * The result of the vote is determined from the error code. If the error
      * code is 0, there is no error and therefore the vote is yes. If there is
-     * an error, we check the most signficant bit to decide if the vote is a no
+     * an error, we check the most significant bit to decide if the vote is a no
      * (for instance, the block is invalid) or is the vote inconclusive (for
-     * instance, the queried node do not have the block yet).
+     * instance, the queried node does not have the block yet).
      */
     votes = (votes << 1) | (error == 0);
     consider = (consider << 1) | (int32_t(error) >= 0);
@@ -259,7 +259,7 @@ namespace {
  */
 static int64_t AVALANCHE_TIME_STEP_MILLISECONDS = 10;
 /**
- * Maximum item that can be polled at once.
+ * Maximum item count that can be polled at once.
  */
 static size_t AVALANCHE_MAX_ELEMENT_POLL = 4096;
 }
@@ -406,7 +406,7 @@ void AvalancheProcessor::runEventLoop() {
             return true;
         });
 
-        // Success !
+        // Success!
         if (hasSent) {
             return;
         }
