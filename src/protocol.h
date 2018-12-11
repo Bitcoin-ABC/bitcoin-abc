@@ -415,7 +415,11 @@ enum GetDataMsg {
     MSG_CMPCT_BLOCK = 4,
 };
 
-/** inv message data */
+/**
+ * Inv(ventory) message data.
+ * Intended as non-ambiguous identifier of objects (eg. transactions, blocks)
+ * held by peers.
+ */
 class CInv {
 public:
     // TODO: make private (improves encapsulation)
