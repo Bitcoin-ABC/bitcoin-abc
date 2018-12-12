@@ -366,7 +366,11 @@ void StopWallets() {
 }
 
 void UnloadWallets() {
-    for (const std::shared_ptr<CWallet> &pwallet : GetWallets()) {
-        RemoveWallet(pwallet);
+    auto wallets = GetWallets();
+    while (!wallets.empty()) {
+        auto wallet = wallets.back();
+        wallets.pop_back();
+        RemoveWallet(wallet);
+        UnloadWallet(std::move(wallet));
     }
 }
