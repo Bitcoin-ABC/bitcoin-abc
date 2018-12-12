@@ -184,7 +184,6 @@ void test_ecdsa_recovery_end_to_end(void) {
     CHECK(secp256k1_ecdsa_sign_recoverable(ctx, &rsignature[3], message, privkey, NULL, extra) == 1);
     CHECK(secp256k1_ecdsa_recoverable_signature_serialize_compact(ctx, sig, &recid, &rsignature[4]) == 1);
     CHECK(secp256k1_ecdsa_recoverable_signature_convert(ctx, &signature[4], &rsignature[4]) == 1);
-    CHECK(memcmp(&signature[4], &signature[0], 64) == 0);
     CHECK(secp256k1_ecdsa_verify(ctx, &signature[4], message, &pubkey) == 1);
     memset(&rsignature[4], 0, sizeof(rsignature[4]));
     CHECK(secp256k1_ecdsa_recoverable_signature_parse_compact(ctx, &rsignature[4], sig, recid) == 1);
