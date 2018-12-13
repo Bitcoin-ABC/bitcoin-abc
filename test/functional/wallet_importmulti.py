@@ -466,6 +466,55 @@ class ImportMultiTest(BitcoinTestFramework):
                                     "timestamp": ""
                                 }])
 
+        # Test importing of a P2PKH address via descriptor
+        key = get_key(self.nodes[0])
+        self.log.info("Should import a p2pkh address from descriptor")
+        self.test_importmulti({"desc": "pkh(" + key.pubkey + ")",
+                               "timestamp": "now",
+                               "label": "Descriptor import test"},
+                              True,
+                              warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
+        test_address(self.nodes[1],
+                     key.p2pkh_addr,
+                     solvable=True,
+                     ismine=False,
+                     label="Descriptor import test")
+
+        # Test import fails if both desc and scriptPubKey are provided
+        key = get_key(self.nodes[0])
+        self.log.info(
+            "Import should fail if both scriptPubKey and desc are provided")
+        self.test_importmulti({"desc": "pkh(" + key.pubkey + ")",
+                               "scriptPubKey": {"address": key.p2pkh_addr},
+                               "timestamp": "now"},
+                              success=False,
+                              error_code=-8,
+                              error_message='Both a descriptor and a scriptPubKey should not be provided.')
+
+        # Test import fails if neither desc nor scriptPubKey are present
+        key = get_key(self.nodes[0])
+        self.log.info(
+            "Import should fail if neither a descriptor nor a scriptPubKey are provided")
+        self.test_importmulti({"timestamp": "now"},
+                              success=False,
+                              error_code=-8,
+                              error_message='Either a descriptor or scriptPubKey must be provided.')
+
+        # Test importing of a multisig via descriptor
+        key1 = get_key(self.nodes[0])
+        key2 = get_key(self.nodes[0])
+        self.log.info("Should import a 1-of-2 bare multisig from descriptor")
+        self.test_importmulti({"desc": "multi(1," + key1.pubkey + "," + key2.pubkey + ")",
+                               "timestamp": "now"},
+                              success=True,
+                              warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
+        self.log.info(
+            "Should not treat individual keys from the imported bare multisig as watchonly")
+        test_address(self.nodes[1],
+                     key1.p2pkh_addr,
+                     ismine=False,
+                     iswatchonly=False)
+
 
 if __name__ == '__main__':
     ImportMultiTest().main()
