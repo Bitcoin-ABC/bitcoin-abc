@@ -70,6 +70,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         txid_in_block = node.sendrawtransaction(
             hexstring=raw_tx_in_block, allowhighfees=True)
         node.generate(1)
+        self.mempool_size = 0
         self.check_mempool_result(
             result_expected=[{'txid': txid_in_block, 'allowed': False,
                               'reject-reason': '18: txn-already-known'}],
@@ -91,9 +92,26 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             rawtxs=[raw_tx_0],
         )
 
+        self.log.info('A final transaction not in the mempool')
+        coin = node.listunspent()[0]  # Pick a random coin(base) to spend
+        raw_tx_final = node.signrawtransactionwithwallet(node.createrawtransaction(
+            inputs=[{'txid': coin['txid'], 'vout': coin['vout'],
+                     "sequence": 0xffffffff}],  # SEQUENCE_FINAL
+            outputs=[{node.getnewaddress(): 0.025}],
+            locktime=node.getblockcount() + 2000,  # Can be anything
+        ))['hex']
+        tx.deserialize(BytesIO(hex_str_to_bytes(raw_tx_final)))
+        self.check_mempool_result(
+            result_expected=[{'txid': tx.rehash(), 'allowed': True}],
+            rawtxs=[tx.serialize().hex()],
+            allowhighfees=True,
+        )
+        node.sendrawtransaction(hexstring=raw_tx_final, allowhighfees=True)
+        self.mempool_size += 1
+
         self.log.info('A transaction in the mempool')
         node.sendrawtransaction(hexstring=raw_tx_0)
-        self.mempool_size = 1
+        self.mempool_size += 1
         self.check_mempool_result(
             result_expected=[{'txid': txid_0, 'allowed': False,
                               'reject-reason': '18: txn-already-in-mempool'}],
