@@ -84,7 +84,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	)
 	target_compile_definitions(leveldb
 		PRIVATE
-			WINVER=0x0500
 			__USE_MINGW_ANSI_STDIO=1
 	)
 
