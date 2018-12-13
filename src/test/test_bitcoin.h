@@ -22,26 +22,26 @@
  */
 #define NULLPTR(T) static_cast<T *>(nullptr)
 
-extern FastRandomContext insecure_rand_ctx;
+thread_local extern FastRandomContext g_insecure_rand_ctx;
 
 static inline void SeedInsecureRand(bool deterministic = false) {
-    insecure_rand_ctx = FastRandomContext(deterministic);
+    g_insecure_rand_ctx = FastRandomContext(deterministic);
 }
 
 static inline uint32_t InsecureRand32() {
-    return insecure_rand_ctx.rand32();
+    return g_insecure_rand_ctx.rand32();
 }
 static inline uint256 InsecureRand256() {
-    return insecure_rand_ctx.rand256();
+    return g_insecure_rand_ctx.rand256();
 }
 static inline uint64_t InsecureRandBits(int bits) {
-    return insecure_rand_ctx.randbits(bits);
+    return g_insecure_rand_ctx.randbits(bits);
 }
 static inline uint64_t InsecureRandRange(uint64_t range) {
-    return insecure_rand_ctx.randrange(range);
+    return g_insecure_rand_ctx.randrange(range);
 }
 static inline bool InsecureRandBool() {
-    return insecure_rand_ctx.randbool();
+    return g_insecure_rand_ctx.randbool();
 }
 
 /**

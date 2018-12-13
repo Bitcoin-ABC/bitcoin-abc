@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
 static void AddRandomOutboundPeer(const Config &config,
                                   std::vector<std::unique_ptr<CNode>> &vNodes,
                                   PeerLogicValidation &peerLogic) {
-    CAddress addr(ip(insecure_rand_ctx.randbits(32)), NODE_NONE);
+    CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
     vNodes.emplace_back(new CNode(id++, ServiceFlags(NODE_NETWORK), 0,
                                   INVALID_SOCKET, addr, 0, 0, CAddress(), "",
                                   /*fInboundIn=*/false));

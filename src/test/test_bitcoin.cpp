@@ -15,6 +15,7 @@
 #include <logging.h>
 #include <miner.h>
 #include <net_processing.h>
+#include <noui.h>
 #include <pubkey.h>
 #include <random.h>
 #include <rpc/register.h>
@@ -45,9 +46,7 @@ void CConnmanTest::ClearNodes() {
     g_connman->vNodes.clear();
 }
 
-FastRandomContext insecure_rand_ctx;
-
-extern void noui_connect();
+thread_local FastRandomContext g_insecure_rand_ctx;
 
 std::ostream &operator<<(std::ostream &os, const uint256 &num) {
     os << num.ToString();
