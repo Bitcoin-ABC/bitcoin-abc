@@ -71,16 +71,14 @@ class ImportMultiTest(BitcoinTestFramework):
         addr = self.nodes[0].getnewaddress()
         pubkey = self.nodes[0].getaddressinfo(addr)['pubkey']
         pkh = hash160(hex_str_to_bytes(pubkey))
-        return Key(self.nodes[0].dumpprivkey(addr),
-                   pubkey,
-                   # p2pkh
-                   CScript([OP_DUP, OP_HASH160, pkh,
-                            OP_EQUALVERIFY, OP_CHECKSIG]).hex(),
-                   # p2pkh addr
-                   key_to_p2pkh(pubkey))
+        return Key(privkey=self.nodes[0].dumpprivkey(addr),
+                   pubkey=pubkey,
+                   p2pkh_script=CScript(
+                       [OP_DUP, OP_HASH160, pkh, OP_EQUALVERIFY, OP_CHECKSIG]).hex(),
+                   p2pkh_addr=key_to_p2pkh(pubkey))
 
     def get_multisig(self):
-        """Generate a fresh multisig on node0
+        """Generate a fresh 2-of-3 multisig on node0
 
         Returns a named tuple of privkeys, pubkeys and all address and scripts."""
         addrs = []
@@ -91,15 +89,12 @@ class ImportMultiTest(BitcoinTestFramework):
             pubkeys.append(addr['pubkey'])
         script_code = CScript([OP_2] + [hex_str_to_bytes(pubkey)
                                         for pubkey in pubkeys] + [OP_3, OP_CHECKMULTISIG])
-        return Multisig([self.nodes[0].dumpprivkey(addr) for addr in addrs],
-                        pubkeys,
-                        # p2sh
-                        CScript([OP_HASH160, hash160(
-                            script_code), OP_EQUAL]).hex(),
-                        # p2sh addr
-                        script_to_p2sh(script_code),
-                        # redeem script
-                        script_code.hex())
+        return Multisig(privkeys=[self.nodes[0].dumpprivkey(addr) for addr in addrs],
+                        pubkeys=pubkeys,
+                        p2sh_script=CScript(
+                            [OP_HASH160, hash160(script_code), OP_EQUAL]).hex(),
+                        p2sh_addr=script_to_p2sh(script_code),
+                        redeem_script=script_code.hex())
 
     def test_importmulti(self, req, success, error_code=None,
                          error_message=None, warnings=[]):
@@ -156,22 +151,21 @@ class ImportMultiTest(BitcoinTestFramework):
         # Bitcoin Address (implicit non-internal)
         self.log.info("Should import an address")
         key = self.get_key()
-        address = key.p2pkh_addr
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now"},
-                              True)
-        self.test_address(address,
+                              success=True)
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           timestamp=timestamp,
                           ischange=False)
-        watchonly_address = address
+        watchonly_address = key.p2pkh_addr
         watchonly_timestamp = timestamp
 
         self.log.info("Should not import an invalid address")
         self.test_importmulti({"scriptPubKey": {"address": "not valid address"},
                                "timestamp": "now"},
-                              False,
+                              success=False,
                               error_code=-5,
                               error_message='Invalid address \"not valid address\"')
 
@@ -181,7 +175,7 @@ class ImportMultiTest(BitcoinTestFramework):
         self.test_importmulti({"scriptPubKey": key.p2pkh_script,
                                "timestamp": "now",
                                "internal": True},
-                              True)
+                              success=True)
         self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
@@ -196,7 +190,7 @@ class ImportMultiTest(BitcoinTestFramework):
                                "timestamp": "now",
                                "internal": True,
                                "label": "Example label"},
-                              False,
+                              success=False,
                               error_code=-8,
                               error_message='Internal addresses should not have a label')
 
@@ -205,13 +199,12 @@ class ImportMultiTest(BitcoinTestFramework):
             "Should not import a nonstandard scriptPubKey without internal flag")
         nonstandardScriptPubKey = key.p2pkh_script + CScript([OP_NOP]).hex()
         key = self.get_key()
-        address = key.p2pkh_addr
         self.test_importmulti({"scriptPubKey": nonstandardScriptPubKey,
                                "timestamp": "now"},
-                              False,
+                              success=False,
                               error_code=-8,
                               error_message='Internal must be set to true for nonstandard scriptPubKey imports.')
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=False,
                           timestamp=None)
@@ -219,14 +212,13 @@ class ImportMultiTest(BitcoinTestFramework):
         # Address + Public key + !Internal(explicit)
         self.log.info("Should import an address with public key")
         key = self.get_key()
-        address = key.p2pkh_addr
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "pubkeys": [key.pubkey],
                                "internal": False},
-                              True,
+                              success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           timestamp=timestamp)
@@ -235,14 +227,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import a scriptPubKey with internal and with public key")
         key = self.get_key()
-        address = key.p2pkh_addr
         self.test_importmulti({"scriptPubKey": key.p2pkh_script,
                                "timestamp": "now",
                                "pubkeys": [key.pubkey],
                                "internal": True},
-                              True,
+                              success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           timestamp=timestamp)
@@ -251,14 +242,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should not import a nonstandard scriptPubKey without internal and with public key")
         key = self.get_key()
-        address = key.p2pkh_addr
         self.test_importmulti({"scriptPubKey": nonstandardScriptPubKey,
                                "timestamp": "now",
                                "pubkeys": [key.pubkey]},
-                              False,
+                              success=False,
                               error_code=-8,
                               error_message='Internal must be set to true for nonstandard scriptPubKey imports.')
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=False,
                           timestamp=None)
@@ -266,22 +256,21 @@ class ImportMultiTest(BitcoinTestFramework):
         # Address + Private key + !watchonly
         self.log.info("Should import an address with private key")
         key = self.get_key()
-        address = key.p2pkh_addr
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "keys": [key.privkey]},
-                              True)
-        self.test_address(address,
+                              success=True)
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=True,
                           timestamp=timestamp)
 
         self.log.info(
             "Should not import an address with private key if is already imported")
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "keys": [key.privkey]},
-                              False,
+                              success=False,
                               error_code=-4,
                               error_message='The wallet already contains the private key for this address or script')
 
@@ -289,14 +278,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import an address with private key and with watchonly")
         key = self.get_key()
-        address = key.p2pkh_addr
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "keys": [key.privkey],
                                "watchonly": True},
-                              True,
+                              success=True,
                               warnings=["All private keys are provided, outputs will be considered spendable. If this is intentional, do not specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=True,
                           timestamp=timestamp)
@@ -305,13 +293,12 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import a scriptPubKey with internal and with private key")
         key = self.get_key()
-        address = key.p2pkh_addr
         self.test_importmulti({"scriptPubKey": key.p2pkh_script,
                                "timestamp": "now",
                                "keys": [key.privkey],
                                "internal": True},
-                              True)
-        self.test_address(address,
+                              success=True)
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=True,
                           timestamp=timestamp)
@@ -320,14 +307,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should not import a nonstandard scriptPubKey without internal and with private key")
         key = self.get_key()
-        address = key.p2pkh_addr
         self.test_importmulti({"scriptPubKey": nonstandardScriptPubKey,
                                "timestamp": "now",
                                "keys": [key.privkey]},
-                              False,
+                              success=False,
                               error_code=-8,
                               error_message='Internal must be set to true for nonstandard scriptPubKey imports.')
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=False,
                           ismine=False,
                           timestamp=None)
@@ -343,7 +329,7 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info("Should import a p2sh")
         self.test_importmulti({"scriptPubKey": {"address": multisig.p2sh_addr},
                                "timestamp": "now"},
-                              True)
+                              success=True)
         self.test_address(multisig.p2sh_addr,
                           isscript=True,
                           iswatchonly=True,
@@ -365,7 +351,7 @@ class ImportMultiTest(BitcoinTestFramework):
         self.test_importmulti({"scriptPubKey": {"address": multisig.p2sh_addr},
                                "timestamp": "now",
                                "redeemscript": multisig.redeem_script},
-                              True,
+                              success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
         self.test_address(
             multisig.p2sh_addr,
@@ -393,7 +379,7 @@ class ImportMultiTest(BitcoinTestFramework):
                                "timestamp": "now",
                                "redeemscript": multisig.redeem_script,
                                "keys": multisig.privkeys[0:2]},
-                              True,
+                              success=True,
                               warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
         self.test_address(multisig.p2sh_addr,
                           timestamp=timestamp,
@@ -421,7 +407,7 @@ class ImportMultiTest(BitcoinTestFramework):
                                "redeemscript": multisig.redeem_script,
                                "keys": multisig.privkeys[0:2],
                                "watchonly": True},
-                              True)
+                              success=True)
         self.test_address(multisig.p2sh_addr,
                           iswatchonly=True,
                           ismine=False,
@@ -432,14 +418,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should not import an address with the wrong public key as non-solvable")
         key = self.get_key()
-        address = key.p2pkh_addr
         wrong_key = self.get_key().pubkey
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "pubkeys": [wrong_key]},
-                              True,
+                              success=True,
                               warnings=["Importing as non-solvable: some required keys are missing. If this is intentional, don't provide any keys, pubkeys or redeemscript.", "Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           solvable=False,
@@ -449,15 +434,14 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import a scriptPubKey with internal and with a wrong public key as non-solvable")
         key = self.get_key()
-        address = key.p2pkh_addr
         wrong_key = self.get_key().pubkey
         self.test_importmulti({"scriptPubKey": key.p2pkh_script,
                                "timestamp": "now",
                                "pubkeys": [wrong_key],
                                "internal": True},
-                              True,
+                              success=True,
                               warnings=["Importing as non-solvable: some required keys are missing. If this is intentional, don't provide any keys, pubkeys or redeemscript.", "Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           solvable=False,
@@ -467,14 +451,13 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import an address with a wrong private key as non-solvable")
         key = self.get_key()
-        address = key.p2pkh_addr
         wrong_privkey = self.get_key().privkey
-        self.test_importmulti({"scriptPubKey": {"address": address},
+        self.test_importmulti({"scriptPubKey": {"address": key.p2pkh_addr},
                                "timestamp": "now",
                                "keys": [wrong_privkey]},
-                              True,
+                              success=True,
                               warnings=["Importing as non-solvable: some required keys are missing. If this is intentional, don't provide any keys, pubkeys or redeemscript.", "Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           solvable=False,
@@ -484,15 +467,14 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info(
             "Should import a scriptPubKey with internal and with a wrong private key as non-solvable")
         key = self.get_key()
-        address = key.p2pkh_addr
         wrong_privkey = self.get_key().privkey
         self.test_importmulti({"scriptPubKey": key.p2pkh_script,
                                "timestamp": "now",
                                "keys": [wrong_privkey],
                                "internal": True},
-                              True,
+                              success=True,
                               warnings=["Importing as non-solvable: some required keys are missing. If this is intentional, don't provide any keys, pubkeys or redeemscript.", "Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
-        self.test_address(address,
+        self.test_address(key.p2pkh_addr,
                           iswatchonly=True,
                           ismine=False,
                           solvable=False,
@@ -504,7 +486,7 @@ class ImportMultiTest(BitcoinTestFramework):
         self.log.info("Should replace previously saved watch only timestamp.")
         self.test_importmulti({"scriptPubKey": {"address": watchonly_address},
                                "timestamp": "now"},
-                              True)
+                              success=True)
         self.test_address(watchonly_address,
                           iswatchonly=True,
                           ismine=False,
