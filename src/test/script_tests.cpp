@@ -2522,6 +2522,35 @@ BOOST_AUTO_TEST_CASE(script_PushData) {
         SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
     BOOST_CHECK(pushdata4Stack == directStack);
     BOOST_CHECK_MESSAGE(err == ScriptError::OK, ScriptErrorString(err));
+
+    const std::vector<uint8_t> pushdata1_trunc{OP_PUSHDATA1, 1};
+    const std::vector<uint8_t> pushdata2_trunc{OP_PUSHDATA2, 1, 0};
+    const std::vector<uint8_t> pushdata4_trunc{OP_PUSHDATA4, 1, 0, 0, 0};
+
+    std::vector<std::vector<uint8_t>> stack_ignore;
+    BOOST_CHECK(!EvalScript(
+        stack_ignore, CScript(pushdata1_trunc.begin(), pushdata1_trunc.end()),
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
+    BOOST_CHECK_EQUAL(err, ScriptError::BAD_OPCODE);
+    BOOST_CHECK(!EvalScript(
+        stack_ignore, CScript(pushdata2_trunc.begin(), pushdata2_trunc.end()),
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
+    BOOST_CHECK_EQUAL(err, ScriptError::BAD_OPCODE);
+    BOOST_CHECK(!EvalScript(
+        stack_ignore, CScript(pushdata4_trunc.begin(), pushdata4_trunc.end()),
+        SCRIPT_VERIFY_P2SH, BaseSignatureChecker(), &err));
+    BOOST_CHECK_EQUAL(err, ScriptError::BAD_OPCODE);
+}
+
+BOOST_AUTO_TEST_CASE(script_cltv_truncated) {
+    const auto script_cltv_trunc = CScript() << OP_CHECKLOCKTIMEVERIFY;
+
+    std::vector<std::vector<uint8_t>> stack_ignore;
+    ScriptError err;
+    BOOST_CHECK(!EvalScript(stack_ignore, script_cltv_trunc,
+                            SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
+                            BaseSignatureChecker(), &err));
+    BOOST_CHECK_EQUAL(err, ScriptError::INVALID_STACK_OPERATION);
 }
 
 static CScript sign_multisig(const CScript &scriptPubKey,
