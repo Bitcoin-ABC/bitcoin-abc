@@ -64,7 +64,7 @@ class MempoolPersistTest(BitcoinTestFramework):
 
         self.log.debug("Send 5 transactions from node2 (to its own address)")
         for i in range(5):
-            self.nodes[2].sendtoaddress(
+            last_txid = self.nodes[2].sendtoaddress(
                 self.nodes[2].getnewaddress(), Decimal("10"))
         node2_balance = self.nodes[2].getbalance()
         self.sync_all()
@@ -73,6 +73,13 @@ class MempoolPersistTest(BitcoinTestFramework):
             "Verify that node0 and node1 have 5 transactions in their mempools")
         assert_equal(len(self.nodes[0].getrawmempool()), 5)
         assert_equal(len(self.nodes[1].getrawmempool()), 5)
+
+        self.log.debug("Prioritize a transaction on node0")
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
+        assert_equal(fees['base'], fees['modified'])
+        self.nodes[0].prioritisetransaction(txid=last_txid, fee_delta=1000)
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
+        assert_equal(fees['base'] + Decimal('0.00001000'), fees['modified'])
 
         self.log.debug("Stop-start the nodes. Verify that node0 has the "
                        "transactions in its mempool and node1 does not. "
@@ -92,6 +99,10 @@ class MempoolPersistTest(BitcoinTestFramework):
         # The others have loaded their mempool. If node_1 loaded anything, we'd
         # probably notice by now:
         assert_equal(len(self.nodes[1].getrawmempool()), 0)
+
+        self.log.debug('Verify prioritization is loaded correctly')
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
+        assert_equal(fees['base'] + Decimal('0.00001000'), fees['modified'])
 
         # Verify accounting of mempool transactions after restart is correct
         # Flush mempool to wallet
