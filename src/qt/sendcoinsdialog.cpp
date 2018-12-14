@@ -255,7 +255,8 @@ void SendCoinsDialog::on_sendButton_clicked() {
         if (entry) {
             if (entry->validate(model->node())) {
                 recipients.append(entry->getValue());
-            } else {
+            } else if (valid) {
+                ui->scrollArea->ensureWidgetVisible(entry);
                 valid = false;
             }
         }
