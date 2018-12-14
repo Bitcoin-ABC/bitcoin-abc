@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
             } else {
                 removed_an_entry = true;
                 coin.Clear();
-                stack.back()->SpendCoin(COutPoint(txid, 0));
+                BOOST_CHECK(stack.back()->SpendCoin(COutPoint(txid, 0)));
             }
         }
 
@@ -225,14 +225,14 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test) {
         if (InsecureRandRange(100) == 0) {
             if (stack.size() > 1 && InsecureRandBool() == 0) {
                 unsigned int flushIndex = InsecureRandRange(stack.size() - 1);
-                stack[flushIndex]->Flush();
+                BOOST_CHECK(stack[flushIndex]->Flush());
             }
         }
         if (InsecureRandRange(100) == 0) {
             // Every 100 iterations, change the cache stack.
             if (stack.size() > 0 && InsecureRandBool() == 0) {
                 // Remove the top cache
-                stack.back()->Flush();
+                BOOST_CHECK(stack.back()->Flush());
                 delete stack.back();
                 stack.pop_back();
             }
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             // Disconnect the tx from the current UTXO
             // See code in DisconnectBlock
             // remove outputs
-            stack.back()->SpendCoin(utxod->first);
+            BOOST_CHECK(stack.back()->SpendCoin(utxod->first));
 
             // restore inputs
             if (!tx.IsCoinBase()) {
@@ -478,13 +478,13 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             // Every 100 iterations, flush an intermediate cache
             if (stack.size() > 1 && InsecureRandBool() == 0) {
                 unsigned int flushIndex = InsecureRandRange(stack.size() - 1);
-                stack[flushIndex]->Flush();
+                BOOST_CHECK(stack[flushIndex]->Flush());
             }
         }
         if (InsecureRandRange(100) == 0) {
             // Every 100 iterations, change the cache stack.
             if (stack.size() > 0 && InsecureRandBool() == 0) {
-                stack.back()->Flush();
+                BOOST_CHECK(stack.back()->Flush());
                 delete stack.back();
                 stack.pop_back();
             }
@@ -630,7 +630,7 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags) {
 void WriteCoinViewEntry(CCoinsView &view, const Amount value, char flags) {
     CCoinsMap map;
     InsertCoinMapEntry(map, value, flags);
-    view.BatchWrite(map, BlockHash());
+    BOOST_CHECK(view.BatchWrite(map, BlockHash()));
 }
 
 class SingleEntryCacheTest {

@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(key_signature_tests) {
 
     for (int i = 1; i <= 20; ++i) {
         sig.clear();
-        key.SignECDSA(msg_hash, sig, false, i);
+        BOOST_CHECK(key.SignECDSA(msg_hash, sig, false, i));
         found = sig[3] == 0x21 && sig[4] == 0x00;
         if (found) {
             break;
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(key_signature_tests) {
         sig.clear();
         msg = "A message to be signed" + std::to_string(i);
         msg_hash = Hash(msg.begin(), msg.end());
-        key.SignECDSA(msg_hash, sig);
+        BOOST_CHECK(key.SignECDSA(msg_hash, sig));
         found = sig[3] == 0x20;
         BOOST_CHECK(sig.size() <= 70);
         found_small |= sig.size() < 70;

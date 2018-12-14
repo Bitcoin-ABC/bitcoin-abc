@@ -102,7 +102,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         // should result in getheaders
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     {
         LOCK2(cs_main, dummyNode1.cs_vSend);
@@ -116,7 +117,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         // should result in getheaders
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     {
         LOCK2(cs_main, dummyNode1.cs_vSend);
@@ -127,7 +129,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
         // should result in disconnect
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     BOOST_CHECK(dummyNode1.fDisconnect == true);
     SetMockTime(0);
@@ -255,7 +258,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     }
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     BOOST_CHECK(banman->IsBanned(addr1));
     // Different IP, not banned.
@@ -274,7 +278,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     }
     {
         LOCK2(cs_main, dummyNode2.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode2, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
     // 2 not banned yet...
     BOOST_CHECK(!banman->IsBanned(addr2));
@@ -286,7 +291,8 @@ BOOST_AUTO_TEST_CASE(DoS_banning) {
     }
     {
         LOCK2(cs_main, dummyNode2.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode2, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode2, interruptDummy));
     }
     BOOST_CHECK(banman->IsBanned(addr2));
 
@@ -322,7 +328,8 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     }
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     BOOST_CHECK(!banman->IsBanned(addr1));
     {
@@ -331,7 +338,8 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     }
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     BOOST_CHECK(!banman->IsBanned(addr1));
     {
@@ -340,7 +348,8 @@ BOOST_AUTO_TEST_CASE(DoS_banscore) {
     }
     {
         LOCK2(cs_main, dummyNode1.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode1, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode1, interruptDummy));
     }
     BOOST_CHECK(banman->IsBanned(addr1));
     gArgs.ForceSetArg("-banscore", std::to_string(DEFAULT_BANSCORE_THRESHOLD));
@@ -379,7 +388,8 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     }
     {
         LOCK2(cs_main, dummyNode.cs_sendProcessing);
-        peerLogic->SendMessages(config, &dummyNode, interruptDummy);
+        BOOST_CHECK(
+            peerLogic->SendMessages(config, &dummyNode, interruptDummy));
     }
     BOOST_CHECK(banman->IsBanned(addr));
 
@@ -401,7 +411,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     CKey key;
     key.MakeNewKey(true);
     FillableSigningProvider keystore;
-    keystore.AddKey(key);
+    BOOST_CHECK(keystore.AddKey(key));
 
     // 50 orphan transactions:
     for (int i = 0; i < 50; i++) {
@@ -428,7 +438,8 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vout[0].nValue = 1 * CENT;
         tx.vout[0].scriptPubKey =
             GetScriptForDestination(PKHash(key.GetPubKey()));
-        SignSignature(keystore, *txPrev, tx, 0, SigHashType());
+        BOOST_CHECK(SignSignature(keystore, *txPrev, tx, 0,
+                                  SigHashType().withForkId()));
 
         AddOrphanTx(MakeTransactionRef(tx), i);
     }
@@ -446,7 +457,8 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         for (size_t j = 0; j < tx.vin.size(); j++) {
             tx.vin[j].prevout = COutPoint(txPrev->GetId(), j);
         }
-        SignSignature(keystore, *txPrev, tx, 0, SigHashType());
+        BOOST_CHECK(SignSignature(keystore, *txPrev, tx, 0,
+                                  SigHashType().withForkId()));
         // Re-use same signature for other inputs
         // (they don't have to be valid for this test)
         for (unsigned int j = 1; j < tx.vin.size(); j++) {

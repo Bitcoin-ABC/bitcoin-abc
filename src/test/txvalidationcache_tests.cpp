@@ -201,8 +201,8 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
 
     FillableSigningProvider keystore;
-    keystore.AddKey(coinbaseKey);
-    keystore.AddCScript(p2pk_scriptPubKey);
+    BOOST_CHECK(keystore.AddKey(coinbaseKey));
+    BOOST_CHECK(keystore.AddCScript(p2pk_scriptPubKey));
 
     CMutableTransaction funding_tx;
     // Needed when spending the output of this transaction

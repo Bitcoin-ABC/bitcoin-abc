@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(sign) {
     CKey key[4];
     for (int i = 0; i < 4; i++) {
         key[i].MakeNewKey(true);
-        keystore.AddKey(key[i]);
+        BOOST_CHECK(keystore.AddKey(key[i]));
     }
 
     // 8 Scripts: checking all combinations of
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(sign) {
     standardScripts[3] = GetScriptForDestination(PKHash(key[2].GetPubKey()));
     CScript evalScripts[4];
     for (int i = 0; i < 4; i++) {
-        keystore.AddCScript(standardScripts[i]);
+        BOOST_CHECK(keystore.AddCScript(standardScripts[i]));
         evalScripts[i] =
             GetScriptForDestination(ScriptHash(standardScripts[i]));
     }
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE(set) {
     std::vector<CPubKey> keys;
     for (int i = 0; i < 4; i++) {
         key[i].MakeNewKey(true);
-        keystore.AddKey(key[i]);
+        BOOST_CHECK(keystore.AddKey(key[i]));
         keys.push_back(key[i].GetPubKey());
     }
 
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(set) {
     CScript outer[4];
     for (int i = 0; i < 4; i++) {
         outer[i] = GetScriptForDestination(ScriptHash(inner[i]));
-        keystore.AddCScript(inner[i]);
+        BOOST_CHECK(keystore.AddCScript(inner[i]));
     }
 
     // Funding transaction:
@@ -319,7 +319,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     std::vector<CPubKey> keys;
     for (int i = 0; i < 6; i++) {
         key[i].MakeNewKey(true);
-        keystore.AddKey(key[i]);
+        BOOST_CHECK(keystore.AddKey(key[i]));
     }
     for (int i = 0; i < 3; i++) {
         keys.push_back(key[i].GetPubKey());
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
 
     // First three are standard:
     CScript pay1 = GetScriptForDestination(PKHash(key[0].GetPubKey()));
-    keystore.AddCScript(pay1);
+    BOOST_CHECK(keystore.AddCScript(pay1));
     CScript pay1of3 = GetScriptForMultisig(1, keys);
 
     // P2SH (OP_CHECKSIG)
@@ -354,7 +354,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
               << ToByteVector(key[4].GetPubKey())
               << ToByteVector(key[5].GetPubKey());
     oneAndTwo << OP_3 << OP_CHECKMULTISIG;
-    keystore.AddCScript(oneAndTwo);
+    BOOST_CHECK(keystore.AddCScript(oneAndTwo));
     txFrom.vout[3].scriptPubKey =
         GetScriptForDestination(ScriptHash(oneAndTwo));
     txFrom.vout[3].nValue = 4000 * SATOSHI;

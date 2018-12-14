@@ -159,9 +159,9 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     BOOST_CHECK(ProcessNewBlockHeaders(config, headers, state));
 
     // Connect the genesis block and drain any outstanding events
-    ProcessNewBlock(config,
-                    std::make_shared<CBlock>(chainParams.GenesisBlock()), true,
-                    &ignored);
+    BOOST_CHECK(ProcessNewBlock(
+        config, std::make_shared<CBlock>(chainParams.GenesisBlock()), true,
+        &ignored));
     SyncWithValidationInterfaceQueue();
 
     // subscribe to events (this subscriber will validate event ordering)
