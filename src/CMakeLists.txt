@@ -33,6 +33,7 @@ add_compiler_flag(
 	-Wformat-security
 	-Wcast-align
 	-Wunused-parameter
+	-Wmissing-braces
 	# FIXME: Activating this flag cause cmake to fail on leveldb.
 	# -Wthread-safety-analysis
 	-Wshadow
