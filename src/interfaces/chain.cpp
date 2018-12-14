@@ -197,7 +197,7 @@ namespace {
 
     class RpcHandlerImpl : public Handler {
     public:
-        RpcHandlerImpl(const CRPCCommand &command)
+        explicit RpcHandlerImpl(const CRPCCommand &command)
             : m_command(command), m_wrapped_command(&command) {
             m_command.actor = [this](Config &config,
                                      const JSONRPCRequest &request,

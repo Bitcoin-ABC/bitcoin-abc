@@ -60,7 +60,7 @@ struct DBHeightKey {
     int height;
 
     DBHeightKey() : height(0) {}
-    DBHeightKey(int height_in) : height(height_in) {}
+    explicit DBHeightKey(int height_in) : height(height_in) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
         ser_writedata8(s, DB_BLOCK_HEIGHT);
@@ -80,7 +80,7 @@ struct DBHeightKey {
 struct DBHashKey {
     BlockHash hash;
 
-    DBHashKey(const BlockHash &hash_in) : hash(hash_in) {}
+    explicit DBHashKey(const BlockHash &hash_in) : hash(hash_in) {}
 
     ADD_SERIALIZE_METHODS;
 

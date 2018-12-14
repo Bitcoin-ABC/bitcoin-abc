@@ -211,7 +211,8 @@ struct RPCResults {
 
 struct RPCExamples {
     const std::string m_examples;
-    RPCExamples(std::string examples) : m_examples(std::move(examples)) {}
+    explicit RPCExamples(std::string examples)
+        : m_examples(std::move(examples)) {}
     RPCExamples() : m_examples(std::move("")) {}
     std::string ToDescriptionString() const;
 };
