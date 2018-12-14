@@ -225,8 +225,17 @@ private:
 
 /**
  * Global state
+ *
+ * Mutex to guard access to validation specific variables, such as reading
+ * or changing the chainstate.
+ *
+ * This may also need to be locked when updating the transaction pool, e.g. on
+ * AcceptToMemoryPool. See CTxMemPool::cs comment for details.
+ *
+ * The transaction pool has a separate lock to allow reading from it and the
+ * chainstate at the same time.
  */
-CCriticalSection cs_main;
+RecursiveMutex cs_main;
 
 BlockMap &mapBlockIndex = g_chainstate.mapBlockIndex;
 CChain &chainActive = g_chainstate.chainActive;

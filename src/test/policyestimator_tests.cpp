@@ -17,7 +17,7 @@ BOOST_FIXTURE_TEST_SUITE(policyestimator_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(MempoolMinimumFeeEstimate) {
     CTxMemPool mpool;
-    LOCK(mpool.cs);
+    LOCK2(cs_main, mpool.cs);
     TestMemPoolEntryHelper entry;
 
     // Create a transaction template

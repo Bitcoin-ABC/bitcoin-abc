@@ -106,7 +106,7 @@ static bool TestSequenceLocks(const CTransaction &tx, int flags)
 static void TestPackageSelection(const CChainParams &chainparams,
                                  const CScript &scriptPubKey,
                                  const std::vector<CTransactionRef> &txFirst)
-    EXCLUSIVE_LOCKS_REQUIRED(::g_mempool.cs) {
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs) {
     // Test the ancestor feerate transaction selection.
     TestMemPoolEntryHelper entry;
 
