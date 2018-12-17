@@ -52,6 +52,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         self.mempool_size = 0
         wait_until(lambda: node.getblockcount() == 200)
         assert_equal(node.getmempoolinfo()['size'], self.mempool_size)
+        coins = node.listunspent()
 
         self.log.info('Should not accept garbage to testmempoolaccept')
         assert_raises_rpc_error(-3, 'Expected type array, got string',
@@ -62,7 +63,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
                                 lambda: node.testmempoolaccept(rawtxs=['ff00baar']))
 
         self.log.info('A transaction already in the blockchain')
-        coin = node.listunspent()[0]  # Pick a random coin(base) to spend
+        # Pick a random coin(base) to spend
+        coin = coins.pop()
         raw_tx_in_block = node.signrawtransactionwithwallet(node.createrawtransaction(
             inputs=[{'txid': coin['txid'], 'vout': coin['vout']}],
             outputs=[{node.getnewaddress(): 0.3}, {node.getnewaddress(): 49}],
@@ -93,7 +95,8 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         )
 
         self.log.info('A final transaction not in the mempool')
-        coin = node.listunspent()[0]  # Pick a random coin(base) to spend
+        # Pick a random coin(base) to spend
+        coin = coins.pop()
         raw_tx_final = node.signrawtransactionwithwallet(node.createrawtransaction(
             inputs=[{'txid': coin['txid'], 'vout': coin['vout'],
                      "sequence": 0xffffffff}],  # SEQUENCE_FINAL
