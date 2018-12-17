@@ -47,14 +47,18 @@
  * additionally:
  *   - A high-precision timestamp before and after sleeping 1ms.
  *   - (On Windows) Once every 10 minutes, performance monitoring data from the
- * OS. These just exploit the fact the system is idle to improve the quality of
- * the RNG slightly.
+ * OS.
+ *   - Once every minute, strengthen the entropy for 10 ms using repeated
+ * SHA512.
+ * These just exploit the fact the system is idle to improve the quality
+ * of the RNG slightly.
  *
  * On first use of the RNG (regardless of what function is called first), all
  * entropy sources used in the 'slow' seeder are included, but also:
  * - 256 bits from the hardware RNG (rdseed or rdrand) when available.
  * - (On Windows) Performance monitoring data from the OS.
  * - (On Windows) Through OpenSSL, the screen contents.
+ * - Strengthen the entropy for 100 ms using repeated SHA512.
  *
  * When mixing in new entropy, H = SHA512(entropy || old_rng_state) is computed,
  * and (up to) the first 32 bytes of H are produced as output, while the last 32
