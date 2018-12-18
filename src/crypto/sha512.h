@@ -16,7 +16,7 @@ private:
     uint64_t bytes;
 
 public:
-    static const size_t OUTPUT_SIZE = 64;
+    static constexpr size_t OUTPUT_SIZE = 64;
 
     CSHA512();
     CSHA512 &Write(const uint8_t *data, size_t len);
