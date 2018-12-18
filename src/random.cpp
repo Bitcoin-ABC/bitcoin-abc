@@ -309,10 +309,10 @@ void GetRandBytes(uint8_t *buf, int num) {
 namespace {
 struct RNGState {
     Mutex m_mutex;
-    uint8_t m_state[32] = {0};
-    uint64_t m_counter = 0;
+    uint8_t m_state[32] GUARDED_BY(m_mutex) = {0};
+    uint64_t m_counter GUARDED_BY(m_mutex) = 0;
 
-    explicit RNGState() { InitHardwareRand(); }
+    RNGState() { InitHardwareRand(); }
 };
 
 RNGState &GetRNGState() {
