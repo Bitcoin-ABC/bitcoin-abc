@@ -77,7 +77,6 @@ static inline int64_t GetPerformanceCounter() noexcept {
 }
 
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
-static std::atomic<bool> hwrand_initialized{false};
 static bool rdrand_supported = false;
 static constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
 static void InitHardwareRand() {
@@ -85,11 +84,9 @@ static void InitHardwareRand() {
     if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) && (ecx & CPUID_F1_ECX_RDRAND)) {
         rdrand_supported = true;
     }
-    hwrand_initialized.store(true);
 }
 
 static void ReportHardwareRand() {
-    assert(hwrand_initialized.load(std::memory_order_relaxed));
     if (rdrand_supported) {
         // This must be done in a separate function, as HWRandInit() may be
         // indirectly called from global constructors, before logging is
@@ -111,7 +108,6 @@ static void ReportHardwareRand() {}
 
 static bool GetHardwareRand(uint8_t *ent32) noexcept {
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
-    assert(hwrand_initialized.load(std::memory_order_relaxed));
     if (rdrand_supported) {
         uint8_t ok;
 // Not all assemblers support the rdrand instruction, write it in hex.
