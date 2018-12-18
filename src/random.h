@@ -190,7 +190,12 @@ void GetOSRand(uint8_t *ent32);
  */
 bool Random_SanityCheck();
 
-/** Initialize the RNG. */
+/**
+ * Initialize global RNG state and log any CPU features that are used.
+ *
+ * Calling this function is optional. RNG state will be initialized when first
+ * needed if it is not called.
+ */
 void RandomInit();
 
 #endif // BITCOIN_RANDOM_H

@@ -45,7 +45,6 @@ BasicTestingSetup::BasicTestingSetup(const std::string &chainName)
                   strprintf("%lu_%i", static_cast<unsigned long>(GetTime()),
                             int(InsecureRandRange(1 << 30)))) {
     SHA256AutoDetect();
-    RandomInit();
     ECC_Start();
     SetupEnvironment();
     SetupNetworking();
