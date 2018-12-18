@@ -22,7 +22,14 @@
  */
 #define NULLPTR(T) static_cast<T *>(nullptr)
 
-thread_local extern FastRandomContext g_insecure_rand_ctx;
+/**
+ * This global and the helpers that use it are not thread-safe.
+ *
+ * If thread-safety is needed, the global could be made thread_local (given
+ * that thread_local is supported on all architectures we support) or a
+ * per-thread instance could be used in the multi-threaded test.
+ */
+extern FastRandomContext g_insecure_rand_ctx;
 
 static inline void SeedInsecureRand(bool deterministic = false) {
     g_insecure_rand_ctx = FastRandomContext(deterministic);

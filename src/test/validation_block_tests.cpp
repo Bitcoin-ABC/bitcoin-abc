@@ -169,12 +169,13 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     // at random this will create parallelism and randomness inside validation -
     // the ValidationInterface will subscribe to events generated during block
     // validation and assert on ordering invariance
-    boost::thread_group threads;
+    std::vector<std::thread> threads;
     for (int i = 0; i < 10; i++) {
-        threads.create_thread([&config, &blocks]() {
+        threads.emplace_back([&config, &blocks]() {
             bool tlignored;
+            FastRandomContext insecure;
             for (int j = 0; j < 1000; j++) {
-                auto block = blocks[InsecureRandRange(blocks.size() - 1)];
+                auto block = blocks[insecure.randrange(blocks.size() - 1)];
                 ProcessNewBlock(config, block, true, &tlignored);
             }
 
@@ -190,7 +191,9 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
         });
     }
 
-    threads.join_all();
+    for (auto &t : threads) {
+        t.join();
+    }
     while (GetMainSignals().CallbacksPending() > 0) {
         MilliSleep(100);
     }

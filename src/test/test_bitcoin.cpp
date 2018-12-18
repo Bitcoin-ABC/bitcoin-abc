@@ -29,6 +29,8 @@
 
 #include <memory>
 
+FastRandomContext g_insecure_rand_ctx;
+
 void CConnmanTest::AddNode(CNode &node) {
     LOCK(g_connman->cs_vNodes);
     g_connman->vNodes.push_back(&node);
@@ -38,8 +40,6 @@ void CConnmanTest::ClearNodes() {
     LOCK(g_connman->cs_vNodes);
     g_connman->vNodes.clear();
 }
-
-thread_local FastRandomContext g_insecure_rand_ctx;
 
 std::ostream &operator<<(std::ostream &os, const uint256 &num) {
     os << num.ToString();
