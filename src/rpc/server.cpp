@@ -26,7 +26,7 @@
 #include <set>
 #include <unordered_map>
 
-static bool fRPCRunning = false;
+static std::atomic<bool> g_rpc_running{false};
 static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started");
 static CCriticalSection cs_rpcWarmup;
@@ -423,14 +423,14 @@ bool CRPCTable::appendCommand(const std::string &name,
 
 void StartRPC() {
     LogPrint(BCLog::RPC, "Starting RPC\n");
-    fRPCRunning = true;
+    g_rpc_running = true;
     g_rpcSignals.Started();
 }
 
 void InterruptRPC() {
     LogPrint(BCLog::RPC, "Interrupting RPC\n");
     // Interrupt e.g. running longpolls
-    fRPCRunning = false;
+    g_rpc_running = false;
 }
 
 void StopRPC() {
@@ -441,7 +441,7 @@ void StopRPC() {
 }
 
 bool IsRPCRunning() {
-    return fRPCRunning;
+    return g_rpc_running;
 }
 
 void SetRPCWarmupStatus(const std::string &newStatus) {
