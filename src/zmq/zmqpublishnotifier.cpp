@@ -47,7 +47,9 @@ static int zmq_send_multipart(void *sock, const void *data, size_t size, ...) {
 
         zmq_msg_close(&msg);
 
-        if (!data) break;
+        if (!data) {
+            break;
+        }
 
         size = va_arg(args, size_t);
     }
@@ -126,7 +128,9 @@ bool CZMQAbstractPublishNotifier::SendMessage(const char *command,
     WriteLE32(&msgseq[0], nSequence);
     int rc = zmq_send_multipart(psocket, command, strlen(command), data, size,
                                 msgseq, (size_t)sizeof(uint32_t), (void *)0);
-    if (rc == -1) return false;
+    if (rc == -1) {
+        return false;
+    }
 
     /* increment memory only sequence number after sending */
     nSequence++;
@@ -138,8 +142,9 @@ bool CZMQPublishHashBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
     uint256 hash = pindex->GetBlockHash();
     LogPrint(BCLog::ZMQ, "zmq: Publish hashblock %s\n", hash.GetHex());
     char data[32];
-    for (unsigned int i = 0; i < 32; i++)
+    for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = hash.begin()[i];
+    }
     return SendMessage(MSG_HASHBLOCK, data, 32);
 }
 
@@ -148,8 +153,9 @@ bool CZMQPublishHashTransactionNotifier::NotifyTransaction(
     uint256 txid = transaction.GetId();
     LogPrint(BCLog::ZMQ, "zmq: Publish hashtx %s\n", txid.GetHex());
     char data[32];
-    for (unsigned int i = 0; i < 32; i++)
+    for (unsigned int i = 0; i < 32; i++) {
         data[31 - i] = txid.begin()[i];
+    }
     return SendMessage(MSG_HASHTX, data, 32);
 }
 
