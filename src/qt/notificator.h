@@ -59,7 +59,7 @@ private:
         None, /**< Ignore informational notifications, and show a modal pop-up
                  dialog for Critical notifications. */
         Freedesktop,           /**< Use DBus org.freedesktop.Notifications */
-        QSystemTray,           /**< Use QSystemTray::showMessage */
+        QSystemTray,           /**< Use QSystemTrayIcon::showMessage() */
         UserNotificationCenter /**< Use the 10.8+ User Notification Center (Mac
                                   only) */
     };
@@ -73,11 +73,10 @@ private:
                     const QIcon &icon, int millisTimeout);
 #endif
     void notifySystray(Class cls, const QString &title, const QString &text,
-                       const QIcon &icon, int millisTimeout);
+                       int millisTimeout);
 #ifdef Q_OS_MAC
-    void notifyMacUserNotificationCenter(Class cls, const QString &title,
-                                         const QString &text,
-                                         const QIcon &icon);
+    void notifyMacUserNotificationCenter(const QString &title,
+                                         const QString &text);
 #endif
 };
 
