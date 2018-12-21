@@ -58,11 +58,11 @@ class PruneTest(BitcoinTestFramework):
 
         self.prunedir = self.options.tmpdir + "/node2/regtest/blocks/"
 
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[1], 2)
-        connect_nodes(self.nodes[2], 0)
-        connect_nodes(self.nodes[0], 3)
-        connect_nodes(self.nodes[0], 4)
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[1], self.nodes[2])
+        connect_nodes(self.nodes[2], self.nodes[0])
+        connect_nodes(self.nodes[0], self.nodes[3])
+        connect_nodes(self.nodes[0], self.nodes[4])
         sync_blocks(self.nodes[0:5])
 
     def setup_nodes(self):
@@ -135,8 +135,8 @@ class PruneTest(BitcoinTestFramework):
 
             # Create connections in the order so both nodes can see the reorg
             # at the same time
-            connect_nodes(self.nodes[1], 0)
-            connect_nodes(self.nodes[2], 0)
+            connect_nodes(self.nodes[1], self.nodes[0])
+            connect_nodes(self.nodes[2], self.nodes[0])
             sync_blocks(self.nodes[0:3])
 
         self.log.info("Usage can be over target because of high stale rate: %d" %
@@ -185,8 +185,8 @@ class PruneTest(BitcoinTestFramework):
         self.nodes[1].generate(300)
 
         self.log.info("Reconnect nodes")
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[2], 1)
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[2], self.nodes[1])
         sync_blocks(self.nodes[0:3], timeout=120)
 
         self.log.info("Verify height on node 2: %d" %
@@ -378,7 +378,7 @@ class PruneTest(BitcoinTestFramework):
         # check that wallet loads loads successfully when restarting a pruned node after IBD.
         # this was reported to fail in #7494.
         self.log.info("Syncing node 5 to test wallet")
-        connect_nodes(self.nodes[0], 5)
+        connect_nodes(self.nodes[0], self.nodes[5])
         nds = [self.nodes[0], self.nodes[5]]
         sync_blocks(nds, wait=5, timeout=300)
         self.stop_node(5)  # stop and start to trigger rescan

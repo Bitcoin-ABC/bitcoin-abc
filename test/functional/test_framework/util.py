@@ -392,18 +392,18 @@ def disconnect_nodes(from_connection, node_num):
         raise AssertionError("timed out waiting for disconnect")
 
 
-def connect_nodes(from_connection, node_num):
-    ip_port = "127.0.0.1:" + str(p2p_port(node_num))
-    from_connection.addnode(ip_port, "onetry")
+def connect_nodes(from_node, to_node):
+    ip_port = "127.0.0.1:" + str(p2p_port(to_node.index))
+    from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
-    while any(peer['version'] == 0 for peer in from_connection.getpeerinfo()):
+    while any(peer['version'] == 0 for peer in from_node.getpeerinfo()):
         time.sleep(0.1)
 
 
 def connect_nodes_bi(nodes, a, b):
-    connect_nodes(nodes[a], b)
-    connect_nodes(nodes[b], a)
+    connect_nodes(nodes[a], nodes[b])
+    connect_nodes(nodes[b], nodes[a])
 
 
 def sync_blocks(rpc_connections, *, wait=1, timeout=60):

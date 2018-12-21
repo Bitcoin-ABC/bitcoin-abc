@@ -176,7 +176,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.nodes[1].sendrawtransaction(signed["hex"])
         self.nodes[1].generate(1)
 
-        connect_nodes(self.nodes[0], 1)
+        connect_nodes(self.nodes[0], self.nodes[1])
         sync_blocks(self.nodes)
 
         # Verify that B and C's 10 BTC outputs are available for spending again because AB1 is now conflicted

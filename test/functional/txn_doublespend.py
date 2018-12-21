@@ -109,7 +109,7 @@ class TxnMallTest(BitcoinTestFramework):
         self.nodes[2].generate(1)
 
         # Reconnect the split network, and sync chain:
-        connect_nodes(self.nodes[1], 2)
+        connect_nodes(self.nodes[1], self.nodes[2])
         self.nodes[2].generate(1)  # Mine another block to make sure we sync
         sync_blocks(self.nodes)
         assert_equal(self.nodes[0].gettransaction(
