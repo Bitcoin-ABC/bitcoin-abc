@@ -1729,8 +1729,6 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     }
 
     const uint32_t flags = GetBlockScriptFlags(config, pindex->pprev);
-    const bool fIsMagneticAnomalyEnabled =
-        IsMagneticAnomalyEnabled(config, pindex->pprev);
 
     int64_t nTime2 = GetTimeMicros();
     nTimeForks += nTime2 - nTime1;
@@ -1764,14 +1762,11 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
             nSigOpsCount += GetSigOpCountWithoutP2SH(tx, flags);
         }
 
-        if (fIsMagneticAnomalyEnabled || tx.IsCoinBase()) {
-            // We do not need to throw when a transaction is duplicated. If they
-            // are in the same block, CheckBlock will catch it, and if they are
-            // in a different block, it'll register as a double spend or BIP30
-            // violation. In both cases, we get a more meaningful feedback out
-            // of it.
-            AddCoins(view, tx, pindex->nHeight, true);
-        }
+        // We do not need to throw when a transaction is duplicated. If they are
+        // in the same block, CheckBlock will catch it, and if they are in a
+        // different block, it'll register as a double spend or BIP30 violation.
+        // In both cases, we get a more meaningful feedback out of it.
+        AddCoins(view, tx, pindex->nHeight, true);
     }
 
     for (const auto &ptx : block.vtx) {
@@ -1833,10 +1828,6 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
 
         blockundo.vtxundo.push_back(CTxUndo());
         SpendCoins(view, tx, blockundo.vtxundo.back(), pindex->nHeight);
-
-        if (!fIsMagneticAnomalyEnabled) {
-            AddCoins(view, tx, pindex->nHeight);
-        }
     }
 
     int64_t nTime3 = GetTimeMicros();
@@ -2204,14 +2195,8 @@ static bool DisconnectTip(const Config &config, CValidationState &state,
     // remove transactions that are replay protected from the mempool. There is
     // no easy way to do this so we'll just discard the whole mempool and then
     // add the transaction of the block we just disconnected back.
-    //
-    // If we are deactivating Magnetic anomaly, we want to make sure we do not
-    // have transactions in the mempool that use newly introduced opcodes. As a
-    // result, we also cleanup the mempool.
-    if ((IsReplayProtectionEnabled(config, pindexDelete) &&
-         !IsReplayProtectionEnabled(config, pindexDelete->pprev)) ||
-        (IsMagneticAnomalyEnabled(config, pindexDelete) &&
-         !IsMagneticAnomalyEnabled(config, pindexDelete->pprev))) {
+    if (IsReplayProtectionEnabled(config, pindexDelete) &&
+        !IsReplayProtectionEnabled(config, pindexDelete->pprev)) {
         LogPrint(BCLog::MEMPOOL, "Clearing mempool for reorg");
 
         g_mempool.clear();

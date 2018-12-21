@@ -213,19 +213,6 @@ class TransactionOrderingTest(ComparisonTestFramework):
         assert_equal(node.getblockheader(node.getbestblockhash())['mediantime'],
                      MAGNETIC_ANOMALY_START_TIME - 1)
 
-        # Before we activate the Nov 15, 2018 HF, transaction order is respected.
-        def ordered_block(block_number, spend):
-            b = block(block_number, spend=spend, tx_count=16)
-            b.vtx = [b.vtx[0]] + sorted(b.vtx[1:], key=lambda tx: tx.get_id())
-            update_block(block_number)
-            return b
-
-        ordered_block(4444, out[16])
-        yield rejected(RejectResult(16, b'bad-txns-inputs-missingorspent'))
-
-        # Rewind bad block.
-        tip(5104)
-
         # Activate the Nov 15, 2018 HF
         block(5556, out[16], tx_count=16)
         yield accepted()
@@ -240,6 +227,13 @@ class TransactionOrderingTest(ComparisonTestFramework):
 
         # Rewind bad block.
         tip(5556)
+
+        # After we activate the Nov 15, 2018 HF, transaction order is enforced.
+        def ordered_block(block_number, spend):
+            b = block(block_number, spend=spend, tx_count=16)
+            b.vtx = [b.vtx[0]] + sorted(b.vtx[1:], key=lambda tx: tx.get_id())
+            update_block(block_number)
+            return b
 
         # Now that the fork activated, we need to order transaction per txid.
         ordered_block(4445, out[17])
