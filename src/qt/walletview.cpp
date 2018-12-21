@@ -74,6 +74,10 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, const Config *cfg,
     connect(overviewPage, SIGNAL(outOfSyncWarningClicked()), this,
             SLOT(requestedSyncWarningInfo()));
 
+    // Highlight transaction after send
+    connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), transactionView,
+            SLOT(focusTransaction(uint256)));
+
     // Double-clicking on a transaction on the transaction history page shows
     // details
     connect(transactionView, SIGNAL(doubleClicked(QModelIndex)),
@@ -98,6 +102,10 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui) {
         // Clicking on a transaction on the overview page simply sends you to
         // transaction history page
         connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui,
+                SLOT(gotoHistoryPage()));
+
+        // Navigate to transaction history page after send
+        connect(sendCoinsPage, SIGNAL(coinsSent(uint256)), gui,
                 SLOT(gotoHistoryPage()));
 
         // Receive and report messages

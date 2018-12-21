@@ -6,6 +6,7 @@
 #define BITCOIN_QT_TRANSACTIONVIEW_H
 
 #include "guiutil.h"
+#include "uint256.h"
 
 #include <QKeyEvent>
 #include <QWidget>
@@ -118,6 +119,7 @@ public Q_SLOTS:
     void changedAmount(const QString &amount);
     void exportClicked();
     void focusTransaction(const QModelIndex &);
+    void focusTransaction(const uint256 &txid);
 };
 
 #endif // BITCOIN_QT_TRANSACTIONVIEW_H

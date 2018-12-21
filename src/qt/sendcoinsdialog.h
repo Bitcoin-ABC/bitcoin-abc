@@ -60,6 +60,9 @@ public Q_SLOTS:
                     const Amount watchUnconfBalance,
                     const Amount watchImmatureBalance);
 
+Q_SIGNALS:
+    void coinsSent(const uint256 &txid);
+
 private:
     Ui::SendCoinsDialog *ui;
     ClientModel *clientModel;
