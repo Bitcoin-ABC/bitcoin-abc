@@ -380,12 +380,13 @@ def set_node_times(nodes, t):
         node.setmocktime(t)
 
 
-def disconnect_nodes(from_connection, node_num):
-    for peer_id in [peer['id'] for peer in from_connection.getpeerinfo() if "testnode%d" % node_num in peer['subver']]:
-        from_connection.disconnectnode(nodeid=peer_id)
+def disconnect_nodes(from_node, to_node):
+    node_num = to_node.index
+    for peer_id in [peer['id'] for peer in from_node.getpeerinfo() if "testnode%d" % node_num in peer['subver']]:
+        from_node.disconnectnode(nodeid=peer_id)
 
     for _ in range(50):
-        if [peer['id'] for peer in from_connection.getpeerinfo() if "testnode%d" % node_num in peer['subver']] == []:
+        if [peer['id'] for peer in from_node.getpeerinfo() if "testnode%d" % node_num in peer['subver']] == []:
             break
         time.sleep(0.1)
     else:
