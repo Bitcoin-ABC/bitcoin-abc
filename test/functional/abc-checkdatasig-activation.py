@@ -169,17 +169,6 @@ class CheckDataSigActivationTest(ComparisonTestFramework):
         add_tx(magneticanomalyblock, tx0)
         yield accepted(magneticanomalyblock)
 
-        self.log.info("Cause a reorg that deactivate the checkdatasig opcodes")
-
-        # Invalidate the checkdatasig block, ensure tx0 gets back to the mempool.
-        assert(tx0id not in set(node.getrawmempool()))
-
-        node.invalidateblock(format(magneticanomalyblock.sha256, 'x'))
-        assert(tx0id in set(node.getrawmempool()))
-
-        node.invalidateblock(format(fork_block.sha256, 'x'))
-        assert(tx0id not in set(node.getrawmempool()))
-
 
 if __name__ == '__main__':
     CheckDataSigActivationTest().main()
