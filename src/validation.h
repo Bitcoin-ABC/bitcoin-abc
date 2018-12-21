@@ -522,7 +522,7 @@ private:
 
 public:
     CScriptCheck()
-        : amount(), ptxTo(0), nIn(0), nFlags(0), cacheStore(false),
+        : amount(), ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
           error(SCRIPT_ERR_UNKNOWN_ERROR), txdata() {}
 
     CScriptCheck(const CScript &scriptPubKeyIn, const Amount amountIn,

@@ -162,7 +162,7 @@ public:
      * proceeds, but it could warn.
      */
     LockedPool(std::unique_ptr<LockedPageAllocator> allocator,
-               LockingFailed_Callback lf_cb_in = 0);
+               LockingFailed_Callback lf_cb_in = nullptr);
     ~LockedPool();
 
     /**

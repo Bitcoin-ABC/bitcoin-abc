@@ -796,7 +796,7 @@ DBErrors CWallet::ReorderTransactions() {
         CWalletTx *const pwtx = (*it).second.first;
         CAccountingEntry *const pacentry = (*it).second.second;
         int64_t &nOrderPos =
-            (pwtx != 0) ? pwtx->nOrderPos : pacentry->nOrderPos;
+            (pwtx != nullptr) ? pwtx->nOrderPos : pacentry->nOrderPos;
 
         if (nOrderPos == -1) {
             nOrderPos = nOrderPosNext++;
@@ -1875,7 +1875,7 @@ Amount CWalletTx::GetImmatureCredit(bool fUseCache) const {
 }
 
 Amount CWalletTx::GetAvailableCredit(bool fUseCache) const {
-    if (pwallet == 0) {
+    if (pwallet == nullptr) {
         return Amount::zero();
     }
 
@@ -1922,7 +1922,7 @@ Amount CWalletTx::GetImmatureWatchOnlyCredit(const bool &fUseCache) const {
 }
 
 Amount CWalletTx::GetAvailableWatchOnlyCredit(const bool &fUseCache) const {
-    if (pwallet == 0) {
+    if (pwallet == nullptr) {
         return Amount::zero();
     }
 
