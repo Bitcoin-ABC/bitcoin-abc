@@ -20,8 +20,8 @@ class TxnMallTest(BitcoinTestFramework):
     def setup_network(self):
         # Start with split network:
         super().setup_network()
-        disconnect_nodes(self.nodes[1], 2)
-        disconnect_nodes(self.nodes[2], 1)
+        disconnect_nodes(self.nodes[1], self.nodes[2])
+        disconnect_nodes(self.nodes[2], self.nodes[1])
 
     def run_test(self):
         # All nodes should start with 1,250 BTC:
