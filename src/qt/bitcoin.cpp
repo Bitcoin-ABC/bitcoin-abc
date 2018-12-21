@@ -31,6 +31,7 @@
 #include "rpc/server.h"
 #include "scheduler.h"
 #include "ui_interface.h"
+#include "uint256.h"
 #include "util.h"
 #include "warnings.h"
 
@@ -74,6 +75,7 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 // Declare meta types used for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(bool *)
 Q_DECLARE_METATYPE(Amount)
+Q_DECLARE_METATYPE(uint256)
 
 // Config is non-copyable so we can only register pointers to it
 Q_DECLARE_METATYPE(Config *)
