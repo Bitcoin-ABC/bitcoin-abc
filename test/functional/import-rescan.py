@@ -132,7 +132,7 @@ class ImportRescanTest(BitcoinTestFramework):
         self.add_nodes(self.num_nodes, extra_args)
         self.start_nodes()
         for i in range(1, self.num_nodes):
-            connect_nodes(self.nodes[i], 0)
+            connect_nodes(self.nodes[i], self.nodes[0])
 
     def run_test(self):
         # Create one transaction on node 0 with a unique amount and label for

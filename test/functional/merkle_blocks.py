@@ -20,9 +20,9 @@ class MerkleBlockTest(BitcoinTestFramework):
 
     def setup_network(self):
         self.setup_nodes()
-        connect_nodes(self.nodes[0], 1)
-        connect_nodes(self.nodes[0], 2)
-        connect_nodes(self.nodes[0], 3)
+        connect_nodes(self.nodes[0], self.nodes[1])
+        connect_nodes(self.nodes[0], self.nodes[2])
+        connect_nodes(self.nodes[0], self.nodes[3])
 
         self.sync_all()
 

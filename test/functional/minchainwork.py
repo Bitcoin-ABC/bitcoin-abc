@@ -40,7 +40,7 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         # block relay to inbound peers.
         self.setup_nodes()
         for i in range(self.num_nodes-1):
-            connect_nodes(self.nodes[i+1], i)
+            connect_nodes(self.nodes[i+1], self.nodes[i])
 
     def run_test(self):
         # Start building a chain on node0.  node2 shouldn't be able to sync until node1's

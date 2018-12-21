@@ -47,10 +47,10 @@ class WalletBackupTest(BitcoinTestFramework):
 
     def setup_network(self, split=False):
         self.setup_nodes()
-        connect_nodes(self.nodes[0], 3)
-        connect_nodes(self.nodes[1], 3)
-        connect_nodes(self.nodes[2], 3)
-        connect_nodes(self.nodes[2], 0)
+        connect_nodes(self.nodes[0], self.nodes[3])
+        connect_nodes(self.nodes[1], self.nodes[3])
+        connect_nodes(self.nodes[2], self.nodes[3])
+        connect_nodes(self.nodes[2], self.nodes[0])
         self.sync_all()
 
     def one_send(self, from_node, to_address):
@@ -81,10 +81,10 @@ class WalletBackupTest(BitcoinTestFramework):
         self.start_node(0)
         self.start_node(1)
         self.start_node(2)
-        connect_nodes(self.nodes[0], 3)
-        connect_nodes(self.nodes[1], 3)
-        connect_nodes(self.nodes[2], 3)
-        connect_nodes(self.nodes[2], 0)
+        connect_nodes(self.nodes[0], self.nodes[3])
+        connect_nodes(self.nodes[1], self.nodes[3])
+        connect_nodes(self.nodes[2], self.nodes[3])
+        connect_nodes(self.nodes[2], self.nodes[0])
 
     def stop_three(self):
         self.stop_node(0)

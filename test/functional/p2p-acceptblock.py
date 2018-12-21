@@ -162,7 +162,7 @@ class AcceptBlockTest(BitcoinTestFramework):
         # FIXME: Replace the assert with the commented lines once Core backport
         # 932f118 is completed. Current behavior does not accept equal work
         # blocks ontop of unprocessed blocks.
-        #self.nodes[0].getblock(block_h2f.hash)
+        # self.nodes[0].getblock(block_h2f.hash)
         #self.log.info("Second height 2 block accepted, but not reorg'ed to")
         assert_raises_rpc_error(-1, "Block not found on disk",
                                 self.nodes[0].getblock, block_h2f.hash)
@@ -360,10 +360,10 @@ class AcceptBlockTest(BitcoinTestFramework):
         test_node.send_message(headers_message)
         # FIXME: Uncomment this line once Core backport 015a525 is completed.
         # Current behavior does not ban peers that give us headers on invalid chains.
-        #test_node.wait_for_disconnect()
+        # test_node.wait_for_disconnect()
 
         # 9. Connect node1 to node0 and ensure it is able to sync
-        connect_nodes(self.nodes[0], 1)
+        connect_nodes(self.nodes[0], self.nodes[1])
         sync_blocks([self.nodes[0], self.nodes[1]])
         self.log.info("Successfully synced nodes 1 and 0")
 
