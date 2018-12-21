@@ -229,7 +229,7 @@ struct StringContentsSerializer {
     // different lengths. This is a terrible idea.
     std::string str;
     StringContentsSerializer() {}
-    StringContentsSerializer(const std::string &inp) : str(inp) {}
+    explicit StringContentsSerializer(const std::string &inp) : str(inp) {}
 
     StringContentsSerializer &operator+=(const std::string &s) {
         str += s;

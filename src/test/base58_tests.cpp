@@ -87,7 +87,7 @@ private:
     std::string exp_addrType;
 
 public:
-    TestAddrTypeVisitor(const std::string &_exp_addrType)
+    explicit TestAddrTypeVisitor(const std::string &_exp_addrType)
         : exp_addrType(_exp_addrType) {}
     bool operator()(const CKeyID &id) const {
         return (exp_addrType == "pubkey");
@@ -106,7 +106,7 @@ private:
     std::vector<uint8_t> exp_payload;
 
 public:
-    TestPayloadVisitor(std::vector<uint8_t> &_exp_payload)
+    explicit TestPayloadVisitor(std::vector<uint8_t> &_exp_payload)
         : exp_payload(_exp_payload) {}
     bool operator()(const CKeyID &id) const {
         uint160 exp_key(exp_payload);

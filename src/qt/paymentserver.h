@@ -66,7 +66,7 @@ public:
     static bool ipcSendCommandLine();
 
     // parent should be QApplication object
-    PaymentServer(QObject *parent, bool startLocalServer = true);
+    explicit PaymentServer(QObject *parent, bool startLocalServer = true);
     ~PaymentServer();
 
     // Load root certificate authorities. Pass nullptr (default) to read from

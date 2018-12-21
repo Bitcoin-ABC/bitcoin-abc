@@ -33,7 +33,7 @@ public:
 
     CBanEntry() { SetNull(); }
 
-    CBanEntry(int64_t nCreateTimeIn) {
+    explicit CBanEntry(int64_t nCreateTimeIn) {
         SetNull();
         nCreateTime = nCreateTimeIn;
     }

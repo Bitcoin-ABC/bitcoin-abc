@@ -181,7 +181,7 @@ void SingleThreadedSchedulerClient::ProcessQueue() {
     // to ensure both happen safely even if callback() throws.
     struct RAIICallbacksRunning {
         SingleThreadedSchedulerClient *instance;
-        RAIICallbacksRunning(SingleThreadedSchedulerClient *_instance)
+        explicit RAIICallbacksRunning(SingleThreadedSchedulerClient *_instance)
             : instance(_instance) {}
         ~RAIICallbacksRunning() {
             {

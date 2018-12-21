@@ -107,7 +107,7 @@ private:
     void ProcessQueue();
 
 public:
-    SingleThreadedSchedulerClient(CScheduler *pschedulerIn)
+    explicit SingleThreadedSchedulerClient(CScheduler *pschedulerIn)
         : m_pscheduler(pschedulerIn) {}
     void AddToProcessQueue(std::function<void(void)> func);
 

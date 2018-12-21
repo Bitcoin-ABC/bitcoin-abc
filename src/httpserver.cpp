@@ -82,7 +82,7 @@ private:
     class ThreadCounter {
     public:
         WorkQueue &wq;
-        ThreadCounter(WorkQueue &w) : wq(w) {
+        explicit ThreadCounter(WorkQueue &w) : wq(w) {
             std::lock_guard<std::mutex> lock(wq.cs);
             wq.numThreads += 1;
         }
@@ -94,7 +94,7 @@ private:
     };
 
 public:
-    WorkQueue(size_t _maxDepth)
+    explicit WorkQueue(size_t _maxDepth)
         : running(true), maxDepth(_maxDepth), numThreads(0) {}
     /** Precondition: worker threads have all stopped (call WaitExit) */
     ~WorkQueue() {}

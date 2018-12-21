@@ -55,7 +55,7 @@ protected:
     bool Decompress(unsigned int nSize, const std::vector<uint8_t> &out);
 
 public:
-    CScriptCompressor(CScript &scriptIn) : script(scriptIn) {}
+    explicit CScriptCompressor(CScript &scriptIn) : script(scriptIn) {}
 
     template <typename Stream> void Serialize(Stream &s) const {
         std::vector<uint8_t> compr;
@@ -98,7 +98,7 @@ public:
     static uint64_t CompressAmount(Amount nAmount);
     static Amount DecompressAmount(uint64_t nAmount);
 
-    CTxOutCompressor(CTxOut &txoutIn) : txout(txoutIn) {}
+    explicit CTxOutCompressor(CTxOut &txoutIn) : txout(txoutIn) {}
 
     ADD_SERIALIZE_METHODS;
 
