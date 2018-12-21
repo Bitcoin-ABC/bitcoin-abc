@@ -127,7 +127,7 @@ class ParkedChainTest(BitcoinTestFramework):
 
         # First, make sure both nodes are in sync.
         parking_node = self.nodes[1]
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         sync_blocks(self.nodes[0:2])
 
         assert_equal(node.getbestblockhash(), parking_node.getbestblockhash())

@@ -402,9 +402,9 @@ def connect_nodes(from_node, to_node):
         time.sleep(0.1)
 
 
-def connect_nodes_bi(nodes, a, b):
-    connect_nodes(nodes[a], nodes[b])
-    connect_nodes(nodes[b], nodes[a])
+def connect_nodes_bi(a, b):
+    connect_nodes(a, b)
+    connect_nodes(b, a)
 
 
 def sync_blocks(rpc_connections, *, wait=1, timeout=60):

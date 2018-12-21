@@ -210,7 +210,7 @@ class BitcoinTestFramework():
         # to split the network between nodes 1 and 2 to get
         # two halves that can work on competing chains.
         for i in range(self.num_nodes - 1):
-            connect_nodes_bi(self.nodes, i, i + 1)
+            connect_nodes_bi(self.nodes[i], self.nodes[i + 1])
         self.sync_all()
 
     def setup_nodes(self):
@@ -329,7 +329,7 @@ class BitcoinTestFramework():
         """
         Join the (previously split) network halves together.
         """
-        connect_nodes_bi(self.nodes, 1, 2)
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
         self.sync_all()
 
     def sync_all(self, node_groups=None):

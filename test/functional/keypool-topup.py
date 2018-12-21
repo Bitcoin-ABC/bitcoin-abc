@@ -38,7 +38,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
         shutil.copyfile(self.tmpdir + "/node1/regtest/wallet.dat",
                         self.tmpdir + "/wallet.bak")
         self.start_node(1, self.extra_args[1])
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
 
         self.log.info("Generate keys for wallet")
 
@@ -65,7 +65,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
         self.log.info("Verify keypool is restored and balance is correct")
 
         self.start_node(1, self.extra_args[1])
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         self.sync_all()
 
         assert_equal(self.nodes[1].getbalance(), 15)
