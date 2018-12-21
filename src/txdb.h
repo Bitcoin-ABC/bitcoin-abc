@@ -70,7 +70,8 @@ protected:
     CDBWrapper db;
 
 public:
-    CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    explicit CCoinsViewDB(size_t nCacheSize, bool fMemory = false,
+                          bool fWipe = false);
 
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
@@ -109,7 +110,8 @@ private:
 /** Access to the block database (blocks/index/) */
 class CBlockTreeDB : public CDBWrapper {
 public:
-    CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    explicit CBlockTreeDB(size_t nCacheSize, bool fMemory = false,
+                          bool fWipe = false);
 
 private:
     CBlockTreeDB(const CBlockTreeDB &);

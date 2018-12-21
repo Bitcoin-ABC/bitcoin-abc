@@ -234,7 +234,7 @@ private:
 };
 
 struct update_fee_delta {
-    update_fee_delta(Amount _feeDelta) : feeDelta(_feeDelta) {}
+    explicit update_fee_delta(Amount _feeDelta) : feeDelta(_feeDelta) {}
 
     void operator()(CTxMemPoolEntry &e) { e.UpdateFeeDelta(feeDelta); }
 
@@ -243,7 +243,7 @@ private:
 };
 
 struct update_lock_points {
-    update_lock_points(const LockPoints &_lp) : lp(_lp) {}
+    explicit update_lock_points(const LockPoints &_lp) : lp(_lp) {}
 
     void operator()(CTxMemPoolEntry &e) { e.UpdateLockPoints(lp); }
 

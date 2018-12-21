@@ -55,7 +55,7 @@ public:
      * @post All calls to bit_is_set (without subsequent bit_unset) will return
      * true.
      */
-    bit_packed_atomic_flags(uint32_t size) {
+    explicit bit_packed_atomic_flags(uint32_t size) {
         // pad out the size if needed
         size = (size + 7) / 8;
         mem.reset(new std::atomic<uint8_t>[size]);

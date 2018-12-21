@@ -15,7 +15,7 @@ template <typename T> class reverse_range {
     T &x;
 
 public:
-    reverse_range(T &xin) : x(xin) {}
+    explicit reverse_range(T &xin) : x(xin) {}
 
     auto begin() const -> decltype(this->x.rbegin()) { return x.rbegin(); }
 

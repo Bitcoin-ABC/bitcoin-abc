@@ -41,7 +41,7 @@ struct MainSignalsInstance {
     // our own queue here :(
     SingleThreadedSchedulerClient m_schedulerClient;
 
-    MainSignalsInstance(CScheduler *pscheduler)
+    explicit MainSignalsInstance(CScheduler *pscheduler)
         : m_schedulerClient(pscheduler) {}
 };
 

@@ -31,7 +31,7 @@ const unsigned int BIP32_EXTKEY_SIZE = 74;
 class CKeyID : public uint160 {
 public:
     CKeyID() : uint160() {}
-    CKeyID(const uint160 &in) : uint160(in) {}
+    explicit CKeyID(const uint160 &in) : uint160(in) {}
 };
 
 typedef uint256 ChainCode;
@@ -74,7 +74,9 @@ public:
     }
 
     //! Construct a public key from a byte vector.
-    CPubKey(const std::vector<uint8_t> &_vch) { Set(_vch.begin(), _vch.end()); }
+    explicit CPubKey(const std::vector<uint8_t> &_vch) {
+        Set(_vch.begin(), _vch.end());
+    }
 
     //! Simple read-only vector-like interface to the pubkey data.
     unsigned int size() const { return GetLen(vch[0]); }

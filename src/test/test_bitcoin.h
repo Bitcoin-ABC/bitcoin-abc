@@ -54,7 +54,8 @@ static inline std::vector<uint8_t> InsecureRandBytes(size_t len) {
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
 
-    BasicTestingSetup(const std::string &chainName = CBaseChainParams::MAIN);
+    explicit BasicTestingSetup(
+        const std::string &chainName = CBaseChainParams::MAIN);
     ~BasicTestingSetup();
 };
 
@@ -76,7 +77,8 @@ struct TestingSetup : public BasicTestingSetup {
     CScheduler scheduler;
     std::unique_ptr<PeerLogicValidation> peerLogic;
 
-    TestingSetup(const std::string &chainName = CBaseChainParams::MAIN);
+    explicit TestingSetup(
+        const std::string &chainName = CBaseChainParams::MAIN);
     ~TestingSetup();
 };
 

@@ -385,7 +385,7 @@ struct PrecomputedTransactionData {
         : hashPrevouts(txdata.hashPrevouts), hashSequence(txdata.hashSequence),
           hashOutputs(txdata.hashOutputs) {}
 
-    PrecomputedTransactionData(const CTransaction &tx);
+    explicit PrecomputedTransactionData(const CTransaction &tx);
 };
 
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H

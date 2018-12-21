@@ -2276,7 +2276,7 @@ private:
     CTxMemPool &pool;
 
 public:
-    ConnectTrace(CTxMemPool &_pool) : blocksConnected(1), pool(_pool) {
+    explicit ConnectTrace(CTxMemPool &_pool) : blocksConnected(1), pool(_pool) {
         pool.NotifyEntryRemoved.connect(
             boost::bind(&ConnectTrace::NotifyEntryRemoved, this, _1, _2));
     }

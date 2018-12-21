@@ -173,7 +173,7 @@ private:
     Source *source;
 
 public:
-    CHashVerifier(Source *source_)
+    explicit CHashVerifier(Source *source_)
         : CHashWriter(source_->GetType(), source_->GetVersion()),
           source(source_) {}
 

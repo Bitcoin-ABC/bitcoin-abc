@@ -79,7 +79,7 @@ public:
 
     /** Create a new TorControlConnection.
      */
-    TorControlConnection(struct event_base *base);
+    explicit TorControlConnection(struct event_base *base);
     ~TorControlConnection();
 
     /**

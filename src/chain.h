@@ -124,7 +124,7 @@ public:
 
     CBlockIndex() { SetNull(); }
 
-    CBlockIndex(const CBlockHeader &block) {
+    explicit CBlockIndex(const CBlockHeader &block) {
         SetNull();
 
         nVersion = block.nVersion;

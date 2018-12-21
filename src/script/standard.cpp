@@ -241,7 +241,7 @@ private:
     CScript *script;
 
 public:
-    CScriptVisitor(CScript *scriptin) { script = scriptin; }
+    explicit CScriptVisitor(CScript *scriptin) { script = scriptin; }
 
     bool operator()(const CNoDestination &dest) const {
         script->clear();

@@ -204,7 +204,7 @@ public:
         Init();
     }
 
-    CMerkleTx(CTransactionRef arg) {
+    explicit CMerkleTx(CTransactionRef arg) {
         SetTx(std::move(arg));
         Init();
     }
@@ -503,7 +503,7 @@ public:
     //! todo: add something to note what created it (user, getnewaddress,
     //! change) maybe should have a map<string, string> property map
 
-    CWalletKey(int64_t nExpires = 0);
+    explicit CWalletKey(int64_t nExpires = 0);
 
     ADD_SERIALIZE_METHODS;
 
@@ -717,7 +717,7 @@ public:
     unsigned int nMasterKeyMaxID;
 
     // Create wallet with dummy database handle
-    CWallet(const CChainParams &chainParamsIn)
+    explicit CWallet(const CChainParams &chainParamsIn)
         : dbw(new CWalletDBWrapper()), chainParams(chainParamsIn) {
         SetNull();
     }
@@ -1143,7 +1143,7 @@ protected:
     bool fInternal;
 
 public:
-    CReserveKey(CWallet *pwalletIn) {
+    explicit CReserveKey(CWallet *pwalletIn) {
         nIndex = -1;
         pwallet = pwalletIn;
         fInternal = false;

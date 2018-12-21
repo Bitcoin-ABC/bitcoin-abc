@@ -49,7 +49,7 @@ public:
     };
     typedef std::array<uint8_t, MESSAGE_START_SIZE> MessageMagic;
 
-    CMessageHeader(const MessageMagic &pchMessageStartIn);
+    explicit CMessageHeader(const MessageMagic &pchMessageStartIn);
     CMessageHeader(const MessageMagic &pchMessageStartIn,
                    const char *pszCommand, unsigned int nMessageSizeIn);
 

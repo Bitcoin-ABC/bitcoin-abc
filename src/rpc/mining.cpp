@@ -685,7 +685,7 @@ public:
     bool found;
     CValidationState state;
 
-    submitblock_StateCatcher(const uint256 &hashIn)
+    explicit submitblock_StateCatcher(const uint256 &hashIn)
         : hash(hashIn), found(false), state() {}
 
 protected:
