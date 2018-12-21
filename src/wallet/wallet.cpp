@@ -3811,14 +3811,11 @@ void CWallet::GetKeyBirthTimes(
     CBlockIndex *pindexMax =
         chainActive[std::max(0, chainActive.Height() - 144)];
     std::map<CKeyID, CBlockIndex *> mapKeyFirstBlock;
-    std::set<CKeyID> setKeys;
-    GetKeys(setKeys);
-    for (const CKeyID &keyid : setKeys) {
+    for (const CKeyID &keyid : GetKeys()) {
         if (mapKeyBirth.count(keyid) == 0) {
             mapKeyFirstBlock[keyid] = pindexMax;
         }
     }
-    setKeys.clear();
 
     // If there are no such keys, we're done.
     if (mapKeyFirstBlock.empty()) {
