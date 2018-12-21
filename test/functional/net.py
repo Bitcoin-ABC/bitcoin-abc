@@ -75,7 +75,7 @@ class NetTest(BitcoinTestFramework):
             time.sleep(0.1)
 
         self.nodes[0].setnetworkactive(True)
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         assert_equal(self.nodes[0].getnetworkinfo()['networkactive'], True)
         assert_equal(self.nodes[0].getnetworkinfo()['connections'], 2)
 

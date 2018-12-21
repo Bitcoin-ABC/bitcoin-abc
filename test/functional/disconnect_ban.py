@@ -79,7 +79,7 @@ class DisconnectBanTest(BitcoinTestFramework):
 
         # Clear ban lists
         self.nodes[1].clearbanned()
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
 
         self.log.info("Test disconnectnode RPCs")
 
@@ -106,7 +106,7 @@ class DisconnectBanTest(BitcoinTestFramework):
 
         self.log.info("disconnectnode: successfully reconnect node")
         # reconnect the node
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         assert_equal(len(self.nodes[0].getpeerinfo()), 2)
         assert [node for node in self.nodes[0]
                 .getpeerinfo() if node['addr'] == address1]

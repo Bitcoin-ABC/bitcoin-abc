@@ -24,10 +24,10 @@ class RawTransactionsTest(BitcoinTestFramework):
     def setup_network(self, split=False):
         self.setup_nodes()
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 1, 2)
-        connect_nodes_bi(self.nodes, 0, 2)
-        connect_nodes_bi(self.nodes, 0, 3)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[3])
 
     def run_test(self):
         min_relay_tx_fee = self.nodes[0].getnetworkinfo()['relayfee']
@@ -467,10 +467,10 @@ class RawTransactionsTest(BitcoinTestFramework):
         for node in self.nodes:
             node.settxfee(min_relay_tx_fee)
 
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 1, 2)
-        connect_nodes_bi(self.nodes, 0, 2)
-        connect_nodes_bi(self.nodes, 0, 3)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[3])
         self.sync_all()
 
         # drain the keypool

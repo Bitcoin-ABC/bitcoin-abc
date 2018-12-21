@@ -27,7 +27,7 @@ class WalletHDTest(BitcoinTestFramework):
         self.assert_start_raises_init_error(
             1, ['-usehd=0'], 'already existing HD wallet')
         self.start_node(1)
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
 
         # Make sure we use hd, keep masterkeyid
         masterkeyid = self.nodes[1].getwalletinfo()['hdmasterkeyid']
@@ -89,7 +89,7 @@ class WalletHDTest(BitcoinTestFramework):
             assert_equal(hd_info_2["hdkeypath"], "m/0'/0'/" + str(_) + "'")
             assert_equal(hd_info_2["hdmasterkeyid"], masterkeyid)
         assert_equal(hd_add, hd_add_2)
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         self.sync_all()
 
         # Needs rescan
@@ -104,7 +104,7 @@ class WalletHDTest(BitcoinTestFramework):
         shutil.copyfile(os.path.join(tmpdir, "hd.bak"),
                         os.path.join(tmpdir, "node1/regtest/wallet.dat"))
         self.start_node(1, extra_args=self.extra_args[1])
-        connect_nodes_bi(self.nodes, 0, 1)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
         self.sync_all()
         out = self.nodes[1].rescanblockchain(0, 1)
         assert_equal(out['start_height'], 0)

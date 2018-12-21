@@ -20,9 +20,9 @@ class WalletTest(BitcoinTestFramework):
         self.start_node(0)
         self.start_node(1)
         self.start_node(2)
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 1, 2)
-        connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
         self.sync_all([self.nodes[0:3]])
 
     def check_fee_amount(self, curr_balance, balance_with_fee, fee_per_byte, tx_size):
@@ -204,7 +204,7 @@ class WalletTest(BitcoinTestFramework):
         sync_mempools(self.nodes[0:2])
 
         self.start_node(3)
-        connect_nodes_bi(self.nodes, 0, 3)
+        connect_nodes_bi(self.nodes[0], self.nodes[3])
         sync_blocks(self.nodes)
 
         relayed = self.nodes[0].resendwallettransactions()
@@ -253,9 +253,9 @@ class WalletTest(BitcoinTestFramework):
         self.start_node(0, ["-walletbroadcast=0"])
         self.start_node(1, ["-walletbroadcast=0"])
         self.start_node(2, ["-walletbroadcast=0"])
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 1, 2)
-        connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
         self.sync_all([self.nodes[0:3]])
 
         txIdNotBroadcasted = self.nodes[0].sendtoaddress(
@@ -283,9 +283,9 @@ class WalletTest(BitcoinTestFramework):
         self.start_node(0)
         self.start_node(1)
         self.start_node(2)
-        connect_nodes_bi(self.nodes, 0, 1)
-        connect_nodes_bi(self.nodes, 1, 2)
-        connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes[0], self.nodes[1])
+        connect_nodes_bi(self.nodes[1], self.nodes[2])
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
         sync_blocks(self.nodes[0:3])
 
         self.nodes[0].generate(1)

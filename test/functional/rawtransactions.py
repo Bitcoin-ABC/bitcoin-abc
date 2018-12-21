@@ -26,7 +26,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
     def setup_network(self, split=False):
         super().setup_network()
-        connect_nodes_bi(self.nodes, 0, 2)
+        connect_nodes_bi(self.nodes[0], self.nodes[2])
 
     def run_test(self):
         # prepare some coins for multiple *rawtransaction commands
