@@ -79,6 +79,7 @@ BITCOIN_TESTS =\
   test/prevector_tests.cpp \
   test/raii_event_tests.cpp \
   test/random_tests.cpp \
+  test/rcu_tests.cpp \
   test/reverselock_tests.cpp \
   test/rpc_tests.cpp \
   test/rwcollection_tests.cpp \
