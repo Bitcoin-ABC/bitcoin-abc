@@ -565,7 +565,7 @@ static UniValue getblocktemplate(const Config &config,
             nTransactionsUpdatedLastLP = nTransactionsUpdatedLast;
         }
 
-        // Release the wallet and main lock while waiting
+        // Release lock while waiting
         LEAVE_CRITICAL_SECTION(cs_main);
         {
             checktxtime =

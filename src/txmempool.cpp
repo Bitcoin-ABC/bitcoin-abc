@@ -134,7 +134,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
 // state to include the parent.
 void CTxMemPool::UpdateTransactionsFromBlock(
     const std::vector<TxId> &txidsToUpdate) {
-    LOCK(cs);
+    AssertLockHeld(cs);
     // For each entry in txidsToUpdate, store the set of in-mempool, but not
     // in-txidsToUpdate transactions, so that we don't have to recalculate
     // descendants when we come across a previously seen entry.
@@ -526,7 +526,7 @@ void CTxMemPool::CalculateDescendants(txiter entryit,
 void CTxMemPool::removeRecursive(const CTransaction &origTx,
                                  MemPoolRemovalReason reason) {
     // Remove transaction from memory pool.
-    LOCK(cs);
+    AssertLockHeld(cs);
     setEntries txToRemove;
     txiter origit = mapTx.find(origTx.GetId());
     if (origit != mapTx.end()) {
@@ -561,7 +561,7 @@ void CTxMemPool::removeForReorg(const Config &config,
                                 unsigned int nMemPoolHeight, int flags) {
     // Remove transactions spending a coinbase which are now immature and
     // no-longer-final transactions.
-    LOCK(cs);
+    AssertLockHeld(cs);
     setEntries txToRemove;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
          it != mapTx.end(); it++) {
@@ -631,7 +631,7 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
  */
 void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
                                 unsigned int nBlockHeight) {
-    LOCK(cs);
+    AssertLockHeld(cs);
 
     DisconnectedBlockTransactions disconnectpool;
     disconnectpool.addForBlock(vtx, *this);
@@ -1074,7 +1074,7 @@ void CTxMemPool::RemoveStaged(setEntries &stage, bool updateDescendants,
 }
 
 int CTxMemPool::Expire(std::chrono::seconds time) {
-    LOCK(cs);
+    AssertLockHeld(cs);
     indexed_transaction_set::index<entry_time>::type::iterator it =
         mapTx.get<entry_time>().begin();
     setEntries toremove;
@@ -1182,7 +1182,7 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate &rate) {
 
 void CTxMemPool::TrimToSize(size_t sizelimit,
                             std::vector<COutPoint> *pvNoSpendsRemaining) {
-    LOCK(cs);
+    AssertLockHeld(cs);
 
     unsigned nTxnRemoved = 0;
     CFeeRate maxFeeRateRemoved(Amount::zero());
@@ -1283,6 +1283,7 @@ static const size_t MAX_DISCONNECTED_TX_POOL_SIZE = 20 * DEFAULT_MAX_BLOCK_SIZE;
 
 void DisconnectedBlockTransactions::addForBlock(
     const std::vector<CTransactionRef> &vtx, CTxMemPool &pool) {
+    AssertLockHeld(pool.cs);
     for (const auto &tx : reverse_iterate(vtx)) {
         // If we already added it, just skip.
         auto it = queuedTx.find(tx->GetId());
@@ -1340,6 +1341,7 @@ void DisconnectedBlockTransactions::addForBlock(
 }
 
 void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
+    AssertLockHeld(pool.cs);
     // addForBlock's algorithm sorts a vector of transactions back into
     // topological order. We use it in a separate object to create a valid
     // ordering of all mempool transactions, which we then splice in front of
@@ -1350,14 +1352,12 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
     // addForBlocks (which iterates in reverse order), as vtx probably end in
     // the correct ordering for queuedTx.
     std::vector<CTransactionRef> vtx;
-    {
-        LOCK(pool.cs);
-        vtx.reserve(pool.mapTx.size());
-        for (const CTxMemPoolEntry &e : pool.mapTx.get<entry_time>()) {
-            vtx.push_back(e.GetSharedTx());
-        }
-        pool.clear();
+
+    vtx.reserve(pool.mapTx.size());
+    for (const CTxMemPoolEntry &e : pool.mapTx.get<entry_time>()) {
+        vtx.push_back(e.GetSharedTx());
     }
+    pool.clear();
 
     // Use addForBlocks to sort the transactions and then splice them in front
     // of queuedTx
@@ -1380,6 +1380,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
                                                           bool fAddToMempool,
                                                           CTxMemPool &pool) {
     AssertLockHeld(cs_main);
+    AssertLockHeld(pool.cs);
     std::vector<TxId> txidsUpdate;
 
     // disconnectpool's insertion_order index sorts the entries from oldest to

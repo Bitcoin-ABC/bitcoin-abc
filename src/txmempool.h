@@ -538,22 +538,13 @@ public:
      * `mempool.cs` whenever adding transactions to the mempool and whenever
      * changing the chain tip. It's necessary to keep both mutexes locked until
      * the mempool is consistent with the new chain tip and fully populated.
-     *
-     * @par Consistency bug
-     *
-     * The second guarantee above is not currently enforced, but
-     * https://github.com/bitcoin/bitcoin/pull/14193 will fix it. No known code
-     * in bitcoin currently depends on second guarantee, but it is important to
-     * fix for third party code that needs be able to frequently poll the
-     * mempool without locking `cs_main` and without encountering missing
-     * transactions during reorgs.
      */
     mutable RecursiveMutex cs;
     indexed_transaction_set mapTx GUARDED_BY(cs);
 
     using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
     //! All tx hashes/entries in mapTx, in random order
-    std::vector<std::pair<TxHash, txiter>> vTxHashes;
+    std::vector<std::pair<TxHash, txiter>> vTxHashes GUARDED_BY(cs);
 
     struct CompareIteratorById {
         bool operator()(const txiter &a, const txiter &b) const {
@@ -620,13 +611,14 @@ public:
     void addUnchecked(const CTxMemPoolEntry &entry, setEntries &setAncestors)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
-    void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason);
+    void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForReorg(const Config &config, const CCoinsViewCache *pcoins,
                         unsigned int nMemPoolHeight, int flags)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForBlock(const std::vector<CTransactionRef> &vtx,
-                        unsigned int nBlockHeight);
+                        unsigned int nBlockHeight) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void clear();
     // lock free
@@ -641,7 +633,8 @@ public:
      * the tx is not dependent on other mempool transactions to be included in a
      * block.
      */
-    bool HasNoInputsOf(const CTransaction &tx) const;
+    bool HasNoInputsOf(const CTransaction &tx) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Affect CreateNewBlock prioritisation of transactions */
     void PrioritiseTransaction(const TxId &txid, const Amount nFeeDelta);
@@ -685,7 +678,7 @@ public:
      * disconnected block that have been accepted back into the mempool.
      */
     void UpdateTransactionsFromBlock(const std::vector<TxId> &txidsToUpdate)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -730,18 +723,20 @@ public:
      * this mempool.
      */
     void TrimToSize(size_t sizelimit,
-                    std::vector<COutPoint> *pvNoSpendsRemaining = nullptr);
+                    std::vector<COutPoint> *pvNoSpendsRemaining = nullptr)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Expire all transaction (and their dependencies) in the mempool older than
      * time. Return the number of removed transactions.
      */
-    int Expire(std::chrono::seconds time);
+    int Expire(std::chrono::seconds time) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Reduce the size of the mempool by expiring and then trimming the mempool.
      */
-    void LimitSize(size_t limit, std::chrono::seconds age);
+    void LimitSize(size_t limit, std::chrono::seconds age)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Calculate the ancestor and descendant count for the given transaction.
@@ -922,11 +917,12 @@ public:
     // Import mempool entries in topological order into queuedTx and clear the
     // mempool. Caller should call updateMempoolForReorg to reprocess these
     // transactions
-    void importMempool(CTxMemPool &pool);
+    void importMempool(CTxMemPool &pool) EXCLUSIVE_LOCKS_REQUIRED(pool.cs);
 
     // Add entries for a block while reconstructing the topological ordering so
     // they can be added back to the mempool simply.
-    void addForBlock(const std::vector<CTransactionRef> &vtx, CTxMemPool &pool);
+    void addForBlock(const std::vector<CTransactionRef> &vtx, CTxMemPool &pool)
+        EXCLUSIVE_LOCKS_REQUIRED(pool.cs);
 
     // Remove entries based on txid_index, and update memory usage.
     void removeForBlock(const std::vector<CTransactionRef> &vtx) {
@@ -971,7 +967,8 @@ public:
      * back, and instead just erase from the mempool as needed.
      */
     void updateMempoolForReorg(const Config &config, bool fAddToMempool,
-                               CTxMemPool &pool);
+                               CTxMemPool &pool)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs);
 };
 
 #endif // BITCOIN_TXMEMPOOL_H

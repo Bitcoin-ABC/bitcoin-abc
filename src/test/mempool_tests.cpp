@@ -883,27 +883,30 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
                 vtx.push_back(MakeTransactionRef(*tx));
             }
             DisconnectedBlockTransactions disconnectPool;
-            disconnectPool.addForBlock(vtx, testPool);
-            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
-                                     disconnectedTxns.size());
-
-            // If the mempool is empty, importMempool doesn't change
-            // disconnectPool
-            disconnectPool.importMempool(testPool);
-            CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
-                                     disconnectedTxns.size());
-
+            LOCK(testPool.cs);
             {
-                LOCK2(cs_main, testPool.cs);
-                // Add all unconfirmed transactions in testPool
-                for (auto tx : unconfTxns) {
-                    TestMemPoolEntryHelper entry;
-                    testPool.addUnchecked(entry.FromTx(*tx));
-                }
-            }
+                disconnectPool.addForBlock(vtx, testPool);
+                CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                         disconnectedTxns.size());
 
-            // Now we test importMempool with a non empty mempool
-            disconnectPool.importMempool(testPool);
+                // If the mempool is empty, importMempool doesn't change
+                // disconnectPool
+                disconnectPool.importMempool(testPool);
+                CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
+                                         disconnectedTxns.size());
+
+                {
+                    LOCK(cs_main);
+                    // Add all unconfirmed transactions in testPool
+                    for (auto tx : unconfTxns) {
+                        TestMemPoolEntryHelper entry;
+                        testPool.addUnchecked(entry.FromTx(*tx));
+                    }
+                }
+
+                // Now we test importMempool with a non empty mempool
+                disconnectPool.importMempool(testPool);
+            }
             CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
                                      disconnectedTxns.size() +
                                          unconfTxns.size());

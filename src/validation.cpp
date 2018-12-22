@@ -2344,6 +2344,7 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
                              ConnectTrace &connectTrace,
                              DisconnectedBlockTransactions &disconnectpool) {
     AssertLockHeld(cs_main);
+    AssertLockHeld(g_mempool.cs);
 
     const CChainParams &params = config.GetChainParams();
     const Consensus::Params &consensusParams = params.GetConsensus();
@@ -2823,7 +2824,9 @@ bool CChainState::ActivateBestChain(const Config &config,
         LimitValidationInterfaceQueue();
 
         {
-            LOCK(cs_main);
+            // Lock transaction pool for at least as long as it takes for
+            // connectTrace to be consumed
+            LOCK2(cs_main, ::g_mempool.cs);
             CBlockIndex *starting_tip = m_chain.Tip();
             bool blocks_connected = false;
             do {
@@ -3026,6 +3029,10 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         LimitValidationInterfaceQueue();
 
         LOCK(cs_main);
+        // Lock for as long as disconnectpool is in scope to make sure
+        // UpdateMempoolForReorg is called after DisconnectTip without unlocking
+        // in between
+        LOCK(::g_mempool.cs);
 
         if (!m_chain.Contains(pindex)) {
             break;
@@ -3048,7 +3055,7 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // keeping the mempool up to date is probably futile anyway).
         disconnectpool.updateMempoolForReorg(
             config, /* fAddToMempool = */ (++disconnected <= 10) && ret,
-            g_mempool);
+            ::g_mempool);
 
         if (!ret) {
             return false;

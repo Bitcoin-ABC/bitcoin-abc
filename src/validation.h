@@ -23,6 +23,7 @@
 #include <script/script_error.h>
 #include <script/script_metrics.h>
 #include <sync.h>
+#include <txmempool.h> // For CTxMemPool::cs
 #include <versionbits.h>
 
 #include <algorithm>
@@ -872,7 +873,7 @@ public:
     // Block disconnection on our pcoinsTip:
     bool DisconnectTip(const CChainParams &params, BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
 
     // Manual block validity manipulation:
     bool PreciousBlock(const Config &config, BlockValidationState &state,
@@ -932,13 +933,13 @@ private:
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
                                bool &fInvalidFound, ConnectTrace &connectTrace)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
     bool ConnectTip(const Config &config, BlockValidationState &state,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
                     DisconnectedBlockTransactions &disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, ::g_mempool.cs);
     void InvalidBlockFound(CBlockIndex *pindex,
                            const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
