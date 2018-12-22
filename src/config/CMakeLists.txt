@@ -116,11 +116,6 @@ check_builtin_exist(__builtin_popcount HAVE_DECL___BUILTIN_POPCOUNT)
 check_symbol_exists(M_ARENA_MAX "malloc.h" HAVE_MALLOPT_ARENA_MAX)
 check_symbol_exists(malloc_info "malloc.h" HAVE_MALLOC_INFO)
 
-# Check for compiler features.
-if (cxx_thread_local IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-	set(HAVE_THREAD_LOCAL 1)
-endif()
-
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
 check_symbol_exists(daemon "unistd.h" HAVE_DECL_DAEMON)
