@@ -96,6 +96,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	prevector_tests.cpp
 	raii_event_tests.cpp
 	random_tests.cpp
+	rcu_tests.cpp
 	reverselock_tests.cpp
 	rpc_tests.cpp
 	rwcollection_tests.cpp
