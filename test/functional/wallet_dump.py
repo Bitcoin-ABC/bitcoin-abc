@@ -74,9 +74,9 @@ class WalletDumpTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [["-keypool=90"]]
-        self.rpc_timewait = 120
+        self.rpc_timeout = 120
 
-    def setup_network(self, split=False):
+    def setup_network(self):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
 

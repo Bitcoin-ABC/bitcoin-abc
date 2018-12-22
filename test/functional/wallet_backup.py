@@ -53,7 +53,7 @@ class WalletBackupTest(BitcoinTestFramework):
         self.extra_args = [["-keypool=100"],
                            ["-keypool=100"], ["-keypool=100"], []]
 
-    def setup_network(self, split=False):
+    def setup_network(self):
         self.setup_nodes()
         connect_nodes(self.nodes[0], self.nodes[3])
         connect_nodes(self.nodes[1], self.nodes[3])

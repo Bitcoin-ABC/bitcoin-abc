@@ -32,7 +32,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.extra_args = [[], [], [], []]
 
-    def setup_network(self, split=False):
+    def setup_network(self):
         self.setup_nodes()
 
         connect_nodes_bi(self.nodes[0], self.nodes[1])
