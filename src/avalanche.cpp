@@ -303,7 +303,9 @@ bool AvalancheProcessor::stopEventLoop() {
     stopRequest = true;
 
     // Wait for avalanche to stop.
-    cond_running.wait(lock, [this] { return !running; });
+    cond_running.wait(lock, [this]() EXCLUSIVE_LOCKS_REQUIRED(cs_running) {
+        return !running;
+    });
 
     stopRequest = false;
     return true;

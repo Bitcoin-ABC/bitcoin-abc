@@ -914,7 +914,8 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &reason)
 }
 
 // overloaded variant of above to operate on CNode*s
-static void Misbehaving(CNode *node, int howmuch, const std::string &reason) {
+static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     Misbehaving(node->GetId(), howmuch, reason);
 }
 

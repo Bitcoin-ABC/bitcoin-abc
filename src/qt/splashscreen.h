@@ -40,7 +40,7 @@ public Q_SLOTS:
     void setBreakAction(const std::function<void(void)> &action);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *ev);
+    bool eventFilter(QObject *obj, QEvent *ev) override;
 
 private:
     /** Connect core signals to splash screen */
