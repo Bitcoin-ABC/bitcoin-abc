@@ -239,7 +239,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
         #                          /
         # (200)->(201)-> // ->(209)->(210)
         delay_node = self.nodes[2]
-        assert_equal(delay_node.getbestblockhash(), alt_node_new_tip)
+        wait_for_tip(delay_node, alt_node_new_tip)
         assert_equal(delay_node.getfinalizedblockhash(), str())
 
         self.log.info(
