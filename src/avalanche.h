@@ -144,8 +144,15 @@ public:
 class AvalancheBlockUpdate {
     union {
         CBlockIndex *pindex;
-        size_t raw;
+        uintptr_t raw;
     };
+
+    static const size_t STATUS_BITS = 2;
+    static const uintptr_t MASK = (1 << STATUS_BITS) - 1;
+
+    static_assert(
+        alignof(CBlockIndex) >= (1 << STATUS_BITS),
+        "CBlockIndex alignement doesn't allow for Status to be stored.");
 
 public:
     enum Status : uint8_t {
@@ -160,10 +167,10 @@ public:
         raw |= statusIn;
     }
 
-    Status getStatus() const { return Status(raw & 0x03); }
+    Status getStatus() const { return Status(raw & MASK); }
 
     CBlockIndex *getBlockIndex() {
-        return reinterpret_cast<CBlockIndex *>(raw & -size_t(0x04));
+        return reinterpret_cast<CBlockIndex *>(raw & ~MASK);
     }
 
     const CBlockIndex *getBlockIndex() const {
