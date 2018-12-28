@@ -220,7 +220,47 @@ def count_format_specifiers(format_string):
     return n
 
 
-def main():
+def main(args_in):
+    """ Return a string output with information on string format errors
+
+    >>> main(["printit", "test/lint/lint-format-strings-tests.txt"])
+    0
+
+    >>> main(["printme", "test/lint/lint-format-strings-tests.txt"])
+    test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 2 argument(s): printme("%d", 1, 2)
+    test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printme("%a %b", 1, 2, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): printme("%d")
+    test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): printme("%a%b%z", 1, "anything")
+    1
+
+    >>> main(["printme", "test/lint/lint-format-strings-tests-skip-arguments.txt"])
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 2 argument(s): printme(skipped, "%d", 1)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 4 argument(s): printme(skipped, "%a%b%z", 1, "anything", 3)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 3 argument(s): printme(skipped, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 1 argument(s): printme(skipped, "%d")
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 3 argument(s): printme(skip1, skip2, "%d", 1)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 5 argument(s): printme(skip1, skip2, "%a%b%z", 1, "anything", 3)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 4 argument(s): printme(skip1, skip2, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 2 argument(s): printme(skip1, skip2, "%d")
+    1
+
+    >>> main(["--skip-arguments=1", "printme", "test/lint/lint-format-strings-tests-skip-arguments.txt"])
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): printme(skipped, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): printme(skipped, "%d")
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 2 argument(s): printme(skip1, skip2, "%d", 1)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 4 argument(s): printme(skip1, skip2, "%a%b%z", 1, "anything", 3)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 3 argument(s): printme(skip1, skip2, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 1 argument(s): printme(skip1, skip2, "%d")
+    1
+
+    >>> main(["--skip-arguments=2", "printme", "test/lint/lint-format-strings-tests-skip-arguments.txt"])
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 2 argument(s): printme(skipped, "%a%b%z", 1, "anything", 3)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 0 argument(s) after format string but found 1 argument(s): printme(skipped, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Could not parse function call string "printme(...)": printme(skipped, "%d")
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): printme(skip1, skip2, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): printme(skip1, skip2, "%d")
+    1
+    """
     parser = argparse.ArgumentParser(description="This program checks that the number of arguments passed "
                                      "to a variadic format string function matches the number of format "
                                      "specifiers in the format string.")
@@ -230,7 +270,7 @@ def main():
         "function_name", help="function name (e.g. fprintf)", default=None)
     parser.add_argument("file", type=argparse.FileType(
         "r", encoding="utf-8"), nargs="*", help="C++ source code file (e.g. foo.cpp)")
-    args = parser.parse_args()
+    args = parser.parse_args(args_in)
 
     exit_code = 0
     for f in args.file:
@@ -253,8 +293,8 @@ def main():
                 print("{}: Expected {} argument(s) after format string but found {} argument(s): {}".format(
                     f.name, format_specifier_count, argument_count, relevant_function_call_str))
                 continue
-    sys.exit(exit_code)
+    return exit_code
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))
