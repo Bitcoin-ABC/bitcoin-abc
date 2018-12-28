@@ -223,4 +223,89 @@ BOOST_AUTO_TEST_CASE(test_userAgent) {
     BOOST_CHECK_EQUAL(userAgent(config), versionMessage);
 }
 
+BOOST_AUTO_TEST_CASE(LimitedAndReachable_Network) {
+    SetLimited(NET_IPV4, true);
+    SetLimited(NET_IPV6, true);
+    SetLimited(NET_ONION, true);
+
+    BOOST_CHECK_EQUAL(IsLimited(NET_IPV4), true);
+    BOOST_CHECK_EQUAL(IsLimited(NET_IPV6), true);
+    BOOST_CHECK_EQUAL(IsLimited(NET_ONION), true);
+
+    BOOST_CHECK_EQUAL(IsReachable(NET_IPV4), false);
+    BOOST_CHECK_EQUAL(IsReachable(NET_IPV6), false);
+    BOOST_CHECK_EQUAL(IsReachable(NET_ONION), false);
+
+    SetLimited(NET_IPV4, false);
+    SetLimited(NET_IPV6, false);
+    SetLimited(NET_ONION, false);
+
+    BOOST_CHECK_EQUAL(IsLimited(NET_IPV4), false);
+    BOOST_CHECK_EQUAL(IsLimited(NET_IPV6), false);
+    BOOST_CHECK_EQUAL(IsLimited(NET_ONION), false);
+
+    BOOST_CHECK_EQUAL(IsReachable(NET_IPV4), true);
+    BOOST_CHECK_EQUAL(IsReachable(NET_IPV6), true);
+    BOOST_CHECK_EQUAL(IsReachable(NET_ONION), true);
+}
+
+BOOST_AUTO_TEST_CASE(LimitedAndReachable_NetworkCaseUnroutableAndInternal) {
+    BOOST_CHECK_EQUAL(IsLimited(NET_UNROUTABLE), false);
+    BOOST_CHECK_EQUAL(IsLimited(NET_INTERNAL), false);
+
+    BOOST_CHECK_EQUAL(IsReachable(NET_UNROUTABLE), true);
+    BOOST_CHECK_EQUAL(IsReachable(NET_INTERNAL), true);
+
+    SetLimited(NET_UNROUTABLE, true);
+    SetLimited(NET_INTERNAL, true);
+
+    // Ignored for both networks
+    BOOST_CHECK_EQUAL(IsLimited(NET_UNROUTABLE), false);
+    BOOST_CHECK_EQUAL(IsLimited(NET_INTERNAL), false);
+
+    BOOST_CHECK_EQUAL(IsReachable(NET_UNROUTABLE), true);
+    BOOST_CHECK_EQUAL(IsReachable(NET_INTERNAL), true);
+}
+
+CNetAddr UtilBuildAddress(uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4) {
+    uint8_t ip[] = {p1, p2, p3, p4};
+
+    struct sockaddr_in sa;
+    // initialize the memory block
+    memset(&sa, 0, sizeof(sockaddr_in));
+    memcpy(&(sa.sin_addr), &ip, sizeof(ip));
+    return CNetAddr(sa.sin_addr);
+}
+
+BOOST_AUTO_TEST_CASE(LimitedAndReachable_CNetAddr) {
+    // 1.1.1.1
+    CNetAddr addr = UtilBuildAddress(0x001, 0x001, 0x001, 0x001);
+
+    SetLimited(NET_IPV4, false);
+    BOOST_CHECK_EQUAL(IsLimited(addr), false);
+    BOOST_CHECK_EQUAL(IsReachable(addr), true);
+
+    SetLimited(NET_IPV4, true);
+    BOOST_CHECK_EQUAL(IsLimited(addr), true);
+    BOOST_CHECK_EQUAL(IsReachable(addr), false);
+
+    // have to reset this, because this is stateful.
+    SetLimited(NET_IPV4, false);
+}
+
+BOOST_AUTO_TEST_CASE(LocalAddress_BasicLifecycle) {
+    // 2.1.1.1:1000
+    CService addr =
+        CService(UtilBuildAddress(0x002, 0x001, 0x001, 0x001), 1000);
+
+    SetLimited(NET_IPV4, false);
+
+    BOOST_CHECK_EQUAL(IsLocal(addr), false);
+    BOOST_CHECK_EQUAL(AddLocal(addr, 1000), true);
+    BOOST_CHECK_EQUAL(IsLocal(addr), true);
+
+    RemoveLocal(addr);
+    BOOST_CHECK_EQUAL(IsLocal(addr), false);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
