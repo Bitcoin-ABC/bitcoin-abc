@@ -934,11 +934,16 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
 
 // To prevent fingerprinting attacks, only send blocks/headers outside of the
 // active chain if they are no more than a month older (both in time, and in
-// best equivalent proof of work) than the best header chain we know about.
-static bool StaleBlockRequestAllowed(const CBlockIndex *pindex,
-                                     const Consensus::Params &consensusParams) {
+// best equivalent proof of work) than the best header chain we know about and
+// we fully-validated them at some point.
+static bool BlockRequestAllowed(const CBlockIndex *pindex,
+                                const Consensus::Params &consensusParams) {
     AssertLockHeld(cs_main);
-    return (pindexBestHeader != nullptr) &&
+    if (chainActive.Contains(pindex)) {
+        return true;
+    }
+    return pindex->IsValid(BlockValidity::SCRIPTS) &&
+           (pindexBestHeader != nullptr) &&
            (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() <
             STALE_RELAY_AGE_LIMIT) &&
            (GetBlockProofEquivalentTime(*pindexBestHeader, *pindex,
@@ -1273,18 +1278,11 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                         CValidationState dummy;
                         ActivateBestChain(config, dummy, a_recent_block);
                     }
-                    if (chainActive.Contains(mi->second)) {
-                        send = true;
-                    } else {
-                        send = mi->second->IsValid(BlockValidity::SCRIPTS) &&
-                               StaleBlockRequestAllowed(mi->second,
-                                                        consensusParams);
-                        if (!send) {
-                            LogPrintf("%s: ignoring request from peer=%i for "
-                                      "old block that isn't in the main "
-                                      "chain\n",
-                                      __func__, pfrom->GetId());
-                        }
+                    send = BlockRequestAllowed(mi->second, consensusParams);
+                    if (!send) {
+                        LogPrintf("%s: ignoring request from peer=%i for old "
+                                  "block that isn't in the main chain\n",
+                                  __func__, pfrom->GetId());
                     }
                 }
 
@@ -2352,8 +2350,7 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             }
             pindex = (*mi).second;
 
-            if (!chainActive.Contains(pindex) &&
-                !StaleBlockRequestAllowed(pindex, chainparams.GetConsensus())) {
+            if (!BlockRequestAllowed(pindex, chainparams.GetConsensus())) {
                 LogPrintf("%s: ignoring request from peer=%i for old block "
                           "header that isn't in the main chain\n",
                           __func__, pfrom->GetId());
