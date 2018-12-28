@@ -6,7 +6,7 @@
 import os
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes_bi, sync_blocks, wait_until
+from test_framework.util import assert_equal, wait_until
 
 
 class ParkedChainTest(BitcoinTestFramework):
@@ -126,10 +126,13 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         # First, make sure both nodes are in sync.
-        parking_node = self.nodes[1]
-        connect_nodes_bi(self.nodes[0], self.nodes[1])
-        sync_blocks(self.nodes[0:2])
+        def wait_for_tip(node, tip):
+            def check_tip():
+                return node.getbestblockhash() == tip
+            wait_until(check_tip)
 
+        parking_node = self.nodes[1]
+        wait_for_tip(parking_node, good_tip)
         assert_equal(node.getbestblockhash(), parking_node.getbestblockhash())
 
         # Wait for node 1 to park the chain.
