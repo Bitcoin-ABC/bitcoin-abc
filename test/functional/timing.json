@@ -48,6 +48,10 @@
   "time": 2
  },
  {
+  "name": "abc-sync-chain.py",
+  "time": 11
+ },
+ {
   "name": "abc-transaction-ordering.py",
   "time": 6
  },
