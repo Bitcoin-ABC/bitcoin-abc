@@ -5,6 +5,8 @@
 
 # Test for -rpcbind, as well as -rpcallowip and -rpcconnect
 
+from platform import uname
+
 from test_framework.test_framework import BitcoinTestFramework, SkipTest
 from test_framework.util import *
 from test_framework.netutil import *
@@ -56,6 +58,15 @@ class RPCBindTest(BitcoinTestFramework):
         # due to OS-specific network stats queries, this test works only on Linux
         if not sys.platform.startswith('linux'):
             raise SkipTest("This test can only be run on linux.")
+
+        # WSL in currently not supported (refer to
+        # https://reviews.bitcoinabc.org/T400 for details).
+        # This condition should be removed once netstat support is provided by
+        # Microsoft.
+        if "microsoft" in uname().version.lower():
+            raise SkipTest(
+                "Running this test on WSL is currently not supported")
+
         # find the first non-loopback interface for testing
         non_loopback_ip = None
         for name, ip in all_interfaces():
