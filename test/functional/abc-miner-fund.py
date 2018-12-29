@@ -197,9 +197,9 @@ class MinerFundTest(BitcoinTestFramework):
         # to the fund and check it is rejected.
         node.invalidateblock(node.getbestblockhash())
 
-        block_height = node.getblockcount()
+        block_height = node.getblockcount() + 1
         block = create_block(
-            fork_block_hash, create_coinbase(block_height), PHONON_ACTIVATION_TIME + 99)
+            fork_block_hash, create_coinbase(block_height), PHONON_ACTIVATION_TIME + 99, version=4)
         block.solve()
 
         assert_equal(node.submitblock(ToHex(block)), 'bad-cb-minerfund')

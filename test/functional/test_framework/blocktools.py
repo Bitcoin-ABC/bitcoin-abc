@@ -31,9 +31,10 @@ from .util import assert_equal, satoshi_round
 TIME_GENESIS_BLOCK = 1296688602
 
 
-def create_block(hashprev, coinbase, ntime=None):
+def create_block(hashprev, coinbase, ntime=None, *, version=1):
     """Create a block (with regtest difficulty)."""
     block = CBlock()
+    block.nVersion = version
     if ntime is None:
         import time
         block.nTime = int(time.time() + 600)
