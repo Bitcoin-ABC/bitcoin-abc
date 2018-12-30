@@ -10,11 +10,13 @@
 #include <util/system.h>
 #include <validation.h>
 
-#include <boost/signals2/signal.hpp>
-
 #include <atomic>
 #include <future>
 #include <list>
+#include <utility>
+#include <tuple>
+
+#include <boost/signals2/signal.hpp>
 
 struct ValidationInterfaceConnections {
     boost::signals2::scoped_connection UpdatedBlockTip;
@@ -92,9 +94,10 @@ size_t CMainSignals::CallbacksPending() {
 
 void CMainSignals::RegisterWithMempoolSignals(CTxMemPool &pool) {
     g_connNotifyEntryRemoved.emplace(
-        &pool, pool.NotifyEntryRemoved.connect(
-                   std::bind(&CMainSignals::MempoolEntryRemoved, this,
-                             std::placeholders::_1, std::placeholders::_2)));
+        std::piecewise_construct, std::forward_as_tuple(&pool),
+        std::forward_as_tuple(pool.NotifyEntryRemoved.connect(
+            std::bind(&CMainSignals::MempoolEntryRemoved, this,
+                      std::placeholders::_1, std::placeholders::_2))));
 }
 
 void CMainSignals::UnregisterWithMempoolSignals(CTxMemPool &pool) {
