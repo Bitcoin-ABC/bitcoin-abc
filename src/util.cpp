@@ -727,13 +727,7 @@ bool SetupNetworking() {
 }
 
 int GetNumCores() {
-#if BOOST_VERSION >= 105600
     return boost::thread::physical_concurrency();
-#else
-    // Must fall back to hardware_concurrency, which unfortunately counts
-    // virtual cores.
-    return boost::thread::hardware_concurrency();
-#endif
 }
 
 std::string CopyrightHolders(const std::string &strPrefix) {

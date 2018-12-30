@@ -18,14 +18,6 @@ CScheduler::~CScheduler() {
     assert(nThreadsServicingQueue == 0);
 }
 
-#if BOOST_VERSION < 105000
-static boost::system_time
-toPosixTime(const boost::chrono::system_clock::time_point &t) {
-    return boost::posix_time::from_time_t(
-        boost::chrono::system_clock::to_time_t(t));
-}
-#endif
-
 void CScheduler::serviceQueue() {
     boost::unique_lock<boost::mutex> lock(newTaskMutex);
     ++nThreadsServicingQueue;
@@ -44,17 +36,8 @@ void CScheduler::serviceQueue() {
                 newTaskScheduled.wait(lock);
             }
 
-// Wait until either there is a new task, or until the time of the first item on
-// the queue:
-
-// wait_until needs boost 1.50 or later; older versions have timed_wait:
-#if BOOST_VERSION < 105000
-            while (!shouldStop() && !taskQueue.empty() &&
-                   newTaskScheduled.timed_wait(
-                       lock, toPosixTime(taskQueue.begin()->first))) {
-                // Keep waiting until timeout
-            }
-#else
+            // Wait until either there is a new task, or until the time of the
+            // first item on the queue.
             // Some boost versions have a conflicting overload of wait_until
             // that returns void. Explicitly use a template here to avoid
             // hitting that overload.
@@ -68,7 +51,7 @@ void CScheduler::serviceQueue() {
                     break;
                 }
             }
-#endif
+
             // If there are multiple threads, the queue can empty while we're
             // waiting (another thread may service the task we were waiting on).
             if (shouldStop() || taskQueue.empty()) {
