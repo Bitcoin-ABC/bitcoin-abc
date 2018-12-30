@@ -312,9 +312,9 @@ bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
     }
 
     QUrlQuery uri((QUrl(s)));
+#ifdef ENABLE_BIP70
     // payment request URI
     if (uri.hasQueryItem("r")) {
-#ifdef ENABLE_BIP70
         QByteArray temp;
         temp.append(uri.queryItemValue("r").toUtf8());
         QString decoded = QUrl::fromPercentEncoding(temp);
@@ -332,21 +332,24 @@ bool PaymentServer::handleURI(const CChainParams &params, const QString &s) {
                                .arg(fetchUrl.toString()),
                            CClientUIInterface::ICON_WARNING);
         }
-
-#else
-        Q_EMIT message(tr("URI handling"),
-                       tr("Cannot process payment request because BIP70 "
-                          "support was not compiled in."),
-                       CClientUIInterface::ICON_WARNING);
-#endif
         return true;
     }
+#endif
 
     // normal URI
     SendCoinsRecipient recipient;
     if (GUIUtil::parseBitcoinURI(scheme, s, &recipient)) {
         if (!IsValidDestinationString(recipient.address.toStdString(),
                                       params)) {
+#ifndef ENABLE_BIP70
+            // payment request
+            if (uri.hasQueryItem("r")) {
+                Q_EMIT message(tr("URI handling"),
+                               tr("Cannot process payment request because "
+                                  "BIP70 support was not compiled in."),
+                               CClientUIInterface::ICON_WARNING);
+            }
+#endif
             Q_EMIT message(
                 tr("URI handling"),
                 tr("Invalid payment address %1").arg(recipient.address),
@@ -376,9 +379,9 @@ void PaymentServer::handleURIOrFile(const QString &s) {
         return;
     }
 
-#ifdef ENABLE_BIP70
     // payment request file
     if (QFile::exists(s)) {
+#ifdef ENABLE_BIP70
         PaymentRequestPlus request;
         SendCoinsRecipient recipient;
         if (!readPaymentRequestFromFile(s, request)) {
@@ -391,8 +394,13 @@ void PaymentServer::handleURIOrFile(const QString &s) {
         }
 
         return;
-    }
+#else
+        Q_EMIT message(tr("Payment request file handling"),
+                       tr("Cannot process payment request because BIP70 "
+                          "support was not compiled in."),
+                       CClientUIInterface::ICON_WARNING);
 #endif
+    }
 }
 
 void PaymentServer::handleURIConnection() {
