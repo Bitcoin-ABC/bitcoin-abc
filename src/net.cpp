@@ -2302,7 +2302,8 @@ void Discover() {
                 continue;
             }
             if (ifa->ifa_addr->sa_family == AF_INET) {
-                struct sockaddr_in *s4 = (struct sockaddr_in *)(ifa->ifa_addr);
+                struct sockaddr_in *s4 =
+                    reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
                 CNetAddr addr(s4->sin_addr);
                 if (AddLocal(addr, LOCAL_IF)) {
                     LogPrintf("%s: IPv4 %s: %s\n", __func__, ifa->ifa_name,
@@ -2310,7 +2311,7 @@ void Discover() {
                 }
             } else if (ifa->ifa_addr->sa_family == AF_INET6) {
                 struct sockaddr_in6 *s6 =
-                    (struct sockaddr_in6 *)(ifa->ifa_addr);
+                    reinterpret_cast<struct sockaddr_in6 *>(ifa->ifa_addr);
                 CNetAddr addr(s6->sin6_addr);
                 if (AddLocal(addr, LOCAL_IF)) {
                     LogPrintf("%s: IPv6 %s: %s\n", __func__, ifa->ifa_name,
