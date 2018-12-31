@@ -91,12 +91,14 @@ static bool LookupIntern(const char *pszName, std::vector<CNetAddr> &vIP,
         if (aiTrav->ai_family == AF_INET) {
             assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in));
             resolved =
-                CNetAddr(((struct sockaddr_in *)(aiTrav->ai_addr))->sin_addr);
+                CNetAddr(reinterpret_cast<struct sockaddr_in *>(aiTrav->ai_addr)
+                             ->sin_addr);
         }
 
         if (aiTrav->ai_family == AF_INET6) {
             assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in6));
-            struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)aiTrav->ai_addr;
+            struct sockaddr_in6 *s6 =
+                reinterpret_cast<struct sockaddr_in6 *>(aiTrav->ai_addr);
             resolved = CNetAddr(s6->sin6_addr, s6->sin6_scope_id);
         }
 
