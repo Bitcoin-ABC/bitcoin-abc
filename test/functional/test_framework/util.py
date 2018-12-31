@@ -393,7 +393,7 @@ def disconnect_nodes(from_node, to_node):
 
 
 def connect_nodes(from_node, to_node):
-    ip_port = "127.0.0.1:" + str(p2p_port(to_node.index))
+    ip_port = "127.0.0.1:" + str(to_node.p2p_port)
     from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
