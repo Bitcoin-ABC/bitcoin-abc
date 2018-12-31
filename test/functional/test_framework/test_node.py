@@ -41,6 +41,7 @@ class TestNode():
         self.index = i
         self.datadir = os.path.join(dirname, "node" + str(i))
         self.rpchost = rpchost
+        self.name = "testnode-{}".format(i)
         if timewait:
             self.rpc_timeout = timewait
         else:
@@ -55,7 +56,7 @@ class TestNode():
         # Most callers will just need to add extra args to the standard list below. For those callers that need more flexibity, they can just set the args property directly.
         self.extra_args = extra_args
         self.args = [self.binary, "-datadir=" + self.datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-logtimemicros",
-                     "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=testnode%d" % i]
+                     "-debug", "-debugexclude=libevent", "-debugexclude=leveldb", "-mocktime=" + str(mocktime), "-uacomment=" + self.name]
 
         self.cli = TestNodeCLI(
             os.getenv("BITCOINCLI", "bitcoin-cli"), self.datadir)
