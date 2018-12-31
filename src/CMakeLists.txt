@@ -218,6 +218,7 @@ add_compiler_flags(
 	-Wall
 	-Wextra
 	-Wformat
+	-Wgnu
 	-Wvla
 	-Wcast-align
 	-Wunused-parameter
