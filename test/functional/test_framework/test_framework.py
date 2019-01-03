@@ -29,6 +29,7 @@ from .util import (
     initialize_datadir,
     log_filename,
     p2p_port,
+    rpc_port,
     set_node_times,
     sync_blocks,
     sync_mempools,
@@ -237,7 +238,7 @@ class BitcoinTestFramework():
         assert_equal(len(extra_args), num_nodes)
         assert_equal(len(binary), num_nodes)
         for i in range(num_nodes):
-            self.nodes.append(TestNode(i, self.options.tmpdir, extra_args[i], rpchost, p2p_port=p2p_port(i),
+            self.nodes.append(TestNode(i, self.options.tmpdir, extra_args[i], rpchost, rpc_port=rpc_port(i), p2p_port=p2p_port(i),
                                        timewait=timewait, binary=binary[i], stderr=None, mocktime=self.mocktime, coverage_dir=self.options.coveragedir))
 
     def start_node(self, i, extra_args=None, stderr=None):
@@ -418,7 +419,7 @@ class BitcoinTestFramework():
                         "-keypool=1", "-datadir=" + datadir, "-discover=0"]
                 if i > 0:
                     args.append("-connect=127.0.0.1:" + str(p2p_port(0)))
-                self.nodes.append(TestNode(i, self.options.cachedir, extra_args=[], rpchost=None, p2p_port=p2p_port(i),
+                self.nodes.append(TestNode(i, self.options.cachedir, extra_args=[], rpchost=None, rpc_port=rpc_port(i), p2p_port=p2p_port(i),
                                            timewait=None, binary=None, stderr=None, mocktime=self.mocktime, coverage_dir=None))
                 self.nodes[i].args = args
                 self.start_node(i)
