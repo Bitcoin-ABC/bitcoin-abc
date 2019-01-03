@@ -179,6 +179,7 @@ BITCOIN_CORE_H = \
   rpc/server.h \
   rpc/tojson.h \
   rpc/register.h \
+  rpc/util.h \
   rwcollection.h \
   scheduler.h \
   script/scriptcache.h \
@@ -443,6 +444,7 @@ libbitcoin_util_a_SOURCES = \
   random.cpp \
   rcu.cpp \
   rpc/protocol.cpp \
+  rpc/util.cpp \
   support/cleanse.cpp \
   sync.cpp \
   threadinterrupt.cpp \

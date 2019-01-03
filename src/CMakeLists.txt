@@ -136,6 +136,7 @@ add_library(util
 	random.cpp
 	rcu.cpp
 	rpc/protocol.cpp
+	rpc/util.cpp
 	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp

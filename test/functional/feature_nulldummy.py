@@ -49,7 +49,8 @@ class NULLDUMMYTest(BitcoinTestFramework):
 
     def run_test(self):
         self.address = self.nodes[0].getnewaddress()
-        self.ms_address = self.nodes[0].addmultisigaddress(1, [self.address])
+        self.ms_address = self.nodes[0].addmultisigaddress(1, [self.address])[
+            'address']
 
         network_thread_start()
         # Block 2

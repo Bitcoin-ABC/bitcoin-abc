@@ -95,7 +95,7 @@ class WalletDumpTest(BitcoinTestFramework):
 
         # Test scripts dump by adding a 1-of-1 multisig address
         multisig_addr = self.nodes[0].addmultisigaddress(
-            1, [addrs[0]["address"]])
+            1, [addrs[0]["address"]])["address"]
 
         # dump unencrypted wallet
         result = self.nodes[0].dumpwallet(

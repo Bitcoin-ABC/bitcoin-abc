@@ -17,6 +17,7 @@
 #include <rpc/misc.h>
 #include <rpc/rawtransaction.h>
 #include <rpc/server.h>
+#include <rpc/util.h>
 #include <timedata.h>
 #include <util.h>
 #include <utilmoneystr.h>
@@ -1339,8 +1340,8 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
     return tx->GetId().GetHex();
 }
 
-static UniValue addmultisigaddress(const Config &config,
-                                   const JSONRPCRequest &request) {
+UniValue addmultisigaddress(const Config &config,
+                            const JSONRPCRequest &request) {
     CWallet *const pwallet = GetWalletForJSONRPCRequest(request);
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
@@ -1370,8 +1371,18 @@ static UniValue addmultisigaddress(const Config &config,
             "assign the addresses to.\n"
 
             "\nResult:\n"
-            "\"address\"         (string) A bitcoin address associated with "
-            "the keys.\n"
+            "{\n"
+            "  \"address\":\"multisigaddress\",    (string) The value of the "
+            "new multisig address.\n"
+            "  \"redeemScript\":\"script\"         (string) The string value "
+            "of the hex-encoded redemption script.\n"
+            "}\n"
+            "\nResult (DEPRECATED. To see this result in v0.19.6 instead, "
+            "please start bitcoind with -deprecatedrpc=addmultisigaddress).\n"
+            "        clients should transition to the new output api before "
+            "upgrading to v0.20.\n"
+            "\"address\"                         (string) A bitcoin address "
+            "associated with the keys.\n"
 
             "\nExamples:\n"
             "\nAdd a multisig address from 2 addresses\n" +
@@ -1394,13 +1405,38 @@ static UniValue addmultisigaddress(const Config &config,
         label = LabelFromValue(request.params[2]);
     }
 
+    int required = request.params[0].get_int();
+
+    // Get the public keys
+    const UniValue &keys_or_addrs = request.params[1].get_array();
+    std::vector<CPubKey> pubkeys;
+    for (size_t i = 0; i < keys_or_addrs.size(); ++i) {
+        if (IsHex(keys_or_addrs[i].get_str()) &&
+            (keys_or_addrs[i].get_str().length() == 66 ||
+             keys_or_addrs[i].get_str().length() == 130)) {
+            pubkeys.push_back(HexToPubKey(keys_or_addrs[i].get_str()));
+        } else {
+            pubkeys.push_back(AddrToPubKey(config.GetChainParams(), pwallet,
+                                           keys_or_addrs[i].get_str()));
+        }
+    }
+
     // Construct using pay-to-script-hash:
-    CScript inner = createmultisig_redeemScript(pwallet, request.params);
+    CScript inner = CreateMultisigRedeemscript(required, pubkeys);
     CScriptID innerID(inner);
     pwallet->AddCScript(inner);
 
     pwallet->SetAddressBook(innerID, label, "send");
-    return EncodeDestination(innerID);
+
+    // Return old style interface
+    if (IsDeprecatedRPCEnabled(gArgs, "addmultisigaddress")) {
+        return EncodeDestination(innerID);
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("address", EncodeDestination(innerID));
+    result.pushKV("redeemScript", HexStr(inner.begin(), inner.end()));
+    return result;
 }
 
 struct tallyitem {

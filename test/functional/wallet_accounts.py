@@ -124,7 +124,7 @@ class WalletLabelsTest(BitcoinTestFramework):
             for x in range(10):
                 addresses.append(node.getnewaddress())
             multisig_address = node.addmultisigaddress(
-                5, addresses, label.name)
+                5, addresses, label.name)['address']
             label.add_address(multisig_address)
             label.verify(node)
             node.sendfrom("", multisig_address, 50)

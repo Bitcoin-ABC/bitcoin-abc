@@ -108,8 +108,18 @@ class RawTransactionsTest(BitcoinTestFramework):
         addr1Obj = self.nodes[2].validateaddress(addr1)
         addr2Obj = self.nodes[2].validateaddress(addr2)
 
-        mSigObj = self.nodes[2].addmultisigaddress(
+        # Tests for createmultisig and addmultisigaddress
+        assert_raises_rpc_error(-5, "Invalid public key",
+                                self.nodes[0].createmultisig, 1, ["01020304"])
+        # createmultisig can only take public keys
+        self.nodes[0].createmultisig(
             2, [addr1Obj['pubkey'], addr2Obj['pubkey']])
+        # addmultisigaddress can take both pubkeys and addresses so long as they are in the wallet, which is tested here.
+        assert_raises_rpc_error(-5, "Invalid public key",
+                                self.nodes[0].createmultisig, 2, [addr1Obj['pubkey'], addr1])
+
+        mSigObj = self.nodes[2].addmultisigaddress(
+            2, [addr1Obj['pubkey'], addr1])['address']
 
         # use balance deltas instead of absolute values
         bal = self.nodes[2].getbalance()
@@ -134,7 +144,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         addr3Obj = self.nodes[2].validateaddress(addr3)
 
         mSigObj = self.nodes[2].addmultisigaddress(
-            2, [addr1Obj['pubkey'], addr2Obj['pubkey'], addr3Obj['pubkey']])
+            2, [addr1Obj['pubkey'], addr2Obj['pubkey'], addr3Obj['pubkey']])['address']
 
         txId = self.nodes[0].sendtoaddress(mSigObj, 2.2)
         decTx = self.nodes[0].gettransaction(txId)
@@ -195,9 +205,9 @@ class RawTransactionsTest(BitcoinTestFramework):
         addr2Obj = self.nodes[2].validateaddress(addr2)
 
         self.nodes[1].addmultisigaddress(
-            2, [addr1Obj['pubkey'], addr2Obj['pubkey']])
+            2, [addr1Obj['pubkey'], addr2Obj['pubkey']])['address']
         mSigObj = self.nodes[2].addmultisigaddress(
-            2, [addr1Obj['pubkey'], addr2Obj['pubkey']])
+            2, [addr1Obj['pubkey'], addr2Obj['pubkey']])['address']
         mSigObjValid = self.nodes[2].validateaddress(mSigObj)
 
         txId = self.nodes[0].sendtoaddress(mSigObj, 2.2)
