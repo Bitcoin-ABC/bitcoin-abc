@@ -112,8 +112,7 @@ void BanMan::Ban(const CNetAddr &netAddr, const BanReason &banReason,
 
 void BanMan::Ban(const CSubNet &subNet, const BanReason &banReason,
                  int64_t bantimeoffset, bool sinceUnixEpoch) {
-    CBanEntry banEntry(GetTime());
-    banEntry.banReason = banReason;
+    CBanEntry banEntry(GetTime(), banReason);
 
     int64_t normalized_bantimeoffset = bantimeoffset;
     bool normalized_sinceUnixEpoch = sinceUnixEpoch;
