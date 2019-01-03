@@ -310,16 +310,10 @@ def rpc_port(n):
     return PORT_MIN + PORT_RANGE + n + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
 
 
-def rpc_url(datadir, i, rpchost=None):
+def rpc_url(datadir, host, port):
     rpc_u, rpc_p = get_auth_cookie(datadir)
-    host = '127.0.0.1'
-    port = rpc_port(i)
-    if rpchost:
-        parts = rpchost.split(':')
-        if len(parts) == 2:
-            host, port = parts
-        else:
-            host = rpchost
+    if host == None:
+        host = '127.0.0.1'
     return "http://%s:%s@%s:%d" % (rpc_u, rpc_p, host, int(port))
 
 # Node functions
@@ -393,7 +387,10 @@ def disconnect_nodes(from_node, to_node):
 
 
 def connect_nodes(from_node, to_node):
-    ip_port = "127.0.0.1:" + str(to_node.p2p_port)
+    host = to_node.host
+    if host == None:
+        host = '127.0.0.1'
+    ip_port = host + ':' + str(to_node.p2p_port)
     from_node.addnode(ip_port, "onetry")
     # poll until version handshake complete to avoid race conditions
     # with transaction relaying
