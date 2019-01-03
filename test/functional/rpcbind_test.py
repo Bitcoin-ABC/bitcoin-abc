@@ -32,7 +32,13 @@ class RPCBindTest(BitcoinTestFramework):
         if allow_ips:
             base_args += ['-rpcallowip=' + x for x in allow_ips]
         binds = ['-rpcbind=' + addr for addr in addresses]
-        self.nodes[0].rpchost = connect_to
+        parts = connect_to.split(':')
+        if len(parts) == 2:
+            self.nodes[0].host = parts[0]
+            self.nodes[0].rpc_port = parts[1]
+        else:
+            self.nodes[0].host = connect_to
+            self.nodes[0].rpc_port = rpc_port(self.nodes[0].index)
         self.start_node(0, base_args + binds)
         pid = self.nodes[0].process.pid
         assert_equal(set(get_bind_addrs(pid)), set(expected))
@@ -46,11 +52,12 @@ class RPCBindTest(BitcoinTestFramework):
         self.log.info("Allow IP test for %s:%d" % (rpchost, rpcport))
         base_args = ['-disablewallet', '-nolisten'] + \
             ['-rpcallowip=' + x for x in allow_ips]
-        self.nodes[0].rpchost = None
+        self.nodes[0].host = None
         self.start_nodes([base_args])
         # connect to node through non-loopback interface
-        node = get_rpc_proxy(rpc_url(get_datadir_path(self.options.tmpdir, 0), 0, "%s:%d" % (
-            rpchost, rpcport)), 0, coveragedir=self.options.coveragedir)
+        url = rpc_url(get_datadir_path(self.options.tmpdir, 0),
+                      rpchost, rpcport)
+        node = get_rpc_proxy(url, 0, coveragedir=self.options.coveragedir)
         node.getnetworkinfo()
         self.stop_nodes()
 
