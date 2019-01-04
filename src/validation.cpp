@@ -4604,12 +4604,11 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     for (pindex = ::ChainActive().Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
         boost::this_thread::interruption_point();
-        int percentageDone =
+        const int percentageDone =
             std::max(1, std::min(99, (int)(((double)(::ChainActive().Height() -
                                                      pindex->nHeight)) /
                                            (double)nCheckDepth *
                                            (nCheckLevel >= 4 ? 50 : 100))));
-
         if (reportDone < percentageDone / 10) {
             // report every 10% step
             LogPrintfToBeContinued("[%d%%]...", percentageDone);
@@ -4702,14 +4701,17 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
     if (nCheckLevel >= 4) {
         while (pindex != ::ChainActive().Tip()) {
             boost::this_thread::interruption_point();
-            uiInterface.ShowProgress(
-                _("Verifying blocks...").translated,
-                std::max(
-                    1, std::min(99,
-                                100 - (int)(((double)(::ChainActive().Height() -
-                                                      pindex->nHeight)) /
-                                            (double)nCheckDepth * 50))),
-                false);
+            const int percentageDone = std::max(
+                1, std::min(99, 100 - int(double(::ChainActive().Height() -
+                                                 pindex->nHeight) /
+                                          double(nCheckDepth) * 50)));
+            if (reportDone < percentageDone / 10) {
+                // report every 10% step
+                LogPrintfToBeContinued("[%d%%]...", percentageDone);
+                reportDone = percentageDone / 10;
+            }
+            uiInterface.ShowProgress(_("Verifying blocks...").translated,
+                                     percentageDone, false);
             pindex = ::ChainActive().Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
