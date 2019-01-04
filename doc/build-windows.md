@@ -15,6 +15,8 @@ Other options which may work but which have not been extensively tested are (ple
 * On Windows using a POSIX compatibility layer application such as [cygwin](http://www.cygwin.com/) or [msys2](http://www.msys2.org/).
 * On Windows using a native compiler tool chain such as [Visual Studio](https://www.visualstudio.com).
 
+In any case please make sure that the compiler supports C++14.
+
 Installing Windows Subsystem for Linux
 ---------------------------------------
 

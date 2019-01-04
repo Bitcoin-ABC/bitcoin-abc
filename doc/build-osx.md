@@ -32,6 +32,8 @@ In case you want to build the disk image with `make deploy` (.dmg / optional), y
 Build Bitcoin ABC
 -----------------
 
+Before you start building, please make sure that your compiler supports C++14.
+
 1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
 
         git clone https://github.com/Bitcoin-ABC/bitcoin-abc.git

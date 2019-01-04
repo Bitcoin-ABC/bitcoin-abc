@@ -17,6 +17,8 @@ the usage of the absolute path.
 To Build
 ---------------------
 
+Before you start building, please make sure that your compiler supports C++14.
+
 It is recommended to create a build directory to build out-of-tree.
 
 ```bash
