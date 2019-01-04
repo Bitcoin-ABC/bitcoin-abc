@@ -21,6 +21,8 @@
 #include "validation.h"
 #include "version.h"
 
+#include <algorithm>
+
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
                                  int64_t _nTime, double _entryPriority,
                                  unsigned int _entryHeight,
@@ -959,11 +961,21 @@ TxMempoolInfo CTxMemPool::info(const uint256 &txid) const {
 
 CFeeRate CTxMemPool::estimateFee(int nBlocks) const {
     LOCK(cs);
-    return minerPolicyEstimator->estimateFee(nBlocks);
+
+    uint64_t maxMempoolSize =
+        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+    // minerPolicy uses recent blocks to figure out a reasonable fee.  This
+    // may disagree with the rollingMinimumFeerate under certain scenarios
+    // where the mempool  increases rapidly, or blocks are being mined which
+    // do not contain propagated transactions.
+    return std::max(minerPolicyEstimator->estimateFee(nBlocks),
+                    GetMinFee(maxMempoolSize));
 }
 CFeeRate CTxMemPool::estimateSmartFee(int nBlocks,
                                       int *answerFoundAtBlocks) const {
     LOCK(cs);
+    // estimateSmartFee already includes the GetMinFee check, this is the
+    // reason it takes `*this`.  It does not need std::max as above.
     return minerPolicyEstimator->estimateSmartFee(nBlocks, answerFoundAtBlocks,
                                                   *this);
 }
