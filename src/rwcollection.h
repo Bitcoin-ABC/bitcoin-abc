@@ -37,17 +37,19 @@ public:
     typedef typename boost::range_iterator<T>::type iterator;
     iterator begin() { return std::begin(*collection); }
     iterator end() { return std::end(*collection); }
-    std::reverse_iterator<iterator> rbegin() { return collection->rbegin(); }
-    std::reverse_iterator<iterator> rend() { return collection->rend(); }
+    std::reverse_iterator<iterator> rbegin() {
+        return std::rbegin(*collection);
+    }
+    std::reverse_iterator<iterator> rend() { return std::rend(*collection); }
 
     typedef typename boost::range_iterator<const T>::type const_iterator;
     const_iterator begin() const { return std::begin(*collection); }
     const_iterator end() const { return std::end(*collection); }
     std::reverse_iterator<const_iterator> rbegin() const {
-        return collection->rbegin();
+        return std::rbegin(*collection);
     }
     std::reverse_iterator<const_iterator> rend() const {
-        return collection->rend();
+        return std::rend(*collection);
     }
 
     /**
