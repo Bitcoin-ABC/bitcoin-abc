@@ -19,7 +19,7 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     bool fFirstRun;
     std::unique_ptr<CWalletDBWrapper> dbw(
         new CWalletDBWrapper(&bitdb, "wallet_test.dat"));
-    pwalletMain = MakeUnique<CWallet>(Params(), std::move(dbw));
+    pwalletMain = std::make_unique<CWallet>(Params(), std::move(dbw));
     pwalletMain->LoadWallet(fFirstRun);
     RegisterValidationInterface(pwalletMain.get());
 

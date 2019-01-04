@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command) {
     DummyConfig config;
     RPCServer rpcServer;
     const std::string commandName = "testcommand1";
-    rpcServer.RegisterCommand(MakeUnique<ArgsTestRPCCommand>(commandName));
+    rpcServer.RegisterCommand(
+        std::make_unique<ArgsTestRPCCommand>(commandName));
 
     UniValue args(UniValue::VOBJ);
     args.pushKV("arg1", "value1");
@@ -73,7 +74,7 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command_from_request_context) {
     RPCServer rpcServer;
     const std::string commandName = "testcommand2";
     rpcServer.RegisterCommand(
-        MakeUnique<RequestContextRPCCommand>(commandName));
+        std::make_unique<RequestContextRPCCommand>(commandName));
 
     UniValue args(UniValue::VOBJ);
     args.pushKV("arg2", "value2");

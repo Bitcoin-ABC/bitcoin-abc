@@ -2468,12 +2468,12 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 
     if (semOutbound == nullptr) {
         // initialize semaphore
-        semOutbound = MakeUnique<CSemaphore>(
+        semOutbound = std::make_unique<CSemaphore>(
             std::min((nMaxOutbound + nMaxFeeler), nMaxConnections));
     }
     if (semAddnode == nullptr) {
         // initialize semaphore
-        semAddnode = MakeUnique<CSemaphore>(nMaxAddnode);
+        semAddnode = std::make_unique<CSemaphore>(nMaxAddnode);
     }
 
     //
@@ -2897,7 +2897,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     nNextInvSend = 0;
     fRelayTxes = false;
     fSentAddr = false;
-    pfilter = MakeUnique<CBloomFilter>();
+    pfilter = std::make_unique<CBloomFilter>();
     timeLastMempoolReq = 0;
     nLastBlockTime = 0;
     nLastTXTime = 0;

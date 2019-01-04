@@ -393,7 +393,8 @@ bool StartHTTPRPC(Config &config,
     RegisterHTTPHandler("/wallet/", false, rpcFunction);
 #endif
     assert(EventBase());
-    httpRPCTimerInterface = MakeUnique<HTTPRPCTimerInterface>(EventBase());
+    httpRPCTimerInterface =
+        std::make_unique<HTTPRPCTimerInterface>(EventBase());
     RPCSetTimerInterface(httpRPCTimerInterface.get());
     return true;
 }

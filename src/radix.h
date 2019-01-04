@@ -175,7 +175,7 @@ private:
             // There is an element there, but it isn't a subtree. We need to
             // convert it into a subtree and resume insertion into that subtree.
             std::unique_ptr<RadixNode> newChild =
-                MakeUnique<RadixNode>(level, leafKey, e);
+                std::make_unique<RadixNode>(level, leafKey, e);
             if (eptr->compare_exchange_strong(e,
                                               RadixElement(newChild.get()))) {
                 // We have a subtree, resume normal operations from there.
