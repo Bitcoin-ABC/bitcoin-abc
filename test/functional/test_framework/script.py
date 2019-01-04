@@ -8,8 +8,10 @@ This file is modified from python-bitcoinlib.
 """
 
 from .mininode import CTransaction, CTxOut, sha256, hash256, uint256_from_str, ser_uint256, ser_string
+from .bignum import bn2vch
 from binascii import hexlify
 import hashlib
+import struct
 
 import sys
 bchr = chr
@@ -21,9 +23,6 @@ if sys.version > '3':
 
     def bord(x): return x
 
-import struct
-
-from .bignum import bn2vch
 
 MAX_SCRIPT_ELEMENT_SIZE = 520
 
