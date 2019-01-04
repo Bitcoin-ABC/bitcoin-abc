@@ -99,8 +99,9 @@ static QString GetLangTerritory() {
     // 2) Language from QSettings
     QString lang_territory_qsettings =
         settings.value("language", "").toString();
-    if (!lang_territory_qsettings.isEmpty())
+    if (!lang_territory_qsettings.isEmpty()) {
         lang_territory = lang_territory_qsettings;
+    }
     // 3) -lang command line argument
     lang_territory = QString::fromStdString(
         gArgs.GetArg("-lang", lang_territory.toStdString()));
@@ -133,24 +134,28 @@ static void initTranslations(QTranslator &qtTranslatorBase,
     // Load e.g. qt_de.qm
     if (qtTranslatorBase.load(
             "qt_" + lang,
-            QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
         QApplication::installTranslator(&qtTranslatorBase);
+    }
 
     // Load e.g. qt_de_DE.qm
     if (qtTranslator.load(
             "qt_" + lang_territory,
-            QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
         QApplication::installTranslator(&qtTranslator);
+    }
 
     // Load e.g. bitcoin_de.qm (shortcut "de" needs to be defined in
     // bitcoin.qrc)
-    if (translatorBase.load(lang, ":/translations/"))
+    if (translatorBase.load(lang, ":/translations/")) {
         QApplication::installTranslator(&translatorBase);
+    }
 
     // Load e.g. bitcoin_de_DE.qm (shortcut "de_DE" needs to be defined in
     // bitcoin.qrc)
-    if (translator.load(lang_territory, ":/translations/"))
+    if (translator.load(lang_territory, ":/translations/")) {
         QApplication::installTranslator(&translator);
+    }
 }
 
 /* qDebug() message handler --> debug.log */
@@ -334,7 +339,9 @@ BitcoinApplication::BitcoinApplication(int &argc, char **argv)
     platformStyle =
         PlatformStyle::instantiate(QString::fromStdString(platformName));
     // Fall back to "other" if specified name not found.
-    if (!platformStyle) platformStyle = PlatformStyle::instantiate("other");
+    if (!platformStyle) {
+        platformStyle = PlatformStyle::instantiate("other");
+    }
     assert(platformStyle);
 }
 
@@ -390,7 +397,9 @@ void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
 }
 
 void BitcoinApplication::startThread() {
-    if (coreThread) return;
+    if (coreThread) {
+        return;
+    }
     coreThread = new QThread(this);
     BitcoinABC *executor = new BitcoinABC();
     executor->moveToThread(coreThread);
@@ -472,61 +481,60 @@ void BitcoinApplication::requestShutdown(Config &config) {
 void BitcoinApplication::initializeResult(bool success) {
     qDebug() << __func__ << ": Initialization result: " << success;
     returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
-    if (success) {
-        // Log this only after AppInit2 finishes, as then logging setup is
-        // guaranteed complete.
-        qWarning() << "Platform customization:" << platformStyle->getName();
-#ifdef ENABLE_WALLET
-        PaymentServer::LoadRootCAs();
-        paymentServer->setOptionsModel(optionsModel);
-#endif
-
-        clientModel = new ClientModel(optionsModel);
-        window->setClientModel(clientModel);
-
-#ifdef ENABLE_WALLET
-        // TODO: Expose secondary wallets
-        if (!vpwallets.empty()) {
-            walletModel =
-                new WalletModel(platformStyle, vpwallets[0], optionsModel);
-
-            window->addWallet(BitcoinGUI::DEFAULT_WALLET, walletModel);
-            window->setCurrentWallet(BitcoinGUI::DEFAULT_WALLET);
-
-            connect(walletModel, SIGNAL(coinsSent(CWallet *, SendCoinsRecipient,
-                                                  QByteArray)),
-                    paymentServer,
-                    SLOT(fetchPaymentACK(CWallet *, const SendCoinsRecipient &,
-                                         QByteArray)));
-        }
-#endif
-
-        // If -min option passed, start window minimized.
-        if (gArgs.GetBoolArg("-min", false)) {
-            window->showMinimized();
-        } else {
-            window->show();
-        }
-        Q_EMIT splashFinished(window);
-
-#ifdef ENABLE_WALLET
-        // Now that initialization/startup is done, process any command-line
-        // bitcoincash: URIs or payment requests:
-        connect(paymentServer,
-                SIGNAL(receivedPaymentRequest(SendCoinsRecipient)), window,
-                SLOT(handlePaymentRequest(SendCoinsRecipient)));
-        connect(window, SIGNAL(receivedURI(QString)), paymentServer,
-                SLOT(handleURIOrFile(QString)));
-        connect(paymentServer, SIGNAL(message(QString, QString, unsigned int)),
-                window, SLOT(message(QString, QString, unsigned int)));
-        QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
-#endif
-    } else {
+    if (!success) {
         // Make sure splash screen doesn't stick around during shutdown.
         Q_EMIT splashFinished(window);
         // Exit first main loop invocation.
         quit();
+        return;
     }
+    // Log this only after AppInit2 finishes, as then logging setup is
+    // guaranteed complete.
+    qWarning() << "Platform customization:" << platformStyle->getName();
+#ifdef ENABLE_WALLET
+    PaymentServer::LoadRootCAs();
+    paymentServer->setOptionsModel(optionsModel);
+#endif
+
+    clientModel = new ClientModel(optionsModel);
+    window->setClientModel(clientModel);
+
+#ifdef ENABLE_WALLET
+    // TODO: Expose secondary wallets
+    if (!vpwallets.empty()) {
+        walletModel =
+            new WalletModel(platformStyle, vpwallets[0], optionsModel);
+
+        window->addWallet(BitcoinGUI::DEFAULT_WALLET, walletModel);
+        window->setCurrentWallet(BitcoinGUI::DEFAULT_WALLET);
+
+        connect(walletModel,
+                SIGNAL(coinsSent(CWallet *, SendCoinsRecipient, QByteArray)),
+                paymentServer,
+                SLOT(fetchPaymentACK(CWallet *, const SendCoinsRecipient &,
+                                     QByteArray)));
+    }
+#endif
+
+    // If -min option passed, start window minimized.
+    if (gArgs.GetBoolArg("-min", false)) {
+        window->showMinimized();
+    } else {
+        window->show();
+    }
+    Q_EMIT splashFinished(window);
+
+#ifdef ENABLE_WALLET
+    // Now that initialization/startup is done, process any command-line
+    // bitcoincash: URIs or payment requests:
+    connect(paymentServer, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
+            window, SLOT(handlePaymentRequest(SendCoinsRecipient)));
+    connect(window, SIGNAL(receivedURI(QString)), paymentServer,
+            SLOT(handleURIOrFile(QString)));
+    connect(paymentServer, SIGNAL(message(QString, QString, unsigned int)),
+            window, SLOT(message(QString, QString, unsigned int)));
+    QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
+#endif
 }
 
 void BitcoinApplication::shutdownResult() {
@@ -544,7 +552,9 @@ void BitcoinApplication::handleRunawayException(const QString &message) {
 }
 
 WId BitcoinApplication::getMainWinId() const {
-    if (!window) return 0;
+    if (!window) {
+        return 0;
+    }
 
     return window->winId();
 }
@@ -671,7 +681,9 @@ int main(int argc, char *argv[]) {
 
     /// 5. Now that settings and translations are available, ask user for data
     /// directory. User language is set up: pick a data directory.
-    if (!Intro::pickDataDirectory()) return EXIT_SUCCESS;
+    if (!Intro::pickDataDirectory()) {
+        return EXIT_SUCCESS;
+    }
 
     /// 6. Determine availability of data directory and parse bitcoin.conf
     /// - Do not call GetDataDir(true) before this step finishes.
@@ -735,7 +747,9 @@ int main(int argc, char *argv[]) {
     // of the server.
     // - Do this after creating app and setting up translations, so errors are
     // translated properly.
-    if (PaymentServer::ipcSendCommandLine()) exit(EXIT_SUCCESS);
+    if (PaymentServer::ipcSendCommandLine()) {
+        exit(EXIT_SUCCESS);
+    }
 
     // Start up the payment server early, too, so impatient users that click on
     // bitcoincash: links repeatedly have their payment requests routed to this
@@ -772,13 +786,13 @@ int main(int argc, char *argv[]) {
     Config &config = const_cast<Config &>(GetConfig());
 
     if (gArgs.GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) &&
-        !gArgs.GetBoolArg("-min", false))
+        !gArgs.GetBoolArg("-min", false)) {
         app.createSplashScreen(networkStyle.data());
+    }
 
     RPCServer rpcServer;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer);
 
-    int rv = EXIT_SUCCESS;
     try {
         app.createWindow(&config, networkStyle.data());
         // Perform base initialization before spinning up
@@ -786,21 +800,20 @@ int main(int argc, char *argv[]) {
         // function only contains steps that are quick to execute, so the GUI
         // thread won't be held up.
         if (BitcoinABC::baseInitialize(config, rpcServer)) {
-            app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
-#if defined(Q_OS_WIN)
-            WinShutdownMonitor::registerShutdownBlockReason(
-                QObject::tr("%1 didn't yet exit safely...")
-                    .arg(QObject::tr(PACKAGE_NAME)),
-                (HWND)app.getMainWinId());
-#endif
-            app.exec();
-            app.requestShutdown(config);
-            app.exec();
-            rv = app.getReturnValue();
-        } else {
             // A dialog with detailed error will have been shown by InitError()
-            rv = EXIT_FAILURE;
+            return EXIT_FAILURE;
         }
+        app.requestInitialize(config, httpRPCRequestProcessor, rpcServer);
+#if defined(Q_OS_WIN)
+        WinShutdownMonitor::registerShutdownBlockReason(
+            QObject::tr("%1 didn't yet exit safely...")
+                .arg(QObject::tr(PACKAGE_NAME)),
+            (HWND)app.getMainWinId());
+#endif
+        app.exec();
+        app.requestShutdown(config);
+        app.exec();
+        return app.getReturnValue();
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
         app.handleRunawayException(QString::fromStdString(GetWarnings("gui")));
@@ -808,6 +821,6 @@ int main(int argc, char *argv[]) {
         PrintExceptionContinue(nullptr, "Runaway exception");
         app.handleRunawayException(QString::fromStdString(GetWarnings("gui")));
     }
-    return rv;
+    return EXIT_FAILURE;
 }
 #endif // BITCOIN_QT_TEST
