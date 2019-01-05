@@ -799,7 +799,7 @@ int main(int argc, char *argv[]) {
         // initialization/shutdown thread. This is acceptable because this
         // function only contains steps that are quick to execute, so the GUI
         // thread won't be held up.
-        if (BitcoinABC::baseInitialize(config, rpcServer)) {
+        if (!BitcoinABC::baseInitialize(config, rpcServer)) {
             // A dialog with detailed error will have been shown by InitError()
             return EXIT_FAILURE;
         }
