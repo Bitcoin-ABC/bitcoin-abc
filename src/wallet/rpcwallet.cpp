@@ -1473,15 +1473,11 @@ static UniValue addmultisigaddress(const Config &config,
 }
 
 struct tallyitem {
-    Amount nAmount;
-    int nConf;
+    Amount nAmount{Amount::zero()};
+    int nConf{std::numeric_limits<int>::max()};
     std::vector<uint256> txids;
-    bool fIsWatchonly;
-    tallyitem() {
-        nAmount = Amount::zero();
-        nConf = std::numeric_limits<int>::max();
-        fIsWatchonly = false;
-    }
+    bool fIsWatchonly{false};
+    tallyitem() {}
 };
 
 static UniValue ListReceived(const Config &config, CWallet *const pwallet,

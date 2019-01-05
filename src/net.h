@@ -402,15 +402,15 @@ private:
     // whitelisted (as well as those connecting to whitelisted binds).
     std::vector<CSubNet> vWhitelistedRange;
 
-    unsigned int nSendBufferMaxSize;
-    unsigned int nReceiveFloodSize;
+    unsigned int nSendBufferMaxSize{0};
+    unsigned int nReceiveFloodSize{0};
 
     std::vector<ListenSocket> vhListenSocket;
-    std::atomic<bool> fNetworkActive;
+    std::atomic<bool> fNetworkActive{true};
     banmap_t setBanned GUARDED_BY(cs_setBanned);
     CCriticalSection cs_setBanned;
-    bool setBannedIsDirty GUARDED_BY(cs_setBanned);
-    bool fAddressesInitialized;
+    bool setBannedIsDirty GUARDED_BY(cs_setBanned){false};
+    bool fAddressesInitialized{false};
     CAddrMan addrman;
     std::deque<std::string> vOneShots GUARDED_BY(cs_vOneShots);
     CCriticalSection cs_vOneShots;
@@ -419,8 +419,8 @@ private:
     std::vector<CNode *> vNodes;
     std::list<CNode *> vNodesDisconnected;
     mutable CCriticalSection cs_vNodes;
-    std::atomic<NodeId> nLastNodeId;
-    unsigned int nPrevNodeCount;
+    std::atomic<NodeId> nLastNodeId{0};
+    unsigned int nPrevNodeCount{0};
 
     /** Services this instance offers */
     ServiceFlags nLocalServices;
@@ -443,7 +443,7 @@ private:
 
     std::condition_variable condMsgProc;
     Mutex mutexMsgProc;
-    std::atomic<bool> flagInterruptMsgProc;
+    std::atomic<bool> flagInterruptMsgProc{false};
 
     CThreadInterrupt interruptNet;
 
