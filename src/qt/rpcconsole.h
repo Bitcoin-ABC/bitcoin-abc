@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2011-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -45,14 +45,14 @@ public:
     RPCParseCommandLine(interfaces::Node *node, std::string &strResult,
                         const std::string &strCommand, bool fExecute,
                         std::string *const pstrFilteredOut = nullptr,
-                        const std::string *walletID = nullptr);
+                        const WalletModel *wallet_model = nullptr);
     static bool
     RPCExecuteCommandLine(interfaces::Node &node, std::string &strResult,
                           const std::string &strCommand,
                           std::string *const pstrFilteredOut = nullptr,
-                          const std::string *walletID = nullptr) {
+                          const WalletModel *wallet_model = nullptr) {
         return RPCParseCommandLine(&node, strResult, strCommand, true,
-                                   pstrFilteredOut, walletID);
+                                   pstrFilteredOut, wallet_model);
     }
 
     void setClientModel(ClientModel *model);
@@ -136,7 +136,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     // For RPC command executor
     void stopExecutor();
-    void cmdRequest(const QString &command, const QString &walletID);
+    void cmdRequest(const QString &command, const WalletModel *wallet_model);
 
 private:
     void startExecutor();
@@ -167,7 +167,7 @@ private:
     int consoleFontSize = 0;
     QCompleter *autoCompleter = nullptr;
     QThread thread;
-    QString m_last_wallet_id;
+    WalletModel *m_last_wallet_model{nullptr};
 
     /** Update UI with latest network info from model. */
     void updateNetworkState();

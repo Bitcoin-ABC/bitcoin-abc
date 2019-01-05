@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
+// Copyright (c) 2011-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -39,8 +39,7 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
         return false;
     }
 
-    const QString name = walletModel->getWalletName();
-    if (mapWalletViews.count(name) > 0) {
+    if (mapWalletViews.count(walletModel) > 0) {
         return false;
     }
 
@@ -57,7 +56,7 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
     }
 
     walletStack->addWidget(walletView);
-    mapWalletViews[name] = walletView;
+    mapWalletViews[walletModel] = walletView;
 
     // Ensure a walletView is able to show the main window
     connect(walletView, &WalletView::showNormalIfMinimized,
@@ -69,31 +68,31 @@ bool WalletFrame::addWallet(WalletModel *walletModel) {
     return true;
 }
 
-bool WalletFrame::setCurrentWallet(const QString &name) {
-    if (mapWalletViews.count(name) == 0) {
+bool WalletFrame::setCurrentWallet(WalletModel *wallet_model) {
+    if (mapWalletViews.count(wallet_model) == 0) {
         return false;
     }
 
-    WalletView *walletView = mapWalletViews.value(name);
+    WalletView *walletView = mapWalletViews.value(wallet_model);
     walletStack->setCurrentWidget(walletView);
     assert(walletView);
     walletView->updateEncryptionStatus();
     return true;
 }
 
-bool WalletFrame::removeWallet(const QString &name) {
-    if (mapWalletViews.count(name) == 0) {
+bool WalletFrame::removeWallet(WalletModel *wallet_model) {
+    if (mapWalletViews.count(wallet_model) == 0) {
         return false;
     }
 
-    WalletView *walletView = mapWalletViews.take(name);
+    WalletView *walletView = mapWalletViews.take(wallet_model);
     walletStack->removeWidget(walletView);
     delete walletView;
     return true;
 }
 
 void WalletFrame::removeAllWallets() {
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         walletStack->removeWidget(i.value());
     }
@@ -111,35 +110,35 @@ bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient) {
 
 void WalletFrame::showOutOfSyncWarning(bool fShow) {
     bOutOfSync = fShow;
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->showOutOfSyncWarning(fShow);
     }
 }
 
 void WalletFrame::gotoOverviewPage() {
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoOverviewPage();
     }
 }
 
 void WalletFrame::gotoHistoryPage() {
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoHistoryPage();
     }
 }
 
 void WalletFrame::gotoReceiveCoinsPage() {
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoReceiveCoinsPage();
     }
 }
 
 void WalletFrame::gotoSendCoinsPage(QString addr) {
-    QMap<QString, WalletView *>::const_iterator i;
+    QMap<WalletModel *, WalletView *>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i) {
         i.value()->gotoSendCoinsPage(addr);
     }
