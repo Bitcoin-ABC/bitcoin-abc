@@ -159,13 +159,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         assert(tip_entry_found)
 
         # But this block should be accepted by node since it has equal work.
-        # FIXME: Replace the assert with the commented lines once Core backport
-        # 932f118 is completed. Current behavior does not accept equal work
-        # blocks ontop of unprocessed blocks.
-        # self.nodes[0].getblock(block_h2f.hash)
-        #self.log.info("Second height 2 block accepted, but not reorg'ed to")
-        assert_raises_rpc_error(-1, "Block not found on disk",
-                                self.nodes[0].getblock, block_h2f.hash)
+        self.nodes[0].getblock(block_h2f.hash)
+        self.log.info("Second height 2 block accepted, but not reorg'ed to")
 
         # 4b. Now send another block that builds on the forking chain.
         block_h3 = create_block(
@@ -266,12 +261,6 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # 7. Send the missing block for the third time (now it is requested)
         test_node.send_message(msg_block(block_h1f))
-
-        # 7.b. Send the next missing block now that it's requested.
-        # FIXME: Remove this line once Core backport 932f118 is completed.
-        # Current behavior is to not process equal work blocks building ontop
-        # of unprocessed blocks.
-        test_node.send_message(msg_block(block_h2f))
 
         test_node.sync_with_ping()
         assert_equal(self.nodes[0].getblockcount(), 290)

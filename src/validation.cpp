@@ -3795,8 +3795,8 @@ static bool AcceptBlock(const Config &config,
                   pindex->GetBlockHash().ToString(), newBlockTimeDiff);
     }
 
-    bool fHasMoreWork =
-        (chainActive.Tip() ? pindex->nChainWork > chainActive.Tip()->nChainWork
+    bool fHasMoreOrSameWork =
+        (chainActive.Tip() ? pindex->nChainWork >= chainActive.Tip()->nChainWork
                            : true);
 
     // Blocks that are too out-of-order needlessly limit the effectiveness of
@@ -3821,7 +3821,7 @@ static bool AcceptBlock(const Config &config,
         }
 
         // Don't process less-work chains.
-        if (!fHasMoreWork) {
+        if (!fHasMoreOrSameWork) {
             return true;
         }
 
