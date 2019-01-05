@@ -2889,56 +2889,13 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       nKeyedNetGroup(nKeyedNetGroupIn), addrKnown(5000, 0.001),
       filterInventoryKnown(50000, 0.000001), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn), nLocalServices(nLocalServicesIn),
-      nMyStartingHeight(nMyStartingHeightIn), nSendVersion(0) {
-    nServices = NODE_NONE;
+      nMyStartingHeight(nMyStartingHeightIn) {
     hSocket = hSocketIn;
-    nRecvVersion = INIT_PROTO_VERSION;
-    nLastSend = 0;
-    nLastRecv = 0;
-    nSendBytes = 0;
-    nRecvBytes = 0;
-    nTimeOffset = 0;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-    nVersion = 0;
     strSubVer = "";
-    fWhitelisted = false;
-    fOneShot = false;
-    m_manual_connection = false;
-    // set by version message
-    fClient = false;
-    // set by version message
-    m_limited_node = false;
-    fFeeler = false;
-    fSuccessfullyConnected = false;
-    fDisconnect = false;
-    nRefCount = 0;
-    nSendSize = 0;
-    nSendOffset = 0;
     hashContinue = uint256();
-    nStartingHeight = -1;
     filterInventoryKnown.reset();
-    fSendMempool = false;
-    fGetAddr = false;
-    nNextLocalAddrSend = 0;
-    nNextAddrSend = 0;
-    nNextInvSend = 0;
-    fRelayTxes = false;
-    fSentAddr = false;
     pfilter = std::make_unique<CBloomFilter>();
-    timeLastMempoolReq = 0;
-    nLastBlockTime = 0;
-    nLastTXTime = 0;
-    nPingNonceSent = 0;
-    nPingUsecStart = 0;
-    nPingUsecTime = 0;
-    fPingQueued = false;
-    nMinPingUsecTime = std::numeric_limits<int64_t>::max();
-    minFeeFilter = Amount::zero();
-    lastSentFeeFilter = Amount::zero();
-    nextSendTimeFeeFilter = 0;
-    fPauseRecv = false;
-    fPauseSend = false;
-    nProcessQueueSize = 0;
 
     for (const std::string &msg : getAllNetMessageTypes()) {
         mapRecvBytesPerMsgCmd[msg] = 0;
