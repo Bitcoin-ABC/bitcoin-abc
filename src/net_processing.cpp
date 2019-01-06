@@ -67,6 +67,14 @@ static std::vector<std::pair<uint256, CTransactionRef>>
 // SHA256("main address relay")[0:8]
 static const uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
 
+/// Age after which a stale block will no longer be served if requested as
+/// protection against fingerprinting. Set to one month, denominated in seconds.
+static const int STALE_RELAY_AGE_LIMIT = 30 * 24 * 60 * 60;
+
+/// Age after which a block is considered historical for purposes of rate
+/// limiting block relay. Set to one week, denominated in seconds.
+static const int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
+
 // Internal stuff
 namespace {
 /** Number of nodes with fSyncStarted. */
@@ -924,6 +932,20 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
 // blockchain -> download logic notification
 //
 
+// To prevent fingerprinting attacks, only send blocks/headers outside of the
+// active chain if they are no more than a month older (both in time, and in
+// best equivalent proof of work) than the best header chain we know about.
+static bool StaleBlockRequestAllowed(const CBlockIndex *pindex,
+                                     const Consensus::Params &consensusParams) {
+    AssertLockHeld(cs_main);
+    return (pindexBestHeader != nullptr) &&
+           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() <
+            STALE_RELAY_AGE_LIMIT) &&
+           (GetBlockProofEquivalentTime(*pindexBestHeader, *pindex,
+                                        *pindexBestHeader, consensusParams) <
+            STALE_RELAY_AGE_LIMIT);
+}
+
 PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn,
                                          CScheduler &scheduler)
     : connman(connmanIn), m_stale_tip_check_time(0) {
@@ -1254,21 +1276,9 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                     if (chainActive.Contains(mi->second)) {
                         send = true;
                     } else {
-                        static const int nOneMonth = 30 * 24 * 60 * 60;
-                        // To prevent fingerprinting attacks, only send blocks
-                        // outside of the active chain if they are valid, and no
-                        // more than a month older (both in time, and in best
-                        // equivalent proof of work) than the best header chain
-                        // we know about.
                         send = mi->second->IsValid(BlockValidity::SCRIPTS) &&
-                               (pindexBestHeader != nullptr) &&
-                               (pindexBestHeader->GetBlockTime() -
-                                    mi->second->GetBlockTime() <
-                                nOneMonth) &&
-                               (GetBlockProofEquivalentTime(
-                                    *pindexBestHeader, *mi->second,
-                                    *pindexBestHeader,
-                                    consensusParams) < nOneMonth);
+                               StaleBlockRequestAllowed(mi->second,
+                                                        consensusParams);
                         if (!send) {
                             LogPrintf("%s: ignoring request from peer=%i for "
                                       "old block that isn't in the main "
@@ -1279,15 +1289,13 @@ static void ProcessGetData(const Config &config, CNode *pfrom,
                 }
 
                 // Disconnect node in case we have reached the outbound limit
-                // for serving historical blocks never disconnect whitelisted
-                // nodes.
-                // assume > 1 week = historical
-                static const int nOneWeek = 7 * 24 * 60 * 60;
+                // for serving historical blocks.
+                // Never disconnect whitelisted nodes.
                 if (send && connman->OutboundTargetReached(true) &&
                     (((pindexBestHeader != nullptr) &&
                       (pindexBestHeader->GetBlockTime() -
                            mi->second->GetBlockTime() >
-                       nOneWeek)) ||
+                       HISTORICAL_BLOCK_AGE)) ||
                      inv.type == MSG_FILTERED_BLOCK) &&
                     !pfrom->fWhitelisted) {
                     LogPrint(BCLog::NET, "historical block serving limit "
@@ -2343,6 +2351,14 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 return true;
             }
             pindex = (*mi).second;
+
+            if (!chainActive.Contains(pindex) &&
+                !StaleBlockRequestAllowed(pindex, chainparams.GetConsensus())) {
+                LogPrintf("%s: ignoring request from peer=%i for old block "
+                          "header that isn't in the main chain\n",
+                          __func__, pfrom->GetId());
+                return true;
+            }
         } else {
             // Find the last block the caller has in the main chain
             pindex = FindForkInGlobalIndex(chainActive, locator);
