@@ -1082,8 +1082,8 @@ class msg_getheaders():
 class msg_headers():
     command = b"headers"
 
-    def __init__(self):
-        self.headers = []
+    def __init__(self, headers=None):
+        self.headers = headers if headers is not None else []
 
     def deserialize(self, f):
         # comment in bitcoind indicates these should be deserialized as blocks
