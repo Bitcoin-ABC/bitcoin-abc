@@ -5,7 +5,8 @@
 #include "rcu.h"
 #include "sync.h"
 
-#include <cstdio>
+#include <chrono>
+#include <condition_variable>
 
 std::atomic<uint64_t> RCUInfos::revision{0};
 thread_local RCUInfos RCUInfos::infos{};
@@ -13,7 +14,7 @@ thread_local RCUInfos RCUInfos::infos{};
 /**
  * How many time a busy loop runs before yelding.
  */
-static const uint64_t RCU_ACTIVE_LOOP_COUNT = 30;
+static const int RCU_ACTIVE_LOOP_COUNT = 30;
 
 /**
  * We maintain a linked list of all the RCUInfos for each active thread. Upon
@@ -158,16 +159,29 @@ RCUInfos::~RCUInfos() {
 }
 
 void RCUInfos::synchronize() {
-    uint64_t count = 0, syncRev = ++revision;
+    uint64_t syncRev = ++revision;
 
-    // Loop until all thread synced.
-    while (!hasSynced(syncRev)) {
-        if (count++ >= RCU_ACTIVE_LOOP_COUNT) {
-            // Make sure we don't starve the system by spinning too long without
-            // yielding.
-            std::this_thread::yield();
+    // Loop a few time lock free.
+    for (int i = 0; i < RCU_ACTIVE_LOOP_COUNT; i++) {
+        if (hasSynced(syncRev)) {
+            // Done!
+            return;
         }
     }
+
+    // It seems like we have some contention. Let's try to not starve the
+    // system. Let's make sure threads that land here proceed one by one.
+    // XXX: The best option long term is most likely to use a futex on one of
+    // the thread causing synchronization delay so this thread can be waked up
+    // at an apropriate time.
+    static std::condition_variable cond;
+    static CWaitableCriticalSection cs;
+    WAIT_LOCK(cs, lock);
+
+    do {
+        cond.notify_one();
+    } while (!cond.wait_for(lock, std::chrono::microseconds(1),
+                            [&] { return hasSynced(syncRev); }));
 }
 
 bool RCUInfos::hasSynced(uint64_t syncRev) {
