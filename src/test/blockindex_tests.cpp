@@ -4,7 +4,6 @@
 
 #include <blockvalidity.h>
 #include <chain.h>
-#include <diskblockpos.h>
 #include <uint256.h>
 
 #include <test/test_bitcoin.h>

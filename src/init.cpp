@@ -17,7 +17,7 @@
 #include <compat/sanity.h>
 #include <config.h>
 #include <consensus/validation.h>
-#include <diskblockpos.h>
+#include <flatfile.h>
 #include <fs.h>
 #include <httprpc.h>
 #include <httpserver.h>

@@ -11,6 +11,7 @@
 #include <script/script.h>
 #include <script/script_error.h>
 #include <script/sign.h>
+#include <tinyformat.h>
 #include <validation.h>
 
 #include <test/test_bitcoin.h>

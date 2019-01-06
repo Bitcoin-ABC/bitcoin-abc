@@ -16,7 +16,7 @@
 #include <coins.h>
 #include <consensus/consensus.h>
 #include <consensus/params.h>
-#include <diskblockpos.h>
+#include <flatfile.h>
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageMagic
 #include <script/script_error.h>

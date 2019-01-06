@@ -10,7 +10,7 @@
 #include <blockstatus.h>
 #include <blockvalidity.h>
 #include <consensus/params.h>
-#include <diskblockpos.h>
+#include <flatfile.h>
 #include <pow.h>
 #include <primitives/block.h>
 #include <sync.h>

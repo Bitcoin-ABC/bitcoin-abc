@@ -9,7 +9,7 @@
 #include <blockfileinfo.h>
 #include <coins.h>
 #include <dbwrapper.h>
-#include <diskblockpos.h>
+#include <flatfile.h>
 #include <primitives/block.h>
 
 #include <map>
