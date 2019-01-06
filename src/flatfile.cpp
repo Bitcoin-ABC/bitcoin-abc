@@ -17,15 +17,15 @@ FlatFileSeq::FlatFileSeq(fs::path dir, const char *prefix, size_t chunk_size)
     }
 }
 
-std::string CDiskBlockPos::ToString() const {
-    return strprintf("CDiskBlockPos(nFile=%i, nPos=%i)", nFile, nPos);
+std::string FlatFilePos::ToString() const {
+    return strprintf("FlatFilePos(nFile=%i, nPos=%i)", nFile, nPos);
 }
 
-fs::path FlatFileSeq::FileName(const CDiskBlockPos &pos) const {
+fs::path FlatFileSeq::FileName(const FlatFilePos &pos) const {
     return m_dir / strprintf("%s%05u.dat", m_prefix, pos.nFile);
 }
 
-FILE *FlatFileSeq::Open(const CDiskBlockPos &pos, bool fReadOnly) {
+FILE *FlatFileSeq::Open(const FlatFilePos &pos, bool fReadOnly) {
     if (pos.IsNull()) {
         return nullptr;
     }
@@ -50,7 +50,7 @@ FILE *FlatFileSeq::Open(const CDiskBlockPos &pos, bool fReadOnly) {
     return file;
 }
 
-size_t FlatFileSeq::Allocate(const CDiskBlockPos &pos, size_t add_size,
+size_t FlatFileSeq::Allocate(const FlatFilePos &pos, size_t add_size,
                              bool &out_of_space) {
     out_of_space = false;
 
@@ -78,9 +78,9 @@ size_t FlatFileSeq::Allocate(const CDiskBlockPos &pos, size_t add_size,
     return 0;
 }
 
-bool FlatFileSeq::Flush(const CDiskBlockPos &pos, bool finalize) {
+bool FlatFileSeq::Flush(const FlatFilePos &pos, bool finalize) {
     // Avoid fseek to nPos
-    FILE *file = Open(CDiskBlockPos(pos.nFile, 0));
+    FILE *file = Open(FlatFilePos(pos.nFile, 0));
     if (!file) {
         return error("%s: failed to open file %d", __func__, pos.nFile);
     }

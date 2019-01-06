@@ -48,7 +48,7 @@ class CTxMemPool;
 class CTxUndo;
 class CValidationState;
 
-struct CDiskBlockPos;
+struct FlatFilePos;
 struct ChainTxData;
 struct PrecomputedTransactionData;
 struct LockPoints;
@@ -350,18 +350,18 @@ bool ProcessNewBlockHeaders(const Config &config,
 /**
  * Open a block file (blk?????.dat).
  */
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
+FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly = false);
 
 /**
  * Translation to a filesystem path.
  */
-fs::path GetBlockPosFilename(const CDiskBlockPos &pos);
+fs::path GetBlockPosFilename(const FlatFilePos &pos);
 
 /**
  * Import blocks from an external file.
  */
 bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                           CDiskBlockPos *dbp = nullptr);
+                           FlatFilePos *dbp = nullptr);
 
 /**
  * Ensures we have a genesis block in the block tree, possibly writing one to
@@ -557,7 +557,7 @@ public:
 };
 
 /** Functions for disk access for blocks */
-bool ReadBlockFromDisk(CBlock &block, const CDiskBlockPos &pos,
+bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
                        const Config &config);
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
                        const Config &config);
