@@ -1101,7 +1101,7 @@ static void ThreadImport(const Config &config,
             int nFile = 0;
             while (true) {
                 CDiskBlockPos pos(nFile, 0);
-                if (!fs::exists(GetBlockPosFilename(pos, "blk"))) {
+                if (!fs::exists(GetBlockPosFilename(pos))) {
                     // No block files left to reindex
                     break;
                 }

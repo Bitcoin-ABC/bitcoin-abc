@@ -331,6 +331,7 @@ add_library(server
 	config.cpp
 	consensus/activation.cpp
 	consensus/tx_verify.cpp
+	flatfile.cpp
 	globals.cpp
 	httprpc.cpp
 	httpserver.cpp

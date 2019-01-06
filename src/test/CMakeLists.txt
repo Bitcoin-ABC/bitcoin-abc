@@ -80,6 +80,7 @@ add_test_to_suite(bitcoin test_bitcoin
 	excessiveblock_tests.cpp
 	feerate_tests.cpp
 	finalization_tests.cpp
+	flatfile_tests.cpp
 	getarg_tests.cpp
 	hash_tests.cpp
 	inv_tests.cpp

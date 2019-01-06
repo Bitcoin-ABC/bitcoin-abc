@@ -136,6 +136,7 @@ BITCOIN_CORE_H = \
   core_memusage.h \
   cuckoocache.h \
   diskblockpos.h \
+  flatfile.h \
   fs.h \
   globals.h \
   httprpc.h \
@@ -251,6 +252,7 @@ libbitcoin_server_a_SOURCES = \
   config.cpp \
   consensus/activation.cpp \
   consensus/tx_verify.cpp \
+  flatfile.cpp \
   globals.cpp \
   httprpc.cpp \
   httpserver.cpp \

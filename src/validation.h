@@ -355,7 +355,7 @@ FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 /**
  * Translation to a filesystem path.
  */
-fs::path GetBlockPosFilename(const CDiskBlockPos &pos, const char *prefix);
+fs::path GetBlockPosFilename(const CDiskBlockPos &pos);
 
 /**
  * Import blocks from an external file.
