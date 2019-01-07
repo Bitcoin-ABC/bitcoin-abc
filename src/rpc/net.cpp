@@ -147,13 +147,24 @@ static UniValue getpeerinfo(const Config &config,
                 "    \"minfeefilter\": n,         (numeric) The minimum fee "
                 "rate for transactions this peer accepts\n"
                 "    \"bytessent_per_msg\": {\n"
-                "       \"addr\": n,              (numeric) The total bytes "
+                "       \"msg\": n,               (numeric) The total bytes "
                 "sent aggregated by message type\n"
+                "                               When a message type is not "
+                "listed in this json object, the bytes sent are 0.\n"
+                "                               Only known message types can "
+                "appear as keys in the object.\n"
                 "       ...\n"
                 "    },\n"
                 "    \"bytesrecv_per_msg\": {\n"
-                "       \"addr\": n,              (numeric) The total bytes "
+                "       \"msg\": n,               (numeric) The total bytes "
                 "received aggregated by message type\n"
+                "                               When a message type is not "
+                "listed in this json object, the bytes received are 0.\n"
+                "                               Only known message types can "
+                "appear as keys in the object and all bytes received of "
+                "unknown message types are listed under '" +
+                NET_MESSAGE_COMMAND_OTHER +
+                "'.\n"
                 "       ...\n"
                 "    }\n"
                 "  }\n"
@@ -233,7 +244,7 @@ static UniValue getpeerinfo(const Config &config,
         obj.pushKV("minfeefilter", ValueFromAmount(stats.minFeeFilter));
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);
-        for (const mapMsgCmdSize::value_type &i : stats.mapSendBytesPerMsgCmd) {
+        for (const auto &i : stats.mapSendBytesPerMsgCmd) {
             if (i.second > 0) {
                 sendPerMsgCmd.pushKV(i.first, i.second);
             }
@@ -241,7 +252,7 @@ static UniValue getpeerinfo(const Config &config,
         obj.pushKV("bytessent_per_msg", sendPerMsgCmd);
 
         UniValue recvPerMsgCmd(UniValue::VOBJ);
-        for (const mapMsgCmdSize::value_type &i : stats.mapRecvBytesPerMsgCmd) {
+        for (const auto &i : stats.mapRecvBytesPerMsgCmd) {
             if (i.second > 0) {
                 recvPerMsgCmd.pushKV(i.first, i.second);
             }

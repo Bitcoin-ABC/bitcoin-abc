@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Copyright (c) 2017-2019 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -570,6 +570,7 @@ extern RecursiveMutex cs_mapLocalHost;
 extern std::map<CNetAddr, LocalServiceInfo>
     mapLocalHost GUARDED_BY(cs_mapLocalHost);
 
+extern const std::string NET_MESSAGE_COMMAND_OTHER;
 // Command, total bytes
 typedef std::map<std::string, uint64_t> mapMsgCmdSize;
 
