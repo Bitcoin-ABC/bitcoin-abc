@@ -818,8 +818,6 @@ static UniValue getblockheader(const Config &config,
                                              "\""));
     }
 
-    LOCK(cs_main);
-
     std::string strHash = request.params[0].get_str();
     BlockHash hash(uint256S(strHash));
 
@@ -828,7 +826,14 @@ static UniValue getblockheader(const Config &config,
         fVerbose = request.params[1].get_bool();
     }
 
-    const CBlockIndex *pblockindex = LookupBlockIndex(hash);
+    const CBlockIndex *pblockindex;
+    const CBlockIndex *tip;
+    {
+        LOCK(cs_main);
+        pblockindex = LookupBlockIndex(hash);
+        tip = chainActive.Tip();
+    }
+
     if (!pblockindex) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
     }
@@ -840,7 +845,7 @@ static UniValue getblockheader(const Config &config,
         return strHex;
     }
 
-    return blockheaderToJSON(chainActive.Tip(), pblockindex);
+    return blockheaderToJSON(tip, pblockindex);
 }
 
 static CBlock GetBlockChecked(const Config &config,
