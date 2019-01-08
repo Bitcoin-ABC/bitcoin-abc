@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Copyright (c) 2015-2016 The Bitcoin Core developers
+# Copyright (c) 2019 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,45 +11,59 @@ Return value is 0 to indicate no error.
 Author: @MarcoFalke
 '''
 
-# FIXME: the script makes assumptions on how to find documented
-#        options - these have been broken by clang-format
-#        reformatting of the sources.
-#        The script likely needs major rework.
-
 from subprocess import check_output
+from pprint import PrettyPrinter
 import re
 import sys
 
-FOLDER_GREP = 'src'
+FOLDER_SRC = 'src'
 FOLDER_TEST = 'src/test/'
-CMD_ROOT_DIR = '`git rev-parse --show-toplevel`/%s' % FOLDER_GREP
-CMD_GREP_ARGS = r"egrep -r -I '(map(Multi)?Args(\.count\(|\[)|Get(Bool)?Arg\()\"\-[^\"]+?\"' %s | grep -v '%s'" % (
-    CMD_ROOT_DIR, FOLDER_TEST)
-CMD_GREP_DOCS = r"egrep -r -I 'HelpMessageOpt\(\"\-[^\"=]+?(=|\")' %s" % (
-    CMD_ROOT_DIR)
+PATH_SRC = '`git rev-parse --show-toplevel`/{}'.format(FOLDER_SRC)
+PATH_TEST = '`git rev-parse --show-toplevel`/{}'.format(FOLDER_TEST)
+
+GREP_ARGS_REGEX = r"egrep -rIzo '((Is|Get)(Bool)?Arg(s|Set)?\((\s)*)\"\-[^\"]+?\"' {}"
+CMD_GREP_ARGS_SRC = GREP_ARGS_REGEX.format(PATH_SRC)
+CMD_GREP_ARGS_TEST = GREP_ARGS_REGEX.format(PATH_TEST)
+CMD_GREP_DOCS = r"egrep -rIzo 'HelpMessageOpt\((\s)*\"\-[^\"=]+?(=|\")' {}".format(
+    PATH_SRC)
+
 REGEX_ARG = re.compile(
-    r'(?:map(?:Multi)?Args(?:\.count\(|\[)|Get(?:Bool)?Arg\()\"(\-[^\"]+?)\"')
-REGEX_DOC = re.compile(r'HelpMessageOpt\(\"(\-[^\"=]+?)(?:=|\")')
+    r'(?:(?:Is|Get)(?:Bool)?Arg(?:s|Set)?\((?:\s)*)\"(\-[^\"]+?)\"')
+REGEX_DOC = re.compile(r'HelpMessageOpt\((?:\s)*\"(\-[^\"=]+?)(?:=|\")')
+
 # list unsupported, deprecated and duplicate args as they need no documentation
-SET_DOC_OPTIONAL = set(['-rpcssl', '-benchmark', '-h', '-help', '-socks', '-tor', '-debugnet', '-whitelistalwaysrelay',
-                        '-prematurewitness', '-walletprematurewitness', '-promiscuousmempoolflags', '-blockminsize', '-forcecompactdb', '-dbcrashratio'])
+SET_DOC_OPTIONAL = set(['-benchmark',
+                        '-blockminsize',
+                        '-dbcrashratio',
+                        '-debugnet',
+                        '-forcecompactdb',
+                        '-help',
+                        '-promiscuousmempoolflags',
+                        '-rpcssl',
+                        '-socks',
+                        '-tor',
+                        '-whitelistalwaysrelay'])
 
 
 def main():
-    used = check_output(CMD_GREP_ARGS, shell=True)
+    used = check_output(CMD_GREP_ARGS_SRC, shell=True)
+    tested = check_output(CMD_GREP_ARGS_TEST, shell=True)
     docd = check_output(CMD_GREP_DOCS, shell=True)
 
     args_used = set(re.findall(REGEX_ARG, used))
-    args_docd = set(re.findall(REGEX_DOC, docd)).union(SET_DOC_OPTIONAL)
-    args_need_doc = args_used.difference(args_docd)
-    args_unknown = args_docd.difference(args_used)
+    args_used -= set(re.findall(REGEX_ARG, tested))
+    args_used -= SET_DOC_OPTIONAL
+    args_docd = set(re.findall(REGEX_DOC, docd))
+    args_need_doc = args_used - args_docd
+    args_unknown = args_docd - args_used
 
-    print "Args used        : %s" % len(args_used)
-    print "Args documented  : %s" % len(args_docd)
-    print "Args undocumented: %s" % len(args_need_doc)
-    print args_need_doc
-    print "Args unknown     : %s" % len(args_unknown)
-    print args_unknown
+    pp = PrettyPrinter()
+    print("Args used        : {}".format(len(args_used)))
+    print("Args documented  : {}".format(len(args_docd)))
+    print("Args undocumented: {}".format(len(args_need_doc)))
+    pp.pprint(args_need_doc)
+    print("Args unknown     : {}".format(len(args_unknown)))
+    pp.pprint(args_unknown)
 
     sys.exit(len(args_need_doc))
 
