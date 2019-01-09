@@ -3074,28 +3074,15 @@ std::string userAgent(const Config &config) {
     std::vector<std::string> uacomments;
     uacomments.push_back("EB" + eb);
 
-    // sanitize comments per BIP-0014, format user agent and check total size
+    // Comments are checked for char compliance at startup, it is safe to add
+    // them to the user agent string
     for (const std::string &cmt : gArgs.GetArgs("-uacomment")) {
-        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT)) {
-            LogPrintf(
-                "User Agent comment (%s) contains unsafe characters. "
-                "We are going to use a sanitize version of the comment.\n",
-                cmt);
-        }
         uacomments.push_back(cmt);
     }
 
+    // Size compliance is checked at startup, it is safe to not check it again
     std::string subversion =
         FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
-    if (subversion.size() > MAX_SUBVERSION_LENGTH) {
-        LogPrintf("Total length of network version string (%i) exceeds maximum "
-                  "length (%i). Reduce the number or size of uacomments. "
-                  "String has been resized to the max length allowed.\n",
-                  subversion.size(), MAX_SUBVERSION_LENGTH);
-        subversion.resize(MAX_SUBVERSION_LENGTH - 2);
-        subversion.append(")/");
-        LogPrintf("Current network string has been set to: %s\n", subversion);
-    }
 
     return subversion;
 }
