@@ -18,6 +18,7 @@ add_library(wallet
 	fees.cpp
 	finaltx.cpp
 	init.cpp
+	psbtwallet.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
 	wallet.cpp

@@ -177,6 +177,7 @@ BITCOIN_CORE_H = \
   policy/policy.h \
   pow.h \
   protocol.h \
+  psbt.h \
   radix.h \
   random.h \
   rcu.h \
@@ -234,6 +235,7 @@ BITCOIN_CORE_H = \
   wallet/finaltx.h \
   wallet/rpcdump.h \
   wallet/fees.h \
+  wallet/psbtwallet.h \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
@@ -343,6 +345,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/finaltx.cpp \
   wallet/fees.cpp \
   wallet/init.cpp \
+  wallet/psbtwallet.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
   wallet/wallet.cpp \
@@ -464,6 +467,7 @@ libbitcoin_common_a_SOURCES = \
   netaddress.cpp \
   netbase.cpp \
   protocol.cpp \
+  psbt.cpp \
   scheduler.cpp \
   script/descriptor.cpp \
   script/ismine.cpp \

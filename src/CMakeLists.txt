@@ -404,6 +404,7 @@ add_library(common
 	netbase.cpp
 	primitives/block.cpp
 	protocol.cpp
+	psbt.cpp
 	scheduler.cpp
 	versionbitsinfo.cpp
 	warnings.cpp

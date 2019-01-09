@@ -4,6 +4,7 @@
 
 #include <key_io.h>
 #include <util/strencodings.h>
+#include <wallet/psbtwallet.h>
 #include <wallet/test/wallet_test_fixture.h>
 #include <wallet/wallet.h>
 
