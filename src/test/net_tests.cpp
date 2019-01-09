@@ -13,7 +13,6 @@
 #include "streams.h"
 #include "test/test_bitcoin.h"
 
-#include <sstream>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
@@ -57,6 +56,18 @@ public:
         CAddrInfo info = CAddrInfo(addr, resolved);
         s << info;
     }
+};
+
+class NetTestConfig : public DummyConfig {
+public:
+    bool SetMaxBlockSize(uint64_t maxBlockSize) override {
+        nMaxBlockSize = maxBlockSize;
+        return true;
+    }
+    uint64_t GetMaxBlockSize() const override { return nMaxBlockSize; }
+
+private:
+    uint64_t nMaxBlockSize;
 };
 
 CDataStream AddrmanToStream(CAddrManSerializationMock &_addrman) {
@@ -184,31 +195,19 @@ BOOST_AUTO_TEST_CASE(test_getSubVersionEB) {
     BOOST_CHECK_EQUAL(getSubVersionEB(0), "0.0");
 }
 
-BOOST_AUTO_TEST_CASE(test_userAgentLength) {
-    GlobalConfig config;
+BOOST_AUTO_TEST_CASE(test_userAgent) {
+    NetTestConfig config;
 
     config.SetMaxBlockSize(8000000);
-    std::string long_uacomment = "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very very very very "
-                                 "very very very very very very long comment";
-    gArgs.ForceSetMultiArg("-uacomment", long_uacomment);
+    const std::string uacomment = "A very nice comment";
+    gArgs.ForceSetMultiArg("-uacomment", uacomment);
 
-    std::ostringstream versionMessage;
-    versionMessage << "/Bitcoin ABC:" << CLIENT_VERSION_MAJOR << "."
-                   << CLIENT_VERSION_MINOR << "." << CLIENT_VERSION_REVISION
-                   << "(EB8.0; very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very very very very very "
-                      "very very very very very very very ve)/";
+    const std::string versionMessage =
+        "/Bitcoin ABC:" + std::to_string(CLIENT_VERSION_MAJOR) + "." +
+        std::to_string(CLIENT_VERSION_MINOR) + "." +
+        std::to_string(CLIENT_VERSION_REVISION) + "(EB8.0; " + uacomment + ")/";
 
-    BOOST_CHECK_EQUAL(userAgent(config).size(), MAX_SUBVERSION_LENGTH);
-    BOOST_CHECK_EQUAL(userAgent(config), versionMessage.str());
+    BOOST_CHECK_EQUAL(userAgent(config), versionMessage);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
