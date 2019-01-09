@@ -919,7 +919,8 @@ GetConfigOptions(std::istream &stream, std::string &error,
                 std::string name =
                     prefix + TrimString(str.substr(0, pos), pattern);
                 std::string value = TrimString(str.substr(pos + 1), pattern);
-                if (used_hash && name == "rpcpassword") {
+                if (used_hash &&
+                    name.find("rpcpassword") != std::string::npos) {
                     error = strprintf(
                         "parse error on line %i, using # in rpcpassword can be "
                         "ambiguous and should be avoided",
