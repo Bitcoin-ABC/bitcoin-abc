@@ -64,6 +64,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"sendmany", 1, "amounts"},
     {"sendmany", 2, "minconf"},
     {"sendmany", 4, "subtractfeefrom"},
+    {"deriveaddresses", 1, "begin"},
+    {"deriveaddresses", 2, "end"},
     {"scantxoutset", 1, "scanobjects"},
     {"addmultisigaddress", 0, "nrequired"},
     {"addmultisigaddress", 1, "keys"},
