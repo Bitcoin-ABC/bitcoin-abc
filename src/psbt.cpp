@@ -176,3 +176,54 @@ bool SignPSBTInput(const SigningProvider &provider,
 
     return sig_complete;
 }
+
+bool FinalizePSBT(PartiallySignedTransaction &psbtx) {
+    // Finalize input signatures -- in case we have partial signatures that add
+    // up to a complete
+    //   signature, but have not combined them yet (e.g. because the combiner
+    //   that created this PartiallySignedTransaction did not understand them),
+    //   this will combine them into a final script.
+    bool complete = true;
+    for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
+        complete &=
+            SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i, SigHashType());
+    }
+
+    return complete;
+}
+
+bool FinalizeAndExtractPSBT(PartiallySignedTransaction &psbtx,
+                            CMutableTransaction &result) {
+    // It's not safe to extract a PSBT that isn't finalized, and there's no easy
+    // way to check
+    //   whether a PSBT is finalized without finalizing it, so we just do this.
+    if (!FinalizePSBT(psbtx)) {
+        return false;
+    }
+
+    result = *psbtx.tx;
+    for (size_t i = 0; i < result.vin.size(); ++i) {
+        result.vin[i].scriptSig = psbtx.inputs[i].final_script_sig;
+    }
+    return true;
+}
+
+bool CombinePSBTs(PartiallySignedTransaction &out, TransactionError &error,
+                  const std::vector<PartiallySignedTransaction> &psbtxs) {
+    // Copy the first one
+    out = psbtxs[0];
+
+    // Merge
+    for (auto it = std::next(psbtxs.begin()); it != psbtxs.end(); ++it) {
+        if (!out.Merge(*it)) {
+            error = TransactionError::PSBT_MISMATCH;
+            return false;
+        }
+    }
+    if (!out.IsSane()) {
+        error = TransactionError::INVALID_PSBT;
+        return false;
+    }
+
+    return true;
+}
