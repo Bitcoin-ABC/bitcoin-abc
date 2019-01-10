@@ -34,7 +34,7 @@ Bitcoin ABC Release Process
 
 ## Release
 
-5. Create Gitian Builds (see [gitian-building.md](/doc/gitian-building.md)), notify PPA buildmaster to start creating Ubuntu PPAs
+5. Create Gitian Builds (see [gitian-building.md](/doc/gitian-building.md))
 
 6. Verify matching gitian builds, gather signatures
 
@@ -46,18 +46,20 @@ Bitcoin ABC Release Process
 
 ## After Release
 
-9. Increment version number in:
+9. Notify maintainers of Ubuntu PPA, AUR, and Docker images to build their packages.
+
+10. Increment version number in:
     - doc/Doxyfile
     - doc/release-notes.md (and copy existing one to versioned doc/release-notes/*.md)
     - configure.ac
     - src/config/CMakeLists.txt
     - contrib/gitian-descriptors/*.yml (before a new major release)
 
-10. Update version number on www.bitcoinabc.org
+11. Update version number on www.bitcoinabc.org
 
-11. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+12. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
 
-12. Announce Release:
+13. Announce Release:
     - [Reddit](https://www.reddit.com/r/BitcoinABC/)
     - Twitter @Bitcoin_ABC
     - Public slack channels friendly to Bitcoin ABC announcements 
