@@ -16,7 +16,7 @@ Bitcoin ABC Release Process
  
 3. Update the documents / code which needs to be updated every release
     - Check that doc/release-notes.md is complete, and fill in any missing items.
-    - Update [bips.md](bips.md) to account for changes since the last release.
+    - Update [bips.md](/doc/bips.md) to account for changes since the last release.
     - (major releases) Update [`BLOCK_CHAIN_SIZE`](/src/qt/intro.cpp) to the current size plus
       some overhead.
     - Update `src/chainparams.cpp` defaultAssumeValid and nMinimumChainWork with information from
@@ -28,13 +28,13 @@ Bitcoin ABC Release Process
       that causes rejection of blocks in the past history.
     - Regenerate manpages (run `contrib/devtools/gen-manpages.sh`, or for out-of-tree builds run
       `BUILDDIR=$PWD/build contrib/devtools/gen-manpages.sh`).
-    - Update seeds as per [contrib/seeds/README.md](contrib/seeds/README.md)
+    - Update seeds as per [contrib/seeds/README.md](/contrib/seeds/README.md)
 
 4. Add git tag for release
 
 ## Release
 
-5. Create Gitian Builds (see doc/gitian-building.md), notify PPA buildmaster to start creating Ubuntu PPAs
+5. Create Gitian Builds (see [gitian-building.md](/doc/gitian-building.md)), notify PPA buildmaster to start creating Ubuntu PPAs
 
 6. Verify matching gitian builds, gather signatures
 
