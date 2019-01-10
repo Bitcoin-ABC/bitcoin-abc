@@ -1978,7 +1978,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
         for (int n = 0; n < NET_MAX; n++) {
             enum Network net = (enum Network)n;
-            if (!nets.count(net)) SetLimited(net);
+            if (!nets.count(net)) {
+                SetReachable(net, false);
+            }
         }
     }
 
@@ -1992,7 +1994,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set
     // a proxy, this is the default
     std::string proxyArg = gArgs.GetArg("-proxy", "");
-    SetLimited(NET_ONION);
+    SetReachable(NET_ONION, false);
     if (proxyArg != "" && proxyArg != "0") {
         CService proxyAddr;
         if (!Lookup(proxyArg.c_str(), proxyAddr, 9050, fNameLookup)) {
@@ -2011,7 +2013,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         SetProxy(NET_ONION, addrProxy);
         SetNameProxy(addrProxy);
         // by default, -proxy sets onion as reachable, unless -noonion later
-        SetLimited(NET_ONION, false);
+        SetReachable(NET_ONION, true);
     }
 
     // -onion can be used to set only a proxy for .onion, or override normal
@@ -2021,8 +2023,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // to -proxy set above, or none)
     std::string onionArg = gArgs.GetArg("-onion", "");
     if (onionArg != "") {
-        if (onionArg == "0") {     // Handle -noonion/-onion=0
-            SetLimited(NET_ONION); // set onions as unreachable
+        if (onionArg == "0") {
+            // Handle -noonion/-onion=0
+            SetReachable(NET_ONION, false);
         } else {
             CService onionProxy;
             if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
@@ -2035,7 +2038,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
             SetProxy(NET_ONION, addrOnion);
-            SetLimited(NET_ONION, false);
+            SetReachable(NET_ONION, true);
         }
     }
 
