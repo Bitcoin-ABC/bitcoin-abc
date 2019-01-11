@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(util_DateTimeStrFormat) {
 
 struct TestArgsManager : public ArgsManager {
     std::map<std::string, std::string> &GetMapArgs() { return mapArgs; }
-    const std::map<std::string, std::vector<std::string>> &GetMapMultiArgs() {
+    std::map<std::string, std::vector<std::string>> &GetMapMultiArgs() {
         return mapMultiArgs;
     }
     const std::unordered_set<std::string> &GetNegatedArgs() {
@@ -349,6 +349,45 @@ BOOST_AUTO_TEST_CASE(util_GetArg) {
     BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest2", false), false);
     BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest3", false), false);
     BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest4", false), true);
+}
+
+BOOST_AUTO_TEST_CASE(util_ClearArg) {
+    TestArgsManager testArgs;
+
+    // Clear single string arg
+    testArgs.GetMapArgs()["strtest1"] = "string...";
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "string...");
+    testArgs.ClearArg("strtest1");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "default");
+
+    // Clear boolean arg
+    testArgs.GetMapArgs()["booltest1"] = "1";
+    BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest1", false), true);
+    testArgs.ClearArg("booltest1");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("booltest1", false), false);
+
+    // Clear multi args only
+    testArgs.GetMapMultiArgs()["strtest2"].push_back("string...");
+    testArgs.GetMapMultiArgs()["strtest2"].push_back("...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 2);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").back(), "...gnirts");
+    testArgs.ClearArg("strtest2");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 0);
+
+    // Clear both arg and multi args
+    testArgs.GetMapArgs()["strtest3"] = "string...";
+    testArgs.GetMapMultiArgs()["strtest3"].push_back("string...");
+    testArgs.GetMapMultiArgs()["strtest3"].push_back("...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest3", "default"), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest3").size(), 2);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest3").front(), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest3").back(), "...gnirts");
+    testArgs.ClearArg("strtest3");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest3", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest3").size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(util_GetChainName) {
