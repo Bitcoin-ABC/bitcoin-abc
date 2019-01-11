@@ -212,14 +212,7 @@ class P2PConnection(asyncore.dispatcher):
                 return
             self.sendbuf = self.sendbuf[sent:]
 
-    def send_message(self, message, pushbuf=False):
-        """Send a P2P message over the socket.
-
-        This method takes a P2P payload, builds the P2P header and adds
-        the message to the send buffer to be sent over the socket."""
-        if self.state != "connected" and not pushbuf:
-            raise IOError('Not connected, no pushbuf')
-        self._log_message("send", message)
+    def format_message(self, message):
         command = message.command
         data = message.serialize()
         tmsg = MAGIC_BYTES[self.network]
@@ -230,6 +223,26 @@ class P2PConnection(asyncore.dispatcher):
         h = sha256(th)
         tmsg += h[:4]
         tmsg += data
+        return tmsg
+
+    def send_message(self, message, pushbuf=False):
+        """Send a P2P message over the socket.
+
+        This method takes a P2P payload, builds the P2P header and adds
+        the message to the send buffer to be sent over the socket."""
+        if self.state != "connected" and not pushbuf:
+            raise IOError('Not connected, no pushbuf')
+        self._log_message("send", message)
+        tmsg = self.format_message(message)
+        self.send_raw_message(tmsg, pushbuf)
+
+    def send_raw_message(self, tmsg, pushbuf=False):
+        """Send any raw message over the socket.
+
+        This method adds a raw message to the send buffer to be sent over the
+        socket."""
+        if self.state != "connected" and not pushbuf:
+            raise IOError('Not connected, no pushbuf')
         with mininode_lock:
             if (len(self.sendbuf) == 0 and not pushbuf):
                 try:
