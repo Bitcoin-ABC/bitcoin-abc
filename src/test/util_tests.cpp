@@ -390,6 +390,67 @@ BOOST_AUTO_TEST_CASE(util_ClearArg) {
     BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest3").size(), 0);
 }
 
+BOOST_AUTO_TEST_CASE(util_SetArg) {
+    TestArgsManager testArgs;
+
+    // SoftSetArg
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.SoftSetArg("strtest1", "string..."), true);
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest1").size(), 1);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest1").front(), "string...");
+    BOOST_CHECK_EQUAL(testArgs.SoftSetArg("strtest1", "...gnirts"), false);
+    testArgs.ClearArg("strtest1");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.SoftSetArg("strtest1", "...gnirts"), true);
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest1", "default"), "...gnirts");
+
+    // SoftSetBoolArg
+    BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest1", false), false);
+    BOOST_CHECK_EQUAL(testArgs.SoftSetBoolArg("booltest1", true), true);
+    BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest1", false), true);
+    BOOST_CHECK_EQUAL(testArgs.SoftSetBoolArg("booltest1", false), false);
+    testArgs.ClearArg("booltest1");
+    BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest1", true), true);
+    BOOST_CHECK_EQUAL(testArgs.SoftSetBoolArg("booltest1", false), true);
+    BOOST_CHECK_EQUAL(testArgs.GetBoolArg("booltest1", true), false);
+
+    // ForceSetArg
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "default");
+    testArgs.ForceSetArg("strtest2", "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 1);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "string...");
+    testArgs.ForceSetArg("strtest2", "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 1);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "...gnirts");
+
+    // ForceSetMultiArg
+    testArgs.ForceSetMultiArg("strtest2", "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 2);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").back(), "string...");
+    testArgs.ClearArg("strtest2");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "default");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 0);
+    testArgs.ForceSetMultiArg("strtest2", "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 1);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "string...");
+    testArgs.ForceSetMultiArg("strtest2", "one more thing...");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 2);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "string...");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").back(), "one more thing...");
+    // If there are multi args, ForceSetArg should erase them
+    testArgs.ForceSetArg("strtest2", "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArg("strtest2", "default"), "...gnirts");
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").size(), 1);
+    BOOST_CHECK_EQUAL(testArgs.GetArgs("strtest2").front(), "...gnirts");
+}
+
 BOOST_AUTO_TEST_CASE(util_GetChainName) {
     TestArgsManager test_args;
 
