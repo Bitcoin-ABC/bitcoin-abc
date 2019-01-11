@@ -529,10 +529,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog *dialog) {
     if (nQuantity > 0) {
         // Bytes
         // always assume +1 output for change here
-        nBytes = nBytesInputs + ((CoinControlDialog::payAmounts.size() > 0
-                                      ? CoinControlDialog::payAmounts.size() + 1
-                                      : 2) *
-                                 34) +
+        nBytes = nBytesInputs +
+                 ((CoinControlDialog::payAmounts.size() > 0
+                       ? CoinControlDialog::payAmounts.size() + 1
+                       : 2) *
+                  34) +
                  10;
 
         // in the subtract fee from amount case, we can tell if zero change
@@ -747,10 +748,9 @@ void CoinControlDialog::updateView() {
             // label
             if (!(sAddress == sWalletAddress)) {
                 // change tooltip from where the change comes from
-                itemOutput->setToolTip(COLUMN_LABEL,
-                                       tr("change from %1 (%2)")
-                                           .arg(sWalletLabel)
-                                           .arg(sWalletAddress));
+                itemOutput->setToolTip(COLUMN_LABEL, tr("change from %1 (%2)")
+                                                         .arg(sWalletLabel)
+                                                         .arg(sWalletAddress));
                 itemOutput->setText(COLUMN_LABEL, tr("(change)"));
             } else if (!treeMode) {
                 QString sLabel =

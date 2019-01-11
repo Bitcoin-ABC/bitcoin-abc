@@ -1325,8 +1325,8 @@ BOOST_AUTO_TEST_CASE(script_build) {
         std::string str = JSONPrettyPrint(test.GetJSON());
 #ifndef UPDATE_JSON_TESTS
         if (tests_set.count(str) == 0) {
-            BOOST_CHECK_MESSAGE(
-                false, "Missing auto script_valid test: " + test.GetComment());
+            BOOST_CHECK_MESSAGE(false, "Missing auto script_valid test: " +
+                                           test.GetComment());
         }
 #endif
         strGen += str + ",\n";
@@ -1694,8 +1694,9 @@ BOOST_AUTO_TEST_CASE(script_combineSigs) {
                 combined.scriptSig == scriptSig);
     // dummy scriptSigCopy with placeholder, should always choose
     // non-placeholder:
-    scriptSigCopy = CScript() << OP_0 << std::vector<uint8_t>(pkSingle.begin(),
-                                                              pkSingle.end());
+    scriptSigCopy = CScript()
+                    << OP_0
+                    << std::vector<uint8_t>(pkSingle.begin(), pkSingle.end());
     combined = CombineSignatures(
         scriptPubKey, MutableTransactionSignatureChecker(&txTo, 0, amount),
         SignatureData(scriptSigCopy), SignatureData(scriptSig));

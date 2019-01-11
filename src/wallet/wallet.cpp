@@ -202,17 +202,15 @@ void CWallet::DeriveNewChildKey(CWalletDB &walletdb, CKeyMetadata &metadata,
         // child-index-range
         // example: 1 | BIP32_HARDENED_KEY_LIMIT == 0x80000001 == 2147483649
         if (internal) {
-            chainChildKey.Derive(childKey,
-                                 hdChain.nInternalChainCounter |
-                                     BIP32_HARDENED_KEY_LIMIT);
+            chainChildKey.Derive(childKey, hdChain.nInternalChainCounter |
+                                               BIP32_HARDENED_KEY_LIMIT);
             metadata.hdKeypath = "m/0'/1'/" +
                                  std::to_string(hdChain.nInternalChainCounter) +
                                  "'";
             hdChain.nInternalChainCounter++;
         } else {
-            chainChildKey.Derive(childKey,
-                                 hdChain.nExternalChainCounter |
-                                     BIP32_HARDENED_KEY_LIMIT);
+            chainChildKey.Derive(childKey, hdChain.nExternalChainCounter |
+                                               BIP32_HARDENED_KEY_LIMIT);
             metadata.hdKeypath = "m/0'/0'/" +
                                  std::to_string(hdChain.nExternalChainCounter) +
                                  "'";
@@ -1721,12 +1719,12 @@ CBlockIndex *CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart,
         if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) {
             ShowProgress(
                 _("Rescanning..."),
-                std::max(1, std::min<int>(99,
-                                          (GuessVerificationProgress(
-                                               chainParams.TxData(), pindex) -
-                                           dProgressStart) /
-                                              (dProgressTip - dProgressStart) *
-                                              100)));
+                std::max(1,
+                         std::min<int>(99, (GuessVerificationProgress(
+                                                chainParams.TxData(), pindex) -
+                                            dProgressStart) /
+                                               (dProgressTip - dProgressStart) *
+                                               100)));
         }
 
         CBlock block;

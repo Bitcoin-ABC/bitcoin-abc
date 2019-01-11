@@ -716,11 +716,12 @@ void RPCConsole::setClientModel(ClientModel *model) {
 
         // peer table signal handling - update peer details when selecting new
         // node
-        connect(ui->peerWidget->selectionModel(),
-                SIGNAL(selectionChanged(const QItemSelection &,
-                                        const QItemSelection &)),
-                this, SLOT(peerSelected(const QItemSelection &,
-                                        const QItemSelection &)));
+        connect(
+            ui->peerWidget->selectionModel(),
+            SIGNAL(selectionChanged(const QItemSelection &,
+                                    const QItemSelection &)),
+            this,
+            SLOT(peerSelected(const QItemSelection &, const QItemSelection &)));
         // peer table signal handling - update peer details when new nodes are
         // added to the model
         connect(model->getPeerTableModel(), SIGNAL(layoutChanged()), this,
@@ -1247,9 +1248,8 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats) {
     peerAddrDetails +=
         tr("(node id: %1)").arg(QString::number(stats->nodeStats.nodeid));
     if (!stats->nodeStats.addrLocal.empty()) {
-        peerAddrDetails += "<br />" +
-                           tr("via %1").arg(QString::fromStdString(
-                               stats->nodeStats.addrLocal));
+        peerAddrDetails += "<br />" + tr("via %1").arg(QString::fromStdString(
+                                          stats->nodeStats.addrLocal));
     }
     ui->peerHeading->setText(peerAddrDetails);
     ui->peerServices->setText(

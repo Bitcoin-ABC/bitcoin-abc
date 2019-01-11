@@ -1056,13 +1056,12 @@ static UniValue signrawtransaction(const Config &config,
             // signed:
             if (fGivenKeys && scriptPubKey.IsPayToScriptHash()) {
                 RPCTypeCheckObj(
-                    prevOut,
-                    {
-                        {"txid", UniValueType(UniValue::VSTR)},
-                        {"vout", UniValueType(UniValue::VNUM)},
-                        {"scriptPubKey", UniValueType(UniValue::VSTR)},
-                        {"redeemScript", UniValueType(UniValue::VSTR)},
-                    });
+                    prevOut, {
+                                 {"txid", UniValueType(UniValue::VSTR)},
+                                 {"vout", UniValueType(UniValue::VNUM)},
+                                 {"scriptPubKey", UniValueType(UniValue::VSTR)},
+                                 {"redeemScript", UniValueType(UniValue::VSTR)},
+                             });
                 UniValue v = find_value(prevOut, "redeemScript");
                 if (!v.isNull()) {
                     std::vector<uint8_t> rsData(ParseHexV(v, "redeemScript"));
@@ -1150,9 +1149,10 @@ static UniValue signrawtransaction(const Config &config,
             if (serror == SCRIPT_ERR_INVALID_STACK_OPERATION) {
                 // Unable to sign input and verification failed (possible
                 // attempt to partially sign).
-                TxInErrorToJSON(txin, vErrors, "Unable to sign input, invalid "
-                                               "stack size (possibly missing "
-                                               "key)");
+                TxInErrorToJSON(txin, vErrors,
+                                "Unable to sign input, invalid "
+                                "stack size (possibly missing "
+                                "key)");
             } else {
                 TxInErrorToJSON(txin, vErrors, ScriptErrorString(serror));
             }

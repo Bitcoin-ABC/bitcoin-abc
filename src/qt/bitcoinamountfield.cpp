@@ -99,18 +99,18 @@ public:
             QSize hint(w, h);
             QSize extra(35, 6);
             opt.rect.setSize(hint + extra);
-            extra += hint -
-                     style()
-                         ->subControlRect(QStyle::CC_SpinBox, &opt,
-                                          QStyle::SC_SpinBoxEditField, this)
-                         .size();
+            extra +=
+                hint - style()
+                           ->subControlRect(QStyle::CC_SpinBox, &opt,
+                                            QStyle::SC_SpinBoxEditField, this)
+                           .size();
             // Get closer to final result by repeating the calculation.
             opt.rect.setSize(hint + extra);
-            extra += hint -
-                     style()
-                         ->subControlRect(QStyle::CC_SpinBox, &opt,
-                                          QStyle::SC_SpinBoxEditField, this)
-                         .size();
+            extra +=
+                hint - style()
+                           ->subControlRect(QStyle::CC_SpinBox, &opt,
+                                            QStyle::SC_SpinBoxEditField, this)
+                           .size();
             hint += extra;
             hint.setHeight(h);
 

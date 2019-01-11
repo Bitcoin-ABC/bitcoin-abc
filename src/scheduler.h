@@ -45,9 +45,8 @@ public:
     typedef std::function<bool(void)> Predicate;
 
     // Call func at/after time t
-    void schedule(Function f,
-                  boost::chrono::system_clock::time_point t =
-                      boost::chrono::system_clock::now());
+    void schedule(Function f, boost::chrono::system_clock::time_point t =
+                                  boost::chrono::system_clock::now());
 
     // Convenience method: call f once deltaMilliSeconds from now
     void scheduleFromNow(Function f, int64_t deltaMilliSeconds);

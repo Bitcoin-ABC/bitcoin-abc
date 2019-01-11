@@ -675,8 +675,9 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                           boost::bind(&TorController::auth_cb, this, _1, _2));
         } else if (methods.count("SAFECOOKIE")) {
             // Cookie: hexdump -e '32/1 "%02x""\n"'  ~/.tor/control_auth_cookie
-            LogPrint(BCLog::TOR, "tor: Using SAFECOOKIE authentication, "
-                                 "reading cookie authentication from %s\n",
+            LogPrint(BCLog::TOR,
+                     "tor: Using SAFECOOKIE authentication, "
+                     "reading cookie authentication from %s\n",
                      cookiefile);
             std::pair<bool, std::string> status_cookie =
                 ReadBinaryFile(cookiefile, TOR_COOKIE_SIZE);

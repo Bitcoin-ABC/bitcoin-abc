@@ -147,11 +147,12 @@ void URITests::uriTestsCashAddr() {
             QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"));
     QVERIFY(rv.label == QString());
 
-    QVERIFY(GUIUtil::parseBitcoinURI(
-        scheme, "bitcoincash://"
-                "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
-                "message=Wikipedia Example Address",
-        &rv));
+    QVERIFY(
+        GUIUtil::parseBitcoinURI(scheme,
+                                 "bitcoincash://"
+                                 "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?"
+                                 "message=Wikipedia Example Address",
+                                 &rv));
     QVERIFY(rv.address ==
             QString("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"));
     QVERIFY(rv.label == QString());

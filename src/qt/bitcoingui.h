@@ -68,7 +68,7 @@ public:
      * Set the wallet model.
      * The wallet model represents a bitcoin wallet, and offers access to the
      * list of transactions, address book and sending functionality.
-    */
+     */
     bool addWallet(WalletModel *walletModel);
     void removeAllWallets();
 #endif // ENABLE_WALLET
@@ -189,7 +189,7 @@ public Q_SLOTS:
 #ifdef ENABLE_WALLET
     bool setCurrentWallet(const QString &name);
     /** Set the UI status indicators based on the currently selected wallet.
-    */
+     */
     void updateWalletStatus();
 
 private:

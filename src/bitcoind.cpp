@@ -120,9 +120,9 @@ bool AppInit(int argc, char *argv[]) {
         // line
         for (int i = 1; i < argc; i++) {
             if (!IsSwitchChar(argv[i][0])) {
-                fprintf(stderr, "Error: Command line contains unexpected token "
-                                "'%s', see bitcoind -h for a list of "
-                                "options.\n",
+                fprintf(stderr,
+                        "Error: Command line contains unexpected token '%s', "
+                        "see bitcoind -h for a list of options.\n",
                         argv[i]);
                 exit(EXIT_FAILURE);
             }

@@ -99,9 +99,8 @@ void CScheduler::schedule(CScheduler::Function f,
 
 void CScheduler::scheduleFromNow(CScheduler::Function f,
                                  int64_t deltaMilliSeconds) {
-    schedule(f,
-             boost::chrono::system_clock::now() +
-                 boost::chrono::milliseconds(deltaMilliSeconds));
+    schedule(f, boost::chrono::system_clock::now() +
+                    boost::chrono::milliseconds(deltaMilliSeconds));
 }
 
 static void Repeat(CScheduler *s, CScheduler::Predicate p,

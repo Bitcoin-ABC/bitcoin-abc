@@ -124,11 +124,12 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
 
                 uint32_t verify_flags = ParseScriptFlags(test[2].get_str());
                 BOOST_CHECK_MESSAGE(
-                    VerifyScript(tx.vin[i].scriptSig,
-                                 mapprevOutScriptPubKeys[tx.vin[i].prevout],
-                                 verify_flags, TransactionSignatureChecker(
-                                                   &tx, i, amount, txdata),
-                                 &err),
+                    VerifyScript(
+                        tx.vin[i].scriptSig,
+                        mapprevOutScriptPubKeys[tx.vin[i].prevout],
+                        verify_flags,
+                        TransactionSignatureChecker(&tx, i, amount, txdata),
+                        &err),
                     strTest);
                 BOOST_CHECK_MESSAGE(err == SCRIPT_ERR_OK,
                                     ScriptErrorString(err));
@@ -584,11 +585,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, 0, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 
     // P2SH 2-of-2 multisig
@@ -604,11 +606,12 @@ BOOST_AUTO_TEST_CASE(test_witness) {
     CheckWithFlag(output2, input2, SCRIPT_VERIFY_P2SH, false);
     BOOST_CHECK(*output1 == *output2);
     UpdateTransaction(
-        input1, 0, CombineSignatures(output1->vout[0].scriptPubKey,
-                                     MutableTransactionSignatureChecker(
-                                         &input1, 0, output1->vout[0].nValue),
-                                     DataFromTransaction(input1, 0),
-                                     DataFromTransaction(input2, 0)));
+        input1, 0,
+        CombineSignatures(output1->vout[0].scriptPubKey,
+                          MutableTransactionSignatureChecker(
+                              &input1, 0, output1->vout[0].nValue),
+                          DataFromTransaction(input1, 0),
+                          DataFromTransaction(input2, 0)));
     CheckWithFlag(output1, input1, SCRIPT_VERIFY_P2SH, true);
     CheckWithFlag(output1, input1, STANDARD_SCRIPT_VERIFY_FLAGS, true);
 }

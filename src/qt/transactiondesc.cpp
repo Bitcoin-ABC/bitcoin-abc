@@ -151,8 +151,9 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
         strHTML += "<b>" + tr("Credit") + ":</b> ";
         if (wtx.IsInMainChain()) {
             strHTML += BitcoinUnits::formatHtmlWithUnit(unit, nUnmatured) +
-                       " (" + tr("matures in %n more block(s)", "",
-                                 wtx.GetBlocksToMaturity()) +
+                       " (" +
+                       tr("matures in %n more block(s)", "",
+                          wtx.GetBlocksToMaturity()) +
                        ")";
         } else {
             strHTML += "(" + tr("not accepted") + ")";
@@ -382,11 +383,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx,
                 }
                 strHTML = strHTML + " " + tr("Amount") + "=" +
                           BitcoinUnits::formatHtmlWithUnit(unit, vout.nValue);
-                strHTML = strHTML +
-                          " IsMine=" + (wallet->IsMine(vout) & ISMINE_SPENDABLE
-                                            ? tr("true")
-                                            : tr("false")) +
-                          "</li>";
+                strHTML =
+                    strHTML + " IsMine=" +
+                    (wallet->IsMine(vout) & ISMINE_SPENDABLE ? tr("true")
+                                                             : tr("false")) +
+                    "</li>";
                 strHTML =
                     strHTML + " IsWatchOnly=" +
                     (wallet->IsMine(vout) & ISMINE_WATCH_ONLY ? tr("true")

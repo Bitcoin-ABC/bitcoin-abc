@@ -236,11 +236,12 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
     int64_t nTime2 = GetTimeMicros();
 
-    LogPrint(
-        BCLog::BENCH, "CreateNewBlock() packages: %.2fms (%d packages, %d "
-                      "updated descendants), validity: %.2fms (total %.2fms)\n",
-        0.001 * (nTime1 - nTimeStart), nPackagesSelected, nDescendantsUpdated,
-        0.001 * (nTime2 - nTime1), 0.001 * (nTime2 - nTimeStart));
+    LogPrint(BCLog::BENCH,
+             "CreateNewBlock() packages: %.2fms (%d packages, %d updated "
+             "descendants), validity: %.2fms (total %.2fms)\n",
+             0.001 * (nTime1 - nTimeStart), nPackagesSelected,
+             nDescendantsUpdated, 0.001 * (nTime2 - nTime1),
+             0.001 * (nTime2 - nTimeStart));
 
     return std::move(pblocktemplate);
 }
@@ -437,7 +438,7 @@ void BlockAssembler::SortForBlock(
  * children come after parents, despite having a potentially larger fee.
  * @param[out] nPackagesSelected    How many packages were selected
  * @param[out] nDescendantsUpdated  Number of descendant transactions updated
-*/
+ */
 void BlockAssembler::addPackageTxs(int &nPackagesSelected,
                                    int &nDescendantsUpdated) {
 

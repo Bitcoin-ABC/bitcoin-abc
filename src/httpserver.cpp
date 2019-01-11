@@ -417,16 +417,15 @@ bool InitHTTPServer(Config &config) {
     evhttp_set_timeout(
         http, gArgs.GetArg("-rpcservertimeout", DEFAULT_HTTP_SERVER_TIMEOUT));
     evhttp_set_max_headers_size(http, MAX_HEADERS_SIZE);
-    evhttp_set_max_body_size(
-        http, MIN_SUPPORTED_BODY_SIZE + 2 * config.GetMaxBlockSize());
+    evhttp_set_max_body_size(http, MIN_SUPPORTED_BODY_SIZE +
+                                       2 * config.GetMaxBlockSize());
     evhttp_set_gencb(http, http_request_cb, &config);
 
     // Only POST and OPTIONS are supported, but we return HTTP 405 for the
     // others
-    evhttp_set_allowed_methods(http,
-                               EVHTTP_REQ_GET | EVHTTP_REQ_POST |
-                                   EVHTTP_REQ_HEAD | EVHTTP_REQ_PUT |
-                                   EVHTTP_REQ_DELETE | EVHTTP_REQ_OPTIONS);
+    evhttp_set_allowed_methods(
+        http, EVHTTP_REQ_GET | EVHTTP_REQ_POST | EVHTTP_REQ_HEAD |
+                  EVHTTP_REQ_PUT | EVHTTP_REQ_DELETE | EVHTTP_REQ_OPTIONS);
 
     if (!HTTPBindAddresses(http)) {
         LogPrintf("Unable to bind any endpoint for RPC server\n");
@@ -604,10 +603,10 @@ void HTTPRequest::WriteReply(int nStatus, const std::string &strReply) {
     struct evbuffer *evb = evhttp_request_get_output_buffer(req);
     assert(evb);
     evbuffer_add(evb, strReply.data(), strReply.size());
-    HTTPEvent *ev =
-        new HTTPEvent(eventBase, true, std::bind(evhttp_send_reply, req,
-                                                 nStatus, (const char *)nullptr,
-                                                 (struct evbuffer *)nullptr));
+    HTTPEvent *ev = new HTTPEvent(eventBase, true,
+                                  std::bind(evhttp_send_reply, req, nStatus,
+                                            (const char *)nullptr,
+                                            (struct evbuffer *)nullptr));
     ev->trigger(nullptr);
     replySent = true;
     // transferred back to main thread.

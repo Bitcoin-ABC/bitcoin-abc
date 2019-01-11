@@ -76,9 +76,10 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
             "unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set "
             "in " +
-            CURRENCY_UNIT + "/kB\n"
-                            "  \"relayfee\": x.xxxx,         (numeric) minimum "
-                            "relay fee for non-free transactions in " +
+            CURRENCY_UNIT +
+            "/kB\n"
+            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for "
+            "non-free transactions in " +
             CURRENCY_UNIT +
             "/kB\n"
             "  \"errors\": \"...\"           (string) any error messages\n"
@@ -116,9 +117,8 @@ static UniValue getinfo(const Config &config, const JSONRPCRequest &request) {
     obj.pushKV("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                          : std::string()));
     obj.pushKV("difficulty", double(GetDifficulty(chainActive.Tip())));
-    obj.pushKV("testnet",
-               config.GetChainParams().NetworkIDString() ==
-                   CBaseChainParams::TESTNET);
+    obj.pushKV("testnet", config.GetChainParams().NetworkIDString() ==
+                              CBaseChainParams::TESTNET);
 #ifdef ENABLE_WALLET
     if (pwallet) {
         obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
@@ -507,8 +507,9 @@ static UniValue signmessagewithprivkey(const Config &config,
             HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
                                             "XX\" \"signature\" \"my "
                                             "message\"") +
-            "\nAs json rpc\n" + HelpExampleRpc("signmessagewithprivkey",
-                                               "\"privkey\", \"my message\""));
+            "\nAs json rpc\n" +
+            HelpExampleRpc("signmessagewithprivkey",
+                           "\"privkey\", \"my message\""));
     }
 
     std::string strPrivkey = request.params[0].get_str();

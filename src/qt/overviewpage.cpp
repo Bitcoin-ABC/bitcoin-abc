@@ -256,10 +256,12 @@ void OverviewPage::setWalletModel(WalletModel *model) {
                    model->getImmatureBalance(), model->getWatchBalance(),
                    model->getWatchUnconfirmedBalance(),
                    model->getWatchImmatureBalance());
-        connect(model, SIGNAL(balanceChanged(Amount, Amount, Amount, Amount,
-                                             Amount, Amount)),
-                this, SLOT(setBalance(Amount, Amount, Amount, Amount, Amount,
-                                      Amount)));
+        connect(
+            model,
+            SIGNAL(
+                balanceChanged(Amount, Amount, Amount, Amount, Amount, Amount)),
+            this,
+            SLOT(setBalance(Amount, Amount, Amount, Amount, Amount, Amount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this,
                 SLOT(updateDisplayUnit()));

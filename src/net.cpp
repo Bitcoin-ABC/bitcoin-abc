@@ -1507,8 +1507,9 @@ void CConnman::ThreadSocketHandler() {
             int64_t nTime = GetSystemTimeInSeconds();
             if (nTime - pnode->nTimeConnected > 60) {
                 if (pnode->nLastRecv == 0 || pnode->nLastSend == 0) {
-                    LogPrint(BCLog::NET, "socket no message in first 60 "
-                                         "seconds, %d %d from %d\n",
+                    LogPrint(BCLog::NET,
+                             "socket no message in first 60 seconds, %d %d "
+                             "from %d\n",
                              pnode->nLastRecv != 0, pnode->nLastSend != 0,
                              pnode->GetId());
                     pnode->fDisconnect = true;

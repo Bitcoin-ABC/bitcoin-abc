@@ -100,15 +100,17 @@ static int AppInitRawTx(int argc, char *argv[]) {
             "outmultisig=VALUE:REQUIRED:PUBKEYS:PUBKEY1:PUBKEY2:....[:FLAGS]",
             _("Add Pay To n-of-m Multi-sig output to TX. n = REQUIRED, m = "
               "PUBKEYS") +
-                ". " + _("Optionally add the \"S\" flag to wrap the output in "
-                         "a pay-to-script-hash."));
+                ". " +
+                _("Optionally add the \"S\" flag to wrap the output in a "
+                  "pay-to-script-hash."));
         strUsage += HelpMessageOpt(
             "sign=SIGHASH-FLAGS",
             _("Add zero or more signatures to transaction") + ". " +
                 _("This command requires JSON registers:") +
                 _("prevtxs=JSON object") + ", " + _("privatekeys=JSON object") +
-                ". " + _("See signrawtransaction docs for format of sighash "
-                         "flags, JSON objects."));
+                ". " +
+                _("See signrawtransaction docs for format of sighash flags, "
+                  "JSON objects."));
         fprintf(stdout, "%s", strUsage.c_str());
 
         strUsage = HelpMessageGroup(_("Register Commands:"));

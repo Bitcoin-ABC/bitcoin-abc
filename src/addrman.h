@@ -489,8 +489,9 @@ public:
             }
         }
         if (nLost + nLostUnk > 0) {
-            LogPrint(BCLog::ADDRMAN, "addrman lost %i new and %i tried "
-                                     "addresses due to collisions\n",
+            LogPrint(BCLog::ADDRMAN,
+                     "addrman lost %i new and %i tried addresses due to "
+                     "collisions\n",
                      nLostUnk, nLost);
         }
 

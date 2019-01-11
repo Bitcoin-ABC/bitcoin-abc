@@ -10,13 +10,21 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct { uint16_t slice[8]; } AES_state;
+typedef struct {
+    uint16_t slice[8];
+} AES_state;
 
-typedef struct { AES_state rk[11]; } AES128_ctx;
+typedef struct {
+    AES_state rk[11];
+} AES128_ctx;
 
-typedef struct { AES_state rk[13]; } AES192_ctx;
+typedef struct {
+    AES_state rk[13];
+} AES192_ctx;
 
-typedef struct { AES_state rk[15]; } AES256_ctx;
+typedef struct {
+    AES_state rk[15];
+} AES256_ctx;
 
 void AES128_init(AES128_ctx *ctx, const uint8_t *key16);
 void AES128_encrypt(const AES128_ctx *ctx, size_t blocks, uint8_t *cipher16,

@@ -227,9 +227,9 @@ bool AvalancheProcessor::registerVotes(
                 // This item has note been finalized, so we have nothing more to
                 // do.
                 updates.emplace_back(
-                    pindex,
-                    vr.isAccepted() ? AvalancheBlockUpdate::Status::Accepted
-                                    : AvalancheBlockUpdate::Status::Rejected);
+                    pindex, vr.isAccepted()
+                                ? AvalancheBlockUpdate::Status::Accepted
+                                : AvalancheBlockUpdate::Status::Rejected);
                 continue;
             }
 

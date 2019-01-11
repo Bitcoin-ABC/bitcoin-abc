@@ -686,9 +686,8 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     }
     CKey vchSecret;
     if (!pwallet->GetKey(*keyID, vchSecret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "Private key for address " + strAddress +
-                               " is not known");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " +
+                                                 strAddress + " is not known");
     }
     return CBitcoinSecret(vchSecret).ToString();
 }

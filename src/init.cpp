@@ -493,9 +493,8 @@ std::string HelpMessage(HelpMessageMode mode) {
                                _("Discover own IP addresses (default: 1 when "
                                  "listening and no -externalip or -proxy)"));
     strUsage += HelpMessageOpt(
-        "-dns",
-        _("Allow DNS lookups for -addnode, -seednode and -connect") + " " +
-            strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
+        "-dns", _("Allow DNS lookups for -addnode, -seednode and -connect") +
+                    " " + strprintf(_("(default: %d)"), DEFAULT_NAME_LOOKUP));
     strUsage += HelpMessageOpt(
         "-dnsseed", _("Query for peer addresses via DNS lookup, if low on "
                       "addresses (default: 1 unless -connect/-noconnect)"));
@@ -595,9 +594,10 @@ std::string HelpMessage(HelpMessageMode mode) {
         _("Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) "
           "or CIDR notated network (e.g. 1.2.3.0/24). Can be specified "
           "multiple times.") +
-            " " + _("Whitelisted peers cannot be DoS banned and their "
-                    "transactions are always relayed, even if they are already "
-                    "in the mempool, useful e.g. for a gateway"));
+            " " +
+            _("Whitelisted peers cannot be DoS banned and their transactions "
+              "are always relayed, even if they are already in the mempool, "
+              "useful e.g. for a gateway"));
     strUsage += HelpMessageOpt(
         "-whitelistrelay",
         strprintf(_("Accept relayed transactions received from whitelisted "
@@ -712,8 +712,9 @@ std::string HelpMessage(HelpMessageMode mode) {
         strprintf(_("Output debugging information (default: %u, supplying "
                     "<category> is optional)"),
                   0) +
-            ". " + _("If <category> is not supplied or if <category> = 1, "
-                     "output all debugging information.") +
+            ". " +
+            _("If <category> is not supplied or if <category> = 1, output all "
+              "debugging information.") +
             _("<category> can be:") + " " + ListLogCategories() + ".");
     strUsage += HelpMessageOpt(
         "-debugexclude=<category>",
@@ -927,8 +928,9 @@ std::string LicenseInfo() {
            strprintf(_("Please contribute if you find %s useful. "
                        "Visit %s for further information about the software."),
                      PACKAGE_NAME, URL_WEBSITE) +
-           "\n" + strprintf(_("The source code is available from %s."),
-                            URL_SOURCE_CODE) +
+           "\n" +
+           strprintf(_("The source code is available from %s."),
+                     URL_SOURCE_CODE) +
            "\n" + "\n" + _("This is experimental software.") + "\n" +
            strprintf(_("Distributed under the MIT software license, see the "
                        "accompanying file %s or %s"),
@@ -2131,9 +2133,8 @@ bool AppInitMain(Config &config,
                         LOCK(cs_main);
                         CBlockIndex *tip = chainActive.Tip();
                         RPCNotifyBlockChange(true, tip);
-                        if (tip &&
-                            tip->nTime >
-                                GetAdjustedTime() + MAX_FUTURE_BLOCK_TIME) {
+                        if (tip && tip->nTime > GetAdjustedTime() +
+                                                    MAX_FUTURE_BLOCK_TIME) {
                             strLoadError =
                                 _("The block database contains a block which "
                                   "appears to be from the future. This may be "
