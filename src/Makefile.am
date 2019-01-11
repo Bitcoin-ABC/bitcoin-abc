@@ -158,6 +158,7 @@ BITCOIN_CORE_H = \
   policy/policy.h \
   pow.h \
   protocol.h \
+  radix.h \
   random.h \
   rcu.h \
   reverse_iterator.h \
