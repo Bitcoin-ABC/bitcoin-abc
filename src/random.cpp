@@ -292,13 +292,14 @@ void LockingCallbackOpenSSL(int mode, int i, const char *file, int line);
 
 namespace {
 
-struct RNGState {
+class RNGState {
     Mutex m_mutex;
     uint8_t m_state[32] GUARDED_BY(m_mutex) = {0};
     uint64_t m_counter GUARDED_BY(m_mutex) = 0;
     bool m_strongly_seeded GUARDED_BY(m_mutex) = false;
     std::unique_ptr<Mutex[]> m_mutex_openssl;
 
+public:
     RNGState() noexcept {
         InitHardwareRand();
 
@@ -361,6 +362,8 @@ struct RNGState {
         memory_cleanse(buf, 64);
         return ret;
     }
+
+    Mutex &GetOpenSSLMutex(int i) { return m_mutex_openssl[i]; }
 };
 
 RNGState &GetRNGState() noexcept {
@@ -377,9 +380,9 @@ void LockingCallbackOpenSSL(int mode, int i, const char *file,
     RNGState &rng = GetRNGState();
 
     if (mode & CRYPTO_LOCK) {
-        rng.m_mutex_openssl[i].lock();
+        rng.GetOpenSSLMutex(i).lock();
     } else {
-        rng.m_mutex_openssl[i].unlock();
+        rng.GetOpenSSLMutex(i).unlock();
     }
 }
 
