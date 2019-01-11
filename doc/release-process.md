@@ -10,8 +10,9 @@ Bitcoin ABC Release Process
     - Check that finished tasks / tickets are marked as resolved
 
 2. Verify tests passed
-    - any known issues or limitations should be documented in release notes
-    - known bugs should have tickets
+    - Any known issues or limitations should be documented in release notes
+    - Known bugs should have tickets
+    - Run the `contrib/devtools/check-doc.py` script and ensure there is no undocumented argument
     - Verify IBD without checkpoints and without assumevalid.
  
 3. Update the documents / code which needs to be updated every release
