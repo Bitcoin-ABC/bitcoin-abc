@@ -314,6 +314,8 @@ bool AvalancheProcessor::stopEventLoop() {
 std::vector<CInv> AvalancheProcessor::getInvsForNextPoll() const {
     std::vector<CInv> invs;
 
+    LOCK(cs_main);
+
     auto r = vote_records.getReadView();
     for (const std::pair<const CBlockIndex *, VoteRecord> &p :
          reverse_iterate(r)) {
