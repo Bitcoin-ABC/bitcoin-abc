@@ -3399,11 +3399,15 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     if (memcmp(hash.begin(), hdr.pchChecksum, CMessageHeader::CHECKSUM_SIZE) !=
         0) {
         LogPrint(
-            BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR expected %s was %s\n",
+            BCLog::NET,
+            "%s(%s, %u bytes): CHECKSUM ERROR expected %s was %s from "
+            "peer=%d\n",
             __func__, SanitizeString(strCommand), nMessageSize,
             HexStr(hash.begin(), hash.begin() + CMessageHeader::CHECKSUM_SIZE),
             HexStr(hdr.pchChecksum,
-                   hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE));
+                   hdr.pchChecksum + CMessageHeader::CHECKSUM_SIZE),
+            pfrom->GetId());
+        connman->Ban(pfrom->addr, BanReasonNodeMisbehaving);
         return fMoreWork;
     }
 
