@@ -323,6 +323,7 @@ void ArgsManager::ForceSetMultiArg(const std::string &strArg,
 void ArgsManager::ClearArg(const std::string &strArg) {
     LOCK(cs_args);
     mapArgs.erase(strArg);
+    mapMultiArgs.erase(strArg);
 }
 
 bool HelpRequested(const ArgsManager &args) {
