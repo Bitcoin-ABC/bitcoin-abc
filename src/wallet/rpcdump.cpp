@@ -1139,6 +1139,16 @@ static std::string RecurseImportData(const CScript &script,
     }
 }
 
+static UniValue ProcessImportLegacy(ImportData &import_data,
+                                    std::map<CKeyID, CPubKey> &pubkey_map,
+                                    std::map<CKeyID, CKey> &privkey_map,
+                                    std::set<CScript> &script_pub_keys,
+                                    bool &have_solving_data,
+                                    const UniValue &data) {
+    UniValue warnings(UniValue::VARR);
+    return warnings;
+}
+
 static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                               const int64_t timestamp)
     EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
@@ -1161,6 +1171,10 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
         std::map<CKeyID, CKey> privkey_map;
         std::set<CScript> script_pub_keys;
         bool have_solving_data;
+
+        warnings =
+            ProcessImportLegacy(import_data, pubkey_map, privkey_map,
+                                script_pub_keys, have_solving_data, data);
 
         // First ensure scriptPubKey has either a script or JSON with "address"
         // string
@@ -1297,6 +1311,7 @@ static UniValue ProcessImport(CWallet *const pwallet, const UniValue &data,
                         // Not a required key
                         continue;
                     }
+
                     if (pubkey_map.count(require_key.first) == 0 &&
                         privkey_map.count(require_key.first) == 0) {
                         error = "some required keys are missing";
