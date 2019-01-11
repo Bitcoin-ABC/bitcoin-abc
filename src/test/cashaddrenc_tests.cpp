@@ -345,8 +345,9 @@ BOOST_AUTO_TEST_CASE(test_vectors) {
                   "C060"),
          "bitcoincash:"
          "qvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq5nlegake"},
-        {"bchtest", SCRIPT_TYPE, ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07"
-                                          "BB47A37F47CFEF4FE69DE825C060"),
+        {"bchtest", SCRIPT_TYPE,
+         ParseHex("3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825"
+                  "C060"),
          "bchtest:"
          "pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq7fqng6m6"},
         {"prefix", CashAddrType(15),

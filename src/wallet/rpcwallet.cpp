@@ -762,9 +762,8 @@ static UniValue getreceivedbyaddress(const Config &config,
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
-        if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
-                                                       state)) {
+        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
+                                    config, *wtx.tx, state)) {
             continue;
         }
 
@@ -800,10 +799,11 @@ UniValue getreceivedbylabel(const Config &config,
             "transactions confirmed at least this many times.\n"
             "\nResult:\n"
             "amount              (numeric) The total amount in " +
-            CURRENCY_UNIT + " received for this label.\n"
-                            "\nExamples:\n"
-                            "\nAmount received by the default label with at "
-                            "least 1 confirmation\n" +
+            CURRENCY_UNIT +
+            " received for this label.\n"
+            "\nExamples:\n"
+            "\nAmount received by the default label with at least 1 "
+            "confirmation\n" +
             HelpExampleCli("getreceivedbylabel", "\"\"") +
             "\nAmount received at the tabby label including unconfirmed "
             "amounts with zero confirmations\n" +
@@ -831,9 +831,8 @@ UniValue getreceivedbylabel(const Config &config,
     for (const std::pair<uint256, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
         CValidationState state;
-        if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
-                                                       state)) {
+        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
+                                    config, *wtx.tx, state)) {
             continue;
         }
 
@@ -898,9 +897,10 @@ static UniValue getbalance(const Config &config,
             "balance in watch-only addresses (see 'importaddress')\n"
             "\nResult:\n"
             "amount              (numeric) The total amount in " +
-            CURRENCY_UNIT + " received for this account.\n"
-                            "\nExamples:\n"
-                            "\nThe total amount in the wallet\n" +
+            CURRENCY_UNIT +
+            " received for this account.\n"
+            "\nExamples:\n"
+            "\nThe total amount in the wallet\n" +
             HelpExampleCli("getbalance", "") +
             "\nThe total amount in the wallet at least 5 blocks confirmed\n" +
             HelpExampleCli("getbalance", "\"*\" 6") + "\nAs a json rpc call\n" +
@@ -983,8 +983,9 @@ static UniValue movecmd(const Config &config, const JSONRPCRequest &request) {
             CURRENCY_UNIT +
             " from the default account to the account named tabby\n" +
             HelpExampleCli("move", "\"\" \"tabby\" 0.01") + "\nMove 0.01 " +
-            CURRENCY_UNIT + " timotei to akiko with a comment and funds have 6 "
-                            "confirmations\n" +
+            CURRENCY_UNIT +
+            " timotei to akiko with a comment and funds have 6 "
+            "confirmations\n" +
             HelpExampleCli("move",
                            "\"timotei\" \"akiko\" 0.01 6 \"happy birthday!\"") +
             "\nAs a json rpc call\n" +
@@ -1066,8 +1067,9 @@ static UniValue sendfrom(const Config &config, const JSONRPCRequest &request) {
             "\"txid\"                 (string) The transaction id.\n"
             "\nExamples:\n"
             "\nSend 0.01 " +
-            CURRENCY_UNIT + " from the default account to the address, must "
-                            "have at least 1 confirmation\n" +
+            CURRENCY_UNIT +
+            " from the default account to the address, must have at least 1 "
+            "confirmation\n" +
             HelpExampleCli("sendfrom",
                            "\"\" \"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.01") +
             "\nSend 0.01 from the tabby account to the given address, funds "
@@ -1418,9 +1420,8 @@ UniValue ListReceived(const Config &config, CWallet *const pwallet,
         const CWalletTx &wtx = pairWtx.second;
 
         CValidationState state;
-        if (wtx.IsCoinBase() ||
-            !ContextualCheckTransactionForCurrentBlock(config, *wtx.tx,
-                                                       state)) {
+        if (wtx.IsCoinBase() || !ContextualCheckTransactionForCurrentBlock(
+                                    config, *wtx.tx, state)) {
             continue;
         }
 
@@ -1962,9 +1963,9 @@ static UniValue listaccounts(const Config &config,
             "}\n"
             "\nExamples:\n"
             "\nList account balances where there at least 1 confirmation\n" +
-            HelpExampleCli("listaccounts", "") + "\nList account balances "
-                                                 "including zero confirmation "
-                                                 "transactions\n" +
+            HelpExampleCli("listaccounts", "") +
+            "\nList account balances including zero confirmation "
+            "transactions\n" +
             HelpExampleCli("listaccounts", "0") +
             "\nList account balances for 6 or more confirmations\n" +
             HelpExampleCli("listaccounts", "6") + "\nAs json rpc call\n" +
@@ -2237,14 +2238,15 @@ static UniValue gettransaction(const Config &config,
             "either 'send' or 'receive'\n"
             "      \"amount\" : x.xxx,                 (numeric) The amount "
             "in " +
-            CURRENCY_UNIT + "\n"
-                            "      \"label\" : \"label\",              "
-                            "(string) A comment for the address/transaction, "
-                            "if any\n"
-                            "      \"vout\" : n,                       "
-                            "(numeric) the vout value\n"
-                            "      \"fee\": x.xxx,                     "
-                            "(numeric) The amount of the fee in " +
+            CURRENCY_UNIT +
+            "\n"
+            "      \"label\" : \"label\",              "
+            "(string) A comment for the address/transaction, "
+            "if any\n"
+            "      \"vout\" : n,                       "
+            "(numeric) the vout value\n"
+            "      \"fee\": x.xxx,                     "
+            "(numeric) The amount of the fee in " +
             CURRENCY_UNIT +
             ". This is negative and only available for the \n"
             "                                           'send' category of "
@@ -2794,11 +2796,10 @@ static UniValue lockunspent(const Config &config,
         }
         const UniValue &o = output.get_obj();
 
-        RPCTypeCheckObj(o,
-                        {
-                            {"txid", UniValueType(UniValue::VSTR)},
-                            {"vout", UniValueType(UniValue::VNUM)},
-                        });
+        RPCTypeCheckObj(o, {
+                               {"txid", UniValueType(UniValue::VSTR)},
+                               {"vout", UniValueType(UniValue::VNUM)},
+                           });
 
         std::string txid = find_value(o, "txid").get_str();
         if (!IsHex(txid)) {
@@ -2936,12 +2937,14 @@ static UniValue getwalletinfo(const Config &config,
             "version\n"
             "  \"balance\": xxxxxxx,              (numeric) the total "
             "confirmed balance of the wallet in " +
-            CURRENCY_UNIT + "\n"
-                            "  \"unconfirmed_balance\": xxx,      (numeric) "
-                            "the total unconfirmed balance of the wallet in " +
-            CURRENCY_UNIT + "\n"
-                            "  \"immature_balance\": xxxxxx,      (numeric) "
-                            "the total immature balance of the wallet in " +
+            CURRENCY_UNIT +
+            "\n"
+            "  \"unconfirmed_balance\": xxx,      (numeric) "
+            "the total unconfirmed balance of the wallet in " +
+            CURRENCY_UNIT +
+            "\n"
+            "  \"immature_balance\": xxxxxx,      (numeric) "
+            "the total immature balance of the wallet in " +
             CURRENCY_UNIT +
             "\n"
             "  \"txcount\": xxxxxxx,              (numeric) the total number "
@@ -2960,11 +2963,12 @@ static UniValue getwalletinfo(const Config &config,
             "unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"paytxfee\": x.xxxx,              (numeric) the transaction "
             "fee configuration, set in " +
-            CURRENCY_UNIT + "/kB\n"
-                            "  \"hdmasterkeyid\": \"<hash160>\"     (string) "
-                            "the Hash160 of the HD master pubkey\n"
-                            "}\n"
-                            "\nExamples:\n" +
+            CURRENCY_UNIT +
+            "/kB\n"
+            "  \"hdmasterkeyid\": \"<hash160>\"     (string) "
+            "the Hash160 of the HD master pubkey\n"
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getwalletinfo", "") +
             HelpExampleRpc("getwalletinfo", ""));
     }
@@ -3107,16 +3111,16 @@ static UniValue listunspent(const Config &config,
             "    {\n"
             "      \"minimumAmount\"    (numeric or string, default=0) Minimum "
             "value of each UTXO in " +
-            CURRENCY_UNIT + "\n"
-                            "      \"maximumAmount\"    (numeric or string, "
-                            "default=unlimited) Maximum value of each UTXO "
-                            "in " +
-            CURRENCY_UNIT + "\n"
-                            "      \"maximumCount\"     (numeric or string, "
-                            "default=unlimited) Maximum number of UTXOs\n"
-                            "      \"minimumSumAmount\" (numeric or string, "
-                            "default=unlimited) Minimum sum value of all UTXOs "
-                            "in " +
+            CURRENCY_UNIT +
+            "\n"
+            "      \"maximumAmount\"    (numeric or string, default=unlimited) "
+            "Maximum value of each UTXO in " +
+            CURRENCY_UNIT +
+            "\n"
+            "      \"maximumCount\"     (numeric or string, default=unlimited) "
+            "Maximum number of UTXOs\n"
+            "      \"minimumSumAmount\" (numeric or string, default=unlimited) "
+            "Minimum sum value of all UTXOs in " +
             CURRENCY_UNIT +
             "\n"
             "    }\n"
@@ -3361,12 +3365,13 @@ static UniValue fundrawtransaction(const Config &config,
             "  \"hex\":       \"value\", (string)  The resulting raw "
             "transaction (hex-encoded string)\n"
             "  \"fee\":       n,         (numeric) Fee in " +
-            CURRENCY_UNIT + " the resulting transaction pays\n"
-                            "  \"changepos\": n          (numeric) The "
-                            "position of the added change output, or -1\n"
-                            "}\n"
-                            "\nExamples:\n"
-                            "\nCreate a transaction with no inputs\n" +
+            CURRENCY_UNIT +
+            " the resulting transaction pays\n"
+            "  \"changepos\": n          (numeric) The position of the added "
+            "change output, or -1\n"
+            "}\n"
+            "\nExamples:\n"
+            "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("createrawtransaction",
                            "\"[]\" \"{\\\"myaddress\\\":0.01}\"") +
             "\nAdd sufficient unsigned inputs to meet the output value\n" +

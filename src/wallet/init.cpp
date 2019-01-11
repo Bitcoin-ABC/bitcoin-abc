@@ -109,8 +109,9 @@ std::string WalletInit::GetHelpString(bool showDebug) {
         "-zapwallettxes=<mode>",
         _("Delete all wallet transactions and only recover those parts of the "
           "blockchain through -rescan on startup") +
-            " " + _("(1 = keep tx meta data e.g. account owner and payment "
-                    "request information, 2 = drop tx meta data)"));
+            " " +
+            _("(1 = keep tx meta data e.g. account owner and payment "
+              "request information, 2 = drop tx meta data)"));
 
     if (showDebug) {
         strUsage += HelpMessageGroup(_("Wallet debugging/testing options:"));

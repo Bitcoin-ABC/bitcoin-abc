@@ -59,12 +59,11 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
                 // make transaction unique
                 tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
-                mpool.addUnchecked(txid,
-                                   entry.Fee(feeV[j])
-                                       .Time(GetTime())
-                                       .Priority(0)
-                                       .Height(blocknum)
-                                       .FromTx(tx, &mpool));
+                mpool.addUnchecked(txid, entry.Fee(feeV[j])
+                                             .Time(GetTime())
+                                             .Priority(0)
+                                             .Height(blocknum)
+                                             .FromTx(tx, &mpool));
                 txIds[j].push_back(txid);
             }
         }
@@ -161,12 +160,11 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
-                mpool.addUnchecked(txid,
-                                   entry.Fee(feeV[j])
-                                       .Time(GetTime())
-                                       .Priority(0)
-                                       .Height(blocknum)
-                                       .FromTx(tx, &mpool));
+                mpool.addUnchecked(txid, entry.Fee(feeV[j])
+                                             .Time(GetTime())
+                                             .Priority(0)
+                                             .Height(blocknum)
+                                             .FromTx(tx, &mpool));
                 txIds[j].push_back(txid);
             }
         }
@@ -211,12 +209,11 @@ BOOST_AUTO_TEST_CASE(BlockPolicyEstimates) {
             for (int k = 0; k < 4; k++) {
                 tx.vin[0].nSequence = 10000 * blocknum + 100 * j + k;
                 TxId txid = tx.GetId();
-                mpool.addUnchecked(txid,
-                                   entry.Fee(feeV[j])
-                                       .Time(GetTime())
-                                       .Priority(0)
-                                       .Height(blocknum)
-                                       .FromTx(tx, &mpool));
+                mpool.addUnchecked(txid, entry.Fee(feeV[j])
+                                             .Time(GetTime())
+                                             .Priority(0)
+                                             .Height(blocknum)
+                                             .FromTx(tx, &mpool));
                 CTransactionRef ptx = mpool.get(txid);
                 if (ptx) {
                     block.push_back(ptx);
@@ -278,12 +275,11 @@ BOOST_AUTO_TEST_CASE(MempoolMinimumFeeEstimate) {
             tx.vin[0].nSequence = 10000 * blocknum + j;
             TxId txid = tx.GetId();
             mpool.addUnchecked(
-                txid,
-                entry.Fee((j + 1) * DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)
-                    .Time(GetTime())
-                    .Priority(0)
-                    .Height(blocknum)
-                    .FromTx(tx, &mpool));
+                txid, entry.Fee((j + 1) * DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)
+                          .Time(GetTime())
+                          .Priority(0)
+                          .Height(blocknum)
+                          .FromTx(tx, &mpool));
             CTransactionRef ptx = mpool.get(txid);
             block.push_back(ptx);
         }

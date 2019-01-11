@@ -141,8 +141,9 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n",
              batch.SizeEstimate() * (1.0 / 1048576.0));
     bool ret = db.WriteBatch(batch);
-    LogPrint(BCLog::COINDB, "Committed %u changed transaction outputs (out of "
-                            "%u) to coin database...\n",
+    LogPrint(BCLog::COINDB,
+             "Committed %u changed transaction outputs (out of "
+             "%u) to coin database...\n",
              (unsigned int)changed, (unsigned int)count);
     return ret;
 }

@@ -662,9 +662,8 @@ static UniValue getblocktemplate(const Config &config,
     result.pushKV("coinbaseaux", aux);
     result.pushKV("coinbasevalue",
                   int64_t(pblock->vtx[0]->vout[0].nValue / SATOSHI));
-    result.pushKV("longpollid",
-                  chainActive.Tip()->GetBlockHash().GetHex() +
-                      i64tostr(nTransactionsUpdatedLast));
+    result.pushKV("longpollid", chainActive.Tip()->GetBlockHash().GetHex() +
+                                    i64tostr(nTransactionsUpdatedLast));
     result.pushKV("target", hashTarget.GetHex());
     result.pushKV("mintime", int64_t(pindexPrev->GetMedianTimePast()) + 1);
     result.pushKV("mutable", aMutable);

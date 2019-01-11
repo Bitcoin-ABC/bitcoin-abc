@@ -37,7 +37,10 @@ static const struct {
     enum RetFormat rf;
     const char *name;
 } rf_names[] = {
-    {RF_UNDEF, ""}, {RF_BINARY, "bin"}, {RF_HEX, "hex"}, {RF_JSON, "json"},
+    {RF_UNDEF, ""},
+    {RF_BINARY, "bin"},
+    {RF_HEX, "hex"},
+    {RF_JSON, "json"},
 };
 
 struct CCoin {
@@ -139,9 +142,9 @@ static bool rest_headers(Config &config, HTTPRequest *req,
     boost::split(path, param, boost::is_any_of("/"));
 
     if (path.size() != 2) {
-        return RESTERR(req, HTTP_BAD_REQUEST, "No header count specified. Use "
-                                              "/rest/headers/<count>/"
-                                              "<hash>.<ext>.");
+        return RESTERR(req, HTTP_BAD_REQUEST,
+                       "No header count specified. Use "
+                       "/rest/headers/<count>/<hash>.<ext>.");
     }
 
     long count = strtol(path[0].c_str(), nullptr, 10);

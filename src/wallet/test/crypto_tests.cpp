@@ -214,9 +214,10 @@ public:
                             const std::vector<uint8_t> &vchPlaintextIn,
                             const std::vector<uint8_t> &vchCiphertextCorrect =
                                 std::vector<uint8_t>()) {
-        TestEncryptSingle(crypt, CKeyingMaterial(vchPlaintextIn.begin(),
-                                                 vchPlaintextIn.end()),
-                          vchCiphertextCorrect);
+        TestEncryptSingle(
+            crypt,
+            CKeyingMaterial(vchPlaintextIn.begin(), vchPlaintextIn.end()),
+            vchCiphertextCorrect);
         for (std::vector<uint8_t>::const_iterator i(vchPlaintextIn.begin());
              i != vchPlaintextIn.end(); ++i)
             TestEncryptSingle(crypt, CKeyingMaterial(i, vchPlaintextIn.end()));

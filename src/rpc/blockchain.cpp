@@ -486,9 +486,10 @@ UniValue getrawmempool(const Config &config, const JSONRPCRequest &request) {
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
             "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() + "  }, ...\n"
-                                       "}\n"
-                                       "\nExamples:\n" +
+            EntryDescriptionString() +
+            "  }, ...\n"
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getrawmempool", "true") +
             HelpExampleRpc("getrawmempool", "true"));
     }
@@ -522,9 +523,10 @@ UniValue getmempoolancestors(const Config &config,
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
             "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() + "  }, ...\n"
-                                       "}\n"
-                                       "\nExamples:\n" +
+            EntryDescriptionString() +
+            "  }, ...\n"
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getmempoolancestors", "\"mytxid\"") +
             HelpExampleRpc("getmempoolancestors", "\"mytxid\""));
     }
@@ -591,9 +593,10 @@ UniValue getmempooldescendants(const Config &config,
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
             "  \"transactionid\" : {       (json object)\n" +
-            EntryDescriptionString() + "  }, ...\n"
-                                       "}\n"
-                                       "\nExamples:\n" +
+            EntryDescriptionString() +
+            "  }, ...\n"
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getmempooldescendants", "\"mytxid\"") +
             HelpExampleRpc("getmempooldescendants", "\"mytxid\""));
     }
@@ -646,8 +649,9 @@ UniValue getmempoolentry(const Config &config, const JSONRPCRequest &request) {
             "The transaction id (must be in mempool)\n"
             "\nResult:\n"
             "{                           (json object)\n" +
-            EntryDescriptionString() + "}\n"
-                                       "\nExamples:\n" +
+            EntryDescriptionString() +
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getmempoolentry", "\"mytxid\"") +
             HelpExampleRpc("getmempoolentry", "\"mytxid\""));
     }

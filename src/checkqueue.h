@@ -107,8 +107,8 @@ private:
                 // helping.
                 // * Don't do batches smaller than 1 (duh), or larger than
                 // nBatchSize.
-                nNow = std::max(1U, std::min(nBatchSize,
-                                             (unsigned int)queue.size() /
+                nNow = std::max(
+                    1U, std::min(nBatchSize, (unsigned int)queue.size() /
                                                  (nTotal + nIdle + 1)));
                 vChecks.resize(nNow);
                 for (unsigned int i = 0; i < nNow; i++) {

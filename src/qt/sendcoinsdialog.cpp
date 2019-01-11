@@ -172,10 +172,12 @@ void SendCoinsDialog::setModel(WalletModel *_model) {
                    _model->getImmatureBalance(), _model->getWatchBalance(),
                    _model->getWatchUnconfirmedBalance(),
                    _model->getWatchImmatureBalance());
-        connect(_model, SIGNAL(balanceChanged(Amount, Amount, Amount, Amount,
-                                              Amount, Amount)),
-                this, SLOT(setBalance(Amount, Amount, Amount, Amount, Amount,
-                                      Amount)));
+        connect(
+            _model,
+            SIGNAL(
+                balanceChanged(Amount, Amount, Amount, Amount, Amount, Amount)),
+            this,
+            SLOT(setBalance(Amount, Amount, Amount, Amount, Amount, Amount)));
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)),
                 this, SLOT(updateDisplayUnit()));
         updateDisplayUnit();
@@ -371,8 +373,9 @@ void SendCoinsDialog::on_sendButton_clicked() {
 
         // append transaction size
         questionString.append(
-            " (" + QString::number(
-                       (double)currentTransaction.getTransactionSize() / 1000) +
+            " (" +
+            QString::number((double)currentTransaction.getTransactionSize() /
+                            1000) +
             " kB)");
     }
 

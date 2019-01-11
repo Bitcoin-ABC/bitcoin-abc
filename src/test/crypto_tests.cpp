@@ -159,9 +159,9 @@ void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
-            BOOST_CHECK_MESSAGE(subdecrypted == sub,
-                                HexStr(subdecrypted) + std::string(" != ") +
-                                    HexStr(sub));
+            BOOST_CHECK_MESSAGE(subdecrypted == sub, HexStr(subdecrypted) +
+                                                         std::string(" != ") +
+                                                         HexStr(sub));
         }
     }
 }
@@ -204,9 +204,9 @@ void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
             _size = dec.Decrypt(&subout[0], subout.size(), &subdecrypted[0]);
             subdecrypted.resize(_size);
             BOOST_CHECK(decrypted.size() == in.size());
-            BOOST_CHECK_MESSAGE(subdecrypted == sub,
-                                HexStr(subdecrypted) + std::string(" != ") +
-                                    HexStr(sub));
+            BOOST_CHECK_MESSAGE(subdecrypted == sub, HexStr(subdecrypted) +
+                                                         std::string(" != ") +
+                                                         HexStr(sub));
         }
     }
 }
@@ -568,31 +568,34 @@ BOOST_AUTO_TEST_CASE(chacha20_testvector) {
     // Test vector from RFC 7539
     TestChaCha20(
         "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        0x4a000000UL, 1, "224f51f3401bd9e12fde276fb8631ded8c131f823d2c06e27e4fc"
-                         "aec9ef3cf788a3b0aa372600a92b57974cded2b9334794cba40c6"
-                         "3e34cdea212c4cf07d41b769a6749f3f630f4122cafe28ec4dc47"
-                         "e26d4346d70b98c73f3e9c53ac40c5945398b6eda1a832c89c167"
-                         "eacd901d7e2bf363");
+        0x4a000000UL, 1,
+        "224f51f3401bd9e12fde276fb8631ded8c131f823d2c06e27e4fcaec9ef3cf788a3b0a"
+        "a372600a92b57974cded2b9334794cba40c63e34cdea212c4cf07d41b769a6749f3f63"
+        "0f4122cafe28ec4dc47e26d4346d70b98c73f3e9c53ac40c5945398b6eda1a832c89c1"
+        "67eacd901d7e2bf363");
 
     // Test vectors from
     // https://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-04#section-7
     TestChaCha20(
         "0000000000000000000000000000000000000000000000000000000000000000", 0,
-        0, "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da4"
-           "1597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586");
+        0,
+        "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da4"
+        "1597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586");
     TestChaCha20(
         "0000000000000000000000000000000000000000000000000000000000000001", 0,
-        0, "4540f05a9f1fb296d7736e7b208e3c96eb4fe1834688d2604f450952ed432d41bbe"
-           "2a0b6ea7566d2a5d1e7e20d42af2c53d792b1c43fea817e9ad275ae546963");
+        0,
+        "4540f05a9f1fb296d7736e7b208e3c96eb4fe1834688d2604f450952ed432d41bbe"
+        "2a0b6ea7566d2a5d1e7e20d42af2c53d792b1c43fea817e9ad275ae546963");
     TestChaCha20(
         "0000000000000000000000000000000000000000000000000000000000000000",
-        0x0100000000000000ULL, 0, "de9cba7bf3d69ef5e786dc63973f653a0b49e015adbf"
-                                  "f7134fcb7df137821031e85a050278a7084527214f73"
-                                  "efc7fa5b5277062eb7a0433e445f41e3");
+        0x0100000000000000ULL, 0,
+        "de9cba7bf3d69ef5e786dc63973f653a0b49e015adbff7134fcb7df137821031e85a05"
+        "0278a7084527214f73efc7fa5b5277062eb7a0433e445f41e3");
     TestChaCha20(
         "0000000000000000000000000000000000000000000000000000000000000000", 1,
-        0, "ef3fdfd6c61578fbf5cf35bd3dd33b8009631634d21e42ac33960bd138e50d32111"
-           "e4caf237ee53ca8ad6426194a88545ddc497a0b466e7d6bbdb0041b2f586b");
+        0,
+        "ef3fdfd6c61578fbf5cf35bd3dd33b8009631634d21e42ac33960bd138e50d32111"
+        "e4caf237ee53ca8ad6426194a88545ddc497a0b466e7d6bbdb0041b2f586b");
     TestChaCha20(
         "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         0x0706050403020100ULL, 0,

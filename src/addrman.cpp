@@ -272,9 +272,9 @@ void CAddrMan::Good_(const CService &addr, bool test_before_evict,
 
     // Will moving this address into tried evict another entry?
     if (test_before_evict && (vvTried[tried_bucket][tried_bucket_pos] != -1)) {
-        LogPrint(BCLog::ADDRMAN, "Collision inserting element into "
-                                 "tried table, moving %s to "
-                                 "m_tried_collisions=%d\n",
+        LogPrint(BCLog::ADDRMAN,
+                 "Collision inserting element into tried table, moving %s to "
+                 "m_tried_collisions=%d\n",
                  addr.ToString(), m_tried_collisions.size());
         if (m_tried_collisions.size() < ADDRMAN_SET_TRIED_COLLISION_SIZE) {
             m_tried_collisions.insert(nId);
@@ -413,14 +413,12 @@ CAddrInfo CAddrMan::Select_(bool newOnly) {
             int nKBucket = RandomInt(ADDRMAN_TRIED_BUCKET_COUNT);
             int nKBucketPos = RandomInt(ADDRMAN_BUCKET_SIZE);
             while (vvTried[nKBucket][nKBucketPos] == -1) {
-                nKBucket =
-                    (nKBucket +
-                     insecure_rand.randbits(ADDRMAN_TRIED_BUCKET_COUNT_LOG2)) %
-                    ADDRMAN_TRIED_BUCKET_COUNT;
-                nKBucketPos =
-                    (nKBucketPos +
-                     insecure_rand.randbits(ADDRMAN_BUCKET_SIZE_LOG2)) %
-                    ADDRMAN_BUCKET_SIZE;
+                nKBucket = (nKBucket + insecure_rand.randbits(
+                                           ADDRMAN_TRIED_BUCKET_COUNT_LOG2)) %
+                           ADDRMAN_TRIED_BUCKET_COUNT;
+                nKBucketPos = (nKBucketPos + insecure_rand.randbits(
+                                                 ADDRMAN_BUCKET_SIZE_LOG2)) %
+                              ADDRMAN_BUCKET_SIZE;
             }
             int nId = vvTried[nKBucket][nKBucketPos];
             assert(mapInfo.count(nId) == 1);
@@ -438,14 +436,12 @@ CAddrInfo CAddrMan::Select_(bool newOnly) {
             int nUBucket = RandomInt(ADDRMAN_NEW_BUCKET_COUNT);
             int nUBucketPos = RandomInt(ADDRMAN_BUCKET_SIZE);
             while (vvNew[nUBucket][nUBucketPos] == -1) {
-                nUBucket =
-                    (nUBucket +
-                     insecure_rand.randbits(ADDRMAN_NEW_BUCKET_COUNT_LOG2)) %
-                    ADDRMAN_NEW_BUCKET_COUNT;
-                nUBucketPos =
-                    (nUBucketPos +
-                     insecure_rand.randbits(ADDRMAN_BUCKET_SIZE_LOG2)) %
-                    ADDRMAN_BUCKET_SIZE;
+                nUBucket = (nUBucket + insecure_rand.randbits(
+                                           ADDRMAN_NEW_BUCKET_COUNT_LOG2)) %
+                           ADDRMAN_NEW_BUCKET_COUNT;
+                nUBucketPos = (nUBucketPos + insecure_rand.randbits(
+                                                 ADDRMAN_BUCKET_SIZE_LOG2)) %
+                              ADDRMAN_BUCKET_SIZE;
             }
             int nId = vvNew[nUBucket][nUBucketPos];
             assert(mapInfo.count(nId) == 1);

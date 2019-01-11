@@ -1028,8 +1028,9 @@ CheckForkWarningConditionsOnNewFork(const CBlockIndex *pindexNewForkTip) {
     // should be detected by both). We define it this way because it allows us
     // to only store the highest fork tip (+ base) which meets the 7-block
     // condition and from this always have the most-likely-to-cause-warning fork
-    if (pfork && (!pindexBestForkTip ||
-                  pindexNewForkTip->nHeight > pindexBestForkTip->nHeight) &&
+    if (pfork &&
+        (!pindexBestForkTip ||
+         pindexNewForkTip->nHeight > pindexBestForkTip->nHeight) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork >
             (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->nHeight < 72) {
@@ -1843,9 +1844,10 @@ static bool ConnectBlock(const Config &config, const CBlock &block,
     Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.DoS(100, error("ConnectBlock(): coinbase pays too much "
-                                    "(actual=%d vs limit=%d)",
-                                    block.vtx[0]->GetValueOut(), blockReward),
+        return state.DoS(100,
+                         error("ConnectBlock(): coinbase pays too much "
+                               "(actual=%d vs limit=%d)",
+                               block.vtx[0]->GetValueOut(), blockReward),
                          REJECT_INVALID, "bad-cb-amount");
     }
 
@@ -2054,8 +2056,8 @@ static bool FlushStateToDisk(const CChainParams &chainparams,
             nLastSetChain = nNow;
         }
     } catch (const std::runtime_error &e) {
-        return AbortNode(
-            state, std::string("System error while flushing: ") + e.what());
+        return AbortNode(state, std::string("System error while flushing: ") +
+                                    e.what());
     }
     return true;
 }
@@ -2317,9 +2319,10 @@ static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
     // Check that the request is consistent with current finalization.
     if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
         return state.DoS(
-            20, error("%s: Trying to finalize block %s which conflicts "
-                      "with already finalized block",
-                      __func__, pindex->GetBlockHash().ToString()),
+            20,
+            error("%s: Trying to finalize block %s which conflicts "
+                  "with already finalized block",
+                  __func__, pindex->GetBlockHash().ToString()),
             REJECT_AGAINST_FINALIZED, "bad-fork-prior-finalized");
     }
 
@@ -3459,8 +3462,9 @@ static bool CheckIndexAgainstCheckpoint(const CBlockIndex *pindexPrev,
     // Check that the block chain matches the known block chain up to a
     // checkpoint.
     if (!Checkpoints::CheckBlock(checkpoints, nHeight, hash)) {
-        return state.DoS(100, error("%s: rejected by checkpoint lock-in at %d",
-                                    __func__, nHeight),
+        return state.DoS(100,
+                         error("%s: rejected by checkpoint lock-in at %d",
+                               __func__, nHeight),
                          REJECT_CHECKPOINT, "checkpoint mismatch");
     }
 
@@ -3679,9 +3683,8 @@ static bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                              REJECT_INVALID, "bad-prevblk");
         }
 
-        if (fCheckpointsEnabled &&
-            !CheckIndexAgainstCheckpoint(pindexPrev, state, chainparams,
-                                         hash)) {
+        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint(
+                                       pindexPrev, state, chainparams, hash)) {
             return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__,
                          state.GetRejectReason().c_str());
         }
@@ -4166,8 +4169,9 @@ static void FindFilesToPrune(std::set<int> &setFilesToPrune,
         }
     }
 
-    LogPrint(BCLog::PRUNE, "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
-                           "max_prune_height=%d removed %d blk/rev pairs\n",
+    LogPrint(BCLog::PRUNE,
+             "Prune: target=%dMiB actual=%dMiB diff=%dMiB "
+             "max_prune_height=%d removed %d blk/rev pairs\n",
              nPruneTarget / 1024 / 1024, nCurrentUsage / 1024 / 1024,
              ((int64_t)nPruneTarget - (int64_t)nCurrentUsage) / 1024 / 1024,
              nLastBlockWeCanPrune, count);
@@ -4551,11 +4555,10 @@ bool CVerifyDB::VerifyDB(const Config &config, CCoinsView *coinsview,
             boost::this_thread::interruption_point();
             uiInterface.ShowProgress(
                 _("Verifying blocks..."),
-                std::max(1,
-                         std::min(99,
-                                  100 - (int)(((double)(chainActive.Height() -
-                                                        pindex->nHeight)) /
-                                              (double)nCheckDepth * 50))));
+                std::max(
+                    1, std::min(99, 100 - (int)(((double)(chainActive.Height() -
+                                                          pindex->nHeight)) /
+                                                (double)nCheckDepth * 50))));
             pindex = chainActive.Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, config)) {

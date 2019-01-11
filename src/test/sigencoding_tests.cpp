@@ -63,9 +63,8 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
             CheckTransactionSignatureEncoding(invalidSig, flags, &err),
             !hasStrictEnc);
         if (hasStrictEnc) {
-            BOOST_CHECK_EQUAL(err,
-                              hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
-                                        : SCRIPT_ERR_ILLEGAL_FORKID);
+            BOOST_CHECK_EQUAL(err, hasForkId ? SCRIPT_ERR_MUST_USE_FORKID
+                                             : SCRIPT_ERR_ILLEGAL_FORKID);
         }
     }
 }
@@ -350,10 +349,9 @@ BOOST_AUTO_TEST_CASE(checkpubkeyencoding_test) {
             BOOST_CHECK_EQUAL(CheckPubKeyEncoding(key, flags, &err),
                               allowInvalidKeys);
             if (!allowInvalidKeys) {
-                BOOST_CHECK_EQUAL(err,
-                                  hasStrictEnc
-                                      ? SCRIPT_ERR_PUBKEYTYPE
-                                      : SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
+                BOOST_CHECK_EQUAL(err, hasStrictEnc
+                                           ? SCRIPT_ERR_PUBKEYTYPE
+                                           : SCRIPT_ERR_NONCOMPRESSED_PUBKEY);
             }
         }
     }

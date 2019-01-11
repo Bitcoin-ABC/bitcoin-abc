@@ -494,9 +494,8 @@ static UniValue GetNetworksInfo() {
         obj.pushKV("name", GetNetworkName(network));
         obj.pushKV("limited", IsLimited(network));
         obj.pushKV("reachable", IsReachable(network));
-        obj.pushKV("proxy",
-                   proxy.IsValid() ? proxy.proxy.ToStringIPPort()
-                                   : std::string());
+        obj.pushKV("proxy", proxy.IsValid() ? proxy.proxy.ToStringIPPort()
+                                            : std::string());
         obj.pushKV("proxy_randomize_credentials", proxy.randomize_credentials);
         networks.push_back(obj);
     }
@@ -550,23 +549,24 @@ static UniValue getnetworkinfo(const Config &config,
             "/kB\n"
             "  \"excessutxocharge\": x.xxxxxxxx,        (numeric) minimum "
             "charge for excess utxos in " +
-            CURRENCY_UNIT + "\n"
-                            "  \"localaddresses\": [                    "
-                            "(array) list of local addresses\n"
-                            "  {\n"
-                            "    \"address\": \"xxxx\",                 "
-                            "(string) network address\n"
-                            "    \"port\": xxx,                         "
-                            "(numeric) network port\n"
-                            "    \"score\": xxx                         "
-                            "(numeric) relative score\n"
-                            "  }\n"
-                            "  ,...\n"
-                            "  ]\n"
-                            "  \"warnings\": \"...\"                    "
-                            "(string) any network warnings\n"
-                            "}\n"
-                            "\nExamples:\n" +
+            CURRENCY_UNIT +
+            "\n"
+            "  \"localaddresses\": [                    "
+            "(array) list of local addresses\n"
+            "  {\n"
+            "    \"address\": \"xxxx\",                 "
+            "(string) network address\n"
+            "    \"port\": xxx,                         "
+            "(numeric) network port\n"
+            "    \"score\": xxx                         "
+            "(numeric) relative score\n"
+            "  }\n"
+            "  ,...\n"
+            "  ]\n"
+            "  \"warnings\": \"...\"                    "
+            "(string) any network warnings\n"
+            "}\n"
+            "\nExamples:\n" +
             HelpExampleCli("getnetworkinfo", "") +
             HelpExampleRpc("getnetworkinfo", ""));
     }

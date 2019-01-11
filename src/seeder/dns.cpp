@@ -563,7 +563,8 @@ int dnsserver(dns_opt_t *opt) {
     uint8_t inbuf[BUFLEN], outbuf[BUFLEN];
     struct iovec iov[1] = {
         {
-            .iov_base = inbuf, .iov_len = sizeof(inbuf),
+            .iov_base = inbuf,
+            .iov_len = sizeof(inbuf),
         },
     };
 
