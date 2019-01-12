@@ -142,6 +142,33 @@ void UnloadWallet(std::shared_ptr<CWallet> &&wallet) {
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
+std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
+                                    interfaces::Chain &chain,
+                                    const WalletLocation &location,
+                                    std::string &error, std::string &warning) {
+    if (!CWallet::Verify(chainParams, chain, location, false, error, warning)) {
+        error = "Wallet file verification failed: " + error;
+        return nullptr;
+    }
+
+    std::shared_ptr<CWallet> wallet =
+        CWallet::CreateWalletFromFile(chainParams, chain, location);
+    if (!wallet) {
+        error = "Wallet loading failed.";
+        return nullptr;
+    }
+    AddWallet(wallet);
+    wallet->postInitProcess();
+    return wallet;
+}
+
+std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
+                                    interfaces::Chain &chain,
+                                    const std::string &name, std::string &error,
+                                    std::string &warning) {
+    return LoadWallet(chainParams, chain, WalletLocation(name), error, warning);
+}
+
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 const BlockHash CMerkleTx::ABANDON_HASH(uint256S(

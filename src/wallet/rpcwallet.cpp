@@ -3116,7 +3116,6 @@ static UniValue loadwallet(const Config &config,
     const CChainParams &chainParams = config.GetChainParams();
 
     WalletLocation location(request.params[0].get_str());
-    std::string error;
 
     if (!location.Exists()) {
         throw JSONRPCError(RPC_WALLET_NOT_FOUND,
@@ -3132,21 +3131,12 @@ static UniValue loadwallet(const Config &config,
         }
     }
 
-    std::string warning;
-    if (!CWallet::Verify(chainParams, *g_rpc_interfaces->chain, location, false,
-                         error, warning)) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           "Wallet file verification failed: " + error);
-    }
-
-    std::shared_ptr<CWallet> const wallet = CWallet::CreateWalletFromFile(
-        chainParams, *g_rpc_interfaces->chain, location);
+    std::string error, warning;
+    std::shared_ptr<CWallet> const wallet = LoadWallet(
+        chainParams, *g_rpc_interfaces->chain, location, error, warning);
     if (!wallet) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Wallet loading failed.");
+        throw JSONRPCError(RPC_WALLET_ERROR, error);
     }
-    AddWallet(wallet);
-
-    wallet->postInitProcess();
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("name", wallet->GetName());
