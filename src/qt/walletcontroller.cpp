@@ -8,6 +8,7 @@
 #include <interfaces/node.h>
 
 #include <QApplication>
+#include <QMessageBox>
 #include <QMutexLocker>
 #include <QThread>
 #include <QWindow>
@@ -38,6 +39,35 @@ std::vector<WalletModel *> WalletController::getWallets() const {
     return m_wallets;
 }
 
+std::vector<std::string> WalletController::getWalletsAvailableToOpen() const {
+    QMutexLocker locker(&m_mutex);
+    std::vector<std::string> wallets = m_node.listWalletDir();
+    for (WalletModel *wallet_model : m_wallets) {
+        auto it = std::remove(wallets.begin(), wallets.end(),
+                              wallet_model->wallet().getWalletName());
+        if (it != wallets.end()) {
+            wallets.erase(it);
+        }
+    }
+    return wallets;
+}
+
+WalletModel *WalletController::openWallet(const CChainParams &params,
+                                          const std::string &name,
+                                          QWidget *parent) {
+    std::string error, warning;
+    WalletModel *wallet_model =
+        getOrCreateWallet(m_node.loadWallet(params, name, error, warning));
+    if (wallet_model == nullptr) {
+        QMessageBox::warning(parent, tr("Open Wallet"),
+                             QString::fromStdString(error));
+    }
+    if (!warning.empty()) {
+        QMessageBox::information(parent, tr("Open Wallet"),
+                                 QString::fromStdString(warning));
+    }
+    return wallet_model;
+}
 WalletModel *WalletController::getOrCreateWallet(
     std::unique_ptr<interfaces::Wallet> wallet) {
     QMutexLocker locker(&m_mutex);
