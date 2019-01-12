@@ -387,7 +387,17 @@ std::string HelpMessage(HelpMessageMode mode) {
                                     "our mempool min fee (default: %d)",
                                     DEFAULT_FEEFILTER));
     }
-
+    strUsage += HelpMessageOpt(
+        "-finalizationdelay=<n>",
+        strprintf("Set the minimum amount of time to wait between a "
+                  "block header reception and the block finalization. "
+                  "Unit is seconds (default: %d)",
+                  DEFAULT_MIN_FINALIZATION_DELAY));
+    strUsage += HelpMessageOpt(
+        "-maxreorgdepth=<n>",
+        strprintf("Configure at what depth blocks are considered final "
+                  "(default: %d). Use -1 to disable.",
+                  DEFAULT_MAX_REORG_DEPTH));
     strUsage += HelpMessageOpt(
         "-loadblock=<file>",
         _("Imports blocks from external blk000??.dat file on startup"));
