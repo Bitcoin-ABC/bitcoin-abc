@@ -19,6 +19,8 @@ FALSE_POSITIVES = [
     ("src/util.cpp", "strprintf(_(COPYRIGHT_HOLDERS), _(COPYRIGHT_HOLDERS_SUBSTITUTION))"),
     ("src/util.cpp", "strprintf(COPYRIGHT_HOLDERS, COPYRIGHT_HOLDERS_SUBSTITUTION)"),
     ("src/seeder/main.cpp", "fprintf(stderr, help, argv[0])"),
+    ("src/tinyformat.h", "printf(const char *fmt, const Args &... args)"),
+    ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
 ]
 
 
