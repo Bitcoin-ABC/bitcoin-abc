@@ -103,13 +103,10 @@ static std::atomic<RCUInfos *> threadInfos{nullptr};
 static CCriticalSection csThreadInfosDelete;
 
 RCUInfos::RCUInfos() : next(nullptr), state(0) {
-    while (true) {
-        RCUInfos *head = threadInfos.load();
+    RCUInfos *head = threadInfos.load();
+    do {
         next.store(head);
-        if (threadInfos.compare_exchange_weak(head, this)) {
-            break;
-        }
-    }
+    } while (!threadInfos.compare_exchange_weak(head, this));
 
     // Release the lock.
     readFree();
@@ -142,8 +139,8 @@ RCUInfos::~RCUInfos() {
          * insert at the tip of the list and cannot have concurrent deletion
          * thanks to the use of a mutex, we are safe.
          */
-        RCUInfos *foo = this;
-        if (!ptr->compare_exchange_weak(foo, next.load())) {
+        RCUInfos *current = this;
+        if (!ptr->compare_exchange_weak(current, next.load())) {
             continue;
         }
 

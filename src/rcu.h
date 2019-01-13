@@ -9,7 +9,6 @@
 
 #include <atomic>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 
 class RCUInfos;
