@@ -24,6 +24,10 @@
             ],
             "script-and-regex.script": "test/lint/lint-format-strings.sh",
             "script-and-regex.regex": "/^(?P<file>.+): (?P<message>.+:.+)$/m"
+        },
+        "check-doc": {
+            "type": "check-doc",
+            "include": "(^src/.*\\.(h|c|cpp)$)"
         }
     }
 }
