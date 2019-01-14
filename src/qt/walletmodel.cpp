@@ -33,8 +33,8 @@ WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
                          const PlatformStyle *platformStyle,
                          OptionsModel *_optionsModel, QObject *parent)
     : QObject(parent), m_wallet(std::move(wallet)), m_node(node),
-      optionsModel(_optionsModel), addressTableModel(0),
-      transactionTableModel(0), recentRequestsTableModel(0),
+      optionsModel(_optionsModel), addressTableModel(nullptr),
+      transactionTableModel(nullptr), recentRequestsTableModel(nullptr),
       cachedEncryptionStatus(Unencrypted), cachedNumBlocks(0) {
     fHaveWatchOnly = m_wallet->haveWatchOnly();
     addressTableModel = new AddressTableModel(this);

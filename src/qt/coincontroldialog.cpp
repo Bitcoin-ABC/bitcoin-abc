@@ -51,7 +51,7 @@ bool CCoinControlWidgetItem::operator<(const QTreeWidgetItem &other) const {
 
 CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
                                      QWidget *parent)
-    : QDialog(parent), ui(new Ui::CoinControlDialog), model(0),
+    : QDialog(parent), ui(new Ui::CoinControlDialog), model(nullptr),
       platformStyle(_platformStyle) {
     ui->setupUi(this);
 

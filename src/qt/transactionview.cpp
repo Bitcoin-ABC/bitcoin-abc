@@ -37,8 +37,9 @@
 
 TransactionView::TransactionView(const PlatformStyle *platformStyle,
                                  QWidget *parent)
-    : QWidget(parent), model(0), transactionProxyModel(0), transactionView(0),
-      abandonAction(0), columnResizingFixer(0) {
+    : QWidget(parent), model(nullptr), transactionProxyModel(nullptr),
+      transactionView(nullptr), abandonAction(nullptr),
+      columnResizingFixer(nullptr) {
     // Build filter row
     setContentsMargins(0, 0, 0, 0);
 

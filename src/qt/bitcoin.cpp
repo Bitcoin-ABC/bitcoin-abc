@@ -189,9 +189,9 @@ void BitcoinABC::shutdown() {
 
 BitcoinApplication::BitcoinApplication(interfaces::Node &node, int &argc,
                                        char **argv)
-    : QApplication(argc, argv), coreThread(0), m_node(node), optionsModel(0),
-      clientModel(0), window(0), pollShutdownTimer(0), returnValue(0),
-      platformStyle(0) {
+    : QApplication(argc, argv), coreThread(nullptr), m_node(node),
+      optionsModel(nullptr), clientModel(nullptr), window(nullptr),
+      pollShutdownTimer(nullptr), returnValue(0), platformStyle(nullptr) {
     setQuitOnLastWindowClosed(false);
 }
 
@@ -219,15 +219,15 @@ BitcoinApplication::~BitcoinApplication() {
     }
 
     delete window;
-    window = 0;
+    window = nullptr;
 #ifdef ENABLE_WALLET
     delete paymentServer;
-    paymentServer = 0;
+    paymentServer = nullptr;
 #endif
     delete optionsModel;
-    optionsModel = 0;
+    optionsModel = nullptr;
     delete platformStyle;
-    platformStyle = 0;
+    platformStyle = nullptr;
 }
 
 #ifdef ENABLE_WALLET
@@ -242,7 +242,8 @@ void BitcoinApplication::createOptionsModel(bool resetSettings) {
 
 void BitcoinApplication::createWindow(const Config *config,
                                       const NetworkStyle *networkStyle) {
-    window = new BitcoinGUI(m_node, config, platformStyle, networkStyle, 0);
+    window =
+        new BitcoinGUI(m_node, config, platformStyle, networkStyle, nullptr);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, &QTimer::timeout, window,
@@ -250,7 +251,7 @@ void BitcoinApplication::createWindow(const Config *config,
 }
 
 void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
-    SplashScreen *splash = new SplashScreen(m_node, 0, networkStyle);
+    SplashScreen *splash = new SplashScreen(m_node, nullptr, networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but
     // the splash screen will take care of deleting itself when slotFinish
     // happens.
@@ -336,7 +337,7 @@ void BitcoinApplication::requestShutdown(Config &config) {
     qDebug() << __func__ << ": Requesting shutdown";
     startThread();
     window->hide();
-    window->setClientModel(0);
+    window->setClientModel(nullptr);
     pollShutdownTimer->stop();
 
 #ifdef ENABLE_WALLET
@@ -344,7 +345,7 @@ void BitcoinApplication::requestShutdown(Config &config) {
     m_wallet_controller = nullptr;
 #endif
     delete clientModel;
-    clientModel = 0;
+    clientModel = nullptr;
 
     m_node.startShutdown();
 
@@ -422,7 +423,7 @@ void BitcoinApplication::shutdownResult() {
 
 void BitcoinApplication::handleRunawayException(const QString &message) {
     QMessageBox::critical(
-        0, "Runaway exception",
+        nullptr, "Runaway exception",
         BitcoinGUI::tr("A fatal error occurred. Bitcoin can no longer continue "
                        "safely and will quit.") +
             QString("\n\n") + message);
@@ -561,7 +562,7 @@ int GuiMain(int argc, char *argv[]) {
     std::string error;
     if (!node->parseParameters(argc, argv, error)) {
         QMessageBox::critical(
-            0, QObject::tr(PACKAGE_NAME),
+            nullptr, QObject::tr(PACKAGE_NAME),
             QObject::tr("Error parsing command line arguments: %1.")
                 .arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
@@ -611,7 +612,7 @@ int GuiMain(int argc, char *argv[]) {
     /// - Do not call GetDataDir(true) before this step finishes.
     if (!fs::is_directory(GetDataDir(false))) {
         QMessageBox::critical(
-            0, QObject::tr(PACKAGE_NAME),
+            nullptr, QObject::tr(PACKAGE_NAME),
             QObject::tr(
                 "Error: Specified data directory \"%1\" does not exist.")
                 .arg(QString::fromStdString(gArgs.GetArg("-datadir", ""))));
@@ -619,7 +620,7 @@ int GuiMain(int argc, char *argv[]) {
     }
     if (!node->readConfigFiles(error)) {
         QMessageBox::critical(
-            0, QObject::tr(PACKAGE_NAME),
+            nullptr, QObject::tr(PACKAGE_NAME),
             QObject::tr("Error: Cannot parse configuration file: %1.")
                 .arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
@@ -638,7 +639,7 @@ int GuiMain(int argc, char *argv[]) {
     try {
         node->selectParams(gArgs.GetChainName());
     } catch (std::exception &e) {
-        QMessageBox::critical(0, QObject::tr(PACKAGE_NAME),
+        QMessageBox::critical(nullptr, QObject::tr(PACKAGE_NAME),
                               QObject::tr("Error: %1").arg(e.what()));
         return EXIT_FAILURE;
     }

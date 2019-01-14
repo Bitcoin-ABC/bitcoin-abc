@@ -29,7 +29,7 @@ class Intro : public QDialog {
     Q_OBJECT
 
 public:
-    explicit Intro(QWidget *parent = 0);
+    explicit Intro(QWidget *parent = nullptr);
     ~Intro();
 
     QString getDataDirectory();

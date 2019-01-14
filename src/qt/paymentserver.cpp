@@ -227,10 +227,10 @@ bool PaymentServer::ipcSendCommandLine() {
 }
 
 PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
-    : QObject(parent), saveURIs(true), uriServer(0), optionsModel(0)
+    : QObject(parent), saveURIs(true), uriServer(nullptr), optionsModel(nullptr)
 // clang-format off
 #ifdef ENABLE_BIP70
-      ,netManager(0)
+      ,netManager(nullptr)
 #endif
 // clang-format on
 {
@@ -258,7 +258,7 @@ PaymentServer::PaymentServer(QObject *parent, bool startLocalServer)
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "Q_EMIT
             // message()" here
-            QMessageBox::critical(0, tr("Payment request error"),
+            QMessageBox::critical(nullptr, tr("Payment request error"),
                                   tr("Cannot start click-to-pay handler"));
         } else {
             connect(uriServer, &QLocalServer::newConnection, this,

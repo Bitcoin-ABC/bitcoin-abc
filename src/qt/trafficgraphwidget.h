@@ -19,7 +19,7 @@ class TrafficGraphWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TrafficGraphWidget(QWidget *parent = 0);
+    explicit TrafficGraphWidget(QWidget *parent = nullptr);
     void setClientModel(ClientModel *model);
     int getGraphRangeMins() const;
 

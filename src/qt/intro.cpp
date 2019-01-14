@@ -118,7 +118,7 @@ void FreespaceChecker::check() {
 }
 
 Intro::Intro(QWidget *parent)
-    : QDialog(parent), ui(new Ui::Intro), thread(0), signalled(false) {
+    : QDialog(parent), ui(new Ui::Intro), thread(nullptr), signalled(false) {
     ui->setupUi(this);
     ui->welcomeLabel->setText(ui->welcomeLabel->text().arg(tr(PACKAGE_NAME)));
     ui->storageLabel->setText(ui->storageLabel->text().arg(tr(PACKAGE_NAME)));
@@ -222,7 +222,7 @@ bool Intro::pickDataDirectory(interfaces::Node &node) {
                 }
                 break;
             } catch (const fs::filesystem_error &) {
-                QMessageBox::critical(0, tr(PACKAGE_NAME),
+                QMessageBox::critical(nullptr, tr(PACKAGE_NAME),
                                       tr("Error: Specified data directory "
                                          "\"%1\" cannot be created.")
                                           .arg(dataDir));
@@ -285,7 +285,7 @@ void Intro::on_dataDirectory_textChanged(const QString &dataDirStr) {
 
 void Intro::on_ellipsisButton_clicked() {
     QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-        0, "Choose data directory", ui->dataDirectory->text()));
+        nullptr, "Choose data directory", ui->dataDirectory->text()));
     if (!dir.isEmpty()) {
         ui->dataDirectory->setText(dir);
     }

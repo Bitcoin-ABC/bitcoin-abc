@@ -469,7 +469,7 @@ SendCoinsEntry *SendCoinsDialog::addEntry() {
 }
 
 void SendCoinsDialog::updateTabsAndLabels() {
-    setupTabChain(0);
+    setupTabChain(nullptr);
     coinControlUpdateLabels();
 }
 

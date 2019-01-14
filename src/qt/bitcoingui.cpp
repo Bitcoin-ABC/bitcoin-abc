@@ -89,7 +89,7 @@ BitcoinGUI::BitcoinGUI(interfaces::Node &node, const Config *configIn,
     setWindowIcon(m_network_style->getTrayAndWindowIcon());
     updateWindowTitle();
 
-    rpcConsole = new RPCConsole(node, _platformStyle, 0);
+    rpcConsole = new RPCConsole(node, _platformStyle, nullptr);
     helpMessageDialog = new HelpMessageDialog(node, this, false);
 #ifdef ENABLE_WALLET
     if (enableWallet) {
@@ -1286,7 +1286,7 @@ void BitcoinGUI::updateProxyIcon() {
     bool proxy_enabled = clientModel->getProxyInfo(ip_port);
 
     if (proxy_enabled) {
-        if (labelProxyIcon->pixmap() == 0) {
+        if (labelProxyIcon->pixmap() == nullptr) {
             QString ip_port_q = QString::fromStdString(ip_port);
             labelProxyIcon->setPixmap(
                 platformStyle->SingleColorIcon(":/icons/proxy")
@@ -1346,7 +1346,7 @@ void BitcoinGUI::showProgress(const QString &title, int nProgress) {
         progressDialog = new QProgressDialog(title, "", 0, 100);
         progressDialog->setWindowModality(Qt::ApplicationModal);
         progressDialog->setMinimumDuration(0);
-        progressDialog->setCancelButton(0);
+        progressDialog->setCancelButton(nullptr);
         progressDialog->setAutoClose(false);
         progressDialog->setValue(0);
     } else if (progressDialog) {
@@ -1412,7 +1412,7 @@ void BitcoinGUI::unsubscribeFromCoreSignals() {
 
 UnitDisplayStatusBarControl::UnitDisplayStatusBarControl(
     const PlatformStyle *platformStyle)
-    : optionsModel(0), menu(0) {
+    : optionsModel(nullptr), menu(nullptr) {
     createContextMenu();
     setToolTip(tr("Unit to show amounts in. Click to select another unit."));
     QList<BitcoinUnits::Unit> units = BitcoinUnits::availableUnits();

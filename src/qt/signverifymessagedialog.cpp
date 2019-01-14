@@ -20,7 +20,7 @@
 
 SignVerifyMessageDialog::SignVerifyMessageDialog(
     const PlatformStyle *_platformStyle, QWidget *parent)
-    : QDialog(parent), ui(new Ui::SignVerifyMessageDialog), model(0),
+    : QDialog(parent), ui(new Ui::SignVerifyMessageDialog), model(nullptr),
       platformStyle(_platformStyle) {
     ui->setupUi(this);
 

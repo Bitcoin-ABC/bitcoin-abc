@@ -26,8 +26,9 @@
 
 ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle,
                                        QWidget *parent)
-    : QDialog(parent), ui(new Ui::ReceiveCoinsDialog), columnResizingFixer(0),
-      model(0), platformStyle(_platformStyle) {
+    : QDialog(parent), ui(new Ui::ReceiveCoinsDialog),
+      columnResizingFixer(nullptr), model(nullptr),
+      platformStyle(_platformStyle) {
     ui->setupUi(this);
 
     if (!_platformStyle->getImagesOnButtons()) {

@@ -115,7 +115,8 @@ public:
 #include <qt/overviewpage.moc>
 
 OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget *parent)
-    : QWidget(parent), ui(new Ui::OverviewPage), clientModel(0), walletModel(0),
+    : QWidget(parent), ui(new Ui::OverviewPage), clientModel(nullptr),
+      walletModel(nullptr),
       txdelegate(new TxViewDelegate(platformStyle, this)) {
     ui->setupUi(this);
 

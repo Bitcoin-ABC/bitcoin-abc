@@ -17,7 +17,7 @@ class QValueComboBox : public QComboBox {
         QVariant value READ value WRITE setValue NOTIFY valueChanged USER true)
 
 public:
-    explicit QValueComboBox(QWidget *parent = 0);
+    explicit QValueComboBox(QWidget *parent = nullptr);
 
     QVariant value() const;
     void setValue(const QVariant &value);

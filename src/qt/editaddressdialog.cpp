@@ -12,8 +12,8 @@
 #include <QMessageBox>
 
 EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent)
-    : QDialog(parent), ui(new Ui::EditAddressDialog), mapper(0), mode(_mode),
-      model(0) {
+    : QDialog(parent), ui(new Ui::EditAddressDialog), mapper(nullptr),
+      mode(_mode), model(nullptr) {
     ui->setupUi(this);
 
     GUIUtil::setupAddressWidget(ui->addressEdit, this);

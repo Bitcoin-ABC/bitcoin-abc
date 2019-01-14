@@ -41,7 +41,7 @@ public:
     };
 
     explicit ClientModel(interfaces::Node &node, OptionsModel *optionsModel,
-                         QObject *parent = 0);
+                         QObject *parent = nullptr);
     ~ClientModel();
 
     interfaces::Node &node() const { return m_node; }

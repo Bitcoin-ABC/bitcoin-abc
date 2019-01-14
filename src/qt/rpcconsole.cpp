@@ -560,7 +560,7 @@ RPCConsole::RPCConsole(interfaces::Node &node,
 
 // set library version labels
 #ifdef ENABLE_WALLET
-    ui->berkeleyDBVersion->setText(DbEnv::version(0, 0, 0));
+    ui->berkeleyDBVersion->setText(DbEnv::version(nullptr, nullptr, nullptr));
 #else
     ui->label_berkeleyDBVersion->hide();
     ui->berkeleyDBVersion->hide();

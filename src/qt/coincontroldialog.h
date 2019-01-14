@@ -44,7 +44,7 @@ class CoinControlDialog : public QDialog {
 
 public:
     explicit CoinControlDialog(const PlatformStyle *platformStyle,
-                               QWidget *parent = 0);
+                               QWidget *parent = nullptr);
     ~CoinControlDialog();
 
     void setModel(WalletModel *model);

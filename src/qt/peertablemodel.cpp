@@ -97,12 +97,13 @@ public:
             return &cachedNodeStats[idx];
         }
 
-        return 0;
+        return nullptr;
     }
 };
 
 PeerTableModel::PeerTableModel(interfaces::Node &node, ClientModel *parent)
-    : QAbstractTableModel(parent), m_node(node), clientModel(parent), timer(0) {
+    : QAbstractTableModel(parent), m_node(node), clientModel(parent),
+      timer(nullptr) {
     columns << tr("NodeId") << tr("Node/Service") << tr("Ping") << tr("Sent")
             << tr("Received") << tr("User Agent");
     priv.reset(new PeerTablePriv());
@@ -187,7 +188,7 @@ QVariant PeerTableModel::headerData(int section, Qt::Orientation orientation,
 
 Qt::ItemFlags PeerTableModel::flags(const QModelIndex &index) const {
     if (!index.isValid()) {
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     Qt::ItemFlags retval = Qt::ItemIsSelectable | Qt::ItemIsEnabled;

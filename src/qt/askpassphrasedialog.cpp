@@ -18,8 +18,8 @@
 #include <QPushButton>
 
 AskPassphraseDialog::AskPassphraseDialog(Mode _mode, QWidget *parent)
-    : QDialog(parent), ui(new Ui::AskPassphraseDialog), mode(_mode), model(0),
-      fCapsLock(false) {
+    : QDialog(parent), ui(new Ui::AskPassphraseDialog), mode(_mode),
+      model(nullptr), fCapsLock(false) {
     ui->setupUi(this);
 
     ui->passEdit1->setMinimumSize(ui->passEdit1->sizeHint());

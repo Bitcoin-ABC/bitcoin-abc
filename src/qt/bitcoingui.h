@@ -68,7 +68,8 @@ public:
 
     explicit BitcoinGUI(interfaces::Node &node, const Config *,
                         const PlatformStyle *platformStyle,
-                        const NetworkStyle *networkStyle, QWidget *parent = 0);
+                        const NetworkStyle *networkStyle,
+                        QWidget *parent = nullptr);
     ~BitcoinGUI();
 
     /**

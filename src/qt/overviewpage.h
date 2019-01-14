@@ -30,7 +30,7 @@ class OverviewPage : public QWidget {
 
 public:
     explicit OverviewPage(const PlatformStyle *platformStyle,
-                          QWidget *parent = 0);
+                          QWidget *parent = nullptr);
     ~OverviewPage();
 
     void setClientModel(ClientModel *clientModel);
