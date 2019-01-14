@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2015-2016 The Bitcoin Core developers
 # Copyright (c) 2019 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
@@ -55,9 +55,9 @@ SET_FALSE_POSITIVE_UNKNOWNS = set(['-nodebug',
 
 
 def main():
-    used = check_output(CMD_GREP_ARGS_SRC, shell=True)
-    tested = check_output(CMD_GREP_ARGS_TEST, shell=True)
-    docd = check_output(CMD_GREP_DOCS, shell=True)
+    used = check_output(CMD_GREP_ARGS_SRC, shell=True).decode()
+    tested = check_output(CMD_GREP_ARGS_TEST, shell=True).decode()
+    docd = check_output(CMD_GREP_DOCS, shell=True).decode()
 
     args_used = set(re.findall(REGEX_ARG, used))
     args_used -= set(re.findall(REGEX_ARG, tested))
