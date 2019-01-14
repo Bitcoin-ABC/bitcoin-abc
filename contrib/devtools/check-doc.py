@@ -54,15 +54,15 @@ def main():
 
     args_used = set(re.findall(REGEX_ARG, used))
     args_used -= set(re.findall(REGEX_ARG, tested))
-    args_used -= SET_DOC_OPTIONAL
     args_docd = set(re.findall(REGEX_DOC, docd))
-    args_need_doc = args_used - args_docd
+    args_need_doc = args_used - args_docd - SET_DOC_OPTIONAL
     args_unknown = args_docd - args_used
 
     pp = PrettyPrinter()
     print("Args used        : {}".format(len(args_used)))
     print("Args documented  : {}".format(len(args_docd)))
-    print("Args undocumented: {}".format(len(args_need_doc)))
+    print("Args undocumented: {} ({} don't need documentation)".format(
+        len(args_need_doc), len(SET_DOC_OPTIONAL)))
     pp.pprint(args_need_doc)
     print("Args unknown     : {}".format(len(args_unknown)))
     pp.pprint(args_unknown)
