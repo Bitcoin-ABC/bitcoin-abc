@@ -1,14 +1,14 @@
 bitcoin-seeder
 ==============
 
-Bitcoin-seeder is a crawler for the Bitcoin network, which exposes a list
-of reliable nodes via a built-in DNS server.
+Bitcoin-seeder is a crawler for the Bitcoin Cash network, which exposes a list
+of reliable nodes via a built-in DNS server. It is derived from Pieter Wuille's
+bitcoin-seeder, modified for use on the Bitcoin Cash network.
 
 Features:
 * regularly revisits known nodes to check their availability
 * bans nodes after enough failures, or bad behaviour
-* accepts nodes down to v0.3.19 to request new IP addresses from,
-  but only reports good post-v0.3.24 nodes.
+* uses the Cash Magic when establishing connections.
 * keeps statistics over (exponential) windows of 2 hours, 8 hours,
   1 day and 1 week, to base decisions on.
 * very low memory (a few tens of megabytes) and cpu requirements.
