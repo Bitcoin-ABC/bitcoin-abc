@@ -12,7 +12,7 @@ Bitcoin ABC Release Process
 2. Verify tests passed
     - Any known issues or limitations should be documented in release notes
     - Known bugs should have tickets
-    - Run the `contrib/devtools/check-doc.py` script and ensure there is no undocumented argument
+    - Run `arc lint --everything` and check there is no linter error
     - Verify IBD without checkpoints and without assumevalid.
  
 3. Update the documents / code which needs to be updated every release

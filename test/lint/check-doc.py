@@ -75,8 +75,6 @@ def main():
     print("Args unknown     : {}".format(len(args_unknown)))
     pp.pprint(args_unknown)
 
-    sys.exit(len(args_need_doc))
-
 
 if __name__ == "__main__":
     main()
