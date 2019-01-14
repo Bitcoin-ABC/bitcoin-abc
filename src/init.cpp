@@ -682,9 +682,6 @@ std::string HelpMessage(HelpMessageMode mode) {
         strUsage +=
             HelpMessageOpt("-dropmessagestest=<n>",
                            "Randomly drop 1 of every <n> network messages");
-        strUsage +=
-            HelpMessageOpt("-fuzzmessagestest=<n>",
-                           "Randomly fuzz 1 of every <n> network messages");
         strUsage += HelpMessageOpt(
             "-stopafterblockimport",
             strprintf(

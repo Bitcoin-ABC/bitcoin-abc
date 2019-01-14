@@ -46,6 +46,13 @@ SET_DOC_OPTIONAL = set(['-benchmark',
                         '-tor',
                         '-whitelistalwaysrelay'])
 
+# list false positive unknows arguments
+SET_FALSE_POSITIVE_UNKNOWNS = set(['-nodebug',
+                                   '-zmqpubhashblock',
+                                   '-zmqpubhashtx',
+                                   '-zmqpubrawblock',
+                                   '-zmqpubrawtx'])
+
 
 def main():
     used = check_output(CMD_GREP_ARGS_SRC, shell=True)
@@ -54,6 +61,7 @@ def main():
 
     args_used = set(re.findall(REGEX_ARG, used))
     args_used -= set(re.findall(REGEX_ARG, tested))
+    args_used |= SET_FALSE_POSITIVE_UNKNOWNS
     args_docd = set(re.findall(REGEX_DOC, docd))
     args_need_doc = args_used - args_docd - SET_DOC_OPTIONAL
     args_unknown = args_docd - args_used
