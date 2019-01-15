@@ -90,6 +90,46 @@ public:
         return const_cast<RadixTree *>(this)->get(key);
     }
 
+    /**
+     * Remove an element from the tree.
+     * Returns true if the element was removed from the tree, false if the
+     * element wasn't found in the tree.
+     */
+    bool remove(const K &key) {
+        uint32_t level = TOP_LEVEL;
+
+        RCULock lock;
+        std::atomic<RadixElement> *eptr = &root;
+
+        RadixElement e = eptr->load();
+
+        // Walk down the tree until we find a leaf for our node.
+        while (e.isNode()) {
+        Node:
+            eptr = e.getNode()->get(level--, key);
+            e = eptr->load();
+        }
+
+        T *leaf = e.getLeaf();
+        if (leaf == nullptr || leaf->getId() != key) {
+            // We failed to find the proper element.
+            return false;
+        }
+
+        // We have the proper element, try to delete it.
+        if (eptr->compare_exchange_strong(e, RadixElement())) {
+            return true;
+        }
+
+        // The element was replaced, either by a subtree or another element.
+        if (e.isNode()) {
+            goto Node;
+        }
+
+        // The element in the slot is not the one we are looking for.
+        return false;
+    }
+
 private:
     bool insert(const K &key, T *value) {
         uint32_t level = TOP_LEVEL;
