@@ -267,7 +267,7 @@ namespace {
         }
         bool tryGetTxStatus(const TxId &txid,
                             interfaces::WalletTxStatus &tx_status,
-                            int &num_blocks) override {
+                            int &num_blocks, int64_t &block_time) override {
             TRY_LOCK(::cs_main, locked_chain);
             if (!locked_chain) {
                 return false;
@@ -281,6 +281,7 @@ namespace {
                 return false;
             }
             num_blocks = ::chainActive.Height();
+            block_time = ::chainActive.Tip()->GetBlockTime();
             tx_status = MakeWalletTxStatus(mi->second);
             return true;
         }

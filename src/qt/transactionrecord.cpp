@@ -12,6 +12,8 @@
 #include <validation.h>
 #include <wallet/finaltx.h>
 
+#include <QDateTime>
+
 #include <cstdint>
 
 /**
@@ -151,7 +153,7 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
 }
 
 void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
-                                     int numBlocks) {
+                                     int numBlocks, int64_t block_time) {
     // Determine transaction status
 
     // Sort order, unrecorded transactions sort to the top
@@ -161,7 +163,10 @@ void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
     status.depth = wtx.depth_in_main_chain;
     status.cur_num_blocks = numBlocks;
 
-    if (!wtx.is_final) {
+    const bool up_to_date =
+        (int64_t(QDateTime::currentMSecsSinceEpoch()) / 1000 - block_time <
+         MAX_BLOCK_TIME_GAP);
+    if (up_to_date && !wtx.is_final) {
         if (wtx.lock_time < LOCKTIME_THRESHOLD) {
             status.status = TransactionStatus::OpenUntilBlock;
             status.open_for = wtx.lock_time - numBlocks;
