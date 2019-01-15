@@ -5,6 +5,7 @@
 #include "rcu.h"
 #include "sync.h"
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 
@@ -14,7 +15,7 @@ thread_local RCUInfos RCUInfos::infos{};
 /**
  * How many time a busy loop runs before yelding.
  */
-static const int RCU_ACTIVE_LOOP_COUNT = 30;
+static const int RCU_ACTIVE_LOOP_COUNT = 10;
 
 /**
  * We maintain a linked list of all the RCUInfos for each active thread. Upon
@@ -102,7 +103,7 @@ static const int RCU_ACTIVE_LOOP_COUNT = 30;
 static std::atomic<RCUInfos *> threadInfos{nullptr};
 static CCriticalSection csThreadInfosDelete;
 
-RCUInfos::RCUInfos() : next(nullptr), state(0) {
+RCUInfos::RCUInfos() : state(0), next(nullptr) {
     RCUInfos *head = threadInfos.load();
     do {
         next.store(head);
@@ -113,6 +114,15 @@ RCUInfos::RCUInfos() : next(nullptr), state(0) {
 }
 
 RCUInfos::~RCUInfos() {
+    /**
+     * Before the thread is removed from the list, make sure we cleanup
+     * everything.
+     */
+    runCleanups();
+    while (cleanups.size() > 0) {
+        synchronize();
+    }
+
     while (true) {
         LOCK(csThreadInfosDelete);
 
@@ -160,8 +170,8 @@ void RCUInfos::synchronize() {
 
     // Loop a few time lock free.
     for (int i = 0; i < RCU_ACTIVE_LOOP_COUNT; i++) {
-        if (hasSynced(syncRev)) {
-            // Done!
+        runCleanups();
+        if (cleanups.empty() && hasSyncedTo(syncRev)) {
             return;
         }
     }
@@ -176,24 +186,47 @@ void RCUInfos::synchronize() {
     WAIT_LOCK(cs, lock);
 
     do {
+        runCleanups();
         cond.notify_one();
-    } while (!cond.wait_for(lock, std::chrono::microseconds(1),
-                            [&] { return hasSynced(syncRev); }));
+    } while (!cond.wait_for(lock, std::chrono::microseconds(1), [&] {
+        return cleanups.empty() && hasSyncedTo(syncRev);
+    }));
 }
 
-bool RCUInfos::hasSynced(uint64_t syncRev) {
+void RCUInfos::runCleanups() {
+    // By the time we run a set of cleanups, we may have more cleanups
+    // available so we loop until there is nothing available for cleanup.
+    while (true) {
+        if (cleanups.empty()) {
+            // There is nothing to cleanup.
+            return;
+        }
+
+        auto it = cleanups.begin();
+        uint64_t syncedTo = hasSyncedTo(it->first);
+        while (it != cleanups.end() && it->first <= syncedTo) {
+            // Run the cleanup and remove it from the map.
+            it->second();
+            cleanups.erase(it++);
+        }
+    }
+}
+
+uint64_t RCUInfos::hasSyncedTo(uint64_t cutoff) {
+    uint64_t syncedTo = revision.load();
+
     // Go over the list and check all threads are past the synchronization
     // point.
     RCULock lock(this);
     RCUInfos *current = threadInfos.load();
     while (current != nullptr) {
-        // If the current thread is not up to speed, bail.
-        if (current->state < syncRev) {
-            return false;
+        syncedTo = std::min(syncedTo, current->state.load());
+        if (syncedTo < cutoff) {
+            return 0;
         }
 
         current = current->next.load();
     }
 
-    return true;
+    return syncedTo;
 }

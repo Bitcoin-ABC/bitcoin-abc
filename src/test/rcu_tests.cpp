@@ -13,8 +13,12 @@
 struct RCUTest {
     static uint64_t getRevision() { return RCUInfos::revision.load(); }
 
-    static uint64_t hasSynced(uint64_t syncRev) {
-        return RCUInfos::infos.hasSynced(syncRev);
+    static uint64_t hasSyncedTo(uint64_t syncRev) {
+        return RCUInfos::infos.hasSyncedTo(syncRev);
+    }
+
+    static std::map<uint64_t, std::function<void()>> &getCleanups() {
+        return RCUInfos::infos.cleanups;
     }
 };
 
@@ -61,7 +65,7 @@ void synchronize(std::atomic<RCUTestStep> &step,
     syncRev = RCUTest::getRevision() + 1;
     step = RCUTestStep::Synchronizing;
 
-    assert(!RCUTest::hasSynced(syncRev));
+    assert(!RCUTest::hasSyncedTo(syncRev));
 
     // We wait for readers.
     RCULock::synchronize();
@@ -84,7 +88,7 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
 
     // Wait for the synchronizing tread to take its RCU lock.
     WAIT_FOR_STEP(RCUTestStep::RCULocked);
-    assert(!RCUTest::hasSynced(syncRev));
+    assert(!RCUTest::hasSyncedTo(syncRev));
 
     {
         RCULock rculock;
@@ -100,7 +104,7 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
         assert(otherstep.load() == RCUTestStep::Synchronizing);
     }
 
-    assert(RCUTest::hasSynced(syncRev));
+    assert(RCUTest::hasSyncedTo(syncRev) >= syncRev);
     WAIT_FOR_STEP(RCUTestStep::Synchronized);
 }
 
@@ -128,6 +132,58 @@ BOOST_AUTO_TEST_CASE(synchronize_test) {
         tlock.join();
         tsync.join();
     }
+}
+
+BOOST_AUTO_TEST_CASE(cleanup_test) {
+    BOOST_CHECK(RCUTest::getCleanups().empty());
+
+    bool isClean1 = false;
+    RCULock::registerCleanup([&] { isClean1 = true; });
+
+    BOOST_CHECK(!isClean1);
+    BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 1);
+    BOOST_CHECK_EQUAL(RCUTest::getRevision(),
+                      RCUTest::getCleanups().begin()->first);
+
+    // Synchronize runs the cleanups.
+    RCULock::synchronize();
+    BOOST_CHECK(RCUTest::getCleanups().empty());
+    BOOST_CHECK(isClean1);
+
+    // Check multiple callbacks.
+    isClean1 = false;
+    bool isClean2 = false;
+    bool isClean3 = false;
+    RCULock::registerCleanup([&] { isClean1 = true; });
+    RCULock::registerCleanup([&] { isClean2 = true; });
+    RCULock::registerCleanup([&] { isClean3 = true; });
+
+    BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 3);
+    RCULock::synchronize();
+    BOOST_CHECK(RCUTest::getCleanups().empty());
+    BOOST_CHECK(isClean1);
+    BOOST_CHECK(isClean2);
+    BOOST_CHECK(isClean3);
+
+    // Check callbacks adding each others.
+    isClean1 = false;
+    isClean2 = false;
+    isClean3 = false;
+
+    RCULock::registerCleanup([&] {
+        isClean1 = true;
+        RCULock::registerCleanup([&] {
+            isClean2 = true;
+            RCULock::registerCleanup([&] { isClean3 = true; });
+        });
+    });
+
+    BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 1);
+    RCULock::synchronize();
+    BOOST_CHECK(RCUTest::getCleanups().empty());
+    BOOST_CHECK(isClean1);
+    BOOST_CHECK(isClean2);
+    BOOST_CHECK(isClean3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

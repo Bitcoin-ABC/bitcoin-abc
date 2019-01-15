@@ -10,13 +10,17 @@
 #include <atomic>
 #include <cassert>
 #include <cstdint>
+#include <functional>
+#include <map>
 
 class RCUInfos;
 class RCUReadLock;
 
 class RCUInfos {
-    std::atomic<RCUInfos *> next;
     std::atomic<uint64_t> state;
+    std::atomic<RCUInfos *> next;
+
+    std::map<uint64_t, std::function<void()>> cleanups;
 
     // The largest revision possible means unlocked.
     static const uint64_t UNLOCKED = -uint64_t(1);
@@ -35,9 +39,13 @@ class RCUInfos {
     }
 
     bool isLocked() const { return state.load() != UNLOCKED; }
+    void registerCleanup(const std::function<void()> &f) {
+        cleanups.emplace(++revision, f);
+    }
 
     void synchronize();
-    bool hasSynced(uint64_t syncRev);
+    void runCleanups();
+    uint64_t hasSyncedTo(uint64_t cutoff = UNLOCKED);
 
     friend class RCULock;
     friend struct RCUTest;
@@ -56,8 +64,12 @@ public:
     RCULock() : RCULock(&RCUInfos::infos) {}
     ~RCULock() { infos->readFree(); }
 
-    static void synchronize() { RCUInfos::infos.synchronize(); }
     static bool isLocked() { return RCUInfos::infos.isLocked(); }
+    static void registerCleanup(const std::function<void()> &f) {
+        RCUInfos::infos.registerCleanup(f);
+    }
+
+    static void synchronize() { RCUInfos::infos.synchronize(); }
 };
 
 #endif // BITCOIN_RCU_H
