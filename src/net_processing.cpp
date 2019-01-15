@@ -430,8 +430,16 @@ struct CNodeState {
 
     AvalancheState m_avalanche_state;
 
-    CNodeState(CAddress addrIn, std::string addrNameIn)
-        : address(addrIn), name(addrNameIn) {
+    //! Whether this peer is an inbound connection
+    bool m_is_inbound;
+
+    //! Whether this peer is a manual connection
+    bool m_is_manual_connection;
+
+    CNodeState(CAddress addrIn, std::string addrNameIn, bool is_inbound,
+               bool is_manual)
+        : address(addrIn), name(std::move(addrNameIn)),
+          m_is_inbound(is_inbound), m_is_manual_connection(is_manual) {
         fCurrentlyConnected = false;
         nMisbehavior = 0;
         fShouldBan = false;
@@ -939,7 +947,8 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
         mapNodeState.emplace_hint(
             mapNodeState.end(), std::piecewise_construct,
             std::forward_as_tuple(nodeid),
-            std::forward_as_tuple(addr, std::move(addrName)));
+            std::forward_as_tuple(addr, std::move(addrName), pnode->fInbound,
+                                  pnode->m_manual_connection));
     }
     if (!pnode->fInbound) {
         PushNodeVersion(config, pnode, connman, GetTime());
@@ -1223,9 +1232,22 @@ static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
                 return true;
             }
             break;
-        // Handled elsewhere for now
-        case ValidationInvalidReason::CACHED_INVALID:
+        case ValidationInvalidReason::CACHED_INVALID: {
+            LOCK(cs_main);
+            CNodeState *node_state = State(nodeid);
+            if (node_state == nullptr) {
+                break;
+            }
+
+            // Ban outbound (but not inbound) peers if on an invalid chain.
+            // Exempt HB compact block peers and manual connections.
+            if (!via_compact_block && !node_state->m_is_inbound &&
+                !node_state->m_is_manual_connection) {
+                Misbehaving(nodeid, 100, message);
+                return true;
+            }
             break;
+        }
         case ValidationInvalidReason::BLOCK_INVALID_HEADER:
         case ValidationInvalidReason::BLOCK_CHECKPOINT:
         case ValidationInvalidReason::BLOCK_INVALID_PREV: {
@@ -1894,7 +1916,7 @@ inline static void SendBlockTransactions(const CBlock &block,
 static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
                                   CConnman *connman,
                                   const std::vector<CBlockHeader> &headers,
-                                  bool punish_duplicate_invalid) {
+                                  bool via_compact_block) {
     const CChainParams &chainparams = config.GetChainParams();
     const CNetMsgMaker msgMaker(pfrom->GetSendVersion());
     size_t nCount = headers.size();
@@ -1968,42 +1990,7 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast,
                                 &first_invalid_header)) {
         if (state.IsInvalid()) {
-            if (punish_duplicate_invalid &&
-                state.GetReason() == ValidationInvalidReason::CACHED_INVALID) {
-                // Goal: don't allow outbound peers to use up our outbound
-                // connection slots if they are on incompatible chains.
-                //
-                // We ask the caller to set punish_invalid appropriately based
-                // on the peer and the method of header delivery (compact blocks
-                // are allowed to be invalid in some circumstances, under BIP
-                // 152).
-                // Here, we try to detect the narrow situation that we have a
-                // valid block header (ie it was valid at the time the header
-                // was received, and hence stored in mapBlockIndex) but know the
-                // block is invalid, and that a peer has announced that same
-                // block as being on its active chain. Disconnect the peer in
-                // such a situation.
-                //
-                // Note: if the header that is invalid was not accepted to our
-                // mapBlockIndex at all, that may also be grounds for
-                // disconnecting the peer, as the chain they are on is likely to
-                // be incompatible. However, there is a circumstance where that
-                // does not hold: if the header's timestamp is more than 2 hours
-                // ahead of our current time. In that case, the header may
-                // become valid in the future, and we don't want to disconnect a
-                // peer merely for serving us one too-far-ahead block header, to
-                // prevent an attacker from splitting the network by mining a
-                // block right at the 2 hour boundary.
-                //
-                // TODO: update the DoS logic (or, rather, rewrite the
-                // DoS-interface between validation and net_processing) so that
-                // the interface is cleaner, and so that we disconnect on all
-                // the reasons that a peer's headers chain is incompatible with
-                // ours (eg block->nVersion softforks, MTP violations, etc), and
-                // not just the duplicate-invalid case.
-                pfrom->fDisconnect = true;
-            }
-            MaybePunishNode(pfrom->GetId(), state, /*via_compact_block*/ false,
+            MaybePunishNode(pfrom->GetId(), state, via_compact_block,
                             "invalid header received");
             return false;
         }
@@ -3356,12 +3343,11 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             // Headers received from HB compact block peers are permitted to be
             // relayed before full validation (see BIP 152), so we don't want to
             // disconnect the peer if the header turns out to be for an invalid
-            // block.
-            // Note that if a peer tries to build on an invalid chain, that will
-            // be detected and the peer will be banned.
+            // block. Note that if a peer tries to build on an invalid chain,
+            // that will be detected and the peer will be banned.
             return ProcessHeadersMessage(config, pfrom, connman,
                                          {cmpctblock.header},
-                                         /*punish_duplicate_invalid=*/false);
+                                         /*via_compact_block=*/true);
         }
 
         if (fBlockReconstructed) {
@@ -3529,13 +3515,8 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
             ReadCompactSize(vRecv);
         }
 
-        // Headers received via a HEADERS message should be valid, and reflect
-        // the chain the peer is on. If we receive a known-invalid header,
-        // disconnect the peer if it is using one of our outbound connection
-        // slots.
-        bool should_punish = !pfrom->fInbound && !pfrom->m_manual_connection;
         return ProcessHeadersMessage(config, pfrom, connman, headers,
-                                     should_punish);
+                                     /*via_compact_block=*/false);
     }
 
     if (strCommand == NetMsgType::BLOCK) {
