@@ -1536,9 +1536,17 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
 
     RPCHelpMan{
         "importmulti",
-        "Import addresses/scripts (with private or public keys, redeem "
-        "script (P2SH)), rescanning all addresses in one-shot-only (rescan can "
-        "be disabled via options). Requires a new wallet backup.\n",
+        "\nImport addresses/scripts (with private or public keys, redeem "
+        "script (P2SH)), optionally rescanning the blockchain from the "
+        "earliest creation time of the imported scripts. Requires a new wallet "
+        "backup.\n"
+        "If an address/script is imported without all of the private keys "
+        "required to spend from that address, it will be watchonly. The "
+        "'watchonly' option must be set to true in this case or a warning will "
+        "be returned.\n"
+        "Conversely, if all the private keys are provided and the "
+        "address/script is spendable, the watchonly option must be set to "
+        "false, or a warning will be returned.\n",
         {
             {"requests",
              RPCArg::Type::ARR,
@@ -1627,8 +1635,7 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                          {"watchonly", RPCArg::Type::BOOL,
                           /* default */ "false",
                           "Stating whether matching outputs should be "
-                          "considered watched even when not all private keys "
-                          "are provided."},
+                          "considered watchonly."},
                          {"label", RPCArg::Type::STR, /* default */ "''",
                           "Label to assign to the address, only allowed with "
                           "internal=false"},
