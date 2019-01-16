@@ -28,7 +28,6 @@ class CTORMiningTest(BitcoinTestFramework):
         self.mocktime = int(time.time()) - 600 * 100
 
         extra_arg = ['-spendzeroconfchange=0', '-whitelist=127.0.0.1',
-                     "-magneticanomalyactivationtime=%d" % self.mocktime,
                      "-replayprotectionactivationtime=%d" % (10 * self.mocktime)]
         self.extra_args = [extra_arg, extra_arg]
 
