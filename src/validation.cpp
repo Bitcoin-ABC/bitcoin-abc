@@ -363,7 +363,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
     // Rather not work on nonstandard transactions (unless -testnet)
     std::string reason;
     if (fRequireStandard && !IsStandardTx(tx, reason)) {
-        return state.DoS(0, false, REJECT_NONSTANDARD, reason);
+        return state.DoS(0, ValidationInvalidReason::TX_NOT_STANDARD, false,
+                         REJECT_NONSTANDARD, reason);
     }
 
     // Only accept nLockTime-using transactions that can be mined in the next
@@ -374,14 +375,16 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
             consensusParams, tx, ctxState, STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         // We copy the state from a dummy to ensure we don't increase the
         // ban score of peer for transaction that could be valid in the future.
-        return state.DoS(
-            0, false, REJECT_NONSTANDARD, ctxState.GetRejectReason(),
-            ctxState.CorruptionPossible(), ctxState.GetDebugMessage());
+        return state.DoS(0, ValidationInvalidReason::TX_NOT_STANDARD, false,
+                         REJECT_NONSTANDARD, ctxState.GetRejectReason(),
+                         ctxState.CorruptionPossible(),
+                         ctxState.GetDebugMessage());
     }
 
     // Is it already in the memory pool?
     if (pool.exists(txid)) {
-        return state.Invalid(false, REJECT_DUPLICATE, "txn-already-in-mempool");
+        return state.Invalid(ValidationInvalidReason::TX_CONFLICT, false,
+                             REJECT_DUPLICATE, "txn-already-in-mempool");
     }
 
     // Check for conflicts with in-memory transactions
@@ -389,7 +392,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         auto itConflicting = pool.mapNextTx.find(txin.prevout);
         if (itConflicting != pool.mapNextTx.end()) {
             // Disable replacement feature for good
-            return state.Invalid(false, REJECT_DUPLICATE,
+            return state.Invalid(ValidationInvalidReason::TX_MEMPOOL_POLICY,
+                                 false, REJECT_DUPLICATE,
                                  "txn-mempool-conflict");
         }
     }
@@ -414,8 +418,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                     // Optimistically just do efficient check of cache for
                     // outputs.
                     if (pcoinsTip->HaveCoinInCache(COutPoint(txid, out))) {
-                        return state.Invalid(false, REJECT_DUPLICATE,
-                                             "txn-already-known");
+                        return state.Invalid(
+                            ValidationInvalidReason::TX_CONFLICT, false,
+                            REJECT_DUPLICATE, "txn-already-known");
                     }
                 }
 
@@ -433,7 +438,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
 
         // Are the actual inputs available?
         if (!view.HaveInputs(tx)) {
-            return state.Invalid(false, REJECT_DUPLICATE,
+            return state.Invalid(ValidationInvalidReason::TX_MEMPOOL_POLICY,
+                                 false, REJECT_DUPLICATE,
                                  "bad-txns-inputs-spent");
         }
 
@@ -451,7 +457,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // own.
         if (!CheckSequenceLocks(pool, tx, STANDARD_LOCKTIME_VERIFY_FLAGS,
                                 &lp)) {
-            return state.DoS(0, false, REJECT_NONSTANDARD, "non-BIP68-final");
+            return state.DoS(0, ValidationInvalidReason::TX_NOT_STANDARD, false,
+                             REJECT_NONSTANDARD, "non-BIP68-final");
         }
 
         Amount nFees = Amount::zero();
@@ -467,7 +474,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // Check for non-standard pay-to-script-hash in inputs
         if (fRequireStandard &&
             !AreInputsStandard(tx, view, nextBlockScriptVerifyFlags)) {
-            return state.Invalid(false, REJECT_NONSTANDARD,
+            return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD,
+                                 false, REJECT_NONSTANDARD,
                                  "bad-txns-nonstandard-inputs");
         }
 
@@ -493,12 +501,14 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         // Do not change this to use virtualsize without coordinating a network
         // policy upgrade.
         if (!bypass_limits && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
-            return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
+            return state.DoS(0, ValidationInvalidReason::TX_MEMPOOL_POLICY,
+                             false, REJECT_INSUFFICIENTFEE,
                              "min relay fee not met");
         }
 
         if (nAbsurdFee != Amount::zero() && nFees > nAbsurdFee) {
-            return state.Invalid(false, REJECT_HIGHFEE, "absurdly-high-fee",
+            return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD,
+                                 false, REJECT_HIGHFEE, "absurdly-high-fee",
                                  strprintf("%d > %d", nFees, nAbsurdFee));
         }
 
@@ -526,8 +536,9 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
             nModifiedFees < mempoolRejectFee) {
             return state.DoS(
-                0, false, REJECT_INSUFFICIENTFEE, "mempool min fee not met",
-                false, strprintf("%d < %d", nModifiedFees, mempoolRejectFee));
+                0, ValidationInvalidReason::TX_MEMPOOL_POLICY, false,
+                REJECT_INSUFFICIENTFEE, "mempool min fee not met", false,
+                strprintf("%d < %d", nModifiedFees, mempoolRejectFee));
         }
 
         // Calculate in-mempool ancestors, up to a limit.
@@ -547,7 +558,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
         if (!pool.CalculateMemPoolAncestors(
                 entry, setAncestors, nLimitAncestors, nLimitAncestorSize,
                 nLimitDescendants, nLimitDescendantSize, errString)) {
-            return state.DoS(0, false, REJECT_NONSTANDARD,
+            return state.DoS(0, ValidationInvalidReason::TX_MEMPOOL_POLICY,
+                             false, REJECT_NONSTANDARD,
                              "too-long-mempool-chain", false, errString);
         }
 
@@ -599,8 +611,8 @@ AcceptToMemoryPoolWorker(const Config &config, CTxMemPool &pool,
                 std::chrono::hours{
                     gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
             if (!pool.exists(txid)) {
-                return state.DoS(0, false, REJECT_INSUFFICIENTFEE,
-                                 "mempool full");
+                return state.DoS(0, ValidationInvalidReason::TX_MEMPOOL_POLICY,
+                                 false, REJECT_INSUFFICIENTFEE, "mempool full");
             }
         }
     }
@@ -1038,7 +1050,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
         if (!txLimitSigChecks.consume_and_check(nSigChecksOut) ||
             (pBlockLimitSigChecks &&
              !pBlockLimitSigChecks->consume_and_check(nSigChecksOut))) {
-            return state.DoS(100, false, REJECT_INVALID, "too-many-sigchecks");
+            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                             REJECT_INVALID, "too-many-sigchecks");
         }
         return true;
     }
@@ -1080,7 +1093,8 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
                                     sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
-                        false, REJECT_NONSTANDARD,
+                        ValidationInvalidReason::TX_NOT_STANDARD, false,
+                        REJECT_NONSTANDARD,
                         strprintf("non-mandatory-script-verify-flag (%s)",
                                   ScriptErrorString(scriptError)));
                 }
@@ -1095,7 +1109,7 @@ bool CheckInputs(const CTransaction &tx, CValidationState &state,
             // may want to continue peering with non-upgraded nodes even after
             // soft-fork super-majority signaling has occurred.
             return state.DoS(
-                100, false, REJECT_INVALID,
+                100, ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID,
                 strprintf("mandatory-script-verify-flag-failed (%s)",
                           ScriptErrorString(scriptError)));
         }
@@ -1610,7 +1624,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetId(), o))) {
                     return state.DoS(
-                        100,
+                        100, ValidationInvalidReason::CONSENSUS,
                         error("ConnectBlock(): tried to overwrite transaction"),
                         REJECT_INVALID, "bad-txns-BIP30");
                 }
@@ -1669,7 +1683,8 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         // - its checks are not applied to pre-CTOR chains, which we might visit
         // with checkpointing off.
         return state.DoS(
-            100, error("ConnectBlock(): tried to overwrite transaction"),
+            100, ValidationInvalidReason::CONSENSUS,
+            error("ConnectBlock(): tried to overwrite transaction"),
             REJECT_INVALID, "tx-duplicate");
     }
 
@@ -1682,13 +1697,22 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         Amount txfee = Amount::zero();
         if (!isCoinBase && !Consensus::CheckTxInputs(tx, state, view,
                                                      pindex->nHeight, txfee)) {
+            if (state.GetReason() ==
+                ValidationInvalidReason::TX_MISSING_INPUTS) {
+                // CheckTxInputs may return MISSING_INPUTS but we can't return
+                // that, as it's not defined for a block, so we reset the reason
+                // flag to CONSENSUS here.
+                state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                          state.GetRejectCode(), state.GetRejectReason(),
+                          state.CorruptionPossible(), state.GetDebugMessage());
+            }
             return error("%s: Consensus::CheckTxInputs: %s, %s", __func__,
                          tx.GetId().ToString(), FormatStateMessage(state));
         }
         nFees += txfee;
         if (!MoneyRange(nFees)) {
             return state.DoS(
-                100,
+                100, ValidationInvalidReason::CONSENSUS,
                 error("%s: accumulated fee in the block out of range.",
                       __func__),
                 REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
@@ -1709,7 +1733,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
 
         if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
             return state.DoS(
-                100,
+                100, ValidationInvalidReason::CONSENSUS,
                 error("%s: contains a non-BIP68-final transaction", __func__),
                 REJECT_INVALID, "bad-txns-nonfinal");
         }
@@ -1734,12 +1758,17 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
                          fCacheResults, PrecomputedTransactionData(tx),
                          nSigChecksRet, nSigChecksTxLimiters[txIndex],
                          &nSigChecksBlockLimiter, &vChecks)) {
-            // Parallel CheckInputs shouldn't fail except for this reason, which
-            // is banworthy. Use "blk-bad-inputs" to mimic the parallel script
-            // check error.
-            if (!nSigChecksBlockLimiter.check()) {
-                return state.DoS(100, false, REJECT_INVALID, "blk-bad-inputs",
-                                 false, "CheckInputs exceeded SigChecks limit");
+            if (state.GetReason() == ValidationInvalidReason::TX_NOT_STANDARD) {
+                // CheckInputs may return NOT_STANDARD for extra flags we
+                // passed, but we can't return that, as it's not defined for a
+                // block, so we reset the reason flag to CONSENSUS here. In the
+                // event of a future soft-fork, we may need to consider whether
+                // rewriting to CONSENSUS or RECENT_CONSENSUS_CHANGE would be
+                // more appropriate.
+                state.DoS(100 - state.GetDoS(),
+                          ValidationInvalidReason::CONSENSUS, false,
+                          state.GetRejectCode(), state.GetRejectReason(),
+                          state.CorruptionPossible(), state.GetDebugMessage());
             }
             return error("ConnectBlock(): CheckInputs on %s failed with %s",
                          tx.GetId().ToString(), FormatStateMessage(state));
@@ -1769,7 +1798,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
-        return state.DoS(100,
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS,
                          error("ConnectBlock(): coinbase pays too much "
                                "(actual=%d vs limit=%d)",
                                block.vtx[0]->GetValueOut(), blockReward),
@@ -1800,13 +1829,15 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
         }
 
         // We did not find an output that match the miner fund requirements.
-        return state.DoS(100, false, REJECT_INVALID, "bad-cb-minerfund");
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                         REJECT_INVALID, "bad-cb-minerfund");
     }
 
 MinerFundSuccess:
 
     if (!control.Wait()) {
-        return state.DoS(100, false, REJECT_INVALID, "blk-bad-inputs", false,
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                         REJECT_INVALID, "blk-bad-inputs", false,
                          "parallel script check failed");
     }
 
@@ -2203,16 +2234,16 @@ static bool FinalizeBlockInternal(const Config &config, CValidationState &state,
     AssertLockHeld(cs_main);
     if (pindex->nStatus.isInvalid()) {
         // We try to finalize an invalid block.
-        return state.DoS(100,
-                         error("%s: Trying to finalize invalid block %s",
-                               __func__, pindex->GetBlockHash().ToString()),
-                         REJECT_INVALID, "finalize-invalid-block");
+        return state.Invalid(ValidationInvalidReason::CACHED_INVALID,
+                             error("%s: Trying to finalize invalid block %s",
+                                   __func__, pindex->GetBlockHash().ToString()),
+                             REJECT_INVALID, "finalize-invalid-block");
     }
 
     // Check that the request is consistent with current finalization.
     if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
         return state.DoS(
-            20,
+            20, ValidationInvalidReason::BLOCK_FINALIZATION,
             error("%s: Trying to finalize block %s which conflicts "
                   "with already finalized block",
                   __func__, pindex->GetBlockHash().ToString()),
@@ -3383,7 +3414,8 @@ static bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state,
     // Check proof of work matches claimed amount
     if (validationOptions.shouldValidatePoW() &&
         !CheckProofOfWork(block.GetHash(), block.nBits, params)) {
-        return state.DoS(100, false, REJECT_INVALID, "high-hash", false,
+        return state.DoS(100, ValidationInvalidReason::BLOCK_INVALID_HEADER,
+                         false, REJECT_INVALID, "high-hash", false,
                          "proof of work failed");
     }
 
@@ -3409,16 +3441,18 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
         bool mutated;
         uint256 hashMerkleRoot2 = BlockMerkleRoot(block, &mutated);
         if (block.hashMerkleRoot != hashMerkleRoot2) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-txnmrklroot",
-                             true, "hashMerkleRoot mismatch");
+            return state.DoS(100, ValidationInvalidReason::BLOCK_MUTATED, false,
+                             REJECT_INVALID, "bad-txnmrklroot", true,
+                             "hashMerkleRoot mismatch");
         }
 
         // Check for merkle tree malleability (CVE-2012-2459): repeating
         // sequences of transactions in a block without affecting the merkle
         // root of a block, while still invalidating it.
         if (mutated) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-duplicate",
-                             true, "duplicate transaction");
+            return state.DoS(100, ValidationInvalidReason::BLOCK_MUTATED, false,
+                             REJECT_INVALID, "bad-txns-duplicate", true,
+                             "duplicate transaction");
         }
     }
 
@@ -3428,7 +3462,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
 
     // First transaction must be coinbase.
     if (block.vtx.empty()) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                         REJECT_INVALID, "bad-cb-missing", false,
                          "first tx is not coinbase");
     }
 
@@ -3437,20 +3472,22 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
 
     // Bail early if there is no way this block is of reasonable size.
     if ((block.vtx.size() * MIN_TRANSACTION_SIZE) > nMaxBlockSize) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                         REJECT_INVALID, "bad-blk-length", false,
                          "size limits failed");
     }
 
     auto currentBlockSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
     if (currentBlockSize > nMaxBlockSize) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false,
+        return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                         REJECT_INVALID, "bad-blk-length", false,
                          "size limits failed");
     }
 
     // And a valid coinbase.
     if (!CheckCoinbase(*block.vtx[0], state)) {
-        return state.Invalid(false, state.GetRejectCode(),
-                             state.GetRejectReason(),
+        return state.Invalid(ValidationInvalidReason::CONSENSUS, false,
+                             state.GetRejectCode(), state.GetRejectReason(),
                              strprintf("Coinbase check failed (txid %s) %s",
                                        block.vtx[0]->GetId().ToString(),
                                        state.GetDebugMessage()));
@@ -3462,7 +3499,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state,
         auto *tx = block.vtx[i].get();
         if (!CheckRegularTransaction(*tx, state)) {
             return state.Invalid(
-                false, state.GetRejectCode(), state.GetRejectReason(),
+                ValidationInvalidReason::CONSENSUS, false,
+                state.GetRejectCode(), state.GetRejectReason(),
                 strprintf("Transaction check failed (txid %s) %s",
                           tx->GetId().ToString(), state.GetDebugMessage()));
         }
@@ -3499,7 +3537,8 @@ ContextualCheckBlockHeader(const CChainParams &params,
     if (block.nBits !=
         GetNextWorkRequired(pindexPrev, &block, consensusParams)) {
         LogPrintf("bad bits after height: %d\n", pindexPrev->nHeight);
-        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false,
+        return state.DoS(100, ValidationInvalidReason::BLOCK_INVALID_HEADER,
+                         false, REJECT_INVALID, "bad-diffbits", false,
                          "incorrect proof of work");
     }
 
@@ -3510,7 +3549,7 @@ ContextualCheckBlockHeader(const CChainParams &params,
         // Check that the block chain matches the known block chain up to a
         // checkpoint.
         if (!Checkpoints::CheckBlock(checkpoints, nHeight, block.GetHash())) {
-            return state.DoS(100,
+            return state.DoS(100, ValidationInvalidReason::BLOCK_CHECKPOINT,
                              error("%s: rejected by checkpoint lock-in at %d",
                                    __func__, nHeight),
                              REJECT_CHECKPOINT, "checkpoint mismatch");
@@ -3522,7 +3561,7 @@ ContextualCheckBlockHeader(const CChainParams &params,
         CBlockIndex *pcheckpoint = Checkpoints::GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             return state.DoS(
-                100,
+                100, ValidationInvalidReason::BLOCK_CHECKPOINT,
                 error("%s: forked chain older than last checkpoint (height %d)",
                       __func__, nHeight),
                 REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
@@ -3531,13 +3570,15 @@ ContextualCheckBlockHeader(const CChainParams &params,
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast()) {
-        return state.DoS(100, false, REJECT_INVALID, "time-too-old",
+        return state.DoS(100, ValidationInvalidReason::BLOCK_INVALID_HEADER,
+                         false, REJECT_INVALID, "time-too-old", false,
                          "block's timestamp is too early");
     }
 
     // Check timestamp
     if (block.GetBlockTime() > nAdjustedTime + MAX_FUTURE_BLOCK_TIME) {
-        return state.Invalid(false, REJECT_INVALID, "time-too-new",
+        return state.Invalid(ValidationInvalidReason::BLOCK_TIME_FUTURE, false,
+                             REJECT_INVALID, "time-too-new",
                              "block timestamp too far in the future");
     }
 
@@ -3548,9 +3589,9 @@ ContextualCheckBlockHeader(const CChainParams &params,
         (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
         (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height)) {
         return state.DoS(
-            100, false, REJECT_OBSOLETE,
-            strprintf("bad-version(0x%08x)", block.nVersion), false,
-            strprintf("rejected nVersion=0x%08x block", block.nVersion));
+            100, ValidationInvalidReason::BLOCK_INVALID_HEADER, false,
+            REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
+            false, strprintf("rejected nVersion=0x%08x block", block.nVersion));
     }
 
     return true;
@@ -3636,14 +3677,16 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
         if (fIsMagneticAnomalyEnabled) {
             if (prevTx && (tx.GetId() <= prevTx->GetId())) {
                 if (tx.GetId() == prevTx->GetId()) {
-                    return state.DoS(100, false, REJECT_INVALID, "tx-duplicate",
+                    return state.DoS(100, ValidationInvalidReason::CONSENSUS,
+                                     false, REJECT_INVALID, "tx-duplicate",
                                      false,
                                      strprintf("Duplicated transaction %s",
                                                tx.GetId().ToString()));
                 }
 
                 return state.DoS(
-                    100, false, REJECT_INVALID, "tx-ordering", false,
+                    100, ValidationInvalidReason::CONSENSUS, false,
+                    REJECT_INVALID, "tx-ordering", false,
                     strprintf("Transaction order is invalid (%s < %s)",
                               tx.GetId().ToString(),
                               prevTx->GetId().ToString()));
@@ -3667,7 +3710,8 @@ static bool ContextualCheckBlock(const CBlock &block, CValidationState &state,
         if (block.vtx[0]->vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(),
                         block.vtx[0]->vin[0].scriptSig.begin())) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false,
+            return state.DoS(100, ValidationInvalidReason::CONSENSUS, false,
+                             REJECT_INVALID, "bad-cb-height", false,
                              "block height mismatch in coinbase");
         }
     }
@@ -3700,7 +3744,8 @@ bool CChainState::AcceptBlockHeader(const Config &config,
             }
 
             if (pindex->nStatus.isInvalid()) {
-                return state.Invalid(error("%s: block %s is marked invalid",
+                return state.Invalid(ValidationInvalidReason::CACHED_INVALID,
+                                     error("%s: block %s is marked invalid",
                                            __func__, hash.ToString()),
                                      0, "duplicate");
             }
@@ -3717,14 +3762,16 @@ bool CChainState::AcceptBlockHeader(const Config &config,
         // Get prev block index
         BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
         if (mi == mapBlockIndex.end()) {
-            return state.DoS(10, error("%s: prev block not found", __func__), 0,
+            return state.DoS(10, ValidationInvalidReason::BLOCK_MISSING_PREV,
+                             error("%s: prev block not found", __func__), 0,
                              "prev-blk-not-found");
         }
 
         CBlockIndex *pindexPrev = (*mi).second;
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
-            return state.DoS(100, error("%s: prev block invalid", __func__),
+            return state.DoS(100, ValidationInvalidReason::BLOCK_INVALID_PREV,
+                             error("%s: prev block invalid", __func__),
                              REJECT_INVALID, "bad-prevblk");
         }
 
@@ -3769,9 +3816,10 @@ bool CChainState::AcceptBlockHeader(const Config &config,
                         setDirtyBlockIndex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
-                    return state.DoS(100,
-                                     error("%s: prev block invalid", __func__),
-                                     REJECT_INVALID, "bad-prevblk");
+                    return state.DoS(
+                        100, ValidationInvalidReason::BLOCK_INVALID_PREV,
+                        error("%s: prev block invalid", __func__),
+                        REJECT_INVALID, "bad-prevblk");
                 }
             }
         }

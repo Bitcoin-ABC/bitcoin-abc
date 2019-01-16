@@ -51,6 +51,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup) {
     // Check that the validation state reflects the unsuccesful attempt.
     BOOST_CHECK(state.IsInvalid());
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-tx-coinbase");
+    BOOST_CHECK(state.GetReason() == ValidationInvalidReason::CONSENSUS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

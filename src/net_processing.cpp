@@ -1188,6 +1188,7 @@ static void Misbehaving(CNode *node, int howmuch, const std::string &reason)
 }
 
 static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
+    assert(state.GetDoS() == state.GetDoSForReason());
     return (state.GetDoS() > 0);
 }
 
@@ -1205,6 +1206,7 @@ static bool TxRelayMayResultInDisconnect(const CValidationState &state) {
 static bool MaybePunishNode(NodeId nodeid, const CValidationState &state,
                             bool via_compact_block,
                             const std::string &message = "") {
+    assert(state.GetDoS() == state.GetDoSForReason());
     int nDoS = state.GetDoS();
     if (nDoS > 0 && !via_compact_block) {
         LOCK(cs_main);

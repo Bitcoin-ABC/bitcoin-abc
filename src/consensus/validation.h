@@ -6,6 +6,7 @@
 #ifndef BITCOIN_CONSENSUS_VALIDATION_H
 #define BITCOIN_CONSENSUS_VALIDATION_H
 
+#include <cassert>
 #include <string>
 
 /** "reject" message codes */
@@ -17,6 +18,58 @@ static const uint8_t REJECT_NONSTANDARD = 0x40;
 static const uint8_t REJECT_INSUFFICIENTFEE = 0x42;
 static const uint8_t REJECT_CHECKPOINT = 0x43;
 
+/**
+ * A "reason" why something was invalid, suitable for determining whether the
+ * provider of the object should be banned/ignored/disconnected/etc. These are
+ * much more granular than the rejection codes, which may be more useful for
+ * some other use-cases.
+ */
+enum class ValidationInvalidReason {
+    // txn and blocks:
+    //! not actually invalid
+    NONE,
+    //! invalid by consensus rules (excluding any below reasons)
+    CONSENSUS,
+    /**
+     * Invalid by a recent change to consensus rules.
+     * Currently unused as there are no such consensus rule changes.
+     */
+    RECENT_CONSENSUS_CHANGE,
+    // Only blocks (or headers):
+    //! this object was cached as being invalid, but we don't know why
+    CACHED_INVALID,
+    //! invalid proof of work or time too old
+    BLOCK_INVALID_HEADER,
+    //! the block's data didn't match the data committed to by the PoW
+    BLOCK_MUTATED,
+    //! We don't have the previous block the checked one is built on
+    BLOCK_MISSING_PREV,
+    //! A block this one builds on is invalid
+    BLOCK_INVALID_PREV,
+    //! block timestamp was > 2 hours in the future (or our clock is bad)
+    BLOCK_TIME_FUTURE,
+    //! the block failed to meet one of our checkpoints
+    BLOCK_CHECKPOINT,
+    //! block finalization problems.
+    BLOCK_FINALIZATION,
+    // Only loose txn:
+    //! didn't meet our local policy rules
+    TX_NOT_STANDARD,
+    //! a transaction was missing some of its inputs (or its inputs were spent
+    //! at < coinbase maturity height)
+    TX_MISSING_INPUTS,
+    /**
+     * Tx already in mempool or conflicts with a tx in the chain
+     * TODO: Currently this is only used if the transaction already exists in
+     * the mempool or on chain,
+     * TODO: ATMP's fMissingInputs and a valid CValidationState being used to
+     * indicate missing inputs
+     */
+    TX_CONFLICT,
+    //! violated mempool's fee/size/descendant/etc limits
+    TX_MEMPOOL_POLICY,
+};
+
 /** Capture information about block/transaction validation */
 class CValidationState {
 private:
@@ -25,6 +78,7 @@ private:
         MODE_INVALID, //!< network rule violation (DoS value may be set)
         MODE_ERROR,   //!< run-time error
     } mode;
+    ValidationInvalidReason m_reason;
     int nDoS;
     std::string strRejectReason;
     unsigned int chRejectCode;
@@ -33,29 +87,34 @@ private:
 
 public:
     CValidationState()
-        : mode(MODE_VALID), nDoS(0), chRejectCode(0),
-          corruptionPossible(false) {}
+        : mode(MODE_VALID), m_reason(ValidationInvalidReason::NONE), nDoS(0),
+          chRejectCode(0), corruptionPossible(false) {}
 
-    bool DoS(int level, bool ret = false, unsigned int chRejectCodeIn = 0,
+    bool DoS(int level, ValidationInvalidReason reasonIn, bool ret = false,
+             unsigned int chRejectCodeIn = 0,
              const std::string &strRejectReasonIn = "",
              bool corruptionIn = false,
              const std::string &strDebugMessageIn = "") {
+        m_reason = reasonIn;
         chRejectCode = chRejectCodeIn;
         strRejectReason = strRejectReasonIn;
         corruptionPossible = corruptionIn;
         strDebugMessage = strDebugMessageIn;
+        nDoS += level;
+        assert(nDoS == GetDoSForReason());
+        assert(corruptionPossible ==
+               (m_reason == ValidationInvalidReason::BLOCK_MUTATED));
         if (mode == MODE_ERROR) {
             return ret;
         }
-        nDoS += level;
         mode = MODE_INVALID;
         return ret;
     }
-
-    bool Invalid(bool ret = false, unsigned int _chRejectCode = 0,
+    bool Invalid(ValidationInvalidReason _reason, bool ret = false,
+                 unsigned int _chRejectCode = 0,
                  const std::string &_strRejectReason = "",
                  const std::string &_strDebugMessage = "") {
-        return DoS(0, ret, _chRejectCode, _strRejectReason, false,
+        return DoS(0, _reason, ret, _chRejectCode, _strRejectReason, false,
                    _strDebugMessage);
     }
     bool Error(const std::string &strRejectReasonIn) {
@@ -66,14 +125,46 @@ public:
         mode = MODE_ERROR;
         return false;
     }
-
     bool IsValid() const { return mode == MODE_VALID; }
     bool IsInvalid() const { return mode == MODE_INVALID; }
     bool IsError() const { return mode == MODE_ERROR; }
-
-    bool CorruptionPossible() const { return corruptionPossible; }
-    void SetCorruptionPossible() { corruptionPossible = true; }
+    bool CorruptionPossible() const {
+        assert(corruptionPossible ==
+               (m_reason == ValidationInvalidReason::BLOCK_MUTATED));
+        return corruptionPossible;
+    }
+    void SetCorruptionPossible() {
+        corruptionPossible = true;
+        assert(corruptionPossible ==
+               (m_reason == ValidationInvalidReason::BLOCK_MUTATED));
+    }
     int GetDoS() const { return nDoS; }
+    int GetDoSForReason() const {
+        switch (m_reason) {
+            case ValidationInvalidReason::NONE:
+                return 0;
+            case ValidationInvalidReason::CONSENSUS:
+            case ValidationInvalidReason::BLOCK_MUTATED:
+            case ValidationInvalidReason::BLOCK_INVALID_HEADER:
+            case ValidationInvalidReason::BLOCK_CHECKPOINT:
+            case ValidationInvalidReason::BLOCK_INVALID_PREV:
+                return 100;
+            case ValidationInvalidReason::BLOCK_FINALIZATION:
+                return 20;
+            case ValidationInvalidReason::BLOCK_MISSING_PREV:
+                return 10;
+            case ValidationInvalidReason::CACHED_INVALID:
+            case ValidationInvalidReason::RECENT_CONSENSUS_CHANGE:
+            case ValidationInvalidReason::BLOCK_TIME_FUTURE:
+            case ValidationInvalidReason::TX_NOT_STANDARD:
+            case ValidationInvalidReason::TX_MISSING_INPUTS:
+            case ValidationInvalidReason::TX_CONFLICT:
+            case ValidationInvalidReason::TX_MEMPOOL_POLICY:
+                return 0;
+        }
+        return 0;
+    }
+    ValidationInvalidReason GetReason() const { return m_reason; }
     unsigned int GetRejectCode() const { return chRejectCode; }
     std::string GetRejectReason() const { return strRejectReason; }
     std::string GetDebugMessage() const { return strDebugMessage; }
