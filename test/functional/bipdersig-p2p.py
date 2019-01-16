@@ -59,15 +59,13 @@ class BIP66Test(BitcoinTestFramework):
         self.setup_clean_chain = True
 
     def run_test(self):
-        node0 = NodeConnCB()
-        connections = []
-        connections.append(
-            NodeConn('127.0.0.1', p2p_port(0), self.nodes[0], node0))
-        node0.add_connection(connections[0])
-        NetworkThread().start()  # Start up network handling in another thread
+        self.nodes[0].add_p2p_connection(NodeConnCB())
+
+        # Start up network handling in another thread
+        NetworkThread().start()
 
         # wait_for_verack ensures that the P2P connection is fully up.
-        node0.wait_for_verack()
+        self.nodes[0].p2p.wait_for_verack()
 
         self.log.info("Mining %d blocks", DERSIG_HEIGHT - 1)
         self.coinbase_blocks = self.nodes[0].generate(DERSIG_HEIGHT - 1)
@@ -81,17 +79,19 @@ class BIP66Test(BitcoinTestFramework):
         block.nVersion = 2
         block.rehash()
         block.solve()
-        node0.send_and_ping(msg_block(block))
+        self.nodes[0].p2p.send_and_ping(msg_block(block))
         assert_equal(self.nodes[0].getbestblockhash(), tip)
 
-        wait_until(lambda: "reject" in node0.last_message.keys(),
+        wait_until(lambda: "reject" in self.nodes[0].p2p.last_message.keys(),
                    lock=mininode_lock)
         with mininode_lock:
-            assert_equal(node0.last_message["reject"].code, REJECT_OBSOLETE)
             assert_equal(
-                node0.last_message["reject"].reason, b'bad-version(0x00000002)')
-            assert_equal(node0.last_message["reject"].data, block.sha256)
-            del node0.last_message["reject"]
+                self.nodes[0].p2p.last_message["reject"].code, REJECT_OBSOLETE)
+            assert_equal(
+                self.nodes[0].p2p.last_message["reject"].reason, b'bad-version(0x00000002)')
+            assert_equal(
+                self.nodes[0].p2p.last_message["reject"].data, block.sha256)
+            del self.nodes[0].p2p.last_message["reject"]
 
         self.log.info(
             "Test that transactions with non-DER signatures cannot appear in a block")
@@ -108,10 +108,10 @@ class BIP66Test(BitcoinTestFramework):
         block.rehash()
         block.solve()
 
-        node0.send_and_ping(msg_block(block))
+        self.nodes[0].p2p.send_and_ping(msg_block(block))
         assert_equal(self.nodes[0].getbestblockhash(), tip)
 
-        wait_until(lambda: "reject" in node0.last_message.keys(),
+        wait_until(lambda: "reject" in self.nodes[0].p2p.last_message.keys(),
                    lock=mininode_lock)
         with mininode_lock:
             # We can receive different reject messages depending on whether
@@ -119,15 +119,16 @@ class BIP66Test(BitcoinTestFramework):
             # check threads are not in use, then transaction script validation
             # happens sequentially, and bitcoind produces more specific reject
             # reasons.
-            assert node0.last_message["reject"].code in [
+            assert self.nodes[0].p2p.last_message["reject"].code in [
                 REJECT_INVALID, REJECT_NONSTANDARD]
-            assert_equal(node0.last_message["reject"].data, block.sha256)
-            if node0.last_message["reject"].code == REJECT_INVALID:
+            assert_equal(
+                self.nodes[0].p2p.last_message["reject"].data, block.sha256)
+            if self.nodes[0].p2p.last_message["reject"].code == REJECT_INVALID:
                 # Generic rejection when a block is invalid
                 assert_equal(
-                    node0.last_message["reject"].reason, b'blk-bad-inputs')
+                    self.nodes[0].p2p.last_message["reject"].reason, b'blk-bad-inputs')
             else:
-                assert b'Non-canonical DER signature' in node0.last_message["reject"].reason
+                assert b'Non-canonical DER signature' in self.nodes[0].p2p.last_message["reject"].reason
 
         self.log.info(
             "Test that a version 3 block with a DERSIG-compliant transaction is accepted")
@@ -137,7 +138,7 @@ class BIP66Test(BitcoinTestFramework):
         block.rehash()
         block.solve()
 
-        node0.send_and_ping(msg_block(block))
+        self.nodes[0].p2p.send_and_ping(msg_block(block))
         assert_equal(int(self.nodes[0].getbestblockhash(), 16), block.sha256)
 
 
