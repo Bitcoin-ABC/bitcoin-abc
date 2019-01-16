@@ -5,6 +5,29 @@ A special test harness in `src/test/fuzz/` is provided for each fuzz target to
 provide an easy entry point for fuzzers and the like. In this document we'll
 describe how to use it with AFL and libFuzzer.
 
+## Preparing fuzzing
+
+AFL needs an input directory with examples, and an output directory where it
+will place examples that it found. These can be anywhere in the file system,
+we'll define environment variables to make it easy to reference them.
+
+libFuzzer will use the input directory as output directory.
+
+Extract the example seeds (or other starting inputs) into the inputs
+directory before starting fuzzing.
+
+```
+git clone https://github.com/Bitcoin-ABC/qa-assets
+export DIR_FUZZ_IN=$PWD/qa-assets/fuzz_seed_corpus
+```
+
+Only for AFL:
+
+```
+mkdir outputs
+export AFLOUT=$PWD/outputs
+```
+
 ## AFL
 
 ### Building AFL
@@ -41,30 +64,14 @@ binary will be instrumented in such a way that the AFL features "persistent
 mode" and "deferred forkserver" can be used.
 See https://github.com/mcarpenter/afl/tree/master/llvm_mode for details.
 
-### Preparing fuzzing
-
-AFL needs an input directory with examples, and an output directory where it
-will place examples that it found. These can be anywhere in the file system,
-we'll define environment variables to make it easy to reference them.
-
-```
-mkdir inputs
-AFLIN=$PWD/inputs
-mkdir outputs
-AFLOUT=$PWD/outputs
-```
-
-Example inputs are available from:
-
-- https://download.visucore.com/bitcoin/bitcoin_fuzzy_in.tar.xz
-
-Extract these (or other starting inputs) into the `inputs` directory before starting fuzzing.
-
 ### Fuzzing
 
 To start the actual fuzzing use:
+
 ```
-$AFLPATH/afl-fuzz -i ${AFLIN} -o ${AFLOUT} -m52 -- src/test/fuzz/fuzz_target_foo
+export FUZZ_TARGET=fuzz_target_foo  # Pick a fuzz_target
+mkdir ${AFLOUT}/${FUZZ_TARGET}
+$AFLPATH/afl-fuzz -i ${DIR_FUZZ_IN}/${FUZZ_TARGET} -o ${AFLOUT}/${FUZZ_TARGET} -m52 -- src/test/fuzz/${FUZZ_TARGET}
 ```
 
 You may have to change a few kernel parameters to test optimally - `afl-fuzz`
@@ -75,7 +82,7 @@ will print an error and suggestion if so.
 A recent version of `clang`, the address sanitizer and libFuzzer is needed (all
 found in the `compiler-rt` runtime libraries package).
 
-To build the `test/test_bitcoin_fuzzy` executable run
+To build all fuzz targets with libFuzzer, run
 
 ```
 mkdir -p buildFuzzer
@@ -93,3 +100,6 @@ interchangeably between libFuzzer and AFL.
 
 See https://llvm.org/docs/LibFuzzer.html#running on how to run the libFuzzer
 instrumented executable.
+
+Alternatively run the script in `./test/fuzz/test_runner.py` and provide it
+with the `${DIR_FUZZ_IN}` created earlier.
