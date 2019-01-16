@@ -140,7 +140,7 @@ RCUInfos::~RCUInfos() {
          * thanks to the use of a mutex, we are safe.
          */
         RCUInfos *current = this;
-        if (!ptr->compare_exchange_weak(current, next.load())) {
+        if (!ptr->compare_exchange_strong(current, next.load())) {
             continue;
         }
 
