@@ -17,30 +17,30 @@ import re
 import sys
 import os
 
-# Debian 6.0.9 (Squeeze) has:
+# Debian 8.11 (Jessie) has:
 #
-# - g++ version 4.4.5 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=g%2B%2B)
-# - libc version 2.11.3 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libc6)
-# - libstdc++ version 4.4.5 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libstdc%2B%2B6)
+# - g++ version 4.9.2 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=g%2B%2B)
+# - libc version 2.19.18 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libc6)
+# - libstdc++ version 4.8.4 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libstdc%2B%2B6)
 #
-# Ubuntu 10.04.4 (Lucid Lynx) has:
+# Ubuntu 14.04 (Trusty Tahr) has:
 #
-# - g++ version 4.4.3 (http://packages.ubuntu.com/search?keywords=g%2B%2B&searchon=names&suite=lucid&section=all)
-# - libc version 2.11.1 (http://packages.ubuntu.com/search?keywords=libc6&searchon=names&suite=lucid&section=all)
-# - libstdc++ version 4.4.3 (http://packages.ubuntu.com/search?suite=lucid&section=all&arch=any&keywords=libstdc%2B%2B&searchon=names)
+# - g++ version 4.8.2 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=g%2B%2B&searchon=names)
+# - libc version 2.19.0 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=libc6&searchon=names)
+# - libstdc++ version 4.8.2 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=libstdc%2B%2B&searchon=names)
 #
 # Taking the minimum of these as our target.
 #
 # According to GNU ABI document (http://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) this corresponds to:
-#   GCC 4.4.0: GCC_4.4.0
-#   GCC 4.4.2: GLIBCXX_3.4.13, CXXABI_1.3.3
-#   (glibc)    GLIBC_2_11
+#   GCC 4.8.0: GCC_4.8.0
+#   GCC 4.8.0: GLIBCXX_3.4.18, CXXABI_1.3.7
+#   (glibc)    GLIBC_2_19
 #
 MAX_VERSIONS = {
-    'GCC':     (4, 4, 0),
-    'CXXABI':  (1, 3, 3),
-    'GLIBCXX': (3, 4, 13),
-    'GLIBC':   (2, 11)
+    'GCC':     (4, 8, 0),
+    'CXXABI':  (1, 3, 7),
+    'GLIBCXX': (3, 4, 18),
+    'GLIBC':   (2, 19)
 }
 # See here for a description of _IO_stdin_used:
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=634261#109
