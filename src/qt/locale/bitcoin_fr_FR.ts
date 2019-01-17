@@ -1310,7 +1310,7 @@
     </message>
     <message>
         <source>S&amp;end</source>
-        <translation>E&amp;voyer</translation>
+        <translation>E&amp;nvoyer</translation>
     </message>
     <message>
         <source>Copy amount</source>
