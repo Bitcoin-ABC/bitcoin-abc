@@ -1922,10 +1922,8 @@ static bool ProcessHeadersMessage(const Config &config, CNode *pfrom,
     if (!ProcessNewBlockHeaders(config, headers, state, &pindexLast,
                                 &first_invalid_header)) {
         if (state.IsInvalid()) {
-            // The lock is required here due to LookupBlockIndex
-            LOCK(cs_main);
             if (punish_duplicate_invalid &&
-                LookupBlockIndex(first_invalid_header.GetHash())) {
+                state.GetReason() == ValidationInvalidReason::CACHED_INVALID) {
                 // Goal: don't allow outbound peers to use up our outbound
                 // connection slots if they are on incompatible chains.
                 //
