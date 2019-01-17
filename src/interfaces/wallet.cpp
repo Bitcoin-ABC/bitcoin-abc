@@ -441,6 +441,7 @@ namespace {
         OutputType getDefaultChangeType() override {
             return m_wallet.m_default_change_type;
         }
+        void remove() override { RemoveWallet(m_shared_wallet); }
         std::unique_ptr<Handler> handleUnload(UnloadFn fn) override {
             return MakeHandler(m_wallet.NotifyUnload.connect(fn));
         }
