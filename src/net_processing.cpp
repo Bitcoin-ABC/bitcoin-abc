@@ -2206,15 +2206,10 @@ void static ProcessOrphanTx(const Config &config, CConnman *connman,
             // Probably non-standard or insufficient fee
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
-            if (!orphan_state.CorruptionPossible()) {
-                // Do not use rejection cache for witness
-                // transactions or witness-stripped transactions, as
-                // they can have been malleated. See
-                // https://github.com/bitcoin/bitcoin/issues/8279
-                // for details.
-                assert(recentRejects);
-                recentRejects->insert(orphanTxId);
-            }
+
+            assert(recentRejects);
+            recentRejects->insert(orphanTxId);
+
             EraseOrphanTx(orphanTxId);
             done = true;
         }
@@ -3047,16 +3042,10 @@ static bool ProcessMessage(const Config &config, CNode *pfrom,
                 recentRejects->insert(tx.GetId());
             }
         } else {
-            if (!state.CorruptionPossible()) {
-                // Do not use rejection cache for witness transactions or
-                // witness-stripped transactions, as they can have been
-                // malleated. See https://github.com/bitcoin/bitcoin/issues/8279
-                // for details.
-                assert(recentRejects);
-                recentRejects->insert(tx.GetId());
-                if (RecursiveDynamicUsage(*ptx) < 100000) {
-                    AddToCompactExtraTransactions(ptx);
-                }
+            assert(recentRejects);
+            recentRejects->insert(tx.GetId());
+            if (RecursiveDynamicUsage(*ptx) < 100000) {
+                AddToCompactExtraTransactions(ptx);
             }
 
             if (pfrom->HasPermission(PF_FORCERELAY)) {
