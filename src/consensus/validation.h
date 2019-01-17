@@ -70,13 +70,6 @@ public:
     bool IsValid() const { return mode == MODE_VALID; }
     bool IsInvalid() const { return mode == MODE_INVALID; }
     bool IsError() const { return mode == MODE_ERROR; }
-    bool IsInvalid(int &nDoSOut) const {
-        if (IsInvalid()) {
-            nDoSOut = nDoS;
-            return true;
-        }
-        return false;
-    }
 
     bool CorruptionPossible() const { return corruptionPossible; }
     void SetCorruptionPossible() { corruptionPossible = true; }
