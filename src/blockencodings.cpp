@@ -247,7 +247,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
         // that is expensive, and CheckBlock caches a block's "checked-status"
         // (in the CBlock?). CBlock should be able to check its own merkle root
         // and cache that check.
-        if (state.CorruptionPossible()) {
+        if (state.GetReason() == ValidationInvalidReason::BLOCK_MUTATED) {
             // Possible Short ID collision.
             return READ_STATUS_FAILED;
         }

@@ -948,7 +948,7 @@ static void InvalidChainFound(CBlockIndex *pindexNew)
 
 void CChainState::InvalidBlockFound(CBlockIndex *pindex,
                                     const CValidationState &state) {
-    if (!state.CorruptionPossible()) {
+    if (state.GetReason() != ValidationInvalidReason::BLOCK_MUTATED) {
         pindex->nStatus = pindex->nStatus.withFailed();
         m_failed_blocks.insert(pindex);
         setDirtyBlockIndex.insert(pindex);
@@ -1509,7 +1509,7 @@ bool CChainState::ConnectBlock(const CBlock &block, CValidationState &state,
     if (!CheckBlock(block, state, consensusParams,
                     options.withCheckPoW(!fJustCheck)
                         .withCheckMerkleRoot(!fJustCheck))) {
-        if (state.CorruptionPossible()) {
+        if (state.GetReason() == ValidationInvalidReason::BLOCK_MUTATED) {
             // We don't write down blocks to disk if they may have been
             // corrupted, so this should be impossible unless we're having
             // hardware problems.
@@ -2677,7 +2677,8 @@ bool CChainState::ActivateBestChainStep(
                             connectTrace, disconnectpool)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
-                    if (!state.CorruptionPossible()) {
+                    if (state.GetReason() !=
+                        ValidationInvalidReason::BLOCK_MUTATED) {
                         InvalidChainFound(vpindexToConnect.back());
                     }
 
@@ -4001,7 +4002,8 @@ bool CChainState::AcceptBlock(const Config &config,
     if (!CheckBlock(block, state, consensusParams,
                     BlockValidationOptions(config)) ||
         !ContextualCheckBlock(block, state, consensusParams, pindex->pprev)) {
-        if (state.IsInvalid() && !state.CorruptionPossible()) {
+        if (state.IsInvalid() &&
+            state.GetReason() != ValidationInvalidReason::BLOCK_MUTATED) {
             pindex->nStatus = pindex->nStatus.withFailed();
             setDirtyBlockIndex.insert(pindex);
         }
