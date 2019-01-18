@@ -186,4 +186,132 @@ BOOST_AUTO_TEST_CASE(cleanup_test) {
     BOOST_CHECK(isClean3);
 }
 
+class RCURefTestItem {
+    IMPLEMENT_RCU_REFCOUNT(uint32_t);
+    const std::function<void()> cleanupfun;
+
+public:
+    explicit RCURefTestItem(const std::function<void()> &fun)
+        : cleanupfun(fun) {}
+    ~RCURefTestItem() { cleanupfun(); }
+
+    uint32_t getRefCount() const { return refcount.load(); }
+};
+
+BOOST_AUTO_TEST_CASE(rcuref_test) {
+    // Make sure it works for null.
+    { RCUPtr<RCURefTestItem> rcuptr(nullptr); }
+
+    // Check the destruction mechanism.
+    bool isDestroyed = false;
+
+    {
+        auto rcuptr = RCUPtr<RCURefTestItem>::make([&] { isDestroyed = true; });
+        BOOST_CHECK_EQUAL(rcuptr->getRefCount(), 0);
+    }
+
+    // rcuptr waits for synchronization to destroy.
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+
+    // Check that copy behaves properly.
+    isDestroyed = false;
+    RCUPtr<RCURefTestItem> gptr;
+
+    {
+        auto rcuptr = RCUPtr<RCURefTestItem>::make([&] { isDestroyed = true; });
+        BOOST_CHECK_EQUAL(rcuptr->getRefCount(), 0);
+
+        gptr = rcuptr;
+        BOOST_CHECK_EQUAL(rcuptr->getRefCount(), 1);
+        BOOST_CHECK_EQUAL(gptr->getRefCount(), 1);
+
+        auto rcuptrcopy = rcuptr;
+        BOOST_CHECK_EQUAL(rcuptrcopy->getRefCount(), 2);
+        BOOST_CHECK_EQUAL(rcuptr->getRefCount(), 2);
+        BOOST_CHECK_EQUAL(gptr->getRefCount(), 2);
+    }
+
+    BOOST_CHECK_EQUAL(gptr->getRefCount(), 0);
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    gptr = RCUPtr<RCURefTestItem>();
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+}
+
+class RCURefMoveTestItem {
+    const std::function<void()> cleanupfun;
+
+public:
+    explicit RCURefMoveTestItem(const std::function<void()> &fun)
+        : cleanupfun(fun) {}
+    ~RCURefMoveTestItem() { cleanupfun(); }
+
+    void acquire() {
+        throw std::runtime_error("RCUPtr incremented the refcount");
+    }
+    void release() {
+        RCULock::registerCleanup([this] { delete this; });
+    }
+};
+
+BOOST_AUTO_TEST_CASE(move_rcuref_test) {
+    bool isDestroyed = false;
+
+    // Check tat copy is failing.
+    auto rcuptr1 =
+        RCUPtr<RCURefMoveTestItem>::make([&] { isDestroyed = true; });
+    BOOST_CHECK_THROW(rcuptr1->acquire(), std::runtime_error);
+    BOOST_CHECK_THROW(auto rcuptrcopy = rcuptr1;, std::runtime_error);
+
+    // Try to move.
+    auto rcuptr2 = std::move(rcuptr1);
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    // Move to a local and check proper destruction.
+    { auto rcuptr3 = std::move(rcuptr2); }
+
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+
+    // Let's try to swap.
+    isDestroyed = false;
+    rcuptr1 = RCUPtr<RCURefMoveTestItem>::make([&] { isDestroyed = true; });
+    std::swap(rcuptr1, rcuptr2);
+
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    // Chain moves to make sure there are no double free.
+    {
+        auto rcuptr3 = std::move(rcuptr2);
+        auto rcuptr4 = std::move(rcuptr3);
+        std::swap(rcuptr1, rcuptr4);
+    }
+
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    // Check we can return from a function.
+    {
+        auto r = ([&] {
+            auto moved = std::move(rcuptr1);
+            return moved;
+        })();
+
+        RCULock::synchronize();
+        BOOST_CHECK(!isDestroyed);
+    }
+
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
