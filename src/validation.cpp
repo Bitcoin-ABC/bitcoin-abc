@@ -2368,7 +2368,6 @@ bool CChainState::ConnectTip(const Config &config, CValidationState &state,
             FindBlockToFinalize(config, pindexNew);
         if (pindexToFinalize &&
             !FinalizeBlockInternal(config, state, pindexToFinalize)) {
-            state.SetCorruptionPossible();
             return error("ConnectTip(): FinalizeBlock %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          FormatStateMessage(state));
