@@ -48,6 +48,7 @@ public:
     OpenWalletActivity *openWallet(const CChainParams &params,
                                    const std::string &name,
                                    QWidget *parent = nullptr);
+    void closeWallet(WalletModel *wallet_model, QWidget *parent = nullptr);
 
 private Q_SLOTS:
     void addWallet(WalletModel *wallet_model);
