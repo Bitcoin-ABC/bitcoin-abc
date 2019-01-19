@@ -14,6 +14,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <type_traits>
 
 /**
  * This is a radix tree storing values identified by a unique key.
@@ -43,7 +44,8 @@ private:
     static const int MASK = (1 << BITS) - 1;
     static const size_t CHILD_PER_LEVEL = 1 << BITS;
 
-    typedef decltype(std::declval<T &>().getId()) K;
+    typedef typename std::remove_reference<decltype(
+        std::declval<T &>().getId())>::type K;
     static const size_t KEY_BITS = 8 * sizeof(K);
     static const uint32_t TOP_LEVEL = (KEY_BITS - 1) / BITS;
 
@@ -59,13 +61,15 @@ public:
      * Insert a value into the tree.
      * Returns true if the value was inserted, false if it was already present.
      */
-    bool insert(T *value) { return insert(value->getId(), value); }
+    bool insert(const RCUPtr<T> &value) {
+        return insert(value->getId(), value);
+    }
 
     /**
      * Get the value corresponding to a key.
-     * Returns the value if found, null if not.
+     * Returns the value if found, nullptr if not.
      */
-    T *get(const K &key) {
+    RCUPtr<T> get(const K &key) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -79,23 +83,23 @@ public:
         T *leaf = e.getLeaf();
         if (leaf == nullptr || leaf->getId() != key) {
             // We failed to find the proper element.
-            return nullptr;
+            return RCUPtr<T>();
         }
 
         // The leaf is non-null and the keys match. We have our guy.
-        return leaf;
+        return RCUPtr<T>::copy(leaf);
     }
 
-    const T *get(const K &key) const {
-        return const_cast<RadixTree *>(this)->get(key);
+    RCUPtr<const T> get(const K &key) const {
+        T const *ptr = const_cast<RadixTree *>(this)->get(key).release();
+        return RCUPtr<const T>::acquire(ptr);
     }
 
     /**
      * Remove an element from the tree.
-     * Returns true if the element was removed from the tree, false if the
-     * element wasn't found in the tree.
+     * Returns the removed element, or nullptr if there isn't one.
      */
-    bool remove(const K &key) {
+    RCUPtr<T> remove(const K &key) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -113,12 +117,12 @@ public:
         T *leaf = e.getLeaf();
         if (leaf == nullptr || leaf->getId() != key) {
             // We failed to find the proper element.
-            return false;
+            return RCUPtr<T>();
         }
 
         // We have the proper element, try to delete it.
         if (eptr->compare_exchange_strong(e, RadixElement())) {
-            return true;
+            return RCUPtr<T>::acquire(leaf);
         }
 
         // The element was replaced, either by a subtree or another element.
@@ -127,11 +131,11 @@ public:
         }
 
         // The element in the slot is not the one we are looking for.
-        return false;
+        return RCUPtr<T>();
     }
 
 private:
-    bool insert(const K &key, T *value) {
+    bool insert(const K &key, RCUPtr<T> value) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -149,7 +153,9 @@ private:
 
             // If the slot is empty, try to insert right there.
             if (e.getLeaf() == nullptr) {
-                if (eptr->compare_exchange_strong(e, RadixElement(value))) {
+                if (eptr->compare_exchange_strong(e,
+                                                  RadixElement(value.get()))) {
+                    value.release();
                     return true;
                 }
 
