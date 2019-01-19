@@ -77,9 +77,11 @@ public:
 template <typename T> class RCUPtr {
     T *ptr;
 
+    // Private construction, so factories have to be used.
+    explicit RCUPtr(T *ptrIn) : ptr(ptrIn) {}
+
 public:
     RCUPtr() : ptr(nullptr) {}
-    explicit RCUPtr(T *ptrIn) : ptr(ptrIn) {}
 
     ~RCUPtr() {
         if (ptr != nullptr) {
@@ -88,10 +90,30 @@ public:
     }
 
     /**
+     * Acquire ownership of some pointer.
+     */
+    static RCUPtr acquire(T *&ptrIn) {
+        RCUPtr ret(ptrIn);
+        ptrIn = nullptr;
+        return ret;
+    }
+
+    /**
      * Construct a new object that is owned by the pointer.
      */
     template <typename... Args> static RCUPtr make(Args &&... args) {
         return RCUPtr(new T(std::forward<Args>(args)...));
+    }
+
+    /**
+     * Construct a new RCUPtr without transfering owership.
+     */
+    static RCUPtr copy(T *ptr) {
+        if (ptr != nullptr) {
+            ptr->acquire();
+        }
+
+        return RCUPtr::acquire(ptr);
     }
 
     /**
@@ -119,9 +141,30 @@ public:
     }
 
     /**
-     * Accessors
+     * Get allows to access the undelying pointer. RCUPtr keeps ownership.
+     */
+    T *get() { return ptr; }
+    const T *get() const { return ptr; }
+
+    /**
+     * Release transfers ownership of the pointer from RCUPtr to the caller.
+     */
+    T *release() {
+        T *oldPtr = ptr;
+        ptr = nullptr;
+        return oldPtr;
+    }
+
+    /**
+     * Operator overloading for convenience.
      */
     T *operator->() { return ptr; }
+    const T *operator->() const { return ptr; }
+
+    T &operator*() { return *ptr; }
+    const T &operator*() const { return *ptr; }
+
+    explicit operator bool() const { return ptr != nullptr; }
 };
 
 #define IMPLEMENT_RCU_REFCOUNT(T)                                              \
