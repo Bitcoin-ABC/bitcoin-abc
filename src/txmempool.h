@@ -352,8 +352,6 @@ struct entry_time {};
 struct mining_score {};
 struct ancestor_score {};
 
-class CBlockPolicyEstimator;
-
 /**
  * Information about a mempool transaction.
  */
@@ -492,7 +490,6 @@ private:
     //!< Value n means that n times in 2^32 we check.
     uint32_t nCheckFrequency;
     unsigned int nTransactionsUpdated;
-    CBlockPolicyEstimator *minerPolicyEstimator;
 
     //!< sum of all mempool tx's virtual sizes.
     uint64_t totalTxSize;
@@ -756,10 +753,6 @@ public:
 
     /** Estimate fee rate needed to get into the next nBlocks */
     CFeeRate estimateFee(int nBlocks) const;
-
-    /** Write/Read estimates to disk */
-    bool WriteFeeEstimates(CAutoFile &fileout) const;
-    bool ReadFeeEstimates(CAutoFile &filein);
 
     size_t DynamicMemoryUsage() const;
 

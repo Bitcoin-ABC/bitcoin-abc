@@ -7,3 +7,5 @@ This release includes the following features and fixes:
  - `importwallet` now imports these scripts, but corresponding addresses may not
    be added correctly or a manual rescan may be required to find relevant 
    transactions
+ - Remove miner policy estimator in favor of minimum fees, also remove `fee_estimates.dat`.
+   Old copies will be left in place.
