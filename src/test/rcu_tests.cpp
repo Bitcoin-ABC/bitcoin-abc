@@ -144,6 +144,7 @@ BOOST_AUTO_TEST_CASE(synchronize_test) {
 #define NULLPTR(T) static_cast<T *>(nullptr)
 
 BOOST_AUTO_TEST_CASE(cleanup_test) {
+    RCULock::synchronize();
     BOOST_CHECK(RCUTest::getCleanups().empty());
 
     bool isClean1 = false;
