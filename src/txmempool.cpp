@@ -1331,6 +1331,7 @@ void DisconnectedBlockTransactions::addForBlock(
         while (parents.size() > 0) {
             std::unordered_set<TxId, SaltedTxidHasher> worklist(
                 std::move(parents));
+            parents.clear();
 
             for (const TxId &txid : worklist) {
                 // If we do not have that txid in the set, nothing needs to be
