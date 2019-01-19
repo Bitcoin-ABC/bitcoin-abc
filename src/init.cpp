@@ -68,7 +68,6 @@
 #include "zmq/zmqnotificationinterface.h"
 #endif
 
-bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
@@ -105,8 +104,6 @@ static CZMQNotificationInterface *pzmqNotificationInterface = nullptr;
 #else
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
-
-static const char *FEE_ESTIMATES_FILENAME = "fee_estimates.dat";
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -234,19 +231,6 @@ void Shutdown() {
     if (fDumpMempoolLater &&
         gArgs.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         DumpMempool();
-    }
-
-    if (fFeeEstimatesInitialized) {
-        fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-        CAutoFile est_fileout(fsbridge::fopen(est_path, "wb"), SER_DISK,
-                              CLIENT_VERSION);
-        if (!est_fileout.IsNull()) {
-            g_mempool.WriteFeeEstimates(est_fileout);
-        } else {
-            LogPrintf("%s: Failed to write fee estimates to %s\n", __func__,
-                      est_path.string());
-        }
-        fFeeEstimatesInitialized = false;
     }
 
     // FlushStateToDisk generates a SetBestChain callback, which we should avoid
@@ -2249,15 +2233,6 @@ bool AppInitMain(Config &config,
         return false;
     }
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
-
-    fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-    CAutoFile est_filein(fsbridge::fopen(est_path, "rb"), SER_DISK,
-                         CLIENT_VERSION);
-    // Allowed to fail as this file IS missing on first startup.
-    if (!est_filein.IsNull()) {
-        g_mempool.ReadFeeEstimates(est_filein);
-    }
-    fFeeEstimatesInitialized = true;
 
     // Encoded addresses using cashaddr instead of base58
     // Activates by default on Jan, 14

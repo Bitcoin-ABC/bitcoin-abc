@@ -461,8 +461,6 @@ class BitcoinTestFramework():
                 os.remove(log_filename(
                     self.options.cachedir, i, "wallets/db.log"))
                 os.remove(log_filename(self.options.cachedir, i, "peers.dat"))
-                os.remove(log_filename(
-                    self.options.cachedir, i, "fee_estimates.dat"))
 
         for i in range(self.num_nodes):
             from_dir = os.path.join(self.options.cachedir, "node" + str(i))

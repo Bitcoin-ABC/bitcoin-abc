@@ -7,6 +7,7 @@
 
 #include "chainparams.h" // for GetConsensus.
 #include "clientversion.h"
+#include "config.h"
 #include "consensus/consensus.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
@@ -409,13 +410,9 @@ CTxMemPool::CTxMemPool() : nTransactionsUpdated(0) {
     // transactions becomes O(N^2) where N is the number of transactions in the
     // pool
     nCheckFrequency = 0;
-
-    minerPolicyEstimator = new CBlockPolicyEstimator();
 }
 
-CTxMemPool::~CTxMemPool() {
-    delete minerPolicyEstimator;
-}
+CTxMemPool::~CTxMemPool() {}
 
 bool CTxMemPool::isSpent(const COutPoint &outpoint) {
     LOCK(cs);
@@ -482,7 +479,6 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 
     nTransactionsUpdated++;
     totalTxSize += entry.GetTxSize();
-    minerPolicyEstimator->processTransaction(entry, validFeeEstimate);
 
     vTxHashes.emplace_back(tx.GetHash(), newit);
     newit->vTxHashesIdx = vTxHashes.size() - 1;
@@ -492,7 +488,6 @@ bool CTxMemPool::addUnchecked(const uint256 &hash, const CTxMemPoolEntry &entry,
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     NotifyEntryRemoved(it->GetSharedTx(), reason);
-    const uint256 txid = it->GetTx().GetId();
     for (const CTxIn &txin : it->GetTx().vin) {
         mapNextTx.erase(txin.prevout);
     }
@@ -515,7 +510,6 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     mapLinks.erase(it);
     mapTx.erase(it);
     nTransactionsUpdated++;
-    minerPolicyEstimator->removeTx(txid);
 }
 
 // Calculates descendants of entry that are not already in setDescendants, and
@@ -671,9 +665,6 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
         }
     }
 
-    // Before the txs in the new block have been removed from the mempool,
-    // update policy estimates
-    minerPolicyEstimator->processBlock(nBlockHeight, entries);
     for (const CTransactionRef &tx :
          reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
         txiter it = mapTx.find(tx->GetId());
@@ -968,52 +959,17 @@ CFeeRate CTxMemPool::estimateFee(int nBlocks) const {
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
     // do not contain propagated transactions.
-    return std::max(minerPolicyEstimator->estimateFee(nBlocks),
-                    GetMinFee(maxMempoolSize));
+    return std::max(GetConfig().GetMinFeePerKB(), GetMinFee(maxMempoolSize));
 }
+
 CFeeRate CTxMemPool::estimateSmartFee(int nBlocks,
                                       int *answerFoundAtBlocks) const {
-    LOCK(cs);
+    if (answerFoundAtBlocks != nullptr) {
+        *answerFoundAtBlocks = 1;
+    }
     // estimateSmartFee already includes the GetMinFee check, this is the
     // reason it takes `*this`.  It does not need std::max as above.
-    return minerPolicyEstimator->estimateSmartFee(nBlocks, answerFoundAtBlocks,
-                                                  *this);
-}
-
-bool CTxMemPool::WriteFeeEstimates(CAutoFile &fileout) const {
-    try {
-        LOCK(cs);
-        // version required to read: 0.13.99 or later
-        fileout << 139900;
-        // version that wrote the file
-        fileout << CLIENT_VERSION;
-        minerPolicyEstimator->Write(fileout);
-    } catch (const std::exception &) {
-        LogPrintf("CTxMemPool::WriteFeeEstimates(): unable to write policy "
-                  "estimator data (non-fatal)\n");
-        return false;
-    }
-    return true;
-}
-
-bool CTxMemPool::ReadFeeEstimates(CAutoFile &filein) {
-    try {
-        int nVersionRequired, nVersionThatWrote;
-        filein >> nVersionRequired >> nVersionThatWrote;
-        if (nVersionRequired > CLIENT_VERSION) {
-            return error("CTxMemPool::ReadFeeEstimates(): up-version (%d) fee "
-                         "estimate file",
-                         nVersionRequired);
-        }
-
-        LOCK(cs);
-        minerPolicyEstimator->Read(filein, nVersionThatWrote);
-    } catch (const std::exception &) {
-        LogPrintf("CTxMemPool::ReadFeeEstimates(): unable to read policy "
-                  "estimator data (non-fatal)\n");
-        return false;
-    }
-    return true;
+    return estimateFee(nBlocks);
 }
 
 void CTxMemPool::PrioritiseTransaction(const uint256 hash,
