@@ -290,6 +290,17 @@ BOOST_AUTO_TEST_CASE(rcuptr_operator_test) {
     BOOST_CHECK(gptr != altptr);
 }
 
+BOOST_AUTO_TEST_CASE(const_rcuptr_test) {
+    bool isDestroyed = false;
+    auto ptr = RCUPtr<const RCURefTestItem>::make([&] { isDestroyed = true; });
+
+    // Now let's destroy it.
+    ptr = RCUPtr<const RCURefTestItem>();
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+}
+
 class RCURefMoveTestItem {
     const std::function<void()> cleanupfun;
 
