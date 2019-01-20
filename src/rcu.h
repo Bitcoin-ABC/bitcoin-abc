@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -165,6 +166,32 @@ public:
     const T &operator*() const { return *ptr; }
 
     explicit operator bool() const { return ptr != nullptr; }
+
+    /**
+     * Equality checks.
+     */
+    friend bool operator==(const RCUPtr &lhs, const T *rhs) {
+        return lhs.get() == rhs;
+    }
+
+    friend bool operator==(const RCUPtr &lhs, const RCUPtr &rhs) {
+        return lhs == rhs.get();
+    }
+
+    friend bool operator!=(const RCUPtr &lhs, const T *rhs) {
+        return !(lhs == rhs);
+    }
+
+    friend bool operator!=(const RCUPtr &lhs, const RCUPtr &rhs) {
+        return !(lhs == rhs);
+    }
+
+    /**
+     * ostream support.
+     */
+    friend std::ostream &operator<<(std::ostream &stream, const RCUPtr &ptr) {
+        return stream << ptr.ptr;
+    }
 };
 
 #define IMPLEMENT_RCU_REFCOUNT(T)                                              \
