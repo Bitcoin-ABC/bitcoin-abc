@@ -724,6 +724,8 @@ public:
     bool m_limited_node{false};
     const bool fInbound;
     std::atomic_bool fSuccessfullyConnected{false};
+    // Setting fDisconnect to true will cause the node to be disconnected the
+    // next time DisconnectNodes() runs
     std::atomic_bool fDisconnect{false};
     bool fSentAddr{false};
     CSemaphoreGrant grantOutbound;
