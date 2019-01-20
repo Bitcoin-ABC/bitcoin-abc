@@ -196,11 +196,11 @@ public:
 
 #define IMPLEMENT_RCU_REFCOUNT(T)                                              \
 private:                                                                       \
-    std::atomic<T> refcount{0};                                                \
+    mutable std::atomic<T> refcount{0};                                        \
                                                                                \
-    void acquire() { refcount++; }                                             \
+    void acquire() const { refcount++; }                                       \
                                                                                \
-    bool tryDecrement() {                                                      \
+    bool tryDecrement() const {                                                \
         T count = refcount.load();                                             \
         while (count > 0) {                                                    \
             if (refcount.compare_exchange_weak(count, count - 1)) {            \
@@ -211,7 +211,7 @@ private:                                                                       \
         return false;                                                          \
     }                                                                          \
                                                                                \
-    void release() {                                                           \
+    void release() const {                                                     \
         if (tryDecrement()) {                                                  \
             return;                                                            \
         }                                                                      \
