@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
         uint256 hash = SignatureHash(scriptPubKey, CTransaction(spends[i]), 0,
                                      SigHashType().withForkId(),
                                      coinbaseTxns[0].vout[0].nValue);
-        BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
+        BOOST_CHECK(coinbaseKey.SignECDSA(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         spends[i].vin[0].scriptSig << vchSig;
     }
@@ -187,7 +187,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         uint256 nulldummySigHash = SignatureHash(
             p2pk_scriptPubKey, CTransaction(mutableFunding_tx), 0,
             SigHashType().withForkId(), coinbaseTxns[0].vout[0].nValue);
-        BOOST_CHECK(coinbaseKey.Sign(nulldummySigHash, nullDummyVchSig));
+        BOOST_CHECK(coinbaseKey.SignECDSA(nulldummySigHash, nullDummyVchSig));
         nullDummyVchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         mutableFunding_tx.vin[0].scriptSig << nullDummyVchSig;
     }
@@ -231,7 +231,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         uint256 hash = SignatureHash(
             nulldummyPubKeyScript, CTransaction(mutableSpend_tx), 0,
             SigHashType().withForkId(), funding_tx.vout[0].nValue);
-        coinbaseKey.Sign(hash, vchSig);
+        coinbaseKey.SignECDSA(hash, vchSig);
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
 
         // The last item on the stack will be dropped by CHECKMULTISIG This is
@@ -316,7 +316,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         uint256 hash = SignatureHash(
             spend_tx.vout[1].scriptPubKey, CTransaction(invalid_with_cltv_tx),
             0, SigHashType().withForkId(), spend_tx.vout[1].nValue);
-        BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
+        BOOST_CHECK(coinbaseKey.SignECDSA(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_cltv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 
@@ -353,7 +353,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
         uint256 hash = SignatureHash(
             spend_tx.vout[2].scriptPubKey, CTransaction(invalid_with_csv_tx), 0,
             SigHashType().withForkId(), spend_tx.vout[2].nValue);
-        BOOST_CHECK(coinbaseKey.Sign(hash, vchSig));
+        BOOST_CHECK(coinbaseKey.SignECDSA(hash, vchSig));
         vchSig.push_back(uint8_t(SIGHASH_ALL | SIGHASH_FORKID));
         invalid_with_csv_tx.vin[0].scriptSig = CScript() << vchSig << 101;
 

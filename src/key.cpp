@@ -183,8 +183,8 @@ CPubKey CKey::GetPubKey() const {
     return result;
 }
 
-bool CKey::Sign(const uint256 &hash, std::vector<uint8_t> &vchSig,
-                uint32_t test_case) const {
+bool CKey::SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
+                     uint32_t test_case) const {
     if (!fValid) return false;
     vchSig.resize(72);
     size_t nSigLen = 72;
@@ -214,8 +214,8 @@ bool CKey::VerifyPubKey(const CPubKey &pubkey) const {
         .Write(rnd, sizeof(rnd))
         .Finalize(hash.begin());
     std::vector<uint8_t> vchSig;
-    Sign(hash, vchSig);
-    return pubkey.Verify(hash, vchSig);
+    SignECDSA(hash, vchSig);
+    return pubkey.VerifyECDSA(hash, vchSig);
 }
 
 bool CKey::SignCompact(const uint256 &hash,

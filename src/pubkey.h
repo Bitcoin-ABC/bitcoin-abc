@@ -36,7 +36,7 @@ public:
 
 typedef uint256 ChainCode;
 
-/** An encapsulated public key. */
+/** An encapsulated secp256k1 public key. */
 class CPubKey {
 private:
     /**
@@ -136,13 +136,14 @@ public:
     bool IsCompressed() const { return size() == 33; }
 
     /**
-     * Verify a DER signature (~72 bytes).
+     * Verify a DER-serialized ECDSA signature (~72 bytes).
      * If this public key is not fully valid, the return value will be false.
      */
-    bool Verify(const uint256 &hash, const std::vector<uint8_t> &vchSig) const;
+    bool VerifyECDSA(const uint256 &hash,
+                     const std::vector<uint8_t> &vchSig) const;
 
     /**
-     * Check whether a signature is normalized (lower-S).
+     * Check whether a DER-serialized ECDSA signature is normalized (lower-S).
      */
     static bool
     CheckLowS(const boost::sliced_range<const std::vector<uint8_t>> &vchSig);
@@ -150,7 +151,7 @@ public:
         return CheckLowS(vchSig | boost::adaptors::sliced(0, vchSig.size()));
     }
 
-    //! Recover a public key from a compact signature.
+    //! Recover a public key from a compact ECDSA signature.
     bool RecoverCompact(const uint256 &hash,
                         const std::vector<uint8_t> &vchSig);
 
