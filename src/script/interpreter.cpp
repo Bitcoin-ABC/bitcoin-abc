@@ -1465,7 +1465,7 @@ uint256 SignatureHash(const CScript &scriptCode, const CTransaction &txTo,
 bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
                                            const CPubKey &pubkey,
                                            const uint256 &sighash) const {
-    return pubkey.Verify(sighash, vchSig);
+    return pubkey.VerifyECDSA(sighash, vchSig);
 }
 
 bool TransactionSignatureChecker::CheckSig(
