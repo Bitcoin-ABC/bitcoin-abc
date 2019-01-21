@@ -431,6 +431,11 @@ namespace {
         handleWatchOnlyChanged(WatchOnlyChangedFn fn) override {
             return MakeHandler(m_wallet.NotifyWatchonlyChanged.connect(fn));
         }
+        std::unique_ptr<Handler>
+        handleCanGetAddressesChanged(CanGetAddressesChangedFn fn) override {
+            return MakeHandler(
+                m_wallet.NotifyCanGetAddressesChanged.connect(fn));
+        }
         Amount getRequiredFee(unsigned int tx_bytes) override {
             return GetRequiredFee(m_wallet, tx_bytes);
         }

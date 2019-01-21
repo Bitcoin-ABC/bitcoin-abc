@@ -1577,6 +1577,7 @@ void CWallet::SetHDSeed(const CPubKey &seed) {
                               : CHDChain::VERSION_HD_BASE;
     newHdChain.seed_id = seed.GetID();
     SetHDChain(newHdChain, false);
+    NotifyCanGetAddressesChanged();
 }
 
 void CWallet::SetHDChain(const CHDChain &chain, bool memonly) {
@@ -3616,66 +3617,68 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
     if (IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS)) {
         return false;
     }
-    LOCK(cs_wallet);
+    {
+        LOCK(cs_wallet);
 
-    if (IsLocked()) {
-        return false;
-    }
-
-    // Top up key pool
-    unsigned int nTargetSize;
-    if (kpSize > 0) {
-        nTargetSize = kpSize;
-    } else {
-        nTargetSize = std::max<int64_t>(
-            gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), 0);
-    }
-
-    // count amount of available keys (internal, external)
-    // make sure the keypool of external and internal keys fits the user
-    // selected target (-keypool)
-    int64_t missingExternal = std::max<int64_t>(
-        std::max<int64_t>(nTargetSize, 1) - setExternalKeyPool.size(), 0);
-    int64_t missingInternal = std::max<int64_t>(
-        std::max<int64_t>(nTargetSize, 1) - setInternalKeyPool.size(), 0);
-
-    if (!IsHDEnabled() || !CanSupportFeature(FEATURE_HD_SPLIT)) {
-        // don't create extra internal keys
-        missingInternal = 0;
-    }
-    bool internal = false;
-    WalletBatch batch(*database);
-    for (int64_t i = missingInternal + missingExternal; i--;) {
-        if (i < missingInternal) {
-            internal = true;
+        if (IsLocked()) {
+            return false;
         }
 
-        // How in the hell did you use so many keys?
-        assert(m_max_keypool_index < std::numeric_limits<int64_t>::max());
-        int64_t index = ++m_max_keypool_index;
-
-        CPubKey pubkey(GenerateNewKey(batch, internal));
-        if (!batch.WritePool(index, CKeyPool(pubkey, internal))) {
-            throw std::runtime_error(std::string(__func__) +
-                                     ": writing generated key failed");
-        }
-
-        if (internal) {
-            setInternalKeyPool.insert(index);
+        // Top up key pool
+        unsigned int nTargetSize;
+        if (kpSize > 0) {
+            nTargetSize = kpSize;
         } else {
-            setExternalKeyPool.insert(index);
+            nTargetSize = std::max<int64_t>(
+                gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), 0);
         }
-        m_pool_key_to_index[pubkey.GetID()] = index;
-    }
-    if (missingInternal + missingExternal > 0) {
-        WalletLogPrintf(
-            "keypool added %d keys (%d internal), size=%u (%u internal)\n",
-            missingInternal + missingExternal, missingInternal,
-            setInternalKeyPool.size() + setExternalKeyPool.size() +
-                set_pre_split_keypool.size(),
-            setInternalKeyPool.size());
-    }
 
+        // count amount of available keys (internal, external)
+        // make sure the keypool of external and internal keys fits the user
+        // selected target (-keypool)
+        int64_t missingExternal = std::max<int64_t>(
+            std::max<int64_t>(nTargetSize, 1) - setExternalKeyPool.size(), 0);
+        int64_t missingInternal = std::max<int64_t>(
+            std::max<int64_t>(nTargetSize, 1) - setInternalKeyPool.size(), 0);
+
+        if (!IsHDEnabled() || !CanSupportFeature(FEATURE_HD_SPLIT)) {
+            // don't create extra internal keys
+            missingInternal = 0;
+        }
+        bool internal = false;
+        WalletBatch batch(*database);
+        for (int64_t i = missingInternal + missingExternal; i--;) {
+            if (i < missingInternal) {
+                internal = true;
+            }
+
+            // How in the hell did you use so many keys?
+            assert(m_max_keypool_index < std::numeric_limits<int64_t>::max());
+            int64_t index = ++m_max_keypool_index;
+
+            CPubKey pubkey(GenerateNewKey(batch, internal));
+            if (!batch.WritePool(index, CKeyPool(pubkey, internal))) {
+                throw std::runtime_error(std::string(__func__) +
+                                         ": writing generated key failed");
+            }
+
+            if (internal) {
+                setInternalKeyPool.insert(index);
+            } else {
+                setExternalKeyPool.insert(index);
+            }
+            m_pool_key_to_index[pubkey.GetID()] = index;
+        }
+        if (missingInternal + missingExternal > 0) {
+            WalletLogPrintf(
+                "keypool added %d keys (%d internal), size=%u (%u internal)\n",
+                missingInternal + missingExternal, missingInternal,
+                setInternalKeyPool.size() + setExternalKeyPool.size() +
+                    set_pre_split_keypool.size(),
+                setInternalKeyPool.size());
+        }
+    }
+    NotifyCanGetAddressesChanged();
     return true;
 }
 
@@ -3683,52 +3686,53 @@ bool CWallet::ReserveKeyFromKeyPool(int64_t &nIndex, CKeyPool &keypool,
                                     bool fRequestedInternal) {
     nIndex = -1;
     keypool.vchPubKey = CPubKey();
+    {
+        LOCK(cs_wallet);
 
-    LOCK(cs_wallet);
+        if (!IsLocked()) {
+            TopUpKeyPool();
+        }
 
-    if (!IsLocked()) {
-        TopUpKeyPool();
+        bool fReturningInternal = IsHDEnabled() &&
+                                  CanSupportFeature(FEATURE_HD_SPLIT) &&
+                                  fRequestedInternal;
+        bool use_split_keypool = set_pre_split_keypool.empty();
+        std::set<int64_t> &setKeyPool =
+            use_split_keypool
+                ? (fReturningInternal ? setInternalKeyPool : setExternalKeyPool)
+                : set_pre_split_keypool;
+
+        // Get the oldest key
+        if (setKeyPool.empty()) {
+            return false;
+        }
+
+        WalletBatch batch(*database);
+
+        auto it = setKeyPool.begin();
+        nIndex = *it;
+        setKeyPool.erase(it);
+        if (!batch.ReadPool(nIndex, keypool)) {
+            throw std::runtime_error(std::string(__func__) + ": read failed");
+        }
+        if (!HaveKey(keypool.vchPubKey.GetID())) {
+            throw std::runtime_error(std::string(__func__) +
+                                     ": unknown key in key pool");
+        }
+        // If the key was pre-split keypool, we don't care about what type it is
+        if (use_split_keypool && keypool.fInternal != fReturningInternal) {
+            throw std::runtime_error(std::string(__func__) +
+                                     ": keypool entry misclassified");
+        }
+        if (!keypool.vchPubKey.IsValid()) {
+            throw std::runtime_error(std::string(__func__) +
+                                     ": keypool entry invalid");
+        }
+
+        m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
+        WalletLogPrintf("keypool reserve %d\n", nIndex);
     }
-
-    bool fReturningInternal = IsHDEnabled() &&
-                              CanSupportFeature(FEATURE_HD_SPLIT) &&
-                              fRequestedInternal;
-    bool use_split_keypool = set_pre_split_keypool.empty();
-    std::set<int64_t> &setKeyPool =
-        use_split_keypool
-            ? (fReturningInternal ? setInternalKeyPool : setExternalKeyPool)
-            : set_pre_split_keypool;
-
-    // Get the oldest key
-    if (setKeyPool.empty()) {
-        return false;
-    }
-
-    WalletBatch batch(*database);
-
-    auto it = setKeyPool.begin();
-    nIndex = *it;
-    setKeyPool.erase(it);
-    if (!batch.ReadPool(nIndex, keypool)) {
-        throw std::runtime_error(std::string(__func__) + ": read failed");
-    }
-    if (!HaveKey(keypool.vchPubKey.GetID())) {
-        throw std::runtime_error(std::string(__func__) +
-                                 ": unknown key in key pool");
-    }
-    // If the key was pre-split keypool, we don't care about what type it is
-    if (use_split_keypool && keypool.fInternal != fReturningInternal) {
-        throw std::runtime_error(std::string(__func__) +
-                                 ": keypool entry misclassified");
-    }
-    if (!keypool.vchPubKey.IsValid()) {
-        throw std::runtime_error(std::string(__func__) +
-                                 ": keypool entry invalid");
-    }
-
-    m_pool_key_to_index.erase(keypool.vchPubKey.GetID());
-    WalletLogPrintf("keypool reserve %d\n", nIndex);
-
+    NotifyCanGetAddressesChanged();
     return true;
 }
 
@@ -3751,6 +3755,7 @@ void CWallet::ReturnKey(int64_t nIndex, bool fInternal, const CPubKey &pubkey) {
             setExternalKeyPool.insert(nIndex);
         }
         m_pool_key_to_index[pubkey.GetID()] = nIndex;
+        NotifyCanGetAddressesChanged();
     }
 
     WalletLogPrintf("keypool return %d\n", nIndex);
