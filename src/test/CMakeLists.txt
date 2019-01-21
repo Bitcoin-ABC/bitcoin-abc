@@ -44,6 +44,7 @@ create_test_suite(bitcoin)
 add_dependencies(check check-bitcoin)
 
 add_test_to_suite(bitcoin test_bitcoin
+	activation_tests.cpp
 	addrman_tests.cpp
 	allocator_tests.cpp
 	amount_tests.cpp

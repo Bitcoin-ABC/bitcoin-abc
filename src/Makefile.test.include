@@ -26,6 +26,7 @@ GENERATED_TEST_FILES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.r
 # test_bitcoin binary #
 BITCOIN_TESTS =\
   test/scriptnum10.h \
+  test/activation_tests.cpp \
   test/addrman_tests.cpp \
   test/allocator_tests.cpp \
   test/amount_tests.cpp \

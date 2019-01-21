@@ -46,3 +46,14 @@ bool IsMagneticAnomalyEnabled(const Config &config,
 
     return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
 }
+
+bool IsGreatWallEnabled(const Config &config, const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return pindexPrev->GetMedianTimePast() >=
+           gArgs.GetArg(
+               "-greatwallactivationtime",
+               config.GetChainParams().GetConsensus().greatWallActivationTime);
+}
