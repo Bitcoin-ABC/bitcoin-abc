@@ -39,7 +39,7 @@ void synchronize(std::atomic<RCUTestStep> &step,
                  const std::atomic<RCUTestStep> &otherstep,
                  CWaitableCriticalSection &cs, std::condition_variable &cond,
                  std::atomic<uint64_t> &syncRev) {
-    BOOST_CHECK(step == RCUTestStep::Init);
+    assert(step == RCUTestStep::Init);
 
     {
         WAIT_LOCK(cs, lock);
@@ -61,7 +61,7 @@ void synchronize(std::atomic<RCUTestStep> &step,
     syncRev = RCUTest::getRevision() + 1;
     step = RCUTestStep::Synchronizing;
 
-    BOOST_CHECK(!RCUTest::hasSynced(syncRev));
+    assert(!RCUTest::hasSynced(syncRev));
 
     // We wait for readers.
     RCULock::synchronize();
@@ -75,7 +75,7 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
                                CWaitableCriticalSection &cs,
                                std::condition_variable &cond,
                                std::atomic<uint64_t> &syncRev) {
-    BOOST_CHECK(step == RCUTestStep::Init);
+    assert(step == RCUTestStep::Init);
     WAIT_LOCK(cs, lock);
 
     // Wait for th eother thread to be locked.
@@ -84,7 +84,7 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
 
     // Wait for the synchronizing tread to take its RCU lock.
     WAIT_FOR_STEP(RCUTestStep::RCULocked);
-    BOOST_CHECK(!RCUTest::hasSynced(syncRev));
+    assert(!RCUTest::hasSynced(syncRev));
 
     {
         RCULock rculock;
@@ -96,11 +96,11 @@ void lockAndWaitForSynchronize(std::atomic<RCUTestStep> &step,
             WAIT_FOR_STEP(RCUTestStep::Synchronizing);
         }
 
-        BOOST_CHECK(RCUTest::getRevision() >= syncRev);
-        BOOST_CHECK_EQUAL(otherstep.load(), RCUTestStep::Synchronizing);
+        assert(RCUTest::getRevision() >= syncRev);
+        assert(otherstep.load() == RCUTestStep::Synchronizing);
     }
 
-    BOOST_CHECK(RCUTest::hasSynced(syncRev));
+    assert(RCUTest::hasSynced(syncRev));
     WAIT_FOR_STEP(RCUTestStep::Synchronized);
 }
 
